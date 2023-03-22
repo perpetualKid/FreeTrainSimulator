@@ -35,17 +35,17 @@
             // 
             hScrollBar1.Location = new System.Drawing.Point(0, 125);
             hScrollBar1.Name = "hScrollBar1";
-            hScrollBar1.Size = new System.Drawing.Size(900, 25);
+            hScrollBar1.Size = new System.Drawing.Size(1150, 25);
             hScrollBar1.TabIndex = 0;
             // 
             // ConsistViewPanel
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             BackColor = System.Drawing.Color.LightBlue;
             Controls.Add(hScrollBar1);
             Name = "ConsistViewPanel";
-            Size = new System.Drawing.Size(900, 150);
+            Size = new System.Drawing.Size(1150, 150);
+            Load += ConsistViewPanel_Load;
             ResumeLayout(false);
         }
 

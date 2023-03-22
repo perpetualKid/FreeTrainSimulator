@@ -40,7 +40,7 @@
             button8 = new System.Windows.Forms.Button();
             progressBar1 = new System.Windows.Forms.ProgressBar();
             pictureBox1 = new System.Windows.Forms.PictureBox();
-            tabControl1 = new System.Windows.Forms.TabControl();
+            AETab = new System.Windows.Forms.TabControl();
             tabPage1 = new System.Windows.Forms.TabPage();
             groupBox3 = new System.Windows.Forms.GroupBox();
             numericUpDown6 = new System.Windows.Forms.NumericUpDown();
@@ -69,7 +69,9 @@
             textBox3 = new System.Windows.Forms.TextBox();
             label4 = new System.Windows.Forms.Label();
             groupBox2 = new System.Windows.Forms.GroupBox();
+            textBox6 = new System.Windows.Forms.TextBox();
             groupBox1 = new System.Windows.Forms.GroupBox();
+            textBox5 = new System.Windows.Forms.TextBox();
             textBox2 = new System.Windows.Forms.TextBox();
             label3 = new System.Windows.Forms.Label();
             button9 = new System.Windows.Forms.Button();
@@ -77,66 +79,75 @@
             label2 = new System.Windows.Forms.Label();
             numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             tabPage2 = new System.Windows.Forms.TabPage();
+            button11 = new System.Windows.Forms.Button();
+            button10 = new System.Windows.Forms.Button();
+            AEObjectList = new System.Windows.Forms.ListView();
+            columnHeader1 = new System.Windows.Forms.ColumnHeader();
+            columnHeader2 = new System.Windows.Forms.ColumnHeader();
+            columnHeader3 = new System.Windows.Forms.ColumnHeader();
+            columnHeader4 = new System.Windows.Forms.ColumnHeader();
+            columnHeader5 = new System.Windows.Forms.ColumnHeader();
+            columnHeader6 = new System.Windows.Forms.ColumnHeader();
+            columnHeader7 = new System.Windows.Forms.ColumnHeader();
+            columnHeader8 = new System.Windows.Forms.ColumnHeader();
+            columnHeader9 = new System.Windows.Forms.ColumnHeader();
+            columnHeader10 = new System.Windows.Forms.ColumnHeader();
             tabPage3 = new System.Windows.Forms.TabPage();
-            tabPage4 = new System.Windows.Forms.TabPage();
-            tabPage5 = new System.Windows.Forms.TabPage();
-            checkBox2 = new System.Windows.Forms.CheckBox();
-            timer1 = new System.Windows.Forms.Timer(components);
-            label17 = new System.Windows.Forms.Label();
-            numericUpDown7 = new System.Windows.Forms.NumericUpDown();
-            textBox5 = new System.Windows.Forms.TextBox();
-            textBox6 = new System.Windows.Forms.TextBox();
-            groupBox5 = new System.Windows.Forms.GroupBox();
-            groupBox6 = new System.Windows.Forms.GroupBox();
             groupBox7 = new System.Windows.Forms.GroupBox();
-            listView2 = new System.Windows.Forms.ListView();
-            button12 = new System.Windows.Forms.Button();
-            button13 = new System.Windows.Forms.Button();
-            button14 = new System.Windows.Forms.Button();
-            button15 = new System.Windows.Forms.Button();
-            listView3 = new System.Windows.Forms.ListView();
-            button16 = new System.Windows.Forms.Button();
+            button20 = new System.Windows.Forms.Button();
             button17 = new System.Windows.Forms.Button();
             button18 = new System.Windows.Forms.Button();
             button19 = new System.Windows.Forms.Button();
             listView4 = new System.Windows.Forms.ListView();
-            button20 = new System.Windows.Forms.Button();
-            button11 = new System.Windows.Forms.Button();
-            button10 = new System.Windows.Forms.Button();
-            listView1 = new System.Windows.Forms.ListView();
-            listView5 = new System.Windows.Forms.ListView();
-            button21 = new System.Windows.Forms.Button();
-            button22 = new System.Windows.Forms.Button();
+            groupBox6 = new System.Windows.Forms.GroupBox();
+            button16 = new System.Windows.Forms.Button();
+            button14 = new System.Windows.Forms.Button();
+            button15 = new System.Windows.Forms.Button();
+            listView3 = new System.Windows.Forms.ListView();
+            groupBox5 = new System.Windows.Forms.GroupBox();
+            button13 = new System.Windows.Forms.Button();
+            button12 = new System.Windows.Forms.Button();
+            listView2 = new System.Windows.Forms.ListView();
+            tabPage4 = new System.Windows.Forms.TabPage();
             button23 = new System.Windows.Forms.Button();
-            label18 = new System.Windows.Forms.Label();
-            textBox7 = new System.Windows.Forms.TextBox();
-            button24 = new System.Windows.Forms.Button();
-            button25 = new System.Windows.Forms.Button();
-            button26 = new System.Windows.Forms.Button();
-            label19 = new System.Windows.Forms.Label();
-            textBox8 = new System.Windows.Forms.TextBox();
-            label20 = new System.Windows.Forms.Label();
-            textBox9 = new System.Windows.Forms.TextBox();
-            label21 = new System.Windows.Forms.Label();
-            textBox10 = new System.Windows.Forms.TextBox();
-            label22 = new System.Windows.Forms.Label();
-            textBox11 = new System.Windows.Forms.TextBox();
-            label23 = new System.Windows.Forms.Label();
-            textBox12 = new System.Windows.Forms.TextBox();
-            label24 = new System.Windows.Forms.Label();
-            textBox13 = new System.Windows.Forms.TextBox();
-            label25 = new System.Windows.Forms.Label();
-            textBox14 = new System.Windows.Forms.TextBox();
-            label26 = new System.Windows.Forms.Label();
-            comboBox5 = new System.Windows.Forms.ComboBox();
-            label27 = new System.Windows.Forms.Label();
-            textBox15 = new System.Windows.Forms.TextBox();
-            label28 = new System.Windows.Forms.Label();
-            textBox16 = new System.Windows.Forms.TextBox();
-            button27 = new System.Windows.Forms.Button();
+            button22 = new System.Windows.Forms.Button();
+            button21 = new System.Windows.Forms.Button();
+            listView5 = new System.Windows.Forms.ListView();
+            tabPage5 = new System.Windows.Forms.TabPage();
+            AEPlayerConsistView = new ConsistEditor.ConsistViewPanel();
             button28 = new System.Windows.Forms.Button();
+            button27 = new System.Windows.Forms.Button();
+            textBox16 = new System.Windows.Forms.TextBox();
+            label28 = new System.Windows.Forms.Label();
+            textBox15 = new System.Windows.Forms.TextBox();
+            label27 = new System.Windows.Forms.Label();
+            comboBox5 = new System.Windows.Forms.ComboBox();
+            label26 = new System.Windows.Forms.Label();
+            textBox14 = new System.Windows.Forms.TextBox();
+            label25 = new System.Windows.Forms.Label();
+            textBox13 = new System.Windows.Forms.TextBox();
+            label24 = new System.Windows.Forms.Label();
+            textBox12 = new System.Windows.Forms.TextBox();
+            label23 = new System.Windows.Forms.Label();
+            textBox11 = new System.Windows.Forms.TextBox();
+            label22 = new System.Windows.Forms.Label();
+            textBox10 = new System.Windows.Forms.TextBox();
+            label21 = new System.Windows.Forms.Label();
+            textBox9 = new System.Windows.Forms.TextBox();
+            label20 = new System.Windows.Forms.Label();
+            textBox8 = new System.Windows.Forms.TextBox();
+            label19 = new System.Windows.Forms.Label();
+            button26 = new System.Windows.Forms.Button();
+            button25 = new System.Windows.Forms.Button();
+            button24 = new System.Windows.Forms.Button();
+            textBox7 = new System.Windows.Forms.TextBox();
+            label18 = new System.Windows.Forms.Label();
+            checkBox2 = new System.Windows.Forms.CheckBox();
+            timer1 = new System.Windows.Forms.Timer(components);
+            label17 = new System.Windows.Forms.Label();
+            numericUpDown7 = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-            tabControl1.SuspendLayout();
+            AETab.SuspendLayout();
             tabPage1.SuspendLayout();
             groupBox3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDown6).BeginInit();
@@ -149,12 +160,12 @@
             ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
             tabPage2.SuspendLayout();
             tabPage3.SuspendLayout();
+            groupBox7.SuspendLayout();
+            groupBox6.SuspendLayout();
+            groupBox5.SuspendLayout();
             tabPage4.SuspendLayout();
             tabPage5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDown7).BeginInit();
-            groupBox5.SuspendLayout();
-            groupBox6.SuspendLayout();
-            groupBox7.SuspendLayout();
             SuspendLayout();
             // 
             // button1
@@ -270,20 +281,20 @@
             pictureBox1.TabIndex = 11;
             pictureBox1.TabStop = false;
             // 
-            // tabControl1
+            // AETab
             // 
-            tabControl1.Controls.Add(tabPage1);
-            tabControl1.Controls.Add(tabPage2);
-            tabControl1.Controls.Add(tabPage3);
-            tabControl1.Controls.Add(tabPage4);
-            tabControl1.Controls.Add(tabPage5);
-            tabControl1.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            tabControl1.Location = new System.Drawing.Point(12, 192);
-            tabControl1.Name = "tabControl1";
-            tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new System.Drawing.Size(1160, 557);
-            tabControl1.TabIndex = 12;
-            tabControl1.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
+            AETab.Controls.Add(tabPage1);
+            AETab.Controls.Add(tabPage2);
+            AETab.Controls.Add(tabPage3);
+            AETab.Controls.Add(tabPage4);
+            AETab.Controls.Add(tabPage5);
+            AETab.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            AETab.Location = new System.Drawing.Point(12, 192);
+            AETab.Name = "AETab";
+            AETab.SelectedIndex = 0;
+            AETab.Size = new System.Drawing.Size(1160, 557);
+            AETab.TabIndex = 12;
+            AETab.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
             // 
             // tabPage1
             // 
@@ -557,6 +568,15 @@
             groupBox2.TabStop = false;
             groupBox2.Text = "Briefing:";
             // 
+            // textBox6
+            // 
+            textBox6.AcceptsReturn = true;
+            textBox6.Location = new System.Drawing.Point(6, 25);
+            textBox6.Multiline = true;
+            textBox6.Name = "textBox6";
+            textBox6.Size = new System.Drawing.Size(1128, 121);
+            textBox6.TabIndex = 0;
+            // 
             // groupBox1
             // 
             groupBox1.Controls.Add(textBox5);
@@ -566,6 +586,15 @@
             groupBox1.TabIndex = 7;
             groupBox1.TabStop = false;
             groupBox1.Text = "Description:";
+            // 
+            // textBox5
+            // 
+            textBox5.AcceptsReturn = true;
+            textBox5.Location = new System.Drawing.Point(6, 25);
+            textBox5.Multiline = true;
+            textBox5.Name = "textBox5";
+            textBox5.Size = new System.Drawing.Size(1128, 112);
+            textBox5.TabIndex = 0;
             // 
             // textBox2
             // 
@@ -618,9 +647,9 @@
             // 
             // tabPage2
             // 
+            tabPage2.Controls.Add(AEObjectList);
             tabPage2.Controls.Add(button11);
             tabPage2.Controls.Add(button10);
-            tabPage2.Controls.Add(listView1);
             tabPage2.Location = new System.Drawing.Point(4, 28);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new System.Windows.Forms.Padding(3);
@@ -628,6 +657,90 @@
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Objects";
             tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // button11
+            // 
+            button11.BackColor = System.Drawing.Color.Red;
+            button11.Location = new System.Drawing.Point(1014, 52);
+            button11.Name = "button11";
+            button11.Size = new System.Drawing.Size(120, 42);
+            button11.TabIndex = 5;
+            button11.Text = "Show";
+            button11.UseVisualStyleBackColor = false;
+            // 
+            // button10
+            // 
+            button10.BackColor = System.Drawing.Color.Red;
+            button10.Location = new System.Drawing.Point(1014, 6);
+            button10.Name = "button10";
+            button10.Size = new System.Drawing.Size(120, 40);
+            button10.TabIndex = 4;
+            button10.Text = "Delete";
+            button10.UseVisualStyleBackColor = false;
+            // 
+            // AEObjectList
+            // 
+            AEObjectList.BackColor = System.Drawing.SystemColors.ControlLight;
+            AEObjectList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5, columnHeader6, columnHeader7, columnHeader8, columnHeader9, columnHeader10 });
+            AEObjectList.FullRowSelect = true;
+            AEObjectList.GridLines = true;
+            AEObjectList.Location = new System.Drawing.Point(6, 6);
+            AEObjectList.Name = "AEObjectList";
+            AEObjectList.Size = new System.Drawing.Size(1002, 513);
+            AEObjectList.TabIndex = 31;
+            AEObjectList.UseCompatibleStateImageBehavior = false;
+            AEObjectList.SelectedIndexChanged += AEObjectList_SelectedIndexChanged;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Text = "Object Name";
+            columnHeader1.Width = 120;
+            // 
+            // columnHeader2
+            // 
+            columnHeader2.Text = "Direction";
+            columnHeader2.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // columnHeader3
+            // 
+            columnHeader3.Text = "ID";
+            columnHeader3.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // columnHeader4
+            // 
+            columnHeader4.Text = "TileX";
+            columnHeader4.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // columnHeader5
+            // 
+            columnHeader5.Text = "TileZ";
+            columnHeader5.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // columnHeader6
+            // 
+            columnHeader6.Text = "X";
+            columnHeader6.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // columnHeader7
+            // 
+            columnHeader7.Text = "Z";
+            columnHeader7.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // columnHeader8
+            // 
+            columnHeader8.Text = "Max. V.";
+            columnHeader8.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // columnHeader9
+            // 
+            columnHeader9.Text = "Engine Name";
+            columnHeader9.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // columnHeader10
+            // 
+            columnHeader10.Text = "Train Cfg";
+            columnHeader10.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            columnHeader10.Width = 260;
             // 
             // tabPage3
             // 
@@ -641,131 +754,6 @@
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Signals/Speed Zones/Pass Waiting";
             tabPage3.UseVisualStyleBackColor = true;
-            // 
-            // tabPage4
-            // 
-            tabPage4.Controls.Add(button23);
-            tabPage4.Controls.Add(button22);
-            tabPage4.Controls.Add(button21);
-            tabPage4.Controls.Add(listView5);
-            tabPage4.Location = new System.Drawing.Point(4, 28);
-            tabPage4.Name = "tabPage4";
-            tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            tabPage4.Size = new System.Drawing.Size(1152, 525);
-            tabPage4.TabIndex = 3;
-            tabPage4.Text = "Events";
-            tabPage4.UseVisualStyleBackColor = true;
-            // 
-            // tabPage5
-            // 
-            tabPage5.Controls.Add(button28);
-            tabPage5.Controls.Add(button27);
-            tabPage5.Controls.Add(textBox16);
-            tabPage5.Controls.Add(label28);
-            tabPage5.Controls.Add(textBox15);
-            tabPage5.Controls.Add(label27);
-            tabPage5.Controls.Add(comboBox5);
-            tabPage5.Controls.Add(label26);
-            tabPage5.Controls.Add(textBox14);
-            tabPage5.Controls.Add(label25);
-            tabPage5.Controls.Add(textBox13);
-            tabPage5.Controls.Add(label24);
-            tabPage5.Controls.Add(textBox12);
-            tabPage5.Controls.Add(label23);
-            tabPage5.Controls.Add(textBox11);
-            tabPage5.Controls.Add(label22);
-            tabPage5.Controls.Add(textBox10);
-            tabPage5.Controls.Add(label21);
-            tabPage5.Controls.Add(textBox9);
-            tabPage5.Controls.Add(label20);
-            tabPage5.Controls.Add(textBox8);
-            tabPage5.Controls.Add(label19);
-            tabPage5.Controls.Add(button26);
-            tabPage5.Controls.Add(button25);
-            tabPage5.Controls.Add(button24);
-            tabPage5.Controls.Add(textBox7);
-            tabPage5.Controls.Add(label18);
-            tabPage5.Location = new System.Drawing.Point(4, 28);
-            tabPage5.Name = "tabPage5";
-            tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            tabPage5.Size = new System.Drawing.Size(1152, 525);
-            tabPage5.TabIndex = 4;
-            tabPage5.Text = "Player";
-            tabPage5.UseVisualStyleBackColor = true;
-            // 
-            // checkBox2
-            // 
-            checkBox2.AutoSize = true;
-            checkBox2.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            checkBox2.Location = new System.Drawing.Point(140, 116);
-            checkBox2.Name = "checkBox2";
-            checkBox2.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            checkBox2.Size = new System.Drawing.Size(106, 23);
-            checkBox2.TabIndex = 13;
-            checkBox2.Text = ":Autosave";
-            checkBox2.UseVisualStyleBackColor = true;
-            // 
-            // label17
-            // 
-            label17.AutoSize = true;
-            label17.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            label17.Location = new System.Drawing.Point(264, 117);
-            label17.Name = "label17";
-            label17.Size = new System.Drawing.Size(147, 19);
-            label17.TabIndex = 14;
-            label17.Text = "Autosave Interval:";
-            // 
-            // numericUpDown7
-            // 
-            numericUpDown7.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            numericUpDown7.Location = new System.Drawing.Point(417, 115);
-            numericUpDown7.Name = "numericUpDown7";
-            numericUpDown7.Size = new System.Drawing.Size(120, 26);
-            numericUpDown7.TabIndex = 15;
-            // 
-            // textBox5
-            // 
-            textBox5.AcceptsReturn = true;
-            textBox5.Location = new System.Drawing.Point(6, 25);
-            textBox5.Multiline = true;
-            textBox5.Name = "textBox5";
-            textBox5.Size = new System.Drawing.Size(1128, 112);
-            textBox5.TabIndex = 0;
-            // 
-            // textBox6
-            // 
-            textBox6.AcceptsReturn = true;
-            textBox6.Location = new System.Drawing.Point(6, 25);
-            textBox6.Multiline = true;
-            textBox6.Name = "textBox6";
-            textBox6.Size = new System.Drawing.Size(1128, 121);
-            textBox6.TabIndex = 0;
-            // 
-            // groupBox5
-            // 
-            groupBox5.Controls.Add(button13);
-            groupBox5.Controls.Add(button12);
-            groupBox5.Controls.Add(listView2);
-            groupBox5.Location = new System.Drawing.Point(6, 17);
-            groupBox5.Name = "groupBox5";
-            groupBox5.Size = new System.Drawing.Size(389, 473);
-            groupBox5.TabIndex = 0;
-            groupBox5.TabStop = false;
-            groupBox5.Text = "Failed Signals";
-            // 
-            // groupBox6
-            // 
-            groupBox6.Controls.Add(button16);
-            groupBox6.Controls.Add(button14);
-            groupBox6.Controls.Add(button15);
-            groupBox6.Controls.Add(listView3);
-            groupBox6.Location = new System.Drawing.Point(401, 17);
-            groupBox6.Name = "groupBox6";
-            groupBox6.Size = new System.Drawing.Size(370, 473);
-            groupBox6.TabIndex = 1;
-            groupBox6.TabStop = false;
-            groupBox6.Text = "Restricted Speed Zones";
-            groupBox6.Enter += groupBox6_Enter;
             // 
             // groupBox7
             // 
@@ -781,71 +769,15 @@
             groupBox7.TabStop = false;
             groupBox7.Text = "Passengers Waiting";
             // 
-            // listView2
+            // button20
             // 
-            listView2.Location = new System.Drawing.Point(6, 25);
-            listView2.Name = "listView2";
-            listView2.Size = new System.Drawing.Size(247, 442);
-            listView2.TabIndex = 0;
-            listView2.UseCompatibleStateImageBehavior = false;
-            // 
-            // button12
-            // 
-            button12.BackColor = System.Drawing.Color.Red;
-            button12.Location = new System.Drawing.Point(259, 25);
-            button12.Name = "button12";
-            button12.Size = new System.Drawing.Size(95, 33);
-            button12.TabIndex = 1;
-            button12.Text = "Delete";
-            button12.UseVisualStyleBackColor = false;
-            // 
-            // button13
-            // 
-            button13.BackColor = System.Drawing.Color.Red;
-            button13.Location = new System.Drawing.Point(259, 64);
-            button13.Name = "button13";
-            button13.Size = new System.Drawing.Size(95, 33);
-            button13.TabIndex = 2;
-            button13.Text = "Show";
-            button13.UseVisualStyleBackColor = false;
-            // 
-            // button14
-            // 
-            button14.BackColor = System.Drawing.Color.Red;
-            button14.Location = new System.Drawing.Point(259, 64);
-            button14.Name = "button14";
-            button14.Size = new System.Drawing.Size(111, 33);
-            button14.TabIndex = 5;
-            button14.Text = "Show Start";
-            button14.UseVisualStyleBackColor = false;
-            // 
-            // button15
-            // 
-            button15.BackColor = System.Drawing.Color.Red;
-            button15.Location = new System.Drawing.Point(259, 25);
-            button15.Name = "button15";
-            button15.Size = new System.Drawing.Size(111, 33);
-            button15.TabIndex = 4;
-            button15.Text = "Delete";
-            button15.UseVisualStyleBackColor = false;
-            // 
-            // listView3
-            // 
-            listView3.Location = new System.Drawing.Point(6, 25);
-            listView3.Name = "listView3";
-            listView3.Size = new System.Drawing.Size(247, 442);
-            listView3.TabIndex = 3;
-            listView3.UseCompatibleStateImageBehavior = false;
-            // 
-            // button16
-            // 
-            button16.BackColor = System.Drawing.Color.Red;
-            button16.Location = new System.Drawing.Point(259, 103);
-            button16.Name = "button16";
-            button16.Size = new System.Drawing.Size(111, 33);
-            button16.TabIndex = 6;
-            button16.Text = "Show End";
-            button16.UseVisualStyleBackColor = false;
+            button20.BackColor = System.Drawing.Color.Red;
+            button20.Location = new System.Drawing.Point(258, 142);
+            button20.Name = "button20";
+            button20.Size = new System.Drawing.Size(111, 33);
+            button20.TabIndex = 11;
+            button20.Text = "Show";
+            button20.UseVisualStyleBackColor = false;
             // 
             // button17
             // 
@@ -885,71 +817,111 @@
             listView4.TabIndex = 7;
             listView4.UseCompatibleStateImageBehavior = false;
             // 
-            // button20
+            // groupBox6
             // 
-            button20.BackColor = System.Drawing.Color.Red;
-            button20.Location = new System.Drawing.Point(258, 142);
-            button20.Name = "button20";
-            button20.Size = new System.Drawing.Size(111, 33);
-            button20.TabIndex = 11;
-            button20.Text = "Show";
-            button20.UseVisualStyleBackColor = false;
+            groupBox6.Controls.Add(button16);
+            groupBox6.Controls.Add(button14);
+            groupBox6.Controls.Add(button15);
+            groupBox6.Controls.Add(listView3);
+            groupBox6.Location = new System.Drawing.Point(401, 17);
+            groupBox6.Name = "groupBox6";
+            groupBox6.Size = new System.Drawing.Size(370, 473);
+            groupBox6.TabIndex = 1;
+            groupBox6.TabStop = false;
+            groupBox6.Text = "Restricted Speed Zones";
+            groupBox6.Enter += groupBox6_Enter;
             // 
-            // button11
+            // button16
             // 
-            button11.BackColor = System.Drawing.Color.Red;
-            button11.Location = new System.Drawing.Point(1014, 52);
-            button11.Name = "button11";
-            button11.Size = new System.Drawing.Size(120, 42);
-            button11.TabIndex = 5;
-            button11.Text = "Show";
-            button11.UseVisualStyleBackColor = false;
+            button16.BackColor = System.Drawing.Color.Red;
+            button16.Location = new System.Drawing.Point(259, 103);
+            button16.Name = "button16";
+            button16.Size = new System.Drawing.Size(111, 33);
+            button16.TabIndex = 6;
+            button16.Text = "Show End";
+            button16.UseVisualStyleBackColor = false;
             // 
-            // button10
+            // button14
             // 
-            button10.BackColor = System.Drawing.Color.Red;
-            button10.Location = new System.Drawing.Point(1014, 6);
-            button10.Name = "button10";
-            button10.Size = new System.Drawing.Size(120, 40);
-            button10.TabIndex = 4;
-            button10.Text = "Delete";
-            button10.UseVisualStyleBackColor = false;
+            button14.BackColor = System.Drawing.Color.Red;
+            button14.Location = new System.Drawing.Point(259, 64);
+            button14.Name = "button14";
+            button14.Size = new System.Drawing.Size(111, 33);
+            button14.TabIndex = 5;
+            button14.Text = "Show Start";
+            button14.UseVisualStyleBackColor = false;
             // 
-            // listView1
+            // button15
             // 
-            listView1.Location = new System.Drawing.Point(6, 6);
-            listView1.Name = "listView1";
-            listView1.Size = new System.Drawing.Size(1002, 513);
-            listView1.TabIndex = 3;
-            listView1.UseCompatibleStateImageBehavior = false;
+            button15.BackColor = System.Drawing.Color.Red;
+            button15.Location = new System.Drawing.Point(259, 25);
+            button15.Name = "button15";
+            button15.Size = new System.Drawing.Size(111, 33);
+            button15.TabIndex = 4;
+            button15.Text = "Delete";
+            button15.UseVisualStyleBackColor = false;
             // 
-            // listView5
+            // listView3
             // 
-            listView5.Location = new System.Drawing.Point(6, 6);
-            listView5.Name = "listView5";
-            listView5.Size = new System.Drawing.Size(1033, 513);
-            listView5.TabIndex = 0;
-            listView5.UseCompatibleStateImageBehavior = false;
+            listView3.Location = new System.Drawing.Point(6, 25);
+            listView3.Name = "listView3";
+            listView3.Size = new System.Drawing.Size(247, 442);
+            listView3.TabIndex = 3;
+            listView3.UseCompatibleStateImageBehavior = false;
             // 
-            // button21
+            // groupBox5
             // 
-            button21.BackColor = System.Drawing.Color.Red;
-            button21.Location = new System.Drawing.Point(1045, 6);
-            button21.Name = "button21";
-            button21.Size = new System.Drawing.Size(101, 35);
-            button21.TabIndex = 1;
-            button21.Text = "New";
-            button21.UseVisualStyleBackColor = false;
+            groupBox5.Controls.Add(button13);
+            groupBox5.Controls.Add(button12);
+            groupBox5.Controls.Add(listView2);
+            groupBox5.Location = new System.Drawing.Point(6, 17);
+            groupBox5.Name = "groupBox5";
+            groupBox5.Size = new System.Drawing.Size(389, 473);
+            groupBox5.TabIndex = 0;
+            groupBox5.TabStop = false;
+            groupBox5.Text = "Failed Signals";
             // 
-            // button22
+            // button13
             // 
-            button22.BackColor = System.Drawing.Color.Red;
-            button22.Location = new System.Drawing.Point(1045, 47);
-            button22.Name = "button22";
-            button22.Size = new System.Drawing.Size(101, 35);
-            button22.TabIndex = 2;
-            button22.Text = "Edit";
-            button22.UseVisualStyleBackColor = false;
+            button13.BackColor = System.Drawing.Color.Red;
+            button13.Location = new System.Drawing.Point(259, 64);
+            button13.Name = "button13";
+            button13.Size = new System.Drawing.Size(95, 33);
+            button13.TabIndex = 2;
+            button13.Text = "Show";
+            button13.UseVisualStyleBackColor = false;
+            // 
+            // button12
+            // 
+            button12.BackColor = System.Drawing.Color.Red;
+            button12.Location = new System.Drawing.Point(259, 25);
+            button12.Name = "button12";
+            button12.Size = new System.Drawing.Size(95, 33);
+            button12.TabIndex = 1;
+            button12.Text = "Delete";
+            button12.UseVisualStyleBackColor = false;
+            // 
+            // listView2
+            // 
+            listView2.Location = new System.Drawing.Point(6, 25);
+            listView2.Name = "listView2";
+            listView2.Size = new System.Drawing.Size(247, 442);
+            listView2.TabIndex = 0;
+            listView2.UseCompatibleStateImageBehavior = false;
+            // 
+            // tabPage4
+            // 
+            tabPage4.Controls.Add(button23);
+            tabPage4.Controls.Add(button22);
+            tabPage4.Controls.Add(button21);
+            tabPage4.Controls.Add(listView5);
+            tabPage4.Location = new System.Drawing.Point(4, 28);
+            tabPage4.Name = "tabPage4";
+            tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            tabPage4.Size = new System.Drawing.Size(1152, 525);
+            tabPage4.TabIndex = 3;
+            tabPage4.Text = "Events";
+            tabPage4.UseVisualStyleBackColor = true;
             // 
             // button23
             // 
@@ -961,222 +933,79 @@
             button23.Text = "Delete";
             button23.UseVisualStyleBackColor = false;
             // 
-            // label18
+            // button22
             // 
-            label18.AutoSize = true;
-            label18.Location = new System.Drawing.Point(16, 17);
-            label18.Name = "label18";
-            label18.Size = new System.Drawing.Size(58, 19);
-            label18.TabIndex = 0;
-            label18.Text = "Serial:";
+            button22.BackColor = System.Drawing.Color.Red;
+            button22.Location = new System.Drawing.Point(1045, 47);
+            button22.Name = "button22";
+            button22.Size = new System.Drawing.Size(101, 35);
+            button22.TabIndex = 2;
+            button22.Text = "Edit";
+            button22.UseVisualStyleBackColor = false;
             // 
-            // textBox7
+            // button21
             // 
-            textBox7.Location = new System.Drawing.Point(80, 14);
-            textBox7.Name = "textBox7";
-            textBox7.Size = new System.Drawing.Size(67, 26);
-            textBox7.TabIndex = 1;
+            button21.BackColor = System.Drawing.Color.Red;
+            button21.Location = new System.Drawing.Point(1045, 6);
+            button21.Name = "button21";
+            button21.Size = new System.Drawing.Size(101, 35);
+            button21.TabIndex = 1;
+            button21.Text = "New";
+            button21.UseVisualStyleBackColor = false;
             // 
-            // button24
+            // listView5
             // 
-            button24.BackColor = System.Drawing.Color.Red;
-            button24.Location = new System.Drawing.Point(211, 14);
-            button24.Name = "button24";
-            button24.Size = new System.Drawing.Size(75, 28);
-            button24.TabIndex = 2;
-            button24.Text = "New";
-            button24.UseVisualStyleBackColor = false;
+            listView5.Location = new System.Drawing.Point(6, 6);
+            listView5.Name = "listView5";
+            listView5.Size = new System.Drawing.Size(1033, 513);
+            listView5.TabIndex = 0;
+            listView5.UseCompatibleStateImageBehavior = false;
             // 
-            // button25
+            // tabPage5
             // 
-            button25.BackColor = System.Drawing.Color.Red;
-            button25.Location = new System.Drawing.Point(292, 14);
-            button25.Name = "button25";
-            button25.Size = new System.Drawing.Size(75, 28);
-            button25.TabIndex = 3;
-            button25.Text = "Load";
-            button25.UseVisualStyleBackColor = false;
+            tabPage5.Controls.Add(AEPlayerConsistView);
+            tabPage5.Controls.Add(button28);
+            tabPage5.Controls.Add(button27);
+            tabPage5.Controls.Add(textBox16);
+            tabPage5.Controls.Add(label28);
+            tabPage5.Controls.Add(textBox15);
+            tabPage5.Controls.Add(label27);
+            tabPage5.Controls.Add(comboBox5);
+            tabPage5.Controls.Add(label26);
+            tabPage5.Controls.Add(textBox14);
+            tabPage5.Controls.Add(label25);
+            tabPage5.Controls.Add(textBox13);
+            tabPage5.Controls.Add(label24);
+            tabPage5.Controls.Add(textBox12);
+            tabPage5.Controls.Add(label23);
+            tabPage5.Controls.Add(textBox11);
+            tabPage5.Controls.Add(label22);
+            tabPage5.Controls.Add(textBox10);
+            tabPage5.Controls.Add(label21);
+            tabPage5.Controls.Add(textBox9);
+            tabPage5.Controls.Add(label20);
+            tabPage5.Controls.Add(textBox8);
+            tabPage5.Controls.Add(label19);
+            tabPage5.Controls.Add(button26);
+            tabPage5.Controls.Add(button25);
+            tabPage5.Controls.Add(button24);
+            tabPage5.Controls.Add(textBox7);
+            tabPage5.Controls.Add(label18);
+            tabPage5.Location = new System.Drawing.Point(4, 28);
+            tabPage5.Name = "tabPage5";
+            tabPage5.Padding = new System.Windows.Forms.Padding(3);
+            tabPage5.Size = new System.Drawing.Size(1152, 525);
+            tabPage5.TabIndex = 4;
+            tabPage5.Text = "Player";
+            tabPage5.UseVisualStyleBackColor = true;
             // 
-            // button26
+            // AEPlayerConsistView
             // 
-            button26.BackColor = System.Drawing.Color.Red;
-            button26.Location = new System.Drawing.Point(373, 14);
-            button26.Name = "button26";
-            button26.Size = new System.Drawing.Size(75, 28);
-            button26.TabIndex = 4;
-            button26.Text = "Edit";
-            button26.UseVisualStyleBackColor = false;
-            // 
-            // label19
-            // 
-            label19.AutoSize = true;
-            label19.Location = new System.Drawing.Point(22, 55);
-            label19.Name = "label19";
-            label19.Size = new System.Drawing.Size(120, 19);
-            label19.TabIndex = 5;
-            label19.Text = "Service Name:";
-            // 
-            // textBox8
-            // 
-            textBox8.Location = new System.Drawing.Point(159, 48);
-            textBox8.Name = "textBox8";
-            textBox8.Size = new System.Drawing.Size(289, 26);
-            textBox8.TabIndex = 6;
-            // 
-            // label20
-            // 
-            label20.AutoSize = true;
-            label20.Location = new System.Drawing.Point(34, 85);
-            label20.Name = "label20";
-            label20.Size = new System.Drawing.Size(108, 19);
-            label20.TabIndex = 7;
-            label20.Text = "Train Config:";
-            // 
-            // textBox9
-            // 
-            textBox9.Location = new System.Drawing.Point(159, 78);
-            textBox9.Name = "textBox9";
-            textBox9.Size = new System.Drawing.Size(289, 26);
-            textBox9.TabIndex = 8;
-            // 
-            // label21
-            // 
-            label21.AutoSize = true;
-            label21.Location = new System.Drawing.Point(24, 113);
-            label21.Name = "label21";
-            label21.Size = new System.Drawing.Size(118, 19);
-            label21.TabIndex = 9;
-            label21.Text = "Train Number:";
-            // 
-            // textBox10
-            // 
-            textBox10.Location = new System.Drawing.Point(159, 110);
-            textBox10.Name = "textBox10";
-            textBox10.Size = new System.Drawing.Size(289, 26);
-            textBox10.TabIndex = 10;
-            // 
-            // label22
-            // 
-            label22.AutoSize = true;
-            label22.Location = new System.Drawing.Point(0, 142);
-            label22.Name = "label22";
-            label22.Size = new System.Drawing.Size(142, 19);
-            label22.TabIndex = 11;
-            label22.Text = "Max Wheel Accel:";
-            // 
-            // textBox11
-            // 
-            textBox11.Location = new System.Drawing.Point(159, 139);
-            textBox11.Name = "textBox11";
-            textBox11.Size = new System.Drawing.Size(100, 26);
-            textBox11.TabIndex = 12;
-            // 
-            // label23
-            // 
-            label23.AutoSize = true;
-            label23.Location = new System.Drawing.Point(265, 142);
-            label23.Name = "label23";
-            label23.Size = new System.Drawing.Size(86, 19);
-            label23.TabIndex = 13;
-            label23.Text = "Start Spd:";
-            // 
-            // textBox12
-            // 
-            textBox12.Location = new System.Drawing.Point(348, 139);
-            textBox12.Name = "textBox12";
-            textBox12.Size = new System.Drawing.Size(100, 26);
-            textBox12.TabIndex = 14;
-            // 
-            // label24
-            // 
-            label24.AutoSize = true;
-            label24.Location = new System.Drawing.Point(52, 172);
-            label24.Name = "label24";
-            label24.Size = new System.Drawing.Size(90, 19);
-            label24.TabIndex = 15;
-            label24.Text = "Efficiency:";
-            // 
-            // textBox13
-            // 
-            textBox13.Location = new System.Drawing.Point(159, 169);
-            textBox13.Name = "textBox13";
-            textBox13.Size = new System.Drawing.Size(100, 26);
-            textBox13.TabIndex = 16;
-            // 
-            // label25
-            // 
-            label25.AutoSize = true;
-            label25.Location = new System.Drawing.Point(270, 172);
-            label25.Name = "label25";
-            label25.Size = new System.Drawing.Size(81, 19);
-            label25.TabIndex = 17;
-            label25.Text = "End Spd:";
-            // 
-            // textBox14
-            // 
-            textBox14.Location = new System.Drawing.Point(348, 169);
-            textBox14.Name = "textBox14";
-            textBox14.Size = new System.Drawing.Size(100, 26);
-            textBox14.TabIndex = 18;
-            // 
-            // label26
-            // 
-            label26.AutoSize = true;
-            label26.Location = new System.Drawing.Point(72, 202);
-            label26.Name = "label26";
-            label26.Size = new System.Drawing.Size(70, 19);
-            label26.TabIndex = 19;
-            label26.Text = "Path ID:";
-            // 
-            // comboBox5
-            // 
-            comboBox5.FormattingEnabled = true;
-            comboBox5.Location = new System.Drawing.Point(159, 199);
-            comboBox5.Name = "comboBox5";
-            comboBox5.Size = new System.Drawing.Size(289, 27);
-            comboBox5.TabIndex = 20;
-            // 
-            // label27
-            // 
-            label27.AutoSize = true;
-            label27.Location = new System.Drawing.Point(52, 234);
-            label27.Name = "label27";
-            label27.Size = new System.Drawing.Size(90, 19);
-            label27.TabIndex = 21;
-            label27.Text = "Path Start:";
-            // 
-            // textBox15
-            // 
-            textBox15.Location = new System.Drawing.Point(159, 231);
-            textBox15.Name = "textBox15";
-            textBox15.Size = new System.Drawing.Size(289, 26);
-            textBox15.TabIndex = 22;
-            // 
-            // label28
-            // 
-            label28.AutoSize = true;
-            label28.Location = new System.Drawing.Point(57, 269);
-            label28.Name = "label28";
-            label28.Size = new System.Drawing.Size(85, 19);
-            label28.TabIndex = 23;
-            label28.Text = "Path End:";
-            // 
-            // textBox16
-            // 
-            textBox16.Location = new System.Drawing.Point(159, 266);
-            textBox16.Name = "textBox16";
-            textBox16.Size = new System.Drawing.Size(289, 26);
-            textBox16.TabIndex = 24;
-            // 
-            // button27
-            // 
-            button27.BackColor = System.Drawing.Color.Red;
-            button27.Location = new System.Drawing.Point(124, 298);
-            button27.Name = "button27";
-            button27.Size = new System.Drawing.Size(174, 41);
-            button27.TabIndex = 25;
-            button27.Text = "Show Route Details";
-            button27.UseVisualStyleBackColor = false;
+            AEPlayerConsistView.BackColor = System.Drawing.Color.LightBlue;
+            AEPlayerConsistView.Location = new System.Drawing.Point(2, 379);
+            AEPlayerConsistView.Name = "AEPlayerConsistView";
+            AEPlayerConsistView.Size = new System.Drawing.Size(1150, 150);
+            AEPlayerConsistView.TabIndex = 27;
             // 
             // button28
             // 
@@ -1188,6 +1017,253 @@
             button28.Text = "Show on Map";
             button28.UseVisualStyleBackColor = false;
             // 
+            // button27
+            // 
+            button27.BackColor = System.Drawing.Color.Red;
+            button27.Location = new System.Drawing.Point(124, 298);
+            button27.Name = "button27";
+            button27.Size = new System.Drawing.Size(174, 41);
+            button27.TabIndex = 25;
+            button27.Text = "Show Route Details";
+            button27.UseVisualStyleBackColor = false;
+            // 
+            // textBox16
+            // 
+            textBox16.Location = new System.Drawing.Point(159, 266);
+            textBox16.Name = "textBox16";
+            textBox16.Size = new System.Drawing.Size(289, 26);
+            textBox16.TabIndex = 24;
+            // 
+            // label28
+            // 
+            label28.AutoSize = true;
+            label28.Location = new System.Drawing.Point(57, 269);
+            label28.Name = "label28";
+            label28.Size = new System.Drawing.Size(85, 19);
+            label28.TabIndex = 23;
+            label28.Text = "Path End:";
+            // 
+            // textBox15
+            // 
+            textBox15.Location = new System.Drawing.Point(159, 231);
+            textBox15.Name = "textBox15";
+            textBox15.Size = new System.Drawing.Size(289, 26);
+            textBox15.TabIndex = 22;
+            // 
+            // label27
+            // 
+            label27.AutoSize = true;
+            label27.Location = new System.Drawing.Point(52, 234);
+            label27.Name = "label27";
+            label27.Size = new System.Drawing.Size(90, 19);
+            label27.TabIndex = 21;
+            label27.Text = "Path Start:";
+            // 
+            // comboBox5
+            // 
+            comboBox5.FormattingEnabled = true;
+            comboBox5.Location = new System.Drawing.Point(159, 199);
+            comboBox5.Name = "comboBox5";
+            comboBox5.Size = new System.Drawing.Size(289, 27);
+            comboBox5.TabIndex = 20;
+            // 
+            // label26
+            // 
+            label26.AutoSize = true;
+            label26.Location = new System.Drawing.Point(72, 202);
+            label26.Name = "label26";
+            label26.Size = new System.Drawing.Size(70, 19);
+            label26.TabIndex = 19;
+            label26.Text = "Path ID:";
+            // 
+            // textBox14
+            // 
+            textBox14.Location = new System.Drawing.Point(348, 169);
+            textBox14.Name = "textBox14";
+            textBox14.Size = new System.Drawing.Size(100, 26);
+            textBox14.TabIndex = 18;
+            // 
+            // label25
+            // 
+            label25.AutoSize = true;
+            label25.Location = new System.Drawing.Point(270, 172);
+            label25.Name = "label25";
+            label25.Size = new System.Drawing.Size(81, 19);
+            label25.TabIndex = 17;
+            label25.Text = "End Spd:";
+            // 
+            // textBox13
+            // 
+            textBox13.Location = new System.Drawing.Point(159, 169);
+            textBox13.Name = "textBox13";
+            textBox13.Size = new System.Drawing.Size(100, 26);
+            textBox13.TabIndex = 16;
+            // 
+            // label24
+            // 
+            label24.AutoSize = true;
+            label24.Location = new System.Drawing.Point(52, 172);
+            label24.Name = "label24";
+            label24.Size = new System.Drawing.Size(90, 19);
+            label24.TabIndex = 15;
+            label24.Text = "Efficiency:";
+            // 
+            // textBox12
+            // 
+            textBox12.Location = new System.Drawing.Point(348, 139);
+            textBox12.Name = "textBox12";
+            textBox12.Size = new System.Drawing.Size(100, 26);
+            textBox12.TabIndex = 14;
+            // 
+            // label23
+            // 
+            label23.AutoSize = true;
+            label23.Location = new System.Drawing.Point(265, 142);
+            label23.Name = "label23";
+            label23.Size = new System.Drawing.Size(86, 19);
+            label23.TabIndex = 13;
+            label23.Text = "Start Spd:";
+            // 
+            // textBox11
+            // 
+            textBox11.Location = new System.Drawing.Point(159, 139);
+            textBox11.Name = "textBox11";
+            textBox11.Size = new System.Drawing.Size(100, 26);
+            textBox11.TabIndex = 12;
+            // 
+            // label22
+            // 
+            label22.AutoSize = true;
+            label22.Location = new System.Drawing.Point(0, 142);
+            label22.Name = "label22";
+            label22.Size = new System.Drawing.Size(142, 19);
+            label22.TabIndex = 11;
+            label22.Text = "Max Wheel Accel:";
+            // 
+            // textBox10
+            // 
+            textBox10.Location = new System.Drawing.Point(159, 110);
+            textBox10.Name = "textBox10";
+            textBox10.Size = new System.Drawing.Size(289, 26);
+            textBox10.TabIndex = 10;
+            // 
+            // label21
+            // 
+            label21.AutoSize = true;
+            label21.Location = new System.Drawing.Point(24, 113);
+            label21.Name = "label21";
+            label21.Size = new System.Drawing.Size(118, 19);
+            label21.TabIndex = 9;
+            label21.Text = "Train Number:";
+            // 
+            // textBox9
+            // 
+            textBox9.Location = new System.Drawing.Point(159, 78);
+            textBox9.Name = "textBox9";
+            textBox9.Size = new System.Drawing.Size(289, 26);
+            textBox9.TabIndex = 8;
+            // 
+            // label20
+            // 
+            label20.AutoSize = true;
+            label20.Location = new System.Drawing.Point(34, 85);
+            label20.Name = "label20";
+            label20.Size = new System.Drawing.Size(108, 19);
+            label20.TabIndex = 7;
+            label20.Text = "Train Config:";
+            // 
+            // textBox8
+            // 
+            textBox8.Location = new System.Drawing.Point(159, 48);
+            textBox8.Name = "textBox8";
+            textBox8.Size = new System.Drawing.Size(289, 26);
+            textBox8.TabIndex = 6;
+            // 
+            // label19
+            // 
+            label19.AutoSize = true;
+            label19.Location = new System.Drawing.Point(22, 55);
+            label19.Name = "label19";
+            label19.Size = new System.Drawing.Size(120, 19);
+            label19.TabIndex = 5;
+            label19.Text = "Service Name:";
+            // 
+            // button26
+            // 
+            button26.BackColor = System.Drawing.Color.Red;
+            button26.Location = new System.Drawing.Point(373, 14);
+            button26.Name = "button26";
+            button26.Size = new System.Drawing.Size(75, 28);
+            button26.TabIndex = 4;
+            button26.Text = "Edit";
+            button26.UseVisualStyleBackColor = false;
+            // 
+            // button25
+            // 
+            button25.BackColor = System.Drawing.Color.Red;
+            button25.Location = new System.Drawing.Point(292, 14);
+            button25.Name = "button25";
+            button25.Size = new System.Drawing.Size(75, 28);
+            button25.TabIndex = 3;
+            button25.Text = "Load";
+            button25.UseVisualStyleBackColor = false;
+            // 
+            // button24
+            // 
+            button24.BackColor = System.Drawing.Color.Red;
+            button24.Location = new System.Drawing.Point(211, 14);
+            button24.Name = "button24";
+            button24.Size = new System.Drawing.Size(75, 28);
+            button24.TabIndex = 2;
+            button24.Text = "New";
+            button24.UseVisualStyleBackColor = false;
+            // 
+            // textBox7
+            // 
+            textBox7.Location = new System.Drawing.Point(80, 14);
+            textBox7.Name = "textBox7";
+            textBox7.Size = new System.Drawing.Size(67, 26);
+            textBox7.TabIndex = 1;
+            // 
+            // label18
+            // 
+            label18.AutoSize = true;
+            label18.Location = new System.Drawing.Point(16, 17);
+            label18.Name = "label18";
+            label18.Size = new System.Drawing.Size(58, 19);
+            label18.TabIndex = 0;
+            label18.Text = "Serial:";
+            // 
+            // checkBox2
+            // 
+            checkBox2.AutoSize = true;
+            checkBox2.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            checkBox2.Location = new System.Drawing.Point(140, 116);
+            checkBox2.Name = "checkBox2";
+            checkBox2.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            checkBox2.Size = new System.Drawing.Size(106, 23);
+            checkBox2.TabIndex = 13;
+            checkBox2.Text = ":Autosave";
+            checkBox2.UseVisualStyleBackColor = true;
+            // 
+            // label17
+            // 
+            label17.AutoSize = true;
+            label17.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label17.Location = new System.Drawing.Point(264, 117);
+            label17.Name = "label17";
+            label17.Size = new System.Drawing.Size(147, 19);
+            label17.TabIndex = 14;
+            label17.Text = "Autosave Interval:";
+            // 
+            // numericUpDown7
+            // 
+            numericUpDown7.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            numericUpDown7.Location = new System.Drawing.Point(417, 115);
+            numericUpDown7.Name = "numericUpDown7";
+            numericUpDown7.Size = new System.Drawing.Size(120, 26);
+            numericUpDown7.TabIndex = 15;
+            // 
             // AEForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -1196,7 +1272,7 @@
             Controls.Add(numericUpDown7);
             Controls.Add(label17);
             Controls.Add(checkBox2);
-            Controls.Add(tabControl1);
+            Controls.Add(AETab);
             Controls.Add(pictureBox1);
             Controls.Add(progressBar1);
             Controls.Add(button8);
@@ -1211,7 +1287,7 @@
             Name = "AEForm";
             Text = "Activity Editor";
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
-            tabControl1.ResumeLayout(false);
+            AETab.ResumeLayout(false);
             tabPage1.ResumeLayout(false);
             tabPage1.PerformLayout();
             groupBox3.ResumeLayout(false);
@@ -1228,13 +1304,13 @@
             ((System.ComponentModel.ISupportInitialize)numericUpDown1).EndInit();
             tabPage2.ResumeLayout(false);
             tabPage3.ResumeLayout(false);
+            groupBox7.ResumeLayout(false);
+            groupBox6.ResumeLayout(false);
+            groupBox5.ResumeLayout(false);
             tabPage4.ResumeLayout(false);
             tabPage5.ResumeLayout(false);
             tabPage5.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDown7).EndInit();
-            groupBox5.ResumeLayout(false);
-            groupBox6.ResumeLayout(false);
-            groupBox7.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1252,12 +1328,7 @@
         private System.Windows.Forms.Button button8;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.TabControl tabControl1;
-        private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.TabPage tabPage4;
-        private System.Windows.Forms.TabPage tabPage5;
+        private System.Windows.Forms.TabControl AETab;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.TextBox textBox2;
@@ -1309,7 +1380,6 @@
         private System.Windows.Forms.ListView listView2;
         private System.Windows.Forms.Button button11;
         private System.Windows.Forms.Button button10;
-        private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.Button button20;
         private System.Windows.Forms.Button button17;
         private System.Windows.Forms.Button button18;
@@ -1347,5 +1417,22 @@
         private System.Windows.Forms.Button button24;
         private System.Windows.Forms.TextBox textBox7;
         private System.Windows.Forms.Label label18;
+        private ConsistEditor.ConsistViewPanel AEPlayerConsistView;
+        private System.Windows.Forms.ColumnHeader columnHeader1;
+        private System.Windows.Forms.ColumnHeader columnHeader2;
+        private System.Windows.Forms.ColumnHeader columnHeader3;
+        private System.Windows.Forms.ColumnHeader columnHeader4;
+        private System.Windows.Forms.ColumnHeader columnHeader5;
+        private System.Windows.Forms.ColumnHeader columnHeader6;
+        private System.Windows.Forms.ColumnHeader columnHeader7;
+        private System.Windows.Forms.ColumnHeader columnHeader8;
+        private System.Windows.Forms.ColumnHeader columnHeader9;
+        private System.Windows.Forms.ColumnHeader columnHeader10;
+        public System.Windows.Forms.ListView AEObjectList;
+        public System.Windows.Forms.TabPage tabPage1;
+        public System.Windows.Forms.TabPage tabPage2;
+        public System.Windows.Forms.TabPage tabPage3;
+        public System.Windows.Forms.TabPage tabPage4;
+        public System.Windows.Forms.TabPage tabPage5;
     }
 }

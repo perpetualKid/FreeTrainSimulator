@@ -16,5 +16,10 @@ namespace Orts.Toolbox.ConsistEditor
         {
             InitializeComponent();
         }
+
+        private void ConsistViewPanel_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

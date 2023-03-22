@@ -26,5 +26,15 @@ namespace Orts.Toolbox.ActivityEditor
         {
 
         }
+
+        private void consistViewPanel1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void AEObjectList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
