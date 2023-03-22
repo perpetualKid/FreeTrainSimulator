@@ -59,7 +59,7 @@ namespace Orts.Simulation.Timetables
             List<string> filenames;
 
             // get filenames to process
-            filenames = GetFilenames(fileName);
+            filenames = EnumeratePoolFiles(fileName);
 
             // get file contents as strings
             Trace.Write("\n");
@@ -119,23 +119,19 @@ namespace Orts.Simulation.Timetables
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        private List<string> GetFilenames(string filePath)
+        private static IEnumerable<string> EnumeratePoolFiles(string filePath)
         {
-            List<string> filenames = new List<string>();
-
             // check type of timetable file - list or single
             string fileDirectory = Path.GetDirectoryName(filePath);
 
-            foreach (var ORPoolFile in Directory.GetFiles(fileDirectory, "*.pool_or"))
+            foreach (string poolFile in Directory.EnumerateFiles(fileDirectory, "*.pool_or"))
             {
-                filenames.Add(ORPoolFile);
+                yield return poolFile;
             }
-            foreach (var ORPoolFile in Directory.GetFiles(fileDirectory, "*.pool-or"))
+            foreach (string poolFile in Directory.EnumerateFiles(fileDirectory, "*.pool-or"))
             {
-                filenames.Add(ORPoolFile);
+                yield return poolFile;
             }
-
-            return (filenames);
         }
 
     }
