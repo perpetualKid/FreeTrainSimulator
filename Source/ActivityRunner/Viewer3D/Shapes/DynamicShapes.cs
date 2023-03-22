@@ -33,7 +33,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public Matrix[] XNAMatrices = Array.Empty<Matrix>();  // the positions of the subobjects
 
-        public readonly int[] Hierarchy;
+        public int[] Hierarchy { get; }
 
         public override ref readonly WorldPosition WorldPosition => ref positionSource.WorldPosition;
 
@@ -1019,9 +1019,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private Controller controllerGrabber01;
         private Controller controllerGrabber02;
         // To detect transitions that trigger sounds
-        protected bool OldMoveX;
-        protected bool OldMoveY;
-        protected bool OldMoveZ;
+        private EnumArray<bool, VectorDirection> oldMovement = new EnumArray<bool, VectorDirection>();
 
         private ContainerHandlingItem containerHandlingItem;
 
@@ -1157,9 +1155,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (fuelPickupItemObject.UiD == MSTSWagon.RefillProcess.ActivePickupObjectUID)
             {
                 float tempFrameRate;
-                if (containerHandlingItem.MoveX)
+                if (containerHandlingItem.Movement[VectorDirection.X])
                 {
-                    float animationTarget = Math.Abs((containerHandlingItem.TargetX - ((LinearKey)controllerX[0]).Position.X) / (((LinearKey)controllerX[1]).Position.X - ((LinearKey)controllerX[0]).Position.X)) * controllerX[1].Frame;
+                    float animationTarget = Math.Abs((containerHandlingItem.Target[VectorDirection.X] - ((LinearKey)controllerX[0]).Position.X) / (((LinearKey)controllerX[1]).Position.X - ((LinearKey)controllerX[0]).Position.X)) * controllerX[1].Frame;
                     //                    if (AnimationKey == 0 && Sound != null) Sound.HandleEvent(Event.FuelTowerDown);
                     tempFrameRate = Math.Abs(animationKeyX - animationTarget) > slowDownThreshold ? frameRate : frameRate / 4;
                     if (animationKeyX < animationTarget)
@@ -1169,7 +1167,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         if (animationKeyX >= animationTarget)
                         {
                             animationKeyX = animationTarget;
-                            containerHandlingItem.MoveX = false;
+                            containerHandlingItem.Movement[VectorDirection.X] = false;
                         }
                     }
                     else if (animationKeyX > animationTarget)
@@ -1178,18 +1176,18 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         if (animationKeyX <= animationTarget)
                         {
                             animationKeyX = animationTarget;
-                            containerHandlingItem.MoveX = false;
+                            containerHandlingItem.Movement[VectorDirection.X] = false;
                         }
                     }
                     else
-                        containerHandlingItem.MoveX = false;
+                        containerHandlingItem.Movement[VectorDirection.X] = false;
                     if (animationKeyX < 0)
                         animationKeyX = 0;
                 }
 
-                if (containerHandlingItem.MoveY)
+                if (containerHandlingItem.Movement[VectorDirection.Y])
                 {
-                    float animationTarget = Math.Abs((containerHandlingItem.TargetY - ((LinearKey)controllerY[0]).Position.Y) / (((LinearKey)controllerY[1]).Position.Y - ((LinearKey)controllerY[0]).Position.Y)) * controllerY[1].Frame;
+                    float animationTarget = Math.Abs((containerHandlingItem.Target[VectorDirection.Y] - ((LinearKey)controllerY[0]).Position.Y) / (((LinearKey)controllerY[1]).Position.Y - ((LinearKey)controllerY[0]).Position.Y)) * controllerY[1].Frame;
                     tempFrameRate = Math.Abs(animationKeyY - animationTarget) > slowDownThreshold ? frameRate : frameRate / 4;
                     if (animationKeyY < animationTarget)
                     {
@@ -1197,7 +1195,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         if (animationKeyY >= animationTarget)
                         {
                             animationKeyY = animationTarget;
-                            containerHandlingItem.MoveY = false;
+                            containerHandlingItem.Movement[VectorDirection.Y] = false;
                         }
                     }
                     else if (animationKeyY > animationTarget)
@@ -1206,18 +1204,18 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         if (animationKeyY <= animationTarget)
                         {
                             animationKeyY = animationTarget;
-                            containerHandlingItem.MoveY = false;
+                            containerHandlingItem.Movement[VectorDirection.Y] = false;
                         }
                     }
                     else
-                        containerHandlingItem.MoveY = false;
+                        containerHandlingItem.Movement[VectorDirection.Y] = false;
                     if (animationKeyY < 0)
                         animationKeyY = 0;
                 }
 
-                if (containerHandlingItem.MoveZ)
+                if (containerHandlingItem.Movement[VectorDirection.Z])
                 {
-                    float animationTarget = Math.Abs((containerHandlingItem.TargetZ - ((LinearKey)controllerZ[0]).Position.Z) / (((LinearKey)controllerZ[1]).Position.Z - ((LinearKey)controllerZ[0]).Position.Z)) * controllerZ[1].Frame;
+                    float animationTarget = Math.Abs((containerHandlingItem.Target[VectorDirection.Z] - ((LinearKey)controllerZ[0]).Position.Z) / (((LinearKey)controllerZ[1]).Position.Z - ((LinearKey)controllerZ[0]).Position.Z)) * controllerZ[1].Frame;
                     tempFrameRate = Math.Abs(animationKeyZ - animationTarget) > slowDownThreshold ? frameRate : frameRate / 4;
                     if (animationKeyZ < animationTarget)
                     {
@@ -1225,7 +1223,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         if (animationKeyZ >= animationTarget)
                         {
                             animationKeyZ = animationTarget;
-                            containerHandlingItem.MoveZ = false;
+                            containerHandlingItem.Movement[VectorDirection.Z] = false;
                         }
                     }
                     else if (animationKeyZ > animationTarget)
@@ -1234,11 +1232,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         if (animationKeyZ <= animationTarget)
                         {
                             animationKeyZ = animationTarget;
-                            containerHandlingItem.MoveZ = false;
+                            containerHandlingItem.Movement[VectorDirection.Z] = false;
                         }
                     }
                     else
-                        containerHandlingItem.MoveZ = false;
+                        containerHandlingItem.Movement[VectorDirection.Z] = false;
                     if (animationKeyZ < 0)
                         animationKeyZ = 0;
                 }
@@ -1323,23 +1321,23 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
             // let's make some noise
 
-            if (!OldMoveX && containerHandlingItem.MoveX)
+            if (!oldMovement[VectorDirection.X] && containerHandlingItem.Movement[VectorDirection.X])
                 soundSource?.HandleEvent(TrainEvent.CraneXAxisMove);
-            if (OldMoveX && !containerHandlingItem.MoveX)
+            if (oldMovement[VectorDirection.X] && !containerHandlingItem.Movement[VectorDirection.X])
                 soundSource?.HandleEvent(TrainEvent.CraneXAxisSlowDown);
-            if (!OldMoveY && containerHandlingItem.MoveY)
+            if (!oldMovement[VectorDirection.Y] && containerHandlingItem.Movement[VectorDirection.Y])
                 soundSource?.HandleEvent(TrainEvent.CraneYAxisMove);
-            if (OldMoveY && !containerHandlingItem.MoveY)
+            if (oldMovement[VectorDirection.Y] && !containerHandlingItem.Movement[VectorDirection.Y])
                 soundSource?.HandleEvent(TrainEvent.CraneYAxisSlowDown);
-            if (!OldMoveZ && containerHandlingItem.MoveZ)
+            if (!oldMovement[VectorDirection.Z] && containerHandlingItem.Movement[VectorDirection.Z])
                 soundSource?.HandleEvent(TrainEvent.CraneZAxisMove);
-            if (OldMoveZ && !containerHandlingItem.MoveZ)
+            if (oldMovement[VectorDirection.Z] && !containerHandlingItem.Movement[VectorDirection.Z])
                 soundSource?.HandleEvent(TrainEvent.CraneZAxisSlowDown);
-            if (OldMoveY && !containerHandlingItem.MoveY && !(containerHandlingItem.TargetY == containerHandlingItem.PickingSurfaceRelativeTopStartPosition.Y))
+            if (oldMovement[VectorDirection.Y] && !containerHandlingItem.Movement[VectorDirection.Y] && !(containerHandlingItem.Target[VectorDirection.Y] == containerHandlingItem.PickingSurfaceRelativeTopStartPosition.Y))
                 soundSource?.HandleEvent(TrainEvent.CraneYAxisDown);
-            OldMoveX = containerHandlingItem.MoveX;
-            OldMoveY = containerHandlingItem.MoveY;
-            OldMoveZ = containerHandlingItem.MoveZ;
+            oldMovement[VectorDirection.X] = containerHandlingItem.Movement[VectorDirection.X];
+            oldMovement[VectorDirection.Y] = containerHandlingItem.Movement[VectorDirection.Y];
+            oldMovement[VectorDirection.Z] = containerHandlingItem.Movement[VectorDirection.Z];
         }
     }
 
