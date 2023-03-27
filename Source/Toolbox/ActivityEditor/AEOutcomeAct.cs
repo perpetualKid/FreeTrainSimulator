@@ -17,19 +17,11 @@ namespace Orts.Toolbox.ActivityEditor
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
 
-        private void button2_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
 
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        private void AEOutcomeAction_SelectedIndexChanged(object sender, EventArgs e)
         {
-            int i = comboBox1.SelectedIndex;
+            int i = AEOutcomeAction.SelectedIndex;
             switch (i)
             {
                 case 0:
@@ -89,5 +81,6 @@ namespace Orts.Toolbox.ActivityEditor
             }
             this.Refresh();
         }
+
     }
 }

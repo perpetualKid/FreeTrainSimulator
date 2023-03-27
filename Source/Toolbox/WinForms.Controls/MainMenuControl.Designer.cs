@@ -611,19 +611,19 @@ namespace Orts.Toolbox.WinForms.Controls
             // loadPathToolStripMenuItem
             // 
             loadPathToolStripMenuItem.Name = "loadPathToolStripMenuItem";
-            loadPathToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+            loadPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             loadPathToolStripMenuItem.Text = "Load Path";
             loadPathToolStripMenuItem.Click += LoadPathToolStripMenuItem_Click;
             // 
             // toolStripSeparator7
             // 
             toolStripSeparator7.Name = "toolStripSeparator7";
-            toolStripSeparator7.Size = new System.Drawing.Size(124, 6);
+            toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
             // 
             // newPathToolStripMenuItem
             // 
             newPathToolStripMenuItem.Name = "newPathToolStripMenuItem";
-            newPathToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+            newPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             newPathToolStripMenuItem.Text = "New Path";
             newPathToolStripMenuItem.Click += EnableEditToolStripMenuItem_Click;
             // 
@@ -637,14 +637,14 @@ namespace Orts.Toolbox.WinForms.Controls
             // consistEditorToolStripMenuItem
             // 
             consistEditorToolStripMenuItem.Name = "consistEditorToolStripMenuItem";
-            consistEditorToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            consistEditorToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             consistEditorToolStripMenuItem.Text = "Consist Editor";
             consistEditorToolStripMenuItem.Click += consistEditorToolStripMenuItem_Click;
             // 
             // activityEditorToolStripMenuItem
             // 
             activityEditorToolStripMenuItem.Name = "activityEditorToolStripMenuItem";
-            activityEditorToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            activityEditorToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             activityEditorToolStripMenuItem.Text = "Activity Editor";
             activityEditorToolStripMenuItem.Click += activityEditorToolStripMenuItem_Click;
             // 

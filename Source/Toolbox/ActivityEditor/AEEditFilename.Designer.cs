@@ -28,51 +28,51 @@
         /// </summary>
         private void InitializeComponent()
         {
-            textBox1 = new System.Windows.Forms.TextBox();
-            button1 = new System.Windows.Forms.Button();
-            button2 = new System.Windows.Forms.Button();
+            FilenametextBox = new System.Windows.Forms.TextBox();
+            AEEditFilenameOKbutton = new System.Windows.Forms.Button();
+            AEEditFileNameCancelbutton = new System.Windows.Forms.Button();
             SuspendLayout();
             // 
-            // textBox1
+            // FilenametextBox
             // 
-            textBox1.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            textBox1.Location = new System.Drawing.Point(-2, 1);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new System.Drawing.Size(378, 23);
-            textBox1.TabIndex = 0;
+            FilenametextBox.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            FilenametextBox.Location = new System.Drawing.Point(-2, 1);
+            FilenametextBox.Name = "FilenametextBox";
+            FilenametextBox.Size = new System.Drawing.Size(378, 23);
+            FilenametextBox.TabIndex = 0;
             // 
-            // button1
+            // AEEditFilenameOKbutton
             // 
-            button1.BackColor = System.Drawing.Color.IndianRed;
-            button1.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button1.Location = new System.Drawing.Point(192, 30);
-            button1.Name = "button1";
-            button1.Size = new System.Drawing.Size(89, 31);
-            button1.TabIndex = 1;
-            button1.Text = "OK";
-            button1.UseVisualStyleBackColor = false;
-            button1.Click += button1_Click;
+            AEEditFilenameOKbutton.BackColor = System.Drawing.Color.IndianRed;
+            AEEditFilenameOKbutton.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            AEEditFilenameOKbutton.Location = new System.Drawing.Point(192, 30);
+            AEEditFilenameOKbutton.Name = "AEEditFilenameOKbutton";
+            AEEditFilenameOKbutton.Size = new System.Drawing.Size(89, 31);
+            AEEditFilenameOKbutton.TabIndex = 1;
+            AEEditFilenameOKbutton.Text = "OK";
+            AEEditFilenameOKbutton.UseVisualStyleBackColor = false;
+            AEEditFilenameOKbutton.Click += AEEditFilenameOKbutton_Click;
             // 
-            // button2
+            // AEEditFileNameCancelbutton
             // 
-            button2.BackColor = System.Drawing.Color.IndianRed;
-            button2.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button2.Location = new System.Drawing.Point(287, 30);
-            button2.Name = "button2";
-            button2.Size = new System.Drawing.Size(89, 31);
-            button2.TabIndex = 2;
-            button2.Text = "Cancel";
-            button2.UseVisualStyleBackColor = false;
-            button2.Click += button2_Click;
+            AEEditFileNameCancelbutton.BackColor = System.Drawing.Color.IndianRed;
+            AEEditFileNameCancelbutton.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            AEEditFileNameCancelbutton.Location = new System.Drawing.Point(287, 30);
+            AEEditFileNameCancelbutton.Name = "AEEditFileNameCancelbutton";
+            AEEditFileNameCancelbutton.Size = new System.Drawing.Size(89, 31);
+            AEEditFileNameCancelbutton.TabIndex = 2;
+            AEEditFileNameCancelbutton.Text = "Cancel";
+            AEEditFileNameCancelbutton.UseVisualStyleBackColor = false;
+            AEEditFileNameCancelbutton.Click += AEEditFileNameCancelbutton_Click;
             // 
             // AEEditFilename
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(379, 63);
-            Controls.Add(button2);
-            Controls.Add(button1);
-            Controls.Add(textBox1);
+            Controls.Add(AEEditFileNameCancelbutton);
+            Controls.Add(AEEditFilenameOKbutton);
+            Controls.Add(FilenametextBox);
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "AEEditFilename";
@@ -83,8 +83,8 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.TextBox FilenametextBox;
+        private System.Windows.Forms.Button AEEditFilenameOKbutton;
+        private System.Windows.Forms.Button AEEditFileNameCancelbutton;
     }
 }

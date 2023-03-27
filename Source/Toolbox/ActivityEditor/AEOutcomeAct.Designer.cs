@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             label1 = new System.Windows.Forms.Label();
-            comboBox1 = new System.Windows.Forms.ComboBox();
+            AEOutcomeAction = new System.Windows.Forms.ComboBox();
             AEOutcomeEvent = new System.Windows.Forms.GroupBox();
             comboBox2 = new System.Windows.Forms.ComboBox();
             AEOutcomeSound = new System.Windows.Forms.GroupBox();
@@ -58,15 +58,15 @@
             label1.TabIndex = 0;
             label1.Text = "Action:";
             // 
-            // comboBox1
+            // AEOutcomeAction
             // 
-            comboBox1.FormattingEnabled = true;
-            comboBox1.Items.AddRange(new object[] { "Display A Message.", "Complete Activity Successfully.", "End Activity without success.", "Increase an event's activation level.", "Decrease an event's activation level.", "Restore an event's activation level.", "Activate an event.", "Start ignoring speed limits.", "Stop ignoring speed limits.", "Play Sound from file.", "Change Weather." });
-            comboBox1.Location = new System.Drawing.Point(82, 23);
-            comboBox1.Name = "comboBox1";
-            comboBox1.Size = new System.Drawing.Size(337, 23);
-            comboBox1.TabIndex = 1;
-            comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
+            AEOutcomeAction.FormattingEnabled = true;
+            AEOutcomeAction.Items.AddRange(new object[] { "Display A Message.", "Complete Activity Successfully.", "End Activity without success.", "Increase an event's activation level.", "Decrease an event's activation level.", "Restore an event's activation level.", "Activate an event.", "Start ignoring speed limits.", "Stop ignoring speed limits.", "Play Sound from file.", "Change Weather." });
+            AEOutcomeAction.Location = new System.Drawing.Point(82, 23);
+            AEOutcomeAction.Name = "AEOutcomeAction";
+            AEOutcomeAction.Size = new System.Drawing.Size(337, 23);
+            AEOutcomeAction.TabIndex = 1;
+            AEOutcomeAction.SelectedIndexChanged += AEOutcomeAction_SelectedIndexChanged;
             // 
             // AEOutcomeEvent
             // 
@@ -146,7 +146,7 @@
             // 
             // button1
             // 
-            button1.BackColor = System.Drawing.Color.Red;
+            button1.BackColor = System.Drawing.Color.IndianRed;
             button1.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             button1.Location = new System.Drawing.Point(640, 450);
             button1.Name = "button1";
@@ -154,11 +154,10 @@
             button1.TabIndex = 7;
             button1.Text = "OK";
             button1.UseVisualStyleBackColor = false;
-            button1.Click += button1_Click;
             // 
             // button2
             // 
-            button2.BackColor = System.Drawing.Color.Red;
+            button2.BackColor = System.Drawing.Color.IndianRed;
             button2.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             button2.Location = new System.Drawing.Point(721, 450);
             button2.Name = "button2";
@@ -166,7 +165,6 @@
             button2.TabIndex = 8;
             button2.Text = "Cancel";
             button2.UseVisualStyleBackColor = false;
-            button2.Click += button2_Click;
             // 
             // AEOutcomeMessage
             // 
@@ -198,7 +196,7 @@
             Controls.Add(AEOutputWeather);
             Controls.Add(AEOutcomeSound);
             Controls.Add(AEOutcomeEvent);
-            Controls.Add(comboBox1);
+            Controls.Add(AEOutcomeAction);
             Controls.Add(label1);
             MaximizeBox = false;
             MinimizeBox = false;
@@ -218,7 +216,7 @@
         #endregion
 
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.ComboBox AEOutcomeAction;
         private System.Windows.Forms.ComboBox comboBox2;
         private System.Windows.Forms.ComboBox comboBox3;
         private System.Windows.Forms.Label label2;

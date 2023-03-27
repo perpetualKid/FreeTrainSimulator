@@ -30,11 +30,12 @@
         {
             label1 = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
-            comboBox1 = new System.Windows.Forms.ComboBox();
-            numericUpDown1 = new System.Windows.Forms.NumericUpDown();
-            button1 = new System.Windows.Forms.Button();
-            button2 = new System.Windows.Forms.Button();
-            ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
+            TrafDialogServiceName = new System.Windows.Forms.ComboBox();
+            TrafDialogSerStartTime = new System.Windows.Forms.NumericUpDown();
+            TrafDialogOKbutton = new System.Windows.Forms.Button();
+            TrafDialogCancelbutton = new System.Windows.Forms.Button();
+            TrafDialog24HourPlus = new System.Windows.Forms.CheckBox();
+            ((System.ComponentModel.ISupportInitialize)TrafDialogSerStartTime).BeginInit();
             SuspendLayout();
             // 
             // label1
@@ -57,61 +58,73 @@
             label2.TabIndex = 1;
             label2.Text = "Start Time:";
             // 
-            // comboBox1
+            // TrafDialogServiceName
             // 
-            comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new System.Drawing.Point(127, 25);
-            comboBox1.Name = "comboBox1";
-            comboBox1.Size = new System.Drawing.Size(321, 23);
-            comboBox1.TabIndex = 2;
+            TrafDialogServiceName.FormattingEnabled = true;
+            TrafDialogServiceName.Location = new System.Drawing.Point(127, 25);
+            TrafDialogServiceName.Name = "TrafDialogServiceName";
+            TrafDialogServiceName.Size = new System.Drawing.Size(321, 23);
+            TrafDialogServiceName.TabIndex = 2;
             // 
-            // numericUpDown1
+            // TrafDialogSerStartTime
             // 
-            numericUpDown1.Location = new System.Drawing.Point(127, 58);
-            numericUpDown1.Name = "numericUpDown1";
-            numericUpDown1.Size = new System.Drawing.Size(321, 23);
-            numericUpDown1.TabIndex = 3;
+            TrafDialogSerStartTime.Location = new System.Drawing.Point(127, 58);
+            TrafDialogSerStartTime.Name = "TrafDialogSerStartTime";
+            TrafDialogSerStartTime.Size = new System.Drawing.Size(321, 23);
+            TrafDialogSerStartTime.TabIndex = 3;
             // 
-            // button1
+            // TrafDialogOKbutton
             // 
-            button1.BackColor = System.Drawing.Color.IndianRed;
-            button1.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button1.Location = new System.Drawing.Point(282, 99);
-            button1.Name = "button1";
-            button1.Size = new System.Drawing.Size(80, 27);
-            button1.TabIndex = 4;
-            button1.Text = "OK";
-            button1.UseVisualStyleBackColor = false;
-            button1.Click += button1_Click;
+            TrafDialogOKbutton.BackColor = System.Drawing.Color.IndianRed;
+            TrafDialogOKbutton.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            TrafDialogOKbutton.Location = new System.Drawing.Point(282, 99);
+            TrafDialogOKbutton.Name = "TrafDialogOKbutton";
+            TrafDialogOKbutton.Size = new System.Drawing.Size(80, 27);
+            TrafDialogOKbutton.TabIndex = 4;
+            TrafDialogOKbutton.Text = "OK";
+            TrafDialogOKbutton.UseVisualStyleBackColor = false;
+            TrafDialogOKbutton.Click += TrafDialogOKbutton_Click;
             // 
-            // button2
+            // TrafDialogCancelbutton
             // 
-            button2.BackColor = System.Drawing.Color.IndianRed;
-            button2.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button2.Location = new System.Drawing.Point(368, 99);
-            button2.Name = "button2";
-            button2.Size = new System.Drawing.Size(80, 27);
-            button2.TabIndex = 5;
-            button2.Text = "Cancel";
-            button2.UseVisualStyleBackColor = false;
-            button2.Click += button2_Click;
+            TrafDialogCancelbutton.BackColor = System.Drawing.Color.IndianRed;
+            TrafDialogCancelbutton.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            TrafDialogCancelbutton.Location = new System.Drawing.Point(368, 99);
+            TrafDialogCancelbutton.Name = "TrafDialogCancelbutton";
+            TrafDialogCancelbutton.Size = new System.Drawing.Size(80, 27);
+            TrafDialogCancelbutton.TabIndex = 5;
+            TrafDialogCancelbutton.Text = "Cancel";
+            TrafDialogCancelbutton.UseVisualStyleBackColor = false;
+            TrafDialogCancelbutton.Click += TrafDialogCancelbutton_Click;
+            // 
+            // TrafDialog24HourPlus
+            // 
+            TrafDialog24HourPlus.AutoSize = true;
+            TrafDialog24HourPlus.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            TrafDialog24HourPlus.Location = new System.Drawing.Point(127, 99);
+            TrafDialog24HourPlus.Name = "TrafDialog24HourPlus";
+            TrafDialog24HourPlus.Size = new System.Drawing.Size(98, 23);
+            TrafDialog24HourPlus.TabIndex = 6;
+            TrafDialog24HourPlus.Text = "+ 24 HRS";
+            TrafDialog24HourPlus.UseVisualStyleBackColor = true;
             // 
             // TrafDiag
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(474, 140);
-            Controls.Add(button2);
-            Controls.Add(button1);
-            Controls.Add(numericUpDown1);
-            Controls.Add(comboBox1);
+            Controls.Add(TrafDialog24HourPlus);
+            Controls.Add(TrafDialogCancelbutton);
+            Controls.Add(TrafDialogOKbutton);
+            Controls.Add(TrafDialogSerStartTime);
+            Controls.Add(TrafDialogServiceName);
             Controls.Add(label2);
             Controls.Add(label1);
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "TrafDiag";
             Text = "Traffic Start Time";
-            ((System.ComponentModel.ISupportInitialize)numericUpDown1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)TrafDialogSerStartTime).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -120,9 +133,10 @@
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.ComboBox comboBox1;
-        private System.Windows.Forms.NumericUpDown numericUpDown1;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.ComboBox TrafDialogServiceName;
+        private System.Windows.Forms.NumericUpDown TrafDialogSerStartTime;
+        private System.Windows.Forms.Button TrafDialogOKbutton;
+        private System.Windows.Forms.Button TrafDialogCancelbutton;
+        private System.Windows.Forms.CheckBox TrafDialog24HourPlus;
     }
 }

@@ -20,15 +20,18 @@ namespace Orts.Toolbox.ActivityEditor
 
         private void button48_Click(object sender, EventArgs e)
         {
-            AEOutcomeAct d = new AEOutcomeAct();
-            d.AEOutcomeEvent.Visible = false;
-            d.AEOutcomeMessage.Visible = false;
-            d.AEOutcomeSound.Visible = false;
-            d.AEOutputWeather.Visible = false;
-            d.ShowDialog();
+            using (AEOutcomeAct d = new AEOutcomeAct())
+            {
+                d.AEOutcomeEvent.Visible = false;
+                d.AEOutcomeMessage.Visible = false;
+                d.AEOutcomeSound.Visible = false;
+                d.AEOutputWeather.Visible = false;
+                d.ShowDialog();
+            }
+
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void AENewActbutton_Click(object sender, EventArgs e)
         {
             MessageBox.Show("New button Clicked");
 
@@ -36,43 +39,54 @@ namespace Orts.Toolbox.ActivityEditor
 
         private void button22_Click(object sender, EventArgs e)
         {
-            AEOutcomeAct d = new AEOutcomeAct();
-            d.AEOutcomeEvent.Visible = false;
-            d.AEOutcomeMessage.Visible = false;
-            d.AEOutcomeSound.Visible = false;
-            d.AEOutputWeather.Visible = false;
-            d.ShowDialog();
-
+            using (AEOutcomeAct d = new AEOutcomeAct())
+            {
+                d.AEOutcomeEvent.Visible = false;
+                d.AEOutcomeMessage.Visible = false;
+                d.AEOutcomeSound.Visible = false;
+                d.AEOutputWeather.Visible = false;
+                d.ShowDialog();
+            }
         }
 
         private void button44_Click(object sender, EventArgs e)
         {
-            AEOutcomeAct d = new AEOutcomeAct();
-            d.AEOutcomeEvent.Visible = false;
-            d.AEOutcomeMessage.Visible = false;
-            d.AEOutcomeSound.Visible = false;
-            d.AEOutputWeather.Visible = false;
-            d.ShowDialog();
+            using (AEOutcomeAct d = new AEOutcomeAct())
+            {
+                d.AEOutcomeEvent.Visible = false;
+                d.AEOutcomeMessage.Visible = false;
+                d.AEOutcomeSound.Visible = false;
+                d.AEOutputWeather.Visible = false;
+                d.ShowDialog();
+            }
         }
 
-        private void button9_Click(object sender, EventArgs e)
+        private void AETrafAddNewbutton_Click(object sender, EventArgs e)
         {
-            TrafDiag d = new TrafDiag();
-            d.ShowDialog();
+            using (TrafDiag d = new TrafDiag())
+            {
+                d.ShowDialog();
+            }
         }
 
-        private void button6_Click(object sender, EventArgs e)
+        private void AENewTrafbutton_Click(object sender, EventArgs e)
         {
-            AEEditFilename d = new AEEditFilename();
-            d.Text = "New Traffic Filename";
-            d.ShowDialog();
+            using (AEEditFilename d = new AEEditFilename())
+            {
+                d.Text = "New Traffic Filename";
+                d.ShowDialog();
+            }
+
         }
 
-        private void button24_Click(object sender, EventArgs e)
+        private void AENewPlayerbutton_Click(object sender, EventArgs e)
         {
-            AEEditFilename d = new AEEditFilename();
-            d.Text = "New Player Service Filename";
-            d.ShowDialog();
+            using (AEEditFilename d = new AEEditFilename())
+            {
+                d.Text = "New Player Service Filename";
+                d.ShowDialog();
+            }
         }
+
     }
 }

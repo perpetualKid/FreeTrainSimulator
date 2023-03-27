@@ -29,23 +29,19 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            button1 = new System.Windows.Forms.Button();
-            button2 = new System.Windows.Forms.Button();
-            button3 = new System.Windows.Forms.Button();
-            button4 = new System.Windows.Forms.Button();
-            button5 = new System.Windows.Forms.Button();
-            label1 = new System.Windows.Forms.Label();
-            progressBar1 = new System.Windows.Forms.ProgressBar();
-            pictureBox1 = new System.Windows.Forms.PictureBox();
+            AESavebutton = new System.Windows.Forms.Button();
+            AESaveasbutton = new System.Windows.Forms.Button();
             AETab = new System.Windows.Forms.TabControl();
             tabPage1 = new System.Windows.Forms.TabPage();
+            AENewActbutton = new System.Windows.Forms.Button();
+            comboBox10 = new System.Windows.Forms.ComboBox();
+            label2 = new System.Windows.Forms.Label();
             numericUpDown8 = new System.Windows.Forms.NumericUpDown();
             numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             groupBox4 = new System.Windows.Forms.GroupBox();
             comboBox1 = new System.Windows.Forms.ComboBox();
             label4 = new System.Windows.Forms.Label();
             checkBox1 = new System.Windows.Forms.CheckBox();
-            label2 = new System.Windows.Forms.Label();
             groupBox3 = new System.Windows.Forms.GroupBox();
             numericUpDown6 = new System.Windows.Forms.NumericUpDown();
             label16 = new System.Windows.Forms.Label();
@@ -71,12 +67,11 @@
             textBox5 = new System.Windows.Forms.TextBox();
             textBox2 = new System.Windows.Forms.TextBox();
             label3 = new System.Windows.Forms.Label();
-            textBox1 = new System.Windows.Forms.TextBox();
             tabPage5 = new System.Windows.Forms.TabPage();
             comboBox7 = new System.Windows.Forms.ComboBox();
             comboBox6 = new System.Windows.Forms.ComboBox();
             AEPlayerConsistView = new ConsistEditor.ConsistViewPanel();
-            button28 = new System.Windows.Forms.Button();
+            AEPlayShowonMapbutton = new System.Windows.Forms.Button();
             label27 = new System.Windows.Forms.Label();
             comboBox5 = new System.Windows.Forms.ComboBox();
             label26 = new System.Windows.Forms.Label();
@@ -89,7 +84,7 @@
             label20 = new System.Windows.Forms.Label();
             textBox8 = new System.Windows.Forms.TextBox();
             label19 = new System.Windows.Forms.Label();
-            button24 = new System.Windows.Forms.Button();
+            AENewPlayerbutton = new System.Windows.Forms.Button();
             groupBox8 = new System.Windows.Forms.GroupBox();
             AEPlayertimes = new System.Windows.Forms.ListView();
             columnHeader20 = new System.Windows.Forms.ColumnHeader();
@@ -101,21 +96,21 @@
             tabPage6 = new System.Windows.Forms.TabPage();
             button26 = new System.Windows.Forms.Button();
             button25 = new System.Windows.Forms.Button();
-            button9 = new System.Windows.Forms.Button();
+            AETrafAddNewbutton = new System.Windows.Forms.Button();
             groupBox9 = new System.Windows.Forms.GroupBox();
             listView1 = new System.Windows.Forms.ListView();
             columnHeader31 = new System.Windows.Forms.ColumnHeader();
             columnHeader32 = new System.Windows.Forms.ColumnHeader();
             columnHeader33 = new System.Windows.Forms.ColumnHeader();
-            button8 = new System.Windows.Forms.Button();
-            button7 = new System.Windows.Forms.Button();
-            button6 = new System.Windows.Forms.Button();
+            AETrafNewServbutton = new System.Windows.Forms.Button();
+            AETrafDeletebutton = new System.Windows.Forms.Button();
+            AENewTrafbutton = new System.Windows.Forms.Button();
             comboBox8 = new System.Windows.Forms.ComboBox();
             label5 = new System.Windows.Forms.Label();
             textBox4 = new System.Windows.Forms.TextBox();
             label6 = new System.Windows.Forms.Label();
             tabPage7 = new System.Windows.Forms.TabPage();
-            button27 = new System.Windows.Forms.Button();
+            AETimetableCalcbutton = new System.Windows.Forms.Button();
             textBox10 = new System.Windows.Forms.TextBox();
             textBox9 = new System.Windows.Forms.TextBox();
             textBox7 = new System.Windows.Forms.TextBox();
@@ -133,7 +128,7 @@
             comboBox9 = new System.Windows.Forms.ComboBox();
             groupBox10 = new System.Windows.Forms.GroupBox();
             tabPage2 = new System.Windows.Forms.TabPage();
-            button29 = new System.Windows.Forms.Button();
+            AEObjAddNewbutton = new System.Windows.Forms.Button();
             AEObjectList = new System.Windows.Forms.ListView();
             columnHeader1 = new System.Windows.Forms.ColumnHeader();
             columnHeader2 = new System.Windows.Forms.ColumnHeader();
@@ -145,8 +140,8 @@
             columnHeader8 = new System.Windows.Forms.ColumnHeader();
             columnHeader9 = new System.Windows.Forms.ColumnHeader();
             columnHeader10 = new System.Windows.Forms.ColumnHeader();
-            button11 = new System.Windows.Forms.Button();
-            button10 = new System.Windows.Forms.Button();
+            AEObjJumpTobutton = new System.Windows.Forms.Button();
+            AEObjDelSelbutton = new System.Windows.Forms.Button();
             tabPage3 = new System.Windows.Forms.TabPage();
             groupBox7 = new System.Windows.Forms.GroupBox();
             button37 = new System.Windows.Forms.Button();
@@ -173,7 +168,7 @@
             button14 = new System.Windows.Forms.Button();
             button31 = new System.Windows.Forms.Button();
             button30 = new System.Windows.Forms.Button();
-            button13 = new System.Windows.Forms.Button();
+            AESigFailSigShowSelbutton = new System.Windows.Forms.Button();
             button12 = new System.Windows.Forms.Button();
             AEFailedSignels = new System.Windows.Forms.ListView();
             columnHeader18 = new System.Windows.Forms.ColumnHeader();
@@ -251,8 +246,9 @@
             timer1 = new System.Windows.Forms.Timer(components);
             label17 = new System.Windows.Forms.Label();
             numericUpDown7 = new System.Windows.Forms.NumericUpDown();
-            textBox3 = new System.Windows.Forms.TextBox();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            groupBox14 = new System.Windows.Forms.GroupBox();
+            checkBox9 = new System.Windows.Forms.CheckBox();
+            checkBox7 = new System.Windows.Forms.CheckBox();
             AETab.SuspendLayout();
             tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDown8).BeginInit();
@@ -294,88 +290,30 @@
             ((System.ComponentModel.ISupportInitialize)numericUpDown18).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown17).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown7).BeginInit();
+            groupBox14.SuspendLayout();
             SuspendLayout();
             // 
-            // button1
+            // AESavebutton
             // 
-            button1.BackColor = System.Drawing.Color.Red;
-            button1.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button1.Location = new System.Drawing.Point(12, 25);
-            button1.Name = "button1";
-            button1.Size = new System.Drawing.Size(108, 36);
-            button1.TabIndex = 0;
-            button1.Text = "New";
-            button1.UseVisualStyleBackColor = false;
-            button1.Click += button1_Click;
+            AESavebutton.BackColor = System.Drawing.Color.Red;
+            AESavebutton.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            AESavebutton.Location = new System.Drawing.Point(5, 11);
+            AESavebutton.Name = "AESavebutton";
+            AESavebutton.Size = new System.Drawing.Size(108, 36);
+            AESavebutton.TabIndex = 2;
+            AESavebutton.Text = "Save";
+            AESavebutton.UseVisualStyleBackColor = false;
             // 
-            // button2
+            // AESaveasbutton
             // 
-            button2.BackColor = System.Drawing.Color.Red;
-            button2.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button2.Location = new System.Drawing.Point(12, 67);
-            button2.Name = "button2";
-            button2.Size = new System.Drawing.Size(108, 35);
-            button2.TabIndex = 1;
-            button2.Text = "Load";
-            button2.UseVisualStyleBackColor = false;
-            // 
-            // button3
-            // 
-            button3.BackColor = System.Drawing.Color.Red;
-            button3.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button3.Location = new System.Drawing.Point(12, 108);
-            button3.Name = "button3";
-            button3.Size = new System.Drawing.Size(108, 36);
-            button3.TabIndex = 2;
-            button3.Text = "Save";
-            button3.UseVisualStyleBackColor = false;
-            // 
-            // button4
-            // 
-            button4.BackColor = System.Drawing.Color.Red;
-            button4.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button4.Location = new System.Drawing.Point(12, 150);
-            button4.Name = "button4";
-            button4.Size = new System.Drawing.Size(108, 34);
-            button4.TabIndex = 3;
-            button4.Text = "Save As";
-            button4.UseVisualStyleBackColor = false;
-            // 
-            // button5
-            // 
-            button5.BackColor = System.Drawing.Color.Red;
-            button5.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button5.Location = new System.Drawing.Point(140, 25);
-            button5.Name = "button5";
-            button5.Size = new System.Drawing.Size(108, 36);
-            button5.TabIndex = 4;
-            button5.Text = "Edit";
-            button5.UseVisualStyleBackColor = false;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(306, 46);
-            label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(76, 15);
-            label1.TabIndex = 6;
-            label1.Text = "Progress Info";
-            // 
-            // progressBar1
-            // 
-            progressBar1.Location = new System.Drawing.Point(140, 67);
-            progressBar1.Name = "progressBar1";
-            progressBar1.Size = new System.Drawing.Size(444, 35);
-            progressBar1.TabIndex = 10;
-            // 
-            // pictureBox1
-            // 
-            pictureBox1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            pictureBox1.Location = new System.Drawing.Point(601, 25);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new System.Drawing.Size(571, 159);
-            pictureBox1.TabIndex = 11;
-            pictureBox1.TabStop = false;
+            AESaveasbutton.BackColor = System.Drawing.Color.Red;
+            AESaveasbutton.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            AESaveasbutton.Location = new System.Drawing.Point(5, 53);
+            AESaveasbutton.Name = "AESaveasbutton";
+            AESaveasbutton.Size = new System.Drawing.Size(108, 34);
+            AESaveasbutton.TabIndex = 3;
+            AESaveasbutton.Text = "Save As";
+            AESaveasbutton.UseVisualStyleBackColor = false;
             // 
             // AETab
             // 
@@ -387,18 +325,20 @@
             AETab.Controls.Add(tabPage3);
             AETab.Controls.Add(tabPage4);
             AETab.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            AETab.Location = new System.Drawing.Point(13, 191);
+            AETab.Location = new System.Drawing.Point(13, 129);
             AETab.Name = "AETab";
             AETab.SelectedIndex = 0;
-            AETab.Size = new System.Drawing.Size(1160, 557);
+            AETab.Size = new System.Drawing.Size(1160, 619);
             AETab.TabIndex = 12;
             // 
             // tabPage1
             // 
+            tabPage1.Controls.Add(AENewActbutton);
+            tabPage1.Controls.Add(comboBox10);
+            tabPage1.Controls.Add(label2);
             tabPage1.Controls.Add(numericUpDown8);
             tabPage1.Controls.Add(numericUpDown1);
             tabPage1.Controls.Add(groupBox4);
-            tabPage1.Controls.Add(label2);
             tabPage1.Controls.Add(groupBox3);
             tabPage1.Controls.Add(numericUpDown3);
             tabPage1.Controls.Add(label13);
@@ -416,14 +356,43 @@
             tabPage1.Controls.Add(groupBox1);
             tabPage1.Controls.Add(textBox2);
             tabPage1.Controls.Add(label3);
-            tabPage1.Controls.Add(textBox1);
             tabPage1.Location = new System.Drawing.Point(4, 28);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            tabPage1.Size = new System.Drawing.Size(1152, 525);
+            tabPage1.Size = new System.Drawing.Size(1152, 587);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Info";
             tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // AENewActbutton
+            // 
+            AENewActbutton.BackColor = System.Drawing.Color.Red;
+            AENewActbutton.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            AENewActbutton.Location = new System.Drawing.Point(519, 6);
+            AENewActbutton.Name = "AENewActbutton";
+            AENewActbutton.Size = new System.Drawing.Size(108, 36);
+            AENewActbutton.TabIndex = 34;
+            AENewActbutton.Text = "New";
+            AENewActbutton.UseVisualStyleBackColor = false;
+            AENewActbutton.Click += AENewActbutton_Click;
+            // 
+            // comboBox10
+            // 
+            comboBox10.FormattingEnabled = true;
+            comboBox10.Location = new System.Drawing.Point(129, 11);
+            comboBox10.Name = "comboBox10";
+            comboBox10.Size = new System.Drawing.Size(368, 27);
+            comboBox10.TabIndex = 33;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label2.Location = new System.Drawing.Point(637, 14);
+            label2.Name = "label2";
+            label2.Size = new System.Drawing.Size(90, 19);
+            label2.TabIndex = 16;
+            label2.Text = "File Name:";
             // 
             // numericUpDown8
             // 
@@ -444,7 +413,7 @@
             groupBox4.Controls.Add(comboBox1);
             groupBox4.Controls.Add(label4);
             groupBox4.Controls.Add(checkBox1);
-            groupBox4.Location = new System.Drawing.Point(817, 344);
+            groupBox4.Location = new System.Drawing.Point(817, 442);
             groupBox4.Name = "groupBox4";
             groupBox4.Size = new System.Drawing.Size(323, 108);
             groupBox4.TabIndex = 30;
@@ -479,16 +448,6 @@
             checkBox1.Text = "At Crossing";
             checkBox1.UseVisualStyleBackColor = true;
             // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            label2.Location = new System.Drawing.Point(14, 14);
-            label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(90, 19);
-            label2.TabIndex = 16;
-            label2.Text = "File Name:";
-            // 
             // groupBox3
             // 
             groupBox3.Controls.Add(numericUpDown6);
@@ -497,7 +456,7 @@
             groupBox3.Controls.Add(label15);
             groupBox3.Controls.Add(numericUpDown4);
             groupBox3.Controls.Add(label14);
-            groupBox3.Location = new System.Drawing.Point(14, 461);
+            groupBox3.Location = new System.Drawing.Point(14, 489);
             groupBox3.Name = "groupBox3";
             groupBox3.Size = new System.Drawing.Size(763, 61);
             groupBox3.TabIndex = 28;
@@ -688,7 +647,7 @@
             // textBox5
             // 
             textBox5.AcceptsReturn = true;
-            textBox5.Location = new System.Drawing.Point(6, 25);
+            textBox5.Location = new System.Drawing.Point(8, 25);
             textBox5.Multiline = true;
             textBox5.Name = "textBox5";
             textBox5.Size = new System.Drawing.Size(1128, 112);
@@ -696,33 +655,26 @@
             // 
             // textBox2
             // 
-            textBox2.Location = new System.Drawing.Point(662, 11);
+            textBox2.Location = new System.Drawing.Point(733, 11);
             textBox2.Name = "textBox2";
-            textBox2.Size = new System.Drawing.Size(430, 26);
+            textBox2.Size = new System.Drawing.Size(407, 26);
             textBox2.TabIndex = 6;
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new System.Drawing.Point(536, 14);
+            label3.Location = new System.Drawing.Point(6, 14);
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(120, 19);
             label3.TabIndex = 5;
             label3.Text = "Display Name:";
-            // 
-            // textBox1
-            // 
-            textBox1.Location = new System.Drawing.Point(106, 11);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new System.Drawing.Size(415, 26);
-            textBox1.TabIndex = 3;
             // 
             // tabPage5
             // 
             tabPage5.Controls.Add(comboBox7);
             tabPage5.Controls.Add(comboBox6);
             tabPage5.Controls.Add(AEPlayerConsistView);
-            tabPage5.Controls.Add(button28);
+            tabPage5.Controls.Add(AEPlayShowonMapbutton);
             tabPage5.Controls.Add(label27);
             tabPage5.Controls.Add(comboBox5);
             tabPage5.Controls.Add(label26);
@@ -735,12 +687,12 @@
             tabPage5.Controls.Add(label20);
             tabPage5.Controls.Add(textBox8);
             tabPage5.Controls.Add(label19);
-            tabPage5.Controls.Add(button24);
+            tabPage5.Controls.Add(AENewPlayerbutton);
             tabPage5.Controls.Add(groupBox8);
             tabPage5.Location = new System.Drawing.Point(4, 28);
             tabPage5.Name = "tabPage5";
             tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            tabPage5.Size = new System.Drawing.Size(1152, 525);
+            tabPage5.Size = new System.Drawing.Size(1152, 587);
             tabPage5.TabIndex = 4;
             tabPage5.Text = "Player";
             tabPage5.UseVisualStyleBackColor = true;
@@ -748,7 +700,7 @@
             // comboBox7
             // 
             comboBox7.FormattingEnabled = true;
-            comboBox7.Location = new System.Drawing.Point(159, 78);
+            comboBox7.Location = new System.Drawing.Point(159, 45);
             comboBox7.Name = "comboBox7";
             comboBox7.Size = new System.Drawing.Size(289, 27);
             comboBox7.TabIndex = 37;
@@ -764,20 +716,20 @@
             // AEPlayerConsistView
             // 
             AEPlayerConsistView.BackColor = System.Drawing.Color.LightBlue;
-            AEPlayerConsistView.Location = new System.Drawing.Point(2, 379);
+            AEPlayerConsistView.Location = new System.Drawing.Point(2, 433);
             AEPlayerConsistView.Name = "AEPlayerConsistView";
             AEPlayerConsistView.Size = new System.Drawing.Size(1150, 150);
             AEPlayerConsistView.TabIndex = 27;
             // 
-            // button28
+            // AEPlayShowonMapbutton
             // 
-            button28.BackColor = System.Drawing.Color.Red;
-            button28.Location = new System.Drawing.Point(304, 237);
-            button28.Name = "button28";
-            button28.Size = new System.Drawing.Size(144, 41);
-            button28.TabIndex = 26;
-            button28.Text = "Show on Map";
-            button28.UseVisualStyleBackColor = false;
+            AEPlayShowonMapbutton.BackColor = System.Drawing.Color.Red;
+            AEPlayShowonMapbutton.Location = new System.Drawing.Point(304, 237);
+            AEPlayShowonMapbutton.Name = "AEPlayShowonMapbutton";
+            AEPlayShowonMapbutton.Size = new System.Drawing.Size(144, 41);
+            AEPlayShowonMapbutton.TabIndex = 26;
+            AEPlayShowonMapbutton.Text = "Show on Map";
+            AEPlayShowonMapbutton.UseVisualStyleBackColor = false;
             // 
             // label27
             // 
@@ -856,7 +808,7 @@
             // label20
             // 
             label20.AutoSize = true;
-            label20.Location = new System.Drawing.Point(22, 81);
+            label20.Location = new System.Drawing.Point(22, 48);
             label20.Name = "label20";
             label20.Size = new System.Drawing.Size(120, 19);
             label20.TabIndex = 7;
@@ -864,7 +816,7 @@
             // 
             // textBox8
             // 
-            textBox8.Location = new System.Drawing.Point(159, 48);
+            textBox8.Location = new System.Drawing.Point(159, 76);
             textBox8.Name = "textBox8";
             textBox8.Size = new System.Drawing.Size(289, 26);
             textBox8.TabIndex = 6;
@@ -872,29 +824,29 @@
             // label19
             // 
             label19.AutoSize = true;
-            label19.Location = new System.Drawing.Point(52, 51);
+            label19.Location = new System.Drawing.Point(52, 79);
             label19.Name = "label19";
             label19.Size = new System.Drawing.Size(90, 19);
             label19.TabIndex = 5;
             label19.Text = "File Name:";
             // 
-            // button24
+            // AENewPlayerbutton
             // 
-            button24.BackColor = System.Drawing.Color.IndianRed;
-            button24.Location = new System.Drawing.Point(6, 14);
-            button24.Name = "button24";
-            button24.Size = new System.Drawing.Size(75, 28);
-            button24.TabIndex = 2;
-            button24.Text = "New";
-            button24.UseVisualStyleBackColor = false;
-            button24.Click += button24_Click;
+            AENewPlayerbutton.BackColor = System.Drawing.Color.IndianRed;
+            AENewPlayerbutton.Location = new System.Drawing.Point(6, 14);
+            AENewPlayerbutton.Name = "AENewPlayerbutton";
+            AENewPlayerbutton.Size = new System.Drawing.Size(75, 28);
+            AENewPlayerbutton.TabIndex = 2;
+            AENewPlayerbutton.Text = "New";
+            AENewPlayerbutton.UseVisualStyleBackColor = false;
+            AENewPlayerbutton.Click += AENewPlayerbutton_Click;
             // 
             // groupBox8
             // 
             groupBox8.Controls.Add(AEPlayertimes);
             groupBox8.Location = new System.Drawing.Point(465, 32);
             groupBox8.Name = "groupBox8";
-            groupBox8.Size = new System.Drawing.Size(623, 341);
+            groupBox8.Size = new System.Drawing.Size(623, 395);
             groupBox8.TabIndex = 36;
             groupBox8.TabStop = false;
             groupBox8.Text = "Platform List:";
@@ -907,7 +859,7 @@
             AEPlayertimes.GridLines = true;
             AEPlayertimes.Location = new System.Drawing.Point(6, 16);
             AEPlayertimes.Name = "AEPlayertimes";
-            AEPlayertimes.Size = new System.Drawing.Size(611, 319);
+            AEPlayertimes.Size = new System.Drawing.Size(611, 373);
             AEPlayertimes.TabIndex = 29;
             AEPlayertimes.UseCompatibleStateImageBehavior = false;
             AEPlayertimes.View = System.Windows.Forms.View.Details;
@@ -951,11 +903,11 @@
             // 
             tabPage6.Controls.Add(button26);
             tabPage6.Controls.Add(button25);
-            tabPage6.Controls.Add(button9);
+            tabPage6.Controls.Add(AETrafAddNewbutton);
             tabPage6.Controls.Add(groupBox9);
-            tabPage6.Controls.Add(button8);
-            tabPage6.Controls.Add(button7);
-            tabPage6.Controls.Add(button6);
+            tabPage6.Controls.Add(AETrafNewServbutton);
+            tabPage6.Controls.Add(AETrafDeletebutton);
+            tabPage6.Controls.Add(AENewTrafbutton);
             tabPage6.Controls.Add(comboBox8);
             tabPage6.Controls.Add(label5);
             tabPage6.Controls.Add(textBox4);
@@ -963,7 +915,7 @@
             tabPage6.Location = new System.Drawing.Point(4, 28);
             tabPage6.Name = "tabPage6";
             tabPage6.Padding = new System.Windows.Forms.Padding(3);
-            tabPage6.Size = new System.Drawing.Size(1152, 525);
+            tabPage6.Size = new System.Drawing.Size(1152, 587);
             tabPage6.TabIndex = 5;
             tabPage6.Text = "Traffic";
             tabPage6.UseVisualStyleBackColor = true;
@@ -988,23 +940,23 @@
             button25.Text = "Remove Selected";
             button25.UseVisualStyleBackColor = false;
             // 
-            // button9
+            // AETrafAddNewbutton
             // 
-            button9.BackColor = System.Drawing.Color.IndianRed;
-            button9.Location = new System.Drawing.Point(932, 40);
-            button9.Name = "button9";
-            button9.Size = new System.Drawing.Size(169, 28);
-            button9.TabIndex = 46;
-            button9.Text = "Add New";
-            button9.UseVisualStyleBackColor = false;
-            button9.Click += button9_Click;
+            AETrafAddNewbutton.BackColor = System.Drawing.Color.IndianRed;
+            AETrafAddNewbutton.Location = new System.Drawing.Point(932, 40);
+            AETrafAddNewbutton.Name = "AETrafAddNewbutton";
+            AETrafAddNewbutton.Size = new System.Drawing.Size(169, 28);
+            AETrafAddNewbutton.TabIndex = 46;
+            AETrafAddNewbutton.Text = "Add New";
+            AETrafAddNewbutton.UseVisualStyleBackColor = false;
+            AETrafAddNewbutton.Click += AETrafAddNewbutton_Click;
             // 
             // groupBox9
             // 
             groupBox9.Controls.Add(listView1);
             groupBox9.Location = new System.Drawing.Point(485, 13);
             groupBox9.Name = "groupBox9";
-            groupBox9.Size = new System.Drawing.Size(432, 506);
+            groupBox9.Size = new System.Drawing.Size(432, 556);
             groupBox9.TabIndex = 45;
             groupBox9.TabStop = false;
             groupBox9.Text = "Service List";
@@ -1017,7 +969,7 @@
             listView1.GridLines = true;
             listView1.Location = new System.Drawing.Point(6, 25);
             listView1.Name = "listView1";
-            listView1.Size = new System.Drawing.Size(421, 475);
+            listView1.Size = new System.Drawing.Size(421, 525);
             listView1.TabIndex = 0;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.View = System.Windows.Forms.View.Details;
@@ -1039,41 +991,41 @@
             columnHeader33.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             columnHeader33.Width = 40;
             // 
-            // button8
+            // AETrafNewServbutton
             // 
-            button8.BackColor = System.Drawing.Color.Red;
-            button8.Location = new System.Drawing.Point(275, 13);
-            button8.Name = "button8";
-            button8.Size = new System.Drawing.Size(130, 28);
-            button8.TabIndex = 44;
-            button8.Text = "New Service";
-            button8.UseVisualStyleBackColor = false;
+            AETrafNewServbutton.BackColor = System.Drawing.Color.Red;
+            AETrafNewServbutton.Location = new System.Drawing.Point(275, 13);
+            AETrafNewServbutton.Name = "AETrafNewServbutton";
+            AETrafNewServbutton.Size = new System.Drawing.Size(130, 28);
+            AETrafNewServbutton.TabIndex = 44;
+            AETrafNewServbutton.Text = "New Service";
+            AETrafNewServbutton.UseVisualStyleBackColor = false;
             // 
-            // button7
+            // AETrafDeletebutton
             // 
-            button7.BackColor = System.Drawing.Color.Red;
-            button7.Location = new System.Drawing.Point(178, 13);
-            button7.Name = "button7";
-            button7.Size = new System.Drawing.Size(75, 28);
-            button7.TabIndex = 43;
-            button7.Text = "Delete";
-            button7.UseVisualStyleBackColor = false;
+            AETrafDeletebutton.BackColor = System.Drawing.Color.Red;
+            AETrafDeletebutton.Location = new System.Drawing.Point(178, 13);
+            AETrafDeletebutton.Name = "AETrafDeletebutton";
+            AETrafDeletebutton.Size = new System.Drawing.Size(75, 28);
+            AETrafDeletebutton.TabIndex = 43;
+            AETrafDeletebutton.Text = "Delete";
+            AETrafDeletebutton.UseVisualStyleBackColor = false;
             // 
-            // button6
+            // AENewTrafbutton
             // 
-            button6.BackColor = System.Drawing.Color.IndianRed;
-            button6.Location = new System.Drawing.Point(86, 13);
-            button6.Name = "button6";
-            button6.Size = new System.Drawing.Size(75, 28);
-            button6.TabIndex = 42;
-            button6.Text = "New";
-            button6.UseVisualStyleBackColor = false;
-            button6.Click += button6_Click;
+            AENewTrafbutton.BackColor = System.Drawing.Color.IndianRed;
+            AENewTrafbutton.Location = new System.Drawing.Point(86, 13);
+            AENewTrafbutton.Name = "AENewTrafbutton";
+            AENewTrafbutton.Size = new System.Drawing.Size(75, 28);
+            AENewTrafbutton.TabIndex = 42;
+            AENewTrafbutton.Text = "New";
+            AENewTrafbutton.UseVisualStyleBackColor = false;
+            AENewTrafbutton.Click += AENewTrafbutton_Click;
             // 
             // comboBox8
             // 
             comboBox8.FormattingEnabled = true;
-            comboBox8.Location = new System.Drawing.Point(178, 76);
+            comboBox8.Location = new System.Drawing.Point(178, 46);
             comboBox8.Name = "comboBox8";
             comboBox8.Size = new System.Drawing.Size(289, 27);
             comboBox8.TabIndex = 41;
@@ -1081,7 +1033,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new System.Drawing.Point(41, 79);
+            label5.Location = new System.Drawing.Point(41, 49);
             label5.Name = "label5";
             label5.Size = new System.Drawing.Size(120, 19);
             label5.TabIndex = 40;
@@ -1089,7 +1041,7 @@
             // 
             // textBox4
             // 
-            textBox4.Location = new System.Drawing.Point(178, 46);
+            textBox4.Location = new System.Drawing.Point(178, 76);
             textBox4.Name = "textBox4";
             textBox4.Size = new System.Drawing.Size(289, 26);
             textBox4.TabIndex = 39;
@@ -1097,7 +1049,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new System.Drawing.Point(71, 49);
+            label6.Location = new System.Drawing.Point(71, 79);
             label6.Name = "label6";
             label6.Size = new System.Drawing.Size(90, 19);
             label6.TabIndex = 38;
@@ -1105,7 +1057,7 @@
             // 
             // tabPage7
             // 
-            tabPage7.Controls.Add(button27);
+            tabPage7.Controls.Add(AETimetableCalcbutton);
             tabPage7.Controls.Add(textBox10);
             tabPage7.Controls.Add(textBox9);
             tabPage7.Controls.Add(textBox7);
@@ -1121,21 +1073,21 @@
             tabPage7.Location = new System.Drawing.Point(4, 28);
             tabPage7.Name = "tabPage7";
             tabPage7.Padding = new System.Windows.Forms.Padding(3);
-            tabPage7.Size = new System.Drawing.Size(1152, 525);
+            tabPage7.Size = new System.Drawing.Size(1152, 587);
             tabPage7.TabIndex = 6;
             tabPage7.Text = "Timetable";
             tabPage7.UseVisualStyleBackColor = true;
             // 
-            // button27
+            // AETimetableCalcbutton
             // 
-            button27.BackColor = System.Drawing.Color.Red;
-            button27.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button27.Location = new System.Drawing.Point(772, 288);
-            button27.Name = "button27";
-            button27.Size = new System.Drawing.Size(108, 36);
-            button27.TabIndex = 11;
-            button27.Text = "Calculate";
-            button27.UseVisualStyleBackColor = false;
+            AETimetableCalcbutton.BackColor = System.Drawing.Color.Red;
+            AETimetableCalcbutton.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            AETimetableCalcbutton.Location = new System.Drawing.Point(772, 288);
+            AETimetableCalcbutton.Name = "AETimetableCalcbutton";
+            AETimetableCalcbutton.Size = new System.Drawing.Size(108, 36);
+            AETimetableCalcbutton.TabIndex = 11;
+            AETimetableCalcbutton.Text = "Calculate";
+            AETimetableCalcbutton.UseVisualStyleBackColor = false;
             // 
             // textBox10
             // 
@@ -1262,27 +1214,27 @@
             // 
             // tabPage2
             // 
-            tabPage2.Controls.Add(button29);
+            tabPage2.Controls.Add(AEObjAddNewbutton);
             tabPage2.Controls.Add(AEObjectList);
-            tabPage2.Controls.Add(button11);
-            tabPage2.Controls.Add(button10);
+            tabPage2.Controls.Add(AEObjJumpTobutton);
+            tabPage2.Controls.Add(AEObjDelSelbutton);
             tabPage2.Location = new System.Drawing.Point(4, 28);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            tabPage2.Size = new System.Drawing.Size(1152, 525);
+            tabPage2.Size = new System.Drawing.Size(1152, 587);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Objects";
             tabPage2.UseVisualStyleBackColor = true;
             // 
-            // button29
+            // AEObjAddNewbutton
             // 
-            button29.BackColor = System.Drawing.Color.Red;
-            button29.Location = new System.Drawing.Point(324, 6);
-            button29.Name = "button29";
-            button29.Size = new System.Drawing.Size(164, 42);
-            button29.TabIndex = 32;
-            button29.Text = "Add New Object";
-            button29.UseVisualStyleBackColor = false;
+            AEObjAddNewbutton.BackColor = System.Drawing.Color.Red;
+            AEObjAddNewbutton.Location = new System.Drawing.Point(324, 6);
+            AEObjAddNewbutton.Name = "AEObjAddNewbutton";
+            AEObjAddNewbutton.Size = new System.Drawing.Size(164, 42);
+            AEObjAddNewbutton.TabIndex = 32;
+            AEObjAddNewbutton.Text = "Add New Object";
+            AEObjAddNewbutton.UseVisualStyleBackColor = false;
             // 
             // AEObjectList
             // 
@@ -1351,25 +1303,25 @@
             columnHeader10.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             columnHeader10.Width = 260;
             // 
-            // button11
+            // AEObjJumpTobutton
             // 
-            button11.BackColor = System.Drawing.Color.Red;
-            button11.Location = new System.Drawing.Point(6, 4);
-            button11.Name = "button11";
-            button11.Size = new System.Drawing.Size(164, 42);
-            button11.TabIndex = 5;
-            button11.Text = "Jump To Selected";
-            button11.UseVisualStyleBackColor = false;
+            AEObjJumpTobutton.BackColor = System.Drawing.Color.Red;
+            AEObjJumpTobutton.Location = new System.Drawing.Point(6, 4);
+            AEObjJumpTobutton.Name = "AEObjJumpTobutton";
+            AEObjJumpTobutton.Size = new System.Drawing.Size(164, 42);
+            AEObjJumpTobutton.TabIndex = 5;
+            AEObjJumpTobutton.Text = "Jump To Selected";
+            AEObjJumpTobutton.UseVisualStyleBackColor = false;
             // 
-            // button10
+            // AEObjDelSelbutton
             // 
-            button10.BackColor = System.Drawing.Color.Red;
-            button10.Location = new System.Drawing.Point(176, 6);
-            button10.Name = "button10";
-            button10.Size = new System.Drawing.Size(142, 40);
-            button10.TabIndex = 4;
-            button10.Text = "Delete Selected";
-            button10.UseVisualStyleBackColor = false;
+            AEObjDelSelbutton.BackColor = System.Drawing.Color.Red;
+            AEObjDelSelbutton.Location = new System.Drawing.Point(176, 6);
+            AEObjDelSelbutton.Name = "AEObjDelSelbutton";
+            AEObjDelSelbutton.Size = new System.Drawing.Size(142, 40);
+            AEObjDelSelbutton.TabIndex = 4;
+            AEObjDelSelbutton.Text = "Delete Selected";
+            AEObjDelSelbutton.UseVisualStyleBackColor = false;
             // 
             // tabPage3
             // 
@@ -1379,7 +1331,7 @@
             tabPage3.Location = new System.Drawing.Point(4, 28);
             tabPage3.Name = "tabPage3";
             tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            tabPage3.Size = new System.Drawing.Size(1152, 525);
+            tabPage3.Size = new System.Drawing.Size(1152, 587);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Signals/Speed Zones/Pass Waiting";
             tabPage3.UseVisualStyleBackColor = true;
@@ -1583,7 +1535,7 @@
             groupBox5.Controls.Add(button14);
             groupBox5.Controls.Add(button31);
             groupBox5.Controls.Add(button30);
-            groupBox5.Controls.Add(button13);
+            groupBox5.Controls.Add(AESigFailSigShowSelbutton);
             groupBox5.Controls.Add(button12);
             groupBox5.Controls.Add(AEFailedSignels);
             groupBox5.Location = new System.Drawing.Point(6, 17);
@@ -1633,15 +1585,15 @@
             button30.Text = "Delete Sel.";
             button30.UseVisualStyleBackColor = false;
             // 
-            // button13
+            // AESigFailSigShowSelbutton
             // 
-            button13.BackColor = System.Drawing.Color.Red;
-            button13.Location = new System.Drawing.Point(264, 25);
-            button13.Name = "button13";
-            button13.Size = new System.Drawing.Size(119, 33);
-            button13.TabIndex = 2;
-            button13.Text = "Show Sel.";
-            button13.UseVisualStyleBackColor = false;
+            AESigFailSigShowSelbutton.BackColor = System.Drawing.Color.Red;
+            AESigFailSigShowSelbutton.Location = new System.Drawing.Point(264, 25);
+            AESigFailSigShowSelbutton.Name = "AESigFailSigShowSelbutton";
+            AESigFailSigShowSelbutton.Size = new System.Drawing.Size(119, 33);
+            AESigFailSigShowSelbutton.TabIndex = 2;
+            AESigFailSigShowSelbutton.Text = "Show Sel.";
+            AESigFailSigShowSelbutton.UseVisualStyleBackColor = false;
             // 
             // button12
             // 
@@ -1682,7 +1634,7 @@
             tabPage4.Location = new System.Drawing.Point(4, 28);
             tabPage4.Name = "tabPage4";
             tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            tabPage4.Size = new System.Drawing.Size(1152, 525);
+            tabPage4.Size = new System.Drawing.Size(1152, 587);
             tabPage4.TabIndex = 3;
             tabPage4.Text = "Events";
             tabPage4.UseVisualStyleBackColor = true;
@@ -1695,7 +1647,7 @@
             tabControl1.Location = new System.Drawing.Point(6, 6);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new System.Drawing.Size(1140, 513);
+            tabControl1.Size = new System.Drawing.Size(1140, 578);
             tabControl1.TabIndex = 4;
             // 
             // tabPage8
@@ -1719,7 +1671,7 @@
             tabPage8.Location = new System.Drawing.Point(4, 28);
             tabPage8.Name = "tabPage8";
             tabPage8.Padding = new System.Windows.Forms.Padding(3);
-            tabPage8.Size = new System.Drawing.Size(1132, 481);
+            tabPage8.Size = new System.Drawing.Size(1132, 546);
             tabPage8.TabIndex = 0;
             tabPage8.Text = "Action";
             tabPage8.UseVisualStyleBackColor = true;
@@ -1729,7 +1681,7 @@
             textBox17.Location = new System.Drawing.Point(313, 390);
             textBox17.Multiline = true;
             textBox17.Name = "textBox17";
-            textBox17.Size = new System.Drawing.Size(813, 85);
+            textBox17.Size = new System.Drawing.Size(813, 140);
             textBox17.TabIndex = 18;
             // 
             // groupBox11
@@ -1874,7 +1826,7 @@
             // button38
             // 
             button38.BackColor = System.Drawing.Color.Red;
-            button38.Location = new System.Drawing.Point(0, 443);
+            button38.Location = new System.Drawing.Point(3, 495);
             button38.Name = "button38";
             button38.Size = new System.Drawing.Size(299, 35);
             button38.TabIndex = 5;
@@ -1888,7 +1840,7 @@
             AEActEventList.GridLines = true;
             AEActEventList.Location = new System.Drawing.Point(6, 6);
             AEActEventList.Name = "AEActEventList";
-            AEActEventList.Size = new System.Drawing.Size(287, 398);
+            AEActEventList.Size = new System.Drawing.Size(296, 442);
             AEActEventList.TabIndex = 5;
             AEActEventList.UseCompatibleStateImageBehavior = false;
             AEActEventList.View = System.Windows.Forms.View.Details;
@@ -1896,7 +1848,7 @@
             // button21
             // 
             button21.BackColor = System.Drawing.Color.Red;
-            button21.Location = new System.Drawing.Point(0, 410);
+            button21.Location = new System.Drawing.Point(3, 454);
             button21.Name = "button21";
             button21.Size = new System.Drawing.Size(299, 35);
             button21.TabIndex = 1;
@@ -1930,7 +1882,7 @@
             tabPage9.Location = new System.Drawing.Point(4, 24);
             tabPage9.Name = "tabPage9";
             tabPage9.Padding = new System.Windows.Forms.Padding(3);
-            tabPage9.Size = new System.Drawing.Size(1132, 485);
+            tabPage9.Size = new System.Drawing.Size(1132, 550);
             tabPage9.TabIndex = 1;
             tabPage9.Text = "Location";
             tabPage9.UseVisualStyleBackColor = true;
@@ -2004,7 +1956,7 @@
             textBox18.Location = new System.Drawing.Point(305, 390);
             textBox18.Multiline = true;
             textBox18.Name = "textBox18";
-            textBox18.Size = new System.Drawing.Size(813, 85);
+            textBox18.Size = new System.Drawing.Size(813, 150);
             textBox18.TabIndex = 31;
             // 
             // groupBox12
@@ -2143,7 +2095,7 @@
             AELocEventList.GridLines = true;
             AELocEventList.Location = new System.Drawing.Point(0, 0);
             AELocEventList.Name = "AELocEventList";
-            AELocEventList.Size = new System.Drawing.Size(299, 406);
+            AELocEventList.Size = new System.Drawing.Size(299, 458);
             AELocEventList.TabIndex = 10;
             AELocEventList.UseCompatibleStateImageBehavior = false;
             AELocEventList.View = System.Windows.Forms.View.Details;
@@ -2151,7 +2103,7 @@
             // button39
             // 
             button39.BackColor = System.Drawing.Color.Red;
-            button39.Location = new System.Drawing.Point(0, 444);
+            button39.Location = new System.Drawing.Point(0, 505);
             button39.Name = "button39";
             button39.Size = new System.Drawing.Size(299, 35);
             button39.TabIndex = 7;
@@ -2161,7 +2113,7 @@
             // button40
             // 
             button40.BackColor = System.Drawing.Color.Red;
-            button40.Location = new System.Drawing.Point(0, 412);
+            button40.Location = new System.Drawing.Point(0, 464);
             button40.Name = "button40";
             button40.Size = new System.Drawing.Size(299, 35);
             button40.TabIndex = 6;
@@ -2189,7 +2141,7 @@
             tabPage10.Controls.Add(button42);
             tabPage10.Location = new System.Drawing.Point(4, 24);
             tabPage10.Name = "tabPage10";
-            tabPage10.Size = new System.Drawing.Size(1132, 485);
+            tabPage10.Size = new System.Drawing.Size(1132, 550);
             tabPage10.TabIndex = 2;
             tabPage10.Text = "Time";
             tabPage10.UseVisualStyleBackColor = true;
@@ -2199,7 +2151,7 @@
             textBox23.Location = new System.Drawing.Point(311, 377);
             textBox23.Multiline = true;
             textBox23.Name = "textBox23";
-            textBox23.Size = new System.Drawing.Size(813, 85);
+            textBox23.Size = new System.Drawing.Size(813, 152);
             textBox23.TabIndex = 42;
             // 
             // groupBox13
@@ -2350,7 +2302,7 @@
             // button41
             // 
             button41.BackColor = System.Drawing.Color.Red;
-            button41.Location = new System.Drawing.Point(0, 450);
+            button41.Location = new System.Drawing.Point(3, 494);
             button41.Name = "button41";
             button41.Size = new System.Drawing.Size(299, 35);
             button41.TabIndex = 9;
@@ -2364,7 +2316,7 @@
             AETimeEventList.GridLines = true;
             AETimeEventList.Location = new System.Drawing.Point(0, 3);
             AETimeEventList.Name = "AETimeEventList";
-            AETimeEventList.Size = new System.Drawing.Size(299, 406);
+            AETimeEventList.Size = new System.Drawing.Size(299, 444);
             AETimeEventList.TabIndex = 11;
             AETimeEventList.UseCompatibleStateImageBehavior = false;
             AETimeEventList.View = System.Windows.Forms.View.Details;
@@ -2372,7 +2324,7 @@
             // button42
             // 
             button42.BackColor = System.Drawing.Color.Red;
-            button42.Location = new System.Drawing.Point(0, 415);
+            button42.Location = new System.Drawing.Point(0, 453);
             button42.Name = "button42";
             button42.Size = new System.Drawing.Size(299, 35);
             button42.TabIndex = 8;
@@ -2383,7 +2335,7 @@
             // 
             checkBox2.AutoSize = true;
             checkBox2.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            checkBox2.Location = new System.Drawing.Point(140, 157);
+            checkBox2.Location = new System.Drawing.Point(133, 60);
             checkBox2.Name = "checkBox2";
             checkBox2.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             checkBox2.Size = new System.Drawing.Size(106, 23);
@@ -2395,7 +2347,7 @@
             // 
             label17.AutoSize = true;
             label17.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            label17.Location = new System.Drawing.Point(275, 158);
+            label17.Location = new System.Drawing.Point(257, 61);
             label17.Name = "label17";
             label17.Size = new System.Drawing.Size(147, 19);
             label17.TabIndex = 14;
@@ -2404,41 +2356,57 @@
             // numericUpDown7
             // 
             numericUpDown7.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            numericUpDown7.Location = new System.Drawing.Point(428, 154);
+            numericUpDown7.Location = new System.Drawing.Point(410, 59);
             numericUpDown7.Name = "numericUpDown7";
-            numericUpDown7.Size = new System.Drawing.Size(120, 26);
+            numericUpDown7.Size = new System.Drawing.Size(154, 26);
             numericUpDown7.TabIndex = 15;
             // 
-            // textBox3
+            // groupBox14
             // 
-            textBox3.BackColor = System.Drawing.SystemColors.Control;
-            textBox3.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            textBox3.Location = new System.Drawing.Point(205, 108);
-            textBox3.Name = "textBox3";
-            textBox3.Size = new System.Drawing.Size(317, 16);
-            textBox3.TabIndex = 16;
+            groupBox14.Controls.Add(numericUpDown7);
+            groupBox14.Controls.Add(checkBox9);
+            groupBox14.Controls.Add(label17);
+            groupBox14.Controls.Add(checkBox7);
+            groupBox14.Controls.Add(checkBox2);
+            groupBox14.Controls.Add(AESavebutton);
+            groupBox14.Controls.Add(AESaveasbutton);
+            groupBox14.Location = new System.Drawing.Point(13, 12);
+            groupBox14.Name = "groupBox14";
+            groupBox14.Size = new System.Drawing.Size(570, 97);
+            groupBox14.TabIndex = 33;
+            groupBox14.TabStop = false;
+            // 
+            // checkBox9
+            // 
+            checkBox9.AutoSize = true;
+            checkBox9.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            checkBox9.Location = new System.Drawing.Point(257, 19);
+            checkBox9.Name = "checkBox9";
+            checkBox9.Size = new System.Drawing.Size(73, 23);
+            checkBox9.TabIndex = 34;
+            checkBox9.Text = "ORTS";
+            checkBox9.UseVisualStyleBackColor = true;
+            // 
+            // checkBox7
+            // 
+            checkBox7.AutoSize = true;
+            checkBox7.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            checkBox7.Location = new System.Drawing.Point(133, 19);
+            checkBox7.Name = "checkBox7";
+            checkBox7.Size = new System.Drawing.Size(84, 23);
+            checkBox7.TabIndex = 0;
+            checkBox7.Text = "Legacy";
+            checkBox7.UseVisualStyleBackColor = true;
             // 
             // AEForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(1184, 761);
-            Controls.Add(textBox3);
-            Controls.Add(numericUpDown7);
-            Controls.Add(label17);
-            Controls.Add(checkBox2);
             Controls.Add(AETab);
-            Controls.Add(pictureBox1);
-            Controls.Add(progressBar1);
-            Controls.Add(label1);
-            Controls.Add(button5);
-            Controls.Add(button4);
-            Controls.Add(button3);
-            Controls.Add(button2);
-            Controls.Add(button1);
+            Controls.Add(groupBox14);
             Name = "AEForm";
             Text = "Activity Editor";
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             AETab.ResumeLayout(false);
             tabPage1.ResumeLayout(false);
             tabPage1.PerformLayout();
@@ -2491,26 +2459,19 @@
             ((System.ComponentModel.ISupportInitialize)numericUpDown18).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown17).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown7).EndInit();
+            groupBox14.ResumeLayout(false);
+            groupBox14.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
-
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.Button button4;
-        private System.Windows.Forms.Button button5;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ProgressBar progressBar1;
-        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.Button AESavebutton;
+        private System.Windows.Forms.Button AESaveasbutton;
         private System.Windows.Forms.TabControl AETab;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.NumericUpDown numericUpDown6;
         private System.Windows.Forms.Label label16;
@@ -2540,18 +2501,18 @@
         private System.Windows.Forms.GroupBox groupBox6;
         private System.Windows.Forms.ListView AESpeedZones;
         private System.Windows.Forms.GroupBox groupBox5;
-        private System.Windows.Forms.Button button13;
+        private System.Windows.Forms.Button AESigFailSigShowSelbutton;
         private System.Windows.Forms.Button button12;
         private System.Windows.Forms.ListView AEFailedSignels;
-        private System.Windows.Forms.Button button11;
-        private System.Windows.Forms.Button button10;
+        private System.Windows.Forms.Button AEObjJumpTobutton;
+        private System.Windows.Forms.Button AEObjDelSelbutton;
         private System.Windows.Forms.Button button20;
         private System.Windows.Forms.Button button17;
         private System.Windows.Forms.Button button18;
         private System.Windows.Forms.Button button19;
         private System.Windows.Forms.ListView listView4;
         private System.Windows.Forms.Button button21;
-        private System.Windows.Forms.Button button28;
+        private System.Windows.Forms.Button AEPlayShowonMapbutton;
         private System.Windows.Forms.Label label27;
         private System.Windows.Forms.ComboBox comboBox5;
         private System.Windows.Forms.Label label26;
@@ -2564,7 +2525,7 @@
         private System.Windows.Forms.Label label20;
         private System.Windows.Forms.TextBox textBox8;
         private System.Windows.Forms.Label label19;
-        private System.Windows.Forms.Button button24;
+        private System.Windows.Forms.Button AENewPlayerbutton;
         private ConsistEditor.ConsistViewPanel AEPlayerConsistView;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader2;
@@ -2604,27 +2565,26 @@
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.CheckBox checkBox1;
-        private System.Windows.Forms.TextBox textBox3;
         private System.Windows.Forms.ComboBox comboBox6;
         private System.Windows.Forms.GroupBox groupBox8;
         private System.Windows.Forms.ComboBox comboBox7;
         private System.Windows.Forms.Button button26;
         private System.Windows.Forms.Button button25;
-        private System.Windows.Forms.Button button9;
+        private System.Windows.Forms.Button AETrafAddNewbutton;
         private System.Windows.Forms.GroupBox groupBox9;
         private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.ColumnHeader columnHeader31;
         private System.Windows.Forms.ColumnHeader columnHeader32;
         private System.Windows.Forms.ColumnHeader columnHeader33;
-        private System.Windows.Forms.Button button8;
-        private System.Windows.Forms.Button button7;
-        private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.Button AETrafNewServbutton;
+        private System.Windows.Forms.Button AETrafDeletebutton;
+        private System.Windows.Forms.Button AENewTrafbutton;
         private System.Windows.Forms.ComboBox comboBox8;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox textBox4;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TabPage tabPage7;
-        private System.Windows.Forms.Button button27;
+        private System.Windows.Forms.Button AETimetableCalcbutton;
         private System.Windows.Forms.TextBox textBox10;
         private System.Windows.Forms.TextBox textBox9;
         private System.Windows.Forms.TextBox textBox7;
@@ -2641,7 +2601,7 @@
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.ComboBox comboBox9;
         private System.Windows.Forms.GroupBox groupBox10;
-        private System.Windows.Forms.Button button29;
+        private System.Windows.Forms.Button AEObjAddNewbutton;
         private System.Windows.Forms.Button button37;
         private System.Windows.Forms.Button button36;
         private System.Windows.Forms.Button button16;
@@ -2720,5 +2680,10 @@
         private System.Windows.Forms.Label label46;
         private System.Windows.Forms.Label label45;
         private System.Windows.Forms.Label label44;
+        private System.Windows.Forms.GroupBox groupBox14;
+        private System.Windows.Forms.CheckBox checkBox9;
+        private System.Windows.Forms.CheckBox checkBox7;
+        private System.Windows.Forms.Button AENewActbutton;
+        private System.Windows.Forms.ComboBox comboBox10;
     }
 }

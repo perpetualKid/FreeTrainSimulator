@@ -17,12 +17,12 @@ namespace Orts.Toolbox.ActivityEditor
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void AEEditFilenameOKbutton_Click(object sender, EventArgs e)
         {
             this.Close();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void AEEditFileNameCancelbutton_Click(object sender, EventArgs e)
         {
             this.Close();
         }

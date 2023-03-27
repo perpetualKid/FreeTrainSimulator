@@ -17,12 +17,12 @@ namespace Orts.Toolbox.ActivityEditor
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void TrafDialogOKbutton_Click(object sender, EventArgs e)
         {
             this.Close();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void TrafDialogCancelbutton_Click(object sender, EventArgs e)
         {
             this.Close();
         }
