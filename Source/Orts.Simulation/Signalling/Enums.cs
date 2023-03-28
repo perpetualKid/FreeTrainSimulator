@@ -6,11 +6,18 @@
         FarEnd,
     }
 
+    public enum SignalCategory
+    {
+        Signal,
+        SpeedSignal,
+        SpeedPost,
+    }
+
     public enum InternalBlockstate
     {
 #pragma warning disable CA1700 // Do not name enum values 'Reserved'
         Reserved,                   // all sections reserved for requiring train       //
-        Reservable,                 // all secetions clear and reservable for train    //
+        Reservable,                 // all sections clear and reservable for train    //
         OccupiedSameDirection,      // occupied by train moving in same direction      //
         ReservedOther,              // reserved for other train                        //
         ForcedWait,                 // train is forced to wait for other train         //
@@ -39,4 +46,10 @@
         //PLEASE DO NOT CHANGE THE ORDER OF THESE ENUMS
     }
 
+    public enum SignalEvent
+    {
+        RequestMostRestrictiveAspect,
+        RequestApproachAspect,
+        RequestLeastRestrictiveAspect,
+    }
 }

@@ -23,9 +23,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 using Orts.Common;
 using Orts.Formats.Msts.Models;
@@ -48,7 +50,7 @@ namespace Orts.Formats.Msts.Files
         /// <summary>Name-indexed list of available signal shapes (including heads and other sub-objects)</summary>
         public Dictionary<string, SignalShape> SignalShapes { get; private set; }
         /// <summary>list of names of script files</summary>
-        public List<string> ScriptFiles { get; private set; }
+        public Collection<string> ScriptFiles { get; private set; }
         /// <summary>Full file name and path of the signal config file</summary>
         public string ScriptPath { get; private set; }
 
@@ -275,10 +277,10 @@ namespace Orts.Formats.Msts.Files
             return signalShapes;
         }
 
-        private static List<string> ReadScriptFiles(STFReader stf)
+        private static Collection<string> ReadScriptFiles(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            List<string> scriptFiles = new List<string>();
+            Collection<string> scriptFiles = new Collection<string>();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("scriptfile", ()=>{ scriptFiles.Add(stf.ReadStringBlock(null)); }),
             });

@@ -33,6 +33,7 @@ namespace Orts.SimulatorTester
 {
     internal class Program
     {
+#pragma warning disable CA1303 // Do not pass literals as localized parameters
         private static void Main(string[] args)
         {
             IEnumerable<string> options = args.Where(a => a.StartsWith("-") || a.StartsWith("/")).Select(a => a[1..]);
@@ -179,6 +180,7 @@ namespace Orts.SimulatorTester
 
             return values;
         }
+#pragma warning restore CA1303 // Do not pass literals as localized parameters
 
         private struct SaveData
         {

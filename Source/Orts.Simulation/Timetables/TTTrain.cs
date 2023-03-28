@@ -29,10 +29,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Globalization;
 
 using Microsoft.Xna.Framework;
 
@@ -1137,12 +1137,12 @@ namespace Orts.Simulation.Timetables
                     ControlMode = TrainControlMode.AutoNode;         // start up in NODE control
 
                     // if there is an active turntable and action is not completed, start in turntable state
-                    if (ActiveTurntable != null && ActiveTurntable.MovingTableState != TimetableTurntableControl.MovingTableStateEnum.Completed)
+                    if (ActiveTurntable != null && ActiveTurntable.MovingTableState != MovingTableState.Completed)
                     {
                         MovementState = AiMovementState.Turntable;
                         if (TrainType == TrainType.Player)
                         {
-                            if (ActiveTurntable.MovingTableState == TimetableTurntableControl.MovingTableStateEnum.WaitingMovingTableAvailability)
+                            if (ActiveTurntable.MovingTableState == MovingTableState.WaitingMovingTableAvailability)
                             {
                                 if (simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
                                     simulator.Confirmer.Information("Wait for turntable to become available");
@@ -3229,7 +3229,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // check if turntable available, else exit turntable mode
-            if (ActiveTurntable == null || ActiveTurntable.MovingTableState == TimetableTurntableControl.MovingTableStateEnum.Inactive)
+            if (ActiveTurntable == null || ActiveTurntable.MovingTableState == MovingTableState.Inactive)
             {
                 MovementState = AiMovementState.Stopped;  // set state to stopped to revert to normal working
                 return;
@@ -8451,8 +8451,8 @@ namespace Orts.Simulation.Timetables
                         TimetableTurntablePool thisTurntablePool = thisPool as TimetableTurntablePool;
                         ActiveTurntable = new TimetableTurntableControl(thisTurntablePool, thisTurntablePool.PoolName, thisTurntablePool.AdditionalTurntableDetails.TurntableIndex,
                             simulator, this);
-                        ActiveTurntable.MovingTableState = TimetableTurntableControl.MovingTableStateEnum.WaitingMovingTableAvailability;
-                        ActiveTurntable.MovingTableAction = TimetableTurntableControl.MovingTableActionEnum.FromAccess;
+                        ActiveTurntable.MovingTableState = MovingTableState.WaitingMovingTableAvailability;
+                        ActiveTurntable.MovingTableAction = MovingTableAction.FromAccess;
                         MovementState = AiMovementState.Turntable;
                         return (endOfRoute);
                     }

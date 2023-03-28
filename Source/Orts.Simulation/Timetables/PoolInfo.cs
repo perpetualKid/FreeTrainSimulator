@@ -33,18 +33,7 @@ namespace Orts.Simulation.Timetables
     /// </summary>
     public class PoolInfo
     {
-        public Simulator simulator;
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="simulatorref"></param>
-        public PoolInfo(Simulator simulatorref)
-        {
-            simulator = simulatorref;
-        }
-
+        private const string significantFileName = "pool";
 
         //================================================================================================//
         /// <summary>
@@ -53,17 +42,13 @@ namespace Orts.Simulation.Timetables
         /// <param name="arguments"></param>
         /// <param name="cancellation"></param>
         /// <returns></returns>
-        public Dictionary<string, TimetablePool> ProcessPools(string fileName, CancellationToken cancellationToken)
+        public static Dictionary<string, TimetablePool> ProcessPools(string fileName, CancellationToken cancellationToken)
         {
             Dictionary<string, TimetablePool> pools = new Dictionary<string, TimetablePool>();
-            List<string> filenames;
 
             // get filenames to process
-            filenames = GetFilenames(fileName);
-
-            // get file contents as strings
             Trace.Write("\n");
-            foreach (string filePath in filenames)
+            foreach (string filePath in EnumeratePoolFiles(fileName, significantFileName))
             {
                 // get contents as strings
                 Trace.Write("Pool File : " + filePath + "\n");
@@ -71,7 +56,7 @@ namespace Orts.Simulation.Timetables
 
                 // read lines from input until 'Name' definition is found
                 int lineindex = 1;
-                while (lineindex < poolInfo.Strings.Count)
+                while (lineindex < poolInfo.Strings.Count && !cancellationToken.IsCancellationRequested)
                 {
                     switch (poolInfo.Strings[lineindex][0].ToLower().Trim())
                     {
@@ -83,9 +68,9 @@ namespace Orts.Simulation.Timetables
                         // process name
                         // do not increase lineindex as that is done in called method
                         case "#name" :
-                            TimetablePool newPool = new TimetablePool(poolInfo, ref lineindex, simulator);
+                            TimetablePool newPool = new TimetablePool(poolInfo, ref lineindex, Simulator.Instance);
                             // store if valid pool
-                            if (!String.IsNullOrEmpty(newPool.PoolName))
+                            if (!string.IsNullOrEmpty(newPool.PoolName))
                             {
                                 if (pools.ContainsKey(newPool.PoolName))
                                 {
@@ -99,7 +84,7 @@ namespace Orts.Simulation.Timetables
                             break;
 
                         default :
-                            if (!String.IsNullOrEmpty(poolInfo.Strings[lineindex][0]))
+                            if (!string.IsNullOrEmpty(poolInfo.Strings[lineindex][0]))
                             {
                                 Trace.TraceInformation("Invalid definition in file " + filePath + " at line " + lineindex + " : " +
                                     poolInfo.Strings[lineindex][0].ToLower().Trim() + "\n");
@@ -119,23 +104,19 @@ namespace Orts.Simulation.Timetables
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        private List<string> GetFilenames(string filePath)
+        private protected static IEnumerable<string> EnumeratePoolFiles(string filePath, string filenameIdentifier)
         {
-            List<string> filenames = new List<string>();
-
             // check type of timetable file - list or single
             string fileDirectory = Path.GetDirectoryName(filePath);
 
-            foreach (var ORPoolFile in Directory.GetFiles(fileDirectory, "*.pool_or"))
+            foreach (string poolFile in Directory.EnumerateFiles(fileDirectory, $"*.{filenameIdentifier}_or"))
             {
-                filenames.Add(ORPoolFile);
+                yield return poolFile;
             }
-            foreach (var ORPoolFile in Directory.GetFiles(fileDirectory, "*.pool-or"))
+            foreach (string poolFile in Directory.EnumerateFiles(fileDirectory, $"*.{filenameIdentifier}-or"))
             {
-                filenames.Add(ORPoolFile);
+                yield return poolFile;
             }
-
-            return (filenames);
         }
 
     }

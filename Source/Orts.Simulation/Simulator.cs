@@ -394,7 +394,7 @@ namespace Orts.Simulation
             (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings();
             Trains = new TrainList(this);
-            PoolHolder = new Poolholder(this, timeTableFile, cancellationToken);
+            PoolHolder = new Poolholder(timeTableFile, cancellationToken);
 
             TimetableInfo TTinfo = new TimetableInfo(this);
             List<TTTrain> allTrains = TTinfo.ProcessTimetable(timeTableFile, PathName, cancellationToken);
@@ -1188,7 +1188,7 @@ namespace Orts.Simulation
                         car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
                     if (car is EndOfTrainDevice endOfTrain)
                         train.EndOfTrainDevice = endOfTrain;
-                    car.FreightAnimations?.Load(car as MSTSWagon, wagon.LoadDataList);
+                    car.FreightAnimations?.Load(wagon.LoadDataList);
 
                     train.Length += car.CarLengthM;
 
@@ -1388,7 +1388,7 @@ namespace Orts.Simulation
                             car.CarID = activityObject.ID + " - " + car.UiD;
                             if (car is EndOfTrainDevice endOfTrain)
                                 train.EndOfTrainDevice = endOfTrain;
-                            car.FreightAnimations?.Load(car as MSTSWagon, wagon.LoadDataList);
+                            car.FreightAnimations?.Load(wagon.LoadDataList);
                         }
                         catch (Exception error)
                         {

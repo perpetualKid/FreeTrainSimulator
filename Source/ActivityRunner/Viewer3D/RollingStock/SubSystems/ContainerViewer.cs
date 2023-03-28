@@ -33,14 +33,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         private List<Container> visibleContainers = new List<Container>();
         private readonly Viewer viewer;
 
-        public ContainersViewer(ContainerHandlingItem containerHandlingItem, string wagonFolderSlash)
-        {
-            ArgumentNullException.ThrowIfNull(containerHandlingItem);
-            foreach (Container container in containerHandlingItem.Containers)
-                if (container.ShapeFileName != null)
-                    containers.Add(container, new ContainerViewer(containerHandlingItem, container));
-        }
-
         public ContainersViewer(Viewer viewer)
         {
             this.viewer = viewer;
@@ -51,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             List<Container> visibleContainers = new List<Container>();
             float removeDistance = viewer.Settings.ViewingDistance * 1.5f;
             foreach (Container container in Simulator.Instance.ContainerManager.Containers)
-                if (WorldLocation.ApproximateDistance(viewer.Camera.CameraWorldLocation, container.WorldPosition.WorldLocation) < removeDistance)
+                if (WorldLocation.ApproximateDistance(viewer.Camera.CameraWorldLocation, container.WorldPosition.WorldLocation) < removeDistance && container.Visible)
                     visibleContainers.Add(container);
             this.visibleContainers = visibleContainers;
         }

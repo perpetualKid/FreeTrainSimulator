@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using Microsoft.Xna.Framework;
+using Orts.Simulation.RollingStocks.SubSystems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -328,8 +329,9 @@ namespace Orts.Simulation.MultiPlayer
         public string leadingID;
         public string[] cars;
         public string[] ids;
-        public int[] flipped; //if a wagon is engine
-        public int[] lengths; //if a wagon is engine
+        public int[] flipped;
+        public int[] lengths;
+        public string[] faDiscretes;
         public string url;
         public int version;
         public string MD5 = "";
@@ -408,6 +410,7 @@ namespace Orts.Simulation.MultiPlayer
             ids = new string[numCars];
             flipped = new int[numCars];
             lengths = new int[numCars];
+            faDiscretes = new string[numCars];
             int index, last;
             for (var i = 0; i < numCars; i++)
             {
@@ -420,6 +423,7 @@ namespace Orts.Simulation.MultiPlayer
                 ids[i] = carinfo[0];
                 flipped[i] = int.Parse(carinfo[1]);
                 lengths[i] = int.Parse(carinfo[2]);
+                faDiscretes[i] = carinfo[3];
             }
 
         }
@@ -468,6 +472,7 @@ namespace Orts.Simulation.MultiPlayer
             ids = new string[t.Cars.Count];
             flipped = new int[t.Cars.Count];
             lengths = new int[t.Cars.Count];
+            faDiscretes = new string[t.Cars.Count];
             for (var i = 0; i < t.Cars.Count; i++)
             {
                 cars[i] = t.Cars[i].RealWagFilePath;
@@ -477,6 +482,9 @@ namespace Orts.Simulation.MultiPlayer
                 else
                     flipped[i] = 0;
                 lengths[i] = (int)(t.Cars[i].CarLengthM * 100);
+                faDiscretes[i] = "0";
+                if (t.Cars[i].FreightAnimations != null)
+                    faDiscretes[i] = t.Cars[i].FreightAnimations.FreightAnimationDiscretesString();
             }
             if (t.LeadLocomotive != null)
                 leadingID = t.LeadLocomotive.CarID;
@@ -497,13 +505,12 @@ namespace Orts.Simulation.MultiPlayer
             for (var i = 0; i < cars.Length; i++)
             {
                 var c = cars[i];
-                var index = c.LastIndexOf("\\trains\\trainset\\", StringComparison.OrdinalIgnoreCase);
-                if (index > 0)
+                var index = c.LastIndexOf("\\trains\\trainset\\", StringComparison.OrdinalIgnoreCase); 
                 {
                     c = c.Remove(0, index + 17);
                 }//c: wagon path without folder name
 
-                tmp += "\"" + c + "\"" + " " + ids[i] + "\n" + flipped[i] + "\n" + lengths[i] + "\t";
+                tmp += "\"" + c + "\"" + " " + ids[i] + "\n" + flipped[i] + "\n" + lengths[i] + "\n" + faDiscretes[i] + "\t";
             }
 
             tmp += "\r" + MultiPlayerManager.ProtocolVersion + "\r" + MD5;
@@ -587,6 +594,8 @@ namespace Orts.Simulation.MultiPlayer
                     {
                         MultiPlayerManager.OnlineTrains.Players.Add(user, p1);
                         p1.CreatedTime = Simulator.Instance.GameTime;
+                        // re-insert train reference in cars
+                        InsertTrainReference(p1Train);
                         MultiPlayerManager.Instance().AddOrRemoveTrain(p1Train, true);
                         if (MultiPlayerManager.IsServer())
                             MultiPlayerManager.Instance().AddOrRemoveLocomotives(user, p1Train, true);
@@ -685,6 +694,16 @@ namespace Orts.Simulation.MultiPlayer
                     Simulator.Instance.ClockTime = this.seconds;
                     Simulator.Instance.SetWeather((WeatherType)weather, (SeasonType)season);
                 }
+            }
+        }
+
+        private static void InsertTrainReference(Train train)
+        {
+            foreach (TrainCar car in train.Cars)
+            {
+                car.Train = train;
+                car.IsPartOfActiveTrain = true;
+                car.FreightAnimations?.ShowDiscreteFreightAnimations();
             }
         }
     }
@@ -1193,6 +1212,7 @@ namespace Orts.Simulation.MultiPlayer
         private string[] ids;
         private int[] flipped; //if a wagon is engine
         private int[] lengths;
+        private string[] faDiscretes;
         private int TrainNum;
         private int direction;
         private float Travelled;
@@ -1235,6 +1255,7 @@ namespace Orts.Simulation.MultiPlayer
             ids = new string[areas.Length - 2];
             flipped = new int[areas.Length - 2];
             lengths = new int[areas.Length - 2];
+            faDiscretes = new string[areas.Length - 2];
             for (var i = 0; i < cars.Length; i++)
             {
                 index = areas[i].IndexOf('\"');
@@ -1246,6 +1267,7 @@ namespace Orts.Simulation.MultiPlayer
                 ids[i] = carinfo[0];
                 flipped[i] = int.Parse(carinfo[1]);
                 lengths[i] = int.Parse(carinfo[2]);
+                faDiscretes[i] = carinfo[3];
             }
             index = areas[areas.Length - 2].IndexOf('\n');
             last = areas[areas.Length - 2].Length;
@@ -1261,6 +1283,7 @@ namespace Orts.Simulation.MultiPlayer
             ids = new string[t.Cars.Count];
             flipped = new int[t.Cars.Count];
             lengths = new int[t.Cars.Count];
+            faDiscretes = new string[t.Cars.Count];
             for (var i = 0; i < t.Cars.Count; i++)
             {
                 cars[i] = t.Cars[i].RealWagFilePath;
@@ -1270,6 +1293,9 @@ namespace Orts.Simulation.MultiPlayer
                     flipped[i] = 1;
                 else
                     flipped[i] = 0;
+                faDiscretes[i] = "0";
+                if (t.Cars[i].FreightAnimations != null)
+                    faDiscretes[i] = t.Cars[i].FreightAnimations.FreightAnimationDiscretesString();
             }
             TrainNum = n;
             direction = t.RearTDBTraveller.Direction == Direction.Forward ? 1 : 0;
@@ -1294,6 +1320,8 @@ namespace Orts.Simulation.MultiPlayer
                 MUDirection = TranslateMidpointDirection(this.mDirection), // (MidpointDirection)this.mDirection;
                 RearTDBTraveller = new Traveller(location, direction == 1 ? Direction.Forward : Direction.Backward)
             };
+            string[] faDiscreteSplit;
+            List<LoadData> loadDataList = new List<LoadData>();
             //if (consistDirection != 1)
             //	train.RearTDBTraveller.ReverseDirection();
             for (var i = 0; i < cars.Length; i++)// cars.Length-1; i >= 0; i--) {
@@ -1304,6 +1332,22 @@ namespace Orts.Simulation.MultiPlayer
                 {
                     car = RollingStock.Load(train, wagonFilePath);
                     car.CarLengthM = lengths[i];
+                    if (faDiscretes[i][0] != '0')
+                    {
+                        int numDiscretes = faDiscretes[i][0];
+                        // There are discrete freight animations, add them to wagon
+                        faDiscreteSplit = faDiscretes[i].Split('&');
+                        loadDataList.Clear();
+                        for (int j = 1; j < faDiscreteSplit.Length; j++)
+                        {
+                            string faDiscrete = faDiscreteSplit[j];
+                            string[] loadDataItems = faDiscrete.Split('%');
+                            EnumExtension.GetValue(loadDataItems[2], out LoadPosition loadPosition) ;
+                            LoadData loadData = new LoadData(loadDataItems[0], loadDataItems[1], loadPosition);
+                            loadDataList.Add(loadData);
+                        }
+                        car.FreightAnimations?.Load(loadDataList);
+                    }
                 }
                 catch (Exception error)
                 {
@@ -1360,7 +1404,7 @@ namespace Orts.Simulation.MultiPlayer
                     c = c.Remove(0, index + 17);
                 }//c: wagon path without folder name
 
-                tmp += "\"" + c + "\"" + " " + ids[i] + "\n" + flipped[i] + "\n" + lengths[i] + "\t";
+                tmp += "\"" + c + "\"" + " " + ids[i] + "\n" + flipped[i] + "\n" + lengths[i] + "\n" + faDiscretes[i] + "\t";
             }
             tmp += "\n" + name + "\t";
             return " " + tmp.Length + ": " + tmp;
@@ -1377,6 +1421,7 @@ namespace Orts.Simulation.MultiPlayer
         private int[] flipped; //if a wagon is engine
         private int[] lengths; //if a wagon is engine
         private int TrainNum;
+        private string[] faDiscretes;
         private int direction;
         private float Travelled;
         private int mDirection;
@@ -1422,6 +1467,7 @@ namespace Orts.Simulation.MultiPlayer
             ids = new string[areas.Length - 1];
             flipped = new int[areas.Length - 1];
             lengths = new int[areas.Length - 1];
+            faDiscretes = new string[areas.Length - 1];
             for (var i = 0; i < cars.Length; i++)
             {
                 index = areas[i].IndexOf('\"');
@@ -1433,6 +1479,7 @@ namespace Orts.Simulation.MultiPlayer
                 ids[i] = carinfo[0];
                 flipped[i] = int.Parse(carinfo[1]);
                 lengths[i] = int.Parse(carinfo[2]);
+                faDiscretes[i] = carinfo[3];
             }
 
             //Trace.WriteLine(this.ToString());
@@ -1445,6 +1492,7 @@ namespace Orts.Simulation.MultiPlayer
             ids = new string[t.Cars.Count];
             flipped = new int[t.Cars.Count];
             lengths = new int[t.Cars.Count];
+            faDiscretes = new string[t.Cars.Count];
             for (var i = 0; i < t.Cars.Count; i++)
             {
                 cars[i] = t.Cars[i].RealWagFilePath;
@@ -1454,6 +1502,9 @@ namespace Orts.Simulation.MultiPlayer
                     flipped[i] = 1;
                 else
                     flipped[i] = 0;
+                faDiscretes[i] = "0";
+                if (t.Cars[i].FreightAnimations != null)
+                    faDiscretes[i] = t.Cars[i].FreightAnimations.FreightAnimationDiscretesString();
             }
             TrainNum = n;
             direction = t.RearTDBTraveller.Direction == Direction.Forward ? 1 : 0;
@@ -1484,6 +1535,8 @@ namespace Orts.Simulation.MultiPlayer
             {
                 Traveller traveller = new Traveller(location, direction == 1 ? Direction.Forward : Direction.Backward);
                 List<TrainCar> tmpCars = new List<TrainCar>();
+                string[] faDiscreteSplit;
+                List<LoadData> loadDataList = new List<LoadData>();
                 for (var i = 0; i < cars.Length; i++)
                 {
                     string wagonFilePath = Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, cars[i]);
@@ -1493,6 +1546,22 @@ namespace Orts.Simulation.MultiPlayer
                         if (car == null)
                             car = RollingStock.Load(train, wagonFilePath);
                         car.CarLengthM = lengths[i];
+                        if (faDiscretes[i][0] != '0')
+                        {
+                            int numDiscretes = faDiscretes[i][0];
+                            // There are discrete freight animations, add them to wagon
+                            faDiscreteSplit = faDiscretes[i].Split('&');
+                            loadDataList.Clear();
+                            for (int j = 1; j < faDiscreteSplit.Length; j++)
+                            {
+                                var faDiscrete = faDiscreteSplit[j];
+                                string[] loadDataItems = faDiscrete.Split('%');
+                                EnumExtension.GetValue(loadDataItems[2], out LoadPosition loadPosition);
+                                LoadData loadData = new LoadData(loadDataItems[0], loadDataItems[1], loadPosition);
+                                loadDataList.Add(loadData);
+                            }
+                            car.FreightAnimations?.Load(loadDataList);
+                        }
                     }
                     catch (Exception error)
                     {
@@ -1592,7 +1661,7 @@ namespace Orts.Simulation.MultiPlayer
                     c = c.Remove(0, index + 17);
                 }//c: wagon path without folder name
 
-                tmp += "\"" + c + "\"" + " " + ids[i] + "\n" + flipped[i] + "\n" + lengths[i] + "\t";
+                tmp += "\"" + c + "\"" + " " + ids[i] + "\n" + flipped[i] + "\n" + lengths[i] + "\n" + faDiscretes[i] + "\t";
             }
             return " " + tmp.Length + ": " + tmp;
         }
@@ -3111,7 +3180,7 @@ namespace Orts.Simulation.MultiPlayer
                 {
                     foreach (var s in Simulator.Instance.SignalEnvironment.Signals)
                     {
-                        if (s != null && (s.IsSignal || s.IsSpeedSignal) && s.SignalHeads != null)
+                        if (s != null && (s.SignalType == SignalCategory.Signal || s.SignalType == SignalCategory.SpeedSignal) && s.SignalHeads != null)
                             foreach (var h in s.SignalHeads)
                             {
                                 //Trace.WriteLine(h.TDBIndex);
@@ -3182,7 +3251,7 @@ namespace Orts.Simulation.MultiPlayer
                     {
                         foreach (var s in Simulator.Instance.SignalEnvironment.Signals)
                         {
-                            if (s != null && (s.IsSignal || s.IsSpeedSignal) && s.SignalHeads != null)
+                            if (s != null && (s.SignalType == SignalCategory.Signal || s.SignalType == SignalCategory.SpeedSignal) && s.SignalHeads != null)
                                 foreach (var h in s.SignalHeads)
                                 {
                                     //Trace.WriteLine(h.TDBIndex);
@@ -3617,6 +3686,7 @@ namespace Orts.Simulation.MultiPlayer
         private int index;
         private int pick;
         private string sender;
+
         //constructor to create a message from signal data
         public MSGSignalChange(Signal signal, int p)
         {
@@ -3646,35 +3716,19 @@ namespace Orts.Simulation.MultiPlayer
                 case 0:
                     signal.HoldState = SignalHoldState.None;
                     break;
+
                 case 1:
                     signal.HoldState = SignalHoldState.ManualLock;
                     break;
+
                 case 2:
-                    signal.HoldState = SignalHoldState.ManualApproach;
-                    foreach (var sigHead in signal.SignalHeads)
-                    {
-                        var drawstate1 = sigHead.DefaultDrawState(SignalAspectState.Approach_1);
-                        var drawstate2 = sigHead.DefaultDrawState(SignalAspectState.Approach_2);
-                        var drawstate3 = sigHead.DefaultDrawState(SignalAspectState.Approach_3);
-                        if (drawstate1 > 0)
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_1; }
-                        else if (drawstate2 > 0)
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_2; }
-                        else
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_3; }
-                        sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
-                        // Clear the text aspect so as not to leave C# scripted signals in an inconsistent state.
-                        sigHead.TextSignalAspect = "";
-                    }
+                    signal.RequestApproachAspect();
                     break;
+
                 case 3:
-                    signal.HoldState = SignalHoldState.ManualPass;
-                    foreach (var sigHead in signal.SignalHeads)
-                    {
-                        sigHead.SetLeastRestrictiveAspect();
-                        sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
-                    }
+                    signal.RequestLeastRestrictiveAspect();
                     break;
+
                 case 4:
                     signal.SetManualCallOn(true);
                     break;

@@ -18,10 +18,8 @@
 // This code processes the Timetable definition and converts it into playable train information
 //
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 
 using Orts.Formats.OR.Parsers;
@@ -33,16 +31,7 @@ namespace Orts.Simulation.Timetables
     /// </summary>
     public class TurntableInfo : PoolInfo
     {
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="simulatorref"></param>
-        public TurntableInfo(Simulator simulatorref) : base(simulatorref)
-        {
-        }
-
+        private const string significantFileName = "turntable";
 
         //================================================================================================//
         /// <summary>
@@ -51,17 +40,13 @@ namespace Orts.Simulation.Timetables
         /// <param name="arguments"></param>
         /// <param name="cancellation"></param>
         /// <returns></returns>
-        public Dictionary<string, TimetableTurntablePool> ProcessTurntables(string fileName, CancellationToken cancellationToken)
+        public static Dictionary<string, TimetableTurntablePool> ProcessTurntables(string fileName, CancellationToken cancellationToken)
         {
             Dictionary<string, TimetableTurntablePool> turntables = new Dictionary<string, TimetableTurntablePool>();
-            List<string> filenames;
 
             // get filenames to process
-            filenames = GetTurntableFilenames(fileName);
-
-            // get file contents as strings
             Trace.Write("\n");
-            foreach (string filePath in filenames)
+            foreach (string filePath in EnumeratePoolFiles(fileName, significantFileName))
             {
                 // get contents as strings
                 Trace.Write("Turntable File : " + filePath + "\n");
@@ -69,7 +54,7 @@ namespace Orts.Simulation.Timetables
 
                 // read lines from input until 'Name' definition is found
                 int lineindex = 1;
-                while (lineindex < turntableInfo.Strings.Count)
+                while (lineindex < turntableInfo.Strings.Count && !cancellationToken.IsCancellationRequested)
                 {
                     switch (turntableInfo.Strings[lineindex][0].ToLower().Trim())
                     {
@@ -81,9 +66,9 @@ namespace Orts.Simulation.Timetables
                         // process name
                         // do not increase lineindex as that is done in called method
                         case "#name":
-                            TimetableTurntablePool newTurntable = new TimetableTurntablePool(turntableInfo, ref lineindex, simulator);
+                            TimetableTurntablePool newTurntable = new TimetableTurntablePool(turntableInfo, ref lineindex, Simulator.Instance);
                             // store if valid pool
-                            if (!String.IsNullOrEmpty(newTurntable.PoolName))
+                            if (!string.IsNullOrEmpty(newTurntable.PoolName))
                             {
                                 if (turntables.ContainsKey(newTurntable.PoolName))
                                 {
@@ -97,7 +82,7 @@ namespace Orts.Simulation.Timetables
                             break;
 
                         default:
-                            if (!String.IsNullOrEmpty(turntableInfo.Strings[lineindex][0]))
+                            if (!string.IsNullOrEmpty(turntableInfo.Strings[lineindex][0]))
                             {
                                 Trace.TraceInformation("Invalid definition in file " + filePath + " at line " + lineindex + " : " +
                                     turntableInfo.Strings[lineindex][0].ToLower().Trim() + "\n");
@@ -109,32 +94,6 @@ namespace Orts.Simulation.Timetables
             }
 
             return (turntables);
-        }
-
-
-        //================================================================================================//
-        /// <summary>
-        /// Get filenames of pools to process
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <returns></returns>
-        private List<string> GetTurntableFilenames(string filePath)
-        {
-            List<string> filenames = new List<string>();
-
-            // check type of timetable file - list or single
-            string fileDirectory = Path.GetDirectoryName(filePath);
-
-            foreach (var ORTurntableFile in Directory.GetFiles(fileDirectory, "*.turntable_or"))
-            {
-                filenames.Add(ORTurntableFile);
-            }
-            foreach (var ORTunrtableFile in Directory.GetFiles(fileDirectory, "*.turntable-or"))
-            {
-                filenames.Add(ORTunrtableFile);
-            }
-
-            return (filenames);
         }
     }
 }

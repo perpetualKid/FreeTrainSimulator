@@ -46,6 +46,8 @@ namespace Orts.Simulation.Signalling
         //    for backfacing signal
         public List<int> Backfacing { get; } = new List<int>();   // Flags heads which are backfacing
 
+        public string ShapeFileName { get; }
+
         public SignalWorldInfo(SignalObject signalWorldItem, SignalConfigurationFile signalConfig)
         {
             if (null == signalConfig)
@@ -61,6 +63,7 @@ namespace Orts.Simulation.Signalling
             FlagsSetBackfacing = new BitArray(EnumExtension.GetLength<SignalSubType>());
 
             string fileName = Path.GetFileName(signalWorldItem.FileName);
+            ShapeFileName = Path.GetFileNameWithoutExtension(fileName);
 
             // search defined shapes in SIGCFG to find signal definition
 

@@ -50,16 +50,15 @@ namespace Orts.Simulation.Timetables
         /// <summary>
         /// loader for timetable mode
         /// </summary>
-        public Poolholder(Simulator simulatorref, string fileName, CancellationToken cancellationToken)
+        public Poolholder(string fileName, CancellationToken cancellationToken)
         {
             // process pools
-            PoolInfo TTPool = new PoolInfo(simulatorref);
-            Pools = TTPool.ProcessPools(fileName, cancellationToken);
+            PoolInfo TTPool = new PoolInfo();
+            Pools = PoolInfo.ProcessPools(fileName, cancellationToken);
 
             // process turntables
-            TurntableInfo TTTurntable = new TurntableInfo(simulatorref);
             Dictionary<string, TimetableTurntablePool> TTTurntables = new Dictionary<string, TimetableTurntablePool>();
-            TTTurntables = TTTurntable.ProcessTurntables(fileName, cancellationToken);
+            TTTurntables = TurntableInfo.ProcessTurntables(fileName, cancellationToken);
 
             // add turntables to poolholder
             foreach (KeyValuePair<string, TimetableTurntablePool> thisTTTurntable in TTTurntables)

@@ -126,6 +126,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         public void Parse(string lowercasetoken, STFReader stf)
         {
+            ArgumentNullException.ThrowIfNull(stf);
+
             switch (lowercasetoken)
             {
                 case "engine(vigilancemonitor":
@@ -316,6 +318,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.AltitudeM = () => Locomotive.WorldPosition.Location.Y;
                 script.CurrentGradientPercent = () => Locomotive.CurrentElevationPercent;
                 script.LineSpeedMpS = () => (float)Simulator.Route.SpeedLimit;
+                script.SignedDistanceM = () => Locomotive.Train.DistanceTravelledM;
                 script.DoesStartFromTerminalStation = () => DoesStartFromTerminalStation();
                 script.IsColdStart = () => Locomotive.Train.ColdStart;
                 script.GetTrackNodeOffset = () => Locomotive.Train.FrontTDBTraveller.TrackNodeLength - Locomotive.Train.FrontTDBTraveller.TrackNodeOffset;
@@ -464,6 +467,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                     }
                 };
                 script.RequestToggleManualMode = () => Locomotive.Train.RequestToggleManualMode();
+                script.ResetOutOfControlMode = () => Locomotive.Train.ManualResetOutOfControlMode();
 
                 // TrainControlSystem INI configuration file
                 script.GetBoolParameter = (arg1, arg2, arg3) => LoadParameter(arg1, arg2, arg3);
@@ -566,47 +570,49 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
             if (itemSequenceIndex > Locomotive.Train.PlayerTrainSpeedposts[dir].Count - 1 || (trainpathItem = Locomotive.Train.PlayerTrainSpeedposts[dir][itemSequenceIndex]).DistanceToTrainM > maxDistanceM)
                 return SignalFeatures.None; // no n-th speedpost available or the requested speedpost is too distant
 
-            if (type == TrainPathItemType.Signal)
+            switch (type)
             {
-                // All OK, we can retrieve the data for the required signal;
-                distanceM = trainpathItem.DistanceToTrainM;
-                mainHeadSignalTypeName = trainpathItem.Signal.SignalHeads[0].SignalType.Name;
-                if (signalFunctionTypeName.Equals("Normal", StringComparison.OrdinalIgnoreCase))
-                {
-                    aspect = trainpathItem.SignalState;
-                    speedLimitMpS = trainpathItem.AllowedSpeedMpS;
-                    altitudeOrLengthM = trainpathItem.Signal.TdbTraveller.Y;
-                }
-                else
-                {
-                    aspect = SignalEnvironment.TranslateToTCSAspect(trainpathItem.Signal.SignalLR(fn_type));
-                }
-                foreach (SignalHead functionHead in trainpathItem.Signal.SignalHeads)
-                {
-                    if (functionHead.OrtsSignalFunctionIndex == fn_type)
+                case TrainPathItemType.Signal:
+                case TrainPathItemType.SpeedSignal:
+                    // All OK, we can retrieve the data for the required signal;
+                    distanceM = trainpathItem.DistanceToTrainM;
+                    mainHeadSignalTypeName = trainpathItem.Signal.SignalHeads[0].SignalType.Name;
+                    if (signalFunctionTypeName.Equals("Normal", StringComparison.OrdinalIgnoreCase))
                     {
-                        textAspect = functionHead.TextSignalAspect;
-                        signalTypeName = functionHead.SignalType.Name;
-                        if (functionHead.DrawState >= 0)
-                        {
-                            drawStateName = functionHead.SignalType.DrawStates.First(d => d.Value.Index == functionHead.DrawState).Value.Name;
-                        }
-                        break;
+                        aspect = trainpathItem.SignalState;
+                        speedLimitMpS = trainpathItem.AllowedSpeedMpS;
+                        altitudeOrLengthM = trainpathItem.Signal.TdbTraveller.Y;
                     }
-                }
-            }
-            else if (type == TrainPathItemType.Speedpost)
-            {
-                var playerTrainSpeedpostList = Locomotive.Train.PlayerTrainSpeedposts[dir].Where(x => !x.IsWarning).ToList();
-                if (itemSequenceIndex > playerTrainSpeedpostList.Count - 1)
-                    return SignalFeatures.None;
-                var trainSpeedpost = playerTrainSpeedpostList[itemSequenceIndex];
-                if (trainSpeedpost.DistanceToTrainM > maxDistanceM)
-                    return SignalFeatures.None;
+                    else
+                    {
+                        aspect = SignalEnvironment.TranslateToTCSAspect(trainpathItem.Signal.SignalLR(fn_type));
+                    }
+                    foreach (SignalHead functionHead in trainpathItem.Signal.SignalHeads)
+                    {
+                        if (functionHead.OrtsSignalFunctionIndex == fn_type)
+                        {
+                            textAspect = functionHead.TextSignalAspect;
+                            signalTypeName = functionHead.SignalType.Name;
+                            if (functionHead.SignalType.DrawStates.Any(d => d.Value.Index == functionHead.DrawState))
+                            {
+                                drawStateName = functionHead.SignalType.DrawStates.First(d => d.Value.Index == functionHead.DrawState).Value.Name;
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                case TrainPathItemType.Speedpost:
+                    var playerTrainSpeedpostList = Locomotive.Train.PlayerTrainSpeedposts[dir].Where(x => !x.IsWarning).ToList();
+                    if (itemSequenceIndex > playerTrainSpeedpostList.Count - 1)
+                        return SignalFeatures.None;
+                    var trainSpeedpost = playerTrainSpeedpostList[itemSequenceIndex];
+                    if (trainSpeedpost.DistanceToTrainM > maxDistanceM)
+                        return SignalFeatures.None;
 
-                // All OK, we can retrieve the data for the required speedpost;
-                distanceM = trainpathItem.DistanceToTrainM;
-                speedLimitMpS = trainpathItem.AllowedSpeedMpS;
+                    // All OK, we can retrieve the data for the required speedpost;
+                    distanceM = trainpathItem.DistanceToTrainM;
+                    speedLimitMpS = trainpathItem.AllowedSpeedMpS;
+                    break;
             }
             return new SignalFeatures(mainHeadSignalTypeName, signalTypeName, aspect, drawStateName, distanceM, speedLimitMpS, altitudeOrLengthM, textAspect);
         }

@@ -798,18 +798,6 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
-    public class SpeedPostWorldObject
-    {
-        public string SpeedPostFileName { get; }
-
-        public SpeedPostWorldObject(SpeedPostObject speedPostItem)
-        {
-            // get filename in Uppercase
-            SpeedPostFileName = Path.GetFileName(speedPostItem?.FileName).ToUpperInvariant();
-        }
-    }
-
-
     public class TrackItems
     {
         internal void Add(SBR block)

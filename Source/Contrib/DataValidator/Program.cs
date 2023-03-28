@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using Orts.Common.Info;
 using Orts.Common.Logging;
 
 [assembly: CLSCompliant(false)]
@@ -42,12 +43,18 @@ namespace Orts.DataValidator
         private static void ShowHelp()
         {
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
-            Console.WriteLine("Open Rails Data Validator utility");
+            Console.WriteLine("{0} {1}", RuntimeInfo.ApplicationFile, VersionInfo.FullVersion);
             Console.WriteLine();
-            Console.WriteLine("{0} [/verbose] PATH [...]", Path.GetFileNameWithoutExtension(AppDomain.CurrentDomain.FriendlyName));
+            Console.WriteLine("Usage:");
+            Console.WriteLine("  {0} [options] <FILE> [...]", Path.GetFileNameWithoutExtension(RuntimeInfo.ApplicationFile));
             Console.WriteLine();
-            //                "1234567890123456789012345678901234567890123456789012345678901234567890123456789"
-            Console.WriteLine("    /verbose  Displays all expected/valid values in addition to any errors.");
+            Console.WriteLine("Arguments:");
+            Console.WriteLine("  <FILE>    Data files to validate; may contain wildcards");
+            Console.WriteLine();
+            Console.WriteLine("Options:");
+            Console.WriteLine("  /verbose  Displays all expected/valid values in addition to any errors");
+            Console.WriteLine("  /help     Show help and usage information");
+            Console.WriteLine();
         }
 
         private static void Validate(bool verbose, IEnumerable<string> files)

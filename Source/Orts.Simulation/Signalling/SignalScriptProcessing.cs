@@ -66,11 +66,11 @@ namespace Orts.Simulation.Signalling
         {
             if (head.MainSignal.BlockState() == SignalBlockState.Clear)
             {
-                head.SetLeastRestrictiveAspect();
+                head.RequestLeastRestrictiveAspect();
             }
             else
             {
-                head.SetMostRestrictiveAspect();
+                head.RequestMostRestrictiveAspect();
             }
         }
 
@@ -320,6 +320,8 @@ namespace Orts.Simulation.Signalling
             int result = 0;
             int parameter1 = 0;
             int parameter2 = 0;
+            SignalFunction function1 = SignalFunction.Normal;
+            SignalFunction function2 = SignalFunction.Normal;
 
             // extract parameters (max. 2)
 
@@ -329,12 +331,14 @@ namespace Orts.Simulation.Signalling
                 {
                     SignalScripts.SCRScripts.SCRParameterType parameter = term.PartParameter[0];
                     parameter1 = TermValue(head, parameter, localFloats);
+                    function1 = parameter.SignalFunction;
                 }
 
                 if (term.PartParameter.Length >= 2)
                 {
                     SignalScripts.SCRScripts.SCRParameterType parameter = term.PartParameter[1];
                     parameter2 = TermValue(head, parameter, localFloats);
+                    function2 = parameter.SignalFunction;
                 }
             }
 

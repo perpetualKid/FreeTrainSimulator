@@ -254,6 +254,10 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<float> LineSpeedMpS { get; set; }
         /// <summary>
+        /// Running total of distance travelled - negative or positive depending on train direction
+        /// </summary>
+        public Func<float> SignedDistanceM { get; set; }
+        /// <summary>
         /// True if starting from terminal station (no track behind the train).
         /// </summary>
         public Func<bool> DoesStartFromTerminalStation { get; set; }
@@ -457,6 +461,10 @@ namespace Orts.Scripting.Api
         /// Requests toggle to and from Manual Mode.
         /// </summary>
         public Action RequestToggleManualMode { get; set; }
+        /// <summary>
+        /// Requests reset of Out of Control Mode.
+        /// </summary>
+        public Action ResetOutOfControlMode { get; set; }
         /// <summary>
         /// Get bool parameter in the INI file.
         /// </summary>

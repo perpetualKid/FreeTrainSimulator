@@ -57,6 +57,7 @@ namespace Orts.Simulation
     public enum TrainPathItemType
     {
         Signal,
+        SpeedSignal,
         Speedpost,
         Station,
         Authority,
@@ -221,5 +222,25 @@ namespace Orts.Simulation
         RaiseToIdle,
     }
 
+    public enum MovingTableState
+    {
+        WaitingMovingTableAvailability,
+        WaitingAccessToMovingTable,
+        AccessToMovingTable,
+        AccessOnMovingTable,
+        WaitingStorageToMovingTable,
+        StorageToMovingTable,
+        StorageOnMovingTable,
+        Completed,
+        Inactive,
+    }
+
+    public enum MovingTableAction
+    {
+        FromAccess,
+        FromStorage,
+        Turning,
+        Undefined,
+    }
 
 }
