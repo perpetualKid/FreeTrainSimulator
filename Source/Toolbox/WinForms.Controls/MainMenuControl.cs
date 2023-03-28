@@ -432,13 +432,13 @@ namespace Orts.Toolbox.WinForms.Controls
 
         #region Activity Editor Methods
 
-        private void consistEditorToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ConsistEditorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CEForm cef = new CEForm();
             cef.Show();
         }
 
-        private void activityEditorToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ActivityEditorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             AEForm aef = new AEForm();
             aef.Show();
@@ -447,6 +447,6 @@ namespace Orts.Toolbox.WinForms.Controls
         #endregion
 
 
-      
+
     }
 }

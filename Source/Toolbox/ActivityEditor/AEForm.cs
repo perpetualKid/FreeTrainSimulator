@@ -18,7 +18,7 @@ namespace Orts.Toolbox.ActivityEditor
             InitializeComponent();
         }
 
-        private void button48_Click(object sender, EventArgs e)
+        private void AEEventTimeNewOutbutton_Click(object sender, EventArgs e)
         {
             using (AEOutcomeAct d = new AEOutcomeAct())
             {
@@ -37,7 +37,7 @@ namespace Orts.Toolbox.ActivityEditor
 
         }
 
-        private void button22_Click(object sender, EventArgs e)
+        private void AEEventActNewOutbutton_Click(object sender, EventArgs e)
         {
             using (AEOutcomeAct d = new AEOutcomeAct())
             {
@@ -49,7 +49,7 @@ namespace Orts.Toolbox.ActivityEditor
             }
         }
 
-        private void button44_Click(object sender, EventArgs e)
+        private void AEEventLocNewOutbutton_Click(object sender, EventArgs e)
         {
             using (AEOutcomeAct d = new AEOutcomeAct())
             {

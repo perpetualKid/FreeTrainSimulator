@@ -144,32 +144,32 @@
             AEObjDelSelbutton = new System.Windows.Forms.Button();
             tabPage3 = new System.Windows.Forms.TabPage();
             groupBox7 = new System.Windows.Forms.GroupBox();
-            button37 = new System.Windows.Forms.Button();
-            button20 = new System.Windows.Forms.Button();
-            button17 = new System.Windows.Forms.Button();
-            button18 = new System.Windows.Forms.Button();
-            button19 = new System.Windows.Forms.Button();
+            AESigPassWaitDelAllbutton = new System.Windows.Forms.Button();
+            AESigPassWaitShowSelbutton = new System.Windows.Forms.Button();
+            AESigPassWaitDelSelbutton = new System.Windows.Forms.Button();
+            AESigPassWaitEditSelbutton = new System.Windows.Forms.Button();
+            AESigPassWaitNewbutton = new System.Windows.Forms.Button();
             listView4 = new System.Windows.Forms.ListView();
             columnHeader24 = new System.Windows.Forms.ColumnHeader();
             columnHeader25 = new System.Windows.Forms.ColumnHeader();
             columnHeader26 = new System.Windows.Forms.ColumnHeader();
             groupBox6 = new System.Windows.Forms.GroupBox();
-            button36 = new System.Windows.Forms.Button();
-            button16 = new System.Windows.Forms.Button();
-            button32 = new System.Windows.Forms.Button();
-            button33 = new System.Windows.Forms.Button();
-            button34 = new System.Windows.Forms.Button();
-            button35 = new System.Windows.Forms.Button();
+            AESigRestSpdEditSelbutton = new System.Windows.Forms.Button();
+            AESigRestSpdNewbutton = new System.Windows.Forms.Button();
+            AESigRestSpdDelAllbutton = new System.Windows.Forms.Button();
+            AESigRestSpdDelSelbutton = new System.Windows.Forms.Button();
+            AESigRestSpdShowSelbutton = new System.Windows.Forms.Button();
+            AESigRestSpdDisSelbutton = new System.Windows.Forms.Button();
             AESpeedZones = new System.Windows.Forms.ListView();
             columnHeader22 = new System.Windows.Forms.ColumnHeader();
             columnHeader23 = new System.Windows.Forms.ColumnHeader();
             groupBox5 = new System.Windows.Forms.GroupBox();
-            button15 = new System.Windows.Forms.Button();
-            button14 = new System.Windows.Forms.Button();
-            button31 = new System.Windows.Forms.Button();
-            button30 = new System.Windows.Forms.Button();
+            AESigFailSigEditSelbutton = new System.Windows.Forms.Button();
+            AESigFailSigNewbutton = new System.Windows.Forms.Button();
+            AESigFailSigDelAllbutton = new System.Windows.Forms.Button();
+            AESigFailSigDelSelbutton = new System.Windows.Forms.Button();
             AESigFailSigShowSelbutton = new System.Windows.Forms.Button();
-            button12 = new System.Windows.Forms.Button();
+            AESigFailSigDisSelbutton = new System.Windows.Forms.Button();
             AEFailedSignels = new System.Windows.Forms.ListView();
             columnHeader18 = new System.Windows.Forms.ColumnHeader();
             columnHeader19 = new System.Windows.Forms.ColumnHeader();
@@ -178,8 +178,8 @@
             tabPage8 = new System.Windows.Forms.TabPage();
             textBox17 = new System.Windows.Forms.TextBox();
             groupBox11 = new System.Windows.Forms.GroupBox();
-            button23 = new System.Windows.Forms.Button();
-            button22 = new System.Windows.Forms.Button();
+            AEEventActOutRembutton = new System.Windows.Forms.Button();
+            AEEventActNewOutbutton = new System.Windows.Forms.Button();
             AEActOutcomes = new System.Windows.Forms.ListView();
             checkBox4 = new System.Windows.Forms.CheckBox();
             numericUpDown11 = new System.Windows.Forms.NumericUpDown();
@@ -192,21 +192,21 @@
             label32 = new System.Windows.Forms.Label();
             label31 = new System.Windows.Forms.Label();
             label30 = new System.Windows.Forms.Label();
-            button38 = new System.Windows.Forms.Button();
+            AEEventActDelbutton = new System.Windows.Forms.Button();
             AEActEventList = new System.Windows.Forms.ListView();
-            button21 = new System.Windows.Forms.Button();
+            AEEventActNewbutton = new System.Windows.Forms.Button();
             tabPage9 = new System.Windows.Forms.TabPage();
             numericUpDown14 = new System.Windows.Forms.NumericUpDown();
             label39 = new System.Windows.Forms.Label();
             checkBox5 = new System.Windows.Forms.CheckBox();
-            button46 = new System.Windows.Forms.Button();
-            button45 = new System.Windows.Forms.Button();
+            AEEventLocJumpTobutton = new System.Windows.Forms.Button();
+            AEEventLocPickNewbutton = new System.Windows.Forms.Button();
             textBox22 = new System.Windows.Forms.TextBox();
             label38 = new System.Windows.Forms.Label();
             textBox18 = new System.Windows.Forms.TextBox();
             groupBox12 = new System.Windows.Forms.GroupBox();
-            button43 = new System.Windows.Forms.Button();
-            button44 = new System.Windows.Forms.Button();
+            AEEventLocOutRembutton = new System.Windows.Forms.Button();
+            AEEventLocNewOutbutton = new System.Windows.Forms.Button();
             listView3 = new System.Windows.Forms.ListView();
             numericUpDown12 = new System.Windows.Forms.NumericUpDown();
             checkBox6 = new System.Windows.Forms.CheckBox();
@@ -219,13 +219,13 @@
             label36 = new System.Windows.Forms.Label();
             label37 = new System.Windows.Forms.Label();
             AELocEventList = new System.Windows.Forms.ListView();
-            button39 = new System.Windows.Forms.Button();
-            button40 = new System.Windows.Forms.Button();
+            AEEventLocDelbutton = new System.Windows.Forms.Button();
+            AEEventLocNewbutton = new System.Windows.Forms.Button();
             tabPage10 = new System.Windows.Forms.TabPage();
             textBox23 = new System.Windows.Forms.TextBox();
             groupBox13 = new System.Windows.Forms.GroupBox();
-            button47 = new System.Windows.Forms.Button();
-            button48 = new System.Windows.Forms.Button();
+            AEEventTimeOutRembutton = new System.Windows.Forms.Button();
+            AEEventTimeNewOutbutton = new System.Windows.Forms.Button();
             listView5 = new System.Windows.Forms.ListView();
             numericUpDown15 = new System.Windows.Forms.NumericUpDown();
             label40 = new System.Windows.Forms.Label();
@@ -239,9 +239,9 @@
             label46 = new System.Windows.Forms.Label();
             label45 = new System.Windows.Forms.Label();
             label44 = new System.Windows.Forms.Label();
-            button41 = new System.Windows.Forms.Button();
+            AEEventTimeDelbutton = new System.Windows.Forms.Button();
             AETimeEventList = new System.Windows.Forms.ListView();
-            button42 = new System.Windows.Forms.Button();
+            AEEventTimeNewbutton = new System.Windows.Forms.Button();
             checkBox2 = new System.Windows.Forms.CheckBox();
             timer1 = new System.Windows.Forms.Timer(components);
             label17 = new System.Windows.Forms.Label();
@@ -1338,11 +1338,11 @@
             // 
             // groupBox7
             // 
-            groupBox7.Controls.Add(button37);
-            groupBox7.Controls.Add(button20);
-            groupBox7.Controls.Add(button17);
-            groupBox7.Controls.Add(button18);
-            groupBox7.Controls.Add(button19);
+            groupBox7.Controls.Add(AESigPassWaitDelAllbutton);
+            groupBox7.Controls.Add(AESigPassWaitShowSelbutton);
+            groupBox7.Controls.Add(AESigPassWaitDelSelbutton);
+            groupBox7.Controls.Add(AESigPassWaitEditSelbutton);
+            groupBox7.Controls.Add(AESigPassWaitNewbutton);
             groupBox7.Controls.Add(listView4);
             groupBox7.Location = new System.Drawing.Point(745, 17);
             groupBox7.Name = "groupBox7";
@@ -1351,55 +1351,55 @@
             groupBox7.TabStop = false;
             groupBox7.Text = "Passengers Waiting";
             // 
-            // button37
+            // AESigPassWaitDelAllbutton
             // 
-            button37.BackColor = System.Drawing.Color.Red;
-            button37.Location = new System.Drawing.Point(276, 103);
-            button37.Name = "button37";
-            button37.Size = new System.Drawing.Size(111, 30);
-            button37.TabIndex = 14;
-            button37.Text = "Delete All";
-            button37.UseVisualStyleBackColor = false;
+            AESigPassWaitDelAllbutton.BackColor = System.Drawing.Color.Red;
+            AESigPassWaitDelAllbutton.Location = new System.Drawing.Point(276, 103);
+            AESigPassWaitDelAllbutton.Name = "AESigPassWaitDelAllbutton";
+            AESigPassWaitDelAllbutton.Size = new System.Drawing.Size(111, 30);
+            AESigPassWaitDelAllbutton.TabIndex = 14;
+            AESigPassWaitDelAllbutton.Text = "Delete All";
+            AESigPassWaitDelAllbutton.UseVisualStyleBackColor = false;
             // 
-            // button20
+            // AESigPassWaitShowSelbutton
             // 
-            button20.BackColor = System.Drawing.Color.Red;
-            button20.Location = new System.Drawing.Point(276, 26);
-            button20.Name = "button20";
-            button20.Size = new System.Drawing.Size(111, 33);
-            button20.TabIndex = 11;
-            button20.Text = "Show Sel.";
-            button20.UseVisualStyleBackColor = false;
+            AESigPassWaitShowSelbutton.BackColor = System.Drawing.Color.Red;
+            AESigPassWaitShowSelbutton.Location = new System.Drawing.Point(276, 26);
+            AESigPassWaitShowSelbutton.Name = "AESigPassWaitShowSelbutton";
+            AESigPassWaitShowSelbutton.Size = new System.Drawing.Size(111, 33);
+            AESigPassWaitShowSelbutton.TabIndex = 11;
+            AESigPassWaitShowSelbutton.Text = "Show Sel.";
+            AESigPassWaitShowSelbutton.UseVisualStyleBackColor = false;
             // 
-            // button17
+            // AESigPassWaitDelSelbutton
             // 
-            button17.BackColor = System.Drawing.Color.Red;
-            button17.Location = new System.Drawing.Point(276, 65);
-            button17.Name = "button17";
-            button17.Size = new System.Drawing.Size(111, 33);
-            button17.TabIndex = 10;
-            button17.Text = "Delete Sel.";
-            button17.UseVisualStyleBackColor = false;
+            AESigPassWaitDelSelbutton.BackColor = System.Drawing.Color.Red;
+            AESigPassWaitDelSelbutton.Location = new System.Drawing.Point(276, 65);
+            AESigPassWaitDelSelbutton.Name = "AESigPassWaitDelSelbutton";
+            AESigPassWaitDelSelbutton.Size = new System.Drawing.Size(111, 33);
+            AESigPassWaitDelSelbutton.TabIndex = 10;
+            AESigPassWaitDelSelbutton.Text = "Delete Sel.";
+            AESigPassWaitDelSelbutton.UseVisualStyleBackColor = false;
             // 
-            // button18
+            // AESigPassWaitEditSelbutton
             // 
-            button18.BackColor = System.Drawing.Color.Red;
-            button18.Location = new System.Drawing.Point(276, 139);
-            button18.Name = "button18";
-            button18.Size = new System.Drawing.Size(111, 33);
-            button18.TabIndex = 9;
-            button18.Text = "Edit Sel.";
-            button18.UseVisualStyleBackColor = false;
+            AESigPassWaitEditSelbutton.BackColor = System.Drawing.Color.Red;
+            AESigPassWaitEditSelbutton.Location = new System.Drawing.Point(276, 139);
+            AESigPassWaitEditSelbutton.Name = "AESigPassWaitEditSelbutton";
+            AESigPassWaitEditSelbutton.Size = new System.Drawing.Size(111, 33);
+            AESigPassWaitEditSelbutton.TabIndex = 9;
+            AESigPassWaitEditSelbutton.Text = "Edit Sel.";
+            AESigPassWaitEditSelbutton.UseVisualStyleBackColor = false;
             // 
-            // button19
+            // AESigPassWaitNewbutton
             // 
-            button19.BackColor = System.Drawing.Color.Red;
-            button19.Location = new System.Drawing.Point(276, 178);
-            button19.Name = "button19";
-            button19.Size = new System.Drawing.Size(111, 33);
-            button19.TabIndex = 8;
-            button19.Text = "New";
-            button19.UseVisualStyleBackColor = false;
+            AESigPassWaitNewbutton.BackColor = System.Drawing.Color.Red;
+            AESigPassWaitNewbutton.Location = new System.Drawing.Point(276, 178);
+            AESigPassWaitNewbutton.Name = "AESigPassWaitNewbutton";
+            AESigPassWaitNewbutton.Size = new System.Drawing.Size(111, 33);
+            AESigPassWaitNewbutton.TabIndex = 8;
+            AESigPassWaitNewbutton.Text = "New";
+            AESigPassWaitNewbutton.UseVisualStyleBackColor = false;
             // 
             // listView4
             // 
@@ -1432,12 +1432,12 @@
             // 
             // groupBox6
             // 
-            groupBox6.Controls.Add(button36);
-            groupBox6.Controls.Add(button16);
-            groupBox6.Controls.Add(button32);
-            groupBox6.Controls.Add(button33);
-            groupBox6.Controls.Add(button34);
-            groupBox6.Controls.Add(button35);
+            groupBox6.Controls.Add(AESigRestSpdEditSelbutton);
+            groupBox6.Controls.Add(AESigRestSpdNewbutton);
+            groupBox6.Controls.Add(AESigRestSpdDelAllbutton);
+            groupBox6.Controls.Add(AESigRestSpdDelSelbutton);
+            groupBox6.Controls.Add(AESigRestSpdShowSelbutton);
+            groupBox6.Controls.Add(AESigRestSpdDisSelbutton);
             groupBox6.Controls.Add(AESpeedZones);
             groupBox6.Location = new System.Drawing.Point(401, 17);
             groupBox6.Name = "groupBox6";
@@ -1446,65 +1446,65 @@
             groupBox6.TabStop = false;
             groupBox6.Text = "Restricted Speed Zones";
             // 
-            // button36
+            // AESigRestSpdEditSelbutton
             // 
-            button36.BackColor = System.Drawing.Color.Red;
-            button36.Location = new System.Drawing.Point(208, 170);
-            button36.Name = "button36";
-            button36.Size = new System.Drawing.Size(119, 33);
-            button36.TabIndex = 13;
-            button36.Text = "Edit Sel.";
-            button36.UseVisualStyleBackColor = false;
+            AESigRestSpdEditSelbutton.BackColor = System.Drawing.Color.Red;
+            AESigRestSpdEditSelbutton.Location = new System.Drawing.Point(208, 170);
+            AESigRestSpdEditSelbutton.Name = "AESigRestSpdEditSelbutton";
+            AESigRestSpdEditSelbutton.Size = new System.Drawing.Size(119, 33);
+            AESigRestSpdEditSelbutton.TabIndex = 13;
+            AESigRestSpdEditSelbutton.Text = "Edit Sel.";
+            AESigRestSpdEditSelbutton.UseVisualStyleBackColor = false;
             // 
-            // button16
+            // AESigRestSpdNewbutton
             // 
-            button16.BackColor = System.Drawing.Color.Red;
-            button16.Location = new System.Drawing.Point(208, 209);
-            button16.Name = "button16";
-            button16.Size = new System.Drawing.Size(119, 33);
-            button16.TabIndex = 12;
-            button16.Text = "New";
-            button16.UseVisualStyleBackColor = false;
+            AESigRestSpdNewbutton.BackColor = System.Drawing.Color.Red;
+            AESigRestSpdNewbutton.Location = new System.Drawing.Point(208, 209);
+            AESigRestSpdNewbutton.Name = "AESigRestSpdNewbutton";
+            AESigRestSpdNewbutton.Size = new System.Drawing.Size(119, 33);
+            AESigRestSpdNewbutton.TabIndex = 12;
+            AESigRestSpdNewbutton.Text = "New";
+            AESigRestSpdNewbutton.UseVisualStyleBackColor = false;
             // 
-            // button32
+            // AESigRestSpdDelAllbutton
             // 
-            button32.BackColor = System.Drawing.Color.Red;
-            button32.Location = new System.Drawing.Point(208, 134);
-            button32.Name = "button32";
-            button32.Size = new System.Drawing.Size(119, 30);
-            button32.TabIndex = 11;
-            button32.Text = "Delete All";
-            button32.UseVisualStyleBackColor = false;
+            AESigRestSpdDelAllbutton.BackColor = System.Drawing.Color.Red;
+            AESigRestSpdDelAllbutton.Location = new System.Drawing.Point(208, 134);
+            AESigRestSpdDelAllbutton.Name = "AESigRestSpdDelAllbutton";
+            AESigRestSpdDelAllbutton.Size = new System.Drawing.Size(119, 30);
+            AESigRestSpdDelAllbutton.TabIndex = 11;
+            AESigRestSpdDelAllbutton.Text = "Delete All";
+            AESigRestSpdDelAllbutton.UseVisualStyleBackColor = false;
             // 
-            // button33
+            // AESigRestSpdDelSelbutton
             // 
-            button33.BackColor = System.Drawing.Color.Red;
-            button33.Location = new System.Drawing.Point(208, 98);
-            button33.Name = "button33";
-            button33.Size = new System.Drawing.Size(119, 30);
-            button33.TabIndex = 10;
-            button33.Text = "Delete Sel.";
-            button33.UseVisualStyleBackColor = false;
+            AESigRestSpdDelSelbutton.BackColor = System.Drawing.Color.Red;
+            AESigRestSpdDelSelbutton.Location = new System.Drawing.Point(208, 98);
+            AESigRestSpdDelSelbutton.Name = "AESigRestSpdDelSelbutton";
+            AESigRestSpdDelSelbutton.Size = new System.Drawing.Size(119, 30);
+            AESigRestSpdDelSelbutton.TabIndex = 10;
+            AESigRestSpdDelSelbutton.Text = "Delete Sel.";
+            AESigRestSpdDelSelbutton.UseVisualStyleBackColor = false;
             // 
-            // button34
+            // AESigRestSpdShowSelbutton
             // 
-            button34.BackColor = System.Drawing.Color.Red;
-            button34.Location = new System.Drawing.Point(208, 26);
-            button34.Name = "button34";
-            button34.Size = new System.Drawing.Size(119, 30);
-            button34.TabIndex = 9;
-            button34.Text = "Show Sel.";
-            button34.UseVisualStyleBackColor = false;
+            AESigRestSpdShowSelbutton.BackColor = System.Drawing.Color.Red;
+            AESigRestSpdShowSelbutton.Location = new System.Drawing.Point(208, 26);
+            AESigRestSpdShowSelbutton.Name = "AESigRestSpdShowSelbutton";
+            AESigRestSpdShowSelbutton.Size = new System.Drawing.Size(119, 30);
+            AESigRestSpdShowSelbutton.TabIndex = 9;
+            AESigRestSpdShowSelbutton.Text = "Show Sel.";
+            AESigRestSpdShowSelbutton.UseVisualStyleBackColor = false;
             // 
-            // button35
+            // AESigRestSpdDisSelbutton
             // 
-            button35.BackColor = System.Drawing.Color.Red;
-            button35.Location = new System.Drawing.Point(208, 62);
-            button35.Name = "button35";
-            button35.Size = new System.Drawing.Size(119, 30);
-            button35.TabIndex = 8;
-            button35.Text = "Disable Sel.";
-            button35.UseVisualStyleBackColor = false;
+            AESigRestSpdDisSelbutton.BackColor = System.Drawing.Color.Red;
+            AESigRestSpdDisSelbutton.Location = new System.Drawing.Point(208, 62);
+            AESigRestSpdDisSelbutton.Name = "AESigRestSpdDisSelbutton";
+            AESigRestSpdDisSelbutton.Size = new System.Drawing.Size(119, 30);
+            AESigRestSpdDisSelbutton.TabIndex = 8;
+            AESigRestSpdDisSelbutton.Text = "Disable Sel.";
+            AESigRestSpdDisSelbutton.UseVisualStyleBackColor = false;
             // 
             // AESpeedZones
             // 
@@ -1531,12 +1531,12 @@
             // 
             // groupBox5
             // 
-            groupBox5.Controls.Add(button15);
-            groupBox5.Controls.Add(button14);
-            groupBox5.Controls.Add(button31);
-            groupBox5.Controls.Add(button30);
+            groupBox5.Controls.Add(AESigFailSigEditSelbutton);
+            groupBox5.Controls.Add(AESigFailSigNewbutton);
+            groupBox5.Controls.Add(AESigFailSigDelAllbutton);
+            groupBox5.Controls.Add(AESigFailSigDelSelbutton);
             groupBox5.Controls.Add(AESigFailSigShowSelbutton);
-            groupBox5.Controls.Add(button12);
+            groupBox5.Controls.Add(AESigFailSigDisSelbutton);
             groupBox5.Controls.Add(AEFailedSignels);
             groupBox5.Location = new System.Drawing.Point(6, 17);
             groupBox5.Name = "groupBox5";
@@ -1545,45 +1545,45 @@
             groupBox5.TabStop = false;
             groupBox5.Text = "Failed Signals";
             // 
-            // button15
+            // AESigFailSigEditSelbutton
             // 
-            button15.BackColor = System.Drawing.Color.Red;
-            button15.Location = new System.Drawing.Point(264, 181);
-            button15.Name = "button15";
-            button15.Size = new System.Drawing.Size(119, 33);
-            button15.TabIndex = 12;
-            button15.Text = "Edit Sel.";
-            button15.UseVisualStyleBackColor = false;
+            AESigFailSigEditSelbutton.BackColor = System.Drawing.Color.Red;
+            AESigFailSigEditSelbutton.Location = new System.Drawing.Point(264, 181);
+            AESigFailSigEditSelbutton.Name = "AESigFailSigEditSelbutton";
+            AESigFailSigEditSelbutton.Size = new System.Drawing.Size(119, 33);
+            AESigFailSigEditSelbutton.TabIndex = 12;
+            AESigFailSigEditSelbutton.Text = "Edit Sel.";
+            AESigFailSigEditSelbutton.UseVisualStyleBackColor = false;
             // 
-            // button14
+            // AESigFailSigNewbutton
             // 
-            button14.BackColor = System.Drawing.Color.Red;
-            button14.Location = new System.Drawing.Point(264, 220);
-            button14.Name = "button14";
-            button14.Size = new System.Drawing.Size(119, 33);
-            button14.TabIndex = 8;
-            button14.Text = "New";
-            button14.UseVisualStyleBackColor = false;
+            AESigFailSigNewbutton.BackColor = System.Drawing.Color.Red;
+            AESigFailSigNewbutton.Location = new System.Drawing.Point(264, 220);
+            AESigFailSigNewbutton.Name = "AESigFailSigNewbutton";
+            AESigFailSigNewbutton.Size = new System.Drawing.Size(119, 33);
+            AESigFailSigNewbutton.TabIndex = 8;
+            AESigFailSigNewbutton.Text = "New";
+            AESigFailSigNewbutton.UseVisualStyleBackColor = false;
             // 
-            // button31
+            // AESigFailSigDelAllbutton
             // 
-            button31.BackColor = System.Drawing.Color.Red;
-            button31.Location = new System.Drawing.Point(264, 142);
-            button31.Name = "button31";
-            button31.Size = new System.Drawing.Size(119, 33);
-            button31.TabIndex = 7;
-            button31.Text = "Delete All";
-            button31.UseVisualStyleBackColor = false;
+            AESigFailSigDelAllbutton.BackColor = System.Drawing.Color.Red;
+            AESigFailSigDelAllbutton.Location = new System.Drawing.Point(264, 142);
+            AESigFailSigDelAllbutton.Name = "AESigFailSigDelAllbutton";
+            AESigFailSigDelAllbutton.Size = new System.Drawing.Size(119, 33);
+            AESigFailSigDelAllbutton.TabIndex = 7;
+            AESigFailSigDelAllbutton.Text = "Delete All";
+            AESigFailSigDelAllbutton.UseVisualStyleBackColor = false;
             // 
-            // button30
+            // AESigFailSigDelSelbutton
             // 
-            button30.BackColor = System.Drawing.Color.Red;
-            button30.Location = new System.Drawing.Point(264, 103);
-            button30.Name = "button30";
-            button30.Size = new System.Drawing.Size(119, 33);
-            button30.TabIndex = 3;
-            button30.Text = "Delete Sel.";
-            button30.UseVisualStyleBackColor = false;
+            AESigFailSigDelSelbutton.BackColor = System.Drawing.Color.Red;
+            AESigFailSigDelSelbutton.Location = new System.Drawing.Point(264, 103);
+            AESigFailSigDelSelbutton.Name = "AESigFailSigDelSelbutton";
+            AESigFailSigDelSelbutton.Size = new System.Drawing.Size(119, 33);
+            AESigFailSigDelSelbutton.TabIndex = 3;
+            AESigFailSigDelSelbutton.Text = "Delete Sel.";
+            AESigFailSigDelSelbutton.UseVisualStyleBackColor = false;
             // 
             // AESigFailSigShowSelbutton
             // 
@@ -1595,15 +1595,15 @@
             AESigFailSigShowSelbutton.Text = "Show Sel.";
             AESigFailSigShowSelbutton.UseVisualStyleBackColor = false;
             // 
-            // button12
+            // AESigFailSigDisSelbutton
             // 
-            button12.BackColor = System.Drawing.Color.Red;
-            button12.Location = new System.Drawing.Point(264, 64);
-            button12.Name = "button12";
-            button12.Size = new System.Drawing.Size(119, 33);
-            button12.TabIndex = 1;
-            button12.Text = "Disable Sel.";
-            button12.UseVisualStyleBackColor = false;
+            AESigFailSigDisSelbutton.BackColor = System.Drawing.Color.Red;
+            AESigFailSigDisSelbutton.Location = new System.Drawing.Point(264, 64);
+            AESigFailSigDisSelbutton.Name = "AESigFailSigDisSelbutton";
+            AESigFailSigDisSelbutton.Size = new System.Drawing.Size(119, 33);
+            AESigFailSigDisSelbutton.TabIndex = 1;
+            AESigFailSigDisSelbutton.Text = "Disable Sel.";
+            AESigFailSigDisSelbutton.UseVisualStyleBackColor = false;
             // 
             // AEFailedSignels
             // 
@@ -1665,9 +1665,9 @@
             tabPage8.Controls.Add(label32);
             tabPage8.Controls.Add(label31);
             tabPage8.Controls.Add(label30);
-            tabPage8.Controls.Add(button38);
+            tabPage8.Controls.Add(AEEventActDelbutton);
             tabPage8.Controls.Add(AEActEventList);
-            tabPage8.Controls.Add(button21);
+            tabPage8.Controls.Add(AEEventActNewbutton);
             tabPage8.Location = new System.Drawing.Point(4, 28);
             tabPage8.Name = "tabPage8";
             tabPage8.Padding = new System.Windows.Forms.Padding(3);
@@ -1686,8 +1686,8 @@
             // 
             // groupBox11
             // 
-            groupBox11.Controls.Add(button23);
-            groupBox11.Controls.Add(button22);
+            groupBox11.Controls.Add(AEEventActOutRembutton);
+            groupBox11.Controls.Add(AEEventActNewOutbutton);
             groupBox11.Controls.Add(AEActOutcomes);
             groupBox11.ForeColor = System.Drawing.Color.FromArgb(192, 64, 0);
             groupBox11.Location = new System.Drawing.Point(313, 154);
@@ -1697,28 +1697,28 @@
             groupBox11.TabStop = false;
             groupBox11.Text = "Outcomes:";
             // 
-            // button23
+            // AEEventActOutRembutton
             // 
-            button23.BackColor = System.Drawing.Color.Red;
-            button23.ForeColor = System.Drawing.SystemColors.WindowText;
-            button23.Location = new System.Drawing.Point(188, 184);
-            button23.Name = "button23";
-            button23.Size = new System.Drawing.Size(156, 35);
-            button23.TabIndex = 18;
-            button23.Text = "Remove Selected";
-            button23.UseVisualStyleBackColor = false;
+            AEEventActOutRembutton.BackColor = System.Drawing.Color.Red;
+            AEEventActOutRembutton.ForeColor = System.Drawing.SystemColors.WindowText;
+            AEEventActOutRembutton.Location = new System.Drawing.Point(188, 184);
+            AEEventActOutRembutton.Name = "AEEventActOutRembutton";
+            AEEventActOutRembutton.Size = new System.Drawing.Size(156, 35);
+            AEEventActOutRembutton.TabIndex = 18;
+            AEEventActOutRembutton.Text = "Remove Selected";
+            AEEventActOutRembutton.UseVisualStyleBackColor = false;
             // 
-            // button22
+            // AEEventActNewOutbutton
             // 
-            button22.BackColor = System.Drawing.Color.IndianRed;
-            button22.ForeColor = System.Drawing.SystemColors.WindowText;
-            button22.Location = new System.Drawing.Point(6, 184);
-            button22.Name = "button22";
-            button22.Size = new System.Drawing.Size(176, 35);
-            button22.TabIndex = 18;
-            button22.Text = "Add New Outcome";
-            button22.UseVisualStyleBackColor = false;
-            button22.Click += button22_Click;
+            AEEventActNewOutbutton.BackColor = System.Drawing.Color.IndianRed;
+            AEEventActNewOutbutton.ForeColor = System.Drawing.SystemColors.WindowText;
+            AEEventActNewOutbutton.Location = new System.Drawing.Point(6, 184);
+            AEEventActNewOutbutton.Name = "AEEventActNewOutbutton";
+            AEEventActNewOutbutton.Size = new System.Drawing.Size(176, 35);
+            AEEventActNewOutbutton.TabIndex = 18;
+            AEEventActNewOutbutton.Text = "Add New Outcome";
+            AEEventActNewOutbutton.UseVisualStyleBackColor = false;
+            AEEventActNewOutbutton.Click += AEEventActNewOutbutton_Click;
             // 
             // AEActOutcomes
             // 
@@ -1823,15 +1823,15 @@
             label30.TabIndex = 6;
             label30.Text = "Name:";
             // 
-            // button38
+            // AEEventActDelbutton
             // 
-            button38.BackColor = System.Drawing.Color.Red;
-            button38.Location = new System.Drawing.Point(3, 495);
-            button38.Name = "button38";
-            button38.Size = new System.Drawing.Size(299, 35);
-            button38.TabIndex = 5;
-            button38.Text = "Delete";
-            button38.UseVisualStyleBackColor = false;
+            AEEventActDelbutton.BackColor = System.Drawing.Color.Red;
+            AEEventActDelbutton.Location = new System.Drawing.Point(3, 495);
+            AEEventActDelbutton.Name = "AEEventActDelbutton";
+            AEEventActDelbutton.Size = new System.Drawing.Size(299, 35);
+            AEEventActDelbutton.TabIndex = 5;
+            AEEventActDelbutton.Text = "Delete";
+            AEEventActDelbutton.UseVisualStyleBackColor = false;
             // 
             // AEActEventList
             // 
@@ -1845,23 +1845,23 @@
             AEActEventList.UseCompatibleStateImageBehavior = false;
             AEActEventList.View = System.Windows.Forms.View.Details;
             // 
-            // button21
+            // AEEventActNewbutton
             // 
-            button21.BackColor = System.Drawing.Color.Red;
-            button21.Location = new System.Drawing.Point(3, 454);
-            button21.Name = "button21";
-            button21.Size = new System.Drawing.Size(299, 35);
-            button21.TabIndex = 1;
-            button21.Text = "New Action Event";
-            button21.UseVisualStyleBackColor = false;
+            AEEventActNewbutton.BackColor = System.Drawing.Color.Red;
+            AEEventActNewbutton.Location = new System.Drawing.Point(3, 454);
+            AEEventActNewbutton.Name = "AEEventActNewbutton";
+            AEEventActNewbutton.Size = new System.Drawing.Size(299, 35);
+            AEEventActNewbutton.TabIndex = 1;
+            AEEventActNewbutton.Text = "New Action Event";
+            AEEventActNewbutton.UseVisualStyleBackColor = false;
             // 
             // tabPage9
             // 
             tabPage9.Controls.Add(numericUpDown14);
             tabPage9.Controls.Add(label39);
             tabPage9.Controls.Add(checkBox5);
-            tabPage9.Controls.Add(button46);
-            tabPage9.Controls.Add(button45);
+            tabPage9.Controls.Add(AEEventLocJumpTobutton);
+            tabPage9.Controls.Add(AEEventLocPickNewbutton);
             tabPage9.Controls.Add(textBox22);
             tabPage9.Controls.Add(label38);
             tabPage9.Controls.Add(textBox18);
@@ -1877,12 +1877,12 @@
             tabPage9.Controls.Add(label36);
             tabPage9.Controls.Add(label37);
             tabPage9.Controls.Add(AELocEventList);
-            tabPage9.Controls.Add(button39);
-            tabPage9.Controls.Add(button40);
-            tabPage9.Location = new System.Drawing.Point(4, 24);
+            tabPage9.Controls.Add(AEEventLocDelbutton);
+            tabPage9.Controls.Add(AEEventLocNewbutton);
+            tabPage9.Location = new System.Drawing.Point(4, 28);
             tabPage9.Name = "tabPage9";
             tabPage9.Padding = new System.Windows.Forms.Padding(3);
-            tabPage9.Size = new System.Drawing.Size(1132, 550);
+            tabPage9.Size = new System.Drawing.Size(1132, 546);
             tabPage9.TabIndex = 1;
             tabPage9.Text = "Location";
             tabPage9.UseVisualStyleBackColor = true;
@@ -1913,27 +1913,27 @@
             checkBox5.Text = "Train must stop";
             checkBox5.UseVisualStyleBackColor = true;
             // 
-            // button46
+            // AEEventLocJumpTobutton
             // 
-            button46.BackColor = System.Drawing.Color.Red;
-            button46.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button46.Location = new System.Drawing.Point(996, 122);
-            button46.Name = "button46";
-            button46.Size = new System.Drawing.Size(130, 36);
-            button46.TabIndex = 34;
-            button46.Text = "Jump to Loc.";
-            button46.UseVisualStyleBackColor = false;
+            AEEventLocJumpTobutton.BackColor = System.Drawing.Color.Red;
+            AEEventLocJumpTobutton.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            AEEventLocJumpTobutton.Location = new System.Drawing.Point(996, 122);
+            AEEventLocJumpTobutton.Name = "AEEventLocJumpTobutton";
+            AEEventLocJumpTobutton.Size = new System.Drawing.Size(130, 36);
+            AEEventLocJumpTobutton.TabIndex = 34;
+            AEEventLocJumpTobutton.Text = "Jump to Loc.";
+            AEEventLocJumpTobutton.UseVisualStyleBackColor = false;
             // 
-            // button45
+            // AEEventLocPickNewbutton
             // 
-            button45.BackColor = System.Drawing.Color.Red;
-            button45.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            button45.Location = new System.Drawing.Point(996, 82);
-            button45.Name = "button45";
-            button45.Size = new System.Drawing.Size(128, 36);
-            button45.TabIndex = 19;
-            button45.Text = "Pick New Loc.";
-            button45.UseVisualStyleBackColor = false;
+            AEEventLocPickNewbutton.BackColor = System.Drawing.Color.Red;
+            AEEventLocPickNewbutton.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            AEEventLocPickNewbutton.Location = new System.Drawing.Point(996, 82);
+            AEEventLocPickNewbutton.Name = "AEEventLocPickNewbutton";
+            AEEventLocPickNewbutton.Size = new System.Drawing.Size(128, 36);
+            AEEventLocPickNewbutton.TabIndex = 19;
+            AEEventLocPickNewbutton.Text = "Pick New Loc.";
+            AEEventLocPickNewbutton.UseVisualStyleBackColor = false;
             // 
             // textBox22
             // 
@@ -1961,8 +1961,8 @@
             // 
             // groupBox12
             // 
-            groupBox12.Controls.Add(button43);
-            groupBox12.Controls.Add(button44);
+            groupBox12.Controls.Add(AEEventLocOutRembutton);
+            groupBox12.Controls.Add(AEEventLocNewOutbutton);
             groupBox12.Controls.Add(listView3);
             groupBox12.ForeColor = System.Drawing.Color.FromArgb(192, 64, 0);
             groupBox12.Location = new System.Drawing.Point(305, 187);
@@ -1972,28 +1972,28 @@
             groupBox12.TabStop = false;
             groupBox12.Text = "Outcomes:";
             // 
-            // button43
+            // AEEventLocOutRembutton
             // 
-            button43.BackColor = System.Drawing.Color.Red;
-            button43.ForeColor = System.Drawing.SystemColors.WindowText;
-            button43.Location = new System.Drawing.Point(188, 161);
-            button43.Name = "button43";
-            button43.Size = new System.Drawing.Size(156, 35);
-            button43.TabIndex = 18;
-            button43.Text = "Remove Selected";
-            button43.UseVisualStyleBackColor = false;
+            AEEventLocOutRembutton.BackColor = System.Drawing.Color.Red;
+            AEEventLocOutRembutton.ForeColor = System.Drawing.SystemColors.WindowText;
+            AEEventLocOutRembutton.Location = new System.Drawing.Point(188, 161);
+            AEEventLocOutRembutton.Name = "AEEventLocOutRembutton";
+            AEEventLocOutRembutton.Size = new System.Drawing.Size(156, 35);
+            AEEventLocOutRembutton.TabIndex = 18;
+            AEEventLocOutRembutton.Text = "Remove Selected";
+            AEEventLocOutRembutton.UseVisualStyleBackColor = false;
             // 
-            // button44
+            // AEEventLocNewOutbutton
             // 
-            button44.BackColor = System.Drawing.Color.IndianRed;
-            button44.ForeColor = System.Drawing.SystemColors.WindowText;
-            button44.Location = new System.Drawing.Point(6, 161);
-            button44.Name = "button44";
-            button44.Size = new System.Drawing.Size(176, 35);
-            button44.TabIndex = 18;
-            button44.Text = "Add New Outcome";
-            button44.UseVisualStyleBackColor = false;
-            button44.Click += button44_Click;
+            AEEventLocNewOutbutton.BackColor = System.Drawing.Color.IndianRed;
+            AEEventLocNewOutbutton.ForeColor = System.Drawing.SystemColors.WindowText;
+            AEEventLocNewOutbutton.Location = new System.Drawing.Point(6, 161);
+            AEEventLocNewOutbutton.Name = "AEEventLocNewOutbutton";
+            AEEventLocNewOutbutton.Size = new System.Drawing.Size(176, 35);
+            AEEventLocNewOutbutton.TabIndex = 18;
+            AEEventLocNewOutbutton.Text = "Add New Outcome";
+            AEEventLocNewOutbutton.UseVisualStyleBackColor = false;
+            AEEventLocNewOutbutton.Click += AEEventLocNewOutbutton_Click;
             // 
             // listView3
             // 
@@ -2100,25 +2100,25 @@
             AELocEventList.UseCompatibleStateImageBehavior = false;
             AELocEventList.View = System.Windows.Forms.View.Details;
             // 
-            // button39
+            // AEEventLocDelbutton
             // 
-            button39.BackColor = System.Drawing.Color.Red;
-            button39.Location = new System.Drawing.Point(0, 505);
-            button39.Name = "button39";
-            button39.Size = new System.Drawing.Size(299, 35);
-            button39.TabIndex = 7;
-            button39.Text = "Delete";
-            button39.UseVisualStyleBackColor = false;
+            AEEventLocDelbutton.BackColor = System.Drawing.Color.Red;
+            AEEventLocDelbutton.Location = new System.Drawing.Point(0, 505);
+            AEEventLocDelbutton.Name = "AEEventLocDelbutton";
+            AEEventLocDelbutton.Size = new System.Drawing.Size(299, 35);
+            AEEventLocDelbutton.TabIndex = 7;
+            AEEventLocDelbutton.Text = "Delete";
+            AEEventLocDelbutton.UseVisualStyleBackColor = false;
             // 
-            // button40
+            // AEEventLocNewbutton
             // 
-            button40.BackColor = System.Drawing.Color.Red;
-            button40.Location = new System.Drawing.Point(0, 464);
-            button40.Name = "button40";
-            button40.Size = new System.Drawing.Size(299, 35);
-            button40.TabIndex = 6;
-            button40.Text = "New Location Event";
-            button40.UseVisualStyleBackColor = false;
+            AEEventLocNewbutton.BackColor = System.Drawing.Color.Red;
+            AEEventLocNewbutton.Location = new System.Drawing.Point(0, 464);
+            AEEventLocNewbutton.Name = "AEEventLocNewbutton";
+            AEEventLocNewbutton.Size = new System.Drawing.Size(299, 35);
+            AEEventLocNewbutton.TabIndex = 6;
+            AEEventLocNewbutton.Text = "New Location Event";
+            AEEventLocNewbutton.UseVisualStyleBackColor = false;
             // 
             // tabPage10
             // 
@@ -2136,12 +2136,12 @@
             tabPage10.Controls.Add(label46);
             tabPage10.Controls.Add(label45);
             tabPage10.Controls.Add(label44);
-            tabPage10.Controls.Add(button41);
+            tabPage10.Controls.Add(AEEventTimeDelbutton);
             tabPage10.Controls.Add(AETimeEventList);
-            tabPage10.Controls.Add(button42);
-            tabPage10.Location = new System.Drawing.Point(4, 24);
+            tabPage10.Controls.Add(AEEventTimeNewbutton);
+            tabPage10.Location = new System.Drawing.Point(4, 28);
             tabPage10.Name = "tabPage10";
-            tabPage10.Size = new System.Drawing.Size(1132, 550);
+            tabPage10.Size = new System.Drawing.Size(1132, 546);
             tabPage10.TabIndex = 2;
             tabPage10.Text = "Time";
             tabPage10.UseVisualStyleBackColor = true;
@@ -2156,8 +2156,8 @@
             // 
             // groupBox13
             // 
-            groupBox13.Controls.Add(button47);
-            groupBox13.Controls.Add(button48);
+            groupBox13.Controls.Add(AEEventTimeOutRembutton);
+            groupBox13.Controls.Add(AEEventTimeNewOutbutton);
             groupBox13.Controls.Add(listView5);
             groupBox13.ForeColor = System.Drawing.Color.FromArgb(192, 64, 0);
             groupBox13.Location = new System.Drawing.Point(305, 174);
@@ -2167,28 +2167,28 @@
             groupBox13.TabStop = false;
             groupBox13.Text = "Outcomes:";
             // 
-            // button47
+            // AEEventTimeOutRembutton
             // 
-            button47.BackColor = System.Drawing.Color.Red;
-            button47.ForeColor = System.Drawing.SystemColors.WindowText;
-            button47.Location = new System.Drawing.Point(188, 161);
-            button47.Name = "button47";
-            button47.Size = new System.Drawing.Size(156, 35);
-            button47.TabIndex = 18;
-            button47.Text = "Remove Selected";
-            button47.UseVisualStyleBackColor = false;
+            AEEventTimeOutRembutton.BackColor = System.Drawing.Color.Red;
+            AEEventTimeOutRembutton.ForeColor = System.Drawing.SystemColors.WindowText;
+            AEEventTimeOutRembutton.Location = new System.Drawing.Point(188, 161);
+            AEEventTimeOutRembutton.Name = "AEEventTimeOutRembutton";
+            AEEventTimeOutRembutton.Size = new System.Drawing.Size(156, 35);
+            AEEventTimeOutRembutton.TabIndex = 18;
+            AEEventTimeOutRembutton.Text = "Remove Selected";
+            AEEventTimeOutRembutton.UseVisualStyleBackColor = false;
             // 
-            // button48
+            // AEEventTimeNewOutbutton
             // 
-            button48.BackColor = System.Drawing.Color.IndianRed;
-            button48.ForeColor = System.Drawing.SystemColors.WindowText;
-            button48.Location = new System.Drawing.Point(6, 161);
-            button48.Name = "button48";
-            button48.Size = new System.Drawing.Size(176, 35);
-            button48.TabIndex = 18;
-            button48.Text = "Add New Outcome";
-            button48.UseVisualStyleBackColor = false;
-            button48.Click += button48_Click;
+            AEEventTimeNewOutbutton.BackColor = System.Drawing.Color.IndianRed;
+            AEEventTimeNewOutbutton.ForeColor = System.Drawing.SystemColors.WindowText;
+            AEEventTimeNewOutbutton.Location = new System.Drawing.Point(6, 161);
+            AEEventTimeNewOutbutton.Name = "AEEventTimeNewOutbutton";
+            AEEventTimeNewOutbutton.Size = new System.Drawing.Size(176, 35);
+            AEEventTimeNewOutbutton.TabIndex = 18;
+            AEEventTimeNewOutbutton.Text = "Add New Outcome";
+            AEEventTimeNewOutbutton.UseVisualStyleBackColor = false;
+            AEEventTimeNewOutbutton.Click += AEEventTimeNewOutbutton_Click;
             // 
             // listView5
             // 
@@ -2299,15 +2299,15 @@
             label44.TabIndex = 29;
             label44.Text = "Name:";
             // 
-            // button41
+            // AEEventTimeDelbutton
             // 
-            button41.BackColor = System.Drawing.Color.Red;
-            button41.Location = new System.Drawing.Point(3, 494);
-            button41.Name = "button41";
-            button41.Size = new System.Drawing.Size(299, 35);
-            button41.TabIndex = 9;
-            button41.Text = "Delete";
-            button41.UseVisualStyleBackColor = false;
+            AEEventTimeDelbutton.BackColor = System.Drawing.Color.Red;
+            AEEventTimeDelbutton.Location = new System.Drawing.Point(3, 494);
+            AEEventTimeDelbutton.Name = "AEEventTimeDelbutton";
+            AEEventTimeDelbutton.Size = new System.Drawing.Size(299, 35);
+            AEEventTimeDelbutton.TabIndex = 9;
+            AEEventTimeDelbutton.Text = "Delete";
+            AEEventTimeDelbutton.UseVisualStyleBackColor = false;
             // 
             // AETimeEventList
             // 
@@ -2321,15 +2321,15 @@
             AETimeEventList.UseCompatibleStateImageBehavior = false;
             AETimeEventList.View = System.Windows.Forms.View.Details;
             // 
-            // button42
+            // AEEventTimeNewbutton
             // 
-            button42.BackColor = System.Drawing.Color.Red;
-            button42.Location = new System.Drawing.Point(0, 453);
-            button42.Name = "button42";
-            button42.Size = new System.Drawing.Size(299, 35);
-            button42.TabIndex = 8;
-            button42.Text = "New Time Event";
-            button42.UseVisualStyleBackColor = false;
+            AEEventTimeNewbutton.BackColor = System.Drawing.Color.Red;
+            AEEventTimeNewbutton.Location = new System.Drawing.Point(0, 453);
+            AEEventTimeNewbutton.Name = "AEEventTimeNewbutton";
+            AEEventTimeNewbutton.Size = new System.Drawing.Size(299, 35);
+            AEEventTimeNewbutton.TabIndex = 8;
+            AEEventTimeNewbutton.Text = "New Time Event";
+            AEEventTimeNewbutton.UseVisualStyleBackColor = false;
             // 
             // checkBox2
             // 
@@ -2502,16 +2502,16 @@
         private System.Windows.Forms.ListView AESpeedZones;
         private System.Windows.Forms.GroupBox groupBox5;
         private System.Windows.Forms.Button AESigFailSigShowSelbutton;
-        private System.Windows.Forms.Button button12;
+        private System.Windows.Forms.Button AESigFailSigDisSelbutton;
         private System.Windows.Forms.ListView AEFailedSignels;
         private System.Windows.Forms.Button AEObjJumpTobutton;
         private System.Windows.Forms.Button AEObjDelSelbutton;
-        private System.Windows.Forms.Button button20;
-        private System.Windows.Forms.Button button17;
-        private System.Windows.Forms.Button button18;
-        private System.Windows.Forms.Button button19;
+        private System.Windows.Forms.Button AESigPassWaitShowSelbutton;
+        private System.Windows.Forms.Button AESigPassWaitDelSelbutton;
+        private System.Windows.Forms.Button AESigPassWaitEditSelbutton;
+        private System.Windows.Forms.Button AESigPassWaitNewbutton;
         private System.Windows.Forms.ListView listView4;
-        private System.Windows.Forms.Button button21;
+        private System.Windows.Forms.Button AEEventActNewbutton;
         private System.Windows.Forms.Button AEPlayShowonMapbutton;
         private System.Windows.Forms.Label label27;
         private System.Windows.Forms.ComboBox comboBox5;
@@ -2602,33 +2602,33 @@
         private System.Windows.Forms.ComboBox comboBox9;
         private System.Windows.Forms.GroupBox groupBox10;
         private System.Windows.Forms.Button AEObjAddNewbutton;
-        private System.Windows.Forms.Button button37;
-        private System.Windows.Forms.Button button36;
-        private System.Windows.Forms.Button button16;
-        private System.Windows.Forms.Button button32;
-        private System.Windows.Forms.Button button33;
-        private System.Windows.Forms.Button button34;
-        private System.Windows.Forms.Button button35;
-        private System.Windows.Forms.Button button15;
-        private System.Windows.Forms.Button button14;
-        private System.Windows.Forms.Button button31;
-        private System.Windows.Forms.Button button30;
+        private System.Windows.Forms.Button AESigPassWaitDelAllbutton;
+        private System.Windows.Forms.Button AESigRestSpdEditSelbutton;
+        private System.Windows.Forms.Button AESigRestSpdNewbutton;
+        private System.Windows.Forms.Button AESigRestSpdDelAllbutton;
+        private System.Windows.Forms.Button AESigRestSpdDelSelbutton;
+        private System.Windows.Forms.Button AESigRestSpdShowSelbutton;
+        private System.Windows.Forms.Button AESigRestSpdDisSelbutton;
+        private System.Windows.Forms.Button AESigFailSigEditSelbutton;
+        private System.Windows.Forms.Button AESigFailSigNewbutton;
+        private System.Windows.Forms.Button AESigFailSigDelAllbutton;
+        private System.Windows.Forms.Button AESigFailSigDelSelbutton;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage8;
-        private System.Windows.Forms.Button button38;
+        private System.Windows.Forms.Button AEEventActDelbutton;
         private System.Windows.Forms.ListView AEActEventList;
         private System.Windows.Forms.TabPage tabPage9;
         private System.Windows.Forms.ListView AELocEventList;
-        private System.Windows.Forms.Button button39;
-        private System.Windows.Forms.Button button40;
+        private System.Windows.Forms.Button AEEventLocDelbutton;
+        private System.Windows.Forms.Button AEEventLocNewbutton;
         private System.Windows.Forms.TabPage tabPage10;
-        private System.Windows.Forms.Button button41;
+        private System.Windows.Forms.Button AEEventTimeDelbutton;
         private System.Windows.Forms.ListView AETimeEventList;
-        private System.Windows.Forms.Button button42;
+        private System.Windows.Forms.Button AEEventTimeNewbutton;
         private System.Windows.Forms.TextBox textBox17;
         private System.Windows.Forms.GroupBox groupBox11;
-        private System.Windows.Forms.Button button23;
-        private System.Windows.Forms.Button button22;
+        private System.Windows.Forms.Button AEEventActOutRembutton;
+        private System.Windows.Forms.Button AEEventActNewOutbutton;
         private System.Windows.Forms.ListView AEActOutcomes;
         private System.Windows.Forms.CheckBox checkBox4;
         private System.Windows.Forms.NumericUpDown numericUpDown11;
@@ -2644,14 +2644,14 @@
         private System.Windows.Forms.NumericUpDown numericUpDown14;
         private System.Windows.Forms.Label label39;
         private System.Windows.Forms.CheckBox checkBox5;
-        private System.Windows.Forms.Button button46;
-        private System.Windows.Forms.Button button45;
+        private System.Windows.Forms.Button AEEventLocJumpTobutton;
+        private System.Windows.Forms.Button AEEventLocPickNewbutton;
         private System.Windows.Forms.TextBox textBox22;
         private System.Windows.Forms.Label label38;
         private System.Windows.Forms.TextBox textBox18;
         private System.Windows.Forms.GroupBox groupBox12;
-        private System.Windows.Forms.Button button43;
-        private System.Windows.Forms.Button button44;
+        private System.Windows.Forms.Button AEEventLocOutRembutton;
+        private System.Windows.Forms.Button AEEventLocNewOutbutton;
         private System.Windows.Forms.ListView listView3;
         private System.Windows.Forms.NumericUpDown numericUpDown12;
         private System.Windows.Forms.CheckBox checkBox6;
@@ -2665,8 +2665,8 @@
         private System.Windows.Forms.Label label37;
         private System.Windows.Forms.TextBox textBox23;
         private System.Windows.Forms.GroupBox groupBox13;
-        private System.Windows.Forms.Button button47;
-        private System.Windows.Forms.Button button48;
+        private System.Windows.Forms.Button AEEventTimeOutRembutton;
+        private System.Windows.Forms.Button AEEventTimeNewOutbutton;
         private System.Windows.Forms.ListView listView5;
         private System.Windows.Forms.NumericUpDown numericUpDown15;
         private System.Windows.Forms.Label label40;

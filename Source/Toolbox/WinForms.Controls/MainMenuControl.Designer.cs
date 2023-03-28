@@ -104,8 +104,8 @@ namespace Orts.Toolbox.WinForms.Controls
             toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             newPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            consistEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            activityEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            ConsistEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            ActivityEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -611,42 +611,42 @@ namespace Orts.Toolbox.WinForms.Controls
             // loadPathToolStripMenuItem
             // 
             loadPathToolStripMenuItem.Name = "loadPathToolStripMenuItem";
-            loadPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            loadPathToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
             loadPathToolStripMenuItem.Text = "Load Path";
             loadPathToolStripMenuItem.Click += LoadPathToolStripMenuItem_Click;
             // 
             // toolStripSeparator7
             // 
             toolStripSeparator7.Name = "toolStripSeparator7";
-            toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
+            toolStripSeparator7.Size = new System.Drawing.Size(124, 6);
             // 
             // newPathToolStripMenuItem
             // 
             newPathToolStripMenuItem.Name = "newPathToolStripMenuItem";
-            newPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            newPathToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
             newPathToolStripMenuItem.Text = "New Path";
             newPathToolStripMenuItem.Click += EnableEditToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
-            toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { consistEditorToolStripMenuItem, activityEditorToolStripMenuItem });
+            toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { ConsistEditorToolStripMenuItem, ActivityEditorToolStripMenuItem });
             toolStripMenuItem1.Name = "toolStripMenuItem1";
             toolStripMenuItem1.Size = new System.Drawing.Size(59, 20);
             toolStripMenuItem1.Text = "Activity";
             // 
-            // consistEditorToolStripMenuItem
+            // ConsistEditorToolStripMenuItem
             // 
-            consistEditorToolStripMenuItem.Name = "consistEditorToolStripMenuItem";
-            consistEditorToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
-            consistEditorToolStripMenuItem.Text = "Consist Editor";
-            consistEditorToolStripMenuItem.Click += consistEditorToolStripMenuItem_Click;
+            ConsistEditorToolStripMenuItem.Name = "ConsistEditorToolStripMenuItem";
+            ConsistEditorToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            ConsistEditorToolStripMenuItem.Text = "Consist Editor";
+            ConsistEditorToolStripMenuItem.Click += ConsistEditorToolStripMenuItem_Click;
             // 
-            // activityEditorToolStripMenuItem
+            // ActivityEditorToolStripMenuItem
             // 
-            activityEditorToolStripMenuItem.Name = "activityEditorToolStripMenuItem";
-            activityEditorToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
-            activityEditorToolStripMenuItem.Text = "Activity Editor";
-            activityEditorToolStripMenuItem.Click += activityEditorToolStripMenuItem_Click;
+            ActivityEditorToolStripMenuItem.Name = "ActivityEditorToolStripMenuItem";
+            ActivityEditorToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            ActivityEditorToolStripMenuItem.Text = "Activity Editor";
+            ActivityEditorToolStripMenuItem.Click += ActivityEditorToolStripMenuItem_Click;
             // 
             // helpToolStripMenuItem
             // 
@@ -765,7 +765,7 @@ namespace Orts.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
         private System.Windows.Forms.ToolStripMenuItem newPathToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem consistEditorToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem activityEditorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ConsistEditorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ActivityEditorToolStripMenuItem;
     }
 }
