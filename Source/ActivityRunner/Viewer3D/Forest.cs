@@ -403,8 +403,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public ForestMaterial(Viewer viewer, string treeTexturePath)
             : base(viewer, treeTexturePath)
         {
-            treeTexture = Viewer.TextureManager.Get(treeTexturePath, true);
-            shader = Viewer.MaterialManager.SceneryShader;
+            treeTexture = base.viewer.TextureManager.Get(treeTexturePath, true);
+            shader = base.viewer.MaterialManager.SceneryShader;
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
                 if (shader.Techniques[i].Name == "Forest")
@@ -449,7 +449,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void ResetState()
         {
-            Viewer.MaterialManager.SceneryShader.ReferenceAlpha = 0;
+            viewer.MaterialManager.SceneryShader.ReferenceAlpha = 0;
 
             graphicsDevice.BlendState = BlendState.Opaque;
         }
@@ -461,7 +461,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(treeTexture);
+            viewer.TextureManager.Mark(treeTexture);
             base.Mark();
         }
     }

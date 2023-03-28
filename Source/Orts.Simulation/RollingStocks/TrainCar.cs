@@ -338,14 +338,14 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (RemoteControlGroup == RemoteControlGroup.FrontGroupSync && Train != null)
                 {
-                    if (Train.LeadLocomotive != null && !((MSTSLocomotive)Train.LeadLocomotive).TrainControlSystem.TractionAuthorization && Train.MUThrottlePercent > 0)
+                    if (Train.LeadLocomotive is MSTSLocomotive locomotive)
                     {
-                        return 0;
+                        if (!locomotive.TrainControlSystem.TractionAuthorization || Train.MUThrottlePercent <= 0)
+                            return 0;
+                        else if (Train.MUThrottlePercent > locomotive.TrainControlSystem.MaxThrottlePercent)
+                            return Math.Max(locomotive.TrainControlSystem.MaxThrottlePercent, 0);
                     }
-                    else
-                    {
-                        return Train.MUThrottlePercent;
-                    }
+                    return Train.MUThrottlePercent;
                 }
                 else if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync && Train != null)
                     return Train.DPThrottlePercent;
@@ -388,17 +388,17 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (RemoteControlGroup != RemoteControlGroup.Unconnected && Train != null)
                 {
-                    if (Train.LeadLocomotive != null && (Train.LeadLocomotive).TrainControlSystem.FullDynamicBrakingOrder)
+                    if (Train.LeadLocomotive is MSTSLocomotive locomotive)
                     {
-                        return 100;
+                        if (locomotive.TrainControlSystem.FullDynamicBrakingOrder)
+                        {
+                            return 100;
+                        }
                     }
-                    else if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
-                        return Train.DPDynamicBrakePercent;
-                    else
-                    {
-                        return Train.MUDynamicBrakePercent;
-                    }
+                    return Train.MUDynamicBrakePercent;
                 }
+                else if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync && Train != null)
+                    return Train.DPDynamicBrakePercent;
                 else
                     return LocalDynamicBrakePercent;
             }
@@ -596,6 +596,26 @@ namespace Orts.Simulation.RollingStocks
             powerInfo.Update(null);
         }
 
+        /// <summary>
+        /// update position of discrete freight animations (e.g. containers)
+        /// </summary>  
+        public void UpdateFreightAnimationDiscretePositions()
+        {
+            if (FreightAnimations?.Animations != null)
+            {
+                foreach (FreightAnimation freightAnim in FreightAnimations.Animations)
+                {
+                    if (freightAnim is FreightAnimationDiscrete freightAnimationDiscrete)
+                    {
+                        if (freightAnimationDiscrete.Loaded && freightAnimationDiscrete.Container != null)
+                        {
+                            World.Container container = freightAnimationDiscrete.Container;
+                            container.SetWorldPosition(new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(container.RelativeContainerMatrix, freightAnimationDiscrete.Wagon.WorldPosition.XNAMatrix)));
+                        }
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Initialise Train Temperatures
@@ -1798,6 +1818,7 @@ namespace Orts.Simulation.RollingStocks
             carHeatCurrentCompartmentHeatJ = inf.ReadDouble();
             carSteamHeatMainPipeSteamPressurePSI = inf.ReadDouble();
             carHeatCompartmentHeaterOn = inf.ReadBoolean();
+            FreightAnimations?.LoadDataList?.Clear();
         }
 
         //================================================================================================//
@@ -1866,6 +1887,22 @@ namespace Orts.Simulation.RollingStocks
         public virtual bool GetCabFlipped()
         {
             return false;
+        }
+
+        //<comment>
+        //Initializes the physics of the car taking into account its variable discrete loads
+        //</comment>
+        public void InitializeLoadPhysics()
+        {
+            // TODO
+        }
+
+        //<comment>
+        //Updates the physics of the car taking into account its variable discrete loads
+        //</comment>
+        public void UpdateLoadPhysics()
+        {
+            // TODO
         }
 
         public virtual float GetCouplerZeroLengthM()

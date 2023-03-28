@@ -232,11 +232,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public void Parse(STFReader stf)
         {
+            ArgumentNullException.ThrowIfNull(stf);
             Parse(stf.Tree.ToLower(), stf);
         }
 
         public void Parse(string lowercasetoken, STFReader stf)
         {
+            ArgumentNullException.ThrowIfNull(stf);
+
             switch (lowercasetoken)
             {
                 case "engine(trainbrakescontrollermaxsystempressure":
@@ -362,7 +365,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
             script.MainReservoirPressureBar = () =>
             {
-                return locomotive.Train != null ? (float)Pressure.Atmospheric.FromPSI(locomotive.Train.BrakeSystem.BrakeLine2Pressure) : float.MaxValue;
+                return locomotive.Train != null ? (float)Pressure.Atmospheric.FromPSI(locomotive.MainResPressurePSI) : float.MaxValue;
             };
             script.MaxPressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxPressurePSI);
             script.MaxOverchargePressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxOverchargePressurePSI);

@@ -402,18 +402,6 @@ namespace Orts.Menu
                 ShowDetails();
                 detailUpdater = 0;
             }
-            //Debrief Activity Eval
-            //0 = "- Explore route -"
-            //1 = "+ Explore in Activity mode +"
-            if (comboBoxActivity.SelectedIndex < 2)
-            {
-                checkDebriefActivityEval.Checked = false;
-                checkDebriefActivityEval.Enabled = false;
-            }
-            else
-            {
-                checkDebriefActivityEval.Enabled = true;
-            }
         }
         #endregion
 
@@ -683,10 +671,6 @@ namespace Orts.Menu
         private void LoadOptions()
         {
             checkBoxWarnings.Checked = settings.Logging;
-            //Debrief activity evaluation
-            checkDebriefActivityEval.Checked = settings.ActivityEvalulation;
-            //TO DO: Debrief TTactivity evaluation
-            //checkDebriefTTActivityEval.Checked = Settings.DebriefTTActivityEval;
 
             textBoxMPUser.Text = settings.Multiplayer_User;
             textBoxMPHost.Text = settings.Multiplayer_Host + ":" + settings.Multiplayer_Port;
@@ -696,10 +680,6 @@ namespace Orts.Menu
         {
             settings.Logging = checkBoxWarnings.Checked;
             settings.Multiplayer_User = textBoxMPUser.Text;
-            //Debrief activity evaluation
-            settings.ActivityEvalulation = checkDebriefActivityEval.Checked;
-            //TO DO: Debrief TTactivity evaluation
-            //Settings.DebriefTTActivityEval = checkDebriefTTActivityEval.Checked;
 
             string[] mpHost = textBoxMPHost.Text.Split(':');
             settings.Multiplayer_Host = mpHost[0];

@@ -28,7 +28,9 @@ namespace Orts.ActivityRunner.Viewer3D.Common
     public static class Helpers
     {
         [Flags]
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
         public enum TextureFlags
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
         {
             None = 0x0,
             Snow = 0x1,
@@ -60,19 +62,10 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             }
             else if (!string.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".ace")
             {
-                var alternativeTexture = Path.ChangeExtension(nightTexturePath + textureName, ".dds");
-                if (Simulator.Instance.Settings.PreferDDSTexture && !string.IsNullOrEmpty(alternativeTexture) && File.Exists(alternativeTexture))
-                {
-                    return alternativeTexture;
-                }
-                else if (File.Exists(nightTexturePath + textureName))
-                {
-                    return nightTexturePath + textureName;
-                }
-                else
-                {
-                    return null;
-                }
+                string alternativeTexture = Path.ChangeExtension(nightTexturePath + textureName, ".dds");
+                return (!string.IsNullOrEmpty(alternativeTexture) && File.Exists(alternativeTexture))
+                    ? alternativeTexture
+                    : File.Exists(nightTexturePath + textureName) ? nightTexturePath + textureName : null;
             }
             else
             {
@@ -115,10 +108,9 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             else if ((textureFlags & TextureFlags.WinterSnow) != 0 && simulator.Season == SeasonType.Winter && simulator.WeatherType == WeatherType.Snow)
                 alternativePath = "WinterSnow";
 
-            if (!string.IsNullOrEmpty(alternativePath))
-                return Path.Combine(texturePath, alternativePath, textureName);
-            else
-                return Path.Combine(texturePath, textureName);
+            return !string.IsNullOrEmpty(alternativePath)
+                ? Path.Combine(texturePath, alternativePath, textureName)
+                : Path.Combine(texturePath, textureName);
         }
 
         public static bool IsSnow()

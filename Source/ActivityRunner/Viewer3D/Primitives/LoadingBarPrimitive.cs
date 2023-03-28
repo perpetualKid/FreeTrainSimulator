@@ -45,7 +45,7 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
 
     }
 
-    class TimetableLoadingBarPrimitive : LoadingBarPrimitive
+    internal class TimetableLoadingBarPrimitive : LoadingBarPrimitive
     {
         public TimetableLoadingBarPrimitive(GameHost game)
             : base(game)

@@ -18,11 +18,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -41,6 +38,7 @@ using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Processes
 {
@@ -308,6 +306,18 @@ namespace Orts.ActivityRunner.Processes
             if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer())
                 return; //no save for multiplayer sessions yet
 
+            if (ContainerManager.ActiveOperationsCounter > 0)
+            // don't save if performing a container load/unload
+            {
+                Simulator.Instance.Confirmer.Message(ConfirmLevel.Warning, Viewer.Catalog.GetString("Game save is not allowed during container load/unload"));
+                return;
+            }
+
+            // Prefix with the activity filename so that, when resuming from the Menu.exe, we can quickly find those Saves 
+            // that are likely to match the previously chosen route and activity.
+            // Append the current date and time, so that each file is unique.
+            // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
+
             string fileStem = simulator.SaveFileName;
 
             using (BinaryWriter outf = simulator.Settings.LogSaveData ?
@@ -336,22 +346,6 @@ namespace Orts.ActivityRunner.Processes
                     outf.Write(argument);
                 outf.Write((int)activityType);
 
-                // The Save command is the only command that doesn't take any action. It just serves as a marker.
-                _ = new SaveCommand(simulator.Log, fileStem);
-                simulator.Log.SaveLog(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".replay"));
-
-                // Copy the logfile to the save folder
-                string logName = Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".txt");
-
-                if (File.Exists(logFileName))
-                {
-                    Trace.Flush();
-                    foreach (TraceListener listener in Trace.Listeners)
-                        listener.Flush();
-                    File.Delete(logName);
-                    File.Copy(logFileName, logName);
-                }
-
                 simulator.Save(outf);
                 Viewer.Save(outf, fileStem);
                 // Save multiplayer parameters
@@ -362,16 +356,29 @@ namespace Orts.ActivityRunner.Processes
                 outf.Write(outf.BaseStream.Position);
             }
 
-            //Debrief Eval
-            if (Viewer.Settings.ActivityEvalulation)
-            {
-                foreach (string file in Directory.EnumerateFiles(RuntimeInfo.UserDataFolder, simulator.ActivityFileName + "*.eval"))
-                    File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
+            // The Save command is the only command that doesn't take any action. It just serves as a marker.
+            _ = new SaveCommand(simulator.Log, fileStem);
+            simulator.Log.SaveLog(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".replay"));
 
-                using (BinaryWriter outf = new BinaryWriter(new FileStream(RuntimeInfo.UserDataFolder + $"\\{fileStem}.eval", FileMode.Create, FileAccess.Write)))
-                {
-                    ActivityEvaluation.Save(outf);
-                }
+            // Copy the logfile to the save folder
+            string logName = Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".txt");
+
+            if (File.Exists(logFileName))
+            {
+                Trace.Flush();
+                foreach (TraceListener listener in Trace.Listeners)
+                    listener.Flush();
+                File.Delete(logName);
+                File.Copy(logFileName, logName);
+            }
+
+            //Debrief Eval
+            foreach (string file in Directory.EnumerateFiles(RuntimeInfo.UserDataFolder, simulator.ActivityFileName + "*.eval"))
+                File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
+
+            using (BinaryWriter outf = new BinaryWriter(new FileStream(RuntimeInfo.UserDataFolder + $"\\{fileStem}.eval", FileMode.Create, FileAccess.Write)))
+            {
+                ActivityEvaluation.Save(outf);
             }
         }
 
@@ -419,26 +426,18 @@ namespace Orts.ActivityRunner.Processes
 
                     //Restore Debrief eval data                    
                     string evaluationFile = Path.ChangeExtension(saveFile, ".eval");
-                    if (settings.ActivityEvalulation)
+                    if (File.Exists(evaluationFile))
                     {
-                        try
+                        using (BinaryReader evalInput = new BinaryReader(new FileStream(evaluationFile, FileMode.Open, FileAccess.Read)))
                         {
-                            if (File.Exists(evaluationFile))
+                            try
                             {
-                                using (BinaryReader evalInput = new BinaryReader(new FileStream(evaluationFile, FileMode.Open, FileAccess.Read)))
-                                {
-                                    ActivityEvaluation.Restore(evalInput);
-                                }
+                                ActivityEvaluation.Restore(evalInput);
                             }
-                            else
-                                //Resume mode: .eval file doesn't exist, avoid to generate a new report.
-                                settings.ActivityEvalulation = false;
+                            catch (IOException)
+                            {
+                            }
                         }
-                        catch (IOException)
-                        {
-                            settings.ActivityEvalulation = false;
-                        }
-
                     }
                 }
                 catch (Exception error)
@@ -673,15 +672,7 @@ namespace Orts.ActivityRunner.Processes
             // Arguments without a '.' in them and those starting '/' are ignored, since they are explore activity
             // configuration (time, season, etc.) or flags like /test which we don't want to change on.
             loadingDataKey = string.Join(" ", data.Where(a => a.Contains('.', StringComparison.OrdinalIgnoreCase)).ToArray()).ToUpperInvariant();
-            using (HashAlgorithm hash = SHA256.Create())
-            {
-                hash.ComputeHash(Encoding.Default.GetBytes(loadingDataKey));
-                string loadingHash = string.Join("", hash.Hash.Select(h => h.ToString("x2", CultureInfo.InvariantCulture)).ToArray());
-                string dataPath = Path.Combine(RuntimeInfo.UserDataFolder, "Load Cache");
-                loadingDataFilePath = Path.Combine(dataPath, loadingHash + ".dat");
-                if (!Directory.Exists(dataPath))
-                    Directory.CreateDirectory(dataPath);
-            }
+            loadingDataFilePath = RuntimeInfo.GetCacheFilePath("Load", loadingDataKey);
 
             int loadingTime = 0;
             long[] bytesExpected = new long[loadingSampleCount];
@@ -1007,10 +998,9 @@ namespace Orts.ActivityRunner.Processes
 
         private static long GetProcessBytesLoaded()
         {
-            if (NativeMethods.GetProcessIoCounters(Process.GetCurrentProcess().Handle, out NativeStructs.IO_COUNTERS counters))
-                return (long)counters.ReadTransferCount;
-
-            return 0;
+            return NativeMethods.GetProcessIoCounters(Process.GetCurrentProcess().Handle, out NativeStructs.IO_COUNTERS counters)
+                ? (long)counters.ReadTransferCount
+                : 0;
         }
     }
 }

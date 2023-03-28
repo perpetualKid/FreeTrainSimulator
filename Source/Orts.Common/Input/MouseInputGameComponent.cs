@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
@@ -21,7 +23,14 @@ namespace Orts.Common.Input
 
         public MouseInputGameComponent(Game game) : base(game)
         {
-            isTouchEnabled = TouchPanel.GetCapabilities().IsConnected;
+            try
+            {
+                isTouchEnabled = TouchPanel.GetCapabilities().IsConnected;
+            }
+            catch (NullReferenceException)
+            { 
+                isTouchEnabled = false;
+            }
         }
 
         public ref readonly MouseState MouseState => ref currentMouseState;

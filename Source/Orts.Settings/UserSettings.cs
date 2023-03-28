@@ -21,6 +21,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Windows.Forms;
 
 using Orts.Common;
@@ -79,8 +80,6 @@ namespace Orts.Settings
         public bool LogErrorsOnly { get; set; }
         [Default(false)]
         public bool LogSaveData { get; set; }
-        [Default(false)]
-        public bool ActivityEvalulation { get; set; }
         [Default("")]
         public string Multiplayer_User { get; set; }
         [Default("127.0.0.1")]
@@ -161,6 +160,8 @@ namespace Orts.Settings
         public int DistantMountainsViewingDistance { get; set; }
         [Default(45)] // MSTS uses 60 FOV horizontally, on 4:3 displays this is 45 FOV vertically (what OR uses).
         public int ViewingFOV { get; set; }
+        [Default(true)]
+        public bool LODViewingExtension { get; set; }
         [Default(49)]
         public int WorldObjectDensity { get; set; }
         [Default(20)]
@@ -263,14 +264,12 @@ namespace Orts.Settings
         [Default(false)]
         public bool AuxActionEnabled { get; set; }
         [Default(false)]
-        public bool PreferDDSTexture { get; set; }
-        [Default(false)]
         public bool UseLocationPassingPaths { get; set; }
         [Default(false)]
         public bool UseMSTSEnv { get; set; }
         [Default(false)]
         public bool SignalLightGlow { get; set; }
-        [Default(130)]
+        [Default(100)]
         public int AdhesionFactor { get; set; }
         [Default(10)]
         public int AdhesionFactorChange { get; set; }
@@ -298,7 +297,7 @@ namespace Orts.Settings
         public int CarVibratingLevel { get; set; }
         [Default("OpenRailsLog.txt")]
         public string LoggingFilename { get; set; }
-        [Default("OR-DebriefEval.txt")]
+        [Default("Evaluation.txt")]
         public string DebriefEvalFilename { get; set; }//
         [Default("")] // If left as "", OR will use the user's desktop folder
         public string LoggingPath { get; set; }

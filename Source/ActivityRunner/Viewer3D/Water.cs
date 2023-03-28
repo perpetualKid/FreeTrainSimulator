@@ -166,8 +166,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public WaterMaterial(Viewer viewer, string waterTexturePath)
             : base(viewer, waterTexturePath)
         {
-            waterTexture = Viewer.TextureManager.Get(waterTexturePath, true);
-            shader = Viewer.MaterialManager.SceneryShader;
+            waterTexture = base.viewer.TextureManager.Get(waterTexturePath, true);
+            shader = base.viewer.MaterialManager.SceneryShader;
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
                 if (shader.Techniques[i].Name == "ImagePS")
@@ -207,7 +207,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void ResetState()
         {
-            var shader = Viewer.MaterialManager.SceneryShader;
+            var shader = viewer.MaterialManager.SceneryShader;
             shader.ReferenceAlpha = 0;
 
             graphicsDevice.BlendState = BlendState.Opaque;
@@ -220,7 +220,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(waterTexture);
+            viewer.TextureManager.Mark(waterTexture);
             base.Mark();
         }
     }

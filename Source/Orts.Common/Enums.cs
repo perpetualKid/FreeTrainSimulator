@@ -292,6 +292,14 @@ namespace Orts.Common
         Couple,
         CoupleB, // NOTE: Currently not used in Open Rails.
         CoupleC, // NOTE: Currently not used in Open Rails.
+        CraneXAxisMove,
+        CraneXAxisSlowDown,
+        CraneYAxisMove,
+        CraneYAxisSlowDown,
+        CraneZAxisMove,
+        CraneZAxisSlowDown,
+        CraneYAxisBumpsOnTarget,
+        CraneYAxisDown,
         CrossingClosing,
         CrossingOpening,
         CylinderCocksToggle,
@@ -990,6 +998,19 @@ namespace Orts.Common
         /// A long-long-short-long pattern used in the United States and Canada.
         /// </summary>
         US,
+    }
+
+    /// <summary>
+    /// Defines the position of a load (e.g. a container) on a wagon
+    /// </summary>
+    public enum LoadPosition
+    {
+        Rear,
+        CenterRear,
+        Center,
+        CenterFront,
+        Front,
+        Above
     }
 
     public enum WindowSetting

@@ -98,6 +98,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
         public bool CircuitBreakerClosingOrder { get; private set; }
         public bool CircuitBreakerOpeningOrder { get; private set; }
         public bool TractionAuthorization { get; private set; }
+        public float MaxThrottlePercent { get; private set; } = 100f;
         public bool FullDynamicBrakingOrder { get; private set; }
 
         public float[] CabDisplayControls { get; } = new float[TCSCabviewControlCount];
@@ -154,7 +155,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
         public void Copy(ScriptedTrainControlSystem source)
         {
             if (null == source)
-                 throw new ArgumentNullException(nameof(source));
+                throw new ArgumentNullException(nameof(source));
             scriptName = source.scriptName;
             soundFileName = source.soundFileName;
             parametersFileName = source.parametersFileName;
@@ -303,6 +304,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 };
                 script.ArePantographsDown = () => Locomotive.Pantographs.State == PantographState.Down;
                 script.ThrottlePercent = () => Locomotive.ThrottleController.CurrentValue * 100;
+                script.MaxThrottlePercent = () => MaxThrottlePercent;
                 script.DynamicBrakePercent = () => Locomotive.DynamicBrakeController == null ? 0 : Locomotive.DynamicBrakeController.CurrentValue * 100;
                 script.TractionAuthorization = () => TractionAuthorization;
                 script.BrakePipePressureBar = () => Locomotive.BrakeSystem != null ? (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.BrakeLine1PressurePSI) : float.MaxValue;
@@ -396,6 +398,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.SetCircuitBreakerClosingOrder = (value) => CircuitBreakerClosingOrder = value;
                 script.SetCircuitBreakerOpeningOrder = (value) => CircuitBreakerOpeningOrder = value;
                 script.SetTractionAuthorization = (value) => TractionAuthorization = value;
+                script.SetMaxThrottlePercent = (value) =>
+                {
+                    if (value is >= 0 and <= 100f)
+                    {
+                        MaxThrottlePercent = value;
+                    }
+                };
                 script.SetVigilanceAlarm = (value) => Locomotive.SignalEvent(value ? TrainEvent.VigilanceAlarmOn : TrainEvent.VigilanceAlarmOff);
                 script.SetHorn = (value) => Locomotive.TCSHorn = value;
                 script.TriggerSoundAlert1 = () => SignalEvent(TrainEvent.TrainControlSystemAlert1, script);
@@ -529,10 +538,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
             return retval;
         }
 
-        private SignalFeatures NextGenericSignalFeatures(string signalTypeName, int itemSequenceIndex, float maxDistanceM, TrainPathItemType type)
+        private SignalFeatures NextGenericSignalFeatures(string signalFunctionTypeName, int itemSequenceIndex, float maxDistanceM, TrainPathItemType type)
         {
             string mainHeadSignalTypeName = string.Empty;
+            string signalTypeName = string.Empty;
             TrackMonitorSignalAspect aspect = TrackMonitorSignalAspect.None;
+            string drawStateName = string.Empty;
             float distanceM = float.MaxValue;
             float speedLimitMpS = -1f;
             float altitudeOrLengthM = float.MinValue;
@@ -547,7 +558,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 Locomotive.Train.ValidRoute[(int)dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
             if (index < 0)
                 return SignalFeatures.None;
-            int fn_type = OrSignalTypes.Instance.FunctionTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, signalTypeName));
+            int fn_type = OrSignalTypes.Instance.FunctionTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, signalFunctionTypeName));
             if (fn_type == -1) // check for not existing signal type
                 return SignalFeatures.None;
 
@@ -560,7 +571,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 // All OK, we can retrieve the data for the required signal;
                 distanceM = trainpathItem.DistanceToTrainM;
                 mainHeadSignalTypeName = trainpathItem.Signal.SignalHeads[0].SignalType.Name;
-                if (signalTypeName.Equals("Normal", StringComparison.OrdinalIgnoreCase))
+                if (signalFunctionTypeName.Equals("Normal", StringComparison.OrdinalIgnoreCase))
                 {
                     aspect = trainpathItem.SignalState;
                     speedLimitMpS = trainpathItem.AllowedSpeedMpS;
@@ -570,11 +581,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 {
                     aspect = SignalEnvironment.TranslateToTCSAspect(trainpathItem.Signal.SignalLR(fn_type));
                 }
-                foreach (SignalHead head in trainpathItem.Signal.SignalHeads)
+                foreach (SignalHead functionHead in trainpathItem.Signal.SignalHeads)
                 {
-                    if (head.OrtsSignalFunctionIndex == fn_type)
+                    if (functionHead.OrtsSignalFunctionIndex == fn_type)
                     {
-                        textAspect = head.TextSignalAspect;
+                        textAspect = functionHead.TextSignalAspect;
+                        signalTypeName = functionHead.SignalType.Name;
+                        if (functionHead.DrawState >= 0)
+                        {
+                            drawStateName = functionHead.SignalType.DrawStates.First(d => d.Value.Index == functionHead.DrawState).Value.Name;
+                        }
                         break;
                     }
                 }
@@ -592,7 +608,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 distanceM = trainpathItem.DistanceToTrainM;
                 speedLimitMpS = trainpathItem.AllowedSpeedMpS;
             }
-            return new SignalFeatures(mainHeadSignalTypeName, aspect, distanceM, speedLimitMpS, altitudeOrLengthM, textAspect);
+            return new SignalFeatures(mainHeadSignalTypeName, signalTypeName, aspect, drawStateName, distanceM, speedLimitMpS, altitudeOrLengthM, textAspect);
         }
 
         private SpeedPostFeatures NextSpeedPostFeatures(int itemSequenceIndex, float maxDistanceM)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Orts.Common;
 using Orts.Common.Position;
@@ -45,7 +46,8 @@ namespace Orts.Formats.Msts.Models
             public int Workers { get; internal protected set; }             // percent
             public int FuelWater { get; internal protected set; } = 100;     // percent
             public int FuelCoal { get; internal protected set; } = 100;      // percent
-            public int FuelDiesel { get; internal protected set; } = 100;	// percent
+            public int FuelDiesel { get; internal protected set; } = 100;   // percent
+            public string LoadStationsPopulationFile { get; internal protected set; }
         }
 
         public ActivityHeader Header { get; } = new ActivityHeader();
@@ -91,6 +93,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("fuelwater", ()=>{ Header.FuelWater = stf.ReadIntBlock(Header.FuelWater); }),
                 new STFReader.TokenProcessor("fuelcoal", ()=>{ Header.FuelCoal = stf.ReadIntBlock(Header.FuelCoal); }),
                 new STFReader.TokenProcessor("fueldiesel", ()=>{ Header.FuelDiesel = stf.ReadIntBlock(Header.FuelDiesel); }),
+                new STFReader.TokenProcessor("ortsloadstationspopulation", ()=>{ Header.LoadStationsPopulationFile = stf.ReadStringBlock(null); }),
             });
         }
 
@@ -279,6 +282,51 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("ortsdelaytorestart", ()=>{ DelayToRestart = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("ortsmatchingwpdelay", ()=>{ MatchingWPDelay = stf.ReadIntBlock(null); }),
             });
+        }
+    }
+
+    public readonly struct LoadData : IEquatable<LoadData>
+    {
+        public string Name { get; }
+        public string Folder { get; }
+        public LoadPosition LoadPosition { get; }
+
+        public LoadData(STFReader stf)
+        {
+            ArgumentNullException.ThrowIfNull(stf);
+            Name = stf.ReadString();
+            Folder = stf.ReadString();
+            string positionString = stf.ReadString();
+            if (!EnumExtension.GetValue(positionString, out LoadPosition loadPosition))
+                Trace.TraceWarning($"Can not parse '{positionString}' string into LoadPosition");
+            LoadPosition = loadPosition;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is LoadData loadData && Equals(loadData);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Folder, LoadPosition);
+        }
+
+        public static bool operator ==(LoadData left, LoadData right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(LoadData left, LoadData right)
+        {
+            return !(left == right);
+        }
+
+        public bool Equals(LoadData other)
+        {
+            return other.LoadPosition == LoadPosition
+                && StringComparer.OrdinalIgnoreCase.Equals(other.Name, Name)
+                && StringComparer.OrdinalIgnoreCase.Equals(other.Folder, Folder);
         }
     }
 }

@@ -10,7 +10,8 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         FuelTower,
         InGame,
         Signal,
-        Turntable
+        Turntable,
+        ContainerCrane,
     }
 
     public static class SoundEvent
@@ -308,6 +309,27 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 2: return TrainEvent.MovingTableMovingLoaded;
                         case 3: return TrainEvent.MovingTableStopped;
                         default: return TrainEvent.None;
+                    }
+                case SoundEventSource.ContainerCrane:
+                    switch (eventID)
+                    {
+                        // Can be different from crane to crane
+                        case 1:
+                            return TrainEvent.CraneXAxisMove;
+                        case 2:
+                            return TrainEvent.CraneXAxisSlowDown;
+                        case 3:
+                            return TrainEvent.CraneYAxisMove;
+                        case 4:
+                            return TrainEvent.CraneYAxisSlowDown;
+                        case 5:
+                            return TrainEvent.CraneZAxisMove;
+                        case 6:
+                            return TrainEvent.CraneZAxisSlowDown;
+                        case 7:
+                            return TrainEvent.CraneYAxisDown;
+                        default:
+                            return 0;
                     }
                 default: return TrainEvent.None;
             }

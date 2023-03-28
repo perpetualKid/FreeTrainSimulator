@@ -481,33 +481,33 @@ namespace Orts.ActivityRunner.Viewer3D
             : base(viewer, null)
         {
             // TODO: This should happen on the loader thread.
-            rainTexture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Raindrop.png"));
-            snowTexture = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Snowflake.png"));
+            rainTexture = SharedTextureManager.Get(base.viewer.Game.GraphicsDevice, System.IO.Path.Combine(base.viewer.ContentPath, "Raindrop.png"));
+            snowTexture = SharedTextureManager.Get(base.viewer.Game.GraphicsDevice, System.IO.Path.Combine(base.viewer.ContentPath, "Snowflake.png"));
             dynamicPrecipitationTexture[0] = snowTexture;
             dynamicPrecipitationTexture[11] = rainTexture;
             for (int i = 1; i <= 10; i++)
             {
                 var path = $"Raindrop{i}.png";
-                dynamicPrecipitationTexture[11 - i] = SharedTextureManager.Get(Viewer.Game.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, path));
+                dynamicPrecipitationTexture[11 - i] = SharedTextureManager.Get(base.viewer.Game.GraphicsDevice, System.IO.Path.Combine(base.viewer.ContentPath, path));
             }
-            shader = Viewer.MaterialManager.PrecipitationShader;
+            shader = base.viewer.MaterialManager.PrecipitationShader;
         }
 
         public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[0]; //["Precipitation"];
 
-            shader.LightVector.SetValue(Viewer.Settings.UseMSTSEnv ? Viewer.World.MSTSSky.mstsskysolarDirection : Viewer.World.Sky.solarDirection);
+            shader.LightVector.SetValue(viewer.Settings.UseMSTSEnv ? viewer.World.MSTSSky.mstsskysolarDirection : viewer.World.Sky.solarDirection);
             shader.particleSize.SetValue(1f);
-            if (Viewer.Simulator.Weather.PrecipitationLiquidity == 0 || Viewer.Simulator.Weather.PrecipitationLiquidity == 1)
+            if (viewer.Simulator.Weather.PrecipitationLiquidity == 0 || viewer.Simulator.Weather.PrecipitationLiquidity == 1)
             {
-                shader.precipitation_Tex.SetValue(Viewer.Simulator.WeatherType == WeatherType.Snow ? snowTexture :
-                    Viewer.Simulator.WeatherType == WeatherType.Rain ? rainTexture :
-                    Viewer.Simulator.Weather.PrecipitationLiquidity == 0 ? snowTexture : rainTexture);
+                shader.precipitation_Tex.SetValue(viewer.Simulator.WeatherType == WeatherType.Snow ? snowTexture :
+                    viewer.Simulator.WeatherType == WeatherType.Rain ? rainTexture :
+                    viewer.Simulator.Weather.PrecipitationLiquidity == 0 ? snowTexture : rainTexture);
             }
             else
             {
-                var precipitation_TexIndex = (int)(Viewer.Simulator.Weather.PrecipitationLiquidity * 11);
+                var precipitation_TexIndex = (int)(viewer.Simulator.Weather.PrecipitationLiquidity * 11);
                 shader.precipitation_Tex.SetValue(dynamicPrecipitationTexture[precipitation_TexIndex]);
             }
 
@@ -546,10 +546,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(rainTexture);
-            Viewer.TextureManager.Mark(snowTexture);
+            viewer.TextureManager.Mark(rainTexture);
+            viewer.TextureManager.Mark(snowTexture);
             for (int i = 1; i <= 10; i++)
-                Viewer.TextureManager.Mark(dynamicPrecipitationTexture[i]);
+                viewer.TextureManager.Mark(dynamicPrecipitationTexture[i]);
             base.Mark();
         }
     }

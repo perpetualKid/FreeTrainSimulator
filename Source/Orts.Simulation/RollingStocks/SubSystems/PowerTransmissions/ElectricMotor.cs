@@ -16,112 +16,54 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+
 using Orts.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {
     public class ElectricMotor
     {
-        protected float developedTorqueNm;
-        public float DevelopedTorqueNm { get { return developedTorqueNm; } }
+        private protected float powerLossesW;
 
-        protected float loadTorqueNm;
-        public float LoadTorqueNm { set { loadTorqueNm = value; } get { return loadTorqueNm; } }
+        public float Inertia { get; }
 
-        protected float frictionTorqueNm;
-        public float FrictionTorqueNm { set { frictionTorqueNm = Math.Abs(value); } get { return frictionTorqueNm; } }
+        public float TemperatureK { get; private set; }
 
-        private float inertiaKgm2;
-        public float InertiaKgm2
+        private readonly Integrator temperatureIntegrator = new Integrator();
+
+        public float ThermalCoeff { get; }
+        public float SpecificHeatCapacity { get; }
+        public float Surface { get; }
+        public float Weight { get; }
+        public float CoolingPower { set; get; }
+
+        public Axle AxleConnected { get; }
+
+        public ElectricMotor(Axle axle)
         {
-            set
-            {
-                if (value <= 0.0)
-                    throw new NotSupportedException("Inertia must be greater than 0");
-                inertiaKgm2 = value;
-            }
-            get
-            {
-                return inertiaKgm2; 
-            }
+            Inertia = 1.0f;
+            TemperatureK = 273.0f;
+            ThermalCoeff = 50.0f;
+            SpecificHeatCapacity = 40.0f;
+            Surface = 2.0f;
+            Weight = 5.0f;
+            AxleConnected = axle;
+            AxleConnected.Motor = this;
+            AxleConnected.TransmissionRatio = 1;
         }
 
-        protected float revolutionsRad;
-        public float RevolutionsRad { get { return revolutionsRad; } set { revolutionsRad = value; } }
-
-        protected float temperatureK;
-        public float TemperatureK { get { return temperatureK; } }
-
-        private Integrator tempIntegrator = new Integrator();
-
-        public float ThermalCoeffJ_m2sC { set; get; }
-        public float SpecificHeatCapacityJ_kg_C { set; get; }
-        public float SurfaceM { set; get; }
-        public float WeightKg { set; get; }
-
-        protected float powerLossesW;
-
-        public float CoolingPowerW { set; get; }
-
-        private float transmissionRatio;
-        public float TransmissionRatio
+        public virtual float GetDevelopedTorqueNm(float motorSpeed)
         {
-            set
-            {
-                if (value <= 0.0)
-                    throw new NotSupportedException("Transmission ratio must be greater than zero");
-                transmissionRatio = value;
-            }
-            get
-            {
-                return transmissionRatio;
-            }
-        }
-
-        private float axleDiameterM;
-        public float AxleDiameterM
-        {
-            set
-            {
-                if (value <= 0.0)
-                    throw new NotSupportedException("Axle diameter must be greater than zero");
-                axleDiameterM = value;
-            }
-            get
-            {
-                return axleDiameterM;
-            }
-        }
-
-        public Axle AxleConnected;
-
-        public ElectricMotor()
-        {
-            developedTorqueNm = 0.0f;
-            loadTorqueNm = 0.0f;
-            inertiaKgm2 = 1.0f;
-            revolutionsRad = 0.0f;
-            axleDiameterM = 1.0f;
-            transmissionRatio = 1.0f;
-            temperatureK = 0.0f;
-            ThermalCoeffJ_m2sC = 50.0f;
-            SpecificHeatCapacityJ_kg_C = 40.0f;
-            SurfaceM = 2.0f;
-            WeightKg = 5.0f;
+            return 0;
         }
 
         public virtual void Update(double timeSpan)
         {
-            //revolutionsRad += timeSpan / inertiaKgm2 * (developedTorqueNm + loadTorqueNm + (revolutionsRad == 0.0 ? 0.0 : frictionTorqueNm));
-            //if (revolutionsRad < 0.0)
-            //    revolutionsRad = 0.0;
-            temperatureK = (float)tempIntegrator.Integrate(timeSpan, 1.0/(SpecificHeatCapacityJ_kg_C * WeightKg)*((powerLossesW - CoolingPowerW) / (ThermalCoeffJ_m2sC * SurfaceM) - temperatureK));
-
+            TemperatureK = (float)temperatureIntegrator.Integrate(timeSpan, (temperatureK) => 1.0f/(SpecificHeatCapacity * Weight)*((powerLossesW - CoolingPower) / (ThermalCoeff * Surface) - temperatureK));
         }
 
         public virtual void Reset()
         {
-            revolutionsRad = 0.0f;
         }
     }
 }

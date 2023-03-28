@@ -48,7 +48,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             Wagon = wagon;
 
-            Timer = new Timer(Wagon);
+            Timer = new Timer(Simulator.Instance);
             Timer.Setup(DelayS);
         }
 

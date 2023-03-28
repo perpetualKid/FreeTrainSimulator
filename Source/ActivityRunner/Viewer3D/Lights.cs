@@ -766,8 +766,8 @@ namespace Orts.ActivityRunner.Viewer3D
             : base(viewer, null)
         {
             // TODO: This should happen on the loader thread.
-            lightGlowTexture = SharedTextureManager.Get(graphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Lightglow.png"));
-            shader = Viewer.MaterialManager.LightGlowShader;
+            lightGlowTexture = SharedTextureManager.Get(graphicsDevice, System.IO.Path.Combine(base.viewer.ContentPath, "Lightglow.png"));
+            shader = base.viewer.MaterialManager.LightGlowShader;
         }
 
         public override void SetState(Material previousMaterial)
@@ -810,7 +810,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(lightGlowTexture);
+            viewer.TextureManager.Mark(lightGlowTexture);
             base.Mark();
         }
     }
@@ -822,7 +822,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public LightConeMaterial(Viewer viewer)
             : base(viewer, null)
         {
-            shader = Viewer.MaterialManager.LightConeShader;
+            shader = base.viewer.MaterialManager.LightConeShader;
         }
 
         public override void SetState(Material previousMaterial)

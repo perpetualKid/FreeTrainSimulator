@@ -80,12 +80,13 @@ steps:
   inputs:
     testSelector: 'testAssemblies'
     testAssemblyVer2: |
-      **\*test*.dll
+      **\*test.*.dll
+      **\*tests.*.dll
       !**\*TestAdapter.dll
       !**\*TestPlatform*
       !**\*testhost*
       !**\obj\**
-    otherConsoleOptions: '/platform:x64 /Framework:.NETCoreApp,Version=v3.1'
+    otherConsoleOptions: '/platform:x64'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     runInParallel: true

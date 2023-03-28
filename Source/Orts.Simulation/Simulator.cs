@@ -93,7 +93,7 @@ namespace Orts.Simulation
     ///     
     /// All keyboard input comes from the viewer class as calls on simulator's methods.
     /// </summary>
-    public partial class Simulator
+    public class Simulator : IGametimeSource
     {
         private string explorePath;
         private string exploreConsist;
@@ -167,7 +167,10 @@ namespace Orts.Simulation
         public string PathName { get; set; } = "<unknown>";
         public float InitialTileX { get; private set; }
         public float InitialTileZ { get; private set; }
-        public HazardManager HazardManager { get; private set; }
+        public HazardManager HazardManager { get; }
+        public FuelManager FuelManager { get; }
+
+        public ContainerManager ContainerManager { get; }
 
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<MovingTable> MovingTables { get; } = new List<MovingTable>();
@@ -292,7 +295,9 @@ namespace Orts.Simulation
 
             Confirmer = new Confirmer(this);
             HazardManager = new HazardManager();
+            FuelManager = new FuelManager(this);
             ScriptManager = new ScriptManager();
+            ContainerManager = new ContainerManager(this);
             Log = new CommandLog(this);
         }
 
@@ -357,8 +362,12 @@ namespace Orts.Simulation
 
         public void Start(CancellationToken cancellationToken)
         {
+            if (ActivityFile?.Activity?.Header?.LoadStationsPopulationFile != null)
+            {
+                ContainerManager.LoadPopulationFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(ActivityFile?.Activity?.Header?.LoadStationsPopulationFile, ".load-stations-loads-or")));
+            }
             SignalEnvironment = new SignalEnvironment(SignalConfig, Settings.UseLocationPassingPaths, cancellationToken);
-            (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
+            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings();
             Trains = new TrainList(this);
             PoolHolder = new Poolholder();
@@ -416,6 +425,7 @@ namespace Orts.Simulation
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
 
+            ContainerManager.FreightAnimNeedsInitialization = false;
             ClockTime = inf.ReadDouble();
             Season = (SeasonType)inf.ReadInt32();
             WeatherType = (WeatherType)inf.ReadInt32();
@@ -439,7 +449,7 @@ namespace Orts.Simulation
 
             // initialization of turntables
             int movingTableIndex = inf.ReadInt32();
-            (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
+            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             if (MovingTables.Count >= 0)
             {
                 foreach (MovingTable movingTable in MovingTables)
@@ -450,6 +460,7 @@ namespace Orts.Simulation
             ActivityRun = Activity.Restore(inf, this, ActivityRun);
             SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
             SignalEnvironment.Update(true);           // update all signals once to set proper stat
+            ContainerManager.Restore(inf);
             MultiPlayerManager.Instance().RememberOriginalSwitchState(); // this prepares a string that must then be passed to clients
         }
 
@@ -476,7 +487,8 @@ namespace Orts.Simulation
                 foreach (MovingTable movingtable in MovingTables)
                     movingtable.Save(outf);
             }
-            Activities.Activity.Save(outf, ActivityRun);
+            Activity.Save(outf, ActivityRun);
+            ContainerManager.Save(outf);
         }
 
         private Train InitializeTrains(CancellationToken cancellationToken)
@@ -524,6 +536,108 @@ namespace Orts.Simulation
             Train playerTrain = Trains[0];    // we install the player train first
             PlayerLocomotive = SetPlayerLocomotive(playerTrain);
             return PlayerLocomotive;
+        }
+
+        public void SetCommandReceivers()
+        {
+            ReverserCommand.Receiver = PlayerLocomotive;
+            NotchedThrottleCommand.Receiver = PlayerLocomotive;
+            ContinuousThrottleCommand.Receiver = PlayerLocomotive;
+            TrainBrakeCommand.Receiver = PlayerLocomotive;
+            EngineBrakeCommand.Receiver = PlayerLocomotive;
+            BrakemanBrakeCommand.Receiver = PlayerLocomotive;
+            DynamicBrakeCommand.Receiver = PlayerLocomotive;
+            InitializeBrakesCommand.Receiver = PlayerLocomotive.Train;
+            ResetOutOfControlModeCommand.Receiver = PlayerLocomotive.Train;
+            EmergencyPushButtonCommand.Receiver = PlayerLocomotive;
+            HandbrakeCommand.Receiver = PlayerLocomotive;
+            BailOffCommand.Receiver = PlayerLocomotive;
+            QuickReleaseCommand.Receiver = PlayerLocomotive;
+            BrakeOverchargeCommand.Receiver = PlayerLocomotive;
+            RetainersCommand.Receiver = PlayerLocomotive;
+            BrakeHoseConnectCommand.Receiver = PlayerLocomotive;
+            ToggleWaterScoopCommand.Receiver = PlayerLocomotive;
+            if (PlayerLocomotive is MSTSSteamLocomotive steamLocomotive)
+            {
+                ContinuousReverserCommand.Receiver = steamLocomotive;
+                ContinuousInjectorCommand.Receiver = steamLocomotive;
+                ContinuousSmallEjectorCommand.Receiver = steamLocomotive;
+                ContinuousLargeEjectorCommand.Receiver = steamLocomotive;
+                ToggleInjectorCommand.Receiver = steamLocomotive;
+                ToggleBlowdownValveCommand.Receiver = steamLocomotive;
+                ContinuousBlowerCommand.Receiver = steamLocomotive;
+                ContinuousDamperCommand.Receiver = steamLocomotive;
+                ContinuousFiringRateCommand.Receiver = steamLocomotive;
+                ToggleManualFiringCommand.Receiver = steamLocomotive;
+                ToggleCylinderCocksCommand.Receiver = steamLocomotive;
+                ToggleCylinderCompoundCommand.Receiver = steamLocomotive;
+                FireShovelfullCommand.Receiver = steamLocomotive;
+                AIFireOnCommand.Receiver = steamLocomotive;
+                AIFireOffCommand.Receiver = steamLocomotive;
+                AIFireResetCommand.Receiver = steamLocomotive;
+            }
+
+            PantographCommand.Receiver = PlayerLocomotive;
+            if (PlayerLocomotive is MSTSElectricLocomotive electricLocomotive)
+            {
+                CircuitBreakerClosingOrderCommand.Receiver = electricLocomotive.LocomotivePowerSupply;
+                CircuitBreakerClosingOrderButtonCommand.Receiver = electricLocomotive.LocomotivePowerSupply;
+                CircuitBreakerOpeningOrderButtonCommand.Receiver = electricLocomotive.LocomotivePowerSupply;
+                CircuitBreakerClosingAuthorizationCommand.Receiver = electricLocomotive.LocomotivePowerSupply;
+            }
+
+            if (PlayerLocomotive is MSTSDieselLocomotive dieselLocomotive)
+            {
+                TractionCutOffRelayClosingOrderCommand.Receiver = (PlayerLocomotive as MSTSLocomotive).LocomotivePowerSupply;
+                TractionCutOffRelayClosingOrderButtonCommand.Receiver = (PlayerLocomotive as MSTSLocomotive).LocomotivePowerSupply;
+                TractionCutOffRelayOpeningOrderButtonCommand.Receiver = (PlayerLocomotive as MSTSLocomotive).LocomotivePowerSupply;
+                TractionCutOffRelayClosingAuthorizationCommand.Receiver = (PlayerLocomotive as MSTSLocomotive).LocomotivePowerSupply;
+                TogglePlayerEngineCommand.Receiver = dieselLocomotive;
+                VacuumExhausterCommand.Receiver = dieselLocomotive;
+            }
+
+            ResetOdometerCommand.Receiver = PlayerLocomotive;
+            ToggleOdometerDirectionCommand.Receiver = PlayerLocomotive;
+            SanderCommand.Receiver = PlayerLocomotive;
+            AlerterCommand.Receiver = PlayerLocomotive;
+            HornCommand.Receiver = PlayerLocomotive;
+            BellCommand.Receiver = PlayerLocomotive;
+            ToggleCabLightCommand.Receiver = PlayerLocomotive;
+            WipersCommand.Receiver = PlayerLocomotive;
+            HeadlightCommand.Receiver = PlayerLocomotive;
+            ToggleDoorsLeftCommand.Receiver = PlayerLocomotive;
+            ToggleDoorsRightCommand.Receiver = PlayerLocomotive;
+            ToggleMirrorsCommand.Receiver = PlayerLocomotive;
+            CabRadioCommand.Receiver = PlayerLocomotive;
+            ToggleHelpersEngineCommand.Receiver = PlayerLocomotive;
+            BatterySwitchCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            BatterySwitchCloseButtonCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            BatterySwitchOpenButtonCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            ToggleMasterKeyCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            ServiceRetentionButtonCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            ServiceRetentionCancellationButtonCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            ElectricTrainSupplyCommand.Receiver = PlayerLocomotive.LocomotivePowerSupply;
+            TCSButtonCommand.Receiver = PlayerLocomotive.TrainControlSystem;
+            TCSSwitchCommand.Receiver = PlayerLocomotive.TrainControlSystem;
+            ToggleGenericItem1Command.Receiver = PlayerLocomotive;
+            ToggleGenericItem2Command.Receiver = PlayerLocomotive;
+
+            //Distributed power
+            DistributedPowerMoveToFrontCommand.Receiver = PlayerLocomotive;
+            DistributedPowerMoveToBackCommand.Receiver = PlayerLocomotive;
+            DistributedPowerTractionCommand.Receiver = PlayerLocomotive;
+            DistributedPowerIdleCommand.Receiver = PlayerLocomotive;
+            DistributedPowerDynamicBrakeCommand.Receiver = PlayerLocomotive;
+            DistributedPowerIncreaseCommand.Receiver = PlayerLocomotive;
+            DistributedPowerDecreaseCommand.Receiver = PlayerLocomotive;
+
+            //EOT
+            EOTCommTestCommand.Receiver = PlayerLocomotive;
+            EOTDisarmCommand.Receiver = PlayerLocomotive;
+            EOTArmTwoWayCommand.Receiver = PlayerLocomotive;
+            EOTEmergencyBrakeCommand.Receiver = PlayerLocomotive;
+            ToggleEOTEmergencyBrakeCommand.Receiver = PlayerLocomotive;
+            EOTMountCommand.Receiver = PlayerLocomotive;
         }
 
         internal static MSTSLocomotive SetPlayerLocomotive(Train playerTrain)
@@ -585,8 +699,7 @@ namespace Orts.Simulation
             }
 
             // Must be done before trains so that during turntable rotation train follows it
-            if (ActiveMovingTable != null)
-                ActiveMovingTable.Update();
+            ActiveMovingTable?.Update();
 
             // Represent conditions at the specified clock time.
             List<Train> movingTrains = new List<Train>();
@@ -669,8 +782,9 @@ namespace Orts.Simulation
             LevelCrossings?.Update(elapsedClockSeconds);
             ActivityRun?.Update();
             HazardManager?.Update(elapsedClockSeconds);
-            if (Settings.ActivityEvalulation)
-                ActivityEvaluation.Instance.Update();
+            FuelManager.Update();
+            ContainerManager.Update();
+            ActivityEvaluation.Instance.Update();
         }
 
         internal void SetWeather(WeatherType weather, SeasonType season)
@@ -1074,6 +1188,7 @@ namespace Orts.Simulation
                         car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
                     if (car is EndOfTrainDevice endOfTrain)
                         train.EndOfTrainDevice = endOfTrain;
+                    car.FreightAnimations?.Load(car as MSTSWagon, wagon.LoadDataList);
 
                     train.Length += car.CarLengthM;
 
@@ -1273,6 +1388,7 @@ namespace Orts.Simulation
                             car.CarID = activityObject.ID + " - " + car.UiD;
                             if (car is EndOfTrainDevice endOfTrain)
                                 train.EndOfTrainDevice = endOfTrain;
+                            car.FreightAnimations?.Load(car as MSTSWagon, wagon.LoadDataList);
                         }
                         catch (Exception error)
                         {

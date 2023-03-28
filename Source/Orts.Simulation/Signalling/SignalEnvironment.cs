@@ -36,6 +36,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Signalling
@@ -304,7 +305,8 @@ namespace Orts.Simulation.Signalling
             {
                 TokenID.Signal,
                 TokenID.Speedpost,
-                TokenID.Platform
+                TokenID.Platform,
+                TokenID.Pickup,
             };
 
             int speedPostIndex = 0;
@@ -317,6 +319,7 @@ namespace Orts.Simulation.Signalling
 
                         WorldFile worldFile = new WorldFile(fileName, Tokens);
                         // loop through all signals
+                        bool extendedWFileRead = false;
                         foreach (WorldObject worldObject in worldFile.Objects)
                         {
                             if (worldObject is SignalObject signalObject && signalObject.SignalUnits != null)//SignalUnits may be null if this has no unit, will ignore it and treat it as static in scenary.cs
@@ -359,6 +362,36 @@ namespace Orts.Simulation.Signalling
                             {
                                 platformSidesList.TryAdd(platformObject.TrackItemIds.TrackDbItems[0], platformObject.PlatformData);
                                 platformSidesList.TryAdd(platformObject.TrackItemIds.TrackDbItems[1], platformObject.PlatformData);
+                            }
+                            else if (worldObject is PickupObject pickupObject && pickupObject.PickupType == PickupType.Container)
+                            {
+                                if (!extendedWFileRead)
+                                {
+                                    string orWorldFile = Path.Combine(worldPath, FolderStructure.OpenRailsSpecificFolder, Path.GetFileName(fileName));
+                                    if (File.Exists(orWorldFile))
+                                    {
+                                        // We have an OR-specific addition to world file
+                                        worldFile.InsertORSpecificData(orWorldFile, Tokens);
+                                        extendedWFileRead = true;
+                                    }
+                                }
+                                World.ContainerHandlingItem containerStation = Simulator.Instance.ContainerManager.CreateContainerStation(worldObject.WorldPosition, pickupObject.TrackItemIds.TrackDbItems[0], pickupObject);
+                                Simulator.Instance.ContainerManager.ContainerHandlingItems.Add(pickupObject.TrackItemIds.TrackDbItems[0], containerStation);
+
+                                //if (worldObject.QDirection != null && worldObject.Position != null)
+                                //{
+                                //    var MSTSPosition = worldObject.Position;
+                                //    var MSTSQuaternion = worldObject.QDirection;
+                                //    var XNAQuaternion = new Quaternion((float)MSTSQuaternion.A, (float)MSTSQuaternion.B, -(float)MSTSQuaternion.C, (float)MSTSQuaternion.D);
+                                //    var XNAPosition = new Vector3((float)MSTSPosition.X, (float)MSTSPosition.Y, -(float)MSTSPosition.Z);
+                                //    var worldMatrix = new WorldPosition(worldFile.TileX, worldFile.TileZ, XNAPosition, XNAQuaternion);
+                                //    var containerStation = Simulator.ContainerManager.CreateContainerStation(worldMatrix, from tid in pickupObject.TrackItemIds.TrackDbItems where tid.db == 0 select tid.dbID, pickupObject);
+                                //    Simulator.Instance.ContainerManager.ContainerHandlingItems.Add(pickupObject.TrackItemIds.TrackDbItems[0], containerStation);
+                                //}
+                                //else
+                                //{
+                                //    Trace.TraceWarning($"Container station {worldObject.UiD} within .w file {worldFile.TileX} {worldFile.TileZ} is missing Matrix3x3 and QDirection");
+                                //}
                             }
                         }
                     }

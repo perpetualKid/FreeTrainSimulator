@@ -65,13 +65,13 @@ namespace Orts.Formats.Msts.Files
             }
         }
 
-        public void InsertORSpecificData (string fileName)
+        public void InsertORSpecificData(string fileName, IReadOnlyCollection<TokenID> allowedTokens)
         {
             using (SBR sbr = SBR.Open(fileName))
             {
                 using (SBR block = sbr.ReadSubBlock())
                 {
-                    Objects.InsertORSpecificData(block);
+                    Objects.InsertORSpecificData(block, allowedTokens);
                 }
                 // some w files have additional comments at the end 
                 //       eg _Skip ( "TS DB-Utility - Version: 3.4.05(13.10.2009), Filetype='World', Copyright (C) 2003-2009 by ...CarlosHR..." )

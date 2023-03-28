@@ -22,7 +22,6 @@ using Orts.Formats.Msts;
 using Orts.Graphics;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView;
-using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.MapView.Widgets;
 using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
@@ -476,14 +475,19 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         public void BringToFront()
         {
-            if (windowForm.InvokeRequired)
-                windowForm.Invoke(new Action(() => BringToFront()));
-            else
+            try
             {
-                windowForm.WindowState = System.Windows.Forms.FormWindowState.Minimized;
-                windowForm.Show();
-                windowForm.WindowState = System.Windows.Forms.FormWindowState.Normal;
+                if (windowForm.InvokeRequired)
+                    windowForm.Invoke(new Action(() => BringToFront()));
+                else
+                {
+                    windowForm.WindowState = System.Windows.Forms.FormWindowState.Minimized;
+                    windowForm.Show();
+                    windowForm.WindowState = System.Windows.Forms.FormWindowState.Normal;
+                }
             }
+            catch (ObjectDisposedException)
+            { }
         }
         #endregion
 

@@ -5,7 +5,9 @@ using Orts.Common.Position;
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
     [Flags]
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public enum ShapeFlags
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
     {
         None = 0,
         // Shape casts a shadow (scenery objects according to RE setting, and all train objects).
@@ -18,7 +20,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
     public abstract class BaseShape: IWorldPosition
     {
-        protected static Viewer viewer;
+        private protected static Viewer viewer;
 
         internal SharedShape SharedShape;
 
@@ -46,7 +48,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         protected static ShapeFlags GetShapeFlags(BaseShape shape)
         {
-            return shape.Flags;
+            return shape?.Flags ?? ShapeFlags.None;
         }
 
     }
