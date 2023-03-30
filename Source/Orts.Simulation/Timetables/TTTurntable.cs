@@ -1113,8 +1113,8 @@ namespace Orts.Simulation.Timetables
 
                 // set timetable turntable class
                 train.ActiveTurntable = new TimetableTurntableControl(this, PoolName, AdditionalTurntableDetails.TurntableIndex, Simulatorref, train);
-                train.ActiveTurntable.MovingTableState = TimetableTurntableControl.MovingTableStateEnum.WaitingMovingTableAvailability;
-                train.ActiveTurntable.MovingTableAction = TimetableTurntableControl.MovingTableActionEnum.FromStorage;
+                train.ActiveTurntable.MovingTableState = MovingTableState.WaitingMovingTableAvailability;
+                train.ActiveTurntable.MovingTableAction = MovingTableAction.FromStorage;
                 train.ActiveTurntable.AccessPathIndex = reqAccessPath;
                 train.ActiveTurntable.StoragePathIndex = selectedStorage;
                 train.MovementState = AiMovementState.Static;
@@ -1298,30 +1298,10 @@ namespace Orts.Simulation.Timetables
 
         private TTTrain parentTrain;                         // train linked to turntable actions
 
-        public enum MovingTableStateEnum
-        {
-            WaitingMovingTableAvailability,
-            WaitingAccessToMovingTable,
-            AccessToMovingTable,
-            AccessOnMovingTable,
-            WaitingStorageToMovingTable,
-            StorageToMovingTable,
-            StorageOnMovingTable,
-            Completed,
-            Inactive,
-        }
+        public MovingTableState MovingTableState = MovingTableState.Inactive;     // state of this turntable
 
-        public MovingTableStateEnum MovingTableState = MovingTableStateEnum.Inactive;     // state of this turntable
 
-        public enum MovingTableActionEnum
-        {
-            FromAccess,
-            FromStorage,
-            Turning,
-            Undefined,
-        }
-
-        public MovingTableActionEnum MovingTableAction = MovingTableActionEnum.Undefined; // type of action 
+        public MovingTableAction MovingTableAction = MovingTableAction.Undefined; // type of action 
 
         public int StoragePathIndex;                       // index of selected storage path
         public int AccessPathIndex;                        // index of selected access path
@@ -1364,8 +1344,8 @@ namespace Orts.Simulation.Timetables
 
             parentTrain = train;
 
-            MovingTableState = (MovingTableStateEnum)inf.ReadInt32();
-            MovingTableAction = (MovingTableActionEnum)inf.ReadInt32();
+            MovingTableState = (MovingTableState)inf.ReadInt32();
+            MovingTableAction = (MovingTableAction)inf.ReadInt32();
             StoragePathIndex = inf.ReadInt32();
             AccessPathIndex = inf.ReadInt32();
             reqReverseFormation = inf.ReadBoolean();
@@ -1430,7 +1410,7 @@ namespace Orts.Simulation.Timetables
 
             bool available = true;
             // check if waiting for turntable availability
-            if (MovingTableState == MovingTableStateEnum.WaitingMovingTableAvailability)
+            if (MovingTableState == MovingTableState.WaitingMovingTableAvailability)
             {
                 available = false;
 
@@ -1452,18 +1432,18 @@ namespace Orts.Simulation.Timetables
                         parentTurntable.InUse = true;
                         switch (MovingTableAction)
                         {
-                            case TimetableTurntableControl.MovingTableActionEnum.FromAccess:
-                                MovingTableState = TimetableTurntableControl.MovingTableStateEnum.WaitingAccessToMovingTable;
+                            case MovingTableAction.FromAccess:
+                                MovingTableState = MovingTableState.WaitingAccessToMovingTable;
                                 AccessPathIndex = GetAccessPathIndex();
                                 StoragePathIndex = parentTrain.PoolStorageIndex;
                                 break;
 
-                            case TimetableTurntableControl.MovingTableActionEnum.FromStorage:
-                                MovingTableState = TimetableTurntableControl.MovingTableStateEnum.WaitingStorageToMovingTable;
+                            case MovingTableAction.FromStorage:
+                                MovingTableState = MovingTableState.WaitingStorageToMovingTable;
                                 break;
 
                             default:
-                                MovingTableState = TimetableTurntableControl.MovingTableStateEnum.Inactive;
+                                MovingTableState = MovingTableState.Inactive;
                                 break;
                         }
                     }
@@ -1496,7 +1476,7 @@ namespace Orts.Simulation.Timetables
             {
 
                 // state : waiting for table (from Access)
-                case TimetableTurntableControl.MovingTableStateEnum.WaitingAccessToMovingTable:
+                case MovingTableState.WaitingAccessToMovingTable:
 
                     reqTurntableEntry = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
                     reqEntryDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
@@ -1507,7 +1487,7 @@ namespace Orts.Simulation.Timetables
                     if (AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds))
                     {
                         parentTrain.DelayedStartMoving(AiStartMovement.Turntable);
-                        MovingTableState = TimetableTurntableControl.MovingTableStateEnum.AccessToMovingTable;
+                        MovingTableState = MovingTableState.AccessToMovingTable;
                         parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
 
                         // calculate end position
@@ -1530,7 +1510,7 @@ namespace Orts.Simulation.Timetables
                     break;
 
                 // state : waiting for table (from storage)
-                case TimetableTurntableControl.MovingTableStateEnum.WaitingStorageToMovingTable:
+                case MovingTableState.WaitingStorageToMovingTable:
 
                     reqTurntableEntry = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
                     reqEntryDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
@@ -1541,7 +1521,7 @@ namespace Orts.Simulation.Timetables
                     if (AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds))
                     {
                         parentTrain.DelayedStartMoving(AiStartMovement.Turntable);
-                        MovingTableState = TimetableTurntableControl.MovingTableStateEnum.StorageToMovingTable;
+                        MovingTableState = MovingTableState.StorageToMovingTable;
                         parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
 
                         // calculate end position
@@ -1562,7 +1542,7 @@ namespace Orts.Simulation.Timetables
 
                 // state : moving onto turntable (from Access)
                 // exit from this state is through UpdateBrakingState and SetNextStageOnStopped
-                case TimetableTurntableControl.MovingTableStateEnum.AccessToMovingTable:
+                case MovingTableState.AccessToMovingTable:
 
                     parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable();
                     parentTrain.UpdateBrakingState(elapsedClockSeconds, presentTime);
@@ -1571,7 +1551,7 @@ namespace Orts.Simulation.Timetables
 
                 // state : moving onto turntable (from Storage)
                 // exit from this state is through UpdateBrakingState and SetNextStageOnStopped
-                case TimetableTurntableControl.MovingTableStateEnum.StorageToMovingTable:
+                case MovingTableState.StorageToMovingTable:
 
                     parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable();
                     parentTrain.UpdateBrakingState(elapsedClockSeconds, presentTime);
@@ -1580,7 +1560,7 @@ namespace Orts.Simulation.Timetables
                 // state : turning on turntable (from Access)
                 // get required exit
                 // exit from this state is through PrepareMoveOffTable and SetNextStageOnStopped 
-                case TimetableTurntableControl.MovingTableStateEnum.AccessOnMovingTable:
+                case MovingTableState.AccessOnMovingTable:
 
                     reqTurntableEntry = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
                     reqEntryDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
@@ -1594,7 +1574,7 @@ namespace Orts.Simulation.Timetables
                 // state : turning on turntable (from Storage)
                 // get required exit
                 // exit from this state is through PrepareMoveOffTable and SetNextStageOnStopped 
-                case TimetableTurntableControl.MovingTableStateEnum.StorageOnMovingTable:
+                case MovingTableState.StorageOnMovingTable:
 
                     reqTurntableEntry = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
                     reqEntryDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
@@ -1636,7 +1616,7 @@ namespace Orts.Simulation.Timetables
             switch (MovingTableState)
             {
                 // state : waiting for table to become available
-                case MovingTableStateEnum.WaitingMovingTableAvailability:
+                case MovingTableState.WaitingMovingTableAvailability:
                     if (parentTurntable.InUse)
                     {
                         if (!parentTurntable.WaitingTrains.Contains(parentTrain.Number))
@@ -1652,22 +1632,22 @@ namespace Orts.Simulation.Timetables
                                 parentTurntable.WaitingTrains.Dequeue();
                             parentTurntable.InUse = true;
 
-                            if (MovingTableAction == MovingTableActionEnum.FromAccess)
+                            if (MovingTableAction == MovingTableAction.FromAccess)
                             {
-                                MovingTableState = TimetableTurntableControl.MovingTableStateEnum.WaitingAccessToMovingTable;
+                                MovingTableState = MovingTableState.WaitingAccessToMovingTable;
                                 AccessPathIndex = GetAccessPathIndex();
                                 StoragePathIndex = parentTrain.PoolStorageIndex;
                             }
                             else
                             {
-                                MovingTableState = TimetableTurntableControl.MovingTableStateEnum.WaitingStorageToMovingTable;
+                                MovingTableState = MovingTableState.WaitingStorageToMovingTable;
                             }
                         }
                     }
                     break;
 
                 // state : waiting for table (from Access)
-                case TimetableTurntableControl.MovingTableStateEnum.WaitingAccessToMovingTable:
+                case MovingTableState.WaitingAccessToMovingTable:
 
                     reqTurntableEntry = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
                     reqEntryDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
@@ -1677,7 +1657,7 @@ namespace Orts.Simulation.Timetables
 
                     if (AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds))
                     {
-                        MovingTableState = TimetableTurntableControl.MovingTableStateEnum.AccessToMovingTable;
+                        MovingTableState = MovingTableState.AccessToMovingTable;
 
                         // calculate end position - place in front of timetable incl. clearance
                         parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
@@ -1710,7 +1690,7 @@ namespace Orts.Simulation.Timetables
                     break;
 
                 // state : waiting for table (from storage)
-                case TimetableTurntableControl.MovingTableStateEnum.WaitingStorageToMovingTable:
+                case MovingTableState.WaitingStorageToMovingTable:
 
                     reqTurntableEntry = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
                     reqEntryDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
@@ -1720,7 +1700,7 @@ namespace Orts.Simulation.Timetables
 
                     if (AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds))
                     {
-                        MovingTableState = TimetableTurntableControl.MovingTableStateEnum.StorageToMovingTable;
+                        MovingTableState = MovingTableState.StorageToMovingTable;
 
                         // calculate end position - place in front of timetable incl. clearance
                         parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
@@ -1750,7 +1730,7 @@ namespace Orts.Simulation.Timetables
                     break;
 
                 // state : moving onto turntable (from Access)
-                case TimetableTurntableControl.MovingTableStateEnum.AccessToMovingTable:
+                case MovingTableState.AccessToMovingTable:
 
                     // set end of authority beyond turntable
                     parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
@@ -1797,7 +1777,7 @@ namespace Orts.Simulation.Timetables
                             if (trainOnTable.FrontOnBoard && trainOnTable.BackOnBoard)
                             {
                                 parentTrain.ClearActiveSectionItems();   // release all track sections
-                                MovingTableState = MovingTableStateEnum.AccessOnMovingTable;
+                                MovingTableState = MovingTableState.AccessOnMovingTable;
                                 parentTurntable.TrainsOnMovingTable.Add(trainOnTable);
                                 parentTurntable.ComputeTrainPosition(parentTrain);
                             }
@@ -1807,7 +1787,7 @@ namespace Orts.Simulation.Timetables
                     break;
 
                 // state : moving onto turntable (from Storage)
-                case TimetableTurntableControl.MovingTableStateEnum.StorageToMovingTable:
+                case MovingTableState.StorageToMovingTable:
 
                     // set end of authority beyond turntable
                     parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
@@ -1854,7 +1834,7 @@ namespace Orts.Simulation.Timetables
                             if (trainOnTable.FrontOnBoard && trainOnTable.BackOnBoard)
                             {
                                 parentTrain.ClearActiveSectionItems();   // release all track sections
-                                MovingTableState = MovingTableStateEnum.StorageOnMovingTable;
+                                MovingTableState = MovingTableState.StorageOnMovingTable;
                                 parentTurntable.TrainsOnMovingTable.Add(trainOnTable);
                                 parentTurntable.ComputeTrainPosition(parentTrain);
                             }
@@ -1866,7 +1846,7 @@ namespace Orts.Simulation.Timetables
                 // state : turning on turntable (from Access)
                 // get required exit
                 // exit from this state is through PrepareMoveOffTable 
-                case TimetableTurntableControl.MovingTableStateEnum.AccessOnMovingTable:
+                case MovingTableState.AccessOnMovingTable:
 
                     reqTurntableEntry = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
                     reqEntryDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
@@ -1880,7 +1860,7 @@ namespace Orts.Simulation.Timetables
                 // state : turning on turntable (from Storage)
                 // get required exit
                 // exit from this state is through PrepareMoveOffTable
-                case TimetableTurntableControl.MovingTableStateEnum.StorageOnMovingTable:
+                case MovingTableState.StorageOnMovingTable:
 
                     reqTurntableEntry = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
                     reqEntryDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
@@ -2186,11 +2166,11 @@ namespace Orts.Simulation.Timetables
                     remDistance += parentTrain.ValidRoute[0][iIndex].TrackCircuitSection.Length;
                 }
 
-                if (MovingTableState == MovingTableStateEnum.StorageToMovingTable)
+                if (MovingTableState == MovingTableState.StorageToMovingTable)
                 {
                     remDistance += parentPool.StoragePool[StoragePathIndex].TableMiddleEntry + parentTrain.Length / 2.0f;
                 }
-                else if (MovingTableState == MovingTableStateEnum.AccessToMovingTable)
+                else if (MovingTableState == MovingTableState.AccessToMovingTable)
                 {
                     remDistance += parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry + parentTrain.Length / 2.0f;
                 }
@@ -2198,11 +2178,11 @@ namespace Orts.Simulation.Timetables
             // train in same section as turntable
             else
             {
-                if (MovingTableState == MovingTableStateEnum.StorageToMovingTable)
+                if (MovingTableState == MovingTableState.StorageToMovingTable)
                 {
                     remDistance += parentPool.StoragePool[StoragePathIndex].TableMiddleEntry - parentTrain.PresentPosition[Direction.Forward].Offset + parentTrain.Length / 2.0f;
                 }
-                else if (MovingTableState == MovingTableStateEnum.AccessToMovingTable)
+                else if (MovingTableState == MovingTableState.AccessToMovingTable)
                 {
                     remDistance += parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry - parentTrain.PresentPosition[Direction.Forward].Offset + parentTrain.Length / 2.0f;
                 }
@@ -2222,13 +2202,13 @@ namespace Orts.Simulation.Timetables
 
             switch (MovingTableState)
             {
-                case MovingTableStateEnum.AccessToMovingTable:
-                    MovingTableState = MovingTableStateEnum.AccessOnMovingTable;
+                case MovingTableState.AccessToMovingTable:
+                    MovingTableState = MovingTableState.AccessOnMovingTable;
                     trainOnTable = true;
                     break;
 
-                case MovingTableStateEnum.StorageToMovingTable:
-                    MovingTableState = MovingTableStateEnum.StorageOnMovingTable;
+                case MovingTableState.StorageToMovingTable:
+                    MovingTableState = MovingTableState.StorageOnMovingTable;
                     trainOnTable = true;
                     break;
 
@@ -2264,12 +2244,12 @@ namespace Orts.Simulation.Timetables
             }
 
             // get actual stop position
-            if (MovingTableAction == MovingTableActionEnum.FromAccess)
+            if (MovingTableAction == MovingTableAction.FromAccess)
             {
                 float trainOffset = parentTrain.RearTDBTraveller.TrackNodeOffset;
                 stopPositionOnTurntableM = trainOffset + (parentTrain.Length / 2.0f) - parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry;
             }
-            else if (MovingTableAction == MovingTableActionEnum.FromStorage)
+            else if (MovingTableAction == MovingTableAction.FromStorage)
             {
                 float trainOffset = parentTrain.RearTDBTraveller.TrackNodeOffset;
                 stopPositionOnTurntableM = trainOffset + (parentTrain.Length / 2.0f) - parentPool.StoragePool[StoragePathIndex].TableMiddleEntry;
@@ -2339,7 +2319,7 @@ namespace Orts.Simulation.Timetables
 #endif
 
             // get position of front and rear of train in present tracknode
-            if (MovingTableState == TimetableTurntableControl.MovingTableStateEnum.StorageOnMovingTable)
+            if (MovingTableState == MovingTableState.StorageOnMovingTable)
             {
                 if (parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction == Direction.Forward)
                 {
@@ -2361,7 +2341,7 @@ namespace Orts.Simulation.Timetables
 #endif
                 }
             }
-            else if (MovingTableState == TimetableTurntableControl.MovingTableStateEnum.AccessOnMovingTable)
+            else if (MovingTableState == MovingTableState.AccessOnMovingTable)
             {
                 if (parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction == Direction.Forward)
                 {
@@ -2398,14 +2378,14 @@ namespace Orts.Simulation.Timetables
             }
 
             // reinitiate train
-            MovingTableState = MovingTableStateEnum.Completed;
+            MovingTableState = MovingTableState.Completed;
             parentTrain.MovementState = AiMovementState.Static;
             parentTrain.ControlMode = TrainControlMode.AutoNode;
             parentTrain.DistanceTravelledM = 0;
             parentTrain.DelayedStartMoving(AiStartMovement.PathAction);
 
             // actions for mode access (train going into storage)
-            if (MovingTableAction == MovingTableActionEnum.FromAccess)
+            if (MovingTableAction == MovingTableAction.FromAccess)
             {
                 // set terminate
                 parentTrain.Closeup = true;
@@ -2470,7 +2450,7 @@ namespace Orts.Simulation.Timetables
             // get present train direction
             bool nowBackward = parentTrain.Cars[0].Flipped;
 
-            if (MovingTableAction == MovingTableActionEnum.FromAccess)
+            if (MovingTableAction == MovingTableAction.FromAccess)
             {
                 if (nowBackward && parentTrain.PoolExitDirection == TimetablePool.PoolExitDirectionEnum.Backward)
                 {

@@ -239,5 +239,24 @@ namespace Orts.Simulation
         SpringLoadedBackwardsImmediately,
         CCNeedIncreaseAfterAnyBrake
     }
+    public enum MovingTableState
+    {
+        WaitingMovingTableAvailability,
+        WaitingAccessToMovingTable,
+        AccessToMovingTable,
+        AccessOnMovingTable,
+        WaitingStorageToMovingTable,
+        StorageToMovingTable,
+        StorageOnMovingTable,
+        Completed,
+        Inactive,
+    }
 
+    public enum MovingTableAction
+    {
+        FromAccess,
+        FromStorage,
+        Turning,
+        Undefined,
+    }
 }

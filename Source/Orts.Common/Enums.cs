@@ -17,7 +17,6 @@
 
 using System;
 using System.ComponentModel;
-using System.Windows.Forms;
 
 namespace Orts.Common
 {
@@ -35,6 +34,13 @@ namespace Orts.Common
         [Description("CounterClockwise")] CounterClockwise = -1,
         [Description("None")] None = 0,
         [Description("Clockwise")] Clockwise = 1,
+    }
+
+    public enum VectorDirection
+    {
+        X,
+        Y,
+        Z,
     }
 
     [Description("Separator")]
