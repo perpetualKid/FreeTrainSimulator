@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using Orts.Toolbox;
+
 
 namespace Orts.Toolbox.ActivityEditor
 {
@@ -16,6 +18,13 @@ namespace Orts.Toolbox.ActivityEditor
         public AEForm()
         {
             InitializeComponent();
+        }
+
+        public AEForm(string strParam)
+        {
+            InitializeComponent();
+        
+            MessageBox.Show("Route is " + strParam);
         }
 
         private void AEEventTimeNewOutbutton_Click(object sender, EventArgs e)
