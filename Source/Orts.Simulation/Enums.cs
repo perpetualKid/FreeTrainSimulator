@@ -222,6 +222,23 @@ namespace Orts.Simulation
         RaiseToIdle,
     }
 
+    public enum CruiseControlLogic
+    {
+        None,
+        Full,
+        SpeedOnly
+    }
+
+    public enum ControllerPosition
+    {
+        Default,
+        Stable,
+        SpringLoadedForwards,
+        SpringLoadedForwardsImmediately,
+        SpringLoadedBackwards,
+        SpringLoadedBackwardsImmediately,
+        CCNeedIncreaseAfterAnyBrake
+    }
     public enum MovingTableState
     {
         WaitingMovingTableAvailability,
@@ -242,5 +259,4 @@ namespace Orts.Simulation
         Turning,
         Undefined,
     }
-
 }

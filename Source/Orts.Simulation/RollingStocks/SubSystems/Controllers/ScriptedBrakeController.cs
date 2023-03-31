@@ -317,10 +317,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
                 case "engine(ortstrainbrakecontroller":
                 case "engine(ortsenginebrakecontroller":
-                    if (locomotive.Train as AITrain == null)
-                    {
-                        scriptName = stf.ReadStringBlock(null);
-                    }
+                    scriptName = stf.ReadStringBlock(null);
                     break;
             }
         }
@@ -383,6 +380,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             script.StepSize = () => StepSize;
             script.UpdateValue = () => UpdateValue;
             script.Notches = () => notches;
+            script.CruiseControlBrakeDemand = () => locomotive.CruiseControl != null ? locomotive.CruiseControl.TrainBrakePercent / 100 : 0;
 
             script.SetCurrentValue = (value) => CurrentValue = value;
             script.SetUpdateValue = (value) => UpdateValue = value;

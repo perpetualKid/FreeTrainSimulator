@@ -259,6 +259,15 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 250: return TrainEvent.OverchargeBrakingOn;
                         case 251: return TrainEvent.OverchargeBrakingOff;
 
+                        // Cruise Control
+                        case 298: return TrainEvent.LeverFromZero;
+                        case 299: return TrainEvent.LeverToZero;
+                        case 300: return TrainEvent.CruiseControlSpeedRegulator;
+                        case 301: return TrainEvent.CruiseControlSpeedSelector;
+                        case 302: return TrainEvent.CruiseControlMaxForce;
+                        case 303: return TrainEvent.CruiseControlAlert;
+                        case 304: return TrainEvent.CruiseControlAlert1;
+
                         //
                         default: return TrainEvent.None;
                     }

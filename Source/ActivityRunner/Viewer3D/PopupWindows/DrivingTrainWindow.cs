@@ -18,6 +18,7 @@ using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
@@ -80,6 +81,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             WheelSlip,
             DoorOpen,
             Derailment,
+            CruiseControl,
+            CruiseControlTarget,
+            CruiseControlMaxAccel,
         }
 
         private readonly UserSettings settings;
@@ -254,6 +258,19 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     break;
             }
             layout.AddHorizontalSeparator(true);
+            if (dataAvailable[DetailInfo.CruiseControl])
+            {
+                AddDetailLine(DetailInfo.CruiseControl, shortMode ? FourCharAcronym.CruiseControl.GetLocalizedDescription() : Catalog.GetString("CC Stat"), font);
+                (groupDetails[DetailInfo.CruiseControl].Controls[3] as Label).TextColor = Color.Cyan;
+                if (dataAvailable[DetailInfo.CruiseControlTarget])
+                {
+                    AddDetailLine(DetailInfo.CruiseControlTarget, shortMode ? FourCharAcronym.CruiseControlTarget.GetLocalizedDescription() : Catalog.GetString("CC Targ"), font);
+                    (groupDetails[DetailInfo.CruiseControlTarget].Controls[3] as Label).TextColor = Color.Cyan;
+                    AddDetailLine(DetailInfo.CruiseControlMaxAccel, shortMode ? FourCharAcronym.CruiseControlMaxAcceleration.GetLocalizedDescription() : Catalog.GetString("Max Accl"), font);
+                    (groupDetails[DetailInfo.CruiseControlMaxAccel].Controls[3] as Label).TextColor = Color.Cyan;
+                }
+                layout.AddHorizontalSeparator(true);
+            }
             if (dataAvailable[DetailInfo.EotDevice])
             {
                 AddDetailLine(DetailInfo.EotDevice, shortMode ? FourCharAcronym.EotDevice.GetLocalizedDescription() : Catalog.GetString("EOT Dev"), font);
@@ -707,6 +724,24 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     break;
             }
 
+            // Cruise Control
+            result |= dataAvailable[DetailInfo.CruiseControl] != (dataAvailable[DetailInfo.CruiseControl] = playerLocomotive.CruiseControl != null);
+            linesAdded += dataAvailable[DetailInfo.CruiseControl] ? 1 : 0;
+            if (dataAvailable[DetailInfo.CruiseControl] && groupDetails[DetailInfo.CruiseControl]?.Controls[3] is Label ccLabel && playerLocomotive.CruiseControl is CruiseControl cruiseControl)
+            {
+                ccLabel.Text = playerLocomotive.CruiseControl.SpeedRegulatorMode.GetLocalizedDescription();
+
+                if ((dataAvailable[DetailInfo.CruiseControlTarget] = cruiseControl.SpeedRegulatorMode == SpeedRegulatorMode.Auto) && 
+                    groupDetails[DetailInfo.CruiseControlTarget]?.Controls[3] is Label ccTargetLabel)
+                {
+                    ccTargetLabel.Text = $"{FormatStrings.FormatSpeedDisplay(cruiseControl.SelectedSpeedMpS, Simulator.Instance.MetricUnits)}";                    
+                    (groupDetails[DetailInfo.CruiseControlMaxAccel]?.Controls[3] as Label).Text = $"{Math.Round(cruiseControl.SelectedMaxAccelerationPercent):0}%";
+                    linesAdded += 2;
+                }
+            }
+            separatorsAdded += dataAvailable[DetailInfo.EotDevice] ? 1 : 0;
+
+            //EOT
             result |= dataAvailable[DetailInfo.EotDevice] != (dataAvailable[DetailInfo.EotDevice] = playerLocomotive.Train.EndOfTrainDevice != null);
             linesAdded += dataAvailable[DetailInfo.EotDevice] ? 1 : 0;
             separatorsAdded += dataAvailable[DetailInfo.EotDevice] ? 1 : 0;

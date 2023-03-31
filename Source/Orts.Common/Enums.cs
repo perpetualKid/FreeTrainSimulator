@@ -248,6 +248,9 @@ namespace Orts.Common
         Odometer,
         Battery,
         MasterKey,
+        // Cruise control
+        MaxAcceleration,
+        RestrictedSpeedZone,
         // Train Devices
         DoorsLeft,
         DoorsRight,
@@ -267,6 +270,12 @@ namespace Orts.Common
         CabRadio,
     }
     #endregion
+
+    public enum TrainCategory
+    {
+        Passenger,
+        Freight,
+    }
 
     public enum TrainEvent
     {
@@ -499,6 +508,17 @@ namespace Orts.Common
 
         OverchargeBrakingOn,
         OverchargeBrakingOff,
+
+        // Cruise Control
+        LeverFromZero,
+        LeverToZero,
+        CruiseControlSpeedRegulator,
+        CruiseControlSpeedSelector,
+        CruiseControlMaxForce,
+        CruiseControlAlert,
+        CruiseControlAlert1,
+
+        MPCChangePosition,
     }
 
     public enum PowerSupplyEvent
@@ -970,6 +990,62 @@ namespace Orts.Common
         AiIncorporated,     //AI train is incorporated in other train
     }
 
+    public enum Movement
+    {
+        Forward,
+        Neutral,
+        Backward,
+    };
+
+    public enum CruiseControllerPosition
+    {
+        Undefined,
+        Neutral,
+        Drive,
+        ThrottleIncrease,
+        ThrottleDecrease,
+        ThrottleIncreaseFast,
+        ThrottleDecreaseFast,
+        DynamicBrakeIncrease,
+        DynamicBrakeDecrease,
+        DynamicBrakeIncreaseFast,
+        TrainBrakeIncrease,
+        TrainBrakeDecrease,
+        EmergencyBrake,
+        ThrottleHold,
+        DynamicBrakeHold,
+        ThrottleIncreaseOrDynamicBrakeDecreaseFast,
+        ThrottleIncreaseOrDynamicBrakeDecrease,
+        DynamicBrakeIncreaseOrThrottleDecreaseFast,
+        DynamicBrakeIncreaseOrThrottleDecrease,
+        KeepCurrent,
+        SelectedSpeedIncrease,
+        SelectedSpeedDecrease,
+        SelectSpeedZero
+    };
+
+    public enum CruiseControllerBinding
+    {
+        Throttle,
+        SelectedSpeed
+    }
+
+    public enum SpeedRegulatorMode
+    {
+        Manual,
+        Auto,
+        Testing,
+        AVV,
+    }
+
+    public enum SpeedSelectorMode
+    {
+        Parking,
+        Neutral,
+        On,
+        Start,
+    }
+
     public enum RemoteControlGroup
     {
         /// -1: unconnected, 0: sync/front group, 1: async/rear group
@@ -1127,5 +1203,8 @@ namespace Orts.Common
         [Description("BATT")] BatterySwitch,
 
         [Description("EOTD")] EotDevice,
+        [Description("CCST")] CruiseControl,
+        [Description("CCTG")] CruiseControlTarget,
+        [Description("CCMA")] CruiseControlMaxAcceleration,
     }
 }
