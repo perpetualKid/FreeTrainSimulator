@@ -15,24 +15,6 @@
     <Compile Remove="Editing\UncouplePointDialog.xaml.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Content\activeBroken.png" />
-    <None Remove="Content\activeNode.png" />
-    <None Remove="Content\activeNormal.png" />
-    <None Remove="Content\activeTrack.png" />
-    <None Remove="Content\CarSpawner.png" />
-    <None Remove="Content\Hazard.png" />
-    <None Remove="Content\pathEnd.png" />
-    <None Remove="Content\pathNormal.png" />
-    <None Remove="Content\pathReverse.png" />
-    <None Remove="Content\pathStart.png" />
-    <None Remove="Content\pathWait.png" />
-    <None Remove="Content\Pickup.png" />
-    <None Remove="Content\Platform.png" />
-    <None Remove="Content\Signal.png" />
-    <None Remove="Content\Sound.png" />
-    <None Remove="Content\Steamtrain.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Page Remove="Editing\UncouplePointDialog.xaml" />
   </ItemGroup>
   <ItemGroup>
@@ -107,17 +89,5 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.5.0-2.final" />
-    <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="7.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Update="Microsoft.NETCore.Targets" Version="6.0.0-preview.4.21253.7" />
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.65-alpha">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 </Project>

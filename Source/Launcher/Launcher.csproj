@@ -16,14 +16,4 @@
 		<PackageReference Remove="Microsoft.NETCore.Targets" Version="5.0.0" PrivateAssets="all" />
 		<PackageReference Remove="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" PrivateAssets="all" />
 	</ItemGroup>
-	<ItemGroup>
-	  <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="7.0.0">
-	    <PrivateAssets>all</PrivateAssets>
-	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	  </PackageReference>
-	  <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.65-alpha">
-	    <PrivateAssets>all</PrivateAssets>
-	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	  </PackageReference>
-	</ItemGroup>
 </Project>

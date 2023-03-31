@@ -20,12 +20,4 @@
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\Orts.Updater\Orts.Updater.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.5.0-2.final" />
-    <PackageReference Update="Microsoft.NETCore.Targets" Version="6.0.0-preview.4.21253.7" />
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.65-alpha">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
 </Project>
