@@ -9,6 +9,5 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
-		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="7.0.0-preview.2.22152.2" />
 	</ItemGroup>
 </Project>
