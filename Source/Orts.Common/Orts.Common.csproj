@@ -9,7 +9,7 @@
     <PackageReference Include="RailDriver" Version="1.1.4" />
     <PackageReference Include="System.Management" Version="7.0.0" />
     <PackageReference Include="GetText.NET" Version="1.8.7" />
-    <PackageReference Include="NuGet.Versioning" Version="6.4.0" />
+    <PackageReference Include="NuGet.Versioning" Version="6.5.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
 </Project>
