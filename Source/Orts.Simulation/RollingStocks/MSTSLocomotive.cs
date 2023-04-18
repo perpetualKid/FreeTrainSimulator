@@ -760,7 +760,6 @@ namespace Orts.Simulation.RollingStocks
         {
             var viewPointList = new List<ViewPoint>();
             var extendedCVF = new ExtendedCVF();
-            bool noseAhead = false;
 
             string basePath = Path.Combine(Path.GetDirectoryName(wagFilePath), "CABVIEW");
             if (!File.Exists(Path.Combine(basePath, cvfFileName)))
@@ -783,9 +782,8 @@ namespace Orts.Simulation.RollingStocks
                 viewPoint.RotationLimit = new Vector3(0, 0, 0);  // cab views have a fixed head position
                 viewPointList.Add(viewPoint);
             }
-            var cabViewType = new CabViewType();
-            cabViewType = ((viewPointList[0].StartDirection.Y >= 90 && viewPointList[0].StartDirection.Y <= 270)
-                || (viewPointList[0].StartDirection.Y <= -90 && viewPointList[0].StartDirection.Y >= -270)) ? CabViewType.Rear : CabViewType.Front;
+            CabViewType cabViewType = viewPointList[0].StartDirection.Y >= 90 && viewPointList[0].StartDirection.Y <= 270
+                || viewPointList[0].StartDirection.Y <= -90 && viewPointList[0].StartDirection.Y >= -270 ? CabViewType.Rear : CabViewType.Front;
             var wag = this as MSTSWagon;
             var wagFolderSlash = Path.GetDirectoryName(wag.WagFilePath) + @"\";
             string shapeFilePath;
@@ -811,18 +809,12 @@ namespace Orts.Simulation.RollingStocks
                         boundingLimitsFound = true;
                 }
             }
-            if (boundingLimitsFound)
-            {
-                if (cabViewType == CabViewType.Front)
-                    noseAhead = (viewPointList[0].Location.Z + 0.5f < shapeFile.Shape.EsdBoundingBox.Max.Z);
-                else if (cabViewType == CabViewType.Rear)
-                    noseAhead = (viewPointList[0].Location.Z - 0.5f > shapeFile.Shape.EsdBoundingBox.Min.Z);
-            }
+
             if (this is not MSTSSteamLocomotive)
             {
                 extendedCVF.Initialize(Path.Combine(basePath, cvfFileName));
             }
-            return new CabView(cvfFile, viewPointList, extendedCVF, cabViewType, noseAhead);
+            return new CabView(cvfFile, viewPointList, extendedCVF, cabViewType);
         }
 
         protected CabView3D BuildCab3DView()
@@ -831,7 +823,6 @@ namespace Orts.Simulation.RollingStocks
                 return null;
 
             var extendedCVF = new ExtendedCVF();
-            bool noseAhead = false;
 
             var cab3dBasePath = Path.Combine(Path.GetDirectoryName(WagFilePath), "CABVIEW3D");
             var shapeFilePath = Path.Combine(cab3dBasePath, Cab3DShapeFileName);
@@ -862,7 +853,7 @@ namespace Orts.Simulation.RollingStocks
             if (CabViewpoints?.Count == 1 && cabViewType == CabViewType.Rear)
                 CabViewpoints.Insert(0, new PassengerViewPoint());
 
-            return new CabView3D(cvfFile, CabViewpoints, extendedCVF, cabViewType, noseAhead, shapeFilePath);
+            return new CabView3D(cvfFile, CabViewpoints, extendedCVF, cabViewType, shapeFilePath);
         }
 
         /// <summary>
@@ -6287,35 +6278,29 @@ namespace Orts.Simulation.RollingStocks
 
     public class CabView
     {
-        public CabViewFile CVFFile;
-        public List<ViewPoint> ViewPointList;
-        public ExtendedCVF ExtendedCVF;
-        public CabViewType CabViewType;
-        public bool NoseAhead; // if cabview is not in front of engine; used to define how terrain tilts if there is freightanimation
+        public CabViewFile CVFFile { get; }
+        public ReadOnlyCollection<ViewPoint> ViewPointList { get; }
+        public ExtendedCVF ExtendedCVF { get; }
+        public CabViewType CabViewType { get; internal set; }
 
-        public CabView(CabViewFile cvfFile, List<ViewPoint> viewPointList, ExtendedCVF extendedCVF, CabViewType cabViewType, bool noseAhead)
+        public CabView(CabViewFile cvfFile, IList<ViewPoint> viewPointList, ExtendedCVF extendedCVF, CabViewType cabViewType)
         {
             CVFFile = cvfFile;
-            ViewPointList = viewPointList;
+            ViewPointList = new ReadOnlyCollection<ViewPoint>(viewPointList);
             ExtendedCVF = extendedCVF;
             CabViewType = cabViewType;
-            NoseAhead = noseAhead;
         }
     }
 
     public class CabView3D : CabView
     {
-        public string ShapeFilePath;
+        public string ShapeFilePath { get; }
 
-        public CabView3D(CabViewFile cvfFile, List<PassengerViewPoint> cabViewpoints, ExtendedCVF extendedCVF, CabViewType cabViewType, bool noseAhead, string shapeFilePath)
-            : base(cvfFile, new List<ViewPoint>(), extendedCVF, cabViewType, noseAhead)
+        public CabView3D(CabViewFile cvfFile, IList<PassengerViewPoint> cabViewpoints, ExtendedCVF extendedCVF, CabViewType cabViewType, string shapeFilePath)
+            : base(cvfFile, cabViewpoints.Cast<ViewPoint>().ToList(), extendedCVF, cabViewType)
         {
             ShapeFilePath = shapeFilePath;
-            if (cabViewpoints != null)
-                foreach (var point in cabViewpoints)
-                    ViewPointList.Add(point);
         }
-
     }
 
     /// <summary>
