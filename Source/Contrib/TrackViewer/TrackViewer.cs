@@ -174,7 +174,6 @@ namespace ORTS.TrackViewer
             IsFixedTimeStep = true;
             TargetElapsedTime = TimeSpan.FromSeconds(0.05);
             FrameRate = new SmoothedData(0.5f);
-            InitLogging();
 
             LanguageManager = new LanguageManager();
             LanguageManager.LoadLanguage(); // need this before all menus and stuff are initialized.
@@ -338,20 +337,30 @@ namespace ORTS.TrackViewer
 
             if (drawPathChart.IsActived)
             {
-                if (TVUserInput.IsDown(TVUserCommands.ShiftLeft)) { drawPathChart.Shift(-1); skipDrawAmount = 0; }
-                if (TVUserInput.IsDown(TVUserCommands.ShiftRight)) { drawPathChart.Shift(1); skipDrawAmount = 0; }
-                if (TVUserInput.IsDown(TVUserCommands.ZoomIn)) { drawPathChart.Zoom(-1); skipDrawAmount = 0; }
-                if (TVUserInput.IsDown(TVUserCommands.ZoomOut)) { drawPathChart.Zoom(1); skipDrawAmount = 0; }
+                if (TVUserInput.IsDown(TVUserCommands.ShiftLeft))
+                { drawPathChart.Shift(-1); skipDrawAmount = 0; }
+                if (TVUserInput.IsDown(TVUserCommands.ShiftRight))
+                { drawPathChart.Shift(1); skipDrawAmount = 0; }
+                if (TVUserInput.IsDown(TVUserCommands.ZoomIn))
+                { drawPathChart.Zoom(-1); skipDrawAmount = 0; }
+                if (TVUserInput.IsDown(TVUserCommands.ZoomOut))
+                { drawPathChart.Zoom(1); skipDrawAmount = 0; }
             }
             else if (!menuControl.IsKeyboardFocusWithin)
             {
-                if (TVUserInput.IsDown(TVUserCommands.ShiftLeft)) { DrawArea.ShiftLeft(); skipDrawAmount = 0; }
-                if (TVUserInput.IsDown(TVUserCommands.ShiftRight)) { DrawArea.ShiftRight(); skipDrawAmount = 0; }
-                if (TVUserInput.IsDown(TVUserCommands.ShiftUp)) { DrawArea.ShiftUp(); skipDrawAmount = 0; }
-                if (TVUserInput.IsDown(TVUserCommands.ShiftDown)) { DrawArea.ShiftDown(); skipDrawAmount = 0; }
+                if (TVUserInput.IsDown(TVUserCommands.ShiftLeft))
+                { DrawArea.ShiftLeft(); skipDrawAmount = 0; }
+                if (TVUserInput.IsDown(TVUserCommands.ShiftRight))
+                { DrawArea.ShiftRight(); skipDrawAmount = 0; }
+                if (TVUserInput.IsDown(TVUserCommands.ShiftUp))
+                { DrawArea.ShiftUp(); skipDrawAmount = 0; }
+                if (TVUserInput.IsDown(TVUserCommands.ShiftDown))
+                { DrawArea.ShiftDown(); skipDrawAmount = 0; }
 
-                if (TVUserInput.IsDown(TVUserCommands.ZoomIn)) { DrawArea.Zoom(-1); skipDrawAmount = 0; }
-                if (TVUserInput.IsDown(TVUserCommands.ZoomOut)) { DrawArea.Zoom(1); skipDrawAmount = 0; }
+                if (TVUserInput.IsDown(TVUserCommands.ZoomIn))
+                { DrawArea.Zoom(-1); skipDrawAmount = 0; }
+                if (TVUserInput.IsDown(TVUserCommands.ZoomOut))
+                { DrawArea.Zoom(1); skipDrawAmount = 0; }
             }
 
             if (TVUserInput.Changed)
@@ -360,13 +369,19 @@ namespace ORTS.TrackViewer
             }
 
 
-            if (TVUserInput.IsPressed(TVUserCommands.Quit)) Quit();
-            if (TVUserInput.IsPressed(TVUserCommands.ReloadRoute)) ReloadRoute();
+            if (TVUserInput.IsPressed(TVUserCommands.Quit))
+                Quit();
+            if (TVUserInput.IsPressed(TVUserCommands.ReloadRoute))
+                ReloadRoute();
 
-            if (TVUserInput.IsPressed(TVUserCommands.ShiftToMouseLocation)) DrawArea.ShiftToLocation(DrawArea.MouseLocation);
-            if (TVUserInput.IsPressed(TVUserCommands.ZoomInSlow)) DrawArea.Zoom(-1);
-            if (TVUserInput.IsPressed(TVUserCommands.ZoomOutSlow)) DrawArea.Zoom(1);
-            if (TVUserInput.IsPressed(TVUserCommands.ZoomToTile)) DrawArea.ZoomToTile();
+            if (TVUserInput.IsPressed(TVUserCommands.ShiftToMouseLocation))
+                DrawArea.ShiftToLocation(DrawArea.MouseLocation);
+            if (TVUserInput.IsPressed(TVUserCommands.ZoomInSlow))
+                DrawArea.Zoom(-1);
+            if (TVUserInput.IsPressed(TVUserCommands.ZoomOutSlow))
+                DrawArea.Zoom(1);
+            if (TVUserInput.IsPressed(TVUserCommands.ZoomToTile))
+                DrawArea.ZoomToTile();
             if (TVUserInput.IsPressed(TVUserCommands.ZoomReset))
             {
                 DrawArea.ZoomReset(DrawTrackDB);
@@ -375,25 +390,39 @@ namespace ORTS.TrackViewer
 
             if (DrawPATfile != null && Properties.Settings.Default.showPATfile)
             {
-                if (TVUserInput.IsPressed(TVUserCommands.ExtendPath)) DrawPATfile.ExtendPath();
-                if (TVUserInput.IsPressed(TVUserCommands.ExtendPathFull)) DrawPATfile.ExtendPathFull();
-                if (TVUserInput.IsPressed(TVUserCommands.ReducePath)) DrawPATfile.ReducePath();
-                if (TVUserInput.IsPressed(TVUserCommands.ReducePathFull)) DrawPATfile.ReducePathFull();
-                if (TVUserInput.IsDown(TVUserCommands.ShiftToPathLocation)) DrawArea.ShiftToLocation(DrawPATfile.CurrentNode.Location);
+                if (TVUserInput.IsPressed(TVUserCommands.ExtendPath))
+                    DrawPATfile.ExtendPath();
+                if (TVUserInput.IsPressed(TVUserCommands.ExtendPathFull))
+                    DrawPATfile.ExtendPathFull();
+                if (TVUserInput.IsPressed(TVUserCommands.ReducePath))
+                    DrawPATfile.ReducePath();
+                if (TVUserInput.IsPressed(TVUserCommands.ReducePathFull))
+                    DrawPATfile.ReducePathFull();
+                if (TVUserInput.IsDown(TVUserCommands.ShiftToPathLocation))
+                    DrawArea.ShiftToLocation(DrawPATfile.CurrentNode.Location);
             }
 
             if (PathEditor != null && Properties.Settings.Default.showTrainpath)
             {
-                if (TVUserInput.IsPressed(TVUserCommands.ExtendPath)) PathEditor.ExtendPath();
-                if (TVUserInput.IsPressed(TVUserCommands.ExtendPathFull)) PathEditor.ExtendPathFull();
-                if (TVUserInput.IsPressed(TVUserCommands.ReducePath)) PathEditor.ReducePath();
-                if (TVUserInput.IsPressed(TVUserCommands.ReducePathFull)) PathEditor.ReducePathFull();
-                if (TVUserInput.IsDown(TVUserCommands.ShiftToPathLocation)) DrawArea.ShiftToLocation(PathEditor.CurrentLocation);
+                if (TVUserInput.IsPressed(TVUserCommands.ExtendPath))
+                    PathEditor.ExtendPath();
+                if (TVUserInput.IsPressed(TVUserCommands.ExtendPathFull))
+                    PathEditor.ExtendPathFull();
+                if (TVUserInput.IsPressed(TVUserCommands.ReducePath))
+                    PathEditor.ReducePath();
+                if (TVUserInput.IsPressed(TVUserCommands.ReducePathFull))
+                    PathEditor.ReducePathFull();
+                if (TVUserInput.IsDown(TVUserCommands.ShiftToPathLocation))
+                    DrawArea.ShiftToLocation(PathEditor.CurrentLocation);
 
-                if (TVUserInput.IsPressed(TVUserCommands.EditorUndo)) PathEditor.Undo();
-                if (TVUserInput.IsPressed(TVUserCommands.EditorRedo)) PathEditor.Redo();
-                if (TVUserInput.IsMouseXButton1Pressed()) PathEditor.Undo();
-                if (TVUserInput.IsMouseXButton2Pressed()) PathEditor.Redo();
+                if (TVUserInput.IsPressed(TVUserCommands.EditorUndo))
+                    PathEditor.Undo();
+                if (TVUserInput.IsPressed(TVUserCommands.EditorRedo))
+                    PathEditor.Redo();
+                if (TVUserInput.IsMouseXButton1Pressed())
+                    PathEditor.Undo();
+                if (TVUserInput.IsMouseXButton2Pressed())
+                    PathEditor.Redo();
             }
 
             int mouseLocationAbsoluteX = Window.ClientBounds.Left + TVUserInput.MouseLocationX;
@@ -409,8 +438,10 @@ namespace ORTS.TrackViewer
                 PathEditor.DeterminePossibleActions(TVUserInput.IsDown(TVUserCommands.EditorTakesMouseClickDrag), TVUserInput.IsDown(TVUserCommands.EditorTakesMouseClickAction),
                     TVUserInput.MouseLocationX, TVUserInput.MouseLocationY);
 
-                if (TVUserInput.IsPressed(TVUserCommands.PlaceEndPoint)) PathEditor.PlaceEndPoint();
-                if (TVUserInput.IsPressed(TVUserCommands.PlaceWaitPoint)) PathEditor.PlaceWaitPoint();
+                if (TVUserInput.IsPressed(TVUserCommands.PlaceEndPoint))
+                    PathEditor.PlaceEndPoint();
+                if (TVUserInput.IsPressed(TVUserCommands.PlaceWaitPoint))
+                    PathEditor.PlaceWaitPoint();
 
 
                 if (TVUserInput.IsMouseLeftButtonPressed())
@@ -494,35 +525,55 @@ namespace ORTS.TrackViewer
             drawAreaInset.Update();
             drawAreaInset.Follow(DrawArea, 10f);
 
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleZoomAroundMouse)) menuControl.MenuToggleZoomingAroundMouse();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleZoomAroundMouse))
+                menuControl.MenuToggleZoomingAroundMouse();
 
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowTerrain)) menuControl.MenuToggleShowTerrain();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowDMTerrain)) menuControl.MenuToggleShowDMTerrain();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowPatchLines)) menuControl.MenuToggleShowPatchLines();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowSignals)) menuControl.MenuToggleShowSignals();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowSidings)) menuControl.MenuToggleShowSidings();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowSidingNames)) menuControl.MenuToggleShowSidingNames();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowPlatforms)) menuControl.MenuToggleShowPlatforms();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowPlatformNames)) menuControl.MenuCirculatePlatformStationNames();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowSpeedLimits)) menuControl.MenuToggleShowSpeedLimits();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowMilePosts)) menuControl.MenuToggleShowMilePosts();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowTrainpath)) menuControl.MenuToggleShowTrainpath();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowPatFile)) menuControl.MenuToggleShowPatFile();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleHighlightTracks)) menuControl.MenuToggleHighlightTracks();
-            if (TVUserInput.IsPressed(TVUserCommands.ToggleHighlightItems)) menuControl.MenuToggleHighlightItems();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowTerrain))
+                menuControl.MenuToggleShowTerrain();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowDMTerrain))
+                menuControl.MenuToggleShowDMTerrain();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowPatchLines))
+                menuControl.MenuToggleShowPatchLines();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowSignals))
+                menuControl.MenuToggleShowSignals();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowSidings))
+                menuControl.MenuToggleShowSidings();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowSidingNames))
+                menuControl.MenuToggleShowSidingNames();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowPlatforms))
+                menuControl.MenuToggleShowPlatforms();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowPlatformNames))
+                menuControl.MenuCirculatePlatformStationNames();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowSpeedLimits))
+                menuControl.MenuToggleShowSpeedLimits();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowMilePosts))
+                menuControl.MenuToggleShowMilePosts();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowTrainpath))
+                menuControl.MenuToggleShowTrainpath();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleShowPatFile))
+                menuControl.MenuToggleShowPatFile();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleHighlightTracks))
+                menuControl.MenuToggleHighlightTracks();
+            if (TVUserInput.IsPressed(TVUserCommands.ToggleHighlightItems))
+                menuControl.MenuToggleHighlightItems();
 
             //keyboard shortcuts for menu
-            if (TVUserInput.IsPressed(TVUserCommands.MenuFile)) { menuControl.menuFile.Focus(); menuControl.menuFile.IsSubmenuOpen = true; }
-            if (TVUserInput.IsPressed(TVUserCommands.MenuView)) { menuControl.menuView.Focus(); menuControl.menuView.IsSubmenuOpen = true; }
-            if (TVUserInput.IsPressed(TVUserCommands.MenuTrackItems)) { menuControl.menuTrackItems.Focus(); menuControl.menuTrackItems.IsSubmenuOpen = true; }
-            if (TVUserInput.IsPressed(TVUserCommands.MenuPreferences)) { menuControl.menuPreferences.Focus(); menuControl.menuPreferences.IsSubmenuOpen = true; }
-            if (TVUserInput.IsPressed(TVUserCommands.MenuStatusbar)) { menuControl.menuStatusbar.Focus(); menuControl.menuStatusbar.IsSubmenuOpen = true; }
-            if (TVUserInput.IsPressed(TVUserCommands.MenuPathEditor)) { menuControl.menuPathEditor.Focus(); menuControl.menuPathEditor.IsSubmenuOpen = true; }
-            if (TVUserInput.IsPressed(TVUserCommands.MenuTerrain)) { menuControl.menuTerrain.Focus(); menuControl.menuTerrain.IsSubmenuOpen = true; }
-            if (TVUserInput.IsPressed(TVUserCommands.MenuHelp)) { menuControl.menuHelp.Focus(); menuControl.menuHelp.IsSubmenuOpen = true; }
-
-
-            if (TVUserInput.IsPressed(TVUserCommands.Debug)) RunDebug();
+            if (TVUserInput.IsPressed(TVUserCommands.MenuFile))
+            { menuControl.menuFile.Focus(); menuControl.menuFile.IsSubmenuOpen = true; }
+            if (TVUserInput.IsPressed(TVUserCommands.MenuView))
+            { menuControl.menuView.Focus(); menuControl.menuView.IsSubmenuOpen = true; }
+            if (TVUserInput.IsPressed(TVUserCommands.MenuTrackItems))
+            { menuControl.menuTrackItems.Focus(); menuControl.menuTrackItems.IsSubmenuOpen = true; }
+            if (TVUserInput.IsPressed(TVUserCommands.MenuPreferences))
+            { menuControl.menuPreferences.Focus(); menuControl.menuPreferences.IsSubmenuOpen = true; }
+            if (TVUserInput.IsPressed(TVUserCommands.MenuStatusbar))
+            { menuControl.menuStatusbar.Focus(); menuControl.menuStatusbar.IsSubmenuOpen = true; }
+            if (TVUserInput.IsPressed(TVUserCommands.MenuPathEditor))
+            { menuControl.menuPathEditor.Focus(); menuControl.menuPathEditor.IsSubmenuOpen = true; }
+            if (TVUserInput.IsPressed(TVUserCommands.MenuTerrain))
+            { menuControl.menuTerrain.Focus(); menuControl.menuTerrain.IsSubmenuOpen = true; }
+            if (TVUserInput.IsPressed(TVUserCommands.MenuHelp))
+            { menuControl.menuHelp.Focus(); menuControl.menuHelp.IsSubmenuOpen = true; }
 
             base.Update(gameTime);
 
@@ -549,17 +600,20 @@ namespace ORTS.TrackViewer
             }
 
             GraphicsDevice.Clear(DrawColors.colorsNormal.ClearWindow);
-            if (DrawTrackDB == null) return;
+            if (DrawTrackDB == null)
+                return;
 
             spriteBatch.Begin();
             //spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Immediate, SaveStateMode.None);
             //GraphicsDevice.SamplerStates[0].MagFilter = TextureFilter.Point;
             //GraphicsDevice.SamplerStates[0].MinFilter = TextureFilter.Point;
             //GraphicsDevice.SamplerStates[0].MipFilter = TextureFilter.Point;
-            if (drawTerrain != null) { drawTerrain.Draw(DrawArea); }
+            if (drawTerrain != null)
+            { drawTerrain.Draw(DrawArea); }
             drawWorldTiles.Draw(DrawArea);
             DrawArea.DrawTileGrid();
-            if (drawTerrain != null) { drawTerrain.DrawPatchLines(DrawArea); }
+            if (drawTerrain != null)
+            { drawTerrain.DrawPatchLines(DrawArea); }
 
             DrawTrackDB.DrawRoads(DrawArea);
             DrawTrackDB.DrawTracks(DrawArea);
@@ -570,16 +624,18 @@ namespace ORTS.TrackViewer
             if (Properties.Settings.Default.showInset)
             {
                 drawAreaInset.DrawBackground(DrawColors.colorsNormal.ClearWindowInset);
-                //drawTrackDB.DrawTracks(drawAreaInset); //replaced by next line
                 drawAreaInset.DrawShadowedTextures();
                 DrawTrackDB.DrawTrackHighlights(drawAreaInset, false);
                 drawAreaInset.DrawBorder(Color.Red, DrawArea);
                 drawAreaInset.DrawBorder(Color.Black);
             }
 
-            if (DrawMultiplePaths != null) DrawMultiplePaths.Draw(DrawArea);
-            if (DrawPATfile != null && Properties.Settings.Default.showPATfile) DrawPATfile.Draw(DrawArea);
-            if (PathEditor != null && Properties.Settings.Default.showTrainpath) PathEditor.Draw(DrawArea);
+            if (DrawMultiplePaths != null)
+                DrawMultiplePaths.Draw(DrawArea);
+            if (DrawPATfile != null && Properties.Settings.Default.showPATfile)
+                DrawPATfile.Draw(DrawArea);
+            if (PathEditor != null && Properties.Settings.Default.showTrainpath)
+                PathEditor.Draw(DrawArea);
             drawEditorAction.Draw(PathEditor);
 
             DrawTrackDB.DrawRoadTrackItems(DrawArea);
@@ -593,8 +649,6 @@ namespace ORTS.TrackViewer
             drawScaleRuler.Draw();
             drawLongitudeLatitude.Draw(DrawArea.MouseLocation);
             drawLabels.Draw(DrawArea);
-
-            DebugWindow.DrawAll();
 
             spriteBatch.End();
 
@@ -715,7 +769,8 @@ namespace ORTS.TrackViewer
         #region Folder and Route methods
         private void HandleCommandLineArgs()
         {
-            if (commandLineArgs.Length == 0) return;
+            if (commandLineArgs.Length == 0)
+                return;
             string givenPathOrFile = commandLineArgs[0];
             commandLineArgs = Array.Empty<string>(); // discard the arguments, no longer needed
 
@@ -782,7 +837,8 @@ namespace ORTS.TrackViewer
                 {
                     SetRoute(route);
 
-                    if (!givenFileIsPat) { return; }
+                    if (!givenFileIsPat)
+                    { return; }
                     foreach (Path availablePath in Paths)
                     {
                         if (availablePath.FilePath.ToUpperInvariant() == givenPathOrFile.ToUpperInvariant())
@@ -805,7 +861,8 @@ namespace ORTS.TrackViewer
         /// <returns>True if indeed a new path has been loaded</returns>
         public bool SelectInstallFolder()
         {
-            if (!CanDiscardModifiedPath()) return false;
+            if (!CanDiscardModifiedPath())
+                return false;
             string folderPath = "";
 
             using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
@@ -862,7 +919,8 @@ namespace ORTS.TrackViewer
         /// <returns>True if the route loading was successfull</returns>
         private bool FindRoutes(Folder newInstallFolder)
         {
-            if (newInstallFolder == null) return false;
+            if (newInstallFolder == null)
+                return false;
 
             System.Threading.Tasks.Task<IEnumerable<Route>> task = System.Threading.Tasks.Task.Run(() => Route.GetRoutes(newInstallFolder, System.Threading.CancellationToken.None));
             task.Wait();
@@ -904,8 +962,10 @@ namespace ORTS.TrackViewer
         /// <param name="newRoute">The route to load, containing amongst other the directory name of the route</param>
         public void SetRoute(Route newRoute)
         {
-            if (newRoute == null) return;
-            if (!CanDiscardModifiedPath()) return;
+            if (newRoute == null)
+                return;
+            if (!CanDiscardModifiedPath())
+                return;
 
             DrawLoadingMessage(catalog.GetString("Loading route..."));
             MessageDelegate messageHandler = new MessageDelegate(DrawLoadingMessage);
@@ -937,7 +997,8 @@ namespace ORTS.TrackViewer
                 MessageBox.Show(catalog.GetString("Route cannot be loaded. Sorry"));
             }
 
-            if (CurrentRoute == null) return;
+            if (CurrentRoute == null)
+                return;
 
             PathEditor = null;
             DrawMultiplePaths = null;
@@ -1001,7 +1062,8 @@ namespace ORTS.TrackViewer
         /// <param name="path">Path (with FilePath) that has to be loaded</param>
         internal void SetPath(Path path)
         {
-            if (!CanDiscardModifiedPath()) return;
+            if (!CanDiscardModifiedPath())
+                return;
 
             if (path == null)
             {
@@ -1024,7 +1086,8 @@ namespace ORTS.TrackViewer
 
         internal void NewPath()
         {
-            if (!CanDiscardModifiedPath()) return;
+            if (!CanDiscardModifiedPath())
+                return;
             string pathsDirectory = System.IO.Path.Combine(CurrentRoute.Path, "PATHS");
             PathEditor = new PathEditor(DrawTrackDB, pathsDirectory);
             drawPathChart.SetPathEditor(PathEditor);
@@ -1039,8 +1102,10 @@ namespace ORTS.TrackViewer
         /// <returns>false if there is a modified path that the user does not want to discard.</returns>
         private bool CanDiscardModifiedPath()
         {
-            if (PathEditor == null) return true;
-            if (!PathEditor.HasModifiedPath) return true;
+            if (PathEditor == null)
+                return true;
+            if (!PathEditor.HasModifiedPath)
+                return true;
             DialogResult dialogResult = MessageBox.Show(
                         catalog.GetString("Path has been modified. Loading a new path will discard changes.") + "\n" +
                         catalog.GetString("Do you want to continue?"),
@@ -1077,7 +1142,8 @@ namespace ORTS.TrackViewer
         public void CenterAroundTrackItem(int trackItemIndex)
         {
             WorldLocation itemLocation = DrawTrackDB.TrackItemHighlightOverride(trackItemIndex);
-            if (itemLocation == WorldLocation.None) return;
+            if (itemLocation == WorldLocation.None)
+                return;
             CenterAround(itemLocation);
         }
 
@@ -1088,7 +1154,8 @@ namespace ORTS.TrackViewer
         public void CenterAroundTrackItemRoad(int trackItemIndex)
         {
             WorldLocation itemLocation = DrawTrackDB.TrackItemHighlightOverrideRoad(trackItemIndex);
-            if (itemLocation == WorldLocation.None) return;
+            if (itemLocation == WorldLocation.None)
+                return;
             CenterAround(itemLocation);
         }
 
@@ -1099,7 +1166,8 @@ namespace ORTS.TrackViewer
         /// <param name="centerLocation">Location to center the view window around</param>
         public void CenterAround(in WorldLocation centerLocation)
         {
-            if (centerLocation == WorldLocation.None) return;
+            if (centerLocation == WorldLocation.None)
+                return;
 
             DrawArea.ShiftToLocation(centerLocation);
             DrawArea.Update();
@@ -1127,10 +1195,12 @@ namespace ORTS.TrackViewer
                         catalog.GetString("Do you want to continue?"),
                         catalog.GetString("Trackviewer Path Editor"), MessageBoxButtons.OKCancel,
                         MessageBoxIcon.Question);
-            if (dialogResult != DialogResult.OK) { return; }
+            if (dialogResult != DialogResult.OK)
+            { return; }
 
             //Close all paths that are drawn.
-            if (!CanDiscardModifiedPath()) return;
+            if (!CanDiscardModifiedPath())
+                return;
             PathEditor = null;
             DrawMultiplePaths?.ClearAll();
 
@@ -1141,31 +1211,6 @@ namespace ORTS.TrackViewer
         #endregion
 
         #region Debug methods
-        private void RunDebug()
-        {
-            //Properties.Settings.Default.statusShowFPS = true;
-            //ReloadRoute();
-            //SetPath(Paths[21]);
-            //drawPathChart.Open();
-            //NewPath();
-            //menuControl.SetEnableEditing(true);
-            //DrawArea.ZoomToTile();
-            //DrawArea.Zoom(-18);
-            //CenterAroundTrackNode(30);
-            //ReversePath();
-
-        }
-
-        private static void InitLogging()
-        {   // debug only
-            //string logFileName = "C:\\tvlog.txt";
-            //System.IO.File.Delete(logFileName);
-            //Console.SetOut(new FileTeeLogger(logFileName, Console.Out));
-            //// Make Console.Error go to the new Console.Out.
-            //Console.SetError(Console.Out);
-            //Console.WriteLine("started logging");
-        }
-
         private void CalculateFPS(GameTime gameTime)
         {
             float elapsedRealTime = (float)gameTime.TotalGameTime.TotalSeconds;
@@ -1186,7 +1231,7 @@ namespace ORTS.TrackViewer
         /// <param name="element">The element that is checked for localizable parameters</param>
         public static void Localize(System.Windows.FrameworkElement element)
         {
-            if (null == element) 
+            if (null == element)
                 return;
 
             foreach (object child in System.Windows.LogicalTreeHelper.GetChildren(element))
@@ -1209,19 +1254,27 @@ namespace ORTS.TrackViewer
                     property.SetValue(element, catalog.GetString(property.GetValue(element, null) as string), null);
             }
         }
+        #endregion
 
-        /// <summary>
-        /// Change/select the language. Store the preference to be used after a restart
-        /// Give message to use that TrackViewer needs to be restarted
-        /// </summary>
-        /// <param name="languageCode">Two-letter code for the new language</param>
-        public void SelectLanguage(string languageCode)
+        #region IDisposable
+        private bool disposed;
+
+        protected override void Dispose(bool disposing)
         {
-            LanguageManager.SelectLanguage(languageCode);
-            //The lines below work from system/english to another language, but not from another language to system/english
-            //languageManager.LoadLanguage();
-            //Localize(menuControl);
-            //Localize(statusBarControl);
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    drawAreaInset?.Dispose();
+                    drawTerrain?.Dispose();
+                    statusBarControl?.Dispose();
+                    menuControl?.Dispose();
+                    spriteBatch?.Dispose();
+                    graphics?.Dispose();
+                }
+                disposed = true;
+            }
+            base.Dispose(disposing);
         }
         #endregion
     }

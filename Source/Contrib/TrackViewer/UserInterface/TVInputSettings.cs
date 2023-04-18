@@ -201,7 +201,6 @@ namespace ORTS.TrackViewer.UserInterface
 
             Commands[(int)TVUserCommands.AddLabel]   = new UserCommandKeyInput(0x26);
             Commands[(int)TVUserCommands.Quit]       = new UserCommandKeyInput(0x10);
-            Commands[(int)TVUserCommands.Debug]      = new UserCommandKeyInput(0x34);
             Commands[(int)TVUserCommands.DebugDumpKeymap] = new UserCommandKeyInput(0x3B, KeyModifiers.Alt);
 
             Commands[(int)TVUserCommands.MouseZoomSlow] = new UserCommandModifierInput(KeyModifiers.Shift);

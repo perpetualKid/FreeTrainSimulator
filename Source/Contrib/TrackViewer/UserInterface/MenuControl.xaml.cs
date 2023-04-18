@@ -1097,7 +1097,7 @@ namespace ORTS.TrackViewer.UserInterface
         private void ComboBoxLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             Language selectedLanguage = comboBoxLanguage.SelectedItem as Language;
-            trackViewer.SelectLanguage(selectedLanguage.Code);
+            LanguageManager.SelectLanguage(selectedLanguage.Code);
         }
 
         private void MenuShowOtherPaths_Click(object sender, RoutedEventArgs e)
