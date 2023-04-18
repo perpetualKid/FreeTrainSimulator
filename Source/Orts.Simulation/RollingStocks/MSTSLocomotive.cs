@@ -45,6 +45,9 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Windows.Forms.Design;
+using System.Xml.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -815,9 +818,9 @@ namespace Orts.Simulation.RollingStocks
                 else if (cabViewType == CabViewType.Rear)
                     noseAhead = (viewPointList[0].Location.Z - 0.5f > shapeFile.Shape.EsdBoundingBox.Min.Z);
             }
-            if (!(this is MSTSSteamLocomotive))
+            if (this is not MSTSSteamLocomotive)
             {
-                InitializeFromORTSSpecific(Path.Combine(basePath, cvfFileName), extendedCVF);
+                extendedCVF.Initialize(Path.Combine(basePath, cvfFileName));
             }
             return new CabView(cvfFile, viewPointList, extendedCVF, cabViewType, noseAhead);
         }
@@ -847,8 +850,10 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
             var cvfFile = new CabViewFile(cab3dBasePath, cvfFileName);
-            if (!(this is MSTSSteamLocomotive))
-                InitializeFromORTSSpecific(Path.Combine(cab3dBasePath, cvfFileName), extendedCVF);
+            if (this is not MSTSSteamLocomotive)
+            {
+                extendedCVF.Initialize(Path.Combine(cab3dBasePath, cvfFileName));
+            }
 
             float cabViewAngle = CabViewpoints?[0].StartDirection.Y ?? 0;
             CabViewType cabViewType = (cabViewAngle >= 90 && cabViewAngle <= 270) || (cabViewAngle <= -90 && cabViewAngle >= -270) ? CabViewType.Rear : CabViewType.Front;
@@ -6317,9 +6322,13 @@ namespace Orts.Simulation.RollingStocks
     /// Extended CVF data, currently used for CAB light
     /// By GeorgeS
     /// </summary>
-    [OrtsPhysicsFile("lit", "ORTSExtendedCVF")]
+    //[OrtsPhysicsFile("lit", "ORTSExtendedCVF")]
     public class ExtendedCVF
     {
+        // migrated and refactored from OrtsPhysicsFileAttribute and OrtsPhysicsAttribute
+        private const string token = "ORTSExtendedCVF";
+        private const string extension = "lit";
+
         /// <summary>
         /// Translate to current screen resolution
         /// </summary>
@@ -6333,6 +6342,76 @@ namespace Orts.Simulation.RollingStocks
                 Position.W);
         }
 
+        internal virtual void Initialize(string wagFilePath)
+        {
+            string fileName = Path.ChangeExtension(wagFilePath, extension);
+            if (File.Exists(fileName))
+            {
+                using (STFReader stf = new STFReader(fileName, false))
+                {
+
+                    stf.MustMatch(token);
+                    stf.MustMatch("(");
+                    stf.ParseBlock(new STFReader.TokenProcessor[] {
+                            new STFReader.TokenProcessor("light1position", () => 
+                            {
+                                Vector4 l1 = Light1Position;
+                                stf.ReadVector4Block(STFReader.Units.Any, ref l1);
+                                Light1Position = l1;
+                            }),
+                            new STFReader.TokenProcessor("light1colorargb", () =>
+                            {                                 
+                                Vector4 v4 = new Vector4(-1);
+                                stf.ReadVector4Block(STFReader.Units.Any, ref v4);
+                                Color c = new Color();
+                                if (v4.W == -1)
+                                {
+                                    c.A = 255;
+                                    c.R = v4.X == -1 ? c.R : (byte)v4.X;
+                                    c.G = v4.Y == -1 ? c.G : (byte)v4.Y;
+                                    c.B = v4.Z == -1 ? c.B : (byte)v4.Z;
+                                }
+                                else
+                                {
+                                    c.A = v4.X == -1 ? c.A : (byte)v4.X;
+                                    c.R = v4.Y == -1 ? c.R : (byte)v4.Y;
+                                    c.G = v4.Z == -1 ? c.G : (byte)v4.Z;
+                                    c.B = v4.W == -1 ? c.B : (byte)v4.W;
+                                }
+                                Light1Color = c; 
+                            }),
+                            new STFReader.TokenProcessor("light2position", () => 
+                            {
+                                Vector4 l2 = Light1Position;
+                                stf.ReadVector4Block(STFReader.Units.Any, ref l2);
+                                Light2Position = l2;
+                            }),
+                            new STFReader.TokenProcessor("light2colorargb", () => 
+                            {
+                                Vector4 v4 = new Vector4(-1);
+                                stf.ReadVector4Block(STFReader.Units.Any, ref v4);
+                                Color c = new Color();
+                                if (v4.W == -1)
+                                {
+                                    c.A = 255;
+                                    c.R = v4.X == -1 ? c.R : (byte)v4.X;
+                                    c.G = v4.Y == -1 ? c.G : (byte)v4.Y;
+                                    c.B = v4.Z == -1 ? c.B : (byte)v4.Z;
+                                }
+                                else
+                                {
+                                    c.A = v4.X == -1 ? c.A : (byte)v4.X;
+                                    c.R = v4.Y == -1 ? c.R : (byte)v4.Y;
+                                    c.G = v4.Z == -1 ? c.G : (byte)v4.Z;
+                                    c.B = v4.W == -1 ? c.B : (byte)v4.W;
+                                }
+                                Light2Color = c;
+                            }),
+                        });
+                }
+            }
+        }
+
         /// <summary>
         /// Used by the shader
         /// </summary>
@@ -6341,17 +6420,30 @@ namespace Orts.Simulation.RollingStocks
             return new Vector3((float)Color.R / 255, (float)Color.G / 255, (float)Color.B / 255);
         }
 
-        [OrtsPhysics("First light Position", "Light1Position", "The position and aspect of the first cab light", "320 360 155 2")]
-        public Vector4 Light1Position;
+        //[OrtsPhysics("First light Position", "Light1Position", "The position and aspect of the first cab light", "320 360 155 2")]
+        /// <summary>
+        /// The position and aspect of the first cab light
+        /// </summary>
+        public Vector4 Light1Position { get; private set; } = new Vector4(320, 360, 155, 2);
 
-        [OrtsPhysics("First light ARGB", "Light1ColorARGB", "The color of the first cab light", "255 216 178 255")]
-        public Color Light1Color;
+        //[OrtsPhysics("First light ARGB", "Light1ColorARGB", "The color of the first cab light", "255 216 178 255")]
+        /// <summary>
+        /// The color of the first cab light
+        /// </summary>
+        public Color Light1Color { get; private set; } = new Color(255, 216, 178, 255);
 
-        [OrtsPhysics("Second light Position", "Light2Position", "The position and aspect of the first cab light", "0 0 0 0")]
-        public Vector4 Light2Position;
+        //[OrtsPhysics("Second light Position", "Light2Position", "The position and aspect of the first cab light", "0 0 0 0")]
+        /// <summary>
+        /// The position and aspect of the first cab light
+        /// </summary>
+        public Vector4 Light2Position { get; private set; }
 
-        [OrtsPhysics("Second light ARGB", "Light2ColorARGB", "The color of the second cab light", "0 0 0")]
-        public Color Light2Color;
+        //[OrtsPhysics("Second light ARGB", "Light2ColorARGB", "The color of the second cab light", "0 0 0")]
+        /// <summary>
+        /// The color of the second cab light
+        /// </summary>
+        public Color Light2Color { get; private set; }
+
 
     } // End Class ExtendedCVF 
 }
