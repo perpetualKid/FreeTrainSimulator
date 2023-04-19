@@ -569,7 +569,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab)
+            if (Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab3D)
             {
                 if (CabViewer3D != null)
                     CabViewer3D.PrepareFrame(frame, elapsedTime);
@@ -583,7 +583,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             // Draw 2D CAB View - by GeorgeS
             if (Viewer.Camera.AttachedCar == this.MSTSWagon &&
-                Viewer.Camera.Style == Camera.Styles.Cab)
+                Viewer.Camera.Style == CameraStyle.Cab)
             {
                 if (CabRenderer != null)
                     CabRenderer.PrepareFrame(frame, elapsedTime);
@@ -1716,15 +1716,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             bool Dark = _Viewer.MaterialManager.sunDirection.Y <= -0.085f || _Viewer.Camera.IsUnderground;
             bool CabLight = _Locomotive.CabLightOn;
 
-            CabCamera cbc = _Viewer.Camera as CabCamera;
-            if (cbc != null)
-            {
-                _Location = cbc.SideLocation;
-            }
-            else
-            {
-                _Location = 0;
-            }
+            _Location = _Viewer.Camera is CabCamera cbc ? cbc.SideLocation : 0;
 
             var i = (_Locomotive.UsingRearCab) ? 1 : 0;
             _CabTexture = CABTextureManager.GetTexture(_Locomotive.CabViewList[i].CVFFile.Views2D[_Location], Dark, CabLight, out _isNightTexture, HasCabLightDirectory);

@@ -806,7 +806,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // It appears that only one MSTS type FA can be used per vehicle (to be confirmed?)
             // For coal load variation, C should be absent (set to 1 when read in WAG file) or >0 - sets FreightAnimFlag; and A > B
             // To disable coal load variation and insert a static (crew) shape on the tender breech, one of the conditions indicated above
-            if (FreightShape != null && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
+            if (FreightShape != null && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab3D))
             {
                 bool SteamAnimShape = false;
                 float FuelControllerLevel = 0.0f;
@@ -863,11 +863,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     {
                         var animation = freightAnim.Animation as FreightAnimationStatic;
                         if (!((animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Cab3D] &&
-                            Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab) ||
+                            Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab3D) ||
                             (animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Cab2D] &&
-                            Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.Cab) ||
+                            Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab) ||
                             (animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Outside] && (Viewer.Camera.AttachedCar != this.MSTSWagon ||
-                            (Viewer.Camera.Style != Camera.Styles.ThreeDimCab && Viewer.Camera.Style != Camera.Styles.Cab))))) continue;
+                            (Viewer.Camera.Style != CameraStyle.Cab3D && Viewer.Camera.Style != CameraStyle.Cab))))) continue;
                     }
                     if (freightAnim.FreightShape != null && !((freightAnim.Animation is FreightAnimationContinuous) && (freightAnim.Animation as FreightAnimationContinuous).LoadPerCent == 0))
                     {
@@ -902,7 +902,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // Control visibility of passenger cabin when inside it
             if (Viewer.Camera.AttachedCar == this.MSTSWagon
                  && //( Viewer.ViewPoint == Viewer.ViewPoints.Cab ||  // TODO, restore when we complete cab views - 
-                     Viewer.Camera.Style == Camera.Styles.Passenger)
+                     Viewer.Camera.Style == CameraStyle.Passenger)
             {
                 // We are in the passenger cabin
                 if (InteriorShape != null)
@@ -914,7 +914,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 // Skip drawing if 2D or 3D Cab view - Cab view already drawn - by GeorgeS changed by DennisAT
                 if (Viewer.Camera.AttachedCar == this.MSTSWagon &&
-                    (Viewer.Camera.Style == Camera.Styles.Cab || Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
+                    (Viewer.Camera.Style == CameraStyle.Cab || Viewer.Camera.Style == CameraStyle.Cab3D))
                     return;
 
                 // We are outside the passenger cabin
@@ -936,7 +936,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Matrix airhosePosition;
 
             // Display front coupler in sim if open coupler shape is configured, otherwise skip to next section, and just display closed (default) coupler if configured
-            if (FrontCouplerShape != null && !(Viewer.Camera.AttachedCar == MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
+            if (FrontCouplerShape != null && !(Viewer.Camera.AttachedCar == MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab3D))
             {
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
@@ -987,7 +987,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             // Display rear coupler in sim if open coupler shape is configured, otherwise skip to next section, and just display closed (default) coupler if configured
-            if (RearCouplerShape != null && !(Viewer.Camera.AttachedCar == MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
+            if (RearCouplerShape != null && !(Viewer.Camera.AttachedCar == MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab3D))
             {
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
@@ -1022,7 +1022,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 couplerShape.PrepareFrame(frame, elapsedTime, new WorldPosition(Car.WorldPosition.TileX, Car.WorldPosition.TileZ, couplerPosition));
             }
 
-            if (FrontAirHoseShape != null && !(Viewer.Camera.AttachedCar == MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
+            if (FrontAirHoseShape != null && !(Viewer.Camera.AttachedCar == MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab3D))
             {
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
@@ -1068,7 +1068,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
 
             // Display rear airhose in sim if open coupler shape is configured, otherwise skip to next section, and just display closed (default) coupler if configured
-            if (RearAirHoseShape != null && !(Viewer.Camera.AttachedCar == MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
+            if (RearAirHoseShape != null && !(Viewer.Camera.AttachedCar == MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab3D))
             {
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3

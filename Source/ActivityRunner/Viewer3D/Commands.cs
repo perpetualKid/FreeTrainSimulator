@@ -27,12 +27,12 @@ namespace Orts.ActivityRunner.Viewer3D
 {
     [Serializable()]
     public abstract class ActivityCommand : PausedCommand
-        {
+    {
         internal static ActivityWindow Receiver { get; set; }
 
         private readonly string EventNameLabel;
 
-        protected ActivityCommand( CommandLog log, string eventNameLabel, double pauseDurationS )
+        protected ActivityCommand(CommandLog log, string eventNameLabel, double pauseDurationS)
             : base(log, pauseDurationS)
         {
             EventNameLabel = eventNameLabel;
@@ -61,8 +61,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Redo()
         {
-            if (Receiver == null) return;
-            Receiver.ImmediateRefill(); 
+            if (Receiver == null)
+                return;
+            Receiver.ImmediateRefill();
             // Report();
         }
     }
@@ -84,7 +85,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Redo()
         {
-            if (Receiver == null) return;
+            if (Receiver == null)
+                return;
             Receiver.RefillChangeTo(target);
             // Report();
         }
@@ -112,8 +114,8 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (targetState)
             {
-                var finalReceiver = Receiver.Camera  is CabCamera3D ?
-                    (Receiver.PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D:
+                var finalReceiver = Receiver.Camera is CabCamera3D ?
+                    (Receiver.PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D :
                     (Receiver.PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer;
                 finalReceiver.ActiveScreen[display] = screen;
             }
@@ -142,7 +144,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Receiver.ChangeCab();
             // Report();
         }
-        }
+    }
 
     [Serializable()]
     public sealed class ToggleSwitchAheadCommand : Command
@@ -160,7 +162,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Receiver.ToggleSwitchAhead();
             // Report();
         }
-        }
+    }
 
     [Serializable()]
     public sealed class ToggleSwitchBehindCommand : Command
@@ -178,14 +180,14 @@ namespace Orts.ActivityRunner.Viewer3D
             Receiver.ToggleSwitchBehind();
             // Report();
         }
-        }
+    }
 
     [Serializable()]
     public sealed class ToggleAnySwitchCommand : IndexCommand
-        {
+    {
         public static Viewer Receiver { get; set; }
 
-        public ToggleAnySwitchCommand( CommandLog log, int index )
+        public ToggleAnySwitchCommand(CommandLog log, int index)
             : base(log, index)
         {
             Redo();
@@ -205,7 +207,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private readonly int carPosition;    // 0 for head of train
 
-        public UncoupleCommand( CommandLog log, int carPosition ) 
+        public UncoupleCommand(CommandLog log, int carPosition)
             : base(log)
         {
             this.carPosition = carPosition;
@@ -214,7 +216,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Redo()
         {
-            Receiver.UncoupleBehind( carPosition );
+            Receiver.UncoupleBehind(carPosition);
             // Report();
         }
 
@@ -245,12 +247,12 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class CloseAndResumeActivityCommand : ActivityCommand
     {
-        public CloseAndResumeActivityCommand( CommandLog log, string eventNameLabel, double pauseDurationS )
+        public CloseAndResumeActivityCommand(CommandLog log, string eventNameLabel, double pauseDurationS)
             : base(log, eventNameLabel, pauseDurationS)
         {
             Redo();
         }
-    
+
         public override void Redo()
         {
             Receiver.CloseAndResumeCommand();
@@ -260,7 +262,7 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class QuitActivityCommand : ActivityCommand
     {
-        public QuitActivityCommand( CommandLog log, string eventNameLabel, double pauseDurationS )
+        public QuitActivityCommand(CommandLog log, string eventNameLabel, double pauseDurationS)
             : base(log, eventNameLabel, pauseDurationS)
         {
             Redo();
@@ -271,13 +273,13 @@ namespace Orts.ActivityRunner.Viewer3D
             Receiver.QuitActivityCommand();
         }
     }
-    
+
     [Serializable()]
     public abstract class UseCameraCommand : CameraCommand
     {
         public static Viewer Receiver { get; set; }
 
-        protected UseCameraCommand( CommandLog log )
+        protected UseCameraCommand(CommandLog log)
             : base(log)
         {
         }
@@ -287,7 +289,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class UseCabCameraCommand : UseCameraCommand
     {
 
-        public UseCabCameraCommand( CommandLog log ) 
+        public UseCabCameraCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -306,18 +308,18 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-	[Serializable()]
-	public sealed class ToggleThreeDimensionalCabCameraCommand : UseCameraCommand
-	{
+    [Serializable()]
+    public sealed class ToggleThreeDimensionalCabCameraCommand : UseCameraCommand
+    {
 
-		public ToggleThreeDimensionalCabCameraCommand(CommandLog log)
-			: base(log)
-		{
-			Redo();
-		}
+        public ToggleThreeDimensionalCabCameraCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
 
-		public override void Redo()
-		{
+        public override void Redo()
+        {
             Receiver.ThreeDimCabCamera.Enabled = !Receiver.ThreeDimCabCamera.Enabled;
 
             if (Receiver.ThreeDimCabCamera.Enabled && Receiver.Camera == Receiver.CabCamera)
@@ -329,13 +331,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 Receiver.CabCamera.Activate();
             }
         }
-	}
-	
-	[Serializable()]
+    }
+
+    [Serializable()]
     public sealed class UseFrontCameraCommand : UseCameraCommand
     {
 
-        public UseFrontCameraCommand( CommandLog log )
+        public UseFrontCameraCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -352,7 +354,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class UseBackCameraCommand : UseCameraCommand
     {
 
-        public UseBackCameraCommand( CommandLog log )
+        public UseBackCameraCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -369,7 +371,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class UseHeadOutForwardCameraCommand : UseCameraCommand
     {
 
-        public UseHeadOutForwardCameraCommand( CommandLog log )
+        public UseHeadOutForwardCameraCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -405,7 +407,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Receiver.FreeRoamCamera.Activate();
         }
     }
-    
+
     [Serializable()]
     public sealed class UsePreviousFreeRoamCameraCommand : UseCameraCommand
     {
@@ -421,12 +423,12 @@ namespace Orts.ActivityRunner.Viewer3D
             Receiver.ChangeToPreviousFreeRoamCamera();
         }
     }
-    
+
     [Serializable()]
     public sealed class UseHeadOutBackCameraCommand : UseCameraCommand
     {
 
-        public UseHeadOutBackCameraCommand( CommandLog log )
+        public UseHeadOutBackCameraCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -443,7 +445,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class UseBrakemanCameraCommand : UseCameraCommand
     {
 
-        public UseBrakemanCameraCommand( CommandLog log )
+        public UseBrakemanCameraCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -460,7 +462,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class UsePassengerCameraCommand : UseCameraCommand
     {
 
-        public UsePassengerCameraCommand( CommandLog log )
+        public UsePassengerCameraCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -477,7 +479,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class UseTracksideCameraCommand : UseCameraCommand
     {
 
-        public UseTracksideCameraCommand( CommandLog log )
+        public UseTracksideCameraCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -514,7 +516,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public static Viewer Receiver { get; set; }
         private protected double endTime;
 
-        protected MoveCameraCommand( CommandLog log, double startTime, double endTime )
+        protected MoveCameraCommand(CommandLog log, double startTime, double endTime)
             : base(log)
         {
             Time = startTime;
@@ -530,58 +532,54 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class CameraRotateUpDownCommand : MoveCameraCommand
     {
-        private readonly float RotationXRadians;
+        private readonly float rotationXTarget;
 
-        public CameraRotateUpDownCommand( CommandLog log, double startTime, double endTime, float rx )
+        public CameraRotateUpDownCommand(CommandLog log, double startTime, double endTime, float rx)
             : base(log, startTime, endTime)
         {
-            RotationXRadians = rx;
+            rotationXTarget = rx;
             Redo();
         }
 
         public override void Redo()
         {
-            if (Receiver.Camera is RotatingCamera)
+            if (Receiver.Camera is RotatingCamera rotatingCamera)
             {
-                var c = Receiver.Camera as RotatingCamera;
-                c.RotationXTargetRadians = RotationXRadians;
-                c.EndTime = endTime;
+                rotatingCamera.TargetRotateUpDown(rotationXTarget, endTime);
             }
             // Report();
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()} , {RotationXRadians}";
+            return $"{base.ToString()} , {rotationXTarget}";
         }
     }
 
     [Serializable()]
     public sealed class CameraRotateLeftRightCommand : MoveCameraCommand
     {
-        private float RotationYRadians;
+        private readonly float rotationYTarget;
 
-        public CameraRotateLeftRightCommand( CommandLog log, double startTime, double endTime, float ry )
+        public CameraRotateLeftRightCommand(CommandLog log, double startTime, double endTime, float ry)
             : base(log, startTime, endTime)
         {
-            RotationYRadians = ry;
+            rotationYTarget = ry;
             Redo();
         }
 
         public override void Redo()
         {
-            if (Receiver.Camera is RotatingCamera)
+            if (Receiver.Camera is RotatingCamera rotatingCamera)
             {
-                var c = Receiver.Camera as RotatingCamera;
-                c.RotationYTargetRadians = RotationYRadians;
-                c.EndTime = endTime;
+                rotatingCamera.TargetRotateLeftRight(rotationYTarget, endTime);
             }
             // Report();
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()} , {RotationYRadians}";
+            return $"{base.ToString()} , {rotationYTarget}";
         }
     }
 
@@ -591,234 +589,219 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class CameraMouseRotateCommand : MoveCameraCommand
     {
-        private float RotationXRadians;
-        private float RotationYRadians;
+        private readonly float rotationXTarget;
+        private readonly float rotationYTarget;
 
-        public CameraMouseRotateCommand( CommandLog log, double startTime, double endTime, float rx, float ry )
+        public CameraMouseRotateCommand(CommandLog log, double startTime, double endTime, float rx, float ry)
             : base(log, startTime, endTime)
         {
-            RotationXRadians = rx;
-            RotationYRadians = ry;
+            rotationXTarget = rx;
+            rotationYTarget = ry;
             Redo();
         }
 
         public override void Redo()
         {
-            if (Receiver.Camera is RotatingCamera)
+            if (Receiver.Camera is RotatingCamera rotatingCamera)
             {
-                var c = Receiver.Camera as RotatingCamera;
-                c.EndTime = endTime;
-                c.RotationXTargetRadians = RotationXRadians;
-                c.RotationYTargetRadians = RotationYRadians;
+                rotatingCamera.TargetRotateByMouse(rotationXTarget, rotationYTarget, endTime);
             }
             // Report();
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()}, {endTime} {RotationXRadians} {RotationYRadians}";
+            return $"{base.ToString()}, {endTime} {rotationXTarget} {rotationYTarget}";
         }
     }
 
     [Serializable()]
     public sealed class CameraXCommand : MoveCameraCommand
     {
-        private float XRadians;
+        private readonly float moveXTarget;
 
-        public CameraXCommand( CommandLog log, double startTime, double endTime, float xr )
+        public CameraXCommand(CommandLog log, double startTime, double endTime, float xr)
             : base(log, startTime, endTime)
         {
-            XRadians = xr;
+            moveXTarget = xr;
             Redo();
         }
 
         public override void Redo()
         {
-            if (Receiver.Camera is RotatingCamera)
+            if (Receiver.Camera is RotatingCamera rotatingCamera)
             {
-                var c = Receiver.Camera as RotatingCamera;
-                c.XTargetRadians = XRadians;
-                c.EndTime = endTime;
+                rotatingCamera.TargetMoveX(moveXTarget, endTime);
             }
             // Report();
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()}, {XRadians}";
+            return $"{base.ToString()}, {moveXTarget}";
         }
     }
 
     [Serializable()]
     public sealed class CameraYCommand : MoveCameraCommand
     {
-        private float YRadians;
+        private readonly float moveYTarget;
 
-        public CameraYCommand( CommandLog log, double startTime, double endTime, float yr )
+        public CameraYCommand(CommandLog log, double startTime, double endTime, float yr)
             : base(log, startTime, endTime)
         {
-            YRadians = yr;
+            moveYTarget = yr;
             Redo();
         }
 
         public override void Redo()
         {
-            if (Receiver.Camera is RotatingCamera)
+            if (Receiver.Camera is RotatingCamera rotatingCamera)
             {
-                var c = Receiver.Camera as RotatingCamera;
-                c.YTargetRadians = YRadians;
-                c.EndTime = endTime;
+                rotatingCamera.TargetMoveY(moveYTarget, endTime);
             }
             // Report();
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()}, {YRadians}";
+            return $"{base.ToString()}, {moveYTarget}";
         }
     }
 
     [Serializable()]
     public sealed class CameraZCommand : MoveCameraCommand
     {
-        private float ZRadians;
+        private readonly float moveZTarget;
 
-        public CameraZCommand( CommandLog log, double startTime, double endTime, float zr )
+        public CameraZCommand(CommandLog log, double startTime, double endTime, float zr)
             : base(log, startTime, endTime)
         {
-            ZRadians = zr;
+            moveZTarget = zr;
             Redo();
         }
 
         public override void Redo()
         {
-            if (Receiver.Camera is RotatingCamera)
+            if (Receiver.Camera is RotatingCamera rotatingCamera)
             {
-                var c = Receiver.Camera as RotatingCamera;
-                c.ZTargetRadians = ZRadians;
-                c.EndTime = endTime;
+                rotatingCamera.TargetMoveZ(moveZTarget, endTime);
             } // Report();
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()}, {ZRadians}";
+            return $"{base.ToString()}, {moveZTarget}";
         }
     }
 
-	[Serializable()]
-	public sealed class CameraMoveXYZCommand : MoveCameraCommand
-	{
-        private float X, Y, Z;
+    [Serializable()]
+    public sealed class CameraMoveXYZCommand : MoveCameraCommand
+    {
+        private readonly float moveXTarget, moveYTarget, moveZTarget;
 
         public CameraMoveXYZCommand(CommandLog log, double startTime, double endTime, float xr, float yr, float zr)
-			: base(log, startTime, endTime)
-		{
-			X = xr; Y = yr; Z = zr;
-			Redo();
-		}
-
-		public override void Redo()
-		{
-			if (Receiver.Camera is CabCamera3D)
-			{
-				var c = Receiver.Camera as CabCamera3D;
-				c.MoveCameraXYZ(X, Y, Z);
-				c.EndTime = endTime;
-			}
-			// Report();
-		}
-
-		public override string ToString()
-		{
-			return $"{base.ToString()}, {X}";
-		}
-	}
-
-	[Serializable()]
-    public sealed class TrackingCameraXCommand : MoveCameraCommand
-    {
-        private float PositionXRadians;
-
-        public TrackingCameraXCommand( CommandLog log, double startTime, double endTime, float rx )
             : base(log, startTime, endTime)
         {
-            PositionXRadians = rx;
+            moveXTarget = xr;
+            moveYTarget = yr;
+            moveZTarget = zr;
             Redo();
         }
 
         public override void Redo()
         {
-            if (Receiver.Camera is TrackingCamera)
+            if (Receiver.Camera is CabCamera3D cabCamera3D)
             {
-                var c = Receiver.Camera as TrackingCamera;
-                c.PositionXTargetRadians = PositionXRadians;
-                c.EndTime = endTime;
+                cabCamera3D.MoveCameraXYZ(moveXTarget, moveYTarget, moveZTarget, endTime);
             }
             // Report();
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()}, {PositionXRadians}";
+            return $"{base.ToString()}, {moveXTarget}";
+        }
+    }
+
+    [Serializable()]
+    public sealed class TrackingCameraXCommand : MoveCameraCommand
+    {
+        private readonly float positionXTarget;
+
+        public TrackingCameraXCommand(CommandLog log, double startTime, double endTime, float rx)
+            : base(log, startTime, endTime)
+        {
+            positionXTarget = rx;
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver.Camera is TrackingCamera trackingCamera)
+            {
+                trackingCamera.MoveXTarget(positionXTarget, endTime);
+            }
+            // Report();
+        }
+
+        public override string ToString()
+        {
+            return $"{base.ToString()}, {positionXTarget}";
         }
     }
 
     [Serializable()]
     public sealed class TrackingCameraYCommand : MoveCameraCommand
     {
-        private float PositionYRadians;
+        private readonly float positionYTarget;
 
-        public TrackingCameraYCommand( CommandLog log, double startTime, double endTime, float ry )
+        public TrackingCameraYCommand(CommandLog log, double startTime, double endTime, float ry)
             : base(log, startTime, endTime)
         {
-            PositionYRadians = ry;
+            positionYTarget = ry;
             Redo();
         }
 
         public override void Redo()
         {
-            if (Receiver.Camera is TrackingCamera)
+            if (Receiver.Camera is TrackingCamera trackingCamera)
             {
-                var c = Receiver.Camera as TrackingCamera;
-                c.PositionYTargetRadians = PositionYRadians;
-                c.EndTime = endTime;
+                trackingCamera.MoveYTarget(positionYTarget, endTime);
             }
             // Report();
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()}, {PositionYRadians}";
+            return $"{base.ToString()}, {positionYTarget}";
         }
     }
 
     [Serializable()]
     public sealed class TrackingCameraZCommand : MoveCameraCommand
     {
-        private float PositionDistanceMetres;
+        private readonly float positionDistanceTarget;
 
-        public TrackingCameraZCommand( CommandLog log, double startTime, double endTime, float d )
+        public TrackingCameraZCommand(CommandLog log, double startTime, double endTime, float d)
             : base(log, startTime, endTime)
         {
-            PositionDistanceMetres = d;
+            positionDistanceTarget = d;
             Redo();
         }
 
         public override void Redo()
         {
-            if (Receiver.Camera is TrackingCamera)
+            if (Receiver.Camera is TrackingCamera trackingCamera)
             {
-                var c = Receiver.Camera as TrackingCamera;
-                c.PositionDistanceTargetMetres = PositionDistanceMetres;
-                c.EndTime = endTime;
+                trackingCamera.MoveDistanceTarget(positionDistanceTarget, endTime);
             }
             // Report();
         }
 
         public override string ToString()
         {
-            return $"{base.ToString()}, {PositionDistanceMetres}";
+            return $"{base.ToString()}, {positionDistanceTarget}";
         }
     }
 
@@ -826,7 +809,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class NextCarCommand : UseCameraCommand
     {
 
-        public NextCarCommand( CommandLog log )
+        public NextCarCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -847,7 +830,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class PreviousCarCommand : UseCameraCommand
     {
 
-        public PreviousCarCommand( CommandLog log )
+        public PreviousCarCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -868,7 +851,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class FirstCarCommand : UseCameraCommand
     {
 
-        public FirstCarCommand( CommandLog log )
+        public FirstCarCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -889,7 +872,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class LastCarCommand : UseCameraCommand
     {
 
-        public LastCarCommand( CommandLog log )
+        public LastCarCommand(CommandLog log)
             : base(log)
         {
             Redo();
@@ -939,7 +922,8 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (Receiver.Camera.AttachedCar.PassengerViewpoints?.Count == 1)
                 Receiver.PassengerCamera.SwitchSideCameraCar(Receiver.Camera.AttachedCar);
-            else Receiver.PassengerCamera.ChangePassengerViewPoint(Receiver.Camera.AttachedCar);
+            else
+                Receiver.PassengerCamera.ChangePassengerViewPoint(Receiver.Camera.AttachedCar);
             // Report();
         }
     }
@@ -965,7 +949,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-   [Serializable()]
+    [Serializable()]
     public sealed class ToggleBrowseForwardsCommand : UseCameraCommand
     {
 

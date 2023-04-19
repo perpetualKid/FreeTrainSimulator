@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Common;
 using Orts.Common.Calc;
@@ -35,10 +34,10 @@ namespace Orts.ActivityRunner.Viewer3D
     internal static class SkyConstants
     {
         // Sky dome constants
-        public const int skyRadius = 6000;
-        public const int skySides = 24;
+        public const int Radius = 6000;
+        public const int Sides = 24;
         // <CScomment> added a belt of triangles just below 0 level to avoid empty sky below horizon
-        public const short skyLevels = 6;
+        public const short Levels = 6;
     }
 
     public class SkySteps
@@ -244,18 +243,18 @@ namespace Orts.ActivityRunner.Viewer3D
         private static short[] triangleListIndices; // Trilist buffer.
 
         // Sky dome geometry is based on two global variables: the radius and the number of sides
-        public int skyRadius = SkyConstants.skyRadius;
-        private static int skySides = SkyConstants.skySides;
+        public int skyRadius = SkyConstants.Radius;
+        private static int skySides = SkyConstants.Sides;
         public int cloudDomeRadiusDiff = 600; // Amount by which cloud dome radius is smaller than sky dome
         // skyLevels: Used for iterating vertically through the "levels" of the hemisphere polygon
-        private static int skyLevels = SkyConstants.skyLevels;
+        private static int skyLevels = SkyConstants.Levels;
         // Number of vertices in the sky hemisphere. (each dome = 169 for 24-sided sky dome: 24 x 7 + 1)
         // plus four more for the moon quad
         private static int numVertices = 4 + 2 * ((skyLevels + 1) * skySides + 1);
         // Number of point indices (each dome = 912 for 24 sides: 7 levels of 24 triangle pairs each
         // plus 24 triangles at the zenith)
         // plus six more for the moon quad
-        private static short indexCount = 6 + 2 * (SkyConstants.skySides * 6 *SkyConstants.skyLevels + 3 * SkyConstants.skySides);
+        private static short indexCount = 6 + 2 * (SkyConstants.Sides * 6 *SkyConstants.Levels + 3 * SkyConstants.Sides);
 
         /// <summary>
         /// Constructor.
@@ -494,7 +493,7 @@ namespace Orts.ActivityRunner.Viewer3D
             skyShader.Random = viewer.World.Sky.moonPhase; // Keep setting this before LightVector for the preshader to work correctly
             skyShader.LightVector = viewer.World.Sky.solarDirection;
             skyShader.Time = (float)viewer.Simulator.ClockTime / 100000;
-            skyShader.MoonScale = SkyConstants.skyRadius / 20;
+            skyShader.MoonScale = SkyConstants.Radius / 20;
             skyShader.Overcast = viewer.Simulator.Weather.OvercastFactor;
             skyShader.SetFog(viewer.Simulator.Weather.FogVisibilityDistance, ref SharedMaterialManager.FogColor);
             skyShader.WindSpeed = viewer.World.Sky.windSpeed;

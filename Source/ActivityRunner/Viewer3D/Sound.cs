@@ -971,7 +971,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (Car == null && WorldLocation != WorldLocation.None && !Ignore3D && IsExternal)
             {
-                WorldLocation = WorldLocation.NormalizeTo(Camera.SoundBaseTile.X, Camera.SoundBaseTile.Y);
+                WorldLocation = WorldLocation.NormalizeTo(Camera.SoundBaseTile.X, Camera.SoundBaseTile.Z);
                 float[] position = new float[] {
                     WorldLocation.Location.X,
                     WorldLocation.Location.Y,
@@ -1076,7 +1076,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             get
             {
-                return (viewer.Camera.Style == Camera.Styles.Cab || viewer.Camera.Style == Camera.Styles.ThreeDimCab || viewer.Camera.Style == Camera.Styles.Passenger) && (viewer.Camera.AttachedCar != Car);
+                return (viewer.Camera.Style == CameraStyle.Cab || viewer.Camera.Style == CameraStyle.Cab3D || viewer.Camera.Style == CameraStyle.Passenger) && (viewer.Camera.AttachedCar != Car);
             }
         }
 
@@ -1093,7 +1093,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             get
             {
-                return (!IsEnvSound && !IsExternal && (viewer.Camera.Style == Camera.Styles.Cab || viewer.Camera.Style == Camera.Styles.ThreeDimCab)
+                return (!IsEnvSound && !IsExternal && (viewer.Camera.Style == CameraStyle.Cab || viewer.Camera.Style == CameraStyle.Cab3D)
                     && Car != null && viewer.Camera.AttachedCar != null && !(Car is MSTSLocomotive) && !Car.HasInsideView && Car.PassengerViewpoints == null
                     && (Car.Train == viewer.Camera.AttachedCar.Train || Car.Train.TrainType == TrainType.Static || Car.Train.TrainType == TrainType.AiNotStarted));
             }
@@ -1110,18 +1110,18 @@ namespace Orts.ActivityRunner.Viewer3D
             if (conditions == null)
                 return false;
 
-            Camera.Styles viewpoint = viewer.Camera.Style;
+            CameraStyle viewpoint = viewer.Camera.Style;
 
             if (IsEnvSound || !IsEnvSound && IsntThisCabView && !IsInvisibleSoundCar && !WeatherSound)
             {
-                viewpoint = Camera.Styles.External;
+                viewpoint = CameraStyle.External;
             }
 
-            if (conditions.CabCam && (viewpoint == Camera.Styles.Cab || viewpoint == Camera.Styles.ThreeDimCab))
+            if (conditions.CabCam && (viewpoint == CameraStyle.Cab || viewpoint == CameraStyle.Cab3D))
                 return true;
-            if (conditions.PassengerCam && viewpoint == Camera.Styles.Passenger)
+            if (conditions.PassengerCam && viewpoint == CameraStyle.Passenger)
                 return true;
-            if (conditions.ExternalCam && viewpoint == Camera.Styles.External)
+            if (conditions.ExternalCam && viewpoint == CameraStyle.External)
                 return true;
 
             return false;
@@ -1404,7 +1404,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                     volume *= Interpolate(x, MSTSStream.VolumeCurves[i]);
                 }
 
-            if (SoundSource.IsExternal && Program.Viewer.Camera.Style != Camera.Styles.External && !SoundSource.IsUnattenuated)
+            if (SoundSource.IsExternal && Program.Viewer.Camera.Style != CameraStyle.External && !SoundSource.IsUnattenuated)
             {
                 if (Program.Viewer.Camera.AttachedCar == null || ((MSTSWagon)Program.Viewer.Camera.AttachedCar).ExternalSoundPassThruPercent == -1)
                     volume *= Program.Viewer.Settings.ExternalSoundPassThruPercent * 0.01f;
@@ -2548,7 +2548,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                             Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
                             break;
                         case OrtsActivitySoundFileType.Pass:
-                            if (Program.Viewer.Camera.Style == Camera.Styles.Passenger && Program.Viewer.Camera.AttachedCar != null)
+                            if (Program.Viewer.Camera.Style == CameraStyle.Passenger && Program.Viewer.Camera.AttachedCar != null)
                             {
                                 var selectedWagon = (MSTSWagon)Program.Viewer.Camera.AttachedCar;
                                 ActivitySounds = new SoundSource(selectedWagon, Program.Viewer.World.Trains.GetViewer(selectedWagon), ORTSActSoundFile);
@@ -2583,7 +2583,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                             Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
                             break;
                         case OrtsActivitySoundFileType.Pass:
-                            if (Program.Viewer.Camera.Style == Camera.Styles.Passenger && Program.Viewer.Camera.AttachedCar != null)
+                            if (Program.Viewer.Camera.Style == CameraStyle.Passenger && Program.Viewer.Camera.AttachedCar != null)
                             {
                                 var selectedWagon = (MSTSWagon)Program.Viewer.Camera.AttachedCar;
                                 ActivitySounds = new SoundSource(selectedWagon, ORTSActSoundFile, ORTSActSoundFileType, true);

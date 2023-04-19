@@ -990,6 +990,15 @@ namespace Orts.Common
         AiIncorporated,     //AI train is incorporated in other train
     }
 
+    public enum CameraStyle
+    {
+        External,
+        Cab,
+        Passenger,
+        Cab3D,
+    }
+
+
     public enum Movement
     {
         Forward,

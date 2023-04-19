@@ -280,12 +280,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
             WellKnownCameras = new List<Camera>();
             WellKnownCameras.Add(CabCamera = new CabCamera(this));
-            WellKnownCameras.Add(FrontCamera = new TrackingCamera(this, TrackingCamera.AttachedTo.Front));
-            WellKnownCameras.Add(BackCamera = new TrackingCamera(this, TrackingCamera.AttachedTo.Rear));
+            WellKnownCameras.Add(FrontCamera = new TrackingCamera(this, true));
+            WellKnownCameras.Add(BackCamera = new TrackingCamera(this, false));
             WellKnownCameras.Add(PassengerCamera = new PassengerCamera(this));
             WellKnownCameras.Add(BrakemanCamera = new BrakemanCamera(this));
-            WellKnownCameras.Add(HeadOutForwardCamera = new HeadOutCamera(this, HeadOutCamera.HeadDirection.Forward));
-            WellKnownCameras.Add(HeadOutBackCamera = new HeadOutCamera(this, HeadOutCamera.HeadDirection.Backward));
+            WellKnownCameras.Add(HeadOutForwardCamera = new HeadOutCamera(this, true));
+            WellKnownCameras.Add(HeadOutBackCamera = new HeadOutCamera(this, false));
             WellKnownCameras.Add(TracksideCamera = new TracksideCamera(this));
             WellKnownCameras.Add(SpecialTracksideCamera = new SpecialTracksideCamera(this));
             WellKnownCameras.Add(new FreeRoamCamera(this, FrontCamera)); // Any existing camera will suffice to satisfy .Save() and .Restore()
