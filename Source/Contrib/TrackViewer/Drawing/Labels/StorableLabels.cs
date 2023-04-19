@@ -102,10 +102,10 @@ namespace ORTS.TrackViewer.Drawing.Labels
 #pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         /// <summary> The text of the label </summary>
-        [JsonProperty("LabelText")]
+        [JsonProperty(nameof(LabelText))]
         public string LabelText { get; }
         /// <summary> The MSTS location of the label </summary>
-        [JsonProperty("WorldLocation")]
+        [JsonProperty(nameof(WorldLocation))]
         public WorldLocation WorldLocation { get; }
 
         /// <summary>

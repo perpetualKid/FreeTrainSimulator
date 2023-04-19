@@ -36,14 +36,14 @@ namespace ORTS.TrackViewer.Editing.Charts
     {
         #region public members
         /// <summary>List of individual points with path data along the path.</summary>
-        [JsonProperty("PathChartPoints")]
+        [JsonProperty(nameof(PathChartPoints))]
         public IEnumerable<PathChartPoint> PathChartPoints { get; private set; }
 
         /// <summary>point for which all of the data (apart from distance along section) are the maxima seen in all PathChartPoints</summary>
-        [JsonProperty("PointWithMaxima")]
+        [JsonProperty(nameof(PointWithMaxima))]
         public PathChartPoint PointWithMaxima { get; private set; }
         /// <summary>point for which all of the data (apart from distance along section) are the minima seen in all PathChartPoints</summary>
-        [JsonProperty("PointWithMinima")]
+        [JsonProperty(nameof(PointWithMinima))]
         public PathChartPoint PointWithMinima { get; private set; }
         /// <summary>The distance along the path for each path-node</summary>
         [JsonIgnore]
@@ -52,7 +52,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         [JsonIgnore]
         public bool HasPath => PathChartPoints != null && PathChartPoints.Any();
 
-        [JsonProperty("PathName")]
+        [JsonProperty(nameof(PathName))]
         public string PathName { get; set; }
         #endregion
 
