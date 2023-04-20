@@ -657,7 +657,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Matrix matrix = Matrix.CreateRotationX(rotationXRadians);
             Vector3.Transform(ref movement, ref matrix, out movement);
-            matrix = Matrix.CreateRotationX(rotationYRadians);
+            matrix = Matrix.CreateRotationY(rotationYRadians);
             Vector3.Transform(ref movement, ref matrix, out movement);
             cameraLocation = new WorldLocation(cameraLocation.TileX, cameraLocation.TileZ, cameraLocation.Location + movement, true);
         }
