@@ -279,24 +279,17 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="filespec">Complete filepath string to track profile file.</param>
         public TRPFile(Viewer viewer, string filespec)
         {
-            if (string.IsNullOrEmpty(filespec))
+            if (string.IsNullOrEmpty(filespec) || !File.Exists(filespec))
             {
                 // No track profile provided, use default
                 TrackProfile = new TrProfile(viewer);
                 Trace.Write("(default)");
                 return;
             }
-            FileInfo fileInfo = new FileInfo(filespec);
-            if (!fileInfo.Exists)
+            
+            string extension = Path.GetExtension(filespec).ToUpperInvariant();
             {
-                TrackProfile = new TrProfile(viewer); // Default profile if no file
-                Trace.Write("(default)");
-            }
-            else
-            {
-                string fext = filespec.Substring(filespec.LastIndexOf('.')); // File extension
-
-                switch (fext.ToUpper())
+                switch (extension)
                 {
                     case ".STF": // MSTS-style
                         using (STFReader stf = new STFReader(filespec, false))
@@ -314,7 +307,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                         new STFReader.TokenProcessor("trprofile", ()=>{ TrackProfile = new TrProfile(viewer, stf); }),
                                     });
                                 }
-                                catch (Exception e)
+                                catch (Exception e) when (e is Exception)
                                 {
                                     STFException.TraceWarning(stf, "Track profile STF constructor failed because " + e.Message + ". Using DEFAULT profile.");
                                     TrackProfile = new TrProfile(viewer); // Default profile if no file
@@ -334,24 +327,28 @@ namespace Orts.ActivityRunner.Viewer3D
                     case ".XML": // XML-style
                         // Convention: .xsd filename must be the same as .xml filename and in same path.
                         // Form filespec for .xsd file
-                        string xsdFilespec = filespec.Substring(0, filespec.LastIndexOf('.')) + ".xsd"; // First part
-
-                        // Specify XML settings
-                        XmlReaderSettings settings = new XmlReaderSettings();
-                        settings.ConformanceLevel = ConformanceLevel.Auto; // Fragment, Document, or Auto
-                        settings.IgnoreComments = true;
-                        settings.IgnoreWhitespace = true;
-                        // Settings for validation
-                        settings.ValidationEventHandler += new ValidationEventHandler(ValidationCallback);
-                        settings.ValidationFlags |= XmlSchemaValidationFlags.ReportValidationWarnings;
-                        settings.ValidationType = ValidationType.Schema; // Independent external file
-                        settings.Schemas.Add("TrProfile.xsd", XmlReader.Create(xsdFilespec)); // Add schema from file
-
-                        // Create an XML reader for the .xml file
-                        using (XmlReader reader = XmlReader.Create(filespec, settings))
+                        string xsdFilespec = Path.ChangeExtension(filespec, "xsd");
+                        using (XmlReader xsdReader = XmlReader.Create(xsdFilespec))
                         {
-                            TrackProfile = new TrProfile(viewer, reader);
+                            // Specify XML settings
+                            XmlReaderSettings settings = new XmlReaderSettings()
+                            {
+                                ConformanceLevel = ConformanceLevel.Auto, // Fragment, Document, or Auto
+                                IgnoreComments = true,
+                                IgnoreWhitespace = true
+                            };
+                            // Settings for validation
+                            settings.ValidationEventHandler += new ValidationEventHandler(ValidationCallback);
+                            settings.ValidationFlags |= XmlSchemaValidationFlags.ReportValidationWarnings;
+                            settings.ValidationType = ValidationType.Schema; // Independent external file
+                            settings.Schemas.Add("TrProfile.xsd", xsdReader); // Add schema from file
+                                                                              // Create an XML reader for the .xml file
+                            using (XmlReader reader = XmlReader.Create(filespec, settings))
+                            {
+                                TrackProfile = new TrProfile(viewer, reader);
+                            }
                         }
+
                         Trace.Write("(.XML)");
                         break;
 

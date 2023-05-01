@@ -527,7 +527,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     var index = tmp.IndexOf(':', StringComparison.Ordinal);
                     if (index < 0)
                         continue;
-                    tmp = tmp.Substring(0, index) + "\r";
+                    tmp = string.Concat(tmp.AsSpan(0, index), "\r");
                     if (user.Contains(tmp, StringComparison.OrdinalIgnoreCase))
                         continue;
                     user += tmp;
