@@ -302,7 +302,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        public bool DriveWheelOnlyBrakes = false;
+        public bool DriveWheelOnlyBrakes;
         public bool SteamEngineBrakeFitted;
         public bool TrainBrakeFitted;
         public bool EngineBrakeFitted;
@@ -1322,7 +1322,6 @@ namespace Orts.Simulation.RollingStocks
             EmergencyCausesThrottleDown = sourceLocomotive.EmergencyCausesThrottleDown;
             EmergencyEngagesHorn = sourceLocomotive.EmergencyEngagesHorn;
             WheelslipCausesThrottleDown = sourceLocomotive.WheelslipCausesThrottleDown;
-            DriveWheelOnlyBrakes = sourceLocomotive.DriveWheelOnlyBrakes;
 
             CompressorIsMechanical = sourceLocomotive.CompressorIsMechanical;
             CompressorRestartPressurePSI = sourceLocomotive.CompressorRestartPressurePSI;
@@ -1333,6 +1332,7 @@ namespace Orts.Simulation.RollingStocks
             MainResVolumeM3 = sourceLocomotive.MainResVolumeM3;
             MainResChargingRatePSIpS = sourceLocomotive.MainResChargingRatePSIpS;
             BrakePipeDischargeTimeFactor = sourceLocomotive.BrakePipeDischargeTimeFactor;
+            DriveWheelOnlyBrakes = sourceLocomotive.DriveWheelOnlyBrakes;
 
             DynamicBrakeBlended = sourceLocomotive.DynamicBrakeBlended;
             DynamicBrakeBlendingEnabled = sourceLocomotive.DynamicBrakeBlendingEnabled;
