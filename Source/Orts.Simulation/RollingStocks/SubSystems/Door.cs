@@ -18,13 +18,11 @@ using System;
 using System.IO;
 
 using Orts.Common;
-using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
-        Open,
     public class Doors : ISubSystem<Doors>
     {
         public Door RightDoor { get; }
