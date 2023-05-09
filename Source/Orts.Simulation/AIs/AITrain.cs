@@ -4420,7 +4420,7 @@ namespace Orts.Simulation.AIs
                     thisItem.ActiveItem.SignalDetails.HoldState == SignalHoldState.StationStop)
                 {
                     // check if train is approaching or standing at station and has not yet departed
-                    if (StationStops != null && StationStops.Count >= 1 && AtStation && StationStops[0].ExitSignal == thisItem.ActiveItem.ObjectDetails.thisRef)
+                    if (StationStops != null && StationStops.Count >= 1 && AtStation && StationStops[0].ExitSignal == thisItem.ActiveItem.SignalDetails.Index)
                     {
                         actionValid = false;
                     }
