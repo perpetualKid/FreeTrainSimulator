@@ -5958,7 +5958,7 @@ namespace Orts.Simulation.Timetables
                         {
                             goingToAttach = true;
                         }
-                        else if (occTTTrain.TrainType == TRAINTYPE.PLAYER && AttachDetails != null && AttachDetails.Valid && AttachDetails.ReadyToAttach && AttachDetails.AttachTrain == occTTTrain.OrgAINumber)
+                        else if (occTTTrain.TrainType == TrainType.Player && AttachDetails != null && AttachDetails.Valid && AttachDetails.ReadyToAttach && AttachDetails.AttachTrain == occTTTrain.OrgAINumber)
                         {
                             goingToAttach = true;
                         }
