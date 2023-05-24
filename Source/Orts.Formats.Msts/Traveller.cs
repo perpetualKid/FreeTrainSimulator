@@ -220,9 +220,8 @@ namespace Orts.Formats.Msts
                         throw new InvalidDataException($"Track node {startTrackNode.UiD} could not be found in the track database.");
                     else
                     {
-                        throw new MissingTrackNodeException("Missing Track Node at "+location.TileX+" "+location.TileZ+"!");
+                        throw new MissingTrackNodeException($"Missing Track Node at {location.TileX} {location.TileZ}!");
                     }
-
                 }
 
                 // Figure out which end of the track node is closest and use that.
