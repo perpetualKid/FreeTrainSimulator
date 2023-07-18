@@ -13,7 +13,6 @@
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Remove="Microsoft.NETCore.Targets" Version="5.0.0" PrivateAssets="all" />
 		<PackageReference Remove="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" PrivateAssets="all" />
 	</ItemGroup>
 </Project>
