@@ -4207,21 +4207,19 @@ namespace Orts.Simulation.AIs
             triggerDistanceM = Math.Max(PresentPosition[Direction.Forward].DistanceTravelled, triggerDistanceM - (3.0f * signalApproachDistanceM));
 
             // for signal stop item : check if action allready in list, if so, remove (can be result of restore action)
-            LinkedListNode<DistanceTravelledItem> thisItemLink = requiredActions.First;
+            LinkedListNode<DistanceTravelledItem> thisItemLink = RequiredActions.First;
             bool itemFound = false;
 
             while (thisItemLink != null && !itemFound)
             {
-                DistanceTravelledItem thisDTItem = thisItemLink.Value;
-                if (thisDTItem is AIActionItem)
+                if (thisItemLink.Value is AIActionItem actionItem)
                 {
-                    AIActionItem thisActionItem = thisDTItem as AIActionItem;
-                    if (thisActionItem.ActiveItem != null && thisActionItem.NextAction == thisAction)
+                    if (actionItem.ActiveItem != null && actionItem.NextAction == thisAction)
                     {
-                        if (thisActionItem.ActiveItem.ObjectDetails.thisRef == thisItem.ObjectDetails.thisRef)
+                        if (actionItem.ActiveItem.SignalDetails.Index == thisItem.SignalDetails.Index)
                         {
                             // equal item, so remove it
-                            requiredActions.Remove(thisDTItem);
+                            RequiredActions.Remove(thisItemLink.Value);
                             itemFound = true;
                         }
                     }
