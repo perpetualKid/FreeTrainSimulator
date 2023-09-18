@@ -10,8 +10,8 @@
     <Description>Open Rails Toolbox</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GetText.NET" Version="1.8.7" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="1.8.7" />
+    <PackageReference Include="GetText.NET" Version="1.9.14" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="1.9.14" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
   </ItemGroup>
   <ItemGroup>
