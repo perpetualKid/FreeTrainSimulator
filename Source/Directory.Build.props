@@ -43,7 +43,7 @@
 		<NoWin32Manifest>true</NoWin32Manifest>
 		<TieredCompilation>true</TieredCompilation>
 		<NeutralLanguage>en</NeutralLanguage>
-		<TargetFramework>net6.0-windows</TargetFramework>
+		<TargetFramework>net8.0-windows</TargetFramework>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 	</PropertyGroup>
 </Project>

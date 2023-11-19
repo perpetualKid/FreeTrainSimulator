@@ -152,7 +152,7 @@ namespace Orts.Simulation.MultiPlayer
                 }
 
                 byte[] oversized = null;
-                ReadOnlySpan<byte> GetSpanInternal(in ReadOnlySequence<byte> payload)
+                ReadOnlySpan<byte> GetSpanInternal(ReadOnlySequence<byte> payload)
                 {
                     // linearize
                     oversized = ArrayPool<byte>.Shared.Rent(checked((int)payload.Length));

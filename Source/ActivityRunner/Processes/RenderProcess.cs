@@ -320,7 +320,7 @@ namespace Orts.ActivityRunner.Processes
         private void SetScreenMode(ScreenMode targetMode)
         {
             syncing = true;
-            windowForm.Invoke((MethodInvoker)delegate
+            windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
             {
                 if (graphicsDeviceManager.IsFullScreen)
                     graphicsDeviceManager.ToggleFullScreen();
