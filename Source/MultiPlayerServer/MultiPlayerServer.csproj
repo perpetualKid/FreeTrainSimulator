@@ -8,7 +8,7 @@
 		<RootNamespace>Orts.MultiPlayerServer</RootNamespace>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
+		<PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
 		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
 	</ItemGroup>
 </Project>

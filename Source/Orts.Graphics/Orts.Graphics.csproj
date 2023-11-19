@@ -50,7 +50,7 @@
 		<ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
 		<ProjectReference Include="..\Orts.Models\Orts.Models.csproj" />
 		<PackageReference Include="GetText.NET" Version="1.9.14" />
-		<PackageReference Include="System.Resources.Extensions" Version="7.0.0" />
+		<PackageReference Include="System.Resources.Extensions" Version="8.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Update="Content\blank.png">
