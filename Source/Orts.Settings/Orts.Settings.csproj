@@ -5,7 +5,6 @@
     <OutputPath>..\..\Program</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
     <PackageReference Include="GetText.NET" Version="1.9.14" />
   </ItemGroup>
