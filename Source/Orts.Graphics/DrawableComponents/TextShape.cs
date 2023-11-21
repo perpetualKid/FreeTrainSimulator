@@ -24,8 +24,7 @@ namespace Orts.Graphics.DrawableComponents
 
         public static TextShape Instance(Game game, SpriteBatch spriteBatch)
         {
-            if (null == game)
-                throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             TextShape instance;
             if ((instance = game.Components.OfType<TextShape>().FirstOrDefault()) == null)

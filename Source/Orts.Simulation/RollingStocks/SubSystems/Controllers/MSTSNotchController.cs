@@ -252,8 +252,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public MSTSNotchController(MSTSNotchController source)
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             CurrentValue = source.CurrentValue;
             IntermediateValue = source.IntermediateValue;

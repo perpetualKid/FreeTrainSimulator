@@ -600,8 +600,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="trackItems">The array of new items.</param>
         public void AddTrackItems(TrackItem[] trackItems)
         {
-            if (null == trackItems)
-                throw new ArgumentNullException(nameof(trackItems));
+            ArgumentNullException.ThrowIfNull(trackItems);
 
             int i = TrackItems?.Count ?? 0;
             foreach (TrackItem item in trackItems)

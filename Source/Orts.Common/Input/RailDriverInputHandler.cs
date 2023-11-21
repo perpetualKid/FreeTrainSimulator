@@ -21,8 +21,7 @@ namespace Orts.Common.Input
 
         public void Initialize(EnumArray<byte, T> userCommands, RailDriverInputGameComponent inputGameComponent, UserCommandController<T> userCommandController)
         {
-            if (null == userCommands)
-                throw new ArgumentNullException(nameof(userCommands));
+            ArgumentNullException.ThrowIfNull(userCommands);
 
             this.userCommandController = userCommandController ?? throw new ArgumentNullException(nameof(userCommandController));
             this.inputGameComponent = inputGameComponent ?? throw new ArgumentNullException(nameof(inputGameComponent));

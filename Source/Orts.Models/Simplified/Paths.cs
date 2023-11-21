@@ -112,8 +112,7 @@ namespace Orts.Models.Simplified
         /// <param name="includeNonPlayerPaths">Selects whether non-player paths are included or not</param>
         public static async Task<IEnumerable<Path>> GetPaths(Route route, bool includeNonPlayerPaths, CancellationToken token)
         {
-            if (null == route)
-                throw new ArgumentNullException(nameof(route));
+            ArgumentNullException.ThrowIfNull(route);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
@@ -164,8 +163,7 @@ namespace Orts.Models.Simplified
         /// <param name="name">The (file) name of the path, without directory, any extension allowed</param>
         public static Path GetPath(Route route, string name)
         {
-            if (null == route)
-                throw new ArgumentNullException(nameof(route));
+            ArgumentNullException.ThrowIfNull(route);
 
             string file = route.RouteFolder.PathFile(name);
             return new Path(file);

@@ -33,8 +33,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override void Parse(string lowercasetoken, STFReader stf)
         {
-            if (null == stf)
-                throw new ArgumentNullException(nameof(stf));
+            ArgumentNullException.ThrowIfNull(stf);
             switch (lowercasetoken)
             {
                 // OpenRails specific parameters
@@ -69,8 +68,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override string GetStatus(EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
-            if (null == units)
-                throw new ArgumentNullException(nameof(units));
+            ArgumentNullException.ThrowIfNull(units);
             // display differently depending upon whether vacuum or air braked system
             if (car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped)
             {
@@ -84,8 +82,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, EnumArray<Pressure.Unit, BrakeSystemComponent> units)
         {
-            if (null == units)
-                throw new ArgumentNullException(nameof(units));
+            ArgumentNullException.ThrowIfNull(units);
             // display differently depending upon whether vacuum or air braked system
             if (car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped)
             {

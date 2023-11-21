@@ -357,8 +357,7 @@ namespace Orts.Common.Position
         /// <param name="outf">output file</param>
         public static void Save(in WorldLocation instance, BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write(instance.TileX);
             outf.Write(instance.TileZ);
@@ -373,8 +372,7 @@ namespace Orts.Common.Position
         /// <param name="inf">input file</param>
         public static WorldLocation Restore(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             int tileX = inf.ReadInt32();
             int tileZ = inf.ReadInt32();

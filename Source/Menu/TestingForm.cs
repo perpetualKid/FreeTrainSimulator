@@ -213,7 +213,7 @@ namespace Orts.Menu
                 using (StreamWriter writer = File.CreateText(summaryFilePath))
                     await writer.WriteLineAsync("Route, Activity, Passed, Errors, Warnings, Infos, Load Time, FPS").ConfigureAwait(false);
                 using (StreamWriter writer = File.CreateText(logFilePath))
-                    await writer.FlushAsync().ConfigureAwait(false);
+                    await writer.FlushAsync(token).ConfigureAwait(false);
                 clearedLogs = true;
             }
 
@@ -228,7 +228,7 @@ namespace Orts.Menu
             using (StreamReader reader = File.OpenText(summaryFilePath))
             {
                 reader.BaseStream.Seek(summaryFilePosition, SeekOrigin.Begin);
-                string line = await reader.ReadLineAsync().ConfigureAwait(false);
+                string line = await reader.ReadLineAsync(token).ConfigureAwait(false);
                 if (!string.IsNullOrEmpty(line) && reader.EndOfStream)
                 {
                     string[] csv = line.Split(',');
@@ -238,7 +238,7 @@ namespace Orts.Menu
                 }
                 else
                 {
-                    await reader.ReadToEndAsync().ConfigureAwait(false);
+                    await reader.ReadToEndAsync(token).ConfigureAwait(false);
                     activity.Passed = false;
                 }
                 summaryFilePosition = reader.BaseStream.Position;
@@ -247,8 +247,7 @@ namespace Orts.Menu
 
         public static Task<int> RunProcess(ProcessStartInfo processStartInfo, CancellationToken token)
         {
-            if (null == processStartInfo)
-                throw new ArgumentNullException(nameof(processStartInfo));
+            ArgumentNullException.ThrowIfNull(processStartInfo);
 
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
             processStartInfo.RedirectStandardError = true;

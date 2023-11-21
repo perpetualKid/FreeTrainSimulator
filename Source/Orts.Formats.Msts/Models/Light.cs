@@ -136,8 +136,7 @@ namespace Orts.Formats.Msts.Models
 
         public Light(Light source, bool reverse)
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             Index = source.Index;
             Type = source.Type;
@@ -176,8 +175,7 @@ namespace Orts.Formats.Msts.Models
     {
         public Lights(STFReader stf)
         {
-            if (null == stf)
-                throw new ArgumentNullException(nameof(stf));
+            ArgumentNullException.ThrowIfNull(stf);
 
             stf.MustMatchBlockStart();
             stf.ReadInt(null); // count; ignore this because its not always correct

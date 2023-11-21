@@ -19,8 +19,7 @@ namespace Orts.Graphics.Shaders
 
         public static MaterialManager Instance(Game game)
         {
-            if (null == game)
-                throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             MaterialManager result;
             if ((result = game.Services.GetService<MaterialManager>()) == null)

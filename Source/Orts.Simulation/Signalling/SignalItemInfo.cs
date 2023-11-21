@@ -76,8 +76,7 @@ namespace Orts.Simulation.Signalling
 
         public static SignalItemInfo Restore(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             SignalItemInfo result = new SignalItemInfo(SignalItemFindState.None)
             {
@@ -101,8 +100,7 @@ namespace Orts.Simulation.Signalling
         {
             if (null == item)
                 return;
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write((int)item.ItemType);
             outf.Write((int)item.State);

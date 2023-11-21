@@ -21,8 +21,7 @@ namespace Orts.Graphics.Xna
 
         public static TextTextureResourceHolder Instance(Game game)
         {
-            if (null == game)
-                throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             TextTextureResourceHolder instance;
             if ((instance = game.Components.OfType<TextTextureResourceHolder>().FirstOrDefault()) == null)

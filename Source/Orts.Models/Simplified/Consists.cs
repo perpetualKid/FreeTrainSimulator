@@ -87,8 +87,7 @@ namespace Orts.Models.Simplified
 
         public static async Task<IEnumerable<Consist>> GetConsists(Folder folder, CancellationToken token)
         {
-            if (null == folder)
-                throw new ArgumentNullException(nameof(folder));
+            ArgumentNullException.ThrowIfNull(folder);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {

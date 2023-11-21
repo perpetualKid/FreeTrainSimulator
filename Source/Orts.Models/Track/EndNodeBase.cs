@@ -19,8 +19,7 @@ namespace Orts.Models.Track
         protected EndNodeBase(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections): 
             base(trackEndNode?.UiD.Location ?? throw new ArgumentNullException(nameof(trackEndNode)))
         {
-            if (null == trackSections)
-                throw new ArgumentNullException(nameof(trackSections));
+            ArgumentNullException.ThrowIfNull(trackSections);
 
             TrackNodeIndex = trackEndNode.Index;
 

@@ -98,8 +98,7 @@ namespace Orts.Formats.Msts.Models
             : this(arrivalTime, departTime, skipCount, distanceDownPath, platformStartID)
 
         {
-            if (parent == null)
-                throw new ArgumentNullException(nameof(parent));
+            ArgumentNullException.ThrowIfNull(parent);
 
             if (arrivalTime < 0)
             {
@@ -179,8 +178,7 @@ namespace Orts.Formats.Msts.Models
 
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             if (Count == 0)
             {

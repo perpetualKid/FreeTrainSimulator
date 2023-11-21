@@ -171,8 +171,7 @@ namespace Orts.Graphics.Window
         public static WindowManager<TWindowType> Initialize<T, TWindowType>(Game game, UserCommandController<T> userCommandController)
             where T : Enum where TWindowType : Enum
         {
-            if (null == game)
-                throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             WindowManager<TWindowType> result;
             if ((result = game.Services.GetService<WindowManager<TWindowType>>()) == null)
@@ -186,8 +185,7 @@ namespace Orts.Graphics.Window
 
         protected void AddUserCommandEvents<T>(UserCommandController<T> userCommandController) where T : Enum
         {
-            if (null == userCommandController)
-                throw new ArgumentNullException(nameof(userCommandController));
+            ArgumentNullException.ThrowIfNull(userCommandController);
 
             userCommandController.AddEvent(CommonUserCommand.PointerMoved, MouseMovedEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerPressed, MousePressedEvent);

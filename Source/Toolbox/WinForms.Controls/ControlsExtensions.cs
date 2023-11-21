@@ -76,8 +76,7 @@ namespace Orts.Toolbox.WinForms.Controls
         /// </summary>
         public static void DataSourceFromList<T>(this ComboBox comboBox, IEnumerable<T> source, Func<T, string> lookup)
         {
-            if (comboBox == null)
-                throw new ArgumentNullException(nameof(comboBox));
+            ArgumentNullException.ThrowIfNull(comboBox);
 
             comboBox.DataSource = FromList(source, lookup);
             ComboBoxItem<T>.SetDataSourceMembers(comboBox);
@@ -90,8 +89,7 @@ namespace Orts.Toolbox.WinForms.Controls
         /// </summary>
         public static void DataSourceFromEnum<T>(this ComboBox comboBox) where T : Enum
         {
-            if (comboBox == null)
-                throw new ArgumentNullException(nameof(comboBox));
+            ArgumentNullException.ThrowIfNull(comboBox);
 
             comboBox.DataSource = FromEnum<T>();
             ComboBoxItem<T>.SetDataSourceMembers(comboBox);
@@ -104,8 +102,7 @@ namespace Orts.Toolbox.WinForms.Controls
         /// </summary>
         public static void DataSourceFromEnumIndex<T>(this ComboBox comboBox) where T : Enum
         {
-            if (comboBox == null)
-                throw new ArgumentNullException(nameof(comboBox));
+            ArgumentNullException.ThrowIfNull(comboBox);
 
             comboBox.DataSource = FromEnumValue<T>();
             ComboBoxItem<T>.SetDataSourceMembers(comboBox);

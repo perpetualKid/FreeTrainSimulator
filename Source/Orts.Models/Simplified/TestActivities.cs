@@ -33,8 +33,7 @@ namespace Orts.Models.Simplified
 
         public static async Task<IEnumerable<TestActivity>> GetTestActivities(Dictionary<string, string> folders, CancellationToken token)
         {
-            if (null == folders)
-                throw new ArgumentNullException(nameof(folders));
+            ArgumentNullException.ThrowIfNull(folders);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {

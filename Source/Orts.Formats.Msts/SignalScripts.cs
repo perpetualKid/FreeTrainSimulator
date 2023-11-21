@@ -217,8 +217,7 @@ namespace Orts.Formats.Msts
         //================================================================================================//
         public SignalScripts(string routePath, IList<string> scriptFiles, IDictionary<string, SignalType> signalTypes)
         {
-            if (null == signalTypes)
-                throw new ArgumentNullException(nameof(signalTypes));
+            ArgumentNullException.ThrowIfNull(signalTypes);
 
             Scripts = new Dictionary<SignalType, SCRScripts>();
 

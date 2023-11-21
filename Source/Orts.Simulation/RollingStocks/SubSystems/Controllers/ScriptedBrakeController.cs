@@ -191,8 +191,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         protected ScriptedBrakeController(ScriptedBrakeController source, MSTSLocomotive locomotive)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             simulator = Simulator.Instance;
             this.locomotive = locomotive;

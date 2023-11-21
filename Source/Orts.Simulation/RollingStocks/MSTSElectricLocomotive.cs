@@ -370,8 +370,7 @@ namespace Orts.Simulation.RollingStocks
 
         public override void SetStepSize(PickupObject matchPickup)
         {
-            if (null == matchPickup)
-                throw new ArgumentNullException(nameof(matchPickup));
+            ArgumentNullException.ThrowIfNull(matchPickup);
             if (maximumSteamHeatBoilerWaterTankCapacityL != 0)
                 WaterController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / (float)maximumSteamHeatBoilerWaterTankCapacityL);
         }

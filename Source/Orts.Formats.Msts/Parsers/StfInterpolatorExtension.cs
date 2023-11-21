@@ -9,8 +9,7 @@ namespace Orts.Formats.Msts.Parsers
     {
         public static Interpolator CreateInterpolator(this STFReader stf)
         {
-            if (null == stf)
-                throw new ArgumentNullException(nameof(stf));
+            ArgumentNullException.ThrowIfNull(stf);
 
             List<double> list = new List<double>();
             stf.MustMatchBlockStart();
@@ -35,8 +34,7 @@ namespace Orts.Formats.Msts.Parsers
 
         public static Interpolator2D CreateInterpolator2D(this STFReader stf)
         {
-            if (null == stf)
-                throw new ArgumentNullException(nameof(stf));
+            ArgumentNullException.ThrowIfNull(stf);
 
             List<double> xlist = new List<double>();
             List<Interpolator> ilist = new List<Interpolator>();
@@ -64,8 +62,7 @@ namespace Orts.Formats.Msts.Parsers
 
         public static Interpolator2D CreateInterpolator2D(this STFReader stf, bool tab)
         {
-            if (null == stf)
-                throw new ArgumentNullException(nameof(stf));
+            ArgumentNullException.ThrowIfNull(stf);
 
             List<double> xlist = new List<double>();
             List<Interpolator> ilist = new List<Interpolator>();

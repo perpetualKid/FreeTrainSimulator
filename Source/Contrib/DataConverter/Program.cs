@@ -175,10 +175,6 @@ namespace Orts.DataConverter
         public InvalidCommandLineException(string message, Exception innerException) : base(message, innerException)
         {
         }
-
-        protected InvalidCommandLineException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
     }
 
     internal class DataConversion

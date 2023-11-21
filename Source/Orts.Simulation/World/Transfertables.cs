@@ -399,8 +399,7 @@ namespace Orts.Simulation
         /// </summary>
         public override bool CheckMovingTableAligned(Train train, bool forward)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
             return Connected && trackVectorSectionsIndex[ConnectedTrackEnd] != -1 && trackNodesIndex[ConnectedTrackEnd] != -1 &&
                 (trackNodesIndex[ConnectedTrackEnd] == train.FrontTDBTraveller.TrackNode.Index || trackNodesIndex[ConnectedTrackEnd] == train.RearTDBTraveller.TrackNode.Index);
         }

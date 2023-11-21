@@ -40,8 +40,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         protected T InternalAdd<T>(T control) where T : WindowControl
         {
-            if (null == control)
-                throw new ArgumentNullException(nameof(control));
+            ArgumentNullException.ThrowIfNull(control);
 
             // Offset control by our position and current values. Don't touch its size, also consider alignment
             control.MoveBy(Bounds.Left + CurrentLeft + HorizontalChildAlignmentOffset(control.Bounds), Bounds.Top + CurrentTop + VerticalChildAlignmentOffset(control.Bounds));

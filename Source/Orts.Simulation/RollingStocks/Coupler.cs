@@ -34,8 +34,7 @@ namespace Orts.Simulation.RollingStocks
 
         public Coupler(TrainCar source, float couplerZeroLength)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             // Simple Coupler parameters
             R0X = source.GetCouplerZeroLengthM();
@@ -218,8 +217,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
             outf.Write(Rigid);
             outf.Write(R0X);
             outf.Write(R0Y);
@@ -238,8 +236,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public void Restore(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
             Rigid = inf.ReadBoolean();
             R0X = inf.ReadSingle();
             R0Y = inf.ReadSingle();

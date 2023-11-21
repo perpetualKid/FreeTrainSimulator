@@ -13,8 +13,7 @@ namespace Orts.Formats.Msts.Models
 
         public CarSpawners(STFReader stf, string shapePath, string listName)
         {
-            if (null == stf)
-                throw new ArgumentNullException(nameof(stf));
+            ArgumentNullException.ThrowIfNull(stf);
 
             ListName = listName;
             int count = stf.ReadInt(null);

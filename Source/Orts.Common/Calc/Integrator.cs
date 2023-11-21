@@ -140,8 +140,7 @@ namespace Orts.Common.Calc
 
         public Integrator(Integrator source)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             Method = source.Method;
             MinStep = source.MinStep;
@@ -398,15 +397,13 @@ namespace Orts.Common.Calc
 
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
             outf.Write(Value);
         }
 
         public void Restore(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
             Value = inf.ReadDouble();
 
             for (int i = 0; i < 4; i++)

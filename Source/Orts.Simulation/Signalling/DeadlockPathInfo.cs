@@ -70,8 +70,7 @@ namespace Orts.Simulation.Signalling
 
         public DeadlockPathInfo(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             Path = new TrackCircuitPartialPathRoute(inf);
             Name = inf.ReadString();
@@ -104,8 +103,7 @@ namespace Orts.Simulation.Signalling
 
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             Path.Save(outf);
             outf.Write(Name);

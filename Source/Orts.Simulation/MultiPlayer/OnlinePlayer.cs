@@ -55,8 +55,7 @@ namespace Orts.Simulation.MultiPlayer
         // Used to restore
         public OnlinePlayer(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             Username = inf.ReadString();
             LeadingLocomotiveID = inf.ReadString();
@@ -88,8 +87,7 @@ namespace Orts.Simulation.MultiPlayer
 
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write(Username);
             outf.Write(LeadingLocomotiveID);

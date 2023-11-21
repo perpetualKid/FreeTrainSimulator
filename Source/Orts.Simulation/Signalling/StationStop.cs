@@ -133,8 +133,7 @@ namespace Orts.Simulation.Signalling
 
         public StationStop(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             StopType = (StationStopType)inf.ReadInt32();
             PlatformReference = inf.ReadInt32();
@@ -241,8 +240,7 @@ namespace Orts.Simulation.Signalling
         // Save
         public void Save(BinaryWriter outf)
         {
-            if (outf == null)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write((int)StopType);
             outf.Write(PlatformReference);

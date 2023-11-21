@@ -205,8 +205,7 @@ namespace Orts.Settings
 
         protected void LoadSetting(bool allowUserSettings, NameValueCollection options, string name)
         {
-            if (null == options)
-                throw new ArgumentNullException(nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
 
             // Get the default value.
             dynamic defValue = GetDefaultValue(name);
@@ -424,10 +423,8 @@ namespace Orts.Settings
 
         protected static object InitializeEnumArrayDefaults(Type expectedType, object values)
         {
-            if (null == values)
-                throw new ArgumentNullException(nameof(values));
-            if (null == expectedType)
-                throw new ArgumentNullException(nameof(expectedType));
+            ArgumentNullException.ThrowIfNull(values);
+            ArgumentNullException.ThrowIfNull(expectedType);
 
             dynamic enumArray = Activator.CreateInstance(expectedType);
             Type[] genericArguments = expectedType.GenericTypeArguments;

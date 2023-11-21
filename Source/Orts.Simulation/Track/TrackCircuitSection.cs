@@ -113,8 +113,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public TrackCircuitSection(TrackNode node, int nodeIndex)
         {
-            if (null == node)
-                throw new ArgumentNullException(nameof(node));
+            ArgumentNullException.ThrowIfNull(node);
             //
             // Copy general info
             //
@@ -235,8 +234,7 @@ namespace Orts.Simulation.Track
 
         public void Restore(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             ActivePins[TrackDirection.Ahead, Location.NearEnd] = new TrackPin(inf.ReadInt32(), (TrackDirection)inf.ReadInt32());
             ActivePins[TrackDirection.Reverse, Location.NearEnd] = new TrackPin(inf.ReadInt32(), (TrackDirection)inf.ReadInt32());
@@ -306,8 +304,7 @@ namespace Orts.Simulation.Track
 
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write(ActivePins[TrackDirection.Ahead, Location.NearEnd].Link);
             outf.Write((int)ActivePins[TrackDirection.Ahead, Location.NearEnd].Direction);
@@ -549,10 +546,8 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void Reserve(Train.TrainRouted train, TrackCircuitPartialPathRoute route)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
-            if (route == null)
-                throw new ArgumentNullException(nameof(route));
+            ArgumentNullException.ThrowIfNull(train);
+            ArgumentNullException.ThrowIfNull(route);
 
             TrackCircuitRouteElement routeElement;
 
@@ -720,8 +715,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void Claim(Train.TrainRouted train)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             if (!CircuitState.TrainClaimed.ContainsTrain(train))
             {
@@ -741,8 +735,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void PreReserve(Train.TrainRouted train)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
             if (!CircuitState.TrainPreReserved.ContainsTrain(train))
             {
                 CircuitState.TrainPreReserved.Enqueue(train);
@@ -755,16 +748,14 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void SetOccupied(Train.TrainRouted train)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             SetOccupied(train, (int)train.Train.DistanceTravelledM);
         }
 
         public void SetOccupied(Train.TrainRouted train, int reqDistanceTravelledM)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             int routeIndex = train.Train.ValidRoute[train.TrainRouteDirectionIndex].GetRouteIndex(Index, train.Train.PresentPosition[train.TrainRouteDirectionIndex == 0 ? Direction.Backward : Direction.Forward].RouteListIndex);
             TrackDirection direction = routeIndex < 0 ? TrackDirection.Ahead : (TrackDirection)train.Train.ValidRoute[train.TrainRouteDirectionIndex][routeIndex].Direction;
@@ -888,8 +879,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void ClearOccupied(Train.TrainRouted train, bool resetEndSignal)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             if (CircuitState.OccupationState.ContainsTrain(train))
             {
@@ -976,8 +966,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void ClearOccupied(Train train, bool resetEndSignal)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             ClearOccupied(train.RoutedForward, resetEndSignal); // forward
             ClearOccupied(train.RoutedBackward, resetEndSignal);// backward
@@ -989,8 +978,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void ResetOccupied(Train.TrainRouted train)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             if (CircuitState.OccupationState.ContainsTrain(train))
             {
@@ -1005,8 +993,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void ResetOccupied(Train train)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             ResetOccupied(train.RoutedForward); // forward
             ResetOccupied(train.RoutedBackward);// backward
@@ -1022,8 +1009,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void RemoveTrain(Train.TrainRouted train, bool resetEndSignal)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             if (CircuitState.OccupiedByThisTrain(train))
             {
@@ -1046,8 +1032,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void RemoveTrain(Train train, bool resetEndSignal)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             RemoveTrain(train.RoutedForward, resetEndSignal);
             RemoveTrain(train.RoutedBackward, resetEndSignal);
@@ -1059,8 +1044,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void UnreserveTrain(Train.TrainRouted train, bool resetEndSignal)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             if (CircuitState.TrainReserved?.Train == train.Train)
             {
@@ -1106,8 +1090,7 @@ namespace Orts.Simulation.Track
 
         public void ClearReversalClaims(Train.TrainRouted train)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             // check if any trains have claimed this section
             List<Train.TrainRouted> claimedTrains = new List<Train.TrainRouted>(CircuitState.TrainClaimed);
@@ -1229,8 +1212,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public bool GetSectionStateClearNode(Train.TrainRouted train, int elementDirection, TrackCircuitPartialPathRoute routePart)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             bool returnValue = train.Train.TrainGetSectionStateClearNode(elementDirection, routePart, this);
             return (returnValue);
@@ -1709,8 +1691,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public bool CanPlaceTrain(Train train, float offset, float trainLength)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             if (!IsAvailable(train))
             {
@@ -1803,8 +1784,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void SetDeadlockTrap(Train train, List<Dictionary<int, int>> deadlocks)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             foreach (Dictionary<int, int> deadlockInfo in deadlocks ?? Enumerable.Empty<Dictionary<int, int>>())
             {
@@ -2136,8 +2116,7 @@ namespace Orts.Simulation.Track
 
         internal static void AddCrossoverJunction(int leadSectionIndex0, int trailSectionIndex0, int leadSectionIndex1, int trailSectionIndex1, int JnIndex, CrossOverInfo crossOver)
         {
-            if (null == crossOver)
-                throw new ArgumentNullException(nameof(crossOver));
+            ArgumentNullException.ThrowIfNull(crossOver);
 
             TrackCircuitSection leadSection0 = TrackCircuitList[leadSectionIndex0];
             TrackCircuitSection leadSection1 = TrackCircuitList[leadSectionIndex1];

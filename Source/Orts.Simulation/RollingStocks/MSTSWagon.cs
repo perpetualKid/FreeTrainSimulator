@@ -4105,8 +4105,7 @@ namespace Orts.Simulation.RollingStocks
 
         public ShapeAnimation(STFReader stf)
         {
-            if (null == stf)
-                throw new ArgumentNullException(nameof(stf));
+            ArgumentNullException.ThrowIfNull(stf);
             stf.MustMatch("(");
             ShapeFileName = stf.ReadString();
             Width = stf.ReadFloat(STFReader.Units.Distance, null);

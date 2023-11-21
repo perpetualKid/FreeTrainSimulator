@@ -48,8 +48,7 @@ namespace Orts.Common.Calc
 
         public Interpolator(Interpolator other)
         {
-            if (null == other)
-                throw new ArgumentNullException(nameof(other));
+            ArgumentNullException.ThrowIfNull(other);
             xArray = other.xArray;
             yArray = other.yArray;
             y2Array = other.y2Array;
@@ -63,8 +62,7 @@ namespace Orts.Common.Calc
         /// <returns></returns>
         public static Interpolator InverseInterpolator(Interpolator source)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             return new Interpolator(source.yArray, source.xArray);
         }
@@ -200,8 +198,7 @@ namespace Orts.Common.Calc
         // restore game state
         public Interpolator(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             size = inf.ReadInt32();
             xArray = new double[size];
@@ -222,8 +219,7 @@ namespace Orts.Common.Calc
         // save game state
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write(size);
             for (int i = 0; i < size; i++)
@@ -293,8 +289,7 @@ namespace Orts.Common.Calc
 
         public Interpolator2D(Interpolator2D other)
         {
-            if (null == other)
-                throw new ArgumentNullException(nameof(other));
+            ArgumentNullException.ThrowIfNull(other);
 
             xArray = other.xArray;
             size = other.size;

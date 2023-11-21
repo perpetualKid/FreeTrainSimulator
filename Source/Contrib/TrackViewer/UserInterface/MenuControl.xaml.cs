@@ -907,8 +907,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="callback">The callback that will be called upon a change in the preference</param>
         public void AddStringPreference(string name, string description, string[] options, string defaultOption, StringPreferenceDelegate callback)
         {
-            if (callback == null)
-                throw new ArgumentNullException(nameof(callback));
+            ArgumentNullException.ThrowIfNull(callback);
 
             MenuItem preferenceItem = new MenuItem
             {

@@ -459,8 +459,7 @@ namespace Orts.Updater
 
         public static Task RunProcess(ProcessStartInfo processStartInfo)
         {
-            if (null == processStartInfo)
-                throw new ArgumentNullException(nameof(processStartInfo));
+            ArgumentNullException.ThrowIfNull(processStartInfo);
 
             TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
             processStartInfo.RedirectStandardError = true;

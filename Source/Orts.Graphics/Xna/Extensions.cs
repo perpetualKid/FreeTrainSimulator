@@ -33,8 +33,7 @@ namespace Orts.Graphics.Xna
     {
         public static void SaveAsPng(this Texture2D texture, string fileName)
         {
-            if (null == texture)
-                throw new ArgumentNullException(nameof(texture));
+            ArgumentNullException.ThrowIfNull(texture);
 
             GraphicsDevice gpu = texture.GraphicsDevice;
             using (RenderTarget2D target = new RenderTarget2D(gpu, texture.Width, texture.Height))

@@ -75,8 +75,7 @@ namespace Orts.Simulation.Signalling
 
         public SignalHead(Signal signal, int trackItem, int tbdRef, SpeedPostItem speedItem)
         {
-            if (speedItem == null)
-                throw new ArgumentNullException(nameof(speedItem));
+            ArgumentNullException.ThrowIfNull(speedItem);
 
             MainSignal = signal ?? throw new ArgumentNullException(nameof(signal));
             TrackItemIndex = trackItem;

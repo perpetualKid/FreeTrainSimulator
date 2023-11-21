@@ -28,8 +28,7 @@ namespace Orts.Common
 
         public EnumArray(IEnumerable<T> source): this()
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             int i = 0;
             foreach (T item in source)
@@ -40,8 +39,7 @@ namespace Orts.Common
 
         public EnumArray(Func<T> initializer) : this()
         {
-            if (initializer == null)
-                throw new ArgumentNullException(nameof(initializer));
+            ArgumentNullException.ThrowIfNull(initializer);
 
             for (int i = 0; i < array.Length; i++)
             {
@@ -51,8 +49,7 @@ namespace Orts.Common
 
         public EnumArray(T[] source) : this()
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
             if (source.Length != array.Length)
                 throw new ArgumentOutOfRangeException($"Source array needs to be same size as number of enum values of {typeof(TEnum)}");
             Array.Copy(source, array, source.Length);
@@ -60,8 +57,7 @@ namespace Orts.Common
 
         public EnumArray(T source) : this()
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
             if (source is not ValueType)
                 throw new InvalidOperationException($"Cannot use reference type input to initialize multipe instances.");
 
@@ -117,8 +113,7 @@ namespace Orts.Common
 
         public EnumArray2D(T source) : this()
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
             if (source is not ValueType)
                 throw new InvalidOperationException($"Cannot use reference type input to initialize multipe instances.");
 
@@ -129,8 +124,7 @@ namespace Orts.Common
 
         public EnumArray2D(Func<T> initializer) : this()
         {
-            if (initializer == null)
-                throw new ArgumentNullException(nameof(initializer));
+            ArgumentNullException.ThrowIfNull(initializer);
 
             for (int col = 0; col < array.GetLength(0); col++)
                 for (int row = 0; row < array.GetLength(1); row++)
@@ -139,8 +133,7 @@ namespace Orts.Common
 
         public EnumArray2D(IList<T> source) : this()
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
             int columns = array.GetLength(0);
             int rows = array.GetLength(1);
             if (source.Count != columns * rows)

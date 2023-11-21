@@ -112,8 +112,7 @@ namespace Orts.Common.Calc
         /// <param name="type">Filter type</param>
         public IIRFilter(double[] aCoefficients, double[] bCoefficients, IIRFilterType type)
         {
-            if (null == aCoefficients)
-                throw new ArgumentNullException(nameof(aCoefficients));
+            ArgumentNullException.ThrowIfNull(aCoefficients);
             FilterType = type;
             numberCoefficients = aCoefficients.Length;
 

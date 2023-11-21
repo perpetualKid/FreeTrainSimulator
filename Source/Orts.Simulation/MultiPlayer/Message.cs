@@ -165,9 +165,9 @@ namespace Orts.Simulation.MultiPlayer
                             int.Parse(areas[13 * i + 4]), int.Parse(areas[13 * i + 5]), float.Parse(areas[13 * i + 6], CultureInfo.InvariantCulture), float.Parse(areas[13 * i + 7], CultureInfo.InvariantCulture),
                             int.Parse(areas[13 * i + 8]), int.Parse(areas[13 * i + 9]), int.Parse(areas[13 * i + 10]), int.Parse(areas[13 * i + 11]), float.Parse(areas[13 * i + 12], CultureInfo.InvariantCulture)));
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                throw e;
+                throw;
             }
         }
 
@@ -735,9 +735,9 @@ namespace Orts.Simulation.MultiPlayer
                 newTrainReverseFormation = bool.Parse(data[3]);
                 leadingID = areas[1].Trim();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                throw e;
+                throw;
             }
         }
 
@@ -823,7 +823,7 @@ namespace Orts.Simulation.MultiPlayer
 
             string[] tmp = m.Split(' ');
             if (tmp.Length != 6)
-                throw new Exception("Parsing error " + m);
+                throw new ArgumentOutOfRangeException("Parsing error " + m);
             user = tmp[0];
             TileX = int.Parse(tmp[1]);
             TileZ = int.Parse(tmp[2]);
@@ -1005,7 +1005,7 @@ namespace Orts.Simulation.MultiPlayer
                     SwitchState.Add(key, trackJunctionNode);
                 }
             }
-            catch (Exception e) { SwitchState = null; throw e; } //if error, clean the list and wait for the next signal
+            catch (Exception) { SwitchState = null; throw; } //if error, clean the list and wait for the next signal
 
             int i = 0, state = 0;
             foreach (KeyValuePair<int, TrackJunctionNode> t in SwitchState)
@@ -1105,7 +1105,7 @@ namespace Orts.Simulation.MultiPlayer
                     }
                     switchStatesArray = new byte[SwitchState.Count + 128];//a bit more for safety
                 }
-                catch (Exception e) { SwitchState = null; throw e; } //if error, clean the list and wait for the next signal
+                catch (Exception) { SwitchState = null; throw; } //if error, clean the list and wait for the next signal
 
             }
             byte[] gZipBuffer = Convert.FromBase64String(m);
@@ -2109,7 +2109,7 @@ namespace Orts.Simulation.MultiPlayer
         {
             string[] tmp = m.Split(' ');
             if (tmp.Length != 3)
-                throw new Exception("Parsing error " + m);
+                throw new ArgumentOutOfRangeException("Parsing error " + m);
             user = tmp[0].Trim();
             EventName = tmp[1].Trim();
             EventState = int.Parse(tmp[2]);
@@ -3260,7 +3260,7 @@ namespace Orts.Simulation.MultiPlayer
                     signalsStates = new byte[signals.Count * 2];
                     signalTextStates = new string[signals.Count];
                 }
-                catch (Exception e) { signals = null; throw e; }//error, clean the list, so we can get another signal
+                catch (Exception) { signals = null; throw; }//error, clean the list, so we can get another signal
             }
             byte[] gZipBuffer = Convert.FromBase64String(m);
             using (var memoryStream = new MemoryStream())
@@ -3781,7 +3781,7 @@ namespace Orts.Simulation.MultiPlayer
             string[] areas = m.Split(' ');
             if (areas.Length % 8 != 0)
             {
-                throw new Exception("Parsing error " + m);
+                throw new ArgumentOutOfRangeException("Parsing error " + m);
             }
             try
             {
@@ -3792,9 +3792,9 @@ namespace Orts.Simulation.MultiPlayer
                         float.Parse(areas[8 * i + 3], CultureInfo.InvariantCulture), float.Parse(areas[8 * i + 4], CultureInfo.InvariantCulture),
                         float.Parse(areas[8 * i + 5], CultureInfo.InvariantCulture), float.Parse(areas[8 * i + 6], CultureInfo.InvariantCulture), float.Parse(areas[8 * i + 7], CultureInfo.InvariantCulture)));
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                throw e;
+                throw;
             }
         }
 

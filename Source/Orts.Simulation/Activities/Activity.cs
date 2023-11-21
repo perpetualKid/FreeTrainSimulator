@@ -107,8 +107,7 @@ namespace Orts.Simulation.Activities
 
         public Activity(ActivityFile activityFile, Simulator simulator)
         {
-            if (null == activityFile)
-                throw new ArgumentNullException(nameof(activityFile));
+            ArgumentNullException.ThrowIfNull(activityFile);
 
             this.simulator = simulator;  // Save for future use.
             StartTime = (int)activityFile.Activity.Header.StartTime.TotalSeconds;
@@ -290,8 +289,7 @@ namespace Orts.Simulation.Activities
 
         public static void Save(BinaryWriter outf, Activity act)
         {
-            if (outf == null)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             if (act == null)
                 outf.Write(-1);
@@ -305,8 +303,7 @@ namespace Orts.Simulation.Activities
         public static Activity Restore(BinaryReader inf, Simulator simulator, Activity activity)
 
         {
-            if (inf == null)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             if (inf.ReadInt32() == -1)
                 return null;
@@ -317,8 +314,7 @@ namespace Orts.Simulation.Activities
 
         public void Save(BinaryWriter outf)
         {
-            if (outf == null)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
             int noval = -1;
 
             // Save passenger activity
@@ -440,8 +436,7 @@ namespace Orts.Simulation.Activities
         /// <param name="zones">List of speed restriction zones</param>
         internal void AddRestrictZones(Route routeFile, RestrictedSpeedZones zones)
         {
-            if (zones == null)
-                throw new ArgumentNullException(nameof(zones));
+            ArgumentNullException.ThrowIfNull(zones);
 
             if (zones.Count < 1)
                 return;

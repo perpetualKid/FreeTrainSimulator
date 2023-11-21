@@ -111,8 +111,7 @@ namespace Orts.Simulation.Track
         // if either value is < 0, start from start or stop at end
         public TrackCircuitPartialPathRoute(TrackCircuitPartialPathRoute source, int startIndex, int endIndex)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             list = new List<TrackCircuitRouteElement>();
             startIndex = Math.Max(startIndex, 0);
@@ -128,8 +127,7 @@ namespace Orts.Simulation.Track
         // Restore
         public TrackCircuitPartialPathRoute(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
             list = new List<TrackCircuitRouteElement>();
 
             int totalElements = inf.ReadInt32();
@@ -143,8 +141,7 @@ namespace Orts.Simulation.Track
         // Save
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
             outf.Write(Count);
             foreach (TrackCircuitRouteElement element in this)
             {
@@ -215,10 +212,8 @@ namespace Orts.Simulation.Track
         /// <\summary>
         internal bool SignalIsAheadOfTrain(Signal signal, TrackCircuitPosition trainPosition)
         {
-            if (null == signal)
-                throw new ArgumentNullException(nameof(signal));
-            if (null == trainPosition)
-                throw new ArgumentNullException(nameof(trainPosition));
+            ArgumentNullException.ThrowIfNull(signal);
+            ArgumentNullException.ThrowIfNull(trainPosition);
 
             int signalSection = signal.TrackCircuitIndex;
             int signalRouteIndex = GetRouteIndexBackward(signalSection, trainPosition.RouteListIndex);

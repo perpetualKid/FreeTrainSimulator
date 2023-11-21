@@ -11,8 +11,7 @@ namespace Orts.Common.Input
 
         public void Initialize(MouseInputGameComponent mouseInputGameComponent, KeyboardInputGameComponent keyboardInputGameComponent, UserCommandController<T> userCommandController)
         {
-            if (null == mouseInputGameComponent)
-                throw new ArgumentNullException(nameof(mouseInputGameComponent));
+            ArgumentNullException.ThrowIfNull(mouseInputGameComponent);
 
             this.userCommandController = userCommandController ?? throw new ArgumentNullException(nameof(userCommandController));
             this.keyboardInputGameComponent = keyboardInputGameComponent;

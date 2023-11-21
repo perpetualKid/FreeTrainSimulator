@@ -185,8 +185,7 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="isFromNodeDirectionOK">Set this to true when the FromNode has already been set to correct orientation elsewhere</param>
         internal void CreateFoundConnection(ModificationTools modificationTools, bool isMainPath, bool isFromNodeDirectionOK)
         {
-            if (null == modificationTools)
-                throw new ArgumentNullException(nameof(modificationTools));
+            ArgumentNullException.ThrowIfNull(modificationTools);
 
             ConnectableNode autoConnectToNode = autoConnectToNodeOptions.ActualReconnectNode;
 

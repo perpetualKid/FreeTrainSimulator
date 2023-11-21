@@ -43,8 +43,7 @@ namespace Orts.Simulation.Track
 
         public TrackCircuitRouteElement(TrackNode node, int trackCircuitIndex, TrackDirection direction)
         {
-            if (null == node)
-                throw new ArgumentNullException(nameof(node));
+            ArgumentNullException.ThrowIfNull(node);
 
             TrackCircuitSection = TrackCircuitSection.TrackCircuitList[node.TrackCircuitCrossReferences[trackCircuitIndex].Index];
             Direction = direction;
@@ -108,8 +107,7 @@ namespace Orts.Simulation.Track
         //
         public TrackCircuitRouteElement(TrackCircuitRouteElement source)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             TrackCircuitSection = source.TrackCircuitSection;
             Direction = source.Direction;
@@ -145,8 +143,7 @@ namespace Orts.Simulation.Track
         //
         public TrackCircuitRouteElement(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
             int index = inf.ReadInt32();
 
             TrackCircuitSection = index> -1 ? TrackCircuitSection.TrackCircuitList[index] : TrackCircuitSection.Invalid;
@@ -184,8 +181,7 @@ namespace Orts.Simulation.Track
         //
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write(TrackCircuitSection.Index);
             outf.Write((int)Direction);

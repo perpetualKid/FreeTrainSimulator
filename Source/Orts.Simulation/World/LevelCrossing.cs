@@ -267,8 +267,7 @@ namespace Orts.Simulation.World
 
         public LevelCrossingItem SearchNearLevelCrossing(Train train, float reqDist, bool trainForwards, out float frontDist)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             LevelCrossingItem roadItem = LevelCrossingItem.None;
             frontDist = -1;
@@ -319,8 +318,7 @@ namespace Orts.Simulation.World
 
         public void AddTrain(Train train)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             if (train.TrainType == TrainType.Static)
             {

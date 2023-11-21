@@ -14,11 +14,9 @@ namespace Orts.Common.Input
 
         public void Initialize(EnumArray<UserCommandInput, T> userCommands, KeyboardInputGameComponent inputGameComponent, UserCommandController<T> userCommandController)
         {
-            if (null == userCommands)
-                throw new ArgumentNullException(nameof(userCommands));
+            ArgumentNullException.ThrowIfNull(userCommands);
 
-            if (null == inputGameComponent)
-                throw new ArgumentNullException(nameof(inputGameComponent));
+            ArgumentNullException.ThrowIfNull(inputGameComponent);
 
             this.userCommandController = userCommandController ?? throw new ArgumentNullException(nameof(userCommandController));
 

@@ -23,10 +23,8 @@ namespace Orts.Models.Track
         protected JunctionNodeBase(TrackJunctionNode junctionNode, int mainRouteIndex, IList<TrackVectorNode> vectorNodes, TrackSections trackSections) :
             base(junctionNode?.UiD.Location ?? throw new ArgumentNullException(nameof(junctionNode)))
         {
-            if (null == vectorNodes)
-                throw new ArgumentNullException(nameof(vectorNodes));
-            if (null == trackSections)
-                throw new ArgumentNullException(nameof(trackSections));
+            ArgumentNullException.ThrowIfNull(vectorNodes);
+            ArgumentNullException.ThrowIfNull(trackSections);
 
             TrackNodeIndex = junctionNode.Index;
             Direction = MathHelper.WrapAngle(GetInboundSectionDirection(vectorNodes[0], junctionNode.TrackPins[0].Direction == TrackDirection.Reverse, trackSections));
@@ -38,8 +36,7 @@ namespace Orts.Models.Track
         {
             if (null == vectorNode)
                 return 0;
-            if (null == trackSections)
-                throw new ArgumentNullException(nameof(trackSections));
+            ArgumentNullException.ThrowIfNull(trackSections);
 
             if (vectorNode.TrackVectorSections.Length < 1)
                 throw new System.IO.InvalidDataException($"TrackVectorNode {vectorNode.Index} has no TrackVectorSections attached.");
@@ -66,8 +63,7 @@ namespace Orts.Models.Track
         {
             if (null == vectorNode)
                 return 0;
-            if (null == trackSections)
-                throw new ArgumentNullException(nameof(trackSections));
+            ArgumentNullException.ThrowIfNull(trackSections);
 
             if (vectorNode.TrackVectorSections.Length < 1)
                 throw new System.IO.InvalidDataException($"TrackVectorNode {vectorNode.Index} has no TrackVectorSections attached.");

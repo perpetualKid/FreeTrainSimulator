@@ -82,8 +82,7 @@ namespace Orts.Graphics.MapView
 
         public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)
         {
-            if (null == colorPreferences)
-                throw new ArgumentNullException(nameof(colorPreferences));
+            ArgumentNullException.ThrowIfNull(colorPreferences);
 
             foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
             {

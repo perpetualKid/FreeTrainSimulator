@@ -342,8 +342,7 @@ namespace Orts.Formats.Msts
         /// <returns>null or the full file path of the first file found</returns>
         public static string FindFileFromFolders(IEnumerable<string> paths, string fileRelative)
         {
-            if (null == paths)
-                throw new ArgumentNullException(nameof(paths));
+            ArgumentNullException.ThrowIfNull(paths);
             if (string.IsNullOrEmpty(fileRelative))
                 return string.Empty;
 

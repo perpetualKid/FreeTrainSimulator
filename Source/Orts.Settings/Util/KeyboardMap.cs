@@ -97,8 +97,7 @@ namespace Orts.Settings.Util
 
         public static void DumpToText(this InputSettings input, string filePath)
         {
-            if (null == input)
-                throw new ArgumentNullException(nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
 
             using (StreamWriter writer = new StreamWriter(File.OpenWrite(filePath)))
             {
@@ -111,8 +110,7 @@ namespace Orts.Settings.Util
 
         public static void DumpToGraphic(this InputSettings input, string filePath)
         {
-            if (null == input)
-                throw new ArgumentNullException(nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
 
             int keyWidth = 50;
             int keyHeight = 4 * keyWidth;

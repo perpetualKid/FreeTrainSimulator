@@ -50,10 +50,8 @@ namespace Orts.Simulation.Signalling
 
         public SignalWorldInfo(SignalObject signalWorldItem, SignalConfigurationFile signalConfig)
         {
-            if (null == signalConfig)
-                throw new ArgumentNullException(nameof(signalConfig));
-            if (null == signalWorldItem)
-                throw new ArgumentNullException(nameof(signalWorldItem));
+            ArgumentNullException.ThrowIfNull(signalConfig);
+            ArgumentNullException.ThrowIfNull(signalWorldItem);
 
             HeadReference = new Dictionary<int, int>();
 
@@ -122,8 +120,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public SignalWorldInfo(SignalWorldInfo source)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             Backfacing = source.Backfacing;
 

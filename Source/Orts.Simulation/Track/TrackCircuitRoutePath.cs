@@ -808,8 +808,7 @@ namespace Orts.Simulation.Track
         //
         public TrackCircuitRoutePath(TrackCircuitRoutePath source)
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             ActiveSubPath = source.ActiveSubPath;
             ActiveAlternativePath = source.ActiveAlternativePath;
@@ -853,8 +852,7 @@ namespace Orts.Simulation.Track
 
         public TrackCircuitRoutePath(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             ActiveSubPath = inf.ReadInt32();
             ActiveAlternativePath = inf.ReadInt32();
@@ -911,8 +909,7 @@ namespace Orts.Simulation.Track
 
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write(ActiveSubPath);
             outf.Write(ActiveAlternativePath);
@@ -1689,10 +1686,8 @@ namespace Orts.Simulation.Track
         // add sections from other path at front
         public void AddSectionsAtStart(TrackCircuitPartialPathRoute otherRoute, Train train, bool reverse)
         {
-            if (null == otherRoute)
-                throw new ArgumentNullException(nameof(otherRoute));
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(otherRoute);
+            ArgumentNullException.ThrowIfNull(train);
 
             int addedSections = 0;
 
@@ -1771,10 +1766,8 @@ namespace Orts.Simulation.Track
         // Add subroute from other path at front
         public void AddSubrouteAtStart(TrackCircuitPartialPathRoute otherRoute, Train train)
         {
-            if (null == otherRoute)
-                throw new ArgumentNullException(nameof(otherRoute));
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(otherRoute);
+            ArgumentNullException.ThrowIfNull(train);
 
             TCRouteSubpaths.Insert(0, new TrackCircuitPartialPathRoute(otherRoute));
 
@@ -1802,8 +1795,7 @@ namespace Orts.Simulation.Track
         // Add sections from other path at end
         public void AddSectionsAtEnd(TrackCircuitPartialPathRoute otherRoute, bool reverse)
         {
-            if (null == otherRoute)
-                throw new ArgumentNullException(nameof(otherRoute));
+            ArgumentNullException.ThrowIfNull(otherRoute);
 
             int addedSections = 0;
 
@@ -1861,8 +1853,7 @@ namespace Orts.Simulation.Track
         // Add subroute from other path at end
         public void AddSubrouteAtEnd(TrackCircuitPartialPathRoute otherRoute)
         {
-            if (null == otherRoute)
-                throw new ArgumentNullException(nameof(otherRoute));
+            ArgumentNullException.ThrowIfNull(otherRoute);
 
             TCRouteSubpaths.Add(new TrackCircuitPartialPathRoute(otherRoute));
 

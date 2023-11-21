@@ -40,8 +40,7 @@ namespace Orts.ActivityRunner.Processes
 
         public WebServerProcess(GameHost game)
         {
-            if (game == null)
-                throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             if (!game.Settings.WebServer)
                 return;

@@ -283,10 +283,8 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="legendCanvas">The WPF canvas on which to draw the legend</param>
         public void Draw(double zoomPercentageStart, double zoomPercentageStop, Canvas drawingCanvas, Canvas legendCanvas)
         {
-            if (null == drawingCanvas)
-                throw new ArgumentNullException(nameof(drawingCanvas));
-            if (null == legendCanvas)
-                throw new ArgumentNullException(nameof(legendCanvas));
+            ArgumentNullException.ThrowIfNull(drawingCanvas);
+            ArgumentNullException.ThrowIfNull(legendCanvas);
 
             drawingCanvas.Children.Clear();
             legendCanvas.Children.Clear();

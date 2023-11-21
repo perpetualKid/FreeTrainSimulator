@@ -74,8 +74,7 @@ namespace Orts.Graphics.Xna
 
         public static TextTextureRenderer Instance(Microsoft.Xna.Framework.Game game)
         {
-            if (null == game)
-                throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             TextTextureRenderer instance;
             if ((instance = game.Services.GetService<TextTextureRenderer>()) == null)
@@ -132,12 +131,10 @@ namespace Orts.Graphics.Xna
 
         public void RenderText(string text, Font font, Texture2D texture, OutlineRenderOptions outlineOptions = null)
         {
-            if (null == texture)
-                throw new ArgumentNullException(nameof(texture));
+            ArgumentNullException.ThrowIfNull(texture);
             if (texture == EmptyTexture || (texture.Width == 1 && texture.Height == 1))
                 return;
-            if (null == font)
-                throw new ArgumentNullException(nameof(font));
+            ArgumentNullException.ThrowIfNull(font);
 
             // Create the final bitmap
             using (Bitmap bmpSurface = new Bitmap(texture.Width, texture.Height, PixelFormat.Format32bppArgb))

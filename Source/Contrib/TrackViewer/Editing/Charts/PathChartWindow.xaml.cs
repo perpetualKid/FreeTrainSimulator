@@ -109,8 +109,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            if (e == null)
-                throw new ArgumentNullException(nameof(e));
+            ArgumentNullException.ThrowIfNull(e);
             e.Cancel = true;  // cancels the window close    
             Hide();      // Programmatically hides the window
         }

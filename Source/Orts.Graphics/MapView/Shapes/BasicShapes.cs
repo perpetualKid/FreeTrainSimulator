@@ -35,8 +35,7 @@ namespace Orts.Graphics.MapView.Shapes
 
         public static BasicShapes Instance(Game game)
         {
-            if (null == game)
-                throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             BasicShapes instance;
             if ((instance = game.Components.OfType<BasicShapes>().FirstOrDefault()) == null)

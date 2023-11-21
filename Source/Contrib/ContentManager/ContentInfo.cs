@@ -33,8 +33,7 @@ namespace Orts.ContentManager
     {
         public static string GetText(ContentBase content)
         {
-            if (null == content)
-                throw new ArgumentNullException(nameof(content));
+            ArgumentNullException.ThrowIfNull(content);
 
             StringBuilder details = new StringBuilder();
             details.AppendLine($"Type:\t{content.Type}");

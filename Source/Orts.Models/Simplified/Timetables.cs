@@ -81,8 +81,7 @@ namespace Orts.Models.Simplified
 
         public static async Task<IEnumerable<TimetableInfo>> GetTimetableInfo(Route route, CancellationToken token)
         {
-            if (null == route)
-                throw new ArgumentNullException(nameof(route));
+            ArgumentNullException.ThrowIfNull(route);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
@@ -144,8 +143,7 @@ namespace Orts.Models.Simplified
         // get weatherfiles
         public static async Task<IEnumerable<WeatherFileInfo>> GetTimetableWeatherFiles(Route route, CancellationToken token)
         {
-            if (null == route)
-                throw new ArgumentNullException(nameof(route));
+            ArgumentNullException.ThrowIfNull(route);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {

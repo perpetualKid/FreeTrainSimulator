@@ -58,8 +58,7 @@ namespace Orts.Graphics.Window
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
-            if (layout == null)
-                throw new ArgumentNullException(nameof(layout));
+            ArgumentNullException.ThrowIfNull(layout);
             System.Drawing.Font headerFont = FontManager.Scaled(Owner.FontName, System.Drawing.FontStyle.Bold)[(int)(Owner.FontSize * headerScaling)];
             layout = layout.AddLayoutOffset((int)(4 * Owner.DpiScaling));
             if (CloseButton)

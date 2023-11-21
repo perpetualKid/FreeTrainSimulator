@@ -98,8 +98,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="trainpath">The train path for which to store chart data</param>
         public void Update(Trainpath trainpath)
         {
-            if (null == trainpath)
-                throw new ArgumentNullException(nameof(trainpath));
+            ArgumentNullException.ThrowIfNull(trainpath);
 
             PathName = trainpath.PathName;
             List<PathChartPoint> localPathChartPoints = new List<PathChartPoint>();

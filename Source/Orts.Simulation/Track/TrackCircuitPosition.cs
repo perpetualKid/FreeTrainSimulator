@@ -38,8 +38,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public TrackCircuitPosition(TrackCircuitPosition source, bool reverse = false)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             TrackCircuitSectionIndex = source.TrackCircuitSectionIndex;
             Direction = reverse ? source.Direction.Reverse() : source.Direction;
@@ -52,10 +51,8 @@ namespace Orts.Simulation.Track
         // Restore
         public void RestorePresentPosition(BinaryReader inf, Train train)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(train);
+            ArgumentNullException.ThrowIfNull(inf);
 
             TrackNode tn = train.FrontTDBTraveller.TrackNode;
             float offset = train.FrontTDBTraveller.TrackNodeOffset;
@@ -84,10 +81,8 @@ namespace Orts.Simulation.Track
 
         public void RestorePresentRear(BinaryReader inf, Train train)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(train);
+            ArgumentNullException.ThrowIfNull(inf);
 
             TrackNode tn = train.RearTDBTraveller.TrackNode;
             float offset = train.RearTDBTraveller.TrackNodeOffset;
@@ -116,8 +111,7 @@ namespace Orts.Simulation.Track
 
         public void RestorePreviousPosition(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             TrackCircuitSectionIndex = inf.ReadInt32();
             Direction = (TrackDirection)inf.ReadInt32();
@@ -130,8 +124,7 @@ namespace Orts.Simulation.Track
         // Restore dummies for trains not yet started
         public void RestorePresentPositionDummy(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             TrackCircuitSectionIndex = inf.ReadInt32();
             Direction = (TrackDirection)inf.ReadInt32();
@@ -144,8 +137,7 @@ namespace Orts.Simulation.Track
 
         public void RestorePresentRearDummy(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             TrackCircuitSectionIndex = inf.ReadInt32();
             Direction = (TrackDirection)inf.ReadInt32();
@@ -158,8 +150,7 @@ namespace Orts.Simulation.Track
 
         public void RestorePreviousPositionDummy(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             TrackCircuitSectionIndex = inf.ReadInt32();
             Direction = (TrackDirection)inf.ReadInt32();
@@ -172,8 +163,7 @@ namespace Orts.Simulation.Track
         // Save
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
             outf.Write(TrackCircuitSectionIndex);
             outf.Write((int)Direction);
             outf.Write(Offset);
@@ -200,8 +190,7 @@ namespace Orts.Simulation.Track
 
         internal void Reverse(TrackDirection oldDirection, TrackCircuitPartialPathRoute route, float offset)
         {
-            if (null == route)
-                throw new ArgumentNullException(nameof(route));
+            ArgumentNullException.ThrowIfNull(route);
 
             RouteListIndex = route.GetRouteIndex(TrackCircuitSectionIndex, 0);
             Direction = RouteListIndex >= 0 ? route[RouteListIndex].Direction : Direction = Direction.Reverse();
@@ -221,8 +210,7 @@ namespace Orts.Simulation.Track
         /// <param name="direction">direction along the tracknode (1 is forward)</param>
         internal void SetPosition(TrackCircuitCrossReferences trackCircuitCrossReferecenList, float offset, TrackDirection direction)
         {
-            if (null == trackCircuitCrossReferecenList)
-                throw new ArgumentNullException(nameof(trackCircuitCrossReferecenList));
+            ArgumentNullException.ThrowIfNull(trackCircuitCrossReferecenList);
 
             int crossRefIndex = trackCircuitCrossReferecenList.GetCrossReferenceIndex(offset, direction);
 

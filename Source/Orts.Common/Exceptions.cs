@@ -25,11 +25,6 @@ namespace Orts.Common
         public FatalException(string message, Exception innerException) : base(message, innerException)
         {
         }
-
-        private FatalException(SerializationInfo serializationInfo, StreamingContext streamingContext) 
-            : base(serializationInfo, streamingContext)
-        {
-        }
     }
 
     [Serializable]
@@ -61,11 +56,6 @@ namespace Orts.Common
         public IncompatibleSaveException(string message, Exception innerException) : base(message, innerException)
         {
         }
-
-        private IncompatibleSaveException(SerializationInfo info, StreamingContext context) 
-            : base(info, context)
-        {
-        }
     }
 
     [Serializable]
@@ -81,11 +71,6 @@ namespace Orts.Common
         }
 
         public InvalidCommandLineException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        private InvalidCommandLineException(SerializationInfo serializationInfo, StreamingContext streamingContext)
-            : base(serializationInfo, streamingContext)
         {
         }
     }

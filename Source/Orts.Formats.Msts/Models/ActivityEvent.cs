@@ -17,17 +17,16 @@ namespace Orts.Formats.Msts.Models
         internal ActivityEvents(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
+            stf.ParseBlock([
                 new STFReader.TokenProcessor("eventcategorylocation", ()=>{ Add(new LocationActivityEvent(stf)); }),
                 new STFReader.TokenProcessor("eventcategoryaction", ()=>{ Add(new ActionActivityEvent(stf)); }),
                 new STFReader.TokenProcessor("eventcategorytime", ()=>{ Add(new TimeActivityEvent(stf)); }),
-            });
+            ]);
         }
 
         public void UpdateORActivtyData(STFReader stf)
         {
-            if (null == stf)
-                throw new ArgumentNullException(nameof(stf));
+            ArgumentNullException.ThrowIfNull(stf);
 
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {

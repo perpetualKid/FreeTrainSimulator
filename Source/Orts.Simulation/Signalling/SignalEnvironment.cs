@@ -159,8 +159,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void Restore(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             int signalIndex = inf.ReadInt32();
             while (signalIndex >= 0)
@@ -214,8 +213,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void RestoreTrains(List<Train> trains)
         {
-            if (null == trains)
-                throw new ArgumentNullException(nameof(trains));
+            ArgumentNullException.ThrowIfNull(trains);
 
             foreach (TrackCircuitSection section in TrackCircuitSection.TrackCircuitList)
             {
@@ -244,8 +242,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             if (Signals != null)
             {
@@ -883,8 +880,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal TrackCircuitSignalItem FindNextObjectInRoute(TrackCircuitPartialPathRoute routePath, int routeIndex, float routePosition, float maxDistance, SignalFunction signalType, Train.TrainRouted train)
         {
-            if (null == routePath)
-                throw new ArgumentNullException(nameof(routePath));
+            ArgumentNullException.ThrowIfNull(routePath);
 
             SignalItemFindState locstate = SignalItemFindState.None;
             // local processing state     //
@@ -1023,8 +1019,7 @@ namespace Orts.Simulation.Signalling
         internal SignalItemInfo GetNextObjectInRoute(Train.TrainRouted train, TrackCircuitPartialPathRoute routePath,
                     int routeIndex, float routePosition, float maxDistance, SignalItemType requiredType)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             return GetNextObjectInRoute(train, routePath, routeIndex, routePosition, maxDistance, requiredType, train.Train.PresentPosition[train.Direction]);
         }
@@ -1033,8 +1028,7 @@ namespace Orts.Simulation.Signalling
         internal SignalItemInfo GetNextObjectInRoute(Train.TrainRouted train, TrackCircuitPartialPathRoute routePath,
                     int routeIndex, float routePosition, float maxDistance, SignalItemType requiredType, TrackCircuitPosition position)
         {
-            if (position == null)
-                throw new ArgumentNullException(nameof(position));
+            ArgumentNullException.ThrowIfNull(position);
 
             TrackCircuitSignalItem foundItem = null;
 
@@ -1150,8 +1144,7 @@ namespace Orts.Simulation.Signalling
 
         public (Signal Signal, float Distance) GetSignalItemInfo(TrackCircuitCrossReferences trackCircuitXRefList, float offset, TrackDirection direction, float routeLength)
         {
-            if (null == trackCircuitXRefList)
-                throw new ArgumentNullException(nameof(trackCircuitXRefList));
+            ArgumentNullException.ThrowIfNull(trackCircuitXRefList);
 
             TrackCircuitPosition position = new TrackCircuitPosition();
             position.SetPosition(trackCircuitXRefList, offset, direction);
@@ -1818,8 +1811,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void SetSwitch(int nodeIndex, int switchPos, TrackCircuitSection section)
         {
-            if (null == section)
-                throw new ArgumentNullException(nameof(section));
+            ArgumentNullException.ThrowIfNull(section);
 
             if (MultiPlayerManager.NoAutoSwitch())
                 return;
@@ -1839,10 +1831,8 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void RequestClearNode(Train.TrainRouted train, TrackCircuitPartialPathRoute routePart)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
-            if (null == routePart)
-                throw new ArgumentNullException(nameof(routePart));
+            ArgumentNullException.ThrowIfNull(train);
+            ArgumentNullException.ThrowIfNull(routePart);
 
             TrackCircuitRouteElement routeElement = null;
             List<int> sectionsInRoute = new List<int>();
@@ -2265,8 +2255,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void BreakDownRoute(int firstSectionIndex, Train.TrainRouted requiredTrain)
         {
-            if (null == requiredTrain)
-                throw new ArgumentNullException(nameof(requiredTrain));
+            ArgumentNullException.ThrowIfNull(requiredTrain);
 
             if (firstSectionIndex < 0)
                 return; // no route to break down
@@ -2355,10 +2344,8 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void BreakDownRouteList(TrackCircuitPartialPathRoute requiredRoute, int firstRouteIndex, Train.TrainRouted requiredTrain)
         {
-            if (null == requiredTrain)
-                throw new ArgumentNullException(nameof(requiredTrain));
-            if (null == requiredRoute)
-                throw new ArgumentNullException(nameof(requiredRoute));
+            ArgumentNullException.ThrowIfNull(requiredTrain);
+            ArgumentNullException.ThrowIfNull(requiredRoute);
 
             for (int i = requiredRoute.Count - 1; i >= 0 && i >= firstRouteIndex; i--)
             {
@@ -3604,8 +3591,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public static bool RequestSetSwitch(Train train, Direction direction)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             switch (train.ControlMode)
             {
@@ -3646,8 +3632,7 @@ namespace Orts.Simulation.Signalling
 
         public bool RequestSetSwitch(IJunction junctionSection, SwitchState targetState)
         {
-            if (null == junctionSection)
-                throw new ArgumentNullException(nameof(junctionSection));
+            ArgumentNullException.ThrowIfNull(junctionSection);
 
             TrackCircuitSection switchSection = junctionSection as TrackCircuitSection;
             bool switchReserved = (switchSection.CircuitState.SignalReserved >= 0 || switchSection.CircuitState.TrainClaimed.Count > 0);
@@ -3690,8 +3675,7 @@ namespace Orts.Simulation.Signalling
         //only used by MP to manually set a switch to a desired position
         public bool RequestSetSwitch(TrackJunctionNode switchNode, int desiredState)
         {
-            if (null == switchNode)
-                throw new ArgumentNullException(nameof(switchNode));
+            ArgumentNullException.ThrowIfNull(switchNode);
 
             TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
             return RequestSetSwitch(switchSection, (SwitchState)desiredState);

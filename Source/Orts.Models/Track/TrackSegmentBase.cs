@@ -58,10 +58,8 @@ namespace Orts.Models.Track
 
         protected TrackSegmentBase(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex)
         {
-            if (null == trackVectorSection)
-                throw new ArgumentNullException(nameof(trackVectorSection));
-            if (null == trackSections)
-                throw new ArgumentNullException(nameof(trackSections));
+            ArgumentNullException.ThrowIfNull(trackVectorSection);
+            ArgumentNullException.ThrowIfNull(trackSections);
 
             ref readonly WorldLocation location = ref trackVectorSection.Location;
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
@@ -133,8 +131,7 @@ namespace Orts.Models.Track
         /// <exception cref="ArgumentNullException"></exception>
         protected TrackSegmentBase(TrackSegmentBase source, float length, float startOffset, bool reverse) : this(source)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             if (startOffset == 0 && length >= Length)//full path segment
                 return;

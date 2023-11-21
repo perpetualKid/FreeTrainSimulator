@@ -318,8 +318,7 @@ namespace Orts.Formats.Msts.Models
 
         public TempSpeedPostItem(Route routeFile, in WorldLocation location, bool isStart, in WorldPosition worldPosition, bool isWarning)
         {
-            if (null == routeFile)
-                throw new ArgumentNullException(nameof(routeFile));
+            ArgumentNullException.ThrowIfNull(routeFile);
 
             // TrItemId needs to be set later
             position = worldPosition;

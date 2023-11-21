@@ -67,8 +67,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void Restore(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             int occupied = inf.ReadInt32();
             for (int train = 0; train < occupied; train++)
@@ -217,8 +216,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write(OccupationState.Count);
             foreach (KeyValuePair<Train.TrainRouted, int> thisOccupy in OccupationState)

@@ -142,8 +142,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public override void Parse(string lowercasetoken, STFReader stf)
         {
-            if (null == stf)
-                throw new ArgumentNullException(nameof(stf));
+            ArgumentNullException.ThrowIfNull(stf);
             switch (lowercasetoken)
             {
                 case "ortseot(level":
@@ -160,8 +159,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public override void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
             outf.Write(ID);
             outf.Write((int)State);
             base.Save(outf);
@@ -169,8 +167,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public override void Restore(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
             ID = inf.ReadInt32();
             State = (EoTState)(inf.ReadInt32());
             delayTimer = new Timer(simulator);
@@ -202,8 +199,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public float GetDataOf(CabViewControl cabViewControl)
         {
-            if (null == cabViewControl)
-                throw new ArgumentNullException(nameof(cabViewControl));
+            ArgumentNullException.ThrowIfNull(cabViewControl);
             float data = 0;
             switch (cabViewControl.ControlType.CabViewControlType)
             {

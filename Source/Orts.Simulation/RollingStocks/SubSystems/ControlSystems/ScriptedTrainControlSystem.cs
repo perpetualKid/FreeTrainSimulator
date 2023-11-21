@@ -151,8 +151,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         public void Copy(ScriptedTrainControlSystem source)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
             scriptName = source.scriptName;
             soundFileName = source.soundFileName;
             parametersFileName = source.parametersFileName;
@@ -837,8 +836,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
             outf.Write(scriptName ?? "");
             if (!string.IsNullOrEmpty(scriptName))
                 script.Save(outf);
@@ -846,8 +844,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         public void Restore(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
             scriptName = inf.ReadString();
             if (!string.IsNullOrEmpty(scriptName))
             {

@@ -194,8 +194,7 @@ namespace Orts.Simulation.Activities
 
         public override bool Triggered(Activity activity)
         {
-            if (null == activity)
-                throw new ArgumentNullException(nameof(activity));
+            ArgumentNullException.ThrowIfNull(activity);
 
             Train playerTrain = Simulator.Instance.OriginalPlayerTrain;
             ActionActivityEvent actionActivityEvent = ActivityEvent as ActionActivityEvent ?? throw new InvalidCastException(nameof(ActivityEvent));
@@ -458,8 +457,7 @@ namespace Orts.Simulation.Activities
 
         public override bool Triggered(Activity activity)
         {
-            if (null == activity)
-                throw new ArgumentNullException(nameof(activity));
+            ArgumentNullException.ThrowIfNull(activity);
 
             TimeActivityEvent timeActivityEvent = ActivityEvent as TimeActivityEvent ?? throw new InvalidCastException(nameof(ActivityEvent));
             //if (timeActivityEvent == null) 

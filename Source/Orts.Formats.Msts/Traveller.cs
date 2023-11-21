@@ -205,8 +205,7 @@ namespace Orts.Formats.Msts
         private Traveller(TrackVectorNode startTrackNode, in WorldLocation location, bool roadTraveller = false)
             : this(roadTraveller)
         {
-            if (startTrackNode == null)
-                throw new ArgumentNullException(nameof(startTrackNode));
+            ArgumentNullException.ThrowIfNull(startTrackNode);
             if (!InitTrackNode(startTrackNode, location))
             {
                 if (startTrackNode.TrackVectorSections == null)
@@ -261,8 +260,7 @@ namespace Orts.Formats.Msts
         /// </summary>
         public Traveller(Traveller source, bool reverseDirection = false)
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             trackNodes = source.trackNodes;
 
@@ -286,8 +284,7 @@ namespace Orts.Formats.Msts
         public Traveller(BinaryReader inf, bool roadTraveller = false)
             : this(roadTraveller)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             locationSet = lengthSet = false;
             direction = (Direction)inf.ReadByte();
@@ -307,8 +304,7 @@ namespace Orts.Formats.Msts
         /// </summary>
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write((byte)direction);
             outf.Write(trackVectorSectionOffset);
@@ -801,8 +797,7 @@ namespace Orts.Formats.Msts
         // TODO: This is a bit of a strange method that probably should be cleaned up.
         public float OverlapDistanceM(Traveller other, bool rear)
         {
-            if (null == other)
-                throw new ArgumentNullException(nameof(other));
+            ArgumentNullException.ThrowIfNull(other);
 
             float dx = X - other.X + 2048 * (TileX - other.TileX);
             float dz = Z - other.Z + 2048 * (TileZ - other.TileZ);
@@ -818,12 +813,9 @@ namespace Orts.Formats.Msts
         // Checks if trains are overlapping. Used in multiplayer, where the standard method may lead to train overlapping
         public float RoughOverlapDistanceM(Traveller other, Traveller farMe, Traveller farOther, float lengthMe, float lengthOther, bool rear)
         {
-            if (null == other)
-                throw new ArgumentNullException(nameof(other));
-            if (null == farMe)
-                throw new ArgumentNullException(nameof(farMe));
-            if (null == farOther)
-                throw new ArgumentNullException(nameof(farOther));
+            ArgumentNullException.ThrowIfNull(other);
+            ArgumentNullException.ThrowIfNull(farMe);
+            ArgumentNullException.ThrowIfNull(farOther);
 
             float dy = Y - other.Y;
             if (Math.Abs(dy) > 1)

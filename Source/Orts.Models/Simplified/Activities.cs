@@ -139,10 +139,8 @@ namespace Orts.Models.Simplified
 
         public static async Task<IEnumerable<Activity>> GetActivities(Folder folder, Route route, CancellationToken token)
         {
-            if (null == folder)
-                throw new ArgumentNullException(nameof(folder));
-            if (null == route)
-                throw new ArgumentNullException(nameof(route));
+            ArgumentNullException.ThrowIfNull(folder);
+            ArgumentNullException.ThrowIfNull(route);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {

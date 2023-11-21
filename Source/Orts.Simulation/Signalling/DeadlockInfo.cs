@@ -92,8 +92,7 @@ namespace Orts.Simulation.Signalling
 
         public DeadlockInfo(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             deadlockIndex = inf.ReadInt32();
             AvailablePathList = new List<DeadlockPathInfo>();
@@ -206,8 +205,7 @@ namespace Orts.Simulation.Signalling
 
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write(deadlockIndex);
             outf.Write(AvailablePathList.Count);
@@ -418,8 +416,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal (int PathIndex, bool Exists) AddPath(TrackCircuitPartialPathRoute path, int startSectionIndex)
         {
-            if (path == null)
-                throw new ArgumentNullException(nameof(path));
+            ArgumentNullException.ThrowIfNull(path);
 
             // check if equal to existing path
             for (int i = 0; i <= AvailablePathList.Count - 1; i++)
@@ -503,8 +500,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal (int PathIndex, bool Exists) AddPath(TrackCircuitPartialPathRoute path, int startSectionIndex, string name, string groupName)
         {
-            if (path == null)
-                throw new ArgumentNullException(nameof(path));
+            ArgumentNullException.ThrowIfNull(path);
 
             // check if equal to existing path and has same name
             for (int i = 0; i <= AvailablePathList.Count - 1; i++)
@@ -619,10 +615,8 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal List<int> CheckDeadlockPathAvailability(TrackCircuitSection startSection, Train train)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
-            if (null == startSection)
-                throw new ArgumentNullException(nameof(startSection));
+            ArgumentNullException.ThrowIfNull(train);
+            ArgumentNullException.ThrowIfNull(startSection);
 
             List<int> useablePaths = new List<int>();
 
@@ -810,8 +804,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal List<int> GetFreePaths(Train train)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             List<int> freePaths = new List<int>();
 
@@ -847,8 +840,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal int SelectPath(List<int> availableRoutes, Train train, ref int endSectionIndex)
         {
-            if (train == null)
-                throw new ArgumentNullException(nameof(train));
+            ArgumentNullException.ThrowIfNull(train);
 
             int selectedPathNofit = -1;
             int selectedPathFit = -1;

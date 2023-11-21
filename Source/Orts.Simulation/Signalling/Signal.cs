@@ -141,8 +141,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public Signal(int reference, Signal source)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
             Index = reference;
             SignalType = source.SignalType;
             switch (source.SignalType)
@@ -1651,8 +1650,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public float DistanceTo(Traveller tdbTraveller)
         {
-            if (null == tdbTraveller)
-                throw new ArgumentNullException(nameof(tdbTraveller));
+            ArgumentNullException.ThrowIfNull(tdbTraveller);
             int trItem = (trackNodes[TrackNode] as TrackVectorNode).TrackItemIndices[TrackItemRefIndex];
             return tdbTraveller.DistanceTo(trackItems[trItem].Location);
         }
@@ -1662,8 +1660,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public float ObjectDistance(Signal nextSignal)
         {
-            if (null == nextSignal)
-                throw new ArgumentNullException(nameof(nextSignal));
+            ArgumentNullException.ThrowIfNull(nextSignal);
 
             int nextTrItem = (trackNodes[nextSignal.TrackNode] as TrackVectorNode).TrackItemIndices[nextSignal.TrackItemRefIndex];
             return TdbTraveller.DistanceTo(trackItems[nextTrItem].Location);
@@ -1674,8 +1671,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public bool IsSignalHead(SignalItem signalItem)
         {
-            if (null == signalItem)
-                throw new ArgumentNullException(nameof(signalItem));
+            ArgumentNullException.ThrowIfNull(signalItem);
             // Tritem for this signal
             SignalItem currentSignalItem = (SignalItem)trackItems[TrackItemIndex];
             // Same Tile
@@ -1788,10 +1784,8 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public TrackCircuitPartialPathRoute RequestClearSignalExplorer(TrackCircuitPartialPathRoute route, Train.TrainRouted train, bool propagated, int signalNumClearAhead)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
-            if (null == route)
-                throw new ArgumentNullException(nameof(route));
+            ArgumentNullException.ThrowIfNull(train);
+            ArgumentNullException.ThrowIfNull(route);
 
             // build output route from input route
             TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute(route);
@@ -1890,10 +1884,8 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public bool RequestClearSignal(TrackCircuitPartialPathRoute routePart, Train.TrainRouted train, int clearNextSignals, bool requestIsPropagated, Signal lastSignal)
         {
-            if (null == train)
-                throw new ArgumentNullException(nameof(train));
-            if (null == routePart)
-                throw new ArgumentNullException(nameof(routePart));
+            ArgumentNullException.ThrowIfNull(train);
+            ArgumentNullException.ThrowIfNull(routePart);
 
             // set general variables
             int foundFirstSection = -1;
@@ -2081,8 +2073,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void CheckRouteState(bool propagated, TrackCircuitPartialPathRoute route, Train.TrainRouted train, bool sound = true)
         {
-            if (null == route)
-                throw new ArgumentNullException(nameof(route));
+            ArgumentNullException.ThrowIfNull(route);
 
             // check if signal must be hold
             bool signalHold = HoldState == SignalHoldState.ManualLock || HoldState == SignalHoldState.StationStop;

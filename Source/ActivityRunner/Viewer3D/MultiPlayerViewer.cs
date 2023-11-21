@@ -35,8 +35,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public static void RegisterInputEvents(Viewer viewer)
         {
-            if (null == viewer)
-                throw new ArgumentNullException(nameof(viewer));
+            ArgumentNullException.ThrowIfNull(viewer);
 
             //In Multiplayer, I maybe the helper, but I can request to be the controller
             // Horn and bell are managed by UpdateHornAndBell in MSTSLocomotive.cs

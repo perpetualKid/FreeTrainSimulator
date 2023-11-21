@@ -508,8 +508,7 @@ namespace Orts.Simulation.Physics
         // copy path info etc. from original train
         public Train(Train source)
         {
-            if (null == source)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             Init();
             BrakeSystem = new TrainBrakeSystem(this);
@@ -571,8 +570,7 @@ namespace Orts.Simulation.Physics
         /// Restore
         public Train(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
             Init();
 
             BrakeSystem = new TrainBrakeSystem(this);
@@ -903,8 +901,7 @@ namespace Orts.Simulation.Physics
         /// save game state
         public virtual void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             SaveCars(outf);
             outf.Write(Number);
@@ -12173,10 +12170,8 @@ namespace Orts.Simulation.Physics
         // with offset
         internal static bool IsAheadOfTrain(TrackCircuitSection section, float offset, TrackCircuitPosition position)
         {
-            if (null == section)
-                throw new ArgumentNullException(nameof(section));
-            if (null == position)
-                throw new ArgumentNullException(nameof(position));
+            ArgumentNullException.ThrowIfNull(section);
+            ArgumentNullException.ThrowIfNull(position);
 
             float distanceAhead = TrackCircuitSection.GetDistanceBetweenObjects(
                 position.TrackCircuitSectionIndex, position.Offset, position.Direction, section.Index, offset);

@@ -35,8 +35,7 @@ namespace Orts.Simulation
         //check TDB for long curves and determine each section's position/elev in the curve
         public SuperElevation(Simulator simulator)
         {
-            if (null == simulator)
-                throw new ArgumentNullException(nameof(simulator));
+            ArgumentNullException.ThrowIfNull(simulator);
 
             Curves = new List<List<TrackVectorSection>>();
             Sections = new Dictionary<int, List<TrackVectorSection>>();
@@ -104,8 +103,7 @@ namespace Orts.Simulation
 
         private void MarkSections(Simulator simulator, List<TrackVectorSection> SectionList, float Len)
         {
-            if (null == simulator)
-                throw new ArgumentNullException(nameof(simulator));
+            ArgumentNullException.ThrowIfNull(simulator);
 
             if (Len < simulator.Settings.SuperElevationMinLen || SectionList.Count == 0) 
                 return;//too short a curve or the list is empty

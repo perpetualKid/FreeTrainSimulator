@@ -1773,8 +1773,7 @@ namespace Orts.Simulation.RollingStocks
         // Game save
         public virtual void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write(Flipped);
             outf.Write(UiD);
@@ -1798,8 +1797,7 @@ namespace Orts.Simulation.RollingStocks
         // Game restore
         public virtual void Restore(BinaryReader inf)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             Flipped = inf.ReadBoolean();
             UiD = inf.ReadInt32();
@@ -2299,8 +2297,7 @@ namespace Orts.Simulation.RollingStocks
 
         public void ComputePosition(Traveller traveller, bool backToFront, double elapsedTimeS, double distance, float speed)
         {
-            if (null == traveller)
-                throw new ArgumentNullException(nameof(traveller));
+            ArgumentNullException.ThrowIfNull(traveller);
 
             for (int j = 0; j < Parts.Count; j++)
                 Parts[j].InitLineFit();

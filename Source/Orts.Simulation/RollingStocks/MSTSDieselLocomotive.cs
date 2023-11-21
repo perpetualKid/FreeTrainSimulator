@@ -1255,8 +1255,7 @@ namespace Orts.Simulation.RollingStocks
 
         public override void SetStepSize(PickupObject matchPickup)
         {
-            if (null == matchPickup)
-                throw new ArgumentNullException(nameof(matchPickup));
+            ArgumentNullException.ThrowIfNull(matchPickup);
             if (MaxDieselLevelL != 0)
                 FuelController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / (MaxDieselLevelL * DieselWeightKgpL));
             if (maximumSteamHeatBoilerWaterTankCapacityL != 0)

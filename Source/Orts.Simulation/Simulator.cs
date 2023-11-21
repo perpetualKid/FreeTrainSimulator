@@ -422,8 +422,7 @@ namespace Orts.Simulation
 
         public void Restore(BinaryReader inf, string pathName, float initialTileX, float initialTileZ, CancellationToken cancellationToken)
         {
-            if (null == inf)
-                throw new ArgumentNullException(nameof(inf));
+            ArgumentNullException.ThrowIfNull(inf);
 
             ContainerManager.FreightAnimNeedsInitialization = false;
             ClockTime = inf.ReadDouble();
@@ -466,8 +465,7 @@ namespace Orts.Simulation
 
         public void Save(BinaryWriter outf)
         {
-            if (null == outf)
-                throw new ArgumentNullException(nameof(outf));
+            ArgumentNullException.ThrowIfNull(outf);
 
             outf.Write(ClockTime);
             outf.Write((int)Season);

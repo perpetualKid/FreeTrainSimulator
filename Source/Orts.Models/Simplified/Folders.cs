@@ -46,8 +46,7 @@ namespace Orts.Models.Simplified
 
         public static async Task<IEnumerable<Folder>> GetFolders(Dictionary<string, string> folders)
         {
-            if (null == folders)
-                throw new ArgumentNullException(nameof(folders));
+            ArgumentNullException.ThrowIfNull(folders);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {

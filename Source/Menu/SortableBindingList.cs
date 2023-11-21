@@ -47,8 +47,7 @@ namespace Orts.Menu
 
         protected override void ApplySortCore(PropertyDescriptor prop, ListSortDirection direction)
         {
-            if (null == prop)
-                throw new ArgumentNullException(nameof(prop));
+            ArgumentNullException.ThrowIfNull(prop);
 
             if (PropertyComparer.IsAllowable(prop))
             {

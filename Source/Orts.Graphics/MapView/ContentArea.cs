@@ -80,8 +80,7 @@ namespace Orts.Graphics.MapView
         internal ContentArea(Game game, ContentBase content) :
             base(game)
         {
-            if (null == game)
-                throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
 
             Content = content ?? throw new ArgumentNullException(nameof(content));
             Enabled = false;

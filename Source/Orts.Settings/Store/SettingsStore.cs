@@ -130,12 +130,9 @@ namespace Orts.Settings.Store
 
         protected static EnumArray<T, TEnum> InitializeEnumArray<T, TEnum>(Type expectedType, EnumArray<T, TEnum> defaultValues, string[] values) where TEnum : struct, Enum
         {
-            if (null == values)
-                throw new ArgumentNullException(nameof(values));
-            if (null == defaultValues)
-                throw new ArgumentNullException(nameof(defaultValues));
-            if (null == expectedType)
-                throw new ArgumentNullException(nameof(expectedType));
+            ArgumentNullException.ThrowIfNull(values);
+            ArgumentNullException.ThrowIfNull(defaultValues);
+            ArgumentNullException.ThrowIfNull(expectedType);
 
             Type[] genericArguments = expectedType.GenericTypeArguments;
             Debug.Assert(genericArguments.Length == 2 && genericArguments[1].IsEnum);

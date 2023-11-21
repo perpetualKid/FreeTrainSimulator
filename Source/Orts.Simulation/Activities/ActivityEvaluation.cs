@@ -136,8 +136,7 @@ namespace Orts.Simulation.Activities
 
         public static void Save(BinaryWriter outputStream)
         {
-            if (null == outputStream)
-                throw new ArgumentNullException(nameof(outputStream));
+            ArgumentNullException.ThrowIfNull(outputStream);
             if (instance == null)
                 return;
 
@@ -162,8 +161,7 @@ namespace Orts.Simulation.Activities
 
         public static void Restore(BinaryReader inputStream)
         {
-            if (null == inputStream)
-                throw new ArgumentNullException(nameof(inputStream));
+            ArgumentNullException.ThrowIfNull(inputStream);
             instance = new ActivityEvaluation
             {
                 CouplerBreaks = inputStream.ReadInt32(),
