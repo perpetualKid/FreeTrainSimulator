@@ -70,13 +70,9 @@ namespace Orts.Simulation.Timetables
                             // store if valid pool
                             if (!string.IsNullOrEmpty(newTurntable.PoolName))
                             {
-                                if (turntables.ContainsKey(newTurntable.PoolName))
+                                if (!turntables.TryAdd(newTurntable.PoolName, newTurntable))
                                 {
                                     Trace.TraceWarning("Duplicate turntable defined : " + newTurntable.PoolName);
-                                }
-                                else
-                                {
-                                    turntables.Add(newTurntable.PoolName, newTurntable);
                                 }
                             }
                             break;

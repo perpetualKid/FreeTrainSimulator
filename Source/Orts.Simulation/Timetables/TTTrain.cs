@@ -7104,27 +7104,25 @@ namespace Orts.Simulation.Timetables
                     TransferInfo thisTransfer = new TransferInfo(plattformReferenceID, thisCommand, this);
                     if (plattformReferenceID >= 0)
                     {
-                        if (TransferStationDetails.ContainsKey(plattformReferenceID))
+                        if (!TransferStationDetails.TryAdd(plattformReferenceID, thisTransfer))
                         {
                             Trace.TraceInformation("Train {0} : transfer command : cannot define multiple transfer at a single stop", Name);
                         }
                         else
                         {
                             List<TransferInfo> thisTransferList = new List<TransferInfo>();
-                            TransferStationDetails.Add(plattformReferenceID, thisTransfer);
                         }
                     }
                     else
                     {
                         // for now, insert with train set to -1 - will be updated for proper crossreference later
-                        if (TransferTrainDetails.ContainsKey(-1))
+                        if (TransferTrainDetails.TryGetValue(-1, out List<TransferInfo> value))
                         {
-                            TransferTrainDetails[-1].Add(thisTransfer);
+                            value.Add(thisTransfer);
                         }
                         else
                         {
-                            List<TransferInfo> thisTransferList = new List<TransferInfo>();
-                            thisTransferList.Add(thisTransfer);
+                            List<TransferInfo> thisTransferList = [thisTransfer];
                             TransferTrainDetails.Add(-1, thisTransferList);
                         }
                     }
@@ -13904,9 +13902,9 @@ namespace Orts.Simulation.Timetables
                 {
                     // get last section if train - assume this to be the transfer section
                     int lastSectionIndex = dettrain.TCRoute.TCRouteSubpaths.Last().Last().TrackCircuitSection.Index;
-                    if (transferTrain.NeedTrainTransfer.ContainsKey(lastSectionIndex))
+                    if (transferTrain.NeedTrainTransfer.TryGetValue(lastSectionIndex, out int value))
                     {
-                        int transferCount = transferTrain.NeedTrainTransfer[lastSectionIndex];
+                        int transferCount = value;
                         transferCount++;
                         transferTrain.NeedTrainTransfer.Remove(lastSectionIndex);
                         transferTrain.NeedTrainTransfer.Add(lastSectionIndex, transferCount);

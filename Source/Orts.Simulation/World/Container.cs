@@ -503,8 +503,8 @@ namespace Orts.Simulation.World
         {
             Container container;
             container = new Container(null, loadFilePath, this);
-            if (containerManager.LoadedContainers.ContainsKey(loadFilePath))
-                container.Copy(containerManager.LoadedContainers[loadFilePath]);
+            if (containerManager.LoadedContainers.TryGetValue(loadFilePath, out Container value))
+                container.Copy(value);
             else
             {
                 container.LoadFromContainerFile(loadFilePath, Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder);

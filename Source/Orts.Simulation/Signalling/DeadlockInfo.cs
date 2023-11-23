@@ -971,10 +971,7 @@ namespace Orts.Simulation.Signalling
                     thisSection.DeadlockBoundaries = new Dictionary<int, int>();
                 }
 
-                if (!thisSection.DeadlockBoundaries.ContainsKey(deadlockIndex))
-                {
-                    thisSection.DeadlockBoundaries.Add(deadlockIndex, pathIndex);
-                }
+                thisSection.DeadlockBoundaries.TryAdd(deadlockIndex, pathIndex);
             }
         }
 

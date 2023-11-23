@@ -72,13 +72,9 @@ namespace Orts.Simulation.Timetables
                             // store if valid pool
                             if (!string.IsNullOrEmpty(newPool.PoolName))
                             {
-                                if (pools.ContainsKey(newPool.PoolName))
+                                if (!pools.TryAdd(newPool.PoolName, newPool))
                                 {
                                     Trace.TraceWarning("Duplicate pool defined : " + newPool.PoolName);
-                                }
-                                else
-                                {
-                                    pools.Add(newPool.PoolName, newPool);
                                 }
                             }
                             break;

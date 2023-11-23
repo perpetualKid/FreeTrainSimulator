@@ -158,14 +158,13 @@ namespace Orts.Simulation.Timetables
             // set references (required to process commands)
             foreach (Physics.Train thisTrain in trainList)
             {
-                if (simulator.NameDictionary.ContainsKey(thisTrain.Name))
+                if (!simulator.NameDictionary.TryAdd(thisTrain.Name, thisTrain))
                 {
                     Trace.TraceWarning("Train : " + thisTrain.Name + " : duplicate name");
                 }
                 else
                 {
                     simulator.TrainDictionary.Add(thisTrain.Number, thisTrain);
-                    simulator.NameDictionary.Add(thisTrain.Name, thisTrain);
                 }
             }
 

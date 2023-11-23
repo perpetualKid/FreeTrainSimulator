@@ -566,8 +566,7 @@ namespace Orts.Formats.Msts.Models
                             if (TrackNodes[^1] is TrackJunctionNode junctionNode)
                             {
                                 string key = $"{junctionNode.UiD.WorldId}-{junctionNode.UiD.Location.TileX}-{junctionNode.UiD.Location.TileZ}";
-                                if (!junctionNodes.ContainsKey(key))
-                                    junctionNodes.Add(key, junctionNode);
+                                junctionNodes.TryAdd(key, junctionNode);
                                 // only need any (first) junction node with that key here to relate back to ShapeIndex
                             }
                         }),

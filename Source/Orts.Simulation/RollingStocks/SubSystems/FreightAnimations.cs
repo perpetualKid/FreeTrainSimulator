@@ -286,9 +286,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 Container container;
                 container = new Container(Wagon, loadFilePath);
-                if (containerManager.LoadedContainers.ContainsKey(loadFilePath))
+                if (containerManager.LoadedContainers.TryGetValue(loadFilePath, out Container value))
                 {
-                    container.Copy(containerManager.LoadedContainers[loadFilePath]);
+                    container.Copy(value);
                 }
                 else
                 {

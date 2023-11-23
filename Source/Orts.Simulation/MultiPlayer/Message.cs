@@ -2267,8 +2267,7 @@ namespace Orts.Simulation.MultiPlayer
                 //the client may quit because of lost connection, will remember it so it may recover in the future when the player log in again
                 if (p.Train != null && p.Status != OnlinePlayerStatus.Removed) //if this player has train and is not removed by the dispatcher
                 {
-                    if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(p.Username))
-                        MultiPlayerManager.Instance().lostPlayer.Add(p.Username, p);
+                    MultiPlayerManager.Instance().lostPlayer.TryAdd(p.Username, p);
                     p.QuitTime = Simulator.Instance.GameTime;
                     p.Train.SpeedMpS = 0.0f;
                     p.Status = OnlinePlayerStatus.Quit;
@@ -2340,8 +2339,7 @@ namespace Orts.Simulation.MultiPlayer
             //the client may quit because of lost connection, will remember it so it may recover in the future when the player log in again
             if (p.Train != null && p.Status != OnlinePlayerStatus.Removed) //if this player has train and is not removed by the dispatcher
             {
-                if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(p.Username))
-                    MultiPlayerManager.Instance().lostPlayer.Add(p.Username, p);
+                MultiPlayerManager.Instance().lostPlayer.TryAdd(p.Username, p);
                 p.QuitTime = Simulator.Instance.GameTime;
                 p.Train.SpeedMpS = 0.0f;
                 p.Status = OnlinePlayerStatus.Quit;

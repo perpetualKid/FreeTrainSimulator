@@ -636,9 +636,9 @@ namespace Orts.Simulation.Signalling
                         }
                         else if (trackItems[tdbRef] is PlatformItem)
                         {
-                            if (platformList.ContainsKey(tdbRef))
+                            if (platformList.TryGetValue(tdbRef, out int value))
                             {
-                                Trace.TraceInformation("Double reference to platform ID {0} in nodes {1} and {2}\n", tdbRef, platformList[tdbRef], index);
+                                Trace.TraceInformation("Double reference to platform ID {0} in nodes {1} and {2}\n", tdbRef, value, index);
                             }
                             else
                             {
@@ -647,9 +647,9 @@ namespace Orts.Simulation.Signalling
                         }
                         else if (trackItems[tdbRef] is SidingItem)
                         {
-                            if (platformList.ContainsKey(tdbRef))
+                            if (platformList.TryGetValue(tdbRef, out int value))
                             {
-                                Trace.TraceInformation("Double reference to siding ID {0} in nodes {1} and {2}\n", tdbRef, platformList[tdbRef], index);
+                                Trace.TraceInformation("Double reference to siding ID {0} in nodes {1} and {2}\n", tdbRef, value, index);
                             }
                             else
                             {
@@ -730,7 +730,7 @@ namespace Orts.Simulation.Signalling
             };
             signal.AddHead(nodeIndex, tdbRef, sigItem);
 
-            if (signalHeadList.ContainsKey(tdbRef))
+            if (!signalHeadList.TryAdd(tdbRef, signal))
             {
                 Trace.TraceInformation("Invalid double TDBRef {0} in node {1}\n", tdbRef, trackNode);
                 return false;
@@ -738,7 +738,6 @@ namespace Orts.Simulation.Signalling
             else
             {
                 Signals.Add(signal);
-                signalHeadList.Add(tdbRef, signal);
             }
             return true;
         }

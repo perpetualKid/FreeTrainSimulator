@@ -353,17 +353,12 @@ namespace Orts.Formats.Msts.Models
                     else
                     {
                         SignalDrawState drawState = new SignalDrawState(stf);
-                        if (drawStates.ContainsKey(drawState.Name))
+                        if (!drawStates.TryAdd(drawState.Name, drawState))
                         {
                             string newState = $"DST{drawStates.Count}";
                             drawStates.Add(newState, drawState);
                             STFException.TraceInformation(stf, $"Duplicate SignalDrawState name \'{drawState.Name}\', using name \'{newState}\' instead");
-                        }
-                        else
-                        {
-                            drawStates.Add(drawState.Name, drawState);
-                        }
-                    }
+                        } }
                 }),
             });
             if (drawStates.Count < count)

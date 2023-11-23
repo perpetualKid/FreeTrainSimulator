@@ -193,11 +193,8 @@ namespace Orts.Formats.Msts.Files
                     else
                     {
                         LightTexture lightTexture = new LightTexture(stf);
-                        if (lightTextures.ContainsKey(lightTexture.Name))
-                            STFException.TraceWarning(stf, "Skipped duplicate LightTex " + lightTexture.Name);
-                        else
-                            lightTextures.Add(lightTexture.Name, lightTexture);
-                    }
+                        if (!lightTextures.TryAdd(lightTexture.Name, lightTexture))
+                            STFException.TraceWarning(stf, "Skipped duplicate LightTex " + lightTexture.Name); }
                 }),
             });
             if (lightTextures.Count < count)
@@ -217,11 +214,8 @@ namespace Orts.Formats.Msts.Files
                     else
                     {
                         LightTableEntry lightsTableEntry = new LightTableEntry(stf);
-                        if (lightsTable.ContainsKey(lightsTableEntry.Name))
-                            STFException.TraceWarning(stf, "Skipped duplicate LightsTabEntry " + lightsTableEntry.Name);
-                        else
-                            lightsTable.Add(lightsTableEntry.Name, lightsTableEntry);
-                    }
+                        if (!lightsTable.TryAdd(lightsTableEntry.Name, lightsTableEntry))
+                            STFException.TraceWarning(stf, "Skipped duplicate LightsTabEntry " + lightsTableEntry.Name); }
                 }),
             });
             if (lightsTable.Count < count)
@@ -241,11 +235,8 @@ namespace Orts.Formats.Msts.Files
                     else
                     {
                         SignalType signalType = new SignalType(stf, orMode);
-                        if (signalTypes.ContainsKey(signalType.Name))
-                            STFException.TraceWarning(stf, "Skipped duplicate SignalType " + signalType.Name);
-                        else
-                            signalTypes.Add(signalType.Name, signalType);
-                    }
+                        if (!signalTypes.TryAdd(signalType.Name, signalType))
+                            STFException.TraceWarning(stf, "Skipped duplicate SignalType " + signalType.Name); }
                 }),
             });
             if (signalTypes.Count < count)
@@ -265,11 +256,8 @@ namespace Orts.Formats.Msts.Files
                         else
                         {
                             SignalShape signalShape = new SignalShape(stf);
-                            if (signalShapes.ContainsKey(signalShape.ShapeFileName))
-                                STFException.TraceWarning(stf, "Skipped duplicate SignalShape " + signalShape.ShapeFileName);
-                            else
-                                signalShapes.Add(signalShape.ShapeFileName, signalShape);
-                        }
+                            if (!signalShapes.TryAdd(signalShape.ShapeFileName, signalShape))
+                                STFException.TraceWarning(stf, "Skipped duplicate SignalShape " + signalShape.ShapeFileName); }
                 }),
             });
             if (signalShapes.Count < count)
