@@ -443,9 +443,9 @@ namespace ORTS.TrackViewer.Drawing
                     for (int tileZ = visibleTileZmin; tileZ <= visibleTileZmax; tileZ++)
                     {
                         uint index = locationTranslator.TileIndex(tileX, tileZ, zoomSize);
-                        if (terrainTiles.ContainsKey(index))
+                        if (terrainTiles.TryGetValue(index, out TerrainTile2D value))
                         {
-                            terrainTiles[index].DrawPatchLines(drawArea);
+                            value.DrawPatchLines(drawArea);
                         }
                     }
                 }
@@ -459,9 +459,9 @@ namespace ORTS.TrackViewer.Drawing
             foreach (int zoomSize in GetZoomSizesToShow(true))
             {
                 uint storeIndex = locationTranslator.TileIndex(location.TileX, location.TileZ, zoomSize);
-                if (terrainTiles.ContainsKey(storeIndex))
+                if (terrainTiles.TryGetValue(storeIndex, out TerrainTile2D value))
                 {
-                    StatusInformation = terrainTiles[storeIndex].GetStatusInformation(location);
+                    StatusInformation = value.GetStatusInformation(location);
                     return;
                 }
             }
@@ -768,14 +768,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="textureName">The texture name for which the vertices need to be returned</param>
         public VertexPositionTexture[] GetVertices(string textureName)
         {
-            if (verticesFull.ContainsKey(textureName))
-            {
-                return verticesFull[textureName];
-            }
-            else
-            {
-                return Array.Empty<VertexPositionTexture>();
-            }
+            return verticesFull.TryGetValue(textureName, out VertexPositionTexture[] value) ? value : [];
         }
 
         /// <summary>
@@ -1020,25 +1013,28 @@ namespace ORTS.TrackViewer.Drawing
 
         private static Color[] GetColorDataArray(int totalSize)
         {
-            if (!colorData.ContainsKey(totalSize))
+            if (!colorData.TryGetValue(totalSize, out Color[] value))
             {
-                colorData[totalSize] = new Color[totalSize];
+                value = (new Color[totalSize]);
+                colorData[totalSize] = value;
             }
-            return colorData[totalSize];
+            return value;
         }
 
         private static RenderTarget2D GetRenderTarget(int width, int height)
         {
-            if (renderTargets.ContainsKey(width) && renderTargets[width].ContainsKey(height))
+            if (renderTargets.TryGetValue(width, out Dictionary<int, RenderTarget2D> widthValue) && widthValue.TryGetValue(height, out RenderTarget2D heightValue))
             {
-                return renderTargets[width][height];
+                return heightValue;
             }
             RenderTarget2D newTarget = GetNewRenderTarget(width, height);
-            if (!renderTargets.ContainsKey(width))
+            if (!renderTargets.TryGetValue(width, out Dictionary<int, RenderTarget2D> value))
             {
-                renderTargets[width] = new Dictionary<int, RenderTarget2D>();
+                value = [];
+                renderTargets[width] = value;
             }
-            renderTargets[width][height] = newTarget;
+
+            value[height] = newTarget;
             return newTarget;
         }
 

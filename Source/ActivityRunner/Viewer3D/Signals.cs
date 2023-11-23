@@ -58,12 +58,11 @@ namespace Orts.ActivityRunner.Viewer3D
             UID = mstsSignal.UID;
 #endif
             string signalShape = Path.GetFileName(path);
-            if (!viewer.Simulator.SignalConfig.SignalShapes.ContainsKey(signalShape))
+            if (!viewer.Simulator.SignalConfig.SignalShapes.TryGetValue(signalShape, out Formats.Msts.Models.SignalShape mstsSignalShape))
             {
                 Trace.TraceWarning("{0} signal {1} has invalid shape {2}.", WorldPosition.ToString(), mstsSignal.UiD, signalShape);
                 return;
             }
-            Formats.Msts.Models.SignalShape mstsSignalShape = viewer.Simulator.SignalConfig.SignalShapes[signalShape];
 #if DEBUG_SIGNAL_SHAPES
             Trace.WriteLine("  Shape={0} SubObjs={1,-2} {2}", Path.GetFileNameWithoutExtension(path).ToUpper(), mstsSignalShape.SignalSubObjs.Count, mstsSignalShape.Description);
 #endif
@@ -218,10 +217,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
 
 
-                if (!Simulator.Instance.SignalConfig.SignalTypes.ContainsKey(mstsSignalSubObj.SignalSubSignalType))
+                if (!Simulator.Instance.SignalConfig.SignalTypes.TryGetValue(mstsSignalSubObj.SignalSubSignalType, out SignalType mstsSignalType))
                     return;
-
-                var mstsSignalType = Simulator.Instance.SignalConfig.SignalTypes[mstsSignalSubObj.SignalSubSignalType];
 
                 SignalTypeData = viewer.SignalTypeDataManager.Get(mstsSignalType);
 
@@ -325,9 +322,9 @@ namespace Orts.ActivityRunner.Viewer3D
                         SignalHead.draw_state, InfoDisplay.FormattedTime(Viewer.Simulator.ClockTime));
 #endif
                     DisplayState = SignalHead.DrawState;
-                    if (SignalTypeData.DrawAspects.ContainsKey(DisplayState))
+                    if (SignalTypeData.DrawAspects.TryGetValue(DisplayState, out SignalAspectData value))
                     {
-                        SemaphoreTarget = SignalTypeData.DrawAspects[DisplayState].SemaphorePos;
+                        SemaphoreTarget = value.SemaphorePos;
                         SemaphoreSpeed = SignalTypeData.SemaphoreAnimationTime <= 0 ? 0 : (SemaphoreTarget > SemaphorePos ? +1 : -1) / SignalTypeData.SemaphoreAnimationTime;
                         if (Sound != null)
                             Sound.HandleEvent(TrainEvent.SemaphoreArm);
@@ -338,7 +335,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 while (CumulativeTime > SignalTypeData.FlashTimeTotal)
                     CumulativeTime -= SignalTypeData.FlashTimeTotal;
 
-                if (DisplayState < 0 || !SignalTypeData.DrawAspects.ContainsKey(DisplayState))
+                if (DisplayState < 0 || !SignalTypeData.DrawAspects.TryGetValue(DisplayState, out SignalAspectData signalAspectData))
                     return;
 
                 if (SignalTypeData.Semaphore)
@@ -355,8 +352,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     SignalLightState state = lightStates[i];
                     bool semaphoreDark = SemaphorePos != SemaphoreTarget && SignalTypeData.LightsSemaphoreChange[i];
-                    bool constantDark = !SignalTypeData.DrawAspects[DisplayState].DrawLights[i];
-                    bool flashingDark = SignalTypeData.DrawAspects[DisplayState].FlashLights[i] && (CumulativeTime > SignalTypeData.FlashTimeOn);
+                    bool constantDark = !signalAspectData.DrawLights[i];
+                    bool flashingDark = signalAspectData.FlashLights[i] && (CumulativeTime > SignalTypeData.FlashTimeOn);
                     state.UpdateIntensity(semaphoreDark || constantDark || flashingDark ? 0 : 1, elapsedTime);
                     if (!state.Illuminated)
                         continue;
@@ -430,12 +427,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public SignalTypeData Get(Formats.Msts.Models.SignalType mstsSignalType)
         {
-            if (!SignalTypes.ContainsKey(mstsSignalType.Name))
+            if (!SignalTypes.TryGetValue(mstsSignalType.Name, out SignalTypeData value))
             {
-                SignalTypes[mstsSignalType.Name] = new SignalTypeData(Viewer, mstsSignalType);
+                value = new SignalTypeData(Viewer, mstsSignalType);
+                SignalTypes[mstsSignalType.Name] = value;
             }
 
-            return SignalTypes[mstsSignalType.Name];
+            return value;
         }
 
         public void Mark()
@@ -487,7 +485,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public SignalTypeData(Viewer viewer, Formats.Msts.Models.SignalType mstsSignalType)
         {
             viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
-            if (!viewer.Simulator.SignalConfig.LightTextures.ContainsKey(mstsSignalType.LightTextureName))
+            if (!viewer.Simulator.SignalConfig.LightTextures.TryGetValue(mstsSignalType.LightTextureName, out LightTexture value))
             {
                 Trace.TraceWarning("Skipped invalid light texture {1} for signal type {0}", mstsSignalType.Name, mstsSignalType.LightTextureName);
                 Material = viewer.MaterialManager.Load("missing-signal-light");
@@ -499,7 +497,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else
             {
-                var mstsLightTexture = viewer.Simulator.SignalConfig.LightTextures[mstsSignalType.LightTextureName];
+                var mstsLightTexture = value;
                 Material = viewer.MaterialManager.Load("SignalLight", Helpers.GetRouteTextureFile(Helpers.TextureFlags.None, mstsLightTexture.TextureFile));
                 GlowMaterial = viewer.MaterialManager.Load("SignalLightGlow");
 #if DEBUG_SIGNAL_SHAPES

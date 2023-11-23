@@ -133,9 +133,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public static int DecomposeStaticSuperElevation(Viewer viewer, List<DynamicTrackViewer> dTrackList, int TileX, int TileZ)
         {
             int key = Math.Abs(TileX) + Math.Abs(TileZ);
-            if (!Simulator.Instance.SuperElevation.Sections.ContainsKey(key)) 
+            if (!Simulator.Instance.SuperElevation.Sections.TryGetValue(key, out List<TrackVectorSection> sections))
                 return 0;//cannot find sections associated with this tile
-            List<TrackVectorSection> sections = Simulator.Instance.SuperElevation.Sections[key];
             if (sections == null) 
                 return 0;
 
@@ -173,8 +172,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 return null;
             sv = ev = mv = 0f; dir = 1f;
             var key = (int)(Math.Abs(TileX) + Math.Abs(TileZ));
-            if (!Simulator.Instance.SuperElevation.Sections.ContainsKey(key)) return null;//we do not have the maps of sections on the given tile, will not bother to search
-            var tileSections = Simulator.Instance.SuperElevation.Sections[key];
+            if (!Simulator.Instance.SuperElevation.Sections.TryGetValue(key, out List<TrackVectorSection> tileSections))
+                return null;//we do not have the maps of sections on the given tile, will not bother to search
             foreach (var s in tileSections)
             {
                 if (s.Location.TileX == TileX && s.Location.TileZ == TileZ && s.WorldFileUiD == UID && section.SectionIndex == s.SectionIndex)
@@ -200,8 +199,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public static void RemoveSectionsFromMap(TrackVectorSection section)
         {
             int key = Math.Abs(section.Location.TileX) + Math.Abs(section.Location.TileZ);
-            if (Simulator.Instance.SuperElevation.Sections.ContainsKey(key)) 
-                Simulator.Instance.SuperElevation.Sections[key].Remove(section);
+            if (Simulator.Instance.SuperElevation.Sections.TryGetValue(key, out List<TrackVectorSection> value))
+                value.Remove(section);
         }
 
         //get how much elevation is needed, starting at 8cm of max, but actual max will be 8mm+Simulator.UseSuperElevation

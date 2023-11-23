@@ -76,12 +76,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public static SoundManagmentFile Get(string path)
         {
-            if (!sharedSMSFiles.ContainsKey(path))
+            if (!sharedSMSFiles.TryGetValue(path, out SoundManagmentFile value))
             {
                 SoundManagmentFile smsFile = new SoundManagmentFile(path);
-                sharedSMSFiles.Add(path, smsFile);
+                value = smsFile;
+                sharedSMSFiles.Add(path, value);
             }
-            return sharedSMSFiles[path];
+            return value;
         }
 
         public static void Initialize(int trackTypesNumber, int switchSmsNumber, int curveSmsNumber, int curveSwitchSmsNumber)
@@ -2493,10 +2494,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             viewer.SoundProcess.RemoveSoundSources(name);
             lock (soundRegions)
             {
-                if (soundRegions.ContainsKey(name))
-                {
-                    soundRegions.Remove(name);
-                }
+                soundRegions.Remove(name);
             }
         }
     }

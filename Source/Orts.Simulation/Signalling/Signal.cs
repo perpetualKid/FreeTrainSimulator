@@ -981,9 +981,9 @@ namespace Orts.Simulation.Signalling
             if (nextSignal >= 0)
             {
                 Signal nextSignalObject = signalEnvironment.Signals[nextSignal];
-                if (nextSignalObject.localStorage.ContainsKey(index))
+                if (nextSignalObject.localStorage.TryGetValue(index, out int value))
                 {
-                    return nextSignalObject.localStorage[index];
+                    return value;
                 }
             }
             return 0;

@@ -367,11 +367,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             {
                 var param = (control as CabViewScreenControl).CustomParameters;
                 int maxSpeed = 400;
-                if (param.ContainsKey("maxspeed"))
-                    int.TryParse(param["maxspeed"], out maxSpeed);
+                if (param.TryGetValue("maxspeed", out string value))
+                    int.TryParse(value, out maxSpeed);
                 int maxVisibleSpeed = maxSpeed;
-                if (param.ContainsKey("maxvisiblespeed"))
-                    int.TryParse(param["maxvisiblespeed"], out maxVisibleSpeed);
+                if (param.TryGetValue("maxvisiblespeed", out value))
+                    int.TryParse(value, out maxVisibleSpeed);
                 CircularSpeedGauge = new CircularSpeedGauge(
                        maxSpeed,
                        control.ControlUnit != CabViewControlUnit.Miles_Per_Hour,

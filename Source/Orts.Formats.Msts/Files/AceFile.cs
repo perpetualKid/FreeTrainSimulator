@@ -100,9 +100,8 @@ namespace Orts.Formats.Msts.Files
             SurfaceFormat textureFormat = SurfaceFormat.Color;
             if ((options & SimisAceFormatOptions.RawData) != 0)
             {
-                if (!SimisAceSurfaceFormats.ContainsKey(surfaceFormat))
+                if (!SimisAceSurfaceFormats.TryGetValue(surfaceFormat, out textureFormat))
                     throw new InvalidDataException($"Unsupported surface format {surfaceFormat:X8}");
-                textureFormat = SimisAceSurfaceFormats[surfaceFormat];
             }
 
             // Calculate how many images we're going to load; 1 for non-mipmapped, 1+log(width)/log(2) for mipmapped.

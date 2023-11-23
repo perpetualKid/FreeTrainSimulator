@@ -86,8 +86,7 @@ namespace Orts.Simulation.World
 
         public void RemoveHazardFromGame(int itemID)
         {
-            if (currentHazards.ContainsKey(itemID))
-                currentHazards.Remove(itemID);
+            currentHazards.Remove(itemID);
         }
 
         public void Update(double elapsedClockSeconds)

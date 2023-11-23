@@ -218,9 +218,9 @@ namespace Orts.Simulation.Timetables
                     }
                 }
 
-                if (thisTrain.TransferTrainDetails != null && thisTrain.TransferTrainDetails.ContainsKey(-1))
+                if (thisTrain.TransferTrainDetails != null && thisTrain.TransferTrainDetails.TryGetValue(-1, out List<TransferInfo> value))
                 {
-                    foreach (TransferInfo thisTransfer in thisTrain.TransferTrainDetails[-1])
+                    foreach (TransferInfo thisTransfer in value)
                     {
                         thisTransfer.SetTransferXRef(thisTrain, trainList, playerTrain.TTTrain, false, true);
                         if (thisTransfer.Valid)
@@ -639,9 +639,9 @@ namespace Orts.Simulation.Timetables
 
             foreach (KeyValuePair<int, int> addColumn in addTrainInfo)
             {
-                if (addTrainColumns.ContainsKey(addColumn.Value))
+                if (addTrainColumns.TryGetValue(addColumn.Value, out List<int> value))
                 {
-                    addTrainColumns[addColumn.Value].Add(addColumn.Key);
+                    value.Add(addColumn.Key);
                 }
                 else
                 {
@@ -767,9 +767,9 @@ namespace Orts.Simulation.Timetables
             foreach (TTTrainInfo reqTrain in allTrains)
             {
                 // create train route
-                if (TrainRouteXRef.ContainsKey(reqTrain.Index) && Paths.ContainsKey(TrainRouteXRef[reqTrain.Index]))
+                if (TrainRouteXRef.ContainsKey(reqTrain.Index) && Paths.TryGetValue(TrainRouteXRef[reqTrain.Index], out AIPath value))
                 {
-                    AIPath usedPath = new AIPath(Paths[TrainRouteXRef[reqTrain.Index]]);
+                    AIPath usedPath = new AIPath(value);
                     reqTrain.TTTrain.RearTDBTraveller = new Traveller(usedPath.FirstNode.Location, usedPath.FirstNode.NextMainNode.Location);
                     reqTrain.TTTrain.Path = usedPath;
                     reqTrain.TTTrain.CreateRoute(false);  // create route without use of FrontTDBtraveller
@@ -957,9 +957,9 @@ namespace Orts.Simulation.Timetables
                 }
             }
 
-            if (reqTrain.TTTrain.TransferTrainDetails != null && reqTrain.TTTrain.TransferTrainDetails.ContainsKey(-1))
+            if (reqTrain.TTTrain.TransferTrainDetails != null && reqTrain.TTTrain.TransferTrainDetails.TryGetValue(-1, out List<TransferInfo> value))
             {
-                foreach (TransferInfo thisTransfer in reqTrain.TTTrain.TransferTrainDetails[-1])
+                foreach (TransferInfo thisTransfer in value)
                 {
                     thisTransfer.SetTransferXRef(reqTrain.TTTrain, trainList, null, false, true);
                     if (thisTransfer.Valid)
@@ -1436,15 +1436,13 @@ namespace Orts.Simulation.Timetables
 
                                     case string detach when detach.Equals("detach", StringComparison.OrdinalIgnoreCase):
                                         DetachInfo thisDetach = new DetachInfo(TTTrain, disposeCommands, false, false, true, -1, null);
-                                        if (TTTrain.DetachDetails.ContainsKey(-1))
+                                        if (TTTrain.DetachDetails.TryGetValue(-1, out List<DetachInfo> value))
                                         {
-                                            List<DetachInfo> tempList = TTTrain.DetachDetails[-1];
-                                            tempList.Add(thisDetach);
+                                            value.Add(thisDetach);
                                         }
                                         else
                                         {
-                                            List<DetachInfo> tempList = new List<DetachInfo>();
-                                            tempList.Add(thisDetach);
+                                            List<DetachInfo> tempList = [thisDetach];
                                             TTTrain.DetachDetails.Add(-1, tempList);
                                         }
                                         break;
@@ -2581,10 +2579,10 @@ namespace Orts.Simulation.Timetables
             {
                 foreach (KeyValuePair<string, StopInfo> stationStop in Stops)
                 {
-                    if (actTrain.TCRoute.StationCrossReferences.ContainsKey(stationStop.Key))
+                    if (actTrain.TCRoute.StationCrossReferences.TryGetValue(stationStop.Key, out int[] value))
                     {
                         StopInfo stationInfo = stationStop.Value;
-                        int[] platformInfo = actTrain.TCRoute.StationCrossReferences[stationStop.Key];
+                        int[] platformInfo = value;
                         bool ValidStop = stationInfo.BuildStopInfo(actTrain, platformInfo[2], simulator.SignalEnvironment);
                         if (!ValidStop)
                         {
@@ -3003,15 +3001,13 @@ namespace Orts.Simulation.Timetables
                     {
                         int? rrtime = disposeDetails.RunRoundTime;
                         DetachInfo detachDetails = new DetachInfo(true, false, false, 0, false, false, false, false, true, false, -1, rrtime, formedTrain.Number, reverseTrain);
-                        if (rrtrain.DetachDetails.ContainsKey(-1))
+                        if (rrtrain.DetachDetails.TryGetValue(-1, out List<DetachInfo> value))
                         {
-                            List<DetachInfo> thisDetachList = rrtrain.DetachDetails[-1];
-                            thisDetachList.Add(detachDetails);
+                            value.Add(detachDetails);
                         }
                         else
                         {
-                            List<DetachInfo> thisDetachList = new List<DetachInfo>();
-                            thisDetachList.Add(detachDetails);
+                            List<DetachInfo> thisDetachList = [detachDetails];
                             rrtrain.DetachDetails.Add(-1, thisDetachList);
                         }
                         formedTrain.ActivateTime = rrtime.HasValue ? (rrtime.Value + 30) : 0;
@@ -3019,15 +3015,13 @@ namespace Orts.Simulation.Timetables
                     else
                     {
                         DetachInfo detachDetails = new DetachInfo(false, true, false, 0, false, false, false, false, true, false, -1, null, formedTrain.Number, reverseTrain);
-                        if (rrtrain.DetachDetails.ContainsKey(-1))
+                        if (rrtrain.DetachDetails.TryGetValue(-1, out List<DetachInfo> value))
                         {
-                            List<DetachInfo> thisDetachList = rrtrain.DetachDetails[-1];
-                            thisDetachList.Add(detachDetails);
+                            value.Add(detachDetails);
                         }
                         else
                         {
-                            List<DetachInfo> thisDetachList = new List<DetachInfo>();
-                            thisDetachList.Add(detachDetails);
+                            List<DetachInfo> thisDetachList = [detachDetails];
                             rrtrain.DetachDetails.Add(-1, thisDetachList);
                         }
                         formedTrain.ActivateTime = 0;

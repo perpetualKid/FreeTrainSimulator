@@ -422,11 +422,10 @@ namespace Orts.Simulation.AIs
                 else if (!String.IsNullOrEmpty(playerTrain.CreateFromPool))
                 {
                     TimetablePool.TrainFromPool extractResult = TimetablePool.TrainFromPool.Failed;
-                    if (simulator.PoolHolder.Pools.ContainsKey(playerTrain.CreateFromPool))
+                    if (simulator.PoolHolder.Pools.TryGetValue(playerTrain.CreateFromPool, out TimetablePool timetablePool))
                     {
-                        TimetablePool thisPool = simulator.PoolHolder.Pools[playerTrain.CreateFromPool];
                         int presentTime = Convert.ToInt32(Math.Floor(ClockTime));
-                        extractResult = thisPool.ExtractTrain(ref playerTrain, presentTime);
+                        extractResult = timetablePool.ExtractTrain(ref playerTrain, presentTime);
                     }
                     else
                     {
@@ -1023,11 +1022,9 @@ namespace Orts.Simulation.AIs
                 AITrains.Add(thisTrain);
                 TrainListChanged = true;
                 simulator.Trains.Add(thisTrain);
-                if (simulator.TrainDictionary.ContainsKey(thisTrain.Number))
-                    simulator.TrainDictionary.Remove(thisTrain.Number); // clear existing entry
+                simulator.TrainDictionary.Remove(thisTrain.Number); // clear existing entry
                 simulator.TrainDictionary.Add(thisTrain.Number, thisTrain);
-                if (simulator.NameDictionary.ContainsKey(thisTrain.Name))
-                    simulator.NameDictionary.Remove(thisTrain.Name);
+                simulator.NameDictionary.Remove(thisTrain.Name);
                 simulator.NameDictionary.Add(thisTrain.Name, thisTrain);
                 if (thisTrain.InitialSpeed > 0 && thisTrain.MovementState != AiMovementState.StationStop)
                 {
@@ -1212,11 +1209,9 @@ namespace Orts.Simulation.AIs
                     thisTrain.TrainType = TrainType.Player;
                 }
 
-                if (simulator.TrainDictionary.ContainsKey(thisTrain.Number))
-                    simulator.TrainDictionary.Remove(thisTrain.Number); // clear existing entry
+                simulator.TrainDictionary.Remove(thisTrain.Number); // clear existing entry
                 simulator.TrainDictionary.Add(thisTrain.Number, thisTrain);
-                if (simulator.NameDictionary.ContainsKey(thisTrain.Name))
-                    simulator.NameDictionary.Remove(thisTrain.Name);
+                simulator.NameDictionary.Remove(thisTrain.Name);
                 simulator.NameDictionary.Add(thisTrain.Name, thisTrain);
             }
             else
@@ -1324,11 +1319,9 @@ namespace Orts.Simulation.AIs
         {
             foreach (AITrain train in TrainsToAdd)
             {
-                if (simulator.TrainDictionary.ContainsKey(train.Number))
-                    simulator.TrainDictionary.Remove(train.Number); // clear existing entry
+                simulator.TrainDictionary.Remove(train.Number); // clear existing entry
                 simulator.TrainDictionary.Add(train.Number, train);
-                if (simulator.NameDictionary.ContainsKey(train.Name))
-                    simulator.NameDictionary.Remove(train.Name);
+                simulator.NameDictionary.Remove(train.Name);
                 simulator.NameDictionary.Add(train.Name, train);
                 AITrains.Add(train);
                 TrainListChanged = true;
@@ -1342,11 +1335,9 @@ namespace Orts.Simulation.AIs
         {
             foreach (TTTrain train in TrainsToAdd)
             {
-                if (simulator.TrainDictionary.ContainsKey(train.Number))
-                    simulator.TrainDictionary.Remove(train.Number); // clear existing entry
+                simulator.TrainDictionary.Remove(train.Number); // clear existing entry
                 simulator.TrainDictionary.Add(train.Number, train);
-                if (simulator.NameDictionary.ContainsKey(train.Name))
-                    simulator.NameDictionary.Remove(train.Name);
+                simulator.NameDictionary.Remove(train.Name);
                 simulator.NameDictionary.Add(train.Name, train);
                 if (train.TrainType == TrainType.Player || train.TrainType == TrainType.PlayerIntended)
                 {

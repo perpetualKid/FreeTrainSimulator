@@ -342,9 +342,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
             string n = GetKey(name, IsExternal, isReleasedWithJump);
 
-            if (AllPieces.ContainsKey(n))
+            if (AllPieces.TryGetValue(n, out SoundPiece value))
             {
-                SoundPiece = AllPieces[n];
+                SoundPiece = value;
                 SoundPiece.RefCount++;
                 if (SoundPiece.RefCount < 1)
                     SoundPiece.RefCount = 1;
@@ -370,9 +370,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 return;
 
             string key = GetKey(name, isExternal, isReleasedWithJump);
-            if (AllPieces.ContainsKey(key) && AllPieces[key].RefCount < 1)
+            if (AllPieces.TryGetValue(key, out SoundPiece value) && value.RefCount < 1)
             {
-                AllPieces[key].Dispose();
+                value.Dispose();
                 AllPieces.Remove(key);
             }
         }

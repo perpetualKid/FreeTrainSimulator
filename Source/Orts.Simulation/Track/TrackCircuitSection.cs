@@ -45,7 +45,7 @@ namespace Orts.Simulation.Track
     /// </summary>
     //================================================================================================//
 
-    public class TrackCircuitSection: IJunction
+    public class TrackCircuitSection : IJunction
     {
         public static TrackCircuitSection Invalid { get; } = new TrackCircuitSection(-1);
 
@@ -91,10 +91,10 @@ namespace Orts.Simulation.Track
 
         // trough data
         internal List<TroughInfoData> TroughInfo { get; private set; }                    // full trough info data
-        SwitchState IJunction.State 
-        { 
-            get => State; 
-            set => throw new NotImplementedException(); 
+        SwitchState IJunction.State
+        {
+            get => State;
+            set => throw new NotImplementedException();
         }
 
         protected SwitchState State
@@ -625,7 +625,8 @@ namespace Orts.Simulation.Track
                 // enable all signals along section in direction of train
                 // do not enable those signals who are part of NORMAL signal
 
-                if (currentIndex < 0) return; //Added by JTang
+                if (currentIndex < 0)
+                    return; //Added by JTang
                 routeElement = route[currentIndex];
                 TrackDirection direction = (TrackDirection)routeElement.Direction;
 
@@ -651,11 +652,11 @@ namespace Orts.Simulation.Track
                 }
 
                 // set deadlock trap if required - do not set deadlock if wait is required at this location
-                if (train.Train.DeadlockInfo.ContainsKey(Index))
+                if (train.Train.DeadlockInfo.TryGetValue(Index, out List<Dictionary<int, int>> value))
                 {
                     if (!train.Train.CheckWaitCondition(Index))
                     {
-                        SetDeadlockTrap(train.Train, train.Train.DeadlockInfo[Index]);
+                        SetDeadlockTrap(train.Train, value);
                     }
                 }
 
@@ -668,9 +669,9 @@ namespace Orts.Simulation.Track
                         TrackCircuitSection endSection = routeElement.StartAlternativePath.TrackCircuitSection;
 
                         // no deadlock yet active
-                        if (train.Train.DeadlockInfo.ContainsKey(endSection.Index))
+                        if (train.Train.DeadlockInfo.TryGetValue(endSection.Index, out List<Dictionary<int, int>> deadlockList))
                         {
-                            endSection.SetDeadlockTrap(train.Train, train.Train.DeadlockInfo[endSection.Index]);
+                            endSection.SetDeadlockTrap(train.Train, deadlockList);
                         }
                         else if (endSection.DeadlockTraps.ContainsKey(train.Train.Number) && !endSection.DeadlockAwaited.Contains(train.Train.Number))
                         {
@@ -692,11 +693,11 @@ namespace Orts.Simulation.Track
                             TrackCircuitSection endSection = TrackCircuitList[endSectionIndex];
 
                             // no deadlock yet active - do not set deadlock if train has wait within deadlock section
-                            if (train.Train.DeadlockInfo.ContainsKey(endSection.Index))
+                            if (train.Train.DeadlockInfo.TryGetValue(endSection.Index, out List<Dictionary<int, int>> deadlockList))
                             {
                                 if (!train.Train.HasActiveWait(Index, endSection.Index))
                                 {
-                                    endSection.SetDeadlockTrap(train.Train, train.Train.DeadlockInfo[endSection.Index]);
+                                    endSection.SetDeadlockTrap(train.Train, deadlockList);
                                 }
                             }
                             else if (endSection.DeadlockTraps.ContainsKey(train.Train.Number) && !endSection.DeadlockAwaited.Contains(train.Train.Number))
@@ -723,9 +724,9 @@ namespace Orts.Simulation.Track
             }
 
             // set deadlock trap if required
-            if (train.Train.DeadlockInfo.ContainsKey(Index))
+            if (train.Train.DeadlockInfo.TryGetValue(Index, out List<Dictionary<int, int>> value))
             {
-                SetDeadlockTrap(train.Train, train.Train.DeadlockInfo[Index]);
+                SetDeadlockTrap(train.Train, value);
             }
         }
 
@@ -844,9 +845,9 @@ namespace Orts.Simulation.Track
 
             // set deadlock trap if required
 
-            if (train.Train.DeadlockInfo.ContainsKey(Index))
+            if (train.Train.DeadlockInfo.TryGetValue(Index, out List<Dictionary<int, int>> value))
             {
-                SetDeadlockTrap(train.Train, train.Train.DeadlockInfo[Index]);
+                SetDeadlockTrap(train.Train, value);
             }
 
             // check for deadlock trap if taking alternative path
@@ -861,9 +862,9 @@ namespace Orts.Simulation.Track
 
                     // set deadlock trap for next section
 
-                    if (train.Train.DeadlockInfo.ContainsKey(endSection.Index))
+                    if (train.Train.DeadlockInfo.TryGetValue(endSection.Index, out value))
                     {
-                        endSection.SetDeadlockTrap(train.Train, train.Train.DeadlockInfo[endSection.Index]);
+                        endSection.SetDeadlockTrap(train.Train, value);
                     }
                 }
             }
@@ -1311,7 +1312,8 @@ namespace Orts.Simulation.Track
                         bool reservedTrainStillThere = false;
                         foreach (Signal signal in EndSignals)
                         {
-                            if (signal != null && signal.EnabledTrain != null && signal.EnabledTrain.Train == reservedTrain.Train) reservedTrainStillThere = true;
+                            if (signal != null && signal.EnabledTrain != null && signal.EnabledTrain.Train == reservedTrain.Train)
+                                reservedTrainStillThere = true;
                         }
 
                         if (reservedTrainStillThere && reservedTrain.Train.ValidRoute[0] != null && reservedTrain.Train.PresentPosition[Direction.Forward] != null &&
@@ -1357,9 +1359,9 @@ namespace Orts.Simulation.Track
                 }
 
                 // deadlock trap - may not set deadlock if wait is active 
-                if (localBlockstate != InternalBlockstate.ForcedWait && DeadlockTraps.ContainsKey(train.Train.Number))
+                if (localBlockstate != InternalBlockstate.ForcedWait && DeadlockTraps.TryGetValue(train.Train.Number, out List<int> value))
                 {
-                    if (train.Train.VerifyDeadlock(DeadlockTraps[train.Train.Number]))
+                    if (train.Train.VerifyDeadlock(value))
                     {
                         localBlockstate = InternalBlockstate.Blocked;
                         if (!DeadlockAwaited.Contains(train.Train.Number))
@@ -1804,18 +1806,17 @@ namespace Orts.Simulation.Track
                         if (otherTrain != null && endSection.IsSet(otherTrain, true))
                             break;
 
-                        if (DeadlockTraps.ContainsKey(train.Number))
+                        if (DeadlockTraps.TryGetValue(train.Number, out List<int> thisTrap))
                         {
-                            List<int> thisTrap = DeadlockTraps[train.Number];
                             if (thisTrap.Contains(otherTrainNumber))
                                 break;  // cannot set deadlock for train which has deadlock on this end
                         }
 
-                        if (endSection.DeadlockTraps.ContainsKey(otherTrainNumber))
+                        if (endSection.DeadlockTraps.TryGetValue(otherTrainNumber, out List<int> value))
                         {
-                            if (!endSection.DeadlockTraps[otherTrainNumber].Contains(train.Number))
+                            if (!value.Contains(train.Number))
                             {
-                                endSection.DeadlockTraps[otherTrainNumber].Add(train.Number);
+                                value.Add(train.Number);
                             }
                         }
                         else
@@ -1843,11 +1844,11 @@ namespace Orts.Simulation.Track
         public void SetDeadlockTrap(int trainNumber, int otherTrainNumber)
         {
 
-            if (DeadlockTraps.ContainsKey(otherTrainNumber))
+            if (DeadlockTraps.TryGetValue(otherTrainNumber, out List<int> value))
             {
-                if (!DeadlockTraps[otherTrainNumber].Contains(trainNumber))
+                if (!value.Contains(trainNumber))
                 {
-                    DeadlockTraps[otherTrainNumber].Add(trainNumber);
+                    value.Add(trainNumber);
                 }
             }
             else
@@ -1877,14 +1878,11 @@ namespace Orts.Simulation.Track
             {
                 foreach (KeyValuePair<int, List<int>> thisDeadlock in DeadlockTraps)
                 {
-                    if (thisDeadlock.Value.Contains(trainNumber))
-                    {
-                        thisDeadlock.Value.Remove(trainNumber);
+                    if (thisDeadlock.Value.Remove(trainNumber))
                         if (thisDeadlock.Value.Count <= 0)
                         {
                             deadlocksCleared.Add(thisDeadlock.Key);
                         }
-                    }
                 }
                 DeadlockActives.Remove(trainNumber);
             }

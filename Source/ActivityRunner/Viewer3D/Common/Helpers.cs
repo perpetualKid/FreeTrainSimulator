@@ -157,21 +157,21 @@ namespace Orts.ActivityRunner.Viewer3D.Common
         {
             var options = SceneryMaterialOptions.None;
 
-            if (TextureAddressingModeNames.ContainsKey(lod.TexAddrModeName))
-                options |= TextureAddressingModeNames[lod.TexAddrModeName];
+            if (TextureAddressingModeNames.TryGetValue(lod.TexAddrModeName, out SceneryMaterialOptions value))
+                options |= value;
             else
                 Trace.TraceWarning("Skipped unknown texture addressing mode {1} in shape {0}", lod.Name, lod.TexAddrModeName);
 
             if (lod.AlphaTestMode == 1)
                 options |= SceneryMaterialOptions.AlphaTest;
 
-            if (ShaderNames.ContainsKey(lod.ShaderName))
-                options |= ShaderNames[lod.ShaderName];
+            if (ShaderNames.TryGetValue(lod.ShaderName, out value))
+                options |= value;
             else
                 Trace.TraceWarning("Skipped unknown shader name {1} in shape {0}", lod.Name, lod.ShaderName);
 
-            if (LightingModelNames.ContainsKey(lod.LightModelName))
-                options |= LightingModelNames[lod.LightModelName];
+            if (LightingModelNames.TryGetValue(lod.LightModelName, out value))
+                options |= value;
             else
                 Trace.TraceWarning("Skipped unknown lighting model index {1} in shape {0}", lod.Name, lod.LightModelName);
 

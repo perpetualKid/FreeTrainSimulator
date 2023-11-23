@@ -1518,27 +1518,21 @@ namespace Orts.Simulation.Track
                 loopList.Add(loopInfo);
 
                 bool loopset = false;
-                int loopindex = -1;
 
                 for (int i = 0; i < partialRoute.Count; i++)
                 {
                     TrackCircuitRouteElement thisElement = partialRoute[i];
 
-                    if (sections.ContainsKey(thisElement.TrackCircuitSection.Index) && !loopset)
+                    if (sections.TryGetValue(thisElement.TrackCircuitSection.Index, out int loopindex) && !loopset)
                     {
-                        int[] loopDetails = new int[2];
-                        loopindex = sections[thisElement.TrackCircuitSection.Index];
-                        loopDetails[0] = loopindex;
-                        loopDetails[1] = i;
+                        int[] loopDetails = [loopindex, i];
                         loopInfo.Add(loopDetails);
                         loopset = true;
 
                         // check if loop reverses or continues
                     }
-                    else if (sections.ContainsKey(thisElement.TrackCircuitSection.Index) && loopset)
+                    else if (sections.TryGetValue(thisElement.TrackCircuitSection.Index, out int preloopindex) && loopset)
                     {
-                        int preloopindex = sections[thisElement.TrackCircuitSection.Index];
-
                         if (thisElement.Direction == partialRoute[preloopindex].Direction)
                         {
                             loopindex++;

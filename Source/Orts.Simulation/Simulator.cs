@@ -1515,11 +1515,10 @@ namespace Orts.Simulation
         public TTTrain GetAutoGenTTTrainByNumber(int reqNumber)
         {
             TTTrain returnTrain = null;
-            if (AutoGenDictionary.ContainsKey(reqNumber))
+            if (AutoGenDictionary.TryGetValue(reqNumber, out AITrain aITrain))
             {
-                AITrain tempTrain = AutoGenDictionary[reqNumber];
-                returnTrain = tempTrain as TTTrain;
-                returnTrain.AI.AutoGenTrains.Remove(tempTrain);
+                returnTrain = aITrain as TTTrain;
+                returnTrain.AI.AutoGenTrains.Remove(aITrain);
                 AutoGenDictionary.Remove(reqNumber);
                 returnTrain.RoutedBackward = new Train.TrainRouted(returnTrain, 1);
                 returnTrain.RoutedForward = new Train.TrainRouted(returnTrain, 0);

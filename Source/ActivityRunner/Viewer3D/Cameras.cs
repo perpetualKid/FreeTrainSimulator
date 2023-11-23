@@ -458,8 +458,8 @@ namespace Orts.ActivityRunner.Viewer3D
             if (!(this is TracksideCamera) && !(this is FreeRoamCamera) && AttachedCar != null)
             {
                 var cars = viewer.World.Trains.Cars;
-                if (cars.ContainsKey(AttachedCar))
-                    cameraVelocity = cars[AttachedCar].Velocity;
+                if (cars.TryGetValue(AttachedCar, out TrainCarViewer value))
+                    cameraVelocity = value.Velocity;
                 else
                     cameraVelocity = new float[] { 0, 0, 0 };
             }

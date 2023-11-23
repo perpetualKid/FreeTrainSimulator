@@ -67,8 +67,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         break;
                     try
 					{
-						if (cars.ContainsKey(car))
-							newCars.Add(car, cars[car]);
+                        if (cars.TryGetValue(car, out TrainCarViewer trainCarViewer))
+							newCars.Add(car, trainCarViewer);
 						else
 							newCars.Add(car, LoadCar(car));
 					}
@@ -90,8 +90,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Ensure the player locomotive has a cab view loaded and anything else they need.
             cars = Cars;
-            if (PlayerCar != null && cars.ContainsKey(PlayerCar))
-                cars[PlayerCar].LoadForPlayer();
+            if (PlayerCar != null && cars.TryGetValue(PlayerCar, out TrainCarViewer value))
+                value.LoadForPlayer();
         }
 
         internal void Mark()
@@ -108,11 +108,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public TrainCarViewer GetViewer(TrainCar car)
         {
-            var cars = Cars;
-            if (cars.ContainsKey(car))
-                return cars[car];
-            var newCars = new Dictionary<TrainCar, TrainCarViewer>(cars);
-            newCars.Add(car, LoadCar(car));
+            Dictionary<TrainCar, TrainCarViewer> cars = Cars;
+            if (cars.TryGetValue(car, out TrainCarViewer value))
+                return value;
+            Dictionary<TrainCar, TrainCarViewer> newCars = new Dictionary<TrainCar, TrainCarViewer>(cars)
+            {
+                { car, LoadCar(car) }
+            };
             // This will actually race against the loader's Load() call above, but that's okay since the TrainCar
             // we're given here is always the player's locomotive - specifically included in LoadPrep() below.
             Cars = newCars;

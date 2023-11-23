@@ -496,9 +496,9 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="flip">Whether the texture needs to be flipped (vertically)</param>
         public static void DrawTexture(Vector2 point, string textureName, float angle, float size, Color color, bool flip)
         {
-            if (textureScales.ContainsKey(textureName))
+            if (textureScales.TryGetValue(textureName, out float value))
             {
-                float scaledSize = size / textureScales[textureName];
+                float scaledSize = size / value;
                 spriteBatch.Draw(textures[textureName], point, null, color,
                     angle, textureOffsets[textureName], new Vector2(scaledSize), (flip ? SpriteEffects.FlipVertically : SpriteEffects.None), 0);
             }
@@ -625,13 +625,13 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="pngFileName">Name of the file, without extension</param>
         public BitmapImage GetImage(string pngFileName)
         {
-            if (images.ContainsKey(pngFileName))
+            if (images.TryGetValue(pngFileName, out BitmapImage value))
             {
-                return images[pngFileName];
+                return value;
             }
 
-            string contentPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath), "Content");
-            string fullFileName = System.IO.Path.Combine(contentPath, pngFileName + ".png");
+            string contentPath = Path.Combine(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath), "Content");
+            string fullFileName = Path.Combine(contentPath, pngFileName + ".png");
             BitmapImage newImage = new BitmapImage(new Uri(fullFileName, UriKind.Relative));
             images[pngFileName] = newImage;
             return newImage;

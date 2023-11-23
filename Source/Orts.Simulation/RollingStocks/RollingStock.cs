@@ -124,7 +124,7 @@ namespace Orts.Simulation.RollingStocks
 
             public static GenericWAGFile Get(string path)
             {
-                if (!sharedWAGFiles.ContainsKey(path))
+                if (!sharedWAGFiles.TryGetValue(path, out GenericWAGFile value))
                 {
                     GenericWAGFile wagFile = new GenericWAGFile(path);
                     sharedWAGFiles.Add(path, wagFile);
@@ -132,7 +132,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    return sharedWAGFiles[path];
+                    return value;
                 }
             }
         }

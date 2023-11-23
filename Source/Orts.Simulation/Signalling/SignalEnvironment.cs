@@ -675,15 +675,15 @@ namespace Orts.Simulation.Signalling
 
                     foreach (KeyValuePair<int, int> thisReference in signalWorldInfo.HeadReference)
                     {
-                        if (signalHeadList.ContainsKey(thisReference.Key))
+                        if (signalHeadList.TryGetValue(thisReference.Key, out Signal value))
                         {
                             if (MainSignal == null)
                             {
-                                MainSignal = signalHeadList[thisReference.Key];
+                                MainSignal = value;
                             }
                             else
                             {
-                                Signal AddSignal = signalHeadList[thisReference.Key];
+                                Signal AddSignal = value;
                                 if (MainSignal.TrackNode != AddSignal.TrackNode)
                                 {
                                     Trace.TraceWarning("Signal head {0} in different track node than signal head {1} of same signal", MainSignal.TrackItemIndex, thisReference.Key);
@@ -1415,9 +1415,9 @@ namespace Orts.Simulation.Signalling
 
                 // search in Dictionary for combined item //
 
-                if (crossoverList.ContainsKey(crossId))
+                if (crossoverList.TryGetValue(crossId, out CrossOverInfo value))
                 {
-                    crossoverList[crossId].Update(cdist, circuit.Index);
+                    value.Update(cdist, circuit.Index);
                 }
                 else
                 {
@@ -2733,9 +2733,8 @@ namespace Orts.Simulation.Signalling
                 bool splitPlatform = false;
 
                 // get related platform details
-                if (PlatformXRefList.ContainsKey(relatedIndex))
+                if (PlatformXRefList.TryGetValue(relatedIndex, out platformDetailsIndex))
                 {
-                    platformDetailsIndex = PlatformXRefList[relatedIndex];
                     platformDetails = PlatformDetailsList[platformDetailsIndex];
                     PlatformXRefList.Add(index, platformDetailsIndex);
                     refIndex = Location.FarEnd;
@@ -2751,14 +2750,13 @@ namespace Orts.Simulation.Signalling
                 }
 
                 // set station reference
-                if (StationXRefList.ContainsKey(platform.Station))
+                if (StationXRefList.TryGetValue(platform.Station, out List<int> crossRefList))
                 {
-                    List<int> crossRefList = StationXRefList[platform.Station];
                     crossRefList.Add(platformDetailsIndex);
                 }
                 else
                 {
-                    List<int> crossRefList = new List<int>
+                    crossRefList = new List<int>
                     {
                         platformDetailsIndex
                     };
@@ -3240,9 +3238,8 @@ namespace Orts.Simulation.Signalling
             foreach (KeyValuePair<int, DeadlockInfo> deadlockElement in DeadlockInfoList)
             {
                 DeadlockInfo deadlockInfo = deadlockElement.Value;
-                if (deadlockInfo.TrainSubpathIndex.ContainsKey(trainNumber))
+                if (deadlockInfo.TrainSubpathIndex.TryGetValue(trainNumber, out Dictionary<int, int> subpathRef))
                 {
-                    Dictionary<int, int> subpathRef = deadlockInfo.TrainSubpathIndex[trainNumber];
                     foreach (KeyValuePair<int, int> pathRef in subpathRef)
                     {
                         int routeIndex = pathRef.Value;
@@ -3269,9 +3266,8 @@ namespace Orts.Simulation.Signalling
             foreach (KeyValuePair<int, DeadlockInfo> deadlockElement in DeadlockInfoList)
             {
                 DeadlockInfo deadlockInfo = deadlockElement.Value;
-                if (deadlockInfo.TrainSubpathIndex.ContainsKey(oldnumber))
+                if (deadlockInfo.TrainSubpathIndex.TryGetValue(oldnumber, out Dictionary<int, int> subpathRef))
                 {
-                    Dictionary<int, int> subpathRef = deadlockInfo.TrainSubpathIndex[oldnumber];
                     foreach (KeyValuePair<int, int> pathRef in subpathRef)
                     {
                         int routeIndex = pathRef.Value;
@@ -3322,9 +3318,8 @@ namespace Orts.Simulation.Signalling
                         bool tunnelShape = false;
                         int shapePaths = 0;
 
-                        if (tsectiondat.TrackShapes.ContainsKey(section.ShapeIndex))
+                        if (tsectiondat.TrackShapes.TryGetValue(section.ShapeIndex, out TrackShape shape))
                         {
-                            TrackShape shape = tsectiondat.TrackShapes[section.ShapeIndex];
                             tunnelShape = shape.TunnelShape;
                             shapePaths = shape.PathsNumber;
                         }
@@ -3463,9 +3458,8 @@ namespace Orts.Simulation.Signalling
                     bool troughShape = false;
                     int shapePaths = 0;
 
-                    if (tsectiondat.TrackShapes.ContainsKey(section.ShapeIndex))
+                    if (tsectiondat.TrackShapes.TryGetValue(section.ShapeIndex, out TrackShape shape))
                     {
-                        TrackShape shape = tsectiondat.TrackShapes[section.ShapeIndex];
                         if (shape.FileName != null)
                         {
                             troughShape = shape.FileName.EndsWith("wtr.s", StringComparison.OrdinalIgnoreCase);

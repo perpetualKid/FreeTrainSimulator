@@ -52,10 +52,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             if (detachRequest != null)
             {
                 detachRequest.DetachPlayerTrain(playerTrain, detachRequest.DetachFormedTrain);
-                if (playerTrain.DetachDetails.ContainsKey(playerTrain.DetachActive[0]))
-                {
-                    playerTrain.DetachDetails.Remove(playerTrain.DetachActive[0]);
-                }
+                playerTrain.DetachDetails.Remove(playerTrain.DetachActive[0]);
 
                 detachRequest.Valid = false;
                 _ = Close();

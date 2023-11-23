@@ -355,9 +355,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void Load()
         {
-            if (CarManager.LoadedCars.ContainsKey(WagFilePath))
+            if (CarManager.LoadedCars.TryGetValue(WagFilePath, out MSTSWagon value))
             {
-                Copy(CarManager.LoadedCars[WagFilePath]);
+                Copy(value);
             }
             else
             {

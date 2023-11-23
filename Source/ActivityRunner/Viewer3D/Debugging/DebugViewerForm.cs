@@ -402,9 +402,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 {
                     var tmp = chosen[i];
                     var name = (tmp.Text.Split(' '))[0];//the name may have (H) in it, need to filter that out
-                    if (MultiPlayerManager.OnlineTrains.Players.ContainsKey(name))
+                    if (MultiPlayerManager.OnlineTrains.Players.TryGetValue(name, out OnlinePlayer value))
                     {
-                        MultiPlayerManager.OnlineTrains.Players[name].Status = OnlinePlayerStatus.Removed;
+                        value.Status = OnlinePlayerStatus.Removed;
                         MultiPlayerManager.BroadCast((new MSGMessage(name, "Error", "Sorry the server has removed you")).ToString());
 
                     }

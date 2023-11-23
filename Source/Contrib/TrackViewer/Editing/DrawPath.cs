@@ -489,12 +489,14 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="toNode">The end node of a drawn path-section</param>
         public void NoteAsDrawn(TrainpathNode fromNode, TrainpathNode toNode)
         {
-            if (!DrawnTrackIndexes.ContainsKey(fromNode.NextMainTvnIndex))
+            if (!DrawnTrackIndexes.TryGetValue(fromNode.NextMainTvnIndex, out List<TrainpathNode> value))
             {
-                DrawnTrackIndexes[fromNode.NextMainTvnIndex] = new List<TrainpathNode>();
+                value = [];
+                DrawnTrackIndexes[fromNode.NextMainTvnIndex] = value;
             }
-            DrawnTrackIndexes[fromNode.NextMainTvnIndex].Add(fromNode);
-            DrawnTrackIndexes[fromNode.NextMainTvnIndex].Add(toNode);
+
+            value.Add(fromNode);
+            value.Add(toNode);
         }
 
         /// <summary>

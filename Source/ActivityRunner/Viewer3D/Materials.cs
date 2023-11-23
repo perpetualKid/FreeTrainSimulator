@@ -58,7 +58,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return defaultTexture;
 
             path = Path.GetFullPath(path);
-            if (!Textures.ContainsKey(path))
+            if (!Textures.TryGetValue(path, out Texture2D value))
             {
                 try
                 {
@@ -132,7 +132,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else
             {
-                return Textures[path];
+                return value;
             }
         }
 

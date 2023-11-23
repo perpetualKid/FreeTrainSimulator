@@ -85,11 +85,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
         /// <param name="oldLabel">the label to remove</param>
         internal void Delete(StorableLabel oldLabel)
         {
-            if (_labels.Contains(oldLabel))
-            {
-                _labels.Remove(oldLabel);
-
-            }
+            _labels.Remove(oldLabel);
         }
     }
 

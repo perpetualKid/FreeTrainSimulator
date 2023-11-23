@@ -177,11 +177,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public DPDefaultWindow(DistributedPowerInterface dpi, CabViewControl control) : base(dpi, 640, 240)
         {
             var param = (control as CabViewScreenControl).CustomParameters;
-            if (param.ContainsKey("fulltable"))
-                bool.TryParse(param["fulltable"], out FullTable);
-            if (param.ContainsKey("loadunits"))
+            if (param.TryGetValue("fulltable", out string value))
+                bool.TryParse(value, out FullTable);
+            if (param.TryGetValue("loadunits", out value))
             {
-                string sUnits = param["loadunits"].ToUpper();
+                string sUnits = value.ToUpper();
                 sUnits = sUnits.Replace('/', '_');
                 if (EnumExtension.GetValue(sUnits, out CabViewControlUnit loadUnits))
                     LoadUnits = loadUnits;

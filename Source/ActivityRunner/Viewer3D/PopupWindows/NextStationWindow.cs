@@ -119,13 +119,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
                         bool validMessage = false;
 
-                        if (timetableTrain.NeedAttach != null && timetableTrain.NeedAttach.ContainsKey(-1))
+                        if (timetableTrain.NeedAttach != null && timetableTrain.NeedAttach.TryGetValue(-1, out List<int> attachTrains))
                         {
-                            List<int> attachTrains = timetableTrain.NeedAttach[-1];
                             TTTrain otherTrain = timetableTrain.GetOtherTTTrainByNumber(attachTrains[0]);
-                            if (otherTrain == null && Simulator.Instance.AutoGenDictionary.ContainsKey(attachTrains[0]))
+                            if (otherTrain == null && Simulator.Instance.AutoGenDictionary.TryGetValue(attachTrains[0], out Simulation.AIs.AITrain aiTrain))
                             {
-                                otherTrain = Simulator.Instance.AutoGenDictionary[attachTrains[0]] as TTTrain;
+                                otherTrain = aiTrain as TTTrain;
                             }
 
                             if (otherTrain == null)
@@ -263,9 +262,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
                         if (timetableTrain.TransferStationDetails?.Count > 0 && timetableTrain.StationStops?.Count > 0)
                         {
-                            if (timetableTrain.TransferStationDetails.ContainsKey(timetableTrain.StationStops[0].PlatformReference))
+                            if (timetableTrain.TransferStationDetails.TryGetValue(timetableTrain.StationStops[0].PlatformReference, out TransferInfo transfer))
                             {
-                                TransferInfo transfer = timetableTrain.TransferStationDetails[timetableTrain.StationStops[0].PlatformReference];
                                 transferMessage = Catalog.GetString($"Transfer units at next station with train {transfer.TransferTrainName}");
                                 transferValid = true;
                             }

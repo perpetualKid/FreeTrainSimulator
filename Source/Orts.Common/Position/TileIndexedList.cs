@@ -102,9 +102,9 @@ namespace Orts.Common.Position
         {
             get
             {
-                if (!tiles.ContainsKey(tile))
+                if (!tiles.TryGetValue(tile, out List<TTileCoordinate> value))
                     yield break;
-                foreach (TTileCoordinate item in tiles[tile])
+                foreach (TTileCoordinate item in value)
                     yield return item;
             }
         }

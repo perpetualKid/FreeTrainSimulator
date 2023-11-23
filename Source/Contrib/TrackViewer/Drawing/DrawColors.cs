@@ -541,9 +541,9 @@ namespace ORTS.TrackViewer.Drawing
             {
                 selectedColorName = defaultColorName;
             }
-            if (namedColors.ContainsKey(selectedColorName))
+            if (namedColors.TryGetValue(selectedColorName, out Color value))
             {
-                ChangeColors(namedColors[selectedColorName], highlightDelta);
+                ChangeColors(value, highlightDelta);
             }
         }
 
@@ -557,9 +557,9 @@ namespace ORTS.TrackViewer.Drawing
             {
                 selectedColorName = defaultColorName;
             }
-            if (namedColors.ContainsKey(selectedColorName))
+            if (namedColors.TryGetValue(selectedColorName, out Color value))
             {
-                ChangeColors(namedColors[selectedColorName], Colors[HighlightType.Highlight], Colors[HighlightType.Hotlight]);
+                ChangeColors(value, Colors[HighlightType.Highlight], Colors[HighlightType.Hotlight]);
             }
         }
 

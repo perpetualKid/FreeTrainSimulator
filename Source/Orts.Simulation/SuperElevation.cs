@@ -161,7 +161,8 @@ namespace Orts.Simulation
             foreach (TrackVectorSection section in sections)
             {
                 int key = Math.Abs(section.Location.TileX) + Math.Abs(section.Location.TileZ);
-                if (Sections.ContainsKey(key)) Sections[key].Add(section);
+                if (Sections.TryGetValue(key, out List<TrackVectorSection> value))
+                    value.Add(section);
                 else
                 {
                     List<TrackVectorSection> tmpSections = new List<TrackVectorSection>

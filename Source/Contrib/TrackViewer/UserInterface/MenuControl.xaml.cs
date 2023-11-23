@@ -455,9 +455,9 @@ namespace ORTS.TrackViewer.UserInterface
         {
             string stationName = menuStationCombobox.SelectedItem as string;
             if (stationName == null) return;
-            if (trackViewer.DrawTrackDB.StationLocations.ContainsKey(stationName))
+            if (trackViewer.DrawTrackDB.StationLocations.TryGetValue(stationName, out Orts.Common.Position.WorldLocation value))
             {
-                trackViewer.DrawArea.ShiftToLocation(trackViewer.DrawTrackDB.StationLocations[stationName]);
+                trackViewer.DrawArea.ShiftToLocation(value);
             }
         }
 
@@ -465,9 +465,9 @@ namespace ORTS.TrackViewer.UserInterface
         {
             string platformName = menuPlatformCombobox.SelectedItem as string;
             if (platformName == null) return;
-            if (trackViewer.DrawTrackDB.PlatformLocations.ContainsKey(platformName))
+            if (trackViewer.DrawTrackDB.PlatformLocations.TryGetValue(platformName, out Orts.Common.Position.WorldLocation value))
             {
-                trackViewer.DrawArea.ShiftToLocation(trackViewer.DrawTrackDB.PlatformLocations[platformName]);
+                trackViewer.DrawArea.ShiftToLocation(value);
             }
         }
 
@@ -475,9 +475,9 @@ namespace ORTS.TrackViewer.UserInterface
         {
             string sidingName = menuSidingCombobox.SelectedItem as string;
             if (sidingName == null) return;
-            if (trackViewer.DrawTrackDB.SidingLocations.ContainsKey(sidingName))
+            if (trackViewer.DrawTrackDB.SidingLocations.TryGetValue(sidingName, out Orts.Common.Position.WorldLocation value))
             {
-                trackViewer.DrawArea.ShiftToLocation(trackViewer.DrawTrackDB.SidingLocations[sidingName]);
+                trackViewer.DrawArea.ShiftToLocation(value);
             }
 
         }
@@ -929,9 +929,9 @@ namespace ORTS.TrackViewer.UserInterface
             menuPreferences.Items.Add(preferenceItem);
 
             //See if there is a preference
-            if (settingsDictionary.ContainsKey(name))
+            if (settingsDictionary.TryGetValue(name, out string value))
             {
-                callback(settingsDictionary[name]);
+                callback(value);
             }
         }
 

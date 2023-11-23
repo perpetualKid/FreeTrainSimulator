@@ -1191,9 +1191,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             var frameGrid = new Point(framesX, framesY);
 
             PDayTextures[fileName] = null;
-            if (DayTextures.ContainsKey(fileName))
+            if (DayTextures.TryGetValue(fileName, out Texture2D texture))
             {
-                var texture = DayTextures[fileName];
                 if (texture != SharedMaterialManager.MissingTexture)
                 {
                     PDayTextures[fileName] = Disassemble(graphicsDevice, texture, frameCount, frameGrid, fileName + ":day");
@@ -1201,9 +1200,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             PNightTextures[fileName] = null;
-            if (NightTextures.ContainsKey(fileName))
+            if (NightTextures.TryGetValue(fileName, out texture))
             {
-                var texture = NightTextures[fileName];
                 if (texture != SharedMaterialManager.MissingTexture)
                 {
                     PNightTextures[fileName] = Disassemble(graphicsDevice, texture, frameCount, frameGrid, fileName + ":night");
@@ -1211,9 +1209,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             PLightTextures[fileName] = null;
-            if (LightTextures.ContainsKey(fileName))
+            if (LightTextures.TryGetValue(fileName, out texture))
             {
-                var texture = LightTextures[fileName];
                 if (texture != SharedMaterialManager.MissingTexture)
                 {
                     PLightTextures[fileName] = Disassemble(graphicsDevice, texture, frameCount, frameGrid, fileName + ":light");
@@ -1271,7 +1268,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             isNightTexture = false;
 
-            if (string.IsNullOrEmpty(FileName) || !PDayTextures.ContainsKey(FileName))
+            if (string.IsNullOrEmpty(FileName) || !PDayTextures.TryGetValue(FileName, out Texture2D[] value))
                 return SharedMaterialManager.MissingTexture;
 
             if (isLight)
@@ -1285,7 +1282,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (hasCabLightDirectory)
                             tmp = PNightTextures[FileName];
                         else
-                            tmp = PDayTextures[FileName];
+                            tmp = value;
                     }
                 }
                 // Both light and day textures should be used as-is in this situation.
@@ -1301,7 +1298,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             // No light or dark texture selected/available? Use day texture instead.
             if (tmp == null)
-                tmp = PDayTextures[FileName];
+                tmp = value;
 
             if (tmp != null)
                 retval = SafeGetAt(tmp, indx, FileName);
@@ -1322,7 +1319,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Texture2D retval = SharedMaterialManager.MissingTexture;
             isNightTexture = false;
 
-            if (string.IsNullOrEmpty(FileName) || !DayTextures.ContainsKey(FileName))
+            if (string.IsNullOrEmpty(FileName) || !DayTextures.TryGetValue(FileName, out Texture2D value))
                 return retval;
 
             if (isLight)
@@ -1332,7 +1329,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     retval = LightTextures[FileName];
                     if (retval == SharedMaterialManager.MissingTexture)
-                        retval = hasCabLightDirectory ? NightTextures[FileName] : DayTextures[FileName];
+                        retval = hasCabLightDirectory ? NightTextures[FileName] : value;
                 }
 
                 // Both light and day textures should be used as-is in this situation.
@@ -1348,7 +1345,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             // No light or dark texture selected/available? Use day texture instead.
             if (retval == SharedMaterialManager.MissingTexture)
-                retval = DayTextures[FileName];
+                retval = value;
 
             return retval;
         }
@@ -3519,13 +3516,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         else
                         {//for pointer animation
                          //if there is a part already, will insert this into it, otherwise, create a new
-                            if (!AnimateParts.ContainsKey(key))
+                            if (!AnimateParts.TryGetValue(key, out tmpPart))
                             {
                                 tmpPart = new AnimatedPartMultiState(TrainCarShape, key);
                                 AnimateParts.Add(key, tmpPart);
                             }
-                            else
-                                tmpPart = AnimateParts[key];
                             tmpPart.AddMatrix(iMatrix); //tmpPart.SetPosition(false);
                         }
                     }
@@ -3536,13 +3531,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     else
                     {
                         //if there is a part already, will insert this into it, otherwise, create a new
-                        if (!AnimateParts.ContainsKey(key))
+                        if (!AnimateParts.TryGetValue(key, out tmpPart))
                         {
                             tmpPart = new AnimatedPartMultiState(TrainCarShape, key);
                             AnimateParts.Add(key, tmpPart);
                         }
-                        else
-                            tmpPart = AnimateParts[key];
                         tmpPart.AddMatrix(iMatrix); //tmpPart.SetPosition(false);
                     }
                 }

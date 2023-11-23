@@ -109,10 +109,10 @@ namespace Orts.Simulation.Signalling
             {
 
                 // set signal type
-                if (signalConfig.SignalTypes.ContainsKey(signalItem.SignalType))
+                if (signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out SignalType value))
                 {
                     // set signal type
-                    SignalType = signalConfig.SignalTypes[signalItem.SignalType];
+                    SignalType = value;
                     SignalFunction = SignalType.FunctionType;
                     // get related signalscript
                     SignalScriptProcessing.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);

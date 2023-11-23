@@ -468,8 +468,8 @@ namespace Orts.Settings
         {
             PropertyInfo property = GetProperty(name);
 
-            if (customDefaultValues.ContainsKey(property.Name))
-                return customDefaultValues[property.Name];
+            if (customDefaultValues.TryGetValue(property.Name, out object value))
+                return value;
 
             object defaultValue = property.GetCustomAttributes<DefaultAttribute>(false).FirstOrDefault()?.Value;
             Type propertyType = property.PropertyType;

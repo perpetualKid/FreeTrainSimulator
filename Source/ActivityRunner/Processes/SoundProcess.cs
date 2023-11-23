@@ -127,11 +127,11 @@ namespace Orts.ActivityRunner.Processes
                     foreach (var removal in removals)
                     {
                         // If either of the key or value no longer exist, we can't remove them - so skip over them.
-                        if (SoundSources.ContainsKey(removal.Key) && SoundSources[removal.Key].Contains(removal.Value))
+                        if (SoundSources.TryGetValue(removal.Key, out List<SoundSourceBase> value) && value.Contains(removal.Value))
                         {
                             removal.Value.Uninitialize();
-                            SoundSources[removal.Key].Remove(removal.Value);
-                            if (SoundSources[removal.Key].Count == 0)
+                            value.Remove(removal.Value);
+                            if (value.Count == 0)
                             {
                                 SoundSources.Remove(removal.Key);
                             }
@@ -211,9 +211,9 @@ namespace Orts.ActivityRunner.Processes
                 j = Interlocked.CompareExchange(ref asyncUpdatePending, 1, 0);
             lock (SoundSources)
             {
-                if (SoundSources.ContainsKey(owner))
+                if (SoundSources.TryGetValue(owner, out List<SoundSourceBase> value))
                 {
-                    foreach (var source in SoundSources[owner])
+                    foreach (var source in value)
                         source.Uninitialize();
                     SoundSources.Remove(owner);
                 }

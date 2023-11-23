@@ -172,15 +172,13 @@ namespace Orts.Simulation.Physics
             foreach (TrackCircuitRouteElement routeElement in nextSignal.SignalRoute)
             {
                 TrackCircuitSection section = routeElement.TrackCircuitSection;
-                if (section.DeadlockTraps.ContainsKey(Number))              // deadlock trap
+                if (section.DeadlockTraps.TryGetValue(Number, out List<int> deadlockTrains))              // deadlock trap
                 {
                     deadlockWait = true;
 
-                    List<int> deadlockTrains = section.DeadlockTraps[Number];
-
-                    if (DeadlockInfo.ContainsKey(section.Index) && !CheckWaitCondition(section.Index)) // reverse deadlocks and not waiting
+                    if (DeadlockInfo.TryGetValue(section.Index, out List<Dictionary<int, int>> value) && !CheckWaitCondition(section.Index)) // reverse deadlocks and not waiting
                     {
-                        foreach (Dictionary<int, int> deadlockList in DeadlockInfo[section.Index])
+                        foreach (Dictionary<int, int> deadlockList in value)
                         {
                             foreach (KeyValuePair<int, int> deadlock in deadlockList)
                             {
@@ -246,14 +244,13 @@ namespace Orts.Simulation.Physics
                     foreach (KeyValuePair<int, int> deadlockedTrain in deadlockTrapInfo)
                     {
                         Train otherTrain = GetOtherTrainByNumber(deadlockedTrain.Key);
-                        if (otherTrain != null && otherTrain.DeadlockInfo.ContainsKey(deadlockedTrain.Value))
+                        if (otherTrain != null && otherTrain.DeadlockInfo.TryGetValue(deadlockedTrain.Value, out List<Dictionary<int, int>> value))
                         {
-                            List<Dictionary<int, int>> otherDeadlock = otherTrain.DeadlockInfo[deadlockedTrain.Value];
+                            List<Dictionary<int, int>> otherDeadlock = value;
                             for (int i = otherDeadlock.Count - 1; i >= 0; i--)
                             {
                                 Dictionary<int, int> otherDeadlockInfo = otherDeadlock[i];
-                                if (otherDeadlockInfo.ContainsKey(Number)) 
-                                    otherDeadlockInfo.Remove(Number);
+                                otherDeadlockInfo.Remove(Number);
                                 if (otherDeadlockInfo.Count <= 0) 
                                     otherDeadlock.RemoveAt(i);
                             }
@@ -643,7 +640,7 @@ namespace Orts.Simulation.Physics
 
                         if (trainAllocatedPaths.Count == 1 && otherTrainAllocatedPaths.Count == 1)
                         {
-                            if (deadlockInfo.InverseInfo.ContainsKey(trainAllocatedPaths[0]) && deadlockInfo.InverseInfo[trainAllocatedPaths[0]] == otherTrainAllocatedPaths[0])
+                            if (deadlockInfo.InverseInfo.TryGetValue(trainAllocatedPaths[0], out int value) && value == otherTrainAllocatedPaths[0])
                             {
                                 validPassLocation = false;
                             }

@@ -966,14 +966,12 @@ namespace Orts.Simulation.Timetables
             int altPlatformIndex = -1;
 
             // get station platform list
-            if (Simulator.Instance.SignalEnvironment.StationXRefList.ContainsKey(orgStop.PlatformItem.Name))
+            if (Simulator.Instance.SignalEnvironment.StationXRefList.TryGetValue(orgStop.PlatformItem.Name, out List<int> xrefKeys))
             {
-                List<int> XRefKeys = Simulator.Instance.SignalEnvironment.StationXRefList[orgStop.PlatformItem.Name];
-
                 // search through all available platforms
-                for (int platformIndex = 0; platformIndex <= XRefKeys.Count - 1 && altPlatformIndex < 0; platformIndex++)
+                for (int platformIndex = 0; platformIndex <= xrefKeys.Count - 1 && altPlatformIndex < 0; platformIndex++)
                 {
-                    int platformXRefIndex = XRefKeys[platformIndex];
+                    int platformXRefIndex = xrefKeys[platformIndex];
                     PlatformDetails altPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformXRefIndex];
 
                     // check if section is in new route
@@ -2014,10 +2012,8 @@ namespace Orts.Simulation.Timetables
                 {
                     HoldingSignals.Add(EndSignal);
                 }
-                else if (HoldingSignals.Contains(EndSignal))
-                {
+                else
                     HoldingSignals.Remove(EndSignal);
-                }
             }
             else
             {
@@ -2317,10 +2313,8 @@ namespace Orts.Simulation.Timetables
                     ReverseFormation(false);
 
                     // if reversal is required and units must be detached at start : reverse detached units position
-                    if (DetachDetails.ContainsKey(-1))
+                    if (DetachDetails.TryGetValue(-1, out List<DetachInfo> detachList))
                     {
-                        List<DetachInfo> detachList = DetachDetails[-1];
-
                         for (int iDetach = detachList.Count - 1; iDetach >= 0; iDetach--)
                         {
                             DetachInfo thisDetach = detachList[iDetach];
@@ -2618,9 +2612,8 @@ namespace Orts.Simulation.Timetables
         public void CheckTrainBeyondTurntable()
         {
             TrackCircuitRouteElement lastElement = ValidRoute[0].Last();
-            if (lastElement.MovingTableApproachPath > -1 && simulator.PoolHolder.Pools.ContainsKey(ExitPool))
+            if (lastElement.MovingTableApproachPath > -1 && simulator.PoolHolder.Pools.TryGetValue(ExitPool, out TimetablePool thisPool))
             {
-                TimetablePool thisPool = simulator.PoolHolder.Pools[ExitPool];
                 float lengthToGoM = thisPool.GetEndOfRouteDistance(TCRoute.TCRouteSubpaths.Last(), PresentPosition[Direction.Forward], lastElement.MovingTableApproachPath);
 
                 if (lengthToGoM < DistanceToEndNodeAuthorityM[0])
@@ -2713,9 +2706,8 @@ namespace Orts.Simulation.Timetables
             // check if anything needs to attach or transfer
             if (reqActivate)
             {
-                if (NeedAttach != null && NeedAttach.ContainsKey(-1))
+                if (NeedAttach != null && NeedAttach.TryGetValue(-1, out List<int> needAttachList))
                 {
-                    List<int> needAttachList = NeedAttach[-1];
                     if (needAttachList.Count > 0)
                     {
                         reqActivate = false;
@@ -2735,10 +2727,8 @@ namespace Orts.Simulation.Timetables
             }
 
             // check if anything needs be detached
-            if (DetachDetails.ContainsKey(-1))
+            if (DetachDetails.TryGetValue(-1, out List<DetachInfo> detachList))
             {
-                List<DetachInfo> detachList = DetachDetails[-1];
-
                 for (int iDetach = detachList.Count - 1; iDetach >= 0; iDetach--)
                 {
                     DetachInfo thisDetach = detachList[iDetach];
@@ -3331,9 +3321,8 @@ namespace Orts.Simulation.Timetables
 
                 // check for detach actions
 
-                if (DetachDetails.ContainsKey(thisStation.PlatformReference))
+                if (DetachDetails.TryGetValue(thisStation.PlatformReference, out List<DetachInfo> detachList))
                 {
-                    List<DetachInfo> detachList = DetachDetails[thisStation.PlatformReference];
                     for (int iDetach = 0; iDetach < detachList.Count; iDetach++)
                     {
                         DetachInfo thisDetach = detachList[iDetach];
@@ -3371,22 +3360,16 @@ namespace Orts.Simulation.Timetables
 
                 // check for attachments or transfers
 
-                if (NeedAttach.ContainsKey(thisStation.PlatformReference))
+                // waiting for train to attach : exit
+                if (NeedAttach.TryGetValue(thisStation.PlatformReference, out List<int> value) && value.Count > 0)
                 {
-                    // waiting for train to attach : exit
-                    if (NeedAttach[thisStation.PlatformReference].Count > 0)
-                    {
-                        return;
-                    }
+                    return;
                 }
 
-                if (NeedStationTransfer.ContainsKey(thisStation.PlatformReference))
+                // waiting for transfer : exit
+                if (NeedStationTransfer.TryGetValue(thisStation.PlatformReference, out value) && value.Count > 0)
                 {
-                    // waiting for transfer : exit
-                    if (NeedStationTransfer[thisStation.PlatformReference].Count > 0)
-                    {
-                        return;
-                    }
+                    return;
                 }
 
                 foreach (TrackCircuitSection occSection in OccupiedTrack)
@@ -5279,9 +5262,9 @@ namespace Orts.Simulation.Timetables
             for (int iIndex = 0; iIndex < rearIndex; iIndex++)
             {
                 int rearSectionIndex = ValidRoute[0][iIndex].TrackCircuitSection.Index;
-                if (DeadlockInfo.ContainsKey(rearSectionIndex))
+                if (DeadlockInfo.TryGetValue(rearSectionIndex, out List<Dictionary<int, int>> value))
                 {
-                    foreach (Dictionary<int, int> thisDeadlock in DeadlockInfo[rearSectionIndex])
+                    foreach (Dictionary<int, int> thisDeadlock in value)
                     {
                         foreach (KeyValuePair<int, int> thisDetail in thisDeadlock)
                         {
@@ -5316,8 +5299,7 @@ namespace Orts.Simulation.Timetables
             // next set occupied
             foreach (TrackCircuitSection thisSection in newPlacementSections)
             {
-                if (OccupiedTrack.Contains(thisSection))
-                    OccupiedTrack.Remove(thisSection);
+                OccupiedTrack.Remove(thisSection);
                 thisSection.SetOccupied(RoutedForward);
             }
 
@@ -6248,9 +6230,9 @@ namespace Orts.Simulation.Timetables
                     trainTransferIndex = otherTrain.OrgAINumber;
                 }
                 // static transfer required and train is static, set this train number
-                else if (TransferTrainDetails.ContainsKey(-99) && otherTrain.MovementState == AiMovementState.Static && otherTrain.Forms < 0)
+                else if (TransferTrainDetails.TryGetValue(-99, out List<TransferInfo> value) && otherTrain.MovementState == AiMovementState.Static && otherTrain.Forms < 0)
                 {
-                    TransferTrainDetails.Add(otherTrain.OrgAINumber, TransferTrainDetails[-99]);
+                    TransferTrainDetails.Add(otherTrain.OrgAINumber, value);
                     TransferTrainDetails.Remove(-99);
                     transferTrain = true;
                     trainTransferIndex = otherTrain.OrgAINumber;
@@ -6269,9 +6251,8 @@ namespace Orts.Simulation.Timetables
                 if (otherTrain.StationStops != null && otherTrain.StationStops.Count > 0)
                 {
                     int stationIndex = otherTrain.StationStops[0].PlatformReference;
-                    if (TransferStationDetails.ContainsKey(stationIndex))
+                    if (TransferStationDetails.TryGetValue(stationIndex, out TransferInfo thisTransfer))
                     {
-                        TransferInfo thisTransfer = TransferStationDetails[stationIndex];
                         if (thisTransfer.TransferTrain == otherTrain.OrgAINumber)
                         {
                             transferTrain = true;
@@ -6362,9 +6343,8 @@ namespace Orts.Simulation.Timetables
             float lengthToGoM = 0;
 
             TrackCircuitRouteElement lastElement = ValidRoute[0].Last();
-            if (lastElement.MovingTableApproachPath > -1 && simulator.PoolHolder.Pools.ContainsKey(ExitPool))
+            if (lastElement.MovingTableApproachPath > -1 && simulator.PoolHolder.Pools.TryGetValue(ExitPool, out TimetablePool thisPool))
             {
-                TimetablePool thisPool = simulator.PoolHolder.Pools[ExitPool];
                 lengthToGoM = thisPool.GetEndOfRouteDistance(TCRoute.TCRouteSubpaths.Last(), PresentPosition[Direction.Forward], lastElement.MovingTableApproachPath);
             }
 
@@ -6465,9 +6445,9 @@ namespace Orts.Simulation.Timetables
         /// <returns></returns>
         internal override bool CheckAnyWaitCondition(int index)
         {
-            if (WaitAnyList != null && WaitAnyList.ContainsKey(index))
+            if (WaitAnyList != null && WaitAnyList.TryGetValue(index, out List<WaitInfo> value))
             {
-                foreach (WaitInfo reqWait in WaitAnyList[index])
+                foreach (WaitInfo reqWait in value)
                 {
                     bool pathClear = CheckForRouteWait(reqWait);
                     return (!pathClear);
@@ -6853,15 +6833,13 @@ namespace Orts.Simulation.Timetables
                                     WaitAnyList = new Dictionary<int, List<WaitInfo>>();
                                 }
 
-                                if (WaitAnyList.ContainsKey(overlapSection))
+                                if (WaitAnyList.TryGetValue(overlapSection, out List<WaitInfo> waitList))
                                 {
-                                    List<WaitInfo> waitList = WaitAnyList[overlapSection];
                                     waitList.Add(newWaitItem);
                                 }
                                 else
                                 {
-                                    List<WaitInfo> waitList = new List<WaitInfo>();
-                                    waitList.Add(newWaitItem);
+                                    waitList = [newWaitItem];
                                     WaitAnyList.Add(overlapSection, waitList);
                                 }
                             }
@@ -7052,16 +7030,14 @@ namespace Orts.Simulation.Timetables
                     if (thisStationStop != null)
                     {
                         DetachInfo thisDetach = new DetachInfo(this, thisCommand, false, true, false, thisStationStop.TrackCircuitSectionIndex, thisStationStop.ArrivalTime);
-                        if (DetachDetails.ContainsKey(thisStationStop.PlatformReference))
+                        if (DetachDetails.TryGetValue(thisStationStop.PlatformReference, out List<DetachInfo> detachList))
                         {
-                            List<DetachInfo> thisDetachList = DetachDetails[thisStationStop.PlatformReference];
-                            thisDetachList.Add(thisDetach);
+                            detachList.Add(thisDetach);
                         }
                         else
                         {
-                            List<DetachInfo> thisDetachList = new List<DetachInfo>();
-                            thisDetachList.Add(thisDetach);
-                            DetachDetails.Add(thisStationStop.PlatformReference, thisDetachList);
+                            detachList = [thisDetach];
+                            DetachDetails.Add(thisStationStop.PlatformReference, detachList);
                         }
                     }
                     // detach at start
@@ -7069,16 +7045,14 @@ namespace Orts.Simulation.Timetables
                     {
                         int startSection = TCRoute.TCRouteSubpaths[0][0].TrackCircuitSection.Index;
                         DetachInfo thisDetach = new DetachInfo(this, thisCommand, true, false, false, startSection, ActivateTime);
-                        if (DetachDetails.ContainsKey(-1))
+                        if (DetachDetails.TryGetValue(-1, out List<DetachInfo> detachList))
                         {
-                            List<DetachInfo> thisDetachList = DetachDetails[-1];
-                            thisDetachList.Add(thisDetach);
+                            detachList.Add(thisDetach);
                         }
                         else
                         {
-                            List<DetachInfo> thisDetachList = new List<DetachInfo>();
-                            thisDetachList.Add(thisDetach);
-                            DetachDetails.Add(-1, thisDetachList);
+                            detachList = [thisDetach];
+                            DetachDetails.Add(-1, detachList);
                         }
                     }
                     break;
@@ -8071,9 +8045,9 @@ namespace Orts.Simulation.Timetables
 
                 if (WaitAnyList != null && WaitAnyList.Count > 0)
                 {
-                    if (WaitAnyList.ContainsKey(sectionIndex))
+                    if (WaitAnyList.TryGetValue(sectionIndex, out List<WaitInfo> value))
                     {
-                        foreach (WaitInfo reqWait in WaitAnyList[sectionIndex])
+                        foreach (WaitInfo reqWait in value)
                         {
                             if (CheckForRouteWait(reqWait))
                             {
@@ -8202,10 +8176,8 @@ namespace Orts.Simulation.Timetables
                 // check if anything needs be detached
                 bool allowForm = true; // preset form may be activated
 
-                if (DetachDetails.ContainsKey(-1))
+                if (DetachDetails.TryGetValue(-1, out List<DetachInfo> detachList))
                 {
-                    List<DetachInfo> detachList = DetachDetails[-1];
-
                     for (int iDetach = detachList.Count - 1; iDetach >= 0; iDetach--)
                     {
                         DetachInfo thisDetach = detachList[iDetach];
@@ -8233,10 +8205,8 @@ namespace Orts.Simulation.Timetables
             else if (FormsStatic)
             {
                 // check if anything needs be detached
-                if (DetachDetails.ContainsKey(-1))
+                if (DetachDetails.TryGetValue(-1, out List<DetachInfo> detachList))
                 {
-                    List<DetachInfo> detachList = DetachDetails[-1];
-
                     for (int iDetach = detachList.Count - 1; iDetach >= 0; iDetach--)
                     {
                         DetachInfo thisDetach = detachList[iDetach];
@@ -8509,9 +8479,8 @@ namespace Orts.Simulation.Timetables
             // if stopped in last section of route and this section is exit to moving table switch to moving table mode
             if (ValidRoute[0][PresentPosition[Direction.Forward].RouteListIndex].MovingTableApproachPath > -1)
             {
-                if (simulator.PoolHolder.Pools.ContainsKey(ExitPool))
+                if (simulator.PoolHolder.Pools.TryGetValue(ExitPool, out TimetablePool thisPool))
                 {
-                    TimetablePool thisPool = simulator.PoolHolder.Pools[ExitPool];
                     if (thisPool.GetType() == typeof(TimetableTurntablePool))
                     {
                         TimetableTurntablePool thisTurntablePool = thisPool as TimetableTurntablePool;
@@ -9097,9 +9066,8 @@ namespace Orts.Simulation.Timetables
                 else
                 {
                     // check for detach
-                    if (DetachDetails.ContainsKey(StationStops[0].PlatformReference))
+                    if (DetachDetails.TryGetValue(StationStops[0].PlatformReference, out List<DetachInfo> detachList))
                     {
-                        List<DetachInfo> detachList = DetachDetails[StationStops[0].PlatformReference];
                         bool detachPerformed = DetachActive[1] < 0;
 
                         for (int iDetach = 0; iDetach < detachList.Count; iDetach++)
@@ -9149,23 +9117,15 @@ namespace Orts.Simulation.Timetables
                     // check for attachments
                     int waitAttach = -1;
 
-                    if (NeedAttach.ContainsKey(StationStops[0].PlatformReference))
+                    if (NeedAttach.TryGetValue(StationStops[0].PlatformReference, out List<int> needAttachList) && needAttachList.Count > 0)
                     {
-                        List<int> needAttachList = NeedAttach[StationStops[0].PlatformReference];
-                        if (needAttachList.Count > 0)
-                        {
-                            waitAttach = needAttachList[0];
-                        }
+                        waitAttach = needAttachList[0];
                     }
 
                     int waitTransfer = -1;
-                    if (NeedStationTransfer.ContainsKey(StationStops[0].PlatformReference))
+                    if (NeedStationTransfer.TryGetValue(StationStops[0].PlatformReference, out List<int> needTransferList) && needTransferList.Count > 0)
                     {
-                        List<int> needTransferList = NeedStationTransfer[StationStops[0].PlatformReference];
-                        if (needTransferList.Count > 0)
-                        {
-                            waitTransfer = needTransferList[0];
-                        }
+                        waitTransfer = needTransferList[0];
                     }
 
                     // check if attaching
@@ -9750,13 +9710,11 @@ namespace Orts.Simulation.Timetables
             {
                 if (StationStops != null && StationStops.Count > 0)
                 {
-                    if (DetachDetails.ContainsKey(StationStops[0].PlatformReference))
+                    if (DetachDetails.TryGetValue(StationStops[0].PlatformReference, out List<DetachInfo> detachActionList))
                     {
-                        List<DetachInfo> detachList = DetachDetails[StationStops[0].PlatformReference];
-
-                        for (int iDetach = detachList.Count - 1; iDetach >= 0; iDetach--)
+                        for (int iDetach = detachActionList.Count - 1; iDetach >= 0; iDetach--)
                         {
-                            DetachInfo thisDetach = detachList[iDetach];
+                            DetachInfo thisDetach = detachActionList[iDetach];
                             if (thisDetach.DetachPosition == DetachInfo.DetachPositionInfo.atEnd && thisDetach.Valid)
                             {
                                 DetachActive[0] = -1;
@@ -9771,10 +9729,8 @@ namespace Orts.Simulation.Timetables
                 }
 
                 // check if anything needs be detached at formed
-                if (DetachDetails.ContainsKey(-1))
+                if (DetachDetails.TryGetValue(-1, out List<DetachInfo> detachList))
                 {
-                    List<DetachInfo> detachList = DetachDetails[-1];
-
                     for (int iDetach = detachList.Count - 1; iDetach >= 0; iDetach--)
                     {
                         DetachInfo thisDetach = detachList[iDetach];
@@ -10511,9 +10467,8 @@ namespace Orts.Simulation.Timetables
             if (AtStation)
             {
                 int stationPlatformIndex = StationStops[0].PlatformReference;
-                if (attachTrain.NeedAttach.ContainsKey(stationPlatformIndex))
+                if (attachTrain.NeedAttach.TryGetValue(stationPlatformIndex, out List<int> trainList))
                 {
-                    List<int> trainList = attachTrain.NeedAttach[stationPlatformIndex];
                     if (trainList.Contains(OrgAINumber))
                     {
                         needAttachFound = true;
@@ -10534,11 +10489,8 @@ namespace Orts.Simulation.Timetables
                 {
                     int foundKey = thisNeedAttach.Key;
                     List<int> trainList = thisNeedAttach.Value;
-                    if (trainList.Contains(OrgAINumber))
-                    {
-                        trainList.Remove(OrgAINumber);
+                    if (trainList.Remove(OrgAINumber))
                         needAttachFound = true;
-                    }
 
                     if (trainList.Count < 1)
                     {
@@ -13091,15 +13043,13 @@ namespace Orts.Simulation.Timetables
             if (trainFound)
             {
                 // set need attach
-                if (attachedTrain.NeedAttach.ContainsKey(StationPlatformReference))
+                if (attachedTrain.NeedAttach.TryGetValue(StationPlatformReference, out List<int> needAttachList))
                 {
-                    List<int> needAttachList = attachedTrain.NeedAttach[StationPlatformReference];
                     needAttachList.Add(dettrain.OrgAINumber);
                 }
                 else
                 {
-                    List<int> needAttachList = new List<int>();
-                    needAttachList.Add(dettrain.OrgAINumber);
+                    needAttachList = [dettrain.OrgAINumber];
                     attachedTrain.NeedAttach.Add(StationPlatformReference, needAttachList);
                 }
             }
@@ -13795,9 +13745,8 @@ namespace Orts.Simulation.Timetables
                 // remove train from need transfer list
                 if (StationPlatformReference >= 0)
                 {
-                    if (otherTrain.NeedStationTransfer.ContainsKey(StationPlatformReference))
+                    if (otherTrain.NeedStationTransfer.TryGetValue(StationPlatformReference, out List<int> needTransferList))
                     {
-                        List<int> needTransferList = otherTrain.NeedStationTransfer[StationPlatformReference];
                         needTransferList.Remove(thisTrain.Number);
 
                         // remove list if empty
@@ -13811,9 +13760,8 @@ namespace Orts.Simulation.Timetables
                 {
                     // get last section as reference to transfer position
                     int lastSectionIndex = thisTrain.TCRoute.TCRouteSubpaths.Last().Last().TrackCircuitSection.Index;
-                    if (otherTrain.NeedTrainTransfer.ContainsKey(lastSectionIndex))
+                    if (otherTrain.NeedTrainTransfer.TryGetValue(lastSectionIndex, out int transferCount))
                     {
-                        int transferCount = otherTrain.NeedTrainTransfer[lastSectionIndex];
                         transferCount--;
                         otherTrain.NeedTrainTransfer.Remove(lastSectionIndex);
 
@@ -13887,15 +13835,14 @@ namespace Orts.Simulation.Timetables
             {
                 if (stationTransfer)
                 {
-                    if (transferTrain.NeedStationTransfer.ContainsKey(StationPlatformReference))
+                    if (transferTrain.NeedStationTransfer.TryGetValue(StationPlatformReference, out List<int> value))
                     {
-                        transferTrain.NeedStationTransfer[StationPlatformReference].Add(dettrain.OrgAINumber);
+                        value.Add(dettrain.OrgAINumber);
                     }
                     else
                     {
-                        List<int> tempList = new List<int>();
-                        tempList.Add(dettrain.OrgAINumber);
-                        transferTrain.NeedStationTransfer.Add(StationPlatformReference, tempList);
+                        value = [dettrain.OrgAINumber];
+                        transferTrain.NeedStationTransfer.Add(StationPlatformReference, value);
                     }
                 }
                 else

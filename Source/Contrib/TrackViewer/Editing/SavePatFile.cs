@@ -241,10 +241,10 @@ namespace ORTS.TrackViewer.Editing
             if (nodeAsJunction != null)
             {
                 int junctionIndex = nodeAsJunction.JunctionIndex;
-                if (!node.IsBroken && pdpOfJunction.ContainsKey(junctionIndex))
+                if (!node.IsBroken && pdpOfJunction.TryGetValue(junctionIndex, out int value))
                 {
                     //this junction is already in the list of PDPs, so use another PDP index;
-                    pdpIndex = pdpOfJunction[junctionIndex];
+                    pdpIndex = value;
                 }
                 else
                 {

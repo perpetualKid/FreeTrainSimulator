@@ -66,8 +66,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                 {
                     if (cancellation.IsCancellationRequested)
                         break;
-                    if (containers.ContainsKey(container))
-                        newContainers.Add(container, containers[container]);
+                    if (containers.TryGetValue(container, out ContainerViewer value))
+                        newContainers.Add(container, value);
                     else
                         newContainers.Add(container, new ContainerViewer(container));
                 }

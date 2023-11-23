@@ -537,9 +537,9 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <returns>The list/set of track itemss together with their position information</returns>
         public IEnumerable<ChartableTrackItem> GetItemsInTracknode(TrackNode tn)
         {
-            if (cachedItems.ContainsKey(tn))
+            if (cachedItems.TryGetValue(tn, out IEnumerable<ChartableTrackItem> value))
             {
-                return cachedItems[tn];
+                return value;
             }
 
             List<ChartableTrackItem> tracknodeItems = new List<ChartableTrackItem>();

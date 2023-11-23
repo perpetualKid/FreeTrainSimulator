@@ -425,19 +425,19 @@ namespace Orts.Simulation.Signalling
                 if (path.EqualsPath(existPathInfo.Path))
                 {
                     // check if path referenced from correct start position, else add reference
-                    if (PathReferences.ContainsKey(startSectionIndex))
+                    if (PathReferences.TryGetValue(startSectionIndex, out List<int> value))
                     {
-                        if (!PathReferences[startSectionIndex].Contains(i))
+                        if (!value.Contains(i))
                         {
-                            PathReferences[startSectionIndex].Add(i);
+                            value.Add(i);
                         }
                     }
                     else
                     {
-                        List<int> refSectionPaths = new List<int>
-                        {
+                        List<int> refSectionPaths =
+                        [
                             i
-                        };
+                        ];
                         PathReferences.Add(startSectionIndex, refSectionPaths);
                     }
 
@@ -452,15 +452,10 @@ namespace Orts.Simulation.Signalling
             AvailablePathList.Add(newPathInfo);
 
             // add path to list of paths from this section
-            List<int> thisSectionPaths;
 
-            if (PathReferences.ContainsKey(startSectionIndex))
+            if (!PathReferences.TryGetValue(startSectionIndex, out List<int> thisSectionPaths))
             {
-                thisSectionPaths = PathReferences[startSectionIndex];
-            }
-            else
-            {
-                thisSectionPaths = new List<int>();
+                thisSectionPaths = [];
                 PathReferences.Add(startSectionIndex, thisSectionPaths);
             }
 
@@ -525,19 +520,19 @@ namespace Orts.Simulation.Signalling
                     }
 
                     // check if path referenced from correct start position, else add reference
-                    if (PathReferences.ContainsKey(startSectionIndex))
+                    if (PathReferences.TryGetValue(startSectionIndex, out List<int> pathReferences))
                     {
-                        if (!PathReferences[startSectionIndex].Contains(i))
+                        if (!pathReferences.Contains(i))
                         {
-                            PathReferences[startSectionIndex].Add(i);
+                            pathReferences.Add(i);
                         }
                     }
                     else
                     {
-                        List<int> refSectionPaths = new List<int>
-                        {
+                        List<int> refSectionPaths =
+                        [
                             i
-                        };
+                        ];
                         PathReferences.Add(startSectionIndex, refSectionPaths);
                     }
 
@@ -561,9 +556,9 @@ namespace Orts.Simulation.Signalling
             // add path to list of path from this section
             List<int> thisSectionPaths;
 
-            if (PathReferences.ContainsKey(startSectionIndex))
+            if (PathReferences.TryGetValue(startSectionIndex, out List<int> value))
             {
-                thisSectionPaths = PathReferences[startSectionIndex];
+                thisSectionPaths = value;
             }
             else
             {
@@ -686,18 +681,18 @@ namespace Orts.Simulation.Signalling
 
             foreach (int iPath in usedRoutes)
             {
-                if (InverseInfo.ContainsKey(iPath))
-                    inverseUsedRoutes.Add(InverseInfo[iPath]);
+                if (InverseInfo.TryGetValue(iPath, out int value))
+                    inverseUsedRoutes.Add(value);
             }
             foreach (int iPath in commonRoutes)
             {
-                if (InverseInfo.ContainsKey(iPath))
-                    inverseCommonRoutes.Add(InverseInfo[iPath]);
+                if (InverseInfo.TryGetValue(iPath, out int value))
+                    inverseCommonRoutes.Add(value);
             }
             foreach (int iPath in singleRoutes)
             {
-                if (InverseInfo.ContainsKey(iPath))
-                    inverseSingleRoutes.Add(InverseInfo[iPath]);
+                if (InverseInfo.TryGetValue(iPath, out int value))
+                    inverseSingleRoutes.Add(value);
             }
 
             // if deadlock is awaited at other end : remove paths which would cause conflict
@@ -983,22 +978,16 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal int GetTrainAndSubpathIndex(int trainNumber, int subpathIndex)
         {
-            if (TrainSubpathIndex.ContainsKey(trainNumber))
+            if (TrainSubpathIndex.TryGetValue(trainNumber, out Dictionary<int, int> subpathList))
             {
-                Dictionary<int, int> subpathList = TrainSubpathIndex[trainNumber];
-                if (subpathList.ContainsKey(subpathIndex))
+                if (subpathList.TryGetValue(subpathIndex, out int value))
                 {
-                    return (subpathList[subpathIndex]);
+                    return (value);
                 }
             }
 
             int newIndex = ++nextTrainSubpathIndex;
-            Dictionary<int, int> newSubpathList;
-            if (TrainSubpathIndex.ContainsKey(trainNumber))
-            {
-                newSubpathList = TrainSubpathIndex[trainNumber];
-            }
-            else
+            if (!TrainSubpathIndex.TryGetValue(trainNumber, out Dictionary<int, int> newSubpathList))
             {
                 newSubpathList = new Dictionary<int, int>();
                 TrainSubpathIndex.Add(trainNumber, newSubpathList);
@@ -1017,15 +1006,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal bool HasTrainAndSubpathIndex(int trainNumber, int subpathIndex)
         {
-            if (TrainSubpathIndex.ContainsKey(trainNumber))
-            {
-                Dictionary<int, int> subpathList = TrainSubpathIndex[trainNumber];
-                if (subpathList.ContainsKey(subpathIndex))
-                {
-                    return (true);
-                }
-            }
-            return (false);
+            return TrainSubpathIndex.TryGetValue(trainNumber, out Dictionary<int, int> subpathList) && subpathList.ContainsKey(subpathIndex);
         }
 
         //================================================================================================//
@@ -1036,13 +1017,10 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal bool RemoveTrainAndSubpathIndex(int trainNumber, int subpathIndex)
         {
-            if (TrainSubpathIndex.ContainsKey(trainNumber))
+            if (TrainSubpathIndex.TryGetValue(trainNumber, out Dictionary<int, int> value))
             {
-                Dictionary<int, int> subpathList = TrainSubpathIndex[trainNumber];
-                if (subpathList.ContainsKey(subpathIndex))
-                {
-                    subpathList.Remove(subpathIndex);
-                }
+                Dictionary<int, int> subpathList = value;
+                subpathList.Remove(subpathIndex);
                 if (subpathList.Count <= 0)
                 {
                     TrainSubpathIndex.Remove(trainNumber);
@@ -1119,24 +1097,13 @@ namespace Orts.Simulation.Signalling
             }
             // set cross-references to allowed track entries for easy reference
 
-            List<int> availPathList;
-
-            if (TrainReferences.ContainsKey(trainSubpathIndex))
-            {
-                availPathList = TrainReferences[trainSubpathIndex];
-            }
-            else
+            if (!TrainReferences.TryGetValue(trainSubpathIndex, out List<int> availPathList))
             {
                 availPathList = new List<int>();
                 TrainReferences.Add(trainSubpathIndex, availPathList);
             }
 
-            Dictionary<int, bool> thisTrainFitList;
-            if (TrainLengthFit.ContainsKey(trainSubpathIndex))
-            {
-                thisTrainFitList = TrainLengthFit[trainSubpathIndex];
-            }
-            else
+            if (!TrainLengthFit.TryGetValue(trainSubpathIndex, out Dictionary<int, bool> thisTrainFitList))
             {
                 thisTrainFitList = new Dictionary<int, bool>();
                 TrainLengthFit.Add(trainSubpathIndex, thisTrainFitList);
@@ -1182,10 +1149,8 @@ namespace Orts.Simulation.Signalling
             int matchingPath = -1;
 
             // paths available from start section
-            if (PathReferences.ContainsKey(startSectionIndex))
+            if (PathReferences.TryGetValue(startSectionIndex, out List<int> availablePaths))
             {
-                List<int> availablePaths = PathReferences[startSectionIndex];
-
                 // search through paths from this section
 
                 for (int iPath = 0; iPath <= availablePaths.Count - 1; iPath++)

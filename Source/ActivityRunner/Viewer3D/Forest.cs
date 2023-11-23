@@ -272,7 +272,8 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             var targetKey = "" + TileX + "." + TileZ;
-            if (SectionMap.ContainsKey(targetKey)) return SectionMap[targetKey];
+            if (SectionMap.TryGetValue(targetKey, out List<TrackVectorSection> value))
+                return value;
             else return null;
         }
 

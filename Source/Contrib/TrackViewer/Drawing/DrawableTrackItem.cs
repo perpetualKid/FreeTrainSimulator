@@ -150,9 +150,9 @@ namespace ORTS.TrackViewer.Drawing
             {   // if no sigcfgFile is available, just keep default
                 return;
             }
-            if (sigcfgFile.SignalTypes.ContainsKey(signalType))
+            if (sigcfgFile.SignalTypes.TryGetValue(signalType, out SignalType value))
             {
-                isNormal = sigcfgFile.SignalTypes[signalType].FunctionType == SignalFunction.Normal;
+                isNormal = value.FunctionType == SignalFunction.Normal;
             }
         }
 

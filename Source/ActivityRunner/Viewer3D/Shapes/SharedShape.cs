@@ -349,8 +349,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     if (primitiveState.AlphaTestMode == 1)
                         options |= SceneryMaterialOptions.AlphaTest;
 
-                    if (ShaderNames.ContainsKey(sFile.Shape.ShaderNames[primitiveState.ShaderIndex]))
-                        options |= ShaderNames[sFile.Shape.ShaderNames[primitiveState.ShaderIndex]];
+                    if (ShaderNames.TryGetValue(sFile.Shape.ShaderNames[primitiveState.ShaderIndex], out SceneryMaterialOptions sceneryMaterialOptions))
+                        options |= sceneryMaterialOptions;
                     else if (!shapeWarnings.Contains("shader_name:" + sFile.Shape.ShaderNames[primitiveState.ShaderIndex]))
                     {
                         Trace.TraceInformation("Skipped unknown shader name {1} first seen in shape {0}", sharedShape.FilePath, sFile.Shape.ShaderNames[primitiveState.ShaderIndex]);

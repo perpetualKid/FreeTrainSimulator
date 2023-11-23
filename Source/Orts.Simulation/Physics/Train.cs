@@ -4153,9 +4153,9 @@ namespace Orts.Simulation.Physics
             for (int i = 0; i < rearIndex; i++)
             {
                 int rearSectionIndex = ValidRoute[0][i].TrackCircuitSection.Index;
-                if (DeadlockInfo.ContainsKey(rearSectionIndex))
+                if (DeadlockInfo.TryGetValue(rearSectionIndex, out List<Dictionary<int, int>> value))
                 {
-                    foreach (Dictionary<int, int> deadlock in DeadlockInfo[rearSectionIndex])
+                    foreach (Dictionary<int, int> deadlock in value)
                     {
                         foreach (KeyValuePair<int, int> deadlockDetail in deadlock)
                         {
@@ -6544,9 +6544,9 @@ namespace Orts.Simulation.Physics
                     case SignalCategory.Signal:
 
                         // if signal is now just behind train - set speed as signal speed limit, do not reenter in list
-                        if (PassedSignalSpeeds.ContainsKey(signal.Index))
+                        if (PassedSignalSpeeds.TryGetValue(signal.Index, out float value))
                         {
-                            AllowedMaxSpeedSignalMpS = PassedSignalSpeeds[signal.Index];
+                            AllowedMaxSpeedSignalMpS = value;
                             AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedSignalMpS, AllowedMaxSpeedMpS);
                             LastPassedSignal[routeDirection] = signal.Index;
                         }
@@ -6610,9 +6610,9 @@ namespace Orts.Simulation.Physics
                             direction = signal.TrackCircuitNextDirection;
                             objectOffset = 0.0f;
 
-                            if (PassedSignalSpeeds.ContainsKey(signal.Index))
+                            if (PassedSignalSpeeds.TryGetValue(signal.Index, out float value))
                             {
-                                AllowedMaxSpeedSignalMpS = PassedSignalSpeeds[signal.Index];
+                                AllowedMaxSpeedSignalMpS = value;
                                 AllowedMaxSpeedMpS = simulator.TimetableMode
                                     ? Math.Min(AllowedMaxSpeedMpS, AllowedMaxSpeedSignalMpS)
                                     : Math.Min(AllowedMaxSpeedLimitMpS, Math.Min(allowedMaxTempSpeedLimitMpS, AllowedMaxSpeedSignalMpS));
@@ -11117,10 +11117,8 @@ namespace Orts.Simulation.Physics
             int altPlatformIndex = -1;
 
             // get station platform list
-            if (Simulator.Instance.SignalEnvironment.StationXRefList.ContainsKey(orgStop.PlatformItem.Name))
+            if (Simulator.Instance.SignalEnvironment.StationXRefList.TryGetValue(orgStop.PlatformItem.Name, out List<int> XRefKeys))
             {
-                List<int> XRefKeys = Simulator.Instance.SignalEnvironment.StationXRefList[orgStop.PlatformItem.Name];
-
                 // search through all available platforms
                 for (int platformIndex = 0; platformIndex <= XRefKeys.Count - 1 && altPlatformIndex < 0; platformIndex++)
                 {
@@ -12533,12 +12531,12 @@ namespace Orts.Simulation.Physics
                         break;
                 }
 
-                if (section.DeadlockTraps.ContainsKey(trainNumber))
+                if (section.DeadlockTraps.TryGetValue(trainNumber, out List<int> value))
                 {
                     if (section.DeadlockAwaited.Contains(trainNumber))
                     {
                         builder.Append("^[");
-                        List<int> deadlockInfo = section.DeadlockTraps[trainNumber];
+                        List<int> deadlockInfo = value;
                         for (int index = 0; index < deadlockInfo.Count - 2; index++)
                         {
                             builder.Append(deadlockInfo[index]);

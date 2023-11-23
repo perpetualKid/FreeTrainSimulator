@@ -569,10 +569,9 @@ namespace Orts.Simulation.MultiPlayer
                 if (MultiPlayerManager.FindPlayerTrain(user) != null)
                     return; //already added the player, ignore
                 //if the client comes back after disconnected within 10 minutes
-                if (MultiPlayerManager.IsServer() && MultiPlayerManager.Instance().lostPlayer != null && MultiPlayerManager.Instance().lostPlayer.ContainsKey(user))
+                if (MultiPlayerManager.IsServer() && MultiPlayerManager.Instance().lostPlayer != null && MultiPlayerManager.Instance().lostPlayer.TryGetValue(user, out OnlinePlayer onlinePlayer))
                 {
-                    var p1 = MultiPlayerManager.Instance().lostPlayer[user];
-                    var p1Train = p1.Train;
+                    var p1Train = onlinePlayer.Train;
 
                     //check to see if the player gets back with the same set of cars
                     bool identical = true;
@@ -592,8 +591,8 @@ namespace Orts.Simulation.MultiPlayer
 
                     if (WorldLocation.GetDistanceSquared2D(location, p1Train.RearTDBTraveller.WorldLocation) > 1000000)
                     {
-                        MultiPlayerManager.OnlineTrains.Players.Add(user, p1);
-                        p1.CreatedTime = Simulator.Instance.GameTime;
+                        MultiPlayerManager.OnlineTrains.Players.Add(user, onlinePlayer);
+                        onlinePlayer.CreatedTime = Simulator.Instance.GameTime;
                         // re-insert train reference in cars
                         InsertTrainReference(p1Train);
                         MultiPlayerManager.Instance().AddOrRemoveTrain(p1Train, true);
@@ -2246,15 +2245,9 @@ namespace Orts.Simulation.MultiPlayer
                 user = user.Replace("ServerHasToQuit\t", ""); //get the user name of server from the message
                 ServerQuit = true;
             }
-            OnlinePlayer p = null;
-            if (MultiPlayerManager.OnlineTrains.Players.ContainsKey(user))
-            {
-                p = MultiPlayerManager.OnlineTrains.Players[user];
-            }
-            if (p == null)
+            if (!MultiPlayerManager.OnlineTrains.Players.TryGetValue(user, out OnlinePlayer p))
                 return;
-            if (Simulator.Instance.Confirmer != null)
-                Simulator.Instance.Confirmer.Information(MultiPlayerManager.Catalog.GetString("{0} quit.", this.user));
+            Simulator.Instance.Confirmer?.Information(MultiPlayerManager.Catalog.GetString("{0} quit.", this.user));
             if (MultiPlayerManager.IsServer())
             {
                 if (p.Protected == true)
@@ -2327,8 +2320,7 @@ namespace Orts.Simulation.MultiPlayer
             }
             if (p == null)
                 return;
-            if (Simulator.Instance.Confirmer != null)
-                Simulator.Instance.Confirmer.Information(MultiPlayerManager.Catalog.GetString("{0} lost.", this.user));
+            Simulator.Instance.Confirmer?.Information(MultiPlayerManager.Catalog.GetString("{0} lost.", this.user));
             if (p.Protected == true)
             { p.Protected = false; return; }
             MultiPlayerManager.BroadCast((new MSGQuit(user)).ToString()); //if the server, will broadcast a quit to every one

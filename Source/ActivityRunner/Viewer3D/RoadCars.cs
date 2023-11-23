@@ -87,8 +87,8 @@ namespace Orts.ActivityRunner.Viewer3D
             for (var crossingTraveller = new Traveller(Traveller); crossingTraveller.NextSection(); )
                 if ((crossingTraveller.TrackNode as TrackVectorNode)?.TrackItemIndices != null)
                     foreach (var trItemRef in (crossingTraveller.TrackNode as TrackVectorNode).TrackItemIndices)
-                        if (Viewer.Simulator.LevelCrossings.RoadCrossingItems.ContainsKey(trItemRef))
-                            sortedLevelCrossings[Viewer.Simulator.LevelCrossings.RoadCrossingItems[trItemRef].DistanceTo(Traveller)] = Viewer.Simulator.LevelCrossings.RoadCrossingItems[trItemRef];
+                        if (Viewer.Simulator.LevelCrossings.RoadCrossingItems.TryGetValue(trItemRef, out Simulation.World.LevelCrossingItem value))
+                            sortedLevelCrossings[value.DistanceTo(Traveller)] = value;
 
             Crossings = sortedLevelCrossings.Select(slc => new Crossing(slc.Value, slc.Key, float.NaN)).ToList();
         }
@@ -118,9 +118,9 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 Crossings = crossings.Select(c =>
                 {
-                    if (!float.IsNaN(c.TrackHeight) || !Viewer.Simulator.LevelCrossings.RoadToTrackCrossingItems.ContainsKey(c.Item))
+                    if (!float.IsNaN(c.TrackHeight) || !Viewer.Simulator.LevelCrossings.RoadToTrackCrossingItems.TryGetValue(c.Item, out Simulation.World.LevelCrossingItem value))
                         return c;
-                    var height = Viewer.Simulator.LevelCrossings.RoadToTrackCrossingItems[c.Item].Location.Location.Y + TrackRailHeight - c.Item.Location.Location.Y;
+                    var height = value.Location.Location.Y + TrackRailHeight - c.Item.Location.Location.Y;
                     return new Crossing(c.Item, c.Distance, height <= TrainRailHeightMaximum ? height : 0);
                 }).ToList();
             }
@@ -362,8 +362,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (cancellation.IsCancellationRequested)
                         break;
-                    if (cars.ContainsKey(car))
-                        newCars.Add(car, cars[car]);
+                    if (cars.TryGetValue(car, out RoadCarPrimitive value))
+                        newCars.Add(car, value);
                     else
                         newCars.Add(car, LoadCar(car));
                 }
