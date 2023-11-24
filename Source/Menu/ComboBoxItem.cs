@@ -71,30 +71,30 @@ namespace Orts.Menu
 
         }
 
-        private static IList<ComboBoxItem<T>> FromEnum<T>() where T : Enum
+        private static List<ComboBoxItem<T>> FromEnum<T>() where T : Enum
         {
             return EnumExtension.GetValues<T>().Select(data => new ComboBoxItem<T>(data, data.GetLocalizedDescription())).ToList();
         }
 
-        private static IList<ComboBoxItem<int>> FromEnumValue<T>() where T : Enum
+        private static List<ComboBoxItem<int>> FromEnumValue<T>() where T : Enum
         {
             return EnumExtension.GetValues<T>().Select(data => new ComboBoxItem<int>(Convert.ToInt32(data, System.Globalization.CultureInfo.InvariantCulture),data.GetLocalizedDescription())).ToList();
         }
 
         /// <summary>
-        /// Returns a new IList<ComboBoxItem<T>> created from source enum.
+        /// Returns a new List<ComboBoxItem<T>> created from source enum.
         /// Keys and values are mapped from enum values, typically keys are enum values or enum value names
         /// </summary>
-        private static IList<ComboBoxItem<T>> FromEnumCustomLookup<E, T>(Func<E, T> keyLookup, Func<E, string> valueLookup) where E : Enum
+        private static List<ComboBoxItem<T>> FromEnumCustomLookup<E, T>(Func<E, T> keyLookup, Func<E, string> valueLookup) where E : Enum
         {
             return EnumExtension.GetValues<E>().Select(data => new ComboBoxItem<T>(keyLookup(data), valueLookup(data))).ToList();
         }
 
         /// <summary>
-        /// Returns a new IList<ComboBoxItem<T>> created from source list.
+        /// Returns a new List<ComboBoxItem<T>> created from source list.
         /// Keys are mapped from list items, display values are mapped through lookup function
         /// </summary>
-        private static IList<ComboBoxItem<T>> FromList<T>(IEnumerable<T> source, Func<T, string> lookup)
+        private static List<ComboBoxItem<T>> FromList<T>(IEnumerable<T> source, Func<T, string> lookup)
         {
             try
             {

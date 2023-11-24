@@ -92,7 +92,7 @@ namespace Orts.Toolbox
 ;
         public GameWindow()
         {
-            IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a[1..]);
+            IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]);
             Settings = new ToolboxSettings(options);
 
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);

@@ -52,7 +52,7 @@ namespace Tests.Orts.Settings.Store
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, null) as SettingsStoreLocalIni;
                 string[] sections = store.GetSectionNames();
 
-                CollectionAssert.AreEqual(contentArray.Where((s) => !s.StartsWith("#", StringComparison.OrdinalIgnoreCase)).Select((s) => s.Trim('[', ']')).ToArray(), sections);
+                CollectionAssert.AreEqual(contentArray.Where((s) => !s.StartsWith('#')).Select((s) => s.Trim('[', ']')).ToArray(), sections);
             }
         }
 
@@ -66,7 +66,7 @@ namespace Tests.Orts.Settings.Store
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, null) as SettingsStoreLocalIni;
                 string[] sections = store.GetSectionNames();
 
-                CollectionAssert.AreEqual(contentArray.Where((s) => s.StartsWith("[", StringComparison.OrdinalIgnoreCase)).Select((s) => s.Trim('[', ']')).ToArray(), sections);
+                CollectionAssert.AreEqual(contentArray.Where((s) => s.StartsWith('[')).Select((s) => s.Trim('[', ']')).ToArray(), sections);
             }
         }
 
@@ -91,7 +91,7 @@ namespace Tests.Orts.Settings.Store
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, null) as SettingsStoreLocalIni;
                 string[] sections = store.GetSectionNames();
 
-                CollectionAssert.AreEqual(contentArray.Where((s) => s.StartsWith("[", StringComparison.OrdinalIgnoreCase)).Select((s) => s.Trim('[', ']')).ToArray(), sections);
+                CollectionAssert.AreEqual(contentArray.Where((s) => s.StartsWith('[')).Select((s) => s.Trim('[', ']')).ToArray(), sections);
             }
         }
 

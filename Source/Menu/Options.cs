@@ -40,8 +40,8 @@ namespace Orts.Menu
         private readonly UserSettings settings;
         private readonly UpdateManager updateManager;
 
-        private readonly ICatalog catalog;
-        private readonly IDictionary<Control, HelpIconHover> helpIconMap = new Dictionary<Control, HelpIconHover>();
+        private readonly Catalog catalog;
+        private readonly Dictionary<Control, HelpIconHover> helpIconMap = new Dictionary<Control, HelpIconHover>();
 
         private const string baseUrl = "https://open-rails.readthedocs.io/en/latest";
 

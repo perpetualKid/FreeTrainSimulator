@@ -2314,11 +2314,7 @@ namespace Orts.Simulation.MultiPlayer
                 return; //only server will handle this
             }
             OnlinePlayer p = null;
-            if (MultiPlayerManager.OnlineTrains.Players.ContainsKey(user))
-            {
-                p = MultiPlayerManager.OnlineTrains.Players[user];
-            }
-            if (p == null)
+            if (!MultiPlayerManager.OnlineTrains.Players.TryGetValue(user, out OnlinePlayer value))
                 return;
             Simulator.Instance.Confirmer?.Information(MultiPlayerManager.Catalog.GetString("{0} lost.", this.user));
             if (p.Protected == true)

@@ -198,8 +198,8 @@ namespace Orts.ActivityRunner.Viewer3D
     public class SharedMaterialManager
     {
         private readonly Viewer Viewer;
-        private IDictionary<(string, string, int, float, Effect), Material> Materials = new Dictionary<(string, string, int, float, Effect), Material>();
-        private IDictionary<(string, string, int, float, Effect), bool> MaterialMarks = new Dictionary<(string, string, int, float, Effect), bool>();
+        private Dictionary<(string, string, int, float, Effect), Material> Materials = new Dictionary<(string, string, int, float, Effect), Material>();
+        private Dictionary<(string, string, int, float, Effect), bool> MaterialMarks = new Dictionary<(string, string, int, float, Effect), bool>();
 
         public readonly LightConeShader LightConeShader;
         public readonly LightGlowShader LightGlowShader;

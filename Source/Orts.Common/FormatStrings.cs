@@ -61,7 +61,7 @@ namespace Orts.Common
             public const string Diamond = "◆"; // \u25C6
         }
 
-        private static readonly ICatalog catalog = CatalogManager.Catalog;
+        private static readonly Catalog catalog = CatalogManager.Catalog;
 
 #pragma warning disable IDE1006 // Naming Styles
         public static string m { get; } = catalog.GetString("m");

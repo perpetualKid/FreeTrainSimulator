@@ -1265,11 +1265,7 @@ namespace Orts.Simulation.AIs
             foreach (AITrain train in TrainsToRemove)
             {
                 // check if train is actually still waiting to be added
-                if (TrainsToAdd.Contains(train))
-                {
-                    TrainsToAdd.Remove(train);
-                }
-                else
+                if (!TrainsToAdd.Remove(train))
                 {
                     simulator.TrainDictionary.Remove(train.Number);
                     simulator.NameDictionary.Remove(train.Name);

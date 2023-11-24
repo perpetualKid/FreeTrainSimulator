@@ -1999,10 +1999,7 @@ namespace Orts.Simulation.Timetables
                     {
                         StationStops[StationStops.Count - 2].HoldSignal = false;
                         StationStops[StationStops.Count - 2].ExitSignal = -1;
-                        if (HoldingSignals.Contains(EndSignal))
-                        {
-                            HoldingSignals.Remove(EndSignal);
-                        }
+                        HoldingSignals.Remove(EndSignal);
                     }
                 }
 

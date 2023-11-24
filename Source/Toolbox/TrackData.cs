@@ -70,7 +70,7 @@ namespace Orts.Toolbox
                 return;
 
             game.Services.RemoveService(typeof(RuntimeData));
-            game.Services.AddService(typeof(RuntimeData), new TrackData(routeFile.Route.Name, trackSections, trackDB, roadTrackDB, signalConfig, useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric), pathTask.Result));
+            game.Services.AddService(typeof(RuntimeData), new TrackData(routeFile.Route.Name, trackSections, trackDB, roadTrackDB, signalConfig, useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric), await pathTask.ConfigureAwait(false)));
         }
     }
 }

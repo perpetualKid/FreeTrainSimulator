@@ -36,8 +36,8 @@ namespace Orts.SimulatorTester
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
         private static void Main(string[] args)
         {
-            IEnumerable<string> options = args.Where(a => a.StartsWith("-") || a.StartsWith("/")).Select(a => a[1..]);
-            List<string> files = args.Where(a => !a.StartsWith("-") && !a.StartsWith("/")).ToList();
+            IEnumerable<string> options = args.Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]);
+            List<string> files = args.Where(a => !a.StartsWith('-') && !a.StartsWith('/')).ToList();
             UserSettings settings = new UserSettings(options);
 
             Trace.Listeners.Add(new ConsoleTraceListener());

@@ -112,7 +112,7 @@ namespace Orts.Updater
                     FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>().ConfigureAwait(false);
                     IEnumerable<NuGetVersion> result = await resource.GetAllVersionsAsync(VersionInfo.PackageId, cache, logger, cancellationToken).ConfigureAwait(false);
                     string versions = result.ToJson(Formatting.Indented);
-                    File.WriteAllText(VersionFile, versions);
+                    await File.WriteAllTextAsync(VersionFile, versions).ConfigureAwait(false);
                     return result;
                 }
                 catch (NuGetProtocolException exception)

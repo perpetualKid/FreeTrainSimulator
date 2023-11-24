@@ -990,7 +990,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             });
         }
 
-        private static void ChangeLabelAt(IList<ListLabel> labels, int index, Func<ListLabel, ListLabel> modifier)
+        private static void ChangeLabelAt(List<ListLabel> labels, int index, Func<ListLabel, ListLabel> modifier)
         {
             index = Math.Max(index, 0); // Fix invalid row indices.
             if (index <= labels.Count)

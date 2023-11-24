@@ -526,7 +526,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                             ;
                             TableText[i, j + 1].Color = colorFirstColEndsWith;
                             TableSymbol[i, j + 1].Font = TableSymbolFont; 
-                            TableSymbol[i, j + 1].Text = (tempStatus[j, i] != null && tempStatus[j, i].Contains("|")) ? Fence : " ";
+                            TableSymbol[i, j + 1].Text = (tempStatus[j, i] != null && tempStatus[j, i].Contains('|')) ? Fence : " ";
                         }
                         TableText[i, 0].Font = TableTextFont;
                         TableText[i, 0].Text = dieselLocoHeader[i];

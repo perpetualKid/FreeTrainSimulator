@@ -134,9 +134,9 @@ namespace Orts.Models.Track
             }
         }
 
-        private IReadOnlyList<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
+        private List<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
         {
-            return JunctionNode?.ConnectedSegments(trackModel).ToList() ?? (IReadOnlyList<TrackSegmentBase>)trackModel.SegmentsAt(Location).ToList();
+            return JunctionNode?.ConnectedSegments(trackModel).ToList() ?? trackModel.SegmentsAt(Location).ToList();
         }
     }
 

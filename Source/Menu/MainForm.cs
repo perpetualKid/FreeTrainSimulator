@@ -165,7 +165,7 @@ namespace Orts.Menu
         private async void MainForm_Shown(object sender, EventArgs e)
         {
             IEnumerable<string> options = Environment.GetCommandLineArgs().
-                Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a[1..]);
+                Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]);
             settings = new UserSettings(options);
 
             updateManager = new UpdateManager(settings);

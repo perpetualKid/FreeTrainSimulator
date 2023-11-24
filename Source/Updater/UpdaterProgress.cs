@@ -36,7 +36,7 @@ namespace Orts.Updater
     public partial class UpdaterProgress : Form
     {
         private readonly UserSettings settings;
-        private readonly ICatalog catalog;
+        private readonly Catalog catalog;
 
         public UpdaterProgress()
         {

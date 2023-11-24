@@ -66,7 +66,7 @@ namespace Orts.Settings.Util
                 int x = keyboardLine.IndexOf('[', StringComparison.Ordinal);
                 while (x != -1)
                 {
-                    int x2 = keyboardLine.IndexOf("]", x, StringComparison.Ordinal);
+                    int x2 = keyboardLine.IndexOf(']', x);
 
                     ReadOnlySpan<char> scanCodeString = keyboardLine.AsSpan()[(x + 1)..(x + 4)].Trim();
                     if (!int.TryParse(scanCodeString, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int keyScanCode))

@@ -53,7 +53,7 @@ namespace Orts.ContentChecker
 
             AdditionType additionType = optionAll ? AdditionType.All : optionReferenced ? AdditionType.Referenced : optionDependent ? AdditionType.Dependent : AdditionType.None;
 
-            IEnumerable<string> files = args.Where(arg => !arg.StartsWith("/", StringComparison.OrdinalIgnoreCase));
+            IEnumerable<string> files = args.Where(arg => !arg.StartsWith('/'));
             if (files.Any())
             {
                 LoadFiles(files, optionVerbose, additionType);

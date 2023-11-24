@@ -96,7 +96,7 @@ namespace Orts.Simulation.MultiPlayer
                 catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException || ex is InvalidOperationException)
                 {
                     Trace.TraceError($"Error sending Multiplayer Message: {ex.Message}");
-                    cts.Cancel();
+                    await cts.CancelAsync().ConfigureAwait(false);
                 }
                 ArrayPool<char>.Shared.Return(originalMessage);
             }
@@ -117,7 +117,7 @@ namespace Orts.Simulation.MultiPlayer
             catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException || ex is InvalidOperationException)
             {
                 Trace.TraceError($"Error sending Multiplayer Message: {ex.Message}");
-                cts.Cancel();
+                await cts.CancelAsync().ConfigureAwait(false);
             }
         }
 

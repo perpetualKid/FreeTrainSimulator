@@ -902,7 +902,7 @@ namespace Orts.ActivityRunner.Viewer3D
             });
 
             // Turntable commands
-            if (Simulator.MovingTables.Any())
+            if (Simulator.MovingTables.Count != 0)
             {
                 UserCommandController.AddEvent(UserCommand.ControlTurntableClockwise, KeyEventType.KeyPressed, () =>
                 {

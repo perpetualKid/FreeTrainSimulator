@@ -86,7 +86,7 @@ namespace Orts.ActivityRunner.Processes
         {
             arguments = args;
 
-            IEnumerable<IGrouping<bool, string>> groupedArguments = args.GroupBy(argumenType => argumenType.StartsWith("-", StringComparison.OrdinalIgnoreCase) || argumenType.StartsWith("/", StringComparison.OrdinalIgnoreCase));
+            IEnumerable<IGrouping<bool, string>> groupedArguments = args.GroupBy(argumenType => argumenType.StartsWith('-') || argumenType.StartsWith('/'));
             List<string> optionsList = groupedArguments.Where(grouping => grouping.Key).SelectMany(grouping => grouping).Select(option => option.Substring(1)).ToList();
             data = groupedArguments.Where(grouping => !grouping.Key).SelectMany(grouping => grouping).ToArray();
 

@@ -259,7 +259,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
                         for (int i = 0; i < dieselLocomotivesCount; i++)
                         {
-                            symbolCol.Add(tempStatus[i, j] != null && tempStatus[i, j].Contains("|") ? Symbols.Fence + ColorCode[Color.Green] : " ");
+                            symbolCol.Add(tempStatus[i, j] != null && tempStatus[i, j].Contains('|') ? Symbols.Fence + ColorCode[Color.Green] : " ");
                             lastCol.Add(tempStatus[i, j]);
                         }
 

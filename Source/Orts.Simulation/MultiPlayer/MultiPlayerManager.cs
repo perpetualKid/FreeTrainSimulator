@@ -959,7 +959,7 @@ namespace Orts.Simulation.MultiPlayer
             {
                 int index = filePaths[i].LastIndexOf("\\trains\\trainset\\");
                 temp = filePaths[i].Substring(index + 17);
-                if (!temp.Contains("\\"))
+                if (!temp.Contains('\\'))
                     continue;
                 allEngines.Add(temp);
             }

@@ -84,7 +84,7 @@ namespace Orts.Menu
         public MainForm.UserAction SelectedAction { get; private set; }
         private readonly bool multiplayer;
 
-        private readonly ICatalog catalog;
+        private readonly Catalog catalog;
 
         internal ResumeForm(UserSettings settings, Route route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable, IEnumerable<Route> mainRoutes)
         {

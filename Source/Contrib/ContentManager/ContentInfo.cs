@@ -104,9 +104,7 @@ namespace Orts.ContentManager
                         {
                             foreach (PathNode nextNode in node.Next)
                             {
-                                if (!visitedNodes.Contains(nextNode))
-                                    visitedNodes.Add(nextNode);
-                                else if (!rejoinNodes.Contains(nextNode))
+                                if (!visitedNodes.Add(nextNode))
                                     rejoinNodes.Add(nextNode);
                             }
                         }
