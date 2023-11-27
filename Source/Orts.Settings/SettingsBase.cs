@@ -158,16 +158,16 @@ namespace Orts.Settings
                 {
                     if (typeof(T).IsArray)
                     {
-                        builder.Append($"{item}=");
+                        builder.Append(CultureInfo.InvariantCulture, $"{item}=");
                         foreach (dynamic arrayItem in (Array)(dynamic)value[item])
                         {
-                            builder.Append($"{arrayItem},");
+                            builder.Append(CultureInfo.InvariantCulture, $"{arrayItem},");
                         }
                         if (builder[^1] == ',')
                             builder.Length--;
                     }
                     else
-                        builder.Append($"{item}={value[item]?.ToString()}");
+                        builder.Append(CultureInfo.InvariantCulture, $"{item}={value[item]?.ToString()}");
                     builder.Append(';');
                 }
             }

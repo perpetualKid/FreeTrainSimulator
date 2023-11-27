@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -15,17 +16,17 @@ namespace Orts.Common.Logging
 
         public LoggedBinaryWriter(Stream output) : base(output)
         {
-            _ = builder.AppendLine($"{outputFile = (BaseStream is FileStream fileStream ? fileStream.Name : BaseStream.ToString())}");
+            _ = builder.AppendLine(CultureInfo.InvariantCulture, $"{outputFile = (BaseStream is FileStream fileStream ? fileStream.Name : BaseStream.ToString())}");
         }
 
         public LoggedBinaryWriter(Stream output, Encoding encoding) : base(output, encoding)
         {
-            _ = builder.AppendLine($"{outputFile = (BaseStream is FileStream fileStream ? fileStream.Name : BaseStream.ToString())}");
+            _ = builder.AppendLine(CultureInfo.InvariantCulture, $"{outputFile = (BaseStream is FileStream fileStream ? fileStream.Name : BaseStream.ToString())}");
         }
 
         public LoggedBinaryWriter(Stream output, Encoding encoding, bool leaveOpen) : base(output, encoding, leaveOpen)
         {
-            _ = builder.AppendLine($"{outputFile = (BaseStream is FileStream fileStream ? fileStream.Name : BaseStream.ToString())}");
+            _ = builder.AppendLine(CultureInfo.InvariantCulture, $"{outputFile = (BaseStream is FileStream fileStream ? fileStream.Name : BaseStream.ToString())}");
         }
 
         protected override void Dispose(bool disposing)
@@ -172,7 +173,7 @@ namespace Orts.Common.Logging
             if (method.DeclaringType.Namespace.StartsWith("System", StringComparison.OrdinalIgnoreCase))
                 return;
             //_ = builder.AppendLine($"{value?.GetType().Name}\t{value}\t({method.DeclaringType}\t{method.Name})");
-            _ = builder.AppendLine($"{value?.GetType().Name}\t{value}\t({method.DeclaringType})");
+            _ = builder.AppendLine(CultureInfo.InvariantCulture, $"{value?.GetType().Name}\t{value}\t({method.DeclaringType})");
         }
 
         private void Log<T>(ReadOnlySpan<T> value)
@@ -183,7 +184,7 @@ namespace Orts.Common.Logging
             if (method.DeclaringType.Namespace.StartsWith("System", StringComparison.OrdinalIgnoreCase))
                 return;
             //_ = builder.AppendLine($"{typeof(T).Name}\t{value.ToString()}\t({method.DeclaringType}\t{method.Name}:)");
-            _ = builder.AppendLine($"{typeof(T).Name}\t{value.ToString()}\t({method.DeclaringType}\t{method.Name}:)");
+            _ = builder.AppendLine(CultureInfo.InvariantCulture, $"{typeof(T).Name}\t{value.ToString()}\t({method.DeclaringType}\t{method.Name}:)");
         }
 
     }

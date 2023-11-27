@@ -178,17 +178,17 @@ namespace Orts.Settings.Store
                 {
                     if (typeof(T).IsArray)
                     {
-                        builder.Append($"{item}=");
+                        builder.Append(CultureInfo.InvariantCulture, $"{item}=");
                         foreach (dynamic arrayItem in (Array)(dynamic)value[item])
                         {
-                            builder.Append($"{arrayItem},");
+                            builder.Append(CultureInfo.InvariantCulture, $"{arrayItem},");
                         }
                         if (builder[^1] == ',')
                             builder.Length--;
                         builder.AppendLine();
                     }
                     else
-                        builder.AppendLine($"{item}={value[item]?.ToString()}");
+                        builder.AppendLine(CultureInfo.InvariantCulture, $"{item}={value[item]?.ToString()}");
                 }
             }
             if (builder.Length > 0)

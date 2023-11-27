@@ -17,6 +17,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -58,7 +60,7 @@ namespace Orts.Common.Info
         public static void WriteSystemDetails()
         {
             StringBuilder builder = new StringBuilder();
-            builder.AppendLine($"{"Date/Time",-12}= {DateTime.Now} ({DateTime.UtcNow:u})");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{"Date/Time",-12}= {DateTime.Now} ({DateTime.UtcNow:u})");
             try
             {
                 WriteEnvironment(builder);
@@ -67,7 +69,7 @@ namespace Orts.Common.Info
             {
                 builder.Append("Hardware information not available on this platform.");
             }
-            builder.AppendLine($"{"Runtime",-12}= {RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{"Runtime",-12}= {RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
             Trace.Write(builder.ToString());
         }
 
@@ -81,7 +83,7 @@ namespace Orts.Common.Info
                 {
                     foreach (ManagementBaseObject bios in objectSearcher.Get())
                     {
-                        output.AppendLine($"{"BIOS",-12}= {bios["Description"]} ({bios["Manufacturer"]})");
+                        output.AppendLine(CultureInfo.InvariantCulture, $"{"BIOS",-12}= {bios["Description"]} ({bios["Manufacturer"]})");
                     }
                 }
             }
@@ -104,14 +106,14 @@ namespace Orts.Common.Info
             {
                 Trace.WriteLine(error);
             }
-            output.AppendLine($"{"Memory",-12}= {buffer.TotalPhysical / 1024f / 1024 / 1024:F1} GB");
+            output.AppendLine(CultureInfo.InvariantCulture, $"{"Memory",-12}= {buffer.TotalPhysical / 1024f / 1024 / 1024:F1} GB");
             try
             {
                 using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher("Select DeviceID, Description, AdapterRAM, AdapterDACType from Win32_VideoController"))
                 {
                     foreach (ManagementBaseObject display in objectSearcher.Get())
                     {
-                        output.AppendLine($"{"Video",-12}= {display["Description"]} ({(uint)display["AdapterRAM"] / 1024f / 1024 / 1024:F1} GB {display["AdapterDACType"]} RAM){GetPnPDeviceDrivers(display as ManagementObject)}");
+                        output.AppendLine(CultureInfo.InvariantCulture, $"{"Video",-12}= {display["Description"]} ({(uint)display["AdapterRAM"] / 1024f / 1024 / 1024:F1} GB {display["AdapterDACType"]} RAM){GetPnPDeviceDrivers(display as ManagementObject)}");
                     }
                 }
             }
@@ -122,7 +124,7 @@ namespace Orts.Common.Info
 
             foreach (GraphicsAdapter adapter in GraphicsAdapter.Adapters)
             {
-                output.AppendLine($"{"Display",-12}= {adapter.DeviceName} (resolution {adapter.CurrentDisplayMode.Width} x {adapter.CurrentDisplayMode.Height}, {(adapter.IsDefaultAdapter? ", primary" : "")} on {adapter.Description})");
+                output.AppendLine(CultureInfo.InvariantCulture, $"{"Display",-12}= {adapter.DeviceName} (resolution {adapter.CurrentDisplayMode.Width} x {adapter.CurrentDisplayMode.Height}, {(adapter.IsDefaultAdapter? ", primary" : "")} on {adapter.Description})");
                 GraphicsAdapter.UseDebugLayers = true;
             }
 
@@ -132,7 +134,7 @@ namespace Orts.Common.Info
                 {
                     foreach (ManagementBaseObject sound in objectSearcher.Get())
                     {
-                        output.AppendLine($"{"Sound",-12}= {sound["Description"]}{GetPnPDeviceDrivers(sound as ManagementObject)}");
+                        output.AppendLine(CultureInfo.InvariantCulture, $"{"Sound",-12}= {sound["Description"]}{GetPnPDeviceDrivers(sound as ManagementObject)}");
                     }
                 }
             }
@@ -147,9 +149,9 @@ namespace Orts.Common.Info
                     foreach (ManagementBaseObject disk in objectSearcher.Get())
                     {
                         if (disk["Size"] != null)
-                            output.AppendLine($"{"Disk",-12}= {disk["Name"]} ({disk["Description"]}, {disk["FileSystem"]}, {(ulong)(disk["Size"] ?? 0ul) / 1024f / 1024 / 1024:F1} GB, {(ulong)(disk["FreeSpace"] ?? 0ul) / 1024f / 1024 / 1024:F1} GB free)");
+                            output.AppendLine(CultureInfo.InvariantCulture, $"{"Disk",-12}= {disk["Name"]} ({disk["Description"]}, {disk["FileSystem"]}, {(ulong)(disk["Size"] ?? 0ul) / 1024f / 1024 / 1024:F1} GB, {(ulong)(disk["FreeSpace"] ?? 0ul) / 1024f / 1024 / 1024:F1} GB free)");
                         else
-                            output.AppendLine($"{"Disk",-12}= {disk["Name"]} ({disk["Description"]})");
+                            output.AppendLine(CultureInfo.InvariantCulture, $"{"Disk",-12}= {disk["Name"]} ({disk["Description"]})");
                     }
                 }
             }
@@ -163,7 +165,7 @@ namespace Orts.Common.Info
                 {
                     foreach (ManagementBaseObject os in objectSearcher.Get())
                     {
-                        output.AppendLine($"{"OS",-12}= {os["Caption"]} {os["OSArchitecture"]} ({os["Version"]})");
+                        output.AppendLine(CultureInfo.InvariantCulture, $"{"OS",-12}= {os["Caption"]} {os["OSArchitecture"]} ({os["Version"]})");
                     }
                 }
             }
@@ -180,7 +182,7 @@ namespace Orts.Common.Info
             {
                 foreach (ManagementObject dataFile in pnpDevice.GetRelated("CIM_DataFile"))
                 {
-                    output.Append($" ({dataFile["FileName"]} {dataFile["Version"]})");
+                    output.Append(CultureInfo.InvariantCulture, $" ({dataFile["FileName"]} {dataFile["Version"]})");
                 }
             }
             return output.ToString();

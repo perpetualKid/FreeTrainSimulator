@@ -27,6 +27,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -589,8 +590,8 @@ namespace Orts.Simulation.MultiPlayer
             StringBuilder info = new StringBuilder();
             if (Simulator.Instance.PlayerLocomotive.Train.TrainType == TrainType.Remote)
                 info.Append("Your locomotive is a helper\t");
-            info.Append($"{OnlineTrains.Players.Count + 1}{(OnlineTrains.Players.Count <= 0 ? " player " : "  players ")}");
-            info.Append($"{Simulator.Instance.Trains.Count}{(Simulator.Instance.Trains.Count <= 1 ? " train" : "  trains")}");
+            info.Append(CultureInfo.InvariantCulture, $"{OnlineTrains.Players.Count + 1}{(OnlineTrains.Players.Count <= 0 ? " player " : "  players ")}");
+            info.Append(CultureInfo.InvariantCulture, $"{Simulator.Instance.Trains.Count}{(Simulator.Instance.Trains.Count <= 1 ? " train" : "  trains")}");
             TrainCar mine = Simulator.Instance.PlayerLocomotive;
             users.Clear();
             try//the list of players may be changed during the following process
@@ -618,7 +619,7 @@ namespace Orts.Simulation.MultiPlayer
 
             foreach (KeyValuePair<double, string> pair in users.Take(10))
             {
-                info.Append($"\t{pair.Value}: distance of {(int)(Simulator.Instance.Route.MilepostUnitsMetric ? pair.Key : Size.Length.ToYd(pair.Key)) + metric}");
+                info.Append(CultureInfo.InvariantCulture, $"\t{pair.Value}: distance of {(int)(Simulator.Instance.Route.MilepostUnitsMetric ? pair.Key : Size.Length.ToYd(pair.Key)) + metric}");
             }
             if (OnlineTrains.Players.Count > 10)
             {

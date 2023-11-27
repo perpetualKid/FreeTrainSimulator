@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -194,27 +195,27 @@ namespace Orts.Simulation.Activities
             StringBuilder builder = new StringBuilder();
             Simulator simulator = Simulator.Instance;
 
-            builder.AppendLine($"This is a Debrief Eval for {RuntimeInfo.ProductName}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"This is a Debrief Eval for {RuntimeInfo.ProductName}");
             builder.AppendLine(LoggingUtil.SeparatorLine);
-            builder.AppendLine($"{"Version",-14}= {VersionInfo.Version}");
-            builder.AppendLine($"{"Code Version",-14}= {VersionInfo.CodeVersion}");
-            builder.AppendLine($"{"Debrief File",-14}= {ReportFileName.Replace(System.Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{"Version",-14}= {VersionInfo.Version}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{"Code Version",-14}= {VersionInfo.CodeVersion}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{"Debrief File",-14}= {ReportFileName.Replace(System.Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
             builder.AppendLine(LoggingUtil.SeparatorLine);
             builder.AppendLine();
-            builder.AppendLine($"{string.Empty,10}Evalulation Debrief");
-            builder.AppendLine($"{string.Empty,10}*******************");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{string.Empty,10}Evalulation Debrief");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{string.Empty,10}*******************");
             builder.AppendLine();
 
             builder.AppendLine("0-Information:");
             //Activity
-            builder.AppendLine($"  {"Route",-26}= {simulator.RouteName}");
-            builder.AppendLine($"  {"Activity",-26}= {simulator.ActivityFile.Activity.Header.Name}");
-            builder.AppendLine($"  {"Difficulty",-26}= {simulator.ActivityFile.Activity.Header.Difficulty}");
-            builder.AppendLine($"  {"Start Time",-26}= {simulator.ActivityFile.Activity.Header.StartTime}");
-            builder.AppendLine($"  {"Estimated Time",-26}= {simulator.ActivityFile.Activity.Header.Duration}");
-            builder.AppendLine($"  {"Elapsed Time",-26}= {FormatStrings.FormatTime(simulator.ClockTime - simulator.ActivityFile.Activity.Header.StartTime.TotalSeconds)}");
-            builder.AppendLine($"  {"Autopilot Time",-26}= {FormatStrings.FormatTime(AutoPilotTime)}");
-            builder.AppendLine($"  {"Distance Travelled",-26}= {FormatStrings.FormatDistanceDisplay(DistanceTravelled, simulator.MetricUnits)}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Route",-26}= {simulator.RouteName}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Activity",-26}= {simulator.ActivityFile.Activity.Header.Name}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Difficulty",-26}= {simulator.ActivityFile.Activity.Header.Difficulty}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Start Time",-26}= {simulator.ActivityFile.Activity.Header.StartTime}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Estimated Time",-26}= {simulator.ActivityFile.Activity.Header.Duration}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Elapsed Time",-26}= {FormatStrings.FormatTime(simulator.ClockTime - simulator.ActivityFile.Activity.Header.StartTime.TotalSeconds)}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Autopilot Time",-26}= {FormatStrings.FormatTime(AutoPilotTime)}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Distance Travelled",-26}= {FormatStrings.FormatDistanceDisplay(DistanceTravelled, simulator.MetricUnits)}");
 
             float dieselBurned = 0;
             float waterBurnedPerc = 0;
@@ -244,18 +245,18 @@ namespace Orts.Simulation.Activities
                 }
             }
 
-            builder.AppendLine($"  {"Consist engine",-26}= {(locomotiveTypes[EngineType.Steam] > 0 ? locomotiveTypes[EngineType.Steam] + " " + EngineType.Steam.GetDescription() + ", " : "")}{(locomotiveTypes[EngineType.Diesel] > 0 ? locomotiveTypes[EngineType.Diesel] + " " + EngineType.Diesel.GetDescription() + ", " : "")}{(locomotiveTypes[EngineType.Electric] > 0 ? locomotiveTypes[EngineType.Electric] + " " + EngineType.Electric.GetDescription() + ", " : "")}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Consist engine",-26}= {(locomotiveTypes[EngineType.Steam] > 0 ? locomotiveTypes[EngineType.Steam] + " " + EngineType.Steam.GetDescription() + ", " : "")}{(locomotiveTypes[EngineType.Diesel] > 0 ? locomotiveTypes[EngineType.Diesel] + " " + EngineType.Diesel.GetDescription() + ", " : "")}{(locomotiveTypes[EngineType.Electric] > 0 ? locomotiveTypes[EngineType.Electric] + " " + EngineType.Electric.GetDescription() + ", " : "")}");
             builder.Remove(builder.Length - 2, 2);
             builder.AppendLine();
 
             if (locomotiveTypes[EngineType.Steam] > 0)
             {
-                builder.AppendLine($"  {"Burned Coal",-26}= {FormatStrings.FormatMass(coalBurned, simulator.MetricUnits)} ({coalBurnedPerc:0.##}%)");
-                builder.AppendLine($"  {"Water consumption",-26}= {waterBurnedPerc:0.##}%");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Burned Coal",-26}= {FormatStrings.FormatMass(coalBurned, simulator.MetricUnits)} ({coalBurnedPerc:0.##}%)");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Water consumption",-26}= {waterBurnedPerc:0.##}%");
             }
             if (locomotiveTypes[EngineType.Diesel] > 0)
             {
-                builder.AppendLine($"  {"Burned Diesel",-26}= {FormatStrings.FormatFuelVolume(dieselBurned, simulator.MetricUnits, simulator.Settings.MeasurementUnit == MeasurementUnit.UK)}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Burned Diesel",-26}= {FormatStrings.FormatFuelVolume(dieselBurned, simulator.MetricUnits, simulator.Settings.MeasurementUnit == MeasurementUnit.UK)}");
             }
             builder.AppendLine();
 
@@ -279,19 +280,19 @@ namespace Orts.Simulation.Activities
 
                 if (stopTasks.Count > 0)
                 {
-                    builder.AppendLine($"  {"Station Arrival",-26}= {stopTasks.Count}");
+                    builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Station Arrival",-26}= {stopTasks.Count}");
                     if (simulator.PlayerLocomotive.Train.Delay != null)
                     {
-                        builder.AppendLine($"  {"Delay",-26}= {simulator.PlayerLocomotive.Train.Delay.Value}");
+                        builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Delay",-26}= {simulator.PlayerLocomotive.Train.Delay.Value}");
                         //Delayed. -0.2 per second. 
                         stationPenalty += 0.2 * (long)simulator.PlayerLocomotive.Train.Delay.Value.TotalSeconds;//second
 
                     }
                     int missedStationStops;
-                    builder.AppendLine($"  {"Missed station stops",-26}= {missedStationStops = stopTasks.Where((stopTask) => stopTask.StopMissed).Count()} {(missedStationStops == 1 ? "Station" : "Stations")}");
+                    builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Missed station stops",-26}= {missedStationStops = stopTasks.Where((stopTask) => stopTask.StopMissed).Count()} {(missedStationStops == 1 ? "Station" : "Stations")}");
                     foreach (PassengerStopTask item in stopTasks.Where((stopTask) => stopTask.StopMissed))
                     {
-                        builder.Append($"{item.StationName}, ");
+                        builder.Append(CultureInfo.InvariantCulture, $"{item.StationName}, ");
                     }
                     if (missedStationStops > 0)
                     {
@@ -301,7 +302,7 @@ namespace Orts.Simulation.Activities
                         stationPenalty += missedStationStops * 20;
                     }
                     builder.AppendLine($"  {"Departure before"}");
-                    builder.AppendLine($"    {"boarding completed",-24}= {DepartBeforeBoarding}");
+                    builder.AppendLine(CultureInfo.InvariantCulture, $"    {"boarding completed",-24}= {DepartBeforeBoarding}");
                     //Station departure before passenger boarding completed. -80.                                
                     stationPenalty += DepartBeforeBoarding * 80;
                 }
@@ -310,7 +311,7 @@ namespace Orts.Simulation.Activities
                     builder.AppendLine($"{"  No Station stops."}");
                 }
                 //Station Arrival, Departure, Passing Evaluation. Overall Rating.
-                builder.AppendLine($"  {"Overall rating total",-26}= {(stopTasks.Count > 0 ? $"{Convert.ToInt16(stationPenalty)}" : "0")}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Overall rating total",-26}= {(stopTasks.Count > 0 ? $"{Convert.ToInt16(stationPenalty)}" : "0")}");
                 builder.AppendLine();
 
                 builder.AppendLine("2-Work Orders:");
@@ -358,15 +359,15 @@ namespace Orts.Simulation.Activities
                 }
                 if (workOrderTasks.Count > 0)
                 {
-                    builder.AppendLine($"  {"Task",-30}{"Location",-30}{"Status"}");
+                    builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Task",-30}{"Location",-30}{"Status"}");
                     builder.Append('-', 68);
                     builder.AppendLine();
                     foreach (ActivityEvent eventTask in workOrderTasks)
                     {
-                        builder.AppendLine($"  {eventTask.ActivityName,-30}{eventTask.ActivityLocation,-30}{eventTask.ActivityStatus}");
+                        builder.AppendLine(CultureInfo.InvariantCulture, $"  {eventTask.ActivityName,-30}{eventTask.ActivityLocation,-30}{eventTask.ActivityStatus}");
                     }
                     //Coupling Over Speed > 1.5 MpS (5.4Kmh 3.3Mph)
-                    builder.AppendLine($"  {"Coupling speed limits",-26}= {OverSpeedCoupling}");
+                    builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Coupling speed limits",-26}= {OverSpeedCoupling}");
                 }
                 else
                 {
@@ -374,47 +375,47 @@ namespace Orts.Simulation.Activities
                 }
                 //Work orders. 100. Overall Rating.
                 int workOrderPenalty = workOrderTasks.Count > 0 ? (100 / workOrderTasks.Count * workOrderTasksDone) - (OverSpeedCoupling * 5) : 0;
-                builder.AppendLine($"  {"Overall rating total",-26}= {workOrderPenalty}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Overall rating total",-26}= {workOrderPenalty}");
                 builder.AppendLine();
 
                 builder.AppendLine("3-Speed Evaluation:");
-                builder.AppendLine($"  {"Over Speed",-26}= {OverSpeed}");
-                builder.AppendLine($"  {"Over Speed (Time)",-26}= {FormatStrings.FormatTime(OverSpeedTime)}");
-                builder.AppendLine($"  {"Overall rating total",-26}= {Convert.ToInt16(100 - OverSpeedTime * 1.5)}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Over Speed",-26}= {OverSpeed}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Over Speed (Time)",-26}= {FormatStrings.FormatTime(OverSpeedTime)}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Overall rating total",-26}= {Convert.ToInt16(100 - OverSpeedTime * 1.5)}");
                 builder.AppendLine();
 
                 builder.AppendLine("4-Freight Durability/Passenger Comfort Evaluation:");
                 builder.AppendLine(simulator.Settings.CurveSpeedDependent ? $"  {"Curve speeds exceeded",-26}= {TravellingTooFast}" : "  Curve dependent speed limit (Disabled)");
                 builder.AppendLine(simulator.Settings.CurveSpeedDependent ? $"  {"Hose breaks",-26}= {SnappedBrakeHose}" : "  Curve dependent speed limit (Disabled)");
-                builder.AppendLine($"  {(simulator.Settings.BreakCouplers ? "Coupler breaks" : "Coupler overloaded"),-26}= {CouplerBreaks}");
-                builder.AppendLine($"  {"Train Overturned",-26}= {TrainOverTurned}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {(simulator.Settings.BreakCouplers ? "Coupler breaks" : "Coupler overloaded"),-26}= {CouplerBreaks}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Train Overturned",-26}= {TrainOverTurned}");
                 int curveSpeedPenalty = 100 - (TravellingTooFast + SnappedBrakeHose + CouplerBreaks + TrainOverTurned);
                 curveSpeedPenalty = curveSpeedPenalty > 100 ? 100 : curveSpeedPenalty;
-                builder.AppendLine($"  {"Overall rating total",-26}= {Convert.ToInt16(curveSpeedPenalty)}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Overall rating total",-26}= {Convert.ToInt16(curveSpeedPenalty)}");
                 builder.AppendLine();
 
                 builder.AppendLine("5-Emergency/Penalty Actions Evaluation:");
-                builder.AppendLine($"  {"Full Train Brake"}");
-                builder.AppendLine($"    {"below 5MPH/8KMH",-24}= {FullTrainBrakeUnder8kmh}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Full Train Brake"}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"    {"below 5MPH/8KMH",-24}= {FullTrainBrakeUnder8kmh}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Emergency applications"}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"    {"while moving",-24}= {EmergencyButtonMoving}");
                 builder.AppendLine($"  {"Emergency applications"}");
-                builder.AppendLine($"    {"while moving",-24}= {EmergencyButtonMoving}");
-                builder.AppendLine($"  {"Emergency applications"}");
-                builder.AppendLine($"    {"while stopped",-24}= {EmergencyButtonStopped}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"    {"while stopped",-24}= {EmergencyButtonStopped}");
                 builder.AppendLine($"  {"Alerter applications"}");
-                builder.AppendLine($"    {"above 10MPH/16KMH",-24}= {FullBrakeAbove16kmh}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"    {"above 10MPH/16KMH",-24}= {FullBrakeAbove16kmh}");
                 int emergencyPenalty = (100 - (FullTrainBrakeUnder8kmh + EmergencyButtonMoving + EmergencyButtonStopped + FullBrakeAbove16kmh));
                 emergencyPenalty = emergencyPenalty > 100 ? 100 : emergencyPenalty;
-                builder.AppendLine($"  {"Overall rating total",-26}= {Convert.ToInt16(emergencyPenalty)}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Overall rating total",-26}= {Convert.ToInt16(emergencyPenalty)}");
                 builder.AppendLine();
-                builder.AppendLine($"{string.Empty,10}Rating & Stars");
-                builder.AppendLine($"{string.Empty,10}**************");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{string.Empty,10}Rating & Stars");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{string.Empty,10}**************");
                 builder.AppendLine();
 
-                builder.AppendLine($"{"1-Station Arrival, Departure, Passing Evaluation",-50}= {DrawStar((int)stationPenalty)}");
-                builder.AppendLine($"{"2-Work Orders",-50}= {DrawStar(workOrderPenalty)}");
-                builder.AppendLine($"{"3-Speed Evaluation",-50}= {DrawStar(Convert.ToInt16(100 - OverSpeedTime * 1.5))}");
-                builder.AppendLine($"{"4-Freight Durability/Passenger Comfort Evaluation",-50}= {DrawStar(curveSpeedPenalty)}");
-                builder.AppendLine($"{"5-Emergency/Penalty Actions Evaluation",-50}= {DrawStar(emergencyPenalty)}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{"1-Station Arrival, Departure, Passing Evaluation",-50}= {DrawStar((int)stationPenalty)}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{"2-Work Orders",-50}= {DrawStar(workOrderPenalty)}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{"3-Speed Evaluation",-50}= {DrawStar(Convert.ToInt16(100 - OverSpeedTime * 1.5))}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{"4-Freight Durability/Passenger Comfort Evaluation",-50}= {DrawStar(curveSpeedPenalty)}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{"5-Emergency/Penalty Actions Evaluation",-50}= {DrawStar(emergencyPenalty)}");
 
             }
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -354,7 +355,7 @@ namespace Orts.Formats.Msts.Signalling
             while (index++ < Tokens.Count - 1)
             {
                 if (state == ConditionState.HasAlternate && index == Tokens.Count - 1)  //the last block is the alternate
-                    builder.AppendLine($"{new string(' ', indent)}ELSE");
+                    builder.AppendLine(CultureInfo.InvariantCulture, $"{new string(' ', indent)}ELSE");
                 builder.Append(AdjustIndentAndPrint(Tokens[index] as BlockBase));
                 if (builder[^1] != '\n')
                     builder.AppendLine();

@@ -11351,14 +11351,14 @@ namespace Orts.Simulation.Timetables
         public void TTAnalysisUpdateStationState2()
         {
             StringBuilder signalstring = new StringBuilder();
-            signalstring.Append($"Signal : {NextSignalObject[0].SignalHeads[0].TDBIndex}");
+            signalstring.Append(CultureInfo.InvariantCulture, $"Signal : {NextSignalObject[0].SignalHeads[0].TDBIndex}");
 
             bool trainfound = false;
             StringBuilder waitforstring = new StringBuilder();
 
             if (WaitList != null && WaitList.Count > 0 && WaitList[0].WaitActive)
             {
-                waitforstring.Append($"WAIT : {WaitList[0].waitTrainNumber} ({WaitList[0].WaitType})");
+                waitforstring.Append(CultureInfo.InvariantCulture, $"WAIT : {WaitList[0].waitTrainNumber} ({WaitList[0].WaitType})");
                 trainfound = true;
             }
 
@@ -11370,7 +11370,7 @@ namespace Orts.Simulation.Timetables
                     foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.OccupationState)
                     {
                         TrainRouted trainahead = traininfo.Key;
-                        waitforstring.Append($"Train occupying : {trainahead.Train.Name}");
+                        waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {trainahead.Train.Name}");
                         trainfound = true;
                         break;
                     }
@@ -11381,7 +11381,7 @@ namespace Orts.Simulation.Timetables
                     Train trainahead = thisSection.CircuitState.TrainReserved.Train;
                     if (trainahead != this)
                     {
-                        waitforstring.Append($"Train occupying : {thisSection.CircuitState.TrainReserved.Train.Name}");
+                        waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {thisSection.CircuitState.TrainReserved.Train.Name}");
                         trainfound = true;
                     }
                 }
@@ -11391,7 +11391,7 @@ namespace Orts.Simulation.Timetables
                     Train trainahead = thisSection.CircuitState.TrainClaimed.PeekTrain();
                     if (trainahead != this)
                     {
-                        waitforstring.Append($"Train claimed : {trainahead.Name}");
+                        waitforstring.Append(CultureInfo.InvariantCulture, $"Train claimed : {trainahead.Name}");
                         trainfound = true;
                     }
                 }
@@ -11401,7 +11401,7 @@ namespace Orts.Simulation.Timetables
             DateTime stopTime = baseDT.AddSeconds(AI.ClockTime);
 
             StringBuilder sob = new StringBuilder();
-            sob.Append($"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
+            sob.Append(CultureInfo.InvariantCulture, $"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
             File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
         }
 
@@ -11429,7 +11429,7 @@ namespace Orts.Simulation.Timetables
                         foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.OccupationState)
                         {
                             TrainRouted trainahead = traininfo.Key;
-                            waitforstring.Append($"Train occupying : {trainahead.Train.Name}");
+                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {trainahead.Train.Name}");
                             trainfound = true;
                             break;
                         }
@@ -11440,7 +11440,7 @@ namespace Orts.Simulation.Timetables
                         Train trainahead = thisSection.CircuitState.TrainReserved.Train;
                         if (trainahead != this)
                         {
-                            waitforstring.Append($"Train occupying : {thisSection.CircuitState.TrainReserved.Train.Name}");
+                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {thisSection.CircuitState.TrainReserved.Train.Name}");
                             trainfound = true;
                         }
                     }
@@ -11450,7 +11450,7 @@ namespace Orts.Simulation.Timetables
                         Train trainahead = thisSection.CircuitState.TrainClaimed.PeekTrain();
                         if (trainahead != this)
                         {
-                            waitforstring.Append($"Train claimed : {trainahead.Name}");
+                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train claimed : {trainahead.Name}");
                             trainfound = true;
                         }
                     }
@@ -11460,7 +11460,7 @@ namespace Orts.Simulation.Timetables
                 DateTime stopTime = baseDT.AddSeconds(AI.ClockTime);
 
                 StringBuilder sob = new StringBuilder();
-                sob.Append($"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
+                sob.Append(CultureInfo.InvariantCulture, $"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
                 File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
             }
         }
@@ -11472,13 +11472,13 @@ namespace Orts.Simulation.Timetables
 
             if (NextSignalObject[0] != null)
             {
-                signalstring.Append($"Signal : {NextSignalObject[0].SignalHeads[0].TDBIndex}");
+                signalstring.Append(CultureInfo.InvariantCulture, $"Signal : {NextSignalObject[0].SignalHeads[0].TDBIndex}");
 
                 bool trainfound = false;
 
                 if (WaitList != null && WaitList.Count > 0 && WaitList[0].WaitActive)
                 {
-                    waitforstring.Append($"WAIT : {WaitList[0].waitTrainNumber} ({WaitList[0].WaitType})");
+                    waitforstring.Append(CultureInfo.InvariantCulture, $"WAIT : {WaitList[0].waitTrainNumber} ({WaitList[0].WaitType})");
                     trainfound = true;
                 }
 
@@ -11490,7 +11490,7 @@ namespace Orts.Simulation.Timetables
                         foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.OccupationState)
                         {
                             TrainRouted trainahead = traininfo.Key;
-                            waitforstring.Append($"Train occupying : {trainahead.Train.Name}");
+                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {trainahead.Train.Name}");
                             trainfound = true;
                             break;
                         }
@@ -11501,7 +11501,7 @@ namespace Orts.Simulation.Timetables
                         Train trainahead = thisSection.CircuitState.TrainReserved.Train;
                         if (trainahead != this)
                         {
-                            waitforstring.Append($"Train occupying : {thisSection.CircuitState.TrainReserved.Train.Name}");
+                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {thisSection.CircuitState.TrainReserved.Train.Name}");
                             trainfound = true;
                         }
                     }
@@ -11511,7 +11511,7 @@ namespace Orts.Simulation.Timetables
                         Train trainahead = thisSection.CircuitState.TrainClaimed.PeekTrain();
                         if (trainahead != this)
                         {
-                            waitforstring.Append($"Train claimed : {trainahead.Name}");
+                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train claimed : {trainahead.Name}");
                             trainfound = true;
                         }
                     }
@@ -11519,14 +11519,14 @@ namespace Orts.Simulation.Timetables
             }
             else
             {
-                signalstring.Append($"Action : {nextActionInfo.NextAction}");
+                signalstring.Append(CultureInfo.InvariantCulture, $"Action : {nextActionInfo.NextAction}");
             }
 
             DateTime baseDT = new DateTime();
             DateTime stopTime = baseDT.AddSeconds(AI.ClockTime);
 
             StringBuilder sob = new StringBuilder();
-            sob.Append($"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
+            sob.Append(CultureInfo.InvariantCulture, $"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
             File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
         }
 
@@ -11536,7 +11536,7 @@ namespace Orts.Simulation.Timetables
             DateTime moveTimeA = baseDTA.AddSeconds(AI.ClockTime);
 
             StringBuilder sob = new StringBuilder();
-            sob.Append($"{Number};{AI.ClockTime};{Name};{Delay};;;;;;{moveTimeA:HH:mm:ss)};;;{info}");
+            sob.Append(CultureInfo.InvariantCulture, $"{Number};{AI.ClockTime};{Name};{Delay};;;;;;{moveTimeA:HH:mm:ss)};;;{info}");
             File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
         }
 
