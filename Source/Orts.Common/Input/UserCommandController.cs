@@ -70,6 +70,8 @@ namespace Orts.Common.Input
         private readonly EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand> commonUserCommandsArgs = new EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand>();
         private readonly EnumArray<Action<UserCommandArgs, GameTime>, AnalogUserCommand> analogUserCommandsArgs = new EnumArray<Action<UserCommandArgs, GameTime>, AnalogUserCommand>();
         private readonly EnumArray<Action<ControllerCommandArgs>, CommandControllerInput> controllerInputCommand = new EnumArray<Action<ControllerCommandArgs>, CommandControllerInput>();
+        private static readonly int[] parameterIndexes0 = [1];
+        private static readonly int[] parameterIndexes1 = [0, 2];
 
         internal void Trigger(T command, KeyEventType keyEventType, UserCommandArgs commandArgs, GameTime gameTime)
         {
@@ -153,7 +155,7 @@ namespace Orts.Common.Input
 
         public void AddEvent(T userCommand, KeyEventType keyEventType, Action<GameTime> action, bool enableUnsubscribe = false)
         {
-            Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<GameTime>, Action<UserCommandArgs, GameTime>>(action, new int[] { 1 });
+            Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<GameTime>, Action<UserCommandArgs, GameTime>>(action, parameterIndexes0);
             configurableUserCommands[userCommand, keyEventType] += command;
             if (enableUnsubscribe)
             {
@@ -225,7 +227,7 @@ namespace Orts.Common.Input
 
         public void AddEvent(CommonUserCommand userCommand, Action<UserCommandArgs, KeyModifiers> action)
         {
-            Action<UserCommandArgs, GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs, KeyModifiers>, Action<UserCommandArgs, GameTime, KeyModifiers>>(action, new int[] { 0, 2 });
+            Action<UserCommandArgs, GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs, KeyModifiers>, Action<UserCommandArgs, GameTime, KeyModifiers>>(action, parameterIndexes1);
             commonUserCommandsArgs[userCommand] += command;
         }
 
@@ -242,7 +244,7 @@ namespace Orts.Common.Input
 
         public void RemoveEvent(CommonUserCommand userCommand, Action<UserCommandArgs, KeyModifiers> action)
         {
-            Action<UserCommandArgs, GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs, KeyModifiers>, Action<UserCommandArgs, GameTime, KeyModifiers>>(action, new int[] { 0, 2 });
+            Action<UserCommandArgs, GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs, KeyModifiers>, Action<UserCommandArgs, GameTime, KeyModifiers>>(action, parameterIndexes1);
             commonUserCommandsArgs[userCommand] -= command;
         }
         #endregion
