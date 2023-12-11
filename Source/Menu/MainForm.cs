@@ -86,6 +86,7 @@ namespace Orts.Menu
         private CancellationTokenSource ctsConsistLoading;
         private CancellationTokenSource ctsPathLoading;
         private CancellationTokenSource ctsTimeTableLoading;
+        private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         private readonly ResourceManager resources = new ResourceManager("Orts.Menu.Properties.Resources", typeof(MainForm).Assembly);
         private UpdateManager updateManager;
@@ -120,7 +121,7 @@ namespace Orts.Menu
         internal UserAction SelectedAction { get; private set; }
         #endregion
 
-        private ICatalog catalog;
+        private Catalog catalog;
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
 
         #region Main Form
@@ -795,11 +796,16 @@ namespace Orts.Menu
         #region Route list
         private async Task LoadRouteListAsync()
         {
-            lock (routes)
+            try
             {
+                await semaphoreSlim.WaitAsync().ConfigureAwait(false);
                 if (ctsRouteLoading != null && !ctsRouteLoading.IsCancellationRequested)
-                    ctsRouteLoading.Cancel();
+                    await ctsRouteLoading.CancelAsync().ConfigureAwait(false);
                 ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
+            }
+            finally
+            {
+                _ = semaphoreSlim.Release();
             }
             paths = Array.Empty<Path>();
             activities = Array.Empty<Activity>();
@@ -850,13 +856,17 @@ namespace Orts.Menu
         #region Activity list
         private async Task LoadActivityListAsync()
         {
-            lock (activities)
+            try
             {
+                await semaphoreSlim.WaitAsync().ConfigureAwait(false);
                 if (ctsActivityLoading != null && !ctsActivityLoading.IsCancellationRequested)
-                    ctsActivityLoading.Cancel();
+                    await ctsActivityLoading.CancelAsync().ConfigureAwait(false);
                 ctsActivityLoading = ResetCancellationTokenSource(ctsActivityLoading);
             }
-            //            ShowActivityList();
+            finally
+            {
+                _ = semaphoreSlim.Release();
+            }
 
             Folder selectedFolder = SelectedFolder;
             Route selectedRoute = SelectedRoute;
@@ -903,11 +913,16 @@ namespace Orts.Menu
         #region Consist lists
         private async Task LoadLocomotiveListAsync()
         {
-            lock (consists)
+            try
             {
+                await semaphoreSlim.WaitAsync().ConfigureAwait(false);
                 if (ctsConsistLoading != null && !ctsConsistLoading.IsCancellationRequested)
-                    ctsConsistLoading.Cancel();
+                    await ctsConsistLoading.CancelAsync().ConfigureAwait(false);
                 ctsConsistLoading = ResetCancellationTokenSource(ctsConsistLoading);
+            }
+            finally
+            {
+                _ = semaphoreSlim.Release();
             }
 
             Folder selectedFolder = SelectedFolder;
@@ -987,11 +1002,16 @@ namespace Orts.Menu
         #region Path lists
         private async Task LoadStartAtListAsync()
         {
-            lock (paths)
+            try
             {
+                await semaphoreSlim.WaitAsync().ConfigureAwait(false);
                 if (ctsPathLoading != null && !ctsPathLoading.IsCancellationRequested)
-                    ctsPathLoading.Cancel();
+                    await ctsPathLoading.CancelAsync().ConfigureAwait(false);
                 ctsPathLoading = ResetCancellationTokenSource(ctsPathLoading);
+            }
+            finally
+            {
+                _ = semaphoreSlim.Release();
             }
 
             ShowStartAtList();
@@ -1135,11 +1155,16 @@ namespace Orts.Menu
         #region Timetable Set list
         private async Task LoadTimetableSetListAsync()
         {
-            lock (timetableSets)
+            try
             {
+                await semaphoreSlim.WaitAsync().ConfigureAwait(false);
                 if (ctsTimeTableLoading != null && !ctsTimeTableLoading.IsCancellationRequested)
-                    ctsTimeTableLoading.Cancel();
+                    await ctsTimeTableLoading.CancelAsync().ConfigureAwait(false);
                 ctsTimeTableLoading = ResetCancellationTokenSource(ctsTimeTableLoading);
+            }
+            finally
+            {
+                _ = semaphoreSlim.Release();
             }
 
             ShowTimetableSetList();
@@ -1573,10 +1598,7 @@ namespace Orts.Menu
 
         private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)
         {
-            if (cts != null)
-            {
-                cts.Dispose();
-            }
+            cts?.Dispose();
             // Create a new cancellation token source so that can cancel all the tokens again 
             return new CancellationTokenSource();
         }
