@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>ORTS-MG</id>
+    <id>FreeTrainSimulator</id>
     <version>1.0.0</version>
     <title>Free Train Simulator</title>
     <authors>perpetualKid,FTS team</authors>
 	<license type="expression">GPL-3.0-or-later</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <projectUrl>https://github.com/perpetualKid/ORTS-MG</projectUrl>
+    <projectUrl>https://github.com/perpetualKid/FreeTrainSimulator</projectUrl>
     <icon>Program\FTS_64.png</icon>
-    <description>Free Train Simulator, NET 64bit, MonoGame, native RailDriver support</description>
+    <description>Free Train Simulator, NET 64bit, MonoGame, RailDriver</description>
   </metadata>
   <files>
     <file src=".\..\Program\**\*.*" target="Program\" />

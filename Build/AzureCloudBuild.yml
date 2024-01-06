@@ -18,7 +18,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: 'Source/Orts.sln'
+  solution: 'Source/FreeTrainSimulator.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release' #changes to Debug below if this is a prerelease version 
 
@@ -107,7 +107,7 @@ steps:
   displayName: Packaging to Nuget Package
   inputs:
     command: 'pack'
-    packagesToPack: 'source/ORTS-MG-Package.nuspec'
+    packagesToPack: 'source/FreeTrainSimulator-Package.nuspec'
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'NBGV_NUGETPACKAGEVERSION'
 
