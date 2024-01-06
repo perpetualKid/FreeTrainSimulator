@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<Description>Open Rails Launcher</Description>
-		<AssemblyTitle>Open Rails Launcher</AssemblyTitle>
+		<Description>Free Train Simulator Launcher</Description>
+		<AssemblyTitle>Free Train Simulator Launcher</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
 		<RootNamespace>Orts.Launcher</RootNamespace>
 		<AssemblyName>FreeTrainSimulator</AssemblyName>
