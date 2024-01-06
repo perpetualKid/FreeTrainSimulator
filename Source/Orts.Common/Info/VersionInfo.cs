@@ -31,7 +31,7 @@ namespace Orts.Common.Info
     /// </summary>
     public static class VersionInfo
     {
-        public const string PackageId = "ORTS-MG";
+        public const string PackageId = "FreeTrainSimulator";
 
         public static readonly NuGetVersion CurrentVersion = GetVersion();
 
