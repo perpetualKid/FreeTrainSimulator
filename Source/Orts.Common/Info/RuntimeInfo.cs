@@ -13,7 +13,7 @@ namespace Orts.Common.Info
 {
     public static class RuntimeInfo
     {
-        public const string LauncherExecutable = "OpenRails.exe";
+        public const string LauncherExecutable = "FreeTrainSimulator.exe";
 
         public const string ActivityRunnerExecutable = "ActivityRunner.exe";
 
