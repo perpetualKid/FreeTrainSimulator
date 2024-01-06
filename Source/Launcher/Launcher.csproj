@@ -5,7 +5,7 @@
 		<AssemblyTitle>Free Train Simulator Launcher</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
 		<RootNamespace>Orts.Launcher</RootNamespace>
-		<AssemblyName>FreeTrainSimulator</AssemblyName>
+		<AssemblyName>OpenRails</AssemblyName>
 		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 	</PropertyGroup>
 	<PropertyGroup>
