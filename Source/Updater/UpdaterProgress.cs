@@ -30,8 +30,9 @@ using GetText.WindowsForms;
 
 using Orts.Common.Info;
 using Orts.Settings;
+using Orts.Updater;
 
-namespace Orts.Updater
+namespace FreeTrainSimulator.Updater
 {
     public partial class UpdaterProgress : Form
     {
@@ -118,10 +119,10 @@ namespace Orts.Updater
             UpdateManager updateManager = new UpdateManager(settings);
             updateManager.ProgressChanged += (object sender, ProgressChangedEventArgs e) =>
             {
-                Invoke((Action)(() =>
+                Invoke(() =>
                 {
                     progressBarUpdater.Value = e.ProgressPercentage;
-                }));
+                });
             };
 
             try
@@ -129,10 +130,10 @@ namespace Orts.Updater
                 string targetVersion = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.VersionCommandLine, StringComparison.OrdinalIgnoreCase));
                 targetVersion = targetVersion?[UpdateManager.VersionCommandLine.Length..];
 
-                Invoke((Action)(() =>
+                Invoke(() =>
                 {
                     progressBarUpdater.Value = 5;
-                }));
+                });
                 Application.DoEvents();
 
                 await updateManager.ApplyUpdateAsync(targetVersion, cts.Token).ConfigureAwait(false);
@@ -141,11 +142,11 @@ namespace Orts.Updater
             {
                 if (!IsDisposed)
                 {
-                    Invoke((Action)(() =>
+                    Invoke(() =>
                     {
-                        MessageBox.Show(catalog.GetString($"Error: {exception.Message} {exception.InnerException?.Message}"),
+                        _ = MessageBox.Show(catalog.GetString($"Error: {exception.Message} {exception.InnerException?.Message}"),
                             $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }));
+                    });
                 }
                 return;
                 throw;
@@ -168,11 +169,11 @@ namespace Orts.Updater
             {
                 if (!IsDisposed)
                 {
-                    Invoke((Action)(() =>
+                    Invoke(() =>
                     {
-                        MessageBox.Show(catalog.GetString($"Error: {exception.Message} {exception.InnerException?.Message}"),
+                        _ = MessageBox.Show(catalog.GetString($"Error: {exception.Message} {exception.InnerException?.Message}"),
                             $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }));
+                    });
                 }
                 Application.Exit();
                 return;
@@ -202,7 +203,7 @@ namespace Orts.Updater
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             void Process_Exited(object sender, EventArgs e)
             {
-                tcs.TrySetResult(true);
+                _ = tcs.TrySetResult(true);
                 process.Dispose();
             }
 
@@ -217,7 +218,7 @@ namespace Orts.Updater
                 process.Exited += Process_Exited;
                 using (cancellationToken.Register(() => tcs.TrySetCanceled()))
                 {
-                    await tcs.Task.ConfigureAwait(false);
+                    _ = await tcs.Task.ConfigureAwait(false);
                 }
             }
             finally

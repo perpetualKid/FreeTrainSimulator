@@ -4,7 +4,7 @@ using System.IO;
 
 [assembly: CLSCompliant(false)]
 
-namespace Orts.Launcher
+namespace FreeTrainSimulator.Launcher
 {
     internal static class Program
     {

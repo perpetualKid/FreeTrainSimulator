@@ -4,7 +4,7 @@
 		<Description>Free Train Simulator Launcher</Description>
 		<AssemblyTitle>Free Train Simulator Launcher</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
-		<RootNamespace>Orts.Launcher</RootNamespace>
+		<RootNamespace>FreeTrainSimulator.Launcher</RootNamespace>
 		<AssemblyName>FreeTrainSimulator</AssemblyName>
 		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 	</PropertyGroup>

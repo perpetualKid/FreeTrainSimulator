@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <Description>Open Rails Updater</Description>
+    <Description>Free Train Simulator Updater</Description>
     <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyTitle>Open Rails Updater</AssemblyTitle>
+    <AssemblyTitle>Free Train Simulator Updater</AssemblyTitle>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <OutputPath>..\..\Program</OutputPath>
-    <RootNamespace>Orts.Updater</RootNamespace>
+    <RootNamespace>FreeTrainSimulator.Updater</RootNamespace>
     <ApplicationIcon>..\FTS.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>

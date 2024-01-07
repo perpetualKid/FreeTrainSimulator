@@ -20,7 +20,7 @@ using System.Windows.Forms;
 
 [assembly: CLSCompliant(false)]
 
-namespace Orts.Updater
+namespace FreeTrainSimulator.Updater
 {
     internal static class Program
     {

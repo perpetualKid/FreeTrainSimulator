@@ -1,4 +1,4 @@
-﻿namespace Orts.Updater
+﻿namespace FreeTrainSimulator.Updater
 {
     partial class UpdaterProgress
     {
@@ -55,7 +55,7 @@
             this.MinimizeBox = false;
             this.Name = "UpdaterProgress";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Open Rails Updater";
+            this.Text = "Free Train Simulator Updater";
             this.UseWaitCursor = true;
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.UpdaterProgress_FormClosed);
             this.Load += new System.EventHandler(this.UpdaterProgress_Load);
