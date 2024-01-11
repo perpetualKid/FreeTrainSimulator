@@ -2,9 +2,8 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
+using System.IO.Hashing;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 
 using Orts.Common.Logging;
@@ -60,7 +59,7 @@ namespace Orts.Common.Info
             {
                 Directory.CreateDirectory(ConfigFolder);
             }
-            catch(Exception exception) when
+            catch (Exception exception) when
                 (exception is IOException || exception is UnauthorizedAccessException)
             {
                 //we may not be able to write directly to the current appliction folder (self-contained) so we rather use user appdata folder
@@ -71,16 +70,12 @@ namespace Orts.Common.Info
 
         public static string GetCacheFilePath(string cacheType, string key)
         {
-            using (HashAlgorithm hasher = SHA256.Create())
-            {
-                byte[] hashBytes = hasher.ComputeHash(Encoding.Default.GetBytes(key));
-                string hash = string.Join("", hashBytes.Select(h => h.ToString("x2", CultureInfo.InvariantCulture)).ToArray());
+            string hash = XxHash64.HashToUInt64(Encoding.Default.GetBytes(key)).ToString("X", CultureInfo.InvariantCulture);
 
-                string directory = Path.Combine(UserDataFolder, "Cache", cacheType);
-                if (!Directory.Exists(directory))
-                    Directory.CreateDirectory(directory);
-                return Path.Combine(directory, hash + ".dat");
-            }
+            string directory = Path.Combine(UserDataFolder, "Cache", cacheType);
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+            return Path.Combine(directory, hash + ".dat");
         }
 
     }
