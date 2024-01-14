@@ -34,7 +34,7 @@ namespace Orts.Common.Logging
             outputFile = Path.ChangeExtension(outputFile, "logged-read.log");
             if (!Path.IsPathFullyQualified(outputFile))
                 outputFile = Path.Combine(RuntimeInfo.UserDataFolder, outputFile);
-            using (TextWriter writer = new StreamWriter(outputFile, new FileStreamOptions() { Access = FileAccess.Write, Mode = FileMode.OpenOrCreate }))
+            using (StreamWriter writer = new StreamWriter(outputFile, new FileStreamOptions() { Access = FileAccess.Write, Mode = FileMode.OpenOrCreate }))
                 writer.Write(builder.ToString());
             base.Dispose(disposing);
         }

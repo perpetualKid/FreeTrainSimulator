@@ -149,7 +149,7 @@ namespace Orts.Simulation.Commanding
         /// <param name="filePath"></param>
         public void SaveLog(string filePath)
         {
-            Stream stream = null;
+            FileStream stream = null;
             try
             {
                 stream = new FileStream(filePath, FileMode.Create);
@@ -181,7 +181,7 @@ namespace Orts.Simulation.Commanding
         /// <param name="fullFilePath"></param>
         public void LoadLog(string filePath)
         {
-            Stream stream = null;
+            FileStream stream = null;
             try
             {
                 stream = new FileStream(filePath, FileMode.Open);

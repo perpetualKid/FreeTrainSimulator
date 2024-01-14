@@ -1351,21 +1351,22 @@ namespace Orts.ActivityRunner.Viewer3D
             if (PlayerLocomotiveViewer != null)
                 PlayerLocomotiveViewer.HandleUserInput(elapsedTime);
 
-            //in the dispatcher window, when one clicks a train and "See in Game", will jump to see that train
-            if (Program.DebugViewer != null && Program.DebugViewer.ClickedTrain == true)
-            {
-                Program.DebugViewer.ClickedTrain = false;
-                if (SelectedTrain != Program.DebugViewer.PickedTrain)
-                {
-                    SelectedTrain = Program.DebugViewer.PickedTrain;
-                    Simulator.AI.TrainListChanged = true;
+            // TODO 2024-01-14 remove legacy code
+            ////in the dispatcher window, when one clicks a train and "See in Game", will jump to see that train
+            //if (Program.DebugViewer != null && Program.DebugViewer.ClickedTrain == true)
+            //{
+            //    Program.DebugViewer.ClickedTrain = false;
+            //    if (SelectedTrain != Program.DebugViewer.PickedTrain)
+            //    {
+            //        SelectedTrain = Program.DebugViewer.PickedTrain;
+            //        Simulator.AI.TrainListChanged = true;
 
-                    if (SelectedTrain.Cars == null || SelectedTrain.Cars.Count == 0)
-                        SelectedTrain = PlayerTrain;
+            //        if (SelectedTrain.Cars == null || SelectedTrain.Cars.Count == 0)
+            //            SelectedTrain = PlayerTrain;
 
-                    CameraActivate();
-                }
-            }
+            //        CameraActivate();
+            //    }
+            //}
 
             //in TrainSwitcher, when one clicks a train, Viewer will jump to see that train
             if (Simulator.TrainSwitcher.ClickedTrainFromList == true)

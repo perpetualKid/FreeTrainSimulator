@@ -87,7 +87,7 @@ namespace Orts.ActivityRunner.Processes
             arguments = args;
 
             IEnumerable<IGrouping<bool, string>> groupedArguments = args.GroupBy(argumenType => argumenType.StartsWith('-') || argumenType.StartsWith('/'));
-            List<string> optionsList = groupedArguments.Where(grouping => grouping.Key).SelectMany(grouping => grouping).Select(option => option.Substring(1)).ToList();
+            List<string> optionsList = groupedArguments.Where(grouping => grouping.Key).SelectMany(grouping => grouping).Select(option => option[1..]).ToList();
             data = groupedArguments.Where(grouping => !grouping.Key).SelectMany(grouping => grouping).ToArray();
 
             _ = optionsList.Where(argument => EnumExtension.GetValue(argument, out activityType)).FirstOrDefault();
@@ -143,10 +143,10 @@ namespace Orts.ActivityRunner.Processes
             timetableLoadingBar ??= new TimetableLoadingBarPrimitive(Game);
 
             // No action, check for data; for now assume any data is good data.
-            if (actionType == ActionType.None && data.Any())
+            if (actionType == ActionType.None && data.Length != 0)
             {
                 // in multiplayer start/resume there is no "-start" or "-resume" string, so you have to discriminate
-                actionType = activityType != ActivityType.None || !options.Any() ? ActionType.Start : ActionType.Resume;
+                actionType = activityType != ActivityType.None || options.Length == 0 ? ActionType.Start : ActionType.Resume;
             }
 
 
@@ -811,7 +811,7 @@ namespace Orts.ActivityRunner.Processes
             switch (activityType)
             {
                 case ActivityType.Activity:
-                    if (!data.Any())
+                    if (data.Length == 0)
                         throw new InvalidCommandLineException("Mode 'activity' needs 1 argument: activity file.");
                     Trace.WriteLine($"{"Route",-12}= {GetRouteName(data[0])}");
                     Trace.WriteLine($"{"Activity",-12}= {GetActivityName(data[0])} ({data[0]})");

@@ -24,7 +24,6 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.Simulation;
-using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Processes
 {
@@ -60,13 +59,6 @@ namespace Orts.ActivityRunner.Processes
                 Game.InactiveSleepTime = TimeSpan.Zero;
 
                 // We must create these forms on the main thread (Render) or they won't pump events correctly.
-
-                if (MultiPlayerManager.IsMultiPlayer())
-                {
-                    Program.DebugViewer = new DispatchViewer(Viewer);
-                    Program.DebugViewer.Hide();
-                    Viewer.DebugViewerEnabled = false;
-                }
 
                 Program.SoundDebugForm = new SoundDebugForm(Viewer);
                 Program.SoundDebugForm.Hide();
@@ -136,7 +128,6 @@ namespace Orts.ActivityRunner.Processes
             {
                 Viewer.Terminate();
                 Simulator.Instance.Stop();
-                Program.DebugViewer?.Dispose();
                 Program.SoundDebugForm?.Dispose();
             }
             base.Dispose(disposing);

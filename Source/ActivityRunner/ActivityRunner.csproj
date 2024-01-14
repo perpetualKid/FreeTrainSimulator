@@ -22,6 +22,14 @@
 		<PlatformTarget>AnyCPU</PlatformTarget>
 	</PropertyGroup>
 	<ItemGroup>
+	  <Compile Remove="Viewer3D\Debugging\DebugViewerForm.cs" />
+	  <Compile Remove="Viewer3D\Debugging\DebugViewerForm.Designer.cs" />
+	  <Compile Remove="Viewer3D\Debugging\TimetableWindow.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Remove="Viewer3D\Debugging\DebugViewerForm.resx" />
+	</ItemGroup>
+	<ItemGroup>
 		<None Update="Content\*.bmp">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
