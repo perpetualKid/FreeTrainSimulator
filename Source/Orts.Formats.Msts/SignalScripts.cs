@@ -566,6 +566,8 @@ namespace Orts.Formats.Msts
 
             public string ScriptName { get; private set; }
 
+            private static readonly char[] separator_underscore = new char[] { '_' };
+
             internal SCRScripts(Script script)
             {
                 localFloats = new Dictionary<string, int>();
@@ -636,7 +638,7 @@ namespace Orts.Formats.Msts
                 {
                     return new SCRParameterType(SCRTermType.LocalFloat, localFloat);
                 }
-                string[] definitions = token.Token.Split(new char[] { '_' }, 2);
+                string[] definitions = token.Token.Split(separator_underscore, 2);
                 if (definitions.Length == 2)
                     switch (definitions[0])
                     {

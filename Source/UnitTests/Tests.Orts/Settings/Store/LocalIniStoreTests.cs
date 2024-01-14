@@ -13,7 +13,7 @@ namespace Tests.Orts.Settings.Store
     [TestClass]
     public class LocalIniStoreTests
     {
-
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
         [TestMethod]
         public void GetLocalIniStoreFromExistingFile()
         {
@@ -331,6 +331,6 @@ namespace Tests.Orts.Settings.Store
                 Assert.AreEqual(SimpleFlagsTest.Value2 | SimpleFlagsTest.Value1, store.GetSettingValue("flagsValue", default(SimpleFlagsTest)));
             }
         }
-
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
     }
 }

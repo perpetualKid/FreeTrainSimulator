@@ -50,9 +50,11 @@ namespace Tests.Orts.Formats.OR.Parsers
                 Assert.AreEqual(4, tr.Strings[0].Length);
                 Assert.AreEqual(3, tr.Strings[1].Length);
                 Assert.AreEqual(5, tr.Strings[2].Length);
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
                 CollectionAssert.AreEqual(new[] { "", "b", "c", "d" }, tr.Strings[0]);
                 CollectionAssert.AreEqual(new[] { "1", "2", "3" }, tr.Strings[1]);
                 CollectionAssert.AreEqual(new[] { "A", "B", "C", "D", "E" }, tr.Strings[2]);
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
             }
         }
     }

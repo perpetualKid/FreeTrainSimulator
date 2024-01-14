@@ -40,11 +40,13 @@ namespace Orts.ContentChecker
 
         private static void Main(string[] args)
         {
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
             bool optionVerbose = OptionsContain(args, new string[] { "/v", "/verbose" });
             bool optionHelp = OptionsContain(args, new string[] { "/h", "/help" });
             bool optionDependent = OptionsContain(args, new string[] { "/d", "/dependent" });
             bool optionReferenced = OptionsContain(args, new string[] { "/r", "/referenced" });
             bool optionAll = OptionsContain(args, new string[] { "/a", "/all" });
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
             if (optionHelp)
             {
                 ShowHelp();

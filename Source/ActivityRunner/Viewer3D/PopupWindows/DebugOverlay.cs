@@ -70,6 +70,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private NameValueTextGrid locomotiveForceGrid;
         private NameValueTextGrid locomotiveBrakeGrid;
         private NameValueTextGrid changeableGrid;
+        internal static readonly int[] columnWidht240_80 = new int[] { 240, 80 };
+        internal static readonly int[] columnWidht240_Unlimited = new int[] { 240, -1 };
+        internal static readonly int[] columnWidth180_140 = new int[] { 180, 140 };
+        internal static readonly int[] columnWidth40_64_64_80_64 = new int[] { 40, 64, 64, 80, 64 };
+        internal static readonly int[] columnWidth40_64_64_100 = new int[] { 40, 64, 64, 100 };
+        internal static readonly int[] columnWidth40_64_12x80_100 = new int[] { 40, 64, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 100 };
+        internal static readonly int[] columnWidth40_64_80_100 = new int[] { 40, 64, 80, 100 };
+        internal static readonly int[] columnWidth140_120 = new int[] { 140, 120 };
 
         public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
         {
@@ -100,25 +108,25 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 240, -1 },
+                    ColumnWidth = columnWidht240_Unlimited,
                     InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.ProcessMetric]
                 });
                 layoutContainer.Add(new NameValueTextGrid(this, layoutContainer.RemainingWidth / 2, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 240, -1 },
+                    ColumnWidth = columnWidht240_Unlimited,
                     InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.Clr]
                 });
                 layoutContainer.Add(new NameValueTextGrid(this, 0, (int)(180 * Owner.DpiScaling), textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 240, -1 },
+                    ColumnWidth = columnWidht240_Unlimited,
                     InformationProvider = (Owner.Game as GameHost).SystemInfo[DiagnosticInfo.GpuMetric],
                 });
                 layoutContainer.Add(new NameValueTextGrid(this, 0, (int)(180 * Owner.DpiScaling), textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 240, 80 },
+                    ColumnWidth = columnWidht240_80,
                     InformationProvider = viewer.DetailInfo[DetailInfoType.GraphicDetails],
                 });
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
@@ -144,7 +152,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
                     InformationProvider = viewer.DetailInfo[DetailInfoType.ConsistDetails],
-                    ColumnWidth = new int[] { 40, 64, 64, 80, 64 },
+                    ColumnWidth = columnWidth40_64_64_80_64,
                 });
 
             };
@@ -154,7 +162,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(locomotiveGrid = new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 180, 140 },
+                    ColumnWidth = columnWidth180_140,
                     InformationProvider = viewer.DetailInfo[DetailInfoType.LocomotiveDetails],
                 });
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
@@ -177,7 +185,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(forceTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 40, 64, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 100, },
+                    ColumnWidth = columnWidth40_64_12x80_100,
                     InformationProvider = viewer.DetailInfo[DetailInfoType.ForceDetails],
                 });
                 int graphWidth = Math.Min((int)(layoutContainer.RemainingWidth * 2.0 / 3.0), 768);
@@ -198,7 +206,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(brakeTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 40, 64, 64, 100 },
+                    ColumnWidth = columnWidth40_64_64_100,
                     InformationProvider = viewer.DetailInfo[DetailInfoType.BrakeDetails],
                 });
             };
@@ -209,7 +217,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(powerTableGrid = new NameValueTextGrid(this, 0, y, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight - y, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 40, 64, 80, 100 },
+                    ColumnWidth = columnWidth40_64_80_100,
                     InformationProvider = viewer.DetailInfo[DetailInfoType.PowerSupplyDetails],
                 });
             };
@@ -219,7 +227,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 layoutContainer.Add(distributedPowerTableGrid = new NameValueTextGrid(this, 0, 0, textFont)
                 {
                     OutlineRenderOptions = OutlineRenderOptions.Default,
-                    ColumnWidth = new int[] { 140, 120 },
+                    ColumnWidth = columnWidth140_120,
                     InformationProvider = viewer.DetailInfo[DetailInfoType.DistributedPowerDetails],
                 });
             };

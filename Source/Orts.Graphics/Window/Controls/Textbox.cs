@@ -181,7 +181,7 @@ namespace Orts.Graphics.Window.Controls
             }
             else
             {
-                lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                lines = text.Split(linebreakSeparator, StringSplitOptions.None);
                 for (int i = 0; i < lines.Length; i++)
                 {
                     if (lines[i].Length > lineLength)
@@ -281,6 +281,7 @@ namespace Orts.Graphics.Window.Controls
         }
 
         private long ticks;
+        private static readonly string[] linebreakSeparator = new[] { "\r\n", "\r", "\n" };
 
         private bool HandleMouseButton(WindowMouseEvent e)
         {

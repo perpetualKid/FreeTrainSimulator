@@ -41,11 +41,13 @@ namespace Orts.Common.Xna
             return dx * dx + dy * dy + dz * dz;
         }
 
+        private static readonly char[] separator = new char[] { ' ', ',', ':' };
+
         public static Vector3 ParseVector3(this string s)
         {
             if (!string.IsNullOrEmpty(s))
             {
-                string[] ax = s.Split(new char[] { ' ', ',', ':' });
+                string[] ax = s.Split(separator);
                 if (ax.Length == 3 && float.TryParse(ax[0], out float x) && float.TryParse(ax[1], out float y) && float.TryParse(ax[2], out float z))
                     return new Vector3(x, y, z);
             }
@@ -56,7 +58,7 @@ namespace Orts.Common.Xna
         {
             if (!string.IsNullOrEmpty(s))
             {
-                string[] ax = s.Split(new char[] { ' ', ',', ':' });
+                string[] ax = s.Split(separator);
                 if (ax.Length == 4 && float.TryParse(ax[0], out float x) && float.TryParse(ax[1], out float y) && float.TryParse(ax[2], out float z) && float.TryParse(ax[3], out float w))
                     return new Vector4(x, y, z, w);
             }
@@ -67,7 +69,7 @@ namespace Orts.Common.Xna
         {
             if (!string.IsNullOrEmpty(s))
             {
-                string[] ax = s.Split(new char[] { ' ', ',', ':' });
+                string[] ax = s.Split(separator);
                 if (ax.Length == 4 && float.TryParse(ax[0], out float a) && float.TryParse(ax[1], out float r) && float.TryParse(ax[2], out float g) && float.TryParse(ax[3], out float b))
                     return new Color(a, r, g, b);
                 else if (ax.Length == 3 && float.TryParse(ax[0], out r) && float.TryParse(ax[1], out g) && float.TryParse(ax[2], out b))

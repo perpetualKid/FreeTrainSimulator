@@ -4,8 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-using Microsoft.Win32;
-
 using Orts.Common;
 using Orts.Common.Native;
 
@@ -37,13 +35,15 @@ namespace Orts.Settings.Store
             }
         }
 
+        private static readonly char[] nullSeparator = new char[] { '\0' };
+
         /// <summary>
         /// Returns an array of all sections within the store, including the one used by this instance.
         /// </summary>
         /// <returns></returns>
         public override string[] GetSectionNames()
         {
-            return GetSectionValues(null, null).Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
+            return GetSectionValues(null, null).Split(nullSeparator, StringSplitOptions.RemoveEmptyEntries);
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Orts.Settings.Store
         /// </summary>
         public override string[] GetSettingNames()
         {
-            return GetSectionValues(Section, null).Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
+            return GetSectionValues(Section, null).Split(nullSeparator, StringSplitOptions.RemoveEmptyEntries);
         }
 
         /// <summary>

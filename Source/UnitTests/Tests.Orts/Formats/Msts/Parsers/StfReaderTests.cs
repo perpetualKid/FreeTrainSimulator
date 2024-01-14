@@ -32,6 +32,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
     [TestClass]
     public class StfReaderTests
     {
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
         #region constructor/destructor
         /// <summary>
         /// Test constructor
@@ -3016,4 +3017,5 @@ namespace Tests.Orts.Formats.Msts.Parsers
 
     }
     #endregion
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
 }

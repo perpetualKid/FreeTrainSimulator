@@ -1278,6 +1278,7 @@ namespace Orts.Simulation.Timetables
             public DisposeInfo DisposeDetails;
 
             public readonly TimetableInfo parentInfo;
+            private static readonly char[] hyphenSeparator = new char[1] { '-' };
 
             private readonly struct ConsistInfo
             {
@@ -2470,7 +2471,7 @@ namespace Orts.Simulation.Timetables
                 {
                     if (stationInfo.Contains('-', StringComparison.OrdinalIgnoreCase))
                     {
-                        arr_dep = stationInfo.Split(new char[1] { '-' }, 2);
+                        arr_dep = stationInfo.Split(hyphenSeparator, 2);
                     }
                     else
                     {

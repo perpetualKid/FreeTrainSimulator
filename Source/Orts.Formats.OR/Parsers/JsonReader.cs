@@ -74,6 +74,8 @@ namespace Orts.Formats.OR.Parsers
         /// </summary>
         public string Path { get => paths.Peek(); }
 
+        private static readonly string[] pathSeparator = new[] { ". Path '" };
+
         private JsonReader(string fileName, JsonTextReader reader)
         {
             this.fileName = fileName;
@@ -95,7 +97,7 @@ namespace Orts.Formats.OR.Parsers
             catch (JsonReaderException error)
             {
                 // Newtonsoft.Json unfortunately includes extra information in the message we already provide
-                string[] jsonMessage = error.Message.Split(new[] { ". Path '" }, StringSplitOptions.None);
+                string[] jsonMessage = error.Message.Split(pathSeparator, StringSplitOptions.None);
                 TraceWarning($"{jsonMessage[0]} in {FullPath}");
             }
         }

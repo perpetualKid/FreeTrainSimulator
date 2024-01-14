@@ -58,6 +58,8 @@ namespace Orts.Settings
         #endregion
 
         private protected static readonly ICatalog catalog = CatalogManager.Catalog;
+        private static readonly char[] optionSeparators = new[] { '=', ':' };
+        private static readonly string[] positiveBooleans = new[] { "true", "yes", "on", "1" };
 
         /// <summary>
         /// Constructor
@@ -193,7 +195,7 @@ namespace Orts.Settings
                 // Pull apart the command-line options so we can find them by setting name.
                 foreach (string option in options)
                 {
-                    string[] kvp = option.Split(new[] { '=', ':' }, 2);
+                    string[] kvp = option.Split(optionSeparators, 2);
 
                     string k = kvp[0];
                     string v = kvp.Length > 1 ? kvp[1] : "yes";
@@ -222,7 +224,7 @@ namespace Orts.Settings
                 switch (defValue)
                 {
                     case bool b:
-                        optValue = new[] { "true", "yes", "on", "1" }.Contains(optValueString.Trim(), StringComparer.OrdinalIgnoreCase);
+                        optValue = positiveBooleans.Contains(optValueString.Trim(), StringComparer.OrdinalIgnoreCase);
                         break;
                     case int i:
                         if (int.TryParse(optValueString, out i))
@@ -379,7 +381,7 @@ namespace Orts.Settings
             }
             else if (expectedType == typeof(bool))
             {
-                result = new[] { "true", "yes", "on", "1" }.Contains(value?.Trim() ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+                result = positiveBooleans.Contains(value?.Trim() ?? string.Empty, StringComparer.OrdinalIgnoreCase);
                 returnValue = true;
             }
             else if (expectedType == typeof(byte))
