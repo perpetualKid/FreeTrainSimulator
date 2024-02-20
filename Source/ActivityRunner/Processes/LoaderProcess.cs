@@ -47,7 +47,7 @@ namespace Orts.ActivityRunner.Processes
 
         protected override void Update(GameTime gameTime)
         {
-            gameHost.State.Load();
+            gameHost.State?.Load();
         }
     }
 }
