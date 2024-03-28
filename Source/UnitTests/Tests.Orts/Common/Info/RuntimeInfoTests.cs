@@ -17,14 +17,14 @@ namespace Tests.Orts.Common.Info
         public void ApplicationNameTest()
         {
             string expected = RuntimeInfo.ApplicationName;
-            Assert.AreEqual("Open Rails Unit Tests", expected);
+            Assert.AreEqual("Free Train Simulator Unit Tests", expected);
         }
 
         [TestMethod]
         public void ProductNameTest()
         {
             string expected = RuntimeInfo.ProductName;
-            Assert.AreEqual("Open Rails Ultimate", expected);
+            Assert.AreEqual("Free Train Simulator", expected);
         }
     }
 }

@@ -21,6 +21,9 @@
 		<AnalysisLevel>latest</AnalysisLevel>
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 	</PropertyGroup>
+	<PropertyGroup>
+		<NoWarn>$(NoWarn);NETSDK1206</NoWarn>
+	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -37,7 +40,7 @@
 		<Product>Free Train Simulator</Product>
 		<Company>Free Train Simulator Team</Company>
 		<Description>Free Train Simulator</Description>
-		<Copyright>Copyright © 2023</Copyright>
+		<Copyright>Copyright © 2024</Copyright>
 		<NoWin32Manifest>true</NoWin32Manifest>
 		<TieredCompilation>true</TieredCompilation>
 		<NeutralLanguage>en</NeutralLanguage>

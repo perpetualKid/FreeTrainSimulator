@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<Description>Open Rails Graphics Library</Description>
-		<AssemblyTitle>Open Rails Graphics Library</AssemblyTitle>
+		<Description>Free Train Simulator Graphics Library</Description>
+		<AssemblyTitle>Free Train Simulator Graphics Library</AssemblyTitle>
 		<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
 		<OutputPath>..\..\Program</OutputPath>
 		<AssemblyName>Orts.Graphics</AssemblyName>

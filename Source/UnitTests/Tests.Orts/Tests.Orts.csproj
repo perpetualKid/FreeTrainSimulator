@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-    <Description>Open Rails Unit Tests</Description>
-    <AssemblyTitle>Open Rails Unit Tests</AssemblyTitle>
+    <Description>Free Train Simulator Unit Tests</Description>
+    <AssemblyTitle>Free Train Simulator Unit Tests</AssemblyTitle>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />

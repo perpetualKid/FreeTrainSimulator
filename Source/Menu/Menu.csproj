@@ -2,9 +2,9 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
-    <Description>Open Rails Menu</Description>
+    <Description>Free Train Simulator Menu</Description>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-    <AssemblyTitle>Open Rails Menu</AssemblyTitle>
+    <AssemblyTitle>Free Train Simulator Menu</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
     <ApplicationIcon>..\FTS.ico</ApplicationIcon>
     <RootNamespace>Orts.Menu</RootNamespace>

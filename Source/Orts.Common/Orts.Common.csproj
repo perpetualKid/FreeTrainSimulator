@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Open Rails Common Library</Description>
-    <AssemblyTitle>Open Rails Common Library</AssemblyTitle>
+    <Description>Free Train Simulator Common Library</Description>
+    <AssemblyTitle>Free Train Simulator Common Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
   </PropertyGroup>
   <ItemGroup>

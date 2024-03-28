@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<Description>Open Rails Multiplayer Server</Description>
-		<AssemblyTitle>Open Rails MultiPlayer Server</AssemblyTitle>
+		<Description>Free Train Simulator Multiplayer Server</Description>
+		<AssemblyTitle>Free Train Simulator MultiPlayer Server</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
 		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 		<RootNamespace>Orts.MultiPlayerServer</RootNamespace>

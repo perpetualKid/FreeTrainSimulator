@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<Description>Open Rails Activity Runner</Description>
+		<Description>Free Train Simulator Activity Runner</Description>
 		<UseWindowsForms>true</UseWindowsForms>
-		<AssemblyTitle>Open Rails Activity Runner</AssemblyTitle>
+		<AssemblyTitle>Free Train Simulator Activity Runner</AssemblyTitle>
 		<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
 		<OutputPath>..\..\Program</OutputPath>
 		<ApplicationIcon>..\FTS.ico</ApplicationIcon>

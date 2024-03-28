@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Open Rails Proprietary Formats Library</Description>
-    <AssemblyTitle>Open Rails Proprietary Formats Library</AssemblyTitle>
+    <Description>Free Train Simulator Proprietary Formats Library</Description>
+    <AssemblyTitle>Free Train Simulator Proprietary Formats Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
   </PropertyGroup>
   <ItemGroup>

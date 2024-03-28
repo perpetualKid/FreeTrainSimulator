@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <Description>Open Rails Toolbox</Description>
-    <AssemblyTitle>Open Rails Toolbox</AssemblyTitle>
+    <Description>Free Train Simulator Toolbox</Description>
+    <AssemblyTitle>Free Train Simulator Toolbox</AssemblyTitle>
     <UseWindowsForms>true</UseWindowsForms>
     <OutputPath>..\..\Program</OutputPath>
     <ApplicationIcon>..\FTS.ico</ApplicationIcon>

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Open Rails Entity Models Library</Description>
-    <AssemblyTitle>Open Rails Entity Models Library</AssemblyTitle>
+    <Description>Free Train Simulator Entity Models Library</Description>
+    <AssemblyTitle>Free Train Simulator Entity Models Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
     <AssemblyName>Orts.Models</AssemblyName>
     <RootNamespace>Orts.Models</RootNamespace>
