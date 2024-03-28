@@ -23,14 +23,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly UserSettings settings;
 
         public QuitWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Catalog catalog = null) :
-            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Pause Menu"), relativeLocation, new Point(280, 112), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Pause Menu"), relativeLocation, new Point(320, 112), catalog)
         {
             Modal = true;
             ZOrder = 100;
             userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
             this.settings = settings;
             if (MultiPlayerManager.IsMultiPlayer())
-                Resize(new Point(300, 95));
+                Resize(new Point(320, 95));
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
