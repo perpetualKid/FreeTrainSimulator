@@ -17,7 +17,7 @@
 		<Exec Command="dotnet tool restore" />
 	</Target>
 	<PropertyGroup>
-		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<EnableNETAnalyzers>false</EnableNETAnalyzers>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 	</PropertyGroup>
@@ -34,9 +34,9 @@
 		<DefineConstants>TRACE</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup>
-		<Product>Open Rails Ultimate</Product>
-		<Company>Open Rails Ultimate Team</Company>
-		<Description>Open Rails Train Simulator</Description>
+		<Product>Free Train Simulator</Product>
+		<Company>Free Train Simulator Team</Company>
+		<Description>Free Train Simulator</Description>
 		<Copyright>Copyright © 2023</Copyright>
 		<NoWin32Manifest>true</NoWin32Manifest>
 		<TieredCompilation>true</TieredCompilation>
