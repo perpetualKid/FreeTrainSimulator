@@ -1,12 +1,12 @@
 # ![](./Source/FTS_64.png) Free Train Simulator  
 [![Join the chat at https://gitter.im/ORTS-MG/community](https://badges.gitter.im/ORTS-MG/community.svg)](https://gitter.im/ORTS-MG/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-This is a fork of [OpenRails](http://www.openrails.org), running on .NET Core and based on [Monogame patch](http://www.elvastower.com/forums/index.php?/topic/30924-going-beyond-the-4-gb-of-memory/page__view__findpost__p__237281) and many other improvements and performance tweaks like completely rewritten RailDriver input, Signalscript-Parser and much more, at the same time adopting most of the updates and features from [OpenRails Source Code](https://github.com/openrails/openrails) as well.
+This is a fork of [OpenRails](http://www.openrails.org), running on .NET 8 and based on [Monogame patch](http://www.elvastower.com/forums/index.php?/topic/30924-going-beyond-the-4-gb-of-memory/page__view__findpost__p__237281) and many other improvements and performance tweaks like completely rewritten RailDriver input, Signalscript-Parser and much more, at the same time adopting most of the updates and features from [OpenRails Source Code](https://github.com/openrails/openrails) as well.
 
 ## Feature overview
 In addition to all the features from OpenRails, this version includes:  
 - Most recent version of Monogame (3.8) 
-- build on .NET 6, which generally allows for cross platform use (see [wiki](https://github.com/perpetualKid/ORTS-MG/wiki/Linux-Wine) for Linux support)
+- build on .NET 8, which generally allows for cross platform use (see [wiki](https://github.com/perpetualKid/ORTS-MG/wiki/Linux-Wine) for Linux support)
 - full 64bit support, removing out-of-memory situations and allows to use all available system memory also beyond 3GB/4GB barrier as with 32bit software
 - rewritten SignalScript parsing engine for faster loading time
 - [Standalone Multiplayer server](https://github.com/perpetualKid/ORTS-MG/wiki#2021-12-05-multiplayer-standalone-server) simplifying multi-player games
@@ -32,7 +32,7 @@ Anyone is welcome to contribute, and this is not limited to programmers writing 
 
 ## Installation Requirements
 
-Running on Windows 10 with recent patch status (version 1809 or higher), the only separate download needed may be [.NET 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0). If not installed already, trying to start the program will guide through necessary downloads. Please also see [this article](https://github.com/perpetualKid/ORTS-MG/wiki/.NET-Framework) in our [wiki](https://github.com/perpetualKid/ORTS-MG/Wiki).  
+Running on Windows 10 with recent patch status (version 1809 or higher), the only separate download needed may be [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0). If not installed already, trying to start the program will guide through necessary downloads. Please also see [this article](https://github.com/perpetualKid/ORTS-MG/wiki/.NET-Framework) in our [wiki](https://github.com/perpetualKid/ORTS-MG/Wiki).  
 
 You will need to have an DirectX 11.0 compatible graphics adapter (GPU).
 
