@@ -3525,7 +3525,6 @@ namespace Orts.Simulation.MultiPlayer
                     MultiPlayerManager.Instance().lastSender = sender;
                     if (Simulator.Instance.Confirmer != null)
                         Simulator.Instance.Confirmer.Message(MultiPlayerManager.Catalog.GetString(" From {0}: {1}", sender, msgx));
-                    MultiPlayerManager.Instance().OnMessageReceived(Simulator.Instance.GameTime, sender + ": " + msgx);
                     break;
                 }
             }
