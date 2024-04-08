@@ -1758,7 +1758,6 @@ namespace Orts.Simulation.MultiPlayer
                     return; //already a dispatcher, not need to worry
                 MultiPlayerManager.Instance().Connected = true;
                 MultiPlayerManager.Instance().IsDispatcher = true;
-                MultiPlayerManager.Instance().OnServerChanged(true);
                 MultiPlayerManager.Instance().RememberOriginalSwitchState();
                 Trace.TraceInformation("You are the new dispatcher. Enjoy!");
                 if (Simulator.Instance.Confirmer != null)
@@ -1768,7 +1767,6 @@ namespace Orts.Simulation.MultiPlayer
             else
             {
                 MultiPlayerManager.Instance().IsDispatcher = false;
-                MultiPlayerManager.Instance().OnServerChanged(false);
                 Simulator.Instance.Confirmer?.Information(CatalogManager.Catalog.GetString("New dispatcher is {0}", user));
                 Trace.TraceInformation("New dispatcher is {0}", user);
             }
@@ -3478,7 +3476,7 @@ namespace Orts.Simulation.MultiPlayer
             {
                 if (p.Key == user)
                     p.Value.AvatarUrl = url;
-                MultiPlayerManager.Instance().OnAvatarUpdated(user, url);
+//                MultiPlayerManager.Instance().OnAvatarUpdated(user, url);
             }
 
             if (MultiPlayerManager.IsServer())

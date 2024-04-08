@@ -99,10 +99,6 @@ namespace Orts.Simulation.MultiPlayer
         public bool PreferGreen = true;
         public string MD5Check = "";
 
-        public event EventHandler<ServerChangedEventArgs> ServerChanged;
-        public event EventHandler<AvatarUpdatedEventArgs> AvatarUpdated;
-        public event EventHandler<MessageReceivedEventArgs> MessageReceived;
-
         public bool weatherChanged;
         public int weather = -1;
 
@@ -1009,21 +1005,7 @@ namespace Orts.Simulation.MultiPlayer
                 Trace.TraceWarning("{0} Cannot get MD5 check of TDB file, use NA instead but server may not connect you.", e.Message);
                 MD5Check = "NA";
             }
-        }
 
-        internal void OnServerChanged(bool weAreTheServer)
-        {
-            ServerChanged?.Invoke(this, new ServerChangedEventArgs(weAreTheServer));
-        }
-
-        internal void OnMessageReceived(double time, string message)
-        {
-            MessageReceived?.Invoke(this, new MessageReceivedEventArgs(time, message));
-        }
-
-        internal void OnAvatarUpdated(string user, string url)
-        {
-            AvatarUpdated?.Invoke(this, new AvatarUpdatedEventArgs(user, url));
         }
 
         protected virtual void Dispose(bool disposing)
