@@ -16,8 +16,8 @@
 		<Message Text="Restoring dotnet tools" Importance="High" />
 		<Exec Command="dotnet tool restore" />
 	</Target>
-	<PropertyGroup>
-		<EnableNETAnalyzers>false</EnableNETAnalyzers>
+	<PropertyGroup Condition="'$(TF_BUILD)'=='true'">
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 	</PropertyGroup>
