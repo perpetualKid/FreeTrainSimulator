@@ -55,7 +55,6 @@ namespace Orts.Simulation.MultiPlayer
                 "MOVE" => new MSGMove(messageEncoding.GetString(content)),
                 "SWITCHSTATES" => new MSGSwitchStatus(messageEncoding.GetString(content)),
                 "SIGNALSTATES" => new MSGSignalStatus(messageEncoding.GetString(content)),
-                "TEXT" => new MSGText(messageEncoding.GetString(content)),
                 "LOCOINFO" => new MSGLocoInfo(messageEncoding.GetString(content)),
                 "ALIVE" => new MSGAlive(messageEncoding.GetString(content)),
                 "TRAIN" => new MSGTrain(messageEncoding.GetString(content)),
@@ -3415,66 +3414,6 @@ namespace Orts.Simulation.MultiPlayer
         }
     }
     #endregion MSGLocoInfo
-
-    #region MSGText
-    //message to add new train from either a string (received message), or a Train (building a message)
-    public class MSGText : MSGRequired
-    {
-        private string msgx;
-        private string sender;
-        private string user;
-        public MSGText(string m)
-        {
-            string[] t = m.Split('\t');
-            sender = t[0].Trim();
-            user = t[1].Trim();
-            msgx = t[2];
-
-        }
-
-        public MSGText(string s, string u, string m)
-        {
-            sender = s.Trim();
-            user = u;
-            msgx = m;
-        }
-
-        public override void HandleMsg()
-        {
-            if (sender == MultiPlayerManager.GetUserName())
-                return; //avoid my own msg
-            string[] users = user.Split('\r');
-            foreach (var name in users)
-            {
-                //someone may send a message with 0Server, which is intended for the server
-                if (name.Trim() == MultiPlayerManager.GetUserName() || (MultiPlayerManager.IsServer() && name.Trim() == "0Server"))
-                {
-                    Trace.WriteLine("MSG from " + sender + ":" + msgx);
-                    MultiPlayerManager.Instance().lastSender = sender;
-                    if (Simulator.Instance.Confirmer != null)
-                        Simulator.Instance.Confirmer.Message(MultiPlayerManager.Catalog.GetString(" From {0}: {1}", sender, msgx));
-                    break;
-                }
-            }
-            if (MultiPlayerManager.IsServer())//server check if need to tell others.
-            {
-                //Trace.WriteLine(users);
-                if (users.Length == 1 && users[0].Trim() == MultiPlayerManager.GetUserName())
-                    return;
-                if (users.Length == 1 && users[0].Trim() == "0Server")
-                    return;
-                //Trace.WriteLine(this.ToString());
-                MultiPlayerManager.BroadCast(ToString());
-            }
-        }
-
-        public override string ToString()
-        {
-            string tmp = "TEXT " + sender + "\t" + user + "\t" + msgx;
-            return " " + tmp.Length + ": " + tmp;
-        }
-    }
-    #endregion MSGText
 
     #region MSGWeather
     public class MSGWeather : Message

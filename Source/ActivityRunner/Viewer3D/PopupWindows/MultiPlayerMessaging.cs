@@ -51,9 +51,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             return result;
         }
 
-        private void SendMessage()
+        private async void SendMessage()
         {
-            MultiPlayerManager.Instance().SendMessage(textInput.Text);
+            await MultiPlayerManager.Instance().SendMessage(textInput.Text).ConfigureAwait(false);
             textInput.Text = null;
             Close();
         }
