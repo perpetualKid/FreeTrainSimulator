@@ -142,6 +142,12 @@ namespace Orts.Simulation.MultiPlayer
             return tmp;
         }
 
+        public IEnumerable<MSGPlayer> AllPlayerTrains()
+        {
+            return Players.Values.Where(p => p != null).Select(p => new MSGPlayer(p.Username, "1234", p.Consist, p.Path, p.Train, p.Train.Number, p.AvatarUrl));
+        }
+
+
         public void AddPlayers(MSGPlayer player)
         {
             if (Players.ContainsKey(player.user))

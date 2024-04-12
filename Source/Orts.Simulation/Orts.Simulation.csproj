@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Free Train Simulator Simulation Library</Description>
     <AssemblyTitle>Free Train Simulator Simulation Library</AssemblyTitle>
@@ -12,8 +12,11 @@
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
     <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
-  </ItemGroup>
+		<PackageReference Include="MagicOnion.Client" Version="6.1.2" />
+		<PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.2-preview" />
+	</ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MultiPlayer.Shared\MultiPlayer.Shared.csproj" />
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />

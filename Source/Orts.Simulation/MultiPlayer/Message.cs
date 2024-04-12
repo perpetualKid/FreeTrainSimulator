@@ -15,8 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework;
-using Orts.Simulation.RollingStocks.SubSystems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,6 +26,8 @@ using System.Text;
 
 using GetText;
 
+using Microsoft.Xna.Framework;
+
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Position;
@@ -38,14 +38,13 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
-using System.Reflection;
 using Orts.Simulation.World;
 
 namespace Orts.Simulation.MultiPlayer
 {
     public abstract class Message
     {
-        private protected static readonly Encoding messageEncoding = Encoding.Unicode;
+        private protected static readonly Encoding messageEncoding = Encoding.UTF8;
         private protected const int maxSizeDigits = 6;
         private protected const string separator = ": ";
 
@@ -171,21 +170,25 @@ namespace Orts.Simulation.MultiPlayer
             }
         }
 
-        private static Dictionary<int, int> MissingTimes;
+        private static Dictionary<int, int> MissingTimes = new Dictionary<int, int>();
 
         //a train is missing, but will wait for 10 messages then ask
         private static bool CheckMissingTimes(int TNumber)
         {
-            if (MissingTimes == null)
-                MissingTimes = new Dictionary<int, int>();
-            try
+            if (MissingTimes.TryGetValue(TNumber, out int value))
             {
-                if (MissingTimes[TNumber] < 10)
-                { MissingTimes[TNumber]++; return false; }
+                if (value < 10)
+                {
+                    MissingTimes[TNumber]++;
+                    return false;
+                }
                 else
-                { MissingTimes[TNumber] = 0; return true; }
+                {
+                    MissingTimes[TNumber] = 0;
+                    return true;
+                }
             }
-            catch (Exception)
+            else
             {
                 MissingTimes.Add(TNumber, 1);
                 return false;
@@ -390,10 +393,6 @@ namespace Orts.Simulation.MultiPlayer
                 if (areas.Length >= 10)
                 {
                     MD5 = areas[9];
-                    if (string.IsNullOrEmpty(MultiPlayerManager.Instance().MD5Check))
-                    {
-                        MultiPlayerManager.Instance().GetMD5HashFromTDBFile();
-                    }
                 }
             }
             catch (Exception)
@@ -493,8 +492,6 @@ namespace Orts.Simulation.MultiPlayer
 
             version = MultiPlayerManager.ProtocolVersion;
 
-            if (string.IsNullOrEmpty(MultiPlayerManager.Instance().MD5Check))
-                MultiPlayerManager.Instance().GetMD5HashFromTDBFile();
             MD5 = MultiPlayerManager.Instance().MD5Check;
         }
         public override string ToString()
@@ -505,7 +502,7 @@ namespace Orts.Simulation.MultiPlayer
             for (var i = 0; i < cars.Length; i++)
             {
                 var c = cars[i];
-                var index = c.LastIndexOf("\\trains\\trainset\\", StringComparison.OrdinalIgnoreCase); 
+                var index = c.LastIndexOf("\\trains\\trainset\\", StringComparison.OrdinalIgnoreCase);
                 {
                     c = c.Remove(0, index + 17);
                 }//c: wagon path without folder name
@@ -1341,7 +1338,7 @@ namespace Orts.Simulation.MultiPlayer
                         {
                             string faDiscrete = faDiscreteSplit[j];
                             string[] loadDataItems = faDiscrete.Split('%');
-                            EnumExtension.GetValue(loadDataItems[2], out LoadPosition loadPosition) ;
+                            EnumExtension.GetValue(loadDataItems[2], out LoadPosition loadPosition);
                             LoadData loadData = new LoadData(loadDataItems[0], loadDataItems[1], loadPosition);
                             loadDataList.Add(loadData);
                         }
@@ -1783,6 +1780,12 @@ namespace Orts.Simulation.MultiPlayer
         public MSGAlive(string m)
         {
             user = m;
+        }
+
+        public override string ToString()
+        {
+            string tmp = "ALIVE " + user;
+            return " " + tmp.Length + ": " + tmp;
         }
 
         public MSGAlive(ReadOnlySpan<byte> message)
@@ -2311,8 +2314,7 @@ namespace Orts.Simulation.MultiPlayer
             {
                 return; //only server will handle this
             }
-            OnlinePlayer p = null;
-            if (!MultiPlayerManager.OnlineTrains.Players.TryGetValue(user, out OnlinePlayer value))
+            if (!MultiPlayerManager.OnlineTrains.Players.TryGetValue(user, out OnlinePlayer p))
                 return;
             Simulator.Instance.Confirmer?.Information(MultiPlayerManager.Catalog.GetString("{0} lost.", this.user));
             if (p.Protected == true)
@@ -3476,7 +3478,7 @@ namespace Orts.Simulation.MultiPlayer
             {
                 if (p.Key == user)
                     p.Value.AvatarUrl = url;
-//                MultiPlayerManager.Instance().OnAvatarUpdated(user, url);
+                //                MultiPlayerManager.Instance().OnAvatarUpdated(user, url);
             }
 
             if (MultiPlayerManager.IsServer())

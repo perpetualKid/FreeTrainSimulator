@@ -29,17 +29,22 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Hashing;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 using GetText;
+
+using MultiPlayer.Shared;
 
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Commanding;
+using Orts.Simulation.MultiPlayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
@@ -65,14 +70,13 @@ namespace Orts.Simulation.MultiPlayer
         private readonly List<OnlineLocomotive> addedLocomotives;
 
         private readonly List<Train> uncoupledTrains;
-        private Client client;
-        //private ClientComm client;
+        private MultiPlayerClient multiPlayerClient;
 
-        public const int ProtocolVersion = 15;
+        public const int ProtocolVersion = 24;
 
         public static ICatalog Catalog { get; private set; } = CatalogManager.Catalog;
 
-        public bool Connected { get => client?.Connected ?? false; set => client.Connected = value; }
+        public bool Connected { get => multiPlayerClient?.Connected ?? false; set => multiPlayerClient.Connected = value; }
         public bool IsDispatcher { get; set; }
 
         public static OnlineTrains OnlineTrains = new OnlineTrains();
@@ -97,7 +101,7 @@ namespace Orts.Simulation.MultiPlayer
         public Dictionary<string, OnlinePlayer> lostPlayer = new Dictionary<string, OnlinePlayer>();
         public bool CheckSpad = true;
         public bool PreferGreen = true;
-        public string MD5Check = "";
+        public string MD5Check { get; } = HashRouteFile();
 
         public bool weatherChanged;
         public int weather = -1;
@@ -142,7 +146,6 @@ namespace Orts.Simulation.MultiPlayer
             removedLocomotives = new List<OnlineLocomotive>();
             aiderList = new List<string>();
             users = new SortedList<double, string>();
-            GetMD5HashFromTDBFile();
         }
 
         public static MultiPlayerManager Instance()
@@ -239,7 +242,7 @@ namespace Orts.Simulation.MultiPlayer
             }
 
             //client updates itself
-            if (client != null && !IsDispatcher && newtime - lastMoveTime >= 1f)
+            if (multiPlayerClient != null && !IsDispatcher && newtime - lastMoveTime >= 1f)
             {
                 Train t = Simulator.Instance.PlayerLocomotive.Train;
                 MSGMove move = new MSGMove();
@@ -271,9 +274,9 @@ namespace Orts.Simulation.MultiPlayer
                 //if there are messages to send
                 if (move.OKtoSend())
                 {
-                    client.SendMessage(move.ToString()).Wait();
+                    multiPlayerClient.SendLegacyMessage(move.ToString());
                     if (exhaust.OKtoSend())
-                        client.SendMessage(exhaust.ToString()).Wait();
+                        multiPlayerClient.SendLegacyMessage(exhaust.ToString());
                     lastMoveTime = lastSendTime = newtime;
                 }
                 previousSpeed = t.SpeedMpS;
@@ -283,7 +286,7 @@ namespace Orts.Simulation.MultiPlayer
             //need to send a keep-alive message if have not sent one to the server for the last 30 seconds
             if (MultiplayerState == MultiplayerState.Client && newtime - lastSendTime >= 30f)
             {
-                Notify(new MSGAlive(GetUserName()));
+                Notify(new MSGAlive(GetUserName()).ToString());
                 lastSendTime = newtime;
             }
 
@@ -359,36 +362,26 @@ namespace Orts.Simulation.MultiPlayer
         //check if it is in the multiplayer session
         public static bool IsMultiPlayer()
         {
-            return (localUser?.client != null);
+            return (localUser?.multiPlayerClient != null);
         }
 
-        public static MultiplayerState MultiplayerState => (localUser?.IsDispatcher ?? false) ? MultiplayerState.Dispatcher : (localUser?.client != null) ? MultiplayerState.Client : MultiplayerState.None;
+        public static MultiplayerState MultiplayerState => (localUser?.IsDispatcher ?? false) ? MultiplayerState.Dispatcher : (localUser?.multiPlayerClient != null) ? MultiplayerState.Client : MultiplayerState.None;
 
         public static void BroadCast(string m)
         {
-            if (m == null)
+            if (m == null || localUser?.multiPlayerClient == null)
                 return;
             if (MultiplayerState == MultiplayerState.Dispatcher)
-                localUser?.client?.SendMessage(m).Wait();
-        }
-
-        public static void BroadCast(Message message)
-        {
-            if (MultiplayerState == MultiplayerState.Dispatcher)
-                localUser?.client?.SendMessage(message ?? throw new ArgumentNullException(nameof(message))).Wait();
+           localUser.multiPlayerClient.SendLegacyMessage(m);
         }
 
         //notify others (server will broadcast, client will send msg to server)
         public static void Notify(string m)
         {
-            if (m == null)
+            if (m == null || localUser?.multiPlayerClient == null)
                 return;
-            localUser?.client?.SendMessage(m).Wait(); //client notify server
-        }
-
-        public static void Notify(Message message)
-        {
-            localUser?.client?.SendMessage(message ?? throw new ArgumentNullException(nameof(message))).Wait(); //client notify server
+            //client notify server
+            localUser.multiPlayerClient.SendLegacyMessage(m);
         }
 
         //nicely shutdown listening threads, and notify the server/other player
@@ -404,16 +397,17 @@ namespace Orts.Simulation.MultiPlayer
                 localUser = new MultiPlayerManager
                 {
                     MPUpdateInterval = updateIntervall,
-                    client = new Client(hostname, port),
                     UserName = userName,
                     Code = code,
+                    multiPlayerClient = new MultiPlayerClient(),
                 };
+                Instance().multiPlayerClient.Connect(hostname, port);
             }
         }
 
         private void Quit()
         {
-            if (client != null)
+            if (multiPlayerClient != null)
             {
                 if (MultiplayerState == MultiplayerState.Dispatcher)
                 {
@@ -423,9 +417,9 @@ namespace Orts.Simulation.MultiPlayer
                 {
                     Notify(new MSGQuit(GetUserName()).ToString()); //client notify server
                 }
-                client.Stop();
+                multiPlayerClient.Stop();
             }
-            client = null;
+            multiPlayerClient = null;
         }
 
         //when two player trains connected, require decouple at speed 0.
@@ -489,6 +483,11 @@ namespace Orts.Simulation.MultiPlayer
             Notify(msgText);
         }
 
+        public void Connect()
+        {
+           multiPlayerClient.JoinGame(GetUserName(), Simulator.Instance.Route.Name, Code);
+        }
+
         public void AddPlayer()
         {
             if (!IsServer())
@@ -501,7 +500,10 @@ namespace Orts.Simulation.MultiPlayer
 
                 MSGPlayer host = new MSGPlayer(GetUserName(), "1234", Simulator.Instance.ConsistFileName, Simulator.Instance.PathFileName, Simulator.Instance.PlayerLocomotive.Train,
                     Simulator.Instance.PlayerLocomotive.Train.Number, Simulator.Instance.Settings.AvatarURL);
-                BroadCast(host.ToString() + OnlineTrains.AddAllPlayerTrain());
+                BroadCast(host.ToString());
+                foreach (MSGPlayer player in OnlineTrains.AllPlayerTrains())
+                    BroadCast(player.ToString());
+//                BroadCast(host.ToString() + OnlineTrains.AddAllPlayerTrain());
                 foreach (Train t in Simulator.Instance.Trains)
                 {
                     if (Simulator.Instance.PlayerLocomotive != null && t == Simulator.Instance.PlayerLocomotive.Train)
@@ -985,27 +987,24 @@ namespace Orts.Simulation.MultiPlayer
             return carList;
         }
 
-        //md5 check of TDB file
-        public void GetMD5HashFromTDBFile()
+        private static string HashRouteFile()
         {
             try
             {
                 string fileName = Simulator.Instance.RouteFolder.TrackDatabaseFile(Simulator.Instance.Route.FileName);
-                FileStream file = new FileStream(fileName, FileMode.Open);
-                using (MD5 md5 = MD5.Create())
+                using (FileStream file = new FileStream(fileName, FileMode.Open))
                 {
-                    byte[] retVal = md5.ComputeHash(file);
-                    file.Close();
+                    XxHash64 hashing = new XxHash64();
+                    hashing.Append(file);
 
-                    MD5Check = Encoding.Unicode.GetString(retVal, 0, retVal.Length);
+                    return Convert.ToBase64String(hashing.GetCurrentHash());
                 }
             }
             catch (Exception e)
             {
-                Trace.TraceWarning("{0} Cannot get MD5 check of TDB file, use NA instead but server may not connect you.", e.Message);
-                MD5Check = "NA";
+                Trace.TraceWarning("{0} Cannot get hash of TDB file, use NA instead but server may not connect you.", e.Message);
+                return "NA";
             }
-
         }
 
         protected virtual void Dispose(bool disposing)
@@ -1014,7 +1013,7 @@ namespace Orts.Simulation.MultiPlayer
             {
                 if (disposing)
                 {
-                    client?.Dispose();
+                    multiPlayerClient?.Dispose();
                     // TODO: dispose managed state (managed objects)
                 }
                 disposedValue = true;

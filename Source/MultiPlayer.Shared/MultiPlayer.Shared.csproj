@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>Free Train Simulator MultiPlayer Shared Library</Description>
+		<AssemblyTitle>Free Train Simulator MultiPlayer Shared Library</AssemblyTitle>
+		<OutputPath>..\..\Program</OutputPath>
+	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="MagicOnion.Abstractions" Version="6.1.2" />
+	  <PackageReference Include="MemoryPack" Version="1.21.0" />
+	</ItemGroup>
+</Project>

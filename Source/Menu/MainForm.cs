@@ -223,7 +223,7 @@ namespace Orts.Menu
                         }
                         if (toolIsConsole)
                         {
-                            if (toolName.Equals("MultiPlayer Server", StringComparison.OrdinalIgnoreCase))
+                            if (toolName.Equals("MultiPlayer Hub", StringComparison.OrdinalIgnoreCase))
                                 Process.Start("cmd", $"/k \"{toolPath}\" {settings.Multiplayer_Port}");
                             else
                                 Process.Start("cmd", $"/k \"{toolPath}\"");

@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<Description>Free Train Simulator MultiPlayer Hub</Description>
+		<AssemblyTitle>Free Train Simulator MultiPlayer Hub</AssemblyTitle>
+		<OutputPath>..\..\Program</OutputPath>
+		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
+	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.2-preview" />
+	  <PackageReference Include="MagicOnion.Server" Version="6.1.2" />
+	  <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\MultiPlayer.Shared\MultiPlayer.Shared.csproj" />
+	</ItemGroup>
+</Project>
