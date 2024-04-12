@@ -278,7 +278,7 @@ namespace Orts.ActivityRunner.Processes
             if (MultiPlayerManager.IsMultiPlayer())
             {
                 MultiPlayerManager.Instance().Connect();
-                MultiPlayerManager.Notify(new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL).ToString());
+                MultiPlayerManager.Notify(new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0).ToString());
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
                 System.Threading.Thread.Sleep(5000);
@@ -413,7 +413,7 @@ namespace Orts.ActivityRunner.Processes
                     {
                         if (ActivityType == ActivityType.Activity)
                             simulator.SetPathAndConsist();
-                        MultiPlayerManager.BroadCast(new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL).ToString());
+                        MultiPlayerManager.BroadCast(new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0).ToString());
                     }
                     Viewer.Restore(inf);
 
@@ -895,7 +895,7 @@ namespace Orts.ActivityRunner.Processes
 
             if (settings.MultiplayerClient)
             {
-                MultiPlayerManager.Start(settings.Multiplayer_UpdateInterval, settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User, "1234");
+                MultiPlayerManager.Start(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User, "1234");
             }
         }
 

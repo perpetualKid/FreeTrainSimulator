@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-using MemoryPack;
+﻿using MemoryPack;
 
 namespace Orts.Simulation.MultiPlayer.Messaging
 {

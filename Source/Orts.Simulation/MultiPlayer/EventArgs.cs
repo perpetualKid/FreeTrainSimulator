@@ -38,22 +38,6 @@ namespace Orts.Simulation.MultiPlayer
         }
     }
 
-    public class AvatarUpdatedEventArgs : EventArgs
-    {
-        public string User { get; }
-#pragma warning disable CA1056 // URI-like properties should not be strings
-        public string Url { get; }
-#pragma warning restore CA1056 // URI-like properties should not be strings
-
-#pragma warning disable CA1054 // URI-like parameters should not be strings
-        public AvatarUpdatedEventArgs(string user, string url)
-#pragma warning restore CA1054 // URI-like parameters should not be strings
-        {
-            User = user;
-            Url = url;
-        }
-    }
-
     public class MessageReceivedEventArgs : EventArgs
     {
         public double Timestamp { get; }

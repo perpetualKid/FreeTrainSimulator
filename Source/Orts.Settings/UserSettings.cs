@@ -311,12 +311,6 @@ namespace Orts.Settings
         public int ShadowMapDistance { get; set; }
         [Default(1024)]
         public int ShadowMapResolution { get; set; }
-        [Default(10)]
-        public int Multiplayer_UpdateInterval { get; set; }
-        [Default("http://openrails.org/images/support-logos.jpg")]
-        public string AvatarURL { get; set; }
-        [Default(false)]
-        public bool ShowAvatar { get; set; }
 
         #region in-game settings
         [Default(true)]

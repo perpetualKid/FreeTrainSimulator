@@ -91,7 +91,7 @@ namespace Orts.Simulation.MultiPlayer
         public double ServerTimeDifference { get; internal set; }
 
         public double lastPlayerAddedTime;
-        public int MPUpdateInterval = 10;
+        public int MPUpdateInterval { get; } = 10;
         public bool AllowedManualSwitch = true;
         public bool TrySwitch = true;
         public bool AllowNewPlayer = true;
@@ -390,13 +390,12 @@ namespace Orts.Simulation.MultiPlayer
             localUser?.Quit();
         }
 
-        public static void Start(int updateIntervall, string hostname, int port, string userName, string code)
+        public static void Start(string hostname, int port, string userName, string code)
         {
             if (localUser == null)
             {
                 localUser = new MultiPlayerManager
                 {
-                    MPUpdateInterval = updateIntervall,
                     UserName = userName,
                     Code = code,
                     multiPlayerClient = new MultiPlayerClient(),
@@ -499,7 +498,7 @@ namespace Orts.Simulation.MultiPlayer
                 Instance().lastSwitchTime = Simulator.Instance.GameTime;
 
                 MSGPlayer host = new MSGPlayer(GetUserName(), "1234", Simulator.Instance.ConsistFileName, Simulator.Instance.PathFileName, Simulator.Instance.PlayerLocomotive.Train,
-                    Simulator.Instance.PlayerLocomotive.Train.Number, Simulator.Instance.Settings.AvatarURL);
+                    Simulator.Instance.PlayerLocomotive.Train.Number);
                 BroadCast(host.ToString());
                 foreach (MSGPlayer player in OnlineTrains.AllPlayerTrains())
                     BroadCast(player.ToString());

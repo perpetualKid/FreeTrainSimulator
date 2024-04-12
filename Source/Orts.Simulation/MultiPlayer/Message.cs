@@ -76,7 +76,6 @@ namespace Orts.Simulation.MultiPlayer
                 "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
                 "QUIT" => new MSGQuit(messageEncoding.GetString(content)),
                 "LOST" => new MSGLost(messageEncoding.GetString(content)),
-                "AVATAR" => new MSGAvatar(messageEncoding.GetString(content)),
                 "WEATHER" => new MSGWeather(messageEncoding.GetString(content)),
                 "AIDER" => new MSGAider(messageEncoding.GetString(content)),
                 "SIGNALCHANGE" => new MSGSignalChange(messageEncoding.GetString(content)),
@@ -421,9 +420,8 @@ namespace Orts.Simulation.MultiPlayer
             }
 
         }
-        public MSGPlayer(string n, string cd, string c, string p, Train t, int tn, string avatar)
+        public MSGPlayer(string n, string cd, string c, string p, Train t, int tn)
         {
-            url = avatar;
             route = Simulator.Instance.RouteFolder.RouteName;
             int index = p.LastIndexOf("\\PATHS\\", StringComparison.OrdinalIgnoreCase);
             if (index > 0)
@@ -3417,52 +3415,6 @@ namespace Orts.Simulation.MultiPlayer
         }
     }
     #endregion MSGLocoInfo
-
-    #region MSGAvatar
-    public class MSGAvatar : Message
-    {
-        public string user;
-        public string url;
-        public MSGAvatar(string m)
-        {
-            var tmp = m.Split('\t');
-            user = tmp[0].Trim();
-            url = tmp[1];
-        }
-
-        public MSGAvatar(string u, string l)
-        {
-            user = u;
-            url = l;
-        }
-
-        public override string ToString()
-        {
-
-            string tmp = "AVATAR " + user + "\n" + url;
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            if (user == MultiPlayerManager.GetUserName())
-                return; //avoid myself
-
-            foreach (var p in MultiPlayerManager.OnlineTrains.Players)
-            {
-                if (p.Key == user)
-                    p.Value.AvatarUrl = url;
-                //                MultiPlayerManager.Instance().OnAvatarUpdated(user, url);
-            }
-
-            if (MultiPlayerManager.IsServer())
-            {
-                MultiPlayerManager.BroadCast((new MSGAvatar(user, url)).ToString());
-            }
-        }
-
-    }
-    #endregion MSGAvatar
 
     #region MSGText
     //message to add new train from either a string (received message), or a Train (building a message)

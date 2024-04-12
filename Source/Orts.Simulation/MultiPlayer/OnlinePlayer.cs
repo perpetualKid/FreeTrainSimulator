@@ -36,7 +36,6 @@ namespace Orts.Simulation.MultiPlayer
         { 
             Username = userName;
             CreatedTime = Simulator.Instance.GameTime; 
-            AvatarUrl = "NA";
             Consist = consistFile;
             Path = pathFile;
         }
@@ -47,7 +46,6 @@ namespace Orts.Simulation.MultiPlayer
 		public string Consist { get; }
 		public string Path { get; } //pat and consist files
 		public double CreatedTime { get; set; }
-		public string AvatarUrl { get; set; } = ""; //avatar location
 		public double QuitTime { get; set; } = -100f;
 		public OnlinePlayerStatus Status { get; set; } = OnlinePlayerStatus.Valid;//is this player removed by the dispatcher
         public bool Protected { get; set; } //when in true, will not force this player out, to protect the one that others uses the same name
@@ -64,7 +62,6 @@ namespace Orts.Simulation.MultiPlayer
             Consist = inf.ReadString();
             Path = inf.ReadString();
             CreatedTime = inf.ReadDouble();
-            AvatarUrl = inf.ReadString();
             QuitTime = inf.ReadDouble();
             Status = (OnlinePlayerStatus)inf.ReadInt32();
             Protected = inf.ReadBoolean();
@@ -95,7 +92,6 @@ namespace Orts.Simulation.MultiPlayer
             outf.Write(Consist);
             outf.Write(Path);
             outf.Write(CreatedTime);
-            outf.Write(AvatarUrl);
             outf.Write(QuitTime);
             outf.Write((int)Status);
             outf.Write(Protected);

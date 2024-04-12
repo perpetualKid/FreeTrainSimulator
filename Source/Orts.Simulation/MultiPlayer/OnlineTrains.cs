@@ -135,7 +135,7 @@ namespace Orts.Simulation.MultiPlayer
             {
                 if (p.Train != null)
                 {
-                    MSGPlayer player = new MSGPlayer(p.Username, "1234", p.Consist, p.Path, p.Train, p.Train.Number, p.AvatarUrl);
+                    MSGPlayer player = new MSGPlayer(p.Username, "1234", p.Consist, p.Path, p.Train, p.Train.Number);
                     tmp += player.ToString();
                 }
             }
@@ -144,7 +144,7 @@ namespace Orts.Simulation.MultiPlayer
 
         public IEnumerable<MSGPlayer> AllPlayerTrains()
         {
-            return Players.Values.Where(p => p != null).Select(p => new MSGPlayer(p.Username, "1234", p.Consist, p.Path, p.Train, p.Train.Number, p.AvatarUrl));
+            return Players.Values.Where(p => p != null).Select(p => new MSGPlayer(p.Username, "1234", p.Consist, p.Path, p.Train, p.Train.Number));
         }
 
 
@@ -157,7 +157,6 @@ namespace Orts.Simulation.MultiPlayer
             OnlinePlayer p = new OnlinePlayer(player.user,
                 Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, player.con),
                 Path.Combine(Simulator.Instance.RouteFolder.PathsFolder, player.path));
-            p.AvatarUrl = player.url;
             p.LeadingLocomotiveID = player.leadingID;
             Train train = new Train();
             train.TrainType = TrainType.Remote;
