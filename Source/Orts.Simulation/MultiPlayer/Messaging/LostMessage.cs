@@ -11,7 +11,7 @@ namespace Orts.Simulation.MultiPlayer.Messaging
 
         public override void HandleMessage()
         {
-            Task.Run(() => new MSGLost(User).HandleMsg());
+            new MSGLost(User).HandleMsg();
         }
     }
 }

@@ -57,7 +57,7 @@ namespace Orts.Simulation.MultiPlayer
                 "SIGNALSTATES" => new MSGSignalStatus(messageEncoding.GetString(content)),
                 "TEXT" => new MSGText(messageEncoding.GetString(content)),
                 "LOCOINFO" => new MSGLocoInfo(messageEncoding.GetString(content)),
-                "ALIVE" => new MSGAlive(content),
+                "ALIVE" => new MSGAlive(messageEncoding.GetString(content)),
                 "TRAIN" => new MSGTrain(messageEncoding.GetString(content)),
                 "PLAYER" => new MSGPlayer(messageEncoding.GetString(content)),
                 "PLAYERTRAINSW" => new MSGPlayerTrainSw(messageEncoding.GetString(content)),
@@ -89,11 +89,6 @@ namespace Orts.Simulation.MultiPlayer
         public abstract void HandleMsg();
 
         public virtual int EstimatedMessageSize => 0;
-
-        public virtual ReadOnlySpan<char> Serialize(char[] buffer)
-        {
-            return buffer.AsSpan();
-        }
 
         protected static int TranslateMidpointDirection(MidpointDirection direction)
         {
@@ -1775,7 +1770,6 @@ namespace Orts.Simulation.MultiPlayer
     public class MSGAlive : Message
     {
         private readonly string user;
-        private const string messageTemplate = "ALIVE ";
 
         public MSGAlive(string m)
         {
@@ -1787,26 +1781,6 @@ namespace Orts.Simulation.MultiPlayer
             string tmp = "ALIVE " + user;
             return " " + tmp.Length + ": " + tmp;
         }
-
-        public MSGAlive(ReadOnlySpan<byte> message)
-        {
-            user = messageEncoding.GetString(message);
-        }
-
-        public override ReadOnlySpan<char> Serialize(char[] buffer)
-        {
-            Span<char> spanBuffer = buffer.AsSpan();
-            (messageTemplate.Length + user.Length).TryFormat(spanBuffer, out int bytesWritten);
-            separator.AsSpan().CopyTo(spanBuffer[bytesWritten..]);
-            bytesWritten += separator.Length;
-            messageTemplate.AsSpan().CopyTo(spanBuffer[bytesWritten..]);
-            bytesWritten += messageTemplate.Length;
-            user.AsSpan().CopyTo(spanBuffer[bytesWritten..]);
-            bytesWritten += user.Length;
-            return spanBuffer[..bytesWritten];
-        }
-
-        public override int EstimatedMessageSize => messageTemplate.Length + user.Length + separator.Length + maxSizeDigits;
 
         public override void HandleMsg()
         {

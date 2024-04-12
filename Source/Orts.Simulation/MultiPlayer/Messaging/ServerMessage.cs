@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using System.Threading.Tasks;
 
 using MemoryPack;
 
@@ -14,7 +13,7 @@ namespace Orts.Simulation.MultiPlayer.Messaging
 
         public override void HandleMessage()
         {
-            Task.Run(() => new MSGServer(new ReadOnlySpan<byte>(Encoding.UTF8.GetBytes(Dispatcher))).HandleMsg());            
+            new MSGServer(new ReadOnlySpan<byte>(Encoding.UTF8.GetBytes(Dispatcher))).HandleMsg();            
         }
     }
 }

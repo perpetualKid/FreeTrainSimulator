@@ -51,9 +51,11 @@ namespace MultiPlayer.Hub
             Console.WriteLine($"MultiPlayer Server v {ThisAssembly.AssemblyInformationalVersion} is now running on port {port}");
             foreach (var url in app.Urls)
                 Console.WriteLine($"\t{url}");
+#pragma warning disable CA1303 // Do not pass literals as localized parameters
             Console.WriteLine("For further information, bug reports or discussions, please visit");
             Console.WriteLine("\thttps://github.com/perpetualKid/FreeTrainSimulator");
             Console.WriteLine("Use Ctrl+C to stop the service");
+#pragma warning restore CA1303 // Do not pass literals as localized parameters
             Console.WriteLine();
 
             await webApplicationTask.ConfigureAwait(false);

@@ -6,16 +6,13 @@ using System.Threading.Tasks;
 
 using MagicOnion.Server.Hubs;
 
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Session;
-
 using MultiPlayer.Shared;
 
 namespace MultiPlayer.Hub
 {
     public sealed class MultiPlayerHub : StreamingHubBase<IMultiPlayerHub, IMultiPlayerClient>, IMultiPlayerHub
     {
-        private class SessionData
+        private sealed class SessionData
         {
             public Guid SessionId { get; set; }
             public string UserName { get; set; }
@@ -44,7 +41,7 @@ namespace MultiPlayer.Hub
                 TimeJoined = DateTime.UtcNow,
             };
             string sessionName = Convert.ToBase64String(XxHash64.Hash(MemoryMarshal.AsBytes(string.Join('|', route, accessCode).AsSpan())));
-            (session, sessionStorage) = await Group.AddAsync(sessionName, currentSession);
+            (session, sessionStorage) = await Group.AddAsync(sessionName, currentSession).ConfigureAwait(false);
             AppointDispatcher(false);
             Console.WriteLine($"{DateTime.UtcNow} Player {userName} joined on route {route}");
         }
@@ -67,7 +64,7 @@ namespace MultiPlayer.Hub
                 AppointDispatcher(true);
             }
             Console.WriteLine($"{DateTime.UtcNow} Player {currentSession.UserName} left on route {currentSession.RouteName}");
-            await base.OnDisconnected();
+            await base.OnDisconnected().ConfigureAwait(false);
         }
 
         #region dispatcher election

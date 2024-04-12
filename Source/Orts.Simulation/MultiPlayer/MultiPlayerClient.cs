@@ -26,7 +26,7 @@ namespace Orts.Simulation.MultiPlayer
             MagicOnionSerializerProvider.Default = MemoryPackMagicOnionSerializerProvider.Instance;
         }
 
-        public void Connect(string server, int port, [System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
+        public void Connect(string server, int port)
         {
             ConnectAsync(server, port).AsTask().Wait();
         }
@@ -43,7 +43,7 @@ namespace Orts.Simulation.MultiPlayer
             RegisterDisconnect();
         }
 
-        public void SendLegacyMessage(string payload, [System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
+        public void SendLegacyMessage(string payload)
         {
             SendLegacyMessageAsync(payload).AsTask().Wait();
         }
@@ -63,10 +63,10 @@ namespace Orts.Simulation.MultiPlayer
         public void OnReceiveMessage(MultiPlayerMessage message)
         {
             MultiPlayerMessageContent messageContent = MessageDecoder.DecodeMessage(message);
-            messageContent.HandleMessage();
+            Task.Run(messageContent.HandleMessage);
         }
 
-        public void JoinGame(string user, string route, string accessCode, [System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
+        public void JoinGame(string user, string route, string accessCode)
         {
             JoinGameAsync(user, route, accessCode).AsTask().Wait();
         }
@@ -76,7 +76,7 @@ namespace Orts.Simulation.MultiPlayer
             await connection.JoinGameAsync(user, route, accessCode).ConfigureAwait(false);
         }
 
-        public void Stop([System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
+        public void Stop()
         {
             StopAsync().AsTask().Wait();
         }
