@@ -64,7 +64,6 @@ namespace Orts.Simulation.MultiPlayer
                 "SWITCH" => new MSGSwitch(messageEncoding.GetString(content)),
                 "RESETSIGNAL" => new MSGResetSignal(messageEncoding.GetString(content)),
                 "REMOVETRAIN" => new MSGRemoveTrain(messageEncoding.GetString(content)),
-                "SERVER" => new MSGServer(content),
                 "MESSAGE" => new MSGMessage(messageEncoding.GetString(content)),
                 "EVENT" => new MSGEvent(messageEncoding.GetString(content)),
                 "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
@@ -1710,58 +1709,6 @@ namespace Orts.Simulation.MultiPlayer
 
     }
     #endregion MSGRemoveTrain
-
-    #region MSGServer
-    public class MSGServer : MSGRequired
-    {
-        private readonly string user; //true: I am a server now, false, not
-
-        public MSGServer(ReadOnlySpan<byte> message)
-        {
-            user = messageEncoding.GetString(message);
-        }
-
-        public override string ToString()
-        {
-            string tmp = "SERVER " + user;
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            //in the public port mode, old server may get disconnected, the port will ask anyone who is an aider to be the server
-            //will response, but whoever reaches the port first will be declared dispatcher.
-            if (user == "WhoCanBeServer")
-            {
-                if (MultiPlayerManager.Instance().AmAider)
-                {
-                    string tmp = "SERVER MakeMeServer";
-                    MultiPlayerManager.Notify(" " + tmp.Length + ": " + tmp);
-                }
-                return;
-            }
-
-            if (MultiPlayerManager.GetUserName() == user || user == "YOU")
-            {
-                if (MultiPlayerManager.Instance().IsDispatcher)
-                    return; //already a dispatcher, not need to worry
-                MultiPlayerManager.Instance().Connected = true;
-                MultiPlayerManager.Instance().IsDispatcher = true;
-                MultiPlayerManager.Instance().RememberOriginalSwitchState();
-                Trace.TraceInformation("You are the new dispatcher. Enjoy!");
-                if (Simulator.Instance.Confirmer != null)
-                    Simulator.Instance.Confirmer.Information(CatalogManager.Catalog.GetString("You are the new dispatcher. Enjoy!"));
-                //Trace.WriteLine(this.ToString());
-            }
-            else
-            {
-                MultiPlayerManager.Instance().IsDispatcher = false;
-                Simulator.Instance.Confirmer?.Information(CatalogManager.Catalog.GetString("New dispatcher is {0}", user));
-                Trace.TraceInformation("New dispatcher is {0}", user);
-            }
-        }
-    }
-    #endregion MSGServer
 
     #region MSGAlive
     public class MSGAlive : Message

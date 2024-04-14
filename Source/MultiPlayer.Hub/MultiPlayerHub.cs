@@ -42,8 +42,8 @@ namespace MultiPlayer.Hub
             };
             string sessionName = Convert.ToBase64String(XxHash64.Hash(MemoryMarshal.AsBytes(string.Join('|', route, accessCode).AsSpan())));
             (session, sessionStorage) = await Group.AddAsync(sessionName, currentSession).ConfigureAwait(false);
-            AppointDispatcher(false);
             Console.WriteLine($"{DateTime.UtcNow} Player {userName} joined on route {route}");
+            AppointDispatcher(false);
         }
 
         protected override ValueTask OnConnecting()
@@ -77,9 +77,11 @@ namespace MultiPlayer.Hub
             {
                 dispatcher = currentSession;
                 dispatcher.Dispatcher = true;
+                Console.WriteLine($"{DateTime.UtcNow} Player {dispatcher.UserName} is now dispatcher for {currentSession.RouteName}");
             }
             if (reappoint)
             {
+                Console.WriteLine($"{DateTime.UtcNow} Player {dispatcher.UserName} is now dispatcher for {currentSession.RouteName}");
                 Broadcast(session).OnReceiveMessage(new MultiPlayerMessage() { MessageType = MessageType.Server, PayloadAsString = dispatcher.UserName });
             }
             else

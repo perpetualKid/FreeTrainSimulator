@@ -400,7 +400,12 @@ namespace Orts.Simulation.MultiPlayer
                     Code = code,
                     multiPlayerClient = new MultiPlayerClient(),
                 };
-                Instance().multiPlayerClient.Connect(hostname, port);
+                MultiPlayerMessageContent.SetMultiPlayerManager(localUser);
+                if (!Instance().multiPlayerClient.Connect(hostname, port))
+                {
+                    localUser.multiPlayerClient = null;
+                    localUser = null;
+                }
             }
         }
 

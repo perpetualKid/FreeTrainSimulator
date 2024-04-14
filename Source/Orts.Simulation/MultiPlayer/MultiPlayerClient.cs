@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
+using Grpc.Core;
 using Grpc.Net.Client;
 
 using MagicOnion.Client;
@@ -26,21 +27,29 @@ namespace Orts.Simulation.MultiPlayer
             MagicOnionSerializerProvider.Default = MemoryPackMagicOnionSerializerProvider.Instance;
         }
 
-        public void Connect(string server, int port)
+        public bool Connect(string server, int port)
         {
-            ConnectAsync(server, port).AsTask().Wait();
+            return ConnectAsync(server, port).AsTask().Result;
         }
 
-        public async ValueTask ConnectAsync(string server, int port)
+        public async ValueTask<bool> ConnectAsync(string server, int port)
         {
-            HttpClientHandler handler = new HttpClientHandler
+            try
             {
-                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
+                HttpClientHandler handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
 
-            GrpcChannel channel = GrpcChannel.ForAddress(new UriBuilder("http", server, port).ToString(), new GrpcChannelOptions { HttpHandler = handler, DisposeHttpClient = true });
-            connection = await StreamingHubClient.ConnectAsync<IMultiPlayerHub, IMultiPlayerClient>(channel, this).ConfigureAwait(false);
-            RegisterDisconnect();
+                GrpcChannel channel = GrpcChannel.ForAddress(new UriBuilder("http", server, port).ToString(), new GrpcChannelOptions { HttpHandler = handler, DisposeHttpClient = true });
+                connection = await StreamingHubClient.ConnectAsync<IMultiPlayerHub, IMultiPlayerClient>(channel, this).ConfigureAwait(false);
+                RegisterDisconnect();
+                return true;
+            }
+            catch(RpcException)
+            {
+                return false;
+            }
         }
 
         public void SendLegacyMessage(string payload)

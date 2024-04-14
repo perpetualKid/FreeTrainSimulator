@@ -36,7 +36,7 @@ namespace Orts.Simulation.MultiPlayer.Messaging
 
         public override void HandleMessage()
         {
-            if (Receipients == null || !Receipients.Any() || Receipients.Contains(MultiPlayerManager.GetUserName()))
+            if (Receipients == null || !Receipients.Any() || Receipients.Contains(multiPlayerManager.UserName))
             {
                 Simulator.Instance.Confirmer?.Message(MultiPlayerManager.Catalog.GetString(" From {0}: {1}", Sender, Text));
             }
