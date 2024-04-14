@@ -56,7 +56,6 @@ namespace Orts.Simulation.MultiPlayer
                 "SWITCHSTATES" => new MSGSwitchStatus(messageEncoding.GetString(content)),
                 "SIGNALSTATES" => new MSGSignalStatus(messageEncoding.GetString(content)),
                 "LOCOINFO" => new MSGLocoInfo(messageEncoding.GetString(content)),
-                "ALIVE" => new MSGAlive(messageEncoding.GetString(content)),
                 "TRAIN" => new MSGTrain(messageEncoding.GetString(content)),
                 "PLAYER" => new MSGPlayer(messageEncoding.GetString(content)),
                 "PLAYERTRAINSW" => new MSGPlayerTrainSw(messageEncoding.GetString(content)),
@@ -1707,30 +1706,6 @@ namespace Orts.Simulation.MultiPlayer
     }
     #endregion MSGRemoveTrain
 
-    #region MSGAlive
-    public class MSGAlive : Message
-    {
-        private readonly string user;
-
-        public MSGAlive(string m)
-        {
-            user = m;
-        }
-
-        public override string ToString()
-        {
-            string tmp = "ALIVE " + user;
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            //nothing to worry at this stage
-            //Trace.WriteLine(this.ToString());
-        }
-    }
-    #endregion MSGAlive
-
     #region MSGTrainMerge
     //message to add new train from either a string (received message), or a Train (building a message)
     public class MSGTrainMerge : Message
@@ -1844,14 +1819,7 @@ namespace Orts.Simulation.MultiPlayer
                     MultiPlayerManager.Instance().CheckSpad = true;
                     return;
                 }
-                else if (level == "TimeCheck" && !MultiPlayerManager.IsServer())
-                {
-                    var t = double.Parse(msgx, CultureInfo.InvariantCulture);
-                    MultiPlayerManager.Instance().ServerTimeDifference = t - Simulator.Instance.ClockTime;
-                    return;
-                }
-                if (Simulator.Instance.Confirmer != null)
-                    Simulator.Instance.Confirmer.Message(level == "Warning" ? ConfirmLevel.Warning : level == "Info" ? ConfirmLevel.Information : ConfirmLevel.None, msgx);
+                Simulator.Instance.Confirmer?.Message(level == "Warning" ? ConfirmLevel.Warning : level == "Info" ? ConfirmLevel.Information : ConfirmLevel.None, msgx);
 
             }
         }

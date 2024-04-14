@@ -15,5 +15,6 @@ namespace MultiPlayer.Shared
         Chat,
         Aider,
         Quit,
+        TimeCheck,
     }
 }

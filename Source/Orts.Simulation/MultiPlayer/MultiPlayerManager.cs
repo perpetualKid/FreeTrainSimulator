@@ -62,7 +62,6 @@ namespace Orts.Simulation.MultiPlayer
     {
         private double lastMoveTime;
 
-        private double lastSendTime;
         private string metric = "";
         private static MultiPlayerManager localUser;
 
@@ -224,13 +223,13 @@ namespace Orts.Simulation.MultiPlayer
                 if (!string.IsNullOrEmpty(exhaustMessage))
                     BroadCast(exhaustMessage);
 
-                lastMoveTime = lastSendTime = newtime;
+                lastMoveTime = newtime;
             }
 
             //server updates switch
             if (IsDispatcher && newtime - lastSwitchTime >= MPUpdateInterval)
             {
-                lastSwitchTime = lastSendTime = newtime;
+                lastSwitchTime = newtime;
                 var switchStatus = new MSGSwitchStatus();
 
                 if (switchStatus.OKtoSend)
@@ -277,24 +276,16 @@ namespace Orts.Simulation.MultiPlayer
                     MultiPlayerClient.SendLegacyMessage(move.ToString());
                     if (exhaust.OKtoSend())
                         MultiPlayerClient.SendLegacyMessage(exhaust.ToString());
-                    lastMoveTime = lastSendTime = newtime;
+                    lastMoveTime = newtime;
                 }
                 previousSpeed = t.SpeedMpS;
-            }
-
-
-            //need to send a keep-alive message if have not sent one to the server for the last 30 seconds
-            if (MultiplayerState == MultiplayerState.Client && newtime - lastSendTime >= 30f)
-            {
-                Notify(new MSGAlive(GetUserName()).ToString());
-                lastSendTime = newtime;
             }
 
             //some players are removed
             //need to send a keep-alive message if have not sent one to the server for the last 30 seconds
             if (IsDispatcher && newtime - lastSyncTime >= 60f)
             {
-                Notify((new MSGMessage("All", "TimeCheck", Simulator.Instance.ClockTime.ToString(System.Globalization.CultureInfo.InvariantCulture))).ToString());
+                MultiPlayerClient.SendMessage(new TimeCheckMessage() { DispatcherTime = Simulator.Instance.ClockTime} );
                 lastSyncTime = newtime;
             }
             RemovePlayer();

@@ -8,7 +8,7 @@ namespace Orts.Simulation.MultiPlayer.Messaging
 {
 
     [MemoryPackable]
-    public partial class ServerMessage: MultiPlayerMessageContent
+    public partial class ServerMessage : MultiPlayerMessageContent
     {
         public string Dispatcher {  get; set; }
 

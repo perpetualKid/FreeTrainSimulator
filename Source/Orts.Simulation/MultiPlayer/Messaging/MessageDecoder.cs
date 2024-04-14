@@ -19,6 +19,7 @@ namespace Orts.Simulation.MultiPlayer.Messaging
                 MessageType.Chat => MemoryPackSerializer.Deserialize<ChatMessage>(message.Payload),
                 MessageType.Aider => MemoryPackSerializer.Deserialize<AiderMessage>(message.Payload),
                 MessageType.Quit => MemoryPackSerializer.Deserialize<QuitMessage>(message.Payload),
+                MessageType.TimeCheck => MemoryPackSerializer.Deserialize<TimeCheckMessage>(message.Payload),
                 _ => throw new ProtocolException($"Unknown Message type {message.MessageType}"),
             };
         }
@@ -46,6 +47,10 @@ namespace Orts.Simulation.MultiPlayer.Messaging
                 case QuitMessage quitMessage:
                     MemoryPackSerializer.Serialize(bufferPipe.Writer, quitMessage);
                     messageType = MessageType.Quit;
+                    break;
+                case TimeCheckMessage timeCheckMessage:
+                    MemoryPackSerializer.Serialize(bufferPipe.Writer, timeCheckMessage);
+                    messageType = MessageType.TimeCheck;
                     break;
             }
 
