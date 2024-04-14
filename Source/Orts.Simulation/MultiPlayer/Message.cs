@@ -73,7 +73,6 @@ namespace Orts.Simulation.MultiPlayer
                 "CONTROL" => new MSGControl(messageEncoding.GetString(content)),
                 "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
                 "QUIT" => new MSGQuit(messageEncoding.GetString(content)),
-                "LOST" => new MSGLost(messageEncoding.GetString(content)),
                 "WEATHER" => new MSGWeather(messageEncoding.GetString(content)),
                 "AIDER" => new MSGAider(messageEncoding.GetString(content)),
                 "SIGNALCHANGE" => new MSGSignalChange(messageEncoding.GetString(content)),
@@ -2204,58 +2203,6 @@ namespace Orts.Simulation.MultiPlayer
 
     }
     #endregion MSGQuit
-
-
-    #region MSGLost
-    public class MSGLost : Message
-    {
-        public string user;
-
-        public MSGLost(string m)
-        {
-            user = m.Trim();
-        }
-
-        public override string ToString()
-        {
-
-            string tmp = "LOST " + user;
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            if (user == MultiPlayerManager.GetUserName())
-                return; //avoid myself
-
-            if (!MultiPlayerManager.IsServer())
-            {
-                return; //only server will handle this
-            }
-            if (!MultiPlayerManager.OnlineTrains.Players.TryGetValue(user, out OnlinePlayer p))
-                return;
-            Simulator.Instance.Confirmer?.Information(MultiPlayerManager.Catalog.GetString("{0} lost.", this.user));
-            if (p.Protected == true)
-            { p.Protected = false; return; }
-            MultiPlayerManager.BroadCast((new MSGQuit(user)).ToString()); //if the server, will broadcast a quit to every one
-            //if the one quit controls my train, I will gain back the control
-            if (p.Train == Simulator.Instance.PlayerLocomotive.Train)
-                Simulator.Instance.PlayerLocomotive.Train.TrainType = TrainType.Player;
-            MultiPlayerManager.Instance().AddRemovedPlayer(p);
-            //the client may quit because of lost connection, will remember it so it may recover in the future when the player log in again
-            if (p.Train != null && p.Status != OnlinePlayerStatus.Removed) //if this player has train and is not removed by the dispatcher
-            {
-                MultiPlayerManager.Instance().lostPlayer.TryAdd(p.Username, p);
-                p.QuitTime = Simulator.Instance.GameTime;
-                p.Train.SpeedMpS = 0.0f;
-                p.Status = OnlinePlayerStatus.Quit;
-            }
-            MultiPlayerManager.BroadCast((new MSGQuit(user)).ToString()); //broadcast twice
-
-        }
-
-    }
-    #endregion MSGLost
 
     #region MSGGetTrain
     public class MSGGetTrain : Message
