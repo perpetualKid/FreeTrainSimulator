@@ -74,7 +74,6 @@ namespace Orts.Simulation.MultiPlayer
                 "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
                 "QUIT" => new MSGQuit(messageEncoding.GetString(content)),
                 "WEATHER" => new MSGWeather(messageEncoding.GetString(content)),
-                "AIDER" => new MSGAider(messageEncoding.GetString(content)),
                 "SIGNALCHANGE" => new MSGSignalChange(messageEncoding.GetString(content)),
                 "EXHAUST" => new MSGExhaust(messageEncoding.GetString(content)),
                 "FLIP" => new MSGFlip(messageEncoding.GetString(content)),
@@ -3372,55 +3371,6 @@ namespace Orts.Simulation.MultiPlayer
         }
     }
     #endregion MSGWeather
-
-    #region MSGAider
-    public class MSGAider : Message
-    {
-        public string user;
-        public bool add;
-        public MSGAider(string m)
-        {
-            string[] tmp = m.Split('\t');
-            user = tmp[0].Trim();
-            if (tmp[1].Trim() == "T")
-                add = true;
-            else
-                add = false;
-        }
-
-        public MSGAider(string m, bool add1)
-        {
-            user = m.Trim();
-            add = add1;
-        }
-
-        public override string ToString()
-        {
-
-            string tmp = "AIDER " + user + "\t" + (add == true ? "T" : "F");
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            if (MultiPlayerManager.IsServer())
-                return;
-            if (MultiPlayerManager.GetUserName() == this.user && add == true)
-            {
-                MultiPlayerManager.Instance().AmAider = true;
-                if (Simulator.Instance.Confirmer != null)
-                    Simulator.Instance.Confirmer.Information(MultiPlayerManager.Catalog.GetString("You are an assistant now, will be able to handle switches and signals."));
-            }
-            if (MultiPlayerManager.GetUserName() == this.user && add == false)
-            {
-                MultiPlayerManager.Instance().AmAider = false;
-                if (Simulator.Instance.Confirmer != null)
-                    Simulator.Instance.Confirmer.Information(MultiPlayerManager.Catalog.GetString("You are no longer an assistant."));
-            }
-        }
-
-    }
-    #endregion MSGAider
 
     #region MSGSignalChange
     public class MSGSignalChange : Message
