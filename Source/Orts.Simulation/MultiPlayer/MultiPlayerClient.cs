@@ -63,6 +63,11 @@ namespace Orts.Simulation.MultiPlayer
             await connection.SendMessageAsync(message).ConfigureAwait(false);
         }
 
+        public void SendMessage(MultiPlayerMessageContent contentMessage)
+        {
+            SendMessageAsync(contentMessage).AsTask().Wait();
+        }
+
         public async ValueTask SendMessageAsync(MultiPlayerMessageContent contentMessage)
         {
             MultiPlayerMessage message = await MessageDecoder.EncodeMessage(contentMessage).ConfigureAwait(false);
@@ -71,6 +76,7 @@ namespace Orts.Simulation.MultiPlayer
 
         public void OnReceiveMessage(MultiPlayerMessage message)
         {
+            ArgumentNullException.ThrowIfNull(message, nameof(message));
             MultiPlayerMessageContent messageContent = MessageDecoder.DecodeMessage(message);
             Task.Run(messageContent.HandleMessage);
         }

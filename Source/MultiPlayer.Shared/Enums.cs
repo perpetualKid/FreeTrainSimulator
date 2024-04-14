@@ -13,5 +13,7 @@ namespace MultiPlayer.Shared
         Server,
         Lost,
         Chat,
+        Aider,
+        Quit,
     }
 }

@@ -26,7 +26,7 @@ namespace Orts.Simulation.MultiPlayer.Messaging
                 player.Protected = false;
                 return;
             }
-            MultiPlayerManager.BroadCast((new MSGQuit(User)).ToString()); //if the server, will broadcast a quit to every one
+            multiPlayerManager.MultiPlayerClient.SendMessage(new QuitMessage() { User = User }); //if the server, will broadcast a quit to every one
             //if the one quit controls my train, I will gain back the control
             if (player.Train == Simulator.Instance.PlayerLocomotive.Train)
                 Simulator.Instance.PlayerLocomotive.Train.TrainType = TrainType.Player;
@@ -39,7 +39,7 @@ namespace Orts.Simulation.MultiPlayer.Messaging
                 player.Train.SpeedMpS = 0.0f;
                 player.Status = OnlinePlayerStatus.Quit;
             }
-            MultiPlayerManager.BroadCast(new MSGQuit(User).ToString()); //broadcast twice
+            multiPlayerManager.MultiPlayerClient.SendMessage(new QuitMessage() { User = User }); //broadcast twice
         }
     }
 }

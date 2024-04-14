@@ -7,7 +7,7 @@ using MultiPlayer.Shared;
 
 namespace Orts.Simulation.MultiPlayer.Messaging
 {
-    public static class MessageDecoder
+    internal static class MessageDecoder
     {
         public static MultiPlayerMessageContent DecodeMessage(MultiPlayerMessage message)
         {
@@ -17,6 +17,8 @@ namespace Orts.Simulation.MultiPlayer.Messaging
                 MessageType.Server => new ServerMessage() { Dispatcher = message.PayloadAsString },
                 MessageType.Lost => new LostMessage() { User = message.PayloadAsString },
                 MessageType.Chat => MemoryPackSerializer.Deserialize<ChatMessage>(message.Payload),
+                MessageType.Aider => MemoryPackSerializer.Deserialize<AiderMessage>(message.Payload),
+                MessageType.Quit => MemoryPackSerializer.Deserialize<QuitMessage>(message.Payload),
                 _ => throw new ProtocolException($"Unknown Message type {message.MessageType}"),
             };
         }
@@ -36,6 +38,14 @@ namespace Orts.Simulation.MultiPlayer.Messaging
                 case ChatMessage chatMessage:
                     MemoryPackSerializer.Serialize(bufferPipe.Writer, chatMessage);
                     messageType = MessageType.Chat;
+                    break;
+                case AiderMessage aiderMessage:
+                    MemoryPackSerializer.Serialize(bufferPipe.Writer, aiderMessage);
+                    messageType = MessageType.Aider;
+                    break;
+                case QuitMessage quitMessage:
+                    MemoryPackSerializer.Serialize(bufferPipe.Writer, quitMessage);
+                    messageType = MessageType.Quit;
                     break;
             }
 

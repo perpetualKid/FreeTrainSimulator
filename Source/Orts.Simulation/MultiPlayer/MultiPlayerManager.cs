@@ -70,13 +70,13 @@ namespace Orts.Simulation.MultiPlayer
         private readonly List<OnlineLocomotive> addedLocomotives;
 
         private readonly List<Train> uncoupledTrains;
-        private MultiPlayerClient multiPlayerClient;
+        public MultiPlayerClient MultiPlayerClient { get; private set; }
 
         public const int ProtocolVersion = 24;
 
         public static ICatalog Catalog { get; private set; } = CatalogManager.Catalog;
 
-        public bool Connected { get => multiPlayerClient?.Connected ?? false; set => multiPlayerClient.Connected = value; }
+        public bool Connected { get => MultiPlayerClient?.Connected ?? false; set => MultiPlayerClient.Connected = value; }
         public bool IsDispatcher { get; set; }
 
         public static OnlineTrains OnlineTrains = new OnlineTrains();
@@ -242,7 +242,7 @@ namespace Orts.Simulation.MultiPlayer
             }
 
             //client updates itself
-            if (multiPlayerClient != null && !IsDispatcher && newtime - lastMoveTime >= 1f)
+            if (MultiPlayerClient != null && !IsDispatcher && newtime - lastMoveTime >= 1f)
             {
                 Train t = Simulator.Instance.PlayerLocomotive.Train;
                 MSGMove move = new MSGMove();
@@ -274,9 +274,9 @@ namespace Orts.Simulation.MultiPlayer
                 //if there are messages to send
                 if (move.OKtoSend())
                 {
-                    multiPlayerClient.SendLegacyMessage(move.ToString());
+                    MultiPlayerClient.SendLegacyMessage(move.ToString());
                     if (exhaust.OKtoSend())
-                        multiPlayerClient.SendLegacyMessage(exhaust.ToString());
+                        MultiPlayerClient.SendLegacyMessage(exhaust.ToString());
                     lastMoveTime = lastSendTime = newtime;
                 }
                 previousSpeed = t.SpeedMpS;
@@ -362,26 +362,26 @@ namespace Orts.Simulation.MultiPlayer
         //check if it is in the multiplayer session
         public static bool IsMultiPlayer()
         {
-            return (localUser?.multiPlayerClient != null);
+            return (localUser?.MultiPlayerClient != null);
         }
 
-        public static MultiplayerState MultiplayerState => (localUser?.IsDispatcher ?? false) ? MultiplayerState.Dispatcher : (localUser?.multiPlayerClient != null) ? MultiplayerState.Client : MultiplayerState.None;
+        public static MultiplayerState MultiplayerState => (localUser?.IsDispatcher ?? false) ? MultiplayerState.Dispatcher : (localUser?.MultiPlayerClient != null) ? MultiplayerState.Client : MultiplayerState.None;
 
         public static void BroadCast(string m)
         {
-            if (m == null || localUser?.multiPlayerClient == null)
+            if (m == null || localUser?.MultiPlayerClient == null)
                 return;
             if (MultiplayerState == MultiplayerState.Dispatcher)
-           localUser.multiPlayerClient.SendLegacyMessage(m);
+                localUser.MultiPlayerClient.SendLegacyMessage(m);
         }
 
         //notify others (server will broadcast, client will send msg to server)
         public static void Notify(string m)
         {
-            if (m == null || localUser?.multiPlayerClient == null)
+            if (m == null || localUser?.MultiPlayerClient == null)
                 return;
             //client notify server
-            localUser.multiPlayerClient.SendLegacyMessage(m);
+            localUser.MultiPlayerClient.SendLegacyMessage(m);
         }
 
         //nicely shutdown listening threads, and notify the server/other player
@@ -398,12 +398,12 @@ namespace Orts.Simulation.MultiPlayer
                 {
                     UserName = userName,
                     Code = code,
-                    multiPlayerClient = new MultiPlayerClient(),
+                    MultiPlayerClient = new MultiPlayerClient(),
                 };
                 MultiPlayerMessageContent.SetMultiPlayerManager(localUser);
-                if (!Instance().multiPlayerClient.Connect(hostname, port))
+                if (!Instance().MultiPlayerClient.Connect(hostname, port))
                 {
-                    localUser.multiPlayerClient = null;
+                    localUser.MultiPlayerClient = null;
                     localUser = null;
                 }
             }
@@ -411,19 +411,12 @@ namespace Orts.Simulation.MultiPlayer
 
         private void Quit()
         {
-            if (multiPlayerClient != null)
+            if (MultiPlayerClient != null)
             {
-                if (MultiplayerState == MultiplayerState.Dispatcher)
-                {
-                    //                    BroadCast(new MSGQuit("ServerHasToQuit\t" + GetUserName()).ToString()); //server notify everybody else
-                }
-                else
-                {
-                    Notify(new MSGQuit(GetUserName()).ToString()); //client notify server
-                }
-                multiPlayerClient.Stop();
+                MultiPlayerClient.SendMessage(new QuitMessage() { User = UserName });   //client notify server
+                MultiPlayerClient.Stop();
             }
-            multiPlayerClient = null;
+            MultiPlayerClient = null;
         }
 
         //when two player trains connected, require decouple at speed 0.
@@ -462,12 +455,12 @@ namespace Orts.Simulation.MultiPlayer
         {
             if (string.IsNullOrEmpty(text))
                 return;
-            await multiPlayerClient.SendMessageAsync(new ChatMessage(text)).ConfigureAwait(false);
+            await MultiPlayerClient.SendMessageAsync(new ChatMessage(text)).ConfigureAwait(false);
         }
 
         public void Connect()
         {
-           multiPlayerClient.JoinGame(GetUserName(), Simulator.Instance.Route.Name, Code);
+            MultiPlayerClient.JoinGame(GetUserName(), Simulator.Instance.Route.Name, Code);
         }
 
         public void AddPlayer()
@@ -485,7 +478,7 @@ namespace Orts.Simulation.MultiPlayer
                 BroadCast(host.ToString());
                 foreach (MSGPlayer player in OnlineTrains.AllPlayerTrains())
                     BroadCast(player.ToString());
-//                BroadCast(host.ToString() + OnlineTrains.AddAllPlayerTrain());
+                //                BroadCast(host.ToString() + OnlineTrains.AddAllPlayerTrain());
                 foreach (Train t in Simulator.Instance.Trains)
                 {
                     if (Simulator.Instance.PlayerLocomotive != null && t == Simulator.Instance.PlayerLocomotive.Train)
@@ -995,7 +988,7 @@ namespace Orts.Simulation.MultiPlayer
             {
                 if (disposing)
                 {
-                    multiPlayerClient?.Dispose();
+                    MultiPlayerClient?.Dispose();
                     // TODO: dispose managed state (managed objects)
                 }
                 disposedValue = true;

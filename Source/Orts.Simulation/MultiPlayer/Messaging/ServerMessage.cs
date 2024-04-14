@@ -1,10 +1,8 @@
-﻿using System;
-using System.Diagnostics;
-using System.Text;
-using GetText;
-using MemoryPack;
+﻿using System.Diagnostics;
 
-using Microsoft.VisualBasic.ApplicationServices;
+using GetText;
+
+using MemoryPack;
 
 namespace Orts.Simulation.MultiPlayer.Messaging
 {

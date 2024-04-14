@@ -72,7 +72,6 @@ namespace Orts.Simulation.MultiPlayer
                 "UPDATETRAIN" => new MSGUpdateTrain(messageEncoding.GetString(content)),
                 "CONTROL" => new MSGControl(messageEncoding.GetString(content)),
                 "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
-                "QUIT" => new MSGQuit(messageEncoding.GetString(content)),
                 "WEATHER" => new MSGWeather(messageEncoding.GetString(content)),
                 "SIGNALCHANGE" => new MSGSignalChange(messageEncoding.GetString(content)),
                 "EXHAUST" => new MSGExhaust(messageEncoding.GetString(content)),
@@ -1812,7 +1811,6 @@ namespace Orts.Simulation.MultiPlayer
 
                 if (level == "Error" && !MultiPlayerManager.IsServer())//if is a client, fatal error, will close the connection, and get into single mode
                 {
-                    MultiPlayerManager.Notify((new MSGQuit(MultiPlayerManager.GetUserName())).ToString());//to be nice, still send a quit before close the connection
                     throw new MultiPlayerException();//this is a fatal error, thus the client will be stopped in ClientComm
                 }
                 else if (level == "SameNameError" && !MultiPlayerManager.IsServer())//someone with my name but I have been admitted into the game, will ignore it, otherwise, will quit
