@@ -201,8 +201,6 @@ namespace Orts.Simulation.MultiPlayer
             if (begineZeroTime == 0)
                 begineZeroTime = newtime - 10;
 
-            MultiPlayerClient.Update(elapsedTime);
-
             CheckPlayerTrainSpad();//over speed or pass a red light
 
             //server update train location of all
@@ -312,6 +310,9 @@ namespace Orts.Simulation.MultiPlayer
 
 			}
 			 * */
+
+            // process incoming messages
+            MultiPlayerClient.Update(elapsedTime);
         }
 
         private void CheckPlayerTrainSpad()

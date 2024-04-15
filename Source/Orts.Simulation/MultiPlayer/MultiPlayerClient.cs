@@ -68,7 +68,8 @@ namespace Orts.Simulation.MultiPlayer
 
         public void SendLegacyMessage(string payload)
         {
-            Task.Run(() => SendLegacyMessageAsync(payload));
+            //Task.Run(() => SendLegacyMessageAsync(payload));
+            SendLegacyMessageAsync(payload).AsTask().Wait();
         }
 
         public async ValueTask SendLegacyMessageAsync(string payload)
@@ -79,7 +80,8 @@ namespace Orts.Simulation.MultiPlayer
 
         public void SendMessage(MultiPlayerMessageContent contentMessage)
         {
-            Task.Run(() => SendMessageAsync(contentMessage));
+            //Task.Run(() => SendMessageAsync(contentMessage));
+            SendMessageAsync(contentMessage).AsTask().Wait();
         }
 
         public async ValueTask SendMessageAsync(MultiPlayerMessageContent contentMessage)
