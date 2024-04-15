@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -11,6 +12,7 @@ using MagicOnion.Serialization.MemoryPack;
 
 using MultiPlayer.Shared;
 
+using Orts.Common;
 using Orts.Simulation.MultiPlayer.Messaging;
 
 namespace Orts.Simulation.MultiPlayer
@@ -19,6 +21,8 @@ namespace Orts.Simulation.MultiPlayer
     {
         private bool disposed;
         private IMultiPlayerHub connection;
+        private Collection<MultiPlayerMessageContent> processingMessages = new Collection<MultiPlayerMessageContent>();
+        private Collection<MultiPlayerMessageContent> incomingMessages = new Collection<MultiPlayerMessageContent>();
 
         public bool Connected { get; set; }
 
@@ -30,6 +34,16 @@ namespace Orts.Simulation.MultiPlayer
         public bool Connect(string server, int port)
         {
             return ConnectAsync(server, port).AsTask().Result;
+        }
+
+        public void Update(ElapsedTime elapsedTime)
+        {
+            (processingMessages, incomingMessages) = (incomingMessages, processingMessages);
+            foreach (MultiPlayerMessageContent message in processingMessages)
+            {
+                message.HandleMessage();
+            }
+            processingMessages.Clear();
         }
 
         public async ValueTask<bool> ConnectAsync(string server, int port)
@@ -46,7 +60,7 @@ namespace Orts.Simulation.MultiPlayer
                 RegisterDisconnect();
                 return true;
             }
-            catch(RpcException)
+            catch (RpcException)
             {
                 return false;
             }
@@ -54,7 +68,7 @@ namespace Orts.Simulation.MultiPlayer
 
         public void SendLegacyMessage(string payload)
         {
-            SendLegacyMessageAsync(payload).AsTask().Wait();
+            Task.Run(() => SendLegacyMessageAsync(payload));
         }
 
         public async ValueTask SendLegacyMessageAsync(string payload)
@@ -65,7 +79,7 @@ namespace Orts.Simulation.MultiPlayer
 
         public void SendMessage(MultiPlayerMessageContent contentMessage)
         {
-            SendMessageAsync(contentMessage).AsTask().Wait();
+            Task.Run(() => SendMessageAsync(contentMessage));
         }
 
         public async ValueTask SendMessageAsync(MultiPlayerMessageContent contentMessage)
@@ -77,8 +91,7 @@ namespace Orts.Simulation.MultiPlayer
         public void OnReceiveMessage(MultiPlayerMessage message)
         {
             ArgumentNullException.ThrowIfNull(message, nameof(message));
-            MultiPlayerMessageContent messageContent = MessageDecoder.DecodeMessage(message);
-            Task.Run(messageContent.HandleMessage);
+            incomingMessages.Add(MessageDecoder.DecodeMessage(message));
         }
 
         public void JoinGame(string user, string route, string accessCode)

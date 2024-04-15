@@ -29,11 +29,14 @@ namespace Orts.Common
 
         public static ref readonly ElapsedTime Zero => ref zero;
 
-#pragma warning disable CA2225 // Operator overloads have named alternates
         public static ElapsedTime operator +(in ElapsedTime a, in ElapsedTime b)
-#pragma warning restore CA2225 // Operator overloads have named alternates
         {
             return new ElapsedTime(a.ClockSeconds + b.ClockSeconds, a.RealSeconds + b.RealSeconds);
+        }
+
+        public static ElapsedTime Add(in ElapsedTime a, in ElapsedTime b)
+        {
+            return a + b;
         }
 
         public ElapsedTime(double clockSeconds, double realSeconds)

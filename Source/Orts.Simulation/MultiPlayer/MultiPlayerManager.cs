@@ -195,10 +195,13 @@ namespace Orts.Simulation.MultiPlayer
         /// 3. housekeeping (remove/add trains, remove players)
         /// 4. it will also capture key stroke of horn, panto, wiper, bell, headlight etc.
         /// </summary>
-        public void Update(double newtime)
+        public void Update(in ElapsedTime elapsedTime)
         {
+            double newtime = Simulator.Instance.GameTime;
             if (begineZeroTime == 0)
                 begineZeroTime = newtime - 10;
+
+            MultiPlayerClient.Update(elapsedTime);
 
             CheckPlayerTrainSpad();//over speed or pass a red light
 

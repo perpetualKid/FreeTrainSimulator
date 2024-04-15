@@ -1197,7 +1197,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void Update(RenderFrame frame, double elapsedRealTime)
         {
             RealTime += elapsedRealTime;
-            var elapsedTime = new ElapsedTime(Simulator.GetElapsedClockSeconds(elapsedRealTime), elapsedRealTime);
+            ElapsedTime elapsedTime = new ElapsedTime(Simulator.GetElapsedClockSeconds(elapsedRealTime), elapsedRealTime);
 
             HandleUserInput(elapsedTime);
             // We need to do it also here, because passing from manual to auto a ReverseFormation may be needed
@@ -1216,7 +1216,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 ////get key strokes and determine if some messages should be sent
                 //MultiPlayerViewer.HandleUserInput();
-                MultiPlayerManager.Instance().Update(Simulator.GameTime);
+                MultiPlayerManager.Instance().Update(elapsedTime);
             }
 
             UserCommandController.Send(CommandControllerInput.Speed, Speed.MeterPerSecond.FromMpS(PlayerLocomotive.SpeedMpS, Simulator.Instance.MetricUnits));

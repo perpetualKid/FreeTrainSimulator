@@ -403,7 +403,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void WiperCommand()
         {
             _ = new WipersCommand(Viewer.Log, !Locomotive.Wiper);
-            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = Locomotive.Wiper ? TrainEvent.WiperOn : TrainEvent.WiperOff});
+            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = Locomotive.Wiper ? TrainEvent.WiperOn : TrainEvent.WiperOff });
         }
         private void HornOnCommand() => _ = new HornCommand(Viewer.Log, true);
         private void HornOffCommand() => _ = new HornCommand(Viewer.Log, false);
@@ -414,10 +414,30 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void AlerterOffCommand() => _ = new AlerterCommand(Viewer.Log, false);
         private void HeadlightIncreaseCommand()
         {
-            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = TrainEvent.HeadlightOn });
             _ = new HeadlightCommand(Viewer.Log, true);
+            MultiPlayerManager.Broadcast(new TrainEventMessage()
+            {
+                TrainEvent = MSTSWagon.Headlight switch
+                {
+                    HeadLightState.HeadlightDimmed => TrainEvent.HeadlightDim,
+                    HeadLightState.HeadlightOn => TrainEvent.HeadlightOn,
+                    _ => TrainEvent.HeadlightOff,
+                }
+            });
         }
-        private void HeadlightDecreaseCommand() => _ = new HeadlightCommand(Viewer.Log, false);
+        private void HeadlightDecreaseCommand()
+        {
+            _ = new HeadlightCommand(Viewer.Log, false);
+            MultiPlayerManager.Broadcast(new TrainEventMessage()
+            {
+                TrainEvent = MSTSWagon.Headlight switch
+                {
+                    HeadLightState.HeadlightOff => TrainEvent.HeadlightOff,
+                    HeadLightState.HeadlightDimmed => TrainEvent.HeadlightDim,
+                    _ => TrainEvent.HeadlightOn,
+                }
+            });
+        }
         private void ToggleCabLightCommand() => _ = new ToggleCabLightCommand(Viewer.Log);
         private void ToggleWaterScoopCommand() => _ = new ToggleWaterScoopCommand(Viewer.Log);
         private void ResetOdometerOnCommand() => _ = new ResetOdometerCommand(Viewer.Log, true);
