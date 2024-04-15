@@ -375,6 +375,11 @@ namespace Orts.Simulation.MultiPlayer
             localUser.MultiPlayerClient.SendLegacyMessage(m);
         }
 
+        public static void Broadcast(MultiPlayerMessageContent message)
+        {
+            localUser?.MultiPlayerClient?.SendMessage(message);
+        }
+
         //nicely shutdown listening threads, and notify the server/other player
         public static void Stop()
         {

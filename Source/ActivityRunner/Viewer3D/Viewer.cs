@@ -970,10 +970,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     _ = new SaveScreenshotCommand(Log);
             });
             #endregion
+
             if (MultiPlayerManager.IsMultiPlayer())
             {
-                //get key strokes and determine if some messages should be sent
-                MultiPlayerViewer.RegisterInputEvents(this);
+                //In Multiplayer, I maybe the helper, but I can request to be the controller
+                UserCommandController.AddEvent(UserCommand.GameRequestControl, KeyEventType.KeyPressed, MultiPlayerManager.RequestControl);
             }
 
             UserCommandController.AddEvent(UserCommand.DebugLockShadows, KeyEventType.KeyPressed, () => lockShadows = !lockShadows);

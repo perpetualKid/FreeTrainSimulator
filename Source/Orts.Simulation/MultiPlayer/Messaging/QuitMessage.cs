@@ -1,8 +1,4 @@
-﻿using System;
-
-using MemoryPack;
-
-using Microsoft.VisualBasic.ApplicationServices;
+﻿using MemoryPack;
 
 using Orts.Common;
 
@@ -11,8 +7,6 @@ namespace Orts.Simulation.MultiPlayer.Messaging
     [MemoryPackable]
     public partial class QuitMessage : MultiPlayerMessageContent
     {
-        public string User { get; set; }
-
         public override void HandleMessage()
         {
             if (User == multiPlayerManager.UserName)

@@ -61,6 +61,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.MultiPlayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
@@ -132,12 +133,12 @@ namespace Orts.Simulation.RollingStocks
         public bool ManualHorn;
         public bool TCSHorn;
         public bool Horn;
-        protected bool PreviousHorn;
+        private bool previousHorn;
 
         public bool ManualBell;
         public SoundState BellState = SoundState.Stopped;
         public bool Bell;
-        protected bool PreviousBell;
+        private bool previousBell;
 
         public bool VacuumExhausterPressed;
         public bool FastVacuumExhausterFitted;
@@ -2700,17 +2701,15 @@ namespace Orts.Simulation.RollingStocks
         protected virtual void UpdateHornAndBell(double elapsedClockSeconds)
         {
             Horn = ManualHorn || TCSHorn;
-            if (Horn && !PreviousHorn)
+            if (Horn && !previousHorn)
             {
                 SignalEvent(TrainEvent.HornOn);
-                if (MultiPlayerManager.IsMultiPlayer())
-                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "HORN", 1)).ToString());
+                MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = TrainEvent.HornOn });
             }
-            else if (!Horn && PreviousHorn)
+            else if (!Horn && previousHorn)
             {
                 SignalEvent(TrainEvent.HornOff);
-                if (MultiPlayerManager.IsMultiPlayer())
-                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "HORN", 0)).ToString());
+                MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = TrainEvent.HornOff });
             }
 
             if (ManualBell)
@@ -2727,21 +2726,21 @@ namespace Orts.Simulation.RollingStocks
             }
 
             Bell = BellState != SoundState.Stopped;
-            if (Bell && !PreviousBell)
+            if (Bell && !previousBell)
             {
                 SignalEvent(TrainEvent.BellOn);
-                if (Train.TrainType != TrainType.Remote && MultiPlayerManager.IsMultiPlayer())
-                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "BELL", 1)).ToString());
+                if (Train.TrainType != TrainType.Remote)
+                    MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = TrainEvent.BellOn });
             }
-            else if (!Bell && PreviousBell)
+            else if (!Bell && previousBell)
             {
                 SignalEvent(TrainEvent.BellOff);
-                if (Train.TrainType != TrainType.Remote && MultiPlayerManager.IsMultiPlayer())
-                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "BELL", 0)).ToString());
+                if (Train.TrainType != TrainType.Remote)
+                    MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = TrainEvent.BellOff });
             }
 
-            PreviousHorn = Horn;
-            PreviousBell = Bell;
+            previousHorn = Horn;
+            previousBell = Bell;
         }
 
         /// <summary>
@@ -5068,21 +5067,41 @@ namespace Orts.Simulation.RollingStocks
                         simulator.Confirmer.Confirm(this is MSTSSteamLocomotive ? CabControl.Whistle : CabControl.Horn, Horn ? CabSetting.On : CabSetting.Off);
                     break;
                 case TrainEvent.SanderOn:
-                    { Sander = true; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.On); break; }
+                    {
+                        Sander = true;
+                        if (IsLeadLocomotive() && this == simulator.PlayerLocomotive)
+                            simulator.Confirmer?.Confirm(CabControl.Sander, CabSetting.On);
+                        break;
+                    }
                 case TrainEvent.SanderOff:
-                    { Sander = false; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.Off); break; }
+                    {
+                        Sander = false;
+                        if (IsLeadLocomotive() && this == simulator.PlayerLocomotive)
+                            simulator.Confirmer?.Confirm(CabControl.Sander, CabSetting.Off);
+                        break;
+                    }
                 case TrainEvent.WiperOn:
-                    { Wiper = true; if (this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.On); break; }
+                    {
+                        Wiper = true;
+                        if (this == simulator.PlayerLocomotive)
+                            simulator.Confirmer?.Confirm(CabControl.Wipers, CabSetting.On);
+                        break;
+                    }
                 case TrainEvent.WiperOff:
-                    { Wiper = false; if (this == simulator.PlayerLocomotive) simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.Off); break; }
+                    {
+                        Wiper = false;
+                        if (this == simulator.PlayerLocomotive)
+                            simulator.Confirmer?.Confirm(CabControl.Wipers, CabSetting.Off);
+                        break;
+                    }
 
                 // <CJComment> The "H" key doesn't call these SignalEvents yet. </CJComment>
                 case TrainEvent.HeadlightOff:
-                    { Headlight = 0; break; }
+                    { Headlight = HeadLightState.HeadlightOff; break; }
                 case TrainEvent.HeadlightDim:
-                    { Headlight = 1; break; }
+                    { Headlight = HeadLightState.HeadlightDimmed; break; }
                 case TrainEvent.HeadlightOn:
-                    { Headlight = 2; break; }
+                    { Headlight = HeadLightState.HeadlightOn; break; }
 
                 case TrainEvent.CompressorOn:
                     { CompressorIsOn = true; break; }
@@ -5710,7 +5729,7 @@ namespace Orts.Simulation.RollingStocks
 
                 case CabViewControlType.Front_HLight:
                     {
-                        data = Headlight;
+                        data = (int)Headlight;
                         break;
                     }
                 case CabViewControlType.WheelSlip:

@@ -64,6 +64,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.MultiPlayer.Messaging;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
@@ -11602,12 +11603,15 @@ namespace Orts.Simulation.Physics
                     mstsWagon.LeftDoor.SetDoor(open);
                 }
             }
-            if (simulator.PlayerLocomotive?.Train == this && MultiPlayerManager.IsMultiPlayer())
+            if (simulator.PlayerLocomotive?.Train == this)
             {
-                if (side != DoorSide.Left)
-                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "DOORR", open ? 1 : 0)).ToString());
-                if (side != DoorSide.Right)
-                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "DOORL", open ? 1 : 0)).ToString());
+                MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = side switch
+                {
+                    DoorSide.Left => open ? TrainEvent.DoorOpenLeft : TrainEvent.DoorCloseLeft,
+                    DoorSide.Right => open ? TrainEvent.DoorOpenRight : TrainEvent.DoorCloseRight,
+                    _ => throw new NotImplementedException(),
+                }
+                }) ;
             }
         }
 

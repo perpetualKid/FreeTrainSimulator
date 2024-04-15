@@ -3392,6 +3392,30 @@ namespace Orts.Simulation.RollingStocks
                 case TrainEvent.Pantograph4Down:
                     SignalEvent(PowerSupplyEvent.LowerPantograph, 4);
                     break;
+                case TrainEvent.DoorOpenLeft:
+                    if (Flipped)
+                        RightDoor.SetDoor(true);
+                    else
+                        LeftDoor.SetDoor(true);
+                    break;
+                case TrainEvent.DoorOpenRight:
+                    if (Flipped)
+                        LeftDoor.SetDoor(true);
+                    else
+                        RightDoor.SetDoor(true);
+                    break;
+                case TrainEvent.DoorCloseLeft:
+                    if (Flipped)
+                        RightDoor.SetDoor(false);
+                    else
+                        LeftDoor.SetDoor(false);
+                    break;
+                case TrainEvent.DoorCloseRight:
+                    if (Flipped)
+                        LeftDoor.SetDoor(false);
+                    else
+                        RightDoor.SetDoor(false);
+                    break;
             }
 
             TriggerWagonSoundEvent(evt, null);

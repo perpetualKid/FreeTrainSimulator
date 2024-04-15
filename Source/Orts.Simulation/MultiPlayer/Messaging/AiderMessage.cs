@@ -7,8 +7,6 @@ namespace Orts.Simulation.MultiPlayer.Messaging
     [MemoryPackable]
     public partial class AiderMessage : MultiPlayerMessageContent
     {
-        public string User { get; set; }
-
         public bool CanbeAdded { get; set; }
 
         public override void HandleMessage()

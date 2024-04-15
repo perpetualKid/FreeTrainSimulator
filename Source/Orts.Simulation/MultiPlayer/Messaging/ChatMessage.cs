@@ -10,7 +10,6 @@ namespace Orts.Simulation.MultiPlayer.Messaging
     public partial class ChatMessage : MultiPlayerMessageContent
     {
         public string Text { get; set; }
-        public string Sender { get; set; }
         public IEnumerable<string> Receipients { get; private set; }
 
         [MemoryPackConstructor]
@@ -18,7 +17,6 @@ namespace Orts.Simulation.MultiPlayer.Messaging
 
         public ChatMessage(string message)
         {
-            Sender = MultiPlayerManager.Instance().UserName;
             ArgumentException.ThrowIfNullOrWhiteSpace(message, nameof(message));
 
             int index = message.IndexOf(':', StringComparison.OrdinalIgnoreCase);
@@ -38,7 +36,7 @@ namespace Orts.Simulation.MultiPlayer.Messaging
         {
             if (Receipients == null || !Receipients.Any() || Receipients.Contains(multiPlayerManager.UserName))
             {
-                Simulator.Instance.Confirmer?.Message(MultiPlayerManager.Catalog.GetString(" From {0}: {1}", Sender, Text));
+                Simulator.Instance.Confirmer?.Message(MultiPlayerManager.Catalog.GetString(" From {0}: {1}", User, Text));
             }
         }
     }

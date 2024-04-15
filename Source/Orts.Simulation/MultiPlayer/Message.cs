@@ -64,7 +64,6 @@ namespace Orts.Simulation.MultiPlayer
                 "RESETSIGNAL" => new MSGResetSignal(messageEncoding.GetString(content)),
                 "REMOVETRAIN" => new MSGRemoveTrain(messageEncoding.GetString(content)),
                 "MESSAGE" => new MSGMessage(messageEncoding.GetString(content)),
-                "EVENT" => new MSGEvent(messageEncoding.GetString(content)),
                 "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
                 "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
                 "GETTRAIN" => new MSGGetTrain(messageEncoding.GetString(content)),
@@ -451,7 +450,7 @@ namespace Orts.Simulation.MultiPlayer
                 pantothird = w.Pantographs.List.Count > 2 && w.Pantographs[3].CommandUp ? 1 : 0;
                 pantofourth = w.Pantographs.List.Count > 3 && w.Pantographs[4].CommandUp ? 1 : 0;
                 frontorrearcab = (w as MSTSLocomotive).UsingRearCab ? "R" : "F";
-                headlight = w.Headlight;
+                headlight = (int)w.Headlight;
             }
 
             cars = new string[t.Cars.Count];
@@ -1979,195 +1978,6 @@ namespace Orts.Simulation.MultiPlayer
         }
     }
     #endregion MSGLocoChange
-
-    #region MSGEvent
-    public class MSGEvent : Message
-    {
-        public string user;
-        public string EventName;
-        public int EventState;
-
-        public MSGEvent(string m)
-        {
-            string[] tmp = m.Split(' ');
-            if (tmp.Length != 3)
-                throw new ArgumentOutOfRangeException("Parsing error " + m);
-            user = tmp[0].Trim();
-            EventName = tmp[1].Trim();
-            EventState = int.Parse(tmp[2]);
-        }
-
-        public MSGEvent(string m, string e, int ID)
-        {
-            user = m.Trim();
-            EventName = e;
-            EventState = ID;
-        }
-
-        public override string ToString()
-        {
-            string tmp = "EVENT " + user + " " + EventName + " " + EventState;
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            if (user == MultiPlayerManager.GetUserName())
-                return; //avoid myself
-            Train t = MultiPlayerManager.FindPlayerTrain(user);
-            if (t == null)
-                return;
-
-            if (EventName == "HORN")
-            {
-                if (t.LeadLocomotive != null)
-                {
-                    t.LeadLocomotive.SignalEvent(EventState == 0 ? TrainEvent.HornOff : TrainEvent.HornOn);
-                    MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-                }
-            }
-            else if (EventName == "PANTO1")
-            {
-                t.SignalEvent((EventState == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 1);
-
-                MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-            }
-            else if (EventName == "PANTO2")
-            {
-                t.SignalEvent((EventState == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 2);
-
-                MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-            }
-            else if (EventName == "PANTO3")
-            {
-                t.SignalEvent((EventState == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 3);
-
-                MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-            }
-            else if (EventName == "PANTO4")
-            {
-                t.SignalEvent((EventState == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 4);
-
-                MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-            }
-            else if (EventName == "BELL")
-            {
-                if (t.LeadLocomotive != null && t.LeadLocomotive is MSTSLocomotive)
-                {
-                    (t.LeadLocomotive as MSTSLocomotive).Bell = (EventState != 0);
-                    t.LeadLocomotive.SignalEvent(EventState == 0 ? TrainEvent.BellOff : TrainEvent.BellOn);
-                    MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-                }
-            }
-            else if (EventName == "WIPER")
-            {
-                if (t.LeadLocomotive != null)
-                    t.LeadLocomotive.SignalEvent(EventState == 0 ? TrainEvent.WiperOff : TrainEvent.WiperOn);
-                MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-            }
-            else if (EventName == "DOORL")
-            {
-                t.SetDoors(DoorSide.Left, EventState == 1);
-                MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-            }
-            else if (EventName == "DOORR")
-            {
-                t.SetDoors(DoorSide.Right, EventState == 1);
-                MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-            }
-            else if (EventName == "MIRRORS")
-            {
-                if (t.LeadLocomotive != null)
-                    ((MSTSWagon)(t.LeadLocomotive)).ToggleMirrors();
-                MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-            }
-            else if (EventName == "HEADLIGHT")
-            {
-                if (t.LeadLocomotive != null && EventState == 0)
-                    t.LeadLocomotive.SignalEvent(TrainEvent.HeadlightOff);
-                if (t.LeadLocomotive != null && EventState == 1)
-                    t.LeadLocomotive.SignalEvent(TrainEvent.HeadlightDim);
-                if (t.LeadLocomotive != null && EventState == 2)
-                    t.LeadLocomotive.SignalEvent(TrainEvent.HeadlightOn);
-                MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-            }
-            else
-                return;
-        }
-
-    }
-    #endregion MSGEvent
-
-    #region MSGQuit
-    public class MSGQuit : Message
-    {
-        public string user;
-
-        public MSGQuit(string m)
-        {
-            user = m.Trim();
-        }
-
-        public override string ToString()
-        {
-
-            string tmp = "QUIT " + user;
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            if (user == MultiPlayerManager.GetUserName())
-                return; //avoid myself
-
-            bool ServerQuit = false;
-            if (MultiPlayerManager.IsMultiPlayer() && user.Contains("ServerHasToQuit")) //the server quits, will send a message with ServerHasToQuit\tServerName
-            {
-                if (Simulator.Instance.Confirmer != null)
-                    Simulator.Instance.Confirmer.Error(MultiPlayerManager.Catalog.GetString("Server quits, will play as single mode"));
-                user = user.Replace("ServerHasToQuit\t", ""); //get the user name of server from the message
-                ServerQuit = true;
-            }
-            if (!MultiPlayerManager.OnlineTrains.Players.TryGetValue(user, out OnlinePlayer p))
-                return;
-            Simulator.Instance.Confirmer?.Information(MultiPlayerManager.Catalog.GetString("{0} quit.", this.user));
-            if (MultiPlayerManager.IsServer())
-            {
-                if (p.Protected == true)
-                { p.Protected = false; return; }
-                MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
-                //if the one quit controls my train, I will gain back the control
-                if (p.Train == Simulator.Instance.PlayerLocomotive.Train)
-                    Simulator.Instance.PlayerLocomotive.Train.TrainType = TrainType.Player;
-                MultiPlayerManager.Instance().AddRemovedPlayer(p);
-                //the client may quit because of lost connection, will remember it so it may recover in the future when the player log in again
-                if (p.Train != null && p.Status != OnlinePlayerStatus.Removed) //if this player has train and is not removed by the dispatcher
-                {
-                    MultiPlayerManager.Instance().lostPlayer.TryAdd(p.Username, p);
-                    p.QuitTime = Simulator.Instance.GameTime;
-                    p.Train.SpeedMpS = 0.0f;
-                    p.Status = OnlinePlayerStatus.Quit;
-                }
-                MultiPlayerManager.BroadCast(this.ToString()); //broadcast twice
-
-            }
-            else //client will remove train
-            {
-                //if the one quit controls my train, I will gain back the control
-                if (p.Train == Simulator.Instance.PlayerLocomotive.Train)
-                    Simulator.Instance.PlayerLocomotive.Train.TrainType = TrainType.Player;
-                MultiPlayerManager.Instance().AddRemovedPlayer(p);
-                if (ServerQuit)//warning, need to remove other player trains if there are not AI, in the future
-                {
-                    //no matter what, let player gain back the control of the player train
-                    Simulator.Instance.PlayerLocomotive.Train.TrainType = TrainType.Player;
-                    throw new MultiPlayerException(); //server quit, end communication by throwing this error 
-                }
-            }
-        }
-
-    }
-    #endregion MSGQuit
 
     #region MSGGetTrain
     public class MSGGetTrain : Message

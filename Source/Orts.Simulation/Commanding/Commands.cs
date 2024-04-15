@@ -1101,15 +1101,15 @@ namespace Orts.Simulation.Commanding
             {
                 switch (Receiver.Headlight)
                 {
-                    case 0:
+                    case HeadLightState.HeadlightOff:
                         if (!MasterKeyHeadlightControl)
                         {
-                            Receiver.Headlight = 1;
+                            Receiver.Headlight = HeadLightState.HeadlightDimmed;
                             Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral);
                         }
                         break;
-                    case 1:
-                        Receiver.Headlight = 2;
+                    case HeadLightState.HeadlightDimmed:
+                        Receiver.Headlight = HeadLightState.HeadlightOn;
                         Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.On);
                         break;
                 }
@@ -1119,15 +1119,15 @@ namespace Orts.Simulation.Commanding
             {
                 switch (Receiver.Headlight)
                 {
-                    case 1:
+                    case HeadLightState.HeadlightDimmed:
                         if (!MasterKeyHeadlightControl)
                         {
-                            Receiver.Headlight = 0;
+                            Receiver.Headlight = HeadLightState.HeadlightOff;
                             Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.Off);
                         }
                         break;
-                    case 2:
-                        Receiver.Headlight = 1;
+                    case HeadLightState.HeadlightOn:
+                        Receiver.Headlight = HeadLightState.HeadlightDimmed;
                         Simulator.Instance.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral);
                         break;
                 }

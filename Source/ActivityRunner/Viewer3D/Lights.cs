@@ -50,7 +50,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly Material LightConeMaterial;
         private IWorldPosition positionSource;
 
-        public int TrainHeadlight;
+        public HeadLightState TrainHeadlight { get; private set; }
         public bool CarIsReversed;
         public bool CarIsFirst;
         public bool CarIsLast;
@@ -225,7 +225,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var mstsLocomotive = locomotive as MSTSLocomotive;
 
             // Headlight
-			var newTrainHeadlight = locomotive != null ? locomotive.Headlight : Car.Train != null && Car.Train.TrainType != TrainType.Static ? 2 : 0;
+			HeadLightState newTrainHeadlight = locomotive != null ? locomotive.Headlight : Car.Train != null && Car.Train.TrainType != TrainType.Static ? HeadLightState.HeadlightOn : HeadLightState.HeadlightOff;
             // Units
 			var locomotiveFlipped = locomotive != null && locomotive.Flipped;
 			var locomotiveReverseCab = mstsLocomotive != null && mstsLocomotive.UsingRearCab;
@@ -355,22 +355,22 @@ namespace Orts.ActivityRunner.Viewer3D
 
         internal void UpdateState(LightViewer lightViewer)
         {
-            var oldEnabled = Enabled;
+            bool oldEnabled = Enabled;
             Enabled = true;
             if (Light.Headlight != LightHeadlightCondition.Ignore)
             {
                 if (Light.Headlight == LightHeadlightCondition.Off)
                     Enabled &= lightViewer.TrainHeadlight == 0;
                 else if (Light.Headlight == LightHeadlightCondition.Dim)
-                    Enabled &= lightViewer.TrainHeadlight == 1;
+                    Enabled &= lightViewer.TrainHeadlight == HeadLightState.HeadlightDimmed;
                 else if (Light.Headlight == LightHeadlightCondition.Bright)
-                    Enabled &= lightViewer.TrainHeadlight == 2;
+                    Enabled &= lightViewer.TrainHeadlight == HeadLightState.HeadlightOn;
                 else if (Light.Headlight == LightHeadlightCondition.DimBright)
-                    Enabled &= lightViewer.TrainHeadlight >= 1;
+                    Enabled &= lightViewer.TrainHeadlight is HeadLightState.HeadlightDimmed or HeadLightState.HeadlightOn;
                 else if (Light.Headlight == LightHeadlightCondition.OffDim)
-                    Enabled &= lightViewer.TrainHeadlight <= 1;
+                    Enabled &= lightViewer.TrainHeadlight is HeadLightState.HeadlightDimmed or HeadLightState.HeadlightOff;
                 else if (Light.Headlight == LightHeadlightCondition.OffBright)
-                    Enabled &= lightViewer.TrainHeadlight != 1;
+                    Enabled &= lightViewer.TrainHeadlight is HeadLightState.HeadlightOff or HeadLightState.HeadlightOn;
                 else
                     Enabled &= false;
             }

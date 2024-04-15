@@ -1271,7 +1271,7 @@ namespace Orts.Simulation
 
             AITrain train = new AI(this).CreateAITrainDetail(aPPlayer_Service_Definition, aPPlayer_Traffic_Definition, srvFile, TimetableMode, true);
             train.Name = "PLAYER";
-            train.Cars[0].Headlight = 0;
+            train.Cars[0].Headlight = HeadLightState.HeadlightOff;
             OriginalPlayerTrain = train;
             train.Efficiency = 0.9f; // Forced efficiency, as considered most similar to human player
             TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition();

@@ -36,6 +36,8 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Simulation.Commanding;
+using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.MultiPlayer.Messaging;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 
@@ -331,7 +333,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             for (var i = 0; i < TrainCarShape.Hierarchy.Length; i++)
                 if (TrainCarShape.SharedShape.MatrixNames[i].Contains('1', StringComparison.OrdinalIgnoreCase))
                 {
-                    if (TrainCarShape.SharedShape.MatrixNames[i].StartsWith("PANTO", StringComparison.OrdinalIgnoreCase)) { HasFirstPanto = true; break; }
+                    if (TrainCarShape.SharedShape.MatrixNames[i].StartsWith("PANTO", StringComparison.OrdinalIgnoreCase))
+                    { HasFirstPanto = true; break; }
                 }
 
             // Check bogies and wheels to find out what we have.
@@ -397,8 +400,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             Pantograph1.SetState(MSTSWagon.Pantographs[1].CommandUp);
             Pantograph2.SetState(MSTSWagon.Pantographs[2].CommandUp);
-            if (MSTSWagon.Pantographs.List.Count > 2) Pantograph3.SetState(MSTSWagon.Pantographs[3].CommandUp);
-            if (MSTSWagon.Pantographs.List.Count > 3) Pantograph4.SetState(MSTSWagon.Pantographs[4].CommandUp);
+            if (MSTSWagon.Pantographs.List.Count > 2)
+                Pantograph3.SetState(MSTSWagon.Pantographs[3].CommandUp);
+            if (MSTSWagon.Pantographs.List.Count > 3)
+                Pantograph4.SetState(MSTSWagon.Pantographs[4].CommandUp);
             LeftDoor.SetState(MSTSWagon.LeftDoor.State >= DoorState.Opening);
             RightDoor.SetState(MSTSWagon.RightDoor.State >= DoorState.Opening);
             Mirrors.SetState(MSTSWagon.MirrorOpen);
@@ -468,12 +473,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
             else if (matrixName.StartsWith("Door", StringComparison.OrdinalIgnoreCase)) // doors (left / right)
             {
-                if (matrixName.StartsWith("Door_D", StringComparison.OrdinalIgnoreCase) || 
-                    matrixName.StartsWith("Door_E", StringComparison.OrdinalIgnoreCase) || 
+                if (matrixName.StartsWith("Door_D", StringComparison.OrdinalIgnoreCase) ||
+                    matrixName.StartsWith("Door_E", StringComparison.OrdinalIgnoreCase) ||
                     matrixName.StartsWith("Door_F", StringComparison.OrdinalIgnoreCase))
                     LeftDoor.AddMatrix(matrix);
-                else if (matrixName.StartsWith("Door_A", StringComparison.OrdinalIgnoreCase) || 
-                    matrixName.StartsWith("Door_B", StringComparison.OrdinalIgnoreCase) || 
+                else if (matrixName.StartsWith("Door_A", StringComparison.OrdinalIgnoreCase) ||
+                    matrixName.StartsWith("Door_B", StringComparison.OrdinalIgnoreCase) ||
                     matrixName.StartsWith("Door_C", StringComparison.OrdinalIgnoreCase))
                     RightDoor.AddMatrix(matrix);
             }
@@ -515,8 +520,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             Pantograph4.AddMatrix(matrix);
                         else
                         {
-                            if (HasFirstPanto) Pantograph1.AddMatrix(matrix); //some may have no first panto, will put it as panto 2
-                            else Pantograph2.AddMatrix(matrix);
+                            if (HasFirstPanto)
+                                Pantograph1.AddMatrix(matrix); //some may have no first panto, will put it as panto 2
+                            else
+                                Pantograph2.AddMatrix(matrix);
                         }
                         break;
                 }
@@ -542,8 +549,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     Pantograph4.AddMatrix(matrix);
                 else
                 {
-                    if (HasFirstPanto) Pantograph1.AddMatrix(matrix); //some may have no first panto, will put it as panto 2
-                    else Pantograph2.AddMatrix(matrix);
+                    if (HasFirstPanto)
+                        Pantograph1.AddMatrix(matrix); //some may have no first panto, will put it as panto 2
+                    else
+                        Pantograph2.AddMatrix(matrix);
                 }
             }
             else if (matrixName.StartsWith("ORTSBELL", StringComparison.OrdinalIgnoreCase)) // bell
@@ -607,15 +616,45 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlMirror, KeyEventType.KeyPressed, ToggleMirrorsCommand);
         }
 
-#pragma warning disable IDE0022 // Use block body for methods
-        private void Pantograph1Command() => _ = new PantographCommand(Viewer.Log, 1, !MSTSWagon.Pantographs[1].CommandUp);
-        private void Pantograph2Command() => _ = new PantographCommand(Viewer.Log, 2, !MSTSWagon.Pantographs[2].CommandUp);
-        private void Pantograph3Command() => _ = new PantographCommand(Viewer.Log, 3, !MSTSWagon.Pantographs[3].CommandUp);
-        private void Pantograph4Command() => _ = new PantographCommand(Viewer.Log, 4, !MSTSWagon.Pantographs[4].CommandUp);
-        private void ToggleDoorsLeftCommand() => _ = new ToggleDoorsLeftCommand(Viewer.Log);
-        private void ToggleDoorsRightCommand() => _ = new ToggleDoorsRightCommand(Viewer.Log);
-        private void ToggleMirrorsCommand() => _ = new ToggleMirrorsCommand(Viewer.Log);
-#pragma warning restore IDE0022 // Use block body for methods
+        private void Pantograph1Command()
+        {
+            _ = new PantographCommand(Viewer.Log, 1, !MSTSWagon.Pantographs[1].CommandUp);
+            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = MSTSWagon.Pantographs[1].State is PantographState.Up or PantographState.Raising ? TrainEvent.Pantograph1Up : TrainEvent.Pantograph1Down });
+        }
+
+        private void Pantograph2Command()
+        {
+            _ = new PantographCommand(Viewer.Log, 2, !MSTSWagon.Pantographs[2].CommandUp);
+            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = MSTSWagon.Pantographs[2].State is PantographState.Up or PantographState.Raising ? TrainEvent.Pantograph2Up : TrainEvent.Pantograph2Down });
+        }
+
+        private void Pantograph3Command()
+        {
+            _ = new PantographCommand(Viewer.Log, 3, !MSTSWagon.Pantographs[3].CommandUp);
+            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = MSTSWagon.Pantographs[3].State is PantographState.Up or PantographState.Raising ? TrainEvent.Pantograph3Up : TrainEvent.Pantograph3Down });
+        }
+
+        private void Pantograph4Command()
+        {
+            _ = new PantographCommand(Viewer.Log, 4, !MSTSWagon.Pantographs[4].CommandUp);
+            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = MSTSWagon.Pantographs[4].State is PantographState.Up or PantographState.Raising ? TrainEvent.Pantograph4Up : TrainEvent.Pantograph4Down });
+        }
+
+        private void ToggleDoorsLeftCommand()
+        {
+            _ = new ToggleDoorsLeftCommand(Viewer.Log);
+        }
+
+        private void ToggleDoorsRightCommand()
+        {
+            _ = new ToggleDoorsRightCommand(Viewer.Log);
+        }
+
+        private void ToggleMirrorsCommand()
+        {
+            _ = new ToggleMirrorsCommand(Viewer.Log);
+            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = MSTSWagon.MirrorOpen ? TrainEvent.MirrorOpen : TrainEvent.MirrorClose });
+        }
 
         /// <summary>
         /// Called at the full frame rate
@@ -626,8 +665,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             Pantograph1.UpdateState(MSTSWagon.Pantographs[1].CommandUp, elapsedTime);
             Pantograph2.UpdateState(MSTSWagon.Pantographs[2].CommandUp, elapsedTime);
-            if (MSTSWagon.Pantographs.List.Count > 2) Pantograph3.UpdateState(MSTSWagon.Pantographs[3].CommandUp, elapsedTime);
-            if (MSTSWagon.Pantographs.List.Count > 3) Pantograph4.UpdateState(MSTSWagon.Pantographs[4].CommandUp, elapsedTime);
+            if (MSTSWagon.Pantographs.List.Count > 2)
+                Pantograph3.UpdateState(MSTSWagon.Pantographs[3].CommandUp, elapsedTime);
+            if (MSTSWagon.Pantographs.List.Count > 3)
+                Pantograph4.UpdateState(MSTSWagon.Pantographs[4].CommandUp, elapsedTime);
             LeftDoor.UpdateState(MSTSWagon.LeftDoor.State >= DoorState.Opening, elapsedTime);
             RightDoor.UpdateState(MSTSWagon.RightDoor.State >= DoorState.Opening, elapsedTime);
             Mirrors.UpdateState(MSTSWagon.MirrorOpen, elapsedTime);
@@ -875,7 +916,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             (animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Cab2D] &&
                             Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab) ||
                             (animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Outside] && (Viewer.Camera.AttachedCar != this.MSTSWagon ||
-                            (Viewer.Camera.Style != CameraStyle.Cab3D && Viewer.Camera.Style != CameraStyle.Cab))))) continue;
+                            (Viewer.Camera.Style != CameraStyle.Cab3D && Viewer.Camera.Style != CameraStyle.Cab)))))
+                            continue;
                     }
                     if (freightAnim.FreightShape != null && !((freightAnim.Animation is FreightAnimationContinuous) && (freightAnim.Animation as FreightAnimationContinuous).LoadPerCent == 0))
                     {
@@ -885,7 +927,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             if (freightAnim.Animation is FreightAnimationContinuous)
                             {
                                 var continuousFreightAnim = freightAnim.Animation as FreightAnimationContinuous;
-                                if (MSTSWagon.FreightAnimations.IsGondola) freightAnim.FreightShape.XNAMatrices[0] = TrainCarShape.XNAMatrices[1];
+                                if (MSTSWagon.FreightAnimations.IsGondola)
+                                    freightAnim.FreightShape.XNAMatrices[0] = TrainCarShape.XNAMatrices[1];
                                 freightAnim.FreightShape.XNAMatrices[0].M42 = continuousFreightAnim.MinHeight +
                                    continuousFreightAnim.LoadPerCent / 100 * (continuousFreightAnim.MaxHeight - continuousFreightAnim.MinHeight);
                             }
@@ -1203,9 +1246,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// <param name="wagonFolderSlash"></param>
         private void LoadCarSounds(string wagonFolderSlash)
         {
-            if (MSTSWagon.MainSoundFileName != null) LoadCarSound(wagonFolderSlash, MSTSWagon.MainSoundFileName);
-            if (MSTSWagon.InteriorSoundFileName != null) LoadCarSound(wagonFolderSlash, MSTSWagon.InteriorSoundFileName);
-            if (MSTSWagon.Cab3DSoundFileName != null) LoadCarSound(wagonFolderSlash, MSTSWagon.InteriorSoundFileName);
+            if (MSTSWagon.MainSoundFileName != null)
+                LoadCarSound(wagonFolderSlash, MSTSWagon.MainSoundFileName);
+            if (MSTSWagon.InteriorSoundFileName != null)
+                LoadCarSound(wagonFolderSlash, MSTSWagon.InteriorSoundFileName);
+            if (MSTSWagon.Cab3DSoundFileName != null)
+                LoadCarSound(wagonFolderSlash, MSTSWagon.InteriorSoundFileName);
         }
 
 

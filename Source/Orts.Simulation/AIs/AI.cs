@@ -122,7 +122,7 @@ namespace Orts.Simulation.AIs
                     train.AI = this;
 
                     if (train.Cars.Count > 0)
-                        train.Cars[0].Headlight = 2;//AI train always has light on
+                        train.Cars[0].Headlight = HeadLightState.HeadlightOn;//AI train always has light on
                     train.BrakeSystem.BrakeLine3Pressure = 0;
 
                     // insert in start list
@@ -971,7 +971,7 @@ namespace Orts.Simulation.AIs
                 return null;
             }
 
-            train.Cars[0].Headlight = 2;//AI train always has light on
+            train.Cars[0].Headlight = HeadLightState.HeadlightOn;//AI train always has light on
 
             // Patch placingproblem JeroenP (1 line)
             train.RearTDBTraveller = new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location); // create traveller

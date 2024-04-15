@@ -176,13 +176,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             if (HeadlightControl)
             {
-                if (On && Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn && Locomotive.Headlight == 0)
+                if (On && Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn && Locomotive.Headlight == HeadLightState.HeadlightOff)
                 {
-                    Locomotive.Headlight = 1;
+                    Locomotive.Headlight = HeadLightState.HeadlightDimmed;
                 }
-                else if ((!On || !Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn) && Locomotive.Headlight > 0)
+                else if ((!On || !Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn) && Locomotive.Headlight > HeadLightState.HeadlightOff)
                 {
-                    Locomotive.Headlight = 0;
+                    Locomotive.Headlight = HeadLightState.HeadlightOff;
                 }
             }
         }

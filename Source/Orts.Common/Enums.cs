@@ -324,7 +324,11 @@ namespace Orts.Common
         Derail2, // NOTE: Currently not used in Open Rails.
         Derail3, // NOTE: Currently not used in Open Rails.
         DoorClose,
+        DoorCloseLeft,
+        DoorCloseRight,
         DoorOpen,
+        DoorOpenRight,
+        DoorOpenLeft,
         DynamicBrakeChange,
         DynamicBrakeIncrease, // NOTE: Currently not used in Open Rails.
         DynamicBrakeOff,
@@ -906,6 +910,13 @@ namespace Orts.Common
         Left,
         Right,
         Both
+    }
+
+    public enum HeadLightState
+    {
+        HeadlightOff,
+        HeadlightDimmed,
+        HeadlightOn,
     }
 
     /// <summary>

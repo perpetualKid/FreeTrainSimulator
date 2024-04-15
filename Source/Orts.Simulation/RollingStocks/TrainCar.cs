@@ -39,7 +39,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 
 using GetText;
 
@@ -52,7 +51,6 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Scripting.Api.PowerSupply;
 using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -62,8 +60,6 @@ using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
-
-using static Orts.Common.Calc.Dynamics;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -253,7 +249,7 @@ namespace Orts.Simulation.RollingStocks
 
         public Lights Lights { get; private protected set; }
         public FreightAnimations FreightAnimations { get; private protected set; }
-        public int Headlight { get; set; }
+        public HeadLightState Headlight { get; set; }
 
         // instance variables set by train physics when it creates the traincar
         public Train Train { get; internal set; }  // the car is connected to this train
@@ -1783,7 +1779,7 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(FrictionForceN);
             outf.Write(SpeedMpS);
             outf.Write(CouplerSlackM);
-            outf.Write(Headlight);
+            outf.Write((int)Headlight);
             outf.Write(OriginalConsist);
             outf.Write(PrevTiltingZRot);
             outf.Write(BrakesStuck);
@@ -1808,7 +1804,7 @@ namespace Orts.Simulation.RollingStocks
             SpeedMpS = inf.ReadSingle();
             prevSpeedMpS = SpeedMpS;
             CouplerSlackM = inf.ReadSingle();
-            Headlight = inf.ReadInt32();
+            Headlight = (HeadLightState)inf.ReadInt32();
             OriginalConsist = inf.ReadString();
             PrevTiltingZRot = inf.ReadSingle();
             BrakesStuck = inf.ReadBoolean();

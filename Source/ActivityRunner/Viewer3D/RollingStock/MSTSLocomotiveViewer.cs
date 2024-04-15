@@ -45,6 +45,8 @@ using Orts.Graphics.Xna;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
+using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.MultiPlayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
@@ -398,7 +400,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void SanderOnCommand() => _ = new SanderCommand(Viewer.Log, true);
         private void SanderOffCommand() => _ = new SanderCommand(Viewer.Log, false);
         private void SanderToogleCommand() => _ = new SanderCommand(Viewer.Log, !Locomotive.Sander);
-        private void WiperCommand() => _ = new WipersCommand(Viewer.Log, !Locomotive.Wiper);
+        private void WiperCommand()
+        {
+            _ = new WipersCommand(Viewer.Log, !Locomotive.Wiper);
+            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = Locomotive.Wiper ? TrainEvent.WiperOn : TrainEvent.WiperOff});
+        }
         private void HornOnCommand() => _ = new HornCommand(Viewer.Log, true);
         private void HornOffCommand() => _ = new HornCommand(Viewer.Log, false);
         private void BellOnCommand() => _ = new BellCommand(Viewer.Log, true);
@@ -406,7 +412,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void BellToggleCommand() => _ = new BellCommand(Viewer.Log, !Locomotive.Bell);
         private void AlerterOnCommand() => _ = new AlerterCommand(Viewer.Log, true);
         private void AlerterOffCommand() => _ = new AlerterCommand(Viewer.Log, false);
-        private void HeadlightIncreaseCommand() => _ = new HeadlightCommand(Viewer.Log, true);
+        private void HeadlightIncreaseCommand()
+        {
+            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = TrainEvent.HeadlightOn });
+            _ = new HeadlightCommand(Viewer.Log, true);
+        }
         private void HeadlightDecreaseCommand() => _ = new HeadlightCommand(Viewer.Log, false);
         private void ToggleCabLightCommand() => _ = new ToggleCabLightCommand(Viewer.Log);
         private void ToggleWaterScoopCommand() => _ = new ToggleWaterScoopCommand(Viewer.Log);
@@ -471,16 +481,22 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (commandArgs is UserCommandArgs<int> switchCommandArgs)
             {
                 // changing Headlight more than one step at a time doesn't work for some reason
-                if (Locomotive.Headlight < switchCommandArgs.Value - 1)
+                if (Locomotive.Headlight < HeadLightState.HeadlightOn)
                 {
-                    Locomotive.Headlight++;
-                    Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
+                    Locomotive.Headlight = Locomotive.Headlight.Next();
                 }
-                if (Locomotive.Headlight > switchCommandArgs.Value - 1)
+                if (Locomotive.Headlight > HeadLightState.HeadlightOff)
                 {
-                    Locomotive.Headlight--;
-                    Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
+                    Locomotive.Headlight = Locomotive.Headlight.Previous();
                 }
+                Locomotive.SignalEvent(Locomotive.Headlight switch
+                {
+                    HeadLightState.HeadlightOff => TrainEvent.HeadlightOff,
+                    HeadLightState.HeadlightDimmed => TrainEvent.HeadlightDim,
+                    HeadLightState.HeadlightOn => TrainEvent.HeadlightOn,
+                    _ => throw new NotImplementedException()
+                });
+                Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
             }
         }
 

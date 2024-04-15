@@ -16,5 +16,6 @@ namespace MultiPlayer.Shared
         Aider,
         Quit,
         TimeCheck,
+        TrainEvent,
     }
 }

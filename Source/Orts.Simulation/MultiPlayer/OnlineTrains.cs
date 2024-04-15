@@ -267,7 +267,7 @@ namespace Orts.Simulation.MultiPlayer
                 if (car.CarID == p.LeadingLocomotiveID)
                 {
                     train.LeadLocomotive = car as MSTSLocomotive;
-                    train.LeadLocomotive.Headlight = player.headlight;
+                    train.LeadLocomotive.Headlight = (HeadLightState)player.headlight;
                     train.LeadLocomotive.UsingRearCab = player.frontorrearcab == "R" ? true : false;
                 }
                 if (car is MSTSLocomotive && MultiPlayerManager.IsServer())
