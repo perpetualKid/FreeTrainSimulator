@@ -17,5 +17,6 @@ namespace MultiPlayer.Shared
         Quit,
         TimeCheck,
         TrainEvent,
+        Weather,
     }
 }

@@ -31,7 +31,10 @@ using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Files;
+using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.MultiPlayer.Messaging;
+using Orts.Simulation.World;
 using Orts.Viewer3D;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -163,8 +166,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void SendMultiPlayerSkyChangeNotification()
         {
-            MultiPlayerManager.Instance().SetEnvInfo(mstsskyovercastFactor, mstsskyfogDistance);
-            MultiPlayerManager.Notify(new MSGWeather(-1, mstsskyovercastFactor, -1, mstsskyfogDistance).ToString());
+            MultiPlayerManager.Broadcast(new WeatherMessage() { Weather = Simulator.Instance.WeatherType, Overcast = mstsskyovercastFactor, Fog = mstsskyfogDistance });
         }
 
         /// <summary>
@@ -185,7 +187,8 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 // First time around, initialize the following items:
                 skySteps.OldClockTime = MSTSSkyViewer.Simulator.ClockTime % 86400;
-                while (skySteps.OldClockTime < 0) skySteps.OldClockTime += 86400;
+                while (skySteps.OldClockTime < 0)
+                    skySteps.OldClockTime += 86400;
                 skySteps.Step1 = skySteps.Step2 = (int)(skySteps.OldClockTime / 1200);
                 skySteps.Step2 = skySteps.Step2 < skySteps.MaxSteps - 1 ? skySteps.Step2 + 1 : 0; // limit to max. steps in case activity starts near midnight
                                                                                                   // Get the current latitude and longitude coordinates
@@ -211,23 +214,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 initialized = true;
             }
 
-            MultiPlayerManager manager;
-            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && (manager = MultiPlayerManager.Instance()).weatherChanged)
+            EnvironmentalCondition updatedWeatherCondition;
+            if ((updatedWeatherCondition = Simulator.Instance.UpdatedWeatherCondition) != null)
             {
                 //received message about weather change
-                if (manager.overcastFactor >= 0)
-                    mstsskyovercastFactor = manager.overcastFactor;
-
-                //received message about weather change
-                if (manager.fogDistance > 0)
-                    mstsskyfogDistance = manager.fogDistance;
-
-                if (manager.overcastFactor >= 0 || manager.fogDistance > 0)
-                {
-                    manager.weatherChanged = false;
-                    manager.overcastFactor = -1;
-                    manager.fogDistance = -1;
-                }
+                mstsskyovercastFactor = updatedWeatherCondition.OvercastFactor;
+                mstsskyfogDistance = updatedWeatherCondition.FogViewingDistance;
             }
 
             (mstsskysolarDirection, mstsskylunarDirection) = skySteps.SetSunAndMoonDirection(mstsskysolarPosArray, mstsskylunarPosArray, MSTSSkyViewer.Simulator.ClockTime);

@@ -148,6 +148,22 @@ namespace Orts.Simulation
 #pragma warning restore CA1002 // Do not expose generic lists
         public Weather Weather { get; } = new Weather();
 
+        // reset updated variable once it is fetched
+        private EnvironmentalCondition weatherConditionUpdate;
+        public EnvironmentalCondition UpdatedWeatherCondition 
+        { 
+            get
+            {
+                EnvironmentalCondition returnCondition = weatherConditionUpdate;
+                weatherConditionUpdate = null;
+                return returnCondition;
+            }
+            set
+            {
+                weatherConditionUpdate = value;
+            }
+        }
+
         public float CurveDurability { get; private set; }  // Sets the durability due to curve speeds in TrainCars - read from consist file.
 
         public SignalEnvironment SignalEnvironment { get; private set; }

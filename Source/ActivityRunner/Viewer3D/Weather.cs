@@ -40,6 +40,7 @@ using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.Simulation;
 using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.MultiPlayer.Messaging;
 using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -134,13 +135,12 @@ namespace Orts.ActivityRunner.Viewer3D
                     this.viewer.Simulator.WeatherType = this.viewer.Simulator.WeatherType.Next();
                     // block dynamic weather change after a manual weather change operation
                     weatherChangeOn = false;
-                    if (dynamicWeather != null)
-                        dynamicWeather.ResetWeatherTargets();
+                    dynamicWeather?.ResetWeatherTargets();
                     UpdateWeatherParameters();
 
                     // If we're a multiplayer server, send out the new weather to all clients.
                     if (MultiPlayerManager.IsServer())
-                        MultiPlayerManager.Notify(new MSGWeather((int)this.viewer.Simulator.WeatherType, -1, -1, -1).ToString());
+                        MultiPlayerManager.Broadcast(new WeatherMessage(Simulator.Instance.Weather));
 
                 });
 
@@ -274,8 +274,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void SendMultiPlayerWeatherChangeNotification()
         {
-            MultiPlayerManager.Instance().SetEnvInfo(weather.OvercastFactor, weather.FogVisibilityDistance);
-            MultiPlayerManager.Notify((new MSGWeather(-1, weather.OvercastFactor, weather.PrecipitationIntensity, weather.FogVisibilityDistance)).ToString());
+            MultiPlayerManager.Broadcast(new WeatherMessage(weather));
         }
 
         public virtual void SaveWeatherParameters(BinaryWriter outf)
@@ -509,34 +508,22 @@ namespace Orts.ActivityRunner.Viewer3D
         public virtual void Update(in ElapsedTime elapsedTime)
         {
             Time += (float)elapsedTime.ClockSeconds;
-            MultiPlayerManager manager;
-            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && (manager = MultiPlayerManager.Instance()).weatherChanged)
+            EnvironmentalCondition updatedWeatherCondition;
+            if ((updatedWeatherCondition = Simulator.Instance.UpdatedWeatherCondition) != null)
             {
                 // Multiplayer weather has changed so we need to update our state to match weather, overcastFactor, pricipitationIntensity and fogDistance.
-                if (manager.weather >= 0 && manager.weather != (int)viewer.Simulator.WeatherType)
+                if (updatedWeatherCondition.Weather != viewer.Simulator.WeatherType)
                 {
-                    viewer.Simulator.WeatherType = (WeatherType)manager.weather;
+                    Simulator.Instance.WeatherType = updatedWeatherCondition.Weather;
                     UpdateWeatherParameters();
                 }
-                if (manager.overcastFactor >= 0)
-                    weather.OvercastFactor = manager.overcastFactor;
-                if (manager.pricipitationIntensity >= 0)
+                weather.OvercastFactor = updatedWeatherCondition.OvercastFactor;
+                if (updatedWeatherCondition.PrecipitationIntensity != weather.PrecipitationIntensity)
                 {
-                    weather.PrecipitationIntensity = manager.pricipitationIntensity;
+                    weather.PrecipitationIntensity = updatedWeatherCondition.PrecipitationIntensity;
                     UpdateVolume();
                 }
-                if (manager.fogDistance >= 0)
-                    weather.FogVisibilityDistance = manager.fogDistance;
-
-                // Reset the message now that we've applied all the changes.
-                if ((manager.weather >= 0 && manager.weather != (int)viewer.Simulator.WeatherType) || manager.overcastFactor >= 0 || manager.pricipitationIntensity >= 0 || manager.fogDistance >= 0)
-                {
-                    manager.weatherChanged = false;
-                    manager.weather = -1;
-                    manager.overcastFactor = -1;
-                    manager.pricipitationIntensity = -1;
-                    manager.fogDistance = -1;
-                }
+                weather.FogVisibilityDistance = updatedWeatherCondition.FogViewingDistance;
             }
             else if (MultiPlayerManager.MultiplayerState != MultiplayerState.Client)
             {

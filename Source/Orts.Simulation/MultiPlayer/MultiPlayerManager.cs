@@ -31,13 +31,10 @@ using System.Globalization;
 using System.IO;
 using System.IO.Hashing;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 using GetText;
-
-using MultiPlayer.Shared;
 
 using Orts.Common;
 using Orts.Common.Calc;
@@ -84,9 +81,6 @@ namespace Orts.Simulation.MultiPlayer
         public List<Train> removedTrains;
         public List<OnlineLocomotive> removedLocomotives;
 
-        public float fogDistance = -1f;
-        public float pricipitationIntensity = -1f;
-        public float overcastFactor = -1f;
         public double ServerTimeDifference { get; internal set; }
 
         public double lastPlayerAddedTime;
@@ -101,9 +95,6 @@ namespace Orts.Simulation.MultiPlayer
         public bool CheckSpad = true;
         public bool PreferGreen = true;
         public string MD5Check { get; } = HashRouteFile();
-
-        public bool weatherChanged;
-        public int weather = -1;
 
         public string UserName { get; private set; } = string.Empty;
         public string Code { get; private set; }
@@ -286,7 +277,7 @@ namespace Orts.Simulation.MultiPlayer
             //need to send a keep-alive message if have not sent one to the server for the last 30 seconds
             if (IsDispatcher && newtime - lastSyncTime >= 60f)
             {
-                MultiPlayerClient.SendMessage(new TimeCheckMessage() { DispatcherTime = Simulator.Instance.ClockTime} );
+                MultiPlayerClient.SendMessage(new TimeCheckMessage() { DispatcherTime = Simulator.Instance.ClockTime });
                 lastSyncTime = newtime;
             }
             RemovePlayer();
@@ -497,23 +488,8 @@ namespace Orts.Simulation.MultiPlayer
                 {
                     BroadCast((new MSGMessage("All", "NoOverSpeed", "Penalty for overspeed and passing stop light")).ToString());
                 }
-                BroadCast(GetEnvInfo());
+                Broadcast(new WeatherMessage(Simulator.Instance.Weather));
             }
-        }
-
-        //create weather message
-        public string GetEnvInfo()
-        {
-            return (new MSGWeather(-1, overcastFactor, pricipitationIntensity, fogDistance)).ToString();//update weather
-
-        }
-
-        //set weather message
-        public void SetEnvInfo(float o, float f)
-        {
-            fogDistance = f;
-            overcastFactor = o;
-
         }
 
         //this will be used in the server, in Simulator.cs

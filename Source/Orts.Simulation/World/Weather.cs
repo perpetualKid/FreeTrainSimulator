@@ -17,6 +17,8 @@
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
+
 namespace Orts.Simulation.World
 {
     public class Weather
@@ -34,6 +36,7 @@ namespace Orts.Simulation.World
         //   Moderate     0.5-1.0km
         //   Heavy       <0.5km
 
+        public WeatherType WeatherType { get; } = Simulator.Instance.WeatherType;
         /// <summary>
         /// Overcast factor: 0.0 = almost no clouds; 0.1 = wispy clouds; 1.0 = total overcast. 
         /// </summary>

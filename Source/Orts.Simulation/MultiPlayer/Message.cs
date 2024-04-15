@@ -70,7 +70,6 @@ namespace Orts.Simulation.MultiPlayer
                 "UPDATETRAIN" => new MSGUpdateTrain(messageEncoding.GetString(content)),
                 "CONTROL" => new MSGControl(messageEncoding.GetString(content)),
                 "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
-                "WEATHER" => new MSGWeather(messageEncoding.GetString(content)),
                 "SIGNALCHANGE" => new MSGSignalChange(messageEncoding.GetString(content)),
                 "EXHAUST" => new MSGExhaust(messageEncoding.GetString(content)),
                 "FLIP" => new MSGFlip(messageEncoding.GetString(content)),
@@ -3083,70 +3082,6 @@ namespace Orts.Simulation.MultiPlayer
         }
     }
     #endregion MSGLocoInfo
-
-    #region MSGWeather
-    public class MSGWeather : Message
-    {
-        public int weather;
-        public float overcast;
-        public float pricipitation;
-        public float fog;
-
-        public MSGWeather(string m)
-        {
-            weather = -1;
-            overcast = pricipitation = fog = -1;
-            var tmp = m.Split(' ');
-            weather = int.Parse(tmp[0]);
-            overcast = float.Parse(tmp[1], CultureInfo.InvariantCulture);
-            pricipitation = float.Parse(tmp[2], CultureInfo.InvariantCulture);
-            fog = float.Parse(tmp[3], CultureInfo.InvariantCulture);
-        }
-
-        public MSGWeather(int w, float o, float p, float f)
-        {
-            weather = -1;
-            overcast = pricipitation = fog = -1;
-            if (w >= 0)
-                weather = w;
-            if (o >= 0)
-                overcast = o;
-            if (p >= 0)
-                pricipitation = p;
-            if (f >= 0)
-                fog = f;
-        }
-
-        public override string ToString()
-        {
-            var tmp = "WEATHER " + weather + " " + overcast.ToString(CultureInfo.InvariantCulture) + " " + pricipitation.ToString(CultureInfo.InvariantCulture) + " " + fog.ToString(CultureInfo.InvariantCulture);
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            if (MultiPlayerManager.IsServer())
-                return;
-            if (weather >= 0)
-            {
-                MultiPlayerManager.Instance().weather = weather;
-            }
-            if (overcast >= 0)
-            {
-                MultiPlayerManager.Instance().overcastFactor = overcast;
-            }
-            if (pricipitation >= 0)
-            {
-                MultiPlayerManager.Instance().pricipitationIntensity = pricipitation;
-            }
-            if (fog >= 0)
-            {
-                MultiPlayerManager.Instance().fogDistance = fog;
-            }
-            MultiPlayerManager.Instance().weatherChanged = true;
-        }
-    }
-    #endregion MSGWeather
 
     #region MSGSignalChange
     public class MSGSignalChange : Message
