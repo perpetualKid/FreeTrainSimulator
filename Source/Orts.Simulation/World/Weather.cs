@@ -36,7 +36,7 @@ namespace Orts.Simulation.World
         //   Moderate     0.5-1.0km
         //   Heavy       <0.5km
 
-        public WeatherType WeatherType { get; } = Simulator.Instance.WeatherType;
+        public WeatherType WeatherType => Simulator.Instance?.WeatherType ?? WeatherType.Clear;
         /// <summary>
         /// Overcast factor: 0.0 = almost no clouds; 0.1 = wispy clouds; 1.0 = total overcast. 
         /// </summary>
