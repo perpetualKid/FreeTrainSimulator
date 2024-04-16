@@ -2,7 +2,7 @@
 
 using Orts.Common;
 
-namespace Orts.Simulation.MultiPlayer.Messaging
+namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
     public partial class LostMessage : MultiPlayerMessageContent

@@ -17,7 +17,7 @@ using Orts.Graphics.Window.Controls.Layout;
 using Orts.Models.Simplified;
 using Orts.Settings;
 using Orts.Simulation;
-using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;

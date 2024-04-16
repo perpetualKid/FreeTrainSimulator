@@ -25,7 +25,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Simulation;
-using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 

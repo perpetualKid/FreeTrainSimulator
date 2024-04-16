@@ -39,7 +39,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR;
 using Orts.Simulation.Activities;
-using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;

@@ -17,7 +17,7 @@
 
 using System;
 
-namespace Orts.Simulation.MultiPlayer
+namespace Orts.Simulation.Multiplayer
 {
     public class MultiPlayerException : Exception
     {

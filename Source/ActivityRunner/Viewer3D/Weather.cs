@@ -39,8 +39,8 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.Simulation;
-using Orts.Simulation.MultiPlayer;
-using Orts.Simulation.MultiPlayer.Messaging;
+using Orts.Simulation.Multiplayer;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Viewer3D

@@ -4,7 +4,7 @@ using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Formats.Msts;
 using Orts.Simulation;
-using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.Multiplayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {

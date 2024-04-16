@@ -26,7 +26,7 @@ using Orts.Common;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Simulation;
-using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;

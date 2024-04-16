@@ -18,5 +18,6 @@ namespace MultiPlayer.Shared
         TimeCheck,
         TrainEvent,
         Weather,
+        Control,
     }
 }

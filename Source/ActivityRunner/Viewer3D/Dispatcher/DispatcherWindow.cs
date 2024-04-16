@@ -28,7 +28,7 @@ using Orts.Graphics.Xna;
 using Orts.Models.Track;
 using Orts.Settings;
 using Orts.Simulation;
-using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 

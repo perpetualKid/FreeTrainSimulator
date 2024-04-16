@@ -32,8 +32,8 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Files;
 using Orts.Simulation;
-using Orts.Simulation.MultiPlayer;
-using Orts.Simulation.MultiPlayer.Messaging;
+using Orts.Simulation.Multiplayer;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.World;
 using Orts.Viewer3D;
 

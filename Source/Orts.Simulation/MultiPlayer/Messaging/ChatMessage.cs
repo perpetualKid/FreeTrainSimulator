@@ -4,13 +4,13 @@ using System.Linq;
 
 using MemoryPack;
 
-namespace Orts.Simulation.MultiPlayer.Messaging
+namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
     public partial class ChatMessage : MultiPlayerMessageContent
     {
         public string Text { get; set; }
-        public IEnumerable<string> Receipients { get; private set; }
+        public IEnumerable<string> Recipients { get; private set; }
 
         [MemoryPackConstructor]
         private ChatMessage() { }
@@ -22,7 +22,7 @@ namespace Orts.Simulation.MultiPlayer.Messaging
             int index = message.IndexOf(':', StringComparison.OrdinalIgnoreCase);
             if (index > 0)
             {
-                Receipients = message[..index].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                Recipients = message[..index].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (++index <= message.Length)
                     Text = message[index..];
             }
@@ -34,7 +34,7 @@ namespace Orts.Simulation.MultiPlayer.Messaging
 
         public override void HandleMessage()
         {
-            if (Receipients == null || !Receipients.Any() || Receipients.Contains(multiPlayerManager.UserName))
+            if (Recipients == null || !Recipients.Any() || Recipients.Contains(multiPlayerManager.UserName, StringComparer.OrdinalIgnoreCase))
             {
                 Simulator.Instance.Confirmer?.Message(MultiPlayerManager.Catalog.GetString(" From {0}: {1}", User, Text));
             }

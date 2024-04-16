@@ -5,7 +5,7 @@ using MemoryPack;
 
 using MultiPlayer.Shared;
 
-namespace Orts.Simulation.MultiPlayer.Messaging
+namespace Orts.Simulation.Multiplayer.Messaging
 {
     internal static class MessageDecoder
     {
@@ -22,6 +22,7 @@ namespace Orts.Simulation.MultiPlayer.Messaging
                 MessageType.TimeCheck => MemoryPackSerializer.Deserialize<TimeCheckMessage>(message.Payload),
                 MessageType.TrainEvent => MemoryPackSerializer.Deserialize<TrainEventMessage>(message.Payload),
                 MessageType.Weather => MemoryPackSerializer.Deserialize<WeatherMessage>(message.Payload),
+                MessageType.Control => MemoryPackSerializer.Deserialize<ControlMessage>(message.Payload),
                 _ => throw new ProtocolException($"Unknown Message type {message.MessageType}"),
             };
         }
@@ -61,6 +62,10 @@ namespace Orts.Simulation.MultiPlayer.Messaging
                 case WeatherMessage weatherMessage:
                     MemoryPackSerializer.Serialize(bufferPipe.Writer, weatherMessage);
                     messageType = MessageType.Weather;
+                    break;
+                case ControlMessage controlMessage:
+                    MemoryPackSerializer.Serialize(bufferPipe.Writer, controlMessage);
+                    messageType = MessageType.Control;
                     break;
             }
 

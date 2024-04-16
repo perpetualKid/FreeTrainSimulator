@@ -37,7 +37,7 @@ using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
-using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.Multiplayer;
 using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Processes

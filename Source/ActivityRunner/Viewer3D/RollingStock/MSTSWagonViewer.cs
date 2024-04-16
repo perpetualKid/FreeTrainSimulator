@@ -36,8 +36,8 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Simulation.Commanding;
-using Orts.Simulation.MultiPlayer;
-using Orts.Simulation.MultiPlayer.Messaging;
+using Orts.Simulation.Multiplayer;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 

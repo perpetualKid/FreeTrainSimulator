@@ -21,7 +21,7 @@ using System.IO;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
-namespace Orts.Simulation.MultiPlayer
+namespace Orts.Simulation.Multiplayer
 {
     public enum OnlinePlayerStatus 
     { 

@@ -13,9 +13,9 @@ using MagicOnion.Serialization.MemoryPack;
 using MultiPlayer.Shared;
 
 using Orts.Common;
-using Orts.Simulation.MultiPlayer.Messaging;
+using Orts.Simulation.Multiplayer.Messaging;
 
-namespace Orts.Simulation.MultiPlayer
+namespace Orts.Simulation.Multiplayer
 {
     public class MultiPlayerClient : IMultiPlayerClient, IDisposable, IAsyncDisposable
     {

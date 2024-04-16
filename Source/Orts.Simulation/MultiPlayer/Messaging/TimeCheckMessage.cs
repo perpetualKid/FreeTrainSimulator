@@ -1,6 +1,6 @@
 ﻿using MemoryPack;
 
-namespace Orts.Simulation.MultiPlayer.Messaging
+namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
     public partial class TimeCheckMessage : MultiPlayerMessageContent

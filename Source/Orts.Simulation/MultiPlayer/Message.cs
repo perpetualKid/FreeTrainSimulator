@@ -34,13 +34,14 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Commanding;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
 using Orts.Simulation.World;
 
-namespace Orts.Simulation.MultiPlayer
+namespace Orts.Simulation.Multiplayer
 {
     public abstract class Message
     {
@@ -63,7 +64,6 @@ namespace Orts.Simulation.MultiPlayer
                 "SWITCH" => new MSGSwitch(messageEncoding.GetString(content)),
                 "RESETSIGNAL" => new MSGResetSignal(messageEncoding.GetString(content)),
                 "REMOVETRAIN" => new MSGRemoveTrain(messageEncoding.GetString(content)),
-                "MESSAGE" => new MSGMessage(messageEncoding.GetString(content)),
                 "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
                 "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
                 "GETTRAIN" => new MSGGetTrain(messageEncoding.GetString(content)),
@@ -77,6 +77,7 @@ namespace Orts.Simulation.MultiPlayer
                 _ => throw new ProtocolException($"Unknown Message type {messageEncoding.GetString(messageType)}"),
             };
         }
+
         public abstract void HandleMsg();
 
         public virtual int EstimatedMessageSize => 0;
@@ -299,6 +300,7 @@ namespace Orts.Simulation.MultiPlayer
     #region MSGPlayer
     public class MSGPlayer : MSGRequired
     {
+        private readonly object lockObjPlayer = new object();
         private WorldLocation location;
         public ref readonly WorldLocation Location => ref location;
         public string user = "";
@@ -337,11 +339,6 @@ namespace Orts.Simulation.MultiPlayer
                 var tmp = areas[0].Trim();
                 string[] data = tmp.Split(' ');
                 user = data[0];
-                if (MultiPlayerManager.IsServer() && !MultiPlayerManager.Instance().AllowNewPlayer)//server does not want to have more people
-                {
-                    MultiPlayerManager.BroadCast((new MSGMessage(user, "Error", "The dispatcher does not want to add more player")).ToString());
-                    throw (new MultiPlayerException("Not want to add new player"));
-                }
                 code = data[1];
                 num = int.Parse(data[2]);
                 location = new WorldLocation(int.Parse(data[3]), int.Parse(data[4]), float.Parse(data[5], CultureInfo.InvariantCulture), 0, float.Parse(data[6], CultureInfo.InvariantCulture));
@@ -499,17 +496,14 @@ namespace Orts.Simulation.MultiPlayer
             return " " + tmp.Length + ": " + tmp;
         }
 
-        private object lockObjPlayer = new object();
         public override void HandleMsg()
         {
-            if (this.version != MultiPlayerManager.ProtocolVersion)
+            if (version != MultiPlayerManager.ProtocolVersion)
             {
-                var reason = "Wrong version of protocol, please update to version " + MultiPlayerManager.ProtocolVersion;
                 if (MultiPlayerManager.IsServer())
                 {
-                    MultiPlayerManager.BroadCast((new MSGMessage(this.user, "Error", reason)).ToString());//server will broadcast this error
+                    MultiPlayerManager.Broadcast(new ControlMessage(user, ControlMessageType.Error, "Wrong version of protocol, please update to version " + MultiPlayerManager.ProtocolVersion));//server will broadcast this error
                     return;
-                    //throw new InvalidDataException("Player has wrong version of protocol");//ignore this player message
                 }
                 else
                 {
@@ -521,9 +515,8 @@ namespace Orts.Simulation.MultiPlayer
             {
                 if ((MD5 != "NA" && MD5 != MultiPlayerManager.Instance().MD5Check) || !Simulator.Instance.RouteFolder.RouteName.Equals(route, StringComparison.OrdinalIgnoreCase))
                 {
-                    MultiPlayerManager.BroadCast((new MSGMessage(this.user, "Error", "Wrong route dir or TDB file, the dispatcher uses a different route")).ToString());//server will broadcast this error
+                    MultiPlayerManager.Broadcast(new ControlMessage(user, ControlMessageType.Error, "Wrong route dir or TDB file, the dispatcher uses a different route"));//server will broadcast this error
                     return;
-                    //throw new InvalidDataException("Player has wrong version of route");//ignore this player message
                 }
             }
             //check if other players with the same name is online
@@ -539,7 +532,7 @@ namespace Orts.Simulation.MultiPlayer
                             MultiPlayerManager.OnlineTrains.Players[user].Protected = true;
                         }
                         catch { }
-                        MultiPlayerManager.BroadCast((new MSGMessage(user, "SameNameError", "A user with the same name exists")).ToString());
+                        MultiPlayerManager.Broadcast(new ControlMessage(user, ControlMessageType.SameNameError, "A user with the same name exists"));
                         return;
                         //throw new SameNameException("Same Name");
                     }
@@ -864,13 +857,13 @@ namespace Orts.Simulation.MultiPlayer
                 //if a normal user, and the dispatcher does not want hand throw, just ignore it
                 if (HandThrown == true && !MultiPlayerManager.Instance().AllowedManualSwitch && !MultiPlayerManager.Instance().aiderList.Contains(user))
                 {
-                    MultiPlayerManager.BroadCast((new MSGMessage(user, "SwitchWarning", "Server does not allow hand thrown of switch")).ToString());
+                    MultiPlayerManager.Broadcast(new ControlMessage(user, ControlMessageType.SwitchWarning, "Server does not allow hand thrown of switch"));
                     return;
                 }
                 TrackJunctionNode trj = RuntimeData.Instance.TrackDB.GetJunctionNode(TileX, TileZ, WorldID);
                 bool state = Simulator.Instance.SignalEnvironment.RequestSetSwitch(trj, this.Selection);
                 if (state == false)
-                    MultiPlayerManager.BroadCast((new MSGMessage(user, "Warning", "Train on the switch, cannot throw")).ToString());
+                    MultiPlayerManager.Broadcast(new ControlMessage(user, ControlMessageType.Warning, "Train on the switch, cannot throw"));
                 else
                     MultiPlayerManager.BroadCast(this.ToString()); //server will tell others
             }
@@ -931,7 +924,7 @@ namespace Orts.Simulation.MultiPlayer
                     var t = MultiPlayerManager.FindPlayerTrain(user);
                     if (t != null)
                         t.RequestSignalPermission(Direction.Forward);
-                    MultiPlayer.MultiPlayerManager.BroadCast((new MSGSignalStatus()).ToString());
+                    Multiplayer.MultiPlayerManager.BroadCast((new MSGSignalStatus()).ToString());
                 }
                 catch (Exception) { }
             }
@@ -1750,85 +1743,6 @@ namespace Orts.Simulation.MultiPlayer
         }
     }
     #endregion MSGTrainMerge
-
-    #region MSGMessage
-    //warning, error or information from the server, a client receives Error will disconnect itself
-    public class MSGMessage : MSGRequired
-    {
-        private string msgx;
-        private string level;
-        private string user;
-        public MSGMessage(string m)
-        {
-            string[] t = m.Split('\t');
-            user = t[0].Trim();
-            level = t[1].Trim();
-            msgx = t[2];
-        }
-
-        public MSGMessage(string u, string l, string m)
-        {
-            user = u;
-            level = l;
-
-            msgx = m;
-        }
-
-        public override void HandleMsg()
-        {
-            if (MultiPlayerManager.GetUserName() == user || user == "All")
-            {
-                Trace.WriteLine($"{level}: {msgx}");
-                if (Simulator.Instance.Confirmer != null && level == "Error")
-                    Simulator.Instance.Confirmer.Message(ConfirmLevel.Error, msgx);
-
-                if (level == "Error" && !MultiPlayerManager.IsServer())//if is a client, fatal error, will close the connection, and get into single mode
-                {
-                    throw new MultiPlayerException();//this is a fatal error, thus the client will be stopped in ClientComm
-                }
-                else if (level == "SameNameError" && !MultiPlayerManager.IsServer())//someone with my name but I have been admitted into the game, will ignore it, otherwise, will quit
-                {
-                    Trace.WriteLine(MultiPlayerManager.OnlineTrains.Players.Count);
-
-                    if (MultiPlayerManager.OnlineTrains.Players.Count < 1)
-                    {
-                        if (Simulator.Instance.Confirmer != null)
-                            Simulator.Instance.Confirmer.Message(ConfirmLevel.Error, MultiPlayerManager.Catalog.GetString("Name conflicted with people in the game, will play in single mode"));
-                        throw new SameNameException();//this is a fatal error, thus the client will be stopped in ClientComm
-                    }
-                }
-                else if (level == "SwitchWarning")
-                {
-                    MultiPlayerManager.Instance().TrySwitch = false;
-                    return;
-                }
-                else if (level == "SwitchOK")
-                {
-                    MultiPlayerManager.Instance().TrySwitch = true;
-                    return;
-                }
-                else if (level == "OverSpeedOK")
-                {
-                    MultiPlayerManager.Instance().CheckSpad = false;
-                    return;
-                }
-                else if (level == "NoOverSpeed")
-                {
-                    MultiPlayerManager.Instance().CheckSpad = true;
-                    return;
-                }
-                Simulator.Instance.Confirmer?.Message(level == "Warning" ? ConfirmLevel.Warning : level == "Info" ? ConfirmLevel.Information : ConfirmLevel.None, msgx);
-
-            }
-        }
-
-        public override string ToString()
-        {
-            string tmp = "MESSAGE " + user + "\t" + level + "\t" + msgx;
-            return " " + tmp.Length + ": " + tmp;
-        }
-    }
-    #endregion MSGMessage
 
     #region MSGControl
     //message to ask for the control of a train or confirm it

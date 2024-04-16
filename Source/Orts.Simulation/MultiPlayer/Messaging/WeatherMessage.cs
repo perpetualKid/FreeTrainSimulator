@@ -3,7 +3,7 @@
 using Orts.Common;
 using Orts.Simulation.World;
 
-namespace Orts.Simulation.MultiPlayer.Messaging
+namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
     public partial class WeatherMessage : MultiPlayerMessageContent

@@ -41,11 +41,11 @@ using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Commanding;
-using Orts.Simulation.MultiPlayer.Messaging;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
-namespace Orts.Simulation.MultiPlayer
+namespace Orts.Simulation.Multiplayer
 {
     public enum MultiplayerState
     {
@@ -87,7 +87,6 @@ namespace Orts.Simulation.MultiPlayer
         public int MPUpdateInterval { get; } = 10;
         public bool AllowedManualSwitch = true;
         public bool TrySwitch = true;
-        public bool AllowNewPlayer = true;
         public string lastSender = ""; //who last sends me a message
         public bool AmAider; //am I aiding the dispatcher?
         public List<string> aiderList;
@@ -480,13 +479,13 @@ namespace Orts.Simulation.MultiPlayer
                         continue;//this train is going to be removed, should avoid it.
                     BroadCast((new MSGTrain(t, t.Number)).ToString());
                 }
-                if (CheckSpad == false)
+                if (CheckSpad)
                 {
-                    BroadCast((new MSGMessage("All", "OverSpeedOK", "OK to go overspeed and pass stop light")).ToString());
+                    Broadcast(new ControlMessage(ControlMessageType.NoOverspeed, "Penalty for overspeed and passing stop light"));
                 }
                 else
                 {
-                    BroadCast((new MSGMessage("All", "NoOverSpeed", "Penalty for overspeed and passing stop light")).ToString());
+                    Broadcast(new ControlMessage(ControlMessageType.OverspeedOK, "OK to go overspeed and pass stop light"));
                 }
                 Broadcast(new WeatherMessage(Simulator.Instance.Weather));
             }

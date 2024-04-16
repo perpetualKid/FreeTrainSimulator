@@ -4,7 +4,7 @@ using GetText;
 
 using MemoryPack;
 
-namespace Orts.Simulation.MultiPlayer.Messaging
+namespace Orts.Simulation.Multiplayer.Messaging
 {
 
     [MemoryPackable]

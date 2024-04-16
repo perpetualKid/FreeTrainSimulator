@@ -13,7 +13,7 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Settings;
-using Orts.Simulation.MultiPlayer;
+using Orts.Simulation.Multiplayer;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {

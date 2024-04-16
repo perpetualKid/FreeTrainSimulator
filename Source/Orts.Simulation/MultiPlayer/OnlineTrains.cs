@@ -25,11 +25,12 @@ using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Track;
 
-namespace Orts.Simulation.MultiPlayer
+namespace Orts.Simulation.Multiplayer
 {
     public class OnlineTrains
     {
@@ -179,7 +180,10 @@ namespace Orts.Simulation.MultiPlayer
                 {
                     AIPath aiPath = new AIPath(p.Path, Simulator.Instance.TimetableMode);
                 }
-                catch (Exception) { MultiPlayerManager.BroadCast((new MSGMessage(player.user, "Warning", "Server does not have path file provided, signals may always be red for you.")).ToString()); }
+                catch (Exception)
+                {
+                    MultiPlayerManager.Broadcast(new ControlMessage(player.user, ControlMessageType.Warning, "Server does not have path file provided, signals may always be red for you."));
+                }
             }
 
             try
@@ -188,7 +192,7 @@ namespace Orts.Simulation.MultiPlayer
             }
             catch (Exception e) when (MultiPlayerManager.IsServer())
             {
-                MultiPlayerManager.BroadCast((new MSGMessage(player.user, "Error", "MultiPlayer Error：" + e.Message)).ToString());
+                MultiPlayerManager.Broadcast(new ControlMessage(player.user, ControlMessageType.Error, "MultiPlayer Error：" + e.Message));
             }
             string[] faDiscreteSplit;
             List<LoadData> loadDataList = new List<LoadData>();
@@ -249,7 +253,7 @@ namespace Orts.Simulation.MultiPlayer
             TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition();
             if (tempRoute.Count == 0)
             {
-                MultiPlayerManager.BroadCast((new MSGMessage(p.Username, "Error", "Cannot be placed into the game")).ToString());//server will broadcast this error
+                MultiPlayerManager.Broadcast( new ControlMessage(p.Username, ControlMessageType.Error, "Cannot be placed into the game"));//server will broadcast this error
                 throw new InvalidDataException("Remote train original position not clear");
             }
 
