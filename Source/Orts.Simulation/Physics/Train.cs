@@ -8083,7 +8083,7 @@ namespace Orts.Simulation.Physics
         {
             if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client)
             {
-                MultiPlayerManager.Notify((new MSGResetSignal(MultiPlayerManager.GetUserName())).ToString());
+                MultiPlayerManager.Broadcast(new SignalResetMessage());
                 return;
             }
             if (ControlMode == TrainControlMode.Manual)

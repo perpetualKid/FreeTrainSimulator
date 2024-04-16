@@ -61,7 +61,6 @@ namespace Orts.Simulation.Multiplayer
                 "PLAYERTRAINSW" => new MSGPlayerTrainSw(messageEncoding.GetString(content)),
                 "ORGSWITCH" => new MSGOrgSwitch(messageEncoding.GetString(content)),
                 "SWITCH" => new MSGSwitch(messageEncoding.GetString(content)),
-                "RESETSIGNAL" => new MSGResetSignal(messageEncoding.GetString(content)),
                 "REMOVETRAIN" => new MSGRemoveTrain(messageEncoding.GetString(content)),
                 "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
                 "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
@@ -894,41 +893,6 @@ namespace Orts.Simulation.Multiplayer
         }
     }
     #endregion MGSwitch
-
-    #region MSGResetSignal
-    public class MSGResetSignal : Message
-    {
-        public string user;
-        public int TileX, TileZ, WorldID, Selection;
-
-        public MSGResetSignal(string m)
-        {
-            user = m.Trim();
-        }
-
-        public override string ToString()
-        {
-            string tmp = "RESETSIGNAL " + user;
-            //Trace.WriteLine(tmp);
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            if (MultiPlayerManager.IsServer())
-            {
-                try
-                {
-                    var t = MultiPlayerManager.FindPlayerTrain(user);
-                    if (t != null)
-                        t.RequestSignalPermission(Direction.Forward);
-                    Multiplayer.MultiPlayerManager.BroadCast((new MSGSignalStatus()).ToString());
-                }
-                catch (Exception) { }
-            }
-        }
-    }
-    #endregion MSGResetSignal
 
     #region MSGOrgSwitch
     public class MSGOrgSwitch : MSGRequired
