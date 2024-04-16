@@ -178,32 +178,27 @@ namespace Orts.Simulation.Multiplayer
         /// </summary>
         public void Update(in ElapsedTime elapsedTime)
         {
+            if (MultiPlayerClient == null)
+                return;
+
             double newtime = Simulator.Instance.GameTime;
             if (begineZeroTime == 0)
                 begineZeroTime = newtime - 10;
 
-            //server update train location of all
-            if (IsDispatcher && newtime - lastMoveTime >= 1f)
+            if (newtime - lastMoveTime >= 1f)
             {
-                MSGMove move = new MSGMove();
-                if (Simulator.Instance.PlayerLocomotive.Train.TrainType != TrainType.Remote)
-                    move.AddNewItem(GetUserName(), Simulator.Instance.PlayerLocomotive.Train);
-                BroadCast(OnlineTrains.MoveTrains(move));
-                MSGExhaust exhaust = new MSGExhaust(); // Also updating loco exhaust
-                Train t = Simulator.Instance.PlayerLocomotive.Train;
-                for (int iCar = 0; iCar < t.Cars.Count; iCar++)
+                Train train = Simulator.Instance.PlayerLocomotive.Train;
+                if (train.TrainType != TrainType.Remote)
                 {
-                    if (t.Cars[iCar] is MSTSDieselLocomotive)
-                    {
-                        exhaust.AddNewItem(GetUserName(), t, iCar);
-                    }
-                }
-                // Broadcast also exhaust
-                var exhaustMessage = OnlineTrains.ExhaustingLocos(exhaust);
-                if (!string.IsNullOrEmpty(exhaustMessage))
-                    BroadCast(exhaustMessage);
+                    MSGMove move = new MSGMove();
+                    if (Simulator.Instance.PlayerLocomotive.Train.TrainType != TrainType.Remote)
+                        move.AddNewItem(GetUserName(), Simulator.Instance.PlayerLocomotive.Train);
+                    BroadCast(OnlineTrains.MoveTrains(move));
+                    // Also updating loco exhaust
+                    Broadcast(new ExhaustMessage(Simulator.Instance.PlayerLocomotive.Train));
 
-                lastMoveTime = newtime;
+                    lastMoveTime = newtime;
+                }
             }
 
             //server updates switch
@@ -218,47 +213,6 @@ namespace Orts.Simulation.Multiplayer
                 if (signalStatus.OKtoSend)
                     BroadCast(signalStatus.ToString());
 
-            }
-
-            //client updates itself
-            if (MultiPlayerClient != null && !IsDispatcher && newtime - lastMoveTime >= 1f)
-            {
-                Train t = Simulator.Instance.PlayerLocomotive.Train;
-                MSGMove move = new MSGMove();
-                MSGExhaust exhaust = new MSGExhaust(); // Also updating loco exhaust
-                //if I am still controlling the train
-                if (t.TrainType != TrainType.Remote)
-                {
-                    if (Math.Abs(t.SpeedMpS) > 0.001 || newtime - begineZeroTime < 5f || Math.Abs(t.LastReportedSpeed) > 0)
-                    {
-                        move.AddNewItem(GetUserName(), t);
-                        for (int iCar = 0; iCar < t.Cars.Count; iCar++)
-                        {
-                            if (t.Cars[iCar] is MSTSDieselLocomotive)
-                            {
-                                exhaust.AddNewItem(GetUserName(), t, iCar);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (Math.Abs(previousSpeed) > 0.001)
-                        {
-                            begineZeroTime = newtime;
-                        }
-                    }
-
-                }
-                //MoveUncoupledTrains(move); //if there are uncoupled trains
-                //if there are messages to send
-                if (move.OKtoSend())
-                {
-                    MultiPlayerClient.SendLegacyMessage(move.ToString());
-                    if (exhaust.OKtoSend())
-                        MultiPlayerClient.SendLegacyMessage(exhaust.ToString());
-                    lastMoveTime = newtime;
-                }
-                previousSpeed = t.SpeedMpS;
             }
 
             //some players are removed
@@ -508,16 +462,16 @@ namespace Orts.Simulation.Multiplayer
 
             StringBuilder info = new StringBuilder();
             if (Simulator.Instance.PlayerLocomotive.Train.TrainType == TrainType.Remote)
-                info.Append("Your locomotive is a helper\t");
+                info.Append("Your locomotive is a helper\train");
             info.Append(CultureInfo.InvariantCulture, $"{OnlineTrains.Players.Count + 1}{(OnlineTrains.Players.Count <= 0 ? " player " : "  players ")}");
             info.Append(CultureInfo.InvariantCulture, $"{Simulator.Instance.Trains.Count}{(Simulator.Instance.Trains.Count <= 1 ? " train" : "  trains")}");
             TrainCar mine = Simulator.Instance.PlayerLocomotive;
             users.Clear();
             try//the list of players may be changed during the following process
             {
-                //foreach (var train in Simulator.Trains) info += "\t" + train.Number + " " + train.Cars.Count;
-                //info += "\t" + MPManager.OnlineTrains.Players.Count;
-                //foreach (var p in MPManager.OnlineTrains.Players) info += "\t" + p.Value.Train.Number + " " + p.Key;
+                //foreach (var train in Simulator.Trains) info += "\train" + train.Number + " " + train.Cars.Count;
+                //info += "\train" + MPManager.OnlineTrains.Players.Count;
+                //foreach (var p in MPManager.OnlineTrains.Players) info += "\train" + p.Value.Train.Number + " " + p.Key;
                 foreach (OnlinePlayer p in OnlineTrains.Players.Values)
                 {
                     if (p.Train == null)
@@ -538,11 +492,11 @@ namespace Orts.Simulation.Multiplayer
 
             foreach (KeyValuePair<double, string> pair in users.Take(10))
             {
-                info.Append(CultureInfo.InvariantCulture, $"\t{pair.Value}: distance of {(int)(Simulator.Instance.Route.MilepostUnitsMetric ? pair.Key : Size.Length.ToYd(pair.Key)) + metric}");
+                info.Append(CultureInfo.InvariantCulture, $"\train{pair.Value}: distance of {(int)(Simulator.Instance.Route.MilepostUnitsMetric ? pair.Key : Size.Length.ToYd(pair.Key)) + metric}");
             }
             if (OnlineTrains.Players.Count > 10)
             {
-                info.Append("\t ...");
+                info.Append("\train ...");
             }
             return info.ToString();
         }

@@ -338,29 +338,6 @@ namespace Orts.Simulation.Multiplayer
                 p.Train.ReverseFormation(false);
         }
 
-        public string ExhaustingLocos(MSGExhaust exhaust)
-        {
-            string tmp = "";
-            if (exhaust == null)
-                exhaust = new MSGExhaust();
-            foreach (OnlineLocomotive l in OnlineLocomotives)
-            {
-                if (l.userName != MultiPlayerManager.GetUserName())
-                {
-                    Train t = MultiPlayerManager.FindPlayerTrain(l.userName);
-                    if (t != null && l.trainCarPosition < t.Cars.Count && (Math.Abs(t.SpeedMpS) > 0.001 || Math.Abs(t.LastReportedSpeed) > 0))
-                    {
-                        if (t.Cars[l.trainCarPosition] is MSTSDieselLocomotive)
-                        {
-                            exhaust.AddNewItem(l.userName, t, l.trainCarPosition);
-                        }
-                    }
-                }
-            }
-            tmp += exhaust.ToString();
-            return tmp;
-        }
-
         // Save
         public void Save(BinaryWriter outf)
         {

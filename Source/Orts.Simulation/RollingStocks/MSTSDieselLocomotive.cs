@@ -1363,7 +1363,7 @@ namespace Orts.Simulation.RollingStocks
         }
 
         //used by remote diesels to update their exhaust
-        public void RemoteUpdate(float exhPart, float exhMag, float exhColorR, float exhColorG, float exhColorB)
+        public void RemoteUpdate(double exhPart, double exhMag, double exhColorR, double exhColorG, double exhColorB)
         {
             ExhaustParticles.Preset(exhPart);
             ExhaustMagnitude.Preset(exhMag);
@@ -1371,7 +1371,6 @@ namespace Orts.Simulation.RollingStocks
             ExhaustColorG.Preset(exhColorG);
             ExhaustColorB.Preset(exhColorB);
         }
-
 
         //================================================================================================//
         /// <summary>

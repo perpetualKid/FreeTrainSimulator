@@ -68,7 +68,6 @@ namespace Orts.Simulation.Multiplayer
                 "UPDATETRAIN" => new MSGUpdateTrain(messageEncoding.GetString(content)),
                 "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
                 "SIGNALCHANGE" => new MSGSignalChange(messageEncoding.GetString(content)),
-                "EXHAUST" => new MSGExhaust(messageEncoding.GetString(content)),
                 "FLIP" => new MSGFlip(messageEncoding.GetString(content)),
                 "MOVINGTBL" => new MSGMovingTable(messageEncoding.GetString(content)),
                 _ => throw new ProtocolException($"Unknown Message type {messageEncoding.GetString(messageType)}"),
@@ -2887,110 +2886,6 @@ namespace Orts.Simulation.Multiplayer
         }
     }
     #endregion MSGSignalChange
-
-    #region MSGExhaust
-    public class MSGExhaust : Message
-    {
-        private class MSGExhaustItem
-        {
-            public string user;
-            public int num;
-            public int iCar;
-            public float exhPart;
-            public float exhMag;
-            public float exhColorR, exhColorG, exhColorB;
-
-            public MSGExhaustItem(string u, int n, int i, float eP, float eM, float eCR, float eCG, float eCB)
-            {
-                user = u;
-                num = n;
-                iCar = i;
-                exhPart = eP;
-                exhMag = eM;
-                exhColorR = eCR;
-                exhColorG = eCG;
-                exhColorB = eCB;
-            }
-
-            public override string ToString()
-            {
-                return user + " " + num + " " + iCar + " " + exhPart.ToString(CultureInfo.InvariantCulture) + " " + exhMag.ToString(CultureInfo.InvariantCulture) +
-                    " " + exhColorR.ToString(CultureInfo.InvariantCulture) + " " + exhColorG.ToString(CultureInfo.InvariantCulture) + " " + exhColorB.ToString(CultureInfo.InvariantCulture);
-            }
-        }
-
-        private List<MSGExhaustItem> items;
-
-        public MSGExhaust(string m)
-        {
-            m = m.Trim();
-            string[] areas = m.Split(' ');
-            if (areas.Length % 8 != 0)
-            {
-                throw new ArgumentOutOfRangeException("Parsing error " + m);
-            }
-            try
-            {
-                int i = 0;
-                items = new List<MSGExhaustItem>();
-                for (i = 0; i < areas.Length / 8; i++)
-                    items.Add(new MSGExhaustItem(areas[8 * i], int.Parse(areas[8 * i + 1]), int.Parse(areas[8 * i + 2]),
-                        float.Parse(areas[8 * i + 3], CultureInfo.InvariantCulture), float.Parse(areas[8 * i + 4], CultureInfo.InvariantCulture),
-                        float.Parse(areas[8 * i + 5], CultureInfo.InvariantCulture), float.Parse(areas[8 * i + 6], CultureInfo.InvariantCulture), float.Parse(areas[8 * i + 7], CultureInfo.InvariantCulture)));
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-
-        public MSGExhaust()
-        {
-        }
-
-        public void AddNewItem(string u, Train t, int c)
-        {
-            if (items == null)
-                items = new List<MSGExhaustItem>();
-            MSTSDieselLocomotive l = t.Cars[c] as MSTSDieselLocomotive;
-            items.Add(new MSGExhaustItem(u, t.Number, c, (float)l.ExhaustParticles.SmoothedValue, (float)l.ExhaustMagnitude.SmoothedValue,
-                (float)l.ExhaustColorR.SmoothedValue, (float)l.ExhaustColorG.SmoothedValue, (float)l.ExhaustColorB.SmoothedValue));
-        }
-
-        public bool OKtoSend()
-        {
-            if (items != null && items.Count > 0)
-                return true;
-            return false;
-        }
-
-        public override string ToString()
-        {
-            if (items == null || items.Count == 0)
-                return "";
-            string tmp = "EXHAUST ";
-            for (var i = 0; i < items.Count; i++)
-                tmp += items[i].ToString() + " ";
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            foreach (MSGExhaustItem m in items)
-            {
-                if (m.user != MultiPlayerManager.GetUserName())
-                {
-                    Train t = MultiPlayerManager.FindPlayerTrain(m.user);
-                    if (t != null && t.Cars.Count > m.iCar && t.Cars[m.iCar] is MSTSDieselLocomotive)
-                    {
-                        MSTSDieselLocomotive remoteDiesel = t.Cars[m.iCar] as MSTSDieselLocomotive;
-                        remoteDiesel.RemoteUpdate(m.exhPart, m.exhMag, m.exhColorR, m.exhColorG, m.exhColorB);
-                    }
-                }
-            }
-        }
-    }
-    #endregion MSGExhaust
 
     #region MSGFlip
     //message to indicate that a train has been flipped (reverse formation)

@@ -20,5 +20,7 @@ namespace Multiplayer.Shared
         Weather,
         Control,
         TrainControl,
+        SignalReset,
+        Exhaust,
     }
 }
