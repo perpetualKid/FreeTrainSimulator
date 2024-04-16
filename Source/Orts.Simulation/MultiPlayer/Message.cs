@@ -33,7 +33,6 @@ using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Simulation.Commanding;
 using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -68,7 +67,6 @@ namespace Orts.Simulation.Multiplayer
                 "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
                 "GETTRAIN" => new MSGGetTrain(messageEncoding.GetString(content)),
                 "UPDATETRAIN" => new MSGUpdateTrain(messageEncoding.GetString(content)),
-                "CONTROL" => new MSGControl(messageEncoding.GetString(content)),
                 "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
                 "SIGNALCHANGE" => new MSGSignalChange(messageEncoding.GetString(content)),
                 "EXHAUST" => new MSGExhaust(messageEncoding.GetString(content)),
@@ -1696,141 +1694,6 @@ namespace Orts.Simulation.Multiplayer
 
     }
     #endregion MSGRemoveTrain
-
-    #region MSGTrainMerge
-    //message to add new train from either a string (received message), or a Train (building a message)
-    public class MSGTrainMerge : Message
-    {
-        private int TrainNumRetain;
-        private int TrainNumRemoved;
-        private int direction;
-        private int TileX, TileZ;
-        private float X, Z, Travelled;
-        public MSGTrainMerge(string m)
-        {
-            m = m.Trim();
-            string[] areas = m.Split(' ');
-            TrainNumRetain = int.Parse(areas[0]);
-            TrainNumRemoved = int.Parse(areas[1]);
-            direction = int.Parse(areas[2]);
-            TileX = int.Parse(areas[3]);
-            TileZ = int.Parse(areas[4]);
-            X = float.Parse(areas[5], CultureInfo.InvariantCulture);
-            Z = float.Parse(areas[6], CultureInfo.InvariantCulture);
-            Travelled = float.Parse(areas[7], CultureInfo.InvariantCulture);
-        }
-        public MSGTrainMerge(Train t1, Train t2)
-        {
-            TrainNumRetain = t1.Number;
-            TrainNumRemoved = t2.Number;
-            direction = t1.RearTDBTraveller.Direction == Direction.Forward ? 1 : 0;
-            TileX = t1.RearTDBTraveller.TileX;
-            TileZ = t1.RearTDBTraveller.TileZ;
-            X = t1.RearTDBTraveller.X;
-            Z = t1.RearTDBTraveller.Z;
-            Travelled = t1.DistanceTravelled;
-        }
-
-        public override void HandleMsg()
-        {
-
-        }
-
-        public override string ToString()
-        {
-            string tmp = "TRAINMERGE " + TrainNumRetain + " " + TrainNumRemoved + " " + direction + " " + TileX + " " + TileZ + " " + X.ToString(CultureInfo.InvariantCulture) + " " + Z.ToString(CultureInfo.InvariantCulture) + " " + Travelled.ToString(CultureInfo.InvariantCulture);
-            return " " + tmp.Length + ": " + tmp;
-        }
-    }
-    #endregion MSGTrainMerge
-
-    #region MSGControl
-    //message to ask for the control of a train or confirm it
-    public class MSGControl : Message
-    {
-        private int num;
-        private string level;
-        private string user;
-        private float trainmaxspeed;
-        public MSGControl(string m)
-        {
-            m.Trim();
-            string[] t = m.Split('\t');
-            user = t[0];
-            level = t[1];
-            num = int.Parse(t[2]);
-            trainmaxspeed = float.Parse(t[3], CultureInfo.InvariantCulture);
-        }
-
-        public MSGControl(string u, string l, Train t)
-        {
-            user = u;
-            level = l;
-            num = t.Number;
-            trainmaxspeed = (Simulator.Instance.PlayerLocomotive as MSTSLocomotive).MaxSpeedMpS;
-        }
-
-        public override void HandleMsg()
-        {
-            if (MultiPlayerManager.GetUserName() == user && level == "Confirm")
-            {
-                Train train = Simulator.Instance.PlayerLocomotive.Train;
-                train.TrainType = TrainType.Player;
-                train.LeadLocomotive = Simulator.Instance.PlayerLocomotive;
-                InitializeBrakesCommand.Receiver = Simulator.Instance.PlayerLocomotive.Train;
-                train.InitializeSignals(false);
-                if (Simulator.Instance.Confirmer != null)
-                    Simulator.Instance.Confirmer.Information(MultiPlayerManager.Catalog.GetString("You gained back the control of your train"));
-                MultiPlayerManager.Instance().RemoveUncoupledTrains(train);
-            }
-            else if (level == "Confirm") //server inform me that a train is now remote
-            {
-                foreach (var p in MultiPlayerManager.OnlineTrains.Players)
-                {
-                    if (p.Key == user)
-                    {
-                        foreach (var t in Simulator.Instance.Trains)
-                        {
-                            if (t.Number == this.num)
-                                p.Value.Train = t;
-                        }
-                        MultiPlayerManager.Instance().RemoveUncoupledTrains(p.Value.Train);
-                        p.Value.Train.TrainType = TrainType.Remote;
-                        p.Value.Train.TrainMaxSpeedMpS = trainmaxspeed;
-                        break;
-                    }
-                }
-            }
-            else if (MultiPlayerManager.IsServer() && level == "Request")
-            {
-                foreach (var p in MultiPlayerManager.OnlineTrains.Players)
-                {
-                    if (p.Key == user)
-                    {
-                        foreach (var t in Simulator.Instance.Trains)
-                        {
-                            if (t.Number == this.num)
-                                p.Value.Train = t;
-                        }
-                        p.Value.Train.TrainType = TrainType.Remote;
-                        p.Value.Train.TrainMaxSpeedMpS = trainmaxspeed;
-                        p.Value.Train.InitializeSignals(false);
-                        MultiPlayerManager.Instance().RemoveUncoupledTrains(p.Value.Train);
-                        MultiPlayerManager.BroadCast((new MSGControl(user, "Confirm", p.Value.Train)).ToString());
-                        break;
-                    }
-                }
-            }
-        }
-
-        public override string ToString()
-        {
-            string tmp = "CONTROL " + user + "\t" + level + "\t" + num + "\t" + trainmaxspeed.ToString(CultureInfo.InvariantCulture);
-            return " " + tmp.Length + ": " + tmp;
-        }
-    }
-
-    #endregion MSGControl
 
     #region MSGLocoChange
     //message to add new train from either a string (received message), or a Train (building a message)

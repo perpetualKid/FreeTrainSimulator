@@ -19,5 +19,6 @@ namespace MultiPlayer.Shared
         TrainEvent,
         Weather,
         Control,
+        TrainControl,
     }
 }

@@ -87,7 +87,6 @@ namespace Orts.Simulation.Multiplayer
         public int MPUpdateInterval { get; } = 10;
         public bool AllowedManualSwitch = true;
         public bool TrySwitch = true;
-        public string lastSender = ""; //who last sends me a message
         public bool AmAider; //am I aiding the dispatcher?
         public List<string> aiderList;
         public Dictionary<string, OnlinePlayer> lostPlayer = new Dictionary<string, OnlinePlayer>();
@@ -149,30 +148,22 @@ namespace Orts.Simulation.Multiplayer
 
         public static void RequestControl()
         {
-            try
-            {
-                Train train = Simulator.Instance.PlayerLocomotive.Train;
+            Train train = Simulator.Instance.PlayerLocomotive.Train;
 
-                MSGControl msgctl;
-                //I am the server, I have control
-                if (IsServer())
-                {
-                    train.TrainType = TrainType.Player;
-                    train.LeadLocomotive = Simulator.Instance.PlayerLocomotive;
-                    InitializeBrakesCommand.Receiver = Simulator.Instance.PlayerLocomotive.Train;
-                    train.InitializeSignals(false);
-                    Simulator.Instance.Confirmer?.Information(Catalog.GetString("You gained back the control of your train"));
-                    msgctl = new MSGControl(GetUserName(), "Confirm", train);
-                    BroadCast(msgctl.ToString());
-                }
-                else //client, send request
-                {
-                    msgctl = new MSGControl(GetUserName(), "Request", train);
-                    BroadCast(msgctl.ToString());
-                }
+            //I am the server, I have control
+            if (IsServer())
+            {
+                train.TrainType = TrainType.Player;
+                train.LeadLocomotive = Simulator.Instance.PlayerLocomotive;
+                InitializeBrakesCommand.Receiver = Simulator.Instance.PlayerLocomotive.Train;
+                train.InitializeSignals(false);
+                Simulator.Instance.Confirmer?.Information(Catalog.GetString("You gained back the control of your train"));
+                Broadcast(new TrainControlMessage() { RequestType = TrainControlRequestType.Confirm, TrainMaxSpeed = train.AllowedMaxSpeedMpS, TrainNumber = train.Number });
             }
-            catch (Exception)
-            { }
+            else //client, send request
+            {
+                Broadcast(new TrainControlMessage() { RequestType = TrainControlRequestType.Request, TrainMaxSpeed = train.AllowedMaxSpeedMpS, TrainNumber = train.Number });
+            }
         }
 
         private double previousSpeed;
@@ -190,8 +181,6 @@ namespace Orts.Simulation.Multiplayer
             double newtime = Simulator.Instance.GameTime;
             if (begineZeroTime == 0)
                 begineZeroTime = newtime - 10;
-
-            CheckPlayerTrainSpad();//over speed or pass a red light
 
             //server update train location of all
             if (IsDispatcher && newtime - lastMoveTime >= 1f)
@@ -305,24 +294,6 @@ namespace Orts.Simulation.Multiplayer
             MultiPlayerClient.Update(elapsedTime);
         }
 
-        private void CheckPlayerTrainSpad()
-        {
-            if (CheckSpad == false)
-                return;
-            var Locomotive = (MSTSLocomotive)Simulator.Instance.PlayerLocomotive;
-            if (Locomotive == null)
-                return;
-            var train = Locomotive.Train;
-            if (train == null || train.TrainType == TrainType.Remote)
-                return;//no train or is remotely controlled
-
-            //var spad = false;
-            var maxSpeed = Math.Abs(train.AllowedMaxSpeedMpS) + 3;//allow some margin of error (about 10km/h)
-            var speed = Math.Abs(Locomotive.SpeedMpS);
-            //if (speed > maxSpeed) spad = true;
-            //if (train.TMaspect == ORTS.Popups.TrackMonitorSignalAspect.Stop && Math.Abs(train.distanceToSignal) < 2*speed && speed > 5) spad = true; //red light and cannot stop within 2 seconds, if the speed is large
-
-        }
         //check if it is in the server mode
         public static bool IsServer()
         {

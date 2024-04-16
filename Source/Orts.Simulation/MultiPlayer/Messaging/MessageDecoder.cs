@@ -23,6 +23,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 MessageType.TrainEvent => MemoryPackSerializer.Deserialize<TrainEventMessage>(message.Payload),
                 MessageType.Weather => MemoryPackSerializer.Deserialize<WeatherMessage>(message.Payload),
                 MessageType.Control => MemoryPackSerializer.Deserialize<ControlMessage>(message.Payload),
+                MessageType.TrainControl => MemoryPackSerializer.Deserialize<TrainControlMessage>(message.Payload),
                 _ => throw new ProtocolException($"Unknown Message type {message.MessageType}"),
             };
         }
@@ -66,6 +67,10 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 case ControlMessage controlMessage:
                     MemoryPackSerializer.Serialize(bufferPipe.Writer, controlMessage);
                     messageType = MessageType.Control;
+                    break;
+                case TrainControlMessage trainControlMessage:
+                    MemoryPackSerializer.Serialize(bufferPipe.Writer, trainControlMessage);
+                    messageType = MessageType.TrainControl;
                     break;
             }
 

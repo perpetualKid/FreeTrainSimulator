@@ -13,4 +13,10 @@
         OverspeedOK,
         NoOverspeed,
     }
+
+    public enum TrainControlRequestType
+    {
+        Confirm,
+        Request,
+    }
 }
