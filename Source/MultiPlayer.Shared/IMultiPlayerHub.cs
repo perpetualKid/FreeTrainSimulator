@@ -2,11 +2,11 @@
 
 using MagicOnion;
 
-namespace MultiPlayer.Shared
+namespace Multiplayer.Shared
 {
-    public interface IMultiPlayerHub: IStreamingHub<IMultiPlayerHub, IMultiPlayerClient>
+    public interface IMultiplayerHub: IStreamingHub<IMultiplayerHub, IMultiplayerClient>
     {
-        ValueTask SendMessageAsync(MultiPlayerMessage message);
+        ValueTask SendMessageAsync(MultiplayerMessage message);
 
         ValueTask JoinGameAsync(string userName, string route, string accessCode);
     }

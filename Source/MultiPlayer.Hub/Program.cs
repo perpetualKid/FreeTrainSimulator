@@ -11,9 +11,9 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-using MultiPlayer.Shared;
+using Multiplayer.Shared;
 
-namespace MultiPlayer.Hub
+namespace Multiplayer.Hub
 {
     internal sealed class Program
     {
@@ -45,10 +45,10 @@ namespace MultiPlayer.Hub
 
             WebApplication app = builder.Build();
             _ = app.MapMagicOnionService();
-            _ = app.Services.GetService<StreamingHubBase<IMultiPlayerHub, IMultiPlayerClient>>();
+            _ = app.Services.GetService<StreamingHubBase<IMultiplayerHub, IMultiplayerClient>>();
             Task webApplicationTask = app.RunAsync($"http://*:{port}");
 
-            Console.WriteLine($"MultiPlayer Server v {ThisAssembly.AssemblyInformationalVersion} is now running on port {port}");
+            Console.WriteLine($"Multiplayer Server v {ThisAssembly.AssemblyInformationalVersion} is now running on port {port}");
             foreach (var url in app.Urls)
                 Console.WriteLine($"\t{url}");
 #pragma warning disable CA1303 // Do not pass literals as localized parameters

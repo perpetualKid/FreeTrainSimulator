@@ -5,10 +5,10 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MultiPlayer.Shared
+namespace Multiplayer.Shared
 {
-    public interface IMultiPlayerClient
+    public interface IMultiplayerClient
     {
-        void OnReceiveMessage(MultiPlayerMessage message);
+        void OnReceiveMessage(MultiplayerMessage message);
     }
 }

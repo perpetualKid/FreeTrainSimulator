@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 using MagicOnion.Server.Hubs;
 
-using MultiPlayer.Shared;
+using Multiplayer.Shared;
 
-namespace MultiPlayer.Hub
+namespace Multiplayer.Hub
 {
-    public sealed class MultiPlayerHub : StreamingHubBase<IMultiPlayerHub, IMultiPlayerClient>, IMultiPlayerHub
+    public sealed class MultiplayerHub : StreamingHubBase<IMultiplayerHub, IMultiplayerClient>, IMultiplayerHub
     {
         private sealed class SessionData
         {
@@ -25,7 +25,7 @@ namespace MultiPlayer.Hub
         private IInMemoryStorage<SessionData> sessionStorage;
         private SessionData currentSession;
 
-        public ValueTask SendMessageAsync(MultiPlayerMessage message)
+        public ValueTask SendMessageAsync(MultiplayerMessage message)
         {
             BroadcastExceptSelf(session).OnReceiveMessage(message);
             return ValueTask.CompletedTask;
@@ -58,7 +58,7 @@ namespace MultiPlayer.Hub
 
         protected override async ValueTask OnDisconnected()
         {
-            BroadcastExceptSelf(session).OnReceiveMessage(new MultiPlayerMessage() { MessageType = MessageType.Lost, PayloadAsString = currentSession.UserName });
+            BroadcastExceptSelf(session).OnReceiveMessage(new MultiplayerMessage() { MessageType = MessageType.Lost, PayloadAsString = currentSession.UserName });
             if (currentSession.Dispatcher)
             {
                 AppointDispatcher(true);
@@ -82,11 +82,11 @@ namespace MultiPlayer.Hub
             if (reappoint)
             {
                 Console.WriteLine($"{DateTime.UtcNow} Player {dispatcher.UserName} is now dispatcher for {currentSession.RouteName}");
-                Broadcast(session).OnReceiveMessage(new MultiPlayerMessage() { MessageType = MessageType.Server, PayloadAsString = dispatcher.UserName });
+                Broadcast(session).OnReceiveMessage(new MultiplayerMessage() { MessageType = MessageType.Server, PayloadAsString = dispatcher.UserName });
             }
             else
             {
-                BroadcastToSelf(session).OnReceiveMessage(new MultiPlayerMessage() { MessageType = MessageType.Server, PayloadAsString = dispatcher.UserName });
+                BroadcastToSelf(session).OnReceiveMessage(new MultiplayerMessage() { MessageType = MessageType.Server, PayloadAsString = dispatcher.UserName });
             }
         }
         #endregion

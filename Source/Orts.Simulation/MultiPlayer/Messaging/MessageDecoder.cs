@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 
 using MemoryPack;
 
-using MultiPlayer.Shared;
+using Multiplayer.Shared;
 
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     internal static class MessageDecoder
     {
-        public static MultiPlayerMessageContent DecodeMessage(MultiPlayerMessage message)
+        public static MultiPlayerMessageContent DecodeMessage(MultiplayerMessage message)
         {
             return message.MessageType switch
             {
@@ -28,7 +28,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             };
         }
 
-        public static async Task<MultiPlayerMessage> EncodeMessage(MultiPlayerMessageContent message)
+        public static async Task<MultiplayerMessage> EncodeMessage(MultiPlayerMessageContent message)
         {
             ReadResult resultBuffer;
             Pipe bufferPipe = new Pipe();
@@ -76,7 +76,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
             _ = await bufferPipe.Writer.FlushAsync().ConfigureAwait(false);
             resultBuffer = await bufferPipe.Reader.ReadAsync().ConfigureAwait(false);
-            return new MultiPlayerMessage() { MessageType = messageType, Payload = resultBuffer.Buffer };
+            return new MultiplayerMessage() { MessageType = messageType, Payload = resultBuffer.Buffer };
         }
     }
 }

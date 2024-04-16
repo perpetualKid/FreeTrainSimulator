@@ -955,7 +955,7 @@ namespace Orts.Simulation
         private void CheckForCoupling(Train drivenTrain, double elapsedClockSeconds)
         {
             if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer())
-                return; //in MultiPlayer mode, server will check coupling, client will get message and do things
+                return; //in Multiplayer mode, server will check coupling, client will get message and do things
             if (drivenTrain.SpeedMpS < 0)
             {
                 foreach (Train train in Trains)

@@ -3,10 +3,10 @@ using System.Text;
 
 using MemoryPack;
 
-namespace MultiPlayer.Shared
+namespace Multiplayer.Shared
 {
     [MemoryPackable()]
-    public partial class MultiPlayerMessage
+    public partial class MultiplayerMessage
     {
         public MessageType MessageType { get; set; }
 

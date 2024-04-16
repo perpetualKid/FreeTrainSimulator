@@ -10,17 +10,17 @@ using MagicOnion.Client;
 using MagicOnion.Serialization;
 using MagicOnion.Serialization.MemoryPack;
 
-using MultiPlayer.Shared;
+using Multiplayer.Shared;
 
 using Orts.Common;
 using Orts.Simulation.Multiplayer.Messaging;
 
 namespace Orts.Simulation.Multiplayer
 {
-    public class MultiPlayerClient : IMultiPlayerClient, IDisposable, IAsyncDisposable
+    public class MultiPlayerClient : IMultiplayerClient, IDisposable, IAsyncDisposable
     {
         private bool disposed;
-        private IMultiPlayerHub connection;
+        private IMultiplayerHub connection;
         private Collection<MultiPlayerMessageContent> processingMessages = new Collection<MultiPlayerMessageContent>();
         private Collection<MultiPlayerMessageContent> incomingMessages = new Collection<MultiPlayerMessageContent>();
 
@@ -56,7 +56,7 @@ namespace Orts.Simulation.Multiplayer
                 };
 
                 GrpcChannel channel = GrpcChannel.ForAddress(new UriBuilder("http", server, port).ToString(), new GrpcChannelOptions { HttpHandler = handler, DisposeHttpClient = true });
-                connection = await StreamingHubClient.ConnectAsync<IMultiPlayerHub, IMultiPlayerClient>(channel, this).ConfigureAwait(false);
+                connection = await StreamingHubClient.ConnectAsync<IMultiplayerHub, IMultiplayerClient>(channel, this).ConfigureAwait(false);
                 RegisterDisconnect();
                 return true;
             }
@@ -74,7 +74,7 @@ namespace Orts.Simulation.Multiplayer
 
         public async ValueTask SendLegacyMessageAsync(string payload)
         {
-            MultiPlayerMessage message = new MultiPlayerMessage() { MessageType = MessageType.Legacy, PayloadAsString = payload };
+            MultiplayerMessage message = new MultiplayerMessage() { MessageType = MessageType.Legacy, PayloadAsString = payload };
             await connection.SendMessageAsync(message).ConfigureAwait(false);
         }
 
@@ -86,11 +86,11 @@ namespace Orts.Simulation.Multiplayer
 
         public async ValueTask SendMessageAsync(MultiPlayerMessageContent contentMessage)
         {
-            MultiPlayerMessage message = await MessageDecoder.EncodeMessage(contentMessage).ConfigureAwait(false);
+            MultiplayerMessage message = await MessageDecoder.EncodeMessage(contentMessage).ConfigureAwait(false);
             await connection.SendMessageAsync(message).ConfigureAwait(false);
         }
 
-        public void OnReceiveMessage(MultiPlayerMessage message)
+        public void OnReceiveMessage(MultiplayerMessage message)
         {
             ArgumentNullException.ThrowIfNull(message, nameof(message));
             incomingMessages.Add(MessageDecoder.DecodeMessage(message));

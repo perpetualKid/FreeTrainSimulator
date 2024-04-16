@@ -32,7 +32,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private bool connectionLost;
 
         public MultiPlayerWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
-            base(owner, (catalog ??= CatalogManager.Catalog).GetString("MultiPlayer Info"), relativeLocation, new Point(260, 200), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Multiplayer Info"), relativeLocation, new Point(260, 200), catalog)
         {
             Resize();
         }

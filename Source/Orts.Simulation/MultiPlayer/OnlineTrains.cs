@@ -192,7 +192,7 @@ namespace Orts.Simulation.Multiplayer
             }
             catch (Exception e) when (MultiPlayerManager.IsServer())
             {
-                MultiPlayerManager.Broadcast(new ControlMessage(player.user, ControlMessageType.Error, "MultiPlayer Error：" + e.Message));
+                MultiPlayerManager.Broadcast(new ControlMessage(player.user, ControlMessageType.Error, "Multiplayer Error：" + e.Message));
             }
             string[] faDiscreteSplit;
             List<LoadData> loadDataList = new List<LoadData>();

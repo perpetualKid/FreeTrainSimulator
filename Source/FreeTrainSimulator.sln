@@ -60,9 +60,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Models", "Orts.Models\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulatorTester", "Contrib\SimulatorTester\SimulatorTester.csproj", "{FDF85DD6-8414-42B7-A510-20EF87035307}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiPlayer.Hub", "MultiPlayer.Hub\MultiPlayer.Hub.csproj", "{EB6913FF-6EEA-432E-9F6D-8FAF023FE1B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Multiplayer.Hub", "Multiplayer.Hub\Multiplayer.Hub.csproj", "{EB6913FF-6EEA-432E-9F6D-8FAF023FE1B8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiPlayer.Shared", "MultiPlayer.Shared\MultiPlayer.Shared.csproj", "{98E3877D-48EE-4268-9E98-CA574EEA3D5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Multiplayer.Shared", "Multiplayer.Shared\Multiplayer.Shared.csproj", "{98E3877D-48EE-4268-9E98-CA574EEA3D5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -182,21 +182,6 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C78EAEEC-B64D-44BB-AA6C-C0177ECC2802}
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

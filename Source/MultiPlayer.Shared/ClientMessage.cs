@@ -1,6 +1,6 @@
 ﻿using MemoryPack;
 
-namespace MultiPlayer.Shared
+namespace Multiplayer.Shared
 {
     [MemoryPackable]
     public partial class ClientMessage

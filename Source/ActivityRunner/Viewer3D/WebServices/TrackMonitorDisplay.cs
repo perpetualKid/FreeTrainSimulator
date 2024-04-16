@@ -1035,7 +1035,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 case 108: // Manual mode upper zone
                     return (int)MathHelper.Clamp(itemLocation * (6f / 93f), 0, 6);
                 case 132:// lower zone
-                    return MultiPlayerManager.IsMultiPlayer() ? Round(MathHelper.Clamp(itemLocation * (16.0f / 266.0f), 9, 16))// MultiPlayer mode
+                    return MultiPlayerManager.IsMultiPlayer() ? Round(MathHelper.Clamp(itemLocation * (16.0f / 266.0f), 9, 16))// Multiplayer mode
                         : Round(MathHelper.Clamp(itemLocation * (16f / 232f), 10, 16));// Manual mode
                 default:
                     return 0;

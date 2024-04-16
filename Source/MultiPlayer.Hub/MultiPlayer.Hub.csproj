@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<Description>Free Train Simulator MultiPlayer Hub</Description>
-		<AssemblyTitle>Free Train Simulator MultiPlayer Hub</AssemblyTitle>
+		<Description>Free Train Simulator Multiplayer Hub</Description>
+		<AssemblyTitle>Free Train Simulator Multiplayer Hub</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
 		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 	</PropertyGroup>
@@ -12,6 +12,6 @@
 	  <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\MultiPlayer.Shared\MultiPlayer.Shared.csproj" />
+	  <ProjectReference Include="..\Multiplayer.Shared\Multiplayer.Shared.csproj" />
 	</ItemGroup>
 </Project>

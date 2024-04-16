@@ -16,7 +16,7 @@
 		<PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.2-preview" />
 	</ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MultiPlayer.Shared\MultiPlayer.Shared.csproj" />
+    <ProjectReference Include="..\MultiPlayer.Shared\Multiplayer.Shared.csproj" />
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
