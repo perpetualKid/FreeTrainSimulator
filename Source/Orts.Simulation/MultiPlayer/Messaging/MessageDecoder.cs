@@ -26,6 +26,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 MessageType.TrainControl => MemoryPackSerializer.Deserialize<TrainControlMessage>(message.Payload),
                 MessageType.SignalReset => MemoryPackSerializer.Deserialize<SignalResetMessage>(message.Payload),
                 MessageType.Exhaust => MemoryPackSerializer.Deserialize<ExhaustMessage>(message.Payload),
+                MessageType.RemoveTrain => MemoryPackSerializer.Deserialize<RemoveTrainMessage>(message.Payload),
                 _ => throw new ProtocolException($"Unknown Message type {message.MessageType}"),
             };
         }
@@ -81,6 +82,10 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 case ExhaustMessage exhaustMessage:
                     MemoryPackSerializer.Serialize(bufferPipe.Writer, exhaustMessage);
                     messageType = MessageType.Exhaust;
+                    break;
+                case RemoveTrainMessage removeTrainMessage:
+                    MemoryPackSerializer.Serialize(bufferPipe.Writer, removeTrainMessage);
+                    messageType = MessageType.RemoveTrain;
                     break;
             }
 

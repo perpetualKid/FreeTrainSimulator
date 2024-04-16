@@ -41,6 +41,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Multiplayer;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.Timetables;
@@ -1289,7 +1290,7 @@ namespace Orts.Simulation.AIs
 
             if (MultiPlayerManager.IsServer() && removeList.Count > 0)
             {
-                MultiPlayerManager.BroadCast((new MSGRemoveTrain(removeList)).ToString());
+                MultiPlayerManager.Broadcast(new RemoveTrainMessage(removeList));
             }
 
             TrainsToRemove.Clear();

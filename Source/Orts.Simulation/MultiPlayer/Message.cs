@@ -61,7 +61,6 @@ namespace Orts.Simulation.Multiplayer
                 "PLAYERTRAINSW" => new MSGPlayerTrainSw(messageEncoding.GetString(content)),
                 "ORGSWITCH" => new MSGOrgSwitch(messageEncoding.GetString(content)),
                 "SWITCH" => new MSGSwitch(messageEncoding.GetString(content)),
-                "REMOVETRAIN" => new MSGRemoveTrain(messageEncoding.GetString(content)),
                 "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
                 "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
                 "GETTRAIN" => new MSGGetTrain(messageEncoding.GetString(content)),
@@ -1602,61 +1601,6 @@ namespace Orts.Simulation.Multiplayer
         }
     }
     #endregion MSGUpdateTrain
-
-    #region MSGRemoveTrain
-    //remove AI trains
-    public class MSGRemoveTrain : Message
-    {
-        public List<int> trains;
-
-        public MSGRemoveTrain(string m)
-        {
-            string[] tmp = m.Split(' ');
-            trains = new List<int>();
-            for (var i = 0; i < tmp.Length; i++)
-            {
-                trains.Add(int.Parse(tmp[i]));
-            }
-        }
-
-        public MSGRemoveTrain(List<Train> ts)
-        {
-            trains = new List<int>();
-            foreach (Train t in ts)
-            {
-                trains.Add(t.Number);
-            }
-        }
-
-        public override string ToString()
-        {
-
-            string tmp = "REMOVETRAIN";
-            foreach (int i in trains)
-            {
-                tmp += " " + i;
-            }
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            foreach (int i in trains)
-            {
-                foreach (Train train in Simulator.Instance.Trains)
-                {
-                    if (i == train.Number)
-                    {
-                        if (MultiPlayerManager.IsServer())
-                            MultiPlayerManager.Instance().AddOrRemoveLocomotives("", train, false);
-                        MultiPlayerManager.Instance().AddOrRemoveTrain(train, false);//added to the removed list, treated later to be thread safe
-                    }
-                }
-            }
-        }
-
-    }
-    #endregion MSGRemoveTrain
 
     #region MSGLocoChange
     //message to add new train from either a string (received message), or a Train (building a message)
