@@ -166,9 +166,6 @@ namespace Orts.Simulation.Multiplayer
             }
         }
 
-        private double previousSpeed;
-        private double begineZeroTime;
-
         /// <summary>
         /// Update. Determines what messages to send every some seconds
         /// 1. every one second will send train location
@@ -182,8 +179,6 @@ namespace Orts.Simulation.Multiplayer
                 return;
 
             double newtime = Simulator.Instance.GameTime;
-            if (begineZeroTime == 0)
-                begineZeroTime = newtime - 10;
 
             if (newtime - lastMoveTime >= 1f)
             {

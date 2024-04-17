@@ -1,4 +1,6 @@
-﻿using MemoryPack;
+﻿using System;
+
+using MemoryPack;
 
 using Orts.Common;
 using Orts.Simulation.World;
@@ -21,6 +23,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public WeatherMessage(Weather weather)
         {
+            ArgumentNullException.ThrowIfNull(weather, nameof(weather));
+
             Weather = weather.WeatherType;
             Fog = weather.FogVisibilityDistance;
             Precipitation = weather.PrecipitationIntensity;

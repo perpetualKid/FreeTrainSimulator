@@ -2,7 +2,7 @@
 {
     public abstract class MultiPlayerMessageContent
     {
-        protected static MultiPlayerManager multiPlayerManager;
+        private protected static MultiPlayerManager multiPlayerManager;
 
         public abstract void HandleMessage();
 

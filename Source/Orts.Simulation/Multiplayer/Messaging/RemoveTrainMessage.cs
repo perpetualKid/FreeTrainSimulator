@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -11,13 +12,16 @@ namespace Orts.Simulation.Multiplayer.Messaging
     [MemoryPackable]
     public partial class RemoveTrainMessage : MultiPlayerMessageContent
     {
-        public Collection<int> Trains { get; set; }
+        public Collection<int> Trains { get; }
 
         [MemoryPackConstructor]
         public RemoveTrainMessage() { }
 
         public RemoveTrainMessage(IEnumerable<Train> trains)
         {
+            ArgumentNullException.ThrowIfNull(trains, nameof(trains));
+
+            Trains ??= new Collection<int>();
             foreach (Train train in trains)
             {
                 Trains.Add(train.Number);
