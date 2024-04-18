@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 using MemoryPack;
 
@@ -38,7 +39,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
     [MemoryPackable]
     public partial class ExhaustMessage : MultiPlayerMessageContent
     {
-        public Collection<ExhaustMessageItem> Items { get; }
+        public Collection<ExhaustMessageItem> Items { get; set; } = new Collection<ExhaustMessageItem>();
 
         public int TrainNumber { get; set; }
 
@@ -54,7 +55,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
             {
                 if (train.Cars[i] is MSTSDieselLocomotive dieselLocomotive)
                 {
-                    Items ??= new Collection<ExhaustMessageItem>();
                     Items.Add(new ExhaustMessageItem(i, dieselLocomotive));
                 }
             }
@@ -62,7 +62,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public override void HandleMessage()
         {
-            foreach (ExhaustMessageItem item in Items)
+            foreach (ExhaustMessageItem item in Items ?? Enumerable.Empty<ExhaustMessageItem>())
             {
                 Train train = MultiPlayerManager.FindPlayerTrain(User);
                 if (train != null && train.Cars.Count > item.CarIndex && train.Cars[item.CarIndex] is MSTSDieselLocomotive dieselLocomotive)

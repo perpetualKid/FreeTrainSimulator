@@ -2,10 +2,7 @@
 
 using MemoryPack;
 
-using Microsoft.VisualBasic.ApplicationServices;
-
 using Orts.Common;
-using Orts.Scripting.Api.Etcs;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 
