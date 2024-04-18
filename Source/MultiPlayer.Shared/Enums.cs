@@ -22,6 +22,7 @@ namespace Multiplayer.Shared
         TrainControl,
         SignalReset,
         Exhaust,
+        Move,
         RemoveTrain,
     }
 }

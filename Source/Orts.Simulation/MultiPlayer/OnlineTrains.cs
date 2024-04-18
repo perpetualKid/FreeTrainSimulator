@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -57,7 +58,7 @@ namespace Orts.Simulation.Multiplayer
         public bool FindTrain(Train t)
         {
 
-            foreach (OnlinePlayer o in Players.Values.ToList())
+            foreach (OnlinePlayer o in Players.Values)
             {
                 if (o.Train == t)
                     return true;
@@ -65,68 +66,22 @@ namespace Orts.Simulation.Multiplayer
             return false;
         }
 
-        public string MoveTrains(MSGMove move)
+        public Collection<MoveMessage> MoveTrains()
         {
-            string tmp = "";
-            if (move == null)
-                move = new MSGMove();
-            foreach (OnlinePlayer p in Players.Values)
+            Collection<MoveMessage> result = new Collection<MoveMessage>();
+
+            foreach (Train train in Simulator.Instance.Trains)
             {
-                if (p.Train != null && Simulator.Instance.PlayerLocomotive != null && !(p.Train == Simulator.Instance.PlayerLocomotive.Train && p.Train.TrainType != TrainType.Remote))
-                {
-                    if (Math.Abs(p.Train.SpeedMpS) > 0.001 || Math.Abs(p.Train.LastReportedSpeed) > 0)
-                    {
-                        move.AddNewItem(p.Username, p.Train);
-                    }
-                }
-            }
-            foreach (Train t in Simulator.Instance.Trains)
-            {
-                if (Simulator.Instance.PlayerLocomotive != null && t == Simulator.Instance.PlayerLocomotive.Train)
+                if (Simulator.Instance.PlayerLocomotive != null && train == Simulator.Instance.PlayerLocomotive.Train)
                     continue;//player drived train
-                if (t == null || FindTrain(t))
+                if (train == null || FindTrain(train))
                     continue;//is an online player controlled train
-                if (Math.Abs(t.SpeedMpS) > 0.001 || Math.Abs(t.LastReportedSpeed) > 0)
+                if (train.SpeedMpS != 0 || train.LastReportedSpeed != 0)
                 {
-                    move.AddNewItem("0xAI" + t.Number, t);
+                    result.Add(new MoveMessage(train) { User = "0xAI" });
                 }
             }
-            tmp += move.ToString();
-            return tmp;
-
-        }
-        public string MoveAllPlayerTrain(MSGMove move)
-        {
-            string tmp = "";
-            if (move == null)
-                move = new MSGMove();
-            foreach (OnlinePlayer p in Players.Values)
-            {
-                if (p.Train == null)
-                    continue;
-                if (Math.Abs(p.Train.SpeedMpS) > 0.001 || Math.Abs(p.Train.LastReportedSpeed) > 0)
-                {
-                    move.AddNewItem(p.Username, p.Train);
-                }
-            }
-            tmp += move.ToString();
-            return tmp;
-        }
-
-        public static string MoveAllTrain(MSGMove move)
-        {
-            string tmp = "";
-            if (move == null)
-                move = new MSGMove();
-            foreach (Train t in Simulator.Instance.Trains)
-            {
-                if (t != null && (Math.Abs(t.SpeedMpS) > 0.001 || Math.Abs(t.LastReportedSpeed) > 0))
-                {
-                    move.AddNewItem("AI" + t.Number, t);
-                }
-            }
-            tmp += move.ToString();
-            return tmp;
+            return result;
         }
 
         public string AddAllPlayerTrain() //WARNING, need to change
@@ -253,7 +208,7 @@ namespace Orts.Simulation.Multiplayer
             TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition();
             if (tempRoute.Count == 0)
             {
-                MultiPlayerManager.Broadcast( new ControlMessage(p.Username, ControlMessageType.Error, "Cannot be placed into the game"));//server will broadcast this error
+                MultiPlayerManager.Broadcast(new ControlMessage(p.Username, ControlMessageType.Error, "Cannot be placed into the game"));//server will broadcast this error
                 throw new InvalidDataException("Remote train original position not clear");
             }
 

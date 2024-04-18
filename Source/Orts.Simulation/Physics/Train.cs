@@ -11909,7 +11909,7 @@ namespace Orts.Simulation.Physics
             TrainMaxSpeedMpS = maxSpeed;
         }
 
-        internal void ToDoUpdate(int tni, int tX, int tZ, float x, float z, float eT, float speed, MidpointDirection dir, int tDir, float len, bool reverseTrav = false,
+        internal void ToDoUpdate(int tni, int tX, int tZ, float x, float z, float eT, float speed, MidpointDirection dir, Direction tDir, float len, bool reverseTrav = false,
             int reverseMU = 0)
         {
             SpeedMpS = speed;
@@ -11920,7 +11920,7 @@ namespace Orts.Simulation.Physics
             expectedTravelled = eT;
             expectedTracIndex = tni;
             expectedDir = dir;
-            expectedTDir = ((Direction)tDir).Reverse();
+            expectedTDir = tDir.Reverse();
             expectedLength = len;
             if (reverseTrav)
             {

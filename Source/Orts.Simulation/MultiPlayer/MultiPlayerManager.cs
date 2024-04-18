@@ -185,12 +185,18 @@ namespace Orts.Simulation.Multiplayer
                 Train train = Simulator.Instance.PlayerLocomotive.Train;
                 if (train.TrainType != TrainType.Remote)
                 {
-                    MSGMove move = new MSGMove();
-                    if (Simulator.Instance.PlayerLocomotive.Train.TrainType != TrainType.Remote)
-                        move.AddNewItem(GetUserName(), Simulator.Instance.PlayerLocomotive.Train);
-                    BroadCast(OnlineTrains.MoveTrains(move));
+                    Broadcast(new MoveMessage(train));
                     // Also updating loco exhaust
-                    Broadcast(new ExhaustMessage(Simulator.Instance.PlayerLocomotive.Train));
+                    Broadcast(new ExhaustMessage(train));
+
+                    if (IsDispatcher)
+                    {
+                        // Dispatcher also broadcasts all non-user trains
+                        foreach(MoveMessage moveMessage in OnlineTrains.MoveTrains())
+                        {
+                            Broadcast(moveMessage);
+                        }
+                    }
 
                     lastMoveTime = newtime;
                 }

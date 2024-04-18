@@ -52,7 +52,6 @@ namespace Orts.Simulation.Multiplayer
         {
             return messageEncoding.GetString(messageType) switch
             {
-                "MOVE" => new MSGMove(messageEncoding.GetString(content)),
                 "SWITCHSTATES" => new MSGSwitchStatus(messageEncoding.GetString(content)),
                 "SIGNALSTATES" => new MSGSignalStatus(messageEncoding.GetString(content)),
                 "LOCOINFO" => new MSGLocoInfo(messageEncoding.GetString(content)),
@@ -88,202 +87,6 @@ namespace Orts.Simulation.Multiplayer
         }
 
     }
-
-    #region MSGMove
-    public class MSGMove : Message
-    {
-        private class MSGMoveItem
-        {
-            public string user;
-            public float speed;
-            public float travelled;
-            public int num, count;
-            public int TileX, TileZ, direction, tdbDir;
-            public int trackNodeIndex;
-            public float X, Z;
-            public float Length;
-            public MSGMoveItem(string u, float s, float t, int n, int tX, int tZ, float x, float z, int tni, int cnt, int dir, int tDir, float len)
-            {
-                user = u;
-                speed = s;
-                travelled = t;
-                num = n;
-                TileX = tX;
-                TileZ = tZ;
-                X = x;
-                Z = z;
-                trackNodeIndex = tni;
-                count = cnt;
-                direction = dir;
-                tdbDir = tDir;
-                Length = len;
-            }
-            public override string ToString()
-            {
-                return user + " " + speed.ToString(CultureInfo.InvariantCulture) + " " + travelled.ToString(CultureInfo.InvariantCulture) + " " + num + " " +
-                    TileX + " " + TileZ + " " + X.ToString(CultureInfo.InvariantCulture) + " " + Z.ToString(CultureInfo.InvariantCulture) + " " + trackNodeIndex + " " +
-                    count + " " + direction + " " + tdbDir + " " + Length.ToString(CultureInfo.InvariantCulture);
-            }
-        }
-
-        private List<MSGMoveItem> items;
-
-        public MSGMove(string m)
-        {
-            m = m.Trim();
-            string[] areas = m.Split(' ');
-            if (areas.Length % 13 != 0 && !(areas.Length == 1 && areas[0].Length == 0)) //check for correct formatting
-            {
-                throw new ProtocolException("Parsing error " + m);
-            }
-            try
-            {
-                int i = 0;
-                items = new List<MSGMoveItem>();
-                if (areas.Length > 1)
-                    for (i = 0; i < areas.Length / 13; i++)
-                        items.Add(new MSGMoveItem(areas[13 * i], float.Parse(areas[13 * i + 1], CultureInfo.InvariantCulture), float.Parse(areas[13 * i + 2], CultureInfo.InvariantCulture), int.Parse(areas[13 * i + 3]),
-                            int.Parse(areas[13 * i + 4]), int.Parse(areas[13 * i + 5]), float.Parse(areas[13 * i + 6], CultureInfo.InvariantCulture), float.Parse(areas[13 * i + 7], CultureInfo.InvariantCulture),
-                            int.Parse(areas[13 * i + 8]), int.Parse(areas[13 * i + 9]), int.Parse(areas[13 * i + 10]), int.Parse(areas[13 * i + 11]), float.Parse(areas[13 * i + 12], CultureInfo.InvariantCulture)));
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-
-        private static Dictionary<int, int> MissingTimes = new Dictionary<int, int>();
-
-        //a train is missing, but will wait for 10 messages then ask
-        private static bool CheckMissingTimes(int TNumber)
-        {
-            if (MissingTimes.TryGetValue(TNumber, out int value))
-            {
-                if (value < 10)
-                {
-                    MissingTimes[TNumber]++;
-                    return false;
-                }
-                else
-                {
-                    MissingTimes[TNumber] = 0;
-                    return true;
-                }
-            }
-            else
-            {
-                MissingTimes.Add(TNumber, 1);
-                return false;
-            }
-
-        }
-
-        public MSGMove()
-        {
-        }
-
-        public void AddNewItem(string u, Train t)
-        {
-            if (items == null)
-                items = new List<MSGMoveItem>();
-            items.Add(new MSGMoveItem(u, t.SpeedMpS, t.DistanceTravelled, t.Number, t.RearTDBTraveller.TileX, t.RearTDBTraveller.TileZ, t.RearTDBTraveller.X, t.RearTDBTraveller.Z, t.RearTDBTraveller.TrackNode.Index, t.Cars.Count, TranslateMidpointDirection(t.MUDirection), (int)t.RearTDBTraveller.Direction.Reverse(), t.Length));
-            t.LastReportedSpeed = t.SpeedMpS;
-        }
-
-        public bool OKtoSend()
-        {
-            if (items != null && items.Count > 0)
-                return true;
-            return false;
-        }
-        public override string ToString()
-        {
-            string tmp = "MOVE ";
-            if (items != null && items.Count > 0)
-                for (var i = 0; i < items.Count; i++)
-                    tmp += items[i].ToString() + " ";
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            foreach (MSGMoveItem m in items)
-            {
-                bool found = false; //a train may not be in my sim
-                if (m.user == MultiPlayerManager.GetUserName())//about itself, check if the number of car has changed, otherwise ignore
-                {
-                    //if I am a remote controlled train now
-                    if (Simulator.Instance.PlayerLocomotive.Train.TrainType == TrainType.Remote)
-                    {
-                        Simulator.Instance.PlayerLocomotive.Train.ToDoUpdate(m.trackNodeIndex, m.TileX, m.TileZ, m.X, m.Z, m.travelled, m.speed, TranslateMidpointDirection(m.direction), m.tdbDir, m.Length);
-                    }
-                    found = true;/*
-                    try
-                    {
-                        if (m.count != MPManager.Simulator.PlayerLocomotive.Train.Cars.Count)
-                        {
-                            if (!MPManager.IsServer() && CheckMissingTimes(MPManager.Simulator.PlayerLocomotive.Train.Number)) MPManager.SendToServer((new MSGGetTrain(MPManager.GetUserName(), MPManager.Simulator.PlayerLocomotive.Train.Number)).ToString());
-                        }
-                    }
-                    catch (Exception) { }*/
-                    continue;
-                }
-                if (m.user.Contains("0xAI") || m.user.Contains("0xUC"))
-                {
-                    foreach (Train t in Simulator.Instance.Trains)
-                    {
-                        if (t.Number == m.num)
-                        {
-                            found = true;
-                            if (t.Cars.Count != m.count) //the number of cars are different, client will not update it, ask for new information
-                            {
-                                if (!MultiPlayerManager.IsServer())
-                                {
-                                    if (CheckMissingTimes(t.Number))
-                                        MultiPlayerManager.Notify((new MSGGetTrain(MultiPlayerManager.GetUserName(), t.Number)).ToString());
-                                    continue;
-                                }
-                            }
-                            if (t.TrainType == TrainType.Remote)
-                            {
-                                var reverseTrav = false;
-                                //                                 Alternate way to check for train flip
-                                //                                if (m.user.Contains("0xAI") && m.trackNodeIndex == t.RearTDBTraveller.TrackNodeIndex && m.tdbDir != (int)t.RearTDBTraveller.Direction)
-                                //                                {
-                                //                                    reverseTrav = true;
-                                //                                }
-                                t.ToDoUpdate(m.trackNodeIndex, m.TileX, m.TileZ, m.X, m.Z, m.travelled, m.speed, TranslateMidpointDirection(m.direction), m.tdbDir, m.Length, reverseTrav);
-                                break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Train t = MultiPlayerManager.FindPlayerTrain(m.user);
-                    if (t != null)
-                    {
-                        // skip the case where this train is merged with yours and you are the boss of that train
-                        if (t.Number == Simulator.Instance.PlayerLocomotive.Train.Number &&
-                            Simulator.Instance.PlayerLocomotive == Simulator.Instance.PlayerLocomotive.Train.LeadLocomotive &&
-                            t.TrainType != TrainType.Remote && t.TrainType != TrainType.Static)
-                            continue;
-                        found = true;
-                        t.ToDoUpdate(m.trackNodeIndex, m.TileX, m.TileZ, m.X, m.Z, m.travelled, m.speed, TranslateMidpointDirection(m.direction), m.tdbDir, m.Length);
-                        // This is necessary as sometimes a train isn't in the Trains list
-                        MultiPlayerManager.Instance().AddOrRemoveTrain(t, true);
-                        //                       if (MPManager.IsServer()) MPManager.Instance().AddOrRemoveLocomotives(m.user, t, true);
-                    }
-                }
-                if (found == false) //I do not have the train, tell server to send it to me
-                {
-                    if (!MultiPlayerManager.IsServer() && CheckMissingTimes(m.num))
-                        MultiPlayerManager.Notify((new MSGGetTrain(MultiPlayerManager.GetUserName(), m.num)).ToString());
-                }
-            }
-        }
-    }
-    #endregion MSGMove
 
     #region MSGRequired
     public abstract class MSGRequired : Message
@@ -2986,7 +2789,7 @@ namespace Orts.Simulation.Multiplayer
                         realFlip = true;
                     }
                     if (realFlip)
-                        t.ToDoUpdate(tni, TileX, TileZ, X, Z, Travelled, speed, TranslateMidpointDirection(direction), tdir, len, true, reverseMU);
+                        t.ToDoUpdate(tni, TileX, TileZ, X, Z, Travelled, speed, TranslateMidpointDirection(direction), (Direction)tdir, len, true, reverseMU);
                     return;
                 }
             }
