@@ -26,5 +26,6 @@ namespace Multiplayer.Shared
         RemoveTrain,
         SwitchStates,
         SignalStates,
+        SignalChange,
     }
 }

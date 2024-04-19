@@ -62,7 +62,6 @@ namespace Orts.Simulation.Multiplayer
                 "GETTRAIN" => new MSGGetTrain(messageEncoding.GetString(content)),
                 "UPDATETRAIN" => new MSGUpdateTrain(messageEncoding.GetString(content)),
                 "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
-                "SIGNALCHANGE" => new MSGSignalChange(messageEncoding.GetString(content)),
                 "FLIP" => new MSGFlip(messageEncoding.GetString(content)),
                 "MOVINGTBL" => new MSGMovingTable(messageEncoding.GetString(content)),
                 _ => throw new ProtocolException($"Unknown Message type {messageEncoding.GetString(messageType)}"),
@@ -2131,70 +2130,6 @@ namespace Orts.Simulation.Multiplayer
         }
     }
     #endregion MSGLocoInfo
-
-    #region MSGSignalChange
-    public class MSGSignalChange : Message
-    {
-        private int index;
-        private int pick;
-        private string sender;
-
-        //constructor to create a message from signal data
-        public MSGSignalChange(Signal signal, int p)
-        {
-            index = signal.Index;
-            pick = p;
-            sender = MultiPlayerManager.GetUserName();
-        }
-
-        //constructor to decode the message "m"
-        public MSGSignalChange(string m)
-        {
-            string[] tmp = m.Split(' ');
-            sender = tmp[0].Trim();
-            index = int.Parse(tmp[1]);
-            pick = int.Parse(tmp[2]);
-        }
-
-        //how to handle the message?
-        public override void HandleMsg() //only client will get message, thus will set states
-        {
-            if (MultiPlayerManager.Instance().IsDispatcher && !MultiPlayerManager.Instance().aiderList.Contains(sender))
-                return; //client will ignore it, also if not an aider, will ignore it
-
-            var signal = Simulator.Instance.SignalEnvironment.Signals[index];
-            switch (pick)
-            {
-                case 0:
-                    signal.HoldState = SignalHoldState.None;
-                    break;
-
-                case 1:
-                    signal.HoldState = SignalHoldState.ManualLock;
-                    break;
-
-                case 2:
-                    signal.RequestApproachAspect();
-                    break;
-
-                case 3:
-                    signal.RequestLeastRestrictiveAspect();
-                    break;
-
-                case 4:
-                    signal.SetManualCallOn(true);
-                    break;
-            }
-        }
-
-        public override string ToString()
-        {
-
-            string tmp = "SIGNALCHANGE " + sender + " " + index + " " + pick; // fill in the message body here
-            return " " + tmp.Length + ": " + tmp;
-        }
-    }
-    #endregion MSGSignalChange
 
     #region MSGFlip
     //message to indicate that a train has been flipped (reverse formation)

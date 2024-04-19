@@ -8,6 +8,8 @@ using Orts.Common;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+using Orts.Simulation.Multiplayer;
+using Orts.Simulation.Multiplayer.Messaging;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
@@ -79,12 +81,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
         {
             if (sender is WindowControl control && control.Tag != null)
             {
-                //if (MultiPlayerManager.Instance().AmAider)
-                //{
-                //    MultiPlayerManager.Notify((new MSGSignalChange(signal, type)).ToString());
-                //    UnHandleItemPick();
-                //    return;
-                //}
+                if (MultiPlayerManager.Instance().AmAider)
+                {
+                    MultiPlayerManager.Broadcast(new SignalChangeMessage(signal));
+                    return;
+                }
                 signal.State = (SignalState)control.Tag;
             }
             Close();
