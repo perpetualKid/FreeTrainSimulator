@@ -8,6 +8,6 @@ namespace Multiplayer.Shared
     {
         ValueTask SendMessageAsync(MultiplayerMessage message);
 
-        ValueTask JoinGameAsync(string userName, string route, string accessCode);
+        ValueTask JoinGameAsync(string userName, string route, string room);
     }
 }

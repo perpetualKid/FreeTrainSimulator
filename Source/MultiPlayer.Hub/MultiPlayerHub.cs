@@ -17,6 +17,7 @@ namespace Multiplayer.Hub
             public Guid SessionId { get; set; }
             public string UserName { get; set; }
             public string RouteName { get; set; }
+            public string RoomName { get; set; }
             public DateTime TimeJoined { get; set; }
             public bool Dispatcher { get; set; }
         }
@@ -31,18 +32,19 @@ namespace Multiplayer.Hub
             return ValueTask.CompletedTask;
         }
 
-        public async ValueTask JoinGameAsync(string userName, string route, string accessCode)
+        public async ValueTask JoinGameAsync(string userName, string route, string room)
         {
             currentSession = new SessionData()
             {
                 SessionId = Context.ContextId,
                 UserName = userName,
                 RouteName = route,
+                RoomName = room,
                 TimeJoined = DateTime.UtcNow,
             };
-            string sessionName = Convert.ToBase64String(XxHash64.Hash(MemoryMarshal.AsBytes(string.Join('|', route, accessCode).AsSpan())));
+            string sessionName = Convert.ToBase64String(XxHash64.Hash(MemoryMarshal.AsBytes(string.Join('|', route, room).AsSpan())));
             (session, sessionStorage) = await Group.AddAsync(sessionName, currentSession).ConfigureAwait(false);
-            Console.WriteLine($"{DateTime.UtcNow} Player {userName} joined on route {route}");
+            Console.WriteLine($"{DateTime.UtcNow} Player {userName} joined room {room} for route {route}");
             AppointDispatcher(false);
         }
 
@@ -63,7 +65,7 @@ namespace Multiplayer.Hub
             {
                 AppointDispatcher(true);
             }
-            Console.WriteLine($"{DateTime.UtcNow} Player {currentSession.UserName} left on route {currentSession.RouteName}");
+            Console.WriteLine($"{DateTime.UtcNow} Player {currentSession.UserName} left room {currentSession.RoomName} on route {currentSession.RouteName}");
             await base.OnDisconnected().ConfigureAwait(false);
         }
 

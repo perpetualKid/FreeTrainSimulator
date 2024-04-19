@@ -101,9 +101,9 @@ namespace Orts.Simulation.Multiplayer
             JoinGameAsync(user, route, accessCode).AsTask().Wait();
         }
 
-        public async ValueTask JoinGameAsync(string user, string route, string accessCode)
+        public async ValueTask JoinGameAsync(string user, string route, string room)
         {
-            await connection.JoinGameAsync(user, route, accessCode).ConfigureAwait(false);
+            await connection.JoinGameAsync(user, route, room).ConfigureAwait(false);
         }
 
         public void Stop()
