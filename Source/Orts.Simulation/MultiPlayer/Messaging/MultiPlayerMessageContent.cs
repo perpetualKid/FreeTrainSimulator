@@ -1,6 +1,4 @@
-﻿using MemoryPack;
-
-namespace Orts.Simulation.Multiplayer.Messaging
+﻿namespace Orts.Simulation.Multiplayer.Messaging
 {
     public abstract class MultiPlayerMessageContent
     {

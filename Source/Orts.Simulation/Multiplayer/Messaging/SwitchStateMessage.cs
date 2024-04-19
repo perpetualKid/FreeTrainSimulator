@@ -13,7 +13,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
     [MemoryPackable]
     public partial class SwitchStateMessage : MultiPlayerMessageContent
     {
-        public Collection<(int JunctionIndex, int SwitchState)> SwitchStates {  get; } = new Collection<(int JunctionIndex, int SwitchState)> ();
+        public Collection<(int JunctionIndex, int SwitchState)> SwitchStates { get; private set; }
 
         [MemoryPackConstructor]
         public SwitchStateMessage() { }
@@ -22,6 +22,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
         {
             if (initialize)
             {
+                SwitchStates = new Collection<(int JunctionIndex, int SwitchState)>();
                 foreach (TrackJunctionNode trackJunctionNode in RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes)
                 {
                     SwitchStates.Add((trackJunctionNode.Index, trackJunctionNode.SelectedRoute));
@@ -31,7 +32,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public override void HandleMessage()
         {
-            foreach ((int JunctionIndex, int SwitchState) item in SwitchStates)
+            foreach ((int JunctionIndex, int SwitchState) item in SwitchStates ?? Enumerable.Empty<(int JunctionIndex, int SwitchState)>())
             {
                 SetSwitch(item.JunctionIndex, item.SwitchState);
             }

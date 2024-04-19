@@ -39,7 +39,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
     [MemoryPackable]
     public partial class ExhaustMessage : MultiPlayerMessageContent
     {
-        public Collection<ExhaustMessageItem> Items { get; } = new Collection<ExhaustMessageItem>();
+        public Collection<ExhaustMessageItem> Items { get; private set; }
 
         public int TrainNumber { get; set; }
 
@@ -50,6 +50,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
         {
             ArgumentNullException.ThrowIfNull(train, nameof(train));
 
+            Items = new Collection<ExhaustMessageItem>();
             TrainNumber = train.Number;
             for (int i = 0; i < train.Cars.Count; i++)
             {

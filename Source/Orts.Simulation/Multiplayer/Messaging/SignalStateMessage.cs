@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 using MemoryPack;
 
@@ -35,7 +36,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
     [MemoryPackable]
     public partial class SignalStateMessage : MultiPlayerMessageContent
     {
-        public Collection<SignalHeadState> SignalStates { get; } = new Collection<SignalHeadState>();
+        public Collection<SignalHeadState> SignalStates { get; private set; }
 
         [MemoryPackConstructor]
         public SignalStateMessage()
@@ -45,6 +46,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
         {
             if (initialize)
             {
+                SignalStates = new Collection<SignalHeadState>();
                 foreach (Signal signal in Simulator.Instance.SignalEnvironment.Signals)
                 {
                     if (signal != null && (signal.SignalType == SignalCategory.Signal || signal.SignalType == SignalCategory.SpeedSignal) && signal.SignalHeads != null)
@@ -60,7 +62,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public override void HandleMessage()
         {
-            foreach (SignalHeadState headState in SignalStates)
+            foreach (SignalHeadState headState in SignalStates ?? Enumerable.Empty<SignalHeadState>())
             {
                 Signal signal = Simulator.Instance.SignalEnvironment.Signals[headState.SignalIndex];
                 foreach (SignalHead signalHead in signal.SignalHeads)

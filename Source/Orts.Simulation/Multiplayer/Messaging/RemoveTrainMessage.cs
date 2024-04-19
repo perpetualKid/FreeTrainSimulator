@@ -12,7 +12,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
     [MemoryPackable]
     public partial class RemoveTrainMessage : MultiPlayerMessageContent
     {
-        public Collection<int> Trains { get; }
+        public Collection<int> Trains { get; private set; }
 
         [MemoryPackConstructor]
         public RemoveTrainMessage() { }
