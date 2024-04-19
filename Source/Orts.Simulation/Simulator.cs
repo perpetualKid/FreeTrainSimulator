@@ -390,8 +390,6 @@ namespace Orts.Simulation
 
             _ = IsAutopilotMode ? InitializeAPTrains(cancellationToken) : InitializeTrains(cancellationToken);
 
-            MultiPlayerManager.Instance().RememberOriginalSwitchState();
-
             // start activity logging if required
             if (Settings.EvaluationStationStops && ActivityRun != null)
             {
@@ -476,7 +474,6 @@ namespace Orts.Simulation
             SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
             SignalEnvironment.Update(true);           // update all signals once to set proper stat
             ContainerManager.Restore(inf);
-            MultiPlayerManager.Instance().RememberOriginalSwitchState(); // this prepares a string that must then be passed to clients
         }
 
         public void Save(BinaryWriter outf)

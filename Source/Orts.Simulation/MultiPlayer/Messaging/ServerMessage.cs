@@ -20,7 +20,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     return; //already a dispatcher, not need to worry
                 multiPlayerManager.Connected = true;
                 multiPlayerManager.IsDispatcher = true;
-                multiPlayerManager.RememberOriginalSwitchState();
                 Trace.TraceInformation("You are the new dispatcher. Enjoy!");
                 Simulator.Instance.Confirmer?.Information(CatalogManager.Catalog.GetString("You are the new dispatcher. Enjoy!"));
             }

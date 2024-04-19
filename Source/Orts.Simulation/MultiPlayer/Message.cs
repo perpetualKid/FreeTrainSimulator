@@ -52,13 +52,11 @@ namespace Orts.Simulation.Multiplayer
         {
             return messageEncoding.GetString(messageType) switch
             {
-                "SWITCHSTATES" => new MSGSwitchStatus(messageEncoding.GetString(content)),
                 "SIGNALSTATES" => new MSGSignalStatus(messageEncoding.GetString(content)),
                 "LOCOINFO" => new MSGLocoInfo(messageEncoding.GetString(content)),
                 "TRAIN" => new MSGTrain(messageEncoding.GetString(content)),
                 "PLAYER" => new MSGPlayer(messageEncoding.GetString(content)),
                 "PLAYERTRAINSW" => new MSGPlayerTrainSw(messageEncoding.GetString(content)),
-                "ORGSWITCH" => new MSGOrgSwitch(messageEncoding.GetString(content)),
                 "SWITCH" => new MSGSwitch(messageEncoding.GetString(content)),
                 "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
                 "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
@@ -85,7 +83,6 @@ namespace Orts.Simulation.Multiplayer
         {
             return direction == 0 ? MidpointDirection.Forward : direction == 1 ? MidpointDirection.Reverse : MidpointDirection.N;
         }
-
     }
 
     #region MSGRequired
@@ -380,10 +377,9 @@ namespace Orts.Simulation.Multiplayer
                 }
                 MultiPlayerManager.OnlineTrains.AddPlayers(this);
 
-                //Trace.WriteLine(this.ToString());
                 if (MultiPlayerManager.IsServer())// && MPManager.Server.IsRemoteServer())
                 {
-                    MultiPlayerManager.BroadCast((new MSGOrgSwitch(user, MultiPlayerManager.Instance().OriginalSwitchState)).ToString());
+                    MultiPlayerManager.Broadcast(new SwitchStateMessage(true));
                     MultiPlayerManager.Instance().PlayerAdded = true;
                 }
                 else //client needs to handle environment
@@ -694,252 +690,6 @@ namespace Orts.Simulation.Multiplayer
         }
     }
     #endregion MGSwitch
-
-    #region MSGOrgSwitch
-    public class MSGOrgSwitch : MSGRequired
-    {
-        private SortedList<int, TrackJunctionNode> SwitchState;
-        public string msgx = "";
-        private string user = "";
-        private byte[] switchStatesArray;
-        public MSGOrgSwitch(string u, string m)
-        {
-            user = u;
-            msgx = m;
-        }
-
-        public MSGOrgSwitch(string m)
-        {
-            string[] tmp = m.Split('\t');
-            user = tmp[0].Trim();
-            byte[] gZipBuffer = Convert.FromBase64String(tmp[1]);
-            using (var memoryStream = new MemoryStream())
-            {
-                int dataLength = BitConverter.ToInt32(gZipBuffer, 0);
-                memoryStream.Write(gZipBuffer, 4, gZipBuffer.Length - 4);
-
-                switchStatesArray = new byte[dataLength];
-
-                memoryStream.Position = 0;
-                using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
-                {
-                    gZipStream.Read(switchStatesArray, 0, switchStatesArray.Length);
-                }
-            }
-        }
-
-        public override void HandleMsg() //only client will get message, thus will set states
-        {
-            if (MultiPlayerManager.IsServer() || user != MultiPlayerManager.GetUserName())
-                return; //server will ignore it
-            int key = 0;
-            SwitchState = new SortedList<int, TrackJunctionNode>();
-            try
-            {
-                foreach (TrackJunctionNode trackJunctionNode in RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes)
-                {
-                    key = trackJunctionNode.Index;
-                    SwitchState.Add(key, trackJunctionNode);
-                }
-            }
-            catch (Exception) { SwitchState = null; throw; } //if error, clean the list and wait for the next signal
-
-            int i = 0, state = 0;
-            foreach (KeyValuePair<int, TrackJunctionNode> t in SwitchState)
-            {
-                state = (int)switchStatesArray[i];
-                if (t.Value.SelectedRoute != state)
-                {
-                    SetSwitch(t.Value, state);
-                    //t.Value.SelectedRoute = state;
-                }
-                i++;
-            }
-        }
-
-        public static void SetSwitch(TrackNode switchNode, int desiredState)
-        {
-            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
-            RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[switchSection.OriginalIndex].SelectedRoute = switchSection.JunctionSetManual = desiredState;
-            switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
-
-            // update linked signals
-            foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
-            {
-                Signal thisSignal = Simulator.Instance.SignalEnvironment.Signals[thisSignalIndex];
-                thisSignal.Update();
-            }
-        }
-
-        public override string ToString()
-        {
-            string tmp = "ORGSWITCH " + user + "\t" + msgx;
-            return " " + tmp.Length + ": " + tmp;
-        }
-    }
-    #endregion MSGOrgSwitch
-
-    #region MSGSwitchStatus
-    public class MSGSwitchStatus : Message
-    {
-        private static byte[] preState;
-        private static SortedList<int, TrackJunctionNode> SwitchState;
-        public bool OKtoSend;
-        private static byte[] switchStatesArray;
-        public MSGSwitchStatus()
-        {
-            var i = 0;
-            if (SwitchState == null)
-            {
-                SwitchState = new SortedList<int, TrackJunctionNode>();
-                int key = 0;
-                foreach (TrackJunctionNode trackJunctionNode in RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes)
-                {
-                    key = trackJunctionNode.Index;
-                    SwitchState.Add(key, trackJunctionNode);
-                }
-                switchStatesArray = new byte[SwitchState.Count + 2];
-            }
-            if (preState == null)
-            {
-                preState = new byte[SwitchState.Count + 2];
-                for (i = 0; i < preState.Length; i++)
-                    preState[i] = 0;
-            }
-            i = 0;
-            foreach (KeyValuePair<int, TrackJunctionNode> t in SwitchState)
-            {
-                switchStatesArray[i] = (byte)t.Value.SelectedRoute;
-                i++;
-            }
-            OKtoSend = false;
-            for (i = 0; i < SwitchState.Count; i++)
-            {
-                if (switchStatesArray[i] != preState[i])
-                { OKtoSend = true; }//something is different, will send
-                preState[i] = switchStatesArray[i];
-            }
-            if (OKtoSend == false)
-            {
-                //new player added, will keep sending for a while
-                if (Simulator.Instance.GameTime - MultiPlayerManager.Instance().lastPlayerAddedTime < 3 * MultiPlayerManager.Instance().MPUpdateInterval)
-                    OKtoSend = true;
-            }
-        }
-
-        public MSGSwitchStatus(string m)
-        {
-            if (SwitchState == null)
-            {
-                int key = 0;
-                SwitchState = new SortedList<int, TrackJunctionNode>();
-                try
-                {
-                    foreach (TrackJunctionNode trackJunctionNode in RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes)
-                    {
-                        key = trackJunctionNode.Index;
-                        SwitchState.Add(key, trackJunctionNode);
-                    }
-                    switchStatesArray = new byte[SwitchState.Count + 128];//a bit more for safety
-                }
-                catch (Exception) { SwitchState = null; throw; } //if error, clean the list and wait for the next signal
-
-            }
-            byte[] gZipBuffer = Convert.FromBase64String(m);
-            using (var memoryStream = new MemoryStream())
-            {
-                BitConverter.ToInt32(gZipBuffer, 0);
-                memoryStream.Write(gZipBuffer, 4, gZipBuffer.Length - 4);
-
-                memoryStream.Position = 0;
-                using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
-                {
-                    gZipStream.Read(switchStatesArray, 0, switchStatesArray.Length);
-                }
-
-            }
-        }
-
-        public override void HandleMsg() //only client will get message, thus will set states
-        {
-            if (MultiPlayerManager.IsServer())
-                return; //server will ignore it
-
-
-            int i = 0, state = 0;
-            foreach (KeyValuePair<int, TrackJunctionNode> t in SwitchState)
-            {
-                state = (int)switchStatesArray[i];
-                if (t.Value.SelectedRoute != state)
-                {
-                    if (!SwitchOccupiedByPlayerTrain(t.Value))
-                    {
-                        SetSwitch(t.Value, state);
-                        //t.Value.SelectedRoute = state;
-                    }
-                }
-                i++;
-            }
-
-        }
-
-        public static void SetSwitch(TrackNode switchNode, int desiredState)
-        {
-            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
-            RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[switchSection.OriginalIndex].SelectedRoute = switchSection.JunctionSetManual = desiredState;
-            switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
-
-            // update linked signals
-            foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
-            {
-                Signal thisSignal = Simulator.Instance.SignalEnvironment.Signals[thisSignalIndex];
-                thisSignal.Update();
-            }
-        }
-
-        private static bool SwitchOccupiedByPlayerTrain(TrackJunctionNode junctionNode)
-        {
-            if (Simulator.Instance.PlayerLocomotive == null)
-                return false;
-            Train train = Simulator.Instance.PlayerLocomotive.Train;
-            if (train == null)
-                return false;
-            if (train.FrontTDBTraveller.TrackNode.Index == train.RearTDBTraveller.TrackNode.Index)
-                return false;
-            Traveller traveller = new Traveller(train.RearTDBTraveller);
-            while (traveller.NextSection())
-            {
-                if (traveller.TrackNode.Index == train.FrontTDBTraveller.TrackNode.Index)
-                    break;
-                if (traveller.TrackNode == junctionNode)
-                    return true;
-            }
-            return false;
-        }
-
-        public override string ToString()
-        {
-            byte[] buffer = switchStatesArray;
-            var memoryStream = new MemoryStream();
-            using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Compress, true))
-            {
-                gZipStream.Write(buffer, 0, buffer.Length);
-            }
-
-            memoryStream.Position = 0;
-
-            var compressedData = new byte[memoryStream.Length];
-            memoryStream.Read(compressedData, 0, compressedData.Length);
-
-            var gZipBuffer = new byte[compressedData.Length + 4];
-            Buffer.BlockCopy(compressedData, 0, gZipBuffer, 4, compressedData.Length);
-            Buffer.BlockCopy(BitConverter.GetBytes(buffer.Length), 0, gZipBuffer, 0, 4);
-
-            string tmp = "SWITCHSTATES " + Convert.ToBase64String(gZipBuffer);
-            return " " + tmp.Length + ": " + tmp;
-        }
-    }
-    #endregion MSGSwitchStatus
 
     #region MSGTrain
     //message to add new train from either a string (received message), or a Train (building a message)

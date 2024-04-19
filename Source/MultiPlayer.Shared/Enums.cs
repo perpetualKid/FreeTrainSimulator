@@ -24,5 +24,7 @@ namespace Multiplayer.Shared
         Exhaust,
         Move,
         RemoveTrain,
+        SwitchStates,
+        SignalStates,
     }
 }

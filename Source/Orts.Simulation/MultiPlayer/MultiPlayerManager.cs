@@ -113,16 +113,6 @@ namespace Orts.Simulation.Multiplayer
             }
         }
 
-        public string OriginalSwitchState = "";
-
-        public void RememberOriginalSwitchState()
-        {
-            MSGSwitchStatus msg = new MSGSwitchStatus();
-            var str = msg.ToString();
-            var index = str.IndexOf("SWITCHSTATES ");
-            OriginalSwitchState = str.Remove(0, index + 13);
-        }
-
         //handles singleton
         private MultiPlayerManager()
         {
@@ -206,10 +196,9 @@ namespace Orts.Simulation.Multiplayer
             if (IsDispatcher && newtime - lastSwitchTime >= MPUpdateInterval)
             {
                 lastSwitchTime = newtime;
-                var switchStatus = new MSGSwitchStatus();
 
-                if (switchStatus.OKtoSend)
-                    BroadCast(switchStatus.ToString());
+                Broadcast(new SwitchStateMessage(true));
+
                 var signalStatus = new MSGSignalStatus();
                 if (signalStatus.OKtoSend)
                     BroadCast(signalStatus.ToString());
