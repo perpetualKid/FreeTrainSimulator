@@ -10,6 +10,7 @@ using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;
+using Orts.Simulation.Multiplayer.Messaging;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
@@ -77,8 +78,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
                 if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.Instance().AmAider)
                 {
                     //aider selects and throws the switch, but need to confirm by the dispatcher
-                    MultiPlayerManager.Notify((new MSGSwitch(MultiPlayerManager.GetUserName(), junction, (SwitchState)control.Tag, true)).ToString());
-                    Simulator.Instance.Confirmer.Information(Catalog.GetString("Switching Request Sent to the Server"));
+                    MultiPlayerManager.Broadcast(new SwitchChangeMessage(junction, (SwitchState)control.Tag, true));
+                    Simulator.Instance.Confirmer.Information(Catalog.GetString("Switching Request sent to the server"));
                 }
                 else
                 {

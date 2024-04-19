@@ -3666,12 +3666,12 @@ namespace Orts.Simulation.Signalling
         }
 
         //only used by MP to manually set a switch to a desired position
-        public bool RequestSetSwitch(TrackJunctionNode switchNode, int desiredState)
+        public bool RequestSetSwitch(TrackJunctionNode switchNode, SwitchState desiredState)
         {
             ArgumentNullException.ThrowIfNull(switchNode);
 
             TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
-            return RequestSetSwitch(switchSection, (SwitchState)desiredState);
+            return RequestSetSwitch(switchSection, desiredState);
         }
 
         //================================================================================================//

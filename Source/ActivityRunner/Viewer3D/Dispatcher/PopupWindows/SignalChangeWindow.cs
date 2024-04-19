@@ -83,7 +83,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
             {
                 if (MultiPlayerManager.Instance().AmAider)
                 {
-                    MultiPlayerManager.Broadcast(new SignalChangeMessage(signal));
+                    MultiPlayerManager.Broadcast(new SignalChangeMessage(signal, (SignalState)control.Tag));
                     return;
                 }
                 signal.State = (SignalState)control.Tag;

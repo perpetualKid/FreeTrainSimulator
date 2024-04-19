@@ -15,12 +15,12 @@ namespace Orts.Simulation.Multiplayer.Messaging
         [MemoryPackConstructor]
         public SignalChangeMessage() { }
 
-        public SignalChangeMessage(ISignal signal) 
+        public SignalChangeMessage(ISignal signal, SignalState targetState) 
         { 
             if (signal is Signal baseSignal)
             {
                 SignalIndex = baseSignal.Index;
-                SignalState = signal.State;
+                SignalState = targetState;
             }
         }
 

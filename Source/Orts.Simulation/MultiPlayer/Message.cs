@@ -56,7 +56,6 @@ namespace Orts.Simulation.Multiplayer
                 "TRAIN" => new MSGTrain(messageEncoding.GetString(content)),
                 "PLAYER" => new MSGPlayer(messageEncoding.GetString(content)),
                 "PLAYERTRAINSW" => new MSGPlayerTrainSw(messageEncoding.GetString(content)),
-                "SWITCH" => new MSGSwitch(messageEncoding.GetString(content)),
                 "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
                 "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
                 "UPDATETRAIN" => new MSGUpdateTrain(messageEncoding.GetString(content)),
@@ -574,119 +573,6 @@ namespace Orts.Simulation.Multiplayer
                 }*/
     }
     #endregion MSGPlayerTrainSw
-
-    #region MGSwitch
-    public class MSGSwitch : Message
-    {
-        public string user;
-        public int TileX, TileZ, WorldID, Selection;
-        public bool HandThrown;
-        private bool OK = true;
-
-        public MSGSwitch(string m)
-        {
-
-            string[] tmp = m.Split(' ');
-            if (tmp.Length != 6)
-                throw new ArgumentOutOfRangeException("Parsing error " + m);
-            user = tmp[0];
-            TileX = int.Parse(tmp[1]);
-            TileZ = int.Parse(tmp[2]);
-            WorldID = int.Parse(tmp[3]);
-            Selection = int.Parse(tmp[4]);
-            HandThrown = bool.Parse(tmp[5]);
-        }
-
-        public MSGSwitch(string n, int tX, int tZ, int u, int s, bool handThrown)
-        {
-            if (!MultiPlayerManager.Instance().AmAider && MultiPlayerManager.Instance().TrySwitch == false)
-            {
-                if (handThrown && Simulator.Instance.Confirmer != null)
-                    Simulator.Instance.Confirmer.Information(CatalogManager.Catalog.GetString("Dispatcher does not allow hand throw at this time"));
-                OK = false;
-                return;
-            }
-            user = n;
-            WorldID = u;
-            TileX = tX;
-            TileZ = tZ;
-            Selection = s;
-            HandThrown = handThrown;
-        }
-
-        public MSGSwitch(string user, IJunction junction, SwitchState targetState, bool handThrown)
-        {
-            if (!MultiPlayerManager.Instance().AmAider && MultiPlayerManager.Instance().TrySwitch == false)
-            {
-                if (handThrown && Simulator.Instance.Confirmer != null)
-                    Simulator.Instance.Confirmer.Information(CatalogManager.Catalog.GetString("Dispatcher does not allow hand throw at this time"));
-                OK = false;
-                return;
-            }
-            this.user = user;
-            TrackJunctionNode junctionNode = (junction as TrackJunctionNode) ?? throw new InvalidCastException(nameof(junction));
-            WorldID = junctionNode.UiD.WorldId;
-            TileX = junctionNode.UiD.Location.TileX;
-            TileZ = junctionNode.UiD.Location.TileZ;
-            Selection = (int)targetState;
-            HandThrown = handThrown;
-        }
-
-        public override string ToString()
-        {
-            if (!OK)
-                return null;
-            string tmp = "SWITCH " + user + " " + TileX + " " + TileZ + " " + WorldID + " " + Selection + " " + HandThrown;
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            //Trace.WriteLine(this.ToString());
-            if (MultiPlayerManager.IsServer()) //server got this message from Client
-            {
-                //if a normal user, and the dispatcher does not want hand throw, just ignore it
-                if (HandThrown == true && !MultiPlayerManager.Instance().AllowedManualSwitch && !MultiPlayerManager.Instance().aiderList.Contains(user))
-                {
-                    MultiPlayerManager.Broadcast(new ControlMessage(user, ControlMessageType.SwitchWarning, "Server does not allow hand thrown of switch"));
-                    return;
-                }
-                TrackJunctionNode trj = RuntimeData.Instance.TrackDB.GetJunctionNode(TileX, TileZ, WorldID);
-                bool state = Simulator.Instance.SignalEnvironment.RequestSetSwitch(trj, this.Selection);
-                if (state == false)
-                    MultiPlayerManager.Broadcast(new ControlMessage(user, ControlMessageType.Warning, "Train on the switch, cannot throw"));
-                else
-                    MultiPlayerManager.BroadCast(this.ToString()); //server will tell others
-            }
-            else
-            {
-                TrackJunctionNode trj = RuntimeData.Instance.TrackDB.GetJunctionNode(TileX, TileZ, WorldID);
-                SetSwitch(trj, Selection);
-                //trj.SelectedRoute = Selection; //although the new signal system request Signals.RequestSetSwitch, client may just change
-                if (user == MultiPlayerManager.GetUserName() && HandThrown == true)//got the message with my name, will confirm with the player
-                {
-                    Simulator.Instance.Confirmer.Information(CatalogManager.Catalog.GetString("Switched, current route is {0}",
-                        Selection == 0 ? CatalogManager.Catalog.GetString("main route") : CatalogManager.Catalog.GetString("side route")));
-                    return;
-                }
-            }
-        }
-
-        public static void SetSwitch(TrackNode switchNode, int desiredState)
-        {
-            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
-            RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[switchSection.OriginalIndex].SelectedRoute = switchSection.JunctionSetManual = desiredState;
-            switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
-
-            // update linked signals
-            foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
-            {
-                Signal thisSignal = Simulator.Instance.SignalEnvironment.Signals[thisSignalIndex];
-                thisSignal.Update();
-            }
-        }
-    }
-    #endregion MGSwitch
 
     #region MSGTrain
     //message to add new train from either a string (received message), or a Train (building a message)
