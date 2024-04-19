@@ -199,10 +199,7 @@ namespace Orts.Simulation.Multiplayer
 
                 Broadcast(new SwitchStateMessage(true));
 
-                var signalStatus = new MSGSignalStatus();
-                if (signalStatus.OKtoSend)
-                    BroadCast(signalStatus.ToString());
-
+                Broadcast(new SignalStateMessage(true));
             }
 
             //some players are removed

@@ -14,7 +14,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             {
                 Train train = MultiPlayerManager.FindPlayerTrain(User);
                 train?.RequestSignalPermission(Direction.Forward);
-                MultiPlayerManager.BroadCast(new MSGSignalStatus().ToString());
+                MultiPlayerManager.Broadcast(new SignalStateMessage(true));
             }
         }
     }

@@ -1,15 +1,12 @@
 ﻿using System.Collections.ObjectModel;
+using System.Linq;
 
 using MemoryPack;
 
-using Orts.Common;
-using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts;
-using System.Collections.Generic;
+using Orts.Formats.Msts.Models;
 using Orts.Simulation.Physics;
-using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
-using System.Linq;
 
 namespace Orts.Simulation.Multiplayer.Messaging
 {
