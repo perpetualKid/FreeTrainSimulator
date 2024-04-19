@@ -13,7 +13,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
     [MemoryPackable]
     public partial class SwitchStateMessage : MultiPlayerMessageContent
     {
-        public Collection<(int JunctionIndex, int SwitchState)> SwitchStates {  get; set; } = new Collection<(int JunctionIndex, int SwitchState)> ();
+        public Collection<(int JunctionIndex, int SwitchState)> SwitchStates {  get; } = new Collection<(int JunctionIndex, int SwitchState)> ();
 
         [MemoryPackConstructor]
         public SwitchStateMessage() { }

@@ -22,6 +22,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public SignalHeadState(SignalHead signalHead)
         {
+            ArgumentNullException.ThrowIfNull(signalHead, nameof(signalHead));
+
             SignalIndex = signalHead.MainSignal.Index;
             TdbIndex = signalHead.TDBIndex;
             SignalAspect = signalHead.SignalIndicationState;
@@ -33,7 +35,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
     [MemoryPackable]
     public partial class SignalStateMessage : MultiPlayerMessageContent
     {
-        public Collection<SignalHeadState> SignalStates { get; set; } = new Collection<SignalHeadState>();
+        public Collection<SignalHeadState> SignalStates { get; } = new Collection<SignalHeadState>();
 
         [MemoryPackConstructor]
         public SignalStateMessage()

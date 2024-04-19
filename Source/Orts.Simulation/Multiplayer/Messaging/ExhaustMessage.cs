@@ -39,7 +39,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
     [MemoryPackable]
     public partial class ExhaustMessage : MultiPlayerMessageContent
     {
-        public Collection<ExhaustMessageItem> Items { get; set; } = new Collection<ExhaustMessageItem>();
+        public Collection<ExhaustMessageItem> Items { get; } = new Collection<ExhaustMessageItem>();
 
         public int TrainNumber { get; set; }
 
