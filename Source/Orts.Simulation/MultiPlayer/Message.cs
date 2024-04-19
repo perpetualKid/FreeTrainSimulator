@@ -59,7 +59,6 @@ namespace Orts.Simulation.Multiplayer
                 "SWITCH" => new MSGSwitch(messageEncoding.GetString(content)),
                 "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
                 "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
-                "GETTRAIN" => new MSGGetTrain(messageEncoding.GetString(content)),
                 "UPDATETRAIN" => new MSGUpdateTrain(messageEncoding.GetString(content)),
                 "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
                 "FLIP" => new MSGFlip(messageEncoding.GetString(content)),
@@ -1212,51 +1211,6 @@ namespace Orts.Simulation.Multiplayer
         }
     }
     #endregion MSGLocoChange
-
-    #region MSGGetTrain
-    public class MSGGetTrain : Message
-    {
-        public int num;
-        public string user;
-
-        public MSGGetTrain(string u, int m)
-        {
-            user = u;
-            num = m;
-        }
-
-        public MSGGetTrain(string m)
-        {
-            string[] tmp = m.Split(' ');
-            user = tmp[0];
-            num = int.Parse(tmp[1]);
-        }
-
-        public override string ToString()
-        {
-
-            string tmp = "GETTRAIN " + user + " " + num;
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        public override void HandleMsg()
-        {
-            if (MultiPlayerManager.IsServer())
-            {
-                foreach (Train t in Simulator.Instance.Trains)
-                {
-                    if (t == null)
-                        continue;
-                    if (t.Number == num) //found it, broadcast to everyone
-                    {
-                        MultiPlayerManager.BroadCast((new MSGUpdateTrain(user, t, t.Number)).ToString());
-                    }
-                }
-            }
-        }
-
-    }
-    #endregion MSGGetTrain
 
     #region MSGUncouple
     public class MSGUncouple : Message

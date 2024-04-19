@@ -47,7 +47,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public override void HandleMessage()
         {
-            bool found = false; //a train may not be in my sim
             if (User == multiPlayerManager.UserName)//about itself, check if the number of car has changed, otherwise ignore
             {
                 //if I am a remote controlled train now
@@ -55,7 +54,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 {
                     Simulator.Instance.PlayerLocomotive.Train.ToDoUpdate(TrackNodeIndex, RearLocation.TileX, RearLocation.TileZ, RearLocation.Location.X, RearLocation.Location.Z, DistanceTravelled, Speed, MultiUnitDirection, TrainDirection, Length);
                 }
-                found = true;
                 return;
             }
             if (User == "0xAI")
@@ -63,13 +61,12 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 Train train = Simulator.Instance.Trains.GetTrainByNumber(TrainNumber);
                 if (train != null)
                 {
-                    found = true;
                     if (train.Cars.Count != CarCount) //the number of cars are different, client will not update it, ask for new information
                     {
-                        if (!MultiPlayerManager.IsServer())
+                        if (!multiPlayerManager.IsDispatcher)
                         {
                             if (CheckMissingTimes(train.Number))
-                                MultiPlayerManager.Notify((new MSGGetTrain(MultiPlayerManager.GetUserName(), train.Number)).ToString());
+                                MultiPlayerManager.Broadcast(new TrainRequestMessage() { TrainNumber = train.Number });
                             return;
                         }
                     }
@@ -96,17 +93,15 @@ namespace Orts.Simulation.Multiplayer.Messaging
                         Simulator.Instance.PlayerLocomotive == Simulator.Instance.PlayerLocomotive.Train.LeadLocomotive &&
                         train.TrainType != TrainType.Remote && train.TrainType != TrainType.Static)
                         return;
-                    found = true;
                     train.ToDoUpdate(TrackNodeIndex, RearLocation.TileX, RearLocation.TileZ, RearLocation.Location.X, RearLocation.Location.Z, DistanceTravelled, Speed, MultiUnitDirection, TrainDirection, Length);
                     // This is necessary as sometimes a train isn'train in the Trains list
                     multiPlayerManager.AddOrRemoveTrain(train, true);
+                    return;
                 }
             }
-            if (found == false) //I do not have the train, tell server to send it to me
-            {
-                if (!multiPlayerManager.IsDispatcher && CheckMissingTimes(TrainNumber))
-                    MultiPlayerManager.Notify((new MSGGetTrain(MultiPlayerManager.GetUserName(), TrainNumber)).ToString());
-            }
+            //I do not have the train, tell server to send it to me
+            if (!multiPlayerManager.IsDispatcher && CheckMissingTimes(TrainNumber))
+                MultiPlayerManager.Broadcast(new TrainRequestMessage() { TrainNumber = TrainNumber });
         }
 
         //a train is missing, but will wait for 10 messages then ask
