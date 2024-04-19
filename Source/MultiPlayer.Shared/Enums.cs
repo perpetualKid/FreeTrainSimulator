@@ -28,5 +28,6 @@ namespace Multiplayer.Shared
         SwitchChange,
         SignalStates,
         SignalChange,
+        LocomotiveInfo,
     }
 }

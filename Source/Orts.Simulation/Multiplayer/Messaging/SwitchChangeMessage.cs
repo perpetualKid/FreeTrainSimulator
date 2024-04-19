@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 using GetText;
 
@@ -23,6 +24,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public SwitchChangeMessage(IJunction junction, SwitchState targetState, bool handThrown)
         {
+            ArgumentNullException.ThrowIfNull(junction,nameof(junction));
+
             if (!multiPlayerManager.AmAider && !multiPlayerManager.TrySwitch && ManuallySet)
             {
                 Simulator.Instance.Confirmer?.Information(CatalogManager.Catalog.GetString("Dispatcher does not allow hand throw at this time"));

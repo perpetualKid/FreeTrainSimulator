@@ -52,7 +52,6 @@ namespace Orts.Simulation.Multiplayer
         {
             return messageEncoding.GetString(messageType) switch
             {
-                "LOCOINFO" => new MSGLocoInfo(messageEncoding.GetString(content)),
                 "TRAIN" => new MSGTrain(messageEncoding.GetString(content)),
                 "PLAYER" => new MSGPlayer(messageEncoding.GetString(content)),
                 "PLAYERTRAINSW" => new MSGPlayerTrainSw(messageEncoding.GetString(content)),
@@ -1852,124 +1851,6 @@ namespace Orts.Simulation.Multiplayer
         }
     }
     #endregion MSGCouple
-
-    #region MSGLocoInfo
-    public class MSGLocoInfo : Message
-    {
-        private float EB, DB, TT, VL, CC, BC, DC, FC, I1, I2, SH, SE, LE;
-        private string user;
-        private int tnum; //train number
-
-        //constructor to create a message from signal data
-        public MSGLocoInfo(TrainCar c, string u)
-        {
-            MSTSLocomotive loco = (MSTSLocomotive)c;
-            EB = DB = TT = VL = CC = BC = DC = FC = I1 = I2 = SH = SE = LE = 0.0f;
-            if (loco is MSTSSteamLocomotive)
-            {
-                MSTSSteamLocomotive loco1 = (MSTSSteamLocomotive)loco;
-                loco1.GetLocoInfo(ref CC, ref BC, ref DC, ref FC, ref I1, ref I2, ref SE, ref LE);
-            }
-            if (loco.SteamHeatController != null)
-            {
-                SH = loco.SteamHeatController.CurrentValue;
-            }
-            if (loco.EngineBrakeController != null)
-            {
-                EB = loco.EngineBrakeController.CurrentValue;
-            }
-            if (loco.DynamicBrakeController != null)
-            {
-                DB = loco.DynamicBrakeController.CurrentValue;
-            }
-            TT = loco.ThrottleController.CurrentValue;
-            if (loco is MSTSElectricLocomotive)
-            {
-                VL = (loco as MSTSElectricLocomotive).ElectricPowerSupply.FilterVoltageV;
-            }
-            tnum = loco.Train.Number;
-            user = u;
-        }
-
-        //constructor to decode the message "m"
-        public MSGLocoInfo(string m)
-        {
-            string[] tmp = m.Split('\t');
-            user = tmp[0].Trim();
-            tnum = int.Parse(tmp[1]);
-            EB = float.Parse(tmp[2], CultureInfo.InvariantCulture);
-            DB = float.Parse(tmp[3], CultureInfo.InvariantCulture);
-            TT = float.Parse(tmp[4], CultureInfo.InvariantCulture);
-            VL = float.Parse(tmp[5], CultureInfo.InvariantCulture);
-            CC = float.Parse(tmp[6], CultureInfo.InvariantCulture);
-            BC = float.Parse(tmp[7], CultureInfo.InvariantCulture);
-            DC = float.Parse(tmp[8], CultureInfo.InvariantCulture);
-            FC = float.Parse(tmp[9], CultureInfo.InvariantCulture);
-            I1 = float.Parse(tmp[10], CultureInfo.InvariantCulture);
-            I2 = float.Parse(tmp[11], CultureInfo.InvariantCulture);
-            SH = float.Parse(tmp[12], CultureInfo.InvariantCulture);
-            SE = float.Parse(tmp[13], CultureInfo.InvariantCulture);
-            LE = float.Parse(tmp[14], CultureInfo.InvariantCulture);
-        }
-
-        //how to handle the message?
-        public override void HandleMsg() //only client will get message, thus will set states
-        {
-            foreach (Train t in Simulator.Instance.Trains)
-            {
-                if (t.TrainType != TrainType.Remote && t.Number == tnum)
-                {
-                    foreach (var car in t.Cars)
-                    {
-                        if (car.CarID.StartsWith(user) && car is MSTSLocomotive)
-                        {
-                            UpdateValue((MSTSLocomotive)car);
-                        }
-                    }
-                    return;
-                }
-            }
-        }
-
-        private void UpdateValue(MSTSLocomotive loco)
-        {
-            if (loco is MSTSSteamLocomotive)
-            {
-                MSTSSteamLocomotive loco1 = (MSTSSteamLocomotive)loco;
-                loco1.GetLocoInfo(ref CC, ref BC, ref DC, ref FC, ref I1, ref I2, ref SE, ref LE);
-            }
-            if (loco.SteamHeatController != null)
-            {
-                SH = loco.SteamHeatController.CurrentValue;
-            }
-            if (loco.EngineBrakeController != null)
-            {
-                loco.EngineBrakeController.CurrentValue = EB;
-                loco.EngineBrakeController.UpdateValue = 0.0f;
-            }
-            if (loco.DynamicBrakeController != null)
-            {
-                loco.DynamicBrakeController.CurrentValue = DB;
-                loco.DynamicBrakeController.UpdateValue = 0.0f;
-            }
-
-            loco.ThrottleController.CurrentValue = TT;
-            loco.ThrottleController.UpdateValue = 0.0f;
-            if (loco is MSTSElectricLocomotive)
-            {
-                (loco as MSTSElectricLocomotive).ElectricPowerSupply.FilterVoltageV = VL;
-            }
-        }
-        public override string ToString()
-        {
-            string tmp = "LOCOINFO " + user + "\t" + tnum + "\t" + EB.ToString(CultureInfo.InvariantCulture) + "\t" + DB.ToString(CultureInfo.InvariantCulture) + "\t" +
-                TT.ToString(CultureInfo.InvariantCulture) + "\t" + VL.ToString(CultureInfo.InvariantCulture) + "\t" + CC.ToString(CultureInfo.InvariantCulture) + "\t" +
-                BC.ToString(CultureInfo.InvariantCulture) + "\t" + DC.ToString(CultureInfo.InvariantCulture) + "\t" + FC.ToString(CultureInfo.InvariantCulture) + "\t" +
-                I1.ToString(CultureInfo.InvariantCulture) + "\t" + I2.ToString(CultureInfo.InvariantCulture); // fill in the message body here
-            return " " + tmp.Length + ": " + tmp;
-        }
-    }
-    #endregion MSGLocoInfo
 
     #region MSGFlip
     //message to indicate that a train has been flipped (reverse formation)

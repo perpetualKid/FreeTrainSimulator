@@ -32,6 +32,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 MessageType.SignalStates => MemoryPackSerializer.Deserialize<SignalStateMessage>(message.Payload),
                 MessageType.SignalChange => MemoryPackSerializer.Deserialize<SignalChangeMessage>(message.Payload),
                 MessageType.SwitchChange => MemoryPackSerializer.Deserialize<SwitchChangeMessage>(message.Payload),
+                MessageType.LocomotiveInfo => MemoryPackSerializer.Deserialize<LocomotiveInfoMessage>(message.Payload),
                 _ => throw new ProtocolException($"Unknown Message type {message.MessageType}"),
             };
         }
@@ -111,6 +112,10 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 case SwitchChangeMessage switchChangeMessage:
                     MemoryPackSerializer.Serialize(bufferPipe.Writer, switchChangeMessage);
                     messageType = MessageType.SwitchChange;
+                    break;
+                case LocomotiveInfoMessage locomotiveInfoMessage:
+                    MemoryPackSerializer.Serialize(bufferPipe.Writer, locomotiveInfoMessage);
+                    messageType = MessageType.LocomotiveInfo;
                     break;
             }
 

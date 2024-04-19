@@ -2174,8 +2174,8 @@ namespace Orts.Simulation.RollingStocks
                 for (int i = 0; i < NumCylinders; i++)
                 {
 
-//                    Trace.TraceInformation("NumCyl - {0} i {1}", NumCylinders, i);
-                    
+                    //                    Trace.TraceInformation("NumCyl - {0} i {1}", NumCylinders, i);
+
                     // float realCrankAngleRad = (float)(LocomotiveAxle.AxlePositionRad + i * WheelCrankAngleDiffRad[i]);
                     float realCrankAngleRad = (float)(LocomotiveAxle.AxlePositionRad);
                     float normalisedCrankAngleRad = 0;
@@ -2209,7 +2209,7 @@ namespace Orts.Simulation.RollingStocks
                         exhaustCrankAngleRad = CylinderExhaustOpenFactor * (float)Math.PI + (float)Math.PI;
                     }
 
-//                    Trace.TraceInformation("Cylinder {0} ExhaustCrank {1} RealCrank {2} NormalCrank {3}", i + 1, MathHelper.ToDegrees(exhaustCrankAngleRad), MathHelper.ToDegrees(realCrankAngleRad), MathHelper.ToDegrees(normalisedCrankAngleRad));
+                    //                    Trace.TraceInformation("Cylinder {0} ExhaustCrank {1} RealCrank {2} NormalCrank {3}", i + 1, MathHelper.ToDegrees(exhaustCrankAngleRad), MathHelper.ToDegrees(realCrankAngleRad), MathHelper.ToDegrees(normalisedCrankAngleRad));
 
                     if (absSpeedMpS > 0.001)
                     {
@@ -2217,20 +2217,20 @@ namespace Orts.Simulation.RollingStocks
                         {
                             CylinderSteamExhaust1On = true;
 
-//                            Trace.TraceInformation("Exhaust - Factor {0} ExhaustCrank {1} RealCrank {2} NormalCrank {3} Exhaust1On {4} Cylinder {5} i {6}", CylinderExhaustOpenFactor, MathHelper.ToDegrees(exhaustCrankAngleRad), MathHelper.ToDegrees(realCrankAngleRad), MathHelper.ToDegrees(normalisedCrankAngleRad), CylinderSteamExhaust1On, i + 1, i);
+                            //                            Trace.TraceInformation("Exhaust - Factor {0} ExhaustCrank {1} RealCrank {2} NormalCrank {3} Exhaust1On {4} Cylinder {5} i {6}", CylinderExhaustOpenFactor, MathHelper.ToDegrees(exhaustCrankAngleRad), MathHelper.ToDegrees(realCrankAngleRad), MathHelper.ToDegrees(normalisedCrankAngleRad), CylinderSteamExhaust1On, i + 1, i);
                         }
                         else if (i == 0)
                         {
                             CylinderSteamExhaust1On = false;
-//                            Trace.TraceInformation("Test #1 {0}", CylinderSteamExhaust1On);
+                            //                            Trace.TraceInformation("Test #1 {0}", CylinderSteamExhaust1On);
                         }
-                        
+
                         else if (i == 1 && ((normalisedCrankAngleRad <= MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad) || (normalisedCrankAngleRad < 2 * MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad)))
                         {
                             CylinderSteamExhaust2On = true;
-//                            Trace.TraceInformation("Exhaust - Factor {0} ExhaustCrank {1} RealCrank {2} NormalCrank {3} Exhaust2On {4} Cylinder {5} i {6}", CylinderExhaustOpenFactor, MathHelper.ToDegrees(exhaustCrankAngleRad), MathHelper.ToDegrees(realCrankAngleRad), MathHelper.ToDegrees(normalisedCrankAngleRad), CylinderSteamExhaust2On, i + 1, i);
+                            //                            Trace.TraceInformation("Exhaust - Factor {0} ExhaustCrank {1} RealCrank {2} NormalCrank {3} Exhaust2On {4} Cylinder {5} i {6}", CylinderExhaustOpenFactor, MathHelper.ToDegrees(exhaustCrankAngleRad), MathHelper.ToDegrees(realCrankAngleRad), MathHelper.ToDegrees(normalisedCrankAngleRad), CylinderSteamExhaust2On, i + 1, i);
                         }
-                        else if (i ==1)
+                        else if (i == 1)
                         {
                             CylinderSteamExhaust2On = false;
                         }
@@ -2241,9 +2241,9 @@ namespace Orts.Simulation.RollingStocks
                         else if (i == 2 && ((normalisedCrankAngleRad <= MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad) || (normalisedCrankAngleRad < 2 * MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad)))
                         {
                             CylinderSteamExhaust3On = true;
-//                            Trace.TraceInformation("Exhaust - Factor {0} ExhaustCrank {1} RealCrank {2} NormalCrank {3} Exhaust3On {4} Cylinder {5} i {6}", CylinderExhaustOpenFactor, MathHelper.ToDegrees(exhaustCrankAngleRad), MathHelper.ToDegrees(realCrankAngleRad), MathHelper.ToDegrees(normalisedCrankAngleRad), CylinderSteamExhaust3On, i + 1, i);
+                            //                            Trace.TraceInformation("Exhaust - Factor {0} ExhaustCrank {1} RealCrank {2} NormalCrank {3} Exhaust3On {4} Cylinder {5} i {6}", CylinderExhaustOpenFactor, MathHelper.ToDegrees(exhaustCrankAngleRad), MathHelper.ToDegrees(realCrankAngleRad), MathHelper.ToDegrees(normalisedCrankAngleRad), CylinderSteamExhaust3On, i + 1, i);
                         }
-                        else if (i ==2)
+                        else if (i == 2)
                         {
                             CylinderSteamExhaust3On = false;
                         }
@@ -2251,7 +2251,7 @@ namespace Orts.Simulation.RollingStocks
                         else if (i == 3 && ((normalisedCrankAngleRad <= MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad) || (normalisedCrankAngleRad < 2 * MathHelper.Pi && normalisedCrankAngleRad >= exhaustCrankAngleRad)))
                         {
                             CylinderSteamExhaust4On = true;
-//                            Trace.TraceInformation("Exhaust - Factor {0} ExhaustCrank {1} RealCrank {2} NormalCrank {3} Exhaust4On {4} Cylinder {5} i {6}", CylinderExhaustOpenFactor, MathHelper.ToDegrees(exhaustCrankAngleRad), MathHelper.ToDegrees(realCrankAngleRad), MathHelper.ToDegrees(normalisedCrankAngleRad), CylinderSteamExhaust4On, i + 1, i);
+                            //                            Trace.TraceInformation("Exhaust - Factor {0} ExhaustCrank {1} RealCrank {2} NormalCrank {3} Exhaust4On {4} Cylinder {5} i {6}", CylinderExhaustOpenFactor, MathHelper.ToDegrees(exhaustCrankAngleRad), MathHelper.ToDegrees(realCrankAngleRad), MathHelper.ToDegrees(normalisedCrankAngleRad), CylinderSteamExhaust4On, i + 1, i);
                         }
                         else if (i == 3)
                         {
@@ -7321,47 +7321,12 @@ namespace Orts.Simulation.RollingStocks
         /// <returns>0.0 to 1.0. If type is unknown, returns 0.0</returns>
         public override float GetFilledFraction(PickupType pickupType)
         {
-            if (pickupType == PickupType.FuelWater)
+            return pickupType switch
             {
-                return WaterController.CurrentValue;
-            }
-            if (pickupType == PickupType.FuelCoal)
-            {
-                return FuelController.CurrentValue;
-            }
-            return 0f;
-        }
-
-        public void GetLocoInfo(ref float CC, ref float BC, ref float DC, ref float FC, ref float I1, ref float I2, ref float SE, ref float LE)
-        {
-            CC = CutoffController.CurrentValue;
-            BC = BlowerController.CurrentValue;
-            DC = DamperController.CurrentValue;
-            FC = FiringRateController.CurrentValue;
-            I1 = Injector1Controller.CurrentValue;
-            I2 = Injector2Controller.CurrentValue;
-            SE = SmallEjectorController.CurrentValue;
-            LE = LargeEjectorController.CurrentValue;
-        }
-
-        public void SetLocoInfo(float CC, float BC, float DC, float FC, float I1, float I2, float SE, float LE)
-        {
-            CutoffController.CurrentValue = CC;
-            CutoffController.UpdateValue = 0.0f;
-            BlowerController.CurrentValue = BC;
-            BlowerController.UpdateValue = 0.0f;
-            DamperController.CurrentValue = DC;
-            DamperController.UpdateValue = 0.0f;
-            FiringRateController.CurrentValue = FC;
-            FiringRateController.UpdateValue = 0.0f;
-            Injector1Controller.CurrentValue = I1;
-            Injector1Controller.UpdateValue = 0.0f;
-            Injector2Controller.CurrentValue = I2;
-            Injector2Controller.UpdateValue = 0.0f;
-            SmallEjectorController.CurrentValue = SE;
-            SmallEjectorController.UpdateValue = 0.0f;
-            LargeEjectorController.CurrentValue = LE;
-            LargeEjectorController.UpdateValue = 0.0f;
+                PickupType.FuelWater => WaterController.CurrentValue,
+                PickupType.FuelCoal => FuelController.CurrentValue,
+                _ => 0f
+            };
         }
 
         public override void SwitchToPlayerControl()

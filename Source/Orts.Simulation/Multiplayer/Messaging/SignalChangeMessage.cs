@@ -1,4 +1,6 @@
-﻿using MemoryPack;
+﻿using System;
+
+using MemoryPack;
 
 using Orts.Common;
 using Orts.Simulation.Signalling;
@@ -15,13 +17,11 @@ namespace Orts.Simulation.Multiplayer.Messaging
         [MemoryPackConstructor]
         public SignalChangeMessage() { }
 
-        public SignalChangeMessage(ISignal signal, SignalState targetState) 
-        { 
-            if (signal is Signal baseSignal)
-            {
-                SignalIndex = baseSignal.Index;
-                SignalState = targetState;
-            }
+        public SignalChangeMessage(ISignal signal, SignalState targetState)
+        {
+            ArgumentNullException.ThrowIfNull(signal, nameof(signal));
+            SignalIndex = (signal as Signal).Index;
+            SignalState = targetState;
         }
 
         public override void HandleMessage()
