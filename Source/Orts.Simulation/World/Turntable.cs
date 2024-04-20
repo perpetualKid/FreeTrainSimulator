@@ -29,6 +29,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Multiplayer;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
@@ -162,8 +163,13 @@ namespace Orts.Simulation.World
                 return;
             if (MultiPlayerManager.IsMultiPlayer())
             {
-                SubMessageCode = MessageCode.GoToTarget;
-                MultiPlayerManager.Notify(new MSGMovingTable(Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable), MultiPlayerManager.GetUserName(), SubMessageCode, clockwise, YAngle).ToString());
+                MultiPlayerManager.Broadcast(new MovingTableMessage()
+                {
+                    MovingTableIndex = Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable),
+                    MessageCode = MessageCode.GoToTarget,
+                    Delta = YAngle,
+                    RotationDirection = clockwise ? Rotation.Clockwise : Rotation.CounterClockwise
+                });
             }
             RemotelyControlled = false;
             GeneralComputeTarget(clockwise);
@@ -278,8 +284,13 @@ namespace Orts.Simulation.World
             }
             if (MultiPlayerManager.IsMultiPlayer())
             {
-                SubMessageCode = MessageCode.StartingContinuous;
-                MultiPlayerManager.Notify(new MSGMovingTable(Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable), MultiPlayerManager.GetUserName(), SubMessageCode, clockwise, YAngle).ToString());
+                MultiPlayerManager.Broadcast(new MovingTableMessage()
+                {
+                    MovingTableIndex = Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable),
+                    MessageCode = MessageCode.StartingContinuous,
+                    Delta = YAngle,
+                    RotationDirection = clockwise ? Rotation.Clockwise : Rotation.CounterClockwise
+                });
             }
             GeneralStartContinuous(clockwise);
         }

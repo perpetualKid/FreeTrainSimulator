@@ -76,11 +76,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             line.Add(checkbox = new Checkbox(this, false, CheckMarkStyle.Ballot, true) { State = wagon.BrakeSystem.FrontBrakeHoseConnected });
             checkbox.OnClick += BrakeHose_OnClick;
             line = layout.AddLayoutHorizontalLineOfText();
-            line.Add(new Label(this, labelWidth, line.RemainingHeight, Catalog.GetString("Front Angle Cock")));
+            line.Add(new Label(this, labelWidth, line.RemainingHeight, Catalog.GetString("Front Delta Cock")));
             line.Add(checkbox = new Checkbox(this, false, CheckMarkStyle.Ballot, true) { State = wagon.BrakeSystem.AngleCockAOpen });
             checkbox.OnClick += FrontAngleCock_OnClick;
             line = layout.AddLayoutHorizontalLineOfText();
-            line.Add(new Label(this, labelWidth, line.RemainingHeight, Catalog.GetString("Rear Angle Cock")));
+            line.Add(new Label(this, labelWidth, line.RemainingHeight, Catalog.GetString("Rear Delta Cock")));
             line.Add(checkbox = new Checkbox(this, false, CheckMarkStyle.Ballot, true) { State = wagon.BrakeSystem.AngleCockBOpen });
             checkbox.OnClick += RearAngleCock_OnClick;
             if (currentCar.BrakeSystem is SingleTransferPipe singlePipe)
@@ -186,7 +186,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private int LinesNeeded()
         {
-            int result = 3; // Brakehose, Front and Rear Angle Cock
+            int result = 3; // Brakehose, Front and Rear Delta Cock
             result += (currentCar is MSTSWagon mstsWagon && mstsWagon.HandBrakePresent) ? 1 : 0; //Handbrake
             result += currentCar is MSTSElectricLocomotive or MSTSDieselLocomotive ? 2 : 0; // Power, MU Control
             result += (currentCar as MSTSWagon)?.PowerSupply != null ? 2 : 0; // Battery, Electric Supply

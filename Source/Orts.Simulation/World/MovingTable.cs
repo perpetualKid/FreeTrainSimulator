@@ -115,7 +115,6 @@ namespace Orts.Simulation.World
         private protected Vector3 finalFrontTravellerXNALocation;
         private protected Vector3 finalRearTravellerXNALocation;
 
-        public MessageCode SubMessageCode { get; set; }
         public bool AlignToRemote { get; set; }
         public bool RemotelyControlled { get; set; }
 

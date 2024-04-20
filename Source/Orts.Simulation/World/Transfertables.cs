@@ -29,6 +29,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Multiplayer;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.World;
@@ -123,7 +124,7 @@ namespace Orts.Simulation
             trackVectorSectionsIndex = new int[trackNodesIndex.Length];
             int i = 0;
             foreach (SectionIndex sectionIdx in trackShape.SectionIndices)
-{
+            {
                 offsets.Add(verticalTransfer ? sectionIdx.Offset.Y : sectionIdx.Offset.X);
                 trackNodesIndex[i] = -1;
                 trackVectorSectionsIndex[i] = -1;
@@ -171,8 +172,13 @@ namespace Orts.Simulation
                 return;
             if (MultiPlayerManager.IsMultiPlayer())
             {
-                SubMessageCode = MessageCode.GoToTarget;
-                MultiPlayerManager.Notify(new MSGMovingTable(Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable), MultiPlayerManager.GetUserName(), SubMessageCode, clockwise, OffsetPos).ToString());
+                MultiPlayerManager.Broadcast(new MovingTableMessage()
+                {
+                    MovingTableIndex = Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable),
+                    MessageCode = MessageCode.GoToTarget,
+                    Delta = OffsetPos,
+                    RotationDirection = clockwise ? Rotation.Clockwise : Rotation.CounterClockwise
+                });
             }
             RemotelyControlled = false;
             GeneralComputeTarget(clockwise);
@@ -262,8 +268,13 @@ namespace Orts.Simulation
             }
             if (MultiPlayerManager.IsMultiPlayer())
             {
-                SubMessageCode = MessageCode.StartingContinuous;
-                MultiPlayerManager.Notify(new MSGMovingTable(Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable), MultiPlayerManager.GetUserName(), SubMessageCode, clockwise, OffsetPos).ToString());
+                MultiPlayerManager.Broadcast(new MovingTableMessage()
+                {
+                    MovingTableIndex = Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable),
+                    MessageCode = MessageCode.StartingContinuous,
+                    Delta = OffsetPos,
+                    RotationDirection = clockwise ? Rotation.Clockwise : Rotation.CounterClockwise
+                });
             }
             GeneralStartContinuous(clockwise);
         }
