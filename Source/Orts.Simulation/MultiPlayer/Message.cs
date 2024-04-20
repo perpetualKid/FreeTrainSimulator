@@ -20,13 +20,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
-
-using GetText;
-
-using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
@@ -36,9 +31,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
-using Orts.Simulation.World;
 
 namespace Orts.Simulation.Multiplayer
 {
@@ -54,7 +47,6 @@ namespace Orts.Simulation.Multiplayer
             {
                 "TRAIN" => new MSGTrain(messageEncoding.GetString(content)),
                 "PLAYER" => new MSGPlayer(messageEncoding.GetString(content)),
-                "PLAYERTRAINSW" => new MSGPlayerTrainSw(messageEncoding.GetString(content)),
                 "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
                 "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
                 "UPDATETRAIN" => new MSGUpdateTrain(messageEncoding.GetString(content)),
@@ -470,107 +462,6 @@ namespace Orts.Simulation.Multiplayer
         }
     }
     #endregion MSGPlayer
-
-    #region MSGPlayerTrainSw
-    public class MSGPlayerTrainSw : MSGRequired
-    {
-        public string user = "";
-        public int num; //train number
-        public bool oldTrainReverseFormation;
-        public bool newTrainReverseFormation;
-        public string leadingID;
-        public MSGPlayerTrainSw() { }
-        public MSGPlayerTrainSw(string m)
-        {
-            string[] areas = m.Split('\r');
-            if (areas.Length <= 1)
-            {
-                throw new InvalidDataException($"Parsing error in MSGPlayerTrainSw {m}");
-            }
-            try
-            {
-                var tmp = areas[0].Trim();
-                string[] data = tmp.Split(' ');
-                user = data[0];
-                num = int.Parse(data[1]);
-                oldTrainReverseFormation = bool.Parse(data[2]);
-                newTrainReverseFormation = bool.Parse(data[3]);
-                leadingID = areas[1].Trim();
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-
-
-        public MSGPlayerTrainSw(string n, Train t, int tn, bool oldRevForm, bool newRevForm)
-        {
-            user = n;
-            if (t != null)
-                num = tn;
-            if (t.LeadLocomotive != null)
-                leadingID = t.LeadLocomotive.CarID;
-            else
-                leadingID = "NA";
-            oldTrainReverseFormation = oldRevForm;
-            newTrainReverseFormation = newRevForm;
-        }
-
-        public override string ToString()
-        {
-            string tmp = "PLAYERTRAINSW " + user + " " + num + " " + oldTrainReverseFormation + " " + newTrainReverseFormation + " " + "\r" + leadingID + "\r";
-            return " " + tmp.Length + ": " + tmp;
-        }
-
-        private object lockObjPlayer = new object();
-        public override void HandleMsg()
-        {
-            lock (lockObjPlayer)
-            {
-                MultiPlayerManager.OnlineTrains.SwitchPlayerTrain(this);
-
-                if (MultiPlayerManager.IsServer())
-                {
-                    MultiPlayerManager.Instance().PlayerAdded = true;
-                }
-                else //client needs to handle environment
-                {
-                    if (MultiPlayerManager.GetUserName() == this.user && !MultiPlayerManager.Instance().Connected) //a reply from the server, update my train number
-                    {
-                        MultiPlayerManager.Instance().Connected = true;
-                        Train t = null;
-                        if (Simulator.Instance.PlayerLocomotive == null)
-                            t = Simulator.Instance.Trains[0];
-                        else
-                            t = Simulator.Instance.PlayerLocomotive.Train;
-                    }
-                }
-            }
-        }
-
-        //this version only intends for the one started on server computer
-        /*        public void HandleMsg(OnlinePlayer p)
-                {
-                    if (!MPManager.IsServer()) return; //only intended for the server, when it gets the player message in OnlinePlayer Receive
-
-                    //client connected directly to the server, thus will send the game status to the player directly (avoiding using broadcast)
-                    MPManager.OnlineTrains.SwitchPlayerTrain(this);
-
-                    MSGPlayerTrainSw host = new MSGPlayerTrainSw(MPManager.GetUserName(), MPManager.Simulator.PlayerLocomotive.Train, MPManager.Simulator.PlayerLocomotive.Train.Number,);
-                    p.Send(host.ToString());
-
-                    //send the new player information to everyone else
-                    host = new MSGPlayerTrainSw(p.Username, p.Train, p.Train.Number);
-                    var players = MPManager.OnlineTrains.Players.ToArray();
-                    string newPlayer = host.ToString();
-                    foreach (var op in players)
-                    {
-                        op.Value.Send(newPlayer);
-                    }
-                }*/
-    }
-    #endregion MSGPlayerTrainSw
 
     #region MSGTrain
     //message to add new train from either a string (received message), or a Train (building a message)

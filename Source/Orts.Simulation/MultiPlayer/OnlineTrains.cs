@@ -293,6 +293,32 @@ namespace Orts.Simulation.Multiplayer
                 p.Train.ReverseFormation(false);
         }
 
+        public void SwitchPlayerTrain(PlayerTrainChangeMessage switchMessage)
+        {
+            // find info about the new player train
+            // look in all trains
+
+            if (switchMessage.User == MultiPlayerManager.Instance().UserName)
+                return; //do not add self//WARNING: may need to worry about train number here
+            bool doesPlayerExist = Players.TryGetValue(switchMessage.User, out OnlinePlayer player);
+            if (!doesPlayerExist)
+                return;
+            player.LeadingLocomotiveID = switchMessage.LocomotiveId;
+            Train train;
+
+            if (MultiPlayerManager.IsServer()) //server needs to worry about correct train number
+            {
+                train = Simulator.Instance.Trains.Find(t => t.Number == switchMessage.TrainNumber);
+                train.TrainType = TrainType.Remote;
+            }
+            else
+            {
+                train = Simulator.Instance.Trains.Find(t => t.Number == switchMessage.TrainNumber);
+                train.TrainType = TrainType.Remote;
+            }
+            player.Train = train;
+        }
+
         // Save
         public void Save(BinaryWriter outf)
         {

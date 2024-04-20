@@ -41,6 +41,7 @@ using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Multiplayer;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
@@ -1804,8 +1805,6 @@ namespace Orts.Simulation
             if (TrainSwitcher.SelectedAsPlayer != null && !TrainSwitcher.SelectedAsPlayer.IsActualPlayerTrain)
             {
                 Train selectedAsPlayer = TrainSwitcher.SelectedAsPlayer;
-                bool oldTrainReverseFormation = false;
-                bool newTrainReverseFormation = false;
                 if (PlayerLocomotive.Train is AITrain aiPlayerTrain && !PlayerLocomotive.Train.IsPathless)
                 {
                     if (aiPlayerTrain.ControlMode == TrainControlMode.Manual)
@@ -1973,7 +1972,7 @@ namespace Orts.Simulation
                 playerSwitchOngoing = true;
                 if (MultiPlayerManager.IsMultiPlayer())
                 {
-                    MultiPlayerManager.Notify(new MSGPlayerTrainSw(MultiPlayerManager.GetUserName(), PlayerLocomotive.Train, PlayerLocomotive.Train.Number, oldTrainReverseFormation, newTrainReverseFormation).ToString());
+                    MultiPlayerManager.Broadcast(new PlayerTrainChangeMessage(PlayerLocomotive.Train));
                 }
             }
             else

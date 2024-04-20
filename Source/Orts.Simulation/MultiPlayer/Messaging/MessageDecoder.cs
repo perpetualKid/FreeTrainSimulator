@@ -34,6 +34,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 MessageType.SwitchChange => MemoryPackSerializer.Deserialize<SwitchChangeMessage>(message.Payload),
                 MessageType.LocomotiveInfo => MemoryPackSerializer.Deserialize<LocomotiveInfoMessage>(message.Payload),
                 MessageType.MovingTable => MemoryPackSerializer.Deserialize<MovingTableMessage>(message.Payload),
+                MessageType.PlayerTrainChange => MemoryPackSerializer.Deserialize<PlayerTrainChangeMessage>(message.Payload),
                 _ => throw new ProtocolException($"Unknown Message type {message.MessageType}"),
             };
         }
@@ -121,6 +122,10 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 case MovingTableMessage movingTableMessage:
                     MemoryPackSerializer.Serialize(bufferPipe.Writer, movingTableMessage);
                     messageType = MessageType.MovingTable;
+                    break;
+                case PlayerTrainChangeMessage playerTrainChangeMessage:
+                    MemoryPackSerializer.Serialize(bufferPipe.Writer, playerTrainChangeMessage);
+                    messageType = MessageType.PlayerTrainChange;
                     break;
             }
 
