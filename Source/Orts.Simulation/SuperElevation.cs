@@ -64,7 +64,7 @@ namespace Orts.Simulation
                     {
                         if (i == 1 || i == count)
                         {
-                            //if (theCurve.Radius * (float)Math.Abs(theCurve.Delta * 0.0174) < 15f) continue; 
+                            //if (theCurve.Radius * (float)Math.Abs(theCurve.Angle * 0.0174) < 15f) continue; 
                         } //do not want the first and last piece of short curved track to be in the curve (they connected to switches)
                         if (!StartCurve) //we are beginning a curve
                         {

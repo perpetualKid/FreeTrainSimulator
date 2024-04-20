@@ -36,7 +36,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             [Description("Triple Valve")] TripleValve,
             [Description("Handbrake")] Handbrake,
             [Description("Brakehose Connected")] BrakehoseConnected,
-            [Description("Delta Cock")] AngleCock,
+            [Description("Angle Cock")] AngleCock,
             [Description("BleedOff Valve")] BleedOff,
         }
 
