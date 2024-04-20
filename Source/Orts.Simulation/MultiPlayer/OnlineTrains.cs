@@ -262,37 +262,6 @@ namespace Orts.Simulation.Multiplayer
 
         }
 
-        public void SwitchPlayerTrain(MSGPlayerTrainSw player)
-        {
-            // find info about the new player train
-            // look in all trains
-
-            if (player.user == MultiPlayerManager.Instance().UserName)
-                return; //do not add self//WARNING: may need to worry about train number here
-            OnlinePlayer p;
-            var doesPlayerExist = Players.TryGetValue(player.user, out p);
-            if (!doesPlayerExist)
-                return;
-            if (player.oldTrainReverseFormation)
-                p.Train.ReverseFormation(false);
-            p.LeadingLocomotiveID = player.leadingID;
-            Train train;
-
-            if (MultiPlayerManager.IsServer()) //server needs to worry about correct train number
-            {
-                train = Simulator.Instance.Trains.Find(t => t.Number == player.num);
-                train.TrainType = TrainType.Remote;
-            }
-            else
-            {
-                train = Simulator.Instance.Trains.Find(t => t.Number == player.num);
-                train.TrainType = TrainType.Remote;
-            }
-            p.Train = train;
-            if (player.newTrainReverseFormation)
-                p.Train.ReverseFormation(false);
-        }
-
         public void SwitchPlayerTrain(PlayerTrainChangeMessage switchMessage)
         {
             // find info about the new player train
