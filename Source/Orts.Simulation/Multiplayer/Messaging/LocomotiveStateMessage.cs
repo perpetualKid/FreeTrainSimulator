@@ -67,7 +67,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 {
                     foreach (TrainCar trainCar in train.Cars)
                     {
-                        if (trainCar.CarID.StartsWith(User) && trainCar is MSTSLocomotive locomotive)
+                        if (trainCar.CarID.StartsWith(User, System.StringComparison.OrdinalIgnoreCase) && trainCar is MSTSLocomotive locomotive)
                         {
                             if (locomotive.SteamHeatController != null)
                             {

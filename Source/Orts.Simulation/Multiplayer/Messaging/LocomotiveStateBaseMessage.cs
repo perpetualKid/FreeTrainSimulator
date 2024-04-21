@@ -19,9 +19,9 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public Collection<PantographState> Pantographs { get; private protected set; }
 
-        public LocomotiveStateBaseMessage() { }
+        protected LocomotiveStateBaseMessage() { }
 
-        public LocomotiveStateBaseMessage(MSTSLocomotive locomotive) 
+        protected LocomotiveStateBaseMessage(MSTSLocomotive locomotive) 
         {
             ArgumentNullException.ThrowIfNull(locomotive, nameof(locomotive));
 

@@ -56,7 +56,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     if (loadDataList != null && loadDataList.Count > 0)
                         car.FreightAnimations?.Load(loadDataList);
                 }
-                catch (Exception error)
+                catch (IOException error)
                 {
                     Trace.WriteLine(wagonFilePath + " " + error);
                     car = MultiPlayerManager.Instance().SubCar(train, wagonFilePath, trainCarItem.Length);
@@ -87,7 +87,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             train.AITrainBrakePercent = 100;
 
             train.LeadLocomotive = train.Cars[0] as MSTSLocomotive;
-            if (train.Cars[0].CarID.StartsWith("AI"))
+            if (train.Cars[0].CarID.StartsWith("AI", StringComparison.OrdinalIgnoreCase))
             {
                 // It's an AI train for the server, raise pantos and light lights
                 train.LeadLocomotive?.SignalEvent(TrainEvent.HeadlightOn);

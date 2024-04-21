@@ -56,7 +56,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                         if (loadDataList != null && loadDataList.Count > 0)
                             car.FreightAnimations?.Load(loadDataList);
                     }
-                    catch (Exception error)
+                    catch (IOException error)
                     {
                         Trace.WriteLine(wagonFilePath + " " + error);
                         car = MultiPlayerManager.Instance().SubCar(train, wagonFilePath, trainCarItem.Length);
@@ -104,7 +104,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                         car = RollingStock.Load(train, wagonFilePath);
                         car.CarLengthM = trainCarItem.Length;
                     }
-                    catch (Exception error)
+                    catch (IOException error)
                     {
                         Trace.WriteLine(wagonFilePath + " " + error);
                         car = MultiPlayerManager.Instance().SubCar(train, wagonFilePath, trainCarItem.Length);

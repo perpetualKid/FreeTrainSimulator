@@ -92,11 +92,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 //if someone with the same name is there, will throw a fatal error
                 if (MultiPlayerManager.FindPlayerTrain(User) != null || multiPlayerManager.UserName == User)
                 {
-                    try
-                    {
-                        MultiPlayerManager.OnlineTrains.Players[User].Protected = true;
-                    }
-                    catch { }
+                    MultiPlayerManager.OnlineTrains.Players[User].Protected = true;
                     MultiPlayerManager.Broadcast(new ControlMessage(User, ControlMessageType.SameNameError, "A user with the same name exists"));
                     return;
                     //throw new SameNameException("Same Name");
@@ -190,7 +186,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
                                         }
                                     }
-                                    catch (Exception error)
+                                    catch (IOException error)
                                     {
                                         Trace.WriteLine(new FileLoadException(wagonFilePath, error));
                                     }

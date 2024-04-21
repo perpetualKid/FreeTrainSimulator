@@ -22,9 +22,9 @@ namespace Orts.Simulation.Multiplayer.Messaging
         public float DistanceTravelled { get; set; }
         public MidpointDirection MultiUnitDirection { get; set; }
 
-        public TrainStateBaseMessage() { }
+        protected TrainStateBaseMessage() { }
 
-        public TrainStateBaseMessage(Train train, bool initializeCars = false) 
+        protected TrainStateBaseMessage(Train train, bool initializeCars = false) 
         {
             ArgumentNullException.ThrowIfNull(train, nameof(train));
 

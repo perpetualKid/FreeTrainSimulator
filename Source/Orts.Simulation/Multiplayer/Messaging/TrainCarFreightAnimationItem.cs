@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 using MemoryPack;
 
@@ -19,6 +20,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public TrainCarFreightAnimationItem(FreightAnimationDiscrete freightAnimation)
         {
+            ArgumentNullException.ThrowIfNull(freightAnimation, nameof(freightAnimation));
+
             FileName = Path.GetFileNameWithoutExtension(freightAnimation.Container.LoadFilePath);
             DirectoryName = Path.GetRelativePath(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, Path.GetDirectoryName(freightAnimation.Container.LoadFilePath));
             LoadPosition = freightAnimation.LoadPosition;

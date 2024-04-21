@@ -24,6 +24,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public TrainCarItem(TrainCar trainCar)
         {
+            ArgumentNullException.ThrowIfNull(trainCar, nameof(trainCar));
+
             TrainCarId = trainCar.CarID;
             Flipped = trainCar.Flipped;
             Length = trainCar.CarLengthM;
