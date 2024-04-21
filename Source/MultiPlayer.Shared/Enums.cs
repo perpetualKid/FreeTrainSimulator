@@ -32,6 +32,7 @@ namespace Multiplayer.Shared
         LocomotiveChange,
         MovingTable,
         PlayerTrainChange,
+        PlayerState,
         TrainState,
         TrainFlip,
         TrainRequest,

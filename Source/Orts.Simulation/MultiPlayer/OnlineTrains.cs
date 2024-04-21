@@ -29,6 +29,7 @@ using Orts.Simulation.AIs;
 using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Multiplayer
@@ -84,50 +85,39 @@ namespace Orts.Simulation.Multiplayer
             return result;
         }
 
-        public string AddAllPlayerTrain() //WARNING, need to change
+        public IEnumerable<PlayerStateMessage> AllPlayerTrains()
         {
-            string tmp = "";
-            foreach (OnlinePlayer p in Players.Values)
-            {
-                if (p.Train != null)
-                {
-                    MSGPlayer player = new MSGPlayer(p.Username, "1234", p.Consist, p.Path, p.Train, p.Train.Number);
-                    tmp += player.ToString();
-                }
-            }
-            return tmp;
+            return Players.Values.Where(player => player != null).Select(player => new PlayerStateMessage(player.Train) { User = player.Username });
         }
 
-        public IEnumerable<MSGPlayer> AllPlayerTrains()
+        public void AddPlayers(PlayerStateMessage playerState)
         {
-            return Players.Values.Where(p => p != null).Select(p => new MSGPlayer(p.Username, "1234", p.Consist, p.Path, p.Train, p.Train.Number));
-        }
-
-
-        public void AddPlayers(MSGPlayer player)
-        {
-            if (Players.ContainsKey(player.user))
+            if (Players.ContainsKey(playerState.User))
                 return;
-            if (player.user == MultiPlayerManager.Instance().UserName)
+            if (playerState.User == MultiPlayerManager.Instance().UserName)
                 return; //do not add self//WARNING: may need to worry about train number here
-            OnlinePlayer p = new OnlinePlayer(player.user,
-                Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, player.con),
-                Path.Combine(Simulator.Instance.RouteFolder.PathsFolder, player.path));
-            p.LeadingLocomotiveID = player.leadingID;
-            Train train = new Train();
-            train.TrainType = TrainType.Remote;
+            OnlinePlayer p = new OnlinePlayer(
+                playerState.User,
+                Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, playerState.ConsistFile),
+                Path.Combine(Simulator.Instance.RouteFolder.PathsFolder, playerState.PathFile))
+            {
+                LeadingLocomotiveID = playerState.PlayerLocomotive.LocomotiveId
+            };
+            Train train = new Train
+            {
+                TrainType = TrainType.Remote
+            };
             if (MultiPlayerManager.IsServer()) //server needs to worry about correct train number
             {
             }
             else
             {
-                train.Number = player.num;
+                train.Number = playerState.TrainState.TrainNumber;
             }
-            if (player.con.Contains("tilted", StringComparison.OrdinalIgnoreCase))
+            if (playerState.ConsistFile.Contains("tilted", StringComparison.OrdinalIgnoreCase))
                 train.IsTilting = true;
-            int direction = player.dir;
-            train.DistanceTravelled = player.Travelled;
-            train.TrainMaxSpeedMpS = player.trainmaxspeed;
+            train.DistanceTravelled = playerState.TrainState.DistanceTravelled;
+            train.TrainMaxSpeedMpS = playerState.TrainState.Speed;
 
             if (MultiPlayerManager.IsServer())
             {
@@ -137,69 +127,60 @@ namespace Orts.Simulation.Multiplayer
                 }
                 catch (Exception)
                 {
-                    MultiPlayerManager.Broadcast(new ControlMessage(player.user, ControlMessageType.Warning, "Server does not have path file provided, signals may always be red for you."));
+                    MultiPlayerManager.Broadcast(new ControlMessage(playerState.User, ControlMessageType.Warning, "Server does not have path file provided, signals may always be red for you."));
                 }
             }
 
             try
             {
-                train.RearTDBTraveller = new Traveller(player.Location, direction == 1 ? Direction.Forward : Direction.Backward);
+                train.RearTDBTraveller = new Traveller(playerState.TrainState.RearLocation, playerState.TrainState.TrainDirection.Reverse());
             }
             catch (Exception e) when (MultiPlayerManager.IsServer())
             {
-                MultiPlayerManager.Broadcast(new ControlMessage(player.user, ControlMessageType.Error, "Multiplayer Error：" + e.Message));
+                MultiPlayerManager.Broadcast(new ControlMessage(playerState.User, ControlMessageType.Error, "Multiplayer Error：" + e.Message));
             }
-            string[] faDiscreteSplit;
-            List<LoadData> loadDataList = new List<LoadData>();
-            for (var i = 0; i < player.cars.Length; i++)// cars.Length-1; i >= 0; i--) {
+            foreach (TrainCarItem trainCarItem in playerState.TrainState.TrainCars ?? Enumerable.Empty<TrainCarItem>())
             {
-
-                string wagonFilePath = Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, player.cars[i]);
-                TrainCar car;
+                string wagonFilePath = Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, trainCarItem.WagonFilePath);
+                TrainCar car = null;
                 try
                 {
                     car = RollingStock.Load(train, wagonFilePath);
-                    car.CarID = player.ids[i];
-                    car.CarLengthM = player.lengths[i] / 100.0f;
-                    if (player.faDiscretes[i][0] != '0')
+                    car.CarLengthM = trainCarItem.Length;
+
+                    List<LoadData> loadDataList = null;
+                    foreach (TrainCarFreightAnimationItem freightAnimationItem in trainCarItem.FreightAnimations ?? Enumerable.Empty<TrainCarFreightAnimationItem>())
                     {
-                        int numDiscretes = player.faDiscretes[i][0];
-                        // There are discrete freight animations, add them to wagon
-                        faDiscreteSplit = player.faDiscretes[i].Split('&');
-                        loadDataList.Clear();
-                        for (int j = 1; j < faDiscreteSplit.Length; j++)
-                        {
-                            var faDiscrete = faDiscreteSplit[j];
-                            string[] loadDataItems = faDiscrete.Split('%');
-                            EnumExtension.GetValue(loadDataItems[2], out LoadPosition loadPosition);
-                            LoadData loadData = new LoadData(loadDataItems[0], loadDataItems[1], loadPosition);
-                            loadDataList.Add(loadData);
-                        }
-                        car.FreightAnimations?.Load(loadDataList);
+                        loadDataList ??= new List<LoadData>();
+                        LoadData loadData = new LoadData(freightAnimationItem.FileName, freightAnimationItem.DirectoryName, freightAnimationItem.LoadPosition);
+                        loadDataList.Add(loadData);
                     }
+                    if (loadDataList != null && loadDataList.Count > 0)
+                        car.FreightAnimations?.Load(loadDataList);
                 }
                 catch (Exception error)
                 {
-                    Trace.WriteLine(error.Message);
-                    car = MultiPlayerManager.Instance().SubCar(train, wagonFilePath, player.lengths[i]);
+                    Trace.WriteLine(wagonFilePath + " " + error);
+                    car = MultiPlayerManager.Instance().SubCar(train, wagonFilePath, trainCarItem.Length);
                 }
                 if (car == null)
                     continue;
 
-                car.Flipped = player.flipped[i] != 0;
+                car.Flipped = trainCarItem.Flipped;
+                car.CarID = trainCarItem.TrainCarId;
 
                 if (car is MSTSWagon w)
                 {
-                    w.SignalEvent((player.pantofirst == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 1);
-                    w.SignalEvent((player.pantosecond == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 2);
-                    w.SignalEvent((player.pantothird == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 3);
-                    w.SignalEvent((player.pantofourth == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 4);
+                    for (int i = 0; i < (playerState.PlayerLocomotive.Pantographs?.Count ?? 0); i++)
+                    {
+                        w.SignalEvent(playerState.PlayerLocomotive.Pantographs[i].CommandUp() ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph, i + 1);
+                    }
                 }
             }
 
             if (train.Cars.Count == 0)
             {
-                throw (new ArgumentOutOfRangeException("The train of player " + player.user + " is empty from "));
+                throw (new ArgumentOutOfRangeException("The train of player " + playerState.User + " is empty"));
             }
 
             train.ControlMode = TrainControlMode.Explorer;
@@ -220,22 +201,22 @@ namespace Orts.Simulation.Multiplayer
             train.AITrainBrakePercent = 100;
 
             //if (MPManager.Instance().AllowedManualSwitch) train.InitializeSignals(false);
-            for (int iCar = 0; iCar < train.Cars.Count; iCar++)
+            for (int i = 0; i < train.Cars.Count; i++)
             {
-                var car = train.Cars[iCar];
-                if (car.CarID == p.LeadingLocomotiveID)
+                TrainCar trainCar = train.Cars[i];
+                if (trainCar.CarID == p.LeadingLocomotiveID)
                 {
-                    train.LeadLocomotive = car as MSTSLocomotive;
-                    train.LeadLocomotive.Headlight = (HeadLightState)player.headlight;
-                    train.LeadLocomotive.UsingRearCab = player.frontorrearcab == "R" ? true : false;
+                    train.LeadLocomotive = trainCar as MSTSLocomotive;
+                    train.LeadLocomotive.Headlight = (playerState.LeadLocomotive ?? playerState.PlayerLocomotive).HeadLight;
+                    train.LeadLocomotive.UsingRearCab = (playerState.LeadLocomotive ?? playerState.PlayerLocomotive).ActiveCabView == CabViewType.Rear;
                 }
-                if (car is MSTSLocomotive && MultiPlayerManager.IsServer())
-                    MultiPlayerManager.Instance().AddOrRemoveLocomotive(player.user, train.Number, iCar, true);
+                if (trainCar is MSTSLocomotive && MultiPlayerManager.IsServer())
+                    MultiPlayerManager.Instance().AddOrRemoveLocomotive(playerState.User, train.Number, i, true);
             }
             if (train.LeadLocomotive == null)
             {
                 train.LeadNextLocomotive();
-                p.LeadingLocomotiveID = train.LeadLocomotive?.CarID ?? "NA";
+                p.LeadingLocomotiveID = playerState.LeadLocomotive?.LocomotiveId ?? "NA";
             }
 
             if (train.LeadLocomotive != null)
@@ -246,9 +227,9 @@ namespace Orts.Simulation.Multiplayer
             {
                 train.Name = Train.GetTrainName(train.Cars[0].CarID);
             }
-            else if (player?.user != null)
+            else if (playerState?.User != null)
             {
-                train.Name = player.user;
+                train.Name = playerState.User;
             }
 
             if (MultiPlayerManager.IsServer())
@@ -257,9 +238,8 @@ namespace Orts.Simulation.Multiplayer
             }
             p.Train = train;
 
-            Players.Add(player.user, p);
+            Players.Add(playerState.User, p);
             MultiPlayerManager.Instance().AddOrRemoveTrain(train, true);
-
         }
 
         public void SwitchPlayerTrain(PlayerTrainChangeMessage switchMessage)

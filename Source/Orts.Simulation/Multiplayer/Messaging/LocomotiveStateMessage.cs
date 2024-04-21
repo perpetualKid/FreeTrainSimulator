@@ -1,6 +1,4 @@
-﻿using System;
-
-using MemoryPack;
+﻿using MemoryPack;
 
 using Orts.Common;
 using Orts.Simulation.Physics;
@@ -9,9 +7,8 @@ using Orts.Simulation.RollingStocks;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public sealed partial class LocomotiveStateMessage : MultiPlayerMessageContent
+    public sealed partial class LocomotiveStateMessage : LocomotiveStateBaseMessage
     {
-        public int TrainNumber { get; set; }
         public float SteamHeat { get; set; }
         public float EngineBrake { get; set; }
         public float DynamicBrake { get; set; }
@@ -29,11 +26,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
         [MemoryPackConstructor]
         public LocomotiveStateMessage() { }
 
-        public LocomotiveStateMessage(MSTSLocomotive locomotive)
+        public LocomotiveStateMessage(MSTSLocomotive locomotive): base(locomotive)
         {
-            ArgumentNullException.ThrowIfNull(locomotive, nameof(locomotive));
-
-            TrainNumber = locomotive.Train.Number;
             if (locomotive.SteamHeatController != null)
             {
                 SteamHeat = locomotive.SteamHeatController.CurrentValue;
@@ -71,9 +65,9 @@ namespace Orts.Simulation.Multiplayer.Messaging
             {
                 if (train.TrainType != TrainType.Remote && train.Number == TrainNumber)
                 {
-                    foreach (var car in train.Cars)
+                    foreach (TrainCar trainCar in train.Cars)
                     {
-                        if (car.CarID.StartsWith(User) && car is MSTSLocomotive locomotive)
+                        if (trainCar.CarID.StartsWith(User) && trainCar is MSTSLocomotive locomotive)
                         {
                             if (locomotive.SteamHeatController != null)
                             {
@@ -117,7 +111,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
                                 steamLocomotive.LargeEjectorController.UpdateValue = 0f;
 
                             }
-
                         }
                     }
                     break;

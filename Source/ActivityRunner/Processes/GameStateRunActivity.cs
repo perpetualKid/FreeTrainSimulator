@@ -38,6 +38,7 @@ using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Multiplayer;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Processes
@@ -278,7 +279,7 @@ namespace Orts.ActivityRunner.Processes
             if (MultiPlayerManager.IsMultiPlayer())
             {
                 MultiPlayerManager.Instance().Connect();
-                MultiPlayerManager.Notify(new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0).ToString());
+                MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
                 System.Threading.Thread.Sleep(5000);
@@ -413,7 +414,7 @@ namespace Orts.ActivityRunner.Processes
                     {
                         if (ActivityType == ActivityType.Activity)
                             simulator.SetPathAndConsist();
-                        MultiPlayerManager.BroadCast(new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0).ToString());
+                        MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
                     }
                     Viewer.Restore(inf);
 

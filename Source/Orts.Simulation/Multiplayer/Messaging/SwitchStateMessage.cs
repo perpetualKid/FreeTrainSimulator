@@ -32,9 +32,9 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public override void HandleMessage()
         {
-            foreach ((int JunctionIndex, int SwitchState) item in SwitchStates ?? Enumerable.Empty<(int JunctionIndex, int SwitchState)>())
+            foreach ((int JunctionIndex, int SwitchState) in SwitchStates ?? Enumerable.Empty<(int JunctionIndex, int SwitchState)>())
             {
-                SetSwitch(item.JunctionIndex, item.SwitchState);
+                SetSwitch(JunctionIndex, SwitchState);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.IO;
 
 using MemoryPack;
 
@@ -26,14 +27,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
             TrainCarId = trainCar.CarID;
             Flipped = trainCar.Flipped;
             Length = trainCar.CarLengthM;
-            WagonFilePath = trainCar.RealWagFilePath;
-
             //wagon path without folder name
-            int index = WagonFilePath.LastIndexOf("\\trains\\trainset\\", StringComparison.OrdinalIgnoreCase);
-            if (index > 0)
-            {
-                WagonFilePath = WagonFilePath.Remove(0, index + 17);
-            }
+            WagonFilePath = Path.GetRelativePath(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, trainCar.RealWagFilePath);
 
             if (trainCar.FreightAnimations != null)
             {

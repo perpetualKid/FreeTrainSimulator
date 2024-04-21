@@ -930,26 +930,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 }
             }
         }
-
-        public string FreightAnimationDiscretesString()
-        {
-            int discretesCount = 0;
-            var discretesDataString = "";
-
-            foreach (FreightAnimation animation in Wagon.FreightAnimations.Animations)
-            {
-                if (animation is FreightAnimationDiscrete discreteAnimation)
-                {
-                    
-                    discretesCount++;
-                    string fileName = Path.GetFileNameWithoutExtension(discreteAnimation.Container.LoadFilePath);
-                    string directoryName = Path.GetDirectoryName(discreteAnimation.Container.LoadFilePath);
-                    string relativeDirectoryName = Path.GetRelativePath(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, Path.GetDirectoryName(discreteAnimation.Container.LoadFilePath));
-                    discretesDataString += $"&{fileName}%{relativeDirectoryName}%{discreteAnimation.LoadPosition}%";
-                }
-            }
-            return $"{discretesCount}{discretesDataString}";
-        }
     }
 
     /// <summary>

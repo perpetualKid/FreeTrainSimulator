@@ -92,7 +92,7 @@ namespace Orts.Simulation.Multiplayer
         public Dictionary<string, OnlinePlayer> lostPlayer = new Dictionary<string, OnlinePlayer>();
         public bool CheckSpad = true;
         public bool PreferGreen = true;
-        public string MD5Check { get; } = HashRouteFile();
+        public string RouteTdbHash { get; } = HashRouteFile();
 
         public string UserName { get; private set; } = string.Empty;
         public string Code { get; private set; }
@@ -375,12 +375,9 @@ namespace Orts.Simulation.Multiplayer
                 Instance().lastPlayerAddedTime = Simulator.Instance.GameTime;
                 Instance().lastSwitchTime = Simulator.Instance.GameTime;
 
-                MSGPlayer host = new MSGPlayer(GetUserName(), "1234", Simulator.Instance.ConsistFileName, Simulator.Instance.PathFileName, Simulator.Instance.PlayerLocomotive.Train,
-                    Simulator.Instance.PlayerLocomotive.Train.Number);
-                BroadCast(host.ToString());
-                foreach (MSGPlayer player in OnlineTrains.AllPlayerTrains())
-                    BroadCast(player.ToString());
-                //                BroadCast(host.ToString() + OnlineTrains.AddAllPlayerTrain());
+                Broadcast(new PlayerStateMessage(Simulator.Instance.PlayerLocomotive.Train));
+                foreach (PlayerStateMessage player in OnlineTrains.AllPlayerTrains())
+                    Broadcast(player);
                 foreach (Train train in Simulator.Instance.Trains)
                 {
                     if (Simulator.Instance.PlayerLocomotive != null && train == Simulator.Instance.PlayerLocomotive.Train)

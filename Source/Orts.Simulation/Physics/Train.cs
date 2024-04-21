@@ -11897,13 +11897,13 @@ namespace Orts.Simulation.Physics
         private bool doReverseTrav; // reverse rear traveller in AI reversal points
         private bool doReverseMU;
 
-        internal void UpdateTrainJump(in WorldLocation location, int direction, float distanceTravelled, float maxSpeed)
+        internal void UpdateTrainJump(in WorldLocation location, Direction direction, float distanceTravelled, float maxSpeed)
         {
             expectedTileX = location.TileX;
             expectedTileZ = location.TileZ;
             expectedX = location.Location.X;
             expectedZ = location.Location.Z;
-            expectedTDir = ((Direction)direction).Reverse();
+            expectedTDir = direction.Reverse();
             expectedDir = MUDirection;
             expectedTravelled = DistanceTravelledM = DistanceTravelled = distanceTravelled;
             TrainMaxSpeedMpS = maxSpeed;
