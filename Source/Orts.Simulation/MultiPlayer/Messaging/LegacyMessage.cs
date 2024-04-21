@@ -9,7 +9,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
 {
 
     [MemoryPackable]
-    public partial class LegacyMessage : MultiPlayerMessageContent
+    public sealed partial class LegacyMessage : MultiPlayerMessageContent
     {
         private static readonly Encoding encoding = Encoding.UTF8;
         private static readonly byte[] blankToken = encoding.GetBytes(" ");

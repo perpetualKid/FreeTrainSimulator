@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using MemoryPack;
 
-using Microsoft.VisualBasic.ApplicationServices;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -15,7 +10,7 @@ using Orts.Simulation.World;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class MovingTableMessage : MultiPlayerMessageContent
+    public sealed partial class MovingTableMessage : MultiPlayerMessageContent
     {
         public int MovingTableIndex { get; set; }
         public MovingTable.MessageCode MessageCode { get; set; }

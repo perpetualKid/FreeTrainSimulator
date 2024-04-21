@@ -8,7 +8,7 @@ using Orts.Common;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class ControlMessage : MultiPlayerMessageContent
+    public sealed partial class ControlMessage : MultiPlayerMessageContent
     {
         public ControlMessageType MessageType { get; set; }
 

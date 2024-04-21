@@ -2,8 +2,6 @@
 
 using MemoryPack;
 
-using Microsoft.VisualBasic.ApplicationServices;
-
 using Orts.Common;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -11,7 +9,7 @@ using Orts.Simulation.RollingStocks;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class LocomotiveInfoMessage : MultiPlayerMessageContent
+    public sealed partial class LocomotiveStateMessage : MultiPlayerMessageContent
     {
         public int TrainNumber { get; set; }
         public float SteamHeat { get; set; }
@@ -29,9 +27,9 @@ namespace Orts.Simulation.Multiplayer.Messaging
         public float LargeEjector { get; set; }
 
         [MemoryPackConstructor]
-        public LocomotiveInfoMessage() { }
+        public LocomotiveStateMessage() { }
 
-        public LocomotiveInfoMessage(MSTSLocomotive locomotive)
+        public LocomotiveStateMessage(MSTSLocomotive locomotive)
         {
             ArgumentNullException.ThrowIfNull(locomotive, nameof(locomotive));
             TrainNumber = locomotive.Train.Number;

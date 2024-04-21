@@ -8,7 +8,7 @@ using Orts.Simulation.RollingStocks.SubSystems;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class TrainCarFreightAnimationItem
+    public sealed partial class TrainCarFreightAnimationItem
     {
         public string FileName { get; set; }
         public string DirectoryName { get; set; }

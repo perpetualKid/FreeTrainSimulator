@@ -11,7 +11,7 @@ using Orts.Simulation.Track;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class SwitchStateMessage : MultiPlayerMessageContent
+    public sealed partial class SwitchStateMessage : MultiPlayerMessageContent
     {
         public Collection<(int JunctionIndex, int SwitchState)> SwitchStates { get; private set; }
 

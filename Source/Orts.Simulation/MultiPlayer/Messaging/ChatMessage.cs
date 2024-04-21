@@ -7,7 +7,7 @@ using MemoryPack;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class ChatMessage : MultiPlayerMessageContent
+    public sealed partial class ChatMessage : MultiPlayerMessageContent
     {
         public string Text { get; set; }
         public IEnumerable<string> Recipients { get; private set; }

@@ -18,7 +18,7 @@ using Orts.Simulation.Track;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class TrainUpdateMessage : TrainStateBaseMessage
+    public sealed partial class TrainUpdateMessage : TrainStateBaseMessage
     {
         [MemoryPackConstructor]
         public TrainUpdateMessage() { }

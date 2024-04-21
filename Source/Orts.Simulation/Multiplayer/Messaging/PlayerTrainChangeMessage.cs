@@ -7,7 +7,7 @@ using Orts.Simulation.Physics;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class PlayerTrainChangeMessage : MultiPlayerMessageContent
+    public sealed partial class PlayerTrainChangeMessage : MultiPlayerMessageContent
     {
         public int TrainNumber { get; set; }
         public string LocomotiveId { get; set; }

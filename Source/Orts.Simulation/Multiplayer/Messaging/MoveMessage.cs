@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 
 using MemoryPack;
 
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class MoveMessage : TrainStateBaseMessage
+    public sealed partial class MoveMessage : TrainStateBaseMessage
     {
         private static readonly Dictionary<int, int> missingTimes = new Dictionary<int, int>();
 

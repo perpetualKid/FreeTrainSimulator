@@ -32,7 +32,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 MessageType.SignalStates => MemoryPackSerializer.Deserialize<SignalStateMessage>(message.Payload),
                 MessageType.SignalChange => MemoryPackSerializer.Deserialize<SignalChangeMessage>(message.Payload),
                 MessageType.SwitchChange => MemoryPackSerializer.Deserialize<SwitchChangeMessage>(message.Payload),
-                MessageType.LocomotiveInfo => MemoryPackSerializer.Deserialize<LocomotiveInfoMessage>(message.Payload),
+                MessageType.LocomotiveInfo => MemoryPackSerializer.Deserialize<LocomotiveStateMessage>(message.Payload),
                 MessageType.MovingTable => MemoryPackSerializer.Deserialize<MovingTableMessage>(message.Payload),
                 MessageType.PlayerTrainChange => MemoryPackSerializer.Deserialize<PlayerTrainChangeMessage>(message.Payload),
                 MessageType.TrainState => MemoryPackSerializer.Deserialize<TrainStateMessage>(message.Payload),
@@ -119,7 +119,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     MemoryPackSerializer.Serialize(bufferPipe.Writer, switchChangeMessage);
                     messageType = MessageType.SwitchChange;
                     break;
-                case LocomotiveInfoMessage locomotiveInfoMessage:
+                case LocomotiveStateMessage locomotiveInfoMessage:
                     MemoryPackSerializer.Serialize(bufferPipe.Writer, locomotiveInfoMessage);
                     messageType = MessageType.LocomotiveInfo;
                     break;

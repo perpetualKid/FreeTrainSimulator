@@ -8,7 +8,7 @@ using Orts.Simulation.World;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class WeatherMessage : MultiPlayerMessageContent
+    public sealed partial class WeatherMessage : MultiPlayerMessageContent
     {
         public WeatherType Weather { get; set; }
 

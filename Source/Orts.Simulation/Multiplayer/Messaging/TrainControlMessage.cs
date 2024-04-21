@@ -9,7 +9,7 @@ using Orts.Simulation.Physics;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class TrainControlMessage : MultiPlayerMessageContent
+    public sealed partial class TrainControlMessage : MultiPlayerMessageContent
     {
         public TrainControlRequestType RequestType { get; set; }
         public float TrainMaxSpeed { get; set; }

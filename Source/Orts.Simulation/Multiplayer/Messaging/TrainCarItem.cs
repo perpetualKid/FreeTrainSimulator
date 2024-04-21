@@ -9,7 +9,7 @@ using Orts.Simulation.RollingStocks.SubSystems;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class TrainCarItem
+    public sealed partial class TrainCarItem
     {
         public string TrainCarId { get; set; }
         public bool Flipped { get; set; }

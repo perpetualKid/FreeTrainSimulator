@@ -5,7 +5,7 @@ using Orts.Common;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class QuitMessage : MultiPlayerMessageContent
+    public sealed partial class QuitMessage : MultiPlayerMessageContent
     {
         public override void HandleMessage()
         {

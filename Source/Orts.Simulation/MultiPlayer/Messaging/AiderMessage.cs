@@ -1,11 +1,9 @@
-﻿using System;
-
-using MemoryPack;
+﻿using MemoryPack;
 
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class AiderMessage : MultiPlayerMessageContent
+    public sealed partial class AiderMessage : MultiPlayerMessageContent
     {
         public bool CanbeAdded { get; set; }
 

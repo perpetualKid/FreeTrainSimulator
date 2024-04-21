@@ -3,7 +3,7 @@
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class TimeCheckMessage : MultiPlayerMessageContent
+    public sealed partial class TimeCheckMessage : MultiPlayerMessageContent
     {
         public double DispatcherTime { get; set; }
 

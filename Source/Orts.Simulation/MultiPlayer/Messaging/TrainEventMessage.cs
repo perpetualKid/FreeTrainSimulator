@@ -8,7 +8,7 @@ using Orts.Simulation.Physics;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class TrainEventMessage : MultiPlayerMessageContent
+    public sealed partial class TrainEventMessage : MultiPlayerMessageContent
     {
         public TrainEvent TrainEvent { get; set; }
 

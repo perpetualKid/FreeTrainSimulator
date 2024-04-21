@@ -6,7 +6,7 @@ using Orts.Simulation.Physics;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class PowerSupplyEventMessage : MultiPlayerMessageContent
+    public sealed partial class PowerSupplyEventMessage : MultiPlayerMessageContent
     {
         public PowerSupplyEvent PowerSupplyEvent { get; set; }
 

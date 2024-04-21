@@ -13,7 +13,7 @@ using Orts.Simulation.Track;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class SwitchChangeMessage : MultiPlayerMessageContent
+    public sealed partial class SwitchChangeMessage : MultiPlayerMessageContent
     {
         public SwitchState SwitchState { get; set; }
         public bool ManuallySet { get; set; } // Hand Thrown

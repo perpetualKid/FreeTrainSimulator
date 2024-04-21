@@ -8,7 +8,7 @@ using Orts.Simulation.Signalling;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class SignalChangeMessage : MultiPlayerMessageContent
+    public sealed partial class SignalChangeMessage : MultiPlayerMessageContent
     {
         public SignalState SignalState { get; set; }
 

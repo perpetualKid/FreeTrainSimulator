@@ -6,7 +6,7 @@ using Orts.Simulation.Physics;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class SignalResetMessage : MultiPlayerMessageContent
+    public sealed partial class SignalResetMessage : MultiPlayerMessageContent
     {
         public override void HandleMessage()
         {
