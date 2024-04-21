@@ -1301,7 +1301,7 @@ namespace Orts.Simulation.Physics
         internal void ReverseFormation(bool setMUParameters)
         {
             if (MultiPlayerManager.IsMultiPlayer())
-                MultiPlayerManager.BroadCast((new MSGFlip(this, setMUParameters, Number)).ToString()); // message contains data before flip
+                MultiPlayerManager.Broadcast(new TrainFlipMessage(this, setMUParameters)); // message contains data before flip
             ReverseCars();
             // Flip the train's travellers.
             Traveller t = FrontTDBTraveller;
@@ -11895,7 +11895,7 @@ namespace Orts.Simulation.Physics
         public bool RequestJump { get; internal set; } // set when a train jump has been requested by the server (when player re-enters game in old position
         private bool jumpRequested; // used in conjunction with above flag to manage thread safety
         private bool doReverseTrav; // reverse rear traveller in AI reversal points
-        private int doReverseMU;
+        private bool doReverseMU;
 
         internal void UpdateTrainJump(in WorldLocation location, int direction, float distanceTravelled, float maxSpeed)
         {
@@ -11910,7 +11910,7 @@ namespace Orts.Simulation.Physics
         }
 
         internal void ToDoUpdate(int tni, int tX, int tZ, float x, float z, float eT, float speed, MidpointDirection dir, Direction tDir, float len, bool reverseTrav = false,
-            int reverseMU = 0)
+            bool reverseMU = false)
         {
             SpeedMpS = speed;
             expectedTileX = tX;
@@ -11961,7 +11961,7 @@ namespace Orts.Simulation.Physics
                 if (doReverseTrav)
                 {
                     doReverseTrav = false;
-                    ReverseFormation(doReverseMU == 1);
+                    ReverseFormation(doReverseMU);
                     UpdateCarSlack(expectedLength);//update car slack first
                     CalculatePositionOfCars(elapsedClockSeconds, SpeedMpS * elapsedClockSeconds);
                     newDistanceTravelledM = DistanceTravelledM + (float)(SpeedMpS * elapsedClockSeconds);

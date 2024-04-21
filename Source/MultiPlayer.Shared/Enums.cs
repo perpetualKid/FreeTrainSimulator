@@ -32,5 +32,6 @@ namespace Multiplayer.Shared
         MovingTable,
         PlayerTrainChange,
         TrainState,
+        TrainFlip,
     }
 }

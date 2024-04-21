@@ -11,37 +11,15 @@ using Orts.Simulation.Physics;
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
-    public partial class MoveMessage : MultiPlayerMessageContent
+    public partial class MoveMessage : TrainStateBaseMessage
     {
         private static readonly Dictionary<int, int> missingTimes = new Dictionary<int, int>();
-
-        public int TrainNumber { get; set; }
-        public float Speed { get; set; }
-        public float DistanceTravelled { get; set; }
-        public int CarCount { get; set; }
-        public Direction TrainDirection { get; set; }
-        public WorldLocation RearLocation { get; set; }
-        public int TrackNodeIndex { get; set; }
-        public float Length { get; set; }
-        public MidpointDirection MultiUnitDirection { get; set; }
 
         [MemoryPackConstructor]
         public MoveMessage() { }
 
-        public MoveMessage(Train train)
+        public MoveMessage(Train train): base(train, false)
         {
-            ArgumentNullException.ThrowIfNull(train, nameof(train));
-
-            TrainNumber = train.Number;
-            Speed = train.SpeedMpS;
-            DistanceTravelled = train.DistanceTravelled;
-            RearLocation = train.RearTDBTraveller.WorldLocation;
-            TrackNodeIndex = train.RearTDBTraveller.TrackNode.Index;
-            TrainDirection = train.RearTDBTraveller.Direction.Reverse();
-            CarCount = train.Cars.Count;
-            Length = train.Length;
-            MultiUnitDirection = train.MUDirection;
-
             train.LastReportedSpeed = train.SpeedMpS;
         }
 
