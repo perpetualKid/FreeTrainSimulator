@@ -996,66 +996,66 @@ namespace Orts.Simulation.AIs
         /// initialize signals and movement
         /// </summary>
 
-        private bool AddToWorld(AITrain thisTrain)
+        private bool AddToWorld(AITrain train)
         {
             // clear track and align switches - check state
 
-            TrackCircuitPartialPathRoute tempRoute = thisTrain.CalculateInitialTrainPosition();
+            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition();
             bool validPosition = tempRoute.Count > 0;
             if (validPosition)
             {
-                thisTrain.SetInitialTrainRoute(tempRoute);
-                thisTrain.CalculatePositionOfCars();
-                for (int i = 0; i < thisTrain.Cars.Count; i++)
+                train.SetInitialTrainRoute(tempRoute);
+                train.CalculatePositionOfCars();
+                for (int i = 0; i < train.Cars.Count; i++)
                 {
-                    Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
+                    Microsoft.Xna.Framework.Vector3 position = train.Cars[i].WorldPosition.XNAMatrix.Translation;
                     position.Y -= 1000;
-                    thisTrain.Cars[i].UpdateWorldPosition(thisTrain.Cars[i].WorldPosition.SetTranslation(position));
+                    train.Cars[i].UpdateWorldPosition(train.Cars[i].WorldPosition.SetTranslation(position));
                 }
-                thisTrain.ResetInitialTrainRoute(tempRoute);
-                validPosition = thisTrain.PostInit();
+                train.ResetInitialTrainRoute(tempRoute);
+                validPosition = train.PostInit();
             }
 
             if (validPosition)
             {
-                thisTrain.ActualWaitTimeS = 0; // reset wait counter //
-                thisTrain.TrainType = TrainType.Ai;
-                AITrains.Add(thisTrain);
+                train.ActualWaitTimeS = 0; // reset wait counter //
+                train.TrainType = TrainType.Ai;
+                AITrains.Add(train);
                 TrainListChanged = true;
-                simulator.Trains.Add(thisTrain);
-                simulator.TrainDictionary.Remove(thisTrain.Number); // clear existing entry
-                simulator.TrainDictionary.Add(thisTrain.Number, thisTrain);
-                simulator.NameDictionary.Remove(thisTrain.Name);
-                simulator.NameDictionary.Add(thisTrain.Name, thisTrain);
-                if (thisTrain.InitialSpeed > 0 && thisTrain.MovementState != AiMovementState.StationStop)
+                simulator.Trains.Add(train);
+                simulator.TrainDictionary.Remove(train.Number); // clear existing entry
+                simulator.TrainDictionary.Add(train.Number, train);
+                simulator.NameDictionary.Remove(train.Name);
+                simulator.NameDictionary.Add(train.Name, train);
+                if (train.InitialSpeed > 0 && train.MovementState != AiMovementState.StationStop)
                 {
-                    thisTrain.InitializeMoving();
-                    thisTrain.MovementState = AiMovementState.Braking;
+                    train.InitializeMoving();
+                    train.MovementState = AiMovementState.Braking;
                 }
-                else if (thisTrain.InitialSpeed == 0)
+                else if (train.InitialSpeed == 0)
                 {
-                    thisTrain.InitializeBrakes();
-                    thisTrain.AdjustControlsBrakeFull();
+                    train.InitializeBrakes();
+                    train.AdjustControlsBrakeFull();
                 }
 
                 if (MultiPlayerManager.IsServer())
                 {
-                    MultiPlayerManager.BroadCast((new MSGTrain(thisTrain, thisTrain.Number)).ToString());
+                    MultiPlayerManager.Broadcast(new TrainStateMessage(train));
                 }
             }
             else
             {
-                thisTrain.StartTime += 30;    // try again in half a minute
-                thisTrain.ActualWaitTimeS += 30;
-                if (thisTrain.ActualWaitTimeS > 900)   // tried for 15 mins
+                train.StartTime += 30;    // try again in half a minute
+                train.ActualWaitTimeS += 30;
+                if (train.ActualWaitTimeS > 900)   // tried for 15 mins
                 {
-                    TimeSpan timeStart = new TimeSpan((long)(Math.Pow(10, 7) * thisTrain.StartTime.Value));
-                    Trace.TraceWarning("Cannot place AI train {0} ({1}) at time {2}", thisTrain.Name, thisTrain.Number, timeStart.ToString());
+                    TimeSpan timeStart = new TimeSpan((long)(Math.Pow(10, 7) * train.StartTime.Value));
+                    Trace.TraceWarning("Cannot place AI train {0} ({1}) at time {2}", train.Name, train.Number, timeStart.ToString());
                 }
                 else
                 {
-                    StartList.InsertTrain(thisTrain);
-                    simulator.StartReference.Add(thisTrain.Number);
+                    StartList.InsertTrain(train);
+                    simulator.StartReference.Add(train.Number);
                 }
             }
 

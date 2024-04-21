@@ -381,15 +381,15 @@ namespace Orts.Simulation.Multiplayer
                 foreach (MSGPlayer player in OnlineTrains.AllPlayerTrains())
                     BroadCast(player.ToString());
                 //                BroadCast(host.ToString() + OnlineTrains.AddAllPlayerTrain());
-                foreach (Train t in Simulator.Instance.Trains)
+                foreach (Train train in Simulator.Instance.Trains)
                 {
-                    if (Simulator.Instance.PlayerLocomotive != null && t == Simulator.Instance.PlayerLocomotive.Train)
+                    if (Simulator.Instance.PlayerLocomotive != null && train == Simulator.Instance.PlayerLocomotive.Train)
                         continue; //avoid broadcast player train
-                    if (FindPlayerTrain(t))
+                    if (FindPlayerTrain(train))
                         continue;
-                    if (removedTrains.Contains(t))
+                    if (removedTrains.Contains(train))
                         continue;//this train is going to be removed, should avoid it.
-                    BroadCast((new MSGTrain(t, t.Number)).ToString());
+                    Broadcast(new TrainStateMessage(train));
                 }
                 if (CheckSpad)
                 {
@@ -751,7 +751,7 @@ namespace Orts.Simulation.Multiplayer
             Notify((new MSGLocoChange(GetUserName(), lead.CarID, frontOrRearCab, t)).ToString());
         }
 
-        public TrainCar SubCar(Train train, string wagonFilePath, int length)
+        public TrainCar SubCar(Train train, string wagonFilePath, float length)
         {
             Trace.WriteLine("Will substitute with your existing stocks\n.");
             try
@@ -777,7 +777,7 @@ namespace Orts.Simulation.Multiplayer
         private SortedList<double, string> engList;
         private bool disposedValue;
 
-        public string SubMissingCar(int length, char type)
+        public string SubMissingCar(float length, char type)
         {
 
             type = char.ToLowerInvariant(type);
