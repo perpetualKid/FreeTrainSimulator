@@ -17,7 +17,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 {
                     if (train != null && train.Number == TrainNumber) //found it, broadcast to everyone
                     {
-                        MultiPlayerManager.BroadCast((new MSGUpdateTrain(User, train, train.Number)).ToString());
+                        MultiPlayerManager.Broadcast(new TrainUpdateMessage(User, train));
                         break;
                     }
                 }

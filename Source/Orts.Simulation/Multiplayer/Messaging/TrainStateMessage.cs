@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -38,7 +37,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 RearTDBTraveller = new Traveller(RearLocation, TrainDirection)
             };
 
-            foreach (TrainCarItem trainCarItem in TrainCars)
+            foreach (TrainCarItem trainCarItem in TrainCars ?? Enumerable.Empty<TrainCarItem>())
             {
                 string wagonFilePath = Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, trainCarItem.WagonFilePath);
                 TrainCar car = null;
