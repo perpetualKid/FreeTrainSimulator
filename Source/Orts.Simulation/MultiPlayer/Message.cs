@@ -47,7 +47,6 @@ namespace Orts.Simulation.Multiplayer
                 "PLAYER" => new MSGPlayer(messageEncoding.GetString(content)),
                 "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
                 "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
-                "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
                 _ => throw new ProtocolException($"Unknown Message type {messageEncoding.GetString(messageType)}"),
             };
         }
@@ -458,66 +457,6 @@ namespace Orts.Simulation.Multiplayer
         }
     }
     #endregion MSGPlayer
-
-    #region MSGLocoChange
-    //message to add new train from either a string (received message), or a Train (building a message)
-    public class MSGLocoChange : Message
-    {
-        private int num;
-        private string engine;
-        private string user;
-        private string frontOrRearCab;
-        public MSGLocoChange(string m)
-        {
-            m.Trim();
-            string[] t = m.Split('\t');
-            user = t[0];
-            engine = t[1];
-            frontOrRearCab = t[2];
-            num = int.Parse(t[3]);
-        }
-
-        public MSGLocoChange(string u, string l, string f, Train t)
-        {
-            user = u;
-            engine = l;
-            frontOrRearCab = f;
-            num = t.Number;
-        }
-
-        public override void HandleMsg()
-        {
-            foreach (var t in Simulator.Instance.Trains)
-            {
-                foreach (var car in t.Cars)
-                {
-                    if (car.CarID == engine)
-                    {
-                        car.Train.LeadLocomotive = car as MSTSLocomotive ?? throw new InvalidCastException(nameof(car));
-                        car.Train.LeadLocomotive.UsingRearCab = frontOrRearCab != "F";
-                        foreach (var p in MultiPlayerManager.OnlineTrains.Players)
-                        {
-                            if (p.Value.Train == t)
-                            {
-                                p.Value.LeadingLocomotiveID = car.CarID;
-                                break;
-                            }
-                        }
-                        if (MultiPlayerManager.IsServer())
-                            MultiPlayerManager.BroadCast((new MSGLocoChange(user, engine, frontOrRearCab, t)).ToString());
-                        return;
-                    }
-                }
-            }
-        }
-
-        public override string ToString()
-        {
-            string tmp = "LOCCHANGE " + user + "\t" + engine + "\t" + frontOrRearCab + "\t" + num;
-            return " " + tmp.Length + ": " + tmp;
-        }
-    }
-    #endregion MSGLocoChange
 
     #region MSGUncouple
     public class MSGUncouple : Message

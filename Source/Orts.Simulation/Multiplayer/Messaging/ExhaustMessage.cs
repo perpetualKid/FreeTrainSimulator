@@ -24,12 +24,12 @@ namespace Orts.Simulation.Multiplayer.Messaging
         {
             ArgumentNullException.ThrowIfNull(train, nameof(train));
 
-            Items = new Collection<ExhaustMessageItem>();
             TrainNumber = train.Number;
             for (int i = 0; i < train.Cars.Count; i++)
             {
                 if (train.Cars[i] is MSTSDieselLocomotive dieselLocomotive)
                 {
+                    Items ??= new Collection<ExhaustMessageItem>();
                     Items.Add(new ExhaustMessageItem(i, dieselLocomotive));
                 }
             }

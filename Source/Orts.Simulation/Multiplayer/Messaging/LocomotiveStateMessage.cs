@@ -32,6 +32,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
         public LocomotiveStateMessage(MSTSLocomotive locomotive)
         {
             ArgumentNullException.ThrowIfNull(locomotive, nameof(locomotive));
+
             TrainNumber = locomotive.Train.Number;
             if (locomotive.SteamHeatController != null)
             {

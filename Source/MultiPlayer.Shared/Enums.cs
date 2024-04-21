@@ -29,6 +29,7 @@ namespace Multiplayer.Shared
         SignalStates,
         SignalChange,
         LocomotiveInfo,
+        LocomotiveChange,
         MovingTable,
         PlayerTrainChange,
         TrainState,

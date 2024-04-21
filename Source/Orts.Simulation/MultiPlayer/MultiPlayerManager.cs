@@ -745,10 +745,9 @@ namespace Orts.Simulation.Multiplayer
             return OnlineTrains.FindTrain(t);
         }
 
-        public static void LocoChange(Train t, TrainCar lead)
+        public static void LocoChange(MSTSLocomotive locomotive)
         {
-            var frontOrRearCab = (lead as MSTSLocomotive).UsingRearCab ? "R" : "F";
-            Notify((new MSGLocoChange(GetUserName(), lead.CarID, frontOrRearCab, t)).ToString());
+            Broadcast(new LocomotiveChangeMessage(locomotive));
         }
 
         public TrainCar SubCar(Train train, string wagonFilePath, float length)

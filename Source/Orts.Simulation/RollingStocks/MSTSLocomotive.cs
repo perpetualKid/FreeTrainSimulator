@@ -362,7 +362,7 @@ namespace Orts.Simulation.RollingStocks
         public float DynamicBrakeMaxCurrentA;
         public float DynamicBrakeDelayS;
         public bool DynamicBrakeAutoBailOff;
-        public bool UsingRearCab;
+        public bool UsingRearCab;   // TODO 20240421 use CabViewType enum
         public bool BrakeOverchargeSoundOn;
 
         protected bool DynamicBrakeBlended; // dynamic brake blending is currently active

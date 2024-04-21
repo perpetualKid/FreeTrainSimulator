@@ -177,7 +177,7 @@ namespace Orts.Simulation
                     MovingTableIndex = Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable),
                     MessageCode = MessageCode.GoToTarget,
                     Delta = OffsetPos,
-                    RotationDirection = clockwise ? Rotation.Clockwise : Rotation.CounterClockwise
+                    MovingDirection = clockwise ? Rotation.Clockwise : Rotation.CounterClockwise
                 });
             }
             RemotelyControlled = false;
@@ -273,7 +273,7 @@ namespace Orts.Simulation
                     MovingTableIndex = Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable),
                     MessageCode = MessageCode.StartingContinuous,
                     Delta = OffsetPos,
-                    RotationDirection = clockwise ? Rotation.Clockwise : Rotation.CounterClockwise
+                    MovingDirection = clockwise ? Rotation.Clockwise : Rotation.CounterClockwise
                 });
             }
             GeneralStartContinuous(clockwise);

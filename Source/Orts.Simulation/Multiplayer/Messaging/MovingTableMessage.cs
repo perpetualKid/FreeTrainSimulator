@@ -15,7 +15,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
         public int MovingTableIndex { get; set; }
         public MovingTable.MessageCode MessageCode { get; set; }
 
-        public Rotation RotationDirection { get; set; }
+        public Rotation MovingDirection { get; set; }
 
         public float Delta { get; set; }
 
@@ -34,13 +34,13 @@ namespace Orts.Simulation.Multiplayer.Messaging
                             turntable.TargetY = Delta;
                             turntable.AlignToRemote = true;
                         }
-                        turntable.GeneralComputeTarget(RotationDirection == Rotation.Clockwise);
+                        turntable.GeneralComputeTarget(MovingDirection == Rotation.Clockwise);
                         break;
                     case MovingTable.MessageCode.StartingContinuous:
                         turntable.YAngle = Delta;
                         turntable.TargetY = Delta;
                         turntable.AlignToRemote = true;
-                        turntable.GeneralStartContinuous(RotationDirection == Rotation.Clockwise);
+                        turntable.GeneralStartContinuous(MovingDirection == Rotation.Clockwise);
                         break;
                     default:
                         break;
@@ -58,13 +58,13 @@ namespace Orts.Simulation.Multiplayer.Messaging
                             transfertable.TargetOffset = Delta;
                             transfertable.AlignToRemote = true;
                         }
-                        transfertable.GeneralComputeTarget(RotationDirection == Rotation.Clockwise);
+                        transfertable.GeneralComputeTarget(MovingDirection == Rotation.Clockwise);
                         break;
                     case MovingTable.MessageCode.StartingContinuous:
                         transfertable.OffsetPos = Delta;
                         transfertable.TargetOffset = Delta;
                         transfertable.AlignToRemote = true;
-                        transfertable.GeneralStartContinuous(RotationDirection == Rotation.Clockwise);
+                        transfertable.GeneralStartContinuous(MovingDirection == Rotation.Clockwise);
                         break;
                     default:
                         break;

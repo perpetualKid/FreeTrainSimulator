@@ -1464,7 +1464,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 ThreeDimCabCamera.Activate();
             SetCommandReceivers();
             if (MultiPlayerManager.IsMultiPlayer())
-                MultiPlayerManager.LocoChange(Simulator.PlayerLocomotive.Train, Simulator.PlayerLocomotive);
+                MultiPlayerManager.LocoChange(Simulator.PlayerLocomotive);
             Simulator.Confirmer.Confirm(CabControl.ChangeCab, CabSetting.On);
         }
 
