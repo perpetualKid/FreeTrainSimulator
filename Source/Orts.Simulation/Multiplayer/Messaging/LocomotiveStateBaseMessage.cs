@@ -12,11 +12,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
         public int TrainNumber { get; set; }
         public string LocomotiveId { get; set; }
         public CabViewType ActiveCabView { get; set; }
-
         public HeadLightState HeadLight {  get; set; }
-
         public PantographState Pantograph { get; set; }
-
         public Collection<PantographState> Pantographs { get; private protected set; }
 
         protected LocomotiveStateBaseMessage() { }

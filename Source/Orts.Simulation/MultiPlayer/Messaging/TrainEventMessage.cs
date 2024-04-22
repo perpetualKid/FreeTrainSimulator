@@ -11,7 +11,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
     public sealed partial class TrainEventMessage : MultiPlayerMessageContent
     {
         public TrainEvent TrainEvent { get; set; }
-
         public int CarIndex { get; set; }
 
         public override void HandleMessage()

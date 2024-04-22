@@ -11,7 +11,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
     public sealed partial class ControlMessage : MultiPlayerMessageContent
     {
         public ControlMessageType MessageType { get; set; }
-
         public string Text { get; set; }
         public string Recipient { get; set; }
 

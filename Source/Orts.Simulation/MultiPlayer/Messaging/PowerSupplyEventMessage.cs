@@ -9,7 +9,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
     public sealed partial class PowerSupplyEventMessage : MultiPlayerMessageContent
     {
         public PowerSupplyEvent PowerSupplyEvent { get; set; }
-
         public int CarIndex { get; set; }
 
         public override void HandleMessage()

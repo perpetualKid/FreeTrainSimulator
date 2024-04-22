@@ -11,7 +11,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
     public sealed partial class SignalChangeMessage : MultiPlayerMessageContent
     {
         public SignalState SignalState { get; set; }
-
         public int SignalIndex { get; set; }
 
         [MemoryPackConstructor]

@@ -40,6 +40,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.OR;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Multiplayer;
+using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
@@ -3677,7 +3678,9 @@ namespace Orts.Simulation.AIs
                 simulator.NameDictionary.Remove(attachTrain.Name);
             }
             if (MultiPlayerManager.IsMultiPlayer())
-                MultiPlayerManager.BroadCast((new MSGCouple(this, attachTrain, false)).ToString());
+            {
+                MultiPlayerManager.Broadcast(new TrainCoupleMessage(this, attachTrain));
+            }
             UpdateOccupancies();
             AddTrackSections();
             ResetActions(true);

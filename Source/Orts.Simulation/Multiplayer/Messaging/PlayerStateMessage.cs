@@ -20,16 +20,11 @@ namespace Orts.Simulation.Multiplayer.Messaging
         public double ClockTime { get; set; }
         public SeasonType Season { get; set; }
         public WeatherType WeatherType { get; set; }
-
         public TrainStateMessage TrainState { get; set; }
-
         public LocomotiveStateMessage PlayerLocomotive { get; set; }
-
         public LocomotiveStateMessage LeadLocomotive { get; set; }
-
         public string ConsistFile { get; set; }
         public string PathFile { get; set; }
-
         public int ProtocolVersion { get; set; }
         public string RouteTdbHash { get; set; }
 

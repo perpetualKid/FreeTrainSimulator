@@ -14,9 +14,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
     {
         public int MovingTableIndex { get; set; }
         public MovingTable.MessageCode MessageCode { get; set; }
-
         public Rotation MovingDirection { get; set; }
-
         public float Delta { get; set; }
 
         public override void HandleMessage()

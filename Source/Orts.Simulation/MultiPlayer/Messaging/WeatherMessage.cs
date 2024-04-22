@@ -11,11 +11,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
     public sealed partial class WeatherMessage : MultiPlayerMessageContent
     {
         public WeatherType Weather { get; set; }
-
         public float Overcast {  get; set; }
-
         public float Precipitation { get; set; }
-
         public float Fog { get; set; }
 
         [MemoryPackConstructor]

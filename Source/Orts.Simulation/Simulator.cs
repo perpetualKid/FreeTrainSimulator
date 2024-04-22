@@ -904,7 +904,7 @@ namespace Orts.Simulation
                 ((AITrain)train).SuspendTrain(drivenTrain);
                 drivenTrain.IncorporatedTrainNo = train.Number;
                 if (MultiPlayerManager.IsMultiPlayer())
-                    MultiPlayerManager.BroadCast((new MSGCouple(drivenTrain, train, false)).ToString());
+                    MultiPlayerManager.Broadcast(new TrainCoupleMessage(drivenTrain, train));
             }
             else
             {
@@ -916,7 +916,7 @@ namespace Orts.Simulation
                     NameDictionary.Remove(train.Name);
                 }
                 if (MultiPlayerManager.IsMultiPlayer())
-                    MultiPlayerManager.BroadCast((new MSGCouple(drivenTrain, train, train.TrainType != TrainType.AiIncorporated)).ToString());
+                    MultiPlayerManager.Broadcast(new TrainCoupleMessage(drivenTrain, train));
             }
             if (train.UncoupledFrom != null)
                 train.UncoupledFrom.UncoupledFrom = null;

@@ -16,7 +16,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
         public bool Flipped { get; set; }
         public float Length { get; set; }
         public string WagonFilePath { get; set; }
-
         public Collection<TrainCarFreightAnimationItem> FreightAnimations { get; private set; }
 
         [MemoryPackConstructor]

@@ -36,6 +36,8 @@ namespace Multiplayer.Shared
         TrainState,
         TrainFlip,
         TrainRequest,
-        TrainUpdate
+        TrainUpdate,
+        TrainCouple,
+        TrainUncouple,
     }
 }

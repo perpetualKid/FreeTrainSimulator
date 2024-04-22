@@ -14,7 +14,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
     public sealed partial class ExhaustMessage : MultiPlayerMessageContent
     {
         public Collection<ExhaustMessageItem> Items { get; private set; }
-
         public int TrainNumber { get; set; }
 
         [MemoryPackConstructor]
