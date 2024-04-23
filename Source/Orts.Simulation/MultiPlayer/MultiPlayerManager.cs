@@ -264,22 +264,6 @@ namespace Orts.Simulation.Multiplayer
 
         public static MultiplayerState MultiplayerState => (localUser?.IsDispatcher ?? false) ? MultiplayerState.Dispatcher : (localUser?.MultiPlayerClient != null) ? MultiplayerState.Client : MultiplayerState.None;
 
-        public static void BroadCast(string m)
-        {
-            if (m == null || localUser?.MultiPlayerClient == null)
-                return;
-            if (MultiplayerState == MultiplayerState.Dispatcher)
-                localUser.MultiPlayerClient.SendLegacyMessage(m);
-        }
-
-        //notify others (server will broadcast, client will send msg to server)
-        public static void Notify(string m)
-        {
-            if (m == null || localUser?.MultiPlayerClient == null)
-                return;
-            //client notify server
-            localUser.MultiPlayerClient.SendLegacyMessage(m);
-        }
 
         public static void Broadcast(MultiPlayerMessageContent message)
         {

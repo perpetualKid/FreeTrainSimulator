@@ -19,4 +19,12 @@
         Confirm,
         Request,
     }
+
+    public enum DecoupleTrainOwner
+    {
+        None,
+        OriginalTrain,
+        DetachedTrain,
+    }
+
 }

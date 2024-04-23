@@ -9,7 +9,6 @@ namespace Multiplayer.Shared
     public enum MessageType
     {
         Unknown = 0,
-        Legacy,
         Server,
         Lost,
         Chat,

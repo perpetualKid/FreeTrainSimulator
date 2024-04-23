@@ -1783,7 +1783,7 @@ namespace Orts.Simulation
             //car.CreateEvent(63);
             if (MultiPlayerManager.IsMultiPlayer())
             {
-                MultiPlayerManager.Notify((new MSGUncouple(train, train2, MultiPlayerManager.GetUserName(), car.CarID, PlayerLocomotive)).ToString());
+                MultiPlayerManager.Broadcast(new TrainUncoupleMessage(train, train2));
             }
             if (Confirmer != null && IsReplaying)
                 Confirmer.Confirm(CabControl.Uncouple, train.LastCar.CarID);

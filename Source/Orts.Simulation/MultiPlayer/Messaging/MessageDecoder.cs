@@ -13,7 +13,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
         {
             return message.MessageType switch
             {
-                MessageType.Legacy => new LegacyMessage { Payload = message.Payload },
                 MessageType.Server => new ServerMessage() { Dispatcher = message.PayloadAsString },
                 MessageType.Lost => new LostMessage() { User = message.PayloadAsString },
                 MessageType.Chat => MemoryPackSerializer.Deserialize<ChatMessage>(message.Payload),

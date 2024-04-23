@@ -66,18 +66,6 @@ namespace Orts.Simulation.Multiplayer
             }
         }
 
-        public void SendLegacyMessage(string payload)
-        {
-            //Task.Run(() => SendLegacyMessageAsync(payload));
-            SendLegacyMessageAsync(payload).AsTask().Wait();
-        }
-
-        public async ValueTask SendLegacyMessageAsync(string payload)
-        {
-            MultiplayerMessage message = new MultiplayerMessage() { MessageType = MessageType.Legacy, PayloadAsString = payload };
-            await connection.SendMessageAsync(message).ConfigureAwait(false);
-        }
-
         public void SendMessage(MultiPlayerMessageContent contentMessage)
         {
             //Task.Run(() => SendMessageAsync(contentMessage));
