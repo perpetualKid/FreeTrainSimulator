@@ -5,8 +5,6 @@ using System.Linq;
 
 using MemoryPack;
 
-using Microsoft.VisualBasic.ApplicationServices;
-
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
@@ -67,7 +65,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                         car.Train = updateTrain;
                         foreach (KeyValuePair<string, OnlinePlayer> player in MultiPlayerManager.OnlineTrains.Players)
                         {
-                            if (car.CarID.StartsWith(player.Value.LeadingLocomotiveID))
+                            if (car.CarID.StartsWith(player.Value.LeadingLocomotiveID, StringComparison.OrdinalIgnoreCase))
                             {
                                 player.Value.Train = car.Train;
                                 car.Train.TrainType = TrainType.Remote;
@@ -107,7 +105,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             }
             else
                 DetachedTrainFirstCarId = DetachedTrainFirstCarId.Replace("Leading ", "", StringComparison.OrdinalIgnoreCase);
-            if (CurrentTrainFirstCarId.StartsWith("First "))
+            if (CurrentTrainFirstCarId.StartsWith("First ", StringComparison.OrdinalIgnoreCase))
             {
                 CurrentTrainFirstCarId = CurrentTrainFirstCarId.Replace("First ", "", StringComparison.OrdinalIgnoreCase);
                 oldIDIsLead = false;
@@ -232,7 +230,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     return;
                 detachedTrain.Cars.Clear();
                 detachedTrain.Cars.AddRange(tmpcars2);
-                detachedTrain.Name = string.Concat(currentTrain.Name, Train.TotalNumber.ToString());
+                detachedTrain.Name = $"{currentTrain.Name}{Train.TotalNumber}";
                 detachedTrain.LeadLocomotive = null;
                 detachedTrain.LeadNextLocomotive();
                 detachedTrain.CheckFreight();
@@ -274,7 +272,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     car.Train = detachedTrain;
                     foreach (OnlinePlayer player in MultiPlayerManager.OnlineTrains.Players.Values)
                     {
-                        if (car.CarID.StartsWith(player.LeadingLocomotiveID))
+                        if (car.CarID.StartsWith(player.LeadingLocomotiveID, StringComparison.OrdinalIgnoreCase))
                         {
                             player.Train = car.Train;
                             //car.Train.TrainType = Train.TRAINTYPE.REMOTE;

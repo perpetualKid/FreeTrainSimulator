@@ -132,9 +132,9 @@ namespace Orts.Common.Logging
             {
                 Trace.CorrelationManager.StartLogicalOperation(LogicalOperationWriteException);
                 if (o is FatalException)
-                    Trace.TraceError("", (o as FatalException).InnerException);
+                    Trace.TraceError("{0}", (o as FatalException).InnerException);
                 else
-                    Trace.TraceWarning("", o);
+                    Trace.TraceWarning("{o}", o);
                 Trace.CorrelationManager.StopLogicalOperation();
             }
             else if (!errorsOnly)

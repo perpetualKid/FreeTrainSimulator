@@ -69,6 +69,7 @@ namespace Orts.Simulation.Multiplayer
         public MultiPlayerClient MultiPlayerClient { get; private set; }
 
         public const int ProtocolVersion = 24;
+        public const int UpdateInterval = 10;
 
         public static ICatalog Catalog { get; private set; } = CatalogManager.Catalog;
 
@@ -83,8 +84,7 @@ namespace Orts.Simulation.Multiplayer
 
         public double ServerTimeDifference { get; internal set; }
 
-        public double lastPlayerAddedTime;
-        public int MPUpdateInterval { get; } = 10;
+        private double lastPlayerAddedTime;
         public bool AllowedManualSwitch = true;
         public bool TrySwitch = true;
         public bool AmAider; //am I aiding the dispatcher?
@@ -193,7 +193,7 @@ namespace Orts.Simulation.Multiplayer
             }
 
             //server updates switch
-            if (IsDispatcher && newtime - lastSwitchTime >= MPUpdateInterval)
+            if (IsDispatcher && newtime - lastSwitchTime >= UpdateInterval)
             {
                 lastSwitchTime = newtime;
 
@@ -842,7 +842,7 @@ namespace Orts.Simulation.Multiplayer
                     return Convert.ToBase64String(hashing.GetCurrentHash());
                 }
             }
-            catch (Exception e)
+            catch (IOException e)
             {
                 Trace.TraceWarning("{0} Cannot get hash of TDB file, use NA instead but server may not connect you.", e.Message);
                 return "NA";

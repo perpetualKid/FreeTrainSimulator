@@ -35,7 +35,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             Controller = "NA";
             int index = 0;
             if (train.LeadLocomotive != null)
-                index = train.LeadLocomotive.CarID.IndexOf(" - 0");
+                index = train.LeadLocomotive.CarID.IndexOf(" - 0", StringComparison.OrdinalIgnoreCase);
             if (index > 0)
             {
                 Controller = train.LeadLocomotive.CarID[..index];
