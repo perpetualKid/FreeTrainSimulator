@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Signalling;

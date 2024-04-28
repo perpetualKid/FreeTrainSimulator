@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;

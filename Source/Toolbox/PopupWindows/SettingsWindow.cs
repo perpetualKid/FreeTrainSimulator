@@ -1,6 +1,8 @@
 ﻿
 using System.ComponentModel;
 
+using FreeTrainSimulator.Common;
+
 using GetText;
 
 using Microsoft.Xna.Framework;

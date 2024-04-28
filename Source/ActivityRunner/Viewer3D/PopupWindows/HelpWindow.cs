@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
+
 using GetText;
 
 using Microsoft.Xna.Framework;

@@ -33,6 +33,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;

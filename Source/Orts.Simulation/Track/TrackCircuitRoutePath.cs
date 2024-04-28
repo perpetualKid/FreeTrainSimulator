@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;

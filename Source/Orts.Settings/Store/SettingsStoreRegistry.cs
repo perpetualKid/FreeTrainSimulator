@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Win32;
 
 using Orts.Common;

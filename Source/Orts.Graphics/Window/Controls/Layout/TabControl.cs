@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Drawing;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 
 namespace Orts.Graphics.Window.Controls.Layout

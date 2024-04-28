@@ -29,6 +29,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;

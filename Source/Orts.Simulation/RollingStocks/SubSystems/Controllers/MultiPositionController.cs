@@ -19,6 +19,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;

@@ -1,5 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;

@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 
 namespace Orts.Settings.Store

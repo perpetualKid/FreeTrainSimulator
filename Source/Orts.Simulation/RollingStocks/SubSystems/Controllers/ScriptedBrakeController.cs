@@ -19,12 +19,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.DebugInfo;
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
-using Orts.Simulation.AIs;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Controllers

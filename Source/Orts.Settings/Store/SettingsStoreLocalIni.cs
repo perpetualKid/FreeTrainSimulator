@@ -4,6 +4,8 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Common.Native;
 

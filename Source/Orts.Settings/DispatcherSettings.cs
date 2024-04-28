@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Settings.Store;
 

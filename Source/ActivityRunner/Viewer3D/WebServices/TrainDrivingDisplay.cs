@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Simulation.RollingStocks.SubSystems;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
+
+using FreeTrainSimulator.Common;
 
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;

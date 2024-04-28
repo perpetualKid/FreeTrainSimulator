@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 

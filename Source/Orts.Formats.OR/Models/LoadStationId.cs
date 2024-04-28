@@ -20,6 +20,7 @@ using System;
 
 using Orts.Formats.OR.Parsers;
 using Orts.Common;
+using FreeTrainSimulator.Common;
 
 namespace Orts.Formats.OR.Models
 {

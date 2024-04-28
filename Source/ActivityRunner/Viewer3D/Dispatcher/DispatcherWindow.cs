@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 
+using FreeTrainSimulator.Common;
+
 using GetText;
 using GetText.WindowsForms;
 

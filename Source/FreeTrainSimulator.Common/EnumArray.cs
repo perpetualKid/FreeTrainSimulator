@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Orts.Common
+namespace FreeTrainSimulator.Common
 {
     /// <summary>An array indexed by an Enum</summary>
     /// <typeparam name="T">Type stored in array</typeparam>
@@ -26,15 +26,13 @@ namespace Orts.Common
             array = new T[1 + highBound - lowBound];
         }
 
-        public EnumArray(IEnumerable<T> source): this()
+        public EnumArray(IEnumerable<T> source) : this()
         {
             ArgumentNullException.ThrowIfNull(source);
 
             int i = 0;
             foreach (T item in source)
-            {
                 array[i] = item;
-            }
         }
 
         public EnumArray(Func<T> initializer) : this()
@@ -42,9 +40,7 @@ namespace Orts.Common
             ArgumentNullException.ThrowIfNull(initializer);
 
             for (int i = 0; i < array.Length; i++)
-            {
                 array[i] = initializer.Invoke();
-            }
         }
 
         public EnumArray(T[] source) : this()
@@ -61,10 +57,8 @@ namespace Orts.Common
             if (source is not ValueType)
                 throw new InvalidOperationException($"Cannot use reference type input to initialize multipe instances.");
 
-            for (int i = 0; i < array.Length; i++) 
-            { 
-                array[i] = source; 
-            }
+            for (int i = 0; i < array.Length; i++)
+                array[i] = source;
         }
 
         public T this[TEnum key]
@@ -88,7 +82,7 @@ namespace Orts.Common
     /// <typeparam name="T">Type stored in array</typeparam>
     /// <typeparam name="TDimension1">Indexer dimension 1 Enum type</typeparam>
     /// <typeparam name="TDimension2">Indexer dimension 2 Enum type</typeparam>
-    public class EnumArray2D<T, TDimension1, TDimension2> where TDimension1: Enum where TDimension2: Enum
+    public class EnumArray2D<T, TDimension1, TDimension2> where TDimension1 : Enum where TDimension2 : Enum
     {
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
         private readonly T[,] array;

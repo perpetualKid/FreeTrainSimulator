@@ -3,6 +3,8 @@ using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Orts.Common;

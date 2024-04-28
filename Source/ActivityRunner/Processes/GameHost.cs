@@ -25,6 +25,8 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;

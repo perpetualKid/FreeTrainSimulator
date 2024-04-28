@@ -22,6 +22,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
+using FreeTrainSimulator.Common;
+
 using GetText;
 
 using Microsoft.Xna.Framework;

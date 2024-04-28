@@ -18,7 +18,8 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Windows.Forms;
+
+using FreeTrainSimulator.Common;
 
 using Orts.Common;
 

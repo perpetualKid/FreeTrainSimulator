@@ -24,6 +24,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
+using FreeTrainSimulator.Common;
+
 using GetText;
 
 using Orts.Common;

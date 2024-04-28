@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;

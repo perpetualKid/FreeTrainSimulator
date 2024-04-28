@@ -50,6 +50,8 @@ using System.Windows.Forms;
 using System.Windows.Forms.Design;
 using System.Xml.Linq;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;

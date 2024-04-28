@@ -27,20 +27,19 @@
  * 
  */
 
-using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Text;
+using System.Linq;
+
+using FreeTrainSimulator.Common;
 
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
-using Orts.Common.Calc;
-using System.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Orts.Simulation.RollingStocks
 {

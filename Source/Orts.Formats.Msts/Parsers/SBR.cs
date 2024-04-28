@@ -21,6 +21,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;

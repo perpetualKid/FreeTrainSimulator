@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 using GetText;
 
-namespace Orts.Common
+namespace FreeTrainSimulator.Common
 {
     public static class EnumExtension
     {
@@ -40,9 +40,7 @@ namespace Orts.Common
                     Select(x => x.Description).
                     FirstOrDefault();
                 foreach (T value in Values)
-                {
                     ValueToDescriptionMap[value] = GetDescription(value);
-                }
 
                 NameValuePairs = Names.Zip(Values, (k, v) => new { k, v })
                               .ToDictionary(x => x.k, x => x.v, StringComparer.OrdinalIgnoreCase);
@@ -163,7 +161,7 @@ namespace Orts.Common
         {
             if (string.IsNullOrEmpty(name))
             {
-                result = default(T);
+                result = default;
                 return false;
             }
             return EnumCache<T>.NameValuePairs.TryGetValue(name, out result);
@@ -176,7 +174,7 @@ namespace Orts.Common
         {
             if (EnumCache<T>.ConsecutiveValues)
             {
-                int next = ((Unsafe.As<T, int>(ref item) + 1 - EnumCache<T>.Offset) % EnumCache<T>.Length) + EnumCache<T>.Offset;
+                int next = (Unsafe.As<T, int>(ref item) + 1 - EnumCache<T>.Offset) % EnumCache<T>.Length + EnumCache<T>.Offset;
                 return Unsafe.As<int, T>(ref next);
             }
             else
@@ -193,7 +191,7 @@ namespace Orts.Common
         {
             if (EnumCache<T>.ConsecutiveValues)
             {
-                int next = ((Unsafe.As<T, int>(ref item) + EnumCache<T>.Length - 1 - EnumCache<T>.Offset) % EnumCache<T>.Length) + EnumCache<T>.Offset;
+                int next = (Unsafe.As<T, int>(ref item) + EnumCache<T>.Length - 1 - EnumCache<T>.Offset) % EnumCache<T>.Length + EnumCache<T>.Offset;
                 return Unsafe.As<int, T>(ref next);
             }
             else

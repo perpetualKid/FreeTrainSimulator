@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;

@@ -64,6 +64,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Multiplayer.Hub", "Multipla
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Multiplayer.Shared", "Multiplayer.Shared\Multiplayer.Shared.csproj", "{98E3877D-48EE-4268-9E98-CA574EEA3D5E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeTrainSimulator.Common", "FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj", "{AFD0548E-86FA-4586-A7DC-F19A8C48450B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -166,6 +168,10 @@ Global
 		{98E3877D-48EE-4268-9E98-CA574EEA3D5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98E3877D-48EE-4268-9E98-CA574EEA3D5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98E3877D-48EE-4268-9E98-CA574EEA3D5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFD0548E-86FA-4586-A7DC-F19A8C48450B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFD0548E-86FA-4586-A7DC-F19A8C48450B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFD0548E-86FA-4586-A7DC-F19A8C48450B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFD0548E-86FA-4586-A7DC-F19A8C48450B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

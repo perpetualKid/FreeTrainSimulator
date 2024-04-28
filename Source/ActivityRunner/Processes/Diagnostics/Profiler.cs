@@ -21,6 +21,8 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Native;

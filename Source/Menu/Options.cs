@@ -24,6 +24,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
+
 using GetText;
 using GetText.WindowsForms;
 

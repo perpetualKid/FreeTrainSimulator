@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
+
 using GetText;
 
 using Microsoft.Xna.Framework;

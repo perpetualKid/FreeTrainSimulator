@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.DrawableComponents

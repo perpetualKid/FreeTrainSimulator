@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>Free Train Simulator Common Library</Description>
+		<AssemblyTitle>Free Train Simulator Common Library</AssemblyTitle>
+		<OutputPath>..\..\Program</OutputPath>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
+		<PackageReference Include="RailDriver" Version="1.1.4" />
+		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+		<PackageReference Include="System.Management" Version="8.0.0" />
+		<PackageReference Include="GetText.NET" Version="1.9.14" />
+		<PackageReference Include="NuGet.Versioning" Version="6.9.1" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+	</ItemGroup>
+</Project>

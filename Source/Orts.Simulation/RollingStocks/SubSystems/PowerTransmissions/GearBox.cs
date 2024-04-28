@@ -24,6 +24,7 @@ using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using System;
 using Orts.Common.Calc;
+using FreeTrainSimulator.Common;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {

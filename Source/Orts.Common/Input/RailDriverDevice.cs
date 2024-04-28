@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
+
 using RailDriver;
 
 namespace Orts.Common.Input

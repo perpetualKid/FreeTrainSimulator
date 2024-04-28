@@ -1,4 +1,6 @@
 ﻿
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;

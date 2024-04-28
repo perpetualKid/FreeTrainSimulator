@@ -3,6 +3,8 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
+
 using GetText;
 
 using Orts.Common;

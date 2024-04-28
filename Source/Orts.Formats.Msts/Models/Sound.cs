@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;

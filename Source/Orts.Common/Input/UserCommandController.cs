@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 namespace Orts.Common.Input

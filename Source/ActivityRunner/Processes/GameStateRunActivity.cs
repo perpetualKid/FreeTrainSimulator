@@ -23,6 +23,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D;

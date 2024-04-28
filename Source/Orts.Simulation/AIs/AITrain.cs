@@ -25,11 +25,12 @@
 // DEBUG flag for debug prints
 
 using System;
-using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
+using FreeTrainSimulator.Common;
 
 using Microsoft.Xna.Framework;
 

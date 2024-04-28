@@ -24,6 +24,8 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Settings.Store;
