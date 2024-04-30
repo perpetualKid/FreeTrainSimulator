@@ -122,7 +122,7 @@ steps:
       $feed = 'releases'
       if ($env:Build.Reason -eq 'PullRequest' -or $env:Build.Reason -eq 'Manual' -or $env:NBGV_PUBLICRELEASE -eq $false) {
         $feed='builds'}
-      dotnet tool install --tool-manifest .\source\.config\dotnet-tools.json sleet --version 5.2.12
+      dotnet tool install --tool-manifest .\source\.config\dotnet-tools.json sleet
       cd .\source
       dotnet tool restore
       dotnet tool run sleet push .\..\..\a --config none -p SLEET_FEED_TYPE=azure -p SLEET_FEED_CONTAINER=$feed -p SLEET_FEED_CONNECTIONSTRING=${env:connectionstring}
