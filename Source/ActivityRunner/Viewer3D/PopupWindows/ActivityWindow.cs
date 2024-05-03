@@ -92,7 +92,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            if (autoClose && Environment.TickCount64 > closeTimeout)
+            if (autoClose && System.Environment.TickCount64 > closeTimeout)
                 Close();
             base.Update(gameTime, shouldUpdate);
         }
@@ -108,7 +108,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 if (currentEvent.ActivityEvent.OrtsContinue >= 0)
                 {
                     autoClose = true;
-                    closeTimeout = Environment.TickCount64 + (currentEvent.ActivityEvent.OrtsContinue * 1000);
+                    closeTimeout = System.Environment.TickCount64 + (currentEvent.ActivityEvent.OrtsContinue * 1000);
                 }
                 _ = Open();
             }

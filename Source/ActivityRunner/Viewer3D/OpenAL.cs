@@ -337,7 +337,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         private static void CheckMaxSourcesConfig()
         {
-            string configFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "alsoft.ini");
+            string configFile = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "alsoft.ini");
             try
             {
                 StringBuilder result = new StringBuilder(255);

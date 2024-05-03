@@ -178,6 +178,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public int TileX => cameraLocation.TileX;
         public int TileZ => cameraLocation.TileZ;
+        public Tile Tile => new Tile(cameraLocation.TileX, cameraLocation.TileZ);
         public ref readonly Vector3 Location => ref cameraLocation.Location;
         public ref readonly WorldLocation CameraWorldLocation => ref cameraLocation;
 

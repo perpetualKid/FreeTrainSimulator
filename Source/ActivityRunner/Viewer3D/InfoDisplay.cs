@@ -53,7 +53,7 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         private readonly Viewer viewer;
         private readonly DataLogger dataLog;
-        private readonly int ProcessorCount = Environment.ProcessorCount;
+        private readonly int ProcessorCount = System.Environment.ProcessorCount;
 
         private int frameNumber;
 
@@ -189,7 +189,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         dataLog.Data(VersionInfo.Version);
                         dataLog.Data($"{frameNumber:F0}");
-                        dataLog.Data($"{Environment.WorkingSet:F0}");
+                        dataLog.Data($"{System.Environment.WorkingSet:F0}");
                         dataLog.Data($"{GC.GetTotalMemory(false):F0}");
                         dataLog.Data($"{GC.CollectionCount(0):F0}");
                         dataLog.Data($"{GC.CollectionCount(1):F0}");
