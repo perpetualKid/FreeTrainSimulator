@@ -257,7 +257,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void DynamicUpdate(WeatherControl weatherControl, Weather weather, Viewer viewer, ref Vector3 wind)
         {
-            if (!weatherControl.weatherChangeOn || weatherControl.dynamicWeather.precipitationLiquidityTimer <= 0)
+            if (!weatherControl.NeedUpdate())
                 return;
             particleDuration = ParticleBoxHeightM / ((RainVelocityMpS - SnowVelocityMpS) * weather.PrecipitationLiquidity + SnowVelocityMpS) / ParticleVelocityFactor;
             wind.X = 18 * weather.PrecipitationLiquidity + 2;

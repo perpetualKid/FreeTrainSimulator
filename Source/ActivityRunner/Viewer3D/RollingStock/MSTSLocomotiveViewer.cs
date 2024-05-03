@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -87,7 +88,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     try
                     {
-                        Viewer.SoundProcess.AddSoundSources(script, new List<SoundSourceBase>() {
+                        Viewer.SoundProcess.AddSoundSources(script, new Collection<SoundSourceBase>() {
                             new SoundSource(Locomotive, this, Locomotive.TrainControlSystem.Sounds[script])});
                     }
                     catch (Exception error) when (error is Exception)

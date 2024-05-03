@@ -21,6 +21,7 @@
 //#define DEBUG_SOURCE_SOURCES
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading;
 
 using Microsoft.Xna.Framework;
@@ -37,7 +38,7 @@ namespace Orts.ActivityRunner.Processes
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
         //   assignment of a new instance (possibly cloned and then modified).
-        public Dictionary<object, List<SoundSourceBase>> SoundSources { get; } = new Dictionary<object, List<SoundSourceBase>>();
+        public Dictionary<object, Collection<SoundSourceBase>> SoundSources { get; } = new Dictionary<object, Collection<SoundSourceBase>>();
 
         private int updateCounter = -1;
         private int asyncUpdatePending;
@@ -127,7 +128,7 @@ namespace Orts.ActivityRunner.Processes
                     foreach (var removal in removals)
                     {
                         // If either of the key or value no longer exist, we can't remove them - so skip over them.
-                        if (SoundSources.TryGetValue(removal.Key, out List<SoundSourceBase> value) && value.Contains(removal.Value))
+                        if (SoundSources.TryGetValue(removal.Key, out Collection<SoundSourceBase> value) && value.Contains(removal.Value))
                         {
                             removal.Value.Uninitialize();
                             value.Remove(removal.Value);
@@ -152,7 +153,7 @@ namespace Orts.ActivityRunner.Processes
         /// </summary>
         /// <param name="owner">The object to which the sound sources are attached.</param>
         /// <param name="sources">The sound sources to add.</param>
-        public void AddSoundSources(object owner, List<SoundSourceBase> sources)
+        public void AddSoundSources(object owner, Collection<SoundSourceBase> sources)
         {
             // We use lock to thread-safely update the list.  Interlocked compare-exchange
             // is used to interrupt the update.
@@ -180,7 +181,7 @@ namespace Orts.ActivityRunner.Processes
             lock (SoundSources)
             {
                 if (!SoundSources.ContainsKey(owner))
-                    SoundSources.Add(owner, new List<SoundSourceBase>());
+                    SoundSources.Add(owner, new Collection<SoundSourceBase>());
                 SoundSources[owner].Add(source);
             }
             while (asyncUpdatePending > 0)
@@ -195,7 +196,7 @@ namespace Orts.ActivityRunner.Processes
         /// <returns><see cref="true"/> for a match between <paramref name="owner"/> and <paramref name="source"/>, <see cref="false"/> otherwise.</returns>
         public bool IsSoundSourceOwnedBy(object owner, SoundSourceBase source)
         {
-            return SoundSources.TryGetValue(owner, out List<SoundSourceBase> sources) && sources.Contains(source);
+            return SoundSources.TryGetValue(owner, out Collection<SoundSourceBase> sources) && sources.Contains(source);
         }
 
         /// <summary>
@@ -211,7 +212,7 @@ namespace Orts.ActivityRunner.Processes
                 j = Interlocked.CompareExchange(ref asyncUpdatePending, 1, 0);
             lock (SoundSources)
             {
-                if (SoundSources.TryGetValue(owner, out List<SoundSourceBase> value))
+                if (SoundSources.TryGetValue(owner, out Collection<SoundSourceBase> value))
                 {
                     foreach (var source in value)
                         source.Uninitialize();

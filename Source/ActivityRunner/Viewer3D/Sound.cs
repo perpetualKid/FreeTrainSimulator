@@ -41,6 +41,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -1084,7 +1085,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Returns true if SoundSource is a weather sound. Used at <see cref="ConditionsMet"/> check
         /// </summary>
-        private bool WeatherSound { get { return viewer.World.WeatherControl.WeatherSounds.Contains(this); } }
+        private bool WeatherSound { get { return viewer.World.WeatherControl.IsWeatherSound(this); } }
 
         /// <summary>
         /// Hack for enabling additional cab sounds (like radio sounds) of an attached (maybe invisible) car. Used at <see cref="ConditionsMet"/> check
@@ -2465,7 +2466,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             {
                 string[] pathArray = { Simulator.Instance.RouteFolder.SoundFolder, Simulator.Instance.RouteFolder.ContentFolder.SoundFolder };
 
-                var ls = new List<SoundSourceBase>();
+                Collection<SoundSourceBase> ls = new Collection<SoundSourceBase>();
                 foreach (var fss in wf.TrackItemSound.SoundSources)
                 {
                     WorldLocation wl = new WorldLocation(TileX, TileZ, fss.Position);
@@ -2538,19 +2539,19 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                     {
                         case OrtsActivitySoundFileType.Everywhere:
                             ActivitySounds = new SoundSource(SoundEventSource.InGame, ORTSActSoundFile, true);
-                            Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
+                            Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         case OrtsActivitySoundFileType.Cab:
                             var playerLoco = (MSTSWagon)Program.Viewer.Simulator.PlayerLocomotive;
                             ActivitySounds = new SoundSource(playerLoco, Program.Viewer.World.Trains.GetViewer(playerLoco), ORTSActSoundFile);
-                            Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
+                            Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         case OrtsActivitySoundFileType.Pass:
                             if (Program.Viewer.Camera.Style == CameraStyle.Passenger && Program.Viewer.Camera.AttachedCar != null)
                             {
                                 var selectedWagon = (MSTSWagon)Program.Viewer.Camera.AttachedCar;
                                 ActivitySounds = new SoundSource(selectedWagon, Program.Viewer.World.Trains.GetViewer(selectedWagon), ORTSActSoundFile);
-                                Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
+                                Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             }
                             break;
                         case OrtsActivitySoundFileType.Ground:
@@ -2558,11 +2559,11 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                                 Program.Viewer.Simulator.PlayerLocomotive : train.Cars[0];
                             //                            string wsName = Program.Viewer.Simulator.RoutePath + @"\WORLD\" + WorldFile.WorldFileNameFromTileCoordinates(worldLocation.TileX, worldLocation.TileZ) + "s";
                             ActivitySounds = new SoundSource(loco.WorldPosition.WorldLocation.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true);
-                            Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
+                            Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         case OrtsActivitySoundFileType.Location:
                             ActivitySounds = new SoundSource(activitySound.Location.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true);
-                            Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
+                            Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         default:
                             break;
@@ -2573,19 +2574,19 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                     {
                         case OrtsActivitySoundFileType.Everywhere:
                             ActivitySounds = new SoundSource(SoundEventSource.InGame, ORTSActSoundFile, ORTSActSoundFileType, true, true);
-                            Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
+                            Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         case OrtsActivitySoundFileType.Cab:
                             var playerLoco = (MSTSWagon)Program.Viewer.Simulator.PlayerLocomotive;
                             ActivitySounds = new SoundSource(playerLoco, ORTSActSoundFile, ORTSActSoundFileType, true);
-                            Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
+                            Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         case OrtsActivitySoundFileType.Pass:
                             if (Program.Viewer.Camera.Style == CameraStyle.Passenger && Program.Viewer.Camera.AttachedCar != null)
                             {
                                 var selectedWagon = (MSTSWagon)Program.Viewer.Camera.AttachedCar;
                                 ActivitySounds = new SoundSource(selectedWagon, ORTSActSoundFile, ORTSActSoundFileType, true);
-                                Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
+                                Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             }
                             break;
                         case OrtsActivitySoundFileType.Ground:
@@ -2593,11 +2594,11 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                                 Program.Viewer.Simulator.PlayerLocomotive : train.Cars[0];
                             //                           string wsName = Program.Viewer.Simulator.RoutePath + @"\WORLD\" + WorldFile.WorldFileNameFromTileCoordinates(worldLocation.TileX, worldLocation.TileZ) + "s";
                             ActivitySounds = new SoundSource(loco.WorldPosition.WorldLocation.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true, ORTSActSoundFileType, true);// Sound does not come from earth!
-                            Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
+                            Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         case OrtsActivitySoundFileType.Location:
                             ActivitySounds = new SoundSource(activitySound.Location.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true, ORTSActSoundFileType, true);// Sound does not come from earth!
-                            Program.Viewer.SoundProcess.AddSoundSources(localEventID, new List<SoundSourceBase>() { ActivitySounds });
+                            Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         default:
                             break;

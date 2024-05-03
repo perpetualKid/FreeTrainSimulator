@@ -18,7 +18,7 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
@@ -64,7 +64,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             // check if weather file is defined
             WeatherControl = string.IsNullOrEmpty(viewer.Simulator.UserWeatherFile)
                 ? new WeatherControl(viewer)
-                : new AutomaticWeather(viewer, viewer.Simulator.UserWeatherFile, gameTime);
+                : new AutomaticWeatherControl(viewer, viewer.Simulator.UserWeatherFile, gameTime);
             // Then drawers.
             if (viewer.Settings.UseMSTSEnv)
                 MSTSSky = new MSTSSkyDrawer(viewer);
@@ -83,7 +83,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 ALSoundSource.MuteAll();
                 // TODO: This looks kinda evil; do something about it.
                 GameSounds = new SoundSource(SoundEventSource.InGame, Simulator.Instance.RouteFolder.SoundFile("ingame.sms"), true);
-                this.viewer.SoundProcess.AddSoundSources(GameSounds.SMSFolder + "\\" + GameSounds.SMSFileName, new List<SoundSourceBase>() { GameSounds });
+                this.viewer.SoundProcess.AddSoundSources(GameSounds.SMSFolder + "\\" + GameSounds.SMSFileName, new Collection<SoundSourceBase>() { GameSounds });
                 Sounds = new WorldSounds(viewer);
             }
         }
