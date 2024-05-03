@@ -11,63 +11,65 @@
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
         /// </summary>
-        private void InitializeComponent() {
-            this.components = new System.ComponentModel.Container();
+        private void InitializeComponent()
+        {
+            components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ResumeForm));
-            this.gridSaves = new System.Windows.Forms.DataGridView();
-            this.fileDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.realTimeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.pathNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.gameTimeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.distanceDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.currentTileDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.validDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.Blank = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.saveBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.buttonResume = new System.Windows.Forms.Button();
-            this.buttonDelete = new System.Windows.Forms.Button();
-            this.buttonUndelete = new System.Windows.Forms.Button();
-            this.labelInvalidSaves = new System.Windows.Forms.Label();
-            this.buttonDeleteInvalid = new System.Windows.Forms.Button();
-            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.buttonImportExportSaves = new System.Windows.Forms.Button();
-            this.groupBoxInvalid = new System.Windows.Forms.GroupBox();
-            this.tableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonReplayFromPreviousSave = new System.Windows.Forms.Button();
-            this.buttonReplayFromStart = new System.Windows.Forms.Button();
-            this.checkBoxReplayPauseBeforeEnd = new System.Windows.Forms.CheckBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.numericReplayPauseBeforeEnd = new System.Windows.Forms.NumericUpDown();
-            this.panelSaves = new System.Windows.Forms.Panel();
-            this.panelScreenshot = new System.Windows.Forms.Panel();
-            this.pictureBoxScreenshot = new System.Windows.Forms.PictureBox();
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            ((System.ComponentModel.ISupportInitialize)(this.gridSaves)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.saveBindingSource)).BeginInit();
-            this.groupBoxInvalid.SuspendLayout();
-            this.tableLayoutPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericReplayPauseBeforeEnd)).BeginInit();
-            this.panelSaves.SuspendLayout();
-            this.panelScreenshot.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxScreenshot)).BeginInit();
-            this.SuspendLayout();
+            gridSaves = new System.Windows.Forms.DataGridView();
+            saveBindingSource = new System.Windows.Forms.BindingSource(components);
+            buttonResume = new System.Windows.Forms.Button();
+            buttonDelete = new System.Windows.Forms.Button();
+            buttonUndelete = new System.Windows.Forms.Button();
+            labelInvalidSaves = new System.Windows.Forms.Label();
+            buttonDeleteInvalid = new System.Windows.Forms.Button();
+            toolTip = new System.Windows.Forms.ToolTip(components);
+            buttonImportExportSaves = new System.Windows.Forms.Button();
+            groupBoxInvalid = new System.Windows.Forms.GroupBox();
+            tableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+            buttonReplayFromPreviousSave = new System.Windows.Forms.Button();
+            buttonReplayFromStart = new System.Windows.Forms.Button();
+            checkBoxReplayPauseBeforeEnd = new System.Windows.Forms.CheckBox();
+            label1 = new System.Windows.Forms.Label();
+            numericReplayPauseBeforeEnd = new System.Windows.Forms.NumericUpDown();
+            panelSaves = new System.Windows.Forms.Panel();
+            panelScreenshot = new System.Windows.Forms.Panel();
+            pictureBoxScreenshot = new System.Windows.Forms.PictureBox();
+            openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            fileDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            realTimeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            pathNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            gameTimeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            distanceDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            currentTileDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            validDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            DebriefEvaluation = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            Blank = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            ((System.ComponentModel.ISupportInitialize)gridSaves).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)saveBindingSource).BeginInit();
+            groupBoxInvalid.SuspendLayout();
+            tableLayoutPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numericReplayPauseBeforeEnd).BeginInit();
+            panelSaves.SuspendLayout();
+            panelScreenshot.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBoxScreenshot).BeginInit();
+            SuspendLayout();
             // 
             // gridSaves
             // 
-            this.gridSaves.AllowUserToAddRows = false;
-            this.gridSaves.AllowUserToDeleteRows = false;
-            this.gridSaves.AutoGenerateColumns = false;
-            this.gridSaves.MultiSelect = false;
-            this.gridSaves.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.None;
-            this.gridSaves.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
-            this.gridSaves.BackgroundColor = System.Drawing.SystemColors.Window;
-            this.gridSaves.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.gridSaves.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            this.gridSaves.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
+            gridSaves.AllowUserToAddRows = false;
+            gridSaves.AllowUserToDeleteRows = false;
+            gridSaves.AutoGenerateColumns = false;
+            gridSaves.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
+            gridSaves.BackgroundColor = System.Drawing.SystemColors.Window;
+            gridSaves.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            gridSaves.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
+            gridSaves.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
             dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -75,388 +77,380 @@
             dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.gridSaves.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            this.gridSaves.ColumnHeadersHeight = 29;
-            this.gridSaves.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            this.gridSaves.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.fileDataGridViewTextBoxColumn,
-            this.realTimeDataGridViewTextBoxColumn,
-            this.pathNameDataGridViewTextBoxColumn,
-            this.gameTimeDataGridViewTextBoxColumn,
-            this.distanceDataGridViewTextBoxColumn,
-            this.currentTileDataGridViewTextBoxColumn,
-            this.validDataGridViewCheckBoxColumn,
-            this.Blank});
-            this.gridSaves.DataSource = this.saveBindingSource;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.gridSaves.DefaultCellStyle = dataGridViewCellStyle3;
-            this.gridSaves.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gridSaves.Location = new System.Drawing.Point(0, 0);
-            this.gridSaves.Margin = new System.Windows.Forms.Padding(4);
-            this.gridSaves.Name = "gridSaves";
-            this.gridSaves.ReadOnly = true;
-            this.gridSaves.RowHeadersVisible = false;
-            this.gridSaves.RowHeadersWidth = 51;
-            this.gridSaves.RowTemplate.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.gridSaves.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.gridSaves.Size = new System.Drawing.Size(499, 411);
-            this.gridSaves.TabIndex = 0;
-            this.gridSaves.SelectionChanged += new System.EventHandler(this.GridSaves_SelectionChanged);
-            this.gridSaves.DoubleClick += new System.EventHandler(this.GridSaves_DoubleClick);
-            // 
-            // fileDataGridViewTextBoxColumn
-            // 
-            this.fileDataGridViewTextBoxColumn.DataPropertyName = "File";
-            this.fileDataGridViewTextBoxColumn.HeaderText = "File";
-            this.fileDataGridViewTextBoxColumn.MinimumWidth = 6;
-            this.fileDataGridViewTextBoxColumn.Name = "fileDataGridViewTextBoxColumn";
-            this.fileDataGridViewTextBoxColumn.ReadOnly = true;
-            this.fileDataGridViewTextBoxColumn.Visible = false;
-            this.fileDataGridViewTextBoxColumn.Width = 59;
-            // 
-            // realTimeDataGridViewTextBoxColumn
-            // 
-            this.realTimeDataGridViewTextBoxColumn.DataPropertyName = "RealTime";
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
-            this.realTimeDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle4;
-            this.realTimeDataGridViewTextBoxColumn.HeaderText = "Saved At";
-            this.realTimeDataGridViewTextBoxColumn.MinimumWidth = 6;
-            this.realTimeDataGridViewTextBoxColumn.Name = "realTimeDataGridViewTextBoxColumn";
-            this.realTimeDataGridViewTextBoxColumn.ReadOnly = true;
-            this.realTimeDataGridViewTextBoxColumn.Width = 102;
-            // 
-            // pathNameDataGridViewTextBoxColumn
-            // 
-            this.pathNameDataGridViewTextBoxColumn.DataPropertyName = "PathName";
-            this.pathNameDataGridViewTextBoxColumn.HeaderText = "Path";
-            this.pathNameDataGridViewTextBoxColumn.MinimumWidth = 6;
-            this.pathNameDataGridViewTextBoxColumn.Name = "pathNameDataGridViewTextBoxColumn";
-            this.pathNameDataGridViewTextBoxColumn.ReadOnly = true;
-            this.pathNameDataGridViewTextBoxColumn.Width = 66;
-            // 
-            // gameTimeDataGridViewTextBoxColumn
-            // 
-            this.gameTimeDataGridViewTextBoxColumn.DataPropertyName = "GameTime";
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
-            this.gameTimeDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle4;
-            this.gameTimeDataGridViewTextBoxColumn.HeaderText = "Time";
-            this.gameTimeDataGridViewTextBoxColumn.MinimumWidth = 6;
-            this.gameTimeDataGridViewTextBoxColumn.Name = "gameTimeDataGridViewTextBoxColumn";
-            this.gameTimeDataGridViewTextBoxColumn.ReadOnly = true;
-            this.gameTimeDataGridViewTextBoxColumn.Width = 78;
-            // 
-            // distanceDataGridViewTextBoxColumn
-            // 
-            this.distanceDataGridViewTextBoxColumn.DataPropertyName = "Distance";
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopRight;
-            this.distanceDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
-            this.distanceDataGridViewTextBoxColumn.HeaderText = "Distance";
-            this.distanceDataGridViewTextBoxColumn.MinimumWidth = 6;
-            this.distanceDataGridViewTextBoxColumn.Name = "distanceDataGridViewTextBoxColumn";
-            this.distanceDataGridViewTextBoxColumn.ReadOnly = true;
-            this.distanceDataGridViewTextBoxColumn.Width = 78;
-            // 
-            // currentTileDataGridViewTextBoxColumn
-            // 
-            this.currentTileDataGridViewTextBoxColumn.DataPropertyName = "CurrentTile";
-            this.currentTileDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
-            this.currentTileDataGridViewTextBoxColumn.HeaderText = "Tile";
-            this.currentTileDataGridViewTextBoxColumn.MinimumWidth = 6;
-            this.currentTileDataGridViewTextBoxColumn.Name = "currentTileDataGridViewTextBoxColumn";
-            this.currentTileDataGridViewTextBoxColumn.ReadOnly = true;
-            this.currentTileDataGridViewTextBoxColumn.Width = 102;
-            // 
-            // validDataGridViewCheckBoxColumn
-            // 
-            this.validDataGridViewCheckBoxColumn.DataPropertyName = "Valid";
-            this.validDataGridViewCheckBoxColumn.HeaderText = "Valid";
-            this.validDataGridViewCheckBoxColumn.MinimumWidth = 6;
-            this.validDataGridViewCheckBoxColumn.Name = "validDataGridViewCheckBoxColumn";
-            this.validDataGridViewCheckBoxColumn.ReadOnly = true;
-            this.validDataGridViewCheckBoxColumn.ThreeState = true;
-            this.validDataGridViewCheckBoxColumn.Width = 48;
-            // 
-            // Blank
-            // 
-            this.Blank.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Blank.HeaderText = "";
-            this.Blank.MinimumWidth = 6;
-            this.Blank.Name = "Blank";
-            this.Blank.ReadOnly = true;
-            this.Blank.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            gridSaves.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            gridSaves.ColumnHeadersHeight = 29;
+            gridSaves.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            gridSaves.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { fileDataGridViewTextBoxColumn, realTimeDataGridViewTextBoxColumn, pathNameDataGridViewTextBoxColumn, gameTimeDataGridViewTextBoxColumn, distanceDataGridViewTextBoxColumn, currentTileDataGridViewTextBoxColumn, validDataGridViewCheckBoxColumn, DebriefEvaluation, Blank });
+            gridSaves.DataSource = saveBindingSource;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle6.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            gridSaves.DefaultCellStyle = dataGridViewCellStyle6;
+            gridSaves.Dock = System.Windows.Forms.DockStyle.Fill;
+            gridSaves.Location = new System.Drawing.Point(0, 0);
+            gridSaves.Margin = new System.Windows.Forms.Padding(4);
+            gridSaves.MultiSelect = false;
+            gridSaves.Name = "gridSaves";
+            gridSaves.ReadOnly = true;
+            gridSaves.RowHeadersVisible = false;
+            gridSaves.RowHeadersWidth = 51;
+            gridSaves.RowTemplate.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            gridSaves.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            gridSaves.Size = new System.Drawing.Size(499, 411);
+            gridSaves.TabIndex = 0;
+            gridSaves.SelectionChanged += GridSaves_SelectionChanged;
+            gridSaves.DoubleClick += GridSaves_DoubleClick;
             // 
             // saveBindingSource
             // 
-            this.saveBindingSource.DataSource = typeof(Orts.Models.Simplified.SavePoint);
+            saveBindingSource.DataSource = typeof(Models.Simplified.SavePoint);
             // 
             // buttonResume
             // 
-            this.buttonResume.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonResume.Location = new System.Drawing.Point(971, 532);
-            this.buttonResume.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonResume.Name = "buttonResume";
-            this.buttonResume.Size = new System.Drawing.Size(100, 28);
-            this.buttonResume.TabIndex = 1;
-            this.buttonResume.Text = "Resume";
-            this.buttonResume.UseVisualStyleBackColor = true;
-            this.buttonResume.Click += new System.EventHandler(this.ButtonResume_Click);
+            buttonResume.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            buttonResume.Location = new System.Drawing.Point(971, 528);
+            buttonResume.Margin = new System.Windows.Forms.Padding(4);
+            buttonResume.Name = "buttonResume";
+            buttonResume.Size = new System.Drawing.Size(100, 28);
+            buttonResume.TabIndex = 1;
+            buttonResume.Text = "Resume";
+            buttonResume.UseVisualStyleBackColor = true;
+            buttonResume.Click += ButtonResume_Click;
             // 
             // buttonDelete
             // 
-            this.buttonDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonDelete.Location = new System.Drawing.Point(405, 425);
-            this.buttonDelete.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonDelete.Name = "buttonDelete";
-            this.buttonDelete.Size = new System.Drawing.Size(100, 28);
-            this.buttonDelete.TabIndex = 7;
-            this.buttonDelete.Text = "Delete";
-            this.toolTip.SetToolTip(this.buttonDelete, "Deletes the currently selected save or saves.");
-            this.buttonDelete.UseVisualStyleBackColor = true;
-            this.buttonDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
+            buttonDelete.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            buttonDelete.Location = new System.Drawing.Point(405, 425);
+            buttonDelete.Margin = new System.Windows.Forms.Padding(4);
+            buttonDelete.Name = "buttonDelete";
+            buttonDelete.Size = new System.Drawing.Size(100, 28);
+            buttonDelete.TabIndex = 7;
+            buttonDelete.Text = "Delete";
+            toolTip.SetToolTip(buttonDelete, "Deletes the currently selected save or saves.");
+            buttonDelete.UseVisualStyleBackColor = true;
+            buttonDelete.Click += ButtonDelete_Click;
             // 
             // buttonUndelete
             // 
-            this.buttonUndelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonUndelete.Location = new System.Drawing.Point(405, 461);
-            this.buttonUndelete.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonUndelete.Name = "buttonUndelete";
-            this.buttonUndelete.Size = new System.Drawing.Size(100, 28);
-            this.buttonUndelete.TabIndex = 8;
-            this.buttonUndelete.Text = "Undelete";
-            this.toolTip.SetToolTip(this.buttonUndelete, "Restores all saves deleted in this session.");
-            this.buttonUndelete.UseVisualStyleBackColor = true;
-            this.buttonUndelete.Click += new System.EventHandler(this.ButtonUndelete_Click);
+            buttonUndelete.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            buttonUndelete.Location = new System.Drawing.Point(405, 461);
+            buttonUndelete.Margin = new System.Windows.Forms.Padding(4);
+            buttonUndelete.Name = "buttonUndelete";
+            buttonUndelete.Size = new System.Drawing.Size(100, 28);
+            buttonUndelete.TabIndex = 8;
+            buttonUndelete.Text = "Undelete";
+            toolTip.SetToolTip(buttonUndelete, "Restores all saves deleted in this session.");
+            buttonUndelete.UseVisualStyleBackColor = true;
+            buttonUndelete.Click += ButtonUndelete_Click;
             // 
             // labelInvalidSaves
             // 
-            this.labelInvalidSaves.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelInvalidSaves.Location = new System.Drawing.Point(8, 20);
-            this.labelInvalidSaves.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.labelInvalidSaves.Name = "labelInvalidSaves";
-            this.labelInvalidSaves.Size = new System.Drawing.Size(377, 76);
-            this.labelInvalidSaves.TabIndex = 0;
+            labelInvalidSaves.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            labelInvalidSaves.Location = new System.Drawing.Point(8, 20);
+            labelInvalidSaves.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelInvalidSaves.Name = "labelInvalidSaves";
+            labelInvalidSaves.Size = new System.Drawing.Size(377, 76);
+            labelInvalidSaves.TabIndex = 0;
             // 
             // buttonDeleteInvalid
             // 
-            this.buttonDeleteInvalid.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonDeleteInvalid.Location = new System.Drawing.Point(8, 99);
-            this.buttonDeleteInvalid.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonDeleteInvalid.Name = "buttonDeleteInvalid";
-            this.buttonDeleteInvalid.Size = new System.Drawing.Size(259, 28);
-            this.buttonDeleteInvalid.TabIndex = 1;
-            this.buttonDeleteInvalid.Text = "Delete all invalid saves";
-            this.buttonDeleteInvalid.UseVisualStyleBackColor = true;
-            this.buttonDeleteInvalid.Click += new System.EventHandler(this.ButtonDeleteInvalid_Click);
+            buttonDeleteInvalid.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            buttonDeleteInvalid.Location = new System.Drawing.Point(8, 99);
+            buttonDeleteInvalid.Margin = new System.Windows.Forms.Padding(4);
+            buttonDeleteInvalid.Name = "buttonDeleteInvalid";
+            buttonDeleteInvalid.Size = new System.Drawing.Size(259, 28);
+            buttonDeleteInvalid.TabIndex = 1;
+            buttonDeleteInvalid.Text = "Delete all invalid saves";
+            buttonDeleteInvalid.UseVisualStyleBackColor = true;
+            buttonDeleteInvalid.Click += ButtonDeleteInvalid_Click;
             // 
             // buttonImportExportSaves
             // 
-            this.buttonImportExportSaves.Location = new System.Drawing.Point(405, 497);
-            this.buttonImportExportSaves.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonImportExportSaves.Name = "buttonImportExportSaves";
-            this.tableLayoutPanel.SetRowSpan(this.buttonImportExportSaves, 2);
-            this.buttonImportExportSaves.Size = new System.Drawing.Size(100, 60);
-            this.buttonImportExportSaves.TabIndex = 9;
-            this.buttonImportExportSaves.Text = "Import/ export";
-            this.toolTip.SetToolTip(this.buttonImportExportSaves, "Restores all saves deleted in this session.");
-            this.buttonImportExportSaves.UseVisualStyleBackColor = true;
-            this.buttonImportExportSaves.Click += new System.EventHandler(this.ButtonImportExportSaves_Click);
+            buttonImportExportSaves.Location = new System.Drawing.Point(405, 497);
+            buttonImportExportSaves.Margin = new System.Windows.Forms.Padding(4);
+            buttonImportExportSaves.Name = "buttonImportExportSaves";
+            tableLayoutPanel.SetRowSpan(buttonImportExportSaves, 2);
+            buttonImportExportSaves.Size = new System.Drawing.Size(100, 60);
+            buttonImportExportSaves.TabIndex = 9;
+            buttonImportExportSaves.Text = "Import/ export";
+            toolTip.SetToolTip(buttonImportExportSaves, "Restores all saves deleted in this session.");
+            buttonImportExportSaves.UseVisualStyleBackColor = true;
+            buttonImportExportSaves.Click += ButtonImportExportSaves_Click;
             // 
             // groupBoxInvalid
             // 
-            this.groupBoxInvalid.Controls.Add(this.labelInvalidSaves);
-            this.groupBoxInvalid.Controls.Add(this.buttonDeleteInvalid);
-            this.groupBoxInvalid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBoxInvalid.Location = new System.Drawing.Point(4, 425);
-            this.groupBoxInvalid.Margin = new System.Windows.Forms.Padding(4);
-            this.groupBoxInvalid.Name = "groupBoxInvalid";
-            this.groupBoxInvalid.Padding = new System.Windows.Forms.Padding(4);
-            this.tableLayoutPanel.SetRowSpan(this.groupBoxInvalid, 4);
-            this.groupBoxInvalid.Size = new System.Drawing.Size(393, 135);
-            this.groupBoxInvalid.TabIndex = 10;
-            this.groupBoxInvalid.TabStop = false;
-            this.groupBoxInvalid.Text = "Invalid saves";
+            groupBoxInvalid.Controls.Add(labelInvalidSaves);
+            groupBoxInvalid.Controls.Add(buttonDeleteInvalid);
+            groupBoxInvalid.Dock = System.Windows.Forms.DockStyle.Fill;
+            groupBoxInvalid.Location = new System.Drawing.Point(4, 425);
+            groupBoxInvalid.Margin = new System.Windows.Forms.Padding(4);
+            groupBoxInvalid.Name = "groupBoxInvalid";
+            groupBoxInvalid.Padding = new System.Windows.Forms.Padding(4);
+            tableLayoutPanel.SetRowSpan(groupBoxInvalid, 4);
+            groupBoxInvalid.Size = new System.Drawing.Size(393, 135);
+            groupBoxInvalid.TabIndex = 10;
+            groupBoxInvalid.TabStop = false;
+            groupBoxInvalid.Text = "Invalid saves";
             // 
             // tableLayoutPanel
             // 
-            this.tableLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tableLayoutPanel.ColumnCount = 5;
-            this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 27F));
-            this.tableLayoutPanel.Controls.Add(this.groupBoxInvalid, 0, 1);
-            this.tableLayoutPanel.Controls.Add(this.buttonImportExportSaves, 1, 3);
-            this.tableLayoutPanel.Controls.Add(this.buttonReplayFromPreviousSave, 2, 4);
-            this.tableLayoutPanel.Controls.Add(this.buttonReplayFromStart, 3, 4);
-            this.tableLayoutPanel.Controls.Add(this.buttonResume, 4, 4);
-            this.tableLayoutPanel.Controls.Add(this.checkBoxReplayPauseBeforeEnd, 2, 2);
-            this.tableLayoutPanel.Controls.Add(this.label1, 2, 3);
-            this.tableLayoutPanel.Controls.Add(this.numericReplayPauseBeforeEnd, 3, 3);
-            this.tableLayoutPanel.Controls.Add(this.buttonDelete, 1, 1);
-            this.tableLayoutPanel.Controls.Add(this.buttonUndelete, 1, 2);
-            this.tableLayoutPanel.Controls.Add(this.panelSaves, 0, 0);
-            this.tableLayoutPanel.Controls.Add(this.panelScreenshot, 2, 0);
-            this.tableLayoutPanel.Location = new System.Drawing.Point(12, 11);
-            this.tableLayoutPanel.Margin = new System.Windows.Forms.Padding(0);
-            this.tableLayoutPanel.Name = "tableLayoutPanel";
-            this.tableLayoutPanel.RowCount = 5;
-            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel.Size = new System.Drawing.Size(1075, 564);
-            this.tableLayoutPanel.TabIndex = 0;
+            tableLayoutPanel.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            tableLayoutPanel.ColumnCount = 5;
+            tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 27F));
+            tableLayoutPanel.Controls.Add(groupBoxInvalid, 0, 1);
+            tableLayoutPanel.Controls.Add(buttonImportExportSaves, 1, 3);
+            tableLayoutPanel.Controls.Add(buttonReplayFromPreviousSave, 2, 4);
+            tableLayoutPanel.Controls.Add(buttonReplayFromStart, 3, 4);
+            tableLayoutPanel.Controls.Add(buttonResume, 4, 4);
+            tableLayoutPanel.Controls.Add(checkBoxReplayPauseBeforeEnd, 2, 2);
+            tableLayoutPanel.Controls.Add(label1, 2, 3);
+            tableLayoutPanel.Controls.Add(numericReplayPauseBeforeEnd, 3, 3);
+            tableLayoutPanel.Controls.Add(buttonDelete, 1, 1);
+            tableLayoutPanel.Controls.Add(buttonUndelete, 1, 2);
+            tableLayoutPanel.Controls.Add(panelSaves, 0, 0);
+            tableLayoutPanel.Controls.Add(panelScreenshot, 2, 0);
+            tableLayoutPanel.Location = new System.Drawing.Point(12, 11);
+            tableLayoutPanel.Margin = new System.Windows.Forms.Padding(0);
+            tableLayoutPanel.Name = "tableLayoutPanel";
+            tableLayoutPanel.RowCount = 5;
+            tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            tableLayoutPanel.Size = new System.Drawing.Size(1075, 564);
+            tableLayoutPanel.TabIndex = 0;
             // 
             // buttonReplayFromPreviousSave
             // 
-            this.buttonReplayFromPreviousSave.Location = new System.Drawing.Point(513, 532);
-            this.buttonReplayFromPreviousSave.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonReplayFromPreviousSave.Name = "buttonReplayFromPreviousSave";
-            this.buttonReplayFromPreviousSave.Size = new System.Drawing.Size(200, 28);
-            this.buttonReplayFromPreviousSave.TabIndex = 2;
-            this.buttonReplayFromPreviousSave.Text = "Replay from previous save";
-            this.buttonReplayFromPreviousSave.UseVisualStyleBackColor = true;
-            this.buttonReplayFromPreviousSave.Click += new System.EventHandler(this.ButtonReplayFromPreviousSave_Click);
+            buttonReplayFromPreviousSave.Location = new System.Drawing.Point(513, 528);
+            buttonReplayFromPreviousSave.Margin = new System.Windows.Forms.Padding(4);
+            buttonReplayFromPreviousSave.Name = "buttonReplayFromPreviousSave";
+            buttonReplayFromPreviousSave.Size = new System.Drawing.Size(200, 28);
+            buttonReplayFromPreviousSave.TabIndex = 2;
+            buttonReplayFromPreviousSave.Text = "Replay from previous save";
+            buttonReplayFromPreviousSave.UseVisualStyleBackColor = true;
+            buttonReplayFromPreviousSave.Click += ButtonReplayFromPreviousSave_Click;
             // 
             // buttonReplayFromStart
             // 
-            this.buttonReplayFromStart.Location = new System.Drawing.Point(721, 532);
-            this.buttonReplayFromStart.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonReplayFromStart.Name = "buttonReplayFromStart";
-            this.buttonReplayFromStart.Size = new System.Drawing.Size(200, 28);
-            this.buttonReplayFromStart.TabIndex = 3;
-            this.buttonReplayFromStart.Text = "Replay from start";
-            this.buttonReplayFromStart.UseVisualStyleBackColor = true;
-            this.buttonReplayFromStart.Click += new System.EventHandler(this.ButtonReplayFromStart_Click);
+            buttonReplayFromStart.Location = new System.Drawing.Point(721, 528);
+            buttonReplayFromStart.Margin = new System.Windows.Forms.Padding(4);
+            buttonReplayFromStart.Name = "buttonReplayFromStart";
+            buttonReplayFromStart.Size = new System.Drawing.Size(200, 28);
+            buttonReplayFromStart.TabIndex = 3;
+            buttonReplayFromStart.Text = "Replay from start";
+            buttonReplayFromStart.UseVisualStyleBackColor = true;
+            buttonReplayFromStart.Click += ButtonReplayFromStart_Click;
             // 
             // checkBoxReplayPauseBeforeEnd
             // 
-            this.checkBoxReplayPauseBeforeEnd.AutoSize = true;
-            this.checkBoxReplayPauseBeforeEnd.Checked = true;
-            this.checkBoxReplayPauseBeforeEnd.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxReplayPauseBeforeEnd.Location = new System.Drawing.Point(513, 461);
-            this.checkBoxReplayPauseBeforeEnd.Margin = new System.Windows.Forms.Padding(4);
-            this.checkBoxReplayPauseBeforeEnd.Name = "checkBoxReplayPauseBeforeEnd";
-            this.checkBoxReplayPauseBeforeEnd.Size = new System.Drawing.Size(159, 24);
-            this.checkBoxReplayPauseBeforeEnd.TabIndex = 4;
-            this.checkBoxReplayPauseBeforeEnd.Text = "Pause replay at end";
-            this.checkBoxReplayPauseBeforeEnd.UseVisualStyleBackColor = true;
+            checkBoxReplayPauseBeforeEnd.AutoSize = true;
+            checkBoxReplayPauseBeforeEnd.Checked = true;
+            checkBoxReplayPauseBeforeEnd.CheckState = System.Windows.Forms.CheckState.Checked;
+            checkBoxReplayPauseBeforeEnd.Location = new System.Drawing.Point(513, 461);
+            checkBoxReplayPauseBeforeEnd.Margin = new System.Windows.Forms.Padding(4);
+            checkBoxReplayPauseBeforeEnd.Name = "checkBoxReplayPauseBeforeEnd";
+            checkBoxReplayPauseBeforeEnd.Size = new System.Drawing.Size(128, 19);
+            checkBoxReplayPauseBeforeEnd.TabIndex = 4;
+            checkBoxReplayPauseBeforeEnd.Text = "Pause replay at end";
+            checkBoxReplayPauseBeforeEnd.UseVisualStyleBackColor = true;
             // 
             // label1
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(530, 493);
-            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(183, 35);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "Pause seconds before end:";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            label1.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(566, 493);
+            label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(147, 31);
+            label1.TabIndex = 6;
+            label1.Text = "Pause seconds before end:";
+            label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // numericReplayPauseBeforeEnd
             // 
-            this.numericReplayPauseBeforeEnd.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.numericReplayPauseBeforeEnd.Location = new System.Drawing.Point(721, 497);
-            this.numericReplayPauseBeforeEnd.Margin = new System.Windows.Forms.Padding(4);
-            this.numericReplayPauseBeforeEnd.Maximum = new decimal(new int[] {
-            3600,
-            0,
-            0,
-            0});
-            this.numericReplayPauseBeforeEnd.Minimum = new decimal(new int[] {
-            3600,
-            0,
-            0,
-            -2147483648});
-            this.numericReplayPauseBeforeEnd.Name = "numericReplayPauseBeforeEnd";
-            this.numericReplayPauseBeforeEnd.Size = new System.Drawing.Size(69, 27);
-            this.numericReplayPauseBeforeEnd.TabIndex = 5;
-            this.numericReplayPauseBeforeEnd.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            numericReplayPauseBeforeEnd.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            numericReplayPauseBeforeEnd.Location = new System.Drawing.Point(721, 497);
+            numericReplayPauseBeforeEnd.Margin = new System.Windows.Forms.Padding(4);
+            numericReplayPauseBeforeEnd.Maximum = new decimal(new int[] { 3600, 0, 0, 0 });
+            numericReplayPauseBeforeEnd.Minimum = new decimal(new int[] { 3600, 0, 0, int.MinValue });
+            numericReplayPauseBeforeEnd.Name = "numericReplayPauseBeforeEnd";
+            numericReplayPauseBeforeEnd.Size = new System.Drawing.Size(69, 23);
+            numericReplayPauseBeforeEnd.TabIndex = 5;
+            numericReplayPauseBeforeEnd.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // panelSaves
             // 
-            this.panelSaves.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.tableLayoutPanel.SetColumnSpan(this.panelSaves, 2);
-            this.panelSaves.Controls.Add(this.gridSaves);
-            this.panelSaves.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelSaves.Location = new System.Drawing.Point(4, 4);
-            this.panelSaves.Margin = new System.Windows.Forms.Padding(4);
-            this.panelSaves.Name = "panelSaves";
-            this.panelSaves.Size = new System.Drawing.Size(501, 413);
-            this.panelSaves.TabIndex = 11;
+            panelSaves.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            tableLayoutPanel.SetColumnSpan(panelSaves, 2);
+            panelSaves.Controls.Add(gridSaves);
+            panelSaves.Dock = System.Windows.Forms.DockStyle.Fill;
+            panelSaves.Location = new System.Drawing.Point(4, 4);
+            panelSaves.Margin = new System.Windows.Forms.Padding(4);
+            panelSaves.Name = "panelSaves";
+            panelSaves.Size = new System.Drawing.Size(501, 413);
+            panelSaves.TabIndex = 11;
             // 
             // panelScreenshot
             // 
-            this.panelScreenshot.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.tableLayoutPanel.SetColumnSpan(this.panelScreenshot, 3);
-            this.panelScreenshot.Controls.Add(this.pictureBoxScreenshot);
-            this.panelScreenshot.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelScreenshot.Location = new System.Drawing.Point(513, 4);
-            this.panelScreenshot.Margin = new System.Windows.Forms.Padding(4);
-            this.panelScreenshot.Name = "panelScreenshot";
-            this.panelScreenshot.Size = new System.Drawing.Size(558, 413);
-            this.panelScreenshot.TabIndex = 12;
+            panelScreenshot.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            tableLayoutPanel.SetColumnSpan(panelScreenshot, 3);
+            panelScreenshot.Controls.Add(pictureBoxScreenshot);
+            panelScreenshot.Dock = System.Windows.Forms.DockStyle.Fill;
+            panelScreenshot.Location = new System.Drawing.Point(513, 4);
+            panelScreenshot.Margin = new System.Windows.Forms.Padding(4);
+            panelScreenshot.Name = "panelScreenshot";
+            panelScreenshot.Size = new System.Drawing.Size(558, 413);
+            panelScreenshot.TabIndex = 12;
             // 
             // pictureBoxScreenshot
             // 
-            this.pictureBoxScreenshot.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBoxScreenshot.Location = new System.Drawing.Point(0, 0);
-            this.pictureBoxScreenshot.Margin = new System.Windows.Forms.Padding(0);
-            this.pictureBoxScreenshot.Name = "pictureBoxScreenshot";
-            this.pictureBoxScreenshot.Size = new System.Drawing.Size(556, 411);
-            this.pictureBoxScreenshot.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBoxScreenshot.TabIndex = 5;
-            this.pictureBoxScreenshot.TabStop = false;
-            this.pictureBoxScreenshot.Click += new System.EventHandler(this.PictureBoxScreenshot_Click);
+            pictureBoxScreenshot.Dock = System.Windows.Forms.DockStyle.Fill;
+            pictureBoxScreenshot.Location = new System.Drawing.Point(0, 0);
+            pictureBoxScreenshot.Margin = new System.Windows.Forms.Padding(0);
+            pictureBoxScreenshot.Name = "pictureBoxScreenshot";
+            pictureBoxScreenshot.Size = new System.Drawing.Size(556, 411);
+            pictureBoxScreenshot.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            pictureBoxScreenshot.TabIndex = 5;
+            pictureBoxScreenshot.TabStop = false;
+            pictureBoxScreenshot.Click += PictureBoxScreenshot_Click;
             // 
             // openFileDialog1
             // 
-            this.openFileDialog1.FileName = "openFileDialog1";
+            openFileDialog1.FileName = "openFileDialog1";
+            // 
+            // fileDataGridViewTextBoxColumn
+            // 
+            fileDataGridViewTextBoxColumn.DataPropertyName = "File";
+            fileDataGridViewTextBoxColumn.HeaderText = "File";
+            fileDataGridViewTextBoxColumn.MinimumWidth = 6;
+            fileDataGridViewTextBoxColumn.Name = "fileDataGridViewTextBoxColumn";
+            fileDataGridViewTextBoxColumn.ReadOnly = true;
+            fileDataGridViewTextBoxColumn.Visible = false;
+            fileDataGridViewTextBoxColumn.Width = 59;
+            // 
+            // realTimeDataGridViewTextBoxColumn
+            // 
+            realTimeDataGridViewTextBoxColumn.DataPropertyName = "RealTime";
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
+            dataGridViewCellStyle2.Format = "g";
+            dataGridViewCellStyle2.NullValue = null;
+            realTimeDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
+            realTimeDataGridViewTextBoxColumn.HeaderText = "Saved At";
+            realTimeDataGridViewTextBoxColumn.MinimumWidth = 6;
+            realTimeDataGridViewTextBoxColumn.Name = "realTimeDataGridViewTextBoxColumn";
+            realTimeDataGridViewTextBoxColumn.ReadOnly = true;
+            realTimeDataGridViewTextBoxColumn.Width = 102;
+            // 
+            // pathNameDataGridViewTextBoxColumn
+            // 
+            pathNameDataGridViewTextBoxColumn.DataPropertyName = "PathName";
+            pathNameDataGridViewTextBoxColumn.HeaderText = "Path";
+            pathNameDataGridViewTextBoxColumn.MinimumWidth = 6;
+            pathNameDataGridViewTextBoxColumn.Name = "pathNameDataGridViewTextBoxColumn";
+            pathNameDataGridViewTextBoxColumn.ReadOnly = true;
+            pathNameDataGridViewTextBoxColumn.Width = 66;
+            // 
+            // gameTimeDataGridViewTextBoxColumn
+            // 
+            gameTimeDataGridViewTextBoxColumn.DataPropertyName = "GameTime";
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
+            dataGridViewCellStyle3.Format = "hh\\:mm\\:ss";
+            dataGridViewCellStyle3.NullValue = null;
+            gameTimeDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle3;
+            gameTimeDataGridViewTextBoxColumn.HeaderText = "Time";
+            gameTimeDataGridViewTextBoxColumn.MinimumWidth = 6;
+            gameTimeDataGridViewTextBoxColumn.Name = "gameTimeDataGridViewTextBoxColumn";
+            gameTimeDataGridViewTextBoxColumn.ReadOnly = true;
+            gameTimeDataGridViewTextBoxColumn.Width = 78;
+            // 
+            // distanceDataGridViewTextBoxColumn
+            // 
+            distanceDataGridViewTextBoxColumn.DataPropertyName = "Distance";
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopRight;
+            distanceDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle4;
+            distanceDataGridViewTextBoxColumn.HeaderText = "Distance";
+            distanceDataGridViewTextBoxColumn.MinimumWidth = 6;
+            distanceDataGridViewTextBoxColumn.Name = "distanceDataGridViewTextBoxColumn";
+            distanceDataGridViewTextBoxColumn.ReadOnly = true;
+            distanceDataGridViewTextBoxColumn.Width = 78;
+            // 
+            // currentTileDataGridViewTextBoxColumn
+            // 
+            currentTileDataGridViewTextBoxColumn.DataPropertyName = "CurrentTile";
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopRight;
+            currentTileDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle5;
+            currentTileDataGridViewTextBoxColumn.HeaderText = "Tile";
+            currentTileDataGridViewTextBoxColumn.MinimumWidth = 6;
+            currentTileDataGridViewTextBoxColumn.Name = "currentTileDataGridViewTextBoxColumn";
+            currentTileDataGridViewTextBoxColumn.ReadOnly = true;
+            currentTileDataGridViewTextBoxColumn.Width = 102;
+            // 
+            // validDataGridViewCheckBoxColumn
+            // 
+            validDataGridViewCheckBoxColumn.DataPropertyName = "Valid";
+            validDataGridViewCheckBoxColumn.HeaderText = "Valid";
+            validDataGridViewCheckBoxColumn.MinimumWidth = 6;
+            validDataGridViewCheckBoxColumn.Name = "validDataGridViewCheckBoxColumn";
+            validDataGridViewCheckBoxColumn.ReadOnly = true;
+            validDataGridViewCheckBoxColumn.ThreeState = true;
+            validDataGridViewCheckBoxColumn.Width = 48;
+            // 
+            // DebriefEvaluation
+            // 
+            DebriefEvaluation.DataPropertyName = "DebriefEvaluation";
+            DebriefEvaluation.HeaderText = "Eval";
+            DebriefEvaluation.MinimumWidth = 6;
+            DebriefEvaluation.Name = "DebriefEvaluation";
+            DebriefEvaluation.ReadOnly = true;
+            DebriefEvaluation.Width = 48;
+            // 
+            // Blank
+            // 
+            Blank.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            Blank.HeaderText = "";
+            Blank.MinimumWidth = 6;
+            Blank.Name = "Blank";
+            Blank.ReadOnly = true;
+            Blank.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             // 
             // ResumeForm
             // 
-            this.AcceptButton = this.buttonResume;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1099, 586);
-            this.Controls.Add(this.tableLayoutPanel);
-            this.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(4);
-            this.MinimizeBox = false;
-            this.Name = "ResumeForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Saved Games";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ResumeForm_FormClosing);
-            this.Shown += new System.EventHandler(this.ResumeForm_Shown);
-            ((System.ComponentModel.ISupportInitialize)(this.gridSaves)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.saveBindingSource)).EndInit();
-            this.groupBoxInvalid.ResumeLayout(false);
-            this.tableLayoutPanel.ResumeLayout(false);
-            this.tableLayoutPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericReplayPauseBeforeEnd)).EndInit();
-            this.panelSaves.ResumeLayout(false);
-            this.panelScreenshot.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxScreenshot)).EndInit();
-            this.ResumeLayout(false);
-
+            AcceptButton = buttonResume;
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(1099, 586);
+            Controls.Add(tableLayoutPanel);
+            Font = new System.Drawing.Font("Segoe UI", 9F);
+            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
+            Margin = new System.Windows.Forms.Padding(4);
+            MinimizeBox = false;
+            Name = "ResumeForm";
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            Text = "Saved Games";
+            FormClosing += ResumeForm_FormClosing;
+            Shown += ResumeForm_Shown;
+            ((System.ComponentModel.ISupportInitialize)gridSaves).EndInit();
+            ((System.ComponentModel.ISupportInitialize)saveBindingSource).EndInit();
+            groupBoxInvalid.ResumeLayout(false);
+            tableLayoutPanel.ResumeLayout(false);
+            tableLayoutPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numericReplayPauseBeforeEnd).EndInit();
+            panelSaves.ResumeLayout(false);
+            panelScreenshot.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pictureBoxScreenshot).EndInit();
+            ResumeLayout(false);
         }
 
         #endregion
@@ -488,6 +482,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn distanceDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn currentTileDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewCheckBoxColumn validDataGridViewCheckBoxColumn;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn DebriefEvaluation;
         private System.Windows.Forms.DataGridViewTextBoxColumn Blank;
     }
 }

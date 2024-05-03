@@ -22,7 +22,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -35,15 +38,18 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Models.State;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
 
+using SharpDX.DXGI;
+
 namespace Orts.ActivityRunner.Viewer3D
 {
-    public abstract class Camera
+    public abstract class Camera : ISaveStateApi<CameraSaveState>
     {
         #region Camera event Handling setup
         private sealed class CameraEventHandler
@@ -472,6 +478,22 @@ namespace Orts.ActivityRunner.Viewer3D
             OpenAL.Listenerfv(OpenAL.AL_POSITION, cameraPosition);
             OpenAL.Listenerfv(OpenAL.AL_VELOCITY, cameraVelocity);
             OpenAL.Listenerfv(OpenAL.AL_ORIENTATION, cameraOrientation);
+        }
+
+        public ValueTask<CameraSaveState> Snapshot()
+        {
+            return ValueTask.FromResult(new CameraSaveState()
+            {
+                Location = cameraLocation,
+                FieldOfView = FieldOfView,
+            });
+        }
+
+        public ValueTask Restore(CameraSaveState saveState)
+        {
+            FieldOfView = saveState.FieldOfView;
+            cameraLocation = saveState.Location;
+            return ValueTask.CompletedTask;
         }
     }
 

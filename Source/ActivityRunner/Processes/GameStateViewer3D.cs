@@ -18,17 +18,32 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Pipelines;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common;
 
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Debugging;
+using Orts.Common;
+using Orts.Common.Info;
+using Orts.Common.Position;
+using Orts.Models.State;
 using Orts.Simulation;
+using Orts.Simulation.Activities;
+using Orts.Simulation.Commanding;
+using Orts.Simulation.Multiplayer;
+using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Processes
 {
     internal sealed class GameStateViewer3D : GameState
     {
+        private static GameStateViewer3D instance;
         internal readonly Viewer Viewer;
         private bool firstFrame = true;
         private int profileFrames;
@@ -43,6 +58,7 @@ namespace Orts.ActivityRunner.Processes
         {
             Viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
             Viewer.Pause(viewer.Settings.StartGamePaused);
+            instance = this;
         }
 
         internal override void BeginRender(RenderFrame frame)
@@ -133,5 +149,90 @@ namespace Orts.ActivityRunner.Processes
             base.Dispose(disposing);
         }
 
+        internal override async ValueTask Save()
+        {
+            Simulator simulator = Simulator.Instance;
+            if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer())
+                return; //no save for multiplayer sessions yet
+
+            if (ContainerManager.ActiveOperationsCounter > 0)
+            // don't save if performing a container load/unload
+            {
+                Simulator.Instance.Confirmer.Message(ConfirmLevel.Warning, Viewer.Catalog.GetString("Game save is not allowed during container load/unload"));
+                return;
+            }
+
+            // Prefix with the activity filename so that, when resuming from the Menu.exe, we can quickly find those Saves 
+            // that are likely to match the previously chosen route and activity.
+            // Append the current date and time, so that each file is unique.
+            // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
+            string fileStem = simulator.SaveFileName;
+
+            instance.Viewer.PrepareSave(fileStem);
+            GameSaveState saveState = await instance.Snapshot();
+
+            using (BinaryWriter outf = new BinaryWriter(new MemoryStream()))
+            {
+                outf.Write((int)activityType);
+
+                simulator.Save(outf);
+                instance.Viewer.Save(outf, fileStem);
+                // Save multiplayer parameters
+                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
+                    MultiPlayerManager.OnlineTrains.Save(outf);
+
+                // Write out position within file so we can check when restoring.
+                outf.Write(outf.BaseStream.Position);
+
+                outf.Flush();
+                outf.BaseStream.Position = 0;
+                Pipe conversionPipe = new Pipe();
+                await outf.BaseStream.CopyToAsync(conversionPipe.Writer);
+                await conversionPipe.Writer.FlushAsync().AsTask();
+                ReadResult result = await conversionPipe.Reader.ReadAsync();
+                saveState.LegacyState = result.Buffer;
+            }
+
+            await GameSaveState.ToFile(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + FileNameExtensions.SaveFile), saveState);
+
+            // The Save command is the only command that doesn't take any action. It just serves as a marker.
+            _ = new SaveCommand(simulator.Log, fileStem);
+            simulator.Log.SaveLog(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".replay"));
+
+            // Copy the logfile to the save folder
+            string logName = Path.Combine(RuntimeInfo.UserDataFolder, fileStem + FileNameExtensions.TextReport);
+
+            string logFileName = RuntimeInfo.LogFile(Game.Settings.LoggingPath, Game.Settings.LoggingFilename);
+
+            if (File.Exists(logFileName))
+            {
+                Trace.Flush();
+                foreach (TraceListener listener in Trace.Listeners)
+                    listener.Flush();
+                File.Delete(logName);
+                File.Copy(logFileName, logName);
+            }
+        }
+
+        public override async ValueTask<GameSaveState> Snapshot()
+        {
+            Simulator simulator = Simulator.Instance;
+
+            return new GameSaveState()
+            {
+                GameVersion = VersionInfo.Version,
+                RouteName = simulator.RouteName,
+                PathName = simulator.PathName,
+                GameTime = simulator.GameTime,
+                RealSaveTime = DateTime.UtcNow,
+                MultiplayerGame = MultiPlayerManager.IsMultiPlayer(),
+                InitalTile = new Tile((int)simulator.InitialTileX, (int)simulator.InitialTileZ),
+                PlayerPosition = simulator.Trains[0].FrontTDBTraveller.WorldLocation,
+                ArgumentsSetOnly = data,
+                ActivityType = activityType,
+
+                ActivityEvaluationState = await ActivityEvaluation.Instance.Snapshot(),
+            };
+        }
     }
 }

@@ -18,19 +18,28 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D;
+using Orts.Formats.Msts;
+using Orts.Models.State;
 
 namespace Orts.ActivityRunner.Processes
 {
     /// <summary>
     /// Represents a single state for the game to be in (e.g. loading, running, in menu).
     /// </summary>
-    internal abstract class GameState : IDisposable
+    internal abstract class GameState : IDisposable, ISaveStateApi<GameSaveState>
     {
         private bool disposedValue;
+
+        private protected static string logFileName;
+        private protected static ActivityType activityType;
+        private protected static string[] data;
 
         internal GameHost Game { get; set; }
 
@@ -69,6 +78,11 @@ namespace Orts.ActivityRunner.Processes
         {
         }
 
+        internal virtual ValueTask Save()
+        {
+            return ValueTask.CompletedTask;
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -88,6 +102,16 @@ namespace Orts.ActivityRunner.Processes
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        public virtual ValueTask<GameSaveState> Snapshot()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual ValueTask Restore(GameSaveState saveState)
+        {
+            throw new NotImplementedException();
         }
     }
 }

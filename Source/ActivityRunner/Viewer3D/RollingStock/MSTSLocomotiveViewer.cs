@@ -24,8 +24,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -45,6 +47,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Graphics;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.Xna;
+using Orts.Models.State;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
@@ -1412,7 +1415,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         }
     }
 
-    public class CabRenderer : RenderPrimitive
+    public class CabRenderer : RenderPrimitive, ISaveStateApi<CabRendererSaveState>
     {
         private CabSpriteBatchMaterial _SpriteShader2DCabView;
         private Matrix _Scale = Matrix.Identity;
@@ -1854,22 +1857,27 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 cvcr.Mark();
         }
 
-        public void Save(BinaryWriter outf)
-        {
-            foreach (var activeScreen in ActiveScreen)
-                if (activeScreen != null)
-                    outf.Write(activeScreen);
-                else
-                    outf.Write("---");
-
-        }
-
         public void Restore(BinaryReader inf)
         {
             for (int i = 0; i < ActiveScreen.Length; i++)
                 ActiveScreen[i] = inf.ReadString();
         }
 
+        public ValueTask<CabRendererSaveState> Snapshot()
+        {
+            CabRendererSaveState saveState = new CabRendererSaveState();
+            foreach (string activeScreen in ActiveScreen)
+            {
+                saveState.ActiveScreens.Add(activeScreen == null ? "---" : activeScreen);
+            }
+            return ValueTask.FromResult(saveState);
+        }
+
+        public ValueTask Restore(CabRendererSaveState saveState)
+        {
+            ActiveScreen = saveState.ActiveScreens.ToArray();
+            return ValueTask.CompletedTask;
+        }
     }
 
     /// <summary>

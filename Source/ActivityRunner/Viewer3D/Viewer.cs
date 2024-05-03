@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using GetText;
 
@@ -52,6 +53,7 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
+using Orts.Models.State;
 using Orts.Settings;
 using Orts.Settings.Util;
 using Orts.Simulation;
@@ -83,7 +85,7 @@ namespace Orts.ActivityRunner.Viewer3D
         DispatcherDetails,
     }
 
-    public class Viewer : IDisposable
+    public class Viewer : IDisposable, ISaveStateApi<ViewerSaveState>
     {
         private bool pauseWindow;
 
@@ -390,20 +392,6 @@ namespace Orts.ActivityRunner.Viewer3D
             outf.Write(NightTexturesNotLoaded);
             outf.Write(DayTexturesNotLoaded);
             World.WeatherControl.SaveWeatherParameters(outf);
-            if ((PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer != null)
-            {
-                outf.Write(0);
-                (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer.Save(outf);
-            }
-            else
-                outf.Write(-1);
-            if ((PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D != null)
-            {
-                outf.Write(0);
-                (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D.Save(outf);
-            }
-            else
-                outf.Write(-1);
         }
 
         internal void Restore(BinaryReader inf)
@@ -491,7 +479,7 @@ namespace Orts.ActivityRunner.Viewer3D
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             windowManager.SetLazyWindows(ViewerWindowType.QuitWindow, new Lazy<FormBase>(() =>
             {
-                return new QuitWindow(windowManager, Settings.PopupLocations[ViewerWindowType.QuitWindow].ToPoint(), Settings);
+                return new QuitWindow(windowManager, Settings.PopupLocations[ViewerWindowType.QuitWindow].ToPoint(), Settings, this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
@@ -665,7 +653,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     windowManager[ViewerWindowType.DebugOverlay].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.GameFullscreen, KeyEventType.KeyPressed, RenderProcess.ToggleFullScreen);
-            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, GameStateRunActivity.Save);
+            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, async delegate (UserCommandArgs userCommandArgs) { await Game.State.Save(); userCommandArgs.Handled = true; });
             UserCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
@@ -1786,6 +1774,41 @@ namespace Orts.ActivityRunner.Viewer3D
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        internal void PrepareSave(string fileStem)
+        {
+            // Set these so RenderFrame can use them when its thread gets control.
+            SaveActivityFileStem = fileStem;
+            SaveActivityThumbnail = true;
+
+        }
+
+        public async ValueTask<ViewerSaveState> Snapshot()
+        {
+            ViewerSaveState viewerState = new ViewerSaveState()
+            {
+                PlayerTrainIndex = Simulator.Trains.IndexOf(PlayerTrain),
+                PlayerLocomotiveIndex = PlayerTrain.Cars.IndexOf(PlayerLocomotive),
+                SelectedTrainIndex = Simulator.Trains.IndexOf(SelectedTrain),
+                SelectedCameraIndex = WellKnownCameras.IndexOf(Camera),
+                CabOffset = new System.Drawing.Point(CabXOffsetPixels, CabYOffsetPixels),
+                NightTexturesLoaded = !NightTexturesNotLoaded,
+                DayTexturesLoaded = !DayTexturesNotLoaded,
+                CabState2D = (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer is CabRenderer cabRenderer ? await cabRenderer.Snapshot() : null,
+                CabState3D = (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D is CabRenderer cabRenderer3d ? await cabRenderer3d.Snapshot() : null,
+                WeatherState = await World.WeatherControl.Snapshot(),
+            };
+            foreach(Camera camera in WellKnownCameras)
+            {
+                viewerState.CameraStates.Add(await camera.Snapshot());
+            }
+            return viewerState;
+        }
+
+        public ValueTask Restore(ViewerSaveState saveState)
+        {
+            throw new NotImplementedException();
         }
     }
 }

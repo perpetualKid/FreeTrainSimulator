@@ -16,11 +16,14 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
@@ -35,28 +38,18 @@ using Orts.Common.Logging;
 using Orts.Common.Native;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
+using Orts.Models.State;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;
-using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Processes
 {
     internal sealed class GameStateRunActivity : GameState
     {
-
-        private enum ActivityType
-        {
-            None,
-            Activity,
-            Explorer,
-            ExploreActivity,
-            TimeTable,
-        }
-
         private enum ActionType
         {
             None,
@@ -68,12 +61,10 @@ namespace Orts.ActivityRunner.Processes
         }
 
         private static ActionType actionType;
-        private static ActivityType activityType;
 
         private Simulator simulator;
 
         private static Viewer Viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
-        private static string logFileName;
         private LoadingPrimitive loading;
         private LoadingScreenPrimitive loadingScreen;
         private LoadingBarPrimitive loadingBar;
@@ -83,7 +74,6 @@ namespace Orts.ActivityRunner.Processes
         private static readonly string separatorLine = new string('-', 80);
         private static string[] arguments;
         private static string[] options;
-        private static string[] data;
 
         public GameStateRunActivity(string[] args)
         {
@@ -108,6 +98,11 @@ namespace Orts.ActivityRunner.Processes
             loadingBar?.Dispose();
             timetableLoadingBar?.Dispose();
             base.Dispose(disposing);
+        }
+
+        public override async ValueTask Restore(GameSaveState saveState)
+        {
+            await ActivityEvaluation.Instance.Restore(saveState.ActivityEvaluationState);
         }
 
         internal override void Update(RenderFrame frame, GameTime gameTime)
@@ -302,91 +297,6 @@ namespace Orts.ActivityRunner.Processes
         }
 
         /// <summary>
-        /// Save the current game state for later resume.
-        /// </summary>
-        public static void Save()
-        {
-            Simulator simulator = Simulator.Instance;
-            if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer())
-                return; //no save for multiplayer sessions yet
-
-            if (ContainerManager.ActiveOperationsCounter > 0)
-            // don't save if performing a container load/unload
-            {
-                Simulator.Instance.Confirmer.Message(ConfirmLevel.Warning, Viewer.Catalog.GetString("Game save is not allowed during container load/unload"));
-                return;
-            }
-
-            // Prefix with the activity filename so that, when resuming from the Menu.exe, we can quickly find those Saves 
-            // that are likely to match the previously chosen route and activity.
-            // Append the current date and time, so that each file is unique.
-            // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
-
-            string fileStem = simulator.SaveFileName;
-
-            using (BinaryWriter outf = simulator.Settings.LogSaveData ?
-                new LoggedBinaryWriter(new FileStream(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".save"), FileMode.Create, FileAccess.Write)) :
-                new BinaryWriter(new FileStream(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".save"), FileMode.Create, FileAccess.Write)))
-            {
-                // Save some version identifiers so we can validate on load.
-                outf.Write(VersionInfo.Version);
-
-                // Save heading data used in Menu.exe
-                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
-                    outf.Write("$Multipl$");
-                outf.Write(simulator.RouteName);
-                outf.Write(simulator.PathName);
-
-                outf.Write((int)simulator.GameTime);
-                outf.Write(DateTime.Now.ToBinary());
-                outf.Write(simulator.Trains[0].FrontTDBTraveller.TileX + simulator.Trains[0].FrontTDBTraveller.X / 2048);
-                outf.Write(simulator.Trains[0].FrontTDBTraveller.TileZ + simulator.Trains[0].FrontTDBTraveller.Z / 2048);
-                outf.Write(simulator.InitialTileX);
-                outf.Write(simulator.InitialTileZ);
-
-                // Now save the data used by ActivityRunner.exe
-                outf.Write(data.Length);
-                foreach (string argument in data)
-                    outf.Write(argument);
-                outf.Write((int)activityType);
-
-                simulator.Save(outf);
-                Viewer.Save(outf, fileStem);
-                // Save multiplayer parameters
-                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
-                    MultiPlayerManager.OnlineTrains.Save(outf);
-
-                // Write out position within file so we can check when restoring.
-                outf.Write(outf.BaseStream.Position);
-            }
-
-            // The Save command is the only command that doesn't take any action. It just serves as a marker.
-            _ = new SaveCommand(simulator.Log, fileStem);
-            simulator.Log.SaveLog(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".replay"));
-
-            // Copy the logfile to the save folder
-            string logName = Path.Combine(RuntimeInfo.UserDataFolder, fileStem + ".txt");
-
-            if (File.Exists(logFileName))
-            {
-                Trace.Flush();
-                foreach (TraceListener listener in Trace.Listeners)
-                    listener.Flush();
-                File.Delete(logName);
-                File.Copy(logFileName, logName);
-            }
-
-            //Debrief Eval
-            foreach (string file in Directory.EnumerateFiles(RuntimeInfo.UserDataFolder, simulator.ActivityFileName + "*.eval"))
-                File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
-
-            using (BinaryWriter outf = new BinaryWriter(new FileStream(RuntimeInfo.UserDataFolder + $"\\{fileStem}.eval", FileMode.Create, FileAccess.Write)))
-            {
-                ActivityEvaluation.Save(outf);
-            }
-        }
-
-        /// <summary>
         /// Resume a saved game.
         /// </summary>
         private void Resume(UserSettings settings)
@@ -399,22 +309,27 @@ namespace Orts.ActivityRunner.Processes
             // First use the .save file to check the validity and extract the route and activity.
             string saveFile = GetSaveFile(data);
             string versionOrBuild = string.Empty;
-            using (BinaryReader inf = settings.LogSaveData ? new LoggedBinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)) : new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
+
+            GameSaveState state = GameSaveState.FromFile<GameSaveState>(saveFile).Result;
+
+            Pipe pipe = new Pipe();
+            pipe.Writer.Write(state.LegacyState.FirstSpan);
+            pipe.Writer.FlushAsync().AsTask().Wait();
+
+            //using (BinaryReader inf = settings.LogSaveData ? new LoggedBinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)) : new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
+            using (BinaryReader inf = new BinaryReader(pipe.Reader.AsStream()))
             {
                 try // Because Restore() methods may try to read beyond the end of an out of date file.
                 {
-                    versionOrBuild = GetValidSaveVersionOrBuild(saveFile, inf);
-
-                    (string PathName, float InitialTileX, float InitialTileZ, string[] Args, ActivityType ActivityType) = GetSavedValues(inf);
-                    activityType = ActivityType;
-                    data = Args;
+                    activityType = state.ActivityType;
+                    data = state.Arguments.ToArray();
                     InitSimulator(settings);
-                    simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
+                    simulator.Restore(inf, state.PathName, state.InitalTile.X, state.InitalTile.Z, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(simulator, Game);
                     Viewer.Initialize();
                     if (MultiPlayerManager.IsMultiPlayer())
                     {
-                        if (ActivityType == ActivityType.Activity)
+                        if (activityType == ActivityType.Activity)
                             simulator.SetPathAndConsist();
                         MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
                     }
@@ -428,21 +343,6 @@ namespace Orts.ActivityRunner.Processes
                     if (restorePosition != savePosition)
                         throw new InvalidDataException("Saved game stream position is incorrect.");
 
-                    //Restore Debrief eval data                    
-                    string evaluationFile = Path.ChangeExtension(saveFile, ".eval");
-                    if (File.Exists(evaluationFile))
-                    {
-                        using (BinaryReader evalInput = new BinaryReader(new FileStream(evaluationFile, FileMode.Open, FileAccess.Read)))
-                        {
-                            try
-                            {
-                                ActivityEvaluation.Restore(evalInput);
-                            }
-                            catch (IOException)
-                            {
-                            }
-                        }
-                    }
                 }
                 catch (Exception error)
                 {
@@ -647,7 +547,7 @@ namespace Orts.ActivityRunner.Processes
         {
             if (Game.Settings.Logging)
             {
-                logFileName = RuntimeInfo.LogFile(Game.Settings.LoggingPath, Game.Settings.LoggingFilename);
+                string logFileName = RuntimeInfo.LogFile(Game.Settings.LoggingPath, Game.Settings.LoggingFilename);
                 LoggingUtil.InitLogging(logFileName, Game.Settings.LogErrorsOnly, appendLog);
                 Game.Settings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
@@ -955,18 +855,17 @@ namespace Orts.ActivityRunner.Processes
         {
             if (args.Length == 0)
             {
+                // return the latest save file
                 DirectoryInfo directory = new DirectoryInfo(RuntimeInfo.UserDataFolder);
-                FileInfo file = directory.EnumerateFiles("*.save")
-                    .OrderByDescending(f => f.LastWriteTime)
-                    .FirstOrDefault();
+                FileInfo file = directory.EnumerateFiles("*" + FileNameExtensions.SaveFile).OrderByDescending(f => f.LastWriteTime).FirstOrDefault();
                 return file == null
-                    ? throw new FileNotFoundException($"Activity Save file '*.save' not found in folder {directory}")
+                    ? throw new FileNotFoundException($"No activity save file '*.save' not found in folder {directory}")
                     : file.FullName;
             }
             string saveFile = args[0];
-            if (!saveFile.EndsWith(".save", StringComparison.OrdinalIgnoreCase))
+            if (!saveFile.EndsWith(FileNameExtensions.SaveFile, StringComparison.OrdinalIgnoreCase))
             {
-                saveFile += ".save";
+                saveFile += FileNameExtensions.SaveFile;
             }
             return Path.Combine(RuntimeInfo.UserDataFolder, saveFile);
         }

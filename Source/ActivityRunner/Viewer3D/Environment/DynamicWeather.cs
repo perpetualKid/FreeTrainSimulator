@@ -19,6 +19,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
 
@@ -26,6 +27,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
+using Orts.Models.State;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment
 {
@@ -354,6 +356,35 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 }
 
                 weatherChange = true;
+            }
+
+
+            public ValueTask<DynamicWeatherSaveState> Snapshot()
+            {
+                DynamicWeatherSaveState dynamicWeather = new DynamicWeatherSaveState();
+                dynamicWeather.Overcast.Timer = overcast.Timer;
+                dynamicWeather.Overcast.ChangeRate = overcast.ChangeRate;
+                dynamicWeather.Overcast.Value = overcast.Value;
+                dynamicWeather.Fog.Timer = fog.Timer;
+                dynamicWeather.Fog.ChangeRate = fog.ChangeRate;
+                dynamicWeather.Fog.Value = fog.Value;
+                dynamicWeather.PrecipitationIntensity.Timer = precipitationIntensity.Timer;
+                dynamicWeather.PrecipitationIntensity.ChangeRate = precipitationIntensity.ChangeRate;
+                dynamicWeather.PrecipitationIntensity.Value = precipitationIntensity.Value;
+                dynamicWeather.PrecipitationLiquidity.Timer = precipitationLiquidity.Timer;
+                dynamicWeather.PrecipitationLiquidity.ChangeRate = precipitationLiquidity.ChangeRate;
+                dynamicWeather.PrecipitationLiquidity.Value = precipitationLiquidity.Value;
+
+                dynamicWeather.FogDistanceIncreasing = fogDistanceIncreasing;
+                dynamicWeather.FogTransitionTime = fog.TransitionTime;
+                dynamicWeather.StableWeatherTimer = StableWeatherTimer;
+                dynamicWeather.PrecipitationIntensityDelayTimer = PrecipitationIntensityDelayTimer;
+                return ValueTask.FromResult(dynamicWeather);
+            }
+
+            public ValueTask Restore(DynamicWeatherSaveState saveState)
+            {
+                throw new NotImplementedException();
             }
 
             public bool NeedUpdate()

@@ -22,8 +22,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
@@ -35,6 +37,7 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Models.State;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;
@@ -42,7 +45,7 @@ using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment
 {
-    public partial class WeatherControl
+    public partial class WeatherControl : ISaveStateApi<WeatherSaveState>
     {
         private protected readonly Viewer viewer;
         private protected readonly Weather weather;
@@ -535,8 +538,28 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 UpdateWeatherParameters();
             }
         }
+        public async virtual ValueTask<WeatherSaveState> Snapshot()
+        {
+            return new WeatherSaveState()
+            {
+                WeatherType = weather.WeatherType,
+                FogVisibilityDistance = weather.FogVisibilityDistance,
+                OvercastFactor = weather.OvercastFactor,
+                PrecipitationIntensity = weather.PrecipitationIntensity,
+                PrecipitationLiquidity = weather.PrecipitationLiquidity,
+                RandomizeWeather = RandomizedWeather,
+                WindDirection = weather.WindDirection,
+                WindSpeed = weather.WindDirection,
+                DynamicWeather = weatherChangeOn ? await dynamicWeather.Snapshot() : null,
+            };
+        }
 
-        public bool IsWeatherSound(SoundSource soundSource)
+        public virtual ValueTask Restore(WeatherSaveState saveState)
+        {
+            throw new NotImplementedException();
+        }
+        
+                public bool IsWeatherSound(SoundSource soundSource)
         {
             return weatherSounds.Contains(soundSource);
         }

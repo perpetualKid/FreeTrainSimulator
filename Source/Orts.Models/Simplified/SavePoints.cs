@@ -5,130 +5,123 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 
-using Orts.Common.Info;
+using FreeTrainSimulator.Common;
+
+using MemoryPack;
+
+using Orts.Models.State;
 
 namespace Orts.Models.Simplified
 {
     public class SavePoint : ContentBase
     {
-        public string Name { get; }
-        public string File { get; }
-        public string PathName { get; }
-        public string RouteName { get; }
-        public TimeSpan GameTime { get; }
-        public DateTime RealTime { get; }
-        public string CurrentTile { get; }
-        public string Distance { get; }
-        public bool? Valid { get; } // 3 possibilities: invalid, unknown validity, valid
-        public string ProgramVersion { get; }
-        public bool IsMultiplayer { get; }
-        public bool DebriefEvaluation { get; } //Debrief Eval
+        public string Name => System.IO.Path.GetFileNameWithoutExtension(File);
+        public string File { get; private set; }
+        public string PathName { get; private set; }
+        public string RouteName { get; private set; }
+        public TimeSpan GameTime { get; private set; }
+        public DateTime RealTime { get; private set; }
+        public string CurrentTile { get; private set; }
+        public string Distance { get; private set; }
+        public bool? Valid { get; private set; } // 3 possibilities: invalid, unknown validity, valid
+        public string ProgramVersion { get; private set; }
+        public bool IsMultiplayer { get; private set; }
+        public bool DebriefEvaluation { get; private set; } //Debrief Eval
 
-        public static async Task<IEnumerable<SavePoint>> GetSavePoints(string directory, string prefix,
-            string routeName, StringBuilder warnings, bool multiPlayer, IEnumerable<Route> mainRoutes, CancellationToken token)
+        public GameSaveState SaveState { get; private set; }
+
+        public static async Task<IEnumerable<SavePoint>> GetSavePoints(string directory, string prefix, string routeName,
+            StringBuilder warnings, bool multiPlayer, IEnumerable<Route> mainRoutes, CancellationToken token)
         {
+            List<SavePoint> result = new List<SavePoint>();
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
-                List<SavePoint> result = new List<SavePoint>();
+                await Parallel.ForEachAsync(Directory.EnumerateFiles(directory, System.IO.Path.ChangeExtension($"{prefix}*", FileNameExtensions.SaveFile)), token, async (fileName, innerToken) =>
+                {
+                    SavePoint gameSaveState = await FromGameSaveState(fileName);
 
-                TransformBlock<string, SavePoint> inputBlock = new TransformBlock<string, SavePoint>
-                    (savePointFile =>
+                    try
                     {
-                        // SavePacks are all in the same folder and activities may have the same name 
-                        // (e.g. Short Passenger Run shrtpass.act) but belong to a different route,
-                        // so pick only the activities for the current route.
-                        SavePoint savePoint = new SavePoint(savePointFile);
-                        if (string.IsNullOrEmpty(routeName) || savePoint?.RouteName == routeName)
+                        await addItem.WaitAsync(innerToken).ConfigureAwait(false);
+                        if (gameSaveState != null)
                         {
-                            if (!savePoint.IsMultiplayer ^ multiPlayer)
-                                return savePoint;
+                            // SavePacks are all in the same folder and activities may have the same name 
+                            // (e.g. Short Passenger Run shrtpass.act) but belong to a different route,
+                            // so pick only the activities for the current route.
+                            if (string.IsNullOrEmpty(routeName) || gameSaveState.RouteName == routeName)
+                            {
+                                if (!gameSaveState.IsMultiplayer ^ multiPlayer)
+                                {
+                                    result.Add(gameSaveState);
+                                }
+                            }
+                            // In case you receive a SavePack where the activity is recognised but the route has been renamed.
+                            // Checks the route is not in your list of routes.
+                            // If so, add it with a warning.
+                            else if (mainRoutes != null && !mainRoutes.Any(route => route.Name == gameSaveState.RouteName))
+                            {
+                                if (!gameSaveState.IsMultiplayer ^ multiPlayer)
+                                {
+                                    result.Add(gameSaveState);
+                                }
+                                // Save a warning to show later.
+                                warnings?.Append(catalog.GetString($"Warning: Save {gameSaveState.RealTime} found from a route with an unexpected name:\n{gameSaveState.RouteName}.\n\n"));
+                            }
+                            else
+                            {
+                                result.Add(gameSaveState);
+                            }
                         }
-                        // In case you receive a SavePack where the activity is recognised but the route has been renamed.
-                        // Checks the route is not in your list of routes.
-                        // If so, add it with a warning.
-                        else if (savePoint != null && !mainRoutes.Any(el => el.Name == savePoint.RouteName))
+                        else
                         {
-                            if (!savePoint.IsMultiplayer ^ multiPlayer)
-                                return savePoint;
                             // Save a warning to show later.
-                            warnings.Append(catalog.GetString("Warning: Save {0} found from a route with an unexpected name:\n{1}.\n\n", savePoint.RealTime, savePoint.RouteName));
+                            warnings?.Append(catalog.GetString($"Error: File '{System.IO.Path.GetFileName(fileName)}' is invalid or corrupted.\n"));
+                            result.Add(new SavePoint()
+                            {
+                                File = fileName,
+                                Distance = double.NaN.ToString(),
+                                RouteName = "<Invalid Savepoint>",
+                            });
                         }
-                        return null;
-                    },
-                    new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
-
-                ActionBlock<SavePoint> actionBlock = new ActionBlock<SavePoint>
-                        (async savePoint =>
-                        {
-                            if (null == savePoint)
-                                return;
-                            try
-                            {
-                                await addItem.WaitAsync(token).ConfigureAwait(false);
-                                result.Add(savePoint);
-                            }
-                            finally
-                            {
-                                addItem.Release();
-                            }
-                        });
-
-                inputBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
-
-                foreach (string saveFile in Directory.EnumerateFiles(directory, $"{prefix}*.save"))
-                    await inputBlock.SendAsync(saveFile).ConfigureAwait(false);
-
-                inputBlock.Complete();
-                await actionBlock.Completion.ConfigureAwait(false);
-                return result;
+                    }
+                    finally
+                    {
+                        addItem.Release();
+                    }
+                });
             }
+            return result;
         }
 
-        private SavePoint(string fileName)
+        private static async Task<SavePoint> FromGameSaveState(string fileName)
         {
-            File = fileName;
-            Name = System.IO.Path.GetFileNameWithoutExtension(fileName);
             try
             {
-                using (BinaryReader inf = new BinaryReader(new FileStream(File, FileMode.Open, FileAccess.Read)))
+                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(fileName);
+                SavePoint result = new SavePoint()
                 {
-                    ProgramVersion = inf.ReadString(); // e.g. 1.3.2-alpha.4
-                    Valid = VersionInfo.GetValidity(ProgramVersion);
-                    // Read in multiplayer flag/ route/activity/path/player data.
-                    // Done so even if not elegant to be compatible with existing save files
-                    RouteName = inf.ReadString();
-                    if (RouteName == "$Multipl$")
-                    {
-                        IsMultiplayer = true;
-                        RouteName = inf.ReadString(); // Route name
-                    }
-
-                    PathName = inf.ReadString(); // Path name
-                    GameTime = new DateTime().AddSeconds(inf.ReadInt32()).TimeOfDay; // Game time
-                    RealTime = DateTime.FromBinary(inf.ReadInt64()); // Real time
-                    float currentTileX = inf.ReadSingle(); // Player TileX
-                    float currentTileZ = inf.ReadSingle(); // Player TileZ
-                    float initialTileX = inf.ReadSingle(); // Initial TileX
-                    float initialTileZ = inf.ReadSingle(); // Initial TileZ
-                    if (currentTileX < short.MinValue || currentTileX > short.MaxValue || currentTileZ < short.MinValue || currentTileZ > short.MaxValue)
-                        throw new InvalidDataException();
-                    if (initialTileX < short.MinValue || initialTileX > short.MaxValue || initialTileZ < short.MinValue || initialTileZ > short.MaxValue)
-                        throw new InvalidDataException();
-
-                    CurrentTile = $"{currentTileX:F1}, {currentTileZ:F1}";
-                    // DistanceFromInitial using Pythagoras theorem.
-                    Distance = $"{Math.Sqrt(Math.Pow(currentTileX - initialTileX, 2) + Math.Pow(currentTileZ - initialTileZ, 2)) * Common.Position.WorldPosition.TileSize:F1}";
-
+                    File = fileName,
+                    ProgramVersion = saveState.GameVersion,
+                    Valid = saveState.Valid,
+                    RouteName = saveState.RouteName,
+                    PathName = saveState.PathName,
+                    GameTime = new DateTime().AddSeconds(saveState.GameTime).TimeOfDay,
+                    RealTime = saveState.RealSaveTime.ToLocalTime(),
+                    CurrentTile = $"{saveState.PlayerPosition.TileX:F0}, {saveState.PlayerPosition.TileZ:F0}",
+                    Distance = $"{Math.Sqrt(Math.Pow(saveState.PlayerPosition.TileX - saveState.InitalTile.X, 2) + Math.Pow(saveState.PlayerPosition.TileZ - saveState.InitalTile.Z, 2)) * Common.Position.WorldPosition.TileSize:F1}",
+                    IsMultiplayer = saveState.MultiplayerGame,
                     //Debrief Eval
-                    DebriefEvaluation = System.IO.File.Exists(System.IO.Path.ChangeExtension(fileName, ".eval"));
-                }
+                    DebriefEvaluation = saveState.ActivityEvaluationState != null,
+                    SaveState = saveState,
+                };
+                return result;
             }
-            catch (Exception ex) when (ex is ArgumentException || ex is InvalidDataException || ex is EndOfStreamException)
+            catch (MemoryPackSerializationException)
             {
-                Valid = false;
+                //not a valid savepoint
             }
+            return null;
         }
     }
 }

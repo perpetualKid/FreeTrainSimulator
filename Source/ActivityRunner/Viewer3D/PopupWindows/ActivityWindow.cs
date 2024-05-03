@@ -85,9 +85,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             _ = new CloseAndResumeActivityCommand(viewer.Log, eventHeader.Text, (DateTime.UtcNow - openTime).TotalMilliseconds / 1000);
         }
 
-        private void GameSaveLabel_OnClick(object sender, MouseClickEventArgs e)
+        private async void GameSaveLabel_OnClick(object sender, MouseClickEventArgs e)
         {
-            GameStateRunActivity.Save();
+            await viewer.Game.State.Save();
         }
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)

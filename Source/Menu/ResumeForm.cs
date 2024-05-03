@@ -183,14 +183,12 @@ namespace Orts.Menu
                 prefix = $"ea${Path.GetFileName(route.Path)}$";
             }
 
-            savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder,
-                prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).
-                OrderByDescending(s => s.Valid).ThenByDescending(s => s.RealTime).ToList();
-
+            savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder, prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).OrderByDescending(s => s.RealTime).ToList();
             saveBindingSource.DataSource = savePoints;
+
             labelInvalidSaves.Text = catalog.GetString(
-                "To prevent crashes and unexpected behaviour, Open Rails invalidates games saved from older versions if they fail to restore.\n") +
-                catalog.GetString("{0} of {1} saves for this route are no longer valid.", savePoints.Count(s => (s.Valid == false)), savePoints.Count);
+                 "To prevent crashes and unexpected behaviour, saved states from older versions may be invalid and fail to restore.\n") +
+                 catalog.GetString("{0} of {1} saves for this route can not be validated.", savePoints.Count(s => (s.Valid == false)), savePoints.Count);
             GridSaves_SelectionChanged(null, null);
             // Show warning after the list has been updated as this is more useful.
             if (warnings.Length > 0)
@@ -209,7 +207,7 @@ namespace Orts.Menu
         {
             if (saveBindingSource.Current is SavePoint save)
             {
-                if (save.Valid != false && Found(save)) // I.e. true or null. Check is for safety as buttons should be disabled if SavePoint is invalid.
+                if (save.Valid != false)// && Found(save)) // I.e. true or null. Check is for safety as buttons should be disabled if SavePoint is invalid.
                 {
                     if (save.Valid == null)
                         if (!AcceptUseOfNonvalidSave(save))
@@ -371,7 +369,7 @@ namespace Orts.Menu
         private void InitiateReplay(bool fromStart)
         {
             SavePoint save = saveBindingSource.Current as SavePoint;
-            if (Found(save))
+//            if (Found(save))
             {
                 if (fromStart && (save.Valid == null))
                     if (!AcceptUseOfNonvalidSave(save))
@@ -403,6 +401,7 @@ namespace Orts.Menu
         /// 
         /// The save file is then modified to contain filename(s) from the current PC instead.
         /// </summary>
+        // TODO 20240502 Refactor for new savestate format
         private bool Found(SavePoint save)
         {
             if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
@@ -515,6 +514,5 @@ namespace Orts.Menu
             if (!gridSaves.IsCurrentRowDirty)
                 throw e.Exception;
         }
-
     }
 }

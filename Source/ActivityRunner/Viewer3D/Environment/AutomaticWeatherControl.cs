@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
 
@@ -28,6 +29,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
+using Orts.Models.State;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment
@@ -663,5 +665,15 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             time = (float)viewer.Simulator.ClockTime;
         }
 
+        public override async ValueTask<WeatherSaveState> Snapshot()
+        {
+            WeatherSaveState result = await base.Snapshot();
+
+            result.AutomaticWeather = new AutomaticWeatherSaveState()
+            {
+
+            };
+            return result;
+        }
     }
 }

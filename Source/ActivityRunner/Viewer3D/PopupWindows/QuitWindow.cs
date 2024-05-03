@@ -1,7 +1,4 @@
-﻿
-using System;
-
-using GetText;
+﻿using GetText;
 
 using Microsoft.Xna.Framework;
 
@@ -21,8 +18,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
     {
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly UserSettings settings;
+        private readonly Viewer viewer;
 
-        public QuitWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Catalog catalog = null) :
+        public QuitWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Pause Menu"), relativeLocation, new Point(320, 112), catalog)
         {
             Modal = true;
@@ -31,6 +29,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             this.settings = settings;
             if (MultiPlayerManager.IsMultiPlayer())
                 Resize(new Point(320, 95));
+            this.viewer = viewer;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
@@ -62,9 +61,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             _ = Close();
         }
 
-        private void SaveLabel_OnClick(object sender, MouseClickEventArgs e)
+        private async void SaveLabel_OnClick(object sender, MouseClickEventArgs e)
         {
-            GameStateRunActivity.Save();
+            await viewer.Game.State.Save();
         }
 
         private void QuitLabel_OnClick(object sender, MouseClickEventArgs e)
@@ -78,7 +77,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             if (result)
             {
                 userCommandController.AddEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, QuitGame, true);
-                userCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, GameStateRunActivity.Save, true);
+                userCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, SaveGame, true);
             }
             return result;
         }
@@ -86,7 +85,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         public override bool Close()
         {
             userCommandController.RemoveEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, QuitGame);
-            userCommandController.RemoveEvent(UserCommand.GameSave, KeyEventType.KeyPressed, QuitGame);
+            userCommandController.RemoveEvent(UserCommand.GameSave, KeyEventType.KeyPressed, SaveGame);
             Program.Viewer.ResumeReplaying();
             return base.Close();
         }
@@ -95,6 +94,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             args.Handled = true;
             _ = Close();
+        }
+
+        private async void SaveGame(UserCommandArgs args)
+        {
+            args.Handled = true;
+            await viewer.Game.State.Save();
         }
     }
 }

@@ -4,21 +4,23 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Logging;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Models.State;
 using Orts.Scripting.Api;
-using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
 namespace Orts.Simulation.Activities
 {
-    public class ActivityEvaluation
+    public class ActivityEvaluation : ISaveStateApi<ActivityEvaluationState>
     {
         private double distanceTravelled;
         private double autoPilotInitialTime;
@@ -137,54 +139,53 @@ namespace Orts.Simulation.Activities
 
         public int DepartBeforeBoarding { get; set; }
 
-        public static void Save(BinaryWriter outputStream)
+        public ValueTask<ActivityEvaluationState> Snapshot()
         {
-            ArgumentNullException.ThrowIfNull(outputStream);
-            if (instance == null)
-                return;
-
-            outputStream.Write(instance.CouplerBreaks);
-            outputStream.Write(instance.TravellingTooFast);
-            outputStream.Write(instance.TrainOverTurned);
-            outputStream.Write(instance.SnappedBrakeHose);
-            outputStream.Write(instance.DistanceTravelled);
-            outputStream.Write(instance.FullTrainBrakeUnder8kmh);
-            outputStream.Write(instance.FullBrakeAbove16kmh);
-            outputStream.Write(instance.OverSpeedCoupling);
-            outputStream.Write(instance.EmergencyButtonStopped);
-            outputStream.Write(instance.EmergencyButtonMoving);
-            outputStream.Write(instance.autoPilotTimerRunning);
-            outputStream.Write(instance.autoPilotInitialTime);
-            outputStream.Write(instance.autoPilotTime);
-            outputStream.Write(instance.OverSpeed);
-            outputStream.Write(instance.overSpeedInitialTime);
-            outputStream.Write(instance.overSpeedTime);
-            outputStream.Write(instance.DepartBeforeBoarding);
+            return ValueTask.FromResult(new ActivityEvaluationState()
+            {
+                CouplerBreaks = CouplerBreaks,
+                TravellingTooFast = TravellingTooFast,
+                TrainOverTurned = TrainOverTurned,
+                BrakedHoseSnapped = SnappedBrakeHose,
+                DistanceTravelled = DistanceTravelled,
+                FullTrainBrakeUnder8kmh = FullTrainBrakeUnder8kmh,
+                FullBrakeAbove16kmh = FullBrakeAbove16kmh,
+                OverSpeedCoupling = OverSpeedCoupling,
+                EmergencyButtonStopped = EmergencyButtonStopped,
+                EmergencyButtonMoving = EmergencyButtonMoving,
+                OverSpeed = OverSpeed,
+                OverSpeedInitialTime = overSpeedInitialTime,
+                OverSpeedTime = overSpeedTime,
+                DepartBeforeBoarding = DepartBeforeBoarding,
+                AutoPilotRunning = autoPilotTimerRunning,
+                AutoPilotInitialTime = autoPilotInitialTime,
+                AutoPilotTime = autoPilotTime,
+            });
         }
 
-        public static void Restore(BinaryReader inputStream)
+        public ValueTask Restore(ActivityEvaluationState saveState)
         {
-            ArgumentNullException.ThrowIfNull(inputStream);
             instance = new ActivityEvaluation
             {
-                CouplerBreaks = inputStream.ReadInt32(),
-                TravellingTooFast = inputStream.ReadInt32(),
-                TrainOverTurned = inputStream.ReadInt32(),
-                SnappedBrakeHose = inputStream.ReadInt32(),
-                distanceTravelled = inputStream.ReadDouble(),
-                FullTrainBrakeUnder8kmh = inputStream.ReadInt32(),
-                FullBrakeAbove16kmh = inputStream.ReadInt32(),
-                OverSpeedCoupling = inputStream.ReadInt32(),
-                EmergencyButtonStopped = inputStream.ReadInt32(),
-                EmergencyButtonMoving = inputStream.ReadInt32(),
-                autoPilotTimerRunning = inputStream.ReadBoolean(),
-                autoPilotInitialTime = inputStream.ReadDouble(),
-                autoPilotTime = inputStream.ReadDouble(),
-                OverSpeed = inputStream.ReadInt32(),
-                overSpeedInitialTime = inputStream.ReadDouble(),
-                overSpeedTime = inputStream.ReadDouble(),
-                DepartBeforeBoarding = inputStream.ReadInt32(),
+                CouplerBreaks = saveState.CouplerBreaks,
+                TravellingTooFast = saveState.TravellingTooFast,
+                TrainOverTurned = saveState.TrainOverTurned,
+                SnappedBrakeHose = saveState.BrakedHoseSnapped,
+                distanceTravelled = saveState.DistanceTravelled,
+                FullTrainBrakeUnder8kmh = saveState.FullTrainBrakeUnder8kmh,
+                FullBrakeAbove16kmh = saveState.FullBrakeAbove16kmh,
+                OverSpeedCoupling = saveState.OverSpeedCoupling,
+                EmergencyButtonStopped = saveState.EmergencyButtonStopped,
+                EmergencyButtonMoving = saveState.EmergencyButtonMoving,
+                autoPilotTimerRunning = saveState.AutoPilotRunning,
+                autoPilotInitialTime = saveState.AutoPilotInitialTime,
+                autoPilotTime = saveState.AutoPilotTime,
+                OverSpeed = saveState.OverSpeed,
+                overSpeedInitialTime = saveState.OverSpeedInitialTime,
+                overSpeedTime = saveState.OverSpeedTime,
+                DepartBeforeBoarding = saveState.DepartBeforeBoarding,
             };
+            return ValueTask.CompletedTask;
         }
 
         public string ReportFileName { get; private set; }
@@ -446,7 +447,6 @@ namespace Orts.Simulation.Activities
                 _ => "-  -  -  -  -",
             };
         }
-
 
         private struct PassengerStopTask
         {
