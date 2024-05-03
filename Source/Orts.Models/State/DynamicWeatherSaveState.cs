@@ -10,6 +10,7 @@ namespace Orts.Models.State
         public double Timer { get; set; }
         public float ChangeRate { get; set; }
         public float Value { get; set; }
+        public int TransitionTime { get; set; }
     }
 
     [MemoryPackable]
@@ -20,7 +21,6 @@ namespace Orts.Models.State
         public DynamicWeatherPropertyState PrecipitationIntensity { get; } = new DynamicWeatherPropertyState();
         public DynamicWeatherPropertyState PrecipitationLiquidity { get; } = new DynamicWeatherPropertyState();
         public bool FogDistanceIncreasing { get; set; }
-        public double FogTransitionTime { get; set; }
         public double StableWeatherTimer { get; set; }
         public double PrecipitationIntensityDelayTimer { get; set; }
     }

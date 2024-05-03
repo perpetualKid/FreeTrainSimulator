@@ -365,18 +365,24 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 dynamicWeather.Overcast.Timer = overcast.Timer;
                 dynamicWeather.Overcast.ChangeRate = overcast.ChangeRate;
                 dynamicWeather.Overcast.Value = overcast.Value;
+                dynamicWeather.Overcast.TransitionTime = overcast.TransitionTime;
+
                 dynamicWeather.Fog.Timer = fog.Timer;
                 dynamicWeather.Fog.ChangeRate = fog.ChangeRate;
                 dynamicWeather.Fog.Value = fog.Value;
+                dynamicWeather.Fog.TransitionTime = fog.TransitionTime;
+
                 dynamicWeather.PrecipitationIntensity.Timer = precipitationIntensity.Timer;
                 dynamicWeather.PrecipitationIntensity.ChangeRate = precipitationIntensity.ChangeRate;
                 dynamicWeather.PrecipitationIntensity.Value = precipitationIntensity.Value;
+                dynamicWeather.PrecipitationIntensity.TransitionTime = precipitationIntensity.TransitionTime;
+
                 dynamicWeather.PrecipitationLiquidity.Timer = precipitationLiquidity.Timer;
                 dynamicWeather.PrecipitationLiquidity.ChangeRate = precipitationLiquidity.ChangeRate;
                 dynamicWeather.PrecipitationLiquidity.Value = precipitationLiquidity.Value;
+                dynamicWeather.PrecipitationLiquidity.TransitionTime = precipitationLiquidity.TransitionTime;
 
                 dynamicWeather.FogDistanceIncreasing = fogDistanceIncreasing;
-                dynamicWeather.FogTransitionTime = fog.TransitionTime;
                 dynamicWeather.StableWeatherTimer = StableWeatherTimer;
                 dynamicWeather.PrecipitationIntensityDelayTimer = PrecipitationIntensityDelayTimer;
                 return ValueTask.FromResult(dynamicWeather);
@@ -391,7 +397,6 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             {
                 return weatherChange || precipitationLiquidity.Timer > 0;
             }
-
         }
     }
 }
