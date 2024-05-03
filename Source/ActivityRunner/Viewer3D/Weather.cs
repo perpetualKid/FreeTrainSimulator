@@ -885,7 +885,7 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         // Variables used for auto weather control
         // settings
-        private List<WeatherCondition> weatherDetails = new List<WeatherCondition>();
+        private List<WeatherConditionBase> weatherDetails = new List<WeatherConditionBase>();
 
         // running values
         // general
@@ -959,7 +959,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             float prevTime = 0;
 
-            foreach (WeatherCondition weatherSet in weatherDetails)
+            foreach (WeatherConditionBase weatherSet in weatherDetails)
             {
                 TimeSpan acttime = new TimeSpan((long)(weatherSet.Time * 10000000));
 
@@ -1000,7 +1000,7 @@ namespace Orts.ActivityRunner.Viewer3D
 #if DEBUG_AUTOWEATHER
             Trace.TraceInformation("Initial active weather : {0}", AWActiveIndex);
 #endif
-            WeatherCondition lastWeather = weatherDetails[AWActiveIndex];
+            WeatherConditionBase lastWeather = weatherDetails[AWActiveIndex];
 
             AWNextChangeTime = AWActiveIndex < (weatherDetails.Count - 1) ? weatherDetails[AWActiveIndex + 1].Time : (24 * 3600);
             int nextIndex = AWActiveIndex < (weatherDetails.Count - 1) ? AWActiveIndex + 1 : -1;
@@ -1100,7 +1100,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (weatherDetails.Count == 0)
                 return;
 
-            WeatherCondition lastWeather = weatherDetails[AWActiveIndex];
+            WeatherConditionBase lastWeather = weatherDetails[AWActiveIndex];
             int nextIndex = AWActiveIndex < (weatherDetails.Count - 1) ? AWActiveIndex + 1 : -1;
             fogActive = false;
 
@@ -1239,7 +1239,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Trace.TraceInformation("Weather change : index {0}, type {1}", AWActiveIndex, weatherDetails[AWActiveIndex].GetType().ToString());
 #endif                    
 
-                    WeatherCondition nextWeather = weatherDetails[AWActiveIndex];
+                    WeatherConditionBase nextWeather = weatherDetails[AWActiveIndex];
                     if (nextWeather is FogCondition nextfogCondition)
                     {
                         StartFog(nextfogCondition, Time, AWActiveIndex);
@@ -1252,7 +1252,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        private float GetWeatherVisibility(WeatherCondition weatherDetail)
+        private float GetWeatherVisibility(WeatherConditionBase weatherDetail)
         {
             float nextVisibility = weather.FogVisibilityDistance; // present visibility
             if (weatherDetail is FogCondition fogCondition)
@@ -1542,7 +1542,7 @@ namespace Orts.ActivityRunner.Viewer3D
             outf.Write(1);
 
             // save input details
-            foreach (WeatherCondition condition in weatherDetails)
+            foreach (WeatherConditionBase condition in weatherDetails)
             {
                 condition.Save(outf);
             }

@@ -61,7 +61,7 @@ namespace Orts.Formats.OR.Parsers
         private readonly JsonTextReader reader;
         private readonly StringBuilder path;
         private readonly Stack<int> pathPositions;
-        private Stack<string> paths;
+        private readonly Stack<string> paths;
         private int countWarnings;
         private int countInformations;
 

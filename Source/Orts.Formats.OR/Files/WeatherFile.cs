@@ -29,7 +29,7 @@ namespace Orts.Formats.OR.Files
 
     public class WeatherFile
     {
-        public List<WeatherCondition> Changes { get; } = new List<WeatherCondition>();
+        public List<WeatherConditionBase> Changes { get; } = new List<WeatherConditionBase>();
         public float TimeVariance { get; private set; }     // allowed max variation using random time setting
         public bool RandomSequence { get; private set; }    // set random sequence
 
