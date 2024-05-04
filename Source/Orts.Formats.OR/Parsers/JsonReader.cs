@@ -196,6 +196,20 @@ namespace Orts.Formats.OR.Parsers
             }
         }
 
+        public double AsDouble(double defaultValue)
+        {
+            switch (reader.TokenType)
+            {
+                case JsonToken.Float:
+                    return (double)reader.Value;
+                case JsonToken.Integer:
+                    return (long)reader.Value;
+                default:
+                    TraceWarning($"Expected double floating point value in {FullPath}; got {reader.TokenType}");
+                    return defaultValue;
+            }
+        }
+
         public float AsFloat(float defaultValue)
         {
             switch (reader.TokenType)
@@ -246,14 +260,14 @@ namespace Orts.Formats.OR.Parsers
             }
         }
 
-        public float AsTime(float defaultValue)
+        public double AsTime(double defaultValue)
         {
             switch (reader.TokenType)
             {
                 case JsonToken.String:
                     string[] time = ((string)reader.Value).Split(':');
                     TimeSpan StartTime = new TimeSpan(int.Parse(time[0], CultureInfo.InvariantCulture), time.Length > 1 ? int.Parse(time[1], CultureInfo.InvariantCulture) : 0, time.Length > 2 ? int.Parse(time[2], CultureInfo.InvariantCulture) : 0);
-                    return (float)StartTime.TotalSeconds;
+                    return StartTime.TotalSeconds;
                 default:
                     TraceWarning($"Expected string (time) value in {FullPath}; got {reader.TokenType}");
                     return defaultValue;

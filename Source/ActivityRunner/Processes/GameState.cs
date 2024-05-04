@@ -37,7 +37,6 @@ namespace Orts.ActivityRunner.Processes
     {
         private bool disposedValue;
 
-        private protected static string logFileName;
         private protected static ActivityType activityType;
         private protected static string[] data;
 

@@ -1,4 +1,6 @@
-﻿using FreeTrainSimulator.Common.Api;
+﻿using System.Numerics;
+
+using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
 
@@ -16,7 +18,7 @@ namespace Orts.Models.State
         public float PrecipitationIntensity { get; set; }
         public float PrecipitationLiquidity { get; set; }
         public float WindDirection { get; set; }
-        public float WindSpeed { get; set; }
+        public Vector2 WindSpeed { get; set; }
         public DynamicWeatherSaveState DynamicWeather {  get; set; }
         public AutomaticWeatherSaveState AutomaticWeather { get; set; }
     }

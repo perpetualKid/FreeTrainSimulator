@@ -43,6 +43,8 @@ using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.World;
 
+using SharpDX.Direct2D1;
+
 namespace Orts.ActivityRunner.Viewer3D.Environment
 {
     public partial class WeatherControl : ISaveStateApi<WeatherSaveState>
@@ -57,14 +59,14 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
 
         private bool weatherChangeOn;
         private DynamicWeather dynamicWeather;
-        public bool RandomizedWeather {  get; private protected set; }
+        public bool RandomizedWeather { get; private protected set; }
         private bool desertZone; // we are in a desert zone, so no randomized weather change...
         private float[,] desertZones = { { 30, 45, -120, -105 } }; // minlat, maxlat, minlong, maxlong
 
         // Variables used for wind calculations
         private Vector2D windSpeedInternalMpS;
         private Vector2D[] windSpeedMpS = new Vector2D[2];
-        private protected float time;
+        private protected double time;
         private readonly double[] windChangeMpSS = { 40, 5 }; // Flurry, steady
         private const double windSpeedMaxMpS = 4.5f;
         private double windUpdateTimer;
@@ -267,41 +269,6 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             MultiPlayerManager.Broadcast(new WeatherMessage(weather));
         }
 
-        public virtual void SaveWeatherParameters(BinaryWriter outf)
-        {
-            outf.Write(0); // set fixed weather
-            outf.Write(weather.FogVisibilityDistance);
-            outf.Write(weather.OvercastFactor);
-            outf.Write(weather.PrecipitationIntensity);
-            outf.Write(weather.PrecipitationLiquidity);
-            outf.Write(RandomizedWeather);
-            outf.Write(weatherChangeOn);
-            if (weatherChangeOn)
-                dynamicWeather.Save(outf);
-        }
-
-        public virtual void RestoreWeatherParameters(BinaryReader inf)
-        {
-            int weathercontroltype = inf.ReadInt32();
-
-            // restoring wrong type of weather - abort
-            if (weathercontroltype != 0)
-                Trace.TraceError(Simulator.Catalog.GetString("Restoring wrong weather type : trying to restore dynamic weather but save contains user controlled weather"));
-
-            weather.FogVisibilityDistance = inf.ReadSingle();
-            weather.OvercastFactor = inf.ReadSingle();
-            weather.PrecipitationIntensity = inf.ReadSingle();
-            weather.PrecipitationLiquidity = inf.ReadSingle();
-            RandomizedWeather = inf.ReadBoolean();
-            weatherChangeOn = inf.ReadBoolean();
-            if (weatherChangeOn)
-            {
-                dynamicWeather = new DynamicWeather(viewer, false);
-                dynamicWeather.Restore(inf);
-            }
-            UpdateVolume();
-        }
-
         public void SetInitialWeatherParameters()
         {
             // These values are defaults only; subsequent changes to the weather via debugging only change the components (weather, overcastFactor and fogDistance) individually.
@@ -416,7 +383,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 if (calculatedWindDirection < BaseWindDirectionRad - WindDirectionVariationRad)
                     calculatedWindDirection = BaseWindDirectionRad - WindDirectionVariationRad * (float)StaticRandom.NextDouble();
 
-                weather.CalculatedWindDirection = calculatedWindDirection;
+                weather.WindDirection = calculatedWindDirection;
 
             }
         }
@@ -538,6 +505,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 UpdateWeatherParameters();
             }
         }
+
         public async virtual ValueTask<WeatherSaveState> Snapshot()
         {
             return new WeatherSaveState()
@@ -549,17 +517,30 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 PrecipitationLiquidity = weather.PrecipitationLiquidity,
                 RandomizeWeather = RandomizedWeather,
                 WindDirection = weather.WindDirection,
-                WindSpeed = weather.WindDirection,
-                DynamicWeather = weatherChangeOn ? await dynamicWeather.Snapshot() : null,
+                WindSpeed = weather.WindSpeed.ToNumerics(),
+                DynamicWeather = weatherChangeOn ? await dynamicWeather.Snapshot().ConfigureAwait(false) : null,
             };
         }
 
-        public virtual ValueTask Restore(WeatherSaveState saveState)
+        public virtual async ValueTask Restore(WeatherSaveState saveState)
         {
-            throw new NotImplementedException();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            weather.FogVisibilityDistance = saveState.FogVisibilityDistance;
+            weather.OvercastFactor = saveState.OvercastFactor;
+            weather.PrecipitationIntensity = saveState.PrecipitationIntensity;
+            weather.PrecipitationLiquidity = saveState.PrecipitationLiquidity;
+            RandomizedWeather = saveState.RandomizeWeather;
+            weather.WindDirection = saveState.WindDirection;
+            if (saveState.DynamicWeather != null)
+            {
+                dynamicWeather = new DynamicWeather(viewer, false);
+                await dynamicWeather.Restore(saveState.DynamicWeather).ConfigureAwait(false);
+            }
+            UpdateVolume();
         }
-        
-                public bool IsWeatherSound(SoundSource soundSource)
+
+        public bool IsWeatherSound(SoundSource soundSource)
         {
             return weatherSounds.Contains(soundSource);
         }

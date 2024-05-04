@@ -39,7 +39,7 @@ namespace Orts.Models.Simplified
             {
                 await Parallel.ForEachAsync(Directory.EnumerateFiles(directory, System.IO.Path.ChangeExtension($"{prefix}*", FileNameExtensions.SaveFile)), token, async (fileName, innerToken) =>
                 {
-                    SavePoint gameSaveState = await FromGameSaveState(fileName);
+                    SavePoint gameSaveState = await FromGameSaveState(fileName).ConfigureAwait(false);
 
                     try
                     {
@@ -80,7 +80,7 @@ namespace Orts.Models.Simplified
                             result.Add(new SavePoint()
                             {
                                 File = fileName,
-                                Distance = double.NaN.ToString(),
+                                Distance = $"{double.NaN}",
                                 RouteName = "<Invalid Savepoint>",
                             });
                         }
@@ -89,7 +89,7 @@ namespace Orts.Models.Simplified
                     {
                         addItem.Release();
                     }
-                });
+                }).ConfigureAwait(false);
             }
             return result;
         }
@@ -98,7 +98,7 @@ namespace Orts.Models.Simplified
         {
             try
             {
-                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(fileName);
+                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(fileName).ConfigureAwait(false);
                 SavePoint result = new SavePoint()
                 {
                     File = fileName,

@@ -14,7 +14,7 @@ namespace FreeTrainSimulator.Common.Api
         {
             using (FileStream saveFile = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
-                return await MemoryPackSerializer.DeserializeAsync<T>(saveFile);
+                return await MemoryPackSerializer.DeserializeAsync<T>(saveFile).ConfigureAwait(false);
             }
         }
 
@@ -22,8 +22,8 @@ namespace FreeTrainSimulator.Common.Api
         {
             using (FileStream saveFile = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
-                await MemoryPackSerializer.SerializeAsync(saveFile, saveState);
-                await saveFile.FlushAsync();
+                await MemoryPackSerializer.SerializeAsync(saveFile, saveState).ConfigureAwait(false);
+                await saveFile.FlushAsync().ConfigureAwait(false);
             }
         }
     }

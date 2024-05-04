@@ -66,6 +66,8 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.World;
 
+using SharpDX.Direct2D1;
+
 namespace Orts.ActivityRunner.Viewer3D
 {
     public enum DetailInfoType
@@ -373,64 +375,9 @@ namespace Orts.ActivityRunner.Viewer3D
             Settings.Save(nameof(Settings.OdometerShortDistanceMode));
         }
 
-        internal void Save(BinaryWriter outf, string fileStem)
-        {
-            outf.Write(Simulator.Trains.IndexOf(PlayerTrain));
-            outf.Write(PlayerTrain.Cars.IndexOf(PlayerLocomotive));
-            outf.Write(Simulator.Trains.IndexOf(SelectedTrain));
-
-            outf.Write(WellKnownCameras.IndexOf(Camera));
-            foreach (var camera in WellKnownCameras)
-                camera.Save(outf);
-            Camera.Save(outf);
-            outf.Write(CabYOffsetPixels);
-            outf.Write(CabXOffsetPixels);
-
-            // Set these so RenderFrame can use them when its thread gets control.
-            SaveActivityFileStem = fileStem;
-            SaveActivityThumbnail = true;
-            outf.Write(NightTexturesNotLoaded);
-            outf.Write(DayTexturesNotLoaded);
-            World.WeatherControl.SaveWeatherParameters(outf);
-        }
-
         internal void Restore(BinaryReader inf)
         {
-            Train playerTrain = Simulator.Trains[inf.ReadInt32()];
-            PlayerLocomotive = playerTrain.Cars[inf.ReadInt32()] as MSTSLocomotive;
-            var selected = inf.ReadInt32();
-            if (selected >= 0 && selected < Simulator.Trains.Count)
-            {
-                SelectedTrain = Simulator.Trains[selected];
-            }
-            else if (selected < 0)
-            {
-                SelectedTrain = Simulator.Trains[0];
-            }
 
-            var cameraToRestore = inf.ReadInt32();
-            foreach (var camera in WellKnownCameras)
-                camera.Restore(inf);
-            if (cameraToRestore == -1)
-                new FreeRoamCamera(this, Camera).Activate();
-            else
-                WellKnownCameras[cameraToRestore].Activate();
-            Camera.Restore(inf);
-            CabYOffsetPixels = inf.ReadInt32();
-            CabXOffsetPixels = inf.ReadInt32();
-            NightTexturesNotLoaded = inf.ReadBoolean();
-            DayTexturesNotLoaded = inf.ReadBoolean();
-            LoadMemoryThreshold = (long)GetVirtualAddressLimit() - 512;// * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
-            TryLoadingNightTextures = true;
-            TryLoadingDayTextures = true;
-
-            World.WeatherControl.RestoreWeatherParameters(inf);
-            var cabRendererPresent = inf.ReadInt32();
-            if (cabRendererPresent != -1)
-                (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer.Restore(inf);
-            cabRendererPresent = inf.ReadInt32();
-            if (cabRendererPresent != -1)
-                (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D.Restore(inf);
         }
 
         /// <summary>
@@ -653,7 +600,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     windowManager[ViewerWindowType.DebugOverlay].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.GameFullscreen, KeyEventType.KeyPressed, RenderProcess.ToggleFullScreen);
-            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, async delegate (UserCommandArgs userCommandArgs) { await Game.State.Save(); userCommandArgs.Handled = true; });
+            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, async delegate (UserCommandArgs userCommandArgs) { await Game.State.Save().ConfigureAwait(false); userCommandArgs.Handled = true; });
             UserCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
@@ -1795,20 +1742,58 @@ namespace Orts.ActivityRunner.Viewer3D
                 CabOffset = new System.Drawing.Point(CabXOffsetPixels, CabYOffsetPixels),
                 NightTexturesLoaded = !NightTexturesNotLoaded,
                 DayTexturesLoaded = !DayTexturesNotLoaded,
-                CabState2D = (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer is CabRenderer cabRenderer ? await cabRenderer.Snapshot() : null,
-                CabState3D = (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D is CabRenderer cabRenderer3d ? await cabRenderer3d.Snapshot() : null,
-                WeatherState = await World.WeatherControl.Snapshot(),
+                CabState2D = (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer is CabRenderer cabRenderer ? await cabRenderer.Snapshot().ConfigureAwait(false) : null,
+                CabState3D = (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D is CabRenderer cabRenderer3d ? await cabRenderer3d.Snapshot().ConfigureAwait(false) : null,
+                WeatherState = await World.WeatherControl.Snapshot().ConfigureAwait(false),
+                CurrentCamera = await Camera.Snapshot().ConfigureAwait(false),
             };
             foreach(Camera camera in WellKnownCameras)
             {
-                viewerState.CameraStates.Add(await camera.Snapshot());
+                viewerState.CameraStates.Add(await camera.Snapshot().ConfigureAwait(false));
             }
             return viewerState;
         }
 
-        public ValueTask Restore(ViewerSaveState saveState)
+        public async ValueTask Restore(ViewerSaveState saveState)
         {
-            throw new NotImplementedException();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+            Train playerTrain = Simulator.Trains[saveState.PlayerTrainIndex];
+            PlayerLocomotive = playerTrain.Cars[saveState.PlayerLocomotiveIndex] as MSTSLocomotive;
+
+            int selected = saveState.SelectedTrainIndex;
+            if (selected >= 0 && selected < Simulator.Trains.Count)
+            {
+                SelectedTrain = Simulator.Trains[selected];
+            }
+            else if (selected < 0)
+            {
+                SelectedTrain = Simulator.Trains[0];
+            }
+            for (int i = 0; i < WellKnownCameras.Count && i < saveState.CameraStates.Count; i++)
+            {
+                await WellKnownCameras[i].Restore(saveState.CameraStates[i]).ConfigureAwait(false);
+            }
+            if (saveState.SelectedCameraIndex == -1)
+                new FreeRoamCamera(this, Camera).Activate();
+            else
+                WellKnownCameras[saveState.SelectedCameraIndex].Activate();
+            await Camera.Restore(saveState.CurrentCamera).ConfigureAwait(false);
+
+            CabXOffsetPixels = saveState.CabOffset.X;
+            CabYOffsetPixels = saveState.CabOffset.Y;
+
+            NightTexturesNotLoaded = !saveState.NightTexturesLoaded;
+            DayTexturesNotLoaded = !saveState.DayTexturesLoaded;
+            LoadMemoryThreshold = (long)GetVirtualAddressLimit() - 512;// * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
+            TryLoadingNightTextures = true;
+            TryLoadingDayTextures = true;
+
+            await World.WeatherControl.Restore(saveState.WeatherState).ConfigureAwait(false);
+
+            if (saveState.CabState2D != null)
+                await (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer.Restore(saveState.CabState2D).ConfigureAwait(false);
+            if (saveState.CabState3D != null)
+                await (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D.Restore(saveState.CabState3D).ConfigureAwait(false);
         }
     }
 }

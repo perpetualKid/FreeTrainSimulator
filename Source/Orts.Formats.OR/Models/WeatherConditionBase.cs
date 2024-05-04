@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 
 using Orts.Common.Calc;
 using Orts.Common.Xna;
@@ -8,12 +7,21 @@ using Orts.Formats.OR.Parsers;
 
 namespace Orts.Formats.OR.Models
 {
+    public enum WeatherConditionType
+    {
+        Fog,
+        Overcast,
+        Precipitation,
+    }
+
     public abstract class WeatherConditionBase
     {
-        public float Time { get; protected set; }               // time of change
+        public double Time { get; set; }               // time of change
 
         internal protected virtual bool TryParse(JsonReader reader)
         {
+            ArgumentNullException.ThrowIfNull(reader, nameof(reader));
+
             switch (reader.Path)
             {
                 case "Time": Time = reader.AsTime(Time); break;
@@ -22,13 +30,13 @@ namespace Orts.Formats.OR.Models
             return true;
         }
 
-        public void UpdateTime(float value)
+        public void UpdateTime(double value)
         {
             Time = value;
         }
 
         // check value, set random value if allowed and value not set
-        protected static float CheckValue(float value, bool randomize, float minValue, float maxValue, TimeSpan duration, string description)
+        protected static double CheckValue(double value, bool randomize, double minValue, double maxValue, TimeSpan duration, string description)
         {
             // overcast
             if (value < 0 && randomize)
@@ -37,7 +45,7 @@ namespace Orts.Formats.OR.Models
             }
             else
             {
-                float correctedValue = (float)MathHelperD.Clamp(value, minValue, maxValue);
+                double correctedValue = MathHelperD.Clamp(value, minValue, maxValue);
                 if (correctedValue != value)
                 {
                     Trace.TraceInformation("Invalid value for {0} for weather at {1} : {2}; value must be between {3} and {4}, clamped to {5}",
@@ -47,8 +55,6 @@ namespace Orts.Formats.OR.Models
             }
             return value;
         }
-
-        public abstract void Save(BinaryWriter outf);
 
         public abstract void Check(TimeSpan duration);
     }

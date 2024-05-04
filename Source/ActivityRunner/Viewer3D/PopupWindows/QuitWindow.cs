@@ -63,7 +63,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private async void SaveLabel_OnClick(object sender, MouseClickEventArgs e)
         {
-            await viewer.Game.State.Save();
+            await viewer.Game.State.Save().ConfigureAwait(false);
         }
 
         private void QuitLabel_OnClick(object sender, MouseClickEventArgs e)
@@ -99,7 +99,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private async void SaveGame(UserCommandArgs args)
         {
             args.Handled = true;
-            await viewer.Game.State.Save();
+            await viewer.Game.State.Save().ConfigureAwait(false);
         }
     }
 }

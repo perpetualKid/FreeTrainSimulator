@@ -102,7 +102,7 @@ namespace Orts.ActivityRunner.Processes
 
         public override async ValueTask Restore(GameSaveState saveState)
         {
-            await ActivityEvaluation.Instance.Restore(saveState.ActivityEvaluationState);
+            await ActivityEvaluation.Instance.Restore(saveState.ActivityEvaluationState).ConfigureAwait(false);
         }
 
         internal override void Update(RenderFrame frame, GameTime gameTime)
@@ -163,7 +163,7 @@ namespace Orts.ActivityRunner.Processes
                     case ActionType.Resume:
                         InitLogging();
                         InitLoading();
-                        Resume(settings);
+                        Resume(settings).AsTask().Wait();
                         break;
                     case ActionType.Replay:
                         InitLogging();
@@ -299,7 +299,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Resume a saved game.
         /// </summary>
-        private void Resume(UserSettings settings)
+        private async ValueTask Resume(UserSettings settings)
         {
             // If "-resume" also specifies a save file then use it
             // E.g. ActivityRunner.exe -resume "yard_two 2012-03-20 22.07.36"
@@ -310,21 +310,21 @@ namespace Orts.ActivityRunner.Processes
             string saveFile = GetSaveFile(data);
             string versionOrBuild = string.Empty;
 
-            GameSaveState state = GameSaveState.FromFile<GameSaveState>(saveFile).Result;
+            GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile).ConfigureAwait(false);
 
             Pipe pipe = new Pipe();
-            pipe.Writer.Write(state.LegacyState.FirstSpan);
-            pipe.Writer.FlushAsync().AsTask().Wait();
+            pipe.Writer.Write(saveState.LegacyState.FirstSpan);
+            await pipe.Writer.FlushAsync().ConfigureAwait(false);
 
             //using (BinaryReader inf = settings.LogSaveData ? new LoggedBinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)) : new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
             using (BinaryReader inf = new BinaryReader(pipe.Reader.AsStream()))
             {
                 try // Because Restore() methods may try to read beyond the end of an out of date file.
                 {
-                    activityType = state.ActivityType;
-                    data = state.Arguments.ToArray();
+                    activityType = saveState.ActivityType;
+                    data = saveState.Arguments.ToArray();
                     InitSimulator(settings);
-                    simulator.Restore(inf, state.PathName, state.InitalTile.X, state.InitalTile.Z, Game.LoaderProcess.CancellationToken);
+                    simulator.Restore(inf, saveState.PathName, saveState.InitalTile.X, saveState.InitalTile.Z, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(simulator, Game);
                     Viewer.Initialize();
                     if (MultiPlayerManager.IsMultiPlayer())
@@ -333,15 +333,10 @@ namespace Orts.ActivityRunner.Processes
                             simulator.SetPathAndConsist();
                         MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
                     }
-                    Viewer.Restore(inf);
+                    await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
 
                     if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
                         MultiPlayerManager.OnlineTrains.Restore(inf);
-
-                    long restorePosition = inf.BaseStream.Position;
-                    long savePosition = inf.ReadInt64();
-                    if (restorePosition != savePosition)
-                        throw new InvalidDataException("Saved game stream position is incorrect.");
 
                 }
                 catch (Exception error)

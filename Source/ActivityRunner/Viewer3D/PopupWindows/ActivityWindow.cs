@@ -87,7 +87,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private async void GameSaveLabel_OnClick(object sender, MouseClickEventArgs e)
         {
-            await viewer.Game.State.Save();
+            await viewer.Game.State.Save().ConfigureAwait(false);
         }
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)

@@ -56,8 +56,7 @@ namespace Orts.Simulation.World
         /// Precipitation liquidity; =1 for rain, =0 for snow; intermediate values possible with dynamic weather; 
         /// </summary>
         public float PrecipitationLiquidity { get; set; }
-        public float CalculatedWindDirection { get; set; }
         public Vector2 WindSpeed { get; set; }
-        public float WindDirection => CalculatedWindDirection;
+        public float WindDirection { get; set; }
     }
 }

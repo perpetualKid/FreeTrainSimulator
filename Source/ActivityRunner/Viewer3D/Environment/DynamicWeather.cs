@@ -56,10 +56,10 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
 
             public const float RainSnowLiquidityThreshold = 0.3f;
 
-            private WeatherProperty overcast = new WeatherProperty();
-            private WeatherProperty fog = new WeatherProperty();
-            private WeatherProperty precipitationIntensity = new WeatherProperty();
-            private WeatherProperty precipitationLiquidity = new WeatherProperty();
+            private readonly WeatherProperty overcast = new WeatherProperty();
+            private readonly WeatherProperty fog = new WeatherProperty();
+            private readonly WeatherProperty precipitationIntensity = new WeatherProperty();
+            private readonly WeatherProperty precipitationLiquidity = new WeatherProperty();
 
             private float StableWeatherTimer;
             private double PrecipitationIntensityDelayTimer = -1;

@@ -169,14 +169,11 @@ namespace Orts.ActivityRunner.Processes
             string fileStem = simulator.SaveFileName;
 
             instance.Viewer.PrepareSave(fileStem);
-            GameSaveState saveState = await instance.Snapshot();
+            GameSaveState saveState = await instance.Snapshot().ConfigureAwait(false);
 
             using (BinaryWriter outf = new BinaryWriter(new MemoryStream()))
             {
-                outf.Write((int)activityType);
-
                 simulator.Save(outf);
-                instance.Viewer.Save(outf, fileStem);
                 // Save multiplayer parameters
                 if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
                     MultiPlayerManager.OnlineTrains.Save(outf);
@@ -187,13 +184,13 @@ namespace Orts.ActivityRunner.Processes
                 outf.Flush();
                 outf.BaseStream.Position = 0;
                 Pipe conversionPipe = new Pipe();
-                await outf.BaseStream.CopyToAsync(conversionPipe.Writer);
-                await conversionPipe.Writer.FlushAsync().AsTask();
-                ReadResult result = await conversionPipe.Reader.ReadAsync();
+                await outf.BaseStream.CopyToAsync(conversionPipe.Writer).ConfigureAwait(false);
+                await conversionPipe.Writer.FlushAsync().ConfigureAwait(false);
+                ReadResult result = await conversionPipe.Reader.ReadAsync().ConfigureAwait(false);
                 saveState.LegacyState = result.Buffer;
             }
 
-            await GameSaveState.ToFile(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + FileNameExtensions.SaveFile), saveState);
+            await GameSaveState.ToFile(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + FileNameExtensions.SaveFile), saveState).ConfigureAwait(false);
 
             // The Save command is the only command that doesn't take any action. It just serves as a marker.
             _ = new SaveCommand(simulator.Log, fileStem);
@@ -231,7 +228,8 @@ namespace Orts.ActivityRunner.Processes
                 ArgumentsSetOnly = data,
                 ActivityType = activityType,
 
-                ActivityEvaluationState = await ActivityEvaluation.Instance.Snapshot(),
+                ActivityEvaluationState = await ActivityEvaluation.Instance.Snapshot().ConfigureAwait(false),
+                ViewerSaveState = await Viewer.Snapshot().ConfigureAwait(false),
             };
         }
     }
