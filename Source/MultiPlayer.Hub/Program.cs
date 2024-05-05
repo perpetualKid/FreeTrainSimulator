@@ -17,7 +17,7 @@ namespace Multiplayer.Hub
 {
     internal sealed class Program
     {
-        private static async ValueTask Main(string[] args)
+        private static async Task Main(string[] args)
         {
             Console.Title = ThisAssembly.AssemblyName;
 
