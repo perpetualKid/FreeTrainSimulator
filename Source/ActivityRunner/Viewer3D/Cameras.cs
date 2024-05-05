@@ -524,9 +524,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override async ValueTask<CameraSaveState> Snapshot()
         {
-            CameraSaveState result = await base.Snapshot().ConfigureAwait(false);
-            result.TrackingRotation = new System.Numerics.Vector3(rotationXRadians, rotationYRadians, 0);
-            return result;
+            CameraSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+            saveState.TrackingRotation = new System.Numerics.Vector3(rotationXRadians, rotationYRadians, 0);
+            return saveState;
         }
 
         public override async ValueTask Restore(CameraSaveState saveState)
@@ -759,9 +759,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override async ValueTask<CameraSaveState> Snapshot()
         {
-            CameraSaveState result = await base.Snapshot().ConfigureAwait(false);
-            result.TargetLocation = targetLocation;
-            return result;
+            CameraSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+            saveState.TargetLocation = targetLocation;
+            return saveState;
         }
 
         public override async ValueTask Restore(CameraSaveState saveState)
