@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -529,7 +530,7 @@ namespace Orts.ActivityRunner.Viewer3D
             return saveState;
         }
 
-        public override async ValueTask Restore(CameraSaveState saveState)
+        public override async ValueTask Restore([NotNull] CameraSaveState saveState)
         {
             await base.Restore(saveState).ConfigureAwait(true);
             rotationXRadians = saveState.TrackingRotation.X;
@@ -764,7 +765,7 @@ namespace Orts.ActivityRunner.Viewer3D
             return saveState;
         }
 
-        public override async ValueTask Restore(CameraSaveState saveState)
+        public override async ValueTask Restore([NotNull] CameraSaveState saveState)
         {
             await base.Restore(saveState).ConfigureAwait(false);
             targetLocation = saveState.TargetLocation;
@@ -985,7 +986,7 @@ namespace Orts.ActivityRunner.Viewer3D
             return saveState;
         }
 
-        public override async ValueTask Restore(CameraSaveState saveState)
+        public override async ValueTask Restore([NotNull] CameraSaveState saveState)
         {
             await base.Restore(saveState).ConfigureAwait(false);
             if (saveState.AttachedTrainCarIndex > -1)
@@ -1164,7 +1165,7 @@ namespace Orts.ActivityRunner.Viewer3D
             return saveState;
         }
 
-        public async override ValueTask Restore(CameraSaveState saveState)
+        public async override ValueTask Restore([NotNull] CameraSaveState saveState)
         {
             await base.Restore(saveState).ConfigureAwait(false);
             browseMode = saveState.BrowseTracking;
@@ -2032,12 +2033,12 @@ namespace Orts.ActivityRunner.Viewer3D
             return saveState;
         }
 
-        public override async ValueTask Restore(CameraSaveState saveState)
+        public override async ValueTask Restore([NotNull] CameraSaveState saveState)
         {
             await base.Restore(saveState).ConfigureAwait(false);
             actViewPoint = saveState.CurrentViewPoint;
             prevViewPoint = saveState.PreviousViewPoint;
-            prevcar =saveState.CarId;
+            prevcar = saveState.CarId;
             startViewPointLocation = saveState.TrackingPosition;
             startViewPointRotationXRadians = saveState.TrackingRotationStart.X;
             startViewPointRotationYRadians = saveState.TrackingRotationStart.Y;
@@ -2118,6 +2119,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void ChangePassengerViewPoint(TrainCar car)
         {
+            ArgumentNullException.ThrowIfNull(car, nameof(car));
+
             actViewPoint++;
             if (actViewPoint >= (car.PassengerViewpoints?.Count ?? 0))
                 actViewPoint = 0;
@@ -2197,7 +2200,7 @@ namespace Orts.ActivityRunner.Viewer3D
             return saveState;
         }
 
-        public override async ValueTask Restore(CameraSaveState saveState)
+        public override async ValueTask Restore([NotNull] CameraSaveState saveState)
         {
             await base.Restore(saveState).ConfigureAwait(false);
             usingRearCab = saveState.UsingRearCab;
@@ -2412,9 +2415,9 @@ namespace Orts.ActivityRunner.Viewer3D
             return saveState;
         }
 
-        public override async ValueTask Restore(CameraSaveState saveState)
+        public override async ValueTask Restore([NotNull] CameraSaveState saveState)
         {
-            await base.Restore(saveState).ConfigureAwait(false); 
+            await base.Restore(saveState).ConfigureAwait(false);
             SideLocation = saveState.SideLocation;
         }
 
@@ -2897,7 +2900,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private readonly float superElevationGaugeOverTwo;
 
-        public SpecialTracksideCamera(Viewer viewer)
+        public SpecialTracksideCamera([NotNull] Viewer viewer)
             : base(viewer)
         {
             superElevationGaugeOverTwo = viewer.Settings.SuperElevationGauge / 1000f / 2;
