@@ -39,8 +39,9 @@ namespace Orts.Models.State
         [MemoryPackIgnore]
         public IEnumerable<string> ArgumentsSetOnly
         {
+            get => Arguments;
             set
-            {
+            {   ArgumentNullException.ThrowIfNull(value, nameof(value));
                 Arguments = new Collection<string>();
                 foreach (string item in value)
                 {

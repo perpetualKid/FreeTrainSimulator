@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common.Info;
@@ -20,9 +21,10 @@ namespace Orts.ActivityRunner.Processes
         {
         }
 
-        internal override void Load()
+        internal override ValueTask Load()
         {
             Game.PopState();
+            return base.Load();
         }
 
         protected override void Dispose(bool disposing)

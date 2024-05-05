@@ -66,8 +66,6 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.World;
 
-using SharpDX.Direct2D1;
-
 namespace Orts.ActivityRunner.Viewer3D
 {
     public enum DetailInfoType
@@ -373,11 +371,6 @@ namespace Orts.ActivityRunner.Viewer3D
             Settings.Save(nameof(Settings.PopupStatus));
             Settings.Save(nameof(Settings.PopupSettings));
             Settings.Save(nameof(Settings.OdometerShortDistanceMode));
-        }
-
-        internal void Restore(BinaryReader inf)
-        {
-
         }
 
         /// <summary>

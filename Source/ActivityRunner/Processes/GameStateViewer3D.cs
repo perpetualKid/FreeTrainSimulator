@@ -133,9 +133,10 @@ namespace Orts.ActivityRunner.Processes
             Viewer.Update(frame, elapsedRealTime);
         }
 
-        internal override void Load()
+        internal override ValueTask Load()
         {
             Viewer.Load();
+            return base.Load();
         }
 
         protected override void Dispose(bool disposing)

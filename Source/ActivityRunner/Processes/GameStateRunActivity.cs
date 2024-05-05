@@ -28,6 +28,8 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 
+using MemoryPack;
+
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D;
@@ -133,7 +135,7 @@ namespace Orts.ActivityRunner.Processes
             base.Update(frame, gameTime);
         }
 
-        internal override void Load()
+        internal override async ValueTask Load()
         {
             // Load loading image first!
             loading ??= new LoadingPrimitive(Game);
@@ -150,34 +152,34 @@ namespace Orts.ActivityRunner.Processes
 
             UserSettings settings = Game.Settings;
 
-            Action doAction = () =>
+            async ValueTask doAction()
             {
                 // Do the action specified or write out some help.
                 switch (actionType)
                 {
                     case ActionType.Start:
                         InitLogging();
-                        InitLoading();
+                        await InitLoading().ConfigureAwait(false);
                         Start(settings);
                         break;
                     case ActionType.Resume:
                         InitLogging();
-                        InitLoading();
-                        Resume(settings).AsTask().Wait();
+                        await InitLoading().ConfigureAwait(false);
+                        await Resume(settings).ConfigureAwait(false);
                         break;
                     case ActionType.Replay:
                         InitLogging();
-                        InitLoading();
-                        Replay(settings);
+                        await InitLoading().ConfigureAwait(false);
+                        await Replay(settings).ConfigureAwait(false);
                         break;
                     case ActionType.ReplayFromSave:
                         InitLogging();
-                        InitLoading();
-                        ReplayFromSave(settings);
+                        await InitLoading().ConfigureAwait(false);
+                        await ReplayFromSave(settings).ConfigureAwait(false);
                         break;
                     case ActionType.Test:
                         InitLogging(true);
-                        InitLoading();
+                        await InitLoading().ConfigureAwait(false);
                         Test(settings);
                         break;
 
@@ -190,10 +192,10 @@ namespace Orts.ActivityRunner.Processes
                         Game.Exit();
                         break;
                 }
-            };
+            }
             try
             {
-                doAction();
+                await doAction().ConfigureAwait(false);
             }
             catch (Exception error) when (!Debugger.IsAttached)
             {
@@ -204,15 +206,7 @@ namespace Orts.ActivityRunner.Processes
                     if (error is FileLoadException fileLoadException && (fileLoadException.InnerException is FileNotFoundException || fileLoadException.InnerException is DirectoryNotFoundException))
                         error = fileLoadException.InnerException;
 
-                    if (error is IncompatibleSaveException incompatibleSaveException)
-                    {
-                        MessageBox.Show($"Save file is incompatible with this version of {RuntimeInfo.ProductName}.\n\n" +
-                            $"    {incompatibleSaveException.SaveFile}\n\n" +
-                            $"Saved version: {incompatibleSaveException.Version}\n" +
-                            $"Current version: {VersionInfo.Version}",
-                            $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    else if (error is InvalidCommandLineException)
+                    if (error is InvalidCommandLineException)
                         MessageBox.Show($"{RuntimeInfo.ProductName} was started with an invalid command-line. {error.Message} Arguments given:\n\n{string.Join("\n", data.Select(d => "\u2022 " + d).ToArray())}",
                             $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     else if (error is MissingTrackNodeException)
@@ -251,7 +245,7 @@ namespace Orts.ActivityRunner.Processes
                 Game.Exit();
                 Environment.Exit(-1);
             }
-            UninitLoading();
+            await UninitLoading().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -316,7 +310,6 @@ namespace Orts.ActivityRunner.Processes
             pipe.Writer.Write(saveState.LegacyState.FirstSpan);
             await pipe.Writer.FlushAsync().ConfigureAwait(false);
 
-            //using (BinaryReader inf = settings.LogSaveData ? new LoggedBinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)) : new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
             using (BinaryReader inf = new BinaryReader(pipe.Reader.AsStream()))
             {
                 try // Because Restore() methods may try to read beyond the end of an out of date file.
@@ -368,7 +361,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Replay a saved game.
         /// </summary>
-        private void Replay(UserSettings settings)
+        private async ValueTask Replay(UserSettings settings)
         {
             // If "-replay" also specifies a save file then use it
             // E.g. ActivityRunner.exe -replay "yard_two 2012-03-20 22.07.36"
@@ -377,18 +370,15 @@ namespace Orts.ActivityRunner.Processes
 
             // First use the .save file to extract the route and activity.
             string saveFile = GetSaveFile(data);
-            string versionOrBuild = string.Empty;
-            using (BinaryReader inf = settings.LogSaveData ? new LoggedBinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)) : new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
-            {
-                versionOrBuild = GetValidSaveVersionOrBuild(saveFile, inf);
-                (string PathName, float InitialTileX, float InitialTileZ, string[] Args, ActivityType ActivityType) = GetSavedValues(inf);
-                activityType = ActivityType;
-                data = Args;
-                InitSimulator(settings);
-                simulator.Start(Game.LoaderProcess.CancellationToken);
-                Viewer = new Viewer(simulator, Game);
-                Viewer.Initialize();
-            }
+
+            GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile).ConfigureAwait(false);
+
+            activityType = saveState.ActivityType;
+            data = saveState.Arguments.ToArray();
+            InitSimulator(settings);
+            simulator.Start(Game.LoaderProcess.CancellationToken);
+            Viewer = new Viewer(simulator, Game);
+            Viewer.Initialize();
 
             // Load command log to replay
             simulator.ReplayCommandList = new List<ICommand>();
@@ -409,7 +399,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Replay the last segment of a saved game.
         /// </summary>
-        private void ReplayFromSave(UserSettings settings)
+        private async ValueTask ReplayFromSave(UserSettings settings)
         {
             // E.g. RunActivity.exe -replay_from_save "yard_two 2012-03-20 22.07.36"
             string saveFile = GetSaveFile(data);
@@ -430,8 +420,8 @@ namespace Orts.ActivityRunner.Processes
                 if (saveCommand != null)
                 {
                     string file = Path.Combine(RuntimeInfo.UserDataFolder, saveCommand.FileStem);
-                    if (!file.EndsWith(".save", StringComparison.OrdinalIgnoreCase))
-                        file += ".save";
+                    if (!file.EndsWith(FileNameExtensions.SaveFile, StringComparison.OrdinalIgnoreCase))
+                        file += FileNameExtensions.SaveFile;
                     if (File.Exists(file))
                     {
                         previousSaveFile = file;
@@ -450,34 +440,36 @@ namespace Orts.ActivityRunner.Processes
                 // No save file found so just replay from start
                 replayCommandList.AddRange(log.CommandList);    // copy the commands before deleting them.
                 log.CommandList.Clear();
-                // But we have no args, so have to get these from the Save
-                using (BinaryReader inf = new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
-                {
-                    inf.ReadString();    // Revision
-                    (string _, float _, float _, string[] Args, ActivityType _) = GetSavedValues(inf);
-                    actionType = ActionType.Replay;
-                    data = Args;
-                    InitSimulator(settings);
-                }
+
+                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile).ConfigureAwait(false);
+
+                actionType = ActionType.Replay;
+                data = saveState.Arguments.ToArray();
+                InitSimulator(settings);
+
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
                 Viewer.Initialize();
             }
             else
             {
-                // Resume from previous SaveFile and then replay
-                using (BinaryReader inf = new BinaryReader(new FileStream(previousSaveFile, FileMode.Open, FileAccess.Read)))
-                {
-                    GetValidSaveVersionOrBuild(saveFile, inf);
+                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(previousSaveFile).ConfigureAwait(false);
 
-                    (string PathName, float InitialTileX, float InitialTileZ, string[] Args, ActivityType ActivityType) = GetSavedValues(inf);
-                    data = Args;
+                Pipe pipe = new Pipe();
+                pipe.Writer.Write(saveState.LegacyState.FirstSpan);
+                await pipe.Writer.FlushAsync().ConfigureAwait(false);
+
+                // Resume from previous SaveFile and then replay
+                using (BinaryReader inf = new BinaryReader(pipe.Reader.AsStream()))
+                {
+                    activityType = saveState.ActivityType;
+                    data = saveState.Arguments.ToArray();
                     actionType = ActionType.Resume;
                     InitSimulator(settings);
-                    simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
+                    simulator.Restore(inf, saveState.PathName, saveState.InitalTile.X, saveState.InitalTile.Z, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(simulator, Game);
                     Viewer.Initialize();
-                    Viewer.Restore(inf);
+                    await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
                 }
             }
 
@@ -490,21 +482,6 @@ namespace Orts.ActivityRunner.Processes
 #pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(Viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
-        }
-
-        private static string GetValidSaveVersionOrBuild(string saveFile, BinaryReader inf)
-        {
-            string version = inf.ReadString(); // e.g. 1.3.2-alpha.4
-            bool? valid = VersionInfo.GetValidity(version);
-            if (valid == false) // This is usually detected in ResumeForm.cs but a Resume can also be launched from the command line.
-                throw new IncompatibleSaveException(saveFile, version);
-            if (!valid.HasValue)
-            {
-                //Cannot make this multi-language using Viewer.Catalog as Viewer is still null.
-                Trace.TraceWarning($"Restoring from a save made by version {version} "
-                    + $"of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}.");
-            }
-            return version;
         }
 
         /// <summary>
@@ -556,13 +533,13 @@ namespace Orts.ActivityRunner.Processes
         private string loadingDataFilePath;
         private long loadingBytesInitial;
         private DateTime loadingStart;
-        private long[] loadingBytesExpected;
+        private List<long> loadingBytesExpected;
         private List<long> loadingBytesActual;
         private TimeSpan loadingBytesSampleRate;
         private DateTime loadingNextSample = DateTime.MinValue;
         private float loadedPercent = -1f;
 
-        private void InitLoading()
+        private async ValueTask InitLoading()
         {
             // Get the initial bytes; this is subtracted from all further uses of GetProcessBytesLoaded().
             loadingBytesInitial = GetProcessBytesLoaded();
@@ -573,34 +550,20 @@ namespace Orts.ActivityRunner.Processes
             loadingDataKey = string.Join(" ", data.Where(a => a.Contains('.', StringComparison.OrdinalIgnoreCase)).ToArray()).ToUpperInvariant();
             loadingDataFilePath = RuntimeInfo.GetCacheFilePath("Load", loadingDataKey);
 
-            int loadingTime = 0;
-            long[] bytesExpected = new long[loadingSampleCount];
-            List<long> bytesActual = new List<long>(loadingSampleCount);
             // The loading of the cached data doesn't matter if anything goes wrong; we'll simply have no progress bar.
+            LoadingDataState loadingData = null;
             try
             {
-                if (File.Exists(loadingDataFilePath))
-                {
-                    using (FileStream data = File.OpenRead(loadingDataFilePath))
-                    {
-                        using (BinaryReader reader = new BinaryReader(data))
-                        {
-                            reader.ReadString();
-                            loadingTime = reader.ReadInt32();
-                            for (int i = 0; i < loadingSampleCount; i++)
-                                bytesExpected[i] = reader.ReadInt64();
-                        }
-                    }
-                }
+                loadingData = await LoadingDataState.FromFile<LoadingDataState>(loadingDataFilePath).ConfigureAwait(false);
             }
-            catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException || exception is ArgumentException)
+            catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException || exception is ArgumentException || exception is MemoryPackSerializationException)
             { }
 
             loadingStart = DateTime.UtcNow;
-            loadingBytesExpected = bytesExpected;
-            loadingBytesActual = bytesActual;
+            loadingBytesExpected = loadingData?.Samples.ToList() ?? new List<long>(Enumerable.Repeat(0L, 100));
+            loadingBytesActual = new List<long>(loadingSampleCount);
             // Using the cached loading time, pick a sample rate that will get us ~100 samples. Clamp to 100ms < x < 10,000ms.
-            loadingBytesSampleRate = new TimeSpan(0, 0, 0, 0, MathHelper.Clamp(loadingTime / loadingSampleCount, 100, 10000));
+            loadingBytesSampleRate = TimeSpan.FromMilliseconds(Math.Clamp((loadingData?.LoadingDuration.TotalMilliseconds) ?? 0 / loadingSampleCount, 100, 10000));
             loadingNextSample = loadingStart + loadingBytesSampleRate;
         }
 
@@ -635,7 +598,7 @@ namespace Orts.ActivityRunner.Processes
             }
         }
 
-        private void UninitLoading()
+        private async ValueTask UninitLoading()
         {
             if (loadingDataKey == null)
                 return;
@@ -669,17 +632,15 @@ namespace Orts.ActivityRunner.Processes
             // Like loading, saving the loading cache data doesn't matter if it fails. We'll just have no data to show progress with.
             try
             {
-                using (FileStream data = File.OpenWrite(loadingDataFilePath))
+                LoadingDataState loadingData = new LoadingDataState()
                 {
-                    data.SetLength(0);
-                    using (BinaryWriter writer = new BinaryWriter(data))
-                    {
-                        writer.Write(loadingDataKey);
-                        writer.Write((int)loadingTime.TotalMilliseconds);
-                        for (int i = 0; i < loadingSampleCount; i++)
-                            writer.Write(loadingBytesExpected[i]);
-                    }
-                }
+                    DataKey = loadingDataKey,
+                    LoadingDuration = loadingTime,
+                    Samples = new System.Collections.ObjectModel.Collection<long>(loadingBytesExpected),
+                };
+                await LoadingDataState.ToFile(loadingDataFilePath, loadingData).ConfigureAwait(false);
+                for (int i = 0; i < loadingSampleCount; i++)
+                    loadingData.Samples.Add(loadingBytesExpected[i]);
             }
             catch (Exception exception) when (exception is UnauthorizedAccessException || exception is IOException || exception is DirectoryNotFoundException || exception is NotSupportedException || exception is ObjectDisposedException)
             { }
@@ -863,35 +824,6 @@ namespace Orts.ActivityRunner.Processes
                 saveFile += FileNameExtensions.SaveFile;
             }
             return Path.Combine(RuntimeInfo.UserDataFolder, saveFile);
-        }
-
-        private static (string PathName, float InitialTileX, float InitialTileZ, string[] Args, ActivityType ActivityType) GetSavedValues(BinaryReader inf)
-        {
-            (string PathName, float InitialTileX, float InitialTileZ, string[] Args, ActivityType ActivityType) result;
-
-            // Skip the heading data used in Menu.exe
-            // Done so even if not elegant to be compatible with existing save files
-            if (inf.ReadString() == "$Multipl$")
-                inf.ReadString();    // Route name
-            result.PathName = inf.ReadString();    // Path name
-                                                   //skip
-            inf.ReadInt32();     // Time elapsed in game (secs)
-            inf.ReadInt64();     // Date and time in real world
-            inf.ReadSingle();    // Current location of player train TileX
-            inf.ReadSingle();    // Current location of player train TileZ
-
-            // Read initial position and pass to Simulator so it can be written out if another save is made.
-            result.InitialTileX = inf.ReadSingle();  // Initial location of player train TileX
-            result.InitialTileZ = inf.ReadSingle();  // Initial location of player train TileZ
-
-            // Read in the real data...
-            string[] savedArgs = new string[inf.ReadInt32()];
-            for (int i = 0; i < savedArgs.Length; i++)
-                savedArgs[i] = inf.ReadString();
-            result.Args = savedArgs;
-            result.ActivityType = (ActivityType)inf.ReadInt32();
-
-            return result;
         }
 
         private static long GetProcessBytesLoaded()

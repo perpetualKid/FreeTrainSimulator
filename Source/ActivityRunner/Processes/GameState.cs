@@ -73,8 +73,9 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Called to load new content as and when necessary.
         /// </summary>
-        internal virtual void Load()
+        internal virtual ValueTask Load()
         {
+            return ValueTask.CompletedTask;
         }
 
         internal virtual ValueTask Save()

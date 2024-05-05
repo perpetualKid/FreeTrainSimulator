@@ -106,23 +106,5 @@ namespace Orts.Common.Info
                 productName = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductName;
             return productName;
         }
-
-        /// <summary>
-        /// Find whether a requested version is valid for this current version
-        /// </summary>
-        /// <param name="version">version to test again</param>
-        /// <param name="youngestFailedToResume">highest version that failed to resume</param>
-        /// <returns>true or false when able to determine validity, null otherwise</returns>
-        public static bool? GetValidity(string version)
-        {
-            //TODO 20200910 bare minimum reimplementation, but versioning does not have reliable information about savepoint compatiblity
-            if (NuGetVersion.TryParse(version, out NuGetVersion nugetVersion))
-            {
-                if (nugetVersion.Equals(CurrentVersion, VersionComparison.VersionRelease))
-                    return true;
-                return null;
-            }
-            return false; // default validity
-        }
     }
 }
