@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -235,18 +236,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 cameraLocation = previousCamera.CameraWorldLocation;
                 FieldOfView = previousCamera.FieldOfView;
             }
-        }
-
-        internal protected virtual void Save(BinaryWriter output)
-        {
-            WorldLocation.Save(cameraLocation, output);
-            output.Write(FieldOfView);
-        }
-
-        internal protected virtual void Restore(BinaryReader input)
-        {
-            cameraLocation = WorldLocation.Restore(input);
-            FieldOfView = input.ReadSingle();
         }
 
         /// <summary>
@@ -480,7 +469,7 @@ namespace Orts.ActivityRunner.Viewer3D
             OpenAL.Listenerfv(OpenAL.AL_ORIENTATION, cameraOrientation);
         }
 
-        public ValueTask<CameraSaveState> Snapshot()
+        public virtual ValueTask<CameraSaveState> Snapshot()
         {
             return ValueTask.FromResult(new CameraSaveState()
             {
@@ -489,8 +478,10 @@ namespace Orts.ActivityRunner.Viewer3D
             });
         }
 
-        public ValueTask Restore(CameraSaveState saveState)
+        public virtual ValueTask Restore(CameraSaveState saveState)
         {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
             FieldOfView = saveState.FieldOfView;
             cameraLocation = saveState.Location;
             return ValueTask.CompletedTask;
@@ -530,18 +521,19 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        internal protected override void Save(BinaryWriter output)
+
+        public override async ValueTask<CameraSaveState> Snapshot()
         {
-            base.Save(output);
-            output.Write(rotationXRadians);
-            output.Write(rotationYRadians);
+            CameraSaveState result = await base.Snapshot().ConfigureAwait(false);
+            result.TrackingRotation = new System.Numerics.Vector3(rotationXRadians, rotationYRadians, 0);
+            return result;
         }
 
-        internal protected override void Restore(BinaryReader input)
+        public override async ValueTask Restore(CameraSaveState saveState)
         {
-            base.Restore(input);
-            rotationXRadians = input.ReadSingle();
-            rotationYRadians = input.ReadSingle();
+            await base.Restore(saveState).ConfigureAwait(true);
+            rotationXRadians = saveState.TrackingRotation.X;
+            rotationYRadians = saveState.TrackingRotation.Y;
         }
 
         public override void Reset()
@@ -765,16 +757,17 @@ namespace Orts.ActivityRunner.Viewer3D
         {
         }
 
-        internal protected override void Save(BinaryWriter output)
+        public override async ValueTask<CameraSaveState> Snapshot()
         {
-            base.Save(output);
-            WorldLocation.Save(targetLocation, output);
+            CameraSaveState result = await base.Snapshot().ConfigureAwait(false);
+            result.TargetLocation = targetLocation;
+            return result;
         }
 
-        internal protected override void Restore(BinaryReader input)
+        public override async ValueTask Restore(CameraSaveState saveState)
         {
-            base.Restore(input);
-            targetLocation = WorldLocation.Restore(input);
+            await base.Restore(saveState).ConfigureAwait(false);
+            targetLocation = saveState.TargetLocation;
         }
 
         protected override Matrix GetCameraView()
@@ -782,7 +775,6 @@ namespace Orts.ActivityRunner.Viewer3D
             return Matrix.CreateLookAt(XnaLocation(cameraLocation), XnaLocation(targetLocation), Vector3.UnitY);
         }
     }
-
 
     public class FreeRoamCamera : RotatingCamera
     {
@@ -982,32 +974,28 @@ namespace Orts.ActivityRunner.Viewer3D
         {
         }
 
-        internal protected override void Save(BinaryWriter output)
+        public async override ValueTask<CameraSaveState> Snapshot()
         {
-            base.Save(output);
-            if (AttachedCar?.Train != null && AttachedCar?.Train == viewer.SelectedTrain)
-                output.Write(viewer.SelectedTrain.Cars.IndexOf(AttachedCar));
+            CameraSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+            if (AttachedCar?.Train != null && AttachedCar.Train == viewer.SelectedTrain)
+                saveState.AttachedTrainCarIndex = viewer.SelectedTrain.Cars.IndexOf(AttachedCar);
             else
-                output.Write((int)-1);
-            output.Write(attachedLocation.X);
-            output.Write(attachedLocation.Y);
-            output.Write(attachedLocation.Z);
+                saveState.AttachedTrainCarIndex = -1;
+            saveState.TargetLocation = new WorldLocation(0, 0, attachedLocation);
+            return saveState;
         }
 
-        internal protected override void Restore(BinaryReader input)
+        public override async ValueTask Restore(CameraSaveState saveState)
         {
-            base.Restore(input);
-            var carIndex = input.ReadInt32();
-            if (carIndex != -1 && viewer.SelectedTrain != null)
+            await base.Restore(saveState).ConfigureAwait(false);
+            if (saveState.AttachedTrainCarIndex > -1)
             {
-                if (carIndex < viewer.SelectedTrain.Cars.Count)
-                    AttachedCar = viewer.SelectedTrain.Cars[carIndex];
+                if (saveState.AttachedTrainCarIndex < viewer.SelectedTrain.Cars.Count)
+                    AttachedCar = viewer.SelectedTrain.Cars[saveState.AttachedTrainCarIndex];
                 else if (viewer.SelectedTrain.Cars.Count > 0)
-                    AttachedCar = viewer.SelectedTrain.Cars[viewer.SelectedTrain.Cars.Count - 1];
+                    AttachedCar = viewer.SelectedTrain.Cars[^1];
             }
-            attachedLocation.X = input.ReadSingle();
-            attachedLocation.Y = input.ReadSingle();
-            attachedLocation.Z = input.ReadSingle();
+            attachedLocation = saveState.TargetLocation.Location;
         }
 
         protected override void OnActivate(bool sameCamera)
@@ -1165,31 +1153,31 @@ namespace Orts.ActivityRunner.Viewer3D
             rotationYRadians = positionYRadians - MathHelper.Pi;
         }
 
-        internal protected override void Save(BinaryWriter output)
+        public override async ValueTask<CameraSaveState> Snapshot()
         {
-            base.Save(output);
-            output.Write(positionDistance);
-            output.Write(positionXRadians);
-            output.Write(positionYRadians);
-            output.Write(browseMode);
-            output.Write(browseForwards);
-            output.Write(browseBackwards);
-            output.Write(zDistanceM);
+            CameraSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+            saveState.BrowseTracking = browseMode;
+            saveState.BrowseForward = browseForwards;
+            saveState.BrowseBackward = browseBackwards;
+            saveState.TrackingPosition = new System.Numerics.Vector3(positionXRadians, positionYRadians, positionDistance);
+            saveState.Distance = zDistanceM;
+            return saveState;
         }
 
-        internal protected override void Restore(BinaryReader input)
+        public async override ValueTask Restore(CameraSaveState saveState)
         {
-            base.Restore(input);
-            positionDistance = input.ReadSingle();
-            positionXRadians = input.ReadSingle();
-            positionYRadians = input.ReadSingle();
-            browseMode = input.ReadBoolean();
-            browseForwards = input.ReadBoolean();
-            browseBackwards = input.ReadBoolean();
-            zDistanceM = input.ReadSingle();
+            await base.Restore(saveState).ConfigureAwait(false);
+            browseMode = saveState.BrowseTracking;
+            browseForwards = saveState.BrowseForward;
+            browseBackwards = saveState.BrowseBackward;
+            positionXRadians = saveState.TrackingPosition.X;
+            positionYRadians = saveState.TrackingPosition.Y;
+            positionDistance = saveState.TrackingPosition.Z;
+            zDistanceM = saveState.Distance;
+
             if (AttachedCar != null && AttachedCar.Train == viewer.SelectedTrain)
             {
-                var trainCars = GetCameraCars();
+                IEnumerable<TrainCar> trainCars = GetCameraCars();
                 browseDistance = AttachedCar.CarLengthM * 0.5f;
                 if (attachedToFront)
                 {
@@ -1204,6 +1192,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 //               LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
                 ComputeCarOffsets(this);
             }
+
         }
 
         public override void Reset()
@@ -1849,7 +1838,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private protected string prevcar = "";
         private protected int actViewPoint;
         private protected int prevViewPoint = -1;
-        private protected bool prevCabWasRear;
+        private protected bool usingRearCab;
         private float x, y, z;
 
         /// <summary>
@@ -1987,7 +1976,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void MoveCameraXYZ(float x, float y, float z)
         {
-            if (prevCabWasRear)
+            if (usingRearCab)
             {
                 x = -x;
                 z = -z;
@@ -2032,30 +2021,26 @@ namespace Orts.ActivityRunner.Viewer3D
             viewPointRotationYRadians = rotationYRadians;
         }
 
-        internal protected override void Save(BinaryWriter output)
+        public override async ValueTask<CameraSaveState> Snapshot()
         {
-            base.Save(output);
-            output.Write(actViewPoint);
-            output.Write(prevViewPoint);
-            output.Write(prevcar);
-            output.Write(startViewPointLocation.X);
-            output.Write(startViewPointLocation.Y);
-            output.Write(startViewPointLocation.Z);
-            output.Write(startViewPointRotationXRadians);
-            output.Write(startViewPointRotationYRadians);
+            CameraSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+            saveState.CurrentViewPoint = actViewPoint;
+            saveState.PreviousViewPoint = prevViewPoint;
+            saveState.CarId = prevcar;
+            saveState.TrackingPosition = startViewPointLocation.ToNumerics();
+            saveState.TrackingRotationStart = new System.Numerics.Vector3(startViewPointRotationXRadians, startViewPointRotationYRadians, 0);
+            return saveState;
         }
 
-        internal protected override void Restore(BinaryReader input)
+        public override async ValueTask Restore(CameraSaveState saveState)
         {
-            base.Restore(input);
-            actViewPoint = input.ReadInt32();
-            prevViewPoint = input.ReadInt32();
-            prevcar = input.ReadString();
-            startViewPointLocation.X = input.ReadSingle();
-            startViewPointLocation.Y = input.ReadSingle();
-            startViewPointLocation.Z = input.ReadSingle();
-            startViewPointRotationXRadians = input.ReadSingle();
-            startViewPointRotationYRadians = input.ReadSingle();
+            await base.Restore(saveState).ConfigureAwait(false);
+            actViewPoint = saveState.CurrentViewPoint;
+            prevViewPoint = saveState.PreviousViewPoint;
+            prevcar =saveState.CarId;
+            startViewPointLocation = saveState.TrackingPosition;
+            startViewPointRotationXRadians = saveState.TrackingRotationStart.X;
+            startViewPointRotationYRadians = saveState.TrackingRotationStart.Y;
         }
 
         public override void Reset()
@@ -2092,7 +2077,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             base.SetCameraCar(car);
             // Settings are held so that when switching back from another camera, view is not reset.
-            // View is only reset on move to a different car and/or viewpoint or "Ctl + 8".
+            // View is only reset on move to a different car and/or viewpoint or "Ctrl + 8".
             if (car != null && car.CarID != prevcar)
             {
                 actViewPoint = 0;
@@ -2173,7 +2158,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             base.SetCameraCar(car);
             // Settings are held so that when switching back from another camera, view is not reset.
-            // View is only reset on move to a different cab or "Ctl + 8".
+            // View is only reset on move to a different cab or "Ctrl + 8".
             if (AttachedCar.CabViewpoints != null && car != null)
             {
                 if (car.CarID != prevcar || actViewPoint != prevViewPoint)
@@ -2197,24 +2182,25 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (newCar is MSTSLocomotive mstsLocomotive)
             {
-                if (prevCabWasRear != mstsLocomotive.UsingRearCab)
+                if (usingRearCab != mstsLocomotive.UsingRearCab)
                     rotationYRadians += MathHelper.Pi;
                 actViewPoint = mstsLocomotive.UsingRearCab ? 1 : 0;
-                prevCabWasRear = mstsLocomotive.UsingRearCab;
+                usingRearCab = mstsLocomotive.UsingRearCab;
                 SetCameraCar(newCar);
             }
         }
 
-        internal protected override void Save(BinaryWriter output)
+        public override async ValueTask<CameraSaveState> Snapshot()
         {
-            base.Save(output);
-            output.Write(prevCabWasRear);
+            CameraSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+            saveState.UsingRearCab = usingRearCab;
+            return saveState;
         }
 
-        internal protected override void Restore(BinaryReader input)
+        public override async ValueTask Restore(CameraSaveState saveState)
         {
-            base.Restore(input);
-            prevCabWasRear = input.ReadBoolean();
+            await base.Restore(saveState).ConfigureAwait(false);
+            usingRearCab = saveState.UsingRearCab;
         }
 
         public override bool IsUnderground
@@ -2419,16 +2405,17 @@ namespace Orts.ActivityRunner.Viewer3D
             Style = CameraStyle.Cab;
         }
 
-        internal protected override void Save(BinaryWriter output)
+        public override async ValueTask<CameraSaveState> Snapshot()
         {
-            base.Save(output);
-            output.Write(SideLocation);
+            CameraSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+            saveState.SideLocation = SideLocation;
+            return saveState;
         }
 
-        internal protected override void Restore(BinaryReader input)
+        public override async ValueTask Restore(CameraSaveState saveState)
         {
-            base.Restore(input);
-            SideLocation = input.ReadInt32();
+            await base.Restore(saveState).ConfigureAwait(false); 
+            SideLocation = saveState.SideLocation;
         }
 
         public override void Reset()
