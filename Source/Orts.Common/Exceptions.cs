@@ -28,37 +28,6 @@ namespace Orts.Common
     }
 
     [Serializable]
-    public sealed class IncompatibleSaveException : Exception
-    {
-        public string SaveFile { get; private set; }
-        public string Version { get; private set; }
-
-        public IncompatibleSaveException(string saveFile, string version, Exception innerException)
-            : base(null, innerException)
-        {
-            SaveFile = saveFile;
-            Version = version;
-        }
-
-        public IncompatibleSaveException(string saveFile, string version)
-            : this(saveFile, version, null)
-        {
-        }
-
-        public IncompatibleSaveException()
-        {
-        }
-
-        public IncompatibleSaveException(string message) : base(message)
-        {
-        }
-
-        public IncompatibleSaveException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-    }
-
-    [Serializable]
     public sealed class InvalidCommandLineException : Exception
     {
         public InvalidCommandLineException(string message)

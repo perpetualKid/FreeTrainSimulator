@@ -302,7 +302,6 @@ namespace Orts.ActivityRunner.Processes
 
             // First use the .save file to check the validity and extract the route and activity.
             string saveFile = GetSaveFile(data);
-            string versionOrBuild = string.Empty;
 
             GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile).ConfigureAwait(false);
 
@@ -312,8 +311,6 @@ namespace Orts.ActivityRunner.Processes
 
             using (BinaryReader inf = new BinaryReader(pipe.Reader.AsStream()))
             {
-                try // Because Restore() methods may try to read beyond the end of an out of date file.
-                {
                     activityType = saveState.ActivityType;
                     data = saveState.Arguments.ToArray();
                     InitSimulator(settings);
@@ -330,25 +327,6 @@ namespace Orts.ActivityRunner.Processes
 
                     if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
                         MultiPlayerManager.OnlineTrains.Restore(inf);
-
-                }
-                catch (Exception error)
-                {
-                    inf.Close();
-                    if (versionOrBuild == VersionInfo.Version)
-                    {
-                        // If the save version is the same as the program version, we can't be an incompatible save - it's just a bug.
-                        throw;
-                    }
-                    else
-                    {
-                        // Rethrow the existing error if it is already an IncompatibleSaveException.
-                        if (error is IncompatibleSaveException)
-                            throw;
-                        throw new IncompatibleSaveException(saveFile, versionOrBuild, error);
-                    }
-                }
-
                 // Reload the command log
                 simulator.Log.LoadLog(Path.ChangeExtension(saveFile, "replay"));
 

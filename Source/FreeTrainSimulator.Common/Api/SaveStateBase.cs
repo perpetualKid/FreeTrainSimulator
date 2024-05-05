@@ -10,7 +10,7 @@ namespace FreeTrainSimulator.Common.Api
     // New properties must be added last, backwards compatibility is assumed as long property order is kept
     public abstract class SaveStateBase
     {
-        public static async Task<T> FromFile<T>(string fileName) where T : SaveStateBase
+        public static async ValueTask<T> FromFile<T>(string fileName) where T : SaveStateBase
         {
             using (FileStream saveFile = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Common.Api
             }
         }
 
-        public static async Task ToFile<T>(string fileName, T saveState) where T : SaveStateBase
+        public static async ValueTask ToFile<T>(string fileName, T saveState) where T : SaveStateBase
         {
             using (FileStream saveFile = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
