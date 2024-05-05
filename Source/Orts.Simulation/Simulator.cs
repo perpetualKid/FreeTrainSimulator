@@ -21,8 +21,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using GetText;
 
@@ -37,6 +39,7 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Settings;
 using Orts.Simulation.Activities;
@@ -96,7 +99,7 @@ namespace Orts.Simulation
     ///     
     /// All keyboard input comes from the viewer class as calls on simulator's methods.
     /// </summary>
-    public class Simulator : IGametimeSource
+    public class Simulator : IGametimeSource, ISaveStateApi<SimulatorSaveState>
     {
         private string explorePath;
         private string exploreConsist;
@@ -477,6 +480,23 @@ namespace Orts.Simulation
             SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
             SignalEnvironment.Update(true);           // update all signals once to set proper stat
             ContainerManager.Restore(inf);
+        }
+
+        public ValueTask<SimulatorSaveState> Snapshot()
+        {
+            return ValueTask.FromResult(new SimulatorSaveState()
+            { 
+                ClockTime = ClockTime,
+                Season = Season,
+                Weather = WeatherType,
+                WeatherFile = UserWeatherFile,
+                TimetableMode = TimetableMode,
+            });
+        }
+
+        public ValueTask Restore(SimulatorSaveState saveState)
+        {
+            throw new NotImplementedException();
         }
 
         public void Save(BinaryWriter outf)

@@ -12,8 +12,11 @@ using Orts.Common.Info;
 
 namespace Orts.Common.Logging
 {
-    public static class LoggingUtil
+    public static partial class LoggingUtil
     {
+        [GeneratedRegex(@"\{(\w*?)\}")]
+        private static partial Regex paramReplacement();
+
         public static readonly string SeparatorLine = new string('-', 80);
 
         public const string BugTrackerUrl = "https://github.com/perpetualKid/ORTS-MG/issues";
@@ -29,8 +32,6 @@ namespace Orts.Common.Logging
 
         public static string CustomizeLogFileName(string fileNamePattern)
         {
-            Regex paramReplacement = new Regex(@"\{(\w*?)\}"); // store this...
-
             Dictionary<string, string> replacementValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "application", FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileDescription},
@@ -40,7 +41,7 @@ namespace Orts.Common.Logging
                 { "time", TimeSpan.FromSeconds((int)DateTime.Now.TimeOfDay.TotalSeconds).ToString("t", CultureInfo.CurrentCulture) },
             };
 
-            string result = paramReplacement.Replace(fileNamePattern, delegate (Match match) {
+            string result = paramReplacement().Replace(fileNamePattern, delegate (Match match) {
                 string key = match.Groups[1].Value;
                 return replacementValues[key];
             });

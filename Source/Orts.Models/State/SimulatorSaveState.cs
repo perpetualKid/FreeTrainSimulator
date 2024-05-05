@@ -18,7 +18,7 @@ namespace Orts.Models.State
         public double ClockTime { get; set; }
         public SeasonType Season { get; set; }
         public WeatherType Weather { get; set; }
-        public bool WeatherFileUsed { get; set; }
+        public string WeatherFile { get; set; }
         public bool TimetableMode { get; set; }
 
     }

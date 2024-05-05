@@ -28,6 +28,7 @@ using Orts.Common.Calc;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Models.State;
+using SharpDX.Direct2D1;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment
 {
@@ -71,46 +72,6 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 // We have a pause in weather change, depending from randomization level
                 if (randomizedWeather)
                     StableWeatherTimer = (4.0f - this.viewer.Settings.ActWeatherRandomizationLevel) * 600 + StaticRandom.Next(300) - 150;
-            }
-
-            public void Save(BinaryWriter outf)
-            {
-                outf.Write(overcast.Timer);
-                outf.Write(overcast.ChangeRate);
-                outf.Write(fog.Timer);
-                outf.Write(fog.ChangeRate);
-                outf.Write(precipitationIntensity.Timer);
-                outf.Write(precipitationIntensity.ChangeRate);
-                outf.Write(precipitationLiquidity.Timer);
-                outf.Write(precipitationLiquidity.ChangeRate);
-                outf.Write(overcast.Value);
-                outf.Write(fog.Value);
-                outf.Write(precipitationIntensity.Value);
-                outf.Write(precipitationLiquidity.Value);
-                outf.Write(fogDistanceIncreasing);
-                outf.Write(fog.TransitionTime);
-                outf.Write(StableWeatherTimer);
-                outf.Write(PrecipitationIntensityDelayTimer);
-            }
-
-            public void Restore(BinaryReader inf)
-            {
-                overcast.Timer = inf.ReadSingle();
-                overcast.ChangeRate = inf.ReadSingle();
-                fog.Timer = inf.ReadSingle();
-                fog.ChangeRate = inf.ReadSingle();
-                precipitationIntensity.Timer = inf.ReadSingle();
-                precipitationIntensity.ChangeRate = inf.ReadSingle();
-                precipitationLiquidity.Timer = inf.ReadSingle();
-                precipitationLiquidity.ChangeRate = inf.ReadSingle();
-                overcast.Value = inf.ReadSingle();
-                fog.Value = inf.ReadSingle();
-                precipitationIntensity.Value = inf.ReadSingle();
-                precipitationLiquidity.Value = inf.ReadSingle();
-                fogDistanceIncreasing = inf.ReadBoolean();
-                fog.TransitionTime = inf.ReadInt32();
-                StableWeatherTimer = inf.ReadSingle();
-                PrecipitationIntensityDelayTimer = inf.ReadSingle();
             }
 
             public void ResetWeatherTargets()
@@ -390,7 +351,32 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
 
             public ValueTask Restore(DynamicWeatherSaveState saveState)
             {
-                throw new NotImplementedException();
+                ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+                overcast.Timer = saveState.Overcast.Timer;
+                overcast.ChangeRate = saveState.Overcast.ChangeRate;
+                overcast.Value = saveState.Overcast.Value;
+                overcast.TransitionTime = saveState.Overcast.TransitionTime;
+
+                fog.Timer = saveState.Fog.Timer;
+                fog.ChangeRate = saveState.Fog.ChangeRate;
+                fog.Value = saveState.Fog.Value;
+                fog.TransitionTime = saveState.Fog.TransitionTime;
+
+                precipitationIntensity.Timer = saveState.PrecipitationIntensity.Timer;
+                precipitationIntensity.ChangeRate = saveState.PrecipitationIntensity.ChangeRate;
+                precipitationIntensity.Value = saveState.PrecipitationIntensity.Value;
+                precipitationIntensity.TransitionTime = saveState.PrecipitationIntensity.TransitionTime;
+
+                precipitationLiquidity.Timer = saveState.PrecipitationLiquidity.Timer;
+                precipitationLiquidity.ChangeRate = saveState.PrecipitationLiquidity.ChangeRate;
+                precipitationLiquidity.Value = saveState.PrecipitationLiquidity.Value;
+                precipitationLiquidity.TransitionTime = saveState.PrecipitationLiquidity.TransitionTime;
+                fogDistanceIncreasing = saveState.FogDistanceIncreasing;
+                StableWeatherTimer = (float)saveState.StableWeatherTimer;
+                PrecipitationIntensityDelayTimer = saveState.PrecipitationIntensityDelayTimer;
+
+                return ValueTask.CompletedTask;
             }
 
             public bool NeedUpdate()
