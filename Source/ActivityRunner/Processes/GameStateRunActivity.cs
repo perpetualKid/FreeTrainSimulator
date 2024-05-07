@@ -303,7 +303,7 @@ namespace Orts.ActivityRunner.Processes
             // First use the .save file to check the validity and extract the route and activity.
             string saveFile = GetSaveFile(data);
 
-            GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile).ConfigureAwait(false);
+            GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
             Pipe pipe = new Pipe();
             pipe.Writer.Write(saveState.LegacyState.FirstSpan);
@@ -311,22 +311,24 @@ namespace Orts.ActivityRunner.Processes
 
             using (BinaryReader inf = new BinaryReader(pipe.Reader.AsStream()))
             {
-                    activityType = saveState.ActivityType;
-                    data = saveState.Arguments.ToArray();
-                    InitSimulator(settings);
-                    simulator.Restore(inf, saveState.PathName, saveState.InitalTile.X, saveState.InitalTile.Z, Game.LoaderProcess.CancellationToken);
-                    Viewer = new Viewer(simulator, Game);
-                    Viewer.Initialize();
-                    if (MultiPlayerManager.IsMultiPlayer())
-                    {
-                        if (activityType == ActivityType.Activity)
-                            simulator.SetPathAndConsist();
-                        MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
-                    }
-                    await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
+                activityType = saveState.ActivityType;
+                data = saveState.Arguments.ToArray();
+                InitSimulator(settings);
+                simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
+                await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
+                simulator.Restore(inf);
+                Viewer = new Viewer(simulator, Game);
+                Viewer.Initialize();
+                if (MultiPlayerManager.IsMultiPlayer())
+                {
+                    if (activityType == ActivityType.Activity)
+                        simulator.SetPathAndConsist();
+                    MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
+                }
+                await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
 
-                    if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
-                        MultiPlayerManager.OnlineTrains.Restore(inf);
+                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
+                    MultiPlayerManager.OnlineTrains.Restore(inf);
                 // Reload the command log
                 simulator.Log.LoadLog(Path.ChangeExtension(saveFile, "replay"));
 
@@ -349,7 +351,7 @@ namespace Orts.ActivityRunner.Processes
             // First use the .save file to extract the route and activity.
             string saveFile = GetSaveFile(data);
 
-            GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile).ConfigureAwait(false);
+            GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
             activityType = saveState.ActivityType;
             data = saveState.Arguments.ToArray();
@@ -419,7 +421,7 @@ namespace Orts.ActivityRunner.Processes
                 replayCommandList.AddRange(log.CommandList);    // copy the commands before deleting them.
                 log.CommandList.Clear();
 
-                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile).ConfigureAwait(false);
+                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
                 actionType = ActionType.Replay;
                 data = saveState.Arguments.ToArray();
@@ -431,7 +433,7 @@ namespace Orts.ActivityRunner.Processes
             }
             else
             {
-                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(previousSaveFile).ConfigureAwait(false);
+                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(previousSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
                 Pipe pipe = new Pipe();
                 pipe.Writer.Write(saveState.LegacyState.FirstSpan);
@@ -444,7 +446,9 @@ namespace Orts.ActivityRunner.Processes
                     data = saveState.Arguments.ToArray();
                     actionType = ActionType.Resume;
                     InitSimulator(settings);
-                    simulator.Restore(inf, saveState.PathName, saveState.InitalTile.X, saveState.InitalTile.Z, Game.LoaderProcess.CancellationToken);
+                    simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
+                    await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
+                    simulator.Restore(inf);
                     Viewer = new Viewer(simulator, Game);
                     Viewer.Initialize();
                     await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
@@ -532,13 +536,13 @@ namespace Orts.ActivityRunner.Processes
             LoadingDataState loadingData = null;
             try
             {
-                loadingData = await LoadingDataState.FromFile<LoadingDataState>(loadingDataFilePath).ConfigureAwait(false);
+                loadingData = await LoadingDataState.FromFile<LoadingDataState>(loadingDataFilePath, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException || exception is ArgumentException || exception is MemoryPackSerializationException)
             { }
 
             loadingStart = DateTime.UtcNow;
-            loadingBytesExpected = loadingData?.Samples.ToList() ?? new List<long>(Enumerable.Repeat(0L, 100));
+            loadingBytesExpected = loadingData?.Samples?.ToList() ?? new List<long>(Enumerable.Repeat(0L, 100));
             loadingBytesActual = new List<long>(loadingSampleCount);
             // Using the cached loading time, pick a sample rate that will get us ~100 samples. Clamp to 100ms < x < 10,000ms.
             loadingBytesSampleRate = TimeSpan.FromMilliseconds(Math.Clamp((loadingData?.LoadingDuration.TotalMilliseconds) ?? 0 / loadingSampleCount, 100, 10000));
@@ -616,7 +620,7 @@ namespace Orts.ActivityRunner.Processes
                     LoadingDuration = loadingTime,
                     Samples = new System.Collections.ObjectModel.Collection<long>(loadingBytesExpected),
                 };
-                await LoadingDataState.ToFile(loadingDataFilePath, loadingData).ConfigureAwait(false);
+                await LoadingDataState.ToFile(loadingDataFilePath, loadingData, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                 for (int i = 0; i < loadingSampleCount; i++)
                     loadingData.Samples.Add(loadingBytesExpected[i]);
             }
@@ -696,29 +700,25 @@ namespace Orts.ActivityRunner.Processes
             {
                 case ActivityType.Activity:
                     simulator = new Simulator(settings, data[0]);
-                    if (loadingScreen == null)
-                        loadingScreen = new LoadingScreenPrimitive(Game);
+                    loadingScreen ??= new LoadingScreenPrimitive(Game);
                     simulator.SetActivity(data[0]);
                     break;
 
                 case ActivityType.Explorer:
                     simulator = new Simulator(settings, data[0]);
-                    if (loadingScreen == null)
-                        loadingScreen = new LoadingScreenPrimitive(Game);
+                    loadingScreen ??= new LoadingScreenPrimitive(Game);
                     simulator.SetExplore(data[0], data[1], startTime, season, weather);
                     break;
 
                 case ActivityType.ExploreActivity:
                     simulator = new Simulator(settings, data[0]);
-                    if (loadingScreen == null)
-                        loadingScreen = new LoadingScreenPrimitive(Game);
+                    loadingScreen ??= new LoadingScreenPrimitive(Game);
                     simulator.SetExploreThroughActivity(data[0], data[1], startTime, season, weather);
                     break;
 
                 case ActivityType.TimeTable:
                     simulator = new Simulator(settings, data[0]);
-                    if (loadingScreen == null)
-                        loadingScreen = new LoadingScreenPrimitive(Game);
+                    loadingScreen ??= new LoadingScreenPrimitive(Game);
                     if (actionType != ActionType.Start) // no specific action for start, handled in start_timetable
                     {
                         // for resume and replay : set timetable file and selected train info

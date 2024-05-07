@@ -24,8 +24,8 @@ namespace Orts.Models.State
         public bool MultiplayerGame { get; set; }
         public double GameTime { get; set; }
         public DateTime RealSaveTime { get; set; }
-        public Tile InitalTile { get; set; }
-        public WorldLocation PlayerPosition { get; set; }
+        public WorldLocation InitialLocation { get; set; }
+        public WorldLocation PlayerLocation { get; set; }
         public ActivityType ActivityType { get; set; }
         [MemoryPackInclude]
         private string finalMarker = HeaderEofMarker;
@@ -36,6 +36,7 @@ namespace Orts.Models.State
 
         [MemoryPackIgnore]
         public bool? Valid { get; private set; }
+
         [MemoryPackIgnore]
         public IEnumerable<string> ArgumentsSetOnly
         {

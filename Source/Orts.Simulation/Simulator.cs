@@ -33,6 +33,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
+using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -187,8 +188,7 @@ namespace Orts.Simulation
 
         // Used in save and restore form
         public string PathName { get; set; } = "<unknown>";
-        public float InitialTileX { get; private set; }
-        public float InitialTileZ { get; private set; }
+        public WorldLocation InitialLocation { get; private set; }
         public HazardManager HazardManager { get; }
         public FuelManager FuelManager { get; }
 
@@ -440,23 +440,17 @@ namespace Orts.Simulation
                 MultiPlayerManager.Stop();
         }
 
-        public void Restore(BinaryReader inf, string pathName, float initialTileX, float initialTileZ, CancellationToken cancellationToken)
+        public void Restore(BinaryReader inf)
         {
             ArgumentNullException.ThrowIfNull(inf);
 
             ContainerManager.FreightAnimNeedsInitialization = false;
-            ClockTime = inf.ReadDouble();
-            Season = (SeasonType)inf.ReadInt32();
-            WeatherType = (WeatherType)inf.ReadInt32();
-            TimetableMode = inf.ReadBoolean();
-            UserWeatherFile = inf.ReadString();
-            PathName = pathName;
-            InitialTileX = initialTileX;
-            InitialTileZ = initialTileZ;
+            //PathName = pathName;
+            //InitialLocation = initialLocation;
             PoolHolder = new Poolholder(inf, this);
 
-            SignalEnvironment = new SignalEnvironment(SignalConfig, false, cancellationToken);
-            SignalEnvironment.Restore(inf);
+            //SignalEnvironment = new SignalEnvironment(SignalConfig, false, cancellationToken);
+            //SignalEnvironment.Restore(inf);
 
             RestoreTrains(inf);
             LevelCrossings = new LevelCrossings();
@@ -482,34 +476,44 @@ namespace Orts.Simulation
             ContainerManager.Restore(inf);
         }
 
-        public ValueTask<SimulatorSaveState> Snapshot()
+        public async ValueTask<SimulatorSaveState> Snapshot()
         {
-            return ValueTask.FromResult(new SimulatorSaveState()
+            return new SimulatorSaveState()
             { 
                 ClockTime = ClockTime,
                 Season = Season,
                 Weather = WeatherType,
                 WeatherFile = UserWeatherFile,
                 TimetableMode = TimetableMode,
-            });
+                SignalEnvironmentSaveState = await SignalEnvironment.Snapshot().ConfigureAwait(false)
+            };
         }
 
-        public ValueTask Restore(SimulatorSaveState saveState)
+        public void BeforeRestore(string path, in WorldLocation initialLocation)
         {
-            throw new NotImplementedException();
+            PathName = path;
+            InitialLocation = initialLocation;
+        }
+
+        public async ValueTask Restore(SimulatorSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            ClockTime = saveState.ClockTime;
+            Season = saveState.Season;
+            WeatherType = saveState.Weather;
+            UserWeatherFile = saveState.WeatherFile;
+            TimetableMode = saveState.TimetableMode;
+            SignalEnvironment = new SignalEnvironment(SignalConfig, false, CancellationToken.None);
+            await SignalEnvironment.Restore(saveState.SignalEnvironmentSaveState).ConfigureAwait(false);
         }
 
         public void Save(BinaryWriter outf)
         {
             ArgumentNullException.ThrowIfNull(outf);
 
-            outf.Write(ClockTime);
-            outf.Write((int)Season);
-            outf.Write((int)WeatherType);
-            outf.Write(TimetableMode);
-            outf.Write(UserWeatherFile);
             PoolHolder.Save(outf);
-            SignalEnvironment.Save(outf);
+//            SignalEnvironment.Save(outf);
             SaveTrains(outf);
             // LevelCrossings
             // InterlockingSystem
@@ -1264,8 +1268,7 @@ namespace Orts.Simulation
             Trains.Add(train);
 
             // Note the initial position to be stored by a Save and used in Menu.exe to calculate DistanceFromStartM 
-            InitialTileX = Trains[0].FrontTDBTraveller.TileX + (Trains[0].FrontTDBTraveller.X / 2048);
-            InitialTileZ = Trains[0].FrontTDBTraveller.TileZ + (Trains[0].FrontTDBTraveller.Z / 2048);
+            InitialLocation = Trains[0].FrontTDBTraveller.WorldLocation;
 
             PlayerLocomotive = InitialPlayerLocomotive();
             if ((conFile.Train.MaxVelocity == null) ||
@@ -1324,8 +1327,7 @@ namespace Orts.Simulation
             Trains.Add(train);
 
             // Note the initial position to be stored by a Save and used in Menu.exe to calculate DistanceFromStartM 
-            InitialTileX = Trains[0].FrontTDBTraveller.TileX + (Trains[0].FrontTDBTraveller.X / 2048);
-            InitialTileZ = Trains[0].FrontTDBTraveller.TileZ + (Trains[0].FrontTDBTraveller.Z / 2048);
+            InitialLocation = Trains[0].FrontTDBTraveller.WorldLocation;
 
             PlayerLocomotive = InitialPlayerLocomotive();
             if (train.MaxVelocityA <= 0f || train.MaxVelocityA == 40f)
@@ -1556,8 +1558,8 @@ namespace Orts.Simulation
                 returnTrain = aITrain as TTTrain;
                 returnTrain.AI.AutoGenTrains.Remove(aITrain);
                 AutoGenDictionary.Remove(reqNumber);
-                returnTrain.RoutedBackward = new Train.TrainRouted(returnTrain, 1);
-                returnTrain.RoutedForward = new Train.TrainRouted(returnTrain, 0);
+                returnTrain.RoutedBackward = new Train.TrainRouted(returnTrain, Direction.Backward);
+                returnTrain.RoutedForward = new Train.TrainRouted(returnTrain, Direction.Forward);
             }
             return (returnTrain);
         }

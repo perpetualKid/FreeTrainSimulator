@@ -9,6 +9,6 @@ namespace Orts.Models.State
     [MemoryPackable]
     public sealed partial class CabRendererSaveState: SaveStateBase
     {
-        public Collection<string> ActiveScreens { get; } = new Collection<string>();
+        public Collection<string> ActiveScreens { get; private set; } = new Collection<string>();
     }
 }

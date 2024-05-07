@@ -401,7 +401,7 @@ namespace Orts.Simulation.Signalling
             int stopTime = DefaultFreightStopTime;
             if (passengerCarsWithinPlatform == 0) 
                 return stopTime; // pure freight train
-            float distancePlatformHeadtoTrainHead = -train.StationStops[0].StopOffset + PlatformItem.TrackCircuitOffset[Location.FarEnd, train.StationStops[0].Direction] + train.StationStops[0].DistanceToTrainM;
+            float distancePlatformHeadtoTrainHead = -train.StationStops[0].StopOffset + PlatformItem.TrackCircuitOffset[SignalLocation.FarEnd, train.StationStops[0].Direction] + train.StationStops[0].DistanceToTrainM;
             float trainPartOutsidePlatformForward = distancePlatformHeadtoTrainHead < 0 ? -distancePlatformHeadtoTrainHead : 0;
             if (trainPartOutsidePlatformForward >= train.Length) 
                 return PlatformItem.MinWaitingTime; // train actually passed platform; should not happen

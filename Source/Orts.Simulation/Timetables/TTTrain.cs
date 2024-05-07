@@ -1018,7 +1018,7 @@ namespace Orts.Simulation.Timetables
                     {
                         // calculate new stop
 
-                        StationStop newStop = CalculateStationStop(Simulator.Instance.SignalEnvironment.PlatformDetailsList[altPlatformIndex].PlatformReference[Location.NearEnd],
+                        StationStop newStop = CalculateStationStop(Simulator.Instance.SignalEnvironment.PlatformDetailsList[altPlatformIndex].PlatformReference[SignalLocation.NearEnd],
                         orgStop.ArrivalTime, orgStop.DepartTime, clearingDistanceM, minStopDistanceM,
                         orgStop.Terminal, orgStop.ActualMinStopTime, orgStop.KeepClearFront, orgStop.KeepClearRear, orgStop.ForcePosition,
                         orgStop.CloseupSignal, orgStop.Closeup, orgStop.RestrictPlatformToSignal, orgStop.ExtendPlatformToSignal, orgStop.EndStop);
@@ -1415,8 +1415,8 @@ namespace Orts.Simulation.Timetables
             bool platformHasEndSignal = thisElement.Direction == 0 ? (thisPlatform.EndSignals[TrackDirection.Ahead] >= 0) : (thisPlatform.EndSignals[TrackDirection.Reverse] >= 0);
             float distanceToEndSignal = platformHasEndSignal ? (thisElement.Direction == 0 ? thisPlatform.DistanceToSignals[TrackDirection.Ahead] : thisPlatform.DistanceToSignals[TrackDirection.Reverse]) : -1;
 
-            float endOffset = thisPlatform.TrackCircuitOffset[Location.FarEnd, (TrackDirection)thisElement.Direction];
-            float beginOffset = thisPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)thisElement.Direction];
+            float endOffset = thisPlatform.TrackCircuitOffset[SignalLocation.FarEnd, (TrackDirection)thisElement.Direction];
+            float beginOffset = thisPlatform.TrackCircuitOffset[SignalLocation.NearEnd, (TrackDirection)thisElement.Direction];
 
             float deltaLength = thisPlatform.Length - Length; // platform length - train length
 
@@ -1671,16 +1671,16 @@ namespace Orts.Simulation.Timetables
                                         otherPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1];
                                     if (otherSectionIndex == beginSectionIndex)
                                     {
-                                        if (otherPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)thisElement.Direction] < actualBegin)
+                                        if (otherPlatform.TrackCircuitOffset[SignalLocation.NearEnd, (TrackDirection)thisElement.Direction] < actualBegin)
                                         {
-                                            actualBegin = otherPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)thisElement.Direction];
+                                            actualBegin = otherPlatform.TrackCircuitOffset[SignalLocation.NearEnd, (TrackDirection)thisElement.Direction];
                                             fullLength = endOffset - actualBegin;
                                         }
                                     }
                                     else
                                     {
                                         int addRouteIndex = thisRoute.GetRouteIndex(otherSectionIndex, 0);
-                                        float addOffset = otherPlatform.TrackCircuitOffset[Location.FarEnd, (TrackDirection)(thisElement.Direction == 0 ? 1 : 0)];
+                                        float addOffset = otherPlatform.TrackCircuitOffset[SignalLocation.FarEnd, (TrackDirection)(thisElement.Direction == 0 ? 1 : 0)];
                                         // offset of begin in other direction is length of available track
 
                                         if (lastRouteIndex > 0)
@@ -2081,8 +2081,8 @@ namespace Orts.Simulation.Timetables
             bool atStation = false;
             //            PlatformDetails thisPlatform = thisStation.PlatformItem;
 
-            float platformBeginOffset = thisPlatform.TrackCircuitOffset[Location.NearEnd, stationDirection];
-            float platformEndOffset = thisPlatform.TrackCircuitOffset[Location.FarEnd, stationDirection];
+            float platformBeginOffset = thisPlatform.TrackCircuitOffset[SignalLocation.NearEnd, stationDirection];
+            float platformEndOffset = thisPlatform.TrackCircuitOffset[SignalLocation.FarEnd, stationDirection];
             int endSectionIndex = stationDirection == TrackDirection.Ahead ?
                     thisPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1] :
                     thisPlatform.TCSectionIndex[0];
@@ -3435,7 +3435,7 @@ namespace Orts.Simulation.Timetables
                     if (AttachDetails.StationPlatformReference == -1 && StationStops.Count == 1)
                     {
                         TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[StationStops[0].TrackCircuitSectionIndex];
-                        foreach (KeyValuePair<TrainRouted, int> trainToCheckInfo in thisSection.CircuitState.OccupationState)
+                        foreach (KeyValuePair<TrainRouted, Direction> trainToCheckInfo in thisSection.CircuitState.OccupationState)
                         {
                             TTTrain otherTrain = trainToCheckInfo.Key.Train as TTTrain;
                             if (otherTrain.OrgAINumber == AttachDetails.AttachTrain)
@@ -5974,7 +5974,7 @@ namespace Orts.Simulation.Timetables
                         if (StationStops.Count > 0 && StationStops[0].PlatformItem.Name == thisPlatform.Name && StationStops[0].CallOnAllowed)
                         {
                             // only allow if train ahead is stopped
-                            foreach (KeyValuePair<Train.TrainRouted, int> occTrainInfo in routeSection.CircuitState.OccupationState)
+                            foreach (KeyValuePair<TrainRouted, Direction> occTrainInfo in routeSection.CircuitState.OccupationState)
                             {
                                 Train.TrainRouted occTrain = occTrainInfo.Key;
                                 TTTrain occTTTrain = occTrain.Train as TTTrain;
@@ -6370,7 +6370,7 @@ namespace Orts.Simulation.Timetables
                 TrackCircuitSection lastSection = lastElement.TrackCircuitSection;
                 if (lastSection.EndSignals[lastElement.Direction] == null && TCRoute.ActiveSubPath == (TCRoute.TCRouteSubpaths.Count - 1))
                 {
-                    int nextIndex = lastSection.Pins[lastElement.Direction, Location.NearEnd].Link;
+                    int nextIndex = lastSection.Pins[lastElement.Direction, SignalLocation.NearEnd].Link;
                     bool lastIsStation = false;
 
                     if (StationStops != null && StationStops.Count > 0)
@@ -7815,7 +7815,7 @@ namespace Orts.Simulation.Timetables
         /// Override method from train
         /// </summary>
 
-        internal override bool TrainGetSectionStateClearNode(int elementDirection, TrackCircuitPartialPathRoute routePart, TrackCircuitSection thisSection)
+        internal override bool TrainGetSectionStateClearNode(TrackDirection elementDirection, TrackCircuitPartialPathRoute routePart, TrackCircuitSection thisSection)
         {
             return (thisSection.GetSectionState(RoutedForward, elementDirection, InternalBlockstate.Reserved, routePart, -1) <= InternalBlockstate.OccupiedSameDirection);
         }
@@ -8005,7 +8005,7 @@ namespace Orts.Simulation.Timetables
                 TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
                 TrackDirection direction = sameDirection ? thisElement.Direction : thisElement.Direction.Reverse();
 
-                blockstate = thisSection.GetSectionState(RoutedForward, (int)direction, blockstate, thisRoute, -1);
+                blockstate = thisSection.GetSectionState(RoutedForward, direction, blockstate, thisRoute, -1);
                 if (blockstate > InternalBlockstate.Reservable)
                     break;     // exit on first none-available section
             }
@@ -11221,7 +11221,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection DetachSection = TrackCircuitSection.TrackCircuitList[sectionInfo];
             if (DetachSection.CircuitType == TrackCircuitType.EndOfTrack)
             {
-                DetachSection = TrackCircuitSection.TrackCircuitList[DetachSection.Pins[TrackDirection.Ahead, Location.NearEnd].Link];
+                DetachSection = TrackCircuitSection.TrackCircuitList[DetachSection.Pins[TrackDirection.Ahead, SignalLocation.NearEnd].Link];
             }
             TrackVectorNode detachNode = RuntimeData.Instance.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 
@@ -11369,7 +11369,7 @@ namespace Orts.Simulation.Timetables
                 TrackCircuitSection thisSection = ValidRoute[0][isection].TrackCircuitSection;
                 if (thisSection.CircuitState.OccupationState.Count > 0)
                 {
-                    foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.OccupationState)
+                    foreach (KeyValuePair<TrainRouted, Direction> traininfo in thisSection.CircuitState.OccupationState)
                     {
                         TrainRouted trainahead = traininfo.Key;
                         waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {trainahead.Train.Name}");
@@ -11428,7 +11428,7 @@ namespace Orts.Simulation.Timetables
                     TrackCircuitSection thisSection = ValidRoute[0][isection].TrackCircuitSection;
                     if (thisSection.CircuitState.OccupationState.Count > 0)
                     {
-                        foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.OccupationState)
+                        foreach (KeyValuePair<TrainRouted, Direction> traininfo in thisSection.CircuitState.OccupationState)
                         {
                             TrainRouted trainahead = traininfo.Key;
                             waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {trainahead.Train.Name}");
@@ -11489,7 +11489,7 @@ namespace Orts.Simulation.Timetables
                     TrackCircuitSection thisSection = ValidRoute[0][isection].TrackCircuitSection;
                     if (thisSection.CircuitState.OccupationState.Count > 0)
                     {
-                        foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.OccupationState)
+                        foreach (KeyValuePair<TrainRouted, Direction> traininfo in thisSection.CircuitState.OccupationState)
                         {
                             TrainRouted trainahead = traininfo.Key;
                             waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {trainahead.Train.Name}");

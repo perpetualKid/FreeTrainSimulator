@@ -21,6 +21,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
@@ -191,7 +192,7 @@ namespace Orts.ActivityRunner.Processes
                 saveState.LegacyState = result.Buffer;
             }
 
-            await GameSaveState.ToFile(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + FileNameExtensions.SaveFile), saveState).ConfigureAwait(false);
+            await GameSaveState.ToFile(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + FileNameExtensions.SaveFile), saveState, CancellationToken.None).ConfigureAwait(false);
 
             // The Save command is the only command that doesn't take any action. It just serves as a marker.
             _ = new SaveCommand(simulator.Log, fileStem);
@@ -224,13 +225,14 @@ namespace Orts.ActivityRunner.Processes
                 GameTime = simulator.GameTime,
                 RealSaveTime = DateTime.UtcNow,
                 MultiplayerGame = MultiPlayerManager.IsMultiPlayer(),
-                InitalTile = new Tile((int)simulator.InitialTileX, (int)simulator.InitialTileZ),
-                PlayerPosition = simulator.Trains[0].FrontTDBTraveller.WorldLocation,
+                InitialLocation = simulator.InitialLocation,
+                PlayerLocation = simulator.Trains[0].FrontTDBTraveller.WorldLocation,
                 ArgumentsSetOnly = data,
                 ActivityType = activityType,
 
                 ActivityEvaluationState = await ActivityEvaluation.Instance.Snapshot().ConfigureAwait(false),
                 ViewerSaveState = await Viewer.Snapshot().ConfigureAwait(false),
+                SimulatorSaveState = await Simulator.Instance.Snapshot().ConfigureAwait(false),
             };
         }
     }

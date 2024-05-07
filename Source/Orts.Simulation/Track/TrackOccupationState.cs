@@ -17,9 +17,9 @@
 
 // This module covers all classes and code for signal, speed post, track occupation and track reservation control
 
-using System;
 using System.Collections.Generic;
 
+using Orts.Common;
 using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.Track
@@ -32,8 +32,7 @@ namespace Orts.Simulation.Track
     ///
     /// </summary>
     //================================================================================================//
-    [Serializable]
-    internal class TrackOccupationState : Dictionary<Train.TrainRouted, int>
+    internal class TrackOccupationState : Dictionary<Train.TrainRouted, Direction>
     {
         public TrackOccupationState() 
         { }
@@ -74,11 +73,6 @@ namespace Orts.Simulation.Track
                 Remove(train.Train.RoutedForward);
                 Remove(train.Train.RoutedBackward);
             }
-        }
-
-        protected TrackOccupationState(System.Runtime.Serialization.SerializationInfo serializationInfo, System.Runtime.Serialization.StreamingContext streamingContext)
-        {
-            throw new NotImplementedException();
         }
     }
 

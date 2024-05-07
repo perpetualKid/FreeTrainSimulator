@@ -20,6 +20,7 @@
 using System;
 using System.IO;
 
+using Orts.Common;
 using Orts.Formats.Msts;
 
 namespace Orts.Simulation.Signalling

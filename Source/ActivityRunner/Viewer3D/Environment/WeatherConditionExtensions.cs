@@ -17,6 +17,7 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -59,6 +60,8 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             {
                 return ValueTask.CompletedTask;
             }
+            ArgumentNullException.ThrowIfNull(weatherConditions, nameof(weatherConditions));
+
             foreach (WeatherConditionFogSaveState fogSaveState in saveState)
             {
                 FogCondition fogCondition = new FogCondition()
@@ -104,6 +107,8 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             {
                 return ValueTask.CompletedTask;
             }
+            ArgumentNullException.ThrowIfNull(weatherConditions, nameof(weatherConditions));
+
             foreach (WeatherConditionOvercastSaveState overcastSaveState in saveState)
             {
                 OvercastCondition overcastCondition = new OvercastCondition()
@@ -166,6 +171,8 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             {
                 return ValueTask.CompletedTask;
             }
+            ArgumentNullException.ThrowIfNull(weatherConditions, nameof(weatherConditions));
+
             foreach (WeatherConditionPrecipitationSaveState precipitationSaveState in saveState)
             {
                 PrecipitationCondition precipitationCondition = new PrecipitationCondition()

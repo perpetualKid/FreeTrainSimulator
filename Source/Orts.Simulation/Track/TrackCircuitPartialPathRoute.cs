@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
+using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;
 
@@ -15,7 +21,7 @@ namespace Orts.Simulation.Track
     /// <summary>
     /// Subpath list : list of TCRouteElements building a subpath
     /// </summary>
-    public class TrackCircuitPartialPathRoute : IList<TrackCircuitRouteElement>
+    public class TrackCircuitPartialPathRoute : IList<TrackCircuitRouteElement>, ISaveStateApi<TrackCircuitPartialPathRouteSaveState>
     {
         private readonly List<TrackCircuitRouteElement> list;
         private ILookup<int, int> items;
@@ -124,6 +130,40 @@ namespace Orts.Simulation.Track
             {
                 Add(new TrackCircuitRouteElement(source[i]));
             }
+        }
+
+        public async ValueTask<TrackCircuitPartialPathRouteSaveState> Snapshot()
+        {
+            ConcurrentBag<TrackCircuitRouteElementSaveState> routeElementSaveStates = new ConcurrentBag<TrackCircuitRouteElementSaveState>();
+            await Parallel.ForEachAsync(this, async (element, cancellationToken) =>
+            {
+                routeElementSaveStates.Add(await element.Snapshot().ConfigureAwait(false));
+            });
+
+            return new TrackCircuitPartialPathRouteSaveState()
+            {
+                RouteElements = new Collection<TrackCircuitRouteElementSaveState>(routeElementSaveStates.ToList()),
+            };
+        }
+
+        public async ValueTask Restore(TrackCircuitPartialPathRouteSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+            list.Clear();
+            items = null;
+            routeDirections = null;
+
+            ConcurrentBag<TrackCircuitRouteElement> routeElements = new ConcurrentBag<TrackCircuitRouteElement>();
+            if (saveState.RouteElements != null)
+            {
+                await Parallel.ForEachAsync(saveState.RouteElements, async (trackCircuitRouteElementSaveState, cancellationToken) =>
+                {
+                    TrackCircuitRouteElement routeElement = new TrackCircuitRouteElement();
+                    await routeElement.Restore(trackCircuitRouteElementSaveState).ConfigureAwait(false);
+                    routeElements.Add(routeElement);
+                });
+            }
+            list.AddRange(routeElements);
         }
 
         // Restore
@@ -514,14 +554,14 @@ namespace Orts.Simulation.Track
                     {
                         if (i >= 1)
                         {
-                            newElement.OutPin[Location.NearEnd] = TrackDirection.Reverse;
-                            newElement.OutPin[Location.FarEnd] = (section.Pins[TrackDirection.Reverse, Location.NearEnd].Link == this[i - 1].TrackCircuitSection.Index) ? TrackDirection.Ahead : TrackDirection.Reverse;
+                            newElement.OutPin[SignalLocation.NearEnd] = TrackDirection.Reverse;
+                            newElement.OutPin[SignalLocation.FarEnd] = (section.Pins[TrackDirection.Reverse, SignalLocation.NearEnd].Link == this[i - 1].TrackCircuitSection.Index) ? TrackDirection.Ahead : TrackDirection.Reverse;
                         }
                     }
                     else
                     {
-                        newElement.OutPin[Location.NearEnd] = TrackDirection.Ahead;
-                        newElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
+                        newElement.OutPin[SignalLocation.NearEnd] = TrackDirection.Ahead;
+                        newElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;
                     }
                 }
 
@@ -540,7 +580,7 @@ namespace Orts.Simulation.Track
             foreach (TrackCircuitRouteElement routeElement in this)
             {
                 TrackCircuitSection section = routeElement.TrackCircuitSection;
-                foreach (KeyValuePair<Train.TrainRouted, int> item in section.CircuitState.OccupationState)
+                foreach (KeyValuePair<Train.TrainRouted, Direction> item in section.CircuitState.OccupationState)
                 {
                     if (item.Key.Train.SpeedMpS == 0.0f || item.Key.Train.ControlMode == TrainControlMode.Manual)
                     {
@@ -550,7 +590,5 @@ namespace Orts.Simulation.Track
             }
             return false;
         }
-
-
     }// end class TCSubpathRoute
 }

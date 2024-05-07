@@ -2728,10 +2728,10 @@ namespace Orts.Simulation.AIs
                 if (OtherTrain.ControlMode == TrainControlMode.AutoSignal) // train is still in signal mode, might need adjusting
                 {
                     // check directions of this and other train
-                    int owndirection = -1;
-                    int otherdirection = -1;
+                    Direction owndirection = (Direction)(-1);
+                    Direction otherdirection = (Direction)(-1);
 
-                    foreach (KeyValuePair<TrainRouted, int> trainToCheckInfo in thisSection.CircuitState.OccupationState)
+                    foreach (KeyValuePair<TrainRouted, Direction> trainToCheckInfo in thisSection.CircuitState.OccupationState)
                     {
                         TrainRouted trainToCheck = trainToCheckInfo.Key;
 

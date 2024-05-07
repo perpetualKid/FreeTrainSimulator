@@ -46,9 +46,7 @@ namespace FreeTrainSimulator.Common
         public EnumArray(T[] source) : this()
         {
             ArgumentNullException.ThrowIfNull(source);
-            if (source.Length != array.Length)
-                throw new ArgumentOutOfRangeException($"Source array needs to be same size as number of enum values of {typeof(TEnum)}");
-            Array.Copy(source, array, source.Length);
+            FromArray(source);
         }
 
         public EnumArray(T source) : this()
@@ -75,6 +73,18 @@ namespace FreeTrainSimulator.Common
         public IEnumerator<T> GetEnumerator()
         {
             return (array as IEnumerable<T>).GetEnumerator();
+        }
+
+        public T[] ToArray()
+        {
+            return array;
+        }
+
+        public void FromArray(T[] values)
+        {
+            if (values.Length != array.Length)
+                throw new ArgumentOutOfRangeException($"Source array needs to be same size as number of enum values of {typeof(TEnum)}");
+            Array.Copy(values, array, values.Length);
         }
     }
 
@@ -138,10 +148,34 @@ namespace FreeTrainSimulator.Common
                     array[col, row] = source[col * columns + row];
         }
 
+        public EnumArray2D(T[,] source) : this()
+        {
+            ArgumentNullException.ThrowIfNull(source);
+            FromArray(source);
+        }
+
         public T this[TDimension1 x, TDimension2 y]
         {
             get => array[Unsafe.As<TDimension1, int>(ref x) - lowBoundX, Unsafe.As<TDimension2, int>(ref y) - lowBoundY];
             set => array[Unsafe.As<TDimension1, int>(ref x) - lowBoundX, Unsafe.As<TDimension2, int>(ref y) - lowBoundY] = value;
+        }
+
+        public T[,] ToArray()
+        {
+            return array;
+        }
+
+        public void FromArray(T[,] values)
+        {
+            ArgumentNullException.ThrowIfNull(values);
+            int columns = array.GetLength(0);
+            int rows = array.GetLength(1);
+            if (values.GetLength(columns) != rows || values.GetLength(1) != rows)
+                throw new InvalidOperationException($"Source array needs to fit into target array.");
+
+            for (int col = 0; col < columns; col++)
+                for (int row = 0; row < rows; row++)
+                    array[col, row] = values[col, row];
         }
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
     }

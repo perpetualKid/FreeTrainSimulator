@@ -1003,7 +1003,7 @@ namespace Orts.Formats.Msts.Models
     /// Represents a pin, being the link from a tracknode to another. 
     /// </summary>
     [DebuggerDisplay("\\{MSTS.TrPin\\} Link={Link}, Dir={Direction}")]
-    public class TrackPin
+    public readonly struct TrackPin
     {
         /// <summary>Index of the tracknode connected to the parent of this pin</summary>
         public int Link { get; }
@@ -1042,12 +1042,12 @@ namespace Orts.Formats.Msts.Models
 
         public bool Equals(TrackPin x, TrackPin y)
         {
-            return x != null && y != null && x.Link == y.Link;
+            return x.Link == y.Link;
         }
 
         public int GetHashCode(TrackPin obj)
         {
-            return obj?.Link ?? -1;
+            return obj.Link;
         }
 
         public static TrackPinComparer LinkOnlyComparer { get; } = new TrackPinComparer();

@@ -3,6 +3,7 @@ using System.Linq;
 
 using MemoryPack;
 
+using Orts.Common;
 using Orts.Simulation.Signalling;
 
 namespace Orts.Simulation.Multiplayer.Messaging

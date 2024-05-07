@@ -45,9 +45,9 @@ namespace Orts.Simulation.Signalling
         }
 
         public List<int> TCSectionIndex { get; } = new List<int>();
-        public EnumArray<int, Location> PlatformReference { get; } = new EnumArray<int, Location>();
-        public EnumArray2D<float, Location, TrackDirection> TrackCircuitOffset { get; } = new EnumArray2D<float, Location, TrackDirection>();
-        public EnumArray<float, Location> NodeOffset { get; } = new EnumArray<float, Location>();
+        public EnumArray<int, SignalLocation> PlatformReference { get; } = new EnumArray<int, SignalLocation>();
+        public EnumArray2D<float, SignalLocation, TrackDirection> TrackCircuitOffset { get; } = new EnumArray2D<float, SignalLocation, TrackDirection>();
+        public EnumArray<float, SignalLocation> NodeOffset { get; } = new EnumArray<float, SignalLocation>();
         public float Length { get; set; }
         public EnumArray<int, TrackDirection> EndSignals { get; } = new EnumArray<int, TrackDirection>(-1);
         public EnumArray<float, TrackDirection> DistanceToSignals { get; } = new EnumArray<float, TrackDirection>();
@@ -65,7 +65,7 @@ namespace Orts.Simulation.Signalling
 
         public PlatformDetails(int platformReference)
         {
-            PlatformReference[Location.NearEnd] = platformReference;
+            PlatformReference[SignalLocation.NearEnd] = platformReference;
         }
     }
 

@@ -247,13 +247,13 @@ namespace Orts.Simulation.Track
                             if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
                             {
                                 newDir = junctionNode.TrackPins[firstpin].Direction;
-                                thisElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
+                                thisElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;
                             }
                             else
                             {
                                 firstpin++;
                                 newDir = junctionNode.TrackPins[firstpin].Direction;
-                                thisElement.OutPin[Location.FarEnd] = TrackDirection.Reverse;
+                                thisElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Reverse;
                             }
                         }
                         else  // exit is single path //
@@ -469,15 +469,15 @@ namespace Orts.Simulation.Track
             if (lastEndSection.CircuitType != TrackCircuitType.EndOfTrack && lastEndSection.EndSignals[lastDirection] == null)
             {
                 TrackDirection thisDirection = lastDirection;
-                lastDirection = lastEndSection.Pins[thisDirection, Location.NearEnd].Direction;
-                lastEndSection = TrackCircuitSection.TrackCircuitList[lastEndSection.Pins[thisDirection, Location.NearEnd].Link];
+                lastDirection = lastEndSection.Pins[thisDirection, SignalLocation.NearEnd].Direction;
+                lastEndSection = TrackCircuitSection.TrackCircuitList[lastEndSection.Pins[thisDirection, SignalLocation.NearEnd].Link];
 
                 while (lastEndSection.CircuitType == TrackCircuitType.Normal && lastEndSection.EndSignals[lastDirection] == null)
                 {
                     addedElements.Add(new TrackCircuitRouteElement(lastEndSection.Index, lastDirection));
                     thisDirection = lastDirection;
-                    lastDirection = lastEndSection.Pins[thisDirection, Location.NearEnd].Direction;
-                    lastEndSection = TrackCircuitSection.TrackCircuitList[lastEndSection.Pins[thisDirection, Location.NearEnd].Link];
+                    lastDirection = lastEndSection.Pins[thisDirection, SignalLocation.NearEnd].Direction;
+                    lastEndSection = TrackCircuitSection.TrackCircuitList[lastEndSection.Pins[thisDirection, SignalLocation.NearEnd].Link];
                 }
 
                 if (lastEndSection.CircuitType == TrackCircuitType.EndOfTrack)
@@ -522,7 +522,7 @@ namespace Orts.Simulation.Track
                             removeSections.Add(iSection);        // always remove crossover if last section was removed
                             lastSectionIndex = iSection - 1;
                         }
-                        else if (thisSection.OffsetLength[Location.FarEnd] + thisSection.Length < offset) // always use offsetLength[1] as offset is wrt begin of original section
+                        else if (thisSection.OffsetLength[SignalLocation.FarEnd] + thisSection.Length < offset) // always use offsetLength[1] as offset is wrt begin of original section
                         {
                             removeSections.Add(iSection);
                             lastSectionIndex = iSection - 1;
@@ -547,7 +547,7 @@ namespace Orts.Simulation.Track
                             removeSections.Add(iSection);        // always remove crossover if last section was removed
                             lastSectionIndex = iSection - 1;
                         }
-                        else if (thisSection.OffsetLength[Location.FarEnd] > offset)
+                        else if (thisSection.OffsetLength[SignalLocation.FarEnd] > offset)
                         {
                             removeSections.Add(iSection);
                             lastSectionIndex = iSection - 1;
@@ -660,8 +660,8 @@ namespace Orts.Simulation.Track
 
                 // build additional route from end of last section but not further than train length
 
-                int nextSectionIndex = lastSection.ActivePins[thisElement.OutPin[Location.NearEnd], (Location)thisElement.OutPin[Location.FarEnd]].Link;
-                TrackDirection nextDirection = lastSection.ActivePins[thisElement.OutPin[Location.NearEnd], (Location)thisElement.OutPin[Location.FarEnd]].Direction;
+                int nextSectionIndex = lastSection.ActivePins[thisElement.OutPin[SignalLocation.NearEnd], (SignalLocation)thisElement.OutPin[SignalLocation.FarEnd]].Link;
+                TrackDirection nextDirection = lastSection.ActivePins[thisElement.OutPin[SignalLocation.NearEnd], (SignalLocation)thisElement.OutPin[SignalLocation.FarEnd]].Direction;
                 int lastUseIndex = lastIndex - 1;  // do not use final element if this is end of track
 
                 List<int> addSections = new List<int>();
@@ -1036,8 +1036,8 @@ namespace Orts.Simulation.Track
                     TrackCircuitRouteElement startElement = TCRouteSubpaths[sublistRef][startSectionRouteIndex];
                     TrackCircuitRouteElement endElement = TCRouteSubpaths[sublistRef][endSectionRouteIndex];
 
-                    startElement.StartAlternativePath = new TrackCircuitRouteElement.AlternativePath() { PathIndex = altlist, TrackCircuitSection = TrackCircuitSection.TrackCircuitList[endSection] };
-                    endElement.EndAlternativePath = new TrackCircuitRouteElement.AlternativePath() { PathIndex = altlist, TrackCircuitSection = TrackCircuitSection.TrackCircuitList[startSection] };
+                    startElement.StartAlternativePath = new TrackCircuitRouteElement.AlternativePath(altlist, TrackCircuitSection.TrackCircuitList[endSection]);
+                    endElement.EndAlternativePath = new TrackCircuitRouteElement.AlternativePath(altlist, TrackCircuitSection.TrackCircuitList[startSection]);
 
                     TrackDirection currentDir = startElement.Direction;
                     TrackDirection newDir = currentDir;
@@ -1062,13 +1062,13 @@ namespace Orts.Simulation.Track
                     if (firstJunctionNode.TrackPins[firstJunctionPin].Link == trackNodeIndex)
                     {
                         currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
-                        junctionElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
+                        junctionElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;
                     }
                     else
                     {
                         firstJunctionPin++;
                         currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
-                        junctionElement.OutPin[Location.FarEnd] = TrackDirection.Reverse;
+                        junctionElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Reverse;
                     }
 
                     // process alternative path
@@ -1124,13 +1124,13 @@ namespace Orts.Simulation.Track
                                     if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
                                     {
                                         newDir = junctionNode.TrackPins[firstpin].Direction;
-                                        element.OutPin[Location.FarEnd] = TrackDirection.Ahead;
+                                        element.OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;
                                     }
                                     else
                                     {
                                         firstpin++;
                                         newDir = junctionNode.TrackPins[firstpin].Direction;
-                                        element.OutPin[Location.FarEnd] = TrackDirection.Reverse;
+                                        element.OutPin[SignalLocation.FarEnd] = TrackDirection.Reverse;
                                     }
                                 }
                                 else  // exit is single path //
@@ -1235,13 +1235,13 @@ namespace Orts.Simulation.Track
                     if (firstJunctionNode.TrackPins[firstJunctionPin].Link == trackNodeIndex)
                     {
                         currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
-                        junctionElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
+                        junctionElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;
                     }
                     else
                     {
                         firstJunctionPin++;
                         currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
-                        junctionElement.OutPin[Location.FarEnd] = TrackDirection.Reverse;
+                        junctionElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Reverse;
                     }
 
                     pathNode = pathNode.NextSidingNode;
@@ -1296,13 +1296,13 @@ namespace Orts.Simulation.Track
                                     if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
                                     {
                                         newDir = junctionNode.TrackPins[firstpin].Direction;
-                                        element.OutPin[Location.FarEnd] = TrackDirection.Ahead;
+                                        element.OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;
                                     }
                                     else
                                     {
                                         firstpin++;
                                         newDir = junctionNode.TrackPins[firstpin].Direction;
-                                        element.OutPin[Location.FarEnd] = TrackDirection.Reverse;
+                                        element.OutPin[SignalLocation.FarEnd] = TrackDirection.Reverse;
                                     }
                                 }
                                 else  // exit is single path //

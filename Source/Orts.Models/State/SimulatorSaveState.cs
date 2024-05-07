@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using FreeTrainSimulator.Common.Api;
+﻿using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
 
@@ -20,6 +14,7 @@ namespace Orts.Models.State
         public WeatherType Weather { get; set; }
         public string WeatherFile { get; set; }
         public bool TimetableMode { get; set; }
+        public SignalEnvironmentSaveState SignalEnvironmentSaveState { get; set; }
 
     }
 }

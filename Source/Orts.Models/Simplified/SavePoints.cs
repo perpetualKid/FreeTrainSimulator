@@ -10,6 +10,7 @@ using FreeTrainSimulator.Common;
 
 using MemoryPack;
 
+using Orts.Common.Position;
 using Orts.Models.State;
 
 namespace Orts.Models.Simplified
@@ -39,7 +40,7 @@ namespace Orts.Models.Simplified
             {
                 await Parallel.ForEachAsync(Directory.EnumerateFiles(directory, System.IO.Path.ChangeExtension($"{prefix}*", FileNameExtensions.SaveFile)), token, async (fileName, innerToken) =>
                 {
-                    SavePoint gameSaveState = await FromGameSaveState(fileName).ConfigureAwait(false);
+                    SavePoint gameSaveState = await FromGameSaveState(fileName, token).ConfigureAwait(false);
 
                     try
                     {
@@ -94,11 +95,11 @@ namespace Orts.Models.Simplified
             return result;
         }
 
-        private static async Task<SavePoint> FromGameSaveState(string fileName)
+        private static async Task<SavePoint> FromGameSaveState(string fileName, CancellationToken cancellationToken)
         {
             try
             {
-                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(fileName).ConfigureAwait(false);
+                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(fileName, cancellationToken).ConfigureAwait(false);
                 SavePoint result = new SavePoint()
                 {
                     File = fileName,
@@ -108,8 +109,8 @@ namespace Orts.Models.Simplified
                     PathName = saveState.PathName,
                     GameTime = new DateTime().AddSeconds(saveState.GameTime).TimeOfDay,
                     RealTime = saveState.RealSaveTime.ToLocalTime(),
-                    CurrentTile = $"{saveState.PlayerPosition.TileX:F0}, {saveState.PlayerPosition.TileZ:F0}",
-                    Distance = $"{Math.Sqrt(Math.Pow(saveState.PlayerPosition.TileX - saveState.InitalTile.X, 2) + Math.Pow(saveState.PlayerPosition.TileZ - saveState.InitalTile.Z, 2)) * Common.Position.WorldPosition.TileSize:F1}",
+                    CurrentTile = $"{saveState.PlayerLocation.TileX:F0}, {saveState.PlayerLocation.TileZ:F0}",
+                    Distance = $"{Math.Sqrt(WorldLocation.GetDistanceSquared(saveState.PlayerLocation, saveState.InitialLocation)):F1}",
                     IsMultiplayer = saveState.MultiplayerGame,
                     //Debrief Eval
                     DebriefEvaluation = saveState.ActivityEvaluationState != null,

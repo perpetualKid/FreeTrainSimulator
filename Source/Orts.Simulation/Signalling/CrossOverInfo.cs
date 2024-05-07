@@ -39,17 +39,17 @@ namespace Orts.Simulation.Signalling
 
         public int TrackShape { get; }
 
-        public EnumArray<Detail, Location> Details { get; } = new EnumArray<Detail, Location>();
+        public EnumArray<Detail, SignalLocation> Details { get; } = new EnumArray<Detail, SignalLocation>();
 
         public CrossOverInfo(float position0, float position1, int sectionIndex0, int sectionIndex1, int itemIndex0, int itemIndex1, int trackShape)
         {
-            Details[Location.NearEnd] = new Detail()
+            Details[SignalLocation.NearEnd] = new Detail()
             {
                 Position = position0,
                 SectionIndex = sectionIndex0,
                 ItemIndex = itemIndex0,
             };
-            Details[Location.FarEnd] = new Detail()
+            Details[SignalLocation.FarEnd] = new Detail()
             {
                 Position = position1,
                 SectionIndex = sectionIndex1,
@@ -60,8 +60,8 @@ namespace Orts.Simulation.Signalling
 
         public void Update(float position1, int sectionIndex1)
         {
-            Details[Location.FarEnd].Position = position1;
-            Details[Location.FarEnd].SectionIndex = sectionIndex1;
+            Details[SignalLocation.FarEnd].Position = position1;
+            Details[SignalLocation.FarEnd].SectionIndex = sectionIndex1;
         }
     }
 

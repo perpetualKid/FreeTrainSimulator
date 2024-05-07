@@ -3042,12 +3042,12 @@ namespace Orts.ActivityRunner.Viewer3D
                             foreach (int platformIndex in TCSection.PlatformIndices)
                             {
                                 PlatformDetails thisPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformIndex];
-                                if (thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, thisRoute[routeIndex].Direction] + incrDistance < MaximumSpecialPointDistance * 0.7f
-                                    && (thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, thisRoute[routeIndex].Direction] + incrDistance > 0 || firstUpdateLoop))
+                                if (thisPlatform.TrackCircuitOffset[SignalLocation.NearEnd, thisRoute[routeIndex].Direction] + incrDistance < MaximumSpecialPointDistance * 0.7f
+                                    && (thisPlatform.TrackCircuitOffset[SignalLocation.NearEnd, thisRoute[routeIndex].Direction] + incrDistance > 0 || firstUpdateLoop))
                                 {
                                     // platform found, compute distance to viewing point
                                     distanceToViewingPoint = Math.Min(MaximumSpecialPointDistance * 0.7f,
-                                        incrDistance + thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, thisRoute[routeIndex].Direction] + thisPlatform.Length * 0.7f);
+                                        incrDistance + thisPlatform.TrackCircuitOffset[SignalLocation.NearEnd, thisRoute[routeIndex].Direction] + thisPlatform.Length * 0.7f);
                                     if (firstUpdateLoop && Math.Abs(train.SpeedMpS) <= 0.2f)
                                         distanceToViewingPoint = Math.Min(distanceToViewingPoint, train.Length * 0.95f);
                                     tdb.Move(distanceToViewingPoint);

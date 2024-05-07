@@ -334,12 +334,12 @@ namespace Orts.Common.Position
                 (float)(locationTo.Location.Z - locationFrom.Location.Z + (locationTo.TileZ - locationFrom.TileZ) * TileSize));
         }
 
-        public static float ApproximateDistance(WorldLocation a, WorldLocation b)
+        public static double ApproximateDistance(in WorldLocation a, in WorldLocation b)
         {
-            var dx = a.Location.X - b.Location.X;
-            var dz = a.Location.Z - b.Location.Z;
-            dx += (a.TileX - b.TileX) * 2048;
-            dz += (a.TileZ - b.TileZ) * 2048;
+            double dx = a.Location.X - b.Location.X;
+            double dz = a.Location.Z - b.Location.Z;
+            dx += (a.TileX - b.TileX) * TileSize;
+            dz += (a.TileZ - b.TileZ) * TileSize;
             return Math.Abs(dx) + Math.Abs(dz);
         }
 

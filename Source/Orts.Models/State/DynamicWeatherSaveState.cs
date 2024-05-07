@@ -16,10 +16,10 @@ namespace Orts.Models.State
     [MemoryPackable]
     public sealed partial class DynamicWeatherSaveState : SaveStateBase
     {
-        public DynamicWeatherPropertyState Overcast { get; } = new DynamicWeatherPropertyState();
-        public DynamicWeatherPropertyState Fog { get; } = new DynamicWeatherPropertyState();
-        public DynamicWeatherPropertyState PrecipitationIntensity { get; } = new DynamicWeatherPropertyState();
-        public DynamicWeatherPropertyState PrecipitationLiquidity { get; } = new DynamicWeatherPropertyState();
+        public DynamicWeatherPropertyState Overcast { get; private set; } = new DynamicWeatherPropertyState();
+        public DynamicWeatherPropertyState Fog { get; private set; } = new DynamicWeatherPropertyState();
+        public DynamicWeatherPropertyState PrecipitationIntensity { get; private set; } = new DynamicWeatherPropertyState();
+        public DynamicWeatherPropertyState PrecipitationLiquidity { get; private set; } = new DynamicWeatherPropertyState();
         public bool FogDistanceIncreasing { get; set; }
         public double StableWeatherTimer { get; set; }
         public double PrecipitationIntensityDelayTimer { get; set; }

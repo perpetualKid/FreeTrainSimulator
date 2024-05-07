@@ -28,8 +28,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
+using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Track;
 
@@ -43,8 +47,10 @@ namespace Orts.Simulation.Signalling
     /// </summary>
     //================================================================================================//
 
-    internal class DeadlockInfo
+    internal class DeadlockInfo : ISaveStateApi<DeadlockInfoSaveState>
     {
+        internal static int GlobalDeadlockIndex = 1;
+
         public enum DeadlockTrainState                                    // state of train wrt this deadlock                     
         {
             KeepClearThisDirection,
@@ -55,10 +61,10 @@ namespace Orts.Simulation.Signalling
             StoppedInLoop,
         }
 
-        private readonly int deadlockIndex;                                          // this deadlock unique index reference
-        private int nextTrainSubpathIndex;                                 // counter for train/subpath index
-
-        public List<DeadlockPathInfo> AvailablePathList { get; }                   // list of available paths
+        private int nextTrainSubpathIndex;                                          // counter for train/subpath index
+        public int DeadlockIndex { get; }                                           // this deadlock unique index reference
+        public List<DeadlockPathInfo> AvailablePathList
+        { get; }                   // list of available paths
         public Dictionary<int, List<int>> PathReferences { get; }                  // list of paths per boundary section
         public Dictionary<int, List<int>> TrainReferences { get; }                 // list of paths as allowed per train/subpath index
         public Dictionary<int, Dictionary<int, bool>> TrainLengthFit { get; }      // list of length fit per train/subpath and per path
@@ -71,7 +77,7 @@ namespace Orts.Simulation.Signalling
         /// Constructor
         /// </summary>
 
-        public DeadlockInfo()
+        public DeadlockInfo(bool surpressIndexing = false)
         {
             AvailablePathList = new List<DeadlockPathInfo>();
             PathReferences = new Dictionary<int, List<int>>();
@@ -82,7 +88,18 @@ namespace Orts.Simulation.Signalling
             TrainSubpathIndex = new Dictionary<int, Dictionary<int, int>>();
             nextTrainSubpathIndex = 0;
 
-            Simulator.Instance.SignalEnvironment.DeadlockInfoList.Add(deadlockIndex = Simulator.Instance.SignalEnvironment.deadlockIndex++, this);
+            if (!surpressIndexing)
+                Simulator.Instance.SignalEnvironment.DeadlockInfoList.Add(DeadlockIndex = GlobalDeadlockIndex++, this);
+        }
+
+        public ValueTask<DeadlockInfoSaveState> Snapshot()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ValueTask Restore(DeadlockInfoSaveState saveState)
+        {
+            throw new NotImplementedException();
         }
 
         //================================================================================================//
@@ -94,7 +111,7 @@ namespace Orts.Simulation.Signalling
         {
             ArgumentNullException.ThrowIfNull(inf);
 
-            deadlockIndex = inf.ReadInt32();
+            DeadlockIndex = inf.ReadInt32();
             AvailablePathList = new List<DeadlockPathInfo>();
 
             int totalPaths = inf.ReadInt32();
@@ -207,7 +224,7 @@ namespace Orts.Simulation.Signalling
         {
             ArgumentNullException.ThrowIfNull(outf);
 
-            outf.Write(deadlockIndex);
+            outf.Write(DeadlockIndex);
             outf.Write(AvailablePathList.Count);
 
             foreach (DeadlockPathInfo thisPathInfo in AvailablePathList)
@@ -395,11 +412,11 @@ namespace Orts.Simulation.Signalling
                     if (CheckNoOverlapDeadlockPaths(partPath))
                     {
                         newDeadlockInfo = new DeadlockInfo();
-                        Simulator.Instance.SignalEnvironment.DeadlockReference.Add(startSectionIndex, newDeadlockInfo.deadlockIndex);
-                        Simulator.Instance.SignalEnvironment.DeadlockReference.Add(endSectionIndex, newDeadlockInfo.deadlockIndex);
+                        Simulator.Instance.SignalEnvironment.DeadlockReference.Add(startSectionIndex, newDeadlockInfo.DeadlockIndex);
+                        Simulator.Instance.SignalEnvironment.DeadlockReference.Add(endSectionIndex, newDeadlockInfo.DeadlockIndex);
 
-                        startSection.DeadlockReference = newDeadlockInfo.deadlockIndex;
-                        endSection.DeadlockReference = newDeadlockInfo.deadlockIndex;
+                        startSection.DeadlockReference = newDeadlockInfo.DeadlockIndex;
+                        endSection.DeadlockReference = newDeadlockInfo.DeadlockIndex;
                     }
                     // else : overlaps existing deadlocks - will sort that out later //TODO DEADLOCK
                 }
@@ -640,7 +657,8 @@ namespace Orts.Simulation.Signalling
                     List<int> otherFreePaths = GetFreePaths(otherTrain);
                     foreach (int iPath in otherFreePaths)
                     {
-                        if (!usedRoutes.Contains(iPath)) usedRoutes.Add(iPath);
+                        if (!usedRoutes.Contains(iPath))
+                            usedRoutes.Add(iPath);
                         if (firstTrain)
                         {
                             commonRoutes.Add(iPath);
@@ -702,10 +720,12 @@ namespace Orts.Simulation.Signalling
 
                 foreach (int iPath in freePaths)
                 {
-                    if (!inverseUsedRoutes.Contains(iPath)) useablePaths.Add(iPath);
+                    if (!inverseUsedRoutes.Contains(iPath))
+                        useablePaths.Add(iPath);
                 }
 
-                if (useablePaths.Count > 0) return (useablePaths); // unused paths available
+                if (useablePaths.Count > 0)
+                    return (useablePaths); // unused paths available
 
                 // check if any path remains if common paths are excluded
 
@@ -713,7 +733,8 @@ namespace Orts.Simulation.Signalling
                 {
                     foreach (int iPath in freePaths)
                     {
-                        if (!inverseCommonRoutes.Contains(iPath)) useablePaths.Add(iPath);
+                        if (!inverseCommonRoutes.Contains(iPath))
+                            useablePaths.Add(iPath);
                     }
 
                     if (useablePaths.Count > 0)
@@ -728,7 +749,8 @@ namespace Orts.Simulation.Signalling
                 {
                     foreach (int iPath in freePaths)
                     {
-                        if (!inverseSingleRoutes.Contains(iPath)) useablePaths.Add(iPath);
+                        if (!inverseSingleRoutes.Contains(iPath))
+                            useablePaths.Add(iPath);
                     }
 
                     if (useablePaths.Count > 0)
@@ -757,7 +779,8 @@ namespace Orts.Simulation.Signalling
                 {
                     foreach (int iPath in freePaths)
                     {
-                        if (!inverseSingleRoutes.Contains(iPath)) useablePaths.Add(iPath);
+                        if (!inverseSingleRoutes.Contains(iPath))
+                            useablePaths.Add(iPath);
                     }
 
                     if (useablePaths.Count > 0)
@@ -823,7 +846,8 @@ namespace Orts.Simulation.Signalling
                     }
                 }
 
-                if (pathAvail) freePaths.Add(pathIndex);
+                if (pathAvail)
+                    freePaths.Add(pathIndex);
             }
 
             return (freePaths);
@@ -885,7 +909,8 @@ namespace Orts.Simulation.Signalling
                     }
 
                     selectedPathNofit = pathIndex;
-                    if (checkedMain && selectedPathFit > 0) break;  // if doesnt fit but main has been checked and train fits somewhere, break
+                    if (checkedMain && selectedPathFit > 0)
+                        break;  // if doesnt fit but main has been checked and train fits somewhere, break
                 }
 
                 // check for MAIN
@@ -895,7 +920,8 @@ namespace Orts.Simulation.Signalling
                     if (trainFitsInSection)
                     {
                         selectedPathFit = pathIndex;
-                        if (checkedOwn && preferMain) break;  // if fits and own has been checked and main prefered - break
+                        if (checkedOwn && preferMain)
+                            break;  // if fits and own has been checked and main prefered - break
                     }
                     else
                     {
@@ -959,14 +985,11 @@ namespace Orts.Simulation.Signalling
         {
             for (int i = 1; i <= path.Count - 2; i++) // loop through path excluding first and last section
             {
-                TrackCircuitRouteElement thisElement = path[i];
-                TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
-                if (thisSection.DeadlockBoundaries == null)
-                {
-                    thisSection.DeadlockBoundaries = new Dictionary<int, int>();
-                }
+                TrackCircuitRouteElement routeElement = path[i];
+                TrackCircuitSection section = routeElement.TrackCircuitSection;
+                section.DeadlockBoundaries ??= new Dictionary<int, int>();
 
-                thisSection.DeadlockBoundaries.TryAdd(deadlockIndex, pathIndex);
+                section.DeadlockBoundaries.TryAdd(DeadlockIndex, pathIndex);
             }
         }
 
@@ -1233,7 +1256,6 @@ namespace Orts.Simulation.Signalling
                 return (3, startSectionRouteIndex + 1);
             }
         }
-
     } // end DeadlockInfo class
 
 }

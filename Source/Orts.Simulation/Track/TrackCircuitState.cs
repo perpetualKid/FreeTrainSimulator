@@ -19,11 +19,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
+using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;
 
@@ -37,7 +42,7 @@ namespace Orts.Simulation.Track
     ///
     /// </summary>
     //================================================================================================//
-    public class TrackCircuitState
+    public class TrackCircuitState : ISaveStateApi<TrackCircuitStateSaveState>
     {
         internal TrackOccupationState OccupationState { get; set; }  // trains occupying section      //
         public Train.TrainRouted TrainReserved { get; internal set; }   // train reserving section       //
@@ -76,8 +81,8 @@ namespace Orts.Simulation.Track
                 int trainRouteIndex = inf.ReadInt32();
                 int trainDirection = inf.ReadInt32();
                 Train thisTrain = new Train(trainNumber);
-                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, trainRouteIndex);
-                OccupationState.Add(thisRouted, trainDirection);
+                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, (Direction)trainRouteIndex);
+                OccupationState.Add(thisRouted, (Direction)trainDirection);
             }
 
             int trainReserved = inf.ReadInt32();
@@ -85,7 +90,7 @@ namespace Orts.Simulation.Track
             {
                 int trainRouteIndexR = inf.ReadInt32();
                 Train thisTrain = new Train(trainReserved);
-                Train.TrainRouted trainRoute = new Train.TrainRouted(thisTrain, trainRouteIndexR);
+                Train.TrainRouted trainRoute = new Train.TrainRouted(thisTrain, (Direction)trainRouteIndexR);
                 TrainReserved = trainRoute;
             }
 
@@ -97,7 +102,7 @@ namespace Orts.Simulation.Track
                 int trainNumber = inf.ReadInt32();
                 int trainRouteIndex = inf.ReadInt32();
                 Train thisTrain = new Train(trainNumber);
-                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, trainRouteIndex);
+                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, (Direction)trainRouteIndex);
                 TrainPreReserved.Enqueue(thisRouted);
             }
 
@@ -107,12 +112,13 @@ namespace Orts.Simulation.Track
                 int trainNumber = inf.ReadInt32();
                 int trainRouteIndex = inf.ReadInt32();
                 Train thisTrain = new Train(trainNumber);
-                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, trainRouteIndex);
+                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, (Direction)trainRouteIndex);
                 TrainClaimed.Enqueue(thisRouted);
             }
             Forced = inf.ReadBoolean();
 
         }
+
 
         //================================================================================================//
         /// <summary>
@@ -121,30 +127,28 @@ namespace Orts.Simulation.Track
         public void RestoreTrains(List<Train> trains, int sectionIndex)
         {
             // Occupy
-            Dictionary<int[], int> tempTrains = new Dictionary<int[], int>();
+            Dictionary<int[], Direction> tempTrains = new Dictionary<int[], Direction>();
 
-            foreach (KeyValuePair<Train.TrainRouted, int> thisOccupy in OccupationState)
+            foreach (KeyValuePair<Train.TrainRouted, Direction> thisOccupy in OccupationState)
             {
                 int[] trainKey = new int[2];
                 trainKey[0] = thisOccupy.Key.Train.Number;
                 trainKey[1] = thisOccupy.Key.TrainRouteDirectionIndex;
-                int direction = thisOccupy.Value;
-                tempTrains.Add(trainKey, direction);
+                tempTrains.Add(trainKey, thisOccupy.Value);
             }
 
             OccupationState.Clear();
 
-            foreach (KeyValuePair<int[], int> thisTemp in tempTrains)
+            foreach (KeyValuePair<int[], Direction> thisTemp in tempTrains)
             {
                 int[] trainKey = thisTemp.Key;
                 int number = trainKey[0];
                 int routeIndex = trainKey[1];
-                int direction = thisTemp.Value;
                 Train thisTrain = SignalEnvironment.FindTrain(number, trains);
                 if (thisTrain != null)
                 {
                     Train.TrainRouted thisTrainRouted = routeIndex == 0 ? thisTrain.RoutedForward : thisTrain.RoutedBackward;
-                    OccupationState.Add(thisTrainRouted, direction);
+                    OccupationState.Add(thisTrainRouted, thisTemp.Value);
                 }
             }
 
@@ -210,51 +214,39 @@ namespace Orts.Simulation.Track
             }
         }
 
-        //================================================================================================//
-        /// <summary>
-        /// Save
-        /// </summary>
-        public void Save(BinaryWriter outf)
+        public ValueTask<TrackCircuitStateSaveState> Snapshot()
         {
-            ArgumentNullException.ThrowIfNull(outf);
+            return ValueTask.FromResult(new TrackCircuitStateSaveState()
+            { 
+                OccupationStates = new Collection<TrackCircuitStateSaveState.TrainReservationItem>(OccupationState.Select(item => new TrackCircuitStateSaveState.TrainReservationItem(item.Key.Train.Number, item.Key.Direction)).ToList()),
+                TrainReservation = TrainReserved != null ? new TrackCircuitStateSaveState.TrainReservationItem(TrainReserved.Train.Number, TrainReserved.Direction) : null,
+                SignalReserved = SignalReserved,
+                TrainPreReserved = new Collection<TrackCircuitStateSaveState.TrainReservationItem>(TrainPreReserved.Select(item => new TrackCircuitStateSaveState.TrainReservationItem(item.Train.Number, item.Direction)).ToList()),
+                TrainClaimed = new Collection<TrackCircuitStateSaveState.TrainReservationItem>(TrainClaimed.Select(item => new TrackCircuitStateSaveState.TrainReservationItem(item.Train.Number, item.Direction)).ToList()),
+                Forced = Forced,
+            });
+        }
 
-            outf.Write(OccupationState.Count);
-            foreach (KeyValuePair<Train.TrainRouted, int> thisOccupy in OccupationState)
+        public ValueTask Restore(TrackCircuitStateSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            foreach (TrackCircuitStateSaveState.TrainReservationItem item in saveState.OccupationStates)
             {
-                Train.TrainRouted thisTrain = thisOccupy.Key;
-                outf.Write(thisTrain.Train.Number);
-                outf.Write(thisTrain.TrainRouteDirectionIndex);
-                outf.Write(thisOccupy.Value);
+                OccupationState.Add(new Train.TrainRouted(new Train(item.TrainNumber), item.Direction), item.Direction);
             }
-
-            if (TrainReserved == null)
+            TrainReserved = saveState.TrainReservation != null ? new Train.TrainRouted(new Train(saveState.TrainReservation.Value.TrainNumber), saveState.TrainReservation.Value.Direction) : null;
+            SignalReserved = saveState.SignalReserved;
+            foreach (TrackCircuitStateSaveState.TrainReservationItem item in saveState.TrainPreReserved)
             {
-                outf.Write(-1);
+                TrainPreReserved.Enqueue(new Train.TrainRouted(new Train(item.TrainNumber), item.Direction));
             }
-            else
+            foreach (TrackCircuitStateSaveState.TrainReservationItem item in saveState.TrainClaimed)
             {
-                outf.Write(TrainReserved.Train.Number);
-                outf.Write(TrainReserved.TrainRouteDirectionIndex);
+                TrainClaimed.Enqueue(new Train.TrainRouted(new Train(item.TrainNumber), item.Direction));
             }
-
-            outf.Write(SignalReserved);
-
-            outf.Write(TrainPreReserved.Count);
-            foreach (Train.TrainRouted thisTrain in TrainPreReserved)
-            {
-                outf.Write(thisTrain.Train.Number);
-                outf.Write(thisTrain.TrainRouteDirectionIndex);
-            }
-
-            outf.Write(TrainClaimed.Count);
-            foreach (Train.TrainRouted thisTrain in TrainClaimed)
-            {
-                outf.Write(thisTrain.Train.Number);
-                outf.Write(thisTrain.TrainRouteDirectionIndex);
-            }
-
-            outf.Write(Forced);
-
+            Forced = saveState.Forced;
+            return ValueTask.CompletedTask;
         }
 
         //================================================================================================//
@@ -272,7 +264,7 @@ namespace Orts.Simulation.Track
         /// Get list of trains occupying track
 	    /// Check based on direction
         /// </summary>
-        public List<Train.TrainRouted> TrainsOccupying(int direction)
+        public List<Train.TrainRouted> TrainsOccupying(Direction direction)
         {
             return OccupationState.Where(state => state.Value == direction).Select(state => state.Key).ToList();
         }
@@ -292,9 +284,14 @@ namespace Orts.Simulation.Track
         /// check if any trains occupy track
         /// Check based on direction
         /// </summary>
-        public bool Occupied(int direction, bool stationary)
+        public bool Occupied(Direction direction, bool stationary)
         {
             return OccupationState.Where(state => (state.Value == direction && state.Key.Train.SpeedMpS > 0.5f) || (stationary && state.Key.Train.SpeedMpS <= 0.5)).Any();
+        }
+
+        public bool Occupied(TrackDirection direction, bool stationary)
+        {
+            return Occupied((Direction)direction, stationary);
         }
 
         //================================================================================================//
@@ -312,7 +309,7 @@ namespace Orts.Simulation.Track
         /// check if any trains occupy track
         /// Check for other train based on direction
         /// </summary>
-        public bool OccupiedByOtherTrains(int direction, bool stationary, Train.TrainRouted train)
+        public bool OccupiedByOtherTrains(Direction direction, bool stationary, Train.TrainRouted train)
         {
             return OccupationState.Where(state => (state.Key != train) && ((state.Value == direction && state.Key.Train.SpeedMpS > 0.5f) || (stationary && state.Key.Train.SpeedMpS <= 0.5))).Any();
         }

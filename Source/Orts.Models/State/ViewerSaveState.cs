@@ -17,7 +17,7 @@ namespace Orts.Models.State
         public Point CabOffset { get; set; }
         public bool NightTexturesLoaded { get; set; }
         public bool DayTexturesLoaded { get; set; }
-        public Collection<CameraSaveState> CameraStates { get; } = new Collection<CameraSaveState>();
+        public Collection<CameraSaveState> CameraStates { get; private set; } = new Collection<CameraSaveState>();
         public CameraSaveState CurrentCamera { get; set; }
         public CabRendererSaveState CabState2D { get; set; }
         public CabRendererSaveState CabState3D { get; set; }
