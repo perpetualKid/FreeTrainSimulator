@@ -19,8 +19,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common.Api;
+
+using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Track;
 
@@ -34,20 +40,17 @@ namespace Orts.Simulation.Signalling
     /// </summary>
     //================================================================================================//
 
-    internal class DeadlockPathInfo
+    internal class DeadlockPathInfo : ISaveStateApi<DeadlockPathInfoSaveState>
     {
         public string Name { get; internal set; }
-        public TrackCircuitPartialPathRoute Path { get; }
-        public List<string> Groups { get; }// groups of which this path is a part
-        public List<int> AllowedTrains { get; }// list of train for which path is valid (ref. is train/subpath index); -1 indicates public path
+        public TrackCircuitPartialPathRoute Path { get; private set; }
+        public List<string> Groups { get; private set; }// groups of which this path is a part
+        public List<int> AllowedTrains { get; private set; }// list of train for which path is valid (ref. is train/subpath index); -1 indicates public path
         public int LastUsefulSectionIndex { get; internal set; }// Index in Path for last section which can be used before stop position
         public float UsefulLength { get; internal set; } // path useful length
         public int EndSectionIndex { get; internal set; }// index of linked end section
 
-        //================================================================================================//
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        public DeadlockPathInfo() { }
 
         public DeadlockPathInfo(TrackCircuitPartialPathRoute path, int pathIndex)
         {
@@ -63,66 +66,31 @@ namespace Orts.Simulation.Signalling
             Path[0].UsedAlternativePath = pathIndex;
         }
 
-        //================================================================================================//
-        /// <summary>
-        /// Constructor for restore
-        /// </summary>
-
-        public DeadlockPathInfo(BinaryReader inf)
+        public async ValueTask<DeadlockPathInfoSaveState> Snapshot()
         {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            Path = new TrackCircuitPartialPathRoute(inf);
-            Name = inf.ReadString();
-
-            Groups = new List<string>();
-            int totalGroups = inf.ReadInt32();
-            for (int iGroup = 0; iGroup <= totalGroups - 1; iGroup++)
-            {
-                string thisGroup = inf.ReadString();
-                Groups.Add(thisGroup);
-            }
-
-            UsefulLength = inf.ReadSingle();
-            EndSectionIndex = inf.ReadInt32();
-            LastUsefulSectionIndex = inf.ReadInt32();
-
-            AllowedTrains = new List<int>();
-            int totalIndex = inf.ReadInt32();
-            for (int iIndex = 0; iIndex <= totalIndex - 1; iIndex++)
-            {
-                int thisIndex = inf.ReadInt32();
-                AllowedTrains.Add(thisIndex);
-            }
+            return new DeadlockPathInfoSaveState() 
+            { 
+                PathInfo = await Path.Snapshot().ConfigureAwait(false),
+                Name = Name,
+                Groups = new Collection<string>(Groups),
+                UsableLength = UsefulLength,
+                EndSectionIndex = EndSectionIndex,
+                LastUsableSectionIndex = LastUsefulSectionIndex,
+                AllowedTrains = new Collection<int>(AllowedTrains),
+            };
         }
 
-        //================================================================================================//
-        /// <summary>
-        /// save
-        /// </summary>
-
-        public void Save(BinaryWriter outf)
+        public async ValueTask Restore(DeadlockPathInfoSaveState saveState)
         {
-            ArgumentNullException.ThrowIfNull(outf);
-
-            Path.Save(outf);
-            outf.Write(Name);
-
-            outf.Write(Groups.Count);
-            foreach (string groupName in Groups)
-            {
-                outf.Write(groupName);
-            }
-
-            outf.Write(UsefulLength);
-            outf.Write(EndSectionIndex);
-            outf.Write(LastUsefulSectionIndex);
-
-            outf.Write(AllowedTrains.Count);
-            foreach (int thisIndex in AllowedTrains)
-            {
-                outf.Write(thisIndex);
-            }
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+            Path = new TrackCircuitPartialPathRoute();
+            await Path.Restore(saveState.PathInfo).ConfigureAwait(false);
+            Name = saveState.Name;
+            Groups = saveState.Groups.ToList();
+            UsefulLength = saveState.UsableLength;
+            EndSectionIndex = saveState.EndSectionIndex;
+            LastUsefulSectionIndex = saveState.LastUsableSectionIndex;
+            AllowedTrains = saveState.AllowedTrains.ToList();
         }
     }
 

@@ -1,4 +1,0 @@
-﻿namespace Orts.Simulation.Signalling
-{
-
-}

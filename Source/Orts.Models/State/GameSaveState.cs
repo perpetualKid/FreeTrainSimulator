@@ -27,11 +27,11 @@ namespace Orts.Models.State
         public WorldLocation InitialLocation { get; set; }
         public WorldLocation PlayerLocation { get; set; }
         public ActivityType ActivityType { get; set; }
-        [MemoryPackInclude]
-        private string finalMarker = HeaderEofMarker;
         public SimulatorSaveState SimulatorSaveState { get; set; }
         public ViewerSaveState ViewerSaveState { get; set; }
         public ActivityEvaluationState ActivityEvaluationState { get; set; }
+        [MemoryPackInclude]
+        private string finalMarker = HeaderEofMarker;
         public ReadOnlySequence<byte> LegacyState { get; set; }
 
         [MemoryPackIgnore]

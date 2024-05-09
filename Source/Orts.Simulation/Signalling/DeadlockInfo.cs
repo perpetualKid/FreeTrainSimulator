@@ -24,7 +24,9 @@
 // print details of deadlock processing
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -62,15 +64,14 @@ namespace Orts.Simulation.Signalling
         }
 
         private int nextTrainSubpathIndex;                                          // counter for train/subpath index
-        public int DeadlockIndex { get; }                                           // this deadlock unique index reference
-        public List<DeadlockPathInfo> AvailablePathList
-        { get; }                   // list of available paths
-        public Dictionary<int, List<int>> PathReferences { get; }                  // list of paths per boundary section
-        public Dictionary<int, List<int>> TrainReferences { get; }                 // list of paths as allowed per train/subpath index
-        public Dictionary<int, Dictionary<int, bool>> TrainLengthFit { get; }      // list of length fit per train/subpath and per path
-        public Dictionary<int, int> TrainOwnPath { get; }                          // train's own path per train/subpath
-        public Dictionary<int, int> InverseInfo { get; }                           // list of paths which are each others inverse
-        public Dictionary<int, Dictionary<int, int>> TrainSubpathIndex { get; }    // unique index per train and subpath
+        public int DeadlockIndex { get; private set; }                                           // this deadlock unique index reference
+        public List<DeadlockPathInfo> AvailablePathList { get; private set; }                   // list of available paths
+        public Dictionary<int, List<int>> PathReferences { get; private set; }                  // list of paths per boundary section
+        public Dictionary<int, List<int>> TrainReferences { get; private set; }                 // list of paths as allowed per train/subpath index
+        public Dictionary<int, Dictionary<int, bool>> TrainLengthFit { get; private set; }      // list of length fit per train/subpath and per path
+        public Dictionary<int, int> TrainOwnPath { get; private set; }                          // train's own path per train/subpath
+        public Dictionary<int, int> InverseInfo { get; private set; }                           // list of paths which are each others inverse
+        public Dictionary<int, Dictionary<int, int>> TrainSubpathIndex { get; private set; }    // unique index per train and subpath
 
         //================================================================================================//
         /// <summary>
@@ -92,211 +93,48 @@ namespace Orts.Simulation.Signalling
                 Simulator.Instance.SignalEnvironment.DeadlockInfoList.Add(DeadlockIndex = GlobalDeadlockIndex++, this);
         }
 
-        public ValueTask<DeadlockInfoSaveState> Snapshot()
+        public async ValueTask<DeadlockInfoSaveState> Snapshot()
         {
-            throw new NotImplementedException();
+            ConcurrentBag<DeadlockPathInfoSaveState> pathInfoSaveStates = new ConcurrentBag<DeadlockPathInfoSaveState>();
+            await Parallel.ForEachAsync(AvailablePathList, async (pathInfo, cancellationToken) =>
+            {
+                pathInfoSaveStates.Add(await pathInfo.Snapshot().ConfigureAwait(false));
+            });
+
+            return new DeadlockInfoSaveState()
+            {
+                DeadlockIndex = DeadlockIndex,                
+                AvailablePaths = new Collection<DeadlockPathInfoSaveState>(pathInfoSaveStates.ToList()),
+                PathReferences = new Dictionary<int, List<int>>(PathReferences),
+                TrainReferences = new Dictionary<int, List<int>>(TrainReferences),
+                TrainLengthFit = new Dictionary<int, Dictionary<int, bool>>(TrainLengthFit),
+                TrainOwnPath = new Dictionary<int, int>(TrainOwnPath),
+                InverseInfo = new Dictionary<int, int>(InverseInfo),
+                TrainSubpathIndex = new Dictionary<int, Dictionary<int, int>>(TrainSubpathIndex),
+                NextTrainSubpathIndex = nextTrainSubpathIndex,
+            };
         }
 
-        public ValueTask Restore(DeadlockInfoSaveState saveState)
+        public async ValueTask Restore(DeadlockInfoSaveState saveState)
         {
-            throw new NotImplementedException();
-        }
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-        //================================================================================================//
-        /// <summary>
-        /// Constructor for restore
-        /// </summary>
-
-        public DeadlockInfo(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            DeadlockIndex = inf.ReadInt32();
-            AvailablePathList = new List<DeadlockPathInfo>();
-
-            int totalPaths = inf.ReadInt32();
-            for (int iPath = 0; iPath <= totalPaths - 1; iPath++)
+            ConcurrentBag<DeadlockPathInfo> deadlockPathInfos = new ConcurrentBag<DeadlockPathInfo>();
+            await Parallel.ForEachAsync(saveState.AvailablePaths, async (deadlockPathInfo, cancellationToken) =>
             {
-                DeadlockPathInfo thisPath = new DeadlockPathInfo(inf);
-                AvailablePathList.Add(thisPath);
-            }
+                DeadlockPathInfo pathInfo = new DeadlockPathInfo();
+                await pathInfo.Restore(deadlockPathInfo).ConfigureAwait(false);
+            });
 
-            PathReferences = new Dictionary<int, List<int>>();
-
-            int totalReferences = inf.ReadInt32();
-            for (int iReference = 0; iReference <= totalReferences - 1; iReference++)
-            {
-                int thisReference = inf.ReadInt32();
-                List<int> thisList = new List<int>();
-
-                int totalItems = inf.ReadInt32();
-                for (int iItem = 0; iItem <= totalItems - 1; iItem++)
-                {
-                    int thisItem = inf.ReadInt32();
-                    thisList.Add(thisItem);
-                }
-                PathReferences.Add(thisReference, thisList);
-            }
-
-            TrainReferences = new Dictionary<int, List<int>>();
-
-            totalReferences = inf.ReadInt32();
-            for (int iReference = 0; iReference <= totalReferences - 1; iReference++)
-            {
-                int thisReference = inf.ReadInt32();
-                List<int> thisList = new List<int>();
-
-                int totalItems = inf.ReadInt32();
-                for (int iItem = 0; iItem <= totalItems - 1; iItem++)
-                {
-                    int thisItem = inf.ReadInt32();
-                    thisList.Add(thisItem);
-                }
-                TrainReferences.Add(thisReference, thisList);
-            }
-
-            TrainLengthFit = new Dictionary<int, Dictionary<int, bool>>();
-
-            int totalFits = inf.ReadInt32();
-            for (int iFits = 0; iFits <= totalFits - 1; iFits++)
-            {
-                int thisTrain = inf.ReadInt32();
-                Dictionary<int, bool> thisLengthFit = new Dictionary<int, bool>();
-
-                int totalItems = inf.ReadInt32();
-                for (int iItem = 0; iItem <= totalItems - 1; iItem++)
-                {
-                    int itemRef = inf.ReadInt32();
-                    bool itemValue = inf.ReadBoolean();
-
-                    thisLengthFit.Add(itemRef, itemValue);
-                }
-                TrainLengthFit.Add(thisTrain, thisLengthFit);
-            }
-
-            TrainOwnPath = new Dictionary<int, int>();
-
-            int totalOwnPath = inf.ReadInt32();
-            for (int iOwnPath = 0; iOwnPath <= totalOwnPath - 1; iOwnPath++)
-            {
-                int trainIndex = inf.ReadInt32();
-                int pathIndex = inf.ReadInt32();
-                TrainOwnPath.Add(trainIndex, pathIndex);
-            }
-
-            InverseInfo = new Dictionary<int, int>();
-            int totalInverseInfo = inf.ReadInt32();
-
-            for (int iInfo = 0; iInfo <= totalInverseInfo - 1; iInfo++)
-            {
-                int infoKey = inf.ReadInt32();
-                int infoValue = inf.ReadInt32();
-                InverseInfo.Add(infoKey, infoValue);
-            }
-
-            TrainSubpathIndex = new Dictionary<int, Dictionary<int, int>>();
-            int totalTrain = inf.ReadInt32();
-
-            for (int iTrain = 0; iTrain <= totalTrain - 1; iTrain++)
-            {
-                int trainValue = inf.ReadInt32();
-                Dictionary<int, int> subpathList = new Dictionary<int, int>();
-
-                int totalSubpaths = inf.ReadInt32();
-                for (int iSubpath = 0; iSubpath <= totalSubpaths - 1; iSubpath++)
-                {
-                    int subpathValue = inf.ReadInt32();
-                    int indexValue = inf.ReadInt32();
-                    subpathList.Add(subpathValue, indexValue);
-                }
-                TrainSubpathIndex.Add(trainValue, subpathList);
-            }
-
-            nextTrainSubpathIndex = inf.ReadInt32();
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// save
-        /// </summary>
-
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
-
-            outf.Write(DeadlockIndex);
-            outf.Write(AvailablePathList.Count);
-
-            foreach (DeadlockPathInfo thisPathInfo in AvailablePathList)
-            {
-                thisPathInfo.Save(outf);
-            }
-
-            outf.Write(PathReferences.Count);
-            foreach (KeyValuePair<int, List<int>> thisReference in PathReferences)
-            {
-                outf.Write(thisReference.Key);
-                outf.Write(thisReference.Value.Count);
-
-                foreach (int thisRefValue in thisReference.Value)
-                {
-                    outf.Write(thisRefValue);
-                }
-            }
-
-            outf.Write(TrainReferences.Count);
-            foreach (KeyValuePair<int, List<int>> thisReference in TrainReferences)
-            {
-                outf.Write(thisReference.Key);
-                outf.Write(thisReference.Value.Count);
-
-                foreach (int thisRefValue in thisReference.Value)
-                {
-                    outf.Write(thisRefValue);
-                }
-            }
-
-            outf.Write(TrainLengthFit.Count);
-            foreach (KeyValuePair<int, Dictionary<int, bool>> thisLengthFit in TrainLengthFit)
-            {
-                outf.Write(thisLengthFit.Key);
-                outf.Write(thisLengthFit.Value.Count);
-
-                foreach (KeyValuePair<int, bool> thisAvailValue in thisLengthFit.Value)
-                {
-                    outf.Write(thisAvailValue.Key);
-                    outf.Write(thisAvailValue.Value);
-                }
-            }
-
-            outf.Write(TrainOwnPath.Count);
-            foreach (KeyValuePair<int, int> ownTrainInfo in TrainOwnPath)
-            {
-                outf.Write(ownTrainInfo.Key);
-                outf.Write(ownTrainInfo.Value);
-            }
-
-            outf.Write(InverseInfo.Count);
-            foreach (KeyValuePair<int, int> thisInfo in InverseInfo)
-            {
-                outf.Write(thisInfo.Key);
-                outf.Write(thisInfo.Value);
-            }
-
-            outf.Write(TrainSubpathIndex.Count);
-            foreach (KeyValuePair<int, Dictionary<int, int>> trainInfo in TrainSubpathIndex)
-            {
-                outf.Write(trainInfo.Key);
-                outf.Write(trainInfo.Value.Count);
-
-                foreach (KeyValuePair<int, int> subpathInfo in trainInfo.Value)
-                {
-                    outf.Write(subpathInfo.Key);
-                    outf.Write(subpathInfo.Value);
-                }
-            }
-
-            outf.Write(nextTrainSubpathIndex);
+            DeadlockIndex = saveState.DeadlockIndex;
+            AvailablePathList = deadlockPathInfos.ToList();
+            PathReferences = saveState.PathReferences;
+            TrainReferences = saveState.TrainReferences;
+            TrainLengthFit = saveState.TrainLengthFit;
+            TrainOwnPath = saveState.TrainOwnPath;
+            InverseInfo = saveState.InverseInfo;
+            TrainSubpathIndex = saveState.TrainSubpathIndex;
+            nextTrainSubpathIndex = saveState.NextTrainSubpathIndex;
         }
 
         //================================================================================================//
