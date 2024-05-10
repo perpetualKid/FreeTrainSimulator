@@ -171,7 +171,7 @@ namespace FreeTrainSimulator.Common
             ArgumentNullException.ThrowIfNull(values);
             int columns = array.GetLength(0);
             int rows = array.GetLength(1);
-            if (values.GetLength(columns) != rows || values.GetLength(1) != rows)
+            if (values.GetLength(0) != columns || values.GetLength(1) != rows)
                 throw new InvalidOperationException($"Source array needs to fit into target array.");
 
             for (int col = 0; col < columns; col++)
