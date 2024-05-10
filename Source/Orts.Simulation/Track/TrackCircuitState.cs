@@ -218,11 +218,11 @@ namespace Orts.Simulation.Track
         {
             return ValueTask.FromResult(new TrackCircuitStateSaveState()
             { 
-                OccupationStates = new Collection<TrackCircuitStateSaveState.TrainReservationItem>(OccupationState.Select(item => new TrackCircuitStateSaveState.TrainReservationItem(item.Key.Train.Number, item.Key.Direction)).ToList()),
-                TrainReservation = TrainReserved != null ? new TrackCircuitStateSaveState.TrainReservationItem(TrainReserved.Train.Number, TrainReserved.Direction) : null,
+                OccupationStates = new Collection<TrainReservationItemSaveState>(OccupationState.Select(item => new TrainReservationItemSaveState(item.Key.Train.Number, item.Key.Direction)).ToList()),
+                TrainReservation = TrainReserved != null ? new TrainReservationItemSaveState(TrainReserved.Train.Number, TrainReserved.Direction) : null,
                 SignalReserved = SignalReserved,
-                TrainPreReserved = new Collection<TrackCircuitStateSaveState.TrainReservationItem>(TrainPreReserved.Select(item => new TrackCircuitStateSaveState.TrainReservationItem(item.Train.Number, item.Direction)).ToList()),
-                TrainClaimed = new Collection<TrackCircuitStateSaveState.TrainReservationItem>(TrainClaimed.Select(item => new TrackCircuitStateSaveState.TrainReservationItem(item.Train.Number, item.Direction)).ToList()),
+                TrainPreReserved = new Collection<TrainReservationItemSaveState>(TrainPreReserved.Select(item => new TrainReservationItemSaveState(item.Train.Number, item.Direction)).ToList()),
+                TrainClaimed = new Collection<TrainReservationItemSaveState>(TrainClaimed.Select(item => new TrainReservationItemSaveState(item.Train.Number, item.Direction)).ToList()),
                 Forced = Forced,
             });
         }
@@ -231,17 +231,17 @@ namespace Orts.Simulation.Track
         {
             ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-            foreach (TrackCircuitStateSaveState.TrainReservationItem item in saveState.OccupationStates)
+            foreach (TrainReservationItemSaveState item in saveState.OccupationStates)
             {
                 OccupationState.Add(new Train.TrainRouted(new Train(item.TrainNumber), item.Direction), item.Direction);
             }
             TrainReserved = saveState.TrainReservation != null ? new Train.TrainRouted(new Train(saveState.TrainReservation.Value.TrainNumber), saveState.TrainReservation.Value.Direction) : null;
             SignalReserved = saveState.SignalReserved;
-            foreach (TrackCircuitStateSaveState.TrainReservationItem item in saveState.TrainPreReserved)
+            foreach (TrainReservationItemSaveState item in saveState.TrainPreReserved)
             {
                 TrainPreReserved.Enqueue(new Train.TrainRouted(new Train(item.TrainNumber), item.Direction));
             }
-            foreach (TrackCircuitStateSaveState.TrainReservationItem item in saveState.TrainClaimed)
+            foreach (TrainReservationItemSaveState item in saveState.TrainClaimed)
             {
                 TrainClaimed.Enqueue(new Train.TrainRouted(new Train(item.TrainNumber), item.Direction));
             }

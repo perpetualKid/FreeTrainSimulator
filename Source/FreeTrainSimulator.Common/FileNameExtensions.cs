@@ -1,6 +1,6 @@
 ﻿namespace FreeTrainSimulator.Common
 {
-    public class FileNameExtensions
+    public static class FileNameExtensions
     {
         public const string SaveFile = ".save";
         public const string TextReport = ".txt";
