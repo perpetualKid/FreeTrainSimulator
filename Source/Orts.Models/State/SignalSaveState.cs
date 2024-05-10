@@ -15,6 +15,7 @@ namespace Orts.Models.State
         public int SignalIndex { get; set; }
         public TrackCircuitPartialPathRouteSaveState SignalRoute {  get; set; }
         public int EnabledTrainNumber { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
         public Collection<int> NextActiveSignals { get; set; }
         public int TrainRouteIndex { get; set; }
         public SignalHoldState HoldState { get; set; }
@@ -31,5 +32,6 @@ namespace Orts.Models.State
         public bool ClaimLocked { get; set; }
         public SignalPermission OverridePermission { get; set; }
         public Collection<(int, int)> LockedTrains { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
     }
 }

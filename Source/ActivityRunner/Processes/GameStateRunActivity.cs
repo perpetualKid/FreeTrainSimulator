@@ -104,6 +104,8 @@ namespace Orts.ActivityRunner.Processes
 
         public override async ValueTask Restore(GameSaveState saveState)
         {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
             await ActivityEvaluation.Instance.Restore(saveState.ActivityEvaluationState).ConfigureAwait(false);
         }
 
@@ -352,6 +354,7 @@ namespace Orts.ActivityRunner.Processes
             string saveFile = GetSaveFile(data);
 
             GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            await Restore(saveState).ConfigureAwait(false);
 
             activityType = saveState.ActivityType;
             data = saveState.Arguments.ToArray();

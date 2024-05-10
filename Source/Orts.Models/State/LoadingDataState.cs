@@ -12,6 +12,8 @@ namespace Orts.Models.State
     {
         public string DataKey { get; set; }
         public TimeSpan LoadingDuration { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
         public Collection<long> Samples { get; set; } = new Collection<long>();
+#pragma warning restore CA2227 // Collection properties should be read only
     }
 }

@@ -82,6 +82,7 @@ namespace FreeTrainSimulator.Common
 
         public void FromArray(T[] values)
         {
+            ArgumentNullException.ThrowIfNull(values);
             if (values.Length != array.Length)
                 throw new ArgumentOutOfRangeException($"Source array needs to be same size as number of enum values of {typeof(TEnum)}");
             Array.Copy(values, array, values.Length);

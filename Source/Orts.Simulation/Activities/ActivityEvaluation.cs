@@ -165,6 +165,8 @@ namespace Orts.Simulation.Activities
 
         public ValueTask Restore(ActivityEvaluationState saveState)
         {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
             instance = new ActivityEvaluation
             {
                 CouplerBreaks = saveState.CouplerBreaks,
