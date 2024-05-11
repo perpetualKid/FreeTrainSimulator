@@ -17,8 +17,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
 
@@ -28,6 +30,7 @@ using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
@@ -84,35 +87,25 @@ namespace Orts.Simulation
              });
         }
 
-        /// <summary>
-        /// Saves the general variable parameters
-        /// Called from within the Simulator class.
-        /// </summary>
-        internal override void Save(BinaryWriter outf)
+        public override async ValueTask<MovingTableSaveState> Snapshot()
         {
-            base.Save(outf);
-            outf.Write((int)MotionDirection);
-            outf.Write(OffsetPos);
-            outf.Write(Connected);
-            outf.Write(saveConnected);
-            outf.Write(connectedTarget);
-            outf.Write(TargetOffset);
+            MovingTableSaveState result = await base.Snapshot().ConfigureAwait(false);
+            result.MotionDirection = MotionDirection;
+            result.Offset = OffsetPos;
+            result.ForwardConnection = new ConnectionItem(Connected, saveConnected, connectedTarget);
+            result.TargetOffset = TargetOffset;
+            return result;
         }
 
-
-        /// <summary>
-        /// Restores the general variable parameters
-        /// Called from within the Simulator class.
-        /// </summary>
-        internal override void Restore(BinaryReader inf, Simulator simulator)
+        public override async ValueTask Restore([NotNull] MovingTableSaveState saveState)
         {
-            base.Restore(inf, simulator);
-            MotionDirection = (MidpointDirection)inf.ReadInt32();
-            OffsetPos = inf.ReadSingle();
-            Connected = inf.ReadBoolean();
-            saveConnected = inf.ReadBoolean();
-            connectedTarget = inf.ReadInt32();
-            TargetOffset = inf.ReadSingle();
+            await base.Restore(saveState).ConfigureAwait(false);
+            MotionDirection = saveState.MotionDirection;
+            OffsetPos = saveState.Offset;
+            Connected = saveState.ForwardConnection.Connected;
+            saveConnected = saveState.ForwardConnection.SaveStatus;
+            connectedTarget = saveState.ForwardConnection.Target;
+            TargetOffset = saveState.TargetOffset;
         }
 
         protected void InitializeOffsetsAndTrackNodes()

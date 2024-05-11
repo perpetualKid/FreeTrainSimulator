@@ -17,16 +17,24 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+
+using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.World
 {
@@ -68,7 +76,7 @@ namespace Orts.Simulation.World
         }
     }
 
-    public abstract class MovingTable
+    public abstract class MovingTable : ISaveStateApi<MovingTableSaveState>
     {
         public enum MessageCode
         {
@@ -90,9 +98,7 @@ namespace Orts.Simulation.World
         private protected WorldPosition position = WorldPosition.None;
         // Dynamic data
         public ref readonly WorldPosition WorldPosition => ref position;
-#pragma warning disable CA1002 // Do not expose generic lists
-        public List<string> Animations { get; } = new List<string>();
-#pragma warning restore CA1002 // Do not expose generic lists
+        public Collection<string> Animations { get; } = new Collection<string>();
         private protected Vector3 offset;
         public ref readonly Vector3 CenterOffset => ref offset; // shape offset of center of moving table;
         public bool ContinuousMotion { get; protected set; } // continuous motion on
@@ -102,7 +108,7 @@ namespace Orts.Simulation.World
         public int? TurntableFrameRate { get; set; }
         public bool SendNotifications { get; set; } = true;      // send simulator confirmations
         public bool InUse { get; set; }                  // turntable is in use (used in auto mode for timetable)
-        public Queue<int> WaitingTrains { get; } = new Queue<int>();    // Queue of trains waiting to access table
+        public Queue<int> WaitingTrains { get; private set; } = new Queue<int>();    // Queue of trains waiting to access table
 
         // additions to manage rotation or transfer of wagons
 #pragma warning disable CA1002 // Do not expose generic lists
@@ -118,73 +124,46 @@ namespace Orts.Simulation.World
         public bool AlignToRemote { get; set; }
         public bool RemotelyControlled { get; set; }
 
-        internal virtual void Save(BinaryWriter outf)
+        public virtual ValueTask<MovingTableSaveState> Snapshot()
         {
-            outf.Write(ContinuousMotion);
-            outf.Write(GoToTarget);
-            outf.Write(GoToAutoTarget);
-            outf.Write(TurntableFrameRate.HasValue);
-            if (TurntableFrameRate.HasValue)
-                outf.Write(TurntableFrameRate.Value);
-            outf.Write(ConnectedTrackEnd);
-            outf.Write(SendNotifications);
-            outf.Write(InUse);
-            SaveVector(outf, relativeFrontTravellerXNALocation);
-            SaveVector(outf, relativeRearTravellerXNALocation);
-            SaveVector(outf, finalFrontTravellerXNALocation);
-            SaveVector(outf, finalRearTravellerXNALocation);
-            outf.Write(TrainsOnMovingTable.Count);
-            foreach (TrainOnMovingTable trainOnMovingTable in TrainsOnMovingTable)
-                trainOnMovingTable.Save(outf);
-            outf.Write(WaitingTrains.Count);
-            foreach (int waitingTrain in WaitingTrains)
-                outf.Write(waitingTrain);
-        }
-
-
-        private static void SaveVector(BinaryWriter outf, Vector3 vector)
-        {
-            outf.Write(vector.X);
-            outf.Write(vector.Y);
-            outf.Write(vector.Z);
-        }
-
-        /// <summary>
-        /// Restores the general variable parameters
-        /// Called from within the Simulator class.
-        /// </summary>
-        internal virtual void Restore(BinaryReader inf, Simulator simulator)
-        {
-            ContinuousMotion = inf.ReadBoolean();
-            GoToTarget = inf.ReadBoolean();
-            GoToAutoTarget = inf.ReadBoolean();
-            TurntableFrameRate = null;
-            if (inf.ReadBoolean())
-                TurntableFrameRate = inf.ReadInt32();
-            ConnectedTrackEnd = inf.ReadInt32();
-            SendNotifications = inf.ReadBoolean();
-            InUse = inf.ReadBoolean();
-            relativeFrontTravellerXNALocation = RestoreVector(inf);
-            relativeRearTravellerXNALocation = RestoreVector(inf);
-            finalFrontTravellerXNALocation = RestoreVector(inf);
-            finalRearTravellerXNALocation = RestoreVector(inf);
-            int trainsOnMovingTable = inf.ReadInt32();
-            while (trainsOnMovingTable > 0)
+            return ValueTask.FromResult(new MovingTableSaveState()
             {
-                TrainOnMovingTable trainOnMovingTable = new TrainOnMovingTable(null);
-                trainOnMovingTable.Restore(inf);
-                trainsOnMovingTable--;
-                TrainsOnMovingTable.Add(trainOnMovingTable);
-            }
-
-            int trainsWaiting = inf.ReadInt32();
-            for (int waitingTrain = 0; waitingTrain < trainsWaiting; waitingTrain++)
-                WaitingTrains.Enqueue(inf.ReadInt32());
+                Index = UID,
+                ContinousMotion = ContinuousMotion,
+                MoveToTarget = GoToTarget,
+                MoveToAutoTarget = GoToAutoTarget,
+                TurntableFrameRate = TurntableFrameRate,
+                ConnectedTrackEnd = ConnectedTrackEnd,
+                SendNotifications = SendNotifications,
+                Used = InUse,
+                RelativeFrontTraveller = relativeFrontTravellerXNALocation,
+                RelativeRearTraveller = relativeRearTravellerXNALocation,
+                FinalFrontTraveller = finalFrontTravellerXNALocation,
+                FinalRearTraveller = finalRearTravellerXNALocation,
+                TrainsOnTable = new Collection<TrainOnTableItem>(TrainsOnMovingTable.Select((item) => new TrainOnTableItem(item.Train.Number, item.FrontOnBoard, item.BackOnBoard)).ToList()),
+                WaitingTrains = new Queue<int>(WaitingTrains),
+            });
         }
 
-        private static Vector3 RestoreVector(BinaryReader inf)
+        public virtual ValueTask Restore(MovingTableSaveState saveState)
         {
-            return new Vector3(inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle());
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            ContinuousMotion = saveState.ContinousMotion;
+            GoToTarget = saveState.MoveToTarget;
+            GoToAutoTarget = saveState.MoveToAutoTarget;
+            TurntableFrameRate = saveState.TurntableFrameRate;
+            ConnectedTrackEnd = saveState.ConnectedTrackEnd;
+            SendNotifications = saveState.SendNotifications;
+            InUse = saveState.Used;
+            relativeFrontTravellerXNALocation = saveState.RelativeFrontTraveller;
+            relativeRearTravellerXNALocation = saveState.RelativeRearTraveller;
+            finalFrontTravellerXNALocation = saveState.FinalFrontTraveller;
+            finalRearTravellerXNALocation = saveState.FinalRearTraveller;
+            TrainsOnMovingTable.Clear();
+            TrainsOnMovingTable.AddRange(saveState.TrainsOnTable.Select((item) => new TrainOnMovingTable(item.TrainNumber, item.FrontOnBoard, item.RearOnBoard)));
+            WaitingTrains = new Queue<int>(saveState.WaitingTrains);
+            return ValueTask.CompletedTask;
         }
 
         public virtual void Update()
@@ -367,6 +346,14 @@ namespace Orts.Simulation.World
         public TrainOnMovingTable(Train train)
         {
             Train = train;
+        }
+
+        public TrainOnMovingTable(int trainNumber, bool frontOnBoard, bool rearOnBoard, Train train = null)
+        {
+            Train = Simulator.Instance.Trains.GetTrainByNumber(trainNumber);
+            Train = train ?? Train;
+            FrontOnBoard = frontOnBoard;
+            BackOnBoard = rearOnBoard;
         }
 
         internal void Save(BinaryWriter outf)

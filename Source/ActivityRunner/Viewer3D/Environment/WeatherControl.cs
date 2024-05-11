@@ -517,7 +517,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 PrecipitationLiquidity = weather.PrecipitationLiquidity,
                 RandomizeWeather = RandomizedWeather,
                 WindDirection = weather.WindDirection,
-                WindSpeed = weather.WindSpeed.ToNumerics(),
+                WindSpeed = weather.WindSpeed,
                 DynamicWeather = weatherChangeOn ? await dynamicWeather.Snapshot().ConfigureAwait(false) : null,
             };
         }
@@ -532,6 +532,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             weather.PrecipitationLiquidity = saveState.PrecipitationLiquidity;
             RandomizedWeather = saveState.RandomizeWeather;
             weather.WindDirection = saveState.WindDirection;
+            weather.WindSpeed = saveState.WindSpeed;
             if (saveState.DynamicWeather != null)
             {
                 dynamicWeather = new DynamicWeather(viewer, false);

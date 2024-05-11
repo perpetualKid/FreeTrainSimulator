@@ -17,8 +17,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 
@@ -30,6 +32,7 @@ using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
@@ -82,43 +85,29 @@ namespace Orts.Simulation.World
              });
         }
 
-        /// <summary>
-        /// Saves the general variable parameters
-        /// Called from within the Simulator class.
-        /// </summary>
-        internal override void Save(BinaryWriter outf)
+        public override async ValueTask<MovingTableSaveState> Snapshot()
         {
-            base.Save(outf);
-            outf.Write((int)RotationDirection);
-            outf.Write((int)AutoRotationDirection);
-            outf.Write(YAngle);
-            outf.Write(ForwardConnected);
-            outf.Write(RearConnected);
-            outf.Write(saveForwardConnected);
-            outf.Write(saveRearConnected);
-            outf.Write(ForwardConnectedTarget);
-            outf.Write(RearConnectedTarget);
-            outf.Write(TargetY);
+            MovingTableSaveState result = await base.Snapshot().ConfigureAwait(false);
+            result.RotationDirection = RotationDirection;
+            result.AutoRotationDirection = AutoRotationDirection;
+            result.ForwardConnection = new ConnectionItem(ForwardConnected, saveForwardConnected, ForwardConnectedTarget);
+            result.BackwardConnection = new ConnectionItem(RearConnected, saveRearConnected, RearConnectedTarget);
+            result.Target = new Vector2(YAngle, TargetY);
+            return result;
         }
 
-
-        /// <summary>
-        /// Restores the general variable parameters
-        /// Called from within the Simulator class.
-        /// </summary>
-        internal override void Restore(BinaryReader inf, Simulator simulator)
+        public override async ValueTask Restore([NotNull] MovingTableSaveState saveState)
         {
-            base.Restore(inf, simulator);
-            RotationDirection = (Rotation)inf.ReadInt32();
-            AutoRotationDirection = (Rotation)inf.ReadInt32();
-            YAngle = inf.ReadSingle();
-            ForwardConnected = inf.ReadBoolean();
-            RearConnected = inf.ReadBoolean();
-            saveForwardConnected = inf.ReadBoolean();
-            saveRearConnected = inf.ReadBoolean();
-            ForwardConnectedTarget = inf.ReadInt32();
-            RearConnectedTarget = inf.ReadInt32();
-            TargetY = inf.ReadSingle();
+            await base.Restore(saveState).ConfigureAwait(false);
+            RotationDirection = saveState.RotationDirection;
+            AutoRotationDirection = saveState.AutoRotationDirection;
+            ForwardConnected = saveState.ForwardConnection.Connected;
+            saveForwardConnected = saveState.ForwardConnection.SaveStatus;
+            ForwardConnectedTarget = saveState.ForwardConnection.Target;
+            RearConnected = saveState.BackwardConnection.Connected;
+            saveRearConnected = saveState.BackwardConnection.SaveStatus;
+            RearConnectedTarget = saveState.BackwardConnection.Target;
+            (YAngle, TargetY) = saveState.Target;
         }
 
         private void InitializeAnglesAndTrackNodes()

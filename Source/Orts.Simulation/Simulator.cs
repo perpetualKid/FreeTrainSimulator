@@ -16,9 +16,12 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -460,15 +463,15 @@ namespace Orts.Simulation
             if (OriginalPlayerTrain == null)
                 OriginalPlayerTrain = AI.AITrains.Find(item => item.Number == 0);
 
-            // initialization of turntables
-            int movingTableIndex = inf.ReadInt32();
-            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
-            if (MovingTables.Count >= 0)
-            {
-                foreach (MovingTable movingTable in MovingTables)
-                    movingTable.Restore(inf, this);
-            }
-            activeMovingTable = movingTableIndex >= 0 && movingTableIndex < MovingTables.Count ? MovingTables[movingTableIndex] : null;
+            //// initialization of turntables
+            //int movingTableIndex = inf.ReadInt32();
+            //MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
+            //if (MovingTables.Count >= 0)
+            //{
+            //    foreach (MovingTable movingTable in MovingTables)
+            //        movingTable.Restore(inf, this);
+            //}
+            //activeMovingTable = movingTableIndex >= 0 && movingTableIndex < MovingTables.Count ? MovingTables[movingTableIndex] : null;
 
             ActivityRun = Activity.Restore(inf, this, ActivityRun);
             SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
@@ -478,14 +481,21 @@ namespace Orts.Simulation
 
         public async ValueTask<SimulatorSaveState> Snapshot()
         {
+            ConcurrentBag<MovingTableSaveState> movingTableSaveStates = new ConcurrentBag<MovingTableSaveState>();
+            await Parallel.ForEachAsync(MovingTables, async (movingTable, cancellationToken) =>
+            {
+                movingTableSaveStates.Add(await movingTable.Snapshot().ConfigureAwait(false));
+            });
             return new SimulatorSaveState()
-            { 
+            {
                 ClockTime = ClockTime,
                 Season = Season,
                 Weather = WeatherType,
                 WeatherFile = UserWeatherFile,
                 TimetableMode = TimetableMode,
-                SignalEnvironmentSaveState = await SignalEnvironment.Snapshot().ConfigureAwait(false)
+                SignalEnvironmentSaveState = await SignalEnvironment.Snapshot().ConfigureAwait(false),
+                MovingTables = new Collection<MovingTableSaveState>(movingTableSaveStates.ToList()),
+                ActiveMovingTable = MovingTables.IndexOf(activeMovingTable),
             };
         }
 
@@ -506,6 +516,14 @@ namespace Orts.Simulation
             TimetableMode = saveState.TimetableMode;
             SignalEnvironment = new SignalEnvironment(SignalConfig, false, CancellationToken.None);
             await SignalEnvironment.Restore(saveState.SignalEnvironmentSaveState).ConfigureAwait(false);
+
+            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
+            await Parallel.ForEachAsync(MovingTables, async (movingTable, cancellationToken) =>
+            {
+                await movingTable.Restore(saveState.MovingTables.Where(t => t.Index == movingTable.UID).Single()).ConfigureAwait(false);
+            });
+
+            activeMovingTable = saveState.ActiveMovingTable >= 0 && saveState.ActiveMovingTable  < MovingTables.Count ? MovingTables[saveState.ActiveMovingTable] : null;
         }
 
         public void Save(BinaryWriter outf)
@@ -519,12 +537,12 @@ namespace Orts.Simulation
             // InterlockingSystem
             AI.Save(outf);
 
-            outf.Write(MovingTables.IndexOf(activeMovingTable));
-            if (MovingTables.Count >= 0)
-            {
-                foreach (MovingTable movingtable in MovingTables)
-                    movingtable.Save(outf);
-            }
+            //outf.Write(MovingTables.IndexOf(activeMovingTable));
+            //if (MovingTables.Count >= 0)
+            //{
+            //    foreach (MovingTable movingtable in MovingTables)
+            //        movingtable.Save(outf);
+            //}
             Activity.Save(outf, ActivityRun);
             ContainerManager.Save(outf);
         }

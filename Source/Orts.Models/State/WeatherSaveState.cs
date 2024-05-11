@@ -1,8 +1,8 @@
-﻿using System.Numerics;
-
-using FreeTrainSimulator.Common.Api;
+﻿using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
+
+using Microsoft.Xna.Framework;
 
 using Orts.Common;
 
