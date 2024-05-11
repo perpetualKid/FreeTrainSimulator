@@ -83,7 +83,7 @@ namespace Orts.Simulation.Timetables
         private List<string> reportedPaths = new List<string>();                                                      // reported path fails
         private Dictionary<int, string> TrainRouteXRef = new Dictionary<int, string>();                               // path name referenced from train index    
 
-        public bool BinaryPaths;
+        private bool binaryPaths;
 
         public static int? PlayerTrainOriginalStartTime; // Set by TimetableInfo.ProcessTimetable() and read by AI.PrerunAI()
 
@@ -455,7 +455,7 @@ namespace Orts.Simulation.Timetables
                             RowInfo[iRow] = rowType.pathInfo;
                             pathRow = iRow;
                             if (rowCommands != null && rowCommands.Length >= 2 && string.Equals(rowCommands[1], "binary", StringComparison.OrdinalIgnoreCase))
-                                BinaryPaths = true;
+                                binaryPaths = true;
                             break;
 
                         case string start when start.Equals("#start", StringComparison.OrdinalIgnoreCase):
@@ -1162,7 +1162,7 @@ namespace Orts.Simulation.Timetables
                 bool binaryloaded = false;
                 string formedpathFilefullBinary = RuntimeInfo.GetCacheFilePath("Path", formedpathFilefull);
 
-                if (BinaryPaths && File.Exists(formedpathFilefullBinary))
+                if (binaryPaths && File.Exists(formedpathFilefullBinary))
                 {
                     var binaryLastWriteTime = File.GetLastWriteTime(formedpathFilefullBinary);
                     if (binaryLastWriteTime < File.GetLastWriteTime(simulator.RouteFolder.TrackDatabaseFile(simulator.Route.FileName)) ||
@@ -1235,7 +1235,7 @@ namespace Orts.Simulation.Timetables
 
                     if (validPath)
                     {
-                        if (!binaryloaded && BinaryPaths)
+                        if (!binaryloaded && binaryPaths)
                         {
                             try
                             {

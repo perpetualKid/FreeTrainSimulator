@@ -100,7 +100,7 @@ namespace Orts.Simulation
     ///     
     /// All keyboard input comes from the viewer class as calls on simulator's methods.
     /// </summary>
-    public class Simulator : IGametimeSource, ISaveStateApi<SimulatorSaveState>
+    public class Simulator : IGameTimeSource, ISaveStateApi<SimulatorSaveState>
     {
         private string explorePath;
         private string exploreConsist;

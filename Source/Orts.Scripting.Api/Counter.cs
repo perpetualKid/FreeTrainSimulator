@@ -1,10 +1,8 @@
 ﻿using System;
 
-using Microsoft.Xna.Framework;
-
 namespace Orts.Scripting.Api
 {
-    public interface IGametimeSource
+    public interface IGameTimeSource
     { 
         double GameTime { get; }
     }
@@ -33,7 +31,7 @@ namespace Orts.Scripting.Api
             CurrentValue = script.GameTime;
         }
 
-        public Timer(IGametimeSource source)
+        public Timer(IGameTimeSource source)
         {
             CurrentValue = () => source.GameTime;
         }

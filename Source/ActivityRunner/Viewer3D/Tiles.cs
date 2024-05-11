@@ -64,9 +64,6 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="visible">Flag indicating whether the tile being loaded should be considered "key" to the user experience, and thus whether issues loading it should be shown.</param>
         public void Load(int tileX, int tileZ, bool visible)
         {
-            if (Thread.CurrentThread.Name != "Loader Process")
-                Trace.TraceError("Tiles.Load incorrectly called by {0}; must be Loader Process or crashes will occur.", Thread.CurrentThread.Name);
-
             // Take the current list of tiles, evict any necessary so the new tile fits, load and add the new
             // tile to the list, and store it all atomically in Tiles.
             List<TileSample> tileList = new List<TileSample>(Tiles.List);

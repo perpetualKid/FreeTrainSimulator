@@ -179,17 +179,6 @@ namespace Orts.ActivityRunner.Processes
                 // Save multiplayer parameters
                 if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
                     MultiPlayerManager.OnlineTrains.Save(outf);
-
-                // Write out position within file so we can check when restoring.
-                outf.Write(outf.BaseStream.Position);
-
-                outf.Flush();
-                outf.BaseStream.Position = 0;
-                Pipe conversionPipe = new Pipe();
-                await outf.BaseStream.CopyToAsync(conversionPipe.Writer).ConfigureAwait(false);
-                await conversionPipe.Writer.FlushAsync().ConfigureAwait(false);
-                ReadResult result = await conversionPipe.Reader.ReadAsync().ConfigureAwait(false);
-                saveState.LegacyState = result.Buffer;
             }
 
             await GameSaveState.ToFile(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + FileNameExtensions.SaveFile), saveState, CancellationToken.None).ConfigureAwait(false);

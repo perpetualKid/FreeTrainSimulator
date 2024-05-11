@@ -20,9 +20,6 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public SharedShape Get(string path)
         {
-            if (Thread.CurrentThread.Name != "Loader Process")
-                Trace.TraceError("SharedShapeManager.Get incorrectly called by {0}; must be Loader Process or crashes will occur.", Thread.CurrentThread.Name);
-
             if (path == null || path == SharedShape.Empty.FilePath)
                 return SharedShape.Empty;
 

@@ -1857,12 +1857,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 cvcr.Mark();
         }
 
-        public void Restore(BinaryReader inf)
-        {
-            for (int i = 0; i < ActiveScreen.Length; i++)
-                ActiveScreen[i] = inf.ReadString();
-        }
-
         public ValueTask<CabRendererSaveState> Snapshot()
         {
             CabRendererSaveState saveState = new CabRendererSaveState();

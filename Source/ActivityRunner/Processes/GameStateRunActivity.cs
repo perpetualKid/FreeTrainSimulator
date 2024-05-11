@@ -308,8 +308,6 @@ namespace Orts.ActivityRunner.Processes
             GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
             Pipe pipe = new Pipe();
-            pipe.Writer.Write(saveState.LegacyState.FirstSpan);
-            await pipe.Writer.FlushAsync().ConfigureAwait(false);
 
             using (BinaryReader inf = new BinaryReader(pipe.Reader.AsStream()))
             {
@@ -439,8 +437,6 @@ namespace Orts.ActivityRunner.Processes
                 GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(previousSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
                 Pipe pipe = new Pipe();
-                pipe.Writer.Write(saveState.LegacyState.FirstSpan);
-                await pipe.Writer.FlushAsync().ConfigureAwait(false);
 
                 // Resume from previous SaveFile and then replay
                 using (BinaryReader inf = new BinaryReader(pipe.Reader.AsStream()))

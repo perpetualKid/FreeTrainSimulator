@@ -32,7 +32,6 @@ namespace Orts.Models.State
         public ActivityEvaluationState ActivityEvaluationState { get; set; }
         [MemoryPackInclude]
         private string finalMarker = HeaderEofMarker;
-        public ReadOnlySequence<byte> LegacyState { get; set; }
 
         [MemoryPackIgnore]
         public bool? Valid { get; private set; }
