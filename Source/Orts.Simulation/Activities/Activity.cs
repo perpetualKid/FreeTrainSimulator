@@ -16,11 +16,16 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
@@ -30,6 +35,7 @@ using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Models.State;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 
@@ -47,7 +53,7 @@ namespace Orts.Simulation.Activities
         }
     }
 
-    public class Activity
+    public class Activity : ISaveStateApi<ActivitySaveState>
     {
         private readonly Simulator simulator;
         private bool reloadedActivityEvent;
@@ -135,7 +141,7 @@ namespace Orts.Simulation.Activities
                             if (RuntimeData.Instance.TrackDB.TrackItems[Platform.LinkedPlatformItemId] is PlatformItem)
                             {
                                 PlatformItem Platform2 = RuntimeData.Instance.TrackDB.TrackItems[Platform.LinkedPlatformItemId] as PlatformItem;
-                                Tasks.Add(task = new ActivityTaskPassengerStopAt(simulator, task, i.ArrivalTime, i.DepartTime, Platform, Platform2));
+                                Tasks.Add(task = new ActivityTaskPassengerStopAt(task, i.ArrivalTime, i.DepartTime, Platform, Platform2));
                             }
                         }
                     }
@@ -176,7 +182,7 @@ namespace Orts.Simulation.Activities
                     {
                         if (item.Triggered(this))
                         {
-                            if (!item.Disabled)
+                            if (item.Enabled)
                             {
                                 item.TimesTriggered += 1;
                                 if (item.CompletesActivity(this))
@@ -191,7 +197,7 @@ namespace Orts.Simulation.Activities
                         {
                             if (item.ActivityEvent.Reversible)
                                 // Reversible event is no longer triggered, so can re-enable it.
-                                item.Disabled = false;
+                                item.Enabled = true;
                         }
                     }
                 }
@@ -287,17 +293,28 @@ namespace Orts.Simulation.Activities
             EventList.Add(new EventCategorySystemWrapper(header, text));
         }
 
-        public static void Save(BinaryWriter outf, Activity act)
+        public async ValueTask<ActivitySaveState> Snapshot()
         {
-            ArgumentNullException.ThrowIfNull(outf);
-
-            if (act == null)
-                outf.Write(-1);
-            else
+            return new ActivitySaveState()
             {
-                outf.Write(1);
-                act.Save(outf);
-            }
+                Tasks = new Collection<ActivityTaskSaveState>(await Task.WhenAll(Tasks.Select(async task => await task.Snapshot().ConfigureAwait(false))).ConfigureAwait(false)),
+                CurrentTask = Tasks.IndexOf(ActivityTask),
+                PreviousTrainSpeed = prevTrainSpeed,
+                // Save freight activity
+                Completed = Completed, 
+                Succeeded = Succeeded,
+                StartTime = StartTime,
+                Events = new Collection<ActivityEventSaveState>(await Task.WhenAll(EventList.Select(async activityEvent => await activityEvent.Snapshot().ConfigureAwait(false))).ConfigureAwait(false)),
+                TriggeredEvent = EventList.IndexOf(triggeredEvent),
+                LogStationStops = stationStopLogActive,
+                StationStopFile = stationStopLogFile,
+            };
+        }
+
+        public ValueTask Restore(ActivitySaveState saveState)
+        {
+//            Tasks = 
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
         }
 
         public static Activity Restore(BinaryReader inf, Simulator simulator, Activity activity)
@@ -312,41 +329,6 @@ namespace Orts.Simulation.Activities
                 return new Activity(inf, simulator, activity?.EventList ?? throw new ArgumentNullException(nameof(activity)), activity.TempSpeedPostItems);
         }
 
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
-            int noval = -1;
-
-            // Save passenger activity
-            outf.Write(Tasks.Count);
-            foreach (ActivityTask task in Tasks)
-                task.Save(outf);
-            if (ActivityTask == null)
-                outf.Write(noval);
-            else
-                outf.Write(Tasks.IndexOf(ActivityTask));
-            outf.Write(prevTrainSpeed);
-
-            // Save freight activity
-            outf.Write(Completed);
-            outf.Write(Succeeded);
-            outf.Write((int)StartTime);
-            foreach (EventWrapper e in EventList)
-                e.Save(outf);
-            if (triggeredEvent == null)
-                outf.Write(false);
-            else
-            {
-                outf.Write(true);
-                outf.Write(EventList.IndexOf(triggeredEvent));
-            }
-
-            // write log details
-            outf.Write(stationStopLogActive);
-            if (stationStopLogActive)
-                outf.Write(stationStopLogFile);
-        }
-
         private void Restore(BinaryReader inf, Simulator simulator, List<EventWrapper> oldEventList)
         {
             int rdval;
@@ -356,7 +338,7 @@ namespace Orts.Simulation.Activities
             rdval = inf.ReadInt32();
             for (int i = 0; i < rdval; i++)
             {
-                task = inf.ReadInt32() == 1 ? new ActivityTaskPassengerStopAt(simulator) : (ActivityTask)null;
+                task = inf.ReadInt32() == 1 ? new ActivityTaskPassengerStopAt() : (ActivityTask)null;
                 task.Restore(inf);
                 Tasks.Add(task);
             }

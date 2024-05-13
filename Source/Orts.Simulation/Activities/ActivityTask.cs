@@ -16,24 +16,27 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
+
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
-using Orts.Formats.Msts.Models;
-using Orts.Formats.Msts;
-using Orts.Simulation.AIs;
-
-using Orts.Simulation.Physics;
-
-using Orts.Simulation.Signalling;
 using Orts.Common.Calc;
-using System.Globalization;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Models.State;
+using Orts.Simulation.AIs;
+using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.Activities
 {
-    public class ActivityTask
+    public class ActivityTask : ISaveStateApi<ActivityTaskSaveState>
     {
         public bool? IsCompleted { get; internal set; }
         public ActivityTask PrevTask { get; internal set; }
@@ -46,29 +49,28 @@ namespace Orts.Simulation.Activities
         {
         }
 
-        internal virtual void Save(BinaryWriter outf)
+        public virtual ValueTask<ActivityTaskSaveState> Snapshot()
         {
-            if (IsCompleted == null)
-                outf.Write(-1);
-            else
-                outf.Write(IsCompleted.Value ? 1 : 0);
-            outf.Write(CompletedAt.Ticks);
-            outf.Write(DisplayMessage);
+            return ValueTask.FromResult(new ActivityTaskSaveState()
+            {
+                Completed = IsCompleted,
+                CompletedAt = CompletedAt,
+                Message = DisplayMessage,
+            });
         }
 
-        internal virtual void Restore(BinaryReader inf)
+        public virtual ValueTask Restore(ActivityTaskSaveState saveState)
         {
-            int rdval = inf.ReadInt32();
-            IsCompleted = rdval == -1 ? null : (bool?)(rdval != 0);
-            CompletedAt = new TimeSpan(inf.ReadInt64());
-            DisplayMessage = inf.ReadString();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+            IsCompleted = saveState.Completed;
+            CompletedAt = saveState.CompletedAt;
+            DisplayMessage = saveState.Message;
+            return ValueTask.CompletedTask;
         }
     }
 
     public class ActivityTaskPassengerStopAt : ActivityTask
     {
-        private readonly Simulator simulator;
-
         public TimeSpan ScheduledArrival { get; private set; }
         public TimeSpan ScheduledDeparture { get; private set; }
         public TimeSpan? ActualArrival { get; private set; }
@@ -89,9 +91,8 @@ namespace Orts.Simulation.Activities
 
         private bool debriefEvalDepartBeforeBoarding;//Debrief Eval
 
-        public ActivityTaskPassengerStopAt(Simulator simulator, ActivityTask prev, int arrivalTime, int departureTime, PlatformItem platformStart, PlatformItem platformeEnd)
+        public ActivityTaskPassengerStopAt(ActivityTask prev, int arrivalTime, int departureTime, PlatformItem platformStart, PlatformItem platformeEnd)
         {
-            this.simulator = simulator;
             ScheduledArrival = TimeSpan.FromSeconds(arrivalTime);
             ScheduledDeparture = TimeSpan.FromSeconds(departureTime);
             PlatformEnd1 = platformStart;
@@ -105,9 +106,8 @@ namespace Orts.Simulation.Activities
             logStationLogFile = null;
         }
 
-        internal ActivityTaskPassengerStopAt(Simulator simulator)
+        internal ActivityTaskPassengerStopAt()
         {
-            this.simulator = simulator;
         }
 
         internal void SetLogStationStop(string stationLogFile)
@@ -130,6 +130,7 @@ namespace Orts.Simulation.Activities
 
         public override void NotifyEvent(ActivityEventType EventType)
         {
+            Simulator simulator = Simulator.Instance;
             playerTrain = simulator.OriginalPlayerTrain;
             switch (EventType)
             {
@@ -367,47 +368,39 @@ namespace Orts.Simulation.Activities
             }
         }
 
-        internal override void Save(BinaryWriter outf)
+        public override async ValueTask<ActivityTaskSaveState> Snapshot()
         {
-            outf.Write(1);
-            base.Save(outf);
-
-            outf.Write(ScheduledArrival.Ticks);
-            outf.Write(ScheduledDeparture.Ticks);
-            outf.Write(ActualArrival.HasValue ? ActualArrival.Value.Ticks : -1L);
-            outf.Write(ActualDeparture.HasValue ? ActualDeparture.Value.Ticks : -1L);
-            outf.Write(PlatformEnd1.TrackItemId);
-            outf.Write(PlatformEnd2.TrackItemId);
-            outf.Write(BoardingEndS);
-            outf.Write(BoardingS);
-            outf.Write(timerChk);
-            outf.Write(arrived);
-            outf.Write(maydepart);
-            outf.Write(distanceToNextSignal);
+            ActivityTaskSaveState result = await base.Snapshot().ConfigureAwait(false);
+            result.ScheduledArrival = ScheduledArrival;
+            result.ScheduledDeparture = ScheduledDeparture;
+            result.ActualArrival = ActualArrival;
+            result.ActualDeparture = ActualDeparture;
+            result.PlatformEnd1 = PlatformEnd1.TrackItemId;
+            result.PlatformEnd2 = PlatformEnd2.TrackItemId;
+            result.BooardingTime = BoardingS;
+            result.BooardingTime = BoardingEndS;
+            result.TimerCheck = timerChk;
+            result.Arrived = arrived;
+            result.ReadyToDepart = maydepart;
+            result.DistanceToSignal = distanceToNextSignal;
+            return result;
         }
 
-        internal override void Restore(BinaryReader inf)
+        public override async ValueTask Restore([NotNull] ActivityTaskSaveState saveState)
         {
-            long rdval;
-
-            base.Restore(inf);
-
-            ScheduledArrival = new TimeSpan(inf.ReadInt64());
-            ScheduledDeparture = new TimeSpan(inf.ReadInt64());
-            rdval = inf.ReadInt64();
-            ActualArrival = rdval == -1 ? (TimeSpan?)null : new TimeSpan(rdval);
-            rdval = inf.ReadInt64();
-            ActualDeparture = rdval == -1 ? (TimeSpan?)null : new TimeSpan(rdval);
-            PlatformEnd1 = RuntimeData.Instance.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
-            PlatformEnd2 = RuntimeData.Instance.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
-            BoardingEndS = inf.ReadDouble();
-            BoardingS = inf.ReadDouble();
-            timerChk = inf.ReadInt32();
-            arrived = inf.ReadBoolean();
-            maydepart = inf.ReadBoolean();
-            distanceToNextSignal = inf.ReadSingle();
+            await base.Restore(saveState).ConfigureAwait(false);
+            ScheduledArrival = saveState.ScheduledArrival;
+            ScheduledDeparture = saveState.ScheduledDeparture;
+            ActualArrival = saveState.ActualArrival;
+            ActualDeparture = saveState.ActualDeparture;
+            PlatformEnd1 = RuntimeData.Instance.TrackDB.TrackItems[saveState.PlatformEnd1] as PlatformItem;
+            PlatformEnd2 = RuntimeData.Instance.TrackDB.TrackItems[saveState.PlatformEnd2] as PlatformItem;
+            BoardingS = saveState.BooardingTime;
+            BoardingEndS = saveState.BoardingEndTime;
+            timerChk = saveState.TimerCheck;
+            arrived = saveState.Arrived;
+            maydepart = saveState.ReadyToDepart;
+            distanceToNextSignal = saveState.DistanceToSignal;
         }
     }
-
-
 }

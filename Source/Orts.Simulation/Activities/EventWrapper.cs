@@ -15,17 +15,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System;
-using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
-using Orts.Formats.Msts.Models;
-using Orts.Simulation.Physics;
-using Orts.Formats.Msts;
-using Orts.Common.Position;
+using FreeTrainSimulator.Common.Api;
+
 using Orts.Common;
+using Orts.Common.Position;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Models.State;
+using Orts.Simulation.Physics;
+
 using ActivityEvent = Orts.Formats.Msts.Models.ActivityEvent;
 
 namespace Orts.Simulation.Activities
@@ -35,7 +39,7 @@ namespace Orts.Simulation.Activities
     /// Note: Can't add attributes to the event objects directly as ACTFile.cs is not just used by 
     /// ActivityRunner.exe but also by Menu.exe and these executables lack most of the ORTS classes.
     /// </summary>
-    public abstract class EventWrapper
+    public abstract class EventWrapper : ISaveStateApi<ActivityEventSaveState>
     {
         /// <summary>Maximum size of a platform or station we use for searching forward and backward</summary>
         protected const float MaxPlatformOrStationSize = 10000f;
@@ -43,7 +47,7 @@ namespace Orts.Simulation.Activities
         public ActivityEvent ActivityEvent { get; }     // Points to object parsed from file *.act
         public int OriginalActivationLevel { get; internal set; } // Needed to reset .ActivationLevel
         public int TimesTriggered { get; internal set; }          // Needed for evaluation after activity ends
-        public bool Disabled { get; internal set; }          // Used for a reversible event to prevent it firing again until after it has been reset.
+        public bool Enabled { get; internal set; }          // Used for a reversible event to prevent it firing again until after it has been reset.
         public Train Train { get; internal set; }              // Train involved in event; if null actual or original player train
 
         protected EventWrapper(ActivityEvent activityEvent)
@@ -52,18 +56,23 @@ namespace Orts.Simulation.Activities
             Train = null;
         }
 
-        internal virtual void Save(BinaryWriter outf)
+        public ValueTask<ActivityEventSaveState> Snapshot()
         {
-            outf.Write(TimesTriggered);
-            outf.Write(Disabled);
-            outf.Write(ActivityEvent.ActivationLevel);
+            return ValueTask.FromResult(new ActivityEventSaveState() 
+            { 
+                TimesTriggered = TimesTriggered,
+                Enabled = Enabled
+            });
         }
 
-        internal virtual void Restore(BinaryReader inf)
+        public ValueTask Restore(ActivityEventSaveState saveState)
         {
-            TimesTriggered = inf.ReadInt32();
-            Disabled = inf.ReadBoolean();
-            ActivityEvent.ActivationLevel = inf.ReadInt32();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            TimesTriggered = saveState.TimesTriggered;
+            Enabled = saveState.Enabled;
+            ActivityEvent.ActivationLevel = saveState.ActivationLevel;
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>
@@ -82,14 +91,14 @@ namespace Orts.Simulation.Activities
         {
             if (ActivityEvent.Reversible)
                 // Stop this event being actioned
-                Disabled = true;
+                Enabled = false;
             else
                 // Stop this event being monitored
                 ActivityEvent.ActivationLevel = 0;
             // No further action if this reversible event has been triggered before
-            if (TimesTriggered > 1) 
+            if (TimesTriggered > 1)
                 return false;
-            if (ActivityEvent.Outcomes == null) 
+            if (ActivityEvent.Outcomes == null)
                 return false;
 
             // Set Activation Level of each event in the Activate list to 1.
@@ -267,17 +276,19 @@ namespace Orts.Simulation.Activities
                     //both lists with the same order
                     for (int i = 0; i < trainItem.Cars.Count; i++)
                     {
-                        if (trainItem.Cars.ElementAt(i).CarID != wagonIdList.ElementAt(i)) { listsMatch = false; break; }
+                        if (trainItem.Cars.ElementAt(i).CarID != wagonIdList.ElementAt(i))
+                        { listsMatch = false; break; }
                     }
                     if (!listsMatch)
                     {//different order list
                         listsMatch = true;
                         for (int i = trainItem.Cars.Count; i > 0; i--)
                         {
-                            if (trainItem.Cars.ElementAt(i - 1).CarID != wagonIdList.ElementAt(trainItem.Cars.Count - i)) { listsMatch = false; break; }
+                            if (trainItem.Cars.ElementAt(i - 1).CarID != wagonIdList.ElementAt(trainItem.Cars.Count - i))
+                            { listsMatch = false; break; }
                         }
                     }
-                    if (listsMatch) 
+                    if (listsMatch)
                         return trainItem;
                 }
             }
@@ -297,9 +308,9 @@ namespace Orts.Simulation.Activities
                 int numberWagonListCars = 0;//individual wagon drop.
                 foreach (RollingStocks.TrainCar item in trainItem.Cars)
                 {
-                    if (!wagonIdList.Contains(item.CarID)) 
+                    if (!wagonIdList.Contains(item.CarID))
                         numberCars++;
-                    if (wagonIdList.Contains(item.CarID)) 
+                    if (wagonIdList.Contains(item.CarID))
                         numberWagonListCars++;
                 }
                 // Compare two lists to make sure wagons are present.
@@ -307,9 +318,11 @@ namespace Orts.Simulation.Activities
                 //support individual wagonIdList drop
                 if (trainItem.Cars.Count - numberCars == (wagonIdList.Count == numberWagonListCars ? wagonIdList.Count : numberWagonListCars))
                 {
-                    if (ExcludesWagons(trainItem, wagonIdList)) listsMatch = false;//all wagons dropped
+                    if (ExcludesWagons(trainItem, wagonIdList))
+                        listsMatch = false;//all wagons dropped
 
-                    if (listsMatch) return trainItem;
+                    if (listsMatch)
+                        return trainItem;
                 }
             }
             return null;
@@ -326,7 +339,7 @@ namespace Orts.Simulation.Activities
         {
             foreach (string item in wagonIdList)
             {
-                if (train.Cars.Find(car => car.CarID == item) == null) 
+                if (train.Cars.Find(car => car.CarID == item) == null)
                     return false;
             }
             // train speed < 1
@@ -356,7 +369,7 @@ namespace Orts.Simulation.Activities
                 }
                 else
                 {
-                    notFound = false; 
+                    notFound = false;
                     break;//wagon still part of the train
                 }
             }
@@ -416,7 +429,7 @@ namespace Orts.Simulation.Activities
             Train train = Simulator.Instance.PlayerLocomotive.Train;
             if (!string.IsNullOrEmpty(ActivityEvent.TrainService) && Train != null)
             {
-                if (Train.FrontTDBTraveller == null) 
+                if (Train.FrontTDBTraveller == null)
                     return triggered;
                 train = Train;
             }
@@ -439,9 +452,9 @@ namespace Orts.Simulation.Activities
                 if (distance == -1)
                     return triggered;
             }
-            if (distance < e.RadiusM) 
-            { 
-                triggered = true; 
+            if (distance < e.RadiusM)
+            {
+                triggered = true;
             }
             return triggered;
         }
@@ -471,7 +484,7 @@ namespace Orts.Simulation.Activities
 
     public class EventCategorySystemWrapper : EventWrapper
     {
-        public EventCategorySystemWrapper(string header, string text): 
+        public EventCategorySystemWrapper(string header, string text) :
             base(new SystemActivityEvent(header, text))
         {
         }

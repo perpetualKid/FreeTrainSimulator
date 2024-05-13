@@ -19,5 +19,6 @@ namespace Orts.Models.State
         public SignalEnvironmentSaveState SignalEnvironmentSaveState { get; set; }
         public Collection<MovingTableSaveState> MovingTables { get; set; }
         public int ActiveMovingTable { get; set; }
+        public ActivitySaveState Activity {  get; set; }
     }
 }

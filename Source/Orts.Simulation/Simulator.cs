@@ -160,8 +160,8 @@ namespace Orts.Simulation
 
         // reset updated variable once it is fetched
         private EnvironmentalCondition weatherConditionUpdate;
-        public EnvironmentalCondition UpdatedWeatherCondition 
-        { 
+        public EnvironmentalCondition UpdatedWeatherCondition
+        {
             get
             {
                 EnvironmentalCondition returnCondition = weatherConditionUpdate;
@@ -496,6 +496,7 @@ namespace Orts.Simulation
                 SignalEnvironmentSaveState = await SignalEnvironment.Snapshot().ConfigureAwait(false),
                 MovingTables = new Collection<MovingTableSaveState>(movingTableSaveStates.ToList()),
                 ActiveMovingTable = MovingTables.IndexOf(activeMovingTable),
+                Activity = ActivityRun == null ? null : await ActivityRun.Snapshot().ConfigureAwait(false),
             };
         }
 
@@ -523,7 +524,9 @@ namespace Orts.Simulation
                 await movingTable.Restore(saveState.MovingTables.Where(t => t.Index == movingTable.UID).Single()).ConfigureAwait(false);
             });
 
-            activeMovingTable = saveState.ActiveMovingTable >= 0 && saveState.ActiveMovingTable  < MovingTables.Count ? MovingTables[saveState.ActiveMovingTable] : null;
+            activeMovingTable = saveState.ActiveMovingTable >= 0 && saveState.ActiveMovingTable < MovingTables.Count ? MovingTables[saveState.ActiveMovingTable] : null;
+            if (ActivityRun != null && saveState.Activity != null)
+                await ActivityRun.Restore(saveState.Activity).ConfigureAwait(false);
         }
 
         public void Save(BinaryWriter outf)
@@ -531,7 +534,7 @@ namespace Orts.Simulation
             ArgumentNullException.ThrowIfNull(outf);
 
             PoolHolder.Save(outf);
-//            SignalEnvironment.Save(outf);
+            //            SignalEnvironment.Save(outf);
             SaveTrains(outf);
             // LevelCrossings
             // InterlockingSystem
@@ -543,7 +546,7 @@ namespace Orts.Simulation
             //    foreach (MovingTable movingtable in MovingTables)
             //        movingtable.Save(outf);
             //}
-            Activity.Save(outf, ActivityRun);
+            //Activity.Save(outf, ActivityRun);
             ContainerManager.Save(outf);
         }
 
