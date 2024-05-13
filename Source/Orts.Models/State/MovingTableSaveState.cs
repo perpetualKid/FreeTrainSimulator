@@ -11,7 +11,9 @@ using Orts.Common;
 
 namespace Orts.Models.State
 {
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public readonly struct TrainOnTableItem
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         public readonly int TrainNumber;
         public readonly bool FrontOnBoard;
@@ -25,7 +27,9 @@ namespace Orts.Models.State
         }
     }
 
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public readonly struct ConnectionItem
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         public readonly bool Connected;
         public readonly bool SaveStatus;
@@ -55,6 +59,7 @@ namespace Orts.Models.State
         public Vector3 RelativeRearTraveller { get; set; }
         public Vector3 FinalFrontTraveller { get; set; }
         public Vector3 FinalRearTraveller { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
         public Collection<TrainOnTableItem> TrainsOnTable { get; set; }
         public Queue<int> WaitingTrains { get; set; }
         public MidpointDirection MotionDirection { get; set; }
@@ -65,7 +70,7 @@ namespace Orts.Models.State
         public Rotation RotationDirection { get; set; }
         public Rotation AutoRotationDirection { get; set; }
         public Vector2 Target {  get; set; }
-
+#pragma warning restore CA2227 // Collection properties should be read only
 
     }
 }

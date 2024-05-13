@@ -485,7 +485,7 @@ namespace Orts.Simulation
             await Parallel.ForEachAsync(MovingTables, async (movingTable, cancellationToken) =>
             {
                 movingTableSaveStates.Add(await movingTable.Snapshot().ConfigureAwait(false));
-            });
+            }).ConfigureAwait(false);
             return new SimulatorSaveState()
             {
                 ClockTime = ClockTime,
@@ -522,7 +522,7 @@ namespace Orts.Simulation
             await Parallel.ForEachAsync(MovingTables, async (movingTable, cancellationToken) =>
             {
                 await movingTable.Restore(saveState.MovingTables.Where(t => t.Index == movingTable.UID).Single()).ConfigureAwait(false);
-            });
+            }).ConfigureAwait(false);
 
             activeMovingTable = saveState.ActiveMovingTable >= 0 && saveState.ActiveMovingTable < MovingTables.Count ? MovingTables[saveState.ActiveMovingTable] : null;
             if (ActivityRun != null && saveState.Activity != null)

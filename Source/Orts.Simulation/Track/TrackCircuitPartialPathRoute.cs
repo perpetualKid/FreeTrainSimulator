@@ -138,7 +138,7 @@ namespace Orts.Simulation.Track
             await Parallel.ForEachAsync(this, async (element, cancellationToken) =>
             {
                 routeElementSaveStates.Add(await element.Snapshot().ConfigureAwait(false));
-            });
+            }).ConfigureAwait(false);
 
             return new TrackCircuitPartialPathRouteSaveState()
             {
@@ -161,7 +161,7 @@ namespace Orts.Simulation.Track
                     TrackCircuitRouteElement routeElement = new TrackCircuitRouteElement();
                     await routeElement.Restore(trackCircuitRouteElementSaveState).ConfigureAwait(false);
                     routeElements.Add(routeElement);
-                });
+                }).ConfigureAwait(false);
             }
             list.AddRange(routeElements);
         }

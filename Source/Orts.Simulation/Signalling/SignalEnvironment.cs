@@ -193,18 +193,19 @@ namespace Orts.Simulation.Signalling
             await Parallel.ForEachAsync(Signals ?? Enumerable.Empty<Signal>(), async (signal, cancellationToken) =>
             {
                 signalSaveStates.Add(await signal.Snapshot().ConfigureAwait(false));
-            });
+            }).ConfigureAwait(false);
 
             ConcurrentBag<TrackCircuitSectionSaveState> trackCircuitSections = new ConcurrentBag<TrackCircuitSectionSaveState>();
             await Parallel.ForEachAsync(TrackCircuitSection.TrackCircuitList ?? Enumerable.Empty<TrackCircuitSection>(), async (trackCircuit, cancellationToken) =>
             {
                 trackCircuitSections.Add(await trackCircuit.Snapshot().ConfigureAwait(false));
-            });
+            }).ConfigureAwait(false);
+
             ConcurrentBag<DeadlockInfoSaveState> deadlockDetails = new ConcurrentBag<DeadlockInfoSaveState>();
             await Parallel.ForEachAsync(DeadlockInfoList, async (deadlockInfo, cancellationToken) =>
             {
                 deadlockDetails.Add(await deadlockInfo.Value.Snapshot().ConfigureAwait(false));
-            });
+            }).ConfigureAwait(false);
 
             return new SignalEnvironmentSaveState()
             {
@@ -226,7 +227,7 @@ namespace Orts.Simulation.Signalling
             {
                 Signal signal = Signals[signalSaveState.SignalIndex];
                 await signal.Restore(signalSaveState).ConfigureAwait(false);
-            });
+            }).ConfigureAwait(false);
 
             if (saveState.TrackCircuitSectionsCount != TrackCircuitSection.TrackCircuitList.Count)
             {
@@ -238,7 +239,7 @@ namespace Orts.Simulation.Signalling
                 await Parallel.ForEachAsync(saveState.TrackCircuitSections ?? Enumerable.Empty<TrackCircuitSectionSaveState>(), async (trackCircuitState, cancellationToken) =>
                 {
                     await TrackCircuitSection.TrackCircuitList[trackCircuitState.Index].Restore(trackCircuitState).ConfigureAwait(false);
-                });
+                }).ConfigureAwait(false);
             }
             UseLocationPassingPaths = saveState.LocationPassingPathsEnabled;
             DeadlockReference = new Dictionary<int, int>(saveState.GlobalDeadlockIndex);
@@ -250,7 +251,7 @@ namespace Orts.Simulation.Signalling
                 DeadlockInfo deadlockInfo = new DeadlockInfo(true);
                 await deadlockInfo.Restore(deadlockInfoSaveState).ConfigureAwait(false);
                 deadlockRestore.TryAdd(deadlockInfo.DeadlockIndex, deadlockInfo);
-            });
+            }).ConfigureAwait(false);
 
             DeadlockInfoList = deadlockRestore.ToDictionary();
         }

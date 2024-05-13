@@ -99,7 +99,7 @@ namespace Orts.Simulation.Signalling
             await Parallel.ForEachAsync(AvailablePathList, async (pathInfo, cancellationToken) =>
             {
                 pathInfoSaveStates.Add(await pathInfo.Snapshot().ConfigureAwait(false));
-            });
+            }).ConfigureAwait(false);
 
             return new DeadlockInfoSaveState()
             {
@@ -124,7 +124,7 @@ namespace Orts.Simulation.Signalling
             {
                 DeadlockPathInfo pathInfo = new DeadlockPathInfo();
                 await pathInfo.Restore(deadlockPathInfo).ConfigureAwait(false);
-            });
+            }).ConfigureAwait(false);
 
             DeadlockIndex = saveState.DeadlockIndex;
             AvailablePathList = deadlockPathInfos.ToList();

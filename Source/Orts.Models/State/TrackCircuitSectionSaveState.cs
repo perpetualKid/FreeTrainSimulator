@@ -14,7 +14,9 @@ namespace Orts.Models.State
     {
         public int Index { get; set; }
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+#pragma warning disable CA1819 // Properties should not return arrays
         public TrackPin[,] ActivePins { get; set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
         public int JunctionSetManual { get; set; }
         public int JunctionLastRoute { get; set; }

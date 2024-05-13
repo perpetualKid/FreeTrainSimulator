@@ -17,7 +17,9 @@ namespace Orts.Models.State
         public string WeatherFile { get; set; }
         public bool TimetableMode { get; set; }
         public SignalEnvironmentSaveState SignalEnvironmentSaveState { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
         public Collection<MovingTableSaveState> MovingTables { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
         public int ActiveMovingTable { get; set; }
         public ActivitySaveState Activity {  get; set; }
     }
