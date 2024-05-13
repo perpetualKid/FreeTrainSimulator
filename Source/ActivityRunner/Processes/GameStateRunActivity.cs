@@ -304,7 +304,6 @@ namespace Orts.ActivityRunner.Processes
 
             // First use the .save file to check the validity and extract the route and activity.
             string saveFile = GetSaveFile(data);
-
             GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
             Pipe pipe = new Pipe();

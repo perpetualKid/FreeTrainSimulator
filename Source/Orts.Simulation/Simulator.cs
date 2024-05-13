@@ -473,7 +473,7 @@ namespace Orts.Simulation
             //}
             //activeMovingTable = movingTableIndex >= 0 && movingTableIndex < MovingTables.Count ? MovingTables[movingTableIndex] : null;
 
-            ActivityRun = Activity.Restore(inf, this, ActivityRun);
+//            ActivityRun = Activity.Restore(inf, this, ActivityRun);
             SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
             SignalEnvironment.Update(true);           // update all signals once to set proper stat
             ContainerManager.Restore(inf);
@@ -526,7 +526,9 @@ namespace Orts.Simulation
 
             activeMovingTable = saveState.ActiveMovingTable >= 0 && saveState.ActiveMovingTable < MovingTables.Count ? MovingTables[saveState.ActiveMovingTable] : null;
             if (ActivityRun != null && saveState.Activity != null)
+            {
                 await ActivityRun.Restore(saveState.Activity).ConfigureAwait(false);
+            }
         }
 
         public void Save(BinaryWriter outf)

@@ -36,7 +36,7 @@ using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.Activities
 {
-    public class ActivityTask : ISaveStateApi<ActivityTaskSaveState>
+    public abstract class ActivityTask : ISaveStateApi<ActivityTaskSaveState>
     {
         public bool? IsCompleted { get; internal set; }
         public ActivityTask PrevTask { get; internal set; }

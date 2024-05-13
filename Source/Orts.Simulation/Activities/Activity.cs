@@ -16,7 +16,6 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -102,13 +101,6 @@ namespace Orts.Simulation.Activities
                 onActivityEventTriggered -= value;
             }
 #pragma warning restore CA1030 // Use events where appropriate
-        }
-
-        private Activity(BinaryReader inf, Simulator simulator, List<EventWrapper> oldEventList, List<TempSpeedPostItem> tempSpeedPostItems)
-        {
-            TempSpeedPostItems = tempSpeedPostItems;
-            this.simulator = simulator;
-            Restore(inf, simulator, oldEventList);
         }
 
         public Activity(ActivityFile activityFile, Simulator simulator)
@@ -301,7 +293,7 @@ namespace Orts.Simulation.Activities
                 CurrentTask = Tasks.IndexOf(ActivityTask),
                 PreviousTrainSpeed = prevTrainSpeed,
                 // Save freight activity
-                Completed = Completed, 
+                Completed = Completed,
                 Succeeded = Succeeded,
                 StartTime = StartTime,
                 Events = new Collection<ActivityEventSaveState>(await Task.WhenAll(EventList.Select(async activityEvent => await activityEvent.Snapshot().ConfigureAwait(false))).ConfigureAwait(false)),
@@ -311,42 +303,18 @@ namespace Orts.Simulation.Activities
             };
         }
 
-        public ValueTask Restore(ActivitySaveState saveState)
+        public async ValueTask Restore(ActivitySaveState saveState)
         {
-//            Tasks = 
             ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
-        }
 
-        public static Activity Restore(BinaryReader inf, Simulator simulator, Activity activity)
-
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            if (inf.ReadInt32() == -1)
-                return null;
-            else
-                // Retain the old EventList. It's full of static data so save and restore is a waste of effort
-                return new Activity(inf, simulator, activity?.EventList ?? throw new ArgumentNullException(nameof(activity)), activity.TempSpeedPostItems);
-        }
-
-        private void Restore(BinaryReader inf, Simulator simulator, List<EventWrapper> oldEventList)
-        {
-            int rdval;
-
-            // Restore passenger activity
-            ActivityTask task;
-            rdval = inf.ReadInt32();
-            for (int i = 0; i < rdval; i++)
+            Tasks.Clear();
+            Tasks.AddRange(await Task.WhenAll(saveState.Tasks.Select(async task =>
             {
-                task = inf.ReadInt32() == 1 ? new ActivityTaskPassengerStopAt() : (ActivityTask)null;
-                task.Restore(inf);
-                Tasks.Add(task);
-            }
-            rdval = inf.ReadInt32();
-            ActivityTask = rdval == -1 ? null : Tasks[rdval];
-            prevTrainSpeed = inf.ReadDouble();
-
-            task = null;
+                ActivityTaskPassengerStopAt activityTask = new ActivityTaskPassengerStopAt();
+                await activityTask.Restore(task).ConfigureAwait(false);
+                return activityTask;
+            })).ConfigureAwait(false));
+            ActivityTask task = null;
             for (int i = 0; i < Tasks.Count; i++)
             {
                 Tasks[i].PrevTask = task;
@@ -354,26 +322,25 @@ namespace Orts.Simulation.Activities
                     task.NextTask = Tasks[i];
                 task = Tasks[i];
             }
-
+            if (saveState.CurrentTask > -1 && saveState.CurrentTask < Tasks.Count)
+                ActivityTask = Tasks[saveState.CurrentTask];
+            prevTrainSpeed = saveState.PreviousTrainSpeed;
             // Restore freight activity
-            Completed = inf.ReadBoolean();
-            Succeeded = inf.ReadBoolean();
-            StartTime = inf.ReadInt32();
+            Completed = saveState.Completed;
+            Succeeded = saveState.Succeeded;
+            StartTime = saveState.StartTime;
 
-            EventList.Clear();
-            foreach (EventWrapper item in oldEventList)
-                EventList.Add(item);
-            foreach (EventWrapper e in EventList)
-                e.Restore(inf);
-
-            if (reloadedActivityEvent = inf.ReadBoolean())
-                triggeredEvent = EventList[inf.ReadInt32()];
-
+            foreach ((EventWrapper wrapper, ActivityEventSaveState wrapperState) in EventList.Zip(saveState.Events))
+            {
+                await wrapper.Restore(wrapperState).ConfigureAwait(false);
+            }
+            if (saveState.TriggeredEvent > -1 && saveState.TriggeredEvent < EventList.Count)
+                triggeredEvent = EventList[saveState.TriggeredEvent];
             // restore logging info
-            stationStopLogActive = inf.ReadBoolean();
+            stationStopLogActive = saveState.LogStationStops;
             if (stationStopLogActive)
             {
-                stationStopLogFile = inf.ReadString();
+                stationStopLogFile = saveState.StationStopFile;
 
                 foreach (ActivityTaskPassengerStopAt stopTask in Tasks.OfType<ActivityTaskPassengerStopAt>())
                     stopTask.SetLogStationStop(stationStopLogFile);
