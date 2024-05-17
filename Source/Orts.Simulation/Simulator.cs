@@ -476,7 +476,7 @@ namespace Orts.Simulation
 //            ActivityRun = Activity.Restore(inf, this, ActivityRun);
             SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
             SignalEnvironment.Update(true);           // update all signals once to set proper stat
-            ContainerManager.Restore(inf);
+            //ContainerManager.Restore(inf);
         }
 
         public async ValueTask<SimulatorSaveState> Snapshot()
@@ -486,6 +486,12 @@ namespace Orts.Simulation
             {
                 movingTableSaveStates.Add(await movingTable.Snapshot().ConfigureAwait(false));
             }).ConfigureAwait(false);
+            ConcurrentDictionary<int, ContainerStationSaveState> containerStations = new ConcurrentDictionary<int, ContainerStationSaveState>();
+            await Parallel.ForEachAsync(ContainerManager.ContainerStations, async (containerStation, cancellationToken) =>
+            {
+                containerStations.TryAdd(containerStation.Key, await containerStation.Value.Snapshot().ConfigureAwait(false));
+            });
+
             return new SimulatorSaveState()
             {
                 ClockTime = ClockTime,
@@ -497,6 +503,7 @@ namespace Orts.Simulation
                 MovingTables = new Collection<MovingTableSaveState>(movingTableSaveStates.ToList()),
                 ActiveMovingTable = MovingTables.IndexOf(activeMovingTable),
                 Activity = ActivityRun == null ? null : await ActivityRun.Snapshot().ConfigureAwait(false),
+                ContainerStations = containerStations.ToDictionary(),
             };
         }
 
@@ -529,6 +536,10 @@ namespace Orts.Simulation
             {
                 await ActivityRun.Restore(saveState.Activity).ConfigureAwait(false);
             }
+            await Parallel.ForEachAsync(ContainerManager.ContainerStations, async (containerStation, cancellationToken) =>
+            {
+                await containerStation.Value.Restore(saveState.ContainerStations[containerStation.Key]).ConfigureAwait(false);
+            });
         }
 
         public void Save(BinaryWriter outf)
@@ -549,7 +560,7 @@ namespace Orts.Simulation
             //        movingtable.Save(outf);
             //}
             //Activity.Save(outf, ActivityRun);
-            ContainerManager.Save(outf);
+            //ContainerManager.Save(outf);
         }
 
         private Train InitializeTrains(CancellationToken cancellationToken)

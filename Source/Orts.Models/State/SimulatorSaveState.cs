@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 using FreeTrainSimulator.Common.Api;
 
@@ -19,8 +20,9 @@ namespace Orts.Models.State
         public SignalEnvironmentSaveState SignalEnvironmentSaveState { get; set; }
 #pragma warning disable CA2227 // Collection properties should be read only
         public Collection<MovingTableSaveState> MovingTables { get; set; }
-#pragma warning restore CA2227 // Collection properties should be read only
         public int ActiveMovingTable { get; set; }
         public ActivitySaveState Activity {  get; set; }
+        public Dictionary<int, ContainerStationSaveState> ContainerStations { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
     }
 }

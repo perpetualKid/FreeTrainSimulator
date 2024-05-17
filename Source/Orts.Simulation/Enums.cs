@@ -179,18 +179,6 @@ namespace Orts.Simulation
         Container
     }
 
-    public enum ContainerType
-    {
-        None,
-        C20ft,
-        C40ft,
-        C40ftHC,
-        C45ft,
-        C45ftHC,
-        C48ft,
-        C53ft
-    }
-
     public enum ContainerStatus
     {
         OnEarth,
@@ -198,28 +186,6 @@ namespace Orts.Simulation
         Unloading,
         WaitingForLoading,
         WaitingForUnloading
-    }
-
-    public enum ContainerStationStatus
-    {
-        Idle,
-        LoadRaiseToPick,
-        LoadHorizontallyMoveToPick,
-        LoadLowerToPick,
-        LoadWaitingForPick,
-        LoadRaiseToLayOnWagon,
-        LoadHorizontallyMoveToLayOnWagon,
-        LoadLowerToLayOnWagon,
-        LoadWaitingForLayingOnWagon,
-        UnloadRaiseToPick,
-        UnloadHorizontallyMoveToPick,
-        UnloadLowerToPick,
-        UnloadWaitingForPick,
-        UnloadRaiseToLayOnEarth,
-        UnloadHorizontallyMoveToLayOnEarth,
-        UnloadLowerToLayOnEarth,
-        UnloadWaitingForLayingOnEarth,
-        RaiseToIdle,
     }
 
     public enum CruiseControlLogic

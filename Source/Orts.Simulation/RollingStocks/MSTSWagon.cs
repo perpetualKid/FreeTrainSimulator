@@ -3957,7 +3957,7 @@ namespace Orts.Simulation.RollingStocks
 
             FreightAnimations.FreightType = matchPickup.PickupType;
 
-            var containerStation = simulator.ContainerManager.ContainerHandlingItems.Where(item => item.Key == matchPickup.TrackItemIds.TrackDbItems[0]).Select(item => item.Value).First();
+            var containerStation = simulator.ContainerManager.ContainerStations.Where(item => item.Key == matchPickup.TrackItemIds.TrackDbItems[0]).Select(item => item.Value).First();
             if (containerStation.Status != ContainerStationStatus.Idle)
             {
                 simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Container station busy with preceding mission"));
@@ -4042,7 +4042,7 @@ namespace Orts.Simulation.RollingStocks
 
         }
         public bool Validity(bool onlyUnload, PickupObject pickup, ContainerManager containerManager,
-            FreightAnimations freightAnimations, out ContainerHandlingItem containerStation)
+            FreightAnimations freightAnimations, out ContainerHandlingStation containerStation)
         {
             var validity = false;
             containerStation = null;
@@ -4052,7 +4052,7 @@ namespace Orts.Simulation.RollingStocks
                 return validity;
             else
             {
-                containerStation = containerManager.ContainerHandlingItems.Where(item => item.Key == pickup.TrackItemIds.TrackDbItems[0]).Select(item => item.Value).First();
+                containerStation = containerManager.ContainerStations.Where(item => item.Key == pickup.TrackItemIds.TrackDbItems[0]).Select(item => item.Value).First();
                 if (containerStation.Containers.Count == 0 && !onlyUnload)
                     return validity;
             }

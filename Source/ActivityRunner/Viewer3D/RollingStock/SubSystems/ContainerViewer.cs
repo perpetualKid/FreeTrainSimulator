@@ -87,7 +87,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         private readonly Container container;
         private readonly AnimatedShape containerShape;
 
-        public ContainerViewer(ContainerHandlingItem containerHandlingItem, Container container)
+        public ContainerViewer(ContainerHandlingStation containerHandlingItem, Container container)
         {
             ArgumentNullException.ThrowIfNull(container);
 

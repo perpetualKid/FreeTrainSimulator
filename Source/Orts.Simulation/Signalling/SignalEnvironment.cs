@@ -336,8 +336,8 @@ namespace Orts.Simulation.Signalling
                                         extendedWFileRead = true;
                                     }
                                 }
-                                World.ContainerHandlingItem containerStation = Simulator.Instance.ContainerManager.CreateContainerStation(worldObject.WorldPosition, pickupObject.TrackItemIds.TrackDbItems[0], pickupObject);
-                                Simulator.Instance.ContainerManager.ContainerHandlingItems.Add(pickupObject.TrackItemIds.TrackDbItems[0], containerStation);
+                                World.ContainerHandlingStation containerStation = Simulator.Instance.ContainerManager.CreateContainerStation(worldObject.WorldPosition, pickupObject.TrackItemIds.TrackDbItems[0], pickupObject);
+                                Simulator.Instance.ContainerManager.ContainerStations.Add(pickupObject.TrackItemIds.TrackDbItems[0], containerStation);
 
                                 //if (worldObject.QDirection != null && worldObject.Position != null)
                                 //{

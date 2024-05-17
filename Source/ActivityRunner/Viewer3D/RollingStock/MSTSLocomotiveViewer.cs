@@ -734,7 +734,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             WagonAndMatchingPickup nearestPickup = null;
             float distanceFromFrontOfTrainM = 0f;
             int index = 0;
-            ContainerHandlingItem containerStation = null;
+            ContainerHandlingStation containerStation = null;
             foreach (var car in train.Cars)
             {
                 if (car is MSTSWagon)
@@ -889,7 +889,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (match.IntakePoint.LinkedFreightAnim is FreightAnimationDiscrete)
             // for container cranes handle distance management using Z span of crane
             {
-                ContainerHandlingItem containerStation = Viewer.Simulator.ContainerManager.ContainerHandlingItems.Where(item => item.Key == match.Pickup.TrackItemIds.TrackDbItems[0]).Select(item => item.Value).First();
+                ContainerHandlingStation containerStation = Viewer.Simulator.ContainerManager.ContainerStations.Where(item => item.Key == match.Pickup.TrackItemIds.TrackDbItems[0]).Select(item => item.Value).First();
                 if (distanceToPickupM > containerStation.MinZSpan)
                 {
                     Simulator.Instance.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetString("Container crane: Distance to {0} supply is {1}.",

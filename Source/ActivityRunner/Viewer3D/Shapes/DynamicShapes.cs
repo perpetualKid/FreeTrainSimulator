@@ -1023,7 +1023,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         // To detect transitions that trigger sounds
         private EnumArray<bool, VectorDirection> oldMovement = new EnumArray<bool, VectorDirection>();
 
-        private ContainerHandlingItem containerHandlingItem;
+        private ContainerHandlingStation containerHandlingItem;
 
         public ContainerHandlingItemShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, PickupObject fuelpickupitemObj)
                         : base(path, positionSource, shapeFlags, fuelpickupitemObj)
@@ -1074,7 +1074,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             else
                 Trace.TraceWarning("Cannot find sound file {0}", soundPath);
 
-            containerHandlingItem = Simulator.Instance.ContainerManager.ContainerHandlingItems[fuelPickupItemObject.TrackItemIds.TrackDbItems[0]];
+            containerHandlingItem = Simulator.Instance.ContainerManager.ContainerStations[fuelPickupItemObject.TrackItemIds.TrackDbItems[0]];
             animationFrames = 1;
             frameRate = 1;
             if (SharedShape.Animations?.Count > 0 && SharedShape.Animations[0].AnimationNodes?.Count > 0)

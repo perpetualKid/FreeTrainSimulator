@@ -157,7 +157,7 @@ namespace Orts.ActivityRunner.Processes
             if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer())
                 return; //no save for multiplayer sessions yet
 
-            if (ContainerManager.ActiveOperationsCounter > 0)
+            if (ContainerHandlingStation.ActiveOperations)
             // don't save if performing a container load/unload
             {
                 Simulator.Instance.Confirmer.Message(ConfirmLevel.Warning, Viewer.Catalog.GetString("Game save is not allowed during container load/unload"));

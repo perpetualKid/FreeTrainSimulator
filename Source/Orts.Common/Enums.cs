@@ -1324,4 +1324,39 @@ namespace Orts.Common
         RequestLeastRestrictiveAspect,
     }
     #endregion
+
+    public enum ContainerType
+    {
+        None,
+        C20ft,
+        C40ft,
+        C40ftHC,
+        C45ft,
+        C45ftHC,
+        C48ft,
+        C53ft
+    }
+
+    public enum ContainerStationStatus
+    {
+        Idle,
+        LoadRaiseToPick,
+        LoadHorizontallyMoveToPick,
+        LoadLowerToPick,
+        LoadWaitingForPick,
+        LoadRaiseToLayOnWagon,
+        LoadHorizontallyMoveToLayOnWagon,
+        LoadLowerToLayOnWagon,
+        LoadWaitingForLayingOnWagon,
+        UnloadRaiseToPick,
+        UnloadHorizontallyMoveToPick,
+        UnloadLowerToPick,
+        UnloadWaitingForPick,
+        UnloadRaiseToLayOnEarth,
+        UnloadHorizontallyMoveToLayOnEarth,
+        UnloadLowerToLayOnEarth,
+        UnloadWaitingForLayingOnEarth,
+        RaiseToIdle,
+    }
+
 }
