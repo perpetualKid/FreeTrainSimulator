@@ -1132,6 +1132,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
     public class FreightAnimationDiscrete : FreightAnimation
     {
+        internal static bool FreightAnimNeedsInitialization = true;
         public FreightAnimationType SubType { get; private set; }
         public bool Loaded { get; internal set; }
         public bool LoadedAtStart { get; private set; }
@@ -1164,7 +1165,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             AboveLoadingAreaLength = source.AboveLoadingAreaLength;
             LoadPosition = source.LoadPosition;
             Offset = source.Offset;
-            if (containerManager.FreightAnimNeedsInitialization && source.Container != null)
+            if (FreightAnimNeedsInitialization && source.Container != null)
             {
                 Container = new Container(source, this);
                 containerManager.Containers.Add(Container);

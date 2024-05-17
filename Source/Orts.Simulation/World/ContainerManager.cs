@@ -30,8 +30,6 @@ namespace Orts.Simulation.World
     {
         private readonly Simulator simulator;
 
-        internal bool FreightAnimNeedsInitialization = true;
-
         internal LoadStationsPopulationFile LoadStationsPopulationFile { get; private set; }
         public Dictionary<int, ContainerHandlingStation> ContainerStations { get; } = new Dictionary<int, ContainerHandlingStation>();
         public Collection<Container> Containers { get; } = new Collection<Container>();

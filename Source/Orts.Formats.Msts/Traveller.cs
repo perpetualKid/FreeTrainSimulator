@@ -20,8 +20,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
@@ -31,13 +33,15 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
 
+using SharpDX.Direct2D1;
+
 namespace Orts.Formats.Msts
 {
     /// <summary>
     /// A traveller that represents a specific location and direction on a track node database. 
     /// Think of it like a virtual truck or bogie that can travel along the track or a virtual car that can travel along the road.
     /// </summary>
-    public class Traveller
+    public class Traveller: ISaveStateApi<TravellerSaveState>
     {
         private readonly TrackNodes trackNodes;
         private Direction direction = Direction.Forward;
@@ -299,6 +303,36 @@ namespace Orts.Formats.Msts
                 trackVectorSection = (trackNode as TrackVectorNode).TrackVectorSections[TrackVectorSectionIndex];
                 trackSection = RuntimeData.Instance.TSectionDat.TrackSections[trackVectorSection.SectionIndex];
             }
+        }
+
+
+        public ValueTask<TravellerSaveState> Snapshot()
+        {
+            return ValueTask.FromResult(new TravellerSaveState()
+            { 
+                Direction = Direction,
+                TrackVectorSectionOffset = trackVectorSectionOffset,
+                TrackNodeIndex = trackNode.Index,
+                TrackVectorSectionIndex = TrackNodeType == TrackNodeType.Track ? TrackVectorSectionIndex : -1,
+            });
+            throw new NotImplementedException();
+        }
+
+        public ValueTask Restore(TravellerSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            locationSet = lengthSet = false;
+            direction = saveState.Direction;
+            trackVectorSectionOffset = saveState.TrackVectorSectionOffset;
+            trackNode = trackNodes[saveState.TrackNodeIndex];
+            if (TrackNodeType == TrackNodeType.Track)
+            {
+                TrackVectorSectionIndex = saveState.TrackVectorSectionIndex;
+                trackVectorSection = (trackNode as TrackVectorNode).TrackVectorSections[TrackVectorSectionIndex];
+                trackSection = RuntimeData.Instance.TSectionDat.TrackSections[trackVectorSection.SectionIndex];
+            }
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>

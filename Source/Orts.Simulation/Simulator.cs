@@ -447,7 +447,7 @@ namespace Orts.Simulation
         {
             ArgumentNullException.ThrowIfNull(inf);
 
-            ContainerManager.FreightAnimNeedsInitialization = false;
+            FreightAnimationDiscrete.FreightAnimNeedsInitialization = false;
             //PathName = pathName;
             //InitialLocation = initialLocation;
             PoolHolder = new Poolholder(inf, this);
