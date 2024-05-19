@@ -8483,8 +8483,7 @@ namespace Orts.Simulation.Timetables
                     if (thisPool.GetType() == typeof(TimetableTurntablePool))
                     {
                         TimetableTurntablePool thisTurntablePool = thisPool as TimetableTurntablePool;
-                        ActiveTurntable = new TimetableTurntableControl(thisTurntablePool, thisTurntablePool.PoolName, thisTurntablePool.AdditionalTurntableDetails.TurntableIndex,
-                            simulator, this);
+                        ActiveTurntable = new TimetableTurntableControl(thisTurntablePool, thisTurntablePool.PoolName, thisTurntablePool.AdditionalTurntableDetails.TurntableIndex,this);
                         ActiveTurntable.MovingTableState = MovingTableState.WaitingMovingTableAvailability;
                         ActiveTurntable.MovingTableAction = MovingTableAction.FromAccess;
                         MovementState = AiMovementState.Turntable;
