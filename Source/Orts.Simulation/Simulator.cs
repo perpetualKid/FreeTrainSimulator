@@ -31,6 +31,7 @@ using FreeTrainSimulator.Common.Api;
 
 using GetText;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -419,7 +420,7 @@ namespace Orts.Simulation
             Trains = new TrainList(this);
             PoolHolder = new Poolholder(timeTableFile, cancellationToken);
 
-            TimetableInfo TTinfo = new TimetableInfo(this);
+            TimetableInfo TTinfo = new TimetableInfo();
             List<TTTrain> allTrains = TTinfo.ProcessTimetable(timeTableFile, PathName, cancellationToken);
             TTTrain playerTTTrain = allTrains[0];
 
@@ -450,7 +451,7 @@ namespace Orts.Simulation
             FreightAnimationDiscrete.FreightAnimNeedsInitialization = false;
             //PathName = pathName;
             //InitialLocation = initialLocation;
-            PoolHolder = new Poolholder(inf, this);
+            //PoolHolder = new Poolholder(inf, this);
 
             //SignalEnvironment = new SignalEnvironment(SignalConfig, false, cancellationToken);
             //SignalEnvironment.Restore(inf);
@@ -473,7 +474,7 @@ namespace Orts.Simulation
             //}
             //activeMovingTable = movingTableIndex >= 0 && movingTableIndex < MovingTables.Count ? MovingTables[movingTableIndex] : null;
 
-//            ActivityRun = Activity.Restore(inf, this, ActivityRun);
+            //            ActivityRun = Activity.Restore(inf, this, ActivityRun);
             SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
             SignalEnvironment.Update(true);           // update all signals once to set proper stat
             //ContainerManager.Restore(inf);
@@ -491,6 +492,11 @@ namespace Orts.Simulation
             {
                 containerStations.TryAdd(containerStation.Key, await containerStation.Value.Snapshot().ConfigureAwait(false));
             });
+            ConcurrentDictionary<string, TimetablePoolSaveState> timetablePools = new ConcurrentDictionary<string, TimetablePoolSaveState>();
+            await Parallel.ForEachAsync(PoolHolder.Pools, async (pool, cancellationToken) =>
+            {
+                timetablePools.TryAdd(pool.Key, await pool.Value.Snapshot().ConfigureAwait(false));
+            });
 
             return new SimulatorSaveState()
             {
@@ -504,6 +510,7 @@ namespace Orts.Simulation
                 ActiveMovingTable = MovingTables.IndexOf(activeMovingTable),
                 Activity = ActivityRun == null ? null : await ActivityRun.Snapshot().ConfigureAwait(false),
                 ContainerStations = containerStations.ToDictionary(),
+                TimeTablePools = timetablePools.ToDictionary(),
             };
         }
 
@@ -522,6 +529,25 @@ namespace Orts.Simulation
             WeatherType = saveState.Weather;
             UserWeatherFile = saveState.WeatherFile;
             TimetableMode = saveState.TimetableMode;
+
+            ConcurrentDictionary<string, TimetablePool> poolsRestore = new ConcurrentDictionary<string, TimetablePool>();
+            await Parallel.ForEachAsync(saveState.TimeTablePools, async (pool, cancellationToken) =>
+            {
+                switch (pool.Value.PoolType)
+                {
+                    case TimetablePoolType.TimetablePool:
+                        TimetablePool timetablePool = new TimetablePool();
+                        await timetablePool.Restore(pool.Value).ConfigureAwait(false);
+                        poolsRestore.TryAdd(pool.Key, timetablePool);
+                        break;
+                    case TimetablePoolType.TimetableTurntablePool:
+                        TimetableTurntablePool timetableTurntablePool = new TimetableTurntablePool();
+                        await timetableTurntablePool.Restore(pool.Value).ConfigureAwait(false);
+                        poolsRestore.TryAdd(pool.Key, timetableTurntablePool);
+                        break;
+                }
+            });
+            PoolHolder = new Poolholder(poolsRestore.ToDictionary());
             SignalEnvironment = new SignalEnvironment(SignalConfig, false, CancellationToken.None);
             await SignalEnvironment.Restore(saveState.SignalEnvironmentSaveState).ConfigureAwait(false);
 
@@ -546,7 +572,7 @@ namespace Orts.Simulation
         {
             ArgumentNullException.ThrowIfNull(outf);
 
-            PoolHolder.Save(outf);
+            //PoolHolder.Save(outf);
             //            SignalEnvironment.Save(outf);
             SaveTrains(outf);
             // LevelCrossings

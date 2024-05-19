@@ -66,7 +66,7 @@ namespace Orts.Simulation.Timetables
                         // process name
                         // do not increase lineindex as that is done in called method
                         case "#name":
-                            TimetableTurntablePool newTurntable = new TimetableTurntablePool(turntableInfo, ref lineindex, Simulator.Instance);
+                            TimetableTurntablePool newTurntable = new TimetableTurntablePool(turntableInfo, ref lineindex);
                             // store if valid pool
                             if (!string.IsNullOrEmpty(newTurntable.PoolName))
                             {

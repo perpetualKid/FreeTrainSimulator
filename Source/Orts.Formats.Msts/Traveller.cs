@@ -117,7 +117,7 @@ namespace Orts.Formats.Msts
             _ => TrackNodeType.Track,
         };
 
-        private Traveller(bool roadTrackTraveller)
+        public Traveller(bool roadTrackTraveller)
         {
             if (null == RuntimeData.Instance)
                 throw new InvalidOperationException("RuntimeData not initialized!");

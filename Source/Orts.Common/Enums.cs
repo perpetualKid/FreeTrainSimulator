@@ -1359,4 +1359,9 @@ namespace Orts.Common
         RaiseToIdle,
     }
 
+    public enum TimetablePoolType
+    {
+        TimetablePool,
+        TimetableTurntablePool,
+    }
 }

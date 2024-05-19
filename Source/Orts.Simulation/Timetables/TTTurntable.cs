@@ -23,11 +23,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
@@ -36,6 +40,7 @@ using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -55,19 +60,51 @@ namespace Orts.Simulation.Timetables
     public class TimetableTurntablePool : TimetablePool
     {
 
-        public struct AccessPathDetails
+        public class AccessPathDetails : ISaveStateApi<AccessPathDetailSaveState>
         {
-            public TrackCircuitPartialPathRoute AccessPath;           // actual access path
-            public Traveller AccessTraveller;                 // traveler based on access path
-            public string AccessPathName;                     // access path name
-            public int TableVectorIndex;                      // index in VectorList of tracknode which is the table
-            public int TableExitIndex;                        // index in table exit list for this exit
-            public float TableApproachOffset;                 // offset of holding point in front of turntable (in Inward direction)
-            public float TableMiddleEntry;                    // offset of middle of table when approaching table
-            public float TableMiddleExit;                     // offset of middle of table when exiting
+            public TrackCircuitPartialPathRoute AccessPath { get; set; }           // actual access path
+            public Traveller AccessTraveller { get; set; }                 // traveler based on access path
+            public string AccessPathName { get; set; }                     // access path name
+            public int TableVectorIndex { get; set; }                      // index in VectorList of tracknode which is the table
+            public int TableExitIndex { get; set; }                        // index in table exit list for this exit
+            public float TableApproachOffset { get; set; }                 // offset of holding point in front of turntable (in Inward direction)
+            public float TableMiddleEntry { get; set; }                    // offset of middle of table when approaching table
+            public float TableMiddleExit { get; set; }                     // offset of middle of table when exiting
+
+            public async ValueTask Restore(AccessPathDetailSaveState saveState)
+            {
+                ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+                AccessPath = new TrackCircuitPartialPathRoute();
+                await AccessPath.Restore(saveState.AccessPath).ConfigureAwait(false);
+
+                AccessTraveller = new Traveller(false);
+                await AccessTraveller.Restore(saveState.AccessTraveller).ConfigureAwait(false);
+
+                AccessPathName = saveState.AccessPathName;
+                TableExitIndex = saveState.TableExitIndex;
+                TableVectorIndex = saveState.TableVectorIndex;
+                TableApproachOffset = saveState.TableApproachOffset;
+                TableMiddleEntry = saveState.TableMiddleEntry;
+                TableMiddleExit = saveState.TableMiddleExit;
+            }
+
+            public async ValueTask<AccessPathDetailSaveState> Snapshot()
+            {
+                return new AccessPathDetailSaveState()
+                {
+                    AccessPath = await AccessPath.Snapshot().ConfigureAwait(false),
+                    AccessTraveller = await AccessTraveller.Snapshot().ConfigureAwait(false),
+                    AccessPathName = AccessPathName,
+                    TableVectorIndex = TableVectorIndex,
+                    TableExitIndex = TableExitIndex,
+                    TableApproachOffset = TableApproachOffset,
+                    TableMiddleEntry = TableMiddleEntry,
+                    TableMiddleExit = TableMiddleExit,
+                };
+            }
         }
 
-        public struct TurntableDetails
+        public class TurntableDetails
         {
             public List<AccessPathDetails> AccessPaths;       // access paths details defined for turntable location
             public int TurntableIndex;                        // index for turntable in list of moving tables
@@ -77,11 +114,13 @@ namespace Orts.Simulation.Timetables
             public int? FrameRate;                            // frame rate for turntable movement
         }
 
-        public TurntableDetails AdditionalTurntableDetails;
+        public TurntableDetails AdditionalTurntableDetails { get; } = new TurntableDetails();
         private static float defaultTurntableApproachClearanceM = 10.0f;  // default approach clearance
         private static float defaultTurntableReleaseClearanceM = 5.0f;    // default release clearance
 
-        public Simulator Simulatorref { get; protected set; }
+        public TimetableTurntablePool() 
+        { 
+        }
 
         //================================================================================================//
         /// <summary>
@@ -91,7 +130,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="fileContents"></param>
         /// <param name="lineindex"></param>
         /// <param name="simulatorref"></param>
-        public TimetableTurntablePool(TimetableReader fileContents, ref int lineindex, Simulator simulatorref)
+        public TimetableTurntablePool(TimetableReader fileContents, ref int lineindex)
         {
 
             bool validpool = true;
@@ -102,8 +141,7 @@ namespace Orts.Simulation.Timetables
             string Worldfile = string.Empty;
             int UiD = -1;
 
-            Simulatorref = simulatorref;
-            ForceCreation = Simulatorref.Settings.TTCreateTrainOnPoolUnderflow;
+            forceCreation = Simulator.Instance.Settings.TTCreateTrainOnPoolUnderflow;
 
             AdditionalTurntableDetails.TurntableApproachClearanceM = defaultTurntableApproachClearanceM;
             AdditionalTurntableDetails.TurntableReleaseClearanceM = defaultTurntableReleaseClearanceM;
@@ -183,7 +221,7 @@ namespace Orts.Simulation.Timetables
                         {
                             string accessPath = inputLine[1].ToLower().Trim();
                             bool pathValid = true;
-                            TimetableInfo TTInfo = new TimetableInfo(Simulatorref);
+                            TimetableInfo TTInfo = new TimetableInfo();
                             AIPath newPath = TTInfo.LoadPath(accessPath, out pathValid);
 
                             if (pathValid)
@@ -297,7 +335,7 @@ namespace Orts.Simulation.Timetables
                         else
                         {
                             bool validStorage = true;
-                            PoolDetails thisPool = ExtractStorage(fileContents, Simulatorref, ref lineindex, out validStorage, false);
+                            PoolDetails thisPool = ExtractStorage(fileContents, ref lineindex, out validStorage, false);
                             if (validStorage)
                             {
                                 StoragePool.Add(thisPool);
@@ -392,183 +430,33 @@ namespace Orts.Simulation.Timetables
             }
         }
 
-        //================================================================================================//
-        /// <summary>
-        /// constructor for restore
-        /// </summary>
-        /// <param name="inf"></param>
-        /// <param name="simulatorref"></param>
-        public TimetableTurntablePool(BinaryReader inf, Simulator simulatorref)
+        public override async ValueTask<TimetablePoolSaveState> Snapshot()
         {
-            Simulatorref = simulatorref;
-
-            PoolName = inf.ReadString();
-            ForceCreation = inf.ReadBoolean();
-
-            AdditionalTurntableDetails.AccessPaths = new List<AccessPathDetails>();
-
-            int noAccessPaths = inf.ReadInt32();
-            for (int iAccessPath = 0; iAccessPath < noAccessPaths; iAccessPath++)
-            {
-                AccessPathDetails thisAccess = new AccessPathDetails();
-                thisAccess.AccessPath = new TrackCircuitPartialPathRoute(inf);
-                thisAccess.AccessTraveller = new Traveller(inf);
-                thisAccess.AccessPathName = inf.ReadString();
-                thisAccess.TableExitIndex = inf.ReadInt32();
-                thisAccess.TableVectorIndex = inf.ReadInt32();
-                thisAccess.TableApproachOffset = inf.ReadSingle();
-                thisAccess.TableMiddleEntry = inf.ReadSingle();
-                thisAccess.TableMiddleExit = inf.ReadSingle();
-
-                AdditionalTurntableDetails.AccessPaths.Add(thisAccess);
-            }
-
-            AdditionalTurntableDetails.TurntableIndex = inf.ReadInt32();
-            AdditionalTurntableDetails.TurntableApproachClearanceM = inf.ReadSingle();
-            AdditionalTurntableDetails.TurntableReleaseClearanceM = inf.ReadSingle();
-            AdditionalTurntableDetails.TurntableSpeedMpS = null;
-            if (inf.ReadBoolean())
-            {
-                AdditionalTurntableDetails.TurntableSpeedMpS = inf.ReadSingle();
-            }
-            AdditionalTurntableDetails.FrameRate = null;
-            if (inf.ReadBoolean())
-            {
-                AdditionalTurntableDetails.FrameRate = inf.ReadInt32();
-            }
-
-            int noPools = inf.ReadInt32();
-            for (int iPool = 0; iPool < noPools; iPool++)
-            {
-                int maxStorage = 0;
-
-                PoolDetails newPool = new PoolDetails();
-                newPool.StoragePath = new TrackCircuitPartialPathRoute(inf);
-                newPool.StoragePathTraveller = new Traveller(inf);
-                newPool.StoragePathReverseTraveller = new Traveller(inf);
-                newPool.StorageName = inf.ReadString();
-
-                newPool.AccessPaths = null;
-
-                newPool.StoredUnits = new List<int>();
-                int noStoredUnits = inf.ReadInt32();
-
-                for (int iUnits = 0; iUnits < noStoredUnits; iUnits++)
-                {
-                    newPool.StoredUnits.Add(inf.ReadInt32());
-                }
-
-                newPool.ClaimUnits = new List<int>();
-                int noClaimUnits = inf.ReadInt32();
-
-                for (int iUnits = 0; iUnits < noClaimUnits; iUnits++)
-                {
-                    newPool.ClaimUnits.Add(inf.ReadInt32());
-                }
-
-                newPool.StorageLength = inf.ReadSingle();
-                newPool.StorageCorrection = inf.ReadSingle();
-
-                newPool.TableExitIndex = inf.ReadInt32();
-                newPool.TableVectorIndex = inf.ReadInt32();
-                newPool.TableMiddleEntry = inf.ReadSingle();
-                newPool.TableMiddleExit = inf.ReadSingle();
-
-                newPool.RemLength = inf.ReadSingle();
-
-                maxStorage = inf.ReadInt32();
-                if (maxStorage <= 0)
-                {
-                    newPool.maxStoredUnits = null;
-                }
-                else
-                {
-                    newPool.maxStoredUnits = maxStorage;
-                }
-
-                StoragePool.Add(newPool);
-            }
+            TimetablePoolSaveState result = await base.Snapshot().ConfigureAwait(false);
+            result.PoolType = TimetablePoolType.TimetableTurntablePool;
+            result.AccessDetails = new Collection<AccessPathDetailSaveState>(await Task.WhenAll(AdditionalTurntableDetails.AccessPaths.Select(async accessPath => await accessPath.Snapshot().ConfigureAwait(false))).ConfigureAwait(false));
+            result.TurntableIndex = AdditionalTurntableDetails.TurntableIndex;
+            result.TurntableApproachClearance = AdditionalTurntableDetails.TurntableApproachClearanceM;
+            result.TurntableReleaseClearance = AdditionalTurntableDetails.TurntableReleaseClearanceM;
+            result.TurntableSpeed = AdditionalTurntableDetails.TurntableSpeedMpS;
+            result.TurntableFrameRate = AdditionalTurntableDetails.FrameRate;
+            return result;
         }
 
-        //================================================================================================//
-        /// <summary>
-        /// Method to save pool
-        /// </summary>
-        /// <param name="outf"></param>
-        public override void Save(BinaryWriter outf)
+        public override async ValueTask Restore([NotNull] TimetablePoolSaveState saveState)
         {
-            outf.Write(PoolName);
-            outf.Write(ForceCreation);
-
-            // save access path information
-            outf.Write(AdditionalTurntableDetails.AccessPaths.Count);
-            foreach (AccessPathDetails thisPath in AdditionalTurntableDetails.AccessPaths)
+            await base.Restore(saveState);
+            AdditionalTurntableDetails.AccessPaths = (await Task.WhenAll(saveState.AccessDetails.Select(async accessDetailState =>
             {
-                thisPath.AccessPath.Save(outf);
-                thisPath.AccessTraveller.Save(outf);
-                outf.Write(thisPath.AccessPathName);
-                outf.Write(thisPath.TableExitIndex);
-                outf.Write(thisPath.TableVectorIndex);
-                outf.Write(thisPath.TableApproachOffset);
-                outf.Write(thisPath.TableMiddleEntry);
-                outf.Write(thisPath.TableMiddleExit);
-            }
-
-            outf.Write(AdditionalTurntableDetails.TurntableIndex);
-            outf.Write(AdditionalTurntableDetails.TurntableApproachClearanceM);
-            outf.Write(AdditionalTurntableDetails.TurntableReleaseClearanceM);
-            outf.Write(AdditionalTurntableDetails.TurntableSpeedMpS.HasValue);
-            if (AdditionalTurntableDetails.TurntableSpeedMpS.HasValue)
-            {
-                outf.Write(AdditionalTurntableDetails.TurntableSpeedMpS.Value);
-            }
-            outf.Write(AdditionalTurntableDetails.FrameRate.HasValue);
-            if (AdditionalTurntableDetails.FrameRate.HasValue)
-            {
-                outf.Write(AdditionalTurntableDetails.FrameRate.Value);
-            }
-
-            // save storage path information
-            outf.Write(StoragePool.Count);
-
-            foreach (PoolDetails thisStorage in StoragePool)
-            {
-                thisStorage.StoragePath.Save(outf);
-                thisStorage.StoragePathTraveller.Save(outf);
-                thisStorage.StoragePathReverseTraveller.Save(outf);
-                outf.Write(thisStorage.StorageName);
-
-                outf.Write(thisStorage.StoredUnits.Count);
-                foreach (int storedUnit in thisStorage.StoredUnits)
-                {
-                    outf.Write(storedUnit);
-                }
-
-                outf.Write(thisStorage.ClaimUnits.Count);
-                foreach (int claimUnit in thisStorage.ClaimUnits)
-                {
-                    outf.Write(claimUnit);
-                }
-
-                outf.Write(thisStorage.StorageLength);
-                outf.Write(thisStorage.StorageCorrection);
-
-                outf.Write(thisStorage.TableExitIndex);
-                outf.Write(thisStorage.TableVectorIndex);
-                outf.Write(thisStorage.TableMiddleEntry);
-                outf.Write(thisStorage.TableMiddleExit);
-
-                outf.Write(thisStorage.RemLength);
-
-                if (thisStorage.maxStoredUnits.HasValue)
-                {
-                    outf.Write(thisStorage.maxStoredUnits.Value);
-                }
-                else
-                {
-                    outf.Write(-1);
-                }
-            }
+                AccessPathDetails accessDetails = new AccessPathDetails();
+                await accessDetails.Restore(accessDetailState).ConfigureAwait(false);
+                return accessDetails;
+            })).ConfigureAwait(false)).ToList();
+            AdditionalTurntableDetails.TurntableIndex = saveState.TurntableIndex;
+            AdditionalTurntableDetails.TurntableApproachClearanceM = saveState.TurntableApproachClearance;
+            AdditionalTurntableDetails.TurntableReleaseClearanceM = saveState.TurntableReleaseClearance;
+            AdditionalTurntableDetails.TurntableSpeedMpS = saveState.TurntableSpeed;
+            AdditionalTurntableDetails.FrameRate = saveState.TurntableFrameRate;
         }
 
         //================================================================================================//
@@ -791,7 +679,7 @@ namespace Orts.Simulation.Timetables
             train.PoolStorageIndex = PoolStorageState;
 
             // if no of units is limited to 1, place engine in direction of turntable
-            if (StoragePool[PoolStorageState].maxStoredUnits.HasValue && StoragePool[PoolStorageState].maxStoredUnits == 1)
+            if (StoragePool[PoolStorageState].MaxStoredUnits.HasValue && StoragePool[PoolStorageState].MaxStoredUnits == 1)
             {
                 // use stored traveller
                 train.RearTDBTraveller = new Traveller(StoragePool[PoolStorageState].StoragePathTraveller);
@@ -996,7 +884,7 @@ namespace Orts.Simulation.Timetables
                 DateTime baseDTA = new DateTime();
                 DateTime moveTimeA = baseDTA.AddSeconds(train.AI.ClockTime);
 
-                if (ForceCreation)
+                if (forceCreation)
                 {
                     Trace.TraceInformation("Train request : " + train.Name + " from pool " + PoolName +
                         " : no engines available in pool, engine is created, at " + moveTimeA.ToString("HH:mm:ss") + "\n");
@@ -1086,9 +974,9 @@ namespace Orts.Simulation.Timetables
                 train.InitializeSignals(true);
 
                 // start new train
-                if (Simulatorref.StartReference.Contains(train.Number))
+                if (Simulator.Instance.StartReference.Contains(train.Number))
                 {
-                    Simulatorref.StartReference.Remove(train.Number);
+                    Simulator.Instance.StartReference.Remove(train.Number);
                 }
 
                 // existing train is player, so continue as player
@@ -1139,11 +1027,11 @@ namespace Orts.Simulation.Timetables
 
                     // set player locomotive
                     // first test first and last cars - if either is drivable, use it as player locomotive
-                    Simulatorref.PlayerLocomotive = train.LeadLocomotive = train.Cars.First() as MSTSLocomotive ?? train.Cars.Last() as MSTSLocomotive ?? train.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
+                    Simulator.Instance.PlayerLocomotive = train.LeadLocomotive = train.Cars.First() as MSTSLocomotive ?? train.Cars.Last() as MSTSLocomotive ?? train.Cars.OfType<MSTSLocomotive>().FirstOrDefault();
 
                     train.InitializeBrakes();
 
-                    if (Simulatorref.PlayerLocomotive == null)
+                    if (Simulator.Instance.PlayerLocomotive == null)
                     {
                         throw new InvalidDataException("Can't find player locomotive in " + train.Name);
                     }
@@ -1188,7 +1076,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 // set timetable turntable class
-                train.ActiveTurntable = new TimetableTurntableControl(this, PoolName, AdditionalTurntableDetails.TurntableIndex, Simulatorref, train);
+                train.ActiveTurntable = new TimetableTurntableControl(this, PoolName, AdditionalTurntableDetails.TurntableIndex, train);
                 train.ActiveTurntable.MovingTableState = MovingTableState.WaitingMovingTableAvailability;
                 train.ActiveTurntable.MovingTableAction = MovingTableAction.FromStorage;
                 train.ActiveTurntable.AccessPathIndex = reqAccessPath;
@@ -1214,7 +1102,7 @@ namespace Orts.Simulation.Timetables
 
                 if (storedTrain != null)
                 {
-                    reqStorage.RemLength = CalculateStorageLength(reqStorage, storedTrain);
+                    reqStorage.RemainingLength = CalculateStorageLength(reqStorage, storedTrain);
                 }
                 else
                 {
@@ -1226,13 +1114,13 @@ namespace Orts.Simulation.Timetables
 
                     if (storedTrain != null)
                     {
-                        reqStorage.RemLength = CalculateStorageLength(reqStorage, storedTrain);
+                        reqStorage.RemainingLength = CalculateStorageLength(reqStorage, storedTrain);
                     }
                 }
             }
             else
             {
-                reqStorage.RemLength = reqStorage.StorageLength;
+                reqStorage.RemainingLength = reqStorage.StorageLength;
             }
 
             StoragePool[selectedStorage] = reqStorage;
@@ -1334,7 +1222,7 @@ namespace Orts.Simulation.Timetables
                 // if multiple units allowed on storage, do not reverse path so train moves to end of storage location
                 else
                 {
-                    if (StoragePool[reqPool].maxStoredUnits == 1)
+                    if (StoragePool[reqPool].MaxStoredUnits == 1)
                     {
                         newRoute = new TrackCircuitPartialPathRoute(AdditionalTurntableDetails.AccessPaths[0].AccessPath.ReversePath());
                     }
@@ -1405,13 +1293,13 @@ namespace Orts.Simulation.Timetables
 
         //================================================================================================//
         // constructor from new
-        public TimetableTurntableControl(TimetableTurntablePool thisPool, string thisPoolName, int turntableIndex, Simulator simulatorref, TTTrain train)
+        public TimetableTurntableControl(TimetableTurntablePool thisPool, string thisPoolName, int turntableIndex, TTTrain train)
         {
             parentPool = thisPool;
             poolName = thisPoolName;
             parentIndex = turntableIndex;
             parentTrain = train;
-            parentTurntable = simulatorref.MovingTables[parentIndex] as TurnTable;
+            parentTurntable = Simulator.Instance.MovingTables[parentIndex] as TurnTable;
 
             // set defined framerate if defined and not yet set for turntable
             if (parentPool.AdditionalTurntableDetails.FrameRate.HasValue && !parentTurntable.TurntableFrameRate.HasValue)
@@ -1999,6 +1887,7 @@ namespace Orts.Simulation.Timetables
         public bool AutoRequestExit(int reqExit, Direction entryPathDirection, Direction exitPathDirection,
                         double elapsedClockSeconds)
         {
+            Simulator simulator = Simulator.Instance;
             // if turntable is moving, always return false
             if (parentTurntable.AutoRotationDirection != Rotation.None)
             {
@@ -2006,17 +1895,17 @@ namespace Orts.Simulation.Timetables
 
                 // in prerun, also perform turntable update as simulation is not yet running
                 // also perform turntable update if this is not the active moving table
-                bool performUpdate = parentPool.Simulatorref.PreUpdate;
+                bool performUpdate = simulator.PreUpdate;
                 if (!performUpdate)
                 {
-                    if (parentPool.Simulatorref.ActiveMovingTable == null)
+                    if (simulator.ActiveMovingTable == null)
                     {
                         performUpdate = true;
                     }
                     else
                     {
-                        performUpdate = parentPool.Simulatorref.ActiveMovingTable.WFile != parentTurntable.WFile ||
-                                        parentPool.Simulatorref.ActiveMovingTable.UID != parentTurntable.UID;
+                        performUpdate = simulator.ActiveMovingTable.WFile != parentTurntable.WFile ||
+                                        simulator.ActiveMovingTable.UID != parentTurntable.UID;
                     }
                 }
 
@@ -2511,7 +2400,7 @@ namespace Orts.Simulation.Timetables
         public void RemoveTrainFromTurntable()
         {
             // clear table
-            parentTurntable ??= parentPool.Simulatorref.MovingTables[parentIndex] as TurnTable;
+            parentTurntable ??= Simulator.Instance.MovingTables[parentIndex] as TurnTable;
 
             parentTurntable.TrainsOnMovingTable.Clear();
             parentTurntable.InUse = false;

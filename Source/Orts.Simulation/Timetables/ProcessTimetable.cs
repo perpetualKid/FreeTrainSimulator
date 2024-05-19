@@ -91,9 +91,9 @@ namespace Orts.Simulation.Timetables
         /// <summary>
         ///  Constructor - empty constructor
         /// </summary>
-        public TimetableInfo(Simulator simulatorref)
+        public TimetableInfo()
         {
-            simulator = simulatorref;
+            simulator = Simulator.Instance;
         }
 
         //================================================================================================//

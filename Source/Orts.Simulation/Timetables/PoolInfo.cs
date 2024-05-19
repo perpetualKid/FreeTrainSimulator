@@ -18,7 +18,6 @@
 // This code processes the Timetable definition and converts it into playable train information
 //
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -68,7 +67,7 @@ namespace Orts.Simulation.Timetables
                         // process name
                         // do not increase lineindex as that is done in called method
                         case "#name" :
-                            TimetablePool newPool = new TimetablePool(poolInfo, ref lineindex, Simulator.Instance);
+                            TimetablePool newPool = new TimetablePool(poolInfo, ref lineindex);
                             // store if valid pool
                             if (!string.IsNullOrEmpty(newPool.PoolName))
                             {

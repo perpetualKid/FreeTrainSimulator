@@ -540,7 +540,7 @@ namespace Orts.ActivityRunner.Processes
             { }
 
             loadingStart = DateTime.UtcNow;
-            loadingBytesExpected = loadingData?.Samples?.ToList() ?? new List<long>(Enumerable.Repeat(0L, 100));
+            loadingBytesExpected = loadingData?.Samples?.ToList() ?? (EnumerableExtension.PresetCollection<long>(100) as List<long>);
             loadingBytesActual = new List<long>(loadingSampleCount);
             // Using the cached loading time, pick a sample rate that will get us ~100 samples. Clamp to 100ms < x < 10,000ms.
             loadingBytesSampleRate = TimeSpan.FromMilliseconds(Math.Clamp((loadingData?.LoadingDuration.TotalMilliseconds) ?? 0 / loadingSampleCount, 100, 10000));

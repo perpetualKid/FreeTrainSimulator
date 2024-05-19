@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
@@ -20,7 +21,7 @@ namespace Orts.Models.State
         { 
             Usable = usable;
             if (count > 0)
-                Containers = new Collection<ContainerSaveState>(Enumerable.Repeat(default(ContainerSaveState), count).ToList());
+                Containers = new Collection<ContainerSaveState>(EnumerableExtension.PresetCollection<ContainerSaveState>(count));
         }
     }
 
