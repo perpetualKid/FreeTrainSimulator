@@ -491,12 +491,12 @@ namespace Orts.Simulation
             await Parallel.ForEachAsync(ContainerManager.ContainerStations, async (containerStation, cancellationToken) =>
             {
                 containerStations.TryAdd(containerStation.Key, await containerStation.Value.Snapshot().ConfigureAwait(false));
-            });
+            }).ConfigureAwait(false);
             ConcurrentDictionary<string, TimetablePoolSaveState> timetablePools = new ConcurrentDictionary<string, TimetablePoolSaveState>();
             await Parallel.ForEachAsync(PoolHolder.Pools, async (pool, cancellationToken) =>
             {
                 timetablePools.TryAdd(pool.Key, await pool.Value.Snapshot().ConfigureAwait(false));
-            });
+            }).ConfigureAwait(false);
 
             return new SimulatorSaveState()
             {
@@ -546,7 +546,7 @@ namespace Orts.Simulation
                         poolsRestore.TryAdd(pool.Key, timetableTurntablePool);
                         break;
                 }
-            });
+            }).ConfigureAwait(false);
             PoolHolder = new Poolholder(poolsRestore.ToDictionary());
             SignalEnvironment = new SignalEnvironment(SignalConfig, false, CancellationToken.None);
             await SignalEnvironment.Restore(saveState.SignalEnvironmentSaveState).ConfigureAwait(false);
@@ -565,7 +565,7 @@ namespace Orts.Simulation
             await Parallel.ForEachAsync(ContainerManager.ContainerStations, async (containerStation, cancellationToken) =>
             {
                 await containerStation.Value.Restore(saveState.ContainerStations[containerStation.Key]).ConfigureAwait(false);
-            });
+            }).ConfigureAwait(false);
         }
 
         public void Save(BinaryWriter outf)

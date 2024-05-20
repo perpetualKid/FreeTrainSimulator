@@ -48,8 +48,6 @@ namespace Orts.Simulation.World
 
         private static int activeOperations;
 
-        private readonly int trackItemId;
-
         public static bool ActiveOperations => activeOperations > 0;
 
         public Collection<Container> Containers { get; } = new Collection<Container>();
@@ -150,8 +148,8 @@ namespace Orts.Simulation.World
                 await Parallel.ForAsync(0, StackLocations[i].Containers.Count -1, async (j, cancellationToken) =>
                 {
                     containerStacks[i].Containers[j] = await StackLocations[i].Containers[j].Snapshot().ConfigureAwait(false);
-                });
-            });
+                }).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
             return new ContainerStationSaveState()
             {
@@ -192,7 +190,7 @@ namespace Orts.Simulation.World
                             semaphoreSlim.Release();
                         }
                     }
-                });
+                }).ConfigureAwait(false);
             }
         }
 

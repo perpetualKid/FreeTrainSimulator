@@ -445,7 +445,7 @@ namespace Orts.Simulation.Timetables
 
         public override async ValueTask Restore([NotNull] TimetablePoolSaveState saveState)
         {
-            await base.Restore(saveState);
+            await base.Restore(saveState).ConfigureAwait(false);
             AdditionalTurntableDetails.AccessPaths = (await Task.WhenAll(saveState.AccessDetails.Select(async accessDetailState =>
             {
                 AccessPathDetails accessDetails = new AccessPathDetails();
