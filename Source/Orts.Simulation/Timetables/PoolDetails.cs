@@ -39,11 +39,11 @@ namespace Orts.Simulation.Timetables
 
     public class PoolDetails : ISaveStateApi<TimetablePoolDetailSaveState>
     {
-        public TrackCircuitPartialPathRoute StoragePath { get; private set; }    // path defined as storage location
+        public TrackCircuitPartialPathRoute StoragePath { get; set; }    // path defined as storage location
         public Traveller StoragePathTraveller { get; set; }              // traveller used to get path position and direction
         public Traveller StoragePathReverseTraveller { get; set; }       // traveller used if path must be reversed
         public string StorageName { get; set; }                          // storage name
-        public List<TrackCircuitPartialPathRoute> AccessPaths { get; private set; }    // access paths defined for storage location
+        public List<TrackCircuitPartialPathRoute> AccessPaths { get; set; }    // access paths defined for storage location
         public float StorageLength { get; set; }                         // available length
         public float StorageCorrection { get; set; }                     // length correction (e.g. due to switch overlap safety) - difference between length of sections in path and actual storage length
 
@@ -52,8 +52,8 @@ namespace Orts.Simulation.Timetables
         public float TableMiddleEntry { get; set; }                      // offset of middle of moving table when approaching table (for turntable and transfertable)
         public float TableMiddleExit { get; set; }                       // offset of middle of moving table when exiting table (for turntable and transfertable)
 
-        public List<int> StoredUnits { get; private set; }                       // stored no. of units
-        public List<int> ClaimUnits { get; private set; }                        // units which have claimed storage but not yet in pool
+        public List<int> StoredUnits { get; set; }                       // stored no. of units
+        public List<int> ClaimUnits { get; set; }                        // units which have claimed storage but not yet in pool
         public int? MaxStoredUnits { get; set; }                         // max. no of stored units for storage track
         public float RemainingLength { get; set; }          // remaining storage length
 
