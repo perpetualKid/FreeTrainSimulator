@@ -1364,4 +1364,30 @@ namespace Orts.Common
         TimetablePool,
         TimetableTurntablePool,
     }
+
+    public enum StationStopType
+    {
+        Station,
+        Siding,
+        Manual,
+        WaitingPoint,
+    }
+
+    public enum WaitInfoType
+    {
+        Wait,
+        Follow,
+        WaitAny,
+        Connect,
+        Invalid,
+    }
+
+    public enum PathCheckDirection
+    {
+        Both,
+        Same,
+        Opposite,
+    }
+
+
 }

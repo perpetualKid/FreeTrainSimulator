@@ -247,11 +247,11 @@ namespace Orts.Simulation.RollingStocks
                     break;
 
                 case CabViewControlType.Orts_Pantograph3:
-                    data = Pantographs.List.Count > 2 && Pantographs[3].CommandUp ? 1 : 0;
+                    data = Pantographs.Count > 2 && Pantographs[3].CommandUp ? 1 : 0;
                     break;
 
                 case CabViewControlType.Orts_Pantograph4:
-                    data = Pantographs.List.Count > 3 && Pantographs[4].CommandUp ? 1 : 0;
+                    data = Pantographs.Count > 3 && Pantographs[4].CommandUp ? 1 : 0;
                     break;
 
                 case CabViewControlType.Pantographs_4:
@@ -411,7 +411,7 @@ namespace Orts.Simulation.RollingStocks
         private protected override void UpdateCarStatus()
         {
             base.UpdateCarStatus();
-            carInfo["Pantographs"] = string.Join(' ', Pantographs.List.Select(p => p.State.GetLocalizedDescription()));
+            carInfo["Pantographs"] = string.Join(' ', Pantographs.Select(p => p.State.GetLocalizedDescription()));
             carInfo["BatterySwitch"] = LocomotivePowerSupply.BatterySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
             carInfo["MasterKey"]= LocomotivePowerSupply.MasterKey.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
             carInfo["CircuitBreaker"] = ElectricPowerSupply.CircuitBreaker.State.GetLocalizedDescription();

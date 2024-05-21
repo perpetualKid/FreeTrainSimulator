@@ -303,12 +303,6 @@ namespace Orts.Simulation.AIs
                 outf.Write(-1);
         }
 
-        // call base save method only
-        public void SaveBase(BinaryWriter outf)
-        {
-            base.Save(outf);
-        }
-
         //================================================================================================//
         /// <summary>
         /// Set starting conditions when speed > 0 

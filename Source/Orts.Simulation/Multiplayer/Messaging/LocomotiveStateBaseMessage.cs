@@ -30,7 +30,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             if (locomotive.Pantographs?.Count > 0)
             { 
                 Pantographs = new Collection<PantographState>();
-                foreach (Pantograph pantograph in locomotive.Pantographs.List)
+                foreach (Pantograph pantograph in locomotive.Pantographs)
                     Pantographs.Add(pantograph.State);
             }
         }

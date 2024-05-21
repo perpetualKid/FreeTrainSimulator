@@ -41,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // for pantos the sound trigger related to the raised panto must be reactivated, else SignalEvent() would raise also another panto
             {
                 int iPanto = 0;
-                foreach (Pantograph panto in electricLocomotive.Pantographs.List)
+                foreach (Pantograph panto in electricLocomotive.Pantographs)
                 {
                     if (panto.State == PantographState.Up)
                     {

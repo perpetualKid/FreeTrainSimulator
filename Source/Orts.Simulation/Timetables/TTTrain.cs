@@ -628,7 +628,7 @@ namespace Orts.Simulation.Timetables
         public override void Save(BinaryWriter outf)
         {
             outf.Write("TT");
-            SaveBase(outf);
+            base.Save(outf);
 
             outf.Write(uid);
             outf.Write(MaxDecelMpSS);
@@ -6480,7 +6480,7 @@ namespace Orts.Simulation.Timetables
                     foreach (string reqReferenceTrain in thisCommand.CommandValues)
                     {
                         WaitInfo newWaitItem = new WaitInfo();
-                        newWaitItem.WaitType = WaitInfo.WaitInfoType.Wait;
+                        newWaitItem.WaitType = WaitInfoType.Wait;
 
                         if (sectionIndex < 0)
                         {
@@ -6593,7 +6593,7 @@ namespace Orts.Simulation.Timetables
                     foreach (string reqReferenceTrain in thisCommand.CommandValues)
                     {
                         WaitInfo newWaitItem = new WaitInfo();
-                        newWaitItem.WaitType = WaitInfo.WaitInfoType.Follow;
+                        newWaitItem.WaitType = WaitInfoType.Follow;
 
                         if (sectionIndex < 0)
                         {
@@ -6704,7 +6704,7 @@ namespace Orts.Simulation.Timetables
                         foreach (string reqReferenceTrain in thisCommand.CommandValues)
                         {
                             WaitInfo newWaitItem = new WaitInfo();
-                            newWaitItem.WaitType = WaitInfo.WaitInfoType.Connect;
+                            newWaitItem.WaitType = WaitInfoType.Connect;
 
                             newWaitItem.startSectionIndex = sectionIndex;
                             newWaitItem.startSubrouteIndex = subrouteIndex;
@@ -6771,21 +6771,21 @@ namespace Orts.Simulation.Timetables
                     foreach (string reqReferencePath in thisCommand.CommandValues)
                     {
                         WaitInfo newWaitItem = new WaitInfo();
-                        newWaitItem.WaitType = WaitInfo.WaitInfoType.WaitAny;
+                        newWaitItem.WaitType = WaitInfoType.WaitAny;
                         newWaitItem.WaitActive = false;
 
-                        newWaitItem.PathDirection = WaitInfo.CheckPathDirection.Same;
+                        newWaitItem.PathDirection = PathCheckDirection.Same;
                         if (thisCommand.CommandQualifiers != null && thisCommand.CommandQualifiers.Count > 0)
                         {
                             TTTrainCommands.TTTrainComQualifiers thisQualifier = thisCommand.CommandQualifiers[0]; // takes only 1 qualifier
                             switch (thisQualifier.QualifierName)
                             {
                                 case "both":
-                                    newWaitItem.PathDirection = WaitInfo.CheckPathDirection.Both;
+                                    newWaitItem.PathDirection = PathCheckDirection.Both;
                                     break;
 
                                 case "opposite":
-                                    newWaitItem.PathDirection = WaitInfo.CheckPathDirection.Opposite;
+                                    newWaitItem.PathDirection = PathCheckDirection.Opposite;
                                     break;
 
                                 default:
@@ -7158,33 +7158,33 @@ namespace Orts.Simulation.Timetables
                     switch (reqWait.WaitType)
                     {
                         // WAIT command
-                        case WaitInfo.WaitInfoType.Wait:
+                        case WaitInfoType.Wait:
                             otherTrain = GetOtherTTTrainByName(reqWait.referencedTrainName);
                             if (otherTrain != null)
                             {
                                 ProcessWaitRequest(reqWait, otherTrain, true, true, true, ref newWaitItems);
                             }
-                            reqWait.WaitType = WaitInfo.WaitInfoType.Invalid; // set to invalid as item is processed
+                            reqWait.WaitType = WaitInfoType.Invalid; // set to invalid as item is processed
                             break;
 
                         // FOLLOW command
-                        case WaitInfo.WaitInfoType.Follow:
+                        case WaitInfoType.Follow:
                             otherTrain = GetOtherTTTrainByName(reqWait.referencedTrainName);
                             if (otherTrain != null)
                             {
                                 ProcessWaitRequest(reqWait, otherTrain, true, false, false, ref newWaitItems);
                             }
-                            reqWait.WaitType = WaitInfo.WaitInfoType.Invalid; // set to invalid as item is processed
+                            reqWait.WaitType = WaitInfoType.Invalid; // set to invalid as item is processed
                             break;
 
                         // CONNECT command
-                        case WaitInfo.WaitInfoType.Connect:
+                        case WaitInfoType.Connect:
                             otherTrain = GetOtherTTTrainByName(reqWait.referencedTrainName);
                             if (otherTrain != null)
                             {
                                 ProcessConnectRequest(reqWait, otherTrain, ref newWaitItems);
                             }
-                            reqWait.WaitType = WaitInfo.WaitInfoType.Invalid; // set to invalid as item is processed
+                            reqWait.WaitType = WaitInfoType.Invalid; // set to invalid as item is processed
                             break;
 
                         default:
@@ -7195,7 +7195,7 @@ namespace Orts.Simulation.Timetables
                 // remove processed and invalid items
                 for (int iWaitItem = WaitList.Count - 1; iWaitItem >= 0; iWaitItem--)
                 {
-                    if (WaitList[iWaitItem].WaitType == WaitInfo.WaitInfoType.Invalid)
+                    if (WaitList[iWaitItem].WaitType == WaitInfoType.Invalid)
                     {
                         WaitList.RemoveAt(iWaitItem);
                     }
@@ -7688,7 +7688,7 @@ namespace Orts.Simulation.Timetables
             WaitInfo firstWait = WaitList[processedWait];
 
             // if first wait is connect : no normal waits or follows to process
-            if (firstWait.WaitType == WaitInfo.WaitInfoType.Connect)
+            if (firstWait.WaitType == WaitInfoType.Connect)
             {
                 return (false);
             }
@@ -7697,8 +7697,8 @@ namespace Orts.Simulation.Timetables
             {
                 switch (firstWait.WaitType)
                 {
-                    case WaitInfo.WaitInfoType.Wait:
-                    case WaitInfo.WaitInfoType.Follow:
+                    case WaitInfoType.Wait:
+                    case WaitInfoType.Follow:
                         waitState = CheckForSingleTrainWait(firstWait);
                         break;
 
@@ -7965,7 +7965,7 @@ namespace Orts.Simulation.Timetables
         {
             bool pathClear = false;
 
-            if (reqWait.PathDirection == WaitInfo.CheckPathDirection.Same || reqWait.PathDirection == WaitInfo.CheckPathDirection.Both)
+            if (reqWait.PathDirection == PathCheckDirection.Same || reqWait.PathDirection == PathCheckDirection.Both)
             {
                 pathClear = CheckRouteWait(reqWait.CheckPath, true);
                 if (!pathClear)
@@ -7975,7 +7975,7 @@ namespace Orts.Simulation.Timetables
                 }
             }
 
-            if (reqWait.PathDirection == WaitInfo.CheckPathDirection.Opposite || reqWait.PathDirection == WaitInfo.CheckPathDirection.Both)
+            if (reqWait.PathDirection == PathCheckDirection.Opposite || reqWait.PathDirection == PathCheckDirection.Both)
             {
                 pathClear = CheckRouteWait(reqWait.CheckPath, false);
             }
@@ -11567,312 +11567,6 @@ namespace Orts.Simulation.Timetables
                     }
                 }
             }
-        }
-    }
-
-    //================================================================================================//
-    //================================================================================================//
-    /// <summary>
-    /// Class for waiting instructions
-    /// <\summary>
-
-    public class WaitInfo : IComparable<WaitInfo>
-    {
-        public enum WaitInfoType
-        {
-            Wait,
-            Follow,
-            WaitAny,
-            Connect,
-            Invalid,
-        }
-
-        public enum CheckPathDirection
-        {
-            Both,
-            Same,
-            Opposite,
-        }
-
-        // General info
-        public WaitInfoType WaitType;                         // type of wait instruction
-        public bool WaitActive;                               // wait state is active
-
-        // preprocessed info - info is removed after processing
-        public int startSectionIndex;                         // section from which command is valid (-1 if valid from start)
-        public int startSubrouteIndex;                        // subpath index from which command is valid
-        public string referencedTrainName;                    // referenced train name (for Wait, Follow or Connect)
-
-        // processed info
-        public int activeSectionIndex;                        // index of TrackCircuitSection where wait must be activated
-        public int activeSubrouteIndex;                       // subpath in which this wait is valid
-        public int activeRouteIndex;                          // index of section in active subpath
-
-        // common for Wait, Follow and Connect
-        public int waitTrainNumber;                           // number of train for which to wait
-        public int? maxDelayS;                         // max. delay for waiting (in seconds)
-        public int? ownDelayS;                         // min. own delay for waiting to be active (in seconds)
-        public bool? notStarted;                       // also wait if not yet started
-        public bool? atStart;                          // wait at start of wait section, otherwise wait at first not-common section
-        public int? waittrigger;                       // time at which wait is triggered
-        public int? waitendtrigger;                    // time at which wait is cancelled
-
-        // wait types Wait and Follow :
-        public int waitTrainSubpathIndex;                     // subpath index for train - set to -1 if wait is always active
-        public int waitTrainRouteIndex;                       // index of section in active subpath
-
-        // wait types Connect :
-        public int stationIndex;                              // index in this train station stop list
-        public int? holdTimeS;                                // required hold time (in seconds)
-
-        // wait types WaitInfo (no post-processing required) :
-        public TrackCircuitPartialPathRoute CheckPath;         // required path to check in case of WaitAny
-
-        public CheckPathDirection PathDirection = CheckPathDirection.Same; // required path direction
-
-        //================================================================================================//
-        /// <summary>
-        /// Empty constructor
-        /// </summary>
-        public WaitInfo()
-        {
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor for restore
-        /// </summary>
-        /// <param name="inf"></param>
-        public WaitInfo(BinaryReader inf)
-        {
-            WaitType = (WaitInfoType)inf.ReadInt32();
-            WaitActive = inf.ReadBoolean();
-
-            activeSubrouteIndex = inf.ReadInt32();
-            activeSectionIndex = inf.ReadInt32();
-            activeRouteIndex = inf.ReadInt32();
-
-            waitTrainNumber = inf.ReadInt32();
-            int mdelayValue = inf.ReadInt32();
-            if (mdelayValue < 0)
-            {
-                maxDelayS = null;
-            }
-            else
-            {
-                maxDelayS = mdelayValue;
-            }
-
-            int odelayValue = inf.ReadInt32();
-            if (odelayValue < 0)
-            {
-                ownDelayS = null;
-            }
-            else
-            {
-                ownDelayS = odelayValue;
-            }
-
-            int notStartedValue = inf.ReadInt32();
-            if (notStartedValue > 0)
-            {
-                notStarted = inf.ReadBoolean();
-            }
-            else
-            {
-                notStarted = null;
-            }
-
-            int atStartValue = inf.ReadInt32();
-            if (atStartValue > 0)
-            {
-                atStart = inf.ReadBoolean();
-            }
-            else
-            {
-                atStart = null;
-            }
-
-            int triggervalue = inf.ReadInt32();
-            if (triggervalue > 0)
-            {
-                waittrigger = triggervalue;
-            }
-            else
-            {
-                waittrigger = null;
-            }
-
-            int endtriggervalue = inf.ReadInt32();
-            if (endtriggervalue > 0)
-            {
-                waitendtrigger = endtriggervalue;
-            }
-            else
-            {
-                waitendtrigger = null;
-            }
-
-            waitTrainSubpathIndex = inf.ReadInt32();
-            waitTrainRouteIndex = inf.ReadInt32();
-
-            stationIndex = inf.ReadInt32();
-            int holdTimevalue = inf.ReadInt32();
-            if (holdTimevalue < 0)
-            {
-                holdTimeS = null;
-            }
-            else
-            {
-                holdTimeS = holdTimevalue;
-            }
-
-            int validCheckPath = inf.ReadInt32();
-
-            if (validCheckPath < 0)
-            {
-                CheckPath = null;
-                PathDirection = CheckPathDirection.Same;
-            }
-            else
-            {
-                CheckPath = new TrackCircuitPartialPathRoute(inf);
-                PathDirection = (CheckPathDirection)inf.ReadInt32();
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Save
-        /// </summary>
-        /// <param name="outf"></param>
-        public void Save(BinaryWriter outf)
-        {
-            outf.Write((int)WaitType);
-            outf.Write(WaitActive);
-
-            outf.Write(activeSubrouteIndex);
-            outf.Write(activeSectionIndex);
-            outf.Write(activeRouteIndex);
-
-            outf.Write(waitTrainNumber);
-
-            if (maxDelayS.HasValue)
-            {
-                outf.Write(maxDelayS.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (ownDelayS.HasValue)
-            {
-                outf.Write(ownDelayS.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (notStarted.HasValue)
-            {
-                outf.Write(1f);
-                outf.Write(notStarted.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (atStart.HasValue)
-            {
-                outf.Write(1f);
-                outf.Write(atStart.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (waittrigger.HasValue)
-            {
-                outf.Write(waittrigger.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (waitendtrigger.HasValue)
-            {
-                outf.Write(waitendtrigger.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            outf.Write(waitTrainSubpathIndex);
-            outf.Write(waitTrainRouteIndex);
-
-            outf.Write(stationIndex);
-
-            if (holdTimeS.HasValue)
-            {
-                outf.Write(holdTimeS.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (CheckPath == null)
-            {
-                outf.Write(-1);
-            }
-            else
-            {
-                outf.Write(1);
-                CheckPath.Save(outf);
-                outf.Write((int)PathDirection);
-            }
-        }
-
-        //================================================================================================//
-        //
-        // Compare To (to allow sort)
-        //
-
-        public int CompareTo(WaitInfo other)
-        {
-            // all connects are moved to the end of the queue
-            if (this.WaitType == WaitInfoType.Connect)
-            {
-                if (other.WaitType != WaitInfoType.Connect)
-                    return (1);
-                return (0);
-            }
-            if (other.WaitType == WaitInfoType.Connect)
-                return (-1);
-
-            if (this.activeSubrouteIndex < other.activeSubrouteIndex)
-                return (-1);
-            if (this.activeSubrouteIndex == other.activeSubrouteIndex && this.activeRouteIndex < other.activeRouteIndex)
-                return (-1);
-            if (this.activeSubrouteIndex == other.activeSubrouteIndex && this.activeRouteIndex == other.activeRouteIndex)
-                return (0);
-            return (1);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Create full copy
-        /// </summary>
-        /// <returns></returns>
-        public WaitInfo CreateCopy()
-        {
-            return ((WaitInfo)this.MemberwiseClone());
         }
     }
 

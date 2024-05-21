@@ -109,14 +109,6 @@ namespace Orts.Simulation
         Empty,
     }
 
-    public enum StationStopType
-    {
-        Station,
-        Siding,
-        Manual,
-        WaitingPoint,
-    }
-
     public enum AuxWagonType
     {
         //keep in sync with WagonType enum to allow mapping for Engine and Tender 

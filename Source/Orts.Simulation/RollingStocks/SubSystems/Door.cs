@@ -16,22 +16,24 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.IO;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
-    public class Doors : ISubSystem<Doors>
+    public class Doors : EnumArray<Door, DoorSide>, ISubSystem<Doors>
     {
-        public Door RightDoor { get; }
-        public Door LeftDoor { get; }
-
         public Doors(MSTSWagon wagon)
         {
-            LeftDoor = new Door(wagon, DoorSide.Left);
-            RightDoor = new Door(wagon, DoorSide.Right);
+            this[DoorSide.Left] = new Door(wagon, DoorSide.Left);
+            this[DoorSide.Right] = new Door(wagon, DoorSide.Right);
         }
 
         public virtual void Parse(string lowercasetoken, STFReader stf)
@@ -41,15 +43,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 case "wagon(ortsdoors(closingdelay":
                     {
                         float delayS = stf.ReadFloatBlock(STFReader.Units.Time, 0f);
-                        LeftDoor.ClosingDelayS = delayS;
-                        RightDoor.ClosingDelayS = delayS;
+                        this[DoorSide.Left].ClosingDelayS = delayS;
+                        this[DoorSide.Right].ClosingDelayS = delayS;
                         break;
                     }
                 case "wagon(ortsdoors(openingdelay":
                     {
                         float delayS = stf.ReadFloatBlock(STFReader.Units.Time, 0f);
-                        LeftDoor.OpeningDelayS = delayS;
-                        RightDoor.OpeningDelayS = delayS;
+                        this[DoorSide.Left].OpeningDelayS = delayS;
+                        this[DoorSide.Right].OpeningDelayS = delayS;
                         break;
                     }
             }
@@ -59,14 +61,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             ArgumentNullException.ThrowIfNull(source);
 
-            LeftDoor.Copy(source.LeftDoor);
-            RightDoor.Copy(source.RightDoor);
+            this[DoorSide.Left].Copy(source[DoorSide.Left]);
+            this[DoorSide.Right].Copy(source[DoorSide.Right]);
         }
 
         public virtual void Initialize()
         {
-            LeftDoor.Initialize();
-            RightDoor.Initialize();
+            this[DoorSide.Left].Initialize();
+            this[DoorSide.Right].Initialize();
         }
 
         /// <summary>
@@ -78,20 +80,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public virtual void Save(BinaryWriter outf)
         {
-            LeftDoor.Save(outf);
-            RightDoor.Save(outf);
+            this[DoorSide.Left].Save(outf);
+            this[DoorSide.Right].Save(outf);
         }
 
         public virtual void Restore(BinaryReader inf)
         {
-            LeftDoor.Restore(inf);
-            RightDoor.Restore(inf);
+            this[DoorSide.Left].Restore(inf);
+            this[DoorSide.Right].Restore(inf);
         }
 
         public virtual void Update(double elapsedClockSeconds)
         {
-            LeftDoor.Update(elapsedClockSeconds);
-            RightDoor.Update(elapsedClockSeconds);
+            this[DoorSide.Left].Update(elapsedClockSeconds);
+            this[DoorSide.Right].Update(elapsedClockSeconds);
         }
 
         public static DoorSide FlippedDoorSide(DoorSide trainSide)
@@ -105,7 +107,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         }
     }
 
-    public class Door : ISubSystem<Door>
+    public class Door : ISubSystem<Door>, ISaveStateApi<DoorSaveState>
     {
 
         // Parameters
@@ -233,6 +235,23 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 Simulator.Instance.Confirmer?.Confirm(control, setting);
             }
+        }
+
+        public ValueTask<DoorSaveState> Snapshot()
+        {
+            return ValueTask.FromResult(new DoorSaveState()
+            {
+                DoorState = State,
+                Locked = Locked,
+            });
+        }
+
+        public ValueTask Restore(DoorSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+            Locked = saveState.Locked;
+            State = saveState.DoorState;
+            return ValueTask.CompletedTask;
         }
     }
 }

@@ -1,9 +1,14 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
+
+using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks
 {
-    public class Coupler
+    public class Coupler : ISaveStateApi<CouplerSaveState>
     {
         public bool Rigid { get; internal set; }
         public float R0X { get; internal set; }
@@ -247,6 +252,40 @@ namespace Orts.Simulation.RollingStocks
             CouplerSlackBM = inf.ReadSingle();
             Break1N = inf.ReadSingle();
             Break2N = inf.ReadSingle();
+        }
+
+        public ValueTask<CouplerSaveState> Snapshot()
+        {
+            return ValueTask.FromResult(new CouplerSaveState()
+            {
+                Rigid = Rigid,
+                R0X = R0X,
+                R0Y = R0Y,
+                R0Delta = R0Diff,
+                Stiffness1 = Stiffness1NpM,
+                Stiffness2 = Stiffness2NpM,
+                CouplerSlackA = CouplerSlackAM,
+                CouplerSlackB = CouplerSlackBM,
+                Break1 = Break1N,
+                Break2 = Break2N,
+            });
+        }
+
+        public ValueTask Restore(CouplerSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            Rigid = saveState.Rigid;
+            R0X= saveState.R0X;
+            R0Y= saveState.R0Y;
+            R0Diff = saveState.R0Delta;
+            Stiffness1NpM = saveState.Stiffness1;
+            Stiffness2NpM = saveState.Stiffness2;
+            CouplerSlackAM = saveState.CouplerSlackA;
+            CouplerSlackBM = saveState.CouplerSlackB;
+            Break1N = saveState.Break1;
+            Break2N = saveState.Break2;
+            return ValueTask.CompletedTask;
         }
     }
 }

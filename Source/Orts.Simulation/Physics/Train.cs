@@ -11595,15 +11595,8 @@ namespace Orts.Simulation.Physics
             foreach (TrainCar car in Cars)
             {
                 var mstsWagon = car as MSTSWagon;
-                var carSide = car.Flipped ? Doors.FlippedDoorSide(side) : side;
-                if (carSide != DoorSide.Left)
-                {
-                    mstsWagon.RightDoor.SetDoor(open);
-                }
-                if (carSide != DoorSide.Right)
-                {
-                    mstsWagon.LeftDoor.SetDoor(open);
-                }
+                DoorSide carSide = car.Flipped ? Doors.FlippedDoorSide(side) : side;
+                mstsWagon.Doors[carSide].SetDoor(open);
             }
             if (simulator.PlayerLocomotive?.Train == this)
             {
@@ -11627,15 +11620,8 @@ namespace Orts.Simulation.Physics
             foreach (TrainCar car in Cars)
             {
                 var mstsWagon = car as MSTSWagon;
-                var carSide = car.Flipped ? Doors.FlippedDoorSide(side) : side;
-                if (carSide != DoorSide.Left)
-                {
-                    mstsWagon.RightDoor.SetDoorLock(lck);
-                }
-                if (carSide != DoorSide.Right)
-                {
-                    mstsWagon.LeftDoor.SetDoorLock(lck);
-                }
+                DoorSide carSide = car.Flipped ? Doors.FlippedDoorSide(side) : side;
+                mstsWagon.Doors[carSide].SetDoorLock(lck);
             }
         }
 
@@ -11651,12 +11637,12 @@ namespace Orts.Simulation.Physics
                 switch (carSide)
                 {
                     case DoorSide.Left:
-                        return wagon.Doors.LeftDoor.State;
+                        return wagon.Doors[DoorSide.Right].State;
                     case DoorSide.Right:
-                        return wagon.Doors.RightDoor.State;
+                        return wagon.Doors[DoorSide.Right].State;
                     default:
-                        var left = wagon.Doors.LeftDoor.State;
-                        var right = wagon.Doors.RightDoor.State;
+                        var left = wagon.Doors[DoorSide.Left].State;
+                        var right = wagon.Doors[DoorSide.Right].State;
                         return left < right ? right : left;
                 }
             }).Max();

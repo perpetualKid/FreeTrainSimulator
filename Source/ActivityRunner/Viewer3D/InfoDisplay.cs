@@ -282,9 +282,9 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             dataLog.Data(electricLoco.Pantographs[1].CommandUp.ToString());
                             dataLog.Data(electricLoco.Pantographs[2].CommandUp.ToString());
-                            dataLog.Data(electricLoco.Pantographs.List.Count > 2 ?
+                            dataLog.Data(electricLoco.Pantographs.Count > 2 ?
                                 electricLoco.Pantographs[3].CommandUp.ToString() : null);
-                            dataLog.Data(electricLoco.Pantographs.List.Count > 3 ?
+                            dataLog.Data(electricLoco.Pantographs.Count > 3 ?
                                 electricLoco.Pantographs[4].CommandUp.ToString() : null);
                             dataLog.Data("null");
                             dataLog.Data("null");

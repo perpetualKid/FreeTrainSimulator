@@ -1,12 +1,20 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
+
+using Microsoft.VisualBasic;
 
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
+using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Timetables;
@@ -21,7 +29,7 @@ namespace Orts.Simulation.Signalling
 
 #pragma warning disable CA1036 // Override methods on comparable types
 #pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
-    public class StationStop : IComparable<StationStop>
+    public class StationStop : IComparable<StationStop>, ISaveStateApi<StationStopSaveState>
 #pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
 #pragma warning restore CA1036 // Override methods on comparable types
     {
@@ -237,6 +245,58 @@ namespace Orts.Simulation.Signalling
             return obj is StationStop stop && CompareTo(stop) == 0;
         }
 
+        public async ValueTask<StationStopSaveState> Snapshot()
+        {
+            ConcurrentDictionary<int, WaitInfoSaveState> waitInfos = null;
+            if (ConnectionDetails != null)
+            {
+                waitInfos = new ConcurrentDictionary<int, WaitInfoSaveState>();
+                await Parallel.ForEachAsync(ConnectionDetails, async (connectionDetail, cancellationToken) =>
+                {
+                    waitInfos.TryAdd(connectionDetail.Key, await connectionDetail.Value.Snapshot().ConfigureAwait(false));
+                }).ConfigureAwait(false);
+            }
+
+            return new StationStopSaveState()
+            {
+                StationStopType = StopType,
+                PlatformReference = PlatformReference,
+                RouteIndex = RouteIndex,
+                SubrouteIndex = SubrouteIndex,
+                TrackCircuitSectionIndex = TrackCircuitSectionIndex,
+                TrackDirection = Direction,
+                ExitSignal = ExitSignal,
+                HoldSignal = HoldSignal,
+                NoWaitSignal = NoWaitSignal,
+                NoClaimAllowed = NoClaimAllowed,
+                CallOnAllowed = CallOnAllowed,
+                StopOffset = StopOffset,
+                ArrivalTime = ArrivalTime,
+                DepartureTime = DepartTime,
+                ActualArrival = ActualArrival,
+                ActualDeparture = ActualDepart,
+                StationStopPassed = Passed,
+                ConnectionsWaiting = ConnectionsWaiting == null ? null : new Collection<int>(ConnectionsWaiting),
+                ConnectionsAwaited = ConnectionsAwaited == null ? null : new Dictionary<int, int>(ConnectionsAwaited),
+                ConnnectionDetails = waitInfos?.ToDictionary(),
+                ActualMinStopTime = ActualMinStopTime,
+                KeepClearFront = KeepClearFront,
+                KeepClearRear = KeepClearRear,
+                TerminalStop = Terminal,
+                ForcePosition = ForcePosition,
+                CloseupSignal = CloseupSignal,
+                Closeup = Closeup,
+                RestrictPlatformToSignal = RestrictPlatformToSignal,
+                ExtendPlatformToSignal = ExtendPlatformToSignal,
+                EndStop = EndStop,
+            };
+        }
+
+        public ValueTask Restore(StationStopSaveState saveState)
+        {
+            throw new NotImplementedException();
+        }
+
         // Save
         public void Save(BinaryWriter outf)
         {
@@ -379,8 +439,10 @@ namespace Orts.Simulation.Signalling
             if (ActualDepart != correctedTime)
             {
                 stopTime += ActualDepart - correctedTime;
-                if (stopTime > 24 * 3600) stopTime -= 24 * 3600;
-                else if (stopTime < 0) stopTime += 24 * 3600;
+                if (stopTime > 24 * 3600)
+                    stopTime -= 24 * 3600;
+                else if (stopTime < 0)
+                    stopTime += 24 * 3600;
 
             }
             return stopTime;
@@ -399,19 +461,19 @@ namespace Orts.Simulation.Signalling
         {
             int passengerCarsWithinPlatform = train.PassengerCarsNumber;
             int stopTime = DefaultFreightStopTime;
-            if (passengerCarsWithinPlatform == 0) 
+            if (passengerCarsWithinPlatform == 0)
                 return stopTime; // pure freight train
             float distancePlatformHeadtoTrainHead = -train.StationStops[0].StopOffset + PlatformItem.TrackCircuitOffset[SignalLocation.FarEnd, train.StationStops[0].Direction] + train.StationStops[0].DistanceToTrainM;
             float trainPartOutsidePlatformForward = distancePlatformHeadtoTrainHead < 0 ? -distancePlatformHeadtoTrainHead : 0;
-            if (trainPartOutsidePlatformForward >= train.Length) 
+            if (trainPartOutsidePlatformForward >= train.Length)
                 return PlatformItem.MinWaitingTime; // train actually passed platform; should not happen
             float distancePlatformTailtoTrainTail = distancePlatformHeadtoTrainHead - PlatformItem.Length + train.Length;
             float trainPartOutsidePlatformBackward = distancePlatformTailtoTrainTail > 0 ? distancePlatformTailtoTrainTail : 0;
-            if (trainPartOutsidePlatformBackward >= train.Length) 
+            if (trainPartOutsidePlatformBackward >= train.Length)
                 return PlatformItem.MinWaitingTime; // train actually stopped before platform; should not happen
             if (train == Simulator.Instance.OriginalPlayerTrain)
             {
-                if (trainPartOutsidePlatformForward == 0 && trainPartOutsidePlatformBackward == 0) 
+                if (trainPartOutsidePlatformForward == 0 && trainPartOutsidePlatformBackward == 0)
                     passengerCarsWithinPlatform = train.PassengerCarsNumber;
                 else
                 {
@@ -425,7 +487,7 @@ namespace Orts.Simulation.Signalling
                             if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && train.Cars[trainCarIndex] is not MSTSLocomotive) ||
                                (train.Cars[trainCarIndex] is MSTSLocomotive && train.Cars[trainCarIndex].PassengerCapacity > 0))
                             {
-                                if ((trainPartOutsidePlatformForward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM) 
+                                if ((trainPartOutsidePlatformForward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM)
                                     passengerCarsWithinPlatform--;
                             }
                             walkingDistance = walkingDistanceBehind;
@@ -442,7 +504,7 @@ namespace Orts.Simulation.Signalling
                             if ((train.Cars[trainCarIndex].WagonType != WagonType.Freight && train.Cars[trainCarIndex].WagonType != WagonType.Tender && train.Cars[trainCarIndex] is not MSTSLocomotive) ||
                                (train.Cars[trainCarIndex] is MSTSLocomotive && train.Cars[trainCarIndex].PassengerCapacity > 0))
                             {
-                                if ((trainPartOutsidePlatformBackward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM) 
+                                if ((trainPartOutsidePlatformBackward - walkingDistance) > 0.67 * train.Cars[trainCarIndex].CarLengthM)
                                     passengerCarsWithinPlatform--;
                             }
                             walkingDistance = walkingDistanceBehind;
@@ -464,7 +526,7 @@ namespace Orts.Simulation.Signalling
                     actualNumPassengersWaiting = RandomizePassengersWaiting(PlatformItem.NumPassengersWaiting);
                 stopTime = Math.Max(NumSecPerPass * actualNumPassengersWaiting / passengerCarsWithinPlatform, DefaultFreightStopTime);
             }
-            else 
+            else
                 stopTime = 0; // no passenger car stopped within platform: sorry, no countdown starts
 
             return stopTime;
@@ -519,6 +581,5 @@ namespace Orts.Simulation.Signalling
             if (null == ConnectionDetails)
                 ConnectionDetails = new Dictionary<int, WaitInfo>();
         }
-
     }
 }

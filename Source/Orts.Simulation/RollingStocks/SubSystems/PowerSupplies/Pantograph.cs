@@ -16,22 +16,26 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
-    public class Pantographs : ISubSystem<Pantographs>
+    public class Pantographs : ISubSystem<Pantographs>, IList<Pantograph>, ICollectionSaveStateApi<PantographSaveState, Pantograph>
     {
         public static readonly int MinPantoID = 1; // minimum value of PantoID, applies to Pantograph 1
         public static readonly int MaxPantoID = 4; // maximum value of PantoID, applies to Pantograph 4
         private readonly MSTSWagon Wagon;
 
-        public List<Pantograph> List = new List<Pantograph>();
+        private readonly List<Pantograph> pantographs = new List<Pantograph>();
 
         public Pantographs(MSTSWagon wagon)
         {
@@ -43,7 +47,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             switch (lowercasetoken)
             {
                 case "wagon(ortspantographs":
-                    List.Clear();
+                    pantographs.Clear();
 
                     stf.MustMatch("(");
                     stf.ParseBlock(
@@ -51,14 +55,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                             new STFReader.TokenProcessor(
                                 "pantograph",
                                 () => {
-                                    List.Add(new Pantograph(Wagon));
-                                    List.Last().Parse(stf);
+                                    pantographs.Add(new Pantograph(Wagon));
+                                    pantographs[^1].Parse(stf);
                                 }
                             )
                         }
                     );
 
-                    if (List.Count == 0)
+                    if (pantographs.Count == 0)
                         throw new InvalidDataException("ORTSPantographs block with no pantographs");
 
                     break;
@@ -67,35 +71,35 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void Copy(Pantographs source)
         {
-            List.Clear();
+            pantographs.Clear();
 
-            foreach (Pantograph pantograph in source.List)
+            foreach (Pantograph pantograph in source)
             {
-                List.Add(new Pantograph(Wagon));
-                List.Last().Copy(pantograph);
+                pantographs.Add(new Pantograph(Wagon));
+                pantographs[^1].Copy(pantograph);
             }
         }
 
         public void Restore(BinaryReader inf)
         {
-            List.Clear();
+            pantographs.Clear();
 
             int n = inf.ReadInt32();
             for (int i = 0; i < n; i++)
             {
-                List.Add(new Pantograph(Wagon));
-                List.Last().Restore(inf);
+                pantographs.Add(new Pantograph(Wagon));
+                pantographs[^1].Restore(inf);
             }
         }
 
         public void Initialize()
         {
-            while (List.Count < 2)
+            while (pantographs.Count < 2)
             {
                 Add(new Pantograph(Wagon));
             }
 
-            foreach (Pantograph pantograph in List)
+            foreach (Pantograph pantograph in this)
             {
                 pantograph.Initialize();
             }
@@ -103,7 +107,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void InitializeMoving()
         {
-            foreach (Pantograph pantograph in List)
+            foreach (Pantograph pantograph in this)
             {
                 if (pantograph != null)
                 {
@@ -116,7 +120,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void Update(double elapsedClockSeconds)
         {
-            foreach (Pantograph pantograph in List)
+            foreach (Pantograph pantograph in this)
             {
                 pantograph.Update(elapsedClockSeconds);
             }
@@ -124,7 +128,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void HandleEvent(PowerSupplyEvent evt)
         {
-            foreach (Pantograph pantograph in List)
+            foreach (Pantograph pantograph in this)
             {
                 pantograph.HandleEvent(evt);
             }
@@ -132,16 +136,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void HandleEvent(PowerSupplyEvent evt, int id)
         {
-            if (id <= List.Count)
+            if (id <= Count)
             {
-                List[id - 1].HandleEvent(evt);
+                this[id - 1].HandleEvent(evt);
             }
         }
 
         public void Save(BinaryWriter outf)
         {
-            outf.Write(List.Count);
-            foreach (Pantograph pantograph in List)
+            outf.Write(Count);
+            foreach (Pantograph pantograph in this)
             {
                 pantograph.Save(outf);
             }
@@ -151,19 +155,67 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void Add(Pantograph pantograph)
         {
-            List.Add(pantograph);
+            pantographs.Add(pantograph);
         }
 
-        public int Count { get { return List.Count; } }
+        public int IndexOf(Pantograph item) => pantographs.IndexOf(item);
+
+        public void Insert(int index, Pantograph item)
+        {
+            pantographs.Insert(index, item);
+        }
+
+        public void RemoveAt(int index)
+        {
+            pantographs.RemoveAt(index);
+        }
+
+        public void Clear()
+        {
+            pantographs.Clear();
+        }
+
+        public bool Contains(Pantograph item)
+        {
+            return pantographs.Contains(item);
+        }
+
+        public void CopyTo(Pantograph[] array, int arrayIndex)
+        {
+            pantographs.CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(Pantograph item)
+        {
+            return pantographs.Remove(item);
+        }
+
+        public IEnumerator<Pantograph> GetEnumerator()
+        {
+            return pantographs.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return (pantographs as IEnumerable).GetEnumerator();
+        }
+
+        void ICollectionSaveStateApi<PantographSaveState, Pantograph>.InitializeSaveStateSource(Pantograph target)
+        {
+            target.Initialize(this.Wagon);
+        }
+
+        public int Count { get { return pantographs.Count; } }
 
         public Pantograph this[int i]
         {
             get
             {
-                if (i <= 0 || i > List.Count)
-                    return null;
-                else
-                    return List[i - 1];
+                return i <= 0 || i > pantographs.Count ? null : pantographs[i - 1];
+            }
+            set
+            {
+                pantographs[i] = value;
             }
         }
 
@@ -175,7 +227,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 PantographState state = PantographState.Down;
 
-                foreach (Pantograph pantograph in List)
+                foreach (Pantograph pantograph in this)
                 {
                     if (pantograph.State > state)
                         state = pantograph.State;
@@ -184,6 +236,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 return state;
             }
         }
+
+        public bool IsReadOnly => false;
     }
 
     public static class PantographStateExtension
@@ -198,31 +252,34 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         }
     }
 
-    public class Pantograph : ISubSystem<Pantograph>
+    public class Pantograph : ISubSystem<Pantograph>, ISaveStateApi<PantographSaveState>
     {
-        private readonly MSTSWagon Wagon;
-        protected static readonly Simulator Simulator = Simulator.Instance;
+        private MSTSWagon wagon;
+        private static readonly Simulator simulator = Simulator.Instance;
+
+        private double delay;
+        private double time;
 
         public PantographState State { get; private set; }
-        public float DelayS { get; private set; }
-        public float TimeS { get; private set; }
         public bool CommandUp => State.CommandUp();
 
-        public int Id
-        {
-            get
-            {
-                return Wagon.Pantographs.List.IndexOf(this) + 1;
-            }
+        public int Id => wagon.Pantographs.IndexOf(this) + 1;
+
+        public Pantograph()
+        { }
+
+        internal void Initialize(MSTSWagon wagon)
+        { 
+            this.wagon = wagon;
         }
 
         public Pantograph(MSTSWagon wagon)
         {
-            Wagon = wagon;
+            this.wagon = wagon;
 
             State = PantographState.Down;
-            DelayS = 0f;
-            TimeS = 0f;
+            delay = 0f;
+            time = 0f;
         }
 
         public void Parse(STFReader stf)
@@ -233,7 +290,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     new STFReader.TokenProcessor(
                         "delay",
                         () => {
-                            DelayS = stf.ReadFloatBlock(STFReader.Units.Time, null);
+                            delay = stf.ReadFloatBlock(STFReader.Units.Time, null);
                         }
                     )
                 }
@@ -243,15 +300,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public void Copy(Pantograph source)
         {
             State = source.State;
-            DelayS = source.DelayS;
-            TimeS = source.TimeS;
+            delay = source.delay;
+            time = source.time;
         }
 
         public void Restore(BinaryReader inf)
         {
-            State = (PantographState) Enum.Parse(typeof(PantographState), inf.ReadString());
-            DelayS = inf.ReadSingle();
-            TimeS = inf.ReadSingle();
+            State = (PantographState)Enum.Parse(typeof(PantographState), inf.ReadString());
+            delay = inf.ReadSingle();
+            time = inf.ReadSingle();
         }
 
         public void InitializeMoving()
@@ -269,21 +326,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             switch (State)
             {
                 case PantographState.Lowering:
-                    TimeS -= (float)elapsedClockSeconds;
+                    time -= (float)elapsedClockSeconds;
 
-                    if (TimeS <= 0f)
+                    if (time <= 0f)
                     {
-                        TimeS = 0f;
+                        time = 0f;
                         State = PantographState.Down;
                     }
                     break;
 
                 case PantographState.Raising:
-                    TimeS += (float)elapsedClockSeconds;
+                    time += (float)elapsedClockSeconds;
 
-                    if (TimeS >= DelayS)
+                    if (time >= delay)
                     {
-                        TimeS = DelayS;
+                        time = delay;
                         State = PantographState.Up;
                     }
                     break;
@@ -357,8 +414,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                                 break;
                         }
 
-                        if (!Simulator.Route.Electrified)
-                            Simulator.Confirmer.Information(Simulator.Catalog.GetString("Pantograph raised even though this route is not electrified"));
+                        if (!simulator.Route.Electrified)
+                            simulator.Confirmer.Information(Simulator.Catalog.GetString("Pantograph raised even though this route is not electrified"));
                     }
                     break;
             }
@@ -367,16 +424,35 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public void Save(BinaryWriter outf)
         {
             outf.Write(State.ToString());
-            outf.Write(DelayS);
-            outf.Write(TimeS);
+            outf.Write(delay);
+            outf.Write(time);
         }
 
         protected void Confirm(CabControl control, CabSetting setting)
         {
-            if (Wagon == Simulator.PlayerLocomotive)
+            if (wagon == simulator.PlayerLocomotive)
             {
-                Simulator.Confirmer?.Confirm(control, setting);
+                simulator.Confirmer?.Confirm(control, setting);
             }
+        }
+
+        public ValueTask<PantographSaveState> Snapshot()
+        {
+            return ValueTask.FromResult(new PantographSaveState()
+            {
+                PantographState = State,
+                Delay = delay,
+                Time = time,
+            });
+        }
+
+        public ValueTask Restore(PantographSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+            State = saveState.PantographState;
+            delay = saveState.Delay;
+            time = saveState.Time;
+            return ValueTask.CompletedTask;
         }
     }
 }

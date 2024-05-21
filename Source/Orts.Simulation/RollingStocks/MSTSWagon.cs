@@ -37,11 +37,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
@@ -50,6 +53,7 @@ using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
@@ -80,15 +84,13 @@ namespace Orts.Simulation.RollingStocks
         }
     }
 
-    public class MSTSWagon : TrainCar
+    public class MSTSWagon : TrainCar, ISaveStateApi<TrainCarSaveState>
     {
         private int initWagonNumAxles; // Initial read of number of axles on a wagon
 
-        public Pantographs Pantographs;
+        public Pantographs Pantographs { get; }
         public ScriptedPassengerCarPowerSupply PassengerCarPowerSupply => PowerSupply as ScriptedPassengerCarPowerSupply;
-        public Doors Doors { get; }        
-        public Door RightDoor => Doors.RightDoor;
-        public Door LeftDoor => Doors.LeftDoor;
+        public Doors Doors { get; }
         public bool MirrorOpen;
         public bool UnloadingPartsOpen;
         public bool WaitForAnimationReady; // delay counter to start loading/unliading is on;
@@ -1706,6 +1708,20 @@ namespace Orts.Simulation.RollingStocks
             stf.ParseBlock(new[] {
                 new STFReader.TokenProcessor("ortsalternatepassengerviewpoint", ()=>{ ParseWagonInside(stf); }),
             });
+        }
+
+        public async ValueTask<TrainCarSaveState> Snapshot()
+        {
+            return new TrainCarSaveState()
+            {
+                PantographSaveState = new Collection<PantographSaveState>(await (Pantographs as ICollectionSaveStateApi<PantographSaveState, Pantograph>).SnapshotCollection(Pantographs).ConfigureAwait(false)),
+                DoorStates = await Task.WhenAll(Doors.Select(async door => await door.Snapshot().ConfigureAwait(false))),
+            };
+        }
+
+        public ValueTask Restore(TrainCarSaveState saveState)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -3395,28 +3411,16 @@ namespace Orts.Simulation.RollingStocks
                     SignalEvent(PowerSupplyEvent.LowerPantograph, 4);
                     break;
                 case TrainEvent.DoorOpenLeft:
-                    if (Flipped)
-                        RightDoor.SetDoor(true);
-                    else
-                        LeftDoor.SetDoor(true);
+                    Doors[Flipped ? DoorSide.Right : DoorSide.Left].SetDoor(true);
                     break;
                 case TrainEvent.DoorOpenRight:
-                    if (Flipped)
-                        LeftDoor.SetDoor(true);
-                    else
-                        RightDoor.SetDoor(true);
+                    Doors[Flipped ? DoorSide.Left : DoorSide.Right].SetDoor(true);
                     break;
                 case TrainEvent.DoorCloseLeft:
-                    if (Flipped)
-                        RightDoor.SetDoor(false);
-                    else
-                        LeftDoor.SetDoor(false);
+                    Doors[Flipped ? DoorSide.Right : DoorSide.Left].SetDoor(false);
                     break;
                 case TrainEvent.DoorCloseRight:
-                    if (Flipped)
-                        LeftDoor.SetDoor(false);
-                    else
-                        RightDoor.SetDoor(false);
+                    Doors[Flipped ? DoorSide.Left : DoorSide.Right].SetDoor(false);
                     break;
             }
 

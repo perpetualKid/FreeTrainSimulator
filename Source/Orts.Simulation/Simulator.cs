@@ -1542,10 +1542,7 @@ namespace Orts.Simulation
                     train.TrainType != TrainType.AiIncorporated && train.GetType() != typeof(TTTrain))
                 {
                     outf.Write(0);
-                    if (train is AITrain aiTrain && train.TrainType == TrainType.Static)
-                        aiTrain.SaveBase(outf);
-                    else
-                        train.Save(outf);
+                    train.Save(outf);
                 }
                 else if (train.TrainType == TrainType.AiPlayerDriven || train.TrainType == TrainType.AiPlayerHosting)
                 {

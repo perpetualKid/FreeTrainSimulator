@@ -400,12 +400,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             Pantograph1.SetState(MSTSWagon.Pantographs[1].CommandUp);
             Pantograph2.SetState(MSTSWagon.Pantographs[2].CommandUp);
-            if (MSTSWagon.Pantographs.List.Count > 2)
+            if (MSTSWagon.Pantographs.Count > 2)
                 Pantograph3.SetState(MSTSWagon.Pantographs[3].CommandUp);
-            if (MSTSWagon.Pantographs.List.Count > 3)
+            if (MSTSWagon.Pantographs.Count > 3)
                 Pantograph4.SetState(MSTSWagon.Pantographs[4].CommandUp);
-            LeftDoor.SetState(MSTSWagon.LeftDoor.State >= DoorState.Opening);
-            RightDoor.SetState(MSTSWagon.RightDoor.State >= DoorState.Opening);
+            LeftDoor.SetState(MSTSWagon.Doors[DoorSide.Left].State >= DoorState.Opening);
+            RightDoor.SetState(MSTSWagon.Doors[DoorSide.Right].State >= DoorState.Opening);
             Mirrors.SetState(MSTSWagon.MirrorOpen);
             Item1TwoState.SetState(MSTSWagon.GenericItem1);
             Item2TwoState.SetState(MSTSWagon.GenericItem2);
@@ -592,13 +592,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public override void RegisterUserCommandHandling()
         {
-            if (MSTSWagon.Pantographs.List.Count > 0)
+            if (MSTSWagon.Pantographs.Count > 0)
                 Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph1, KeyEventType.KeyPressed, Pantograph1Command, true);
-            if (MSTSWagon.Pantographs.List.Count > 1)
+            if (MSTSWagon.Pantographs.Count > 1)
                 Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, KeyEventType.KeyPressed, Pantograph2Command, true);
-            if (MSTSWagon.Pantographs.List.Count > 2)
+            if (MSTSWagon.Pantographs.Count > 2)
                 Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, KeyEventType.KeyPressed, Pantograph3Command, true);
-            if (MSTSWagon.Pantographs.List.Count > 3)
+            if (MSTSWagon.Pantographs.Count > 3)
                 Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyPressed, Pantograph4Command, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlDoorLeft, KeyEventType.KeyPressed, ToggleDoorsLeftCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlDoorRight, KeyEventType.KeyPressed, ToggleDoorsRightCommand, true);
@@ -665,12 +665,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             Pantograph1.UpdateState(MSTSWagon.Pantographs[1].CommandUp, elapsedTime);
             Pantograph2.UpdateState(MSTSWagon.Pantographs[2].CommandUp, elapsedTime);
-            if (MSTSWagon.Pantographs.List.Count > 2)
+            if (MSTSWagon.Pantographs.Count > 2)
                 Pantograph3.UpdateState(MSTSWagon.Pantographs[3].CommandUp, elapsedTime);
-            if (MSTSWagon.Pantographs.List.Count > 3)
+            if (MSTSWagon.Pantographs.Count > 3)
                 Pantograph4.UpdateState(MSTSWagon.Pantographs[4].CommandUp, elapsedTime);
-            LeftDoor.UpdateState(MSTSWagon.LeftDoor.State >= DoorState.Opening, elapsedTime);
-            RightDoor.UpdateState(MSTSWagon.RightDoor.State >= DoorState.Opening, elapsedTime);
+            LeftDoor.UpdateState(MSTSWagon.Doors[DoorSide.Left].State >= DoorState.Opening, elapsedTime);
+            RightDoor.UpdateState(MSTSWagon.Doors[DoorSide.Right].State >= DoorState.Opening, elapsedTime);
             Mirrors.UpdateState(MSTSWagon.MirrorOpen, elapsedTime);
             UnloadingParts.UpdateState(MSTSWagon.UnloadingPartsOpen, elapsedTime);
             Item1TwoState.UpdateState(MSTSWagon.GenericItem1, elapsedTime);

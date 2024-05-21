@@ -1018,10 +1018,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
     public class FreightAnimationStatic : FreightAnimation
     {
-        public enum Type
-        {
-            DEFAULT
-        }
         // index of visibility flag vector
         public enum VisibleFrom
         {
@@ -1029,7 +1025,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             Cab2D,
             Cab3D
         }
-        public Type SubType;
         public float FreightWeight;
         public bool Flipped;
         public bool Cab3DFreightAnim;
@@ -1054,13 +1049,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             stf.ParseBlock(new STFReader.TokenProcessor[] {
             new STFReader.TokenProcessor("subtype", ()=>
             {
-                var typeString = stf.ReadStringBlock(null);
-                switch (typeString)
-                {
-                    default:
-                        SubType = FreightAnimationStatic.Type.DEFAULT;
-                        break;
-                }
+                //string typeString = stf.ReadStringBlock(null);
+                _ = stf.ReadStringBlock(null);
             }),
             new STFReader.TokenProcessor("shape", ()=>{ ShapeFileName = stf.ReadStringBlock(null); }),
             new STFReader.TokenProcessor("freightweight", ()=>{ FreightWeight = stf.ReadFloatBlock(STFReader.Units.Mass, 0); }),
@@ -1108,7 +1098,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         // for copy
         public FreightAnimationStatic(FreightAnimationStatic freightAnimStatic)
         {
-            SubType = freightAnimStatic.SubType;
             ShapeFileName = freightAnimStatic.ShapeFileName;
             XOffset = freightAnimStatic.XOffset;
             YOffset = freightAnimStatic.YOffset;
