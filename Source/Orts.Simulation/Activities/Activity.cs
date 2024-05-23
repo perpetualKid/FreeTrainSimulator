@@ -52,7 +52,7 @@ namespace Orts.Simulation.Activities
         }
     }
 
-    public class Activity : ISaveStateApi<ActivitySaveState>
+    public class Activity : ISaveStateApi<ActivitySaveState>, ICollectionSaveStateApi<ActivityEventSaveState, EventWrapper>
     {
         private readonly Simulator simulator;
         private bool reloadedActivityEvent;
@@ -330,10 +330,7 @@ namespace Orts.Simulation.Activities
             Succeeded = saveState.Succeeded;
             StartTime = saveState.StartTime;
 
-            foreach ((EventWrapper wrapper, ActivityEventSaveState wrapperState) in EventList.Zip(saveState.Events))
-            {
-                await wrapper.Restore(wrapperState).ConfigureAwait(false);
-            }
+            await (this as ICollectionSaveStateApi<ActivityEventSaveState, EventWrapper>).RestoreCollectionOnExistingInstances(saveState.Events, EventList).ConfigureAwait(false);
             if (saveState.TriggeredEvent > -1 && saveState.TriggeredEvent < EventList.Count)
                 triggeredEvent = EventList[saveState.TriggeredEvent];
             // restore logging info

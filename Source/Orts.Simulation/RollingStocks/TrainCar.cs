@@ -35,12 +35,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using GetText;
 
@@ -53,6 +56,7 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Models.State;
 using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -63,10 +67,12 @@ using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
 
+using SharpDX.Direct2D1;
+
 namespace Orts.Simulation.RollingStocks
 {
 
-    public abstract class TrainCar : IWorldPosition
+    public abstract class TrainCar : IWorldPosition, ISaveStateApi<TrainCarSaveState>
     {
         #region const
         // Input values to allow the temperature for different values of latitude to be calculated
@@ -1768,6 +1774,56 @@ namespace Orts.Simulation.RollingStocks
             RealWagFilePath = wagFile;
         }
 
+        public async virtual ValueTask<TrainCarSaveState> Snapshot()
+        {
+            return new TrainCarSaveState()
+            {
+                Flipped = Flipped,
+                UId = UiD,
+                CarId = CarID,
+                MotiveForce = MotiveForceN,
+                FrictionForce = FrictionForceN,
+                Speed = SpeedMpS,
+                CouplerSlack = CouplerSlackM,
+                HeadLightState = Headlight,
+                OriginalConsist = OriginalConsist,
+                PreviousTiltingZRot = PrevTiltingZRot,
+                BrakesStuck = BrakesStuck,
+                CarHeatingInitialized= carHeatingInitialized,
+                SteamHoseLeakRateRandom = steamHoseLeakRateRandom,
+                CurrentCompartmentHeat = carHeatCurrentCompartmentHeatJ,
+                SteamHeatMainPipeSteamPressure = carSteamHeatMainPipeSteamPressurePSI,
+                CompartmentHeaterOn = carHeatCompartmentHeaterOn,                
+                BrakeSystemSaveState = await BrakeSystem.Snapshot().ConfigureAwait(false),
+            };
+        }
+
+        public virtual async ValueTask Restore(TrainCarSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            Flipped = saveState.Flipped;
+            UiD = saveState.UId;
+            CarID = saveState.CarId;
+            MotiveForceN = saveState.MotiveForce;
+            FrictionForceN = saveState.FrictionForce;
+            SpeedMpS = saveState.Speed;
+            prevSpeedMpS = SpeedMpS;
+            CouplerSlackM = saveState.CouplerSlack;
+            Headlight = saveState.HeadLightState;
+            OriginalConsist = saveState.OriginalConsist;
+            PrevTiltingZRot = saveState.PreviousTiltingZRot;
+            BrakesStuck = saveState.BrakesStuck;
+            carHeatingInitialized = saveState.CarHeatingInitialized;
+            steamHoseLeakRateRandom = saveState.SteamHoseLeakRateRandom;
+            carHeatCurrentCompartmentHeatJ = saveState.CurrentCompartmentHeat;
+            carSteamHeatMainPipeSteamPressurePSI = saveState.SteamHeatMainPipeSteamPressure;
+            carHeatCompartmentHeaterOn = saveState.CompartmentHeaterOn;
+            FreightAnimations?.LoadDataList?.Clear();
+
+            await BrakeSystem.Restore(saveState.BrakeSystemSaveState).ConfigureAwait(false);
+        }
+
         // Game save
         public virtual void Save(BinaryWriter outf)
         {
@@ -1776,7 +1832,7 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(Flipped);
             outf.Write(UiD);
             outf.Write(CarID);
-            BrakeSystem.Save(outf);
+//            BrakeSystem.Save(outf);
             outf.Write(MotiveForceN);
             outf.Write(FrictionForceN);
             outf.Write(SpeedMpS);
@@ -1800,7 +1856,7 @@ namespace Orts.Simulation.RollingStocks
             Flipped = inf.ReadBoolean();
             UiD = inf.ReadInt32();
             CarID = inf.ReadString();
-            BrakeSystem.Restore(inf);
+//            BrakeSystem.Restore(inf);
             MotiveForceN = inf.ReadSingle();
             FrictionForceN = inf.ReadSingle();
             SpeedMpS = inf.ReadSingle();

@@ -418,7 +418,7 @@ namespace Orts.Simulation.RollingStocks
         public ScriptedBrakeController TrainBrakeController { get; private set; }
         public ScriptedBrakeController EngineBrakeController { get; private set; }
         public ScriptedBrakeController BrakemanBrakeController { get; private set; }
-        public AirSinglePipe.ValveState EngineBrakeState = AirSinglePipe.ValveState.Lap;
+        public ValveState EngineBrakeState = ValveState.Lap;
         public MSTSNotchController DynamicBrakeController;
         public MSTSNotchController GearBoxController;
         public MSTSNotchController DistributedPowerThrottleController;

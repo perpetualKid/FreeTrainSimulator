@@ -18,14 +18,18 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
-    public class MasterKey : ISubSystem<MasterKey>
+    public class MasterKey : ISubSystem<MasterKey>, ISaveStateApi<CommandSwitchSaveState>
     {
         // Enums
         public enum ModeType
@@ -40,7 +44,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public bool HeadlightControl;
 
         // Variables
-        readonly MSTSLocomotive Locomotive;
+        private readonly MSTSLocomotive Locomotive;
         protected Timer Timer;
         public bool CommandSwitch { get; protected set; }
         public bool On { get; protected set; }
@@ -118,6 +122,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 CommandSwitch = true;
                 On = true;
             }
+        }
+
+        public ValueTask<CommandSwitchSaveState> Snapshot()
+        {
+            return ValueTask.FromResult(new CommandSwitchSaveState()
+            {
+                CommandSwitch = CommandSwitch,
+                State = On,
+            });
+        }
+
+        public ValueTask Restore(CommandSwitchSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            CommandSwitch = saveState.CommandSwitch;
+            On = saveState.State;
+
+            return ValueTask.CompletedTask;
         }
 
         public virtual void Save(BinaryWriter outf)

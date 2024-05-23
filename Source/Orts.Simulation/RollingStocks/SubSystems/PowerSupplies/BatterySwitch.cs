@@ -17,14 +17,18 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
-    public class BatterySwitch : ISubSystem<BatterySwitch>
+    public class BatterySwitch : ISubSystem<BatterySwitch>, ISaveStateApi<CommandSwitchSaveState>
     {
         // Parameters
         public enum ModeType
@@ -38,7 +42,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public bool DefaultOn { get; protected set; }
 
         // Variables
-        readonly MSTSWagon Wagon;
+        private readonly MSTSWagon Wagon;
         protected Timer Timer;
         public bool CommandSwitch { get; protected set; }
         public bool CommandButtonOn { get; protected set; }
@@ -122,6 +126,29 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 CommandSwitch = true;
             }
+        }
+
+        public ValueTask<CommandSwitchSaveState> Snapshot()
+        {
+            return ValueTask.FromResult(new CommandSwitchSaveState()
+            { 
+                CommandSwitch = CommandSwitch,
+                CommandButtonOn = CommandButtonOn,
+                CommandButtonOff = CommandButtonOff,
+                State = On,
+            });
+        }
+
+        public ValueTask Restore(CommandSwitchSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            CommandSwitch = saveState.CommandSwitch;
+            CommandButtonOn = saveState.CommandButtonOn;
+            CommandButtonOff = saveState.CommandButtonOff;
+            On = saveState.State;
+
+            return ValueTask.CompletedTask;
         }
 
         public virtual void Save(BinaryWriter outf)

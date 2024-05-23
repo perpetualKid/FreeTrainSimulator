@@ -19,18 +19,16 @@
 //#define DEBUG_TRAIN_PIPE_LEAK
 
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
-
-using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
@@ -74,14 +72,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         /// For non-EP brake types must default to and remain in Release.
         /// </summary>
         private protected ValveState holdingValve = ValveState.Release;
-
-        public enum ValveState
-        {
-            [Description("Lap")] Lap,
-            [Description("Apply")] Apply,
-            [Description("Release")] Release,
-            [Description("Emergency")] Emergency
-        };
 
         private protected ValveState tripleValveState = ValveState.Lap;
 
@@ -216,50 +206,57 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
         }
 
-        public override void Save(BinaryWriter outf)
+        public override ValueTask<BrakeSystemSaveState> Snapshot()
         {
-            outf.Write(BrakeLine1PressurePSI);
-            outf.Write(BrakeLine2PressurePSI);
-            outf.Write(BrakeLine3PressurePSI);
-            outf.Write(handbrakePercent);
-            outf.Write(releaseRatePSIpS);
-            outf.Write(retainerPressureThresholdPSI);
-            outf.Write(autoCylPressurePSI);
-            outf.Write(auxResPressurePSI);
-            outf.Write(emergResPressurePSI);
-            outf.Write(controlResPressurePSI);
-            outf.Write(fullServPressurePSI);
-            outf.Write((int)tripleValveState);
-            outf.Write(FrontBrakeHoseConnected);
-            outf.Write(AngleCockAOpen);
-            outf.Write(AngleCockBOpen);
-            outf.Write(BleedOffValveOpen);
-            outf.Write((int)holdingValve);
-            outf.Write(cylVolumeM3);
-            outf.Write(bailOffOn);
+            return ValueTask.FromResult(new BrakeSystemSaveState()
+            {
+                BrakeLine1Pressure = BrakeLine1PressurePSI,
+                BrakeLine2Pressure = BrakeLine2PressurePSI,
+                BrakeLine3Pressure = BrakeLine3PressurePSI,
+                HandBrake = handbrakePercent,
+                ReleaseRate = releaseRatePSIpS,
+                RetainerPressureThreshold = retainerPressureThresholdPSI,
+                AutoCylinderPressure = autoCylPressurePSI,
+                AuxReservoirPressure = auxResPressurePSI,
+                EmergencyReservoirPressure = emergResPressurePSI,
+                ControlReservoirPressure = controlResPressurePSI,
+                FullServicePressure = fullServPressurePSI,
+                TripleValveState = tripleValveState,
+                FrontBrakeHoseConnected = FrontBrakeHoseConnected,
+                AngleCockAOpen = AngleCockAOpen,
+                AngleCockBOpen = AngleCockBOpen,
+                BleedOffValveOpen = BleedOffValveOpen,
+                HoldingValveState = holdingValve,
+                CylinderVolume = cylVolumeM3,
+                BailOffOn = bailOffOn,
+            });
         }
 
-        public override void Restore(BinaryReader inf)
+        public override ValueTask Restore(BrakeSystemSaveState saveState)
         {
-            BrakeLine1PressurePSI = inf.ReadSingle();
-            BrakeLine2PressurePSI = inf.ReadSingle();
-            BrakeLine3PressurePSI = inf.ReadSingle();
-            handbrakePercent = inf.ReadSingle();
-            releaseRatePSIpS = inf.ReadSingle();
-            retainerPressureThresholdPSI = inf.ReadSingle();
-            autoCylPressurePSI = inf.ReadSingle();
-            auxResPressurePSI = inf.ReadSingle();
-            emergResPressurePSI = inf.ReadSingle();
-            controlResPressurePSI = inf.ReadSingle();
-            fullServPressurePSI = inf.ReadSingle();
-            tripleValveState = (ValveState)inf.ReadInt32();
-            FrontBrakeHoseConnected = inf.ReadBoolean();
-            AngleCockAOpen = inf.ReadBoolean();
-            AngleCockBOpen = inf.ReadBoolean();
-            BleedOffValveOpen = inf.ReadBoolean();
-            holdingValve = (ValveState)inf.ReadInt32();
-            cylVolumeM3 = inf.ReadSingle();
-            bailOffOn = inf.ReadBoolean();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            BrakeLine1PressurePSI = saveState.BrakeLine1Pressure;
+            BrakeLine2PressurePSI = saveState.BrakeLine2Pressure;
+            BrakeLine3PressurePSI = saveState.BrakeLine3Pressure;
+            handbrakePercent = saveState.HandBrake;
+            releaseRatePSIpS = saveState.ReleaseRate;
+            retainerPressureThresholdPSI = saveState.RetainerPressureThreshold;
+            autoCylPressurePSI = saveState.AutoCylinderPressure;
+            auxResPressurePSI = saveState.AuxReservoirPressure;
+            emergResPressurePSI = saveState.EmergencyReservoirPressure;
+            controlResPressurePSI = saveState.ControlReservoirPressure;
+            fullServPressurePSI = saveState.FullServicePressure;
+            tripleValveState = saveState.TripleValveState;
+            FrontBrakeHoseConnected = saveState.FrontBrakeHoseConnected;
+            AngleCockAOpen = saveState.AngleCockAOpen;
+            AngleCockBOpen = saveState.AngleCockBOpen;
+            BleedOffValveOpen = saveState.BleedOffValveOpen;
+            holdingValve = saveState.HoldingValveState;
+            cylVolumeM3 = saveState.CylinderVolume;
+            bailOffOn = saveState.BailOffOn;
+
+            return ValueTask.CompletedTask;
         }
 
         public override void Initialize(bool handbrakeOn, float maxPressurePSI, float fullServPressurePSI, bool immediateRelease)

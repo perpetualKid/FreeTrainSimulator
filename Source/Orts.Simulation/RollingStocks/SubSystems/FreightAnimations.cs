@@ -17,9 +17,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
@@ -28,8 +32,11 @@ using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.World;
+
+using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
@@ -39,7 +46,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
     /// FreightAnimation objects.
     /// Called from within the MSTSWagon class.
     /// </summary>
-    public class FreightAnimations
+    public class FreightAnimations : ISaveStateApi<FreightAnimationsSetSaveState>, ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>
     {
         public List<FreightAnimation> Animations { get; } = new List<FreightAnimation>();
         public List<FreightAnimationDiscrete> EmptyAnimations { get; } = new List<FreightAnimationDiscrete>();
@@ -139,10 +146,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                  }),
                 new STFReader.TokenProcessor("freightanimstatic", ()=>
                 {
-                    Animations.Add(new FreightAnimationStatic(stf));
-                    StaticFreightWeight += (Animations.Last() as FreightAnimationStatic).FreightWeight;
+                    FreightAnimationStatic staticAnimation =  new FreightAnimationStatic(stf);
+                    Animations.Add(staticAnimation );
+                    StaticFreightWeight += staticAnimation.FreightWeight;
                     StaticFreightAnimationsPresent = true;
-                    FullPhysicsStaticOne = Animations.Last() as FreightAnimationStatic;
+                    FullPhysicsStaticOne = staticAnimation ;
                 }),
                 new STFReader.TokenProcessor("loaddata", ()=>
                 {
@@ -153,77 +161,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             });
         }
 
-        /// <summary>
-        /// Saves the general variable parameters
-        /// Called from within the MSTSWagon class.
-        /// </summary>
-        public void Save(BinaryWriter outf)
+        FreightAnimationDiscrete ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>.CreateRuntimeTarget(Orts.Models.State.FreightAnimationSaveState saveState)
         {
-            outf.Write(FreightWeight);
-            outf.Write((int)FreightType);
-            outf.Write(StaticFreightWeight);
-            int discreteAnimCount = 0;
-            foreach (FreightAnimation freightAnim in Animations)
-            {
-                if (freightAnim is FreightAnimationDiscrete)
-                    discreteAnimCount++;
-            }
-            outf.Write(discreteAnimCount);
-            foreach (FreightAnimation freightAnim in Animations)
-            {
-                if (freightAnim is FreightAnimationDiscrete freightAnimationDiscrete)
-                {
-                    freightAnimationDiscrete.Save(outf);
-                }
-            }
-            outf.Write(EmptyAnimations.Count);
-            foreach (FreightAnimationDiscrete emptyAnim in EmptyAnimations)
-                emptyAnim.Save(outf);
-        }
-
-        /// <summary>
-        /// Restores the general variable parameters
-        /// Called from within the MSTSWagon class.
-        /// </summary>
-        public void Restore(BinaryReader inf)
-        {
-            FreightWeight = inf.ReadSingle();
-            FreightType = (PickupType)inf.ReadInt32();
-            StaticFreightWeight = inf.ReadSingle();
-            LoadedOne = null;
-            foreach (FreightAnimation freightAnim in Animations)
-            {
-                if (freightAnim is FreightAnimationContinuous freightAnimationContinuous && freightAnimationContinuous.LinkedIntakePoint != null)
-                {
-                    if (freightAnimationContinuous.LinkedIntakePoint.Type == FreightType)
-                    {
-                        LoadedOne = freightAnimationContinuous;
-                        LoadedOne.LoadPerCent = FreightWeight / LoadedOne.FreightWeightWhenFull * 100;
-                    }
-                    else
-                    {
-                        freightAnimationContinuous.LoadPerCent = 0;
-                    }
-                }
-            }
-            int discreteAnimCount = inf.ReadInt32();
-            if (discreteAnimCount > 0)
-            {
-                for (int i = 0; i < discreteAnimCount; i++)
-                {
-                    FreightAnimationDiscrete discreteFreightAnim = new FreightAnimationDiscrete(inf, this);
-                    Animations.Add(discreteFreightAnim);
-                }
-            }
-            int emptyAnimCount = inf.ReadInt32();
-            if (emptyAnimCount > 0)
-            {
-                for (int i = 0; i < emptyAnimCount; i++)
-                {
-                    FreightAnimationDiscrete emptyFreightAnim = new FreightAnimationDiscrete(inf, this);
-                    EmptyAnimations.Add(emptyFreightAnim);
-                }
-            }
+            return new FreightAnimationDiscrete(this);
         }
 
         public FreightAnimations(FreightAnimations source, MSTSWagon wagon)
@@ -930,6 +870,45 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 }
             }
         }
+
+        public async ValueTask<FreightAnimationsSetSaveState> Snapshot()
+        {
+            return new FreightAnimationsSetSaveState()
+            { 
+                FreightType = FreightType,
+                FreightWeight = FreightWeight,
+                FreightAnimations = await (this as ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>).SnapshotCollection(Animations.OfType<FreightAnimationDiscrete>()).ConfigureAwait(false),
+                EmptyAnimations = await (this as ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>).SnapshotCollection(EmptyAnimations).ConfigureAwait(false),
+            };
+        }
+
+        public async ValueTask Restore(FreightAnimationsSetSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            FreightWeight = saveState.FreightWeight;
+            FreightType = saveState.FreightType;
+            LoadedOne = null;
+            foreach (FreightAnimationContinuous continuousAnimation in Animations.OfType<FreightAnimationContinuous>())
+            {
+                if (continuousAnimation.LinkedIntakePoint != null)
+                {
+                    if (continuousAnimation.LinkedIntakePoint.Type == FreightType)
+                    {
+                        LoadedOne = continuousAnimation;
+                        LoadedOne.LoadPerCent = FreightWeight / LoadedOne.FreightWeightWhenFull * 100;
+                    }
+                    else
+                    {
+                        continuousAnimation.LoadPerCent = 0;
+                    }
+                }
+            }
+            Collection<FreightAnimationDiscrete> discreteFreightAnimations = new Collection<FreightAnimationDiscrete>();
+            await (this as ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>).RestoreCollectionCreateNewInstances(saveState.FreightAnimations, discreteFreightAnimations).ConfigureAwait(false);
+            Animations.AddRange(discreteFreightAnimations);
+            await (this as ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>).RestoreCollectionCreateNewInstances(saveState.EmptyAnimations, EmptyAnimations).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -1119,7 +1098,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         }
     }
 
-    public class FreightAnimationDiscrete : FreightAnimation
+    public class FreightAnimationDiscrete : FreightAnimation, ISaveStateApi<FreightAnimationSaveState>
     {
         internal static bool FreightAnimNeedsInitialization = true;
         public FreightAnimationType SubType { get; private set; }
@@ -1206,57 +1185,51 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             Offset = freightAnimations.Offset;
         }
 
-        public FreightAnimationDiscrete(BinaryReader inf, FreightAnimations freightAnimations)
+
+        public FreightAnimationDiscrete(FreightAnimations freightAnimations)
         {
-            ArgumentNullException.ThrowIfNull(freightAnimations);
+            ArgumentNullException.ThrowIfNull(freightAnimations, nameof(freightAnimations));
 
             FreightAnimations = freightAnimations;
             Wagon = freightAnimations.Wagon;
-            LinkedIntakePoint = new IntakePoint(inf.ReadSingle(), inf.ReadSingle(), (PickupType)inf.ReadInt32())
-            {
-                LinkedFreightAnim = this
-            };
-            Offset = new Vector3(inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle());
-            LoadingAreaLength = inf.ReadSingle();
-            AboveLoadingAreaLength = inf.ReadSingle();
-            LoadPosition = (LoadPosition)inf.ReadInt32();
-            Loaded = inf.ReadBoolean();
-            IntakePoint intake = new IntakePoint(inf.ReadSingle(), inf.ReadSingle(), (PickupType)inf.ReadInt32())
-            {
-                LinkedFreightAnim = this
-            };
-            Wagon.IntakePointList.Add(intake);
-            LinkedIntakePoint = intake;
-            bool containerPresent = inf.ReadBoolean();
-            if (containerPresent)
-            {
-                Container = new Container(inf, this, null, false);
-                Simulator.Instance.ContainerManager.Containers.Add(Container);
-            }
         }
 
-        public void Save(BinaryWriter outf)
+        public async ValueTask<FreightAnimationSaveState> Snapshot()
         {
-            outf.Write(LinkedIntakePoint.OffsetM);
-            outf.Write(LinkedIntakePoint.WidthM);
-            outf.Write((int)LinkedIntakePoint.Type);
-            outf.Write(Offset.X);
-            outf.Write(Offset.Y);
-            outf.Write(Offset.Z);
-            outf.Write(LoadingAreaLength);
-            outf.Write(AboveLoadingAreaLength);
-            outf.Write((int)LoadPosition);
-            outf.Write(Loaded);
-            outf.Write(LinkedIntakePoint.OffsetM);
-            outf.Write(LinkedIntakePoint.WidthM);
-            outf.Write((int)LinkedIntakePoint.Type);
-            if (Container != null)
+            return new FreightAnimationSaveState()
             {
-                outf.Write(true);
-                Container.Save(outf);
+                IntakeOffset = LinkedIntakePoint.OffsetM,
+                IntakeWidth = LinkedIntakePoint.WidthM,
+                PickupType = LinkedIntakePoint.Type,
+                Offset = Offset,
+                LoadingAreaLength = LoadingAreaLength,
+                AboveLoadingAreaLength = AboveLoadingAreaLength,
+                Loaded = Loaded,
+                LoadPosition = LoadPosition,               
+                Container = Container == null ? null : await Container.Snapshot().ConfigureAwait(false),
+            };
+        }
+
+        public async ValueTask Restore(FreightAnimationSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            Offset = saveState.Offset;
+            LoadingAreaLength = saveState.LoadingAreaLength;
+            AboveLoadingAreaLength = saveState.AboveLoadingAreaLength;
+            LoadPosition = saveState.LoadPosition;
+            Loaded = saveState.Loaded;
+            LinkedIntakePoint = new IntakePoint(saveState.IntakeOffset, saveState.IntakeWidth, saveState.PickupType)
+            {
+                LinkedFreightAnim = this
+            };
+            Wagon.IntakePointList.Add(LinkedIntakePoint);
+            if (saveState.Container != null)
+            {
+                Container = new Container(Wagon, null);
+                await Container.Restore(saveState.Container).ConfigureAwait(false);
             }
-            else
-                outf.Write(false);
+            Simulator.Instance.ContainerManager.Containers.Add(Container);
         }
     }
 }

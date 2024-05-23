@@ -202,24 +202,23 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         protected override void UpdateSoundVariables(double elapsedClockSeconds)
         {
-            Variable1 = ThrottlePercent;
+            soundDebugValues.X = ThrottlePercent;
             if (ThrottlePercent == 0f)
-                Variable2 = 0;
+                soundDebugValues.Y = 0;
             else
             {
                 float dV2;
-                dV2 = Math.Abs(TractiveForceN) / MaxForceN * 100f - Variable2;
+                dV2 = Math.Abs(TractiveForceN) / MaxForceN * 100f - soundDebugValues.Y;
                 float max = 2f;
                 if (dV2 > max)
                     dV2 = max;
                 else if (dV2 < -max)
                     dV2 = -max;
-                Variable2 += dV2;
+                soundDebugValues.Y += dV2;
             }
-            if (DynamicBrakePercent > 0)
-                Variable3 = MaxDynamicBrakeForceN == 0 ? DynamicBrakePercent / 100f : DynamicBrakeForceN / MaxDynamicBrakeForceN;
-            else
-                Variable3 = 0;
+            soundDebugValues.Z = DynamicBrakePercent > 0
+                ? MaxDynamicBrakeForceN == 0 ? DynamicBrakePercent / 100f : DynamicBrakeForceN / MaxDynamicBrakeForceN
+                : 0;
         }
 
         public override float GetDataOf(CabViewControl cvc)
@@ -398,13 +397,13 @@ namespace Orts.Simulation.RollingStocks
             base.UpdateRemotePosition(elapsedClockSeconds, speed, targetSpeed);
             if (AbsSpeedMpS > 0.5f)
             {
-                Variable1 = 70;
-                Variable2 = 70;
+                soundDebugValues.X = 70;
+                soundDebugValues.Y = 70;
             }
             else
             {
-                Variable1 = 0;
-                Variable2 = 0;
+                soundDebugValues.X = 0;
+                soundDebugValues.Y = 0;
             }
         }
 

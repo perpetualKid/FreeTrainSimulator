@@ -19,14 +19,16 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.DebugInfo;
+using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 {
@@ -41,7 +43,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         BrakeCylinder
     }
 
-    public abstract class BrakeSystem
+    public abstract class BrakeSystem: ISaveStateApi<BrakeSystemSaveState>
     {
         private protected readonly TrainCar car;
         private protected readonly BrakeInformation brakeInfo;
@@ -128,10 +130,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 
         public Dictionary<string, FormatOption> FormattingOptions => brakeInfo.FormattingOptions;
 
-        public abstract void Save(BinaryWriter outf);
-
-        public abstract void Restore(BinaryReader inf);
-
         public abstract void PropagateBrakePressure(double elapsedClockSeconds);
 
         /// <summary>
@@ -148,6 +146,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         public abstract void LocoInitializeMoving(); // starting conditions when starting speed > 0
         public abstract bool IsBraking(); // return true if the wagon is braking above a certain threshold
         public abstract void CorrectMaxCylPressurePSI(MSTSLocomotive loco); // corrects max cyl pressure when too high
+        public abstract ValueTask<BrakeSystemSaveState> Snapshot();
+        public abstract ValueTask Restore(BrakeSystemSaveState saveState);
 
         protected BrakeSystem(TrainCar car)
         {

@@ -17,13 +17,13 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Orts.Simulation.RollingStocks;
-using Orts.Common;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Windows.Forms;
+
+using Microsoft.Xna.Framework;
+
 using Orts.Common.Position;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Debugging
 {
@@ -161,25 +161,20 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     if (selectedSoundSource.Car != null)
                     {
                         speed.Text = Math.Abs(selectedSoundSource.Car.SpeedMpS).ToString("F1");
-                        var Variable1 = selectedSoundSource.Car.Variable1;
-                        var Variable2 = selectedSoundSource.Car.Variable2;
-                        var Variable3 = selectedSoundSource.Car.Variable3;
-
+                        Vector3 debugValues = selectedSoundSource.Car.SoundValues;
                         if (selectedSoundSource.Car is MSTSSteamLocomotive)
                         {
-                            Variable1 /= 100f;
-                            Variable2 /= 100f;
-                            Variable3 /= 100f;
+                            debugValues /= 100f;
                         }
                         if (selectedSoundSource.Car is MSTSElectricLocomotive)
                         {
-                            Variable1 /= 100f;
-                            Variable2 /= 100f;
+                            debugValues /= 100f;
+                            debugValues.Z *= 100;
                         }
 
-                        variable1.Text = Variable1.ToString("0.#%");
-                        variable2.Text = Variable2.ToString("0.#%");
-                        variable3.Text = Variable3.ToString("0.#%");
+                        variable1.Text = debugValues.X.ToString("0.#%");
+                        variable2.Text = debugValues.Y.ToString("0.#%");
+                        variable3.Text = debugValues.Z.ToString("0.#%");
                     }
                     else
                     {
@@ -189,8 +184,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                         variable3.Text = "-";
                     }
 
-                    float gain;
-                    OpenAL.GetSourcef(soundSourceID, OpenAL.AL_GAIN, out gain);
+                    OpenAL.GetSourcef(soundSourceID, OpenAL.AL_GAIN, out float gain);
                     smsVolume.Text = gain.ToString("0.#%");
                 }
                 else

@@ -28,7 +28,7 @@ using Orts.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
-    public class Doors : EnumArray<Door, DoorSide>, ISubSystem<Doors>
+    public class Doors : EnumArray<Door, DoorSide>, ISubSystem<Doors>, ICollectionSaveStateApi<DoorSaveState, Door>
     {
         public Doors(MSTSWagon wagon)
         {
@@ -78,18 +78,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
         }
 
-        public virtual void Save(BinaryWriter outf)
-        {
-            this[DoorSide.Left].Save(outf);
-            this[DoorSide.Right].Save(outf);
-        }
-
-        public virtual void Restore(BinaryReader inf)
-        {
-            this[DoorSide.Left].Restore(inf);
-            this[DoorSide.Right].Restore(inf);
-        }
-
         public virtual void Update(double elapsedClockSeconds)
         {
             this[DoorSide.Left].Update(elapsedClockSeconds);
@@ -104,6 +92,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 DoorSide.Right => DoorSide.Left,
                 _ => DoorSide.Both,
             };
+        }
+
+        public void Save(BinaryWriter outf)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Restore(BinaryReader inf)
+        {
+            throw new NotImplementedException();
         }
     }
 

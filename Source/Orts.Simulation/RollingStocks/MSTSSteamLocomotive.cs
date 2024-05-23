@@ -2603,15 +2603,15 @@ namespace Orts.Simulation.RollingStocks
 
             // Variable1 is proportional to angular speed, value of 10 means 1 rotation/second.
             var variable1 = Math.Abs(WheelSpeedSlipMpS / DriverWheelRadiusM / MathHelper.Pi * 5);
-            Variable1 = ThrottlePercent == 0 ? 0 : variable1;
-            Variable2 = MathHelper.Clamp((float)(CylinderCocksPressureAtmPSI - Const.OneAtmospherePSI) / BoilerPressurePSI * 100f, 0, 100);
-            Variable3 = FuelRateSmoothed * 100;
+            soundDebugValues.X = ThrottlePercent == 0 ? 0 : variable1;
+            soundDebugValues.Y = MathHelper.Clamp((float)(CylinderCocksPressureAtmPSI - Const.OneAtmospherePSI) / BoilerPressurePSI * 100f, 0, 100);
+            soundDebugValues.Z = FuelRateSmoothed * 100;
 
             const int rotations = 2;
             const int fullLoop = 10 * rotations;
             int numPulses = NumCylinders * 2 * rotations;
 
-            var dPulseTracker = Variable1 / fullLoop * numPulses * elapsedClockSeconds;
+            var dPulseTracker = soundDebugValues.X / fullLoop * numPulses * elapsedClockSeconds;
             PulseTracker += (float)dPulseTracker;
 
             if (PulseTracker > (float)NextPulse - dPulseTracker / 2)
@@ -7368,13 +7368,13 @@ namespace Orts.Simulation.RollingStocks
             base.UpdateRemotePosition(elapsedClockSeconds, speed, targetSpeed);
             if (AbsSpeedMpS > 0.5f)
             {
-                Variable1 = AbsSpeedMpS / DriverWheelRadiusM / MathHelper.Pi * 5;
-                Variable2 = 0.7f;
+                soundDebugValues.X = AbsSpeedMpS / DriverWheelRadiusM / MathHelper.Pi * 5;
+                soundDebugValues.Y = 0.7f;
             }
             else
             {
-                Variable1 = 0;
-                Variable2 = 0;
+                soundDebugValues.X = 0;
+                soundDebugValues.Y = 0;
             }
         }
 

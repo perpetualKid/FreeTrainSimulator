@@ -12119,7 +12119,7 @@ namespace Orts.Simulation.Physics
         {
             if (EndOfTrainDevice != null)
             {
-                EndOfTrainDevice.State = EoTState.Disarmed;
+                EndOfTrainDevice.State = EndOfTrainState.Disarmed;
                 EndOfTrainDevice = null;
             }
             if (simulator.PlayerLocomotive?.Train == this)

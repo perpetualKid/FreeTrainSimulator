@@ -823,30 +823,24 @@ namespace Orts.Simulation.RollingStocks
         {
             EngineRPMRatio = (DieselEngines[0].RealRPM - DieselEngines[0].IdleRPM) / (DieselEngines[0].MaxRPM - DieselEngines[0].IdleRPM);
 
-            Variable1 = ThrottlePercent / 100.0f;
+            soundDebugValues.X = ThrottlePercent / 100.0f;
             // else Variable1 = MotiveForceN / MaxForceN; // Gearbased, Variable1 proportional to motive force
             // allows for motor volume proportional to effort.
 
             // Refined Variable2 setting to graduate
-            if (Variable2 != EngineRPMRatio)
+            if (soundDebugValues.Y != EngineRPMRatio)
             {
                 // We must avoid Variable2 to run outside of [0, 1] range, even temporarily (because of multithreading)
-                Variable2 = EngineRPMRatio < Variable2 ?
-                    (float)Math.Max(Math.Max(Variable2 - elapsedClockSeconds * PercentChangePerSec, EngineRPMRatio), 0) :
-                    (float)Math.Min(Math.Min(Variable2 + elapsedClockSeconds * PercentChangePerSec, EngineRPMRatio), 1);
+                soundDebugValues.Y = EngineRPMRatio < soundDebugValues.Y ?
+                    (float)Math.Max(Math.Max(soundDebugValues.Y - elapsedClockSeconds * PercentChangePerSec, EngineRPMRatio), 0) :
+                    (float)Math.Min(Math.Min(soundDebugValues.Y + elapsedClockSeconds * PercentChangePerSec, EngineRPMRatio), 1);
             }
 
-            EngineRPM = Variable2 * (MaxRPM - IdleRPM) + IdleRPM;
+            EngineRPM = soundDebugValues.Y * (MaxRPM - IdleRPM) + IdleRPM;
 
-            if (DynamicBrakePercent > 0)
-            {
-                if (MaxDynamicBrakeForceN == 0)
-                    Variable3 = DynamicBrakePercent / 100f;
-                else
-                    Variable3 = DynamicBrakeForceN / MaxDynamicBrakeForceN;
-            }
-            else
-                Variable3 = 0;
+            soundDebugValues.Z = DynamicBrakePercent > 0
+                ? MaxDynamicBrakeForceN == 0 ? DynamicBrakePercent / 100f : DynamicBrakeForceN / MaxDynamicBrakeForceN
+                : 0;
 
             if (elapsedClockSeconds > 0.0f)
             {
@@ -1423,13 +1417,13 @@ namespace Orts.Simulation.RollingStocks
             base.UpdateRemotePosition(elapsedClockSeconds, speed, targetSpeed);
             if (AbsSpeedMpS > 0.5f)
             {
-                Variable1 = 0.7f;
-                Variable2 = 0.7f;
+                soundDebugValues.X = 0.7f;
+                soundDebugValues.Y = 0.7f;
             }
             else
             {
-                Variable1 = 0;
-                Variable2 = 0;
+                soundDebugValues.X = 0;
+                soundDebugValues.Y = 0;
             }
         }
 

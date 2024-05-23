@@ -19,17 +19,23 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.PowerSupply;
 using Orts.Simulation.Physics;
 
+using SharpDX.Direct2D1;
+
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
-    public class ScriptedPassengerCarPowerSupply : IPassengerCarPowerSupply, ISubSystem<ScriptedPassengerCarPowerSupply>
+    public class ScriptedPassengerCarPowerSupply : IPassengerCarPowerSupply, ISubSystem<ScriptedPassengerCarPowerSupply>, ISaveStateApi<PowerSupplySaveState>
     {
         public readonly MSTSWagon Wagon;
         protected static readonly Simulator Simulator = Simulator.Instance;
@@ -167,6 +173,39 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             BatteryState = PowerSupplyState.PowerOn;
 
             Script?.InitializeMoving();
+        }
+
+        public async ValueTask<PowerSupplySaveState> Snapshot()
+        {
+            return new PowerSupplySaveState()
+            {
+                BatterySwitchState = await BatterySwitch.Snapshot().ConfigureAwait(false),
+                FrontElectricTrainSupplyCableConnected = FrontElectricTrainSupplyCableConnected,
+                ElectricTrainSupplyState = ElectricTrainSupplyState,
+                LowVoltagePowerSupplyState = LowVoltagePowerSupplyState,
+                BatteryState = BatteryState,
+                VentilationState = VentilationState,
+                HeatingState = HeatingState,
+                AirConditioningState = AirConditioningState,
+                HeatFlowRate = HeatFlowRateW,
+            };
+        }
+
+        public async ValueTask Restore(PowerSupplySaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            await BatterySwitch.Restore(saveState.BatterySwitchState).ConfigureAwait(false);
+            FrontElectricTrainSupplyCableConnected = saveState.FrontElectricTrainSupplyCableConnected;
+            ElectricTrainSupplyState = saveState.ElectricTrainSupplyState;
+            LowVoltagePowerSupplyState = saveState.LowVoltagePowerSupplyState;
+            BatteryState = saveState.BatteryState;
+            VentilationState = saveState.VentilationState;
+            HeatingState = saveState.HeatingState;
+            AirConditioningState = saveState.AirConditioningState;
+            HeatFlowRateW = saveState.HeatFlowRate;
+
+            firstUpdate = false;
         }
 
         public virtual void Save(BinaryWriter outf)

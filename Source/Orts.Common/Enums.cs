@@ -768,6 +768,14 @@ namespace Orts.Common
         SMEReleaseStart,    // TrainBrakesControllerSMEReleaseStart
     }
 
+    public enum ValveState
+    {
+        [Description("Lap")] Lap,
+        [Description("Apply")] Apply,
+        [Description("Release")] Release,
+        [Description("Emergency")] Emergency
+    };
+
     public enum TrainControlMode
     {
         [Description("Auto Signal")] AutoSignal,
@@ -778,6 +786,24 @@ namespace Orts.Common
         [Description("Inactive")] Inactive,
         [Description("Turntable")] TurnTable,
         [Description("Unknown")] Undefined,
+    }
+
+    public enum EndOfTrainLevel
+    {
+        NoComm,
+        OneWay,
+        TwoWay
+    }
+
+    [Description("EoT")] //End Of Train
+    public enum EndOfTrainState
+    {
+        [Description("Disarmed")] Disarmed,
+        [Description("Comm Test")] CommTestOn,
+        [Description("Armed")] Armed,
+        [Description("Local Test")] LocalTestOn,
+        [Description("Arm Now")] ArmNow,
+        [Description("2-way Armed")] ArmedTwoWay
     }
 
     public enum TCSEvent

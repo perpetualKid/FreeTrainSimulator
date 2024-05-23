@@ -1467,11 +1467,11 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                 case Curve.ControlMode.Speed:
                     return car.AbsSpeedMpS;
                 case Curve.ControlMode.Variable1:
-                    return car.Variable1;
+                    return car.SoundValues.X;
                 case Curve.ControlMode.Variable2:
-                    return car.Variable2;
+                    return car.SoundValues.Y;
                 case Curve.ControlMode.Variable3:
-                    return car.Variable3;
+                    return car.SoundValues.Z;
                 case Curve.ControlMode.BrakeCylinder:
                     return car.BrakeSystem.GetCylPressurePSI();
                 case Curve.ControlMode.CurveForce:
@@ -1958,13 +1958,13 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                     return car.AbsSpeedMpS;
                 case VariableTrigger.TriggerEvent.Variable1Decrease:
                 case VariableTrigger.TriggerEvent.Variable1Increase:
-                    return car.Variable1;
+                    return car.SoundValues.X;
                 case VariableTrigger.TriggerEvent.Variable2Decrease:
                 case VariableTrigger.TriggerEvent.Variable2Increase:
-                    return car.Variable2;
+                    return car.SoundValues.Y;
                 case VariableTrigger.TriggerEvent.Variable3Decrease:
                 case VariableTrigger.TriggerEvent.Variable3Increase:
-                    return car.Variable3;
+                    return car.SoundValues.Z;
                 case VariableTrigger.TriggerEvent.BrakeCylinderDecrease:
                 case VariableTrigger.TriggerEvent.BrakeCylinderIncrease:
                     return car.BrakeSystem.GetCylPressurePSI();

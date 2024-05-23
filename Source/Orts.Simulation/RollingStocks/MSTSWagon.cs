@@ -37,8 +37,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -59,6 +59,8 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.World;
+
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -110,9 +112,9 @@ namespace Orts.Simulation.RollingStocks
 
 
         // simulation parameters
-        public float Variable1 { get; protected set; }  // used to convey status to soundsource
-        public float Variable2 { get; protected set; }
-        public float Variable3 { get; protected set; }
+        private protected Vector3 soundDebugValues = new Vector3();
+        public Vector3 SoundValues => soundDebugValues; // used to convey status to soundsource
+        public float Variable1 { get; protected set; }
 
         // wag file data
         public string MainShapeFileName;
@@ -1710,18 +1712,68 @@ namespace Orts.Simulation.RollingStocks
             });
         }
 
-        public async ValueTask<TrainCarSaveState> Snapshot()
+        public override async ValueTask<TrainCarSaveState> Snapshot()
         {
-            return new TrainCarSaveState()
+            TrainCarSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.WagonSaveState = new WagonSaveState()
             {
-                PantographSaveState = new Collection<PantographSaveState>(await (Pantographs as ICollectionSaveStateApi<PantographSaveState, Pantograph>).SnapshotCollection(Pantographs).ConfigureAwait(false)),
-                DoorStates = await Task.WhenAll(Doors.Select(async door => await door.Snapshot().ConfigureAwait(false))),
+                PantographSaveStates = await (Pantographs as ICollectionSaveStateApi<PantographSaveState, Pantograph>).SnapshotCollection(Pantographs).ConfigureAwait(false),
+                DoorSaveStates = await Task.WhenAll(Doors.Select(async door => await door.Snapshot().ConfigureAwait(false))),
+                CouplerSaveStates = await Task.WhenAll(couplers.Select(async coupler => coupler == null ? null : await coupler.Snapshot().ConfigureAwait(false))),
+                SoundValues = soundDebugValues,
+                Friction = Friction0N,
+                DavisA = DavisAN,
+                DavisB = DavisBNSpM,
+                DavisC = DavisCNSSpMM,
+                StandstillFriction = StandstillFrictionN,
+                MergeSpeedFriction = MergeSpeedFrictionN,
+                BelowMergeSpeed = IsBelowMergeSpeed,
+                Mass = MassKG,
+                MaxBrakeForce = MaxBrakeForceN,
+                MaxHandbrakeForce = MaxHandbrakeForceN,
+                PowerSupplySaveStates = PassengerCarPowerSupply == null ? null : await PassengerCarPowerSupply.Snapshot().ConfigureAwait(false),
+                FreightAnimationsSaveState = FreightAnimations == null ? null : await FreightAnimations.Snapshot().ConfigureAwait(false),
             };
+            return saveState;
         }
 
-        public ValueTask Restore(TrainCarSaveState saveState)
+        public override async ValueTask Restore([NotNull] TrainCarSaveState saveState)
         {
-            throw new NotImplementedException();
+            await base.Restore(saveState).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(saveState.WagonSaveState, nameof(saveState.WagonSaveState));
+
+            WagonSaveState wagonSaveState = saveState.WagonSaveState;
+
+            soundDebugValues = wagonSaveState.SoundValues;
+            Friction0N = wagonSaveState.Friction;
+            DavisAN = wagonSaveState.DavisA;
+            DavisBNSpM = wagonSaveState.DavisB;
+            DavisCNSSpMM = wagonSaveState.DavisC;
+            StandstillFrictionN = wagonSaveState.StandstillFriction;
+            MergeSpeedFrictionN = wagonSaveState.MergeSpeedFriction;
+            IsBelowMergeSpeed = wagonSaveState.BelowMergeSpeed;
+            MassKG = wagonSaveState.Mass;
+            MaxBrakeForceN = wagonSaveState.MaxBrakeForce;
+            MaxHandbrakeForceN = wagonSaveState.MaxHandbrakeForce;
+
+            await (Pantographs as ICollectionSaveStateApi<PantographSaveState, Pantograph>).RestoreCollectionCreateNewInstances(wagonSaveState.PantographSaveStates, Pantographs).ConfigureAwait(false);
+            await (Doors as ICollectionSaveStateApi<DoorSaveState, Door>).RestoreCollectionOnExistingInstances(wagonSaveState.DoorSaveStates, Doors).ConfigureAwait(false);
+
+            couplers = new EnumArray<Coupler, TrainCarLocation>(await Task.WhenAll(wagonSaveState.CouplerSaveStates.Select(async couplerSaveState =>
+            {
+                if (couplerSaveState != null)
+                {
+                    Coupler coupler = new Coupler();
+                    await coupler.Restore(couplerSaveState).ConfigureAwait(false);
+                    return coupler;
+                }
+                return null;
+            })).ConfigureAwait(false));
+            if (null != PassengerCarPowerSupply)
+                await PassengerCarPowerSupply.Restore(wagonSaveState.PowerSupplySaveStates).ConfigureAwait(false);
+
+            soundDebugValues = wagonSaveState.SoundValues;
         }
 
         /// <summary>
@@ -1730,48 +1782,48 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Save(BinaryWriter outf)
         {
-            outf.Write(Variable1);
-            outf.Write(Variable2);
-            outf.Write(Variable3);
-            outf.Write(IsDavisFriction);
-            outf.Write(IsRollerBearing);
-            outf.Write(IsLowTorqueRollerBearing);
-            outf.Write(IsFrictionBearing);
-            outf.Write(Friction0N);
-            outf.Write(DavisAN);
-            outf.Write(DavisBNSpM);
-            outf.Write(DavisCNSSpMM);
-            outf.Write(StandstillFrictionN);
-            outf.Write(MergeSpeedFrictionN);
-            outf.Write(IsBelowMergeSpeed);
-            outf.Write(MergeSpeedMpS);
-            outf.Write(MassKG);
-            outf.Write(MaxBrakeForceN);
-            outf.Write(MaxHandbrakeForceN);
-            int count = 0;
-            if (couplers[TrainCarLocation.Rear] != null)
-                count++;
-            if (couplers[TrainCarLocation.Front] != null)
-                count++;
-            outf.Write(count);
-            foreach (Coupler coupler in couplers)
+            //outf.Write(Variable1);
+            //outf.Write(Variable2);
+            //outf.Write(Variable3);
+            //outf.Write(IsDavisFriction);
+            //outf.Write(IsRollerBearing);
+            //outf.Write(IsLowTorqueRollerBearing);
+            //outf.Write(IsFrictionBearing);
+            //            outf.Write(Friction0N);
+            //            outf.Write(DavisAN);
+            //            outf.Write(DavisBNSpM);
+            //            outf.Write(DavisCNSSpMM);
+            //            outf.Write(StandstillFrictionN);
+            //            outf.Write(MergeSpeedFrictionN);
+            //            outf.Write(IsBelowMergeSpeed);
+            ////            outf.Write(MergeSpeedMpS);
+            //            outf.Write(MassKG);
+            //            outf.Write(MaxBrakeForceN);
+            //            outf.Write(MaxHandbrakeForceN);
+            //int count = 0;
+            //if (couplers[TrainCarLocation.Rear] != null)
+            //    count++;
+            //if (couplers[TrainCarLocation.Front] != null)
+            //    count++;
+            //outf.Write(count);
+            //foreach (Coupler coupler in couplers)
+            //{
+            //    coupler?.Save(outf);
+            //}
+            //Pantographs.Save(outf);
+            //Doors.Save(outf);
+            //PassengerCarPowerSupply?.Save(outf);
+            //if (FreightAnimations != null)
+            //{
+            //    FreightAnimations.Save(outf);
+            if (WeightLoadController != null)
             {
-                coupler?.Save(outf);
+                outf.Write(true);
+                WeightLoadController.Save(outf);
             }
-            Pantographs.Save(outf);
-            Doors.Save(outf);
-            PassengerCarPowerSupply?.Save(outf);
-            if (FreightAnimations != null)
-            {
-                FreightAnimations.Save(outf);
-                if (WeightLoadController != null)
-                {
-                    outf.Write(true);
-                    WeightLoadController.Save(outf);
-                }
-                else
-                    outf.Write(false);
-            }
+            //    else
+            //        outf.Write(false);
+            //}
             outf.Write(currentSteamHeatBoilerFuelCapacityL);
             outf.Write(CarInsideTempC);
             outf.Write(currentCarSteamHeatBoilerWaterCapacityL);
@@ -1793,38 +1845,38 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Restore(BinaryReader inf)
         {
-            Variable1 = inf.ReadSingle();
-            Variable2 = inf.ReadSingle();
-            Variable3 = inf.ReadSingle();
-            IsDavisFriction = inf.ReadBoolean();
-            IsRollerBearing = inf.ReadBoolean();
-            IsLowTorqueRollerBearing = inf.ReadBoolean();
-            IsFrictionBearing = inf.ReadBoolean();
-            Friction0N = inf.ReadSingle();
-            DavisAN = inf.ReadSingle();
-            DavisBNSpM = inf.ReadSingle();
-            DavisCNSSpMM = inf.ReadSingle();
-            StandstillFrictionN = inf.ReadSingle();
-            MergeSpeedFrictionN = inf.ReadSingle();
-            IsBelowMergeSpeed = inf.ReadBoolean();
-            MergeSpeedMpS = inf.ReadSingle();
-            MassKG = inf.ReadSingle();
-            MaxBrakeForceN = inf.ReadSingle();
-            MaxHandbrakeForceN = inf.ReadSingle();
-            couplers = ReadCouplersFromSave(inf);
-            Pantographs.Restore(inf);
-            Doors.Restore(inf);
-            PassengerCarPowerSupply?.Restore(inf);
-            if (FreightAnimations != null)
+            //Variable1 = inf.ReadSingle();
+            //Variable2 = inf.ReadSingle();
+            //Variable3 = inf.ReadSingle();
+            //IsDavisFriction = inf.ReadBoolean();
+            //IsRollerBearing = inf.ReadBoolean();
+            //IsLowTorqueRollerBearing = inf.ReadBoolean();
+            //IsFrictionBearing = inf.ReadBoolean();
+            //Friction0N = inf.ReadSingle();
+            //DavisAN = inf.ReadSingle();
+            //DavisBNSpM = inf.ReadSingle();
+            //DavisCNSSpMM = inf.ReadSingle();
+            //StandstillFrictionN = inf.ReadSingle();
+            //MergeSpeedFrictionN = inf.ReadSingle();
+            //IsBelowMergeSpeed = inf.ReadBoolean();
+            //MergeSpeedMpS = inf.ReadSingle();
+            //MassKG = inf.ReadSingle();
+            //MaxBrakeForceN = inf.ReadSingle();
+            //MaxHandbrakeForceN = inf.ReadSingle();
+            //couplers = ReadCouplersFromSave(inf);
+            //Pantographs.Restore(inf);
+            //Doors.Restore(inf);
+            //PassengerCarPowerSupply?.Restore(inf);
+            //if (FreightAnimations != null)
+            //{
+            //    FreightAnimations.Restore(inf);
+            var doesWeightLoadControllerExist = inf.ReadBoolean();
+            if (doesWeightLoadControllerExist)
             {
-                FreightAnimations.Restore(inf);
-                var doesWeightLoadControllerExist = inf.ReadBoolean();
-                if (doesWeightLoadControllerExist)
-                {
-                    var controllerType = inf.ReadInt32();
-                    WeightLoadController.Restore(inf);
-                }
+                var controllerType = inf.ReadInt32();
+                WeightLoadController.Restore(inf);
             }
+            //}
             currentSteamHeatBoilerFuelCapacityL = inf.ReadDouble();
             CarInsideTempC = inf.ReadDouble();
             currentCarSteamHeatBoilerWaterCapacityL = inf.ReadDouble();
@@ -1838,21 +1890,6 @@ namespace Orts.Simulation.RollingStocks
             derailElapsedTime = inf.ReadSingle();
 
             base.Restore(inf);
-        }
-
-        private static EnumArray<Coupler, TrainCarLocation> ReadCouplersFromSave(BinaryReader inf)
-        {
-            EnumArray<Coupler, TrainCarLocation> result = new EnumArray<Coupler, TrainCarLocation>();
-            int couplers = inf.ReadInt32();
-            TrainCarLocation couplerLocation = TrainCarLocation.Rear;
-            for (int i = 0; i < couplers; i++)
-            {
-                Coupler coupler = new Coupler();
-                coupler.Restore(inf);
-                result[couplerLocation] = coupler;
-                couplerLocation = couplerLocation.Next();
-            }
-            return result;
         }
 
         public override void Update(double elapsedClockSeconds)

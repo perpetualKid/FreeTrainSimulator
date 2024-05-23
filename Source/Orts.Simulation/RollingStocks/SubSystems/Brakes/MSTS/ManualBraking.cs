@@ -16,7 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.IO;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 
@@ -24,6 +24,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
@@ -69,15 +70,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             ManualReleaseRateValuepS = manualBraking.ManualReleaseRateValuepS;
 
         }
-
-        public override void Save(BinaryWriter outf)
+        public override ValueTask<BrakeSystemSaveState> Snapshot()
         {
-            outf.Write(ManualBrakingCurrentFraction);
+            return ValueTask.FromResult(new BrakeSystemSaveState()
+            {
+                ManualBraking = ManualBrakingCurrentFraction,
+            });
         }
 
-        public override void Restore(BinaryReader inf)
+        public override ValueTask Restore(BrakeSystemSaveState saveState)
         {
-            ManualBrakingCurrentFraction = inf.ReadSingle();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            ManualBrakingCurrentFraction = saveState.ManualBraking;
+
+            return ValueTask.CompletedTask;
         }
 
         public override void Initialize(bool handbrakeOn, float maxPressurePSI, float fullServPressurePSI, bool immediateRelease)
@@ -107,7 +114,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         {
             MSTSLocomotive lead = car.Train.LeadLocomotive;
             float BrakemanBrakeSettingValue = 0;
-            float EngineBrakeSettingValue = 0;
             ManualBrakingDesiredFraction = 0;
 
             SteamBrakeCompensation = 1.0f;
@@ -146,7 +152,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             {
                 if (lead != null)
                 {
-                    EngineBrakeSettingValue = lead.EngineBrakeController.CurrentValue;
+                    float EngineBrakeSettingValue = lead.EngineBrakeController.CurrentValue;
                     if (lead.SteamEngineBrakeFitted)
                     {
                         LocomotiveSteamBrakeFitted = true;

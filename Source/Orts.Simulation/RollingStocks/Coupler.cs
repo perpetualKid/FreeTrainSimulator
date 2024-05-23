@@ -8,7 +8,7 @@ using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks
 {
-    public class Coupler : ISaveStateApi<CouplerSaveState>
+    public class Coupler : ISaveStateApi<CouplerSaveState>, ICollectionSaveStateApi<CouplerSaveState, Coupler>
     {
         public bool Rigid { get; internal set; }
         public float R0X { get; internal set; }
@@ -214,44 +214,6 @@ namespace Orts.Simulation.RollingStocks
                 Break2N = b;
             }
 
-        }
-
-        /// <summary>
-        /// We are saving the game.  Save anything that we'll need to restore the 
-        /// status later.
-        /// </summary>
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
-            outf.Write(Rigid);
-            outf.Write(R0X);
-            outf.Write(R0Y);
-            outf.Write(R0Diff);
-            outf.Write(Stiffness1NpM);
-            outf.Write(Stiffness2NpM);
-            outf.Write(CouplerSlackAM);
-            outf.Write(CouplerSlackBM);
-            outf.Write(Break1N);
-            outf.Write(Break2N);
-        }
-
-        /// <summary>
-        /// We are restoring a saved game.  The TrainCar class has already
-        /// been initialized.   Restore the game state.
-        /// </summary>
-        public void Restore(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-            Rigid = inf.ReadBoolean();
-            R0X = inf.ReadSingle();
-            R0Y = inf.ReadSingle();
-            R0Diff = inf.ReadSingle();
-            Stiffness1NpM = inf.ReadSingle();
-            Stiffness2NpM = inf.ReadSingle();
-            CouplerSlackAM = inf.ReadSingle();
-            CouplerSlackBM = inf.ReadSingle();
-            Break1N = inf.ReadSingle();
-            Break2N = inf.ReadSingle();
         }
 
         public ValueTask<CouplerSaveState> Snapshot()

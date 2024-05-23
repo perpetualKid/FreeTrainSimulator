@@ -19,7 +19,7 @@
 //#define DEBUG_TRAIN_PIPE_LEAK
 
 using System;
-using System.IO;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 
@@ -29,6 +29,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
@@ -195,30 +196,38 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
         }
 
-        public override void Save(BinaryWriter outf)
+
+        public override ValueTask<BrakeSystemSaveState> Snapshot()
         {
-            outf.Write(BrakeLine1PressurePSI);
-            outf.Write(BrakeLine2PressurePSI);
-            outf.Write(BrakeLine3PressurePSI);
-            outf.Write(CylPressurePSIA);
-            outf.Write(VacResPressurePSIA);
-            outf.Write(FrontBrakeHoseConnected);
-            outf.Write(AngleCockAOpen);
-            outf.Write(AngleCockBOpen);
-            outf.Write(BleedOffValveOpen);
+            return ValueTask.FromResult(new BrakeSystemSaveState()
+            {
+                BrakeLine1Pressure = BrakeLine1PressurePSI,
+                BrakeLine2Pressure = BrakeLine2PressurePSI,
+                BrakeLine3Pressure = BrakeLine3PressurePSI,
+                CylinderPressure = CylPressurePSIA,
+                VacuumReservoirPressure = VacResPressurePSIA,
+                FrontBrakeHoseConnected = FrontBrakeHoseConnected,
+                AngleCockAOpen = AngleCockAOpen,
+                AngleCockBOpen = AngleCockBOpen,
+                BleedOffValveOpen = BleedOffValveOpen,
+            });
         }
 
-        public override void Restore(BinaryReader inf)
+        public override ValueTask Restore(BrakeSystemSaveState saveState)
         {
-            BrakeLine1PressurePSI = inf.ReadSingle();
-            BrakeLine2PressurePSI = inf.ReadSingle();
-            BrakeLine3PressurePSI = inf.ReadSingle();
-            CylPressurePSIA = inf.ReadSingle();
-            VacResPressurePSIA = inf.ReadSingle();
-            FrontBrakeHoseConnected = inf.ReadBoolean();
-            AngleCockAOpen = inf.ReadBoolean();
-            AngleCockBOpen = inf.ReadBoolean();
-            BleedOffValveOpen = inf.ReadBoolean();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            BrakeLine1PressurePSI = saveState.BrakeLine1Pressure;
+            BrakeLine2PressurePSI = saveState.BrakeLine2Pressure;
+            BrakeLine3PressurePSI = saveState.BrakeLine3Pressure;
+            CylPressurePSIA = saveState.CylinderPressure;
+            VacResPressurePSIA = saveState.VacuumReservoirPressure;
+            FrontBrakeHoseConnected = saveState.FrontBrakeHoseConnected;
+            AngleCockAOpen = saveState.AngleCockAOpen;
+            AngleCockBOpen = saveState.AngleCockBOpen;
+            BleedOffValveOpen = saveState.BleedOffValveOpen;
+
+            return ValueTask.CompletedTask;
         }
 
         public override void Initialize(bool handbrakeOn, float maxVacuumInHg, float fullServVacuumInHg, bool immediateRelease)

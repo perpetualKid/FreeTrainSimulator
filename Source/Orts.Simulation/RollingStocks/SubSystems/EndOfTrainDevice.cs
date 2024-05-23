@@ -17,10 +17,10 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 
@@ -29,45 +29,30 @@ using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Simulation.Physics;
 
+using SharpDX.Direct2D1;
+
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
-    public enum EndOfTrainLevel
-    {
-        NoComm,
-        OneWay,
-        TwoWay
-    }
-
-    [Description("EoT")]
-    public enum EoTState
-    {
-        [Description("Disarmed")] Disarmed,
-        [Description("Comm Test")] CommTestOn,
-        [Description("Armed")] Armed,
-        [Description("Local Test")] LocalTestOn,
-        [Description(" Arm Now")] ArmNow,
-        [Description("2-way Armed")] ArmedTwoWay
-    }
-
     public class EndOfTrainDevice : MSTSWagon
     {
-        public float CommTestDelayS { get; protected set; } = 5f;
-        public float LocalTestDelayS { get; protected set; } = 25f;
-
-        public int ID { get; private set; }
-        public EoTState State { get; set; }
-        public bool EOTEmergencyBrakingOn { get; private set; }
+        private Timer delayTimer;
         private EndOfTrainLevel level;
 
-        private protected Timer delayTimer;
+        public float CommTestDelayS { get; private set; } = 5f;
+        public float LocalTestDelayS { get; private set; } = 25f;
+
+        public int ID { get; private set; }
+        public EndOfTrainState State { get; set; }
+        public bool EOTEmergencyBrakingOn { get; private set; }
 
         public EndOfTrainDevice(string wagPath)
             : base(wagPath)
         {
-            State = EoTState.Disarmed;
+            State = EndOfTrainState.Disarmed;
             ID = StaticRandom.Next(0, 99999);
             delayTimer = new Timer(simulator);
         }
@@ -88,10 +73,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             switch (level)
             {
                 case EndOfTrainLevel.OneWay:
-                    State = EoTState.Armed;
+                    State = EndOfTrainState.Armed;
                     break;
                 case EndOfTrainLevel.TwoWay:
-                    State = EoTState.ArmedTwoWay;
+                    State = EndOfTrainState.ArmedTwoWay;
                     break;
                 default:
                     break;
@@ -101,7 +86,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public override void Update(double elapsedClockSeconds)
         {
             UpdateState();
-            Train.Cars.Last().BrakeSystem.AngleCockBOpen = simulator.PlayerLocomotive.Train == Train && State == EoTState.ArmedTwoWay &&
+            Train.Cars.Last().BrakeSystem.AngleCockBOpen = simulator.PlayerLocomotive.Train == Train && State == EndOfTrainState.ArmedTwoWay &&
                 (EOTEmergencyBrakingOn || BrakeController.IsEmergencyState(simulator.PlayerLocomotive.TrainBrakeController.State));
             base.Update(elapsedClockSeconds);
         }
@@ -110,34 +95,34 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             switch (State)
             {
-                case EoTState.Disarmed:
+                case EndOfTrainState.Disarmed:
                     break;
-                case EoTState.CommTestOn:
+                case EndOfTrainState.CommTestOn:
                     if (delayTimer.Triggered)
                     {
                         delayTimer.Stop();
-                        State = EoTState.Armed;
+                        State = EndOfTrainState.Armed;
                     }
                     break;
-                case EoTState.Armed:
+                case EndOfTrainState.Armed:
                     if (level == EndOfTrainLevel.TwoWay)
                     {
                         delayTimer ??= new Timer(simulator);
                         delayTimer.Setup(LocalTestDelayS);
-                        State = EoTState.LocalTestOn;
+                        State = EndOfTrainState.LocalTestOn;
                         delayTimer.Start();
                     }
                     break;
-                case EoTState.LocalTestOn:
+                case EndOfTrainState.LocalTestOn:
                     if (delayTimer.Triggered)
                     {
                         delayTimer.Stop();
-                        State = EoTState.ArmNow;
+                        State = EndOfTrainState.ArmNow;
                     }
                     break;
-                case EoTState.ArmNow:
+                case EndOfTrainState.ArmNow:
                     break;
-                case EoTState.ArmedTwoWay:
+                case EndOfTrainState.ArmedTwoWay:
                     break;
             }
         }
@@ -159,28 +144,36 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             }
         }
 
-        public override void Save(BinaryWriter outf)
+        public override async ValueTask<TrainCarSaveState> Snapshot()
         {
-            ArgumentNullException.ThrowIfNull(outf);
-            outf.Write(ID);
-            outf.Write((int)State);
-            base.Save(outf);
+            TrainCarSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.EndOfTrainSaveState = new EndOfTrainSaveState()
+            {
+                DeviceId = ID,
+                EndOfTrainState = State,
+            };
+
+            return saveState;
         }
 
-        public override void Restore(BinaryReader inf)
+        public override async ValueTask Restore([NotNull] TrainCarSaveState saveState)
         {
-            ArgumentNullException.ThrowIfNull(inf);
-            ID = inf.ReadInt32();
-            State = (EoTState)(inf.ReadInt32());
+            await base.Restore(saveState).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(saveState.EndOfTrainSaveState, nameof(saveState.EndOfTrainSaveState));
+
+            ID = saveState.EndOfTrainSaveState.DeviceId;
+            State = saveState.EndOfTrainSaveState.EndOfTrainState;
+
             delayTimer = new Timer(simulator);
             switch (State)
             {
-                case EoTState.CommTestOn:
+                case EndOfTrainState.CommTestOn:
                     // restart timer
                     delayTimer.Setup(CommTestDelayS);
                     delayTimer.Start();
                     break;
-                case EoTState.LocalTestOn:
+                case EndOfTrainState.LocalTestOn:
                     // restart timer
                     delayTimer.Setup(LocalTestDelayS);
                     delayTimer.Start();
@@ -188,7 +181,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 default:
                     break;
             }
-            base.Restore(inf);
             if (Train != null)
                 Train.EndOfTrainDevice = this;
         }
@@ -220,34 +212,33 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public void CommTest()
         {
-            if (State == EoTState.Disarmed &&
+            if (State == EndOfTrainState.Disarmed &&
                 (level == EndOfTrainLevel.OneWay || level == EndOfTrainLevel.TwoWay))
             {
                 delayTimer ??= new Timer(simulator);
                 delayTimer.Setup(CommTestDelayS);
-                State = EoTState.CommTestOn;
+                State = EndOfTrainState.CommTestOn;
                 delayTimer.Start();
             }
         }
 
         public void Disarm()
         {
-            State = EoTState.Disarmed;
+            State = EndOfTrainState.Disarmed;
         }
 
         public void ArmTwoWay()
         {
-            if (State == EoTState.ArmNow)
-                State = EoTState.ArmedTwoWay;
+            if (State == EndOfTrainState.ArmNow)
+                State = EndOfTrainState.ArmedTwoWay;
         }
 
         public void EmergencyBrake(bool toState)
         {
-            if (State == EoTState.ArmedTwoWay)
+            if (State == EndOfTrainState.ArmedTwoWay)
             {
                 EOTEmergencyBrakingOn = toState;
             }
         }
-
     }
 }

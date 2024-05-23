@@ -125,45 +125,6 @@ namespace Orts.Simulation.World
             MaxMassWhenLoadedKG = source.MaxMassWhenLoadedKG;
         }
 
-        public Container(BinaryReader inf, FreightAnimationDiscrete freightAnimDiscrete, ContainerHandlingStation containerStation, bool fromContainerStation, int stackLocationIndex = 0)
-        {
-            Name = inf.ReadString();
-            BaseShapeFileFolderSlash = inf.ReadString();
-            ShapeFileName = inf.ReadString();
-            LoadFilePath = inf.ReadString();
-            IntrinsicShapeOffset = new Vector3(inf.ReadSingle(), inf.ReadSingle(), inf.ReadSingle());
-            ContainerType = (ContainerType)inf.ReadInt32();
-            ComputeDimensions();
-            flipped = inf.ReadBoolean();
-            MassKG = inf.ReadSingle();
-            EmptyMassKG = inf.ReadSingle();
-            MaxMassWhenLoadedKG = inf.ReadSingle();
-            if (fromContainerStation)
-            {
-                ArgumentNullException.ThrowIfNull(containerStation);
-                ContainerStation = containerStation;
-                // compute WorldPosition starting from offsets and position of container station
-                var containersCount = containerStation.StackLocations[stackLocationIndex].Containers.Count;
-                var mstsOffset = IntrinsicShapeOffset;
-                mstsOffset.Z *= -1;
-                var totalOffset = containerStation.StackLocations[stackLocationIndex].Position - mstsOffset;
-                totalOffset.Z += LengthM * (containerStation.StackLocations[stackLocationIndex].Flipped ? -1 : 1) / 2;
-                if (containersCount != 0)
-                    for (var iPos = containersCount - 1; iPos >= 0; iPos--)
-                        totalOffset.Y += containerStation.StackLocations[stackLocationIndex].Containers[iPos].HeightM;
-                totalOffset.Z *= -1;
-                totalOffset = Vector3.Transform(totalOffset, containerStation.WorldPosition.XNAMatrix);
-                worldPosition = containerStation.WorldPosition.SetTranslation(totalOffset);
-            }
-            else
-            {
-                ArgumentNullException.ThrowIfNull(freightAnimDiscrete);
-                Wagon = freightAnimDiscrete.Wagon;
-                RelativeContainerMatrix = MatrixExtension.RestoreMatrix(inf);
-                worldPosition = new WorldPosition(Wagon.WorldPosition.TileX, Wagon.WorldPosition.TileZ, MatrixExtension.Multiply(RelativeContainerMatrix, Wagon.WorldPosition.XNAMatrix));
-            }
-        }
-
         private void ComputeDimensions()
         {
             switch (ContainerType)
@@ -274,24 +235,6 @@ namespace Orts.Simulation.World
             return ValueTask.CompletedTask;
         }
 
-        public void Save(BinaryWriter outf, bool fromContainerStation = false)
-        {
-            outf.Write(Name);
-            outf.Write(BaseShapeFileFolderSlash);
-            outf.Write(ShapeFileName);
-            outf.Write(LoadFilePath);
-            outf.Write(IntrinsicShapeOffset.X);
-            outf.Write(IntrinsicShapeOffset.Y);
-            outf.Write(IntrinsicShapeOffset.Z);
-            outf.Write((int)ContainerType);
-            outf.Write(flipped);
-            outf.Write(MassKG);
-            outf.Write(EmptyMassKG);
-            outf.Write(MaxMassWhenLoadedKG);
-            if (!fromContainerStation)
-                MatrixExtension.SaveMatrix(outf, RelativeContainerMatrix);
-        }
-
         public void LoadFromContainerFile(string loadFilePath, string baseFolder)
         {
             ContainerFile containerFile = new ContainerFile(loadFilePath);
@@ -314,7 +257,7 @@ namespace Orts.Simulation.World
             worldPosition = position;
         }
 
-        public void ComputeWorldPosition(FreightAnimationDiscrete freightAnimDiscrete)
+        internal void ComputeWorldPosition(FreightAnimationDiscrete freightAnimDiscrete)
         {
             Vector3 offset = freightAnimDiscrete.Offset;
             //            if (freightAnimDiscrete.Container != null) offset.Y += freightAnimDiscrete.Container.HeightM;
@@ -325,7 +268,7 @@ namespace Orts.Simulation.World
             RelativeContainerMatrix = Matrix.Multiply(WorldPosition.XNAMatrix, invWagonMatrix);
         }
 
-        public void ComputeLoadWeight(LoadState loadState)
+        internal void ComputeLoadWeight(LoadState loadState)
         {
             switch (loadState)
             {
