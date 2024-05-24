@@ -522,7 +522,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     car.WheelBrakeSlideProtectionActive = true;
                     autoCylPressurePSI -= (float)(elapsedClockSeconds * maxReleaseRatePSIpS);
                     cylPressurePSI = autoCylPressurePSI;
-                    car.WheelBrakeSlideProtectionTimerS -= (float)elapsedClockSeconds;
+                    car.WheelBrakeSlideProtectionTimerS -= elapsedClockSeconds;
 
                     // Lockout WSP dump valve if it is open for greater then 7 seconds continuously
                     if (car.WheelBrakeSlideProtectionTimerS <= 0)

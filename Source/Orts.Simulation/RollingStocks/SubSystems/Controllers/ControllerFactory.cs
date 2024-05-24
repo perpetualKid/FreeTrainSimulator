@@ -15,16 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.IO;
+using System.Threading.Tasks;
+
+using Orts.Common;
+using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 {
-    public enum ControllerTypes
-    {        
-        MSTSNotchController = 1,        
-        BrakeController
-    }
-
     public static class ControllerFactory
     {
         public static void Save(IController controller, BinaryWriter outf)
@@ -35,20 +34,38 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 controller.Save(outf);
         }
 
+        public static async Task Restore(IController controller, ControllerSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(controller, nameof(controller));
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            switch (saveState.ControllerType)
+            {
+                case ControllerType.NotchController:
+                    await (controller as MSTSNotchController).Restore(saveState).ConfigureAwait(false);
+                    break;
+                case ControllerType.BrakeController:
+                    //(controller as ScriptedBrakeController).Restore()
+                    break;
+                default:
+                    throw new InvalidDataException("Invalid controller type to restore");
+            }
+        }
+
 		public static void Restore(IController controller, BinaryReader inf)
         {
             if (!inf.ReadBoolean())
                 return;
 
-            switch ((ControllerTypes)inf.ReadInt32())
+            switch ((ControllerType)inf.ReadInt32())
             {                
-                case ControllerTypes.MSTSNotchController:
+                case ControllerType.NotchController:
                     if (controller == null)
                         controller = new MSTSNotchController();
-                    ((MSTSNotchController)controller).Restore(inf);
+//                    ((MSTSNotchController)controller).Restore(inf);
                     break;
 
-                case ControllerTypes.BrakeController:
+                case ControllerType.BrakeController:
                     ((ScriptedBrakeController)controller).Restore(inf);
                     break;
 

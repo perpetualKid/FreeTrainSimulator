@@ -18,23 +18,29 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.DebugInfo;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 {
-    public class MSTSNotch : IControllerNotch
+    public class MSTSNotch : IControllerNotch, ISaveStateApi<NotchSaveState>
     {
         public float Value { get; set; }
         public bool Smooth { get; set; }
         public ControllerState NotchStateType { get; set; }
+
+        public MSTSNotch() { }
 
         public MSTSNotch(float v, int s, string type, STFReader stf)
         {
@@ -177,23 +183,30 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             NotchStateType = other.NotchStateType;
         }
 
-        public MSTSNotch(BinaryReader inf)
-        {
-            Value = inf.ReadSingle();
-            Smooth = inf.ReadBoolean();
-            NotchStateType = (ControllerState)inf.ReadInt32();
-        }
-
         public MSTSNotch Clone()
         {
             return new MSTSNotch(this);
         }
 
-        public void Save(BinaryWriter outf)
+        public ValueTask<NotchSaveState> Snapshot()
         {
-            outf.Write(Value);
-            outf.Write(Smooth);
-            outf.Write((int)NotchStateType);
+            return ValueTask.FromResult(new NotchSaveState()
+            { 
+                CurrentValue = Value,
+                Smooth = Smooth,
+                NotchStateType = NotchStateType,
+            });
+        }
+
+        public ValueTask Restore(NotchSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            Value = saveState.CurrentValue;
+            Smooth = saveState.Smooth;
+            NotchStateType = saveState.NotchStateType;
+
+            return ValueTask.CompletedTask;
         }
     }
 
@@ -204,7 +217,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
      * The user need to press the key multiple times to update this controller.
      * 
      */
-    public class MSTSNotchController : IController, INameValueInformationProvider
+    public class MSTSNotchController : 
+        IController, 
+        INameValueInformationProvider, 
+        ISaveStateApi<ControllerSaveState>,
+        ICollectionSaveStateApi<NotchSaveState, MSTSNotch>
     {
         public const float StandardBoost = 5.0f; // standard step size multiplier
         public const float FastBoost = 20.0f;
@@ -635,44 +652,40 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public virtual void Save(BinaryWriter outf)
         {
-            outf.Write((int)ControllerTypes.MSTSNotchController);
+            outf.Write((int)ControllerType.NotchController);
 
-            this.SaveData(outf);
+            //this.SaveData(outf);
         }
 
-        protected virtual void SaveData(BinaryWriter outf)
+        public async ValueTask<ControllerSaveState> Snapshot()
         {
-            outf.Write(CurrentValue);
-            outf.Write(MinimumValue);
-            outf.Write(MaximumValue);
-            outf.Write(StepSize);
-            outf.Write(NotchIndex);
-            outf.Write(Notches.Count);
-
-            foreach (MSTSNotch notch in Notches)
+            return new ControllerSaveState()
             {
-                notch.Save(outf);
-            }
+                ControllerType = ControllerType.NotchController,
+                CurrentValue = CurrentValue,
+                MinimumValue = MinimumValue,
+                MaximumValue = MaximumValue,
+                StepSize = StepSize,
+                NotchIndex = NotchIndex,
+                NotchStates = await (this as ICollectionSaveStateApi<NotchSaveState, MSTSNotch>).SnapshotCollection(Notches.Cast<MSTSNotch>()).ConfigureAwait(false),
+            };
         }
 
-        public virtual void Restore(BinaryReader inf)
+        public async ValueTask Restore(ControllerSaveState saveState)
         {
-            Notches.Clear();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-            IntermediateValue = CurrentValue = inf.ReadSingle();
-            MinimumValue = inf.ReadSingle();
-            MaximumValue = inf.ReadSingle();
-            StepSize = inf.ReadSingle();
-            NotchIndex = inf.ReadInt32();
+            IntermediateValue = CurrentValue = saveState.CurrentValue;
+            MinimumValue = saveState.MinimumValue;
+            MaximumValue = saveState.MaximumValue;
+            StepSize = saveState.StepSize;
+            NotchIndex = saveState.NotchIndex;
 
             UpdateValue = 0;
-
-            int count = inf.ReadInt32();
-
-            for (int i = 0; i < count; ++i)
-            {
-                Notches.Add(new MSTSNotch(inf));
-            }
+            Notches.Clear();
+            List<MSTSNotch> notches = new List<MSTSNotch>();
+            await (this as ICollectionSaveStateApi<NotchSaveState, MSTSNotch>).RestoreCollectionCreateNewInstances(saveState.NotchStates, notches).ConfigureAwait(false);
+            Notches.AddRange(notches);
         }
 
         public IControllerNotch CurrentNotch => Notches.Count == 0 ? null : Notches[NotchIndex];

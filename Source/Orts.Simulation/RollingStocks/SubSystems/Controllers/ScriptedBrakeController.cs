@@ -531,7 +531,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public void Save(BinaryWriter outf)
         {
-            outf.Write((int)ControllerTypes.BrakeController);
+            outf.Write((int)ControllerType.BrakeController);
 
             outf.Write(CurrentValue);
 

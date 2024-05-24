@@ -25,8 +25,18 @@ namespace Orts.Models.State
         public float Mass { get; set; }
         public float MaxBrakeForce { get; set; }
         public float MaxHandbrakeForce { get; set; }
+        public double CurrentSteamHeatBoilerFuelCapacity { get; set; }
+        public double CurrentCarSteamHeatBoilerWaterCapacity { get; set; }
+        public double CarInsideTemp {  get; set; }
+        public bool WheelBrakeSlideProtectionActive { get; set; }
+        public double WheelBrakeSlideProtectionTimer { get; set; }
+        public float DerailClimbDistance { get; set; }
+        public bool DerailPossible { get; set; }
+        public bool DerailExpected { get; set; }
+        public double DerailElapsedTime { get; set; }
         public PowerSupplySaveState PowerSupplySaveStates { get; set; }
         public FreightAnimationsSetSaveState FreightAnimationsSaveState { get; set; }
+        public ControllerSaveState WeightControllerSaveState { get; set; }
 
     }
 }

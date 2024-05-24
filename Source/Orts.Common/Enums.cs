@@ -1415,5 +1415,10 @@ namespace Orts.Common
         Opposite,
     }
 
+    public enum ControllerType
+    {
+        NotchController = 1,
+        BrakeController
+    }
 
 }

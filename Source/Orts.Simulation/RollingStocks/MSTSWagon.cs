@@ -60,6 +60,8 @@ using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.World;
 
+using SharpDX.Direct2D1;
+
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Orts.Simulation.RollingStocks
@@ -1732,8 +1734,18 @@ namespace Orts.Simulation.RollingStocks
                 Mass = MassKG,
                 MaxBrakeForce = MaxBrakeForceN,
                 MaxHandbrakeForce = MaxHandbrakeForceN,
+                CurrentSteamHeatBoilerFuelCapacity = currentSteamHeatBoilerFuelCapacityL,
+                CurrentCarSteamHeatBoilerWaterCapacity = currentCarSteamHeatBoilerWaterCapacityL,
+                CarInsideTemp = CarInsideTempC,
+                WheelBrakeSlideProtectionActive = WheelBrakeSlideProtectionActive,
+                WheelBrakeSlideProtectionTimer = WheelBrakeSlideProtectionTimerS,
+                DerailPossible = DerailPossible,
+                DerailExpected = DerailExpected,
+                DerailClimbDistance = derailClimbDistance,
+                DerailElapsedTime = derailElapsedTime,
                 PowerSupplySaveStates = PassengerCarPowerSupply == null ? null : await PassengerCarPowerSupply.Snapshot().ConfigureAwait(false),
-                FreightAnimationsSaveState = FreightAnimations == null ? null : await FreightAnimations.Snapshot().ConfigureAwait(false),
+                FreightAnimationsSaveState = FreightAnimations == null ? null : await FreightAnimations.Snapshot().ConfigureAwait(false),                
+                WeightControllerSaveState = WeightLoadController == null ? null : await WeightLoadController.Snapshot().ConfigureAwait(false),
             };
             return saveState;
         }
@@ -1757,6 +1769,17 @@ namespace Orts.Simulation.RollingStocks
             MaxBrakeForceN = wagonSaveState.MaxBrakeForce;
             MaxHandbrakeForceN = wagonSaveState.MaxHandbrakeForce;
 
+            currentSteamHeatBoilerFuelCapacityL = wagonSaveState.CurrentSteamHeatBoilerFuelCapacity;
+            currentCarSteamHeatBoilerWaterCapacityL = wagonSaveState.CurrentCarSteamHeatBoilerWaterCapacity;
+            CarInsideTempC = wagonSaveState.CarInsideTemp;
+
+            WheelBrakeSlideProtectionActive = wagonSaveState.WheelBrakeSlideProtectionActive;
+            WheelBrakeSlideProtectionTimerS = wagonSaveState.WheelBrakeSlideProtectionTimer;
+            derailClimbDistance = wagonSaveState.DerailClimbDistance;
+            DerailPossible = wagonSaveState.DerailPossible;
+            DerailExpected = wagonSaveState.DerailExpected;
+            derailElapsedTime = wagonSaveState.DerailElapsedTime;
+
             await (Pantographs as ICollectionSaveStateApi<PantographSaveState, Pantograph>).RestoreCollectionCreateNewInstances(wagonSaveState.PantographSaveStates, Pantographs).ConfigureAwait(false);
             await (Doors as ICollectionSaveStateApi<DoorSaveState, Door>).RestoreCollectionOnExistingInstances(wagonSaveState.DoorSaveStates, Doors).ConfigureAwait(false);
 
@@ -1772,124 +1795,12 @@ namespace Orts.Simulation.RollingStocks
             })).ConfigureAwait(false));
             if (null != PassengerCarPowerSupply)
                 await PassengerCarPowerSupply.Restore(wagonSaveState.PowerSupplySaveStates).ConfigureAwait(false);
+            if (null != FreightAnimations)
+                await FreightAnimations.Restore(wagonSaveState.FreightAnimationsSaveState).ConfigureAwait(false);
+            if (null != WeightLoadController)
+                await WeightLoadController.Restore(wagonSaveState.WeightControllerSaveState).ConfigureAwait(false);
 
             soundDebugValues = wagonSaveState.SoundValues;
-        }
-
-        /// <summary>
-        /// We are saving the game.  Save anything that we'll need to restore the 
-        /// status later.
-        /// </summary>
-        public override void Save(BinaryWriter outf)
-        {
-            //outf.Write(Variable1);
-            //outf.Write(Variable2);
-            //outf.Write(Variable3);
-            //outf.Write(IsDavisFriction);
-            //outf.Write(IsRollerBearing);
-            //outf.Write(IsLowTorqueRollerBearing);
-            //outf.Write(IsFrictionBearing);
-            //            outf.Write(Friction0N);
-            //            outf.Write(DavisAN);
-            //            outf.Write(DavisBNSpM);
-            //            outf.Write(DavisCNSSpMM);
-            //            outf.Write(StandstillFrictionN);
-            //            outf.Write(MergeSpeedFrictionN);
-            //            outf.Write(IsBelowMergeSpeed);
-            ////            outf.Write(MergeSpeedMpS);
-            //            outf.Write(MassKG);
-            //            outf.Write(MaxBrakeForceN);
-            //            outf.Write(MaxHandbrakeForceN);
-            //int count = 0;
-            //if (couplers[TrainCarLocation.Rear] != null)
-            //    count++;
-            //if (couplers[TrainCarLocation.Front] != null)
-            //    count++;
-            //outf.Write(count);
-            //foreach (Coupler coupler in couplers)
-            //{
-            //    coupler?.Save(outf);
-            //}
-            //Pantographs.Save(outf);
-            //Doors.Save(outf);
-            //PassengerCarPowerSupply?.Save(outf);
-            //if (FreightAnimations != null)
-            //{
-            //    FreightAnimations.Save(outf);
-            if (WeightLoadController != null)
-            {
-                outf.Write(true);
-                WeightLoadController.Save(outf);
-            }
-            //    else
-            //        outf.Write(false);
-            //}
-            outf.Write(currentSteamHeatBoilerFuelCapacityL);
-            outf.Write(CarInsideTempC);
-            outf.Write(currentCarSteamHeatBoilerWaterCapacityL);
-
-            outf.Write(WheelBrakeSlideProtectionActive);
-            outf.Write(WheelBrakeSlideProtectionTimerS);
-            outf.Write(angleOfAttack);
-            outf.Write(derailClimbDistance);
-            outf.Write(DerailPossible);
-            outf.Write(DerailExpected);
-            outf.Write(derailElapsedTime);
-
-            base.Save(outf);
-        }
-
-        /// <summary>
-        /// We are restoring a saved game.  The TrainCar class has already
-        /// been initialized.   Restore the game state.
-        /// </summary>
-        public override void Restore(BinaryReader inf)
-        {
-            //Variable1 = inf.ReadSingle();
-            //Variable2 = inf.ReadSingle();
-            //Variable3 = inf.ReadSingle();
-            //IsDavisFriction = inf.ReadBoolean();
-            //IsRollerBearing = inf.ReadBoolean();
-            //IsLowTorqueRollerBearing = inf.ReadBoolean();
-            //IsFrictionBearing = inf.ReadBoolean();
-            //Friction0N = inf.ReadSingle();
-            //DavisAN = inf.ReadSingle();
-            //DavisBNSpM = inf.ReadSingle();
-            //DavisCNSSpMM = inf.ReadSingle();
-            //StandstillFrictionN = inf.ReadSingle();
-            //MergeSpeedFrictionN = inf.ReadSingle();
-            //IsBelowMergeSpeed = inf.ReadBoolean();
-            //MergeSpeedMpS = inf.ReadSingle();
-            //MassKG = inf.ReadSingle();
-            //MaxBrakeForceN = inf.ReadSingle();
-            //MaxHandbrakeForceN = inf.ReadSingle();
-            //couplers = ReadCouplersFromSave(inf);
-            //Pantographs.Restore(inf);
-            //Doors.Restore(inf);
-            //PassengerCarPowerSupply?.Restore(inf);
-            //if (FreightAnimations != null)
-            //{
-            //    FreightAnimations.Restore(inf);
-            var doesWeightLoadControllerExist = inf.ReadBoolean();
-            if (doesWeightLoadControllerExist)
-            {
-                var controllerType = inf.ReadInt32();
-                WeightLoadController.Restore(inf);
-            }
-            //}
-            currentSteamHeatBoilerFuelCapacityL = inf.ReadDouble();
-            CarInsideTempC = inf.ReadDouble();
-            currentCarSteamHeatBoilerWaterCapacityL = inf.ReadDouble();
-
-            WheelBrakeSlideProtectionActive = inf.ReadBoolean();
-            WheelBrakeSlideProtectionTimerS = inf.ReadSingle();
-            angleOfAttack = inf.ReadSingle();
-            derailClimbDistance = inf.ReadSingle();
-            DerailPossible = inf.ReadBoolean();
-            DerailExpected = inf.ReadBoolean();
-            derailElapsedTime = inf.ReadSingle();
-
-            base.Restore(inf);
         }
 
         public override void Update(double elapsedClockSeconds)

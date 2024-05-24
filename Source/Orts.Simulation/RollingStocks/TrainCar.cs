@@ -192,7 +192,7 @@ namespace Orts.Simulation.RollingStocks
         private protected float derailClimbDistance;
         public bool DerailPossible { get; protected set; }
         public bool DerailExpected { get; protected set; }
-        private protected float derailElapsedTime;
+        private protected double derailElapsedTime;
 
         internal float MaxHandbrakeForceN;
         internal float MaxBrakeForceN = 89e3f;
@@ -236,8 +236,8 @@ namespace Orts.Simulation.RollingStocks
         internal bool WheelBrakeSlideProtectionFitted;
         internal bool WheelBrakeSlideProtectionActive;
         internal bool WheelBrakeSlideProtectionLimitDisabled;
-        internal float WheelBrakeSlideTimerResetValueS = 7.0f; // Set wsp time to 7 secs
-        internal float WheelBrakeSlideProtectionTimerS = 7.0f;
+        internal double WheelBrakeSlideTimerResetValueS = 7.0; // Set wsp time to 7 secs
+        internal double WheelBrakeSlideProtectionTimerS = 7.0;
         internal bool WheelBrakeSlideProtectionDumpValveLockout;
 
         public bool BrakeSkid { get; private set; }
@@ -1280,7 +1280,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     else if (DerailPossible)
                     {
-                        derailElapsedTime += (float)elapsedClockSeconds;
+                        derailElapsedTime += elapsedClockSeconds;
                         //   Trace.TraceInformation("Car Derail Time - CarID: {0}, Coupler: {1}, CouplerSmoothed {2}, Lateral {3}, Vertical {4}, Angle {5}, Elapsed {6}, DeratilTime {7}, Distance {8} Nadal {9} Coeff {10}", CarID, CouplerForceU, CouplerForceUSmoothed.SmoothedValue, TotalWagonLateralDerailForceN, TotalWagonVerticalDerailForceN, WagonCouplerAngleDerailRad, DerailElapsedTimeS, derailTimeS, DerailClimbDistanceM, NadalDerailmentCoefficient, DerailmentCoefficient);
                     }
                     else
