@@ -28,13 +28,14 @@
  * 
  */
 
+using System;
 using System.Diagnostics;
-using System.IO;
-
-using Microsoft.VisualBasic.Logging;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
@@ -133,30 +134,27 @@ namespace Orts.Simulation.RollingStocks
             ControllerNumberOfGears = controlTrailerCar.ControllerNumberOfGears;
         }
 
-        /// <summary>
-        /// We are saving the game.  Save anything that we'll need to restore the 
-        /// status later.
-        /// </summary>
-        public override void Save(BinaryWriter outf)
+        public override async ValueTask<TrainCarSaveState> Snapshot()
         {
-            base.Save(outf);
-            ControllerFactory.Save(GearBoxController, outf);
-            outf.Write(controlGearIndication);
-            outf.Write(controlGearIndex);
+            TrainCarSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+            saveState.ControlTrailerSaveState = new ControlTrailerSaveState()
+            {
+                GearboxControllerSaveState = await GearBoxController.Snapshot().ConfigureAwait(false),
+                GearBoxIndication = controlGearIndication,
+                GearIndex = controlGearIndex,
+            };
+            return saveState;
         }
 
-        /// <summary>
-        /// We are restoring a saved game.  The TrainCar class has already
-        /// been initialized.   Restore the game state.
-        /// </summary>
-        public override void Restore(BinaryReader inf)
+        public override async ValueTask Restore([NotNull] TrainCarSaveState saveState)
         {
-            base.Restore(inf);
-            ControllerFactory.Restore(GearBoxController, inf);
-            controlGearIndication = inf.ReadInt32();
-            controlGearIndex = inf.ReadInt32();
+            await base.Restore(saveState).ConfigureAwait(false);
+            GearBoxController = new MSTSNotchController();
+            ArgumentNullException.ThrowIfNull(saveState.ControlTrailerSaveState, nameof(saveState.ControlTrailerSaveState));
+            await GearBoxController.Restore(saveState.ControlTrailerSaveState.GearboxControllerSaveState).ConfigureAwait(false);
+            controlGearIndication = saveState.ControlTrailerSaveState.GearBoxIndication;
+            controlGearIndex = saveState.ControlTrailerSaveState.GearIndex;
         }
-
 
         /// <summary>
         /// Set starting conditions  when initial speed > 0 
