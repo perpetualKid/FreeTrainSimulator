@@ -204,7 +204,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
             set
             {
-                pantographs[i] = value;
+                pantographs[i - 1] = value;
             }
         }
 

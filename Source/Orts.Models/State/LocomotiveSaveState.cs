@@ -38,6 +38,7 @@ namespace Orts.Models.State
         public int DistributedPowerUnitId { get; set; }
         public int PreviousGearBoxNotch { get; set; }
         public int PreviousChangedGearBoxNotch { get; set; }
+        public double CurrentLocomotiveSteamHeatBoilerWaterCapacity { get; set; }
         public ControllerSaveState ThrottleController { get; set; }
         public ControllerSaveState TrainBrakeController { get; set; }
         public ControllerSaveState EngineBrakeController { get; set; }

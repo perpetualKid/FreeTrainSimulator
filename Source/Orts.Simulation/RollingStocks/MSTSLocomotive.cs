@@ -1401,7 +1401,7 @@ namespace Orts.Simulation.RollingStocks
 
         public override async ValueTask<TrainCarSaveState> Snapshot()
         {
-            TrainCarSaveState saveState  = await base.Snapshot().ConfigureAwait(false);
+            TrainCarSaveState saveState = await base.Snapshot().ConfigureAwait(false);
 
             saveState.LocomotiveSaveState = new LocomotiveSaveState()
             {
@@ -1418,17 +1418,17 @@ namespace Orts.Simulation.RollingStocks
                 VacuumMainReservoirVacuum = VacuumMainResVacuumPSIAorInHg,
                 VacuumExhausterActive = VacuumExhausterIsOn,
                 TrainBrakePipeLeak = TrainBrakePipeLeakPSIorInHgpS,
-                AverageForce =AverageForceN,
+                AverageForce = AverageForceN,
                 AxleSpeed = LocomotiveAxle.AxleSpeedMpS,
                 CabLight = CabLightOn,
                 RearCab = UsingRearCab,
                 CalculatedCarHeaterSteamUsage = CalculatedCarHeaterSteamUsageLBpS,
-                ThrottleController = await ThrottleController.Snapshot().ConfigureAwait(false),
-                TrainBrakeController = await TrainBrakeController.Snapshot().ConfigureAwait(false),
-                EngineBrakeController = await EngineBrakeController.Snapshot().ConfigureAwait(false),
-                BrakemanBrakeController = await BrakemanBrakeController.Snapshot().ConfigureAwait(false),
-                DynamicBrakeController = await DynamicBrakeController.Snapshot().ConfigureAwait(false),
-                SteamHeatController = await SteamHeatController.Snapshot().ConfigureAwait(false),
+                ThrottleController = ThrottleController == null ? null : await ThrottleController.Snapshot().ConfigureAwait(false),
+                TrainBrakeController = TrainBrakeController == null ? null : await TrainBrakeController.Snapshot().ConfigureAwait(false),
+                EngineBrakeController = EngineBrakeController == null ? null : await EngineBrakeController.Snapshot().ConfigureAwait(false),
+                BrakemanBrakeController = BrakemanBrakeController == null ? null : await BrakemanBrakeController.Snapshot().ConfigureAwait(false),
+                DynamicBrakeController = DynamicBrakeController == null ? null : await DynamicBrakeController.Snapshot().ConfigureAwait(false),
+                SteamHeatController = SteamHeatController == null ? null : await SteamHeatController.Snapshot().ConfigureAwait(false),
                 PowerReduction = PowerReduction,
                 ScoopBroken = ScoopIsBroken,
                 WaterScoopDown = WaterScoopDown,
@@ -1440,7 +1440,8 @@ namespace Orts.Simulation.RollingStocks
                 DistributedPowerUnitId = DistributedPowerUnitId,
                 PreviousGearBoxNotch = previousGearBoxNotch,
                 PreviousChangedGearBoxNotch = previousChangedGearBoxNotch,
-                TrainControlSystemSaveState = await TrainControlSystem.Snapshot().ConfigureAwait(false),
+                CurrentLocomotiveSteamHeatBoilerWaterCapacity = CurrentLocomotiveSteamHeatBoilerWaterCapacityL,
+                TrainControlSystemSaveState = TrainControlSystem == null ? null : await TrainControlSystem.Snapshot().ConfigureAwait(false),
             };
 
             return saveState;
@@ -1449,7 +1450,7 @@ namespace Orts.Simulation.RollingStocks
         public override async ValueTask Restore([NotNull] TrainCarSaveState saveState)
         {
             await base.Restore(saveState).ConfigureAwait(false);
-            ArgumentNullException.ThrowIfNull(saveState.LocomotiveSaveState,  nameof(saveState.LocomotiveSaveState));
+            ArgumentNullException.ThrowIfNull(saveState.LocomotiveSaveState, nameof(saveState.LocomotiveSaveState));
         }
 
         /// <summary>
