@@ -1,5 +1,13 @@
 using System;
-using System.IO;
+using System.Buffers;
+using System.IO.Pipelines;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
+
+using MemoryPack;
+
+using Microsoft.VisualBasic;
 
 using Orts.Common;
 using Orts.Scripting.Api.Etcs;
@@ -521,16 +529,76 @@ namespace Orts.Scripting.Api
         /// <param name="evt">The event happened</param>
         /// <param name="message">The message the event wants to communicate. May be empty.</param>
         public virtual void HandleEvent(PowerSupplyEvent evt, string message) { }
-        /// <summary>
-        /// Called when player has requested a game save. 
-        /// Set at virtual to keep compatibility with scripts not providing this method.
-        /// </summary>
-        public virtual void Save(BinaryWriter outf) { }
-        /// <summary>
-        /// Called when player has requested a game restore. 
-        /// Set at virtual to keep compatibility with scripts not providing this method.
-        /// </summary>
-        public virtual void Restore(BinaryReader inf) { }
+
+        #region Save State API
+        public abstract class TrainControlSystemSaveState : SaveStateBase
+        { }
+
+        internal protected virtual void OnSnapshot()
+        { 
+        }
+
+        internal protected virtual void OnRestore()
+        { }
+
+        public async ValueTask<ReadOnlySequence<byte>> Snapshot()
+        {
+            return StateSaver != null
+                ? await StateSaver.Snapshot().ConfigureAwait(false)
+                : await ValueTask.FromResult(ReadOnlySequence<byte>.Empty);
+        }
+
+        public async ValueTask Restore(ReadOnlySequence<byte> saveState)
+        {
+            if (StateSaver != null)
+                await StateSaver.Restore(saveState).ConfigureAwait(false);
+        }
+
+        internal protected abstract TrainControlSystemStateSaver StateSaver { get; }
+
+        public abstract class TrainControlSystemStateSaver
+        {
+            protected readonly TrainControlSystem trainControlSystem;
+
+            public TrainControlSystemStateSaver(TrainControlSystem trainControlSystem)
+            { 
+                this.trainControlSystem = trainControlSystem;
+            }
+
+            public abstract ValueTask<ReadOnlySequence<byte>> Snapshot();
+            public abstract ValueTask Restore(ReadOnlySequence<byte> saveState);
+        }
+
+        public class TrainControlSystemStateSaver<T>: TrainControlSystemStateSaver where T : TrainControlSystemSaveState
+        {
+            public T SaveState { get; set; }
+
+            public TrainControlSystemStateSaver(TrainControlSystem trainControlSystem): base(trainControlSystem)
+            { }
+
+            public override async ValueTask<ReadOnlySequence<byte>> Snapshot()
+            {
+                trainControlSystem.OnSnapshot();
+
+                ReadResult resultBuffer;
+                Pipe bufferPipe = new Pipe();
+                MemoryPackSerializer.Serialize(bufferPipe.Writer, SaveState);
+                _ = await bufferPipe.Writer.FlushAsync().ConfigureAwait(false);
+                resultBuffer = await bufferPipe.Reader.ReadAsync().ConfigureAwait(false);
+                return resultBuffer.Buffer;
+            }
+
+            public override ValueTask Restore(ReadOnlySequence<byte> saveState)
+            {
+                ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+                SaveState = MemoryPackSerializer.Deserialize<T>(saveState);
+
+                trainControlSystem.OnRestore();
+
+                return ValueTask.CompletedTask;
+            }
+        }
+        #endregion
     }
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types
@@ -544,7 +612,7 @@ namespace Orts.Scripting.Api
 
         public string SignalTypeName { get; }
         public TrackMonitorSignalAspect Aspect { get; }
-         public string DrawStateName { get; }
+        public string DrawStateName { get; }
         public float Distance { get; }
         public float SpeedLimit { get; }
         public float Altitude { get; }

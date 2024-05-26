@@ -36,6 +36,8 @@ namespace Orts.Models.State
         public bool AnyKeyPressed { get; set; }
         public bool AddPowerMode { get; set; }
         public bool StateChanged { get; set; }
+        public bool TcsEmergencyBrake { get; set; }
+        public bool TcsFullServiceBrake { get; set; }
 
     }
 }

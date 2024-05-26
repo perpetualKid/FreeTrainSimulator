@@ -176,6 +176,32 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
             }
         }
 
+        //#region Save State API sample
+        //public class StateSaverSample: TrainControlSystemSaveState
+        //{
+        //    public int X { get; set; }
+        //}
+
+        //private TrainControlSystemStateSaver<StateSaverSample> stateSaveSampleSaver;
+
+        //protected override TrainControlSystemStateSaver StateSaver { get => stateSaveSampleSaver; }
+
+        protected override TrainControlSystemStateSaver StateSaver => null;
+
+        //protected override void OnSnapshot()
+        //{
+        //    stateSaveSampleSaver.SaveState = new StateSaverSample()
+        //    {
+        //        X = 2,
+        //    };
+        //}
+
+        //protected override void OnRestore()
+        //{
+        //    _ = stateSaveSampleSaver.SaveState.X;
+        //}
+        //#endregion
+
         internal MSTSTrainControlSystem(MonitoringDevice vigilanceMonitor, MonitoringDevice overspeedMonitor, MonitoringDevice emergencyStopMonitor, MonitoringDevice awsMonitor,
             bool emergencyCausesThrottleDown, bool emergencyEngagesHorn)
         {

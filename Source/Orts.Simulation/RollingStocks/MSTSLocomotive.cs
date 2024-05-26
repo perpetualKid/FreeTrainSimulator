@@ -43,15 +43,18 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
 using System.Xml.Linq;
 
 using FreeTrainSimulator.Common;
 
+using Microsoft.VisualBasic;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -61,6 +64,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;
@@ -1395,53 +1399,106 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
+        public override async ValueTask<TrainCarSaveState> Snapshot()
+        {
+            TrainCarSaveState saveState  = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.LocomotiveSaveState = new LocomotiveSaveState()
+            {
+                Bell = Bell,
+                Sander = Sander,
+                Wiper = Wiper,
+                VacuumExhauster = VacuumExhausterPressed,
+                OdometerVisible = OdometerVisible,
+                OdometerCountingForward = odometerCountingForwards,
+                OdometerCountingUp = odometerCountingUp,
+                OdometerResetPosition = odometerResetPositionM,
+                MainReservoirPressure = MainResPressurePSI,
+                CompressorActive = CompressorIsOn,
+                VacuumMainReservoirVacuum = VacuumMainResVacuumPSIAorInHg,
+                VacuumExhausterActive = VacuumExhausterIsOn,
+                TrainBrakePipeLeak = TrainBrakePipeLeakPSIorInHgpS,
+                AverageForce =AverageForceN,
+                AxleSpeed = LocomotiveAxle.AxleSpeedMpS,
+                CabLight = CabLightOn,
+                RearCab = UsingRearCab,
+                CalculatedCarHeaterSteamUsage = CalculatedCarHeaterSteamUsageLBpS,
+                ThrottleController = await ThrottleController.Snapshot().ConfigureAwait(false),
+                TrainBrakeController = await TrainBrakeController.Snapshot().ConfigureAwait(false),
+                EngineBrakeController = await EngineBrakeController.Snapshot().ConfigureAwait(false),
+                BrakemanBrakeController = await BrakemanBrakeController.Snapshot().ConfigureAwait(false),
+                DynamicBrakeController = await DynamicBrakeController.Snapshot().ConfigureAwait(false),
+                SteamHeatController = await SteamHeatController.Snapshot().ConfigureAwait(false),
+                PowerReduction = PowerReduction,
+                ScoopBroken = ScoopIsBroken,
+                WaterScoopDown = WaterScoopDown,
+                CurrentTrackSandBoxCapacity = CurrentTrackSandBoxCapacityM3,
+                AdhesionFilter = saveAdhesionFilter,
+                GenericItem1 = GenericItem1,
+                GenericItem2 = GenericItem2,
+                RemoteControlGroup = RemoteControlGroup,
+                DistributedPowerUnitId = DistributedPowerUnitId,
+                PreviousGearBoxNotch = previousGearBoxNotch,
+                PreviousChangedGearBoxNotch = previousChangedGearBoxNotch,
+                TrainControlSystemSaveState = await TrainControlSystem.Snapshot().ConfigureAwait(false),
+            };
+
+            return saveState;
+        }
+
+        public override async ValueTask Restore([NotNull] TrainCarSaveState saveState)
+        {
+            await base.Restore(saveState).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(saveState.LocomotiveSaveState,  nameof(saveState.LocomotiveSaveState));
+        }
+
         /// <summary>
         /// We are saving the game.  Save anything that we'll need to restore the 
         /// status later.
         /// </summary>
         public override void Save(BinaryWriter outf)
         {
-            // we won't save the horn state
-            outf.Write(Bell);
-            outf.Write(Sander);
-            outf.Write(VacuumExhausterPressed);
-            outf.Write(Wiper);
-            outf.Write(odometerResetPositionM);
-            outf.Write(odometerCountingUp);
-            outf.Write(odometerCountingForwards);
-            outf.Write(OdometerVisible);
-            outf.Write(MainResPressurePSI);
-            outf.Write(CompressorIsOn);
-            outf.Write(VacuumMainResVacuumPSIAorInHg);
-            outf.Write(VacuumExhausterIsOn);
-            outf.Write(TrainBrakePipeLeakPSIorInHgpS);
-            outf.Write(AverageForceN);
-            outf.Write(LocomotiveAxle.AxleSpeedMpS);
-            outf.Write(CabLightOn);
-            outf.Write(UsingRearCab);
-            outf.Write(CalculatedCarHeaterSteamUsageLBpS);
-            ControllerFactory.Save(ThrottleController, outf);
-            ControllerFactory.Save(TrainBrakeController, outf);
-            ControllerFactory.Save(EngineBrakeController, outf);
-            ControllerFactory.Save(BrakemanBrakeController, outf);
-            ControllerFactory.Save(DynamicBrakeController, outf);
-            ControllerFactory.Save(SteamHeatController, outf);
-            outf.Write(PowerReduction);
-            outf.Write(ScoopIsBroken);
-            outf.Write(IsWaterScoopDown);
-            outf.Write(CurrentTrackSandBoxCapacityM3);
-            outf.Write(saveAdhesionFilter);
-            outf.Write(GenericItem1);
-            outf.Write(GenericItem2);
-            outf.Write((int)RemoteControlGroup);
-            outf.Write(DistributedPowerUnitId);
-            outf.Write(previousGearBoxNotch);
-            outf.Write(previousChangedGearBoxNotch);
+            //// we won't save the horn state
+            //outf.Write(Bell);
+            //outf.Write(Sander);
+            //outf.Write(VacuumExhausterPressed);
+            //outf.Write(Wiper);
+            //outf.Write(odometerResetPositionM);
+            //outf.Write(odometerCountingUp);
+            //outf.Write(odometerCountingForwards);
+            //outf.Write(OdometerVisible);
+            //outf.Write(MainResPressurePSI);
+            //outf.Write(CompressorIsOn);
+            //outf.Write(VacuumMainResVacuumPSIAorInHg);
+            //outf.Write(VacuumExhausterIsOn);
+            //outf.Write(TrainBrakePipeLeakPSIorInHgpS);
+            //outf.Write(AverageForceN);
+            //outf.Write(LocomotiveAxle.AxleSpeedMpS);
+            //outf.Write(CabLightOn);
+            //outf.Write(UsingRearCab);
+            //outf.Write(CalculatedCarHeaterSteamUsageLBpS);
+            //ControllerFactory.Save(ThrottleController, outf);
+            //ControllerFactory.Save(TrainBrakeController, outf);
+            //ControllerFactory.Save(EngineBrakeController, outf);
+            //ControllerFactory.Save(BrakemanBrakeController, outf);
+            //ControllerFactory.Save(DynamicBrakeController, outf);
+            //ControllerFactory.Save(SteamHeatController, outf);
+            //outf.Write(PowerReduction);
+            //outf.Write(ScoopIsBroken);
+            //outf.Write(IsWaterScoopDown);
+            //outf.Write(CurrentTrackSandBoxCapacityM3);
+            //outf.Write(saveAdhesionFilter);
+            //outf.Write(GenericItem1);
+            //outf.Write(GenericItem2);
+            //outf.Write((int)RemoteControlGroup);
+            //outf.Write(DistributedPowerUnitId);
+            //outf.Write(previousGearBoxNotch);
+            //outf.Write(previousChangedGearBoxNotch);
 
-            base.Save(outf);
+            //base.Save(outf);
 
             LocomotivePowerSupply?.Save(outf);
-            TrainControlSystem.Save(outf);
+            //TrainControlSystem.Save(outf);
 
             LocomotiveAxle.Save(outf);
             CruiseControl?.Save(outf);

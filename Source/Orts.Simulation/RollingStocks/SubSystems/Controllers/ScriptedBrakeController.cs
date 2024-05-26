@@ -18,19 +18,22 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.DebugInfo;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 {
-    public class ScriptedBrakeController : IController, INameValueInformationProvider
+    public class ScriptedBrakeController : IController, INameValueInformationProvider, ISaveStateApi<ControllerSaveState>
     {
         private protected readonly DetailInfoBase brakeInfo = new DetailInfoBase();
         private bool updateBrakeStatus;
@@ -529,6 +532,30 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public Dictionary<string, FormatOption> FormattingOptions => brakeInfo.FormattingOptions;
 
+        public ValueTask<ControllerSaveState> Snapshot()
+        {
+            return ValueTask.FromResult(new ControllerSaveState() 
+            { 
+                ControllerType = ControllerType.BrakeController,
+                CurrentValue = CurrentValue,
+                EmergencyBrake = EmergencyBrakingPushButton,
+                TcsEmergencyBrake = TCSEmergencyBraking,
+                TcsFullServiceBrake = TCSFullServiceBraking,                
+            });
+        }
+
+        public ValueTask Restore(ControllerSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            SignalEvent(BrakeControllerEvent.SetCurrentValue, saveState.CurrentValue);
+            EmergencyBrakingPushButton = saveState.EmergencyBrake;
+            TCSEmergencyBraking = saveState.TcsEmergencyBrake;
+            TCSFullServiceBraking = saveState.TcsFullServiceBrake;
+
+            return ValueTask.CompletedTask;
+        }
+
         public void Save(BinaryWriter outf)
         {
             outf.Write((int)ControllerType.BrakeController);
@@ -563,6 +590,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             updateBrakeStatus = true;
             return brakeInfo;
         }
+
     }
 
     public class ScriptedTrainBrakeController : ScriptedBrakeController

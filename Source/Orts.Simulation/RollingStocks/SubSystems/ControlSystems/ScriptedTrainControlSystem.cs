@@ -18,16 +18,21 @@
 // Define this to log the wheel configurations on cars as they are loaded.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.Etcs;
 using Orts.Simulation.Activities;
@@ -39,7 +44,7 @@ using static Orts.Scripting.Api.Etcs.ETCSStatus;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 {
-    public class ScriptedTrainControlSystem : ISubSystem<ScriptedTrainControlSystem>
+    public class ScriptedTrainControlSystem : ISubSystem<ScriptedTrainControlSystem>, ISaveStateApi<ScriptedTrainControlSystemSaveState>
     {
         private const float GravityMpS2 = 9.80665f;
         private const float GenericItemDistance = 400.0f;
@@ -203,8 +208,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 }
 
                 // AbstractScriptClass
-                script.ClockTime = () => (float)Simulator.ClockTime;
-                script.GameTime = () => (float)Simulator.GameTime;
+                script.ClockTime = () => Simulator.ClockTime;
+                script.GameTime = () => Simulator.GameTime;
                 script.PreUpdate = () => Simulator.PreUpdate;
                 script.DistanceM = () => Locomotive.DistanceTravelled;
                 script.Confirm = Simulator.Confirmer.Confirm;
@@ -212,10 +217,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.SignalEvent = Locomotive.SignalEvent;
                 script.SignalEventToTrain = (evt) =>
                 {
-                    if (Locomotive.Train != null)
-                    {
-                        Locomotive.Train.SignalEvent(evt);
-                    }
+                    Locomotive.Train?.SignalEvent(evt);
                 };
 
                 // TrainControlSystem getters
@@ -836,20 +838,29 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         public void Save(BinaryWriter outf)
         {
-            ArgumentNullException.ThrowIfNull(outf);
-            outf.Write(scriptName ?? "");
-            if (!string.IsNullOrEmpty(scriptName))
-                script.Save(outf);
         }
 
         public void Restore(BinaryReader inf)
         {
-            ArgumentNullException.ThrowIfNull(inf);
-            scriptName = inf.ReadString();
+        }
+
+        public async ValueTask<ScriptedTrainControlSystemSaveState> Snapshot()
+        {
+            return new ScriptedTrainControlSystemSaveState()
+            { 
+                ScriptName = scriptName,
+                ScriptState = string.IsNullOrEmpty(scriptName) ? ReadOnlySequence<byte>.Empty : await script.Snapshot().ConfigureAwait(false),
+            };
+        }
+
+        public async ValueTask Restore(ScriptedTrainControlSystemSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+            scriptName = saveState.ScriptName;
             if (!string.IsNullOrEmpty(scriptName))
             {
                 Initialize();
-                script.Restore(inf);
+                await script.Restore(saveState.ScriptState).ConfigureAwait(false);
             }
         }
     }

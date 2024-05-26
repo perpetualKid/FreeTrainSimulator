@@ -27,14 +27,13 @@ namespace Orts.Models.State
         public double SteamHeatMainPipeSteamPressure { get; set; }
         public bool CompartmentHeaterOn { get; set; }
         public BrakeSystemSaveState BrakeSystemSaveState { get; set; }
-
-        //Wagon properties
+        // Wagon properties
         public WagonSaveState WagonSaveState { get; set; }
-
         // EoT
         public EndOfTrainSaveState EndOfTrainSaveState { get; set; }
-
         // Control Trailer
         public ControlTrailerSaveState ControlTrailerSaveState { get; set; }
+        // Locomotive
+        public LocomotiveSaveState LocomotiveSaveState { get; set; }
     }
 }
