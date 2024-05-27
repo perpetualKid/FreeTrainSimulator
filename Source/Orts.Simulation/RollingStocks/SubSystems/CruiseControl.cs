@@ -19,8 +19,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
@@ -29,8 +31,11 @@ using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
+
+using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
@@ -63,7 +68,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         SpeedMinus1,
     }
 
-    public class CruiseControl
+    public class CruiseControl : ISaveStateApi<CruiseControlSaveState>
     {
         private readonly MSTSLocomotive locomotive;
         private readonly Simulator simulator;
@@ -739,42 +744,49 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             }
         }
 
-        public void Save(BinaryWriter outf)
+        public ValueTask<CruiseControlSaveState> Snapshot()
         {
-            outf.Write(currentSelectedSpeedMpS);
-            outf.Write(maxForceDecreasing);
-            outf.Write(maxForceIncreasing);
-            outf.Write(restrictedRegionOdometer.Started);
-            outf.Write(restrictedRegionOdometer.RemainingValue);
-            outf.Write(SelectedMaxAccelerationPercent);
-            outf.Write(selectedNumberOfAxles);
-            outf.Write(SelectedSpeedMpS);
-            outf.Write(DynamicBrakePriority);
-            outf.Write((int)SpeedRegulatorMode);
-            outf.Write((int)SpeedSelectorMode);
-            outf.Write(TrainBrakePercent);
-            outf.Write(trainLengthMeters);
-            outf.Write(UsingTrainBrake);
+            return ValueTask.FromResult(new CruiseControlSaveState()
+            {
+                SelectetdSpeed = SelectedSpeedMpS,
+                MaxForceDecreasing = maxForceDecreasing,
+                MaxForceIncreasing = maxForceIncreasing,
+                RestrictedRegionOdometerEnabled = restrictedRegionOdometer.Started,
+                RestrictedRegionOdometerValue = restrictedRegionOdometer.RemainingValue,
+                RestrictedRegionSelectedSpeed = currentSelectedSpeedMpS,
+                MaxAcceleration = selectedMaxAccelerationPercent,
+                AxleNumber = selectedNumberOfAxles,
+                DynamicBrakePriority = DynamicBrakePriority,
+                SpeedRegulatorMode = SpeedRegulatorMode,
+                SpeedSelectorMode = SpeedSelectorMode,
+                TrainBrakePercent = TrainBrakePercent,
+                TrainBrakeActive = UsingTrainBrake,
+                TrainLength = trainLengthMeters,
+            });
         }
 
-        public void Restore(BinaryReader inf)
+        public ValueTask Restore(CruiseControlSaveState saveState)
         {
-            currentSelectedSpeedMpS = inf.ReadSingle();
-            maxForceDecreasing = inf.ReadBoolean();
-            maxForceIncreasing = inf.ReadBoolean();
-            bool started = inf.ReadBoolean();
-            restrictedRegionOdometer.Setup(inf.ReadSingle());
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            currentSelectedSpeedMpS = saveState.RestrictedRegionSelectedSpeed;
+            maxForceDecreasing = saveState.MaxForceDecreasing;
+            maxForceIncreasing = saveState.MaxForceIncreasing;
+            bool started = saveState.RestrictedRegionOdometerEnabled;
+            restrictedRegionOdometer.Setup(saveState.RestrictedRegionOdometerValue);
             if (started)
                 restrictedRegionOdometer.Start();
-            SelectedMaxAccelerationPercent = inf.ReadSingle();
-            selectedNumberOfAxles = inf.ReadInt32();
-            SelectedSpeedMpS = inf.ReadSingle();
-            DynamicBrakePriority = inf.ReadBoolean();
-            SpeedRegulatorMode = (SpeedRegulatorMode)inf.ReadInt32();
-            SpeedSelectorMode = (SpeedSelectorMode)inf.ReadInt32();
-            TrainBrakePercent = inf.ReadSingle();
-            trainLengthMeters = inf.ReadInt32();
-            UsingTrainBrake = inf.ReadBoolean();
+            SelectedMaxAccelerationPercent = saveState.MaxAcceleration;
+            selectedNumberOfAxles = saveState.AxleNumber;
+            SelectedSpeedMpS = saveState.SelectetdSpeed;
+            DynamicBrakePriority = saveState.DynamicBrakePriority;
+            SpeedRegulatorMode = saveState.SpeedRegulatorMode;
+            SpeedSelectorMode = saveState.SpeedSelectorMode;
+            TrainBrakePercent = saveState.TrainBrakePercent;
+            trainLengthMeters = saveState.TrainLength;
+            UsingTrainBrake = saveState.TrainBrakeActive;
+
+            return ValueTask.CompletedTask;
         }
 
         public void UpdateSelectedSpeed(double elapsedClockSeconds)

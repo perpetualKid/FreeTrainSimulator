@@ -18,7 +18,7 @@ namespace Orts.Scripting.Api
         public double AlarmValue { get; private set; }
         public double RemainingValue { get { return endValue - CurrentValue(); } }
         public bool Started { get; private set; }
-        public void Setup(float alarmValue) { AlarmValue = alarmValue; }
+        public void Setup(double alarmValue) { AlarmValue = alarmValue; }
         public void Start() { endValue = CurrentValue() + AlarmValue; Started = true; }
         public void Stop() { Started = false; }
         public bool Triggered { get { return Started && CurrentValue() >= endValue; } }

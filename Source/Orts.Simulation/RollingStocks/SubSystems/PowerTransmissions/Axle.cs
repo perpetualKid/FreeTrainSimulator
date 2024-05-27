@@ -17,10 +17,16 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Calc;
+using Orts.Models.State;
+
+using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {
@@ -55,7 +61,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
     ///  
     /// Every computation within Axle class uses SI-units system with xxxxxUUU unit notation
     /// </summary>
-    public class Axle
+    public class Axle : ISaveStateApi<TrainAxleSaveState>
     {
         private float wheelSlipWarningTimeS;
 
@@ -351,26 +357,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             totalInertiaKgm2 = inertiaKgm2;
         }
 
-        /// <summary>
-        /// A constructor that restores the game state.
-        /// </summary>
-        /// <param name="inf">The save stream to read from.</param>
-        public Axle(BinaryReader inf) : this()
+        public ValueTask<TrainAxleSaveState> Snapshot()
         {
-            previousSlipPercent = inf.ReadSingle();
-            previousSlipSpeedMpS = inf.ReadSingle();
-            AxleForceN = inf.ReadSingle();
+            return ValueTask.FromResult(new TrainAxleSaveState()
+            { 
+                SlipPercentage = previousSlipPercent,
+                SlipSpeed = previousSlipSpeedMpS,
+                AxleForce = AxleForceN,
+            });
         }
 
-        /// <summary>
-        /// Save the game state.
-        /// </summary>
-        /// <param name="outf">The save stream to write to.</param>
-        public void Save(BinaryWriter outf)
+        public ValueTask Restore(TrainAxleSaveState saveState)
         {
-            outf.Write(previousSlipPercent);
-            outf.Write(previousSlipSpeedMpS);
-            outf.Write(AxleForceN);
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            previousSlipPercent = saveState.SlipPercentage;
+            previousSlipSpeedMpS = saveState.SlipSpeed;
+            AxleForceN = saveState.AxleForce;
+
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>

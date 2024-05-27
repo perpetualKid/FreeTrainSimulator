@@ -1442,6 +1442,9 @@ namespace Orts.Simulation.RollingStocks
                 PreviousChangedGearBoxNotch = previousChangedGearBoxNotch,
                 CurrentLocomotiveSteamHeatBoilerWaterCapacity = CurrentLocomotiveSteamHeatBoilerWaterCapacityL,
                 TrainControlSystemSaveState = TrainControlSystem == null ? null : await TrainControlSystem.Snapshot().ConfigureAwait(false),
+
+                AxleSaveState = await LocomotiveAxle.Snapshot().ConfigureAwait(false),
+                CruiseControlSaveState = CruiseControl == null ? null : await CruiseControl.Snapshot().ConfigureAwait(false),
             };
 
             return saveState;
@@ -1501,8 +1504,8 @@ namespace Orts.Simulation.RollingStocks
             LocomotivePowerSupply?.Save(outf);
             //TrainControlSystem.Save(outf);
 
-            LocomotiveAxle.Save(outf);
-            CruiseControl?.Save(outf);
+            //LocomotiveAxle.Save(outf);
+            //CruiseControl?.Save(outf);
         }
 
         /// <summary>
@@ -1560,10 +1563,10 @@ namespace Orts.Simulation.RollingStocks
             LocomotivePowerSupply?.Restore(inf);
             TrainControlSystem.Restore(inf);
 
-            LocomotiveAxle = new Axle(inf);
+            LocomotiveAxle = new Axle();
             MoveParamsToAxle();
             LocomotiveAxle.Reset(simulator.GameTime, axleSpeedMpS);
-            CruiseControl?.Restore(inf);
+            //CruiseControl?.Restore(inf);
         }
 
         public bool IsLeadLocomotive()
