@@ -8,7 +8,7 @@ using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks
 {
-    public class Coupler : ISaveStateApi<CouplerSaveState>, ICollectionSaveStateApi<CouplerSaveState, Coupler>
+    public class Coupler : ISaveStateApi<CouplerSaveState>
     {
         public bool Rigid { get; internal set; }
         public float R0X { get; internal set; }

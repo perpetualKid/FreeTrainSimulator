@@ -28,7 +28,8 @@ using Orts.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
-    public class Doors : EnumArray<Door, DoorSide>, ISubSystem<Doors>, ICollectionSaveStateApi<DoorSaveState, Door>
+    public class Doors : EnumArray<Door, DoorSide>,
+        ISubSystem<Doors>
     {
         public Doors(MSTSWagon wagon)
         {

@@ -1720,7 +1720,7 @@ namespace Orts.Simulation.RollingStocks
 
             saveState.WagonSaveState = new WagonSaveState()
             {
-                PantographSaveStates = await (Pantographs as ICollectionSaveStateApi<PantographSaveState, Pantograph>).SnapshotCollection(Pantographs).ConfigureAwait(false),
+                PantographSaveStates = await Pantographs.SnapshotCollection<PantographSaveState, Pantograph>().ConfigureAwait(false),
                 DoorSaveStates = await Task.WhenAll(Doors.Select(async door => await door.Snapshot().ConfigureAwait(false))),
                 CouplerSaveStates = await Task.WhenAll(couplers.Select(async coupler => coupler == null ? null : await coupler.Snapshot().ConfigureAwait(false))),
                 SoundValues = soundDebugValues,
@@ -1780,8 +1780,8 @@ namespace Orts.Simulation.RollingStocks
             DerailExpected = wagonSaveState.DerailExpected;
             derailElapsedTime = wagonSaveState.DerailElapsedTime;
 
-            await (Pantographs as ICollectionSaveStateApi<PantographSaveState, Pantograph>).RestoreCollectionCreateNewInstances(wagonSaveState.PantographSaveStates, Pantographs).ConfigureAwait(false);
-            await (Doors as ICollectionSaveStateApi<DoorSaveState, Door>).RestoreCollectionOnExistingInstances(wagonSaveState.DoorSaveStates, Doors).ConfigureAwait(false);
+            await Pantographs.RestoreCollectionCreateNewInstances(wagonSaveState.PantographSaveStates, Pantographs).ConfigureAwait(false);
+            await Doors.RestoreCollectionOnExistingInstances(wagonSaveState.DoorSaveStates).ConfigureAwait(false);
 
             couplers = new EnumArray<Coupler, TrainCarLocation>(await Task.WhenAll(wagonSaveState.CouplerSaveStates.Select(async couplerSaveState =>
             {

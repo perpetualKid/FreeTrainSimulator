@@ -46,7 +46,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
     /// FreightAnimation objects.
     /// Called from within the MSTSWagon class.
     /// </summary>
-    public class FreightAnimations : ISaveStateApi<FreightAnimationsSetSaveState>, ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>
+    public class FreightAnimations : 
+        ISaveStateApi<FreightAnimationsSetSaveState>, 
+        ISaveStateRestoreApi<FreightAnimationSaveState, FreightAnimationDiscrete>
     {
         public List<FreightAnimation> Animations { get; } = new List<FreightAnimation>();
         public List<FreightAnimationDiscrete> EmptyAnimations { get; } = new List<FreightAnimationDiscrete>();
@@ -161,7 +163,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             });
         }
 
-        FreightAnimationDiscrete ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>.CreateRuntimeTarget(Orts.Models.State.FreightAnimationSaveState saveState)
+        FreightAnimationDiscrete ISaveStateRestoreApi<FreightAnimationSaveState, FreightAnimationDiscrete>.CreateRuntimeTarget(FreightAnimationSaveState saveState)
         {
             return new FreightAnimationDiscrete(this);
         }
@@ -877,8 +879,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             { 
                 FreightType = FreightType,
                 FreightWeight = FreightWeight,
-                FreightAnimations = await (this as ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>).SnapshotCollection(Animations.OfType<FreightAnimationDiscrete>()).ConfigureAwait(false),
-                EmptyAnimations = await (this as ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>).SnapshotCollection(EmptyAnimations).ConfigureAwait(false),
+                FreightAnimations = await Animations.OfType<FreightAnimationDiscrete>().SnapshotCollection<FreightAnimationSaveState, FreightAnimationDiscrete>().ConfigureAwait(false),
+                EmptyAnimations = await EmptyAnimations.SnapshotCollection<FreightAnimationSaveState, FreightAnimationDiscrete>().ConfigureAwait(false),
             };
         }
 
@@ -905,9 +907,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 }
             }
             Collection<FreightAnimationDiscrete> discreteFreightAnimations = new Collection<FreightAnimationDiscrete>();
-            await (this as ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>).RestoreCollectionCreateNewInstances(saveState.FreightAnimations, discreteFreightAnimations).ConfigureAwait(false);
+            await discreteFreightAnimations.RestoreCollectionCreateNewInstances<FreightAnimationSaveState, FreightAnimationDiscrete, FreightAnimations>(saveState.FreightAnimations, null).ConfigureAwait(false);
             Animations.AddRange(discreteFreightAnimations);
-            await (this as ICollectionSaveStateApi<FreightAnimationSaveState, FreightAnimationDiscrete>).RestoreCollectionCreateNewInstances(saveState.EmptyAnimations, EmptyAnimations).ConfigureAwait(false);
+            await EmptyAnimations.RestoreCollectionCreateNewInstances<FreightAnimationSaveState, FreightAnimationDiscrete, FreightAnimations>(saveState.EmptyAnimations).ConfigureAwait(false);
         }
     }
 

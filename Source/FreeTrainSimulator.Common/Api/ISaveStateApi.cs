@@ -10,11 +10,22 @@ namespace FreeTrainSimulator.Common.Api
     {
         public ValueTask<T> Snapshot();
         public ValueTask Restore(T saveState);
+        public virtual T CreateRuntimeTarget() => default(T);
+
     }
 
-    public interface ICollectionSaveStateApi<TSaveState, TRuntime> where TSaveState : SaveStateBase where TRuntime : ISaveStateApi<TSaveState>
+    public interface ISaveStateRestoreApi<TSaveState, TRuntime>
+            where TSaveState : SaveStateBase
+            where TRuntime : ISaveStateApi<TSaveState>
     {
-        public async ValueTask<Collection<TSaveState>> SnapshotCollection(IEnumerable<TRuntime> source) 
+        public virtual TRuntime CreateRuntimeTarget(TSaveState saveState) => default(TRuntime);
+    }
+
+    public static class SaveStateCollectionExtension
+    {
+        public static async ValueTask<Collection<TSaveState>> SnapshotCollection<TSaveState, TRuntime>(this IEnumerable<TRuntime> source)
+            where TSaveState : SaveStateBase
+            where TRuntime : ISaveStateApi<TSaveState>
         {
             return new Collection<TSaveState>(await Task.WhenAll(source.Select(async item =>
             {
@@ -22,32 +33,50 @@ namespace FreeTrainSimulator.Common.Api
             })).ConfigureAwait(false));
         }
 
-
-
-        public async ValueTask RestoreCollectionCreateNewInstances(ICollection<TSaveState> saveStates, ICollection<TRuntime> target)
+        public static async ValueTask RestoreCollectionCreateNewInstances<TSaveState, TRuntime, TActivator>(this ICollection<TRuntime> target, ICollection<TSaveState> saveStates, TActivator activator = default)
+            where TSaveState : SaveStateBase
+            where TRuntime : ISaveStateApi<TSaveState>
+            where TActivator : ISaveStateRestoreApi<TSaveState, TRuntime>
         {
             ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
             ArgumentNullException.ThrowIfNull(target, nameof(target));
 
             await Task.WhenAll(saveStates.Select(async saveState =>
             {
-                TRuntime runtimeTarget = CreateRuntimeTarget(saveState);
+                TRuntime runtimeTarget = activator.CreateRuntimeTarget(saveState);
                 await runtimeTarget.Restore(saveState).ConfigureAwait(false);
                 target.Add(runtimeTarget);
             })).ConfigureAwait(false);
         }
 
-        public async ValueTask RestoreCollectionOnExistingInstances(IEnumerable<TSaveState> saveStates, IEnumerable<TRuntime> target)
+        public static async ValueTask RestoreCollectionCreateNewInstances<TSaveState, TRuntime, TActivator>(this ICollection<TSaveState> saveStates, ICollection<TRuntime> target, TActivator activator = default)
+            where TActivator : ISaveStateRestoreApi<TSaveState, TRuntime>
+            where TSaveState : SaveStateBase
+            where TRuntime : ISaveStateApi<TSaveState>
         {
             ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
             ArgumentNullException.ThrowIfNull(target, nameof(target));
 
-            foreach((TRuntime runtimeTarget, TSaveState saveState) in target.Zip(saveStates))
+            await Task.WhenAll(saveStates.Select(async saveState =>
+            {
+                TRuntime runtimeTarget = activator.CreateRuntimeTarget(saveState);
+                await runtimeTarget.Restore(saveState).ConfigureAwait(false);
+                target.Add(runtimeTarget);
+            })).ConfigureAwait(false);
+        }
+
+        public static async ValueTask RestoreCollectionOnExistingInstances<TSaveState, TRuntime>(this IEnumerable<TRuntime> target, IEnumerable<TSaveState> saveStates)
+            where TSaveState : SaveStateBase
+            where TRuntime : ISaveStateApi<TSaveState>
+        {
+            ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
+            ArgumentNullException.ThrowIfNull(target, nameof(target));
+
+            foreach ((TRuntime runtimeTarget, TSaveState saveState) in target.Zip(saveStates))
             {
                 await runtimeTarget.Restore(saveState).ConfigureAwait(false);
             }
         }
 
-        public virtual TRuntime CreateRuntimeTarget(TSaveState saveState) => default(TRuntime);
     }
 }

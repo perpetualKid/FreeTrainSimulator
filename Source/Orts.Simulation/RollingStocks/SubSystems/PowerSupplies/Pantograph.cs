@@ -29,7 +29,10 @@ using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
-    public class Pantographs : ISubSystem<Pantographs>, IList<Pantograph>, ICollectionSaveStateApi<PantographSaveState, Pantograph>
+    public class Pantographs :
+        ISubSystem<Pantographs>,
+        IList<Pantograph>,
+        ISaveStateRestoreApi<PantographSaveState, Pantograph>
     {
         public static readonly int MinPantoID = 1; // minimum value of PantoID, applies to Pantograph 1
         public static readonly int MaxPantoID = 4; // maximum value of PantoID, applies to Pantograph 4
@@ -179,7 +182,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             return (pantographs as IEnumerable).GetEnumerator();
         }
 
-        Pantograph ICollectionSaveStateApi<PantographSaveState, Pantograph>.CreateRuntimeTarget(PantographSaveState saveState)
+        Pantograph ISaveStateRestoreApi<PantographSaveState, Pantograph>.CreateRuntimeTarget(PantographSaveState saveState)
         {
             return new Pantograph(Wagon);
         }
@@ -243,7 +246,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
     public class Pantograph : ISubSystem<Pantograph>, ISaveStateApi<PantographSaveState>
     {
-        private MSTSWagon wagon;
+        private readonly MSTSWagon wagon;
         private static readonly Simulator simulator = Simulator.Instance;
 
         private double delay;
