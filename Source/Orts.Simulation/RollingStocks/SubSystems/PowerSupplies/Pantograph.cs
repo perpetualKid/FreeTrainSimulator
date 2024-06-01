@@ -187,16 +187,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             return new Pantograph(Wagon);
         }
 
-        public void Save(BinaryWriter outf)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Restore(BinaryReader inf)
-        {
-            throw new NotImplementedException();
-        }
-
         public int Count { get { return pantographs.Count; } }
 
         public Pantograph this[int i]

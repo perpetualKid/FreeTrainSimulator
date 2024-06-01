@@ -94,16 +94,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 _ => DoorSide.Both,
             };
         }
-
-        public void Save(BinaryWriter outf)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Restore(BinaryReader inf)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     public class Door : ISubSystem<Door>, ISaveStateApi<DoorSaveState>

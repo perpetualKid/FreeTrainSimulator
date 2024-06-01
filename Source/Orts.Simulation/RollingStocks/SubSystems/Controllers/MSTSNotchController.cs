@@ -650,13 +650,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             return $"{100 * GetNotchFraction():F0}%";
         }
 
-        public virtual void Save(BinaryWriter outf)
-        {
-            outf.Write((int)ControllerType.NotchController);
-
-            //this.SaveData(outf);
-        }
-
         public async ValueTask<ControllerSaveState> Snapshot()
         {
             return new ControllerSaveState()

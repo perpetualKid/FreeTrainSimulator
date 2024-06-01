@@ -836,14 +836,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
             return customizedCabviewControlNames.TryGetValue(commandIndex - 1, out string name) ? name : "ORTS_TCS" + commandIndex;
         }
 
-        public void Save(BinaryWriter outf)
-        {
-        }
-
-        public void Restore(BinaryReader inf)
-        {
-        }
-
         public async ValueTask<ScriptedTrainControlSystemSaveState> Snapshot()
         {
             return new ScriptedTrainControlSystemSaveState()

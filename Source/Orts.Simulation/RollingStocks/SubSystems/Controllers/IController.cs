@@ -53,7 +53,5 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         bool IsValid();
 
         string GetStatus();
-
-        void Save(BinaryWriter outf);
     }
 }
