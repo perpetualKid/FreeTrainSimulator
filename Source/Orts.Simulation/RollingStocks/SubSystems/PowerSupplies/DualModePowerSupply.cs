@@ -15,11 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading.Tasks;
 
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.PowerSupply;
 
@@ -112,22 +115,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             TractionCutOffRelay.InitializeMoving();
         }
 
-        public override void Save(BinaryWriter outf)
+        public override async ValueTask<PowerSupplySaveState> Snapshot()
         {
-            outf.Write(scriptName);
+            PowerSupplySaveState saveState = await base.Snapshot().ConfigureAwait(false);
 
-            base.Save(outf);
-            CircuitBreaker.Save(outf);
-            TractionCutOffRelay.Save(outf);
+            saveState.CircuitBreakerState = await CircuitBreaker.Snapshot().ConfigureAwait(false);
+            saveState.TractionCutOffRelayState = await TractionCutOffRelay.Snapshot().ConfigureAwait(false);
+            return saveState;
         }
 
-        public override void Restore(BinaryReader inf)
+        public override async ValueTask Restore([NotNull] PowerSupplySaveState saveState)
         {
-            scriptName = inf.ReadString();
-
-            base.Restore(inf);
-            CircuitBreaker.Restore(inf);
-            TractionCutOffRelay.Restore(inf);
+            await base.Restore(saveState).ConfigureAwait(false);
+            await CircuitBreaker.Restore(saveState.CircuitBreakerState).ConfigureAwait(false);
+            await TractionCutOffRelay.Restore(saveState.TractionCutOffRelayState).ConfigureAwait(false);
         }
 
         public override void Update(double elapsedClockSeconds)

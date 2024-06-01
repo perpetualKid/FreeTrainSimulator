@@ -424,15 +424,5 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             time = saveState.Time;
             return ValueTask.CompletedTask;
         }
-
-        public void Save(BinaryWriter outf)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Restore(BinaryReader inf)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

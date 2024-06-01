@@ -48,5 +48,6 @@ namespace Orts.Models.State
         public ScriptedTrainControlSystemSaveState TrainControlSystemSaveState { get; set; }
         public TrainAxleSaveState AxleSaveState { get; set; }
         public CruiseControlSaveState CruiseControlSaveState { get; set; }
+        public PowerSupplySaveState PowerSupplySaveState { get; set; }
     }
 }

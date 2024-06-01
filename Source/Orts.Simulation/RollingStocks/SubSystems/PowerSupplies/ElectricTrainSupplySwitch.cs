@@ -15,14 +15,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
+
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
-
-using System.IO;
+using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
-    public class ElectricTrainSupplySwitch : ISubSystem<ElectricTrainSupplySwitch>
+    public class ElectricTrainSupplySwitch : ISubSystem<ElectricTrainSupplySwitch>, ISaveStateApi<CommandSwitchSaveState>
     {
         // Parameters
         public enum ModeType
@@ -98,16 +102,22 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public virtual void Save(BinaryWriter outf)
+        public ValueTask<CommandSwitchSaveState> Snapshot()
         {
-            outf.Write(CommandSwitch);
-            outf.Write(On);
+            return ValueTask.FromResult(new CommandSwitchSaveState()
+            { 
+                CommandSwitch = CommandSwitch,
+                State = On,
+            });
         }
 
-        public virtual void Restore(BinaryReader inf)
+        public ValueTask Restore(CommandSwitchSaveState saveState)
         {
-            CommandSwitch = inf.ReadBoolean();
-            On = inf.ReadBoolean();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            CommandSwitch = saveState.CommandSwitch;
+            On = saveState.State;
+            return ValueTask.CompletedTask;
         }
 
         public virtual void Update(double elapsedClockSeconds)
@@ -179,5 +189,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     break;
             }
         }
+
     }
 }

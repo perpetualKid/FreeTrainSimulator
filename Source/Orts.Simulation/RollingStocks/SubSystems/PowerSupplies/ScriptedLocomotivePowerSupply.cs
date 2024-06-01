@@ -16,12 +16,13 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api.PowerSupply;
 using Orts.Simulation.Physics;
 
@@ -173,36 +174,42 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             abstractScript?.InitializeMoving();
         }
 
-        public virtual void Save(BinaryWriter outf)
+        public virtual async ValueTask<PowerSupplySaveState> Snapshot()
         {
-            BatterySwitch.Save(outf);
-            MasterKey.Save(outf);
-            ElectricTrainSupplySwitch.Save(outf);
-
-            outf.Write(FrontElectricTrainSupplyCableConnected);
-
-            outf.Write(MainPowerSupplyState.ToString());
-            outf.Write(AuxiliaryPowerSupplyState.ToString());
-            outf.Write(ElectricTrainSupplyState.ToString());
-            outf.Write(LowVoltagePowerSupplyState.ToString());
-            outf.Write(BatteryState.ToString());
-            outf.Write(CabPowerSupplyState.ToString());
+            return new PowerSupplySaveState()
+            { 
+                ScriptName = scriptName,
+                BatterySwitchState = await BatterySwitch.Snapshot().ConfigureAwait(false),
+                MasterKeyState = await MasterKey.Snapshot().ConfigureAwait(false),
+                ElectricTrainSupplySwitchState = await ElectricTrainSupplySwitch.Snapshot().ConfigureAwait(false),
+                FrontElectricTrainSupplyCableConnected = FrontElectricTrainSupplyCableConnected,
+                MainPowerSupplyState = MainPowerSupplyState,
+                AuxiliaryPowerSupplyState = AuxiliaryPowerSupplyState,
+                ElectricTrainSupplyState = ElectricTrainSupplyState,
+                LowVoltagePowerSupplyState = LowVoltagePowerSupplyState,
+                BatteryState = BatteryState,
+                CabPowerSupplyState = CabPowerSupplyState,
+                
+            };
         }
 
-        public virtual void Restore(BinaryReader inf)
+        public virtual async ValueTask Restore(PowerSupplySaveState saveState)
         {
-            BatterySwitch.Restore(inf);
-            MasterKey.Restore(inf);
-            ElectricTrainSupplySwitch.Restore(inf);
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-            FrontElectricTrainSupplyCableConnected = inf.ReadBoolean();
+            scriptName = saveState.ScriptName;
+            await BatterySwitch.Restore(saveState.BatterySwitchState).ConfigureAwait(false);
+            await MasterKey.Restore(saveState.MasterKeyState).ConfigureAwait(false);
+            await ElectricTrainSupplySwitch.Restore(saveState.ElectricTrainSupplySwitchState).ConfigureAwait(false);
 
-            MainPowerSupplyState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
-            AuxiliaryPowerSupplyState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
-            ElectricTrainSupplyState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
-            LowVoltagePowerSupplyState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
-            BatteryState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
-            CabPowerSupplyState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
+            FrontElectricTrainSupplyCableConnected = saveState.FrontElectricTrainSupplyCableConnected;
+
+            MainPowerSupplyState = saveState.MainPowerSupplyState;
+            AuxiliaryPowerSupplyState = saveState.AuxiliaryPowerSupplyState;
+            ElectricTrainSupplyState = saveState.ElectricTrainSupplyState;
+            LowVoltagePowerSupplyState = saveState.LowVoltagePowerSupplyState;
+            BatteryState = saveState.BatteryState;
+            CabPowerSupplyState = saveState.CabPowerSupplyState;
 
             firstUpdate = false;
         }

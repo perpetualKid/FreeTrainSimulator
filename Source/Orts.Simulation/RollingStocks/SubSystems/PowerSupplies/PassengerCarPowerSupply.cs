@@ -208,40 +208,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             firstUpdate = false;
         }
 
-        public virtual void Save(BinaryWriter outf)
-        {
-            BatterySwitch.Save(outf);
-
-            outf.Write(FrontElectricTrainSupplyCableConnected);
-
-            outf.Write(ElectricTrainSupplyState.ToString());
-            outf.Write(LowVoltagePowerSupplyState.ToString());
-            outf.Write(BatteryState.ToString());
-            outf.Write(VentilationState.ToString());
-            outf.Write(HeatingState.ToString());
-            outf.Write(AirConditioningState.ToString());
-
-            outf.Write(HeatFlowRateW);
-        }
-
-        public virtual void Restore(BinaryReader inf)
-        {
-            BatterySwitch.Restore(inf);
-
-            FrontElectricTrainSupplyCableConnected = inf.ReadBoolean();
-
-            ElectricTrainSupplyState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
-            LowVoltagePowerSupplyState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
-            BatteryState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
-            VentilationState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
-            HeatingState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
-            AirConditioningState = (PowerSupplyState)Enum.Parse(typeof(PowerSupplyState), inf.ReadString());
-
-            HeatFlowRateW = inf.ReadSingle();
-
-            firstUpdate = false;
-        }
-
         public virtual void Update(double elapsedClockSeconds)
         {
             CarId = Train?.Cars.IndexOf(Wagon) ?? 0;

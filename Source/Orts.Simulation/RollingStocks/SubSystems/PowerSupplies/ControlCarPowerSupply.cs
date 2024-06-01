@@ -28,15 +28,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public override PowerSupplyType Type => PowerSupplyType.ControlCar;
 
         public bool Activated;
-        private ControlCarPowerSupply Script => abstractScript as ControlCarPowerSupply;
-
-        //        public ScriptedTractionCutOffRelay TractionCutOffRelay { get; protected set; }
+        private ControlCarPowerSupply script => abstractScript as ControlCarPowerSupply;
 
         public ScriptedControlCarPowerSupply(MSTSControlTrailerCar controlcar) :
         base(controlcar)
         {
-            //           ControlTrailer = controlcar;
-            //          TractionCutOffRelay = new ScriptedTractionCutOffRelay(this);
         }
 
 
@@ -64,8 +60,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public override void Update(double elapsedClockSeconds)
         {
             base.Update(elapsedClockSeconds);
-
-            // Script?.Update(elapsedClockSeconds);
         }
 
     }

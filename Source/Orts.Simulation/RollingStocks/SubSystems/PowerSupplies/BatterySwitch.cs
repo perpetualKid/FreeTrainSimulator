@@ -151,22 +151,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             return ValueTask.CompletedTask;
         }
 
-        public virtual void Save(BinaryWriter outf)
-        {
-            outf.Write(CommandSwitch);
-            outf.Write(CommandButtonOn);
-            outf.Write(CommandButtonOff);
-            outf.Write(On);
-        }
-
-        public virtual void Restore(BinaryReader inf)
-        {
-            CommandSwitch = inf.ReadBoolean();
-            CommandButtonOn = inf.ReadBoolean();
-            CommandButtonOff = inf.ReadBoolean();
-            On = inf.ReadBoolean();
-        }
-
         public virtual void Update(double elapsedClockSeconds)
         {
             switch (Mode)

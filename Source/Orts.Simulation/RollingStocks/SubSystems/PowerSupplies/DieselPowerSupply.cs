@@ -15,10 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading.Tasks;
 
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.PowerSupply;
 
@@ -33,7 +36,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public override PowerSupplyType Type => PowerSupplyType.DieselElectric;
         public bool Activated;
-        private DieselPowerSupply Script => abstractScript as DieselPowerSupply;
+        private DieselPowerSupply script => abstractScript as DieselPowerSupply;
 
         public float DieselEngineMinRpmForElectricTrainSupply { get; protected set; }
         public float DieselEngineMinRpm => ElectricTrainSupplyOn ? DieselEngineMinRpmForElectricTrainSupply : 0f;
@@ -83,20 +86,33 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     abstractScript = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), scriptName) as DieselPowerSupply;
                 }
-                if (Script == null)
+                if (script == null)
                 {
                     abstractScript = new DefaultDieselPowerSupply();
                 }
 
                 AssignScriptFunctions();
 
-                Script.Initialize();
+                script.Initialize();
                 Activated = true;
             }
 
             TractionCutOffRelay.Initialize();
         }
 
+        public override async ValueTask<PowerSupplySaveState> Snapshot()
+        {
+            PowerSupplySaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.TractionCutOffRelayState = await TractionCutOffRelay.Snapshot().ConfigureAwait(false);
+            return saveState;
+        }
+
+        public override async ValueTask Restore([NotNull] PowerSupplySaveState saveState)
+        {
+            await base.Restore(saveState).ConfigureAwait(false);
+            await TractionCutOffRelay.Restore(saveState.TractionCutOffRelayState).ConfigureAwait(false);
+        }
 
         //================================================================================================//
         /// <summary>
@@ -108,30 +124,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             TractionCutOffRelay.InitializeMoving();
         }
-
-        public override void Save(BinaryWriter outf)
-        {
-            outf.Write(scriptName);
-
-            base.Save(outf);
-            TractionCutOffRelay.Save(outf);
-        }
-
-        public override void Restore(BinaryReader inf)
-        {
-            scriptName = inf.ReadString();
-
-            base.Restore(inf);
-            TractionCutOffRelay.Restore(inf);
-        }
-
         public override void Update(double elapsedClockSeconds)
         {
             base.Update(elapsedClockSeconds);
 
             TractionCutOffRelay.Update(elapsedClockSeconds);
 
-            Script?.Update(elapsedClockSeconds);
+            script?.Update(elapsedClockSeconds);
         }
 
         protected override void AssignScriptFunctions()
@@ -139,8 +138,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             base.AssignScriptFunctions();
 
             // DieselPowerSupply getters
-            Script.CurrentDieselEnginesState = () => DieselLocomotive.DieselEngines.State;
-            Script.CurrentDieselEngineState = (id) =>
+            script.CurrentDieselEnginesState = () => DieselLocomotive.DieselEngines.State;
+            script.CurrentDieselEngineState = (id) =>
             {
                 if (id >= 0 && id < DieselEngines.Count)
                 {
@@ -151,15 +150,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     return DieselEngineState.Unavailable;
                 }
             };
-            Script.CurrentTractionCutOffRelayState = () => TractionCutOffRelay.State;
-            Script.TractionCutOffRelayDriverClosingOrder = () => TractionCutOffRelay.DriverClosingOrder;
-            Script.TractionCutOffRelayDriverOpeningOrder = () => TractionCutOffRelay.DriverOpeningOrder;
-            Script.TractionCutOffRelayDriverClosingAuthorization = () => TractionCutOffRelay.DriverClosingAuthorization;
+            script.CurrentTractionCutOffRelayState = () => TractionCutOffRelay.State;
+            script.TractionCutOffRelayDriverClosingOrder = () => TractionCutOffRelay.DriverClosingOrder;
+            script.TractionCutOffRelayDriverOpeningOrder = () => TractionCutOffRelay.DriverOpeningOrder;
+            script.TractionCutOffRelayDriverClosingAuthorization = () => TractionCutOffRelay.DriverClosingAuthorization;
 
             // DieselPowerSupply setters
-            Script.SignalEventToDieselEngines = (evt) => DieselEngines.HandleEvent(evt);
-            Script.SignalEventToDieselEngine = (evt, id) => DieselEngines.HandleEvent(evt, id);
-            Script.SignalEventToTractionCutOffRelay = (evt) => TractionCutOffRelay.HandleEvent(evt);
+            script.SignalEventToDieselEngines = (evt) => DieselEngines.HandleEvent(evt);
+            script.SignalEventToDieselEngine = (evt, id) => DieselEngines.HandleEvent(evt, id);
+            script.SignalEventToTractionCutOffRelay = (evt) => TractionCutOffRelay.HandleEvent(evt);
         }
     }
 

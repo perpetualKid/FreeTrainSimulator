@@ -49,22 +49,6 @@ namespace FreeTrainSimulator.Common.Api
             })).ConfigureAwait(false);
         }
 
-        public static async ValueTask RestoreCollectionCreateNewInstances<TSaveState, TRuntime, TActivator>(this ICollection<TSaveState> saveStates, ICollection<TRuntime> target, TActivator activator = default)
-            where TActivator : ISaveStateRestoreApi<TSaveState, TRuntime>
-            where TSaveState : SaveStateBase
-            where TRuntime : ISaveStateApi<TSaveState>
-        {
-            ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
-            ArgumentNullException.ThrowIfNull(target, nameof(target));
-
-            await Task.WhenAll(saveStates.Select(async saveState =>
-            {
-                TRuntime runtimeTarget = activator.CreateRuntimeTarget(saveState);
-                await runtimeTarget.Restore(saveState).ConfigureAwait(false);
-                target.Add(runtimeTarget);
-            })).ConfigureAwait(false);
-        }
-
         public static async ValueTask RestoreCollectionOnExistingInstances<TSaveState, TRuntime>(this IEnumerable<TRuntime> target, IEnumerable<TSaveState> saveStates)
             where TSaveState : SaveStateBase
             where TRuntime : ISaveStateApi<TSaveState>

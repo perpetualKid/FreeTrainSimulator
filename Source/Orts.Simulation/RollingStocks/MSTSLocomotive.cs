@@ -77,6 +77,8 @@ using Orts.Simulation.RollingStocks.SubSystems.ControlSystems;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 
+using SharpDX.Direct2D1;
+
 namespace Orts.Simulation.RollingStocks
 {
 
@@ -452,8 +454,8 @@ namespace Orts.Simulation.RollingStocks
         public Axle LocomotiveAxle { get; protected set; }
         private IIRFilter currentFilter;
         private IIRFilter adhesionFilter;
-        private float saveAdhesionFilter;
-        private float adhesionConditions;
+        private double saveAdhesionFilter;
+        private double adhesionConditions;
 
         public float FilteredMotiveForceN;
 
@@ -1445,6 +1447,7 @@ namespace Orts.Simulation.RollingStocks
 
                 AxleSaveState = await LocomotiveAxle.Snapshot().ConfigureAwait(false),
                 CruiseControlSaveState = CruiseControl == null ? null : await CruiseControl.Snapshot().ConfigureAwait(false),
+                PowerSupplySaveState = LocomotivePowerSupply == null ? null : await LocomotivePowerSupply.Snapshot().ConfigureAwait(false),
             };
 
             return saveState;
@@ -1453,120 +1456,66 @@ namespace Orts.Simulation.RollingStocks
         public override async ValueTask Restore([NotNull] TrainCarSaveState saveState)
         {
             await base.Restore(saveState).ConfigureAwait(false);
+
             ArgumentNullException.ThrowIfNull(saveState.LocomotiveSaveState, nameof(saveState.LocomotiveSaveState));
-        }
 
-        /// <summary>
-        /// We are saving the game.  Save anything that we'll need to restore the 
-        /// status later.
-        /// </summary>
-        public override void Save(BinaryWriter outf)
-        {
-            //// we won't save the horn state
-            //outf.Write(Bell);
-            //outf.Write(Sander);
-            //outf.Write(VacuumExhausterPressed);
-            //outf.Write(Wiper);
-            //outf.Write(odometerResetPositionM);
-            //outf.Write(odometerCountingUp);
-            //outf.Write(odometerCountingForwards);
-            //outf.Write(OdometerVisible);
-            //outf.Write(MainResPressurePSI);
-            //outf.Write(CompressorIsOn);
-            //outf.Write(VacuumMainResVacuumPSIAorInHg);
-            //outf.Write(VacuumExhausterIsOn);
-            //outf.Write(TrainBrakePipeLeakPSIorInHgpS);
-            //outf.Write(AverageForceN);
-            //outf.Write(LocomotiveAxle.AxleSpeedMpS);
-            //outf.Write(CabLightOn);
-            //outf.Write(UsingRearCab);
-            //outf.Write(CalculatedCarHeaterSteamUsageLBpS);
-            //ControllerFactory.Save(ThrottleController, outf);
-            //ControllerFactory.Save(TrainBrakeController, outf);
-            //ControllerFactory.Save(EngineBrakeController, outf);
-            //ControllerFactory.Save(BrakemanBrakeController, outf);
-            //ControllerFactory.Save(DynamicBrakeController, outf);
-            //ControllerFactory.Save(SteamHeatController, outf);
-            //outf.Write(PowerReduction);
-            //outf.Write(ScoopIsBroken);
-            //outf.Write(IsWaterScoopDown);
-            //outf.Write(CurrentTrackSandBoxCapacityM3);
-            //outf.Write(saveAdhesionFilter);
-            //outf.Write(GenericItem1);
-            //outf.Write(GenericItem2);
-            //outf.Write((int)RemoteControlGroup);
-            //outf.Write(DistributedPowerUnitId);
-            //outf.Write(previousGearBoxNotch);
-            //outf.Write(previousChangedGearBoxNotch);
+            LocomotiveSaveState locomotiveSaveState = saveState.LocomotiveSaveState;
 
-            //base.Save(outf);
-
-            LocomotivePowerSupply?.Save(outf);
-            //TrainControlSystem.Save(outf);
-
-            //LocomotiveAxle.Save(outf);
-            //CruiseControl?.Save(outf);
-        }
-
-        /// <summary>
-        /// We are restoring a saved game.  The TrainCar class has already
-        /// been initialized.   Restore the game state.
-        /// </summary>
-        public override void Restore(BinaryReader inf)
-        {
-            if (inf.ReadBoolean())
+            if (locomotiveSaveState.Bell)
                 SignalEvent(TrainEvent.BellOn);
-            if (inf.ReadBoolean())
+            if (locomotiveSaveState.Sander)
                 SignalEvent(TrainEvent.SanderOn);
-            if (inf.ReadBoolean())
+            if (locomotiveSaveState.VacuumExhauster)
                 SignalEvent(TrainEvent.VacuumExhausterOn);
-            if (inf.ReadBoolean())
+            if (locomotiveSaveState.Wiper)
                 SignalEvent(TrainEvent.WiperOn);
-            odometerResetPositionM = inf.ReadSingle();
-            odometerCountingUp = inf.ReadBoolean();
-            odometerCountingForwards = inf.ReadBoolean();
-            OdometerVisible = inf.ReadBoolean();
-            MainResPressurePSI = inf.ReadSingle();
-            CompressorIsOn = inf.ReadBoolean();
-            VacuumMainResVacuumPSIAorInHg = inf.ReadSingle();
-            VacuumExhausterIsOn = inf.ReadBoolean();
-            TrainBrakePipeLeakPSIorInHgpS = inf.ReadSingle();
-            AverageForceN = inf.ReadSingle();
-            float axleSpeedMpS = inf.ReadSingle();
-            CabLightOn = inf.ReadBoolean();
-            UsingRearCab = inf.ReadBoolean();
-            CalculatedCarHeaterSteamUsageLBpS = inf.ReadSingle();
-            ControllerFactory.Restore(ThrottleController, inf);
-            ControllerFactory.Restore(TrainBrakeController, inf);
-            ControllerFactory.Restore(EngineBrakeController, inf);
-            ControllerFactory.Restore(BrakemanBrakeController, inf);
-            ControllerFactory.Restore(DynamicBrakeController, inf);
-            ControllerFactory.Restore(SteamHeatController, inf);
-            PowerReduction = inf.ReadSingle();
-            ScoopIsBroken = inf.ReadBoolean();
-            IsWaterScoopDown = inf.ReadBoolean();
-            CurrentTrackSandBoxCapacityM3 = inf.ReadSingle();
 
-            saveAdhesionFilter = inf.ReadSingle();
+            odometerResetPositionM = (float)locomotiveSaveState.OdometerResetPosition;
+            odometerCountingUp = locomotiveSaveState.OdometerCountingUp;
+            odometerCountingForwards = locomotiveSaveState.OdometerCountingForward;
+            OdometerVisible = locomotiveSaveState.OdometerVisible;
+            MainResPressurePSI = locomotiveSaveState.MainReservoirPressure;
+            CompressorIsOn = locomotiveSaveState.CompressorActive;
+            VacuumMainResVacuumPSIAorInHg = locomotiveSaveState.VacuumMainReservoirVacuum;
+            VacuumExhausterIsOn = locomotiveSaveState.VacuumExhausterActive;
+            TrainBrakePipeLeakPSIorInHgpS = locomotiveSaveState.TrainBrakePipeLeak;
+            AverageForceN = locomotiveSaveState.AverageForce;
+            float axleSpeedMpS = locomotiveSaveState.AxleSpeed;
+            CabLightOn = locomotiveSaveState.CabLight;
+            UsingRearCab = locomotiveSaveState.RearCab;
+            CalculatedCarHeaterSteamUsageLBpS = (float)locomotiveSaveState.CalculatedCarHeaterSteamUsage;
+            await ThrottleController.Restore(locomotiveSaveState.ThrottleController).ConfigureAwait(false);
+            await TrainBrakeController.Restore(locomotiveSaveState.TrainBrakeController).ConfigureAwait(false);
+            await EngineBrakeController.Restore(locomotiveSaveState.EngineBrakeController).ConfigureAwait(false);
+            await BrakemanBrakeController.Restore(locomotiveSaveState.BrakemanBrakeController).ConfigureAwait(false);
+            await DynamicBrakeController.Restore(locomotiveSaveState.DynamicBrakeController).ConfigureAwait(false);
+            await SteamHeatController.Restore(locomotiveSaveState.SteamHeatController).ConfigureAwait(false);
+            PowerReduction = locomotiveSaveState.PowerReduction;
+            ScoopIsBroken = locomotiveSaveState.ScoopBroken;
+            IsWaterScoopDown = locomotiveSaveState.WaterScoopDown;
+            CurrentTrackSandBoxCapacityM3 = locomotiveSaveState.CurrentTrackSandBoxCapacity;
+
+            saveAdhesionFilter = locomotiveSaveState.AdhesionFilter;
 
             adhesionFilter.Reset(saveAdhesionFilter);
 
-            GenericItem1 = inf.ReadBoolean();
-            GenericItem2 = inf.ReadBoolean();
-            RemoteControlGroup = (RemoteControlGroup)inf.ReadInt32();
-            DistributedPowerUnitId = inf.ReadInt32();
-            previousGearBoxNotch = inf.ReadInt32();
-            previousChangedGearBoxNotch = inf.ReadInt32();
+            GenericItem1 = locomotiveSaveState.GenericItem1;
+            GenericItem2 = locomotiveSaveState.GenericItem2;
+            RemoteControlGroup = locomotiveSaveState.RemoteControlGroup;
+            DistributedPowerUnitId = locomotiveSaveState.DistributedPowerUnitId;
+            previousGearBoxNotch = locomotiveSaveState.PreviousGearBoxNotch;
+            previousChangedGearBoxNotch = locomotiveSaveState.PreviousChangedGearBoxNotch;
 
-            base.Restore(inf);
-
-            LocomotivePowerSupply?.Restore(inf);
-            TrainControlSystem.Restore(inf);
+            if (null != LocomotivePowerSupply)
+                await LocomotivePowerSupply.Restore(locomotiveSaveState.PowerSupplySaveState).ConfigureAwait(false);
+            await TrainControlSystem.Restore(locomotiveSaveState.TrainControlSystemSaveState).ConfigureAwait(false);
 
             LocomotiveAxle = new Axle();
+            await LocomotiveAxle.Restore(locomotiveSaveState.AxleSaveState).ConfigureAwait(false);
             MoveParamsToAxle();
             LocomotiveAxle.Reset(simulator.GameTime, axleSpeedMpS);
-            //CruiseControl?.Restore(inf);
+            if (null != CruiseControl)
+                await CruiseControl.Restore(locomotiveSaveState.CruiseControlSaveState).ConfigureAwait(false);
         }
 
         public bool IsLeadLocomotive()
@@ -3369,9 +3318,9 @@ namespace Orts.Simulation.RollingStocks
             // Set adhesion conditions for diesel, electric or steam geared locomotives
             if (elapsedClockSeconds > 0)
             {
-                saveAdhesionFilter = (float)adhesionFilter.Filter(BaseFrictionCoefficientFactor + AdhesionRandom, elapsedClockSeconds);
-                adhesionConditions = MathHelper.Clamp(AdhesionMultiplier * saveAdhesionFilter, 0.05f, 2.5f);
-                LocomotiveAxle.AdhesionLimit = adhesionConditions * BaseuMax;
+                saveAdhesionFilter = adhesionFilter.Filter(BaseFrictionCoefficientFactor + AdhesionRandom, elapsedClockSeconds);
+                adhesionConditions = Math.Clamp(AdhesionMultiplier * saveAdhesionFilter, 0.05f, 2.5f);
+                LocomotiveAxle.AdhesionLimit = (float)(adhesionConditions * BaseuMax);
             }
 
             // Set adhesion conditions for other steam locomotives

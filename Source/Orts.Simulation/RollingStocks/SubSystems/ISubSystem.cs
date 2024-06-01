@@ -17,17 +17,20 @@
 
 using System.IO;
 
+using FreeTrainSimulator.Common.Api;
+
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
+    //public interface ISubSystem<T, U> : ISaveStateApi<U> where T : ISubSystem<T, U> where U : SaveStateBase
     public interface ISubSystem<T> where T : ISubSystem<T>
     {
         void Copy(T source);
         void Initialize();
         void InitializeMoving();
-        void Save(BinaryWriter outf);
-        void Restore(BinaryReader inf);
+        //void Save(BinaryWriter outf);
+        //void Restore(BinaryReader inf);
         void Update(double elapsedClockSeconds);
     }
 

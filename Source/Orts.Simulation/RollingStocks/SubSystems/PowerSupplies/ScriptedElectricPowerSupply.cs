@@ -15,11 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading.Tasks;
 
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.PowerSupply;
 
@@ -107,20 +110,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             CircuitBreaker.InitializeMoving();
         }
 
-        public override void Save(BinaryWriter outf)
+        public override async ValueTask<PowerSupplySaveState> Snapshot()
         {
-            outf.Write(scriptName);
+            PowerSupplySaveState saveState = await base.Snapshot().ConfigureAwait(false);
 
-            base.Save(outf);
-            CircuitBreaker.Save(outf);
+            saveState.CircuitBreakerState = await CircuitBreaker.Snapshot().ConfigureAwait(false);
+
+            return saveState;
         }
 
-        public override void Restore(BinaryReader inf)
+        public override async ValueTask Restore([NotNull] PowerSupplySaveState saveState)
         {
-            scriptName = inf.ReadString();
+            await base.Restore(saveState).ConfigureAwait(false);
 
-            base.Restore(inf);
-            CircuitBreaker.Restore(inf);
+            await CircuitBreaker.Restore(saveState.CircuitBreakerState).ConfigureAwait(false);
         }
 
         public override void Update(double elapsedClockSeconds)

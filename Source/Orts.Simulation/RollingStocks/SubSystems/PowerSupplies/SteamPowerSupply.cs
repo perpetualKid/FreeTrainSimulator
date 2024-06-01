@@ -1,7 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
@@ -88,16 +91,22 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             MasterKey.InitializeMoving();
         }
 
-        public void Save(BinaryWriter outf)
+
+        public async ValueTask<PowerSupplySaveState> Snapshot()
         {
-            BatterySwitch.Save(outf);
-            MasterKey.Save(outf);
+            return new PowerSupplySaveState()
+            {
+                BatterySwitchState = await BatterySwitch.Snapshot().ConfigureAwait(false),
+                MasterKeyState = await MasterKey.Snapshot().ConfigureAwait(false),
+            };
         }
 
-        public void Restore(BinaryReader inf)
+        public async ValueTask Restore(PowerSupplySaveState saveState)
         {
-            BatterySwitch.Restore(inf);
-            MasterKey.Restore(inf);
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            await BatterySwitch.Restore(saveState.BatterySwitchState).ConfigureAwait(false);
+            await MasterKey.Restore(saveState.MasterKeyState).ConfigureAwait(false);
         }
 
         public void Update(double elapsedClockSeconds)

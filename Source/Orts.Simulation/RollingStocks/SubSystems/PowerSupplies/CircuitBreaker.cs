@@ -17,25 +17,29 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.PowerSupply;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
 
-    public class ScriptedCircuitBreaker : ISubSystem<ScriptedCircuitBreaker>
+    public class ScriptedCircuitBreaker : ISubSystem<ScriptedCircuitBreaker>, ISaveStateApi<CircuitBreakerSaveState>
     {
         public ScriptedLocomotivePowerSupply PowerSupply { get; protected set; }
         public MSTSLocomotive Locomotive => PowerSupply.Locomotive;
 
         private bool activated;
         private string ScriptName = "Automatic";
-        private CircuitBreaker Script;
+        private CircuitBreaker script;
 
-        private float DelayS;
+        private float delayTimer;
 
         public CircuitBreakerState State { get; private set; } = CircuitBreakerState.Open;
         public bool DriverClosingOrder { get; private set; }
@@ -82,7 +86,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             ScriptName = source.ScriptName;
             State = source.State;
-            DelayS = source.DelayS;
+            delayTimer = source.delayTimer;
         }
 
         public void Parse(string lowercasetoken, STFReader stf)
@@ -94,7 +98,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     break;
 
                 case "engine(ortscircuitbreakerclosingdelay":
-                    DelayS = stf.ReadFloatBlock(STFReader.Units.Time, null);
+                    delayTimer = stf.ReadFloatBlock(STFReader.Units.Time, null);
                     break;
             }
         }
@@ -108,34 +112,34 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     switch(ScriptName)
                     {
                         case "Automatic":
-                            Script = new AutomaticCircuitBreaker() as CircuitBreaker;
+                            script = new AutomaticCircuitBreaker() as CircuitBreaker;
                             break;
 
                         case "Manual":
-                            Script = new ManualCircuitBreaker() as CircuitBreaker;
+                            script = new ManualCircuitBreaker() as CircuitBreaker;
                             break;
 
                         default:
-                            Script = Simulator.Instance.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as CircuitBreaker;
+                            script = Simulator.Instance.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as CircuitBreaker;
                             break;
                     }
                 }
                 // Fallback to automatic circuit breaker if the above failed.
-                if (Script == null)
+                if (script == null)
                 {
-                    Script = new AutomaticCircuitBreaker() as CircuitBreaker;
+                    script = new AutomaticCircuitBreaker() as CircuitBreaker;
                 }
 
                 // AbstractScriptClass
-                Script.ClockTime = () => Simulator.Instance.ClockTime;
-                Script.GameTime = () => Simulator.Instance.GameTime;
-                Script.PreUpdate = () => Simulator.Instance.PreUpdate;
-                Script.DistanceM = () => Locomotive.DistanceTravelled;
-                Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
-                Script.Confirm = Simulator.Instance.Confirmer.Confirm;
-                Script.Message = Simulator.Instance.Confirmer.Message;
-                Script.SignalEvent = Locomotive.SignalEvent;
-                Script.SignalEventToTrain = (evt) =>
+                script.ClockTime = () => Simulator.Instance.ClockTime;
+                script.GameTime = () => Simulator.Instance.GameTime;
+                script.PreUpdate = () => Simulator.Instance.PreUpdate;
+                script.DistanceM = () => Locomotive.DistanceTravelled;
+                script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
+                script.Confirm = Simulator.Instance.Confirmer.Confirm;
+                script.Message = Simulator.Instance.Confirmer.Message;
+                script.SignalEvent = Locomotive.SignalEvent;
+                script.SignalEventToTrain = (evt) =>
                 {
                     if (Locomotive.Train != null)
                     {
@@ -144,47 +148,47 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 };
 
                 // TractionCutOffSubsystem getters
-                Script.SupplyType = () => PowerSupply.Type;
-                Script.CurrentState = () => State;
-                Script.CurrentPantographState = () => Locomotive?.Pantographs.State ?? PantographState.Unavailable;
-                Script.CurrentDieselEngineState = () => (Locomotive as MSTSDieselLocomotive)?.DieselEngines.State ?? DieselEngineState.Unavailable;
-                Script.CurrentPowerSupplyState = () => PowerSupply.MainPowerSupplyState;
-                Script.DriverClosingOrder = () => DriverClosingOrder;
-                Script.DriverOpeningOrder = () => DriverOpeningOrder;
-                Script.DriverClosingAuthorization = () => DriverClosingAuthorization;
-                Script.TCSClosingAuthorization = () => TCSClosingAuthorization;
-                Script.ClosingAuthorization = () => ClosingAuthorization;
-                Script.IsLowVoltagePowerSupplyOn = () => PowerSupply.LowVoltagePowerSupplyOn;
-                Script.IsCabPowerSupplyOn = () => PowerSupply.CabPowerSupplyOn;
-                Script.ClosingDelayS = () => DelayS;
+                script.SupplyType = () => PowerSupply.Type;
+                script.CurrentState = () => State;
+                script.CurrentPantographState = () => Locomotive?.Pantographs.State ?? PantographState.Unavailable;
+                script.CurrentDieselEngineState = () => (Locomotive as MSTSDieselLocomotive)?.DieselEngines.State ?? DieselEngineState.Unavailable;
+                script.CurrentPowerSupplyState = () => PowerSupply.MainPowerSupplyState;
+                script.DriverClosingOrder = () => DriverClosingOrder;
+                script.DriverOpeningOrder = () => DriverOpeningOrder;
+                script.DriverClosingAuthorization = () => DriverClosingAuthorization;
+                script.TCSClosingAuthorization = () => TCSClosingAuthorization;
+                script.ClosingAuthorization = () => ClosingAuthorization;
+                script.IsLowVoltagePowerSupplyOn = () => PowerSupply.LowVoltagePowerSupplyOn;
+                script.IsCabPowerSupplyOn = () => PowerSupply.CabPowerSupplyOn;
+                script.ClosingDelayS = () => delayTimer;
 
                 // TractionCutOffSubsystem setters
-                Script.SetDriverClosingOrder = (value) => DriverClosingOrder = value;
-                Script.SetDriverOpeningOrder = (value) => DriverOpeningOrder = value;
-                Script.SetDriverClosingAuthorization = (value) => DriverClosingAuthorization = value;
-                Script.SetClosingAuthorization = (value) => ClosingAuthorization = value;
+                script.SetDriverClosingOrder = (value) => DriverClosingOrder = value;
+                script.SetDriverOpeningOrder = (value) => DriverOpeningOrder = value;
+                script.SetDriverClosingAuthorization = (value) => DriverClosingAuthorization = value;
+                script.SetClosingAuthorization = (value) => ClosingAuthorization = value;
 
                 // CircuitBreaker getters
-                Script.CurrentState = () => State;
-                Script.TCSClosingOrder = () => TCSClosingOrder;
-                Script.TCSOpeningOrder = () => TCSOpeningOrder;
+                script.CurrentState = () => State;
+                script.TCSClosingOrder = () => TCSClosingOrder;
+                script.TCSOpeningOrder = () => TCSOpeningOrder;
 
                 // CircuitBreaker setters
-                Script.SetCurrentState = (value) =>
+                script.SetCurrentState = (value) =>
                 {
                     State = value;
                     TCSEvent CircuitBreakerEvent = State == CircuitBreakerState.Closed ? TCSEvent.CircuitBreakerClosed : TCSEvent.CircuitBreakerOpen;
                     Locomotive.TrainControlSystem.HandleEvent(CircuitBreakerEvent);
                 };
 
-                Script.Initialize();
+                script.Initialize();
                 activated = true;
             }
         }
 
         public void InitializeMoving()
         {
-            Script?.InitializeMoving();
+            script?.InitializeMoving();
 
             State = CircuitBreakerState.Closed;
         }
@@ -198,41 +202,48 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
             else
             {
-                if (Script != null)
+                if (script != null)
                 {
-                    Script.Update(elapsedClockSeconds);
+                    script.Update(elapsedClockSeconds);
                 }
             }
         }
 
         public void HandleEvent(PowerSupplyEvent evt)
         {
-            if (Script != null)
+            if (script != null)
             {
-                Script.HandleEvent(evt);
+                script.HandleEvent(evt);
             }
         }
 
-        public void Save(BinaryWriter outf)
+        public ValueTask<CircuitBreakerSaveState> Snapshot()
         {
-            outf.Write(ScriptName);
-            outf.Write(DelayS);
-            outf.Write(State.ToString());
-            outf.Write(DriverClosingOrder);
-            outf.Write(DriverOpeningOrder);
-            outf.Write(DriverClosingAuthorization);
-            outf.Write(ClosingAuthorization);
+            return ValueTask.FromResult(new CircuitBreakerSaveState()
+            {
+                ScriptName = ScriptName,
+                DelayTimer = delayTimer,
+                CircuitBreakerState = State,
+                DriverClosingOrder = DriverClosingOrder,
+                DriverOpeningOrder = DriverOpeningOrder,
+                DriverClosingAuthorization = DriverClosingAuthorization,
+                ClosingAuthorization = ClosingAuthorization,
+            });
         }
 
-        public void Restore(BinaryReader inf)
+        public ValueTask Restore(CircuitBreakerSaveState saveState)
         {
-            ScriptName = inf.ReadString();
-            DelayS = inf.ReadSingle();
-            State = (CircuitBreakerState)Enum.Parse(typeof(CircuitBreakerState), inf.ReadString());
-            DriverClosingOrder = inf.ReadBoolean();
-            DriverOpeningOrder = inf.ReadBoolean();
-            DriverClosingAuthorization = inf.ReadBoolean();
-            ClosingAuthorization = inf.ReadBoolean();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            ScriptName = saveState.ScriptName;
+            delayTimer = (float)saveState.DelayTimer;
+            State = saveState.CircuitBreakerState;
+            DriverClosingOrder = saveState.DriverClosingOrder;
+            DriverOpeningOrder = saveState.DriverOpeningOrder;
+            DriverClosingAuthorization = saveState.DriverClosingAuthorization;
+            ClosingAuthorization = saveState.ClosingAuthorization;
+
+            return ValueTask.CompletedTask;
         }
     }
 

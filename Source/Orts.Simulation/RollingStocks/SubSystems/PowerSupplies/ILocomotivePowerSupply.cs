@@ -15,14 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using FreeTrainSimulator.Common.Api;
+
 using Orts.Common;
+using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
     /// <summary>
     /// Base class for a controllable power supply for an electric or dual-mode locmotive.
     /// </summary>
-    public interface ILocomotivePowerSupply : IPowerSupply
+    public interface ILocomotivePowerSupply : IPowerSupply, ISaveStateApi<PowerSupplySaveState>
     {
         PowerSupplyType Type { get; }
 

@@ -17,9 +17,13 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.PowerSupply;
 using Orts.Simulation.AIs;
@@ -27,7 +31,7 @@ using Orts.Simulation.AIs;
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
 
-    public class ScriptedTractionCutOffRelay : ISubSystem<ScriptedTractionCutOffRelay>
+    public class ScriptedTractionCutOffRelay : ISubSystem<ScriptedTractionCutOffRelay>, ISaveStateApi<CircuitBreakerSaveState>
     {
         public ScriptedLocomotivePowerSupply PowerSupply { get; protected set; }
         public MSTSLocomotive Locomotive => PowerSupply.Locomotive;
@@ -37,7 +41,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         string ScriptName = "Automatic";
         TractionCutOffRelay Script;
 
-        private float DelayS;
+        private float delayTimer;
 
         public TractionCutOffRelayState State { get; private set; } = TractionCutOffRelayState.Open;
         public bool DriverClosingOrder { get; private set; }
@@ -64,7 +68,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             ScriptName = source.ScriptName;
             State = source.State;
-            DelayS = source.DelayS;
+            delayTimer = source.delayTimer;
         }
 
         public void Parse(string lowercasetoken, STFReader stf)
@@ -79,7 +83,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     break;
 
                 case "engine(ortstractioncutoffrelayclosingdelay":
-                    DelayS = stf.ReadFloatBlock(STFReader.Units.Time, null);
+                    delayTimer = stf.ReadFloatBlock(STFReader.Units.Time, null);
                     break;
             }
         }
@@ -140,7 +144,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 Script.ClosingAuthorization = () => ClosingAuthorization;
                 Script.IsLowVoltagePowerSupplyOn = () => PowerSupply.LowVoltagePowerSupplyOn;
                 Script.IsCabPowerSupplyOn = () => PowerSupply.CabPowerSupplyOn;
-                Script.ClosingDelayS = () => DelayS;
+                Script.ClosingDelayS = () => delayTimer;
 
                 // TractionCutOffSubsystem setters
                 Script.SetDriverClosingOrder = (value) => DriverClosingOrder = value;
@@ -192,26 +196,33 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             Script?.HandleEvent(evt);
         }
 
-        public void Save(BinaryWriter outf)
+        public ValueTask<CircuitBreakerSaveState> Snapshot()
         {
-            outf.Write(ScriptName);
-            outf.Write(DelayS);
-            outf.Write(State.ToString());
-            outf.Write(DriverClosingOrder);
-            outf.Write(DriverOpeningOrder);
-            outf.Write(DriverClosingAuthorization);
-            outf.Write(ClosingAuthorization);
+            return ValueTask.FromResult(new CircuitBreakerSaveState()
+            {
+                ScriptName = ScriptName,
+                DelayTimer = delayTimer,
+                TractionCutOffRelayState = State,
+                DriverClosingOrder = DriverClosingOrder,
+                DriverOpeningOrder = DriverOpeningOrder,
+                DriverClosingAuthorization = DriverClosingAuthorization,
+                ClosingAuthorization = ClosingAuthorization,
+            });
         }
 
-        public void Restore(BinaryReader inf)
+        public ValueTask Restore(CircuitBreakerSaveState saveState)
         {
-            ScriptName = inf.ReadString();
-            DelayS = inf.ReadSingle();
-            State = (TractionCutOffRelayState)Enum.Parse(typeof(TractionCutOffRelayState), inf.ReadString());
-            DriverClosingOrder = inf.ReadBoolean();
-            DriverOpeningOrder = inf.ReadBoolean();
-            DriverClosingAuthorization = inf.ReadBoolean();
-            ClosingAuthorization = inf.ReadBoolean();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            ScriptName = saveState.ScriptName;
+            delayTimer = (float)saveState.DelayTimer;
+            State = saveState.TractionCutOffRelayState;
+            DriverClosingOrder = saveState.DriverClosingOrder;
+            DriverOpeningOrder = saveState.DriverOpeningOrder;
+            DriverClosingAuthorization = saveState.DriverClosingAuthorization;
+            ClosingAuthorization = saveState.ClosingAuthorization;
+
+            return ValueTask.CompletedTask;
         }
     }
 
