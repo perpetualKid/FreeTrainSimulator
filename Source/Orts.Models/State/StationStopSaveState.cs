@@ -31,9 +31,11 @@ namespace Orts.Models.State
         public double ActualArrival {  get; set; }
         public double ActualDeparture { get; set; }
         public bool StationStopPassed { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
         public Collection<int> ConnectionsWaiting { get; set; }
         public Dictionary<int, int> ConnectionsAwaited { get; set; }
         public Dictionary<int, WaitInfoSaveState> ConnnectionDetails { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
         public int? ActualMinStopTime { get; set; }
         public float? KeepClearFront { get; set; }
         public float? KeepClearRear { get; set; }

@@ -26,7 +26,9 @@ namespace Orts.Models.State
         public float MaximumValue { get; set; }
         public float StepSize { get; set; }
         public int NotchIndex { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
         public Collection<NotchSaveState> NotchStates { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
         public bool CheckNeutral { get; set; }
         public CruiseControllerPosition ControllerPosition { get; set; }
         public CruiseControllerPosition CurrentPosition { get; set; }

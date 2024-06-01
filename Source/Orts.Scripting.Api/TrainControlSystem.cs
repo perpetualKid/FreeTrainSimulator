@@ -554,13 +554,13 @@ namespace Orts.Scripting.Api
                 await StateSaver.Restore(saveState).ConfigureAwait(false);
         }
 
-        internal protected abstract TrainControlSystemStateSaver StateSaver { get; }
+        protected abstract TrainControlSystemStateSaver StateSaver { get; }
 
-        public abstract class TrainControlSystemStateSaver
+        protected abstract class TrainControlSystemStateSaver
         {
             protected readonly TrainControlSystem trainControlSystem;
 
-            public TrainControlSystemStateSaver(TrainControlSystem trainControlSystem)
+            protected TrainControlSystemStateSaver(TrainControlSystem trainControlSystem)
             { 
                 this.trainControlSystem = trainControlSystem;
             }
@@ -569,7 +569,7 @@ namespace Orts.Scripting.Api
             public abstract ValueTask Restore(ReadOnlySequence<byte> saveState);
         }
 
-        public class TrainControlSystemStateSaver<T>: TrainControlSystemStateSaver where T : TrainControlSystemSaveState
+        protected class TrainControlSystemStateSaver<T>: TrainControlSystemStateSaver where T : TrainControlSystemSaveState
         {
             public T SaveState { get; set; }
 
