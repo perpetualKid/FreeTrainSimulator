@@ -65,7 +65,9 @@
  */
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 
@@ -79,11 +81,14 @@ using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
+
+using SharpDX.Direct2D1;
 
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
@@ -1073,135 +1078,148 @@ namespace Orts.Simulation.RollingStocks
             CylinderAdmissiontoCutoff = steamLocomotive.CylinderAdmissiontoCutoff;
         }
 
-        /// <summary>
-        /// We are saving the game.  Save anything that we'll need to restore the 
-        /// status later.
-        /// </summary>
-        public override void Save(BinaryWriter outf)
+        public override async ValueTask<TrainCarSaveState> Snapshot()
         {
-            outf.Write(RestoredGame);
-            outf.Write(BoilerHeatOutBTUpS);
-            outf.Write(BoilerHeatInBTUpS);
-            outf.Write(PreviousBoilerHeatOutBTUpS);
-            outf.Write(PreviousBoilerHeatSmoothedBTU);
-            outf.Write(BurnRateRawKGpS);
-            outf.Write(TenderCoalMassKG);
-            outf.Write(RestoredMaxTotalCombinedWaterVolumeUKG);
-            outf.Write(RestoredCombinedTenderWaterVolumeUKG);
-            outf.Write(CumulativeWaterConsumptionLbs);
-            outf.Write(CurrentAuxTenderWaterVolumeUKG);
-            outf.Write(CurrentLocoTenderWaterVolumeUKG);
-            outf.Write(PreviousTenderWaterVolumeUKG);
-            outf.Write(SteamIsAuxTenderCoupled);
-            outf.Write(CylinderSteamUsageLBpS);
-            outf.Write(BoilerHeatBTU);
-            outf.Write(BoilerMassLB);
-            outf.Write(BoilerPressurePSI);
-            outf.Write(CoalIsExhausted);
-            outf.Write(WaterIsExhausted);
-            outf.Write(FireIsExhausted);
-            outf.Write(FuelBoost);
-            outf.Write(FuelBoostOnTimerS);
-            outf.Write(FuelBoostResetTimerS);
-            outf.Write(FuelBoostReset);
-            outf.Write(Injector1IsOn);
-            outf.Write(Injector1Fraction);
-            outf.Write(Injector2IsOn);
-            outf.Write(Injector2Fraction);
-            outf.Write(InjectorLockedOut);
-            outf.Write(InjectorLockOutTimeS);
-            outf.Write(InjectorLockOutResetTimeS);
-            outf.Write(WaterTempNewK);
-            outf.Write(BkW_Diff);
-            outf.Write(WaterFraction);
-            outf.Write(BoilerSteamHeatBTUpLB);
-            outf.Write(BoilerWaterHeatBTUpLB);
-            outf.Write(BoilerWaterDensityLBpFT3);
-            outf.Write(BoilerSteamDensityLBpFT3);
-            outf.Write(EvaporationLBpS);
-            outf.Write(FireMassKG);
-            outf.Write(FlueTempK);
-            outf.Write(SteamGearPosition);
-            ControllerFactory.Save(CutoffController, outf);
-            ControllerFactory.Save(Injector1Controller, outf);
-            ControllerFactory.Save(Injector2Controller, outf);
-            ControllerFactory.Save(BlowerController, outf);
-            ControllerFactory.Save(DamperController, outf);
-            ControllerFactory.Save(FireboxDoorController, outf);
-            ControllerFactory.Save(FiringRateController, outf);
-            ControllerFactory.Save(SmallEjectorController, outf);
-            ControllerFactory.Save(LargeEjectorController, outf);
-            outf.Write(FuelBurnRateSmoothedKGpS);
-            outf.Write(BoilerHeatSmoothedBTU);
-            outf.Write(FuelRateSmoothed);
-            base.Save(outf);
+            TrainCarSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.LocomotiveSaveState.SteamLocomotiveSaveState = new SteamLocomotiveSaveState()
+            {
+                RestoreGame = RestoredGame,
+                CutoffController = await CutoffController.Snapshot().ConfigureAwait(false),
+                Injector1Controller = await Injector1Controller.Snapshot().ConfigureAwait(false),
+                Injector2Controller = await Injector2Controller.Snapshot().ConfigureAwait(false),
+                BlowerController = await BlowerController.Snapshot().ConfigureAwait(false),
+                DamperController = await DamperController.Snapshot().ConfigureAwait(false),
+                FireboxDoorController = await FireboxDoorController.Snapshot().ConfigureAwait(false),
+                FiringRateController = await FiringRateController.Snapshot().ConfigureAwait(false),
+                SmallEjectorController = await SmallEjectorController.Snapshot().ConfigureAwait(false),
+                LargeEjectorController = await LargeEjectorController.Snapshot().ConfigureAwait(false),
+
+                BoilerHeatOut = BoilerHeatOutBTUpS,
+                BoilerHeatIn = BoilerHeatInBTUpS,
+                PreviousBoilerHeatOut = PreviousBoilerHeatOutBTUpS,
+                PreviousBoilerHeatSmoothed = PreviousBoilerHeatSmoothedBTU,
+                BurnRate = BurnRateRawKGpS,
+                TenderCoalMass = TenderCoalMassKG,
+                RestoredMaxTotalCombinedWaterVolume = RestoredMaxTotalCombinedWaterVolumeUKG,
+                RestoredCombinedTenderWaterVolume = RestoredCombinedTenderWaterVolumeUKG,
+                CumulativeWaterConsumption = CumulativeWaterConsumptionLbs,
+                CurrentAuxTenderWaterVolume = CurrentAuxTenderWaterVolumeUKG,
+                CurrentLocoTenderWaterVolume = CurrentLocoTenderWaterVolumeUKG,
+                PreviousTenderWaterVolume = PreviousTenderWaterVolumeUKG,
+                SteamAuxTenderCoupled = SteamIsAuxTenderCoupled,
+                CylinderSteamUsage = CylinderSteamUsageLBpS,
+                BoilerHeat = BoilerHeatBTU,
+                BoilerMass = BoilerMassLB,
+                BoilerPressure = BoilerPressurePSI,
+                CoalExhausted = CoalIsExhausted,
+                WaterExhausted = WaterIsExhausted,
+                FireExhausted = FireIsExhausted,
+                FuelBoost = FuelBoost,
+                FuelBoostOnTimer = FuelBoostOnTimerS,
+                FuelBoostResetTimer = FuelBoostResetTimerS,
+                FuelBoostReset = FuelBoostReset,
+                Injector1Active = Injector1IsOn,
+                Injector1Fraction = Injector1Fraction,
+                Injector2Active = Injector2IsOn,
+                Injector2Fraction = Injector2Fraction,
+                InjectorLockedOut = InjectorLockedOut,
+                InjectorLockOutTime = InjectorLockOutTimeS,
+                InjectorLockOutResetTime = InjectorLockOutResetTimeS,
+                WaterTempNew = WaterTempNewK,
+                BkwDelta = BkW_Diff,
+                WaterFraction = WaterFraction,
+                BoilerSteamHeat = BoilerSteamHeatBTUpLB,
+                BoilerWaterHeat = BoilerWaterHeatBTUpLB,
+                BoilerWaterDensity = BoilerWaterDensityLBpFT3,
+                BoilerSteamDensity = BoilerSteamDensityLBpFT3,
+                Evaporation = EvaporationLBpS,
+                FireMass = FireMassKG,
+                FlueTemp = FlueTempK,
+                SteamGearPosition = SteamGearPosition,
+                FuelBurnRateSmoothed = FuelBurnRateSmoothedKGpS,
+                BoilerHeatSmoothed = BoilerHeatSmoothedBTU,
+                FuelRateSmoothed = FuelRateSmoothed,
+            };
+
+            return saveState;
+
         }
 
-        /// <summary>
-        /// We are restoring a saved game.  The TrainCar class has already
-        /// been initialized.   Restore the game state.
-        /// </summary>
-        public override void Restore(BinaryReader inf)
+        public override async ValueTask Restore([NotNull] TrainCarSaveState saveState)
         {
-            RestoredGame = inf.ReadBoolean();
-            BoilerHeatOutBTUpS = inf.ReadSingle();
-            BoilerHeatInBTUpS = inf.ReadSingle();
-            PreviousBoilerHeatOutBTUpS = inf.ReadSingle();
-            PreviousBoilerHeatSmoothedBTU = inf.ReadSingle();
-            BurnRateRawKGpS = inf.ReadSingle();
-            TenderCoalMassKG = inf.ReadSingle();
-            RestoredMaxTotalCombinedWaterVolumeUKG = inf.ReadSingle();
-            RestoredCombinedTenderWaterVolumeUKG = inf.ReadSingle();
-            CumulativeWaterConsumptionLbs = inf.ReadSingle();
-            CurrentAuxTenderWaterVolumeUKG = inf.ReadSingle();
-            CurrentLocoTenderWaterVolumeUKG = inf.ReadSingle();
-            PreviousTenderWaterVolumeUKG = inf.ReadSingle();
-            SteamIsAuxTenderCoupled = inf.ReadBoolean();
-            CylinderSteamUsageLBpS = inf.ReadSingle();
-            BoilerHeatBTU = inf.ReadSingle();
-            BoilerMassLB = inf.ReadSingle();
-            BoilerPressurePSI = inf.ReadSingle();
-            CoalIsExhausted = inf.ReadBoolean();
-            WaterIsExhausted = inf.ReadBoolean();
-            FireIsExhausted = inf.ReadBoolean();
-            FuelBoost = inf.ReadBoolean();
-            FuelBoostOnTimerS = inf.ReadSingle();
-            FuelBoostResetTimerS = inf.ReadSingle();
-            FuelBoostReset = inf.ReadBoolean();
-            Injector1IsOn = inf.ReadBoolean();
-            Injector1Fraction = inf.ReadSingle();
-            Injector2IsOn = inf.ReadBoolean();
-            Injector2Fraction = inf.ReadSingle();
-            InjectorLockedOut = inf.ReadBoolean();
-            InjectorLockOutTimeS = inf.ReadSingle();
-            InjectorLockOutResetTimeS = inf.ReadSingle();
-            WaterTempNewK = inf.ReadSingle();
-            BkW_Diff = inf.ReadSingle();
-            WaterFraction = inf.ReadSingle();
-            BoilerSteamHeatBTUpLB = inf.ReadSingle();
-            BoilerWaterHeatBTUpLB = inf.ReadSingle();
-            BoilerWaterDensityLBpFT3 = inf.ReadSingle();
-            BoilerSteamDensityLBpFT3 = inf.ReadSingle();
-            EvaporationLBpS = inf.ReadSingle();
-            FireMassKG = inf.ReadSingle();
-            FlueTempK = inf.ReadSingle();
-            SteamGearPosition = inf.ReadSingle();
-            ControllerFactory.Restore(CutoffController, inf);
-            ControllerFactory.Restore(Injector1Controller, inf);
-            ControllerFactory.Restore(Injector2Controller, inf);
-            ControllerFactory.Restore(BlowerController, inf);
-            ControllerFactory.Restore(DamperController, inf);
-            ControllerFactory.Restore(FireboxDoorController, inf);
-            ControllerFactory.Restore(FiringRateController, inf);
-            ControllerFactory.Restore(SmallEjectorController, inf);
-            ControllerFactory.Restore(LargeEjectorController, inf);
-            FuelBurnRateSmoothedKGpS = inf.ReadSingle();
+            await base.Restore(saveState).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(saveState.LocomotiveSaveState.SteamLocomotiveSaveState, nameof(saveState.LocomotiveSaveState.SteamLocomotiveSaveState));
+            SteamLocomotiveSaveState steamLocomotiveSaveState = saveState.LocomotiveSaveState.SteamLocomotiveSaveState;
+
+            RestoredGame = steamLocomotiveSaveState.RestoreGame;
+            CutoffController ??= new MSTSNotchController();
+            await CutoffController.Restore(steamLocomotiveSaveState.CutoffController).ConfigureAwait(false);
+            Injector1Controller ??= new MSTSNotchController();
+            await Injector1Controller.Restore(steamLocomotiveSaveState.Injector1Controller).ConfigureAwait(false);
+            Injector2Controller ??= new MSTSNotchController();
+            await Injector2Controller.Restore(steamLocomotiveSaveState.Injector2Controller).ConfigureAwait(false);
+            BlowerController ??= new MSTSNotchController();
+            await BlowerController.Restore(steamLocomotiveSaveState.BlowerController).ConfigureAwait(false);
+            DamperController ??= new MSTSNotchController();
+            await DamperController.Restore(steamLocomotiveSaveState.DamperController).ConfigureAwait(false);
+            FireboxDoorController ??= new MSTSNotchController();
+            await FireboxDoorController.Restore(steamLocomotiveSaveState.FireboxDoorController).ConfigureAwait(false);
+            FiringRateController ??= new MSTSNotchController();
+            await FiringRateController.Restore(steamLocomotiveSaveState.FiringRateController).ConfigureAwait(false);
+            SmallEjectorController ??= new MSTSNotchController();
+            await SmallEjectorController.Restore(steamLocomotiveSaveState.SmallEjectorController).ConfigureAwait(false);
+            LargeEjectorController ??= new MSTSNotchController();
+            await LargeEjectorController.Restore(steamLocomotiveSaveState.LargeEjectorController).ConfigureAwait(false);
+
+            BoilerHeatOutBTUpS = (float)steamLocomotiveSaveState.BoilerHeatOut;
+            BoilerHeatInBTUpS = (float)steamLocomotiveSaveState.BoilerHeatIn;
+            PreviousBoilerHeatOutBTUpS = (float)steamLocomotiveSaveState.PreviousBoilerHeatOut;
+            PreviousBoilerHeatSmoothedBTU = (float)steamLocomotiveSaveState.PreviousBoilerHeatSmoothed;
+            BurnRateRawKGpS = (float)steamLocomotiveSaveState.BurnRate;
+            TenderCoalMassKG = (float)steamLocomotiveSaveState.TenderCoalMass;
+            RestoredMaxTotalCombinedWaterVolumeUKG = (float)steamLocomotiveSaveState.RestoredMaxTotalCombinedWaterVolume;
+            RestoredCombinedTenderWaterVolumeUKG = (float)steamLocomotiveSaveState.RestoredCombinedTenderWaterVolume;
+            CumulativeWaterConsumptionLbs = (float)steamLocomotiveSaveState.CumulativeWaterConsumption;
+            CurrentAuxTenderWaterVolumeUKG = (float)steamLocomotiveSaveState.CurrentAuxTenderWaterVolume;
+            CurrentLocoTenderWaterVolumeUKG = (float)steamLocomotiveSaveState.CurrentLocoTenderWaterVolume;
+            PreviousTenderWaterVolumeUKG = (float)steamLocomotiveSaveState.PreviousTenderWaterVolume;
+            SteamIsAuxTenderCoupled = steamLocomotiveSaveState.SteamAuxTenderCoupled;
+            CylinderSteamUsageLBpS = (float)steamLocomotiveSaveState.CylinderSteamUsage;
+            BoilerHeatBTU = (float)steamLocomotiveSaveState.BoilerHeat;
+            BoilerMassLB = (float)steamLocomotiveSaveState.BoilerMass;
+            BoilerPressurePSI = (float)steamLocomotiveSaveState.BoilerPressure;
+            CoalIsExhausted = steamLocomotiveSaveState.CoalExhausted;
+            WaterIsExhausted = steamLocomotiveSaveState.WaterExhausted;
+            FireIsExhausted = steamLocomotiveSaveState.FireExhausted;
+            FuelBoost = steamLocomotiveSaveState.FuelBoost;
+            FuelBoostOnTimerS = (float)steamLocomotiveSaveState.FuelBoostOnTimer;
+            FuelBoostResetTimerS = (float)steamLocomotiveSaveState.FuelBoostResetTimer;
+            FuelBoostReset = steamLocomotiveSaveState.FuelBoostReset;
+            Injector1IsOn = steamLocomotiveSaveState.Injector1Active;
+            Injector1Fraction = (float)steamLocomotiveSaveState.Injector1Fraction;
+            Injector2IsOn = steamLocomotiveSaveState.Injector2Active;
+            Injector2Fraction = (float)steamLocomotiveSaveState.Injector2Fraction;
+            InjectorLockedOut = steamLocomotiveSaveState.InjectorLockedOut;
+            InjectorLockOutTimeS = (float)steamLocomotiveSaveState.InjectorLockOutTime;
+            InjectorLockOutResetTimeS = (float)steamLocomotiveSaveState.InjectorLockOutResetTime;
+            WaterTempNewK = (float)steamLocomotiveSaveState.WaterTempNew;
+            BkW_Diff = (float)steamLocomotiveSaveState.BkwDelta;
+            WaterFraction = (float)steamLocomotiveSaveState.WaterFraction;
+            BoilerSteamHeatBTUpLB = (float)steamLocomotiveSaveState.BoilerSteamHeat;
+            BoilerWaterHeatBTUpLB = (float)steamLocomotiveSaveState.BoilerWaterHeat;
+            BoilerWaterDensityLBpFT3 = (float)steamLocomotiveSaveState.BoilerWaterDensity;
+            BoilerSteamDensityLBpFT3 = (float)steamLocomotiveSaveState.BoilerSteamDensity;
+            EvaporationLBpS = (float)steamLocomotiveSaveState.Evaporation;
+            FireMassKG = (float)steamLocomotiveSaveState.FireMass;
+            FlueTempK = (float)steamLocomotiveSaveState.FlueTemp;
+            SteamGearPosition = steamLocomotiveSaveState.SteamGearPosition;
+            FuelBurnRateSmoothedKGpS = (float)steamLocomotiveSaveState.FuelBurnRateSmoothed;
             BurnRateSmoothKGpS.Preset(FuelBurnRateSmoothedKGpS);
-            BoilerHeatSmoothedBTU = inf.ReadSingle();
+            BoilerHeatSmoothedBTU = (float)steamLocomotiveSaveState.BoilerHeatSmoothed;
             BoilerHeatSmoothBTU.Preset(BoilerHeatSmoothedBTU);
-            FuelRateSmoothed = inf.ReadSingle();
+            FuelRateSmoothed = (float)steamLocomotiveSaveState.FuelRateSmoothed;
             FuelRate.Preset(FuelRateSmoothed);
-            base.Restore(inf);
         }
 
         public override void Initialize()

@@ -89,26 +89,6 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        /// <summary>
-        /// We are saving the game.  Save anything that we'll need to restore the 
-        /// status later.
-        /// </summary>
-        public override void Save(BinaryWriter outf)
-        {
-            outf.Write(CurrentLocomotiveSteamHeatBoilerWaterCapacityL);
-            base.Save(outf);
-        }
-
-        /// <summary>
-        /// We are restoring a saved game.  The TrainCar class has already
-        /// been initialized.   Restore the game state.
-        /// </summary>
-        public override void Restore(BinaryReader inf)
-        {
-            CurrentLocomotiveSteamHeatBoilerWaterCapacityL = inf.ReadDouble();
-            base.Restore(inf);
-        }
-
         public override void Initialize()
         {
             base.Initialize();

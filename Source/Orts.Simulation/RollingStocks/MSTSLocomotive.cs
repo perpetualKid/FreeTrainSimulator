@@ -46,15 +46,10 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Forms.Design;
-using System.Xml.Linq;
 
 using FreeTrainSimulator.Common;
 
-using Microsoft.VisualBasic;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -76,8 +71,6 @@ using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.ControlSystems;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
-
-using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -1505,6 +1498,7 @@ namespace Orts.Simulation.RollingStocks
             DistributedPowerUnitId = locomotiveSaveState.DistributedPowerUnitId;
             previousGearBoxNotch = locomotiveSaveState.PreviousGearBoxNotch;
             previousChangedGearBoxNotch = locomotiveSaveState.PreviousChangedGearBoxNotch;
+            CurrentLocomotiveSteamHeatBoilerWaterCapacityL = locomotiveSaveState.CurrentLocomotiveSteamHeatBoilerWaterCapacity;
 
             if (null != LocomotivePowerSupply)
                 await LocomotivePowerSupply.Restore(locomotiveSaveState.PowerSupplySaveState).ConfigureAwait(false);

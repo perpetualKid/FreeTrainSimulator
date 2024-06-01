@@ -137,7 +137,7 @@ namespace Orts.Simulation.RollingStocks
         public override async ValueTask<TrainCarSaveState> Snapshot()
         {
             TrainCarSaveState saveState = await base.Snapshot().ConfigureAwait(false);
-            saveState.ControlTrailerSaveState = new ControlTrailerSaveState()
+            saveState.LocomotiveSaveState.ControlTrailerSaveState = new ControlTrailerSaveState()
             {
                 GearboxControllerSaveState = await GearBoxController.Snapshot().ConfigureAwait(false),
                 GearBoxIndication = controlGearIndication,
@@ -149,11 +149,14 @@ namespace Orts.Simulation.RollingStocks
         public override async ValueTask Restore([NotNull] TrainCarSaveState saveState)
         {
             await base.Restore(saveState).ConfigureAwait(false);
-            GearBoxController = new MSTSNotchController();
-            ArgumentNullException.ThrowIfNull(saveState.ControlTrailerSaveState, nameof(saveState.ControlTrailerSaveState));
-            await GearBoxController.Restore(saveState.ControlTrailerSaveState.GearboxControllerSaveState).ConfigureAwait(false);
-            controlGearIndication = saveState.ControlTrailerSaveState.GearBoxIndication;
-            controlGearIndex = saveState.ControlTrailerSaveState.GearIndex;
+
+            ArgumentNullException.ThrowIfNull(saveState.LocomotiveSaveState.ControlTrailerSaveState, nameof(saveState.LocomotiveSaveState.ControlTrailerSaveState));
+            ControlTrailerSaveState controlTrailerSaveState = saveState.LocomotiveSaveState.ControlTrailerSaveState;
+
+            GearBoxController ??= new MSTSNotchController();
+            await GearBoxController.Restore(controlTrailerSaveState.GearboxControllerSaveState).ConfigureAwait(false);
+            controlGearIndication = controlTrailerSaveState.GearBoxIndication;
+            controlGearIndex = controlTrailerSaveState.GearIndex;
         }
 
         /// <summary>

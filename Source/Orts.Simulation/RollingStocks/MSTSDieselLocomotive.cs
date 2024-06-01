@@ -569,7 +569,7 @@ namespace Orts.Simulation.RollingStocks
         {
             TrainCarSaveState saveState = await base.Snapshot().ConfigureAwait(false);
 
-            saveState.DieselLocomotiveSaveState = new DieselLocomotiveSaveState()
+            saveState.LocomotiveSaveState.DieselLocomotiveSaveState = new DieselLocomotiveSaveState()
             { 
                 DieselLevel = DieselLevelL,
                 GearboxControllerSaveState = await GearBoxController.Snapshot().ConfigureAwait(false),
@@ -581,8 +581,10 @@ namespace Orts.Simulation.RollingStocks
 
         public override async ValueTask Restore([NotNull] TrainCarSaveState saveState)
         {
-            ArgumentNullException.ThrowIfNull(saveState.DieselLocomotiveSaveState, nameof(saveState.DieselLocomotiveSaveState));
-            DieselLocomotiveSaveState dieselLocomotiveSave = saveState.DieselLocomotiveSaveState;
+            await base.Restore(saveState).ConfigureAwait(false);
+
+            ArgumentNullException.ThrowIfNull(saveState.LocomotiveSaveState.DieselLocomotiveSaveState, nameof(saveState.LocomotiveSaveState.DieselLocomotiveSaveState));
+            DieselLocomotiveSaveState dieselLocomotiveSave = saveState.LocomotiveSaveState.DieselLocomotiveSaveState;
 
             DieselLevelL = dieselLocomotiveSave.DieselLevel;
             GearBoxController = new MSTSNotchController();
