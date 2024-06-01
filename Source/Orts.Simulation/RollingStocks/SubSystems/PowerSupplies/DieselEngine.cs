@@ -21,17 +21,26 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
+
+using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
-    public class DieselEngines : List<DieselEngine>, ISubSystem<DieselEngines>
+    public class DieselEngines :
+        List<DieselEngine>,
+        ISubSystem<DieselEngines>,
+        ISaveStateRestoreApi<DieselEngineSaveState, DieselEngine>
     {
         private GearBox gearBox;
         private bool gearBoxSet;
@@ -84,7 +93,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         string setting = stf.ReadString().ToLower();
                         if (setting == "diesel")
                         {
-                            
+
                             Add(new DieselEngine(locomotive));
 
                             this[i].Parse(stf);
@@ -154,35 +163,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        /// <summary>
-        /// Saves status of each auxiliary on the list
-        /// </summary>
-        /// <param name="outf"></param>
-        public void Save(BinaryWriter outf)
+        DieselEngine ISaveStateRestoreApi<DieselEngineSaveState, DieselEngine>.CreateRuntimeTarget(DieselEngineSaveState saveState)
         {
-            outf.Write(Count);
-            foreach (DieselEngine de in this)
-                de.Save(outf);
-        }
-
-        /// <summary>
-        /// Restores status of each auxiliary on the list
-        /// </summary>
-        /// <param name="inf"></param>
-        public void Restore(BinaryReader inf)
-        {
-            int count = inf.ReadInt32();
-            if (Count == 0)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    Add(new DieselEngine(locomotive));
-                    this[i].InitFromMSTS();
-                    this[i].Initialize();
-                }
-            }
-            foreach (DieselEngine de in this)
-                de.Restore(inf);
+            DieselEngine dieselEngine = new DieselEngine(locomotive);
+            Add(dieselEngine);
+            dieselEngine.InitFromMSTS();
+            dieselEngine.Initialize();
+            return dieselEngine;
         }
 
         /// <summary>
@@ -289,7 +276,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public GearBox GearBox
         {
-            get 
+            get
             {
                 if (!gearBoxSet)
                 {
@@ -378,7 +365,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         }
     }
 
-    public class DieselEngine : ISubSystem<DieselEngine>
+    public class DieselEngine : ISubSystem<DieselEngine>, ISaveStateApi<DieselEngineSaveState>
     {
         [Description("Engine")]
         public enum Cooling
@@ -980,7 +967,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             if ((State == DieselEngineState.Running) && (Locomotive.ThrottlePercent > 0))
             {
                 var abstempMotiveForce = Math.Abs(Locomotive.PrevMotiveForceN);
-                OutputPowerW = ( abstempMotiveForce > 0 ? abstempMotiveForce * Locomotive.AbsSpeedMpS : 0) / Locomotive.DieselEngines.NumOfActiveEngines;
+                OutputPowerW = (abstempMotiveForce > 0 ? abstempMotiveForce * Locomotive.AbsSpeedMpS : 0) / Locomotive.DieselEngines.NumOfActiveEngines;
             }
             else
             {
@@ -1526,45 +1513,38 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Restore(BinaryReader inf)
+        public async ValueTask<DieselEngineSaveState> Snapshot()
         {
-            Locomotive.dieselEngineRestoreState = inf.ReadInt32();
-            State = (DieselEngineState)Locomotive.dieselEngineRestoreState;
-            RealRPM = inf.ReadSingle();
-            OutputPowerW = inf.ReadSingle();
-            DieselTemperatureDeg = inf.ReadSingle();
-            GovernorEnabled = inf.ReadBoolean();
+            return new DieselEngineSaveState()
+            {
+                DieselEngineState = State,
+                Rpm = RealRPM,
+                OutputPower = OutputPowerW,
+                DieselTemperature = DieselTemperatureDeg,
+                GovernorEnabled = GovernorEnabled,
+                GearboxSaveState = GearBox == null ? null : await GearBox.Snapshot().ConfigureAwait(false),
+            };
+        }
 
-            Locomotive.gearSaved = inf.ReadBoolean();  // read boolean which indicates gear data was saved
+        public async ValueTask Restore(DieselEngineSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+            State = saveState.DieselEngineState;
+            RealRPM = saveState.Rpm;
+            OutputPowerW = saveState.OutputPower;
+            DieselTemperatureDeg = saveState.DieselTemperature;
+            GovernorEnabled = saveState.GovernorEnabled;
 
+            Locomotive.gearSaved = saveState.GearboxSaveState != null;
             if (Locomotive.gearSaved)
             {
                 GearBox = new GearBox(this);
-                GearBox.Restore(inf);
-            }
-        }
-
-        public void Save(BinaryWriter outf)
-        {
-            outf.Write((int)State);
-            outf.Write(RealRPM);
-            outf.Write(OutputPowerW);
-            outf.Write(DieselTemperatureDeg);
-            outf.Write(GovernorEnabled);
-
-            if (GearBox != null)
-            {
-                outf.Write(true);
-                GearBox.Save(outf);
-            }
-            else
-            {
-                outf.Write(false);
+                await GearBox.Restore(saveState.GearboxSaveState).ConfigureAwait(false);
             }
         }
 
         /// <summary>
-        /// Fix or define a diesel prime mover engine code block. If the user has not defned a diesel eng, then OR will use this section to create one.
+        /// Fix or define a diesel prime mover engine code block. If the user has not defined a diesel eng, then OR will use this section to create one.
         /// If the user has left a parameter out of the code, then OR uses this section to try and set the missing values to a default value.
         /// Error code has been provided that will provide the user with an indication if a parameter has been left out.
         /// </summary>

@@ -25,6 +25,10 @@ using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using System;
 using Orts.Common.Calc;
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
+using Orts.Models.State;
+using System.Threading.Tasks;
+using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {
@@ -210,7 +214,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         }
     }
 
-    public class GearBox : ISubSystem<GearBox>
+    public class GearBox : ISubSystem<GearBox>, ISaveStateApi<GearBoxSaveState>
     {
         protected readonly DieselEngine DieselEngine;
         protected readonly MSTSDieselLocomotive Locomotive;
@@ -722,34 +726,41 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             // Nothing to copy, all parameters will be copied from MSTSGearBoxParams at initialization
         }
 
-        public void Restore(BinaryReader inf)
+        public ValueTask<GearBoxSaveState> Snapshot()
         {
-            CurrentGearIndex = inf.ReadInt32();
-            Locomotive.currentGearIndexRestore = CurrentGearIndex;
-            NextGearIndex = inf.ReadInt32();
-            Locomotive.currentnextGearRestore = NextGearIndex;
-            gearedUp = inf.ReadBoolean();
-            gearedDown = inf.ReadBoolean();
-            ClutchOn = inf.ReadBoolean();
-            clutch = inf.ReadSingle();
-            ManualGearDown = inf.ReadBoolean();
-            ManualGearUp = inf.ReadBoolean();
-            ManualGearChange = inf.ReadBoolean();
-            ManualGearTimerS = inf.ReadSingle();
+            return ValueTask.FromResult(new GearBoxSaveState()
+            {
+                GearIndex = CurrentGearIndex,
+                NextGearIndex = NextGearIndex,
+                GearedUp = gearedUp,
+                GearedDown = gearedDown,
+                ClutchActive = ClutchOn,
+                ClutchValue = clutch,
+                ManualGearUp = ManualGearUp,
+                ManualGearDown = ManualGearDown,
+                ManualGearChange = ManualGearChange,
+                ManualGearTimer = ManualGearTimerS,
+            });
         }
 
-        public void Save(BinaryWriter outf)
+        public ValueTask Restore(GearBoxSaveState saveState)
         {
-            outf.Write(CurrentGearIndex);
-            outf.Write(NextGearIndex);
-            outf.Write(gearedUp);
-            outf.Write(gearedDown);
-            outf.Write(ClutchOn);
-            outf.Write(clutch);
-            outf.Write(ManualGearDown);
-            outf.Write(ManualGearUp);
-            outf.Write(ManualGearChange);
-            outf.Write(ManualGearTimerS);
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            CurrentGearIndex = saveState.GearIndex;
+            Locomotive.currentGearIndexRestore = CurrentGearIndex;
+            NextGearIndex = saveState.NextGearIndex;
+            Locomotive.currentnextGearRestore = NextGearIndex;
+            gearedUp = saveState.GearedUp;
+            gearedDown = saveState.GearedDown;
+            ClutchOn = saveState.ClutchActive;
+            clutch = saveState.ClutchValue;
+            ManualGearDown = saveState.ManualGearDown;
+            ManualGearUp = saveState.ManualGearUp;
+            ManualGearChange = saveState.ManualGearChange;
+            ManualGearTimerS = (float)saveState.ManualGearTimer;
+
+            return ValueTask.CompletedTask;
         }
 
         public void Initialize()

@@ -33,6 +33,7 @@ namespace Orts.Models.State
         public EndOfTrainSaveState EndOfTrainSaveState { get; set; }
         // Control Trailer
         public ControlTrailerSaveState ControlTrailerSaveState { get; set; }
+        public DieselLocomotiveSaveState DieselLocomotiveSaveState { get; set; }
         // Locomotive
         public LocomotiveSaveState LocomotiveSaveState { get; set; }
     }

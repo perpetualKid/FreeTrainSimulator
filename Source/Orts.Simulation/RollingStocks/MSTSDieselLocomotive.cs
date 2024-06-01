@@ -30,10 +30,13 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
@@ -43,6 +46,7 @@ using Orts.Common.DebugInfo;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
@@ -561,40 +565,36 @@ namespace Orts.Simulation.RollingStocks
 
         }
 
-        /// <summary>
-        /// We are saving the game.  Save anything that we'll need to restore the 
-        /// status later.
-        /// </summary>
-        public override void Save(BinaryWriter outf)
+        public override async ValueTask<TrainCarSaveState> Snapshot()
         {
-            // for example
-            // outf.Write(Pan);
-            base.Save(outf);
-            outf.Write(DieselLevelL);
-            outf.Write(CurrentLocomotiveSteamHeatBoilerWaterCapacityL);
-            DieselEngines.Save(outf);
-            ControllerFactory.Save(GearBoxController, outf);
+            TrainCarSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.DieselLocomotiveSaveState = new DieselLocomotiveSaveState()
+            { 
+                DieselLevel = DieselLevelL,
+                GearboxControllerSaveState = await GearBoxController.Snapshot().ConfigureAwait(false),
+                EngineSaveStates = await DieselEngines.SnapshotCollection<DieselEngineSaveState, DieselEngine>().ConfigureAwait(false),
+            };
+
+            return saveState;
         }
 
-        /// <summary>
-        /// We are restoring a saved game.  The TrainCar class has already
-        /// been initialized.   Restore the game state.
-        /// </summary>
-        public override void Restore(BinaryReader inf)
+        public override async ValueTask Restore([NotNull] TrainCarSaveState saveState)
         {
-            base.Restore(inf);
-            DieselLevelL = inf.ReadSingle();
-            CurrentLocomotiveSteamHeatBoilerWaterCapacityL = inf.ReadDouble();
-            DieselEngines.Restore(inf);
-            ControllerFactory.Restore(GearBoxController, inf);
+            ArgumentNullException.ThrowIfNull(saveState.DieselLocomotiveSaveState, nameof(saveState.DieselLocomotiveSaveState));
+            DieselLocomotiveSaveState dieselLocomotiveSave = saveState.DieselLocomotiveSaveState;
 
+            DieselLevelL = dieselLocomotiveSave.DieselLevel;
+            GearBoxController = new MSTSNotchController();
+            await GearBoxController.Restore(dieselLocomotiveSave.GearboxControllerSaveState).ConfigureAwait(false);
+
+            await DieselEngines.RestoreCollectionCreateNewInstances<DieselEngineSaveState, DieselEngine, DieselEngines>(dieselLocomotiveSave.EngineSaveStates).ConfigureAwait(false);
         }
 
         //================================================================================================//
         /// <summary>
         /// Set starting conditions  when initial speed > 0 
         /// 
-
         public override void InitializeMoving()
         {
             base.InitializeMoving();
