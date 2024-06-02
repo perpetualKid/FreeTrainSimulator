@@ -49,8 +49,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using GetText;
 
@@ -63,6 +65,7 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Models.State;
 using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Multiplayer;
@@ -74,9 +77,14 @@ using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
 
+using SharpDX.Direct2D1;
+
 namespace Orts.Simulation.Physics
 {
-    public partial class Train : ITrain
+    public partial class Train : 
+        ITrain, 
+        ISaveStateApi<TrainSaveState>,
+        ISaveStateRestoreApi<TrainCarSaveState, TrainCar>
     {
         #region const
         private const int TileSize = 2048;
@@ -900,6 +908,25 @@ namespace Orts.Simulation.Physics
             }
         }
 
+        public async ValueTask<TrainSaveState> Snapshot()
+        {
+            return new TrainSaveState()
+            {
+                TrainCars = await Cars.SnapshotCollection<TrainCarSaveState, TrainCar>().ConfigureAwait(false),
+            };
+        }
+
+        public async ValueTask Restore(TrainSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            await Cars.RestoreCollectionCreateNewInstances(saveState.TrainCars, this).ConfigureAwait(false);
+        }
+
+        TrainCar ISaveStateRestoreApi<TrainCarSaveState, TrainCar>.CreateRuntimeTarget(Orts.Models.State.TrainCarSaveState saveState)
+        {
+            return RollingStock.Load(this, saveState.WagonSaveState.WagonFile, false);
+        }
 
         /// save game state
         public virtual void Save(BinaryWriter outf)

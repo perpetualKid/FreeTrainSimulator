@@ -28,15 +28,12 @@ using FreeTrainSimulator.Common.Api;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Models.State;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.World;
-
-using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
@@ -907,9 +904,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 }
             }
             Collection<FreightAnimationDiscrete> discreteFreightAnimations = new Collection<FreightAnimationDiscrete>();
-            await discreteFreightAnimations.RestoreCollectionCreateNewInstances<FreightAnimationSaveState, FreightAnimationDiscrete, FreightAnimations>(saveState.FreightAnimations, null).ConfigureAwait(false);
+            await discreteFreightAnimations.RestoreCollectionCreateNewInstances<FreightAnimationSaveState, FreightAnimationDiscrete, FreightAnimations>(saveState.FreightAnimations, this).ConfigureAwait(false);
             Animations.AddRange(discreteFreightAnimations);
-            await EmptyAnimations.RestoreCollectionCreateNewInstances<FreightAnimationSaveState, FreightAnimationDiscrete, FreightAnimations>(saveState.EmptyAnimations).ConfigureAwait(false);
+            await EmptyAnimations.RestoreCollectionCreateNewInstances<FreightAnimationSaveState, FreightAnimationDiscrete, FreightAnimations>(saveState.EmptyAnimations, this).ConfigureAwait(false);
         }
     }
 

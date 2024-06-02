@@ -60,10 +60,6 @@ using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.World;
 
-using SharpDX.Direct2D1;
-
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 namespace Orts.Simulation.RollingStocks
 {
 
@@ -1720,6 +1716,7 @@ namespace Orts.Simulation.RollingStocks
 
             saveState.WagonSaveState = new WagonSaveState()
             {
+                WagonFile = WagFilePath,
                 PantographSaveStates = await Pantographs.SnapshotCollection<PantographSaveState, Pantograph>().ConfigureAwait(false),
                 DoorSaveStates = await Task.WhenAll(Doors.Select(async door => await door.Snapshot().ConfigureAwait(false))),
                 CouplerSaveStates = await Task.WhenAll(couplers.Select(async coupler => coupler == null ? null : await coupler.Snapshot().ConfigureAwait(false))),

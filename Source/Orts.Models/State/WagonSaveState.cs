@@ -11,6 +11,7 @@ namespace Orts.Models.State
     [MemoryPackable]
     public sealed partial class WagonSaveState : SaveStateBase
     {
+        public string WagonFile { get; set; }
         public Vector3 SoundValues { get; set; }
         public Collection<PantographSaveState> PantographSaveStates { get; set; }
         public DoorSaveState[] DoorSaveStates { get; set; }

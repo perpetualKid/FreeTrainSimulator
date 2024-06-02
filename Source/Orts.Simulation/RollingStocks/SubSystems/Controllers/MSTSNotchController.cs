@@ -191,7 +191,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public ValueTask<NotchSaveState> Snapshot()
         {
             return ValueTask.FromResult(new NotchSaveState()
-            { 
+            {
                 CurrentValue = Value,
                 Smooth = Smooth,
                 NotchStateType = NotchStateType,
@@ -217,10 +217,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
      * The user need to press the key multiple times to update this controller.
      * 
      */
-    public class MSTSNotchController : 
-        IController, 
-        INameValueInformationProvider, 
-        ISaveStateApi<ControllerSaveState>, 
+    public class MSTSNotchController :
+        IController,
+        INameValueInformationProvider,
+        ISaveStateApi<ControllerSaveState>,
         ISaveStateRestoreApi<NotchSaveState, MSTSNotch>
     {
         public const float StandardBoost = 5.0f; // standard step size multiplier
@@ -660,7 +660,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 MaximumValue = MaximumValue,
                 StepSize = StepSize,
                 NotchIndex = NotchIndex,
-                NotchStates = await Notches.Cast<MSTSNotch>().SnapshotCollection<NotchSaveState,MSTSNotch>().ConfigureAwait(false),
+                NotchStates = await Notches.Cast<MSTSNotch>().SnapshotCollection<NotchSaveState, MSTSNotch>().ConfigureAwait(false),
             };
         }
 
@@ -678,7 +678,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             Notches.Clear();
 
             List<MSTSNotch> notches = new List<MSTSNotch>();
-            await notches.RestoreCollectionCreateNewInstances<NotchSaveState, MSTSNotch, MSTSNotchController >(saveState.NotchStates);
+            await notches.RestoreCollectionCreateNewInstances<NotchSaveState, MSTSNotch, MSTSNotchController>(saveState.NotchStates);
             Notches.AddRange(notches);
         }
 

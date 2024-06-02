@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -32,8 +31,6 @@ using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
 using Orts.Models.State;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
-
-using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {

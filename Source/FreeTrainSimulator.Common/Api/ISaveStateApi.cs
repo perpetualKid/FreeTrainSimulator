@@ -61,6 +61,5 @@ namespace FreeTrainSimulator.Common.Api
                 await runtimeTarget.Restore(saveState).ConfigureAwait(false);
             }
         }
-
     }
 }
