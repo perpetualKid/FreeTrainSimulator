@@ -27,6 +27,8 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
 
+using Microsoft.CodeAnalysis.Operations;
+
 using Orts.Common;
 using Orts.Models.State;
 using Orts.Simulation.Physics;
@@ -127,28 +129,24 @@ namespace Orts.Simulation.Track
         public void RestoreTrains(List<Train> trains, int sectionIndex)
         {
             // Occupy
-            Dictionary<int[], Direction> tempTrains = new Dictionary<int[], Direction>();
+            Dictionary<(int, Direction), Direction> tempTrains = new Dictionary<(int, Direction), Direction>();
 
-            foreach (KeyValuePair<Train.TrainRouted, Direction> thisOccupy in OccupationState)
+            foreach (KeyValuePair<Train.TrainRouted, Direction> occupation in OccupationState)
             {
-                int[] trainKey = new int[2];
-                trainKey[0] = thisOccupy.Key.Train.Number;
-                trainKey[1] = thisOccupy.Key.TrainRouteDirectionIndex;
-                tempTrains.Add(trainKey, thisOccupy.Value);
+                tempTrains.Add((occupation.Key.Train.Number, occupation.Key.Direction), occupation.Value);
             }
 
             OccupationState.Clear();
 
-            foreach (KeyValuePair<int[], Direction> thisTemp in tempTrains)
+            foreach (KeyValuePair<(int, Direction), Direction> item in tempTrains)
             {
-                int[] trainKey = thisTemp.Key;
-                int number = trainKey[0];
-                int routeIndex = trainKey[1];
-                Train thisTrain = SignalEnvironment.FindTrain(number, trains);
-                if (thisTrain != null)
+                int number = item.Key.Item1;
+                Direction routeDirection = item.Key.Item2;
+                Train train = SignalEnvironment.FindTrain(number, trains);
+                if (train != null)
                 {
-                    Train.TrainRouted thisTrainRouted = routeIndex == 0 ? thisTrain.RoutedForward : thisTrain.RoutedBackward;
-                    OccupationState.Add(thisTrainRouted, thisTemp.Value);
+                    Train.TrainRouted trainRouted = routeDirection == Direction.Forward ? train.RoutedForward : train.RoutedBackward;
+                    OccupationState.Add(trainRouted, item.Value);
                 }
             }
 
@@ -160,23 +158,22 @@ namespace Orts.Simulation.Track
                 Train reservedTrain = SignalEnvironment.FindTrain(number, trains);
                 if (reservedTrain != null)
                 {
-                    int reservedDirection = TrainReserved.TrainRouteDirectionIndex;
                     bool validreserve = true;
 
                     // check if reserved section is on train's route except when train is in explorer or manual mode
-                    if (reservedTrain.ValidRoute[reservedDirection].Count > 0 && reservedTrain.ControlMode != TrainControlMode.Explorer && reservedTrain.ControlMode != TrainControlMode.Manual)
+                    if (reservedTrain.ValidRoutes[TrainReserved.Direction].Count > 0 && reservedTrain.ControlMode != TrainControlMode.Explorer && reservedTrain.ControlMode != TrainControlMode.Manual)
                     {
-                        _ = reservedTrain.ValidRoute[reservedDirection].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[Direction.Forward].RouteListIndex);
-                        validreserve = reservedTrain.ValidRoute[reservedDirection].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[Direction.Forward].RouteListIndex) >= 0;
+                        _ = reservedTrain.ValidRoutes[TrainReserved.Direction].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[Direction.Forward].RouteListIndex);
+                        validreserve = reservedTrain.ValidRoutes[TrainReserved.Direction].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[Direction.Forward].RouteListIndex) >= 0;
                     }
 
                     if (validreserve || reservedTrain.ControlMode == TrainControlMode.Explorer)
                     {
-                        TrainReserved = reservedDirection == 0 ? reservedTrain.RoutedForward : reservedTrain.RoutedBackward;
+                        TrainReserved = TrainReserved.Direction == Direction.Forward ? reservedTrain.RoutedForward : reservedTrain.RoutedBackward;
                     }
                     else
                     {
-                        Trace.TraceInformation("Invalid reservation for train : {0} [{1}], section : {2} not restored", reservedTrain.Name, reservedDirection, sectionIndex);
+                        Trace.TraceInformation("Invalid reservation for train : {0} [{1}], section : {2} not restored", reservedTrain.Name, TrainReserved.Direction, sectionIndex);
                     }
                 }
                 else
@@ -192,10 +189,9 @@ namespace Orts.Simulation.Track
             foreach (Train.TrainRouted trainRouted in queue)
             {
                 Train train = SignalEnvironment.FindTrain(trainRouted.Train.Number, trains);
-                int routeIndex = trainRouted.TrainRouteDirectionIndex;
                 if (train != null)
                 {
-                    TrainPreReserved.Enqueue(routeIndex == 0 ? train.RoutedForward : train.RoutedBackward);
+                    TrainPreReserved.Enqueue(trainRouted.Direction == Direction.Forward ? train.RoutedForward : train.RoutedBackward);
                 }
             }
 
@@ -206,10 +202,9 @@ namespace Orts.Simulation.Track
             foreach (Train.TrainRouted trainRouted in queue)
             {
                 Train train = SignalEnvironment.FindTrain(trainRouted.Train.Number, trains);
-                int routeIndex = trainRouted.TrainRouteDirectionIndex;
                 if (train != null)
                 {
-                    TrainClaimed.Enqueue(routeIndex == 0 ? train.RoutedForward : train.RoutedBackward);
+                    TrainClaimed.Enqueue(trainRouted.Direction == Direction.Forward ? train.RoutedForward : train.RoutedBackward);
                 }
             }
         }

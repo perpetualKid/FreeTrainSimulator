@@ -667,7 +667,7 @@ namespace Orts.Simulation.Timetables
         override public int CreateInPool(TTTrain train, List<TTTrain> nextTrains)
         {
             train.TCRoute.TCRouteSubpaths[0] = PlaceInPool(train, out int PoolStorageState, false);
-            train.ValidRoute[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
+            train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
             train.TCRoute.ActiveSubPath = 0;
 
             // if no storage available - abondone train
@@ -689,7 +689,7 @@ namespace Orts.Simulation.Timetables
             {
                 // use reverse path
                 train.TCRoute.TCRouteSubpaths[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0].ReversePath());
-                train.ValidRoute[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
+                train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
 
                 train.RearTDBTraveller = new Traveller(StoragePool[PoolStorageState].StoragePathReverseTraveller);
 
@@ -964,7 +964,7 @@ namespace Orts.Simulation.Timetables
             PoolDetails reqStorage = StoragePool[selectedStorage];
             TrackCircuitPartialPathRoute reversePath = reqStorage.StoragePath.ReversePath();
             train.TCRoute.AddSubrouteAtStart(reversePath, train);
-            train.ValidRoute[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
+            train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
 
             // set details for new train from existing train
             bool validFormed = train.StartFromAITrain(selectedTrain, presentTime, occupiedSections);
@@ -1464,10 +1464,10 @@ namespace Orts.Simulation.Timetables
                     {
                         parentTrain.DelayedStartMoving(AiStartMovement.Turntable);
                         MovingTableState = MovingTableState.AccessToMovingTable;
-                        parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
+                        parentTrain.EndAuthorities[Direction.Forward].EndAuthorityType = EndAuthorityType.EndOfPath;
 
                         // calculate end position
-                        parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable();
+                        parentTrain.EndAuthorities[Direction.Forward].Distance = CalculateDistanceToTurntable();
 
                         // set reduced speed
                         float reqTrainSpeed = parentPool.AdditionalTurntableDetails.TurntableSpeedMpS.HasValue ?
@@ -1498,10 +1498,10 @@ namespace Orts.Simulation.Timetables
                     {
                         parentTrain.DelayedStartMoving(AiStartMovement.Turntable);
                         MovingTableState = MovingTableState.StorageToMovingTable;
-                        parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
+                        parentTrain.EndAuthorities[Direction.Forward].EndAuthorityType = EndAuthorityType.EndOfPath;
 
                         // calculate end position
-                        parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable();
+                        parentTrain.EndAuthorities[Direction.Forward].Distance = CalculateDistanceToTurntable();
 
                         // set reduced speed
                         float reqTrainSpeed = parentPool.AdditionalTurntableDetails.TurntableSpeedMpS.HasValue ?
@@ -1520,7 +1520,7 @@ namespace Orts.Simulation.Timetables
                 // exit from this state is through UpdateBrakingState and SetNextStageOnStopped
                 case MovingTableState.AccessToMovingTable:
 
-                    parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable();
+                    parentTrain.EndAuthorities[Direction.Forward].Distance = CalculateDistanceToTurntable();
                     parentTrain.UpdateBrakingState(elapsedClockSeconds, presentTime);
                     break;
 
@@ -1529,7 +1529,7 @@ namespace Orts.Simulation.Timetables
                 // exit from this state is through UpdateBrakingState and SetNextStageOnStopped
                 case MovingTableState.StorageToMovingTable:
 
-                    parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable();
+                    parentTrain.EndAuthorities[Direction.Forward].Distance = CalculateDistanceToTurntable();
                     parentTrain.UpdateBrakingState(elapsedClockSeconds, presentTime);
                     break;
 
@@ -1636,8 +1636,8 @@ namespace Orts.Simulation.Timetables
                         MovingTableState = MovingTableState.AccessToMovingTable;
 
                         // calculate end position - place in front of timetable incl. clearance
-                        parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
-                        parentTrain.DistanceToEndNodeAuthorityM[0] =
+                        parentTrain.EndAuthorities[Direction.Forward].EndAuthorityType = EndAuthorityType.EndOfPath;
+                        parentTrain.EndAuthorities[Direction.Forward].Distance =
                             CalculateDistanceToTurntable() - (parentTurntable.Length / 2.0f) - parentPool.AdditionalTurntableDetails.TurntableApproachClearanceM;
 
                         // set reduced speed
@@ -1679,8 +1679,8 @@ namespace Orts.Simulation.Timetables
                         MovingTableState = MovingTableState.StorageToMovingTable;
 
                         // calculate end position - place in front of timetable incl. clearance
-                        parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
-                        parentTrain.DistanceToEndNodeAuthorityM[0] =
+                        parentTrain.EndAuthorities[Direction.Forward].EndAuthorityType = EndAuthorityType.EndOfPath;
+                        parentTrain.EndAuthorities[Direction.Forward].Distance =
                             CalculateDistanceToTurntable() - (parentTurntable.Length / 2.0f) - parentPool.AdditionalTurntableDetails.TurntableApproachClearanceM;
 
                         // set reduced speed
@@ -1709,8 +1709,8 @@ namespace Orts.Simulation.Timetables
                 case MovingTableState.AccessToMovingTable:
 
                     // set end of authority beyond turntable
-                    parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
-                    parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable() + (parentTurntable.Length / 2.0f);
+                    parentTrain.EndAuthorities[Direction.Forward].EndAuthorityType = EndAuthorityType.EndOfPath;
+                    parentTrain.EndAuthorities[Direction.Forward].Distance = CalculateDistanceToTurntable() + (parentTurntable.Length / 2.0f);
 
                     // check if train position on turntable
                     if (!trainOnTable.FrontOnBoard)
@@ -1765,8 +1765,8 @@ namespace Orts.Simulation.Timetables
                 case MovingTableState.StorageToMovingTable:
 
                     // set end of authority beyond turntable
-                    parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
-                    parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable() + (parentTurntable.Length / 2.0f);
+                    parentTrain.EndAuthorities[Direction.Forward].EndAuthorityType = EndAuthorityType.EndOfPath;
+                    parentTrain.EndAuthorities[Direction.Forward].Distance = CalculateDistanceToTurntable() + (parentTurntable.Length / 2.0f);
 
                     // check if train position on turntable
                     if (!trainOnTable.FrontOnBoard)
@@ -2132,14 +2132,14 @@ namespace Orts.Simulation.Timetables
             float remDistance = 0.0f;
 
             // check present position is in last section of route
-            if (parentTrain.PresentPosition[Direction.Forward].RouteListIndex < parentTrain.ValidRoute[0].Count - 1)
+            if (parentTrain.PresentPosition[Direction.Forward].RouteListIndex < parentTrain.ValidRoutes[Direction.Forward].Count - 1)
             {
                 TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[parentTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex];
                 remDistance = thisSection.Length - parentTrain.PresentPosition[Direction.Forward].Offset;
 
-                for (int iIndex = parentTrain.PresentPosition[Direction.Forward].RouteListIndex + 1; iIndex < parentTrain.ValidRoute[0].Count - 1; iIndex++)
+                for (int iIndex = parentTrain.PresentPosition[Direction.Forward].RouteListIndex + 1; iIndex < parentTrain.ValidRoutes[Direction.Forward].Count - 1; iIndex++)
                 {
-                    remDistance += parentTrain.ValidRoute[0][iIndex].TrackCircuitSection.Length;
+                    remDistance += parentTrain.ValidRoutes[Direction.Forward][iIndex].TrackCircuitSection.Length;
                 }
 
                 if (MovingTableState == MovingTableState.StorageToMovingTable)
@@ -2267,14 +2267,14 @@ namespace Orts.Simulation.Timetables
 
             // set next active path for train
             parentTrain.TCRoute.ActiveSubPath++;
-            parentTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(parentTrain.TCRoute.TCRouteSubpaths[parentTrain.TCRoute.ActiveSubPath]);
+            parentTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(parentTrain.TCRoute.TCRouteSubpaths[parentTrain.TCRoute.ActiveSubPath]);
 
             // check if formation reverse is required
             bool reverseFormation = reqReverseFormation;
 
             // position reverse is required if path off turntable is backward
             bool reversePosition = false;
-            if (parentTrain.ValidRoute[0][0].Direction == 0)
+            if (parentTrain.ValidRoutes[Direction.Forward][0].Direction == 0)
             {
                 reversePosition = true;
                 reverseFormation = !reverseFormation;  // inverse reverse formation as this is also done in reverseposition
@@ -2285,7 +2285,7 @@ namespace Orts.Simulation.Timetables
                 parentTrain.ReverseCars();
 
             // get traveller at start of path tracknode
-            TrackCircuitSection thisSection = parentTrain.ValidRoute[0][0].TrackCircuitSection;
+            TrackCircuitSection thisSection = parentTrain.ValidRoutes[Direction.Forward][0].TrackCircuitSection;
             Traveller middlePosition = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[thisSection.OriginalIndex]);
 
 #if DEBUG_TURNTABLEINFO
@@ -2359,8 +2359,8 @@ namespace Orts.Simulation.Timetables
             parentTrain.ControlMode = TrainControlMode.AutoNode;
             parentTrain.DistanceTravelledM = 0;
             parentTrain.DelayedStartMoving(AiStartMovement.PathAction);
-            parentTrain.EndAuthorityTypes[0] = EndAuthorityType.NoPathReserved;
-            parentTrain.EndAuthorityTypes[1] = EndAuthorityType.NoPathReserved;
+            parentTrain.EndAuthorities[Direction.Forward].EndAuthorityType = EndAuthorityType.NoPathReserved;
+            parentTrain.EndAuthorities[Direction.Backward].EndAuthorityType = EndAuthorityType.NoPathReserved;
 
             // actions for mode access (train going into storage)
             if (MovingTableAction == MovingTableAction.FromAccess)
@@ -2371,9 +2371,9 @@ namespace Orts.Simulation.Timetables
 
                 // calculate stop position
                 float endOffset = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.TrackNodeOffset + parentTrain.Length;
-                if (endOffset < parentTrain.DistanceToEndNodeAuthorityM[0])
+                if (endOffset < parentTrain.EndAuthorities[Direction.Forward].Distance)
                 {
-                    parentTrain.DistanceToEndNodeAuthorityM[0] = parentTrain.NextStopDistanceM = endOffset;
+                    parentTrain.EndAuthorities[Direction.Forward].Distance = parentTrain.NextStopDistanceM = endOffset;
                 }
             }
 

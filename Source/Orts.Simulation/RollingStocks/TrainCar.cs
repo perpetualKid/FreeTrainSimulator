@@ -2673,13 +2673,13 @@ namespace Orts.Simulation.RollingStocks
                 // tested this section, any need to go beyond?
                 processedCarLength += usedCarLength;
                 // go back one section
-                int sectionRouteIndex = Train.ValidRoute[0].GetRouteIndexBackward(sectionIndex, Train.PresentPosition[Common.Direction.Forward].RouteListIndex);
+                int sectionRouteIndex = Train.ValidRoutes[Common.Direction.Forward].GetRouteIndexBackward(sectionIndex, Train.PresentPosition[Common.Direction.Forward].RouteListIndex);
                 if (sectionRouteIndex >= 0)
                 {
                     sectionIndex = sectionRouteIndex;
                     section = TrackCircuitSection.TrackCircuitList[sectionIndex];
                     sectionOffset = section.Length;  // always at end of next section
-                    sectionDirection = Train.ValidRoute[0][sectionRouteIndex].Direction;
+                    sectionDirection = Train.ValidRoutes[Common.Direction.Forward][sectionRouteIndex].Direction;
                 }
                 else // ran out of train
                 {

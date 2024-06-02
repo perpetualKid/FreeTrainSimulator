@@ -3004,13 +3004,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 int routeIndex;
                 TrackCircuitPartialPathRoute thisRoute = null;
                 // search for near platform in fast way, using TCSection data
-                if (trainForwards && train.ValidRoute[0] != null)
+                if (trainForwards && train.ValidRoutes[Direction.Forward] != null)
                 {
-                    thisRoute = train.ValidRoute[0];
+                    thisRoute = train.ValidRoutes[Direction.Forward];
                 }
-                else if (!trainForwards && train.ValidRoute[1] != null)
+                else if (!trainForwards && train.ValidRoutes[Direction.Backward] != null)
                 {
-                    thisRoute = train.ValidRoute[1];
+                    thisRoute = train.ValidRoutes[Direction.Backward];
                 }
 
                 // Search for platform

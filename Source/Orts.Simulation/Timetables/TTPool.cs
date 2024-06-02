@@ -563,7 +563,7 @@ namespace Orts.Simulation.Timetables
         {
             int PoolStorageState = (int)TTTrain.PoolAccessState.PoolInvalid;
             train.TCRoute.TCRouteSubpaths[0] = PlaceInPool(train, out PoolStorageState, false);
-            train.ValidRoute[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
+            train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
             train.TCRoute.ActiveSubPath = 0;
 
             // if no storage available - abondone train
@@ -1164,7 +1164,7 @@ namespace Orts.Simulation.Timetables
             selectedTrain.Forms = -1;
             selectedTrain.RemoveTrain();
             train.FormedOfType = TTTrain.FormCommand.TerminationFormed;
-            train.ValidRoute[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
+            train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
 
 #if DEBUG_POOLINFO
             sob = new StringBuilder();

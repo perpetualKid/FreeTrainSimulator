@@ -195,13 +195,13 @@ namespace Orts.Simulation.Physics
 
                                         bool commonSectionFound = false;
                                         for (int i = otherTrain.PresentPosition[Direction.Forward].RouteListIndex + 1;
-                                             i < otherTrain.ValidRoute[0].Count - 1 && !commonSectionFound;
+                                             i < otherTrain.ValidRoutes[Direction.Forward].Count - 1 && !commonSectionFound;
                                              i++)
                                         {
-                                            TrackCircuitSection otherSection = otherTrain.ValidRoute[0][i].TrackCircuitSection;
-                                            for (int j = PresentPosition[Direction.Forward].RouteListIndex; j < ValidRoute[0].Count - 1; j++)
+                                            TrackCircuitSection otherSection = otherTrain.ValidRoutes[Direction.Forward][i].TrackCircuitSection;
+                                            for (int j = PresentPosition[Direction.Forward].RouteListIndex; j < ValidRoutes[Direction.Forward].Count - 1; j++)
                                             {
-                                                if (otherSection.Index == ValidRoute[0][j].TrackCircuitSection.Index)
+                                                if (otherSection.Index == ValidRoutes[Direction.Forward][j].TrackCircuitSection.Index)
                                                 {
                                                     commonSectionFound = true;
                                                     break;
@@ -287,7 +287,7 @@ namespace Orts.Simulation.Physics
 
                 if (otherTrain.Number != number && otherTrain.TrainType != TrainType.Static)
                 {
-                    TrackCircuitPartialPathRoute otherRoute = otherTrain.ValidRoute[0];
+                    TrackCircuitPartialPathRoute otherRoute = otherTrain.ValidRoutes[Direction.Forward];
                     ILookup<int, TrackDirection> otherRouteDict = otherRoute.ConvertRoute();
 
                     for (int i = 0; i < route.Count; i++)
@@ -490,7 +490,7 @@ namespace Orts.Simulation.Physics
                 if (trainSectionIndex != otherTrainSectionIndex)
                 {
                     int nextThisRouteIndex = trainIndex;
-                    TrackCircuitSection passLoopSection = ValidRoute[0][nextThisRouteIndex].TrackCircuitSection;
+                    TrackCircuitSection passLoopSection = ValidRoutes[Direction.Forward][nextThisRouteIndex].TrackCircuitSection;
                     _ = otherRoute.GetRouteIndex(passLoopSection.Index, otherTrainIndex);
 
                     float passLength = passLoopSection.Length;
@@ -506,10 +506,10 @@ namespace Orts.Simulation.Physics
                         }
 
                         // get next section
-                        else if (nextThisRouteIndex < ValidRoute[0].Count - 2)
+                        else if (nextThisRouteIndex < ValidRoutes[Direction.Forward].Count - 2)
                         {
                             nextThisRouteIndex++;
-                            passLoopSection = ValidRoute[0][nextThisRouteIndex].TrackCircuitSection;
+                            passLoopSection = ValidRoutes[Direction.Forward][nextThisRouteIndex].TrackCircuitSection;
                             int nextOtherRouteIndex = otherRoute.GetRouteIndexBackward(passLoopSection.Index, otherTrainIndex);
 
                             // new common section after too short loop - not a valid deadlock point
@@ -557,7 +557,7 @@ namespace Orts.Simulation.Physics
                         int trainReferenceIndex = deadlockInfo.GetTrainAndSubpathIndex(Number, TCRoute.ActiveSubPath);
                         if (!deadlockInfo.TrainReferences.ContainsKey(trainReferenceIndex))
                         {
-                            deadlockInfo.SetTrainDetails(Number, TCRoute.ActiveSubPath, Length, ValidRoute[0], trainIndex);
+                            deadlockInfo.SetTrainDetails(Number, TCRoute.ActiveSubPath, Length, ValidRoutes[Direction.Forward], trainIndex);
                         }
 
                         // if valid path for this train
@@ -590,7 +590,7 @@ namespace Orts.Simulation.Physics
                         int otherTrainReferenceIndex = deadlockInfo.GetTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.ActiveSubPath);
                         if (!deadlockInfo.TrainReferences.ContainsKey(otherTrainReferenceIndex))
                         {
-                            int otherTrainElementIndex = otherTrain.ValidRoute[0].GetRouteIndexBackward(endSectionIndex, otherFirstIndex);
+                            int otherTrainElementIndex = otherTrain.ValidRoutes[Direction.Forward].GetRouteIndexBackward(endSectionIndex, otherFirstIndex);
                             if (otherTrainElementIndex < 0) // train joins deadlock area on different node
                             {
                                 validPassLocation = false;
@@ -599,7 +599,7 @@ namespace Orts.Simulation.Physics
                             else
                             {
                                 deadlockInfo.SetTrainDetails(otherTrain.Number, otherTrain.TCRoute.ActiveSubPath, otherTrain.Length,
-                                    otherTrain.ValidRoute[0], otherTrainElementIndex);
+                                    otherTrain.ValidRoutes[Direction.Forward], otherTrainElementIndex);
                             }
                         }
 
@@ -763,12 +763,12 @@ namespace Orts.Simulation.Physics
             // if any section occupied by own train, reverse deadlock is active
             TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[firstSectionIndex];
 
-            int firstRouteIndex = ValidRoute[0].GetRouteIndex(firstSectionIndex, 0);
-            int lastRouteIndex = ValidRoute[0].GetRouteIndex(lastSection.Index, 0);
+            int firstRouteIndex = ValidRoutes[Direction.Forward].GetRouteIndex(firstSectionIndex, 0);
+            int lastRouteIndex = ValidRoutes[Direction.Forward].GetRouteIndex(lastSection.Index, 0);
 
             for (int i = firstRouteIndex; i < lastRouteIndex; i++)
             {
-                TrackCircuitSection partSection = ValidRoute[0][i].TrackCircuitSection;
+                TrackCircuitSection partSection = ValidRoutes[Direction.Forward][i].TrackCircuitSection;
                 if (partSection.IsSet(this, true))
                 {
                     firstSection.SetDeadlockTrap(this, DeadlockInfo[firstSectionIndex]);

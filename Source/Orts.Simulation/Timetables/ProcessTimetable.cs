@@ -779,7 +779,7 @@ namespace Orts.Simulation.Timetables
                     reqTrain.TTTrain.Path = usedPath;
                     reqTrain.TTTrain.CreateRoute(false);  // create route without use of FrontTDBtraveller
                     reqTrain.TTTrain.EndRouteAtLastSignal();
-                    reqTrain.TTTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(reqTrain.TTTrain.TCRoute.TCRouteSubpaths[0]);
+                    reqTrain.TTTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(reqTrain.TTTrain.TCRoute.TCRouteSubpaths[0]);
                     reqTrain.TTTrain.AITrainDirectionForward = true;
 
                     // process stops
@@ -864,7 +864,7 @@ namespace Orts.Simulation.Timetables
             // extract train path
             playerTrain.SetRoutePath(usedPath, false);
             playerTrain.EndRouteAtLastSignal();
-            playerTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(playerTrain.TCRoute.TCRouteSubpaths[0]);
+            playerTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(playerTrain.TCRoute.TCRouteSubpaths[0]);
         }
 
         //================================================================================================//
@@ -2785,7 +2785,7 @@ namespace Orts.Simulation.Timetables
                         outTrain.RearTDBTraveller = new Traveller(outPath.FirstNode.Location, outPath.FirstNode.NextMainNode.Location);
                         outTrain.Path = outPath;
                         outTrain.CreateRoute(false);
-                        outTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(outTrain.TCRoute.TCRouteSubpaths[0]);
+                        outTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(outTrain.TCRoute.TCRouteSubpaths[0]);
                         outTrain.AITrainDirectionForward = true;
                         outTrain.StartTime = DisposeDetails.StableInfo.Stable_outtime;
                         outTrain.ActivateTime = DisposeDetails.StableInfo.Stable_outtime;
@@ -2838,7 +2838,7 @@ namespace Orts.Simulation.Timetables
                             inTrain.RearTDBTraveller = new Traveller(inPath.FirstNode.Location, inPath.FirstNode.NextMainNode.Location);
                             inTrain.Path = inPath;
                             inTrain.CreateRoute(false);
-                            inTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(inTrain.TCRoute.TCRouteSubpaths[0]);
+                            inTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(inTrain.TCRoute.TCRouteSubpaths[0]);
                             inTrain.AITrainDirectionForward = true;
                             inTrain.StartTime = DisposeDetails.StableInfo.Stable_intime;
                             inTrain.ActivateTime = DisposeDetails.StableInfo.Stable_intime;
@@ -2983,7 +2983,7 @@ namespace Orts.Simulation.Timetables
                     formedTrain.RearTDBTraveller = new Traveller(formedPath.FirstNode.Location, formedPath.FirstNode.NextMainNode.Location);
                     formedTrain.Path = formedPath;
                     formedTrain.CreateRoute(false);
-                    formedTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(formedTrain.TCRoute.TCRouteSubpaths[0]);
+                    formedTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(formedTrain.TCRoute.TCRouteSubpaths[0]);
                     formedTrain.AITrainDirectionForward = true;
                     formedTrain.Name = $"RR_{rrtrain.Number:0000}";
                     formedTrain.FormedOf = rrtrain.Number;

@@ -272,7 +272,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                         ? new MilepostInfo(float.MaxValue, -1)
                         : new MilepostInfo(list[value].DistanceToTrainM, list[value].Miles);
                 };
-                script.EOADistanceM = (value) => Locomotive.Train.DistanceToEndNodeAuthorityM[value];
+                script.EndOfAuthorityDistanceM = (value) => Locomotive.Train.EndAuthorities[value].Distance;
                 script.TrainLengthM = () => Locomotive.Train != null ? Locomotive.Train.Length : 0f;
                 script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
                 script.CurrentDirection = () => Locomotive.Direction; // Direction of locomotive, may be different from direction of train
@@ -488,7 +488,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         private TrackMonitorSignalAspect NextNormalSignalDistanceHeadsAspect()
         {
-            var signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? 1 : 0];
+            var signal = Locomotive.Train.NextSignalObjects[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward];
             if (signal != null)
             {
                 foreach (var signalHead in signal.SignalHeads)
@@ -506,7 +506,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
         private bool DoesNextNormalSignalHaveTwoAspects()
         // ...and the two aspects of each head are STOP and ( CLEAR_2 or CLEAR_1 or RESTRICTING)
         {
-            var signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? 1 : 0];
+            var signal = Locomotive.Train.NextSignalObjects[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward];
             if (signal != null)
             {
                 if (signal.SignalHeads[0].SignalType.Aspects.Count > 2)
@@ -554,11 +554,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
             Direction dir = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward;
 
-            if (Locomotive.Train.ValidRoute[(int)dir] == null || dir == Direction.Backward && Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex < 0)
+            if (Locomotive.Train.ValidRoutes[dir] == null || dir == Direction.Backward && Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex < 0)
                 return SignalFeatures.None;
 
             int index = dir == Direction.Forward ? Locomotive.Train.PresentPosition[dir].RouteListIndex :
-                Locomotive.Train.ValidRoute[(int)dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
+                Locomotive.Train.ValidRoutes[dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
             if (index < 0)
                 return SignalFeatures.None;
             int fn_type = OrSignalTypes.Instance.FunctionTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, signalFunctionTypeName));
@@ -620,11 +620,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
         {
             Direction dir = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward;
 
-            if (Locomotive.Train.ValidRoute[(int)dir] == null || dir == Direction.Backward && Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex < 0)
+            if (Locomotive.Train.ValidRoutes[dir] == null || dir == Direction.Backward && Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex < 0)
                 return SpeedPostFeatures.None;
 
             int index = dir == 0 ? Locomotive.Train.PresentPosition[dir].RouteListIndex :
-                Locomotive.Train.ValidRoute[(int)dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
+                Locomotive.Train.ValidRoutes[dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
             if (index < 0)
                 return SpeedPostFeatures.None;
 
@@ -647,7 +647,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         private bool DoesNextNormalSignalHaveRepeaterHead()
         {
-            Signal signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? 1 : 0];
+            Signal signal = Locomotive.Train.NextSignalObjects[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward];
             if (signal != null)
             {
                 foreach (SignalHead signalHead in signal.SignalHeads)

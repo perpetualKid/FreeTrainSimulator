@@ -49,11 +49,11 @@ namespace Orts.Simulation.AIs
     internal class AuxActionsContainer
     {
         public List<AuxActionRef> SpecAuxActions = new List<AuxActionRef>();          // Actions To Do during activity, like WP with specific location
-        protected List<KeyValuePair<System.Type, AuxActionRef>> GenFunctions = new List<KeyValuePair<Type, AuxActionRef>>();
+        protected List<KeyValuePair<Type, AuxActionRef>> GenFunctions = new List<KeyValuePair<Type, AuxActionRef>>();
 
         public DistanceTravelledActions genRequiredActions = new DistanceTravelledActions(); // distance travelled Generic action list for AITrain
         public DistanceTravelledActions specRequiredActions = new DistanceTravelledActions();
-        private Train ThisTrain;
+        private Train train;
 
         public AuxActionsContainer(Train thisTrain)
         {
@@ -62,12 +62,12 @@ namespace Orts.Simulation.AIs
             {
                 SetGenAuxActions((AITrain)thisTrain);
             }
-            ThisTrain = thisTrain;
+            train = thisTrain;
         }
 
         public AuxActionsContainer(Train thisTrain, BinaryReader inf)
         {
-            ThisTrain = thisTrain;
+            train = thisTrain;
             if (thisTrain is AITrain)
             {
                 SetGenAuxActions((AITrain)thisTrain);
@@ -113,7 +113,7 @@ namespace Orts.Simulation.AIs
         {
             int cnt = 0;
             outf.Write(SpecAuxActions.Count);
-            AITrain aiTrain = ThisTrain as AITrain;
+            AITrain aiTrain = train as AITrain;
             if (SpecAuxActions.Count > 0 && SpecAuxActions[0] != null &&
                     specRequiredActions.First != null && specRequiredActions.First.Value is AuxActSigDelegate)
 
@@ -127,11 +127,11 @@ namespace Orts.Simulation.AIs
                     if (actionRef.AssociatedWPAction != null) actionRef.AssociatedWPAction.SetDelay(remainingDelay);
                     actionRef.Delay = remainingDelay;
                 }
-            if (!(ThisTrain == Simulator.Instance.OriginalPlayerTrain && (ThisTrain.TrainType == TrainType.AiPlayerDriven ||
-                ThisTrain.TrainType == TrainType.AiPlayerHosting || ThisTrain.TrainType == TrainType.Player || ThisTrain.TrainType == TrainType.Ai)))
+            if (!(train == Simulator.Instance.OriginalPlayerTrain && (train.TrainType == TrainType.AiPlayerDriven ||
+                train.TrainType == TrainType.AiPlayerHosting || train.TrainType == TrainType.Player || train.TrainType == TrainType.Ai)))
             {
 
-                if (ThisTrain is AITrain && ((aiTrain.MovementState == AiMovementState.HandleAction && aiTrain.nextActionInfo != null &&
+                if (train is AITrain && ((aiTrain.MovementState == AiMovementState.HandleAction && aiTrain.nextActionInfo != null &&
                 aiTrain.nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.AUX_ACTION && aiTrain.nextActionInfo is AuxActionWPItem)
                 || (aiTrain.AuxActionsContainer.SpecAuxActions.Count > 0 &&
                 aiTrain.AuxActionsContainer.SpecAuxActions[0] is AIActionWPRef && (aiTrain.AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
@@ -172,15 +172,15 @@ namespace Orts.Simulation.AIs
         //public bool CheckGenActions(System.Type typeSource, float rearDist, float frontDist, WorldLocation location, uint trackNodeIndex)
         public bool CheckGenActions(Type typeSource, in WorldLocation location, params object[] list)
         {
-            if (ThisTrain is AITrain)
+            if (train is AITrain)
             {
-                AITrain aiTrain = ThisTrain as AITrain;
+                AITrain aiTrain = train as AITrain;
                 foreach (var fonction in GenFunctions)
                 {
                     if (typeSource == fonction.Key)   //  Caller object is a LevelCrossing
                     {
                         AIAuxActionsRef called = (AIAuxActionsRef)fonction.Value;
-                        if (called.HasAction(ThisTrain.Number, location))
+                        if (called.HasAction(train.Number, location))
                             return false;
                         AIActionItem newAction = called.CheckGenActions(location, aiTrain, list);
                         if (newAction != null)
@@ -198,7 +198,7 @@ namespace Orts.Simulation.AIs
 
         public void RemoveSpecReqAction(AuxActionItem thisAction)
         {
-            if (thisAction.CanRemove(ThisTrain))
+            if (thisAction.CanRemove(train))
             {
                 DistanceTravelledItem thisItem = thisAction;
                 specRequiredActions.Remove(thisItem);
@@ -207,14 +207,14 @@ namespace Orts.Simulation.AIs
 
         public void ProcessGenAction(AITrain thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
         {
-            if (genRequiredActions.Count <= 0 || !(ThisTrain is AITrain))
+            if (genRequiredActions.Count <= 0 || !(train is AITrain))
                 return;
-            AITrain aiTrain = ThisTrain as AITrain;
+            AITrain aiTrain = train as AITrain;
             List<DistanceTravelledItem> itemList = new List<DistanceTravelledItem>();
             foreach (var action in genRequiredActions)
             {
                 AIActionItem actionItem = action as AIActionItem;
-                if (actionItem.RequiredDistance <= ThisTrain.DistanceTravelledM)
+                if (actionItem.RequiredDistance <= train.DistanceTravelledM)
                 {
                     itemList.Add(actionItem);
                 }
@@ -229,14 +229,14 @@ namespace Orts.Simulation.AIs
         public AiMovementState ProcessSpecAction(AITrain thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
         {
             AiMovementState MvtState = movementState;
-            if (specRequiredActions.Count <= 0 || !(ThisTrain is AITrain))
+            if (specRequiredActions.Count <= 0 || !(train is AITrain))
                 return MvtState;
-            AITrain aiTrain = ThisTrain as AITrain;
+            AITrain aiTrain = train as AITrain;
             List<DistanceTravelledItem> itemList = new List<DistanceTravelledItem>();
             foreach (var action in specRequiredActions)
             {
                 AIActionItem actionItem = action as AIActionItem;
-                if (actionItem.RequiredDistance >= ThisTrain.DistanceTravelledM)
+                if (actionItem.RequiredDistance >= train.DistanceTravelledM)
                     continue;
                 if (actionItem is AuxActSigDelegate)
                 {
@@ -267,7 +267,7 @@ namespace Orts.Simulation.AIs
                     ret = genRequiredActions.Remove(action);
                 if (!ret && specRequiredActions.Count > 0)
                 {
-                    if (((AIAuxActionsRef)action.ActionRef).CallFreeAction(ThisTrain))
+                    if (((AIAuxActionsRef)action.ActionRef).CallFreeAction(train))
                         RemoveSpecReqAction(action);
                 }
             }
@@ -278,8 +278,8 @@ namespace Orts.Simulation.AIs
             }
             if (CountSpec() > 0 && remove == true)
                 SpecAuxActions.Remove(action.ActionRef);
-            if (ThisTrain is AITrain)
-                ((AITrain)ThisTrain).ResetActions(true);
+            if (train is AITrain)
+                ((AITrain)train).ResetActions(true);
         }
 
         public void RemoveAt(int posit)
@@ -754,8 +754,8 @@ namespace Orts.Simulation.AIs
             // get action route index - if not found, return distances < 0
 
             int actionIndex0 = thisTrain.PresentPosition[Common.Direction.Forward].RouteListIndex;
-            int actionRouteIndex = thisTrain.ValidRoute[0].GetRouteIndex(TCSectionIndex, actionIndex0);
-            float activateDistanceTravelledM = thisTrain.PresentPosition[Common.Direction.Forward].DistanceTravelled + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, thisTrain.AITrainDirectionForward);
+            int actionRouteIndex = thisTrain.ValidRoutes[Common.Direction.Forward].GetRouteIndex(TCSectionIndex, actionIndex0);
+            float activateDistanceTravelledM = thisTrain.PresentPosition[Common.Direction.Forward].DistanceTravelled + thisTrain.ValidRoutes[Common.Direction.Forward].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, thisTrain.AITrainDirectionForward);
 
 
             // if reschedule, use actual speed
@@ -797,7 +797,7 @@ namespace Orts.Simulation.AIs
                 }
                 else
                 {
-                    activateDistanceTravelledM = thisTrain.PresentPosition[Common.Direction.Forward].DistanceTravelled + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
+                    activateDistanceTravelledM = thisTrain.PresentPosition[Common.Direction.Forward].DistanceTravelled + thisTrain.ValidRoutes[Common.Direction.Forward].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
                     triggerDistanceM = activateDistanceTravelledM;
                 }
 
@@ -811,7 +811,7 @@ namespace Orts.Simulation.AIs
             }
             else
             {
-                activateDistanceTravelledM = thisTrain.PresentPosition[Common.Direction.Forward].DistanceTravelled + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
+                activateDistanceTravelledM = thisTrain.PresentPosition[Common.Direction.Forward].DistanceTravelled + thisTrain.ValidRoutes[Common.Direction.Forward].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
                 triggerDistanceM = activateDistanceTravelledM - Math.Min(this.RequiredDistance, 300);
 
                 if (activateDistanceTravelledM < thisTrain.PresentPosition[Common.Direction.Forward].DistanceTravelled &&
@@ -945,8 +945,8 @@ namespace Orts.Simulation.AIs
             // get action route index - if not found, return distances < 0
 
             int actionIndex0 = thisTrain.PresentPosition[Common.Direction.Forward].RouteListIndex;
-            int actionRouteIndex = thisTrain.ValidRoute[0].GetRouteIndex(TCSectionIndex, actionIndex0);
-            float activateDistanceTravelledM = thisTrain.PresentPosition[Common.Direction.Forward].DistanceTravelled + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, thisTrain.AITrainDirectionForward);
+            int actionRouteIndex = thisTrain.ValidRoutes[Common.Direction.Forward].GetRouteIndex(TCSectionIndex, actionIndex0);
+            float activateDistanceTravelledM = thisTrain.PresentPosition[Common.Direction.Forward].DistanceTravelled + thisTrain.ValidRoutes[Common.Direction.Forward].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, thisTrain.AITrainDirectionForward);
             float[] distancesM = new float[2];
             distancesM[1] = activateDistanceTravelledM;
             distancesM[0] = activateDistanceTravelledM;
@@ -1044,11 +1044,11 @@ namespace Orts.Simulation.AIs
             // get action route index - if not found, return distances < 0
 
             int actionIndex0 = thisTrain.PresentPosition[Common.Direction.Forward].RouteListIndex;
-            int actionRouteIndex = thisTrain.ValidRoute[0].GetRouteIndex(TCSectionIndex, actionIndex0);
+            int actionRouteIndex = thisTrain.ValidRoutes[Common.Direction.Forward].GetRouteIndex(TCSectionIndex, actionIndex0);
             float activateDistanceTravelledM = -1;
 
             if (actionIndex0 != -1 && actionRouteIndex != -1)
-                activateDistanceTravelledM = thisTrain.PresentPosition[Common.Direction.Forward].DistanceTravelled + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
+                activateDistanceTravelledM = thisTrain.PresentPosition[Common.Direction.Forward].DistanceTravelled + thisTrain.ValidRoutes[Common.Direction.Forward].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
 
             var currBrakeSection = (thisTrain is AITrain && !(thisTrain.TrainType == TrainType.AiPlayerDriven)) ? 1 : brakeSection;
             float triggerDistanceM = activateDistanceTravelledM - Math.Min(this.RequiredDistance, 300);   //  TODO, add the size of train
@@ -1583,7 +1583,7 @@ namespace Orts.Simulation.AIs
         {
             if (SignalReferenced != null)
             {
-                bool ret = SignalReferenced.RequestClearSignal(thisTrain.ValidRoute[0], thisTrain.RoutedForward, 0, false, null);
+                bool ret = SignalReferenced.RequestClearSignal(thisTrain.ValidRoutes[Common.Direction.Forward], thisTrain.RoutedForward, 0, false, null);
                 return ret;
             }
             return true;
@@ -1680,9 +1680,9 @@ namespace Orts.Simulation.AIs
                         SignalReferenced.TrackItemIndex, SignalReferenced.TrackNode, thisTrain.Number);
                 }
             }
-            if (ClearSignal(thisTrain) || (thisTrain.NextSignalObject[0] != null && (thisTrain.NextSignalObject[0].SignalLR(SignalFunction.Normal) > SignalAspectState.Stop)) ||
-                thisTrain.NextSignalObject[0] == null || SignalReferenced != thisTrain.NextSignalObject[0] ||
-                thisTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex == thisTrain.ValidRoute[0][thisTrain.ValidRoute[0].Count - 1].TrackCircuitSection.Index)
+            if (ClearSignal(thisTrain) || (thisTrain.NextSignalObjects[Direction.Forward] != null && (thisTrain.NextSignalObjects[Direction.Forward].SignalLR(SignalFunction.Normal) > SignalAspectState.Stop)) ||
+                thisTrain.NextSignalObjects[Direction.Forward] == null || SignalReferenced != thisTrain.NextSignalObjects[Direction.Forward] ||
+                thisTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex == thisTrain.ValidRoutes[Common.Direction.Forward][thisTrain.ValidRoutes[Common.Direction.Forward].Count - 1].TrackCircuitSection.Index)
             {
                 if (((AIActSigDelegateRef)ActionRef).AssociatedWPAction != null)
                 {

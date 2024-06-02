@@ -921,10 +921,10 @@ namespace Orts.Simulation
                 }
             }
             if (train.TrainType == TrainType.Ai && (((AITrain)train).UncondAttach ||
-                train.TCRoute.ActiveSubPath < train.TCRoute.TCRouteSubpaths.Count - 1 || train.ValidRoute[0].Count > 5))
+                train.TCRoute.ActiveSubPath < train.TCRoute.TCRouteSubpaths.Count - 1 || train.ValidRoutes[Direction.Forward].Count > 5))
             {
                 if (((drivenTrain.TCRoute != null && drivenTrain.TCRoute.ActiveSubPath == drivenTrain.TCRoute.TCRouteSubpaths.Count - 1 &&
-                    drivenTrain.ValidRoute[0].Count < 5) || (drivenTrain is AITrain aiTrain && aiTrain.UncondAttach)) && drivenTrain != OriginalPlayerTrain)
+                    drivenTrain.ValidRoutes[Direction.Forward].Count < 5) || (drivenTrain is AITrain aiTrain && aiTrain.UncondAttach)) && drivenTrain != OriginalPlayerTrain)
                 {
                     // Switch to the attached train as the one where we are now is at the end of its life
                     TrainSwitcher.PickedTrainFromList = train;
@@ -958,7 +958,7 @@ namespace Orts.Simulation
                     PlayerLocomotive = SetPlayerLocomotive(train);
                     (train as AITrain).SwitchToPlayerControl();
                     OnPlayerLocomotiveChanged();
-                    if (drivenTrain.TCRoute.ActiveSubPath == drivenTrain.TCRoute.TCRouteSubpaths.Count - 1 && drivenTrain.ValidRoute[0].Count < 5)
+                    if (drivenTrain.TCRoute.ActiveSubPath == drivenTrain.TCRoute.TCRouteSubpaths.Count - 1 && drivenTrain.ValidRoutes[Direction.Forward].Count < 5)
                     {
                         (drivenTrain as AITrain).RemoveTrain();
                         train.UpdateTrackActionsCoupling(coupleToFront);
@@ -1909,9 +1909,9 @@ namespace Orts.Simulation
                     if (TrainSwitcher.SuspendOldPlayer)
                     {
                         aiPlayerTrain.MovementState = AiMovementState.Suspended;
-                        if (aiPlayerTrain.ValidRoute[0] != null && aiPlayerTrain.PresentPosition[Direction.Forward].RouteListIndex != -1 &&
-                            aiPlayerTrain.ValidRoute[0].Count > aiPlayerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1)
-                            SignalEnvironment.BreakDownRoute(aiPlayerTrain.ValidRoute[0][aiPlayerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1].TrackCircuitSection.Index,
+                        if (aiPlayerTrain.ValidRoutes[Direction.Forward] != null && aiPlayerTrain.PresentPosition[Direction.Forward].RouteListIndex != -1 &&
+                            aiPlayerTrain.ValidRoutes[Direction.Forward].Count > aiPlayerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1)
+                            SignalEnvironment.BreakDownRoute(aiPlayerTrain.ValidRoutes[Direction.Forward][aiPlayerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1].TrackCircuitSection.Index,
                                aiPlayerTrain.RoutedForward);
                         TrainSwitcher.SuspendOldPlayer = false;
                     }
@@ -2015,11 +2015,11 @@ namespace Orts.Simulation
                             TrainSwitcher.ClickedSelectedAsPlayer = false;
                             return;
                         }
-                        if (playerTrain.ValidRoute[0] != null && playerTrain.ValidRoute[0].Count > playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1)
-                            SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1].TrackCircuitSection.Index,
+                        if (playerTrain.ValidRoutes[Direction.Forward] != null && playerTrain.ValidRoutes[Direction.Forward].Count > playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1)
+                            SignalEnvironment.BreakDownRoute(playerTrain.ValidRoutes[Direction.Forward][playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1].TrackCircuitSection.Index,
                             playerTrain.RoutedForward);
-                        if (playerTrain.ValidRoute[1] != null && playerTrain.ValidRoute[1].Count > playerTrain.PresentPosition[Direction.Backward].RouteListIndex + 1)
-                            SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[1][playerTrain.PresentPosition[Direction.Backward].RouteListIndex + 1].TrackCircuitSection.Index,
+                        if (playerTrain.ValidRoutes[Direction.Backward] != null && playerTrain.ValidRoutes[Direction.Backward].Count > playerTrain.PresentPosition[Direction.Backward].RouteListIndex + 1)
+                            SignalEnvironment.BreakDownRoute(playerTrain.ValidRoutes[Direction.Backward][playerTrain.PresentPosition[Direction.Backward].RouteListIndex + 1].TrackCircuitSection.Index,
                             playerTrain.RoutedBackward);
                         playerTrain.ControlMode = TrainControlMode.Undefined;
                         playerTrain.TrainType = TrainType.Static;

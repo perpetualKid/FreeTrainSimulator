@@ -1816,12 +1816,12 @@ namespace Orts.Simulation.Signalling
             EndAuthorityType endAuthority = EndAuthorityType.NoPathReserved;
             float maxDistance = train.Train.MaxDistanceCheckedAhead;
 
-            int lastReserved = train.Train.LastReservedSection[train.TrainRouteDirectionIndex];
+            int lastReserved = train.Train.EndAuthorities[train.Direction].LastReservedSection;
             int endListIndex = -1;
 
             bool furthestRouteCleared = false;
 
-            TrackCircuitPartialPathRoute subPathRoute = new TrackCircuitPartialPathRoute(train.Train.ValidRoute[train.TrainRouteDirectionIndex]);
+            TrackCircuitPartialPathRoute subPathRoute = new TrackCircuitPartialPathRoute(train.Train.ValidRoutes[train.Direction]);
             TrackCircuitPosition position = new TrackCircuitPosition(train.Train.PresentPosition[train.Direction]);
 
             // for loop detection, set occupied sections in sectionsInRoute list - but remove present position
@@ -1961,9 +1961,9 @@ namespace Orts.Simulation.Signalling
                     {
                         for (int i = 0; i < rearIndex; i++)
                         {
-                            train.Train.ValidRoute[train.TrainRouteDirectionIndex][i].Invalidate(); // invalidate route upto loop point
+                            train.Train.ValidRoutes[train.Direction][i].Invalidate(); // invalidate route upto loop point
                         }
-                        routePart = train.Train.ValidRoute[train.TrainRouteDirectionIndex];
+                        routePart = train.Train.ValidRoutes[train.Direction];
                     }
 
                     train.Train.LoopSection = -1;
@@ -2220,9 +2220,9 @@ namespace Orts.Simulation.Signalling
             }
 
             // update train details
-            train.Train.EndAuthorityTypes[train.TrainRouteDirectionIndex] = endAuthority;
-            train.Train.LastReservedSection[train.TrainRouteDirectionIndex] = lastReserved;
-            train.Train.DistanceToEndNodeAuthorityM[train.TrainRouteDirectionIndex] = clearedDistanceM;
+            train.Train.EndAuthorities[train.Direction].EndAuthorityType = endAuthority;
+            train.Train.EndAuthorities[train.Direction].LastReservedSection = lastReserved;
+            train.Train.EndAuthorities[train.Direction].Distance = clearedDistanceM;
         }
 
         /// <summary>

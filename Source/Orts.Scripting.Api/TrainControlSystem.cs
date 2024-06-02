@@ -142,9 +142,8 @@ namespace Orts.Scripting.Api
         public Func<int, MilepostInfo> NextMilepost { get; set; }
         /// <summary>
         /// Distance to end of authority.
-        /// int: direction; 0: forwards; 1: backwards
         /// </summary>
-        public Func<int, float> EOADistanceM { get; set; }
+        public Func<Direction, float> EndOfAuthorityDistanceM { get; set; }
         /// <summary>
         /// Train's length
         /// </summary>

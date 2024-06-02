@@ -208,8 +208,8 @@ namespace Orts.Simulation.Activities
 
                             }
                         }
-                        if (playerTrain.NextSignalObject[0] != null)
-                            distanceToNextSignal = playerTrain.NextSignalObject[0].DistanceTo(playerTrain.FrontTDBTraveller);
+                        if (playerTrain.NextSignalObjects[Direction.Forward] != null)
+                            distanceToNextSignal = playerTrain.NextSignalObjects[Direction.Forward].DistanceTo(playerTrain.FrontTDBTraveller);
                     }
                     break;
                 case ActivityEventType.TrainStart:
@@ -282,9 +282,9 @@ namespace Orts.Simulation.Activities
                         else if (!maydepart)
                         {
                             // check if signal ahead is cleared - if not, do not allow depart
-                            if (distanceToNextSignal >= 0 && distanceToNextSignal < 300 && playerTrain.NextSignalObject[0] != null &&
-                                playerTrain.NextSignalObject[0].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop
-                                && playerTrain.NextSignalObject[0].OverridePermission != SignalPermission.Granted)
+                            if (distanceToNextSignal >= 0 && distanceToNextSignal < 300 && playerTrain.NextSignalObjects[Direction.Forward] != null &&
+                                playerTrain.NextSignalObjects[Direction.Forward].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop
+                                && playerTrain.NextSignalObjects[Direction.Forward].OverridePermission != SignalPermission.Granted)
                             {
                                 DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. Waiting for signal ahead to clear.");
                             }
