@@ -32,7 +32,7 @@ namespace FreeTrainSimulator.Common
 
             int i = 0;
             foreach (T item in source)
-                array[i] = item;
+                array[i++] = item;
         }
 
         public EnumArray(Func<T> initializer) : this()

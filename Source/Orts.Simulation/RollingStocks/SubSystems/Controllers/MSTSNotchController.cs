@@ -220,8 +220,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
     public class MSTSNotchController :
         IController,
         INameValueInformationProvider,
-        ISaveStateApi<ControllerSaveState>,
-        ISaveStateRestoreApi<NotchSaveState, MSTSNotch>
+        ISaveStateApi<ControllerSaveState>
     {
         public const float StandardBoost = 5.0f; // standard step size multiplier
         public const float FastBoost = 20.0f;
@@ -678,7 +677,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             Notches.Clear();
 
             List<MSTSNotch> notches = new List<MSTSNotch>();
-            await notches.RestoreCollectionCreateNewInstances<NotchSaveState, MSTSNotch, MSTSNotchController>(saveState.NotchStates);
+            await notches.RestoreCollectionCreateNewInstances(saveState.NotchStates);
             Notches.AddRange(notches);
         }
 

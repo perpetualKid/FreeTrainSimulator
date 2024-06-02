@@ -935,6 +935,8 @@ namespace Orts.Simulation.Physics
                 EvaluationIntervall = evaluationInterval,
                 EvaluationLogContents = evaluationContent,
                 EvaluationFile = evaluationLogFile,
+
+                ValidRoutes = await ValidRoutes.SnapshotCollection<TrackCircuitPartialPathRouteSaveState, TrackCircuitPartialPathRoute>().ConfigureAwait(false),
             };
         }
 

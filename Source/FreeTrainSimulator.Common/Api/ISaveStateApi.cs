@@ -29,22 +29,46 @@ namespace FreeTrainSimulator.Common.Api
         {
             return new Collection<TSaveState>(await Task.WhenAll(source.Select(async item =>
             {
-                return await ValueTask.FromResult(await item.Snapshot().ConfigureAwait(false));
+                return await ValueTask.FromResult(item == null ? null : await item.Snapshot().ConfigureAwait(false));
             })).ConfigureAwait(false));
         }
 
-        public static async ValueTask RestoreCollectionCreateNewInstances<TSaveState, TRuntime, TActivator>(this ICollection<TRuntime> target, ICollection<TSaveState> saveStates, TActivator activator = default)
+        public static async ValueTask RestoreCollectionCreateNewInstances<TSaveState, TRuntime>(this ICollection<TRuntime> target, ICollection<TSaveState> saveStates)
             where TSaveState : SaveStateBase
-            where TRuntime : ISaveStateApi<TSaveState>
-            where TActivator : ISaveStateRestoreApi<TSaveState, TRuntime>
+            where TRuntime : ISaveStateApi<TSaveState>, new()
         {
             ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
             ArgumentNullException.ThrowIfNull(target, nameof(target));
 
             await Task.WhenAll(saveStates.Select(async saveState =>
             {
-                TRuntime runtimeTarget = activator.CreateRuntimeTarget(saveState);
-                await runtimeTarget.Restore(saveState).ConfigureAwait(false);
+                TRuntime runtimeTarget = default;
+                if (saveState != null)
+                {
+                    runtimeTarget = new();
+                    await runtimeTarget.Restore(saveState).ConfigureAwait(false);
+                }
+                target.Add(runtimeTarget);
+            })).ConfigureAwait(false);
+        }
+
+        public static async ValueTask RestoreCollectionCreateNewInstances<TSaveState, TRuntime, TActivator>(this ICollection<TRuntime> target, ICollection<TSaveState> saveStates, TActivator activator)
+            where TSaveState : SaveStateBase
+            where TRuntime : ISaveStateApi<TSaveState>
+            where TActivator : ISaveStateRestoreApi<TSaveState, TRuntime>
+        {
+            ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
+            ArgumentNullException.ThrowIfNull(target, nameof(target));
+            ArgumentNullException.ThrowIfNull(activator, nameof(activator));
+
+            await Task.WhenAll(saveStates.Select(async saveState =>
+            {
+                TRuntime runtimeTarget = default;
+                if (saveState != null)
+                {
+                    runtimeTarget = activator.CreateRuntimeTarget(saveState);
+                    await runtimeTarget.Restore(saveState).ConfigureAwait(false);
+                }
                 target.Add(runtimeTarget);
             })).ConfigureAwait(false);
         }
@@ -58,7 +82,8 @@ namespace FreeTrainSimulator.Common.Api
 
             foreach ((TRuntime runtimeTarget, TSaveState saveState) in target.Zip(saveStates))
             {
-                await runtimeTarget.Restore(saveState).ConfigureAwait(false);
+                if (null != runtimeTarget && null != saveState)
+                    await runtimeTarget.Restore(saveState).ConfigureAwait(false);
             }
         }
     }

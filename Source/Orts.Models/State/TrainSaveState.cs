@@ -7,8 +7,6 @@ using MemoryPack;
 using Orts.Common;
 using Orts.Formats.Msts;
 
-using SharpDX.Direct3D11;
-
 namespace Orts.Models.State
 {
     [MemoryPackable]
@@ -53,7 +51,6 @@ namespace Orts.Models.State
         public int EvaluationIntervall { get; set; }
         public EvaluationLogContents EvaluationLogContents { get; set; }
         public string EvaluationFile { get; set; }
-
-
+        public Collection<TrackCircuitPartialPathRouteSaveState> ValidRoutes { get; set; }
     }
 }
