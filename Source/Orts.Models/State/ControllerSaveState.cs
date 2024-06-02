@@ -40,6 +40,5 @@ namespace Orts.Models.State
         public bool StateChanged { get; set; }
         public bool TcsEmergencyBrake { get; set; }
         public bool TcsFullServiceBrake { get; set; }
-
     }
 }

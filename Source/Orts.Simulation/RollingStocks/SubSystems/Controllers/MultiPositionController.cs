@@ -18,16 +18,19 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 {
-    public class MultiPositionController
+    public class MultiPositionController : ISaveStateApi<ControllerSaveState>
     {
 
         private const float FullRangeIncreaseTime = 6.0f;
@@ -41,7 +44,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         private bool messageDisplayed;
 
-        private float elapsedSecondsFromLastChange;
+        private double elapsedSecondsFromLastChange;
         private bool checkNeutral;
         private bool noKeyPressed = true;
         private CruiseControllerPosition currentPosition = CruiseControllerPosition.Undefined;
@@ -82,31 +85,36 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             CanControlTrainBrake = source.CanControlTrainBrake;
         }
 
-
-        public void Save(BinaryWriter outf)
+        public ValueTask<ControllerSaveState> Snapshot()
         {
-            outf.Write(checkNeutral);
-            outf.Write((int)ControllerPosition);
-            outf.Write((int)currentPosition);
-            outf.Write(elapsedSecondsFromLastChange);
-            outf.Write(emergencyBrake);
-            outf.Write(isBraking);
-            outf.Write(noKeyPressed);
-            outf.Write(previousDriveModeWasAddPower);
-            outf.Write(StateChanged);
+            return ValueTask.FromResult(new ControllerSaveState()
+            { 
+                CheckNeutral = checkNeutral,
+                AnyKeyPressed = !noKeyPressed,
+                EmergencyBrake = emergencyBrake,
+                Braking = isBraking,
+                ElapsedTimer = elapsedSecondsFromLastChange,
+                ControllerPosition = ControllerPosition,
+                CurrentPosition = currentPosition,
+                AddPowerMode = previousDriveModeWasAddPower,
+                StateChanged = StateChanged,
+            });
         }
 
-        public void Restore(BinaryReader inf)
+        public ValueTask Restore(ControllerSaveState saveState)
         {
-            checkNeutral = inf.ReadBoolean();
-            ControllerPosition = (CruiseControllerPosition)inf.ReadInt32();
-            currentPosition = (CruiseControllerPosition)inf.ReadInt32();
-            elapsedSecondsFromLastChange = inf.ReadSingle();
-            emergencyBrake = inf.ReadBoolean();
-            isBraking = inf.ReadBoolean();
-            noKeyPressed = inf.ReadBoolean();
-            previousDriveModeWasAddPower = inf.ReadBoolean();
-            StateChanged = inf.ReadBoolean();
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+            
+            checkNeutral = saveState.CheckNeutral;
+            emergencyBrake = saveState.EmergencyBrake;
+            isBraking = saveState.Braking;
+            noKeyPressed = !saveState.AnyKeyPressed;
+            elapsedSecondsFromLastChange = saveState.ElapsedTimer;
+            ControllerPosition = saveState.ControllerPosition;
+            currentPosition = saveState.CurrentPosition;
+            previousDriveModeWasAddPower = saveState.AddPowerMode;
+            StateChanged = saveState.StateChanged;
+            return ValueTask.CompletedTask;
         }
 
         public void Parse(STFReader stf)
@@ -173,11 +181,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             {
                 emergencyBrake = false;
             }
-            elapsedSecondsFromLastChange += (float)elapsedClockSeconds;
+            elapsedSecondsFromLastChange += elapsedClockSeconds;
             if (checkNeutral)
             {
                 // Check every 200 ms if state of MPC has changed
-                if (elapsedSecondsFromLastChange > 0.2f)
+                if (elapsedSecondsFromLastChange > 0.2)
                 {
                     CheckNeutralPosition();
                     checkNeutral = false;
@@ -720,7 +728,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                                 break;
                             case Simulation.ControllerPosition.SpringLoadedForwards:
                             case Simulation.ControllerPosition.SpringLoadedBackwards:
-                                if (elapsedSecondsFromLastChange > 0.2f)
+                                if (elapsedSecondsFromLastChange > 0.2)
                                 {
                                     elapsedSecondsFromLastChange = 0;
                                     checkNeutral = true;
