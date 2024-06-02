@@ -1718,8 +1718,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 WagonFile = WagFilePath,
                 PantographSaveStates = await Pantographs.SnapshotCollection<PantographSaveState, Pantograph>().ConfigureAwait(false),
-                DoorSaveStates = await Task.WhenAll(Doors.Select(async door => await door.Snapshot().ConfigureAwait(false))).ConfigureAwait(false),
-                CouplerSaveStates = await Task.WhenAll(couplers.Select(async coupler => coupler == null ? null : await coupler.Snapshot().ConfigureAwait(false))).ConfigureAwait(false),
+                DoorSaveStates = await Doors.SnapshotCollection<DoorSaveState, Door>().ConfigureAwait(false),
+                CouplerSaveStates = await couplers.SnapshotCollection<CouplerSaveState, Coupler>().ConfigureAwait(false),
                 SoundValues = soundDebugValues,
                 Friction = Friction0N,
                 DavisA = DavisAN,
@@ -1780,16 +1780,9 @@ namespace Orts.Simulation.RollingStocks
             await Pantographs.RestoreCollectionCreateNewInstances(wagonSaveState.PantographSaveStates, Pantographs).ConfigureAwait(false);
             await Doors.RestoreCollectionOnExistingInstances(wagonSaveState.DoorSaveStates).ConfigureAwait(false);
 
-            couplers = new EnumArray<Coupler, TrainCarLocation>(await Task.WhenAll(wagonSaveState.CouplerSaveStates.Select(async couplerSaveState =>
-            {
-                if (couplerSaveState != null)
-                {
-                    Coupler coupler = new Coupler();
-                    await coupler.Restore(couplerSaveState).ConfigureAwait(false);
-                    return coupler;
-                }
-                return null;
-            })).ConfigureAwait(false));
+            List<Coupler> restoreCouplers = new List<Coupler>();
+            await restoreCouplers.RestoreCollectionCreateNewInstances(wagonSaveState.CouplerSaveStates).ConfigureAwait(false);
+            couplers = new EnumArray<Coupler, TrainCarLocation>(restoreCouplers);
             if (null != PassengerCarPowerSupply)
                 await PassengerCarPowerSupply.Restore(wagonSaveState.PowerSupplySaveStates).ConfigureAwait(false);
             if (null != FreightAnimations)
