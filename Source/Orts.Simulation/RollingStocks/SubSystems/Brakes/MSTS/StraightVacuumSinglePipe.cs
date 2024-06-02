@@ -349,24 +349,24 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     base.Update(elapsedClockSeconds);
                 }
             }
-            brakeInfo.Update(null);
+            brakeInformation.Update(null);
         }
 
         private protected override void UpdateBrakeStatus()
         {
-            brakeInfo["Car"] = car.CarID;
-            brakeInfo["BrakeType"] = (car as MSTSWagon).NonAutoBrakePresent ? "1VS" : "1V";
-            brakeInfo["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
-            brakeInfo["BrakehoseConnected"] = FrontBrakeHoseConnected ? "I" : "T";
-            brakeInfo["AngleCock"] = $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}";
-            brakeInfo["BleedOff"] = BleedOffValveOpen ? "Open" : string.Empty;
+            brakeInformation["Car"] = car.CarID;
+            brakeInformation["BrakeType"] = (car as MSTSWagon).NonAutoBrakePresent ? "1VS" : "1V";
+            brakeInformation["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
+            brakeInformation["BrakehoseConnected"] = FrontBrakeHoseConnected ? "I" : "T";
+            brakeInformation["AngleCock"] = $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}";
+            brakeInformation["BleedOff"] = BleedOffValveOpen ? "Open" : string.Empty;
 
-            brakeInfo["BC"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(CylPressurePSIA), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
-            brakeInfo["BP"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+            brakeInformation["BC"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(CylPressurePSIA), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+            brakeInformation["BP"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             if (!(car as MSTSWagon).NonAutoBrakePresent)
-                brakeInfo["VacuumReservoir"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(VacResPressureAdjPSIA()), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
-            brakeInfo["Status"] = $"BP {brakeInfo["BP"]}";
-            brakeInfo["StatusShort"] = $"BP{FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}";
+                brakeInformation["VacuumReservoir"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(VacResPressureAdjPSIA()), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+            brakeInformation["Status"] = $"BP {brakeInformation["BP"]}";
+            brakeInformation["StatusShort"] = $"BP{FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}";
         }
     }
 }

@@ -117,25 +117,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         {
             BleedOffValveOpen = false;
             car.SetBrakeForce(car.MaxHandbrakeForceN * handbrakePercent / 100);
-            brakeInfo.Update(null);
+            brakeInformation.Update(null);
         }
 
         private protected override void UpdateBrakeStatus()
         {
             base.UpdateBrakeStatus();
-            brakeInfo["BrakeType"] = "-";
+            brakeInformation["BrakeType"] = "-";
 
             // display differently depending upon whether vacuum or air braked system
-            brakeInfo["BP"] = car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped ?
+            brakeInformation["BP"] = car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped ?
                 FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true) :
                 // air braked by default
                 FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakePipe], true);
             if (car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped)
             {
-                brakeInfo["V"] = FormatStrings.FormatPressure(car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg, Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+                brakeInformation["V"] = FormatStrings.FormatPressure(car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg, Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             }
-            brakeInfo["Status"] = $"BP {brakeInfo["BP"]}";
-            brakeInfo["StatusShort"] = car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped ?
+            brakeInformation["Status"] = $"BP {brakeInformation["BP"]}";
+            brakeInformation["StatusShort"] = car.BrakeSystemType == Formats.Msts.BrakeSystemType.VacuumPiped ?
                 $"BP{FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}" :
                 // air braked by default
                 $"BP{FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.BrakePipe], false)}";

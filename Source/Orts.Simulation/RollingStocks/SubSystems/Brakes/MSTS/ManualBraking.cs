@@ -207,7 +207,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             else
                 f = Math.Max(car.MaxBrakeForceN, car.MaxHandbrakeForceN / 2);
             car.SetBrakeForce(f);
-            brakeInfo.Update(null);
+            brakeInformation.Update(null);
         }
 
         // Get the brake BC & BP for EOT conditions
@@ -294,17 +294,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         private protected override void UpdateBrakeStatus()
         {
-            brakeInfo["Car"] = car.CarID;
-            brakeInfo["BrakeType"] = brakeType;
-            brakeInfo["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
+            brakeInformation["Car"] = car.CarID;
+            brakeInformation["BrakeType"] = brakeType;
+            brakeInformation["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
 
-            brakeInfo["BP"] = (car as MSTSWagon).ManualBrakePresent && LocomotiveSteamBrakeFitted ?
+            brakeInformation["BP"] = (car as MSTSWagon).ManualBrakePresent && LocomotiveSteamBrakeFitted ?
                 FormatStrings.FormatPressure(SteamBrakeCylinderPressurePSI, Pressure.Unit.PSI, Pressure.Unit.PSI, true) :
                 (car as MSTSWagon).ManualBrakePresent ? $"{ManualBrakingCurrentFraction:F0} %" : null;
 
-            brakeInfo["Manual Brake"] = Simulator.Catalog.GetString("Manual Brake");
-            brakeInfo["Status"] = $"{brakeInfo["Manual Brake"]}";
-            brakeInfo["StatusShort"] = Simulator.Catalog.GetParticularString("Braking", "Manual");
+            brakeInformation["Manual Brake"] = Simulator.Catalog.GetString("Manual Brake");
+            brakeInformation["Status"] = $"{brakeInformation["Manual Brake"]}";
+            brakeInformation["StatusShort"] = Simulator.Catalog.GetParticularString("Braking", "Manual");
         }
     }
 }

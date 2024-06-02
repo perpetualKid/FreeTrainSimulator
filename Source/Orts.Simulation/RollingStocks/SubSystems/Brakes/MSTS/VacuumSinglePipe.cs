@@ -575,7 +575,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 prevBrakePipePressurePSI = BrakeLine1PressurePSI;
             }
             SoundTriggerCounter++;
-            brakeInfo.Update(null);
+            brakeInformation.Update(null);
         }
 
         public override void PropagateBrakePressure(double elapsedClockSeconds)
@@ -1411,12 +1411,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         private protected override void UpdateBrakeStatus()
         {
-            brakeInfo["Car"] = car.CarID;
-            brakeInfo["BrakeType"] = LocomotiveSteamBrakeFitted ? "S" : "1V";
-            brakeInfo["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
-            brakeInfo["BrakehoseConnected"] = FrontBrakeHoseConnected ? "I" : "T";
-            brakeInfo["AngleCock"] = $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}";
-            brakeInfo["BleedOff"] = BleedOffValveOpen ? "Open" : string.Empty;
+            brakeInformation["Car"] = car.CarID;
+            brakeInformation["BrakeType"] = LocomotiveSteamBrakeFitted ? "S" : "1V";
+            brakeInformation["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
+            brakeInformation["BrakehoseConnected"] = FrontBrakeHoseConnected ? "I" : "T";
+            brakeInformation["AngleCock"] = $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}";
+            brakeInformation["BleedOff"] = BleedOffValveOpen ? "Open" : string.Empty;
 
             // display depending upon whether an EQ reservoir fitted
             if (car.Train.BrakeSystem.VacuumBrakeEqualizerLocomotive)
@@ -1430,17 +1430,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                 double eqPressure = (valveFraction * (Const.OneAtmospherePSI - (Const.OneAtmospherePSI - maxVacuumPipeLevelPSI))) + (Const.OneAtmospherePSI - maxVacuumPipeLevelPSI);
 
-                brakeInfo["EQ"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(eqPressure), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
-                brakeInfo["V"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+                brakeInformation["EQ"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(eqPressure), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+                brakeInformation["V"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             }
 
-            brakeInfo["BC"] = LocomotiveSteamBrakeFitted ? FormatStrings.FormatPressure(SteamBrakeCylinderPressurePSI, Pressure.Unit.PSI, Pressure.Unit.PSI, true) :
+            brakeInformation["BC"] = LocomotiveSteamBrakeFitted ? FormatStrings.FormatPressure(SteamBrakeCylinderPressurePSI, Pressure.Unit.PSI, Pressure.Unit.PSI, true) :
                 FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(CylPressurePSIA), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
-            brakeInfo["BP"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+            brakeInformation["BP"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
             if (!LocomotiveSteamBrakeFitted)
-                brakeInfo["VacuumReservoir"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(VacResPressureAdjPSIA()), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
-            brakeInfo["Status"] = $"BP {brakeInfo["BP"]}";
-            brakeInfo["StatusShort"] = $"BP{FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}";
+                brakeInformation["VacuumReservoir"] = FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(VacResPressureAdjPSIA()), Pressure.Unit.InHg, Pressure.Unit.InHg, true);
+            brakeInformation["Status"] = $"BP {brakeInformation["BP"]}";
+            brakeInformation["StatusShort"] = $"BP{FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}";
         }
     }
 }

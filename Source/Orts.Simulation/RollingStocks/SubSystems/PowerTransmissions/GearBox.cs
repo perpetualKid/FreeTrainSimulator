@@ -216,9 +216,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
     public class GearBox : ISubSystem<GearBox>, ISaveStateApi<GearBoxSaveState>
     {
-        protected readonly DieselEngine DieselEngine;
-        protected readonly MSTSDieselLocomotive Locomotive;
-        protected MSTSGearBoxParams GearBoxParams => Locomotive.DieselEngines.MSTSGearBoxParams;
+        private readonly DieselEngine dieselEngine;
+        private readonly MSTSDieselLocomotive locomotive;
+        protected MSTSGearBoxParams GearBoxParams => locomotive.DieselEngines.MSTSGearBoxParams;
         public List<Gear> Gears { get; } = new List<Gear>();
 
         public bool GearBoxFreeWheelFitted;
@@ -226,7 +226,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
         public bool GearedThrottleDecrease;
         public float previousGearThrottleSetting;
-        public float previousRpM;
 
         public float ManualGearTimerResetS = 2;  // Allow gear change to take 2 seconds
         public float ManualGearTimerS; // Time for gears to change
@@ -346,35 +345,35 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         {
             get
             {
-                if (Locomotive != null && Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                if (locomotive != null && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
                 {
                     if (GearBoxOperation == GearBoxOperation.Automatic)
                     {
 
-                        if (DieselEngine.Locomotive.ThrottlePercent > 0)
+                        if (dieselEngine.Locomotive.ThrottlePercent > 0)
                         {
-                            if (ShaftRPM >= (CurrentGear.DownGearProportion * DieselEngine.MaxRPM))
+                            if (ShaftRPM >= (CurrentGear.DownGearProportion * dieselEngine.MaxRPM))
                                 ClutchOn = true;
                         }
-                        if (ShaftRPM < DieselEngine.StartingRPM)
+                        if (ShaftRPM < dieselEngine.StartingRPM)
                             ClutchOn = false;
                         return ClutchOn;
                     }
                     else  // Manual clutch operation
                     {
 
-                        if (DieselEngine.Locomotive.ThrottlePercent == 0 && !ClutchOn && Locomotive.SpeedMpS < 0.05f && ClutchType == ClutchType.Friction)
+                        if (dieselEngine.Locomotive.ThrottlePercent == 0 && !ClutchOn && locomotive.SpeedMpS < 0.05f && ClutchType == ClutchType.Friction)
                         {
                             ClutchOn = false;
                             return ClutchOn;
                         }
-                        else if (!GearBoxFreeWheelEnabled && DieselEngine.Locomotive.ThrottlePercent == 0 && !clutchLockOut && ManualGearBoxChangeOn && ClutchType != ClutchType.Friction) // Fluid and Scoop clutches disengage if throttle is closed
+                        else if (!GearBoxFreeWheelEnabled && dieselEngine.Locomotive.ThrottlePercent == 0 && !clutchLockOut && ManualGearBoxChangeOn && ClutchType != ClutchType.Friction) // Fluid and Scoop clutches disengage if throttle is closed
                         {
                             clutchLockOut = true;
                             ClutchOn = false;
                             return ClutchOn;
                         }
-                        else if (ClutchType != ClutchType.Friction && DieselEngine.Locomotive.ThrottlePercent > 0)
+                        else if (ClutchType != ClutchType.Friction && dieselEngine.Locomotive.ThrottlePercent > 0)
                         {
                             clutchLockOut = false;
                         }
@@ -387,10 +386,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                         }
 
                         // Set clutch engaged when shaftrpm and engine rpm are equal
-                        if ((DieselEngine.Locomotive.ThrottlePercent >= 0 || DieselEngine.Locomotive.SpeedMpS > 0) && CurrentGear != null && !GearBoxFreeWheelEnabled)
+                        if ((dieselEngine.Locomotive.ThrottlePercent >= 0 || dieselEngine.Locomotive.SpeedMpS > 0) && CurrentGear != null && !GearBoxFreeWheelEnabled)
                         {
                             var clutchEngagementBandwidthRPM = 10.0f;
-                            if (ShaftRPM >= DieselEngine.RealRPM - clutchEngagementBandwidthRPM && ShaftRPM < DieselEngine.RealRPM + clutchEngagementBandwidthRPM && ShaftRPM < DieselEngine.MaxRPM && ShaftRPM > DieselEngine.IdleRPM)
+                            if (ShaftRPM >= dieselEngine.RealRPM - clutchEngagementBandwidthRPM && ShaftRPM < dieselEngine.RealRPM + clutchEngagementBandwidthRPM && ShaftRPM < dieselEngine.MaxRPM && ShaftRPM > dieselEngine.IdleRPM)
                                 ClutchOn = true;
                             return ClutchOn;
                         }
@@ -401,8 +400,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                         }
 
                         // Set clutch disengaged (slip mode) if shaft rpm moves outside of acceptable bandwidth speed (on type A, B and C clutches), Type D will not slip unless put into neutral
-                        var clutchSlipBandwidth = 0.1f * DieselEngine.ThrottleRPMTab[DieselEngine.DemandedThrottlePercent]; // Bandwidth 10%
-                        var speedVariationRpM = Math.Abs(DieselEngine.ThrottleRPMTab[DieselEngine.DemandedThrottlePercent] - ShaftRPM);
+                        var clutchSlipBandwidth = 0.1f * dieselEngine.ThrottleRPMTab[dieselEngine.DemandedThrottlePercent]; // Bandwidth 10%
+                        var speedVariationRpM = Math.Abs(dieselEngine.ThrottleRPMTab[dieselEngine.DemandedThrottlePercent] - ShaftRPM);
                         if (GearBoxFreeWheelFitted && speedVariationRpM > clutchSlipBandwidth && (GearBoxType != GearBoxType.D || GearBoxType != GearBoxType.A))
                         {
                             ClutchOn = false;
@@ -413,12 +412,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 }
                 else // default (legacy) units
                 {
-                    if (DieselEngine.Locomotive.ThrottlePercent > 0)
+                    if (dieselEngine.Locomotive.ThrottlePercent > 0)
                     {
-                        if (ShaftRPM >= (CurrentGear.DownGearProportion * DieselEngine.MaxRPM))
+                        if (ShaftRPM >= (CurrentGear.DownGearProportion * dieselEngine.MaxRPM))
                             ClutchOn = true;
                     }
-                    if (ShaftRPM < DieselEngine.StartingRPM)
+                    if (ShaftRPM < dieselEngine.StartingRPM)
                         ClutchOn = false;
                     return ClutchOn;
                 }
@@ -435,10 +434,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         {
             get
             {
-                if (DieselEngine.Locomotive.Direction == MidpointDirection.Reverse)
-                    return -(DieselEngine.Locomotive.SpeedMpS);
+                if (dieselEngine.Locomotive.Direction == MidpointDirection.Reverse)
+                    return -(dieselEngine.Locomotive.SpeedMpS);
                 else
-                    return (DieselEngine.Locomotive.SpeedMpS);
+                    return (dieselEngine.Locomotive.SpeedMpS);
             }
         }
 
@@ -470,11 +469,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         {
             get
             {
-                if (Locomotive != null && Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                if (locomotive != null && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
                 {
                     if (CurrentGear == null)
                     {
-                        return DieselEngine.RealRPM;
+                        return dieselEngine.RealRPM;
                     }
                     else
                     {
@@ -485,8 +484,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                         else
                         {
                             const float perSectoPerMin = 60;
-                            var driveWheelCircumferenceM = 2 * Math.PI * Locomotive.DriverWheelRadiusM;
-                            var driveWheelRpm = Locomotive.AbsSpeedMpS * perSectoPerMin / driveWheelCircumferenceM;
+                            var driveWheelCircumferenceM = 2 * Math.PI * locomotive.DriverWheelRadiusM;
+                            var driveWheelRpm = locomotive.AbsSpeedMpS * perSectoPerMin / driveWheelCircumferenceM;
                             var shaftRPM = driveWheelRpm * CurrentGear.Ratio;
                             return (float)(shaftRPM);
                         }
@@ -498,7 +497,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 {
 
                     if (CurrentGear == null)
-                        return DieselEngine.RealRPM;
+                        return dieselEngine.RealRPM;
                     else
                         return CurrentSpeedMpS / CurrentGear.Ratio;
                 }
@@ -512,7 +511,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 if (CurrentGear == null)
                     return false;
                 else
-                    return ((DieselEngine.RealRPM / DieselEngine.MaxRPM * 100f) > CurrentGear.OverspeedPercentage);
+                    return ((dieselEngine.RealRPM / dieselEngine.MaxRPM * 100f) > CurrentGear.OverspeedPercentage);
             }
         }
 
@@ -523,7 +522,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 if (CurrentGear == null)
                     return false;
                 else
-                    return ((DieselEngine.RealRPM / DieselEngine.MaxRPM * 100f) > 100f);
+                    return ((dieselEngine.RealRPM / dieselEngine.MaxRPM * 100f) > 100f);
             }
         }
 
@@ -555,18 +554,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 if (CurrentGear != null)
                 {
 
-                    if (Locomotive != null && Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                    if (locomotive != null && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
                     {
 
                         if (GearBoxOperation == GearBoxOperation.Automatic)
                         {
                             if (ClutchPercent >= -20)
                             {
-                                tractiveForceN = DieselEngine.DieselTorqueTab[DieselEngine.RealRPM] * DieselEngine.DemandedThrottlePercent / DieselEngine.DieselTorqueTab.MaxY() * 0.01f * CurrentGear.MaxTractiveForceN;
+                                tractiveForceN = dieselEngine.DieselTorqueTab[dieselEngine.RealRPM] * dieselEngine.DemandedThrottlePercent / dieselEngine.DieselTorqueTab.MaxY() * 0.01f * CurrentGear.MaxTractiveForceN;
                                 if (CurrentSpeedMpS > 0)
                                 {
-                                    if (tractiveForceN > (DieselEngine.CurrentDieselOutputPowerW / CurrentSpeedMpS))
-                                        tractiveForceN = DieselEngine.CurrentDieselOutputPowerW / CurrentSpeedMpS;
+                                    if (tractiveForceN > (dieselEngine.CurrentDieselOutputPowerW / CurrentSpeedMpS))
+                                        tractiveForceN = dieselEngine.CurrentDieselOutputPowerW / CurrentSpeedMpS;
                                 }
                                 return (float)tractiveForceN;
                             }
@@ -577,49 +576,49 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                         {
                             // Allow rpm to go below idle for display purposes, but not for calculation - creates -ve te
                             float dieselRpM;
-                            if (DieselEngine.RealRPM < DieselEngine.IdleRPM)
+                            if (dieselEngine.RealRPM < dieselEngine.IdleRPM)
                             {
-                                dieselRpM = DieselEngine.IdleRPM;
+                                dieselRpM = dieselEngine.IdleRPM;
                             }
                             else
                             {
-                                dieselRpM = DieselEngine.RealRPM;
+                                dieselRpM = dieselEngine.RealRPM;
                             }
 
                             throttleFraction = 0;
 
-                            if (DieselEngine.ApparentThrottleSetting < DieselEngine.DemandedThrottlePercent)
+                            if (dieselEngine.ApparentThrottleSetting < dieselEngine.DemandedThrottlePercent)
                             {
                                 // Use apparent throttle when accelerating so that time delays in rpm rise and fall are used, but use demanded throttle at other times
                                 //  throttleFraction = DieselEngine.ApparentThrottleSetting * 0.01f; // Convert from percentage to fraction, use the apparent throttle as this includes some delay for rpm increase
 
-                                throttleFraction = DieselEngine.DemandedThrottlePercent * 0.01f;
+                                throttleFraction = dieselEngine.DemandedThrottlePercent * 0.01f;
 
                             }
                             else // As apparent throttle is related to current rpm, limit throttle to the actual demanded throttle. 
                             {
-                                throttleFraction = DieselEngine.DemandedThrottlePercent * 0.01f;
+                                throttleFraction = dieselEngine.DemandedThrottlePercent * 0.01f;
                             }
 
                             // Limit tractive force if engine is governed, ie speed cannot exceed the governed speed or the throttled speed
                             // Diesel mechanical transmission are not "governed" at all engine speed settings, rather only at Idle and Max RpM. 
                             // (See above where DM units TE held at constant value, unless overwritten by the following)
-                            if (Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                            if (locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
                             {
                                 // If engine RpM exceeds maximum rpm
-                                if (DieselEngine.GovernorEnabled && DieselEngine.DemandedThrottlePercent > 0 && DieselEngine.RealRPM > DieselEngine.MaxRPM)
+                                if (dieselEngine.GovernorEnabled && dieselEngine.DemandedThrottlePercent > 0 && dieselEngine.RealRPM > dieselEngine.MaxRPM)
                                 {
-                                    var decayGradient = 1.0f / (DieselEngine.GovernorRPM - DieselEngine.MaxRPM);
-                                    var rpmOverRun = (DieselEngine.RealRPM - DieselEngine.MaxRPM);
+                                    var decayGradient = 1.0f / (dieselEngine.GovernorRPM - dieselEngine.MaxRPM);
+                                    var rpmOverRun = (dieselEngine.RealRPM - dieselEngine.MaxRPM);
                                     throttleFraction = (1.0f - (decayGradient * rpmOverRun)) * throttleFraction;
                                     throttleFraction = MathHelper.Clamp(throttleFraction, 0.0f, 1.0f);  // Clamp throttle setting within bounds, so it doesn't go negative                           
                                 }
 
                                 // If engine RpM drops below idle rpm
-                                if (DieselEngine.GovernorEnabled && DieselEngine.DemandedThrottlePercent > 0 && DieselEngine.RealRPM < DieselEngine.IdleRPM)
+                                if (dieselEngine.GovernorEnabled && dieselEngine.DemandedThrottlePercent > 0 && dieselEngine.RealRPM < dieselEngine.IdleRPM)
                                 {
-                                    var decayGradient = 1.0f / (DieselEngine.IdleRPM - DieselEngine.StartingRPM);
-                                    var rpmUnderRun = DieselEngine.IdleRPM - DieselEngine.RealRPM;
+                                    var decayGradient = 1.0f / (dieselEngine.IdleRPM - dieselEngine.StartingRPM);
+                                    var rpmUnderRun = dieselEngine.IdleRPM - dieselEngine.RealRPM;
                                     throttleFraction = decayGradient * rpmUnderRun + throttleFraction; // Increases throttle over current setting up to a maximum of 100%
                                     throttleFraction = MathHelper.Clamp(throttleFraction, 0.0f, 1.0f);  // Clamp throttle setting within bounds, so it doesn't go negative
                                 }
@@ -629,17 +628,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                             // https://www.cm-labs.com/vortexstudiodocumentation/Vortex_User_Documentation/Content/Editor/editor_vs_configure_engine.html
                             //
                             // Calculate torque curve for throttle position and RpM
-                            rpmRatio = (dieselRpM - DieselEngine.IdleRPM) / (DieselEngine.MaxRPM - DieselEngine.IdleRPM);
+                            rpmRatio = (dieselRpM - dieselEngine.IdleRPM) / (dieselEngine.MaxRPM - dieselEngine.IdleRPM);
                             torqueCurveMultiplier = (0.824f * throttleFraction + 0.176f) + (0.785f * throttleFraction - 0.785f) * rpmRatio;
 
                             // During normal operation fuel admission is fixed, and therefore TE follows curve as RpM varies
-                            tractiveForceN = torqueCurveMultiplier * DieselEngine.DieselTorqueTab[DieselEngine.RealRPM] / DieselEngine.DieselTorqueTab.MaxY() * CurrentGear.MaxTractiveForceN;
+                            tractiveForceN = torqueCurveMultiplier * dieselEngine.DieselTorqueTab[dieselEngine.RealRPM] / dieselEngine.DieselTorqueTab.MaxY() * CurrentGear.MaxTractiveForceN;
 
-                            Locomotive.HuDGearMaximumTractiveForce = CurrentGear.MaxTractiveForceN;
+                            locomotive.HuDGearMaximumTractiveForce = CurrentGear.MaxTractiveForceN;
 
                             if (CurrentSpeedMpS > 0)
                             {
-                                var tractiveEffortLimitN = (DieselEngine.DieselPowerTab[DieselEngine.RealRPM] * (DieselEngine.LoadPercent / 100f)) / CurrentSpeedMpS;
+                                var tractiveEffortLimitN = (dieselEngine.DieselPowerTab[dieselEngine.RealRPM] * (dieselEngine.LoadPercent / 100f)) / CurrentSpeedMpS;
 
                                 if (tractiveForceN > tractiveEffortLimitN )
                                 {
@@ -654,7 +653,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                             }
 
                             // Scoop couplings prevent TE "creep" at zero throttle
-                            if (throttleFraction == 0 && DieselEngine.RealRPM < 1.05f * DieselEngine.IdleRPM && ClutchType == ClutchType.Scoop)
+                            if (throttleFraction == 0 && dieselEngine.RealRPM < 1.05f * dieselEngine.IdleRPM && ClutchType == ClutchType.Scoop)
                             {
                                 tractiveForceN = 0;
                             }
@@ -667,18 +666,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
                             // Calculate tractive force if engine shuts down due to under or overspeed
                             // For engines when clutch is on calculate drag of "stalled" engine on locomotive. This will be maximum zero throttle @ GovernorRpM scaled back to 0 TE at 0 rpm.
-                            if (DieselEngine.GearOverspeedShutdownEnabled || DieselEngine.GearUnderspeedShutdownEnabled)
+                            if (dieselEngine.GearOverspeedShutdownEnabled || dieselEngine.GearUnderspeedShutdownEnabled)
                             {
                                 if (IsClutchOn)
                                 {
-                                    var tempRpmRatio = (dieselRpM - DieselEngine.IdleRPM) / (DieselEngine.MaxRPM - DieselEngine.IdleRPM);
+                                    var tempRpmRatio = (dieselRpM - dieselEngine.IdleRPM) / (dieselEngine.MaxRPM - dieselEngine.IdleRPM);
                                     var stallThrottleFraction = 0; // when stalled throttle fraction will be zero
                                     var stallTorqueCurveMultiplier = (0.824f * stallThrottleFraction + 0.176f) + (0.785f * stallThrottleFraction - 0.785f) * rpmRatio;
 
                                     // During normal operation fuel admission is fixed, and therefore TE follows curve as RpM varies
-                                    var maxStallEngineTE = stallTorqueCurveMultiplier * DieselEngine.DieselTorqueTab[DieselEngine.RealRPM] / DieselEngine.DieselTorqueTab.MaxY() * CurrentGear.MaxTractiveForceN;
+                                    var maxStallEngineTE = stallTorqueCurveMultiplier * dieselEngine.DieselTorqueTab[dieselEngine.RealRPM] / dieselEngine.DieselTorqueTab.MaxY() * CurrentGear.MaxTractiveForceN;
 
-                                    var stallGradient = maxStallEngineTE / DieselEngine.GovernorRPM;
+                                    var stallGradient = maxStallEngineTE / dieselEngine.GovernorRPM;
 
                                     tractiveForceN = stallGradient * dieselRpM;
 
@@ -698,11 +697,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     {
                         if (ClutchPercent >= -20)
                         {
-                            double tractiveForceN = DieselEngine.DieselTorqueTab[DieselEngine.RealRPM] * DieselEngine.DemandedThrottlePercent / DieselEngine.DieselTorqueTab.MaxY() * 0.01f * CurrentGear.MaxTractiveForceN;
+                            double tractiveForceN = dieselEngine.DieselTorqueTab[dieselEngine.RealRPM] * dieselEngine.DemandedThrottlePercent / dieselEngine.DieselTorqueTab.MaxY() * 0.01f * CurrentGear.MaxTractiveForceN;
                             if (CurrentSpeedMpS > 0)
                             {
-                                if (tractiveForceN > (DieselEngine.CurrentDieselOutputPowerW / CurrentSpeedMpS))
-                                    tractiveForceN = DieselEngine.CurrentDieselOutputPowerW / CurrentSpeedMpS;
+                                if (tractiveForceN > (dieselEngine.CurrentDieselOutputPowerW / CurrentSpeedMpS))
+                                    tractiveForceN = dieselEngine.CurrentDieselOutputPowerW / CurrentSpeedMpS;
                             }
                             return (float)tractiveForceN;
                         }
@@ -717,8 +716,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
         public GearBox(DieselEngine dieselEngine)
         {
-            DieselEngine = dieselEngine;
-            Locomotive = dieselEngine.Locomotive;
+            this.dieselEngine = dieselEngine;
+            locomotive = dieselEngine.Locomotive;
         }
 
         public void Copy(GearBox source)
@@ -748,9 +747,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
             CurrentGearIndex = saveState.GearIndex;
-            Locomotive.currentGearIndexRestore = CurrentGearIndex;
+            locomotive.currentGearIndexRestore = CurrentGearIndex;
             NextGearIndex = saveState.NextGearIndex;
-            Locomotive.currentnextGearRestore = NextGearIndex;
+            locomotive.currentnextGearRestore = NextGearIndex;
             gearedUp = saveState.GearedUp;
             gearedDown = saveState.GearedDown;
             ClutchOn = saveState.ClutchActive;
@@ -788,37 +787,37 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     if (!GearBoxParams.MaxTEFound)
                     {
                         // If user has entered this value then assume that they have already put the maximum torque value in
-                        Gears[i].MaxTractiveForceN = GearBoxParams.GearBoxMaxTractiveForceForGearsN[i] / Locomotive.DieselEngines.Count;
+                        Gears[i].MaxTractiveForceN = GearBoxParams.GearBoxMaxTractiveForceForGearsN[i] / locomotive.DieselEngines.Count;
 
                         // For purposes of calculating engine efficiency the tractive force at maximum gear speed needs to be used.
-                        Gears[i].TractiveForceatMaxSpeedN = (float)(GearBoxParams.GearBoxMaxTractiveForceForGearsN[i] / (DieselEngine.DieselTorqueTab.MaxY() / DieselEngine.DieselTorqueTab[DieselEngine.MaxRPM])) / Locomotive.DieselEngines.Count;
+                        Gears[i].TractiveForceatMaxSpeedN = (float)(GearBoxParams.GearBoxMaxTractiveForceForGearsN[i] / (dieselEngine.DieselTorqueTab.MaxY() / dieselEngine.DieselTorqueTab[dieselEngine.MaxRPM])) / locomotive.DieselEngines.Count;
                     }
                     else
                     {
                         // if they entered the TE at maximum gear speed, then increase the value accordingly 
-                        Gears[i].MaxTractiveForceN = (float)(GearBoxParams.GearBoxTractiveForceAtSpeedN[i] * DieselEngine.DieselTorqueTab.MaxY() / DieselEngine.DieselTorqueTab[DieselEngine.MaxRPM]) / Locomotive.DieselEngines.Count;
+                        Gears[i].MaxTractiveForceN = (float)(GearBoxParams.GearBoxTractiveForceAtSpeedN[i] * dieselEngine.DieselTorqueTab.MaxY() / dieselEngine.DieselTorqueTab[dieselEngine.MaxRPM]) / locomotive.DieselEngines.Count;
 
                         // For purposes of calculating engine efficiency the tractive force at maximum gear speed needs to be used.
-                        Gears[i].TractiveForceatMaxSpeedN = GearBoxParams.GearBoxTractiveForceAtSpeedN[i] / Locomotive.DieselEngines.Count;
+                        Gears[i].TractiveForceatMaxSpeedN = GearBoxParams.GearBoxTractiveForceAtSpeedN[i] / locomotive.DieselEngines.Count;
                     }                        
 
                     Gears[i].OverspeedPercentage = GearBoxParams.GearBoxOverspeedPercentageForFailure;
                     Gears[i].UpGearProportion = GearBoxParams.GearBoxUpGearProportion;
-                    if (Locomotive != null && Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+                    if (locomotive != null && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
                     {
                         // Calculate gear ratio, based on premise that drive wheel rpm @ max speed will be when engine is operating at max rpm
-                        double driveWheelCircumferenceM = 2 * Math.PI * Locomotive.DriverWheelRadiusM;
+                        double driveWheelCircumferenceM = 2 * Math.PI * locomotive.DriverWheelRadiusM;
                         double driveWheelRpm = Frequency.Periodic.ToMinutes(Gears[i].MaxSpeedMpS) / driveWheelCircumferenceM;
-                        float apparentGear = (float)(DieselEngine.MaxRPM / driveWheelRpm);
+                        float apparentGear = (float)(dieselEngine.MaxRPM / driveWheelRpm);
 
                         Gears[i].Ratio = apparentGear;
 
                         Gears[i].BackLoadForceN = Gears[i].Ratio * GearBoxParams.GearBoxBackLoadForceN;
                         Gears[i].CoastingForceN = Gears[i].Ratio * GearBoxParams.GearBoxCoastingForceN;
 
-                        Gears[i].ChangeUpSpeedRpM = DieselEngine.MaxRPM;
+                        Gears[i].ChangeUpSpeedRpM = dieselEngine.MaxRPM;
 
-                        Gears[0].ChangeDownSpeedRpM = DieselEngine.IdleRPM;
+                        Gears[0].ChangeDownSpeedRpM = dieselEngine.IdleRPM;
 
                         if (i > 0)
                         {
@@ -828,7 +827,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     }
                     else
                     {
-                        Gears[i].Ratio = GearBoxParams.GearBoxMaxSpeedForGearsMpS[i] / DieselEngine.MaxRPM;
+                        Gears[i].Ratio = GearBoxParams.GearBoxMaxSpeedForGearsMpS[i] / dieselEngine.MaxRPM;
                     }
                 }
                 GearBoxOperation = GearBoxParams.GearBoxOperation;
@@ -851,12 +850,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             gearedDown = false;
             ClutchOn = true;
             clutch = 0.4f;
-            DieselEngine.RealRPM = ShaftRPM;
+            dieselEngine.RealRPM = ShaftRPM;
         }
 
         public void Update(double elapsedClockSeconds)
         {
-            if (Locomotive != null && Locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
+            if (locomotive != null && locomotive.DieselTransmissionType == DieselTransmissionType.Mechanic)
             {
                 if (GearBoxOperation == GearBoxOperation.Automatic || GearBoxOperation == GearBoxOperation.Semiautomatic)
                 {
@@ -866,7 +865,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
                         if (CurrentGearIndex < NextGearIndex)
                         {
-                            DieselEngine.Locomotive.SignalEvent(TrainEvent.GearUp);
+                            dieselEngine.Locomotive.SignalEvent(TrainEvent.GearUp);
                             CurrentGearIndex = NextGearIndex;
                         }
                     }
@@ -874,7 +873,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     {
                         if (CurrentGearIndex > NextGearIndex)
                         {
-                            DieselEngine.Locomotive.SignalEvent(TrainEvent.GearDown);
+                            dieselEngine.Locomotive.SignalEvent(TrainEvent.GearDown);
                             CurrentGearIndex = NextGearIndex;
                         }
                     }
@@ -887,7 +886,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
                         if (CurrentGearIndex < NextGearIndex)
                         {
-                            DieselEngine.Locomotive.SignalEvent(TrainEvent.GearUp);
+                            dieselEngine.Locomotive.SignalEvent(TrainEvent.GearUp);
                             CurrentGearIndex = NextGearIndex;
                             ManualGearUp = false;
                         }
@@ -897,7 +896,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     {
                         if (CurrentGearIndex > NextGearIndex)
                         {
-                            DieselEngine.Locomotive.SignalEvent(TrainEvent.GearDown);
+                            dieselEngine.Locomotive.SignalEvent(TrainEvent.GearDown);
                             CurrentGearIndex = NextGearIndex;
                             ManualGearDown = false;
                         }
@@ -911,7 +910,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 {
                     if (CurrentGearIndex < NextGearIndex)
                     {
-                        DieselEngine.Locomotive.SignalEvent(TrainEvent.GearUp);
+                        dieselEngine.Locomotive.SignalEvent(TrainEvent.GearUp);
                         CurrentGearIndex = NextGearIndex;
                     }
                 }
@@ -919,18 +918,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 {
                     if (CurrentGearIndex > NextGearIndex)
                     {
-                        DieselEngine.Locomotive.SignalEvent(TrainEvent.GearDown);
+                        dieselEngine.Locomotive.SignalEvent(TrainEvent.GearDown);
                         CurrentGearIndex = NextGearIndex;
                     }
                 }
             }
 
-            if (DieselEngine.State == DieselEngineState.Running)
+            if (dieselEngine.State == DieselEngineState.Running)
             {
                 switch (GearBoxOperation)
                 {
                     case GearBoxOperation.Manual:
-                        if (DieselEngine.Locomotive.ThrottlePercent == 0 && Locomotive.AbsSpeedMpS == 0)
+                        if (dieselEngine.Locomotive.ThrottlePercent == 0 && locomotive.AbsSpeedMpS == 0)
                         {
                             ClutchOn = false;
                             ClutchPercent = 0f;
@@ -940,16 +939,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     case GearBoxOperation.Semiautomatic:
                         if ((CurrentGear != null))
                         {
-                            if ((CurrentSpeedMpS > (DieselEngine.MaxRPM * CurrentGear.UpGearProportion * CurrentGear.Ratio)))// && (!GearedUp) && (!GearedDown))
+                            if ((CurrentSpeedMpS > (dieselEngine.MaxRPM * CurrentGear.UpGearProportion * CurrentGear.Ratio)))// && (!GearedUp) && (!GearedDown))
                                 AutoGearUp();
                             else
                             {
-                                if ((CurrentSpeedMpS < (DieselEngine.MaxRPM * CurrentGear.DownGearProportion * CurrentGear.Ratio)))// && (!GearedUp) && (!GearedDown))
+                                if ((CurrentSpeedMpS < (dieselEngine.MaxRPM * CurrentGear.DownGearProportion * CurrentGear.Ratio)))// && (!GearedUp) && (!GearedDown))
                                     AutoGearDown();
                                 else
                                     AutoAtGear();
                             }
-                            if (DieselEngine.Locomotive.ThrottlePercent == 0)
+                            if (dieselEngine.Locomotive.ThrottlePercent == 0)
                             {
                                 if ((CurrentGear != null) || (NextGear == null))
                                 {
@@ -964,7 +963,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                         }
                         else
                         {
-                            if ((DieselEngine.Locomotive.ThrottlePercent > 0))
+                            if ((dieselEngine.Locomotive.ThrottlePercent > 0))
                                 AutoGearUp();
                             else
                             {
@@ -979,12 +978,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 }
             }
             // If diesel engine is stopped (potentially after a stall) on a manual gearbox then allow gears to be changed
-            else if (DieselEngine.State == DieselEngineState.Stopped)
+            else if (dieselEngine.State == DieselEngineState.Stopped)
             {
                 switch (GearBoxOperation)
                 {
                     case GearBoxOperation.Manual:
-                        if (Locomotive.AbsSpeedMpS < 0.05)
+                        if (locomotive.AbsSpeedMpS < 0.05)
                         {
                             ClutchOn = false;
                             ClutchPercent = 0f;

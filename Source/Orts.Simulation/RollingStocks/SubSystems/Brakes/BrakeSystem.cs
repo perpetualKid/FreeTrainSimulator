@@ -46,7 +46,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
     public abstract class BrakeSystem: ISaveStateApi<BrakeSystemSaveState>
     {
         private protected readonly TrainCar car;
-        private protected readonly BrakeInformation brakeInfo;
+        private protected readonly BrakeInformation brakeInformation;
 
         private protected float handbrakePercent;
 
@@ -126,9 +126,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         public abstract float VacBrakeCylNumber { get; }
         public bool CarBPIntact { get; set; }
 
-        public DetailInfoBase BrakeInfo => brakeInfo;
+        public DetailInfoBase BrakeInfo => brakeInformation;
 
-        public Dictionary<string, FormatOption> FormattingOptions => brakeInfo.FormattingOptions;
+        public Dictionary<string, FormatOption> FormattingOptions => brakeInformation.FormattingOptions;
 
         public abstract void PropagateBrakePressure(double elapsedClockSeconds);
 
@@ -152,7 +152,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
         protected BrakeSystem(TrainCar car)
         {
             this.car = car;
-            this.brakeInfo = new BrakeInformation(this);
+            this.brakeInformation = new BrakeInformation(this);
         }
 
         private protected class BrakeInformation : DetailInfoBase

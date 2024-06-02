@@ -633,7 +633,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
             }
             soundTriggerCounter = soundTriggerCounter + (float)elapsedClockSeconds;
-            brakeInfo.Update(null);
+            brakeInformation.Update(null);
         }
 
         public override void PropagateBrakePressure(double elapsedClockSeconds)
@@ -977,33 +977,33 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         private protected override void UpdateBrakeStatus()
         {
             EnumArray<Pressure.Unit, BrakeSystemComponent> pressureUnits = Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits;
-            brakeInfo["Car"] = car.CarID;
-            brakeInfo["BrakeType"] = "1P";
-            brakeInfo["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
-            brakeInfo["BrakehoseConnected"] = FrontBrakeHoseConnected ? "I" : "T";
-            brakeInfo["AngleCock"] = $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}";
-            brakeInfo["BleedOff"] = BleedOffValveOpen ? "Open" : string.Empty;
+            brakeInformation["Car"] = car.CarID;
+            brakeInformation["BrakeType"] = "1P";
+            brakeInformation["Handbrake"] = handbrakePercent > 0 ? $"{handbrakePercent:F0}%" : null;
+            brakeInformation["BrakehoseConnected"] = FrontBrakeHoseConnected ? "I" : "T";
+            brakeInformation["AngleCock"] = $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}";
+            brakeInformation["BleedOff"] = BleedOffValveOpen ? "Open" : string.Empty;
 
             if (car.Train.LeadLocomotive?.BrakeSystem is SMEBrakeSystem)
             {
                 // Set values for SME type brake
-                brakeInfo["SrvPipe"] = FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakePipe], true);
-                brakeInfo["StrPipe"] = TwoPipes ? FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.MainPipe], true) : null;
+                brakeInformation["SrvPipe"] = FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakePipe], true);
+                brakeInformation["StrPipe"] = TwoPipes ? FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.MainPipe], true) : null;
             }
             else
             {
-                brakeInfo["MainReservoirPipe"] = TwoPipes ? FormatStrings.FormatPressure(BrakeLine2PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.MainPipe], true) : null;
+                brakeInformation["MainReservoirPipe"] = TwoPipes ? FormatStrings.FormatPressure(BrakeLine2PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.MainPipe], true) : null;
             }
-            brakeInfo["AuxReservoir"] = FormatStrings.FormatPressure(auxResPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.AuxiliaryReservoir], true);
-            brakeInfo["EmergencyReservoir"] = (car as MSTSWagon).EmergencyReservoirPresent ? FormatStrings.FormatPressure(emergResPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.EmergencyReservoir], true) : null;
-            brakeInfo["RetainerValve"] = (car as MSTSWagon).RetainerPositions == 0 ? null : retainerDebugState;
-            brakeInfo["TripleValve"] = tripleValveState.GetLocalizedDescription();
+            brakeInformation["AuxReservoir"] = FormatStrings.FormatPressure(auxResPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.AuxiliaryReservoir], true);
+            brakeInformation["EmergencyReservoir"] = (car as MSTSWagon).EmergencyReservoirPresent ? FormatStrings.FormatPressure(emergResPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.EmergencyReservoir], true) : null;
+            brakeInformation["RetainerValve"] = (car as MSTSWagon).RetainerPositions == 0 ? null : retainerDebugState;
+            brakeInformation["TripleValve"] = tripleValveState.GetLocalizedDescription();
 
-            brakeInfo["EQ"] = FormatStrings.FormatPressure(car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.EqualizingReservoir], true);
-            brakeInfo["BC"] = FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakeCylinder], true);
-            brakeInfo["BP"] = FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakePipe], true);
-            brakeInfo["Status"] = $"BC {brakeInfo["BC"]} BP {brakeInfo["BP"]}";
-            brakeInfo["StatusShort"] = $"BC{FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakeCylinder], false)} BP{FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakePipe], false)}";
+            brakeInformation["EQ"] = FormatStrings.FormatPressure(car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.EqualizingReservoir], true);
+            brakeInformation["BC"] = FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakeCylinder], true);
+            brakeInformation["BP"] = FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakePipe], true);
+            brakeInformation["Status"] = $"BC {brakeInformation["BC"]} BP {brakeInformation["BP"]}";
+            brakeInformation["StatusShort"] = $"BC{FormatStrings.FormatPressure(cylPressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakeCylinder], false)} BP{FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, pressureUnits[BrakeSystemComponent.BrakePipe], false)}";
         }
     }
 }

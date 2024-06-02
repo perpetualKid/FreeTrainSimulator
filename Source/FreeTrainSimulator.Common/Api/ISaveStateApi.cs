@@ -29,7 +29,7 @@ namespace FreeTrainSimulator.Common.Api
         {
             return new Collection<TSaveState>(await Task.WhenAll(source.Select(async item =>
             {
-                return await ValueTask.FromResult(item == null ? null : await item.Snapshot().ConfigureAwait(false));
+                return await ValueTask.FromResult(item == null ? null : await item.Snapshot().ConfigureAwait(false)).ConfigureAwait(false);
             })).ConfigureAwait(false));
         }
 

@@ -31,7 +31,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         private protected override void UpdateBrakeStatus()
         {
             base.UpdateBrakeStatus();
-            brakeInfo["BrakeType"] = "2P";
+            brakeInformation["BrakeType"] = "2P";
         }
     }
 }

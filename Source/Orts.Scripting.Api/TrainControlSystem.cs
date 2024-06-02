@@ -544,7 +544,7 @@ namespace Orts.Scripting.Api
         {
             return StateSaver != null
                 ? await StateSaver.Snapshot().ConfigureAwait(false)
-                : await ValueTask.FromResult(ReadOnlySequence<byte>.Empty);
+                : await ValueTask.FromResult(ReadOnlySequence<byte>.Empty).ConfigureAwait(false);
         }
 
         public async ValueTask Restore(ReadOnlySequence<byte> saveState)

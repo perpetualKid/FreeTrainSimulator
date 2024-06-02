@@ -677,7 +677,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             Notches.Clear();
 
             List<MSTSNotch> notches = new List<MSTSNotch>();
-            await notches.RestoreCollectionCreateNewInstances(saveState.NotchStates);
+            await notches.RestoreCollectionCreateNewInstances(saveState.NotchStates).ConfigureAwait(false);
             Notches.AddRange(notches);
         }
 

@@ -13,9 +13,13 @@ namespace Orts.Models.State
     {
         public string WagonFile { get; set; }
         public Vector3 SoundValues { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
         public Collection<PantographSaveState> PantographSaveStates { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
+#pragma warning disable CA1819 // Properties should not return arrays
         public DoorSaveState[] DoorSaveStates { get; set; }
         public CouplerSaveState[] CouplerSaveStates { get; set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         public float Friction { get; set; }
         public float DavisA { get; set; }
         public float DavisB { get; set; }

@@ -1718,8 +1718,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 WagonFile = WagFilePath,
                 PantographSaveStates = await Pantographs.SnapshotCollection<PantographSaveState, Pantograph>().ConfigureAwait(false),
-                DoorSaveStates = await Task.WhenAll(Doors.Select(async door => await door.Snapshot().ConfigureAwait(false))),
-                CouplerSaveStates = await Task.WhenAll(couplers.Select(async coupler => coupler == null ? null : await coupler.Snapshot().ConfigureAwait(false))),
+                DoorSaveStates = await Task.WhenAll(Doors.Select(async door => await door.Snapshot().ConfigureAwait(false))).ConfigureAwait(false),
+                CouplerSaveStates = await Task.WhenAll(couplers.Select(async coupler => coupler == null ? null : await coupler.Snapshot().ConfigureAwait(false))).ConfigureAwait(false),
                 SoundValues = soundDebugValues,
                 Friction = Friction0N,
                 DavisA = DavisAN,

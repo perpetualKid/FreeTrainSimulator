@@ -532,7 +532,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                         }
                         if (CanControlTrainBrake)
                         {
-                            if (locomotive.TrainBrakeController.GetStatus().ToLower() != "release")
+                            if (!locomotive.TrainBrakeController.GetStatus().Equals("release", StringComparison.OrdinalIgnoreCase))
                             {
                                 locomotive.StartTrainBrakeDecrease(null);
                             }

@@ -12,6 +12,7 @@ namespace Orts.Models.State
     [MemoryPackable]
     public sealed partial class TrainSaveState : SaveStateBase
     {
+#pragma warning disable CA2227 // Collection properties should be read only
         public Collection<TrainCarSaveState> TrainCars { get; set; }
         public int TrainNumber { get; set; }
         public string TrainName { get; set; }
@@ -52,5 +53,6 @@ namespace Orts.Models.State
         public EvaluationLogContents EvaluationLogContents { get; set; }
         public string EvaluationFile { get; set; }
         public Collection<TrackCircuitPartialPathRouteSaveState> ValidRoutes { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
     }
 }
