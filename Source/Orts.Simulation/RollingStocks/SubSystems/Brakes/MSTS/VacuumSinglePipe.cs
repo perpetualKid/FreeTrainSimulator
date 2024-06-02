@@ -109,14 +109,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         {
             string s;
             // display depending upon whether an EQ reservoir fitted
-            if (car.Train.BrakeSystem.EQEquippedVacLoco)
+            if (car.Train.BrakeSystem.VacuumBrakeEqualizerLocomotive)
             {
                 // The equalising pressure operates between 0 (Apply) and full pipe vacuum (12.278psi = 25 inHg - Release), which is the reverse of above, 
                 // so it needs to be mapped to provide a desired vacuum of 2.278 psi = 25 inhg = Release and 14.503psi = 0 inhg = Apply
                 MSTSLocomotive lead = car.Train.LeadLocomotive;
-                float MaxVacuumPipeLevelPSI = lead == null ? (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(21)) : lead.TrainBrakeController.MaxPressurePSI;
-                float ValveFraction = 1 - (car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg / MaxVacuumPipeLevelPSI);
-                ValveFraction = MathHelper.Clamp(ValveFraction, 0.0f, 1.0f); // Keep fraction within bounds
+                double MaxVacuumPipeLevelPSI = lead == null ? (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(21)) : lead.TrainBrakeController.MaxPressurePSI;
+                double ValveFraction = 1 - (car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg / MaxVacuumPipeLevelPSI);
+                ValveFraction = Math.Clamp(ValveFraction, 0.0, 1.0); // Keep fraction within bounds
 
                 double DisplayEqualReservoirPressurePSIorInHg = (ValveFraction * (Const.OneAtmospherePSI - (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI))) + (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI);
 
@@ -620,10 +620,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             // The equalising pressure operates between 0 (Apply) and full pipe vacuum (12.278psi = 25 inHg - Release), which is the reverse of above, so it needs to be mapped to
             // provide a desired vacuum of 2.278 psi = 25 inhg = Release and 14.503psi = 0 inhg = Apply
             // Hence Desired = Control Vale % * Vacuum Rise + base Vacuum.
-            float ValveFraction = 1 - (train.BrakeSystem.EqualReservoirPressurePSIorInHg / MaxVacuumPipeLevelPSI);
-            ValveFraction = MathHelper.Clamp(ValveFraction, 0.0f, 1.0f); // Keep fraction within bounds
+            double valveFraction = 1 - (train.BrakeSystem.EqualReservoirPressurePSIorInHg / MaxVacuumPipeLevelPSI);
+            valveFraction = Math.Clamp(valveFraction, 0.0, 1.0); // Keep fraction within bounds
 
-            double DesiredPipeVacuum = (ValveFraction * (Const.OneAtmospherePSI - (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI))) + (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI);
+            double DesiredPipeVacuum = (valveFraction * (Const.OneAtmospherePSI - (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI))) + (Const.OneAtmospherePSI - MaxVacuumPipeLevelPSI);
 
             float TrainPipeLeakLossPSI = lead == null ? 0.0f : (lead.TrainBrakePipeLeakPSIorInHgpS);
 
@@ -651,7 +651,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             float LapNetBPLossGainPSI = 0.0f;   // The net value of the losses and gains in the brake pipe for lap position: eg Net = Lg Ejector + Sm Ejector + Vac Pump - BP Loss
             float EQReleaseNetBPLossGainPSI = 0.0f;   // The net value of the losses and gains in the brake pipe for EQ release position: eg Net = Lg Ejector + Sm Ejector + Vac Pump - BP Loss
 
-            train.BrakeSystem.EQEquippedVacLoco = lead?.VacuumBrakeEQFitted ?? false;
+            train.BrakeSystem.VacuumBrakeEqualizerLocomotive = lead?.VacuumBrakeEQFitted ?? false;
 
             foreach (TrainCar car in train.Cars)
             {
@@ -1419,7 +1419,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             brakeInfo["BleedOff"] = BleedOffValveOpen ? "Open" : string.Empty;
 
             // display depending upon whether an EQ reservoir fitted
-            if (car.Train.BrakeSystem.EQEquippedVacLoco)
+            if (car.Train.BrakeSystem.VacuumBrakeEqualizerLocomotive)
             {
                 // The equalising pressure operates between 0 (Apply) and full pipe vacuum (12.278psi = 25 inHg - Release), which is the reverse of above, 
                 // so it needs to be mapped to provide a desired vacuum of 2.278 psi = 25 inhg = Release and 14.503psi = 0 inhg = Apply

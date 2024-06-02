@@ -91,11 +91,11 @@ namespace Orts.Simulation.Physics
                     fullServPressurePSI = lead.BrakeSystem is VacuumSinglePipe ? 16 : maxPressurePSI - lead.TrainBrakeController.FullServReductionPSI;
                     BrakeSystem.EqualReservoirPressurePSIorInHg = Math.Min(maxPressurePSI, BrakeSystem.EqualReservoirPressurePSIorInHg);
                     (double pressurePSI, double epControllerState) = lead.TrainBrakeController.UpdatePressure(BrakeSystem.EqualReservoirPressurePSIorInHg, BrakeSystem.BrakeLine4Pressure, 1000);
-                    BrakeSystem.BrakeLine4Pressure = (float)epControllerState;
-                    BrakeSystem.EqualReservoirPressurePSIorInHg = (float)Math.Max(pressurePSI, fullServPressurePSI);
+                    BrakeSystem.BrakeLine4Pressure = epControllerState;
+                    BrakeSystem.EqualReservoirPressurePSIorInHg = Math.Max(pressurePSI, fullServPressurePSI);
                 }
                 if (lead.EngineBrakeController != null)
-                    BrakeSystem.BrakeLine3Pressure = (float)lead.EngineBrakeController.UpdateEngineBrakePressure(BrakeSystem.BrakeLine3Pressure, 1000);
+                    BrakeSystem.BrakeLine3Pressure = lead.EngineBrakeController.UpdateEngineBrakePressure(BrakeSystem.BrakeLine3Pressure, 1000);
                 if (lead.DynamicBrakeController != null)
                 {
                     MUDynamicBrakePercent = lead.DynamicBrakeController.Update(1000) * 100;
@@ -107,7 +107,7 @@ namespace Orts.Simulation.Physics
             }
             else
             {
-                BrakeSystem.EqualReservoirPressurePSIorInHg = BrakeSystem.BrakeLine2Pressure = BrakeSystem.BrakeLine3Pressure = 0;
+                BrakeSystem.EqualReservoirPressurePSIorInHg = (float)(BrakeSystem.BrakeLine2Pressure = BrakeSystem.BrakeLine3Pressure = 0);
                 // Initialize static consists airless for allowing proper shunting operations,
                 // but set AI trains pumped up with air.
                 if (TrainType == TrainType.Static)
@@ -190,8 +190,8 @@ namespace Orts.Simulation.Physics
                 /// that is propagated promptly to each car directly.
                 foreach (TrainCar car in Cars)
                 {
-                    car.BrakeSystem.BrakeLine1PressurePSI = car.BrakeSystem.InternalPressure(BrakeSystem.EqualReservoirPressurePSIorInHg);
-                    car.BrakeSystem.BrakeLine2PressurePSI = BrakeSystem.BrakeLine2Pressure;
+                    car.BrakeSystem.BrakeLine1PressurePSI = car.BrakeSystem.InternalPressure((float)BrakeSystem.EqualReservoirPressurePSIorInHg);
+                    car.BrakeSystem.BrakeLine2PressurePSI = (float)BrakeSystem.BrakeLine2Pressure;
                     car.BrakeSystem.BrakeLine3PressurePSI = 0;
                 }
             }

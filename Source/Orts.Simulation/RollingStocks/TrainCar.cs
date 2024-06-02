@@ -1824,56 +1824,6 @@ namespace Orts.Simulation.RollingStocks
             await BrakeSystem.Restore(saveState.BrakeSystemSaveState).ConfigureAwait(false);
         }
 
-        // Game save
-        public virtual void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
-
-            outf.Write(Flipped);
-            outf.Write(UiD);
-            outf.Write(CarID);
-//            BrakeSystem.Save(outf);
-            outf.Write(MotiveForceN);
-            outf.Write(FrictionForceN);
-            outf.Write(SpeedMpS);
-            outf.Write(CouplerSlackM);
-            outf.Write((int)Headlight);
-            outf.Write(OriginalConsist);
-            outf.Write(PrevTiltingZRot);
-            outf.Write(BrakesStuck);
-            outf.Write(carHeatingInitialized);
-            outf.Write(steamHoseLeakRateRandom);
-            outf.Write(carHeatCurrentCompartmentHeatJ);
-            outf.Write(carSteamHeatMainPipeSteamPressurePSI);
-            outf.Write(carHeatCompartmentHeaterOn);
-        }
-
-        // Game restore
-        public virtual void Restore(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            Flipped = inf.ReadBoolean();
-            UiD = inf.ReadInt32();
-            CarID = inf.ReadString();
-//            BrakeSystem.Restore(inf);
-            MotiveForceN = inf.ReadSingle();
-            FrictionForceN = inf.ReadSingle();
-            SpeedMpS = inf.ReadSingle();
-            prevSpeedMpS = SpeedMpS;
-            CouplerSlackM = inf.ReadSingle();
-            Headlight = (HeadLightState)inf.ReadInt32();
-            OriginalConsist = inf.ReadString();
-            PrevTiltingZRot = inf.ReadSingle();
-            BrakesStuck = inf.ReadBoolean();
-            carHeatingInitialized = inf.ReadBoolean();
-            steamHoseLeakRateRandom = inf.ReadDouble();
-            carHeatCurrentCompartmentHeatJ = inf.ReadDouble();
-            carSteamHeatMainPipeSteamPressurePSI = inf.ReadDouble();
-            carHeatCompartmentHeaterOn = inf.ReadBoolean();
-            FreightAnimations?.LoadDataList?.Clear();
-        }
-
         //================================================================================================//
         /// <summary>
         /// Set starting conditions for TrainCars when initial speed > 0 

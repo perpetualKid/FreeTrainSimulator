@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
@@ -26,6 +25,7 @@ using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.DebugInfo;
 using Orts.Models.State;
@@ -174,12 +174,4 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
             }
         }
     }
-
-    public enum RetainerSetting
-    {
-        [Description("Exhaust")] Exhaust,
-        [Description("High Pressure")] HighPressure,
-        [Description("Low Pressure")] LowPressure,
-        [Description("Slow Direct")] SlowDirect
-    };
 }

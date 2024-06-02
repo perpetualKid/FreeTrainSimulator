@@ -1421,4 +1421,12 @@ namespace Orts.Common
         BrakeController
     }
 
+    public enum RetainerSetting
+    {
+        [Description("Exhaust")] Exhaust,
+        [Description("High Pressure")] HighPressure,
+        [Description("Low Pressure")] LowPressure,
+        [Description("Slow Direct")] SlowDirect
+    };
+
 }

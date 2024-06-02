@@ -40,7 +40,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         public override void Update(double elapsedClockSeconds)
         {
             MSTSLocomotive lead = (MSTSLocomotive)car.Train.LeadLocomotive;
-            float demandedAutoCylPressurePSI = 0;
+            double demandedAutoCylPressurePSI = 0;
 
             // Only allow SME brake tokens to operate if car is connected to an SME system
             if (lead == null || lead.BrakeSystem is not SMEBrakeSystem)
@@ -70,13 +70,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
             if (autoCylPressurePSI < demandedAutoCylPressurePSI && !car.WheelBrakeSlideProtectionActive)
             {
-                float dp = (float)elapsedClockSeconds * maxApplicationRatePSIpS;
+                double dp = (float)elapsedClockSeconds * maxApplicationRatePSIpS;
                 if (BrakeLine2PressurePSI - dp * auxBrakeLineVolumeRatio / auxCylVolumeRatio < autoCylPressurePSI + dp)
                     dp = (BrakeLine2PressurePSI - autoCylPressurePSI) / (1 + auxBrakeLineVolumeRatio / auxCylVolumeRatio);
                 if (dp > demandedAutoCylPressurePSI - autoCylPressurePSI)
                     dp = demandedAutoCylPressurePSI - autoCylPressurePSI;
-                BrakeLine2PressurePSI -= dp * auxBrakeLineVolumeRatio / auxCylVolumeRatio;
-                autoCylPressurePSI += dp;
+                BrakeLine2PressurePSI -= (float)dp * auxBrakeLineVolumeRatio / auxCylVolumeRatio;
+                autoCylPressurePSI += (float)dp;
             }
             brakeInfo.Update(null);
         }

@@ -1970,7 +1970,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 float threshold = DynamicBrakeBlendingForceMatch ? 100f : 0.01f;
                 float maxCylPressurePSI = airPipeSystem.MaxCylPressurePSI;
-                float targetDynamicBrakePercent = airPipeSystem is EPBrakeSystem ? Train.BrakeSystem.BrakeLine4Pressure : Math.Min(((TrainBrakeController.MaxPressurePSI - airPipeSystem.BrakeLine1PressurePSI) * airPipeSystem.AuxCylVolumeRatio) / maxCylPressurePSI, 1f);
+                double targetDynamicBrakePercent = airPipeSystem is EPBrakeSystem ? Train.BrakeSystem.BrakeLine4Pressure : Math.Min(((TrainBrakeController.MaxPressurePSI - airPipeSystem.BrakeLine1PressurePSI) * airPipeSystem.AuxCylVolumeRatio) / maxCylPressurePSI, 1f);
                 //DynamicBrakeIntervention = Math.Min(((TrainBrakeController.CurrentValue - DynamicBrakeBlendingStart) / (DynamicBrakeBlendingStop - DynamicBrakeBlendingStart)), 1f);
 
                 if (!DynamicBrakeBlended)
@@ -1984,7 +1984,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 if (DynamicBrake)
                 {
-                    float diff = DynamicBrakeBlendingForceMatch ? targetDynamicBrakePercent * MaxBrakeForceN - DynamicBrakeForceN : targetDynamicBrakePercent - DynamicBrakeIntervention;
+                    double diff = DynamicBrakeBlendingForceMatch ? targetDynamicBrakePercent * MaxBrakeForceN - DynamicBrakeForceN : targetDynamicBrakePercent - DynamicBrakeIntervention;
                     if (diff > threshold && DynamicBrakeIntervention <= 1)
                         DynamicBrakeIntervention = (float)Math.Min(DynamicBrakeIntervention + elapsedClockSeconds * (airPipeSystem.MaxApplicationRatePSIpS / maxCylPressurePSI), 1.0f);
                     else if (diff < -threshold)
@@ -5482,7 +5482,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                 case CabViewControlType.Eq_Res:
                     {
-                        data = ConvertFromPSI(cvc, this.Train.BrakeSystem.EqualReservoirPressurePSIorInHg);
+                        data = ConvertFromPSI(cvc, (float)this.Train.BrakeSystem.EqualReservoirPressurePSIorInHg);
                         break;
                     }
                 case CabViewControlType.Brake_Cyl:

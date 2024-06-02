@@ -275,8 +275,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             if (Simulator.Instance.Settings.SimpleControlPhysics && emergResVolumeM3 > 2.0)
                 emergResVolumeM3 = 0.7f;
 
-            BrakeLine1PressurePSI = car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg;
-            BrakeLine2PressurePSI = car.Train.BrakeSystem.BrakeLine2Pressure;
+            BrakeLine1PressurePSI = (float)car.Train.BrakeSystem.EqualReservoirPressurePSIorInHg;
+            BrakeLine2PressurePSI = (float)car.Train.BrakeSystem.BrakeLine2Pressure;
             BrakeLine3PressurePSI = 0;
             if (maxPressurePSI > 0)
                 controlResPressurePSI = maxPressurePSI;
@@ -653,12 +653,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 if (lead.BrakeSystem.BrakeLine1PressurePSI < train.BrakeSystem.EqualReservoirPressurePSIorInHg)
                 {
                     var dp1 = train.BrakeSystem.EqualReservoirPressurePSIorInHg - lead.BrakeSystem.BrakeLine1PressurePSI;
-                    lead.MainResPressurePSI -= dp1 * lead.BrakeSystem.BrakePipeVolumeM3 / lead.MainResVolumeM3;
+                    lead.MainResPressurePSI -= (float)dp1 * lead.BrakeSystem.BrakePipeVolumeM3 / lead.MainResVolumeM3;
                 }
                 foreach (TrainCar car in train.Cars)
                 {
                     if (car.BrakeSystem.BrakeLine1PressurePSI >= 0)
-                        car.BrakeSystem.BrakeLine1PressurePSI = train.BrakeSystem.EqualReservoirPressurePSIorInHg;
+                        car.BrakeSystem.BrakeLine1PressurePSI = (float)train.BrakeSystem.EqualReservoirPressurePSIorInHg;
                     if (car.BrakeSystem.TwoPipes)
                         car.BrakeSystem.BrakeLine2PressurePSI = Math.Min(lead.MainResPressurePSI, lead.MaximumMainReservoirPipePressurePSI);
                 }
@@ -694,7 +694,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                                 float PressureDiffEqualToPipePSI = trainPipeTimeVariationS * chargingRatePSIpS; // default condition - if EQ Res is higher then Brake Pipe Pressure
 
                                 if (lead.BrakeSystem.BrakeLine1PressurePSI + PressureDiffEqualToPipePSI > train.BrakeSystem.EqualReservoirPressurePSIorInHg)
-                                    PressureDiffEqualToPipePSI = train.BrakeSystem.EqualReservoirPressurePSIorInHg - lead.BrakeSystem.BrakeLine1PressurePSI;
+                                    PressureDiffEqualToPipePSI = (float)train.BrakeSystem.EqualReservoirPressurePSIorInHg - lead.BrakeSystem.BrakeLine1PressurePSI;
 
                                 if (lead.BrakeSystem.BrakeLine1PressurePSI + PressureDiffEqualToPipePSI > lead.MainResPressurePSI)
                                     PressureDiffEqualToPipePSI = lead.MainResPressurePSI - lead.BrakeSystem.BrakeLine1PressurePSI;
@@ -715,7 +715,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                                 float serviceVariationFactor = Math.Min(trainPipeTimeVariationS / serviceTimeFactor, 0.95f);
                                 float pressureDiffPSI = serviceVariationFactor * lead.BrakeSystem.BrakeLine1PressurePSI;
                                 if (lead.BrakeSystem.BrakeLine1PressurePSI - pressureDiffPSI > train.BrakeSystem.EqualReservoirPressurePSIorInHg)
-                                    pressureDiffPSI = lead.BrakeSystem.BrakeLine1PressurePSI - train.BrakeSystem.EqualReservoirPressurePSIorInHg;
+                                    pressureDiffPSI = lead.BrakeSystem.BrakeLine1PressurePSI - (float)train.BrakeSystem.EqualReservoirPressurePSIorInHg;
                                 lead.BrakeSystem.BrakeLine1PressurePSI -= pressureDiffPSI;
                             }
                         }
@@ -831,46 +831,46 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 {
                     if (lead != null)
                     {
-                        float p = brakeSystem.BrakeLine3PressurePSI;
-                        if (p > 1000)
-                            p -= 1000;
-                        var prevState = lead.EngineBrakeState;
-                        if (p < train.BrakeSystem.BrakeLine3Pressure && p < lead.MainResPressurePSI)  // Apply the engine brake as the pressure decreases
+                        double pressure = brakeSystem.BrakeLine3PressurePSI;
+                        if (pressure > 1000)
+                            pressure -= 1000;
+                        ValveState prevState = lead.EngineBrakeState;
+                        if (pressure < train.BrakeSystem.BrakeLine3Pressure && pressure < lead.MainResPressurePSI)  // Apply the engine brake as the pressure decreases
                         {
-                            float dp = (float)elapsedClockSeconds * lead.EngineBrakeApplyRatePSIpS / (last - first + 1);
-                            if (p + dp > train.BrakeSystem.BrakeLine3Pressure)
-                                dp = train.BrakeSystem.BrakeLine3Pressure - p;
+                            double dp = (float)elapsedClockSeconds * lead.EngineBrakeApplyRatePSIpS / (last - first + 1);
+                            if (pressure + dp > train.BrakeSystem.BrakeLine3Pressure)
+                                dp = train.BrakeSystem.BrakeLine3Pressure - pressure;
                             if (train.Cars[i] is MSTSLocomotive loco) // If this is a locomotive, drain air from main reservoir
                             {
                                 float volumeRatio = brakeSystem.GetCylVolumeM3() / loco.MainResVolumeM3;
-                                if (loco.MainResPressurePSI - dp * volumeRatio < p + dp)
+                                if (loco.MainResPressurePSI - dp * volumeRatio < pressure + dp)
                                 {
-                                    dp = (loco.MainResPressurePSI - p) / (1 + volumeRatio);
+                                    dp = (loco.MainResPressurePSI - pressure) / (1 + volumeRatio);
                                 }
                                 if (dp < 0)
                                     dp = 0;
-                                loco.MainResPressurePSI -= dp * volumeRatio;
+                                loco.MainResPressurePSI -= (float)dp * volumeRatio;
                             }
                             else // Otherwise, drain from train pipe
                             {
                                 float volumeRatio = brakeSystem.GetCylVolumeM3() / brakeSystem.BrakePipeVolumeM3;
-                                if (brakeSystem.BrakeLine2PressurePSI - dp * volumeRatio < p + dp)
+                                if (brakeSystem.BrakeLine2PressurePSI - dp * volumeRatio < pressure + dp)
                                 {
-                                    dp = (brakeSystem.BrakeLine2PressurePSI - p) / (1 + volumeRatio);
+                                    dp = (brakeSystem.BrakeLine2PressurePSI - pressure) / (1 + volumeRatio);
                                 }
                                 if (dp < 0)
                                     dp = 0;
-                                brakeSystem.BrakeLine2PressurePSI -= dp * volumeRatio;
+                                brakeSystem.BrakeLine2PressurePSI -= (float)dp * volumeRatio;
                             }
-                            p += dp;
+                            pressure += dp;
                             lead.EngineBrakeState = ValveState.Apply;
                         }
-                        else if (p > train.BrakeSystem.BrakeLine3Pressure)  // Release the engine brake as the pressure increases in the brake cylinder
+                        else if (pressure > train.BrakeSystem.BrakeLine3Pressure)  // Release the engine brake as the pressure increases in the brake cylinder
                         {
-                            float dp = (float)elapsedClockSeconds * lead.EngineBrakeReleaseRatePSIpS / (last - first + 1);
-                            if (p - dp < train.BrakeSystem.BrakeLine3Pressure)
-                                dp = p - train.BrakeSystem.BrakeLine3Pressure;
-                            p -= dp;
+                            double dp = (float)elapsedClockSeconds * lead.EngineBrakeReleaseRatePSIpS / (last - first + 1);
+                            if (pressure - dp < train.BrakeSystem.BrakeLine3Pressure)
+                                dp = pressure - train.BrakeSystem.BrakeLine3Pressure;
+                            pressure -= dp;
                             lead.EngineBrakeState = ValveState.Release;
                         }
                         else  // Engine brake does not change
@@ -888,7 +888,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                                     lead.SignalEvent(TrainEvent.EngineBrakePressureStoppedChanging);
                                     break;
                             }
-                        brakeSystem.BrakeLine3PressurePSI = p;
+                        brakeSystem.BrakeLine3PressurePSI = (float)pressure;
                     }
                 }
             }

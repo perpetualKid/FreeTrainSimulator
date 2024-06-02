@@ -36,7 +36,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         public override void Update(double elapsedClockSeconds)
         {
             MSTSLocomotive lead = car.Train.LeadLocomotive;
-            float demandedAutoCylPressurePSI = 0;
+            double demandedAutoCylPressurePSI = 0;
 
             // Only allow EP brake tokens to operate if car is connected to an EP system
             if (lead == null || lead.BrakeSystem is not EPBrakeSystem)
@@ -66,13 +66,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
             if (autoCylPressurePSI < demandedAutoCylPressurePSI && !car.WheelBrakeSlideProtectionActive)
             {
-                float dp = (float)elapsedClockSeconds * maxApplicationRatePSIpS;
+                double dp = elapsedClockSeconds * maxApplicationRatePSIpS;
                 if (BrakeLine2PressurePSI - dp * auxBrakeLineVolumeRatio / auxCylVolumeRatio < autoCylPressurePSI + dp)
                     dp = (BrakeLine2PressurePSI - autoCylPressurePSI) / (1 + auxBrakeLineVolumeRatio / auxCylVolumeRatio);
                 if (dp > demandedAutoCylPressurePSI - autoCylPressurePSI)
                     dp = demandedAutoCylPressurePSI - autoCylPressurePSI;
-                BrakeLine2PressurePSI -= dp * auxBrakeLineVolumeRatio / auxCylVolumeRatio;
-                autoCylPressurePSI += dp;
+                BrakeLine2PressurePSI -= (float)dp * auxBrakeLineVolumeRatio / auxCylVolumeRatio;
+                autoCylPressurePSI += (float)dp;
             }
             brakeInfo.Update(null);
         }
@@ -88,7 +88,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         public override void Initialize(bool handbrakeOn, float maxPressurePSI, float fullServPressurePSI, bool immediateRelease)
         {
             base.Initialize(handbrakeOn, maxPressurePSI, fullServPressurePSI, immediateRelease);
-            autoCylPressurePSI = Math.Max(autoCylPressurePSI, Math.Min(Math.Max(car.Train.BrakeSystem.BrakeLine4Pressure, 0), 1) * maxCylPressurePSI);
+            autoCylPressurePSI = (float)Math.Max(autoCylPressurePSI, Math.Min(Math.Max(car.Train.BrakeSystem.BrakeLine4Pressure, 0), 1) * maxCylPressurePSI);
         }
 
         private protected override void UpdateBrakeStatus()

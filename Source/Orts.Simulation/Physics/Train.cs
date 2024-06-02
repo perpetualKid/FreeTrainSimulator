@@ -237,6 +237,7 @@ namespace Orts.Simulation.Physics
 
         internal TrackCircuitRoutePath TCRoute;                      // train path converted to TC base
         public TrackCircuitPartialPathRoute[] ValidRoute { get; } = new TrackCircuitPartialPathRoute[2] { null, null };  // actual valid path
+        public EnumArray<TrackCircuitPartialPathRoute, TrackDirection> ValidRoutes { get; } = new EnumArray<TrackCircuitPartialPathRoute, TrackDirection>();
         private TrackCircuitPartialPathRoute manualTrainRoute;     // partial route under train for Manual mode
         internal bool ClaimState { get; set; }              // train is allowed to perform claim on sections
         internal double ActualWaitTimeS { get; set; }       // actual time waiting for signal
@@ -488,7 +489,7 @@ namespace Orts.Simulation.Physics
         public Train()
         {
             Init();
-            BrakeSystem = new TrainBrakeSystem(this);
+            BrakeSystem = new TrainBrakeSystem();
 
             if (simulator.IsAutopilotMode && TotalNumber == 1 && simulator.TrainDictionary.Count == 0)
                 TotalNumber = 0; //The autopiloted train has number 0
@@ -508,7 +509,7 @@ namespace Orts.Simulation.Physics
         public Train(int number)
         {
             Init();
-            BrakeSystem = new TrainBrakeSystem(this);
+            BrakeSystem = new TrainBrakeSystem();
             Number = number;
             RoutedForward = new TrainRouted(this, Direction.Forward);
             RoutedBackward = new TrainRouted(this, Direction.Backward);
@@ -522,7 +523,7 @@ namespace Orts.Simulation.Physics
             ArgumentNullException.ThrowIfNull(source);
 
             Init();
-            BrakeSystem = new TrainBrakeSystem(this);
+            BrakeSystem = new TrainBrakeSystem();
             Number = TotalNumber;
             Name = $"{source.Name}{TotalNumber}";
             TotalNumber++;
@@ -584,12 +585,12 @@ namespace Orts.Simulation.Physics
             ArgumentNullException.ThrowIfNull(inf);
             Init();
 
-            BrakeSystem = new TrainBrakeSystem(this);
+            BrakeSystem = new TrainBrakeSystem();
 
             RoutedForward = new TrainRouted(this, Direction.Forward);
             RoutedBackward = new TrainRouted(this, Direction.Backward);
             ColdStart = false;
-            RestoreCars(inf);
+            //RestoreCars(inf);
             Number = inf.ReadInt32();
             TotalNumber = Math.Max(Number + 1, TotalNumber);
             Name = inf.ReadString();
@@ -835,9 +836,8 @@ namespace Orts.Simulation.Physics
                     if (TrainType != TrainType.Static)
                         simulator.PlayerLocomotive = LeadLocomotive;
 
-                    (LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController.SetValue(DPThrottlePercent / 100f);
-                    if ((LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController != null)
-                        (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.SetValue(DPDynamicBrakePercent / 100f);
+                    LeadLocomotive.DistributedPowerThrottleController.SetValue(DPThrottlePercent / 100f);
+                    LeadLocomotive.DistributedPowerDynamicBrakeController?.SetValue(DPDynamicBrakePercent / 100f);
                 }
 
                 // restore logfile
@@ -848,21 +848,6 @@ namespace Orts.Simulation.Physics
             }
         }
         #endregion
-
-        private void RestoreCars(BinaryReader inf)
-        {
-            int count = inf.ReadInt32();
-            if (count > 0)
-            {
-                for (int i = 0; i < count; ++i)
-                {
-                    TrainCar car = RollingStock.Load(this, inf.ReadString(), false);
-                    car.Restore(inf);
-                    car.Initialize();
-                }
-            }
-            SetDistributedPowerUnitIds(true);
-        }
 
         private static ServiceTraffics RestoreTrafficSDefinition(BinaryReader inf)
         {
@@ -913,6 +898,44 @@ namespace Orts.Simulation.Physics
             return new TrainSaveState()
             {
                 TrainCars = await Cars.SnapshotCollection<TrainCarSaveState, TrainCar>().ConfigureAwait(false),
+                TrainNumber = Number,
+                TrainName = Name,
+                Speed = SpeedMpS,
+                Acceleration = AccelerationMpSpS.SmoothedValue,
+                TrainType = TrainType,
+                MultiUnitDirection = MUDirection,
+                MultiUnitThrottle = MUThrottlePercent,
+                MultiUnitGearboxIndex = MUGearboxGearIndex,
+                MultiUnitDynamicBrake = MUDynamicBrakePercent,
+                DistributedPowerThrottle = DPThrottlePercent,
+                DistributedPowerMode = DistributedPowerMode,
+                DistributedPowerDynamicBrake = DPDynamicBrakePercent,
+                TrainBrakeSaveState = await BrakeSystem.Snapshot().ConfigureAwait(false),
+                TravellerSaveState = await RearTDBTraveller.Snapshot().ConfigureAwait(false),
+                AiBrake = aiBrakePercent,
+                LeadLocomotive = LeadLocomotiveIndex,
+                SlipperySpotDistance = SlipperySpotDistanceM,
+                SlipperySpotLength = SlipperySpotLengthM,
+                TrainMaximumSpeed = TrainMaxSpeedMpS,
+                AllowedMaximumSpeed = AllowedMaxSpeedMpS,
+                AllowedSignalMaximumSpeed = AllowedMaxSpeedSignalMpS,
+                AllowedLimitMaximumSpeed = AllowedMaxSpeedLimitMpS,
+                AllowedTemporaryLimitMaximumSpeed = allowedMaxTempSpeedLimitMpS,
+                AllowedAbsoluteSignalMaximumSpeed = allowedAbsoluteMaxSpeedSignalMpS,
+                AllowedAbsoluteLimitMaximumSpeed = allowedAbsoluteMaxSpeedLimitMpS,
+                AllowedAbsoluteTemporaryLimitMaximumSpeed = allowedAbsoluteMaxTempSpeedLimitMpS,
+                BrakingTime = BrakingTime,
+                RunningTime = RunningTime,
+                ContinuousBrakingTime = ContinuousBrakingTime,
+                IncorporatedTrainNumber = IncorporatedTrainNo,
+                IncorporatingTrainNumber = IncorporatingTrainNo,
+                AuxTenderCoupled = IsAuxTenderCoupled,
+                TrainTilting = IsTilting,
+                ClaimState = ClaimState,
+                EvaluateTrainSpeed = evaluateTrainSpeed,
+                EvaluationIntervall = evaluationInterval,
+                EvaluationLogContents = evaluationContent,
+                EvaluationFile = evaluationLogFile,
             };
         }
 
@@ -921,6 +944,9 @@ namespace Orts.Simulation.Physics
             ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
             await Cars.RestoreCollectionCreateNewInstances(saveState.TrainCars, this).ConfigureAwait(false);
+            foreach (TrainCar car in Cars)
+                car.Initialize();
+            SetDistributedPowerUnitIds(true);
         }
 
         TrainCar ISaveStateRestoreApi<TrainCarSaveState, TrainCar>.CreateRuntimeTarget(Orts.Models.State.TrainCarSaveState saveState)
@@ -932,63 +958,64 @@ namespace Orts.Simulation.Physics
         public virtual void Save(BinaryWriter outf)
         {
             ArgumentNullException.ThrowIfNull(outf);
+            #region
+            //SaveCars(outf);
+            //outf.Write(Number);
+            //outf.Write(Name);
+            //outf.Write(SpeedMpS);
+            //outf.Write((float)AccelerationMpSpS.SmoothedValue);
+            //outf.Write((int)TrainType);
+            //outf.Write((int)MUDirection);
+            //outf.Write(MUThrottlePercent);
+            //outf.Write(DPThrottlePercent);
+            //outf.Write(MUGearboxGearIndex);
+            //outf.Write(MUDynamicBrakePercent);
+            //outf.Write(DPDynamicBrakePercent);
+            //outf.Write((int)DistributedPowerMode);
+            //outf.Write(BrakeSystem.EqualReservoirPressurePSIorInHg);
+            //outf.Write(BrakeSystem.BrakeLine2Pressure);
+            //outf.Write(BrakeSystem.BrakeLine3Pressure);
+            //outf.Write(BrakeSystem.BrakeLine4Pressure);
+            //outf.Write(aiBrakePercent);
+            //outf.Write(LeadLocomotiveIndex);
+            //outf.Write((int)BrakeSystem.RetainerSetting);
+            //outf.Write(BrakeSystem.RetainerPercent);
+            //RearTDBTraveller.Save(outf);
+            //outf.Write(SlipperySpotDistanceM);
+            //outf.Write(SlipperySpotLengthM);
+            //outf.Write(TrainMaxSpeedMpS);
+            //outf.Write(AllowedMaxSpeedMpS);
+            //outf.Write(AllowedMaxSpeedSignalMpS);
+            //outf.Write(AllowedMaxSpeedLimitMpS);
+            //outf.Write(allowedMaxTempSpeedLimitMpS);
+            //outf.Write(allowedAbsoluteMaxSpeedSignalMpS);
+            //outf.Write(allowedAbsoluteMaxSpeedLimitMpS);
+            //outf.Write(allowedAbsoluteMaxTempSpeedLimitMpS);
+            //outf.Write(BrakingTime);
+            //outf.Write(ContinuousBrakingTime);
+            //outf.Write(RunningTime);
+            //outf.Write(IncorporatedTrainNo);
+            //outf.Write(IncorporatingTrainNo);
+            //outf.Write(IsAuxTenderCoupled);
 
-            SaveCars(outf);
-            outf.Write(Number);
-            outf.Write(Name);
-            outf.Write(SpeedMpS);
-            outf.Write((float)AccelerationMpSpS.SmoothedValue);
-            outf.Write((int)TrainType);
-            outf.Write((int)MUDirection);
-            outf.Write(MUThrottlePercent);
-            outf.Write(DPThrottlePercent);
-            outf.Write(MUGearboxGearIndex);
-            outf.Write(MUDynamicBrakePercent);
-            outf.Write(DPDynamicBrakePercent);
-            outf.Write((int)DistributedPowerMode);
-            outf.Write(BrakeSystem.EqualReservoirPressurePSIorInHg);
-            outf.Write(BrakeSystem.BrakeLine2Pressure);
-            outf.Write(BrakeSystem.BrakeLine3Pressure);
-            outf.Write(BrakeSystem.BrakeLine4Pressure);
-            outf.Write(aiBrakePercent);
-            outf.Write(LeadLocomotiveIndex);
-            outf.Write((int)BrakeSystem.RetainerSetting);
-            outf.Write(BrakeSystem.RetainerPercent);
-            RearTDBTraveller.Save(outf);
-            outf.Write(SlipperySpotDistanceM);
-            outf.Write(SlipperySpotLengthM);
-            outf.Write(TrainMaxSpeedMpS);
-            outf.Write(AllowedMaxSpeedMpS);
-            outf.Write(AllowedMaxSpeedSignalMpS);
-            outf.Write(AllowedMaxSpeedLimitMpS);
-            outf.Write(allowedMaxTempSpeedLimitMpS);
-            outf.Write(allowedAbsoluteMaxSpeedSignalMpS);
-            outf.Write(allowedAbsoluteMaxSpeedLimitMpS);
-            outf.Write(allowedAbsoluteMaxTempSpeedLimitMpS);
-            outf.Write(BrakingTime);
-            outf.Write(ContinuousBrakingTime);
-            outf.Write(RunningTime);
-            outf.Write(IncorporatedTrainNo);
-            outf.Write(IncorporatingTrainNo);
-            outf.Write(IsAuxTenderCoupled);
+            //outf.Write((int)TrainType);
+            //outf.Write(IsTilting);
+            //outf.Write(ClaimState);
+            //outf.Write(evaluateTrainSpeed);
+            //outf.Write(evaluationInterval);
 
-            outf.Write((int)TrainType);
-            outf.Write(IsTilting);
-            outf.Write(ClaimState);
-            outf.Write(evaluateTrainSpeed);
-            outf.Write(evaluationInterval);
+            //outf.Write((int)evaluationContent);
 
-            outf.Write((int)evaluationContent);
-
-            if (string.IsNullOrEmpty(evaluationLogFile))
-            {
-                outf.Write(-1);
-            }
-            else
-            {
-                outf.Write(1);
-                outf.Write(evaluationLogFile);
-            }
+            //if (string.IsNullOrEmpty(evaluationLogFile))
+            //{
+            //    outf.Write(-1);
+            //}
+            //else
+            //{
+            //    outf.Write(1);
+            //    outf.Write(evaluationLogFile);
+            //}
+            #endregion
 
             if (TCRoute == null)
             {
@@ -1104,16 +1131,6 @@ namespace Orts.Simulation.Physics
             // Save initial speed
             outf.Write(InitialSpeed);
             outf.Write(IsPathless);
-        }
-
-        private void SaveCars(BinaryWriter outf)
-        {
-            outf.Write(Cars.Count);
-            foreach (MSTSWagon wagon in Cars.OfType<MSTSWagon>())
-            {
-                outf.Write(wagon.WagFilePath);
-                wagon.Save(outf);
-            }
         }
 
         private static void SaveTrafficSDefinition(BinaryWriter outf, ServiceTraffics trafficServices)
@@ -11893,7 +11910,6 @@ namespace Orts.Simulation.Physics
                 Train = train;
                 Direction = direction;
             }
-
         }
 
         //used by remote train to update location based on message received
