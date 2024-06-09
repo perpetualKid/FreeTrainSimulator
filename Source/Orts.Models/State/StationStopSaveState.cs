@@ -27,7 +27,7 @@ namespace Orts.Models.State
         public bool CallOnAllowed { get; set; }
         public float StopOffset { get; set; }
         public int ArrivalTime { get; set; }
-        public double DepartureTime { get; set; }
+        public int DepartureTime { get; set; }
         public double ActualArrival {  get; set; }
         public double ActualDeparture { get; set; }
         public bool StationStopPassed { get; set; }

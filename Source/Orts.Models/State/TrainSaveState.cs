@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 using FreeTrainSimulator.Common.Api;
 
@@ -6,6 +8,7 @@ using MemoryPack;
 
 using Orts.Common;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.State
 {
@@ -17,6 +20,7 @@ namespace Orts.Models.State
         public int TrainNumber { get; set; }
         public string TrainName { get; set; }
         public double Speed { get; set; }
+        public double InitialSpeed { get; set; }
         public double Acceleration { get; set; }
         public TrainType TrainType { get; set; }
         public MidpointDirection MultiUnitDirection { get; set; }
@@ -53,6 +57,32 @@ namespace Orts.Models.State
         public EvaluationLogContents EvaluationLogContents { get; set; }
         public string EvaluationFile { get; set; }
         public Collection<TrackCircuitPartialPathRouteSaveState> ValidRoutes { get; set; }
+        public TrackCircuitRoutePathSaveState RoutePathSaveState { get; set; }
+        public Collection<int> OccupiedTracks { get; set; }
+        public Collection<int> HoldingSignals { get; set; }
+        public Collection<StationStopSaveState> StationStopSaveStates { get; set; }
+        public StationStopSaveState LastStationStop { get; set; }
+        public bool AtStation { get; set; }
+        public bool ReadyToDepart { get; set; }
+        public bool CheckStations { get; set; }
+        public int AttachToTrainNumber { get; set; }
+        public string DisplayMessage { get; set; }
+        public TimeSpan? Delay { get; set; }
+        public Dictionary<int, float> PassedSignalSpeeds { get; set; }
+        public int[] LastPassedSignals { get; set; }
+        public int LoopSection { get; set; }
+        public AuthoritySaveState[] AuthoritySaveStates { get; set; }
+        public int ServiceTrafficTime { get; set; }
+        public Collection<ServiceTrafficItemSaveState> ServiceTrafficItemSaveStates { get; set; }
+        public TrainControlMode TrainControlMode { get; set; }
+        public OutOfControlReason OutOfControlReason { get; set; }
+        public double DistanceTravelled { get; set; }
+        public Collection<TrackCircuitPositionSaveState> PresentPositions { get; set; }
+        public Collection<TrackCircuitPositionSaveState> PreviousPositions { get; set; }
+        public Collection<ActionItemSaveState> DistanceTravelledActions { get; set; }
+        public bool Pathless { get; set; }
+        public Dictionary<int, List<Dictionary<int, int>>> DeadlockInfo { get; set; }
+        public Collection<AuxActionRefSaveState> AuxActionsSaveStates { get; set; }
 #pragma warning restore CA2227 // Collection properties should be read only
     }
 }
