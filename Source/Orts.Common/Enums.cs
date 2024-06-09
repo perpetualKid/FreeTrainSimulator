@@ -788,6 +788,20 @@ namespace Orts.Common
         [Description("Unknown")] Undefined,
     }
 
+    public enum OutOfControlReason
+    {
+        [Description("SPAD")] PassedAtDanger,   //SignalPassedAtDanger
+        [Description("SPAD-Rear")] RearPassedAtDanger,
+        [Description("Misalg Sw")] MisalignedSwitch,
+        [Description("Off Auth")] OutOfAuthority,
+        [Description("Off Path")] OutOfPath,
+        [Description("Slip Path")] SlippedIntoPath,
+        [Description("Slip Track")] SlippedToEndOfTrack,
+        [Description("Off Track")] OutOfTrack,
+        [Description("Slip Turn")] SlippedIntoTurnTable,
+        [Description("Undefined")] UnDefined
+    }
+
     public enum EndOfTrainLevel
     {
         NoComm,
@@ -1429,4 +1443,75 @@ namespace Orts.Common
         [Description("Slow Direct")] SlowDirect
     };
 
+    public enum AiActionType
+    {
+        None,
+        SpeedLimit,
+        SpeedSignal,
+        SignalAspectStop,
+        SignalAspectRestricted,
+        EndOfAuthority,
+        StationStop,
+        TrainAhead,
+        EndOfRoute,
+        Reversal,
+        AuxiliaryAction,
+        ApproachingMovingTable,
+    }
+
+    public enum ActionItemType
+    {
+        ActiveSpeedLimit,
+        AiActionItem,
+        AuxiliaryAction,
+        AuxiliaryActionHorn,
+        AuxiliaryActionWaitpoint,
+        AuxiliaryActionSignalDelegate,
+        ClearMovingTable,
+        ClearSection,
+    }
+
+    public enum SignalItemFindState
+    {
+        None = 0,
+        Item = 1,
+        EndOfTrack = -1,
+        PassedDanger = -2,
+        PassedMaximumDistance = -3,
+        TdbError = -4,
+        EndOfAuthority = -5,
+        EndOfPath = -6,
+    }
+
+    public enum SignalItemType
+    {
+        Any,
+        Signal,
+        SpeedLimit,
+    }
+
+    public enum AuxiliaryAction
+    {
+        WaitingPoint,
+        SoundHorn,
+        ControlStart,
+        SignalDelegate,
+        ControlStop,
+        None
+    }
+
+    public enum EndAuthorityType
+    {
+#pragma warning disable CA1700 // Do not name enum values 'Reserved'
+        [Description("End Trck")] EndOfTrack,
+        [Description("End Path")] EndOfPath,
+        [Description("Switch")] ReservedSwitch,
+        [Description("TrainAhd")] TrainAhead,
+        [Description("Max Dist")] MaxDistance,
+        [Description("Loop")] Loop,
+        [Description("Signal")] Signal,                                       // in Manual mode only
+        [Description("End Auth")] EndOfAuthority,                             // when moving backward in Auto mode
+        [Description("No Path")] NoPathReserved,
+#pragma warning restore CA1700 // Do not name enum values 'Reserved'
+    }
 }
