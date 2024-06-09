@@ -1100,19 +1100,11 @@ namespace Orts.Simulation.Signalling
                 foundItem = nextSignal;
             }
 
-            SignalItemInfo returnItem;
-            if (foundItem == null)
-            {
-                returnItem = new SignalItemInfo(SignalItemFindState.None);
-            }
-            else if (foundItem.SignalState != SignalItemFindState.Item)
-            {
-                returnItem = new SignalItemInfo(foundItem.SignalState);
-            }
-            else
-            {
-                returnItem = new SignalItemInfo(foundItem.Signal, foundItem.SignalLocation);
-            }
+            SignalItemInfo returnItem = foundItem == null
+                ? new SignalItemInfo(SignalItemFindState.None)
+                : foundItem.SignalState != SignalItemFindState.Item
+                    ? new SignalItemInfo(foundItem.SignalState)
+                    : new SignalItemInfo(foundItem.Signal, foundItem.SignalLocation);
 
             return returnItem;
         }
