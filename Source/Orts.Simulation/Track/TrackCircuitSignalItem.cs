@@ -19,6 +19,7 @@
 
 using System.Collections.Generic;
 
+using Orts.Common;
 using Orts.Simulation.Signalling;
 
 namespace Orts.Simulation.Track
