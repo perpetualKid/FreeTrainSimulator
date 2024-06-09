@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Parsers;
@@ -77,13 +80,15 @@ namespace Orts.Formats.Msts.Models
 
     }
 
-    public class ServiceTrafficItem
+    public class ServiceTrafficItem : ISaveStateApi<ServiceTrafficItemSaveState>
     {
         public int ArrivalTime { get; private set; }
         public int DepartTime { get; private set; }
         public int SkipCount { get; private set; }
         public float DistanceDownPath { get; private set; }
         public int PlatformStartID { get; private set; }
+
+        public ServiceTrafficItem() { }
 
         public ServiceTrafficItem(int arrivalTime, int departTime, int skipCount, float distanceDownPath, int platformStartID)
         {
@@ -110,6 +115,28 @@ namespace Orts.Formats.Msts.Models
                 DepartTime = Math.Max(ArrivalTime, parent.Time);
                 Trace.TraceInformation($"Train Service {parent.Name} : Corrected negative depart time within .trf or .act file");
             }
+        }
+
+        public ValueTask<ServiceTrafficItemSaveState> Snapshot()
+        {
+            return ValueTask.FromResult(new ServiceTrafficItemSaveState()
+            { 
+                ArrivalTime = ArrivalTime,
+                DepartureTime = DepartTime,
+                Distance = DistanceDownPath,
+                PlatformId = PlatformStartID,
+            });
+        }
+
+        public ValueTask Restore(ServiceTrafficItemSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+            
+            ArrivalTime = saveState.ArrivalTime;
+            DepartTime = saveState.DepartureTime;
+            DistanceDownPath = saveState.Distance;
+            PlatformStartID = saveState.PlatformId;
+            return ValueTask.CompletedTask;
         }
     }
 
