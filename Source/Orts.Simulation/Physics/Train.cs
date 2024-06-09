@@ -341,7 +341,7 @@ namespace Orts.Simulation.Physics
             public float Distance { get; set; }// distance to end of authority
         }
 
-        public EnumArray<EndAuthority, Direction> EndAuthorities { get; } = new EnumArray<EndAuthority, Direction>();
+        public EnumArray<EndAuthority, Direction> EndAuthorities { get; } = new EnumArray<EndAuthority, Direction>(() => new EndAuthority());
 
         internal int LoopSection { get; set; } = -1;                                    // section where route loops back onto itself
 
