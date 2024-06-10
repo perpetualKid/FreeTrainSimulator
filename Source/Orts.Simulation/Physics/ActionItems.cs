@@ -19,11 +19,11 @@ namespace Orts.Simulation.Physics
         {
             return saveState.ActionItemType switch
             {
-                ActionItemType.ActiveSpeedLimit => new ActivateSpeedLimit(),
-                ActionItemType.ClearSection => new ClearSectionItem(),
-                ActionItemType.AiActionItem => new AIActionItem(),
-                ActionItemType.AuxiliaryAction => new AuxActionItem(),
-                ActionItemType.ClearMovingTable => new ClearMovingTableAction(),
+                //ActionItemType.ActiveSpeedLimit => new ActivateSpeedLimit(),
+                //ActionItemType.ClearSection => new ClearSectionItem(),
+                //ActionItemType.AiActionItem => new AIActionItem(),
+                //ActionItemType.AuxiliaryAction => new AuxActionItem(),
+                //ActionItemType.ClearMovingTable => new ClearMovingTableAction(),
                 _ => null,
             };
         }

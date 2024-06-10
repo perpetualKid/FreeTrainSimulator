@@ -790,34 +790,34 @@ namespace Orts.Simulation.Physics
             count = inf.ReadInt32();
             for (int i = 0; i < count; i++)
             {
-                int actionType = inf.ReadInt32();
-                switch (actionType)
-                {
-                    case 1:
-                        ActivateSpeedLimit speedLimit = new ActivateSpeedLimit(inf);
-                        RequiredActions.InsertAction(speedLimit);
-                        break;
-                    case 2:
-                        ClearSectionItem clearSection = new ClearSectionItem(inf);
-                        RequiredActions.InsertAction(clearSection);
-                        break;
-                    case 3:
-                        AIActionItem actionItem = new AIActionItem(inf);
-                        RequiredActions.InsertAction(actionItem);
-                        break;
-                    case 4:
-                        AuxActionItem auxAction = new AuxActionItem(inf);
-                        RequiredActions.InsertAction(auxAction);
-                        Trace.TraceWarning("DistanceTravelledItem type 4 restored as AuxActionItem");
-                        break;
-                    case 5:
-                        ClearMovingTableAction cmtAction = new ClearMovingTableAction(inf);
-                        RequiredActions.InsertAction(cmtAction);
-                        break;
-                    default:
-                        Trace.TraceWarning($"Unknown type of DistanceTravelledItem (type {actionType}");
-                        break;
-                }
+                //int actionType = inf.ReadInt32();
+                //switch (actionType)
+                //{
+                //    case 1:
+                //        ActivateSpeedLimit speedLimit = new ActivateSpeedLimit(inf);
+                //        RequiredActions.InsertAction(speedLimit);
+                //        break;
+                //    case 2:
+                //        ClearSectionItem clearSection = new ClearSectionItem(inf);
+                //        RequiredActions.InsertAction(clearSection);
+                //        break;
+                //    case 3:
+                //        AIActionItem actionItem = new AIActionItem(inf);
+                //        RequiredActions.InsertAction(actionItem);
+                //        break;
+                //    case 4:
+                //        AuxActionItem auxAction = new AuxActionItem(inf);
+                //        RequiredActions.InsertAction(auxAction);
+                //        Trace.TraceWarning("DistanceTravelledItem type 4 restored as AuxActionItem");
+                //        break;
+                //    case 5:
+                //        ClearMovingTableAction cmtAction = new ClearMovingTableAction(inf);
+                //        RequiredActions.InsertAction(cmtAction);
+                //        break;
+                //    default:
+                //        Trace.TraceWarning($"Unknown type of DistanceTravelledItem (type {actionType}");
+                //        break;
+                //}
             }
 
             AuxActionsContainer = new AuxActionsContainer(this, inf);
@@ -1123,7 +1123,7 @@ namespace Orts.Simulation.Physics
             outf.Write(RequiredActions.Count);
             foreach (DistanceTravelledItem thisAction in RequiredActions)
             {
-                thisAction.Save(outf);
+                //thisAction.Save(outf);
             }
             //  Then, save the Auxiliary Action Container
             SaveAuxContainer(outf);
