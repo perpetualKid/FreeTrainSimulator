@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
-
-using Microsoft.VisualBasic;
 
 using Orts.Common;
 using Orts.Common.Calc;
@@ -27,26 +22,22 @@ namespace Orts.Simulation.Signalling
     /// Class to hold information on station stops
     /// <\summary>
 
-#pragma warning disable CA1036 // Override methods on comparable types
-#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     public class StationStop : IComparable<StationStop>, ISaveStateApi<StationStopSaveState>
-#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
-#pragma warning restore CA1036 // Override methods on comparable types
     {
         // variables for activity mode only
         private const int NumSecPerPass = 10; // number of seconds to board of a passengers
         private const int DefaultFreightStopTime = 20; // MSTS stoptime for freight trains
 
         // common variables
-        public StationStopType StopType { get; }
+        public StationStopType StopType { get; private set; }
 
-        public int PlatformReference { get; }
-        public PlatformDetails PlatformItem { get; }
+        public int PlatformReference { get; private set; }
+        public PlatformDetails PlatformItem { get; private set; }
 
         internal int SubrouteIndex { get; set; }
         internal int RouteIndex { get; set; }
         internal int TrackCircuitSectionIndex { get; set; }
-        internal TrackDirection Direction { get; }
+        internal TrackDirection Direction { get; private set; }
         internal int ExitSignal { get; set; }
         internal bool HoldSignal { get; set; }
         internal bool NoWaitSignal { get; set; }
@@ -56,8 +47,8 @@ namespace Orts.Simulation.Signalling
         public float DistanceToTrainM { get; internal set; }
         public int ArrivalTime { get; internal set; }
         public int DepartTime { get; internal set; }
-        public int ActualArrival { get; internal set; }
-        public int ActualDepart { get; internal set; }
+        public double ActualArrival { get; internal set; }
+        public double ActualDepart { get; internal set; }
         internal bool Passed { get; set; }
 
         // variables for timetable mode only
@@ -76,6 +67,8 @@ namespace Orts.Simulation.Signalling
         internal Dictionary<int, WaitInfo> ConnectionDetails { get; private set; }      // Details of connection : key = trainno., value = wait info
 
         // Constructor
+        public StationStop() { }
+
         public StationStop(int platformReference, PlatformDetails platformItem, int subrouteIndex, int routeIndex,
             int tcSectionIndex, TrackDirection direction, int exitSignal, bool holdSignal, bool noWaitSignal, bool noClaimAllowed, float stopOffset,
             int arrivalTime, int departTime, bool terminal, int? actualMinStopTime, float? keepClearFront, float? keepClearRear,
@@ -134,96 +127,6 @@ namespace Orts.Simulation.Signalling
             RouteIndex = routeIndex;
         }
 
-        //================================================================================================//
-        //
-        // Restore
-        //
-
-        public StationStop(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            StopType = (StationStopType)inf.ReadInt32();
-            PlatformReference = inf.ReadInt32();
-
-            if (PlatformReference >= 0)
-            {
-                if (Simulator.Instance.SignalEnvironment.PlatformXRefList.TryGetValue(PlatformReference, out int platformIndex))
-                {
-                    PlatformItem = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformIndex];
-                }
-                else
-                {
-                    Trace.TraceInformation("Cannot find platform {0}", PlatformReference);
-                }
-            }
-            else
-            {
-                PlatformItem = null;
-            }
-
-            SubrouteIndex = inf.ReadInt32();
-            RouteIndex = inf.ReadInt32();
-            TrackCircuitSectionIndex = inf.ReadInt32();
-            Direction = (TrackDirection)inf.ReadInt32();
-            ExitSignal = inf.ReadInt32();
-            HoldSignal = inf.ReadBoolean();
-            NoWaitSignal = inf.ReadBoolean();
-            NoClaimAllowed = inf.ReadBoolean();
-            CallOnAllowed = inf.ReadBoolean();
-            StopOffset = inf.ReadSingle();
-            ArrivalTime = inf.ReadInt32();
-            DepartTime = inf.ReadInt32();
-            ActualArrival = inf.ReadInt32();
-            ActualDepart = inf.ReadInt32();
-            DistanceToTrainM = float.MaxValue;
-            Passed = inf.ReadBoolean();
-
-            int totalConnectionsWaiting = inf.ReadInt32();
-            if (totalConnectionsWaiting > 0)
-            {
-                ConnectionsWaiting = new List<int>();
-                for (int i = 0; i <= totalConnectionsWaiting - 1; i++)
-                {
-                    ConnectionsWaiting.Add(inf.ReadInt32());
-                }
-            }
-
-            int totalConnectionsAwaited = inf.ReadInt32();
-            if (totalConnectionsAwaited > 0)
-            {
-                ConnectionsAwaited = new Dictionary<int, int>();
-                for (int i = 0; i <= totalConnectionsAwaited - 1; i++)
-                {
-                    ConnectionsAwaited.Add(inf.ReadInt32(), inf.ReadInt32());
-                }
-            }
-
-            int totalConnectionDetails = inf.ReadInt32();
-            if (totalConnectionDetails > 0)
-            {
-                ConnectionDetails = new Dictionary<int, WaitInfo>();
-                for (int i = 0; i <= totalConnectionDetails - 1; i++)
-                {
-                    ConnectionDetails.Add(inf.ReadInt32(), new WaitInfo(inf));
-                }
-            }
-
-            ActualMinStopTime = inf.ReadBoolean() ? inf.ReadInt32() : null;
-
-            KeepClearFront = inf.ReadBoolean() ? inf.ReadSingle() : null;
-
-            KeepClearRear = inf.ReadBoolean() ? inf.ReadSingle() : null;
-
-            Terminal = inf.ReadBoolean();
-            ForcePosition = inf.ReadBoolean();
-            CloseupSignal = inf.ReadBoolean();
-            Closeup = inf.ReadBoolean();
-            RestrictPlatformToSignal = inf.ReadBoolean();
-            ExtendPlatformToSignal = inf.ReadBoolean();
-            EndStop = inf.ReadBoolean();
-        }
-
         // Compare To (to allow sort)
         public int CompareTo(StationStop other)
         {
@@ -240,23 +143,8 @@ namespace Orts.Simulation.Signalling
             return result != 0 ? result / Math.Abs(result) : 0;
         }
 
-        public override bool Equals(object obj)
-        {
-            return obj is StationStop stop && CompareTo(stop) == 0;
-        }
-
         public async ValueTask<StationStopSaveState> Snapshot()
         {
-            ConcurrentDictionary<int, WaitInfoSaveState> waitInfos = null;
-            if (ConnectionDetails != null)
-            {
-                waitInfos = new ConcurrentDictionary<int, WaitInfoSaveState>();
-                await Parallel.ForEachAsync(ConnectionDetails, async (connectionDetail, cancellationToken) =>
-                {
-                    waitInfos.TryAdd(connectionDetail.Key, await connectionDetail.Value.Snapshot().ConfigureAwait(false));
-                }).ConfigureAwait(false);
-            }
-
             return new StationStopSaveState()
             {
                 StationStopType = StopType,
@@ -278,7 +166,7 @@ namespace Orts.Simulation.Signalling
                 StationStopPassed = Passed,
                 ConnectionsWaiting = ConnectionsWaiting == null ? null : new Collection<int>(ConnectionsWaiting),
                 ConnectionsAwaited = ConnectionsAwaited == null ? null : new Dictionary<int, int>(ConnectionsAwaited),
-                ConnnectionDetails = waitInfos?.ToDictionary(),
+                ConnnectionDetails = ConnectionDetails == null ? null :await ConnectionDetails.SnapshotDictionary<WaitInfoSaveState, WaitInfo, int>().ConfigureAwait(false),
                 ActualMinStopTime = ActualMinStopTime,
                 KeepClearFront = KeepClearFront,
                 KeepClearRear = KeepClearRear,
@@ -292,90 +180,73 @@ namespace Orts.Simulation.Signalling
             };
         }
 
-        public ValueTask Restore(StationStopSaveState saveState)
+        public async ValueTask Restore(StationStopSaveState saveState)
         {
-            throw new NotImplementedException();
-        }
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-        // Save
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
+            StopType = saveState.StationStopType;
+            PlatformReference = saveState.PlatformReference;
 
-            outf.Write((int)StopType);
-            outf.Write(PlatformReference);
-            outf.Write(SubrouteIndex);
-            outf.Write(RouteIndex);
-            outf.Write(TrackCircuitSectionIndex);
-            outf.Write((int)Direction);
-            outf.Write(ExitSignal);
-            outf.Write(HoldSignal);
-            outf.Write(NoWaitSignal);
-            outf.Write(NoClaimAllowed);
-            outf.Write(CallOnAllowed);
-            outf.Write(StopOffset);
-            outf.Write(ArrivalTime);
-            outf.Write(DepartTime);
-            outf.Write(ActualArrival);
-            outf.Write(ActualDepart);
-            outf.Write(Passed);
-
-            outf.Write(ConnectionsWaiting?.Count ?? 0);
-            foreach (int i in ConnectionsWaiting ?? Enumerable.Empty<int>())
+            if (PlatformReference >= 0)
             {
-                outf.Write(i);
-            }
-
-            outf.Write(ConnectionsAwaited?.Count ?? 0);
-            foreach (KeyValuePair<int, int> awaitedConnection in ConnectionsAwaited ?? Enumerable.Empty<KeyValuePair<int, int>>())
-            {
-                outf.Write(awaitedConnection.Key);
-                outf.Write(awaitedConnection.Value);
-            }
-
-            outf.Write(ConnectionDetails?.Count ?? 0);
-            foreach (KeyValuePair<int, WaitInfo> connectionDetails in ConnectionDetails ?? Enumerable.Empty<KeyValuePair<int, WaitInfo>>())
-            {
-                outf.Write(connectionDetails.Key);
-                connectionDetails.Value.Save(outf);
-            }
-
-            if (ActualMinStopTime.HasValue)
-            {
-                outf.Write(true);
-                outf.Write(ActualMinStopTime.Value);
+                if (Simulator.Instance.SignalEnvironment.PlatformXRefList.TryGetValue(PlatformReference, out int platformIndex))
+                {
+                    PlatformItem = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformIndex];
+                }
+                else
+                {
+                    Trace.TraceInformation("Cannot find platform {0}", PlatformReference);
+                }
             }
             else
             {
-                outf.Write(false);
+                PlatformItem = null;
             }
 
-            if (KeepClearFront.HasValue)
+            SubrouteIndex = saveState.SubrouteIndex;
+            RouteIndex = saveState.RouteIndex;
+            TrackCircuitSectionIndex = saveState.TrackCircuitSectionIndex;
+            Direction = saveState.TrackDirection;
+            ExitSignal = saveState.ExitSignal;
+            HoldSignal = saveState.HoldSignal;
+            NoWaitSignal = saveState.NoWaitSignal;
+            NoClaimAllowed = saveState.NoClaimAllowed;
+            CallOnAllowed = saveState.CallOnAllowed;
+            StopOffset = saveState.StopOffset;
+            ArrivalTime = saveState.ArrivalTime;
+            DepartTime = saveState.DepartureTime;
+            ActualArrival = saveState.ActualArrival;
+            ActualDepart = saveState.ActualDeparture;
+            DistanceToTrainM = float.MaxValue;
+            Passed = saveState.StationStopPassed;
+
+            if (saveState.ConnectionsWaiting != null)
             {
-                outf.Write(true);
-                outf.Write(KeepClearFront.Value);
-            }
-            else
-            {
-                outf.Write(false);
-            }
-            if (KeepClearRear.HasValue)
-            {
-                outf.Write(true);
-                outf.Write(KeepClearRear.Value);
-            }
-            else
-            {
-                outf.Write(false);
+                ConnectionsWaiting = new List<int>(saveState.ConnectionsWaiting);
             }
 
-            outf.Write(Terminal);
-            outf.Write(ForcePosition);
-            outf.Write(CloseupSignal);
-            outf.Write(Closeup);
-            outf.Write(RestrictPlatformToSignal);
-            outf.Write(ExtendPlatformToSignal);
-            outf.Write(EndStop);
+            if (saveState.ConnectionsAwaited != null)
+            {
+                ConnectionsAwaited = new Dictionary<int, int>(saveState.ConnectionsAwaited);
+            }
+
+            if (saveState.ConnnectionDetails != null)
+            {
+                ConnectionDetails = new Dictionary<int, WaitInfo>();
+                await ConnectionDetails.RestoreDictionaryCreateNewInstances(saveState.ConnnectionDetails).ConfigureAwait(false);
+            }
+
+            ActualMinStopTime = saveState.ActualMinStopTime;
+            KeepClearFront = saveState.KeepClearFront;
+            KeepClearRear = saveState.KeepClearRear;
+
+            Terminal = saveState.TerminalStop;
+            ForcePosition = saveState.ForcePosition;
+            CloseupSignal = saveState.CloseupSignal;
+            Closeup = saveState.Closeup;
+            RestrictPlatformToSignal = saveState.RestrictPlatformToSignal;
+            ExtendPlatformToSignal = saveState.ExtendPlatformToSignal;
+            EndStop = saveState.EndStop;
         }
 
         /// <summary>
@@ -411,7 +282,7 @@ namespace Orts.Simulation.Signalling
             }
 
             // correct stop time for stop around midnight
-            int stopTime = DepartTime - ArrivalTime;
+            double stopTime = DepartTime - ArrivalTime;
             if (DepartTime < eightHundredHours && ArrivalTime > sixteenHundredHours) // stop over midnight
             {
                 stopTime += (24 * 3600);
@@ -419,13 +290,13 @@ namespace Orts.Simulation.Signalling
 
             bool validSched;
             // compute boarding time (depends on train type)
-            (validSched, stopTime) = train.ComputeTrainBoardingTime(this, stopTime);
+            (validSched, stopTime) = train.ComputeTrainBoardingTime(this, (int)stopTime);
 
             // correct departure time for stop around midnight
-            int correctedTime = ActualArrival + stopTime;
+            double correctedTime = ActualArrival + stopTime;
             if (validSched)
             {
-                ActualDepart = Time.Compare.Latest(DepartTime, correctedTime);
+                ActualDepart = Time.Compare.Latest(DepartTime, (int)correctedTime);
             }
             else
             {
@@ -445,7 +316,7 @@ namespace Orts.Simulation.Signalling
                     stopTime += 24 * 3600;
 
             }
-            return stopTime;
+            return (int)stopTime;
         }
 
         //================================================================================================//
@@ -540,7 +411,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal bool CheckScheduleValidity(Train train)
         {
-            return train.TrainType != TrainType.Ai ? true : !(ArrivalTime == DepartTime && Math.Abs(ArrivalTime - ActualArrival) > 14400);
+            return train.TrainType != TrainType.Ai || !(ArrivalTime == DepartTime && Math.Abs(ArrivalTime - ActualArrival) > 14400);
         }
 
         //================================================================================================//
@@ -580,6 +451,46 @@ namespace Orts.Simulation.Signalling
                 ConnectionsAwaited = new Dictionary<int, int>();
             if (null == ConnectionDetails)
                 ConnectionDetails = new Dictionary<int, WaitInfo>();
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is StationStop stop && CompareTo(stop) == 0;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+
+        public static bool operator ==(StationStop left, StationStop right)
+        {
+            return left is null ? right is null : left.Equals(right);
+        }
+
+        public static bool operator !=(StationStop left, StationStop right)
+        {
+            return !(left == right);
+        }
+
+        public static bool operator <(StationStop left, StationStop right)
+        {
+            return left is null ? right is not null : left.CompareTo(right) < 0;
+        }
+
+        public static bool operator <=(StationStop left, StationStop right)
+        {
+            return left is null || left.CompareTo(right) <= 0;
+        }
+
+        public static bool operator >(StationStop left, StationStop right)
+        {
+            return left is not null && left.CompareTo(right) > 0;
+        }
+
+        public static bool operator >=(StationStop left, StationStop right)
+        {
+            return left is null ? right is null : left.CompareTo(right) >= 0;
         }
     }
 }
