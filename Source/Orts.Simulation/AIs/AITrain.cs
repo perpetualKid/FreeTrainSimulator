@@ -4701,7 +4701,7 @@ namespace Orts.Simulation.AIs
                 {
                     AuxActionItem action = thisItem as AuxActionItem;
                     AuxActionRef actionRef = action.ActionRef;
-                    if (actionRef.IsGeneric)
+                    if (actionRef.GenericAction)
                     {
                         nextGenAction = thisItem;   //  SPA In order to manage GenericAuxAction without disturbing normal actions
                         RequiredActions.Remove(thisItem);
@@ -4847,7 +4847,7 @@ namespace Orts.Simulation.AIs
             LeadLocomotiveIndex = leadLocomotiveIndex;
             simulator.PlayerLocomotive.SwitchToPlayerControl();
             if (MovementState == AiMovementState.HandleAction && nextActionInfo != null && nextActionInfo.GetType().IsSubclassOf(typeof(AuxActionItem))
-                && AuxActionsContainer[0] != null && ((AIAuxActionsRef)AuxActionsContainer[0]).NextAction == AuxActionRef.AuxiliaryAction.WaitingPoint)
+                && AuxActionsContainer[0] != null && ((AIAuxActionsRef)AuxActionsContainer[0]).NextAction == AuxiliaryAction.WaitingPoint)
             {
                 (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState = AiMovementState.HandleAction;
             }
@@ -5215,11 +5215,11 @@ namespace Orts.Simulation.AIs
                             if (train.nextActionInfo is AuxActionItem auxAction)
                             {
                                 AuxActionRef actionRef = auxAction.ActionRef;
-                                if (actionRef.IsGeneric)
+                                if (actionRef.GenericAction)
                                 {
                                     this["AiMode"] = "Generic Action";
                                 }
-                                else if ((train.AuxActionsContainer[0] as AIAuxActionsRef)?.NextAction == AuxActionRef.AuxiliaryAction.WaitingPoint)
+                                else if ((train.AuxActionsContainer[0] as AIAuxActionsRef)?.NextAction == AuxiliaryAction.WaitingPoint)
                                 {
                                     this["AiMode"] = StationStopType.WaitingPoint.ToString();
                                     this["AiData"] = train.nextActionInfo is AuxActionWPItem wpItem && wpItem.ActualDepart > 0

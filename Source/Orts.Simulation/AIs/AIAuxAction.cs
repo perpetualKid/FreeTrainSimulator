@@ -79,18 +79,18 @@ namespace Orts.Simulation.AIs
                 int cntAction = inf.ReadInt32();
                 AuxActionRef action;
                 string actionRef = inf.ReadString();
-                AuxActionRef.AuxiliaryAction nextAction = (AuxActionRef.AuxiliaryAction)Enum.Parse(typeof(AuxActionRef.AuxiliaryAction), actionRef);
+                AuxiliaryAction nextAction = (AuxiliaryAction)Enum.Parse(typeof(AuxiliaryAction), actionRef);
                 switch (nextAction)
                 {
-                    case AuxActionRef.AuxiliaryAction.WaitingPoint:
+                    case AuxiliaryAction.WaitingPoint:
                         action = new AIActionWPRef(thisTrain, inf);
                         SpecAuxActions.Add(action);
                         break;
-                    case AuxActionRef.AuxiliaryAction.SoundHorn:
+                    case AuxiliaryAction.SoundHorn:
                         action = new AIActionHornRef(thisTrain, inf);
                         SpecAuxActions.Add(action);
                         break;
-                    case AuxActionRef.AuxiliaryAction.SignalDelegate:
+                    case AuxiliaryAction.SignalDelegate:
                         action = new AIActSigDelegateRef(thisTrain, inf);
                         var hasWPActionAssociated = inf.ReadBoolean();
                         if (hasWPActionAssociated && SpecAuxActions.Count > 0)
@@ -261,7 +261,7 @@ namespace Orts.Simulation.AIs
         {
             bool ret = false;
             bool remove = true;
-            if (action.ActionRef.IsGeneric)
+            if (action.ActionRef.GenericAction)
             {
                 if (genRequiredActions.Count > 0)
                     ret = genRequiredActions.Remove(action);
@@ -271,7 +271,7 @@ namespace Orts.Simulation.AIs
                         RemoveSpecReqAction(action);
                 }
             }
-            if (action.ActionRef.ActionType == AuxActionRef.AuxiliaryAction.SoundHorn)
+            if (action.ActionRef.ActionType == AuxiliaryAction.SoundHorn)
             {
                 if (specRequiredActions.Contains(action)) RemoveSpecReqAction(action);
                 else remove = false;
@@ -520,7 +520,7 @@ namespace Orts.Simulation.AIs
         {
         }
 
-        public AIAuxActionsRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir, AuxActionRef.AuxiliaryAction actionType = AuxActionRef.AuxiliaryAction.None) :
+        public AIAuxActionsRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir, AuxiliaryAction actionType = AuxiliaryAction.None) :
             base(actionType, false)                 //null, requiredSpeedMpS, , -1, )
         {
             RequiredDistance = distance;
@@ -530,11 +530,11 @@ namespace Orts.Simulation.AIs
             TCSectionIndex = sectionIdx;
             Direction = dir;
             AskingTrain = new List<KeyValuePair<int, WorldLocation>>();
-            IsGeneric = false;
+            GenericAction = false;
             EndSignalIndex = -1;
         }
 
-        public AIAuxActionsRef(Train thisTrain, BinaryReader inf, AuxActionRef.AuxiliaryAction actionType = AuxActionRef.AuxiliaryAction.None)
+        public AIAuxActionsRef(Train thisTrain, BinaryReader inf, AuxiliaryAction actionType = AuxiliaryAction.None)
         {
             RequiredSpeedMpS = inf.ReadSingle();
             RequiredDistance = inf.ReadSingle();
@@ -543,7 +543,7 @@ namespace Orts.Simulation.AIs
             TCSectionIndex = inf.ReadInt32();
             Direction = inf.ReadInt32();
             TriggerDistance = inf.ReadInt32();
-            IsGeneric = inf.ReadBoolean();
+            GenericAction = inf.ReadBoolean();
             AskingTrain = new List<KeyValuePair<int, WorldLocation>>();
             EndSignalIndex = inf.ReadInt32();
             if (EndSignalIndex >= 0)
@@ -568,7 +568,7 @@ namespace Orts.Simulation.AIs
         internal virtual AIActionItem Handler(params object[] list)
         {
             AIActionItem info = null;
-            if (!LinkedAuxAction || IsGeneric)
+            if (!LinkedAuxAction || GenericAction)
             {
                 info = new AuxActionItem(this, AIActionItem.AI_ACTION_TYPE.AUX_ACTION);
                 info.SetParam((float)list[0], (float)list[1], (float)list[2], (float)list[3]);
@@ -619,7 +619,7 @@ namespace Orts.Simulation.AIs
             outf.Write(TCSectionIndex);
             outf.Write(Direction);
             outf.Write(TriggerDistance);
-            outf.Write(IsGeneric);
+            outf.Write(GenericAction);
             outf.Write(EndSignalIndex);
 
             //if (LinkedAuxAction != null)
@@ -681,7 +681,7 @@ namespace Orts.Simulation.AIs
         public AuxActionWPItem keepIt;
 
         public AIActionWPRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir)
-            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AuxActionRef.AuxiliaryAction.WaitingPoint)
+            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AuxiliaryAction.WaitingPoint)
         {
             NextAction = AuxiliaryAction.WaitingPoint;
         }
@@ -702,7 +702,7 @@ namespace Orts.Simulation.AIs
         internal override AIActionItem Handler(params object[] list)
         {
             AIActionItem info = null;
-            if (!LinkedAuxAction || IsGeneric)
+            if (!LinkedAuxAction || GenericAction)
             {
                 LinkedAuxAction = true;
                 info = new AuxActionWPItem(this, AIActionItem.AI_ACTION_TYPE.AUX_ACTION);
@@ -879,7 +879,7 @@ namespace Orts.Simulation.AIs
         {
             DurationS = myBase.Delay;
             NextAction = AuxiliaryAction.SoundHorn;
-            IsGeneric = myBase.IsGeneric;
+            GenericAction = myBase.GenericAction;
             HornPattern = AILevelCrossingHornPattern.CreateInstance(myBase.Pattern);
         }
 
@@ -896,7 +896,7 @@ namespace Orts.Simulation.AIs
         internal override AIActionItem Handler(params object[] list)
         {
             AIActionItem info = null;
-            if (!LinkedAuxAction || IsGeneric)
+            if (!LinkedAuxAction || GenericAction)
             {
                 LinkedAuxAction = true;
                 info = new AuxActionHornItem(this, AIActionItem.AI_ACTION_TYPE.AUX_ACTION, DurationS, HornPattern);
@@ -983,7 +983,7 @@ namespace Orts.Simulation.AIs
         {
             AssociatedWPAction = associatedWPAction;
             NextAction = AuxiliaryAction.SignalDelegate;
-            IsGeneric = true;
+            GenericAction = true;
 
             brakeSection = distance; // Set to 1 later when applicable
         }
@@ -1137,7 +1137,7 @@ namespace Orts.Simulation.AIs
         public override AiMovementState ProcessAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
         {
             AiMovementState mvtState = movementState;
-            if (ActionRef.IsGeneric)
+            if (ActionRef.GenericAction)
                 mvtState = currentMvmtState;
             int correctedTime = presentTime;
             switch (mvtState)
@@ -1328,7 +1328,7 @@ namespace Orts.Simulation.AIs
             //switch (movementState)
             //{
             AiMovementState mvtState = movementState;
-            if (ActionRef.IsGeneric)
+            if (ActionRef.GenericAction)
                 mvtState = currentMvmtState;
             int correctedTime = presentTime;
             switch (mvtState)
@@ -1386,7 +1386,7 @@ namespace Orts.Simulation.AIs
                 default:
                     break;
             }
-            if (ActionRef.IsGeneric)
+            if (ActionRef.GenericAction)
                 currentMvmtState = movementState;
             return movementState;
         }
@@ -1506,7 +1506,7 @@ namespace Orts.Simulation.AIs
         public override AiMovementState ProcessAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
         {
             AiMovementState mvtState = movementState;
-            if (ActionRef.IsGeneric)
+            if (ActionRef.GenericAction)
                 mvtState = currentMvmtState;
             int correctedTime = presentTime;
             switch (mvtState)
@@ -1518,7 +1518,7 @@ namespace Orts.Simulation.AIs
                     movementState = HandleAction(thisTrain, presentTime, elapsedClockSeconds, mvtState);
                     break;
                 case AiMovementState.Braking:
-                    if (this.ActionRef.ActionType != AuxActionRef.AuxiliaryAction.SoundHorn)
+                    if (this.ActionRef.ActionType != AuxiliaryAction.SoundHorn)
                     {
                         float distanceToGoM = thisTrain.ActivityClearingDistanceM;
                         distanceToGoM = ActivateDistanceM - thisTrain.PresentPosition[Direction.Forward].DistanceTravelled;
@@ -1537,7 +1537,7 @@ namespace Orts.Simulation.AIs
                 default:
                     break;
             }
-            if (ActionRef.IsGeneric)
+            if (ActionRef.GenericAction)
                 currentMvmtState = movementState;
 
             return movementState;
