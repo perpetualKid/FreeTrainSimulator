@@ -5472,7 +5472,7 @@ namespace Orts.Simulation.AIs
 
             if (inf.ReadBoolean())
             {
-                ActiveItem = SignalItemInfo.Restore(inf);
+//                ActiveItem = SignalItemInfo.Restore(inf);
             }
 
             NextAction = (AI_ACTION_TYPE)inf.ReadInt32();
@@ -5497,7 +5497,7 @@ namespace Orts.Simulation.AIs
             else
             {
                 outf.Write(true);
-                SignalItemInfo.Save(outf, ActiveItem);
+//                SignalItemInfo.Save(outf, ActiveItem);
             }
 
             outf.Write((int)NextAction);
