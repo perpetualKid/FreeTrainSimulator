@@ -1,72 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common.Api;
+
+using Orts.Common;
+using Orts.Models.State;
 using Orts.Simulation.AIs;
 
 namespace Orts.Simulation.Physics
 {
-    //================================================================================================//
+    internal class DistanceTravelledItemActivator:
+                ISaveStateRestoreApi<ActionItemSaveState, DistanceTravelledItem>
+    {
+        DistanceTravelledItem ISaveStateRestoreApi<ActionItemSaveState, DistanceTravelledItem>.CreateRuntimeTarget(ActionItemSaveState saveState)
+        {
+            return saveState.ActionItemType switch
+            {
+                ActionItemType.ActiveSpeedLimit => new ActivateSpeedLimit(),
+                ActionItemType.ClearSection => new ClearSectionItem(),
+                ActionItemType.AiActionItem => new AIActionItem(),
+                ActionItemType.AuxiliaryAction => new AuxActionItem(),
+                ActionItemType.ClearMovingTable => new ClearMovingTableAction(),
+                _ => null,
+            };
+        }
+    }
+
     /// <summary>
     /// Distance Travelled action item - base class for all possible actions
     /// </summary>
-
-    internal class DistanceTravelledItem
+    internal abstract class DistanceTravelledItem : 
+        ISaveStateApi<ActionItemSaveState>
     {
         public float RequiredDistance { get; internal set; }
 
-        //================================================================================================//
-        //
-        // Base contructor
-        //
-
-        public DistanceTravelledItem()
+        public virtual ValueTask<ActionItemSaveState> Snapshot()
         {
-        }
-
-        // Restore
-        public DistanceTravelledItem(BinaryReader inf)
-        {
-            RequiredDistance = inf.ReadSingle();
-        }
-
-        // Save
-        public void Save(BinaryWriter outf)
-        {
-            switch (this)
+            return ValueTask.FromResult(new ActionItemSaveState()
             {
-                case ActivateSpeedLimit speedLimit:
-                    outf.Write(1);
-                    outf.Write(RequiredDistance);
-                    speedLimit.SaveItem(outf);
-                    break;
-                case ClearSectionItem clearSerction:
-                    outf.Write(2);
-                    outf.Write(RequiredDistance);
-                    clearSerction.SaveItem(outf);
-                    break;
-                case AuxActionItem auxAction:
-                    outf.Write(4);
-                    outf.Write(RequiredDistance);
-                    auxAction.SaveItem(outf);
-                    break;
-                case AIActionItem aiAction:
-                    outf.Write(3);
-                    outf.Write(RequiredDistance);
-                    aiAction.SaveItem(outf);
-                    break;
-                case ClearMovingTableAction clearMovingTableAction:
-                    outf.Write(5);
-                    outf.Write(RequiredDistance);
-                    clearMovingTableAction.SaveItem(outf);
-                    break;
-                default:
-                    outf.Write(-1);
-                    break;
-            }
+                Distance = RequiredDistance,
+            });
+        }
+
+        public virtual ValueTask Restore(ActionItemSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            RequiredDistance = saveState.Distance;
+
+            return ValueTask.CompletedTask;
         }
     }
 
@@ -75,8 +60,9 @@ namespace Orts.Simulation.Physics
     /// </summary>
     internal class ClearSectionItem : DistanceTravelledItem
     {
-        public int TrackSectionIndex { get; }  // in case of CLEAR_SECTION  //
+        public int TrackSectionIndex { get; private set; }  // in case of CLEAR_SECTION  //
 
+        public ClearSectionItem() { }
         /// <summary>
         /// constructor for clear section
         /// </summary>
@@ -86,20 +72,21 @@ namespace Orts.Simulation.Physics
             TrackSectionIndex = sectionIndex;
         }
 
-        // Restore
-        public ClearSectionItem(BinaryReader inf)
-            : base(inf)
+        public override async ValueTask<ActionItemSaveState> Snapshot()
         {
-            TrackSectionIndex = inf.ReadInt32();
+            ActionItemSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.ActionItemType = ActionItemType.ClearSection;
+            saveState.TrackSectionIndex = TrackSectionIndex;
+
+            return saveState;
         }
 
-        // Save
-        public void SaveItem(BinaryWriter outf)
+        public override async ValueTask Restore([NotNull] ActionItemSaveState saveState)
         {
-            outf.Write(TrackSectionIndex);
+            await base.Restore(saveState).ConfigureAwait(false);
+            TrackSectionIndex = saveState.TrackSectionIndex;
         }
-
-
     }
 
     /// <summary>
@@ -110,6 +97,8 @@ namespace Orts.Simulation.Physics
         public float MaxSpeedMpSLimit { get; internal set; } = -1;
         public float MaxSpeedMpSSignal { get; internal set; } = -1;
         public float MaxTempSpeedMpSLimit { get; internal set; } = -1;
+
+        public ActivateSpeedLimit() { }
 
         /// <summary>
         /// constructor for speedlimit value
@@ -122,32 +111,37 @@ namespace Orts.Simulation.Physics
             MaxTempSpeedMpSLimit = maxTempSpeedMpSLimit;
         }
 
-        // Restore
-        public ActivateSpeedLimit(BinaryReader inf)
-            : base(inf)
+        public override async ValueTask<ActionItemSaveState> Snapshot()
         {
-            MaxSpeedMpSLimit = inf.ReadSingle();
-            MaxSpeedMpSSignal = inf.ReadSingle();
-            MaxTempSpeedMpSLimit = inf.ReadSingle();
+            ActionItemSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.ActionItemType = Common.ActionItemType.ActiveSpeedLimit;
+            saveState.MaxSpeedLimit = MaxSpeedMpSLimit;
+            saveState.MaxSpeedSignal = MaxSpeedMpSSignal;
+            saveState.MaxTempSpeedLimit = MaxTempSpeedMpSLimit;
+
+            return saveState;
         }
 
-        // Save
-        public void SaveItem(BinaryWriter outf)
+        public override async ValueTask Restore([NotNull] ActionItemSaveState saveState)
         {
-            outf.Write(MaxSpeedMpSLimit);
-            outf.Write(MaxSpeedMpSSignal);
-            outf.Write(MaxTempSpeedMpSLimit);
+            await base.Restore(saveState).ConfigureAwait(false);
+            MaxSpeedMpSLimit = saveState.MaxSpeedLimit;
+            MaxSpeedMpSSignal = saveState.MaxSpeedSignal;
+            MaxTempSpeedMpSLimit = saveState.MaxTempSpeedLimit;
         }
     }
 
     internal class ClearMovingTableAction : DistanceTravelledItem
     {
-        public float OriginalMaxTrainSpeedMpS { get; }                // original train speed
+        public float OriginalMaxTrainSpeedMpS { get; private set; }                // original train speed
 
         //================================================================================================//
         /// <summary>
         /// constructor for speedlimit value
         /// </summary>
+
+        public ClearMovingTableAction() { }
 
         public ClearMovingTableAction(float reqDistance, float maxSpeedMpSLimit)
         {
@@ -160,20 +154,19 @@ namespace Orts.Simulation.Physics
         // Restore
         //
 
-        public ClearMovingTableAction(BinaryReader inf)
-            : base(inf)
+        public override async ValueTask<ActionItemSaveState> Snapshot()
         {
-            OriginalMaxTrainSpeedMpS = inf.ReadSingle();
+            ActionItemSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.OriginalMaxTrainSpeed = OriginalMaxTrainSpeedMpS;
+
+            return saveState;
         }
 
-        //================================================================================================//
-        //
-        // Save
-        //
-
-        public void SaveItem(BinaryWriter outf)
+        public override async ValueTask Restore(ActionItemSaveState saveState)
         {
-            outf.Write(OriginalMaxTrainSpeedMpS);
+            await base.Restore(saveState).ConfigureAwait(false);
+            OriginalMaxTrainSpeedMpS = saveState.OriginalMaxTrainSpeed;
         }
     }
 
@@ -356,7 +349,7 @@ namespace Orts.Simulation.Physics
                 nextNode = nextNode.Previous;
             }
 
-            return (lastDistance);
+            return lastDistance;
         }
 
         //================================================================================================//
