@@ -3278,7 +3278,7 @@ namespace Orts.Simulation.Timetables
 
             int eightHundredHours = 8 * 3600;
             int sixteenHundredHours = 16 * 3600;
-            int actualdepart = thisStation.ActualDepart;
+            int actualdepart = (int)thisStation.ActualDepart;
 
             // no arrival / departure time set : update times
 
@@ -3290,7 +3290,7 @@ namespace Orts.Simulation.Timetables
                 {
                     thisStation.ActualArrival = presentTime;
                     thisStation.CalculateDepartTime(this);
-                    actualdepart = thisStation.ActualDepart;
+                    actualdepart = (int)thisStation.ActualDepart;
                 }
 
 #if DEBUG_TTANALYSIS
@@ -3313,7 +3313,7 @@ namespace Orts.Simulation.Timetables
                                 if (otherStop.ConnectionsAwaited?.ContainsKey(Number) ?? false)
                                 {
                                     otherStop.ConnectionsAwaited.Remove(Number);
-                                    otherStop.ConnectionsAwaited.Add(Number, thisStation.ActualArrival);
+                                    otherStop.ConnectionsAwaited.Add(Number, (int)thisStation.ActualArrival);
                                 }
                             }
                         }
@@ -9104,7 +9104,7 @@ namespace Orts.Simulation.Timetables
                                 if (string.Equals(StationStops[0].PlatformItem.Name, otherStop.PlatformItem.Name, StringComparison.OrdinalIgnoreCase) && otherStop.ConnectionsAwaited.ContainsKey(OrgAINumber))
                                 {
                                     otherStop.ConnectionsAwaited.Remove(OrgAINumber);
-                                    otherStop.ConnectionsAwaited.Add(OrgAINumber, StationStops[0].ActualArrival);
+                                    otherStop.ConnectionsAwaited.Add(OrgAINumber, (int)StationStops[0].ActualArrival);
                                 }
                             }
                         }
@@ -9288,7 +9288,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else
                     {
-                        int actualDepart = StationStops[0].ActualDepart;
+                        int actualDepart = (int)StationStops[0].ActualDepart;
                         if (helddepart >= 0)
                         {
                             actualDepart = Time.Compare.Latest(helddepart, actualDepart);
@@ -9430,7 +9430,7 @@ namespace Orts.Simulation.Timetables
                                         if (string.Equals(StationStops[0].PlatformItem.Name, otherStop.PlatformItem.Name, StringComparison.OrdinalIgnoreCase))
                                         {
                                             otherStop.ConnectionsAwaited.Remove(OrgAINumber);
-                                            otherStop.ConnectionsAwaited.Add(OrgAINumber, StationStops[0].ActualArrival);
+                                            otherStop.ConnectionsAwaited.Add(OrgAINumber, (int)StationStops[0].ActualArrival);
                                         }
                                     }
                                 }

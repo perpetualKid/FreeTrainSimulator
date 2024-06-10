@@ -705,13 +705,13 @@ namespace Orts.Simulation.Physics
             count = inf.ReadInt32();
             for (int i = 0; i < count; i++)
             {
-                StationStops.Add(new StationStop(inf));
+                //StationStops.Add(new StationStop(inf));
             }
 
             count = inf.ReadInt32();
             if (count >= 0)
             {
-                PreviousStop = new StationStop(inf);
+                //PreviousStop = new StationStop(inf);
             }
             else
             {
@@ -1063,7 +1063,7 @@ namespace Orts.Simulation.Physics
             outf.Write(StationStops.Count);
             foreach (StationStop thisStop in StationStops)
             {
-                thisStop.Save(outf);
+                //thisStop.Save(outf);
             }
 
             if (PreviousStop == null)
@@ -1073,7 +1073,7 @@ namespace Orts.Simulation.Physics
             else
             {
                 outf.Write(1);
-                PreviousStop.Save(outf);
+                //PreviousStop.Save(outf);
             }
 
             outf.Write(AtStation);

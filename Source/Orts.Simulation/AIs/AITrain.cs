@@ -1463,7 +1463,7 @@ namespace Orts.Simulation.AIs
 
             int eightHundredHours = 8 * 3600;
             int sixteenHundredHours = 16 * 3600;
-            int actualdepart = thisStation.ActualDepart;
+            int actualdepart = (int)thisStation.ActualDepart;
 
             // no arrival / departure time set : update times
 
@@ -1475,7 +1475,7 @@ namespace Orts.Simulation.AIs
                 {
                     thisStation.ActualArrival = presentTime;
                     var stopTime = thisStation.CalculateDepartTime(this);
-                    actualdepart = thisStation.ActualDepart;
+                    actualdepart = (int)thisStation.ActualDepart;
                     doorOpenDelay = 4.0f;
                     doorCloseAdvance = stopTime - 10.0f;
                     if (PreUpdate)
@@ -4958,7 +4958,7 @@ namespace Orts.Simulation.AIs
                         }
                         else
                         {
-                            int actualDepart = StationStops[0].ActualDepart;
+                            int actualDepart = (int)StationStops[0].ActualDepart;
                             int correctedTime = presentTime;
                             if (presentTime > sixteenHundredHours && StationStops[0].DepartTime < eightHundredHours)
                             {
