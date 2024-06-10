@@ -18,14 +18,17 @@
 // This module covers all classes and code for signal, speed post, track occupation and track reservation control
 
 using System;
-using System.IO;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Formats.Msts;
+using Orts.Models.State;
 
 namespace Orts.Simulation.Signalling
 {
-    internal class SignalItemInfo
+    internal class SignalItemInfo : ISaveStateApi<SignalItemSaveState>
     {
         public SignalItemType ItemType { get; private set; }                     // type information
         public SignalItemFindState State { get; private set; }               // state information
@@ -42,11 +45,6 @@ namespace Orts.Simulation.Signalling
         public float ActualSpeed { get; internal set; }
 
         public bool Processed { get; internal set; }                       // for AI trains, set active by TRAIN
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor
-        /// </summary>
 
         public SignalItemInfo(Signal signal, float distance)
         {
@@ -70,57 +68,49 @@ namespace Orts.Simulation.Signalling
             }
         }
 
+        public SignalItemInfo() { }
+
         public SignalItemInfo(SignalItemFindState state)
         {
             State = state;
         }
 
-        public static SignalItemInfo Restore(BinaryReader inf)
+        public ValueTask<SignalItemSaveState> Snapshot()
         {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            SignalItemInfo result = new SignalItemInfo(SignalItemFindState.None)
+            return ValueTask.FromResult(new SignalItemSaveState()
             {
-                ItemType = (SignalItemType)inf.ReadInt32(),
-                State = (SignalItemFindState)inf.ReadInt32(),
-                SignalDetails = Simulator.Instance.SignalEnvironment.Signals[inf.ReadInt32()],
-                DistanceFound = inf.ReadSingle(),
-                DistanceToTrain = inf.ReadSingle(),
-                DistanceToObject = inf.ReadSingle(),
-                SpeedInfo = new SpeedInfo(inf.ReadSingle(), inf.ReadSingle(), inf.ReadBoolean(), false, 0, false),
-                ActualSpeed = inf.ReadSingle(),
-
-                Processed = inf.ReadBoolean()
-            };
-            result.SignalState = result.SignalDetails.SignalType == SignalCategory.Signal ? result.SignalDetails.SignalLR(SignalFunction.Normal) : SignalAspectState.Unknown;
-
-            return (result);
+                SignalItemType = ItemType,
+                SignalItemState = State,
+                SignalIndex = SignalDetails.Index,
+                DistanceFound = DistanceFound,
+                DistanceTrain = DistanceToTrain,
+                DistanceObject = DistanceToObject,
+                PassengerSpeed = SpeedInfo.PassengerSpeed,
+                FreightSpeed = SpeedInfo.FreightSpeed,
+                Flag = SpeedInfo.Flag,
+                ActualSpeed = ActualSpeed,
+                Processed = Processed,
+            });
         }
 
-        public static void Save(BinaryWriter outf, SignalItemInfo item)
+        public ValueTask Restore(SignalItemSaveState saveState)
         {
-            if (null == item)
-                return;
-            ArgumentNullException.ThrowIfNull(outf);
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-            outf.Write((int)item.ItemType);
-            outf.Write((int)item.State);
+            ItemType = saveState.SignalItemType;
+            State = saveState.SignalItemState;
+            SignalDetails = Simulator.Instance.SignalEnvironment.Signals[saveState.SignalIndex];
+            DistanceFound = saveState.DistanceFound;
+            DistanceToTrain = saveState.DistanceTrain;
+            DistanceToObject = saveState.DistanceObject;
+            SpeedInfo = new SpeedInfo(saveState.PassengerSpeed, saveState.FreightSpeed, saveState.Flag, false, 0, false);
+            ActualSpeed = saveState.ActualSpeed;
 
-            outf.Write(item.SignalDetails.Index);
+            Processed = saveState.Processed;
+            SignalState = SignalDetails.SignalType == SignalCategory.Signal ? SignalDetails.SignalLR(SignalFunction.Normal) : SignalAspectState.Unknown;
 
-            outf.Write(item.DistanceFound);
-            outf.Write(item.DistanceToTrain);
-            outf.Write(item.DistanceToObject);
-
-            outf.Write(item.SpeedInfo.PassengerSpeed);
-            outf.Write(item.SpeedInfo.FreightSpeed);
-            outf.Write(item.SpeedInfo.Flag);
-            outf.Write(item.ActualSpeed);
-
-            outf.Write(item.Processed);
+            return ValueTask.CompletedTask;
         }
-
-
     }
 
 }
