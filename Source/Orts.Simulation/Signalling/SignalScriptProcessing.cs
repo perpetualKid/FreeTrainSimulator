@@ -22,6 +22,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Orts.Formats.Msts;
 
@@ -114,14 +115,18 @@ namespace Orts.Simulation.Signalling
             return true;
         }
 
+        private static int counter;
         //================================================================================================//
         // process assign statement
         //================================================================================================//
         private static void ProcessAssignStatement(SignalHead head, SignalScripts.SCRScripts.SCRStatement statement, int[] localFloats)
         {
+            if (head.MainSignal.Index == 132)
+                counter++;
+//            Debug.Assert(!(counter == 1086 && head.MainSignal.Index == 132));
             // get term value
             int tempvalue = ProcessSubTerm(head, statement.StatementTerms, 0, localFloats);
-
+            //Debug.Assert(!(tempvalue == 5 && head.MainSignal.Index == 136));
             // assign value
             switch (statement.AssignType)
             {
@@ -137,6 +142,7 @@ namespace Orts.Simulation.Signalling
                     switch (floatType)
                     {
                         case SignalScripts.SCRExternalFloats.STATE:
+//                            Debug.Assert(!(head.MainSignal.Index == 132 && tempvalue > 0));
                             head.SignalIndicationState = (SignalAspectState)tempvalue;
                             break;
 

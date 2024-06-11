@@ -1,19 +1,19 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Formats.Msts.Models;
-using Orts.Simulation.Physics;
+using Orts.Models.State;
 
 namespace Orts.Simulation.Track
 {
     /// <summary>
     /// TrackCircuit position class
     /// </summary>
-    public class TrackCircuitPosition
+    public class TrackCircuitPosition : ISaveStateApi<TrackCircuitPositionSaveState>
     {
         public int TrackCircuitSectionIndex { get; internal set; }
         public TrackDirection Direction { get; internal set; }
@@ -50,128 +50,31 @@ namespace Orts.Simulation.Track
             DistanceTravelled = source.DistanceTravelled;
         }
 
-        // Restore
-        public void RestorePresentPosition(BinaryReader inf, Train train)
+        public ValueTask<TrackCircuitPositionSaveState> Snapshot()
         {
-            ArgumentNullException.ThrowIfNull(train);
-            ArgumentNullException.ThrowIfNull(inf);
-
-            TrackNode tn = train.FrontTDBTraveller.TrackNode;
-            float offset = train.FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)train.FrontTDBTraveller.Direction.Reverse();
-
-            TrackCircuitPosition tempPosition = new TrackCircuitPosition();
-            tempPosition.SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
-
-            TrackCircuitSectionIndex = inf.ReadInt32();
-            Direction = (TrackDirection)inf.ReadInt32();
-            Offset = inf.ReadSingle();
-            RouteListIndex = inf.ReadInt32();
-            TrackNode = inf.ReadInt32();
-            DistanceTravelled = inf.ReadSingle();
-
-            float offsetDif = Math.Abs(Offset - tempPosition.Offset);
-            if (TrackCircuitSectionIndex != tempPosition.TrackCircuitSectionIndex ||
-                    (TrackCircuitSectionIndex == tempPosition.TrackCircuitSectionIndex && offsetDif > 5.0f))
+            return ValueTask.FromResult(new TrackCircuitPositionSaveState()
             {
-                Trace.TraceWarning("Train {0} restored at different present position : was {1} - {3}, is {2} - {4}",
-                        train.Number, TrackCircuitSectionIndex, tempPosition.TrackCircuitSectionIndex,
-                        Offset, tempPosition.Offset);
-            }
+                Direction = Direction,
+                TrackCircuitSectionIndex = TrackCircuitSectionIndex,
+                RouteListIndex = RouteListIndex,
+                DistanceTravelled = DistanceTravelled,
+                Offset = Offset,
+                TrackNodeIndex = TrackNode
+            });
         }
 
-
-        public void RestorePresentRear(BinaryReader inf, Train train)
+        public ValueTask Restore(TrackCircuitPositionSaveState saveState)
         {
-            ArgumentNullException.ThrowIfNull(train);
-            ArgumentNullException.ThrowIfNull(inf);
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-            TrackNode tn = train.RearTDBTraveller.TrackNode;
-            float offset = train.RearTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)train.RearTDBTraveller.Direction.Reverse();
+            TrackCircuitSectionIndex = saveState.TrackCircuitSectionIndex;
+            Direction = saveState.Direction;
+            Offset = saveState.Offset;
+            RouteListIndex = saveState.RouteListIndex;
+            TrackNode = saveState.TrackNodeIndex;
+            DistanceTravelled = saveState.DistanceTravelled;
 
-            TrackCircuitPosition tempPosition = new TrackCircuitPosition();
-            tempPosition.SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
-
-            TrackCircuitSectionIndex = inf.ReadInt32();
-            Direction = (TrackDirection)inf.ReadInt32();
-            Offset = inf.ReadSingle();
-            RouteListIndex = inf.ReadInt32();
-            TrackNode = inf.ReadInt32();
-            DistanceTravelled = inf.ReadSingle();
-
-            float offsetDif = Math.Abs(Offset - tempPosition.Offset);
-            if (TrackCircuitSectionIndex != tempPosition.TrackCircuitSectionIndex ||
-                    (TrackCircuitSectionIndex == tempPosition.TrackCircuitSectionIndex && offsetDif > 5.0f))
-            {
-                Trace.TraceWarning("Train {0} restored at different present rear : was {1}-{2}, is {3}-{4}",
-                        train.Number, TrackCircuitSectionIndex, tempPosition.TrackCircuitSectionIndex,
-                        Offset, tempPosition.Offset);
-            }
-        }
-
-
-        public void RestorePreviousPosition(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            TrackCircuitSectionIndex = inf.ReadInt32();
-            Direction = (TrackDirection)inf.ReadInt32();
-            Offset = inf.ReadSingle();
-            RouteListIndex = inf.ReadInt32();
-            TrackNode = inf.ReadInt32();
-            DistanceTravelled = inf.ReadSingle();
-        }
-
-        // Restore dummies for trains not yet started
-        public void RestorePresentPositionDummy(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            TrackCircuitSectionIndex = inf.ReadInt32();
-            Direction = (TrackDirection)inf.ReadInt32();
-            Offset = inf.ReadSingle();
-            RouteListIndex = inf.ReadInt32();
-            TrackNode = inf.ReadInt32();
-            DistanceTravelled = inf.ReadSingle();
-        }
-
-
-        public void RestorePresentRearDummy(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            TrackCircuitSectionIndex = inf.ReadInt32();
-            Direction = (TrackDirection)inf.ReadInt32();
-            Offset = inf.ReadSingle();
-            RouteListIndex = inf.ReadInt32();
-            TrackNode = inf.ReadInt32();
-            DistanceTravelled = inf.ReadSingle();
-        }
-
-
-        public void RestorePreviousPositionDummy(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            TrackCircuitSectionIndex = inf.ReadInt32();
-            Direction = (TrackDirection)inf.ReadInt32();
-            Offset = inf.ReadSingle();
-            RouteListIndex = inf.ReadInt32();
-            TrackNode = inf.ReadInt32();
-            DistanceTravelled = inf.ReadSingle();
-        }
-
-        // Save
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
-            outf.Write(TrackCircuitSectionIndex);
-            outf.Write((int)Direction);
-            outf.Write(Offset);
-            outf.Write(RouteListIndex);
-            outf.Write(TrackNode);
-            outf.Write(DistanceTravelled);
+            return ValueTask.CompletedTask;
         }
 
         // Update this instance based on another instance

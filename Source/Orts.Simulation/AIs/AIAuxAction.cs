@@ -24,12 +24,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
-using Orts.Formats.OR;
+using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
@@ -40,91 +43,59 @@ namespace Orts.Simulation.AIs
 {
     #region AuxActionsContainer
 
-    //================================================================================================//
     /// <summary>
     /// AuxActionsContainer
     /// Used to manage all the action ref object.
     /// </summary>
-
-    internal class AuxActionsContainer
+    internal class AuxActionsContainer :
+        ISaveStateRestoreApi<AuxActionRefSaveState, AuxActionRef>
     {
-        public List<AuxActionRef> SpecAuxActions = new List<AuxActionRef>();          // Actions To Do during activity, like WP with specific location
-        protected List<KeyValuePair<Type, AuxActionRef>> GenFunctions = new List<KeyValuePair<Type, AuxActionRef>>();
+        private readonly Train train;
+        private readonly List<KeyValuePair<Type, AuxActionRef>> genericFunctions = new List<KeyValuePair<Type, AuxActionRef>>();
+        private readonly DistanceTravelledActions genericRequiredActions = new DistanceTravelledActions(); // distance travelled Generic action list for AITrain
 
-        public DistanceTravelledActions genRequiredActions = new DistanceTravelledActions(); // distance travelled Generic action list for AITrain
-        public DistanceTravelledActions specRequiredActions = new DistanceTravelledActions();
-        private Train train;
+        public DistanceTravelledActions SpecificRequiredActions { get; } = new DistanceTravelledActions();
+        public List<AuxActionRef> SpecAuxActions { get; } = new List<AuxActionRef>();          // Actions To Do during activity, like WP with specific location
 
-        public AuxActionsContainer(Train thisTrain)
+        public AuxActionsContainer(Train train)
         {
 
-            if (thisTrain is AITrain)
+            if (train is AITrain aiTrain)
             {
-                SetGenAuxActions((AITrain)thisTrain);
+                SetGenAuxActions(aiTrain);
             }
-            train = thisTrain;
+            this.train = train;
         }
 
-        public AuxActionsContainer(Train thisTrain, BinaryReader inf)
+        AuxActionRef ISaveStateRestoreApi<AuxActionRefSaveState, AuxActionRef>.CreateRuntimeTarget(AuxActionRefSaveState saveState)
         {
-            train = thisTrain;
-            if (thisTrain is AITrain)
-            {
-                SetGenAuxActions((AITrain)thisTrain);
-            }
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-            int cntAuxActionSpec = inf.ReadInt32();
-            for (int idx = 0; idx < cntAuxActionSpec; idx++)
+            return saveState.NextAction switch
             {
-                int cntAction = inf.ReadInt32();
-                AuxActionRef action;
-                string actionRef = inf.ReadString();
-                AuxiliaryAction nextAction = (AuxiliaryAction)Enum.Parse(typeof(AuxiliaryAction), actionRef);
-                switch (nextAction)
-                {
-                    case AuxiliaryAction.WaitingPoint:
-                        action = new AIActionWPRef(thisTrain, inf);
-                        SpecAuxActions.Add(action);
-                        break;
-                    case AuxiliaryAction.SoundHorn:
-                        action = new AIActionHornRef(thisTrain, inf);
-                        SpecAuxActions.Add(action);
-                        break;
-                    case AuxiliaryAction.SignalDelegate:
-                        action = new AIActSigDelegateRef(thisTrain, inf);
-                        var hasWPActionAssociated = inf.ReadBoolean();
-                        if (hasWPActionAssociated && SpecAuxActions.Count > 0)
-                        {
-                            var candidateAssociate = SpecAuxActions[SpecAuxActions.Count - 1];
-                            if (candidateAssociate is AIActionWPRef && (candidateAssociate as AIActionWPRef).TCSectionIndex == (action as AIActSigDelegateRef).TCSectionIndex)
-                            {
-                                (action as AIActSigDelegateRef).AssociatedWPAction = candidateAssociate as AIActionWPRef;
-                            }
-                        }
-                        SpecAuxActions.Add(action);
-                        break;
-                    default:
-                        break;
-                }
-            }
+                AuxiliaryAction.WaitingPoint => new AIActionWPRef(),
+                AuxiliaryAction.SoundHorn => new AIActionHornRef(),
+                AuxiliaryAction.SignalDelegate => new AIActSigDelegateRef(saveState, SpecAuxActions),
+                _ => null,
+            };
         }
 
-        public void Save(BinaryWriter outf, int currentClock)
+        public void PreSave()
         {
-            int cnt = 0;
-            outf.Write(SpecAuxActions.Count);
+            int currentClock = (int)Simulator.Instance.ClockTime;
             AITrain aiTrain = train as AITrain;
             if (SpecAuxActions.Count > 0 && SpecAuxActions[0] != null &&
-                    specRequiredActions.First != null && specRequiredActions.First.Value is AuxActSigDelegate)
+                    SpecificRequiredActions.First != null && SpecificRequiredActions.First.Value is AuxActSigDelegate)
 
                 // SigDelegate WP is running
 
-                if (((AuxActSigDelegate)specRequiredActions.First.Value).currentMvmtState == AiMovementState.HandleAction &&
-                    !(((AuxActSigDelegate)specRequiredActions.First.Value).ActionRef as AIActSigDelegateRef).IsAbsolute)
+                if (((AuxActSigDelegate)SpecificRequiredActions.First.Value).currentMvmtState == AiMovementState.HandleAction &&
+                    !(((AuxActSigDelegate)SpecificRequiredActions.First.Value).ActionRef as AIActSigDelegateRef).IsAbsolute)
                 {
-                    int remainingDelay = ((AuxActSigDelegate)specRequiredActions.First.Value).ActualDepart - currentClock;
-                    AIActSigDelegateRef actionRef = ((AuxActSigDelegate)specRequiredActions.First.Value).ActionRef as AIActSigDelegateRef;
-                    if (actionRef.AssociatedWPAction != null) actionRef.AssociatedWPAction.SetDelay(remainingDelay);
+                    int remainingDelay = ((AuxActSigDelegate)SpecificRequiredActions.First.Value).ActualDepart - currentClock;
+                    AIActSigDelegateRef actionRef = ((AuxActSigDelegate)SpecificRequiredActions.First.Value).ActionRef as AIActSigDelegateRef;
+                    if (actionRef.AssociatedWPAction != null)
+                        actionRef.AssociatedWPAction.SetDelay(remainingDelay);
                     actionRef.Delay = remainingDelay;
                 }
             if (!(train == Simulator.Instance.OriginalPlayerTrain && (train.TrainType == TrainType.AiPlayerDriven ||
@@ -132,10 +103,10 @@ namespace Orts.Simulation.AIs
             {
 
                 if (train is AITrain && ((aiTrain.MovementState == AiMovementState.HandleAction && aiTrain.nextActionInfo != null &&
-                aiTrain.nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.AUX_ACTION && aiTrain.nextActionInfo is AuxActionWPItem)
+                aiTrain.nextActionInfo.NextAction == AiActionType.AuxiliaryAction && aiTrain.nextActionInfo is AuxActionWPItem)
                 || (aiTrain.AuxActionsContainer.SpecAuxActions.Count > 0 &&
-                aiTrain.AuxActionsContainer.SpecAuxActions[0] is AIActionWPRef && (aiTrain.AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
-                (aiTrain.AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AiMovementState.HandleAction)))
+                aiTrain.AuxActionsContainer.SpecAuxActions[0] is AIActionWPRef && (aiTrain.AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).WaitingPoint != null &&
+                (aiTrain.AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).WaitingPoint.currentMvmtState == AiMovementState.HandleAction)))
                 // WP is running
                 {
                     // Do nothing if it is an absolute WP
@@ -143,16 +114,13 @@ namespace Orts.Simulation.AIs
                         (aiTrain.AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).Delay >= 30000 && (aiTrain.AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).Delay < 40000))
                     {
                         int remainingDelay;
-                        if (aiTrain.nextActionInfo != null && aiTrain.nextActionInfo is AuxActionWPItem) remainingDelay = ((AuxActionWPItem)aiTrain.nextActionInfo).ActualDepart - currentClock;
-                        else remainingDelay = ((AIActionWPRef)SpecAuxActions[0]).keepIt.ActualDepart - currentClock;
+                        if (aiTrain.nextActionInfo is AuxActionWPItem auxActionWPItem)
+                            remainingDelay = auxActionWPItem.ActualDepart - currentClock;
+                        else
+                            remainingDelay = ((AIActionWPRef)SpecAuxActions[0]).WaitingPoint.ActualDepart - currentClock;
                         ((AIActionWPRef)SpecAuxActions[0]).SetDelay(remainingDelay);
                     }
                 }
-            }
-            foreach (var action in SpecAuxActions)
-            {
-                ((AIAuxActionsRef)action).save(outf, cnt);
-                cnt++;
             }
         }
 
@@ -162,10 +130,10 @@ namespace Orts.Simulation.AIs
             if (activity != null && activity.Activity.AIBlowsHornAtLevelCrossings && SpecAuxActions.Count == 0)
             {
                 AuxActionHorn auxActionHorn = new AuxActionHorn(true, 2, 0, activity.Activity.AILevelCrossingHornPattern);
-                AIActionHornRef horn = new AIActionHornRef(thisTrain, auxActionHorn, 0);
-                List<KeyValuePair<System.Type, AuxActionRef>> listInfo = horn.GetCallFunction();
+                AIActionHornRef horn = new AIActionHornRef(thisTrain, auxActionHorn);
+                List<KeyValuePair<Type, AuxActionRef>> listInfo = horn.GetCallFunction();
                 foreach (var function in listInfo)
-                    GenFunctions.Add(function);
+                    genericFunctions.Add(function);
             }
         }
 
@@ -175,20 +143,20 @@ namespace Orts.Simulation.AIs
             if (train is AITrain)
             {
                 AITrain aiTrain = train as AITrain;
-                foreach (var fonction in GenFunctions)
+                foreach (KeyValuePair<Type, AuxActionRef> function in genericFunctions)
                 {
-                    if (typeSource == fonction.Key)   //  Caller object is a LevelCrossing
+                    if (typeSource == function.Key)   //  Caller object is a LevelCrossing
                     {
-                        AIAuxActionsRef called = (AIAuxActionsRef)fonction.Value;
+                        AIAuxActionsRef called = (AIAuxActionsRef)function.Value;
                         if (called.HasAction(train.Number, location))
                             return false;
                         AIActionItem newAction = called.CheckGenActions(location, aiTrain, list);
                         if (newAction != null)
                         {
                             if (newAction is AuxActionWPItem)
-                                specRequiredActions.InsertAction(newAction);
+                                SpecificRequiredActions.InsertAction(newAction);
                             else
-                                genRequiredActions.InsertAction(newAction);
+                                genericRequiredActions.InsertAction(newAction);
                         }
                     }
                 }
@@ -201,17 +169,17 @@ namespace Orts.Simulation.AIs
             if (thisAction.CanRemove(train))
             {
                 DistanceTravelledItem thisItem = thisAction;
-                specRequiredActions.Remove(thisItem);
+                SpecificRequiredActions.Remove(thisItem);
             }
         }
 
         public void ProcessGenAction(AITrain thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
         {
-            if (genRequiredActions.Count <= 0 || !(train is AITrain))
+            if (genericRequiredActions.Count <= 0 || !(train is AITrain))
                 return;
             AITrain aiTrain = train as AITrain;
             List<DistanceTravelledItem> itemList = new List<DistanceTravelledItem>();
-            foreach (var action in genRequiredActions)
+            foreach (var action in genericRequiredActions)
             {
                 AIActionItem actionItem = action as AIActionItem;
                 if (actionItem.RequiredDistance <= train.DistanceTravelledM)
@@ -229,11 +197,11 @@ namespace Orts.Simulation.AIs
         public AiMovementState ProcessSpecAction(AITrain thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
         {
             AiMovementState MvtState = movementState;
-            if (specRequiredActions.Count <= 0 || !(train is AITrain))
+            if (SpecificRequiredActions.Count <= 0 || !(train is AITrain))
                 return MvtState;
             AITrain aiTrain = train as AITrain;
             List<DistanceTravelledItem> itemList = new List<DistanceTravelledItem>();
-            foreach (var action in specRequiredActions)
+            foreach (var action in SpecificRequiredActions)
             {
                 AIActionItem actionItem = action as AIActionItem;
                 if (actionItem.RequiredDistance >= train.DistanceTravelledM)
@@ -263,9 +231,9 @@ namespace Orts.Simulation.AIs
             bool remove = true;
             if (action.ActionRef.GenericAction)
             {
-                if (genRequiredActions.Count > 0)
-                    ret = genRequiredActions.Remove(action);
-                if (!ret && specRequiredActions.Count > 0)
+                if (genericRequiredActions.Count > 0)
+                    ret = genericRequiredActions.Remove(action);
+                if (!ret && SpecificRequiredActions.Count > 0)
                 {
                     if (((AIAuxActionsRef)action.ActionRef).CallFreeAction(train))
                         RemoveSpecReqAction(action);
@@ -273,8 +241,10 @@ namespace Orts.Simulation.AIs
             }
             if (action.ActionRef.ActionType == AuxiliaryAction.SoundHorn)
             {
-                if (specRequiredActions.Contains(action)) RemoveSpecReqAction(action);
-                else remove = false;
+                if (SpecificRequiredActions.Contains(action))
+                    RemoveSpecReqAction(action);
+                else
+                    remove = false;
             }
             if (CountSpec() > 0 && remove == true)
                 SpecAuxActions.Remove(action.ActionRef);
@@ -338,7 +308,8 @@ namespace Orts.Simulation.AIs
                     else
                     {
                         SpecAuxActions.RemoveAt(0);
-                        if (SpecAuxActions.Count <= 0) return;
+                        if (SpecAuxActions.Count <= 0)
+                            return;
                     }
                 }
 
@@ -371,7 +342,8 @@ namespace Orts.Simulation.AIs
                                     else */
                     {
                         float requiredSpeedMpS = 0;
-                        if (requiredActionsInserted && ((thisAction is AIActSigDelegateRef && !((AIActSigDelegateRef)thisAction).IsAbsolute))) return;
+                        if (requiredActionsInserted && ((thisAction is AIActSigDelegateRef && !((AIActSigDelegateRef)thisAction).IsAbsolute)))
+                            return;
                         validAction = true;
                         AIActionItem newAction = ((AIAuxActionsRef)SpecAuxActions[specAuxActionsIndex]).Handler(distancesM[1], requiredSpeedMpS, distancesM[0], thisTrain.DistanceTravelledM);
                         if (newAction != null)
@@ -401,7 +373,7 @@ namespace Orts.Simulation.AIs
                             }
                             else
                             {
-                                specRequiredActions.InsertAction(newAction);
+                                SpecificRequiredActions.InsertAction(newAction);
                                 if (newAction is AuxActionWPItem || newAction is AuxActSigDelegate)
                                     return;
                             }
@@ -424,7 +396,8 @@ namespace Orts.Simulation.AIs
                 return;
             AIAuxActionsRef thisAction;
             thisAction = (AIAuxActionsRef)SpecAuxActions[0];
-            if (thisAction.SubrouteIndex != thisTrain.TCRoute.ActiveSubPath) return;
+            if (thisAction.SubrouteIndex != thisTrain.TCRoute.ActiveSubPath)
+                return;
             thisAction.LinkedAuxAction = false;
             return;
         }
@@ -485,6 +458,7 @@ namespace Orts.Simulation.AIs
     }
 
     #endregion
+
     #region AuxActionRef
 
     ////================================================================================================//
@@ -498,7 +472,7 @@ namespace Orts.Simulation.AIs
         public int SubrouteIndex;
         public int RouteIndex;
         public int TCSectionIndex;
-        public int Direction;
+        public Direction Direction { get; private set; }
         protected int TriggerDistance;
         public bool LinkedAuxAction;
         protected List<KeyValuePair<int, WorldLocation>> AskingTrain;
@@ -516,11 +490,12 @@ namespace Orts.Simulation.AIs
         /// The specific datas are used to fire the Action.
         /// </summary>
 
-        public AIAuxActionsRef(float requiredSpeedMps, in WorldLocation location)
+        public AIAuxActionsRef()
         {
         }
 
-        public AIAuxActionsRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir, AuxiliaryAction actionType = AuxiliaryAction.None) :
+        public AIAuxActionsRef(Train train, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, 
+            int sectionIdx, Direction direction, AuxiliaryAction actionType = AuxiliaryAction.None) :
             base(actionType, false)                 //null, requiredSpeedMpS, , -1, )
         {
             RequiredDistance = distance;
@@ -528,34 +503,35 @@ namespace Orts.Simulation.AIs
             SubrouteIndex = subrouteIdx;
             RouteIndex = routeIdx;
             TCSectionIndex = sectionIdx;
-            Direction = dir;
+            Direction = direction;
             AskingTrain = new List<KeyValuePair<int, WorldLocation>>();
             GenericAction = false;
             EndSignalIndex = -1;
         }
 
-        public AIAuxActionsRef(Train thisTrain, BinaryReader inf, AuxiliaryAction actionType = AuxiliaryAction.None)
+        public override async ValueTask Restore([NotNull] AuxActionRefSaveState saveState)
         {
-            RequiredSpeedMpS = inf.ReadSingle();
-            RequiredDistance = inf.ReadSingle();
-            SubrouteIndex = inf.ReadInt32();
-            RouteIndex = inf.ReadInt32();
-            TCSectionIndex = inf.ReadInt32();
-            Direction = inf.ReadInt32();
-            TriggerDistance = inf.ReadInt32();
-            GenericAction = inf.ReadBoolean();
+            await base.Restore(saveState).ConfigureAwait(false);
+            RequiredSpeedMpS = saveState.RequiredSpeed;
+            RequiredDistance = saveState.RequiredDistance;
+            RouteIndex = saveState.RouteIndex;
+            SubrouteIndex = saveState.SubRouteIndex;
+            TCSectionIndex = saveState.TrackCircuitSectionIndex;
+            Direction = saveState.Direction;
+            TriggerDistance = saveState.TriggerDistance;
+            GenericAction = saveState.GenericAction;
             AskingTrain = new List<KeyValuePair<int, WorldLocation>>();
-            EndSignalIndex = inf.ReadInt32();
+            EndSignalIndex = saveState.EndSignalIndex;
             if (EndSignalIndex >= 0)
                 SetSignalObject(Simulator.Instance.SignalEnvironment.Signals[EndSignalIndex]);
             else
                 SetSignalObject(null);
-            ActionType = actionType;
+            ActionType = saveState.NextAction;
         }
 
-        public virtual List<KeyValuePair<System.Type, AuxActionRef>> GetCallFunction()
+        public virtual List<KeyValuePair<Type, AuxActionRef>> GetCallFunction()
         {
-            return default(List<KeyValuePair<System.Type, AuxActionRef>>);
+            return default(List<KeyValuePair<Type, AuxActionRef>>);
         }
 
         //================================================================================================//
@@ -570,7 +546,7 @@ namespace Orts.Simulation.AIs
             AIActionItem info = null;
             if (!LinkedAuxAction || GenericAction)
             {
-                info = new AuxActionItem(this, AIActionItem.AI_ACTION_TYPE.AUX_ACTION);
+                info = new AuxActionItem(this, AiActionType.AuxiliaryAction);
                 info.SetParam((float)list[0], (float)list[1], (float)list[2], (float)list[3]);
 
                 //info = new AuxActionItem(distance, speed, activateDistance, insertedDistance,
@@ -591,41 +567,26 @@ namespace Orts.Simulation.AIs
             distancesM[1] = 0.0f;
             distancesM[0] = thisTrain.PresentPosition[Orts.Common.Direction.Forward].DistanceTravelled;
 
-            return (distancesM);
+            return distancesM;
         }
 
-        public virtual float[] GetActivationDistances(Train thisTrain)
+        public virtual float[] GetActivationDistances(Train train) => new float[2] { float.MaxValue, float.MaxValue };
+
+        public override async ValueTask<AuxActionRefSaveState> Snapshot()
         {
-            float[] distancesM = new float[2];
-            distancesM[1] = float.MaxValue;
-            distancesM[0] = float.MaxValue;
+            AuxActionRefSaveState saveState = await base.Snapshot().ConfigureAwait(false);
 
-            return (distancesM);
-        }
-        //================================================================================================//
-        //
-        // Save
-        //
-
-        public virtual void save(BinaryWriter outf, int cnt)
-        {
-            outf.Write(cnt);
-            string info = NextAction.ToString();
-            outf.Write(NextAction.ToString());
-            outf.Write(RequiredSpeedMpS);
-            outf.Write(RequiredDistance);
-            outf.Write(SubrouteIndex);
-            outf.Write(RouteIndex);
-            outf.Write(TCSectionIndex);
-            outf.Write(Direction);
-            outf.Write(TriggerDistance);
-            outf.Write(GenericAction);
-            outf.Write(EndSignalIndex);
-
-            //if (LinkedAuxAction != null)
-            //    outf.Write(LinkedAuxAction.NextAction.ToString());
-            //else
-            //    outf.Write(AI_AUX_ACTION.NONE.ToString());
+            saveState.NextAction = NextAction;
+            saveState.RequiredSpeed = RequiredSpeedMpS;
+            saveState.RequiredDistance = RequiredDistance;
+            saveState.RouteIndex = RouteIndex;
+            saveState.SubRouteIndex = SubrouteIndex;
+            saveState.TrackCircuitSectionIndex = TCSectionIndex;
+            saveState.Direction = Direction;
+            saveState.TriggerDistance = TriggerDistance;
+            saveState.GenericAction = GenericAction;
+            saveState.EndSignalIndex = EndSignalIndex;
+            return saveState;
         }
 
         //================================================================================================//
@@ -670,33 +631,36 @@ namespace Orts.Simulation.AIs
         }
     }
 
-    //================================================================================================//
     /// <summary>
     /// AIActionWPRef
     /// info used to figure out a Waiting Point along the route.
     /// </summary>
-
     internal class AIActionWPRef : AIAuxActionsRef
     {
-        public AuxActionWPItem keepIt;
+        public AuxActionWPItem WaitingPoint { get; private set; }
 
-        public AIActionWPRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir)
-            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AuxiliaryAction.WaitingPoint)
+        public AIActionWPRef() { }
+
+        public AIActionWPRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, Direction direction)
+            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, direction, AuxiliaryAction.WaitingPoint)
         {
             NextAction = AuxiliaryAction.WaitingPoint;
         }
 
-        public AIActionWPRef(Train thisTrain, BinaryReader inf)
-            : base(thisTrain, inf)
+        public override async ValueTask<AuxActionRefSaveState> Snapshot()
         {
-            Delay = inf.ReadInt32();
-            NextAction = AuxiliaryAction.WaitingPoint;
+            AuxActionRefSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.Delay = Delay;
+            return saveState;
         }
 
-        public override void save(BinaryWriter outf, int cnt)
+        public override async ValueTask Restore([NotNull] AuxActionRefSaveState saveState)
         {
-            base.save(outf, cnt);
-            outf.Write(Delay);
+            await base.Restore(saveState).ConfigureAwait(false);
+            ActionType = AuxiliaryAction.WaitingPoint;
+            Delay = saveState.Delay;
+            NextAction = AuxiliaryAction.WaitingPoint;
         }
 
         internal override AIActionItem Handler(params object[] list)
@@ -705,23 +669,22 @@ namespace Orts.Simulation.AIs
             if (!LinkedAuxAction || GenericAction)
             {
                 LinkedAuxAction = true;
-                info = new AuxActionWPItem(this, AIActionItem.AI_ACTION_TYPE.AUX_ACTION);
-                info.SetParam((float)list[0], (float)list[1], (float)list[2], (float)list[3]);
-                ((AuxActionWPItem)info).SetDelay(Delay);
-                keepIt = (AuxActionWPItem)info;
+                WaitingPoint = new AuxActionWPItem(this, AiActionType.AuxiliaryAction);
+                WaitingPoint.SetParam((float)list[0], (float)list[1], (float)list[2], (float)list[3]);
+                WaitingPoint.SetDelay(Delay);
+                info = WaitingPoint;
             }
             else if (LinkedAuxAction)
             {
-                info = keepIt;
+                info = WaitingPoint;
             }
-            return (AIActionItem)info;
+            return info;
         }
 
         internal override AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
         {
             AIActionItem newAction = null;
             int SpeedMps = (int)thisTrain.SpeedMpS;
-            TrainCar locomotive = thisTrain.FindLeadLocomotive();
             if (Math.Abs(SpeedMps) <= Simulator.MaxStoppedMpS)   //  We call the handler to generate an actionRef
             {
                 newAction = Handler(0f, 0f, thisTrain.DistanceTravelledM, thisTrain.DistanceTravelledM);
@@ -732,12 +695,10 @@ namespace Orts.Simulation.AIs
         }
 
 
-        //================================================================================================//
         /// <summary>
         /// SetDelay
         /// To fullfill the waiting delay.
         /// </summary>
-
         public void SetDelay(int delay)
         {
             Delay = delay;
@@ -828,70 +789,69 @@ namespace Orts.Simulation.AIs
         }
 
 
-        public override List<KeyValuePair<System.Type, AuxActionRef>> GetCallFunction()
+        public override List<KeyValuePair<Type, AuxActionRef>> GetCallFunction()
         {
-            List<KeyValuePair<System.Type, AuxActionRef>> listInfo = new List<KeyValuePair<System.Type, AuxActionRef>>();
+            List<KeyValuePair<Type, AuxActionRef>> listInfo = new List<KeyValuePair<Type, AuxActionRef>>();
 
-            System.Type managed = typeof(Signal);
-            KeyValuePair<System.Type, AuxActionRef> info = new KeyValuePair<System.Type, AuxActionRef>(managed, this);
+            Type managed = typeof(Signal);
+            KeyValuePair<Type, AuxActionRef> info = new KeyValuePair<Type, AuxActionRef>(managed, this);
             listInfo.Add(info);
             return listInfo;
         }
-
     }
-    //================================================================================================//
+
     /// <summary>
     /// AIActionHornRef
     /// Start and Stop the horn
     /// </summary>
-
     public class AIActionHornRef : AIAuxActionsRef
     {
         /// <summary>
         /// The duration of the horn blast, if specified by an activity event.
         /// </summary>
-        private int? DurationS { get; }
+        private int? duration;
 
         /// <summary>
         /// The horn pattern to use.
         /// </summary>
-        private AILevelCrossingHornPattern HornPattern { get; set; }
+        private AILevelCrossingHornPattern hornPattern;
 
-        public AIActionHornRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir, int? durationS, AILevelCrossingHornPattern hornPattern)
-            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AuxiliaryAction.SoundHorn)
+        public AIActionHornRef() { }
+
+        public AIActionHornRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, Direction direction, int? durationS, AILevelCrossingHornPattern hornPattern)
+            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, direction, AuxiliaryAction.SoundHorn)
         {
-            DurationS = durationS;
-            HornPattern = hornPattern;
+            duration = durationS;
+            this.hornPattern = hornPattern;
             NextAction = AuxiliaryAction.SoundHorn;
         }
 
-        public AIActionHornRef(Train thisTrain, BinaryReader inf)
-            : base(thisTrain, inf, AuxiliaryAction.SoundHorn)
+        public AIActionHornRef(Train thisTrain, AuxActionHorn source)
+            : base(thisTrain, 0f, 0f, 0, 0, 0, 0, source.ActionType)
         {
-            if (inf.ReadBoolean())
-                DurationS = inf.ReadInt32();
-            HornPattern = AILevelCrossingHornPattern.Restore(inf);
+            duration = source.Delay;
+            NextAction = AuxiliaryAction.SoundHorn;
+            GenericAction = source.GenericAction;
+            hornPattern = AILevelCrossingHornPattern.CreateInstance(source.Pattern);
+        }
+
+        public override async ValueTask<AuxActionRefSaveState> Snapshot()
+        {
+            AuxActionRefSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.Duration = duration;
+            //saveState.LevelCrossingHornPattern = hornPattern.LevelCrossingHornPatternType();
+            return saveState;
+        }
+
+        public override async ValueTask Restore([NotNull] AuxActionRefSaveState saveState)
+        {
+            await base.Restore(saveState).ConfigureAwait(false);
+            ActionType = AuxiliaryAction.SoundHorn;
+            duration = saveState.Duration;
+            hornPattern = AILevelCrossingHornPattern.CreateInstance(saveState.LevelCrossingHornPattern);
             NextAction = AuxiliaryAction.SoundHorn;
         }
-
-        public AIActionHornRef(Train thisTrain, AuxActionHorn myBase, int nop = 0)
-            : base(thisTrain, 0f, 0f, 0, 0, 0, 0, myBase.ActionType)
-        {
-            DurationS = myBase.Delay;
-            NextAction = AuxiliaryAction.SoundHorn;
-            GenericAction = myBase.GenericAction;
-            HornPattern = AILevelCrossingHornPattern.CreateInstance(myBase.Pattern);
-        }
-
-        public override void save(BinaryWriter outf, int cnt)
-        {
-            base.save(outf, cnt);
-            outf.Write(DurationS.HasValue);
-            if (DurationS.HasValue)
-                outf.Write(DurationS.Value);
-            HornPattern.Save(outf);
-        }
-
 
         internal override AIActionItem Handler(params object[] list)
         {
@@ -899,13 +859,12 @@ namespace Orts.Simulation.AIs
             if (!LinkedAuxAction || GenericAction)
             {
                 LinkedAuxAction = true;
-                info = new AuxActionHornItem(this, AIActionItem.AI_ACTION_TYPE.AUX_ACTION, DurationS, HornPattern);
+                info = new AuxActionHornItem(this, AiActionType.AuxiliaryAction, duration, hornPattern);
                 info.SetParam((float)list[0], (float)list[1], (float)list[2], (float)list[3]);
             }
             return (AIActionItem)info;
         }
 
-        //public bool CheckGenActions(System.Type typeSource, float rearDist, float frontDist, WorldLocation location, uint trackNodeIndex)
         internal override AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
         {
             AIActionItem newAction = null;
@@ -918,24 +877,25 @@ namespace Orts.Simulation.AIs
 
             if (distances[0] >= -minDist)   //  We call the handler to generate an actionRef
             {
-                HornPattern = (AILevelCrossingHornPattern)list[3];
+                hornPattern = (AILevelCrossingHornPattern)list[3];
                 newAction = Handler(distances[0] + thisTrain.DistanceTravelledM, thisTrain.SpeedMpS, distances[0] + thisTrain.DistanceTravelledM, thisTrain.DistanceTravelledM);
                 Register(thisTrain.Number, location);
             }
             return newAction;
         }
 
-        public override List<KeyValuePair<System.Type, AuxActionRef>> GetCallFunction()
+        public override List<KeyValuePair<Type, AuxActionRef>> GetCallFunction()
         {
-            System.Type managed = typeof(LevelCrossings);
-            KeyValuePair<System.Type, AuxActionRef> info = new KeyValuePair<System.Type, AuxActionRef>(managed, this);
-            List<KeyValuePair<System.Type, AuxActionRef>> listInfo = new List<KeyValuePair<System.Type, AuxActionRef>>();
-            listInfo.Add(info);
+            Type managed = typeof(LevelCrossings);
+            KeyValuePair<Type, AuxActionRef> info = new KeyValuePair<Type, AuxActionRef>(managed, this);
+            List<KeyValuePair<Type, AuxActionRef>> listInfo = new List<KeyValuePair<Type, AuxActionRef>>
+            {
+                info
+            };
             return listInfo;
         }
 
         //  Start horn whatever the speed.
-
         public override float[] CalculateDistancesToNextAction(Train thisTrain, float presentSpeedMpS, bool reschedule)
         {
             int thisSectionIndex = thisTrain.PresentPosition[Common.Direction.Forward].TrackCircuitSectionIndex;
@@ -955,22 +915,14 @@ namespace Orts.Simulation.AIs
         }
 
         //  SPA:    We use this fonction and not the one from Train in order to leave control to the AuxAction
-        public override float[] GetActivationDistances(Train thisTrain)
-        {
-            float[] distancesM = new float[2];
-            distancesM[0] = this.RequiredDistance;   // 
-            distancesM[1] = this.RequiredDistance + thisTrain.Length;
-            return (distancesM);
-        }
+        public override float[] GetActivationDistances(Train train) => new float[2] { RequiredDistance, RequiredDistance + train.Length };
 
     }
 
-    //================================================================================================//
     /// <summary>
     /// AIActSigDelegateRef
     /// An action to delegate the Signal management from a WP
     /// </summary>
-
     internal class AIActSigDelegateRef : AIAuxActionsRef
     {
         public bool IsAbsolute;
@@ -978,8 +930,20 @@ namespace Orts.Simulation.AIs
         public float brakeSection;
         protected AuxActSigDelegate AssociatedItem;  //  In order to Unlock the signal when removing Action Reference
 
-        public AIActSigDelegateRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir, AIActionWPRef associatedWPAction = null)
-            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AuxiliaryAction.SignalDelegate)
+        public AIActSigDelegateRef(AuxActionRefSaveState saveState, List<AuxActionRef> auxActions)
+        {
+            if (saveState.WaitPointAction && auxActions.Count > 0)
+            {
+                AuxActionRef candidateAssociate = auxActions[^1];
+                if (candidateAssociate is AIActionWPRef aiActionWaitPointRef && aiActionWaitPointRef.TCSectionIndex == saveState.TrackCircuitSectionIndex)
+                {
+                    AssociatedWPAction = aiActionWaitPointRef;
+                }
+            }
+        }
+
+        public AIActSigDelegateRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, Direction direction, AIActionWPRef associatedWPAction = null)
+            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, direction, AuxiliaryAction.SignalDelegate)
         {
             AssociatedWPAction = associatedWPAction;
             NextAction = AuxiliaryAction.SignalDelegate;
@@ -988,24 +952,25 @@ namespace Orts.Simulation.AIs
             brakeSection = distance; // Set to 1 later when applicable
         }
 
-        public AIActSigDelegateRef(Train thisTrain, BinaryReader inf)
-            : base(thisTrain, inf, AuxiliaryAction.SignalDelegate)
+        public override async ValueTask<AuxActionRefSaveState> Snapshot()
         {
-            Delay = inf.ReadInt32();
-            brakeSection = (float)inf.ReadSingle();
-            IsAbsolute = inf.ReadBoolean();
-            NextAction = AuxiliaryAction.SignalDelegate;
+            AuxActionRefSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.Delay = Delay;
+            saveState.BrakeSection = brakeSection;
+            saveState.Absolute = IsAbsolute;
+            saveState.WaitPointAction = AssociatedWPAction != null;
+            return saveState;
         }
 
-        public override void save(BinaryWriter outf, int cnt)
+        public override async ValueTask Restore([NotNull] AuxActionRefSaveState saveState)
         {
-            base.save(outf, cnt);
-            outf.Write(Delay);
-            outf.Write(brakeSection);
-            outf.Write(IsAbsolute);
-            var hasWPActionAssociated = false;
-            if (AssociatedWPAction != null) hasWPActionAssociated = true;
-            outf.Write(hasWPActionAssociated);
+            await base.Restore(saveState).ConfigureAwait(false);
+            ActionType = AuxiliaryAction.SignalDelegate;
+            Delay = saveState.Delay;
+            brakeSection = saveState.BrakeSection;
+            IsAbsolute = saveState.Absolute;
+            NextAction = AuxiliaryAction.SignalDelegate;
         }
 
         public override bool CallFreeAction(Train thisTrain)
@@ -1027,10 +992,10 @@ namespace Orts.Simulation.AIs
         {
             if (AssociatedItem != null)
                 return null;
-            AuxActSigDelegate info = new AuxActSigDelegate(this, AIActionItem.AI_ACTION_TYPE.AUX_ACTION);
+            AuxActSigDelegate info = new AuxActSigDelegate(this, AiActionType.AuxiliaryAction);
             info.SetParam((float)list[0], (float)list[1], (float)list[2], (float)list[3]);
             AssociatedItem = info;
-            return (AIActionItem)info;
+            return info;
         }
 
         //  SigDelegateRef.
@@ -1068,17 +1033,14 @@ namespace Orts.Simulation.AIs
             EndSignalIndex = idx;
         }
 
-        //================================================================================================//
         /// <summary>
         /// SetDelay
         /// To fullfill the waiting delay.
         /// </summary>
-
         public void SetDelay(int delay)
         {
             Delay = delay;
         }
-
     }
 
 
@@ -1086,42 +1048,37 @@ namespace Orts.Simulation.AIs
     #endregion
 
     #region AuxActionData
-
-    //================================================================================================//
     /// <summary>
     /// AuxActionItem
     /// A specific AIActionItem used at run time to manage a specific Auxiliary Action
     /// </summary>
-
     internal class AuxActionItem : AIActionItem
     {
-        public AuxActionRef ActionRef;
-        public bool Triggered;
-        public bool Processing;
-        public AiMovementState currentMvmtState = AiMovementState.InitAction;
+        public AuxActionRef ActionRef { get; set; }
+        public bool Triggered { get; set; }
+        public bool Processing { get; set; }
+        public AiMovementState currentMvmtState { get; set; } = AiMovementState.InitAction;
         public Signal SignalReferenced { get { return ((AIAuxActionsRef)ActionRef).SignalReferenced; } set { } }
 
-        //================================================================================================//
         /// <summary>
         /// AuxActionItem
         /// The basic constructor
         /// </summary>
+        public AuxActionItem() { }
 
-        public AuxActionItem(AuxActionRef thisItem, AI_ACTION_TYPE thisAction) :
+        public AuxActionItem(AuxActionRef thisItem, AiActionType thisAction) :
             base(null, thisAction)
         {
-            NextAction = AI_ACTION_TYPE.AUX_ACTION;
+            NextAction = AiActionType.AuxiliaryAction;
             ActionRef = thisItem;
         }
 
-        //================================================================================================//
-        //
-        // Restore
-        //
-
-        public AuxActionItem(BinaryReader inf)
-            : base(inf)
+        public override async ValueTask<ActionItemSaveState> Snapshot()
         {
+            ActionItemSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.ActionItemType = ActionItemType.AuxiliaryAction;
+            return saveState;
         }
 
         public virtual bool CanActivate(Train thisTrain, float SpeedMpS, bool reschedule)
@@ -1179,35 +1136,29 @@ namespace Orts.Simulation.AIs
 
     }
 
-    //================================================================================================//
     /// <summary>
     /// AuxActionWPItem
     /// A specific class used at run time to manage a Waiting Point Action
     /// </summary>
-
     internal class AuxActionWPItem : AuxActionItem
     {
         private int Delay;
         public int ActualDepart;
 
-        //================================================================================================//
         /// <summary>
         /// AuxActionWPItem
         /// The specific constructor for WP action
         /// </summary>
-
-        public AuxActionWPItem(AuxActionRef thisItem, AI_ACTION_TYPE thisAction) :
+        public AuxActionWPItem(AuxActionRef thisItem, AiActionType thisAction) :
             base(thisItem, thisAction)
         {
             ActualDepart = 0;
         }
 
-        //================================================================================================//
         /// <summary>
         /// AsString
         /// Used by debugging in HUDWindows.
         /// </summary>
-
         public override string AsString(AITrain thisTrain)
         {
             return " WP(";
@@ -1231,11 +1182,7 @@ namespace Orts.Simulation.AIs
             }
             else
             {
-                if (Math.Abs(thisTrain.SpeedMpS) <= 0.1f && distancesM[1] <= thisTrain.DistanceTravelledM)
-                {
-                    return true;
-                }
-                return false;
+                return Math.Abs(thisTrain.SpeedMpS) <= 0.1f && distancesM[1] <= thisTrain.DistanceTravelledM;
             }
         }
 
@@ -1244,14 +1191,11 @@ namespace Orts.Simulation.AIs
             Delay = delay;
         }
 
-        public override bool ValidAction(Train thisTrain)
+        public override bool ValidAction(Train train)
         {
-            bool actionValid = false;
-
-            actionValid = CanActivate(thisTrain, thisTrain.SpeedMpS, true);
-            if (thisTrain is AITrain && thisTrain.TrainType != TrainType.AiPlayerDriven)
+            bool actionValid = CanActivate(train, train.SpeedMpS, true);
+            if (train is AITrain aiTrain && train.TrainType != TrainType.AiPlayerDriven)
             {
-                AITrain aiTrain = thisTrain as AITrain;
                 if (!actionValid)
                 {
                     aiTrain.RequiredActions.InsertAction(this);
@@ -1261,12 +1205,10 @@ namespace Orts.Simulation.AIs
             return actionValid;
         }
 
-        public override AiMovementState InitAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
+        public override AiMovementState InitAction(Train train, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
         {
-            if (thisTrain is AITrain)
+            if (train is AITrain aiTrain)
             {
-                AITrain aiTrain = thisTrain as AITrain;
-
                 // repeat stopping of train, because it could have been moved by UpdateBrakingState after ProcessAction
                 if (aiTrain.TrainType != TrainType.AiPlayerDriven)
                 {
@@ -1277,7 +1219,7 @@ namespace Orts.Simulation.AIs
                 // If delay between 40000 and 60000 an uncoupling is performed and delay is returned with the two lowest digits of the original one
                 aiTrain.TestUncouple(ref Delay);
                 // If delay between 30000 and 40000 it is considered an absolute delay in the form 3HHMM, where HH and MM are hour and minute where the delay ends
-                Delay = thisTrain.TestAbsDelay(Delay, correctedTime);
+                Delay = train.TestAbsDelay(Delay, correctedTime);
                 // If delay equal to 60001 it is considered as a command to unconditionally attach to the nearby train;
                 aiTrain.TestUncondAttach(ref Delay);
                 // If delay equal to 60002 it is considered as a request for permission to pass signal;
@@ -1290,17 +1232,15 @@ namespace Orts.Simulation.AIs
             return AiMovementState.HandleAction;
         }
 
-        public override AiMovementState HandleAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
+        public override AiMovementState HandleAction(Train train, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
         {
-            if (thisTrain is AITrain)
+            if (train is AITrain aiTrain)
             {
-                if (thisTrain.TrainType != TrainType.AiPlayerDriven)
+                if (train.TrainType != TrainType.AiPlayerDriven)
                 {
-                    thisTrain.SpeedMpS = 0;
+                    train.SpeedMpS = 0;
                 }
-                AITrain aiTrain = thisTrain as AITrain;
-
-                thisTrain.AuxActionsContainer.CheckGenActions(this.GetType(), aiTrain.RearTDBTraveller.WorldLocation, ActualDepart - presentTime);
+                train.AuxActionsContainer.CheckGenActions(this.GetType(), aiTrain.RearTDBTraveller.WorldLocation, ActualDepart - presentTime);
 
                 if (ActualDepart > presentTime)
                 {
@@ -1308,21 +1248,21 @@ namespace Orts.Simulation.AIs
                 }
                 else
                 {
-                    if (thisTrain.AuxActionsContainer.CountSpec() > 0)
-                        thisTrain.AuxActionsContainer.Remove(this);
+                    if (train.AuxActionsContainer.CountSpec() > 0)
+                        train.AuxActionsContainer.Remove(this);
                     return AiMovementState.Stopped;
                 }
             }
             else
             {
-                if (thisTrain.AuxActionsContainer.CountSpec() > 0)
-                    thisTrain.AuxActionsContainer.Remove(this);
+                if (train.AuxActionsContainer.CountSpec() > 0)
+                    train.AuxActionsContainer.Remove(this);
                 return AiMovementState.Stopped;
             }
             return movementState;
         }
 
-        public override AiMovementState ProcessAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
+        public override AiMovementState ProcessAction(Train train, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
         {
             //int correctedTime = presentTime;
             //switch (movementState)
@@ -1334,16 +1274,16 @@ namespace Orts.Simulation.AIs
             switch (mvtState)
             {
                 case AiMovementState.InitAction:
-                    movementState = InitAction(thisTrain, presentTime, elapsedClockSeconds, movementState);
+                    movementState = InitAction(train, presentTime, elapsedClockSeconds, movementState);
                     break;
                 case AiMovementState.HandleAction:
-                    movementState = HandleAction(thisTrain, presentTime, elapsedClockSeconds, movementState);
+                    movementState = HandleAction(train, presentTime, elapsedClockSeconds, movementState);
                     break;
                 case AiMovementState.Braking:
-                    if (thisTrain is AITrain)
+                    if (train is AITrain)
                     {
-                        AITrain aiTrain = thisTrain as AITrain;
-                        float distanceToGoM = thisTrain.ActivityClearingDistanceM;
+                        AITrain aiTrain = train as AITrain;
+                        float distanceToGoM = train.ActivityClearingDistanceM;
                         distanceToGoM = ActivateDistanceM - aiTrain.PresentPosition[Direction.Forward].DistanceTravelled;
                         float NextStopDistanceM = distanceToGoM;
                         if (distanceToGoM <= 0f)
@@ -1365,18 +1305,18 @@ namespace Orts.Simulation.AIs
                     }
                     else
                     {
-                        if (thisTrain.AuxActionsContainer.CountSpec() > 0)
-                            thisTrain.AuxActionsContainer.RemoveAt(0);
+                        if (train.AuxActionsContainer.CountSpec() > 0)
+                            train.AuxActionsContainer.RemoveAt(0);
                     }
                     break;
                 case AiMovementState.Stopped:
-                    if (!(thisTrain is AITrain))
-                        if (thisTrain.AuxActionsContainer.CountSpec() > 0)
-                            thisTrain.AuxActionsContainer.Remove(this);
+                    if (!(train is AITrain))
+                        if (train.AuxActionsContainer.CountSpec() > 0)
+                            train.AuxActionsContainer.Remove(this);
 
-                    if (thisTrain is AITrain)
+                    if (train is AITrain)
                     {
-                        AITrain aiTrain = thisTrain as AITrain;
+                        AITrain aiTrain = train as AITrain;
 
                         //movementState = thisTrain.UpdateStoppedState();   // Don't call UpdateStoppedState(), WP can't touch Signal
                         movementState = AiMovementState.Braking;
@@ -1393,15 +1333,10 @@ namespace Orts.Simulation.AIs
 
     }
 
-
-
-
-    //================================================================================================//
     /// <summary>
     /// AuxActionHornItem
     /// A specific class used at run time to manage a Horn Action
     /// </summary>
-
     internal class AuxActionHornItem : AuxActionItem
     {
         private int? DurationS { get; }
@@ -1409,25 +1344,21 @@ namespace Orts.Simulation.AIs
         private int NextStepTimeS { get; set; }
         private IEnumerator<int> Execution { get; set; }
 
-        //================================================================================================//
         /// <summary>
         /// AuxActionhornItem
         /// The specific constructor for horn action
         /// </summary>
-
-        public AuxActionHornItem(AuxActionRef thisItem, AI_ACTION_TYPE thisAction, int? durationS, AILevelCrossingHornPattern hornPattern) :
+        public AuxActionHornItem(AuxActionRef thisItem, AiActionType thisAction, int? durationS, AILevelCrossingHornPattern hornPattern) :
             base(thisItem, thisAction)
         {
             DurationS = durationS;
             HornPattern = hornPattern;
         }
 
-        //================================================================================================//
         /// <summary>
         /// AsString
         /// Used by debugging in HUDWindows.
         /// </summary>
-
         public override string AsString(AITrain thisTrain)
         {
             return " Horn(";
@@ -1545,35 +1476,29 @@ namespace Orts.Simulation.AIs
 
     }
 
-    //================================================================================================//
     /// <summary>
     /// AuxActSigDelegate
     /// Used to postpone the signal clear after WP
     /// </summary>
-
     internal class AuxActSigDelegate : AuxActionItem
     {
         public int ActualDepart;
         public bool locked = true;
 
-        //================================================================================================//
         /// <summary>
         /// AuxActSigDelegate Item
         /// The specific constructor for AuxActSigDelegate action
         /// </summary>
-
-        public AuxActSigDelegate(AuxActionRef thisItem, AI_ACTION_TYPE thisAction) :
+        public AuxActSigDelegate(AuxActionRef thisItem, AiActionType thisAction) :
             base(thisItem, thisAction)
         {
             ActualDepart = 0;
         }
 
-        //================================================================================================//
         /// <summary>
         /// AsString
         /// Used by debugging in HUDWindows.
         /// </summary>
-
         public override string AsString(AITrain thisTrain)
         {
             return " SigDlgt(";
@@ -1608,7 +1533,8 @@ namespace Orts.Simulation.AIs
                         thisTrain.SetTrainOutOfControl(OutOfControlReason.OutOfPath);
                         return true;
                     }
-                    else return false;
+                    else
+                        return false;
                 }
             }
 
@@ -1635,9 +1561,7 @@ namespace Orts.Simulation.AIs
         {
             if (Processing && (currentMvmtState == AiMovementState.Stopped || currentMvmtState == AiMovementState.HandleAction))
                 return true;
-            if (SignalReferenced == null)
-                return true;
-            return false;
+            return SignalReferenced == null;
         }
 
 
@@ -1686,13 +1610,13 @@ namespace Orts.Simulation.AIs
             {
                 if (((AIActSigDelegateRef)ActionRef).AssociatedWPAction != null)
                 {
-                    var WPAction = ((AIActSigDelegateRef)ActionRef).AssociatedWPAction.keepIt;
+                    var WPAction = ((AIActSigDelegateRef)ActionRef).AssociatedWPAction.WaitingPoint;
                     if (thisTrain.RequiredActions.Contains(WPAction))
                     {
                         thisTrain.RequiredActions.Remove(WPAction);
                     }
-                    if (thisTrain.AuxActionsContainer.specRequiredActions.Contains(WPAction))
-                        thisTrain.AuxActionsContainer.specRequiredActions.Remove(WPAction);
+                    if (thisTrain.AuxActionsContainer.SpecificRequiredActions.Contains(WPAction))
+                        thisTrain.AuxActionsContainer.SpecificRequiredActions.Remove(WPAction);
                     if (thisTrain.AuxActionsContainer.SpecAuxActions.Contains(((AIActSigDelegateRef)ActionRef).AssociatedWPAction))
                         thisTrain.AuxActionsContainer.SpecAuxActions.Remove(((AIActSigDelegateRef)ActionRef).AssociatedWPAction);
                 }

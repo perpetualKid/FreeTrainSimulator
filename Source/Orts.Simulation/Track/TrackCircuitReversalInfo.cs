@@ -1,9 +1,14 @@
-﻿using System.IO;
+﻿using System;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
+
+using Orts.Models.State;
 
 namespace Orts.Simulation.Track
 {
     /// Reversal information class
-    internal class TrackCircuitReversalInfo
+    internal class TrackCircuitReversalInfo : ISaveStateApi<TrackCircuitReversalInfoSaveState>
     {
         public bool Valid { get; private set; }
         public int LastDivergeIndex { get; set; }
@@ -232,48 +237,52 @@ namespace Orts.Simulation.Track
             ReversalActionInserted = false;
         }
 
-        /// Constructor for Restore
-        public TrackCircuitReversalInfo(BinaryReader inf)
+        public ValueTask<TrackCircuitReversalInfoSaveState> Snapshot()
         {
-            Valid = inf.ReadBoolean();
-            LastDivergeIndex = inf.ReadInt32();
-            FirstDivergeIndex = inf.ReadInt32();
-            DivergeSectorIndex = inf.ReadInt32();
-            DivergeOffset = inf.ReadSingle();
-
-            SignalAvailable = inf.ReadBoolean();
-            SignalUsed = inf.ReadBoolean();
-            LastSignalIndex = inf.ReadInt32();
-            FirstSignalIndex = inf.ReadInt32();
-            SignalSectorIndex = inf.ReadInt32();
-            SignalOffset = inf.ReadSingle();
-            ReverseReversalOffset = inf.ReadSingle();
-            ReversalIndex = inf.ReadInt32();
-            ReversalSectionIndex = inf.ReadInt32();
-            ReversalActionInserted = inf.ReadBoolean();
+            return ValueTask.FromResult(new TrackCircuitReversalInfoSaveState()
+            { 
+                Valid = Valid,
+                LastDivergeIndex = LastDivergeIndex,
+                FirstDivergeIndex= FirstDivergeIndex,
+                DivergeSectorIndex = DivergeSectorIndex,
+                DivergeOffset = DivergeOffset,
+                SignalAvailable = SignalAvailable,
+                SignalUsed = SignalUsed,
+                LastSignalIndex = LastSignalIndex,
+                FirstSignalIndex = FirstSignalIndex,
+                SignalSectorIndex = SignalSectorIndex,
+                SignalOffset = SignalOffset,
+                ReverseReversalOffset = ReverseReversalOffset,
+                ReversalIndex = ReversalIndex,
+                ReversalSectionIndex = ReversalSectionIndex,
+                ReversalActionInserted = ReversalActionInserted,
+            });
         }
 
-        /// Save
-        public void Save(BinaryWriter outf)
+        public ValueTask Restore(TrackCircuitReversalInfoSaveState saveState)
         {
-            outf.Write(Valid);
-            outf.Write(LastDivergeIndex);
-            outf.Write(FirstDivergeIndex);
-            outf.Write(DivergeSectorIndex);
-            outf.Write(DivergeOffset);
-            outf.Write(SignalAvailable);
-            outf.Write(SignalUsed);
-            outf.Write(LastSignalIndex);
-            outf.Write(FirstSignalIndex);
-            outf.Write(SignalSectorIndex);
-            outf.Write(SignalOffset);
-            outf.Write(ReverseReversalOffset);
-            outf.Write(ReversalIndex);
-            outf.Write(ReversalSectionIndex);
-            outf.Write(ReversalActionInserted);
-        }
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-    }//TCReversalInfo
+            Valid = saveState.Valid;
+            LastDivergeIndex = saveState.LastDivergeIndex;
+            FirstDivergeIndex = saveState.FirstDivergeIndex;
+            DivergeSectorIndex = saveState.DivergeSectorIndex;
+            DivergeOffset = saveState.DivergeOffset;
+
+            SignalAvailable = saveState.SignalAvailable;
+            SignalUsed = saveState.SignalUsed;
+            LastSignalIndex = saveState.LastSignalIndex;
+            FirstSignalIndex = saveState.FirstSignalIndex;
+            SignalSectorIndex = saveState.SignalSectorIndex;
+            SignalOffset = saveState.SignalOffset;
+            ReverseReversalOffset = saveState.ReverseReversalOffset;
+            ReversalIndex = saveState.ReversalIndex;
+            ReversalSectionIndex = saveState.ReversalSectionIndex;
+            ReversalActionInserted = saveState.ReversalActionInserted;
+
+            return ValueTask.CompletedTask;
+        }
+    }
 
     /// <summary>
     /// Rough Reversal information class, used only during route building.

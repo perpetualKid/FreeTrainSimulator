@@ -44,6 +44,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -107,6 +108,8 @@ namespace Orts.Simulation.Physics
 
         internal float MinCheckDistanceExplorerM => Math.Max(AllowedMaxSpeedMpS * MaxTimeS, MinCheckDistanceM);      // minimum distance to check ahead in explorer mode
 
+        internal TrainDeadlockInfo TrainDeadlockInfo { get; private set; }
+
 
         #endregion
 
@@ -162,7 +165,7 @@ namespace Orts.Simulation.Physics
         public float DPDynamicBrakePercent { get; internal set; } = -1;         // Distributed Power async/back group dynamic brake control
         public DistributedPowerMode DistributedPowerMode { get; internal set; } // Distributed Power mode: -1: Brake, 0: Idle, 1: Traction
 
-        public TrainBrakeSystem BrakeSystem { get; }
+        public TrainBrakeSystem BrakeSystem { get; private set; }
 
         public INameValueInformationProvider DispatcherInfo { get; private set; }
 
@@ -265,8 +268,8 @@ namespace Orts.Simulation.Physics
         private protected ServiceTraffics trafficService;
         private EnumArray2D<int, Direction, TrackDirection> misalignedSwitch = new EnumArray2D<int, Direction, TrackDirection>(-1);  // misaligned switch indication per direction:
         // cell 0 : index of switch, cell 1 : required linked section; -1 if not valid
-        public Dictionary<int, float> PassedSignalSpeeds { get; } = new Dictionary<int, float>();  // list of signals and related speeds pending processing (manual and explorer mode)
-        public int[] LastPassedSignal { get; } = new int[2] { -1, -1 };  // index of last signal which set speed limit per direction (manual and explorer mode)
+        public Dictionary<int, float> PassedSignalSpeeds { get; private set; } = new Dictionary<int, float>();  // list of signals and related speeds pending processing (manual and explorer mode)
+        private EnumArray<int, Direction> lastSignalsPassed = new EnumArray<int, Direction>(-1); // index of last signal which set speed limit per direction (manual and explorer mode)
 
         // Variables used for autopilot mode and played train switching
         public bool IsActualPlayerTrain => this == simulator.PlayerLocomotive?.Train;
@@ -304,10 +307,8 @@ namespace Orts.Simulation.Physics
 
         public OutOfControlReason OutOfControlReason { get; private set; } = OutOfControlReason.UnDefined; // train out of control
 
-        public EnumArray<TrackCircuitPosition, Direction> PresentPosition { get; } =
-            new EnumArray<TrackCircuitPosition, Direction>(new TrackCircuitPosition[] { new TrackCircuitPosition(), new TrackCircuitPosition() });         // present position : 0 = front, 1 = rear
-        public EnumArray<TrackCircuitPosition, Direction> PreviousPosition { get; } =
-            new EnumArray<TrackCircuitPosition, Direction>(new TrackCircuitPosition[] { new TrackCircuitPosition(), new TrackCircuitPosition() });        // previous train position
+        public EnumArray<TrackCircuitPosition, Direction> PresentPosition { get; } = new EnumArray<TrackCircuitPosition, Direction>(() => new TrackCircuitPosition());         // present position : 0 = front, 1 = rear
+        public EnumArray<TrackCircuitPosition, Direction> PreviousPosition { get; } = new EnumArray<TrackCircuitPosition, Direction>(() => new TrackCircuitPosition());        // previous train position
 
         public float DistanceTravelledM { get; internal set; }      // actual distance travelled
         internal float ReservedTrackLengthM { get; private set; }   // lenght of reserved section
@@ -315,7 +316,7 @@ namespace Orts.Simulation.Physics
         internal float DistanceTravelled { get; set; }                                          // distance travelled, but not exactly
         private float targetSpeedMpS;                                    // target speed for remote trains; used for sound management
         internal DistanceTravelledActions RequiredActions { get; } = new DistanceTravelledActions(); // distance travelled action list
-        internal AuxActionsContainer AuxActionsContainer { get; } // Action To Do during activity, like WP
+        internal AuxActionsContainer AuxActionsContainer { get; private set; } // Action To Do during activity, like WP
 
         internal float ActivityClearingDistanceM { get; set; } = 30.0f;        // clear distance to stopping point for activities
 
@@ -334,11 +335,32 @@ namespace Orts.Simulation.Physics
         // TODO: Replace this with an event
         public bool FormationReversed { get; set; }          // flags the execution of the ReverseFormation method (executed at reversal points)
 
-        public class EndAuthority
+        public class EndAuthority : ISaveStateApi<AuthoritySaveState>
         {
             public EndAuthorityType EndAuthorityType { get; set; } = EndAuthorityType.NoPathReserved;
             public int LastReservedSection { get; set; } = -1;// index of furthest cleared section (for NODE control)
             public float Distance { get; set; }// distance to end of authority
+
+            public ValueTask Restore(AuthoritySaveState saveState)
+            {
+                ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+                EndAuthorityType = saveState.EndAuthorityType;
+                LastReservedSection = saveState.LastReservedSection;
+                Distance = saveState.Distance;
+
+                return ValueTask.CompletedTask;
+            }
+
+            public ValueTask<AuthoritySaveState> Snapshot()
+            {
+                return ValueTask.FromResult(new AuthoritySaveState()
+                {
+                    EndAuthorityType = EndAuthorityType,
+                    LastReservedSection = LastReservedSection,
+                    Distance = Distance,
+                });
+            }
         }
 
         public EnumArray<EndAuthority, Direction> EndAuthorities { get; } = new EnumArray<EndAuthority, Direction>(() => new EndAuthority());
@@ -482,6 +504,7 @@ namespace Orts.Simulation.Physics
             allowedAbsoluteMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
             allowedAbsoluteMaxTempSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
             DispatcherInfo = GetDispatcherInfoProvider();
+            TrainDeadlockInfo = new TrainDeadlockInfo(this);
         }
 
         // Constructor
@@ -584,175 +607,175 @@ namespace Orts.Simulation.Physics
             ArgumentNullException.ThrowIfNull(inf);
             Init();
 
-            BrakeSystem = new TrainBrakeSystem();
+            //BrakeSystem = new TrainBrakeSystem();
 
-            RoutedForward = new TrainRouted(this, Direction.Forward);
-            RoutedBackward = new TrainRouted(this, Direction.Backward);
-            ColdStart = false;
+            //RoutedForward = new TrainRouted(this, Direction.Forward);
+            //RoutedBackward = new TrainRouted(this, Direction.Backward);
+            //ColdStart = false;
             //RestoreCars(inf);
-            Number = inf.ReadInt32();
-            TotalNumber = Math.Max(Number + 1, TotalNumber);
-            Name = inf.ReadString();
-            SpeedMpS = previousSpeedMpS = inf.ReadSingle();
-            AccelerationMpSpS.Preset(inf.ReadSingle());
-            TrainType = (TrainType)inf.ReadInt32();
-            if (TrainType == TrainType.Static)
-                ColdStart = true;
-            MUDirection = (MidpointDirection)inf.ReadInt32();
-            MUThrottlePercent = inf.ReadSingle();
-            DPThrottlePercent = inf.ReadSingle();
-            MUGearboxGearIndex = inf.ReadInt32();
-            MUDynamicBrakePercent = inf.ReadSingle();
-            DPDynamicBrakePercent = inf.ReadSingle();
-            DistributedPowerMode = (DistributedPowerMode)inf.ReadInt32();
-            BrakeSystem.EqualReservoirPressurePSIorInHg = inf.ReadSingle();
-            BrakeSystem.BrakeLine2Pressure = inf.ReadSingle();
-            BrakeSystem.BrakeLine3Pressure = inf.ReadSingle();
-            BrakeSystem.BrakeLine4Pressure = inf.ReadSingle();
-            aiBrakePercent = inf.ReadSingle();
-            LeadLocomotiveIndex = inf.ReadInt32();
-            BrakeSystem.RetainerSetting = (RetainerSetting)inf.ReadInt32();
-            BrakeSystem.RetainerPercent = inf.ReadInt32();
-            RearTDBTraveller = new Traveller(inf);
-            SlipperySpotDistanceM = inf.ReadSingle();
-            SlipperySpotLengthM = inf.ReadSingle();
-            TrainMaxSpeedMpS = inf.ReadSingle();
-            AllowedMaxSpeedMpS = inf.ReadSingle();
-            AllowedMaxSpeedSignalMpS = inf.ReadSingle();
-            AllowedMaxSpeedLimitMpS = inf.ReadSingle();
-            allowedMaxTempSpeedLimitMpS = inf.ReadSingle();
-            allowedAbsoluteMaxSpeedSignalMpS = inf.ReadSingle();
-            allowedAbsoluteMaxSpeedLimitMpS = inf.ReadSingle();
-            allowedAbsoluteMaxTempSpeedLimitMpS = inf.ReadSingle();
-            BrakingTime = inf.ReadDouble();
-            ContinuousBrakingTime = inf.ReadDouble();
-            RunningTime = inf.ReadDouble();
-            IncorporatedTrainNo = inf.ReadInt32();
-            IncorporatingTrainNo = inf.ReadInt32();
-            IsAuxTenderCoupled = inf.ReadBoolean();
-            if (IncorporatedTrainNo > -1)
-            {
-                Train train = GetOtherTrainByNumber(IncorporatedTrainNo);
-                if (train != null)
-                {
-                    train.IncorporatingTrain = this;
-                    train.IncorporatingTrainNo = Number;
-                }
-            }
-            if (IncorporatingTrainNo > -1)
-            {
-                Train train = GetOtherTrainByNumber(IncorporatingTrainNo);
-                if (train != null)
-                {
-                    IncorporatingTrain = train;
-                }
-            }
-            CheckFreight();
+            //Number = inf.ReadInt32();
+            //TotalNumber = Math.Max(Number + 1, TotalNumber);
+            //Name = inf.ReadString();
+            //SpeedMpS = previousSpeedMpS = inf.ReadSingle();
+            //AccelerationMpSpS.Preset(inf.ReadSingle());
+            //TrainType = (TrainType)inf.ReadInt32();
+            //if (TrainType == TrainType.Static)
+            //    ColdStart = true;
+            //MUDirection = (MidpointDirection)inf.ReadInt32();
+            //MUThrottlePercent = inf.ReadSingle();
+            //DPThrottlePercent = inf.ReadSingle();
+            //MUGearboxGearIndex = inf.ReadInt32();
+            //MUDynamicBrakePercent = inf.ReadSingle();
+            //DPDynamicBrakePercent = inf.ReadSingle();
+            //DistributedPowerMode = (DistributedPowerMode)inf.ReadInt32();
+            //BrakeSystem.EqualReservoirPressurePSIorInHg = inf.ReadSingle();
+            //BrakeSystem.BrakeLine2Pressure = inf.ReadSingle();
+            //BrakeSystem.BrakeLine3Pressure = inf.ReadSingle();
+            //BrakeSystem.BrakeLine4Pressure = inf.ReadSingle();
+            //aiBrakePercent = inf.ReadSingle();
+            //LeadLocomotiveIndex = inf.ReadInt32();
+            //BrakeSystem.RetainerSetting = (RetainerSetting)inf.ReadInt32();
+            //BrakeSystem.RetainerPercent = inf.ReadInt32();
+            //RearTDBTraveller = new Traveller(inf);
+            //SlipperySpotDistanceM = inf.ReadSingle();
+            //SlipperySpotLengthM = inf.ReadSingle();
+            //TrainMaxSpeedMpS = inf.ReadSingle();
+            //AllowedMaxSpeedMpS = inf.ReadSingle();
+            //AllowedMaxSpeedSignalMpS = inf.ReadSingle();
+            //AllowedMaxSpeedLimitMpS = inf.ReadSingle();
+            //allowedMaxTempSpeedLimitMpS = inf.ReadSingle();
+            //allowedAbsoluteMaxSpeedSignalMpS = inf.ReadSingle();
+            //allowedAbsoluteMaxSpeedLimitMpS = inf.ReadSingle();
+            //allowedAbsoluteMaxTempSpeedLimitMpS = inf.ReadSingle();
+            //BrakingTime = inf.ReadDouble();
+            //ContinuousBrakingTime = inf.ReadDouble();
+            //RunningTime = inf.ReadDouble();
+            //IncorporatedTrainNo = inf.ReadInt32();
+            //IncorporatingTrainNo = inf.ReadInt32();
+            //IsAuxTenderCoupled = inf.ReadBoolean();
+            //if (IncorporatedTrainNo > -1)
+            //{
+            //    Train train = GetOtherTrainByNumber(IncorporatedTrainNo);
+            //    if (train != null)
+            //    {
+            //        train.IncorporatingTrain = this;
+            //        train.IncorporatingTrainNo = Number;
+            //    }
+            //}
+            //if (IncorporatingTrainNo > -1)
+            //{
+            //    Train train = GetOtherTrainByNumber(IncorporatingTrainNo);
+            //    if (train != null)
+            //    {
+            //        IncorporatingTrain = train;
+            //    }
+            //}
+            //CheckFreight();
 
 
-            SignalObjectItems = new List<SignalItemInfo>();
+            //SignalObjectItems = new List<SignalItemInfo>();
 
-            TrainType = (TrainType)inf.ReadInt32();
-            IsTilting = inf.ReadBoolean();
-            ClaimState = inf.ReadBoolean();
-            evaluateTrainSpeed = inf.ReadBoolean();
-            evaluationInterval = inf.ReadInt32();
-            evaluationContent = (EvaluationLogContents)inf.ReadInt32();
+            //TrainType = (TrainType)inf.ReadInt32();
+            //IsTilting = inf.ReadBoolean();
+            //ClaimState = inf.ReadBoolean();
+            //evaluateTrainSpeed = inf.ReadBoolean();
+            //evaluationInterval = inf.ReadInt32();
+            //evaluationContent = (EvaluationLogContents)inf.ReadInt32();
 
-            int dsfile = inf.ReadInt32();
-            if (dsfile < 0)
-            {
-                evaluationLogFile = string.Empty;
-            }
-            else
-            {
-                evaluationLogFile = inf.ReadString();
-            }
+            //int dsfile = inf.ReadInt32();
+            //if (dsfile < 0)
+            //{
+            //    evaluationLogFile = string.Empty;
+            //}
+            //else
+            //{
+            //    evaluationLogFile = inf.ReadString();
+            //}
 
-            TCRoute = null;
-            bool routeAvailable = inf.ReadBoolean();
-            if (routeAvailable)
-            {
-                TCRoute = new TrackCircuitRoutePath(inf);
-            }
+            //            TCRoute = null;
+            //            bool routeAvailable = inf.ReadBoolean();
+            //            if (routeAvailable)
+            //            {
+            ////                TCRoute = new TrackCircuitRoutePath(inf);
+            //            }
 
-            ValidRoutes[Direction.Forward] = null;
-            bool validRouteAvailable = inf.ReadBoolean();
-            if (validRouteAvailable)
-            {
-                ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(inf);
-            }
+            //            ValidRoutes[Direction.Forward] = null;
+            //            bool validRouteAvailable = inf.ReadBoolean();
+            //            if (validRouteAvailable)
+            //            {
+            //                ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(inf);
+            //            }
 
-            ValidRoutes[Direction.Backward] = null;
-            validRouteAvailable = inf.ReadBoolean();
-            if (validRouteAvailable)
-            {
-                ValidRoutes[Direction.Backward] = new TrackCircuitPartialPathRoute(inf);
-            }
+            //            ValidRoutes[Direction.Backward] = null;
+            //            validRouteAvailable = inf.ReadBoolean();
+            //            if (validRouteAvailable)
+            //            {
+            //                ValidRoutes[Direction.Backward] = new TrackCircuitPartialPathRoute(inf);
+            //            }
 
-            int count = inf.ReadInt32();
-            for (int i = 0; i < count; i++)
-            {
-                OccupiedTrack.Add(TrackCircuitSection.TrackCircuitList[inf.ReadInt32()]);
-            }
+            //int count = inf.ReadInt32();
+            //for (int i = 0; i < count; i++)
+            //{
+            //    OccupiedTrack.Add(TrackCircuitSection.TrackCircuitList[inf.ReadInt32()]);
+            //}
 
-            count = inf.ReadInt32();
-            for (int i = 0; i < count; i++)
-            {
-                HoldingSignals.Add(inf.ReadInt32());
-            }
+            //count = inf.ReadInt32();
+            //for (int i = 0; i < count; i++)
+            //{
+            //    HoldingSignals.Add(inf.ReadInt32());
+            //}
 
-            count = inf.ReadInt32();
-            for (int i = 0; i < count; i++)
-            {
-                //StationStops.Add(new StationStop(inf));
-            }
+            //count = inf.ReadInt32();
+            //for (int i = 0; i < count; i++)
+            //{
+            //    StationStops.Add(new StationStop(inf));
+            //}
 
-            count = inf.ReadInt32();
-            if (count >= 0)
-            {
-                //PreviousStop = new StationStop(inf);
-            }
-            else
-            {
-                PreviousStop = null;
-            }
+            //count = inf.ReadInt32();
+            //if (count >= 0)
+            //{
+            //    PreviousStop = new StationStop(inf);
+            //}
+            //else
+            //{
+            //    PreviousStop = null;
+            //}
 
-            AtStation = inf.ReadBoolean();
-            MayDepart = inf.ReadBoolean();
-            CheckStations = inf.ReadBoolean();
-            attachTo = inf.ReadInt32();
+            //AtStation = inf.ReadBoolean();
+            //MayDepart = inf.ReadBoolean();
+            //CheckStations = inf.ReadBoolean();
+            //attachTo = inf.ReadInt32();
 
-            DisplayMessage = inf.ReadString();
+            //DisplayMessage = inf.ReadString();
 
-            int delaySeconds = inf.ReadInt32();
-            if (delaySeconds < 0) // delay value (in seconds, as integer)
-            {
-                Delay = null;
-            }
-            else
-            {
-                Delay = TimeSpan.FromSeconds(delaySeconds);
-            }
+            //int delaySeconds = inf.ReadInt32();
+            //if (delaySeconds < 0) // delay value (in seconds, as integer)
+            //{
+            //    Delay = null;
+            //}
+            //else
+            //{
+            //    Delay = TimeSpan.FromSeconds(delaySeconds);
+            //}
 
-            count = inf.ReadInt32();
-            for (int i = 0; i < count; i++)
-            {
-                int passedSignalKey = inf.ReadInt32();
-                float passedSignalValue = inf.ReadSingle();
-                PassedSignalSpeeds.Add(passedSignalKey, passedSignalValue);
-            }
-            LastPassedSignal[0] = inf.ReadInt32();
-            LastPassedSignal[1] = inf.ReadInt32();
+            //int count = inf.ReadInt32();
+            //for (int i = 0; i < count; i++)
+            //{
+            //    int passedSignalKey = inf.ReadInt32();
+            //    float passedSignalValue = inf.ReadSingle();
+            //    PassedSignalSpeeds.Add(passedSignalKey, passedSignalValue);
+            //}
+            //LastPassedSignal[0] = inf.ReadInt32();
+            //LastPassedSignal[1] = inf.ReadInt32();
 
-            bool trafficServiceAvailable = inf.ReadBoolean();
-            if (trafficServiceAvailable)
-            {
-                trafficService = RestoreTrafficSDefinition(inf);
-            }
+            //bool trafficServiceAvailable = inf.ReadBoolean();
+            //if (trafficServiceAvailable)
+            //{
+            //    trafficService = RestoreTrafficSDefinition(inf);
+            //}
 
-            ControlMode = (TrainControlMode)inf.ReadInt32();
-            OutOfControlReason = (OutOfControlReason)inf.ReadInt32();
+            //ControlMode = (TrainControlMode)inf.ReadInt32();
+            //OutOfControlReason = (OutOfControlReason)inf.ReadInt32();
             //EndAuthorityTypes[0] = (EndAuthorityType)inf.ReadInt32();
             //EndAuthorityTypes[1] = (EndAuthorityType)inf.ReadInt32();
             //LastReservedSection[0] = inf.ReadInt32();
@@ -761,6 +784,7 @@ namespace Orts.Simulation.Physics
             //DistanceToEndNodeAuthority[0] = inf.ReadSingle();
             //DistanceToEndNodeAuthority[1] = inf.ReadSingle();
 
+            /*
             if (TrainType != TrainType.AiNotStarted && TrainType != TrainType.AiAutoGenerated)
             {
                 CalculatePositionOfCars();
@@ -819,9 +843,9 @@ namespace Orts.Simulation.Physics
                 //        break;
                 //}
             }
-
             AuxActionsContainer = new AuxActionsContainer(this, inf);
             RestoreDeadlockInfo(inf);
+            */
 
             InitialSpeed = inf.ReadSingle();
             IsPathless = inf.ReadBoolean();
@@ -848,21 +872,6 @@ namespace Orts.Simulation.Physics
         }
         #endregion
 
-        private static ServiceTraffics RestoreTrafficSDefinition(BinaryReader inf)
-        {
-            ServiceTraffics serviceDefinition = new ServiceTraffics(inf.ReadInt32());
-
-            int totalTrafficItems = inf.ReadInt32();
-
-            for (int i = 0; i < totalTrafficItems; i++)
-            {
-                ServiceTrafficItem trafficItem = new ServiceTrafficItem(inf.ReadInt32(), inf.ReadInt32(), 0, inf.ReadSingle(), inf.ReadInt32());
-                serviceDefinition.Add(trafficItem);
-            }
-
-            return serviceDefinition;
-        }
-
         private void RestoreDeadlockInfo(BinaryReader inf)
         {
             int totalDeadlock = inf.ReadInt32();
@@ -888,18 +897,21 @@ namespace Orts.Simulation.Physics
 
                     thisDeadlockList.Add(thisDeadlockDetails);
                 }
-                DeadlockInfo.Add(deadlockListKey, thisDeadlockList);
+                //DeadlockInfo.Add(deadlockListKey, thisDeadlockList);
             }
         }
 
         public async ValueTask<TrainSaveState> Snapshot()
         {
+            AuxActionsContainer.PreSave();
+
             return new TrainSaveState()
             {
                 TrainCars = await Cars.SnapshotCollection<TrainCarSaveState, TrainCar>().ConfigureAwait(false),
                 TrainNumber = Number,
                 TrainName = Name,
                 Speed = SpeedMpS,
+                InitialSpeed = InitialSpeed,
                 Acceleration = AccelerationMpSpS.SmoothedValue,
                 TrainType = TrainType,
                 MultiUnitDirection = MUDirection,
@@ -937,6 +949,32 @@ namespace Orts.Simulation.Physics
                 EvaluationFile = evaluationLogFile,
 
                 ValidRoutes = await ValidRoutes.SnapshotCollection<TrackCircuitPartialPathRouteSaveState, TrackCircuitPartialPathRoute>().ConfigureAwait(false),
+                RoutePathSaveState = await TCRoute.Snapshot().ConfigureAwait(false),
+                OccupiedTracks = new Collection<int>(OccupiedTrack.Select(track => track.Index).ToList()),
+                HoldingSignals = new Collection<int>(HoldingSignals),
+                StationStopSaveStates = await StationStops.SnapshotCollection<StationStopSaveState, StationStop>().ConfigureAwait(false),
+                LastStationStop = PreviousStop == null ? null : await PreviousStop.Snapshot().ConfigureAwait(false),
+                AtStation = AtStation,
+                ReadyToDepart = MayDepart,
+                CheckStations = CheckStations,
+                AttachToTrainNumber = attachTo,
+                DisplayMessage = DisplayMessage,
+                Delay = Delay,
+                PassedSignalSpeeds = new Dictionary<int, float>(PassedSignalSpeeds),
+                LastPassedSignals = lastSignalsPassed.ToArray(),
+                TrainControlMode = ControlMode,
+                OutOfControlReason = OutOfControlReason,
+                AuthoritySaveStates = (await EndAuthorities.SnapshotCollection<AuthoritySaveState, EndAuthority>().ConfigureAwait(false)).ToArray(),
+                LoopSection = LoopSection,
+                ServiceTrafficTime = trafficService?.Time ?? 0,
+                ServiceTrafficItemSaveStates = trafficService == null ? null : await trafficService.SnapshotCollection<ServiceTrafficItemSaveState, ServiceTrafficItem>().ConfigureAwait(false),
+                DistanceTravelled = DistanceTravelledM,
+                PresentPositions = await PresentPosition.SnapshotCollection<TrackCircuitPositionSaveState, TrackCircuitPosition>().ConfigureAwait(false),
+                PreviousPositions = await PreviousPosition.SnapshotCollection<TrackCircuitPositionSaveState, TrackCircuitPosition>().ConfigureAwait(false),
+                DistanceTravelledActions = await RequiredActions.SnapshotCollection<ActionItemSaveState, DistanceTravelledItem>().ConfigureAwait(false),
+                Pathless = IsPathless,
+                DeadlockInfo = TrainDeadlockInfo.State(),
+                AuxActionsSaveStates = await AuxActionsContainer.SpecAuxActions.SnapshotCollection<AuxActionRefSaveState, AuxActionRef>().ConfigureAwait(false),
             };
         }
 
@@ -944,13 +982,180 @@ namespace Orts.Simulation.Physics
         {
             ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
+            Init();
+
+            BrakeSystem = new TrainBrakeSystem();
+
+            RoutedForward = new TrainRouted(this, Direction.Forward);
+            RoutedBackward = new TrainRouted(this, Direction.Backward);
+            ColdStart = false;
             await Cars.RestoreCollectionCreateNewInstances(saveState.TrainCars, this).ConfigureAwait(false);
             foreach (TrainCar car in Cars)
                 car.Initialize();
             SetDistributedPowerUnitIds(true);
+
+            Number = saveState.TrainNumber;
+            TotalNumber = Math.Max(Number + 1, TotalNumber);
+            Name = saveState.TrainName;
+            SpeedMpS = previousSpeedMpS = (float)saveState.Speed;
+            AccelerationMpSpS.Preset(saveState.Acceleration);
+            TrainType = saveState.TrainType;
+            if (TrainType == TrainType.Static)
+                ColdStart = true;
+
+            MUDirection = saveState.MultiUnitDirection;
+            MUThrottlePercent = saveState.MultiUnitThrottle;
+            DPThrottlePercent = saveState.DistributedPowerThrottle;
+            MUGearboxGearIndex = saveState.MultiUnitGearboxIndex;
+            MUDynamicBrakePercent = saveState.MultiUnitDynamicBrake;
+            DPDynamicBrakePercent = saveState.DistributedPowerDynamicBrake;
+            DistributedPowerMode = saveState.DistributedPowerMode;
+            await BrakeSystem.Restore(saveState.TrainBrakeSaveState).ConfigureAwait(false);
+            aiBrakePercent = saveState.AiBrake;
+            LeadLocomotiveIndex = saveState.LeadLocomotive;
+            RearTDBTraveller = new Traveller(false);
+            await RearTDBTraveller.Restore(saveState.TravellerSaveState).ConfigureAwait(false);
+            SlipperySpotDistanceM = saveState.SlipperySpotDistance;
+            SlipperySpotLengthM = saveState.SlipperySpotLength;
+            TrainMaxSpeedMpS = saveState.TrainMaximumSpeed;
+            AllowedMaxSpeedMpS = saveState.AllowedMaximumSpeed;
+            AllowedMaxSpeedSignalMpS = saveState.AllowedSignalMaximumSpeed;
+            AllowedMaxSpeedLimitMpS = saveState.AllowedLimitMaximumSpeed;
+            allowedMaxTempSpeedLimitMpS = saveState.AllowedTemporaryLimitMaximumSpeed;
+            allowedAbsoluteMaxSpeedSignalMpS = saveState.AllowedAbsoluteSignalMaximumSpeed;
+            allowedAbsoluteMaxSpeedLimitMpS = saveState.AllowedAbsoluteLimitMaximumSpeed;
+            allowedAbsoluteMaxTempSpeedLimitMpS = saveState.AllowedAbsoluteTemporaryLimitMaximumSpeed;
+            BrakingTime = saveState.BrakingTime;
+            ContinuousBrakingTime = saveState.ContinuousBrakingTime;
+            RunningTime = saveState.RunningTime;
+            IncorporatedTrainNo = saveState.IncorporatedTrainNumber;
+            IncorporatingTrainNo = saveState.IncorporatingTrainNumber;
+            IsAuxTenderCoupled = saveState.AuxTenderCoupled;
+
+            if (IncorporatedTrainNo > -1)
+            {
+                Train train = GetOtherTrainByNumber(IncorporatedTrainNo);
+                if (train != null)
+                {
+                    train.IncorporatingTrain = this;
+                    train.IncorporatingTrainNo = Number;
+                }
+            }
+            if (IncorporatingTrainNo > -1)
+            {
+                Train train = GetOtherTrainByNumber(IncorporatingTrainNo);
+                if (train != null)
+                {
+                    IncorporatingTrain = train;
+                }
+            }
+            CheckFreight();
+
+            SignalObjectItems = new List<SignalItemInfo>();
+
+            TrainType = saveState.TrainType;
+            IsTilting = saveState.TrainTilting;
+            ClaimState = saveState.ClaimState;
+            evaluateTrainSpeed = saveState.EvaluateTrainSpeed;
+            evaluationInterval = saveState.EvaluationIntervall;
+            evaluationContent = saveState.EvaluationLogContents;
+            evaluationLogFile = saveState.EvaluationFile;
+
+            if (saveState.RoutePathSaveState != null)
+            {
+                TCRoute = new TrackCircuitRoutePath();
+                await TCRoute.Restore(saveState.RoutePathSaveState).ConfigureAwait(false);
+            }
+
+            List<TrackCircuitPartialPathRoute> list = new List<TrackCircuitPartialPathRoute>();
+            await list.RestoreCollectionCreateNewInstances(saveState.ValidRoutes).ConfigureAwait(false);
+            ValidRoutes.FromArray(list.ToArray());
+
+            foreach (int occupiedTrack in saveState.OccupiedTracks)
+            {
+                OccupiedTrack.Add(TrackCircuitSection.TrackCircuitList[occupiedTrack]);
+            }
+            foreach (int holdingSignal in saveState.HoldingSignals)
+            {
+                HoldingSignals.Add(holdingSignal);
+            }
+
+            await StationStops.RestoreCollectionCreateNewInstances(saveState.StationStopSaveStates).ConfigureAwait(false);
+            if (saveState.LastStationStop != null)
+            {
+                PreviousStop = new StationStop();
+                await PreviousStop.Restore(saveState.LastStationStop).ConfigureAwait(false);
+            }
+
+            AtStation = saveState.AtStation;
+            MayDepart = saveState.ReadyToDepart;
+            CheckStations = saveState.CheckStations;
+            attachTo = saveState.AttachToTrainNumber;
+
+            DisplayMessage = saveState.DisplayMessage;
+            Delay = saveState.Delay;
+
+            PassedSignalSpeeds = new Dictionary<int, float>(saveState.PassedSignalSpeeds);
+
+            lastSignalsPassed.FromArray(saveState.LastPassedSignals);
+
+            if (saveState.ServiceTrafficItemSaveStates != null)
+            {
+                trafficService = new ServiceTraffics(saveState.ServiceTrafficTime);
+                await trafficService.RestoreCollectionCreateNewInstances(saveState.ServiceTrafficItemSaveStates).ConfigureAwait(false);
+            }
+
+            ControlMode = saveState.TrainControlMode;
+            OutOfControlReason = saveState.OutOfControlReason;
+            List<EndAuthority> endAuthorityList = new List<EndAuthority>();
+            await endAuthorityList.RestoreCollectionCreateNewInstances(saveState.AuthoritySaveStates).ConfigureAwait(false);
+            EndAuthorities.FromArray(endAuthorityList.ToArray());
+            LoopSection = saveState.LoopSection;
+
+            DistanceTravelledM = (float)saveState.DistanceTravelled;
+
+            await PresentPosition.RestoreCollectionOnExistingInstances(saveState.PresentPositions).ConfigureAwait(false);
+            await PreviousPosition.RestoreCollectionOnExistingInstances(saveState.PreviousPositions).ConfigureAwait(false);
+
+            if (TrainType != TrainType.AiNotStarted && TrainType != TrainType.AiAutoGenerated)
+            {
+                CalculatePositionOfCars();
+
+                PresentPosition[Direction.Forward].RouteListIndex = ValidRoutes[Direction.Forward].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+                PresentPosition[Direction.Backward].RouteListIndex = ValidRoutes[Direction.Backward].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
+            }
+
+            await RequiredActions.RestoreCollectionCreateNewInstances(saveState.DistanceTravelledActions, new DistanceTravelledItemActivator()).ConfigureAwait(false);
+
+            AuxActionsContainer = new AuxActionsContainer(this);
+            await AuxActionsContainer.SpecAuxActions.RestoreCollectionCreateNewInstances(saveState.AuxActionsSaveStates, AuxActionsContainer).ConfigureAwait(false);
+            TrainDeadlockInfo = new TrainDeadlockInfo(this, saveState.DeadlockInfo);
+
+            InitialSpeed = (float)saveState.InitialSpeed;
+            IsPathless = saveState.Pathless;
+
+            if (TrainType != TrainType.Remote)
+            {
+                // restore leadlocomotive
+                if (LeadLocomotiveIndex >= 0)
+                {
+                    LeadLocomotive = Cars[LeadLocomotiveIndex] as MSTSLocomotive ?? throw new InvalidCastException(nameof(LeadLocomotiveIndex));
+                    if (TrainType != TrainType.Static)
+                        simulator.PlayerLocomotive = LeadLocomotive;
+
+                    LeadLocomotive.DistributedPowerThrottleController.SetValue(DPThrottlePercent / 100f);
+                    LeadLocomotive.DistributedPowerDynamicBrakeController?.SetValue(DPDynamicBrakePercent / 100f);
+                }
+
+                // restore logfile
+                if (evaluateTrainSpeed)
+                {
+                    CreateLogFile();
+                }
+            }
         }
 
-        TrainCar ISaveStateRestoreApi<TrainCarSaveState, TrainCar>.CreateRuntimeTarget(Orts.Models.State.TrainCarSaveState saveState)
+        TrainCar ISaveStateRestoreApi<TrainCarSaveState, TrainCar>.CreateRuntimeTarget(TrainCarSaveState saveState)
         {
             return RollingStock.Load(this, saveState.WagonSaveState.WagonFile, false);
         }
@@ -1016,97 +1221,96 @@ namespace Orts.Simulation.Physics
             //    outf.Write(1);
             //    outf.Write(evaluationLogFile);
             //}
-            #endregion
 
-            if (TCRoute == null)
-            {
-                outf.Write(false);
-            }
-            else
-            {
-                outf.Write(true);
-                TCRoute.Save(outf);
-            }
+            //if (TCRoute == null)
+            //{
+            //    outf.Write(false);
+            //}
+            //else
+            //{
+            //    outf.Write(true);
+            //    TCRoute.Save(outf);
+            //}
 
-            if (ValidRoutes[Direction.Forward] == null)
-            {
-                outf.Write(false);
-            }
-            else
-            {
-                outf.Write(true);
-                ValidRoutes[Direction.Forward].Save(outf);
-            }
+            //if (ValidRoutes[Direction.Forward] == null)
+            //{
+            //    outf.Write(false);
+            //}
+            //else
+            //{
+            //    outf.Write(true);
+            //    ValidRoutes[Direction.Forward].Save(outf);
+            //}
 
-            if (ValidRoutes[Direction.Backward] == null)
-            {
-                outf.Write(false);
-            }
-            else
-            {
-                outf.Write(true);
-                ValidRoutes[Direction.Backward].Save(outf);
-            }
+            //if (ValidRoutes[Direction.Backward] == null)
+            //{
+            //    outf.Write(false);
+            //}
+            //else
+            //{
+            //    outf.Write(true);
+            //    ValidRoutes[Direction.Backward].Save(outf);
+            //}
 
-            outf.Write(OccupiedTrack.Count);
-            foreach (TrackCircuitSection thisSection in OccupiedTrack)
-            {
-                outf.Write(thisSection.Index);
-            }
+            //outf.Write(OccupiedTrack.Count);
+            //foreach (TrackCircuitSection thisSection in OccupiedTrack)
+            //{
+            //    outf.Write(thisSection.Index);
+            //}
 
-            outf.Write(HoldingSignals.Count);
-            foreach (int thisHold in HoldingSignals)
-            {
-                outf.Write(thisHold);
-            }
+            //outf.Write(HoldingSignals.Count);
+            //foreach (int thisHold in HoldingSignals)
+            //{
+            //    outf.Write(thisHold);
+            //}
 
-            outf.Write(StationStops.Count);
-            foreach (StationStop thisStop in StationStops)
-            {
-                //thisStop.Save(outf);
-            }
+            //outf.Write(StationStops.Count);
+            //foreach (StationStop thisStop in StationStops)
+            //{
+            //    thisStop.Save(outf);
+            //}
 
-            if (PreviousStop == null)
-            {
-                outf.Write(-1);
-            }
-            else
-            {
-                outf.Write(1);
-                //PreviousStop.Save(outf);
-            }
+            //if (PreviousStop == null)
+            //{
+            //    outf.Write(-1);
+            //}
+            //else
+            //{
+            //    outf.Write(1);
+            //    PreviousStop.Save(outf);
+            //}
 
-            outf.Write(AtStation);
-            outf.Write(MayDepart);
-            outf.Write(CheckStations);
-            outf.Write(attachTo);
+            //outf.Write(AtStation);
+            //outf.Write(MayDepart);
+            //outf.Write(CheckStations);
+            //outf.Write(attachTo);
 
-            outf.Write(DisplayMessage);
+            //outf.Write(DisplayMessage);
 
-            int DelaySeconds = Delay.HasValue ? (int)Delay.Value.TotalSeconds : -1;
-            outf.Write(DelaySeconds);
+            //int DelaySeconds = Delay.HasValue ? (int)Delay.Value.TotalSeconds : -1;
+            //outf.Write(DelaySeconds);
 
-            outf.Write(PassedSignalSpeeds.Count);
-            foreach (KeyValuePair<int, float> thisPair in PassedSignalSpeeds)
-            {
-                outf.Write(thisPair.Key);
-                outf.Write(thisPair.Value);
-            }
-            outf.Write(LastPassedSignal[0]);
-            outf.Write(LastPassedSignal[1]);
+            //outf.Write(PassedSignalSpeeds.Count);
+            //foreach (KeyValuePair<int, float> thisPair in PassedSignalSpeeds)
+            //{
+            //    outf.Write(thisPair.Key);
+            //    outf.Write(thisPair.Value);
+            //}
+            //outf.Write(LastPassedSignal[0]);
+            //outf.Write(LastPassedSignal[1]);
 
-            if (trafficService == null)
-            {
-                outf.Write(false);
-            }
-            else
-            {
-                outf.Write(true);
-                SaveTrafficSDefinition(outf, trafficService);
-            }
+            //if (trafficService == null)
+            //{
+            //    outf.Write(false);
+            //}
+            //else
+            //{
+            //    outf.Write(true);
+            //    SaveTrafficSDefinition(outf, trafficService);
+            //}
 
-            outf.Write((int)ControlMode);
-            outf.Write((int)OutOfControlReason);
+            //outf.Write((int)ControlMode);
+            //outf.Write((int)OutOfControlReason);
             //outf.Write((int)EndAuthorityTypes[0]);
             //outf.Write((int)EndAuthorityTypes[1]);
             //outf.Write(LastReservedSection[0]);
@@ -1115,66 +1319,24 @@ namespace Orts.Simulation.Physics
             //outf.Write(DistanceToEndNodeAuthority[0]);
             //outf.Write(DistanceToEndNodeAuthority[1]);
 
-            outf.Write(DistanceTravelledM);
-            PresentPosition[Direction.Forward].Save(outf);
-            PresentPosition[Direction.Backward].Save(outf);
-            PreviousPosition[Direction.Forward].Save(outf);
+            //outf.Write(DistanceTravelledM);
+            //PresentPosition[Direction.Forward].Save(outf);
+            //PresentPosition[Direction.Backward].Save(outf);
+            //PreviousPosition[Direction.Forward].Save(outf);
             //  Save requiredAction, the original actions
-            outf.Write(RequiredActions.Count);
-            foreach (DistanceTravelledItem thisAction in RequiredActions)
-            {
-                //thisAction.Save(outf);
-            }
+            //outf.Write(RequiredActions.Count);
+            //foreach (DistanceTravelledItem thisAction in RequiredActions)
+            //{
+            //    thisAction.Save(outf);
+            //}
             //  Then, save the Auxiliary Action Container
-            SaveAuxContainer(outf);
+            //AuxActionsContainer.Save(outf, (int)simulator.ClockTime);
 
-            SaveDeadlockInfo(outf);
+            //SaveDeadlockInfo(outf);
             // Save initial speed
-            outf.Write(InitialSpeed);
-            outf.Write(IsPathless);
-        }
-
-        private static void SaveTrafficSDefinition(BinaryWriter outf, ServiceTraffics trafficServices)
-        {
-            outf.Write(trafficServices.Time);
-            outf.Write(trafficServices.Count);
-            foreach (ServiceTrafficItem serviceItem in trafficServices)
-            {
-                SaveTrafficItem(outf, serviceItem);
-            }
-        }
-
-        private static void SaveTrafficItem(BinaryWriter outf, ServiceTrafficItem thisTI)
-        {
-            outf.Write(thisTI.ArrivalTime);
-            outf.Write(thisTI.DepartTime);
-            outf.Write(thisTI.DistanceDownPath);
-            outf.Write(thisTI.PlatformStartID);
-        }
-
-        private void SaveDeadlockInfo(BinaryWriter outf)
-        {
-            outf.Write(DeadlockInfo.Count);
-            foreach (KeyValuePair<int, List<Dictionary<int, int>>> deadlockInfo in DeadlockInfo)
-            {
-                outf.Write(deadlockInfo.Key);
-                outf.Write(deadlockInfo.Value.Count);
-
-                foreach (Dictionary<int, int> thisDeadlock in deadlockInfo.Value)
-                {
-                    outf.Write(thisDeadlock.Count);
-                    foreach (KeyValuePair<int, int> thisDeadlockDetails in thisDeadlock)
-                    {
-                        outf.Write(thisDeadlockDetails.Key);
-                        outf.Write(thisDeadlockDetails.Value);
-                    }
-                }
-            }
-        }
-
-        private void SaveAuxContainer(BinaryWriter outf)
-        {
-            AuxActionsContainer.Save(outf, (int)simulator.ClockTime);
+            //outf.Write(InitialSpeed);
+            //outf.Write(IsPathless);
+            #endregion
         }
 
         //================================================================================================//
@@ -2541,7 +2703,7 @@ namespace Orts.Simulation.Physics
             {
                 InitializeSignals(false);     // Get signal information - only if train has route //
                 if (TrainType != TrainType.Static)
-                    CheckDeadlock(ValidRoutes[Direction.Forward], Number);    // Check deadlock against all other trains (not for static trains)
+                    TrainDeadlockInfo.CheckDeadlock(ValidRoutes[Direction.Forward], Number);    // Check deadlock against all other trains (not for static trains)
                 if (TCRoute != null)
                     TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
 
@@ -3224,7 +3386,7 @@ namespace Orts.Simulation.Physics
                 if (this is AITrain aiTrain)
                 {
                     // do not switch to node control if train is set for auxiliary action
-                    if (aiTrain.nextActionInfo?.NextAction == AIActionItem.AI_ACTION_TYPE.AUX_ACTION)
+                    if (aiTrain.nextActionInfo?.NextAction == AiActionType.AuxiliaryAction)
                     {
                         validModeSwitch = false;
                     }
@@ -4197,25 +4359,7 @@ namespace Orts.Simulation.Physics
                 return false;
             }
 
-            // set any deadlocks for sections ahead of start with end beyond start
-            for (int i = 0; i < rearIndex; i++)
-            {
-                int rearSectionIndex = ValidRoutes[Direction.Forward][i].TrackCircuitSection.Index;
-                if (DeadlockInfo.TryGetValue(rearSectionIndex, out List<Dictionary<int, int>> value))
-                {
-                    foreach (Dictionary<int, int> deadlock in value)
-                    {
-                        foreach (KeyValuePair<int, int> deadlockDetail in deadlock)
-                        {
-                            int endSectionIndex = deadlockDetail.Value;
-                            if (ValidRoutes[Direction.Forward].GetRouteIndex(endSectionIndex, rearIndex) >= 0)
-                            {
-                                TrackCircuitSection.TrackCircuitList[endSectionIndex].SetDeadlockTrap(Number, deadlockDetail.Key);
-                            }
-                        }
-                    }
-                }
-            }
+            TrainDeadlockInfo.SetDeadlocksAhead(rearIndex);
 
             // set track occupied (if not done yet)
             foreach (TrackCircuitSection section in placementSections)
@@ -4666,7 +4810,7 @@ namespace Orts.Simulation.Physics
             }
             if (backward < BackwardThreshold || SpeedMpS > -0.01)
             {
-                List<DistanceTravelledItem> nowActions = AuxActionsContainer.specRequiredActions.GetAuxActions(this);
+                List<DistanceTravelledItem> nowActions = AuxActionsContainer.SpecificRequiredActions.GetAuxActions(this);
 
                 if (nowActions.Count > 0)
                 {
@@ -5202,8 +5346,7 @@ namespace Orts.Simulation.Physics
                 }
 
                 // clear any remaining deadlocks
-                ClearDeadlocks();
-                DeadlockInfo.Clear();
+                TrainDeadlockInfo.ClearDeadlocks();
             }
 
             // if next route available : reverse train, reset and reinitiate signals
@@ -5276,7 +5419,7 @@ namespace Orts.Simulation.Physics
                 }
 
                 // Check deadlock against all other trains
-                CheckDeadlock(ValidRoutes[Direction.Forward], Number);
+                TrainDeadlockInfo.CheckDeadlock(ValidRoutes[Direction.Forward], Number);
 
                 // reset signal information
                 SignalObjectItems.Clear();
@@ -5505,7 +5648,7 @@ namespace Orts.Simulation.Physics
                 bool claimAllowed = ActionsForSignalStop();
 
                 // cannot claim on deadlock to prevent further deadlocks
-                if (CheckDeadlockWait(NextSignalObjects[Direction.Forward]))
+                if (TrainDeadlockInfo.CheckDeadlockWait(NextSignalObjects[Direction.Forward]))
                     claimAllowed = false;
 
                 // cannot claim while in waitstate as this would lock path for other train
@@ -5791,7 +5934,7 @@ namespace Orts.Simulation.Physics
             {
                 // use position from other end of section
                 float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex].Length - PresentPosition[Direction.Backward].Offset;
-                CheckSpeedLimitManual(ValidRoutes[Direction.Backward], manualTrainRoute, reverseOffset, PresentPosition[Direction.Backward].Offset, signalObjectIndex, 0);
+                CheckSpeedLimitManual(ValidRoutes[Direction.Backward], manualTrainRoute, reverseOffset, PresentPosition[Direction.Backward].Offset, signalObjectIndex, Direction.Forward);
             }
             else
             {
@@ -5803,7 +5946,7 @@ namespace Orts.Simulation.Physics
                     tempRoute.Add(routeElement);
                 }
                 float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex].Length - PresentPosition[Direction.Forward].Offset;
-                CheckSpeedLimitManual(ValidRoutes[Direction.Forward], tempRoute, PresentPosition[Direction.Forward].Offset, reverseOffset, signalObjectIndex, 1);
+                CheckSpeedLimitManual(ValidRoutes[Direction.Forward], tempRoute, PresentPosition[Direction.Forward].Offset, reverseOffset, signalObjectIndex, Direction.Backward);
             }
 
             // reset signal
@@ -6541,7 +6684,7 @@ namespace Orts.Simulation.Physics
         /// Update speed limit in manual mode
         /// </summary>
         private void CheckSpeedLimitManual(TrackCircuitPartialPathRoute routeBehind, TrackCircuitPartialPathRoute routeUnderTrain, float offsetStart,
-            float reverseOffset, int passedSignalIndex, int routeDirection)
+            float reverseOffset, int passedSignalIndex, Direction routeDirection)
         {
             // check backward for last speedlimit in direction of train - raise speed if passed
 
@@ -6578,7 +6721,7 @@ namespace Orts.Simulation.Physics
             // search also checks for speedlimit to see which is nearest train
 
             foundSpeedLimit.Clear();
-            foundSpeedLimit = SignalEnvironment.ScanRoute(this, routeElement.TrackCircuitSection.Index, offsetStart, (TrackDirection)routeElement.Direction,
+            foundSpeedLimit = SignalEnvironment.ScanRoute(this, routeElement.TrackCircuitSection.Index, offsetStart, routeElement.Direction,
                     true, -1, false, true, false, false, false, false, true, false, true, IsFreight, true);
 
             if (foundSpeedLimit.Count > 0)
@@ -6593,13 +6736,13 @@ namespace Orts.Simulation.Physics
                         {
                             AllowedMaxSpeedSignalMpS = value;
                             AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedSignalMpS, AllowedMaxSpeedMpS);
-                            LastPassedSignal[routeDirection] = signal.Index;
+                            lastSignalsPassed[routeDirection] = signal.Index;
                         }
                         // if signal is not last passed signal - reset signal speed limit
-                        else if (signal.Index != LastPassedSignal[routeDirection])
+                        else if (signal.Index != lastSignalsPassed[routeDirection])
                         {
                             AllowedMaxSpeedSignalMpS = TrainMaxSpeedMpS;
-                            LastPassedSignal[routeDirection] = -1;
+                            lastSignalsPassed[routeDirection] = -1;
                         }
                         // set signal limit as speed limit
                         else
@@ -6849,7 +6992,7 @@ namespace Orts.Simulation.Physics
             {
                 // use position from other end of section
                 float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex].Length - PresentPosition[Direction.Backward].Offset;
-                CheckSpeedLimitManual(ValidRoutes[Direction.Backward], manualTrainRoute, reverseOffset, PresentPosition[Direction.Backward].Offset, signalObjectIndex, 0);
+                CheckSpeedLimitManual(ValidRoutes[Direction.Backward], manualTrainRoute, reverseOffset, PresentPosition[Direction.Backward].Offset, signalObjectIndex, Direction.Forward);
             }
             else
             {
@@ -6861,7 +7004,7 @@ namespace Orts.Simulation.Physics
                     tempRoute.Add(routeElement);
                 }
                 float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex].Length - PresentPosition[Direction.Forward].Offset;
-                CheckSpeedLimitManual(ValidRoutes[Direction.Forward], tempRoute, PresentPosition[Direction.Forward].Offset, reverseOffset, signalObjectIndex, 1);
+                CheckSpeedLimitManual(ValidRoutes[Direction.Forward], tempRoute, PresentPosition[Direction.Forward].Offset, reverseOffset, signalObjectIndex, Direction.Backward);
             }
 
             // reset signal permission
@@ -7593,7 +7736,7 @@ namespace Orts.Simulation.Physics
             {
                 int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoutes[Direction.Forward], listIndex, RoutedForward);
-                ClearDeadlocks();
+                TrainDeadlockInfo.ClearDeadlocks();
             }
 
             ValidRoutes[Direction.Forward] = null;
@@ -7839,7 +7982,7 @@ namespace Orts.Simulation.Physics
             {
                 int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoutes[Direction.Forward], listIndex, RoutedForward);
-                ClearDeadlocks();
+                TrainDeadlockInfo.ClearDeadlocks();
             }
 
             ValidRoutes[Direction.Forward] = null;
@@ -7930,7 +8073,7 @@ namespace Orts.Simulation.Physics
 
             // restore deadlock information
 
-            CheckDeadlock(ValidRoutes[Direction.Forward], Number);    // Check deadlock against all other trains
+            TrainDeadlockInfo.CheckDeadlock(ValidRoutes[Direction.Forward], Number);    // Check deadlock against all other trains
 
             // switch to AutoNode mode
 
@@ -7961,7 +8104,7 @@ namespace Orts.Simulation.Physics
             {
                 int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoutes[Direction.Forward], listIndex, RoutedForward);
-                ClearDeadlocks();
+                TrainDeadlockInfo.ClearDeadlocks();
             }
 
             ValidRoutes[Direction.Forward] = null;
@@ -8520,7 +8663,7 @@ namespace Orts.Simulation.Physics
             // create new list
             InitializeSignals(true);
             EndAuthorities[Direction.Forward].LastReservedSection = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
-            CheckDeadlock(ValidRoutes[Direction.Forward], Number);    // Check deadlock against all other trains
+            TrainDeadlockInfo.CheckDeadlock(ValidRoutes[Direction.Forward], Number);    // Check deadlock against all other trains
         }
 
         /// Perform actions linked to distance travelled
@@ -8629,7 +8772,7 @@ namespace Orts.Simulation.Physics
         internal virtual void RemoveTrain()
         {
             RemoveFromTrack();
-            ClearDeadlocks();
+            TrainDeadlockInfo.ClearDeadlocks();
             simulator.Trains.Remove(this);
         }
 
@@ -8731,7 +8874,7 @@ namespace Orts.Simulation.Physics
 
             // remove train from track - clear all reservations etc.
             RemoveFromTrack();
-            ClearDeadlocks();
+            TrainDeadlockInfo.ClearDeadlocks();
 
             // check if new train is freight or not
             CheckFreight();
@@ -8897,7 +9040,7 @@ namespace Orts.Simulation.Physics
                 PresentPosition[Direction.Backward].RouteListIndex = ValidRoutes[Direction.Forward].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
 
                 SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
-                CheckDeadlock(ValidRoutes[Direction.Forward], Number);
+                TrainDeadlockInfo.CheckDeadlock(ValidRoutes[Direction.Forward], Number);
                 TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
             }
             else if (ControlMode == TrainControlMode.Manual)
@@ -9060,7 +9203,7 @@ namespace Orts.Simulation.Physics
             if (originalTrain)
             {
                 RemoveFromTrack();
-                ClearDeadlocks();
+                TrainDeadlockInfo.ClearDeadlocks();
 
                 List<DistanceTravelledItem> activeActions = RequiredActions.GetActions(99999999f, typeof(ClearSectionItem));
                 activeActions.Clear();
@@ -9236,7 +9379,7 @@ namespace Orts.Simulation.Physics
                     PresentPosition[Direction.Forward].RouteListIndex = ValidRoutes[Direction.Forward].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
                     PresentPosition[Direction.Backward].RouteListIndex = ValidRoutes[Direction.Forward].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
 
-                    CheckDeadlock(ValidRoutes[Direction.Forward], Number);
+                    TrainDeadlockInfo.CheckDeadlock(ValidRoutes[Direction.Forward], Number);
                     SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
                     TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
                     break;
@@ -9267,7 +9410,7 @@ namespace Orts.Simulation.Physics
                     UpdateExplorerMode(-1);
                     break;
                 default:
-                    CheckDeadlock(ValidRoutes[Direction.Forward], Number);
+                    TrainDeadlockInfo.CheckDeadlock(ValidRoutes[Direction.Forward], Number);
                     Simulator.Instance.SignalEnvironment.RequestClearNode(RoutedForward, ValidRoutes[Direction.Forward]);
                     break;
             }
@@ -9279,7 +9422,7 @@ namespace Orts.Simulation.Physics
         internal void TemporarilyRemoveFromTrack()
         {
             RemoveFromTrack();
-            ClearDeadlocks();
+            TrainDeadlockInfo.ClearDeadlocks();
             List<DistanceTravelledItem> activeActions = RequiredActions.GetActions(99999999f, typeof(ClearSectionItem));
             activeActions.Clear();
         }
@@ -10562,8 +10705,8 @@ namespace Orts.Simulation.Physics
                 int actionRouteIndex = ValidRoutes[Direction.Forward].GetRouteIndex((AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).TCSectionIndex, actionIndex0);
                 float wpDistance = ValidRoutes[Direction.Forward].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).RequiredDistance, AITrainDirectionForward);
                 bool wpEnabled = false;
-                if (Math.Abs(SpeedMpS) <= Simulator.MaxStoppedMpS && (((AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
-                    (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AiMovementState.HandleAction) ||
+                if (Math.Abs(SpeedMpS) <= Simulator.MaxStoppedMpS && (((AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).WaitingPoint != null &&
+                    (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).WaitingPoint.currentMvmtState == AiMovementState.HandleAction) ||
                     ((this as AITrain).nextActionInfo is AuxActionWPItem && (this as AITrain).MovementState == AiMovementState.HandleAction)))
                     wpEnabled = true;
 
@@ -12066,7 +12209,7 @@ namespace Orts.Simulation.Physics
             {
                 int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoutes[Direction.Forward], listIndex, RoutedForward);
-                ClearDeadlocks();
+                TrainDeadlockInfo.ClearDeadlocks();
             }
 
             ValidRoutes[Direction.Forward] = null;
@@ -12091,11 +12234,9 @@ namespace Orts.Simulation.Physics
             {
                 int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoutes[Direction.Forward], listIndex, RoutedForward);
-                ClearDeadlocks();
+                TrainDeadlockInfo.ClearDeadlocks();
             }
-
         }
-
 
         /// <summary>
         /// After turntable rotation, must find where it is
@@ -12199,6 +12340,13 @@ namespace Orts.Simulation.Physics
         internal bool IsMoving()
         {
             return PresentPosition[Direction.Forward].Offset != PreviousPosition[Direction.Forward].Offset;
+        }
+
+        /// Check if deadlock must be accepted
+        /// base method to allow virtualization by child classes
+        internal virtual bool VerifyDeadlock(List<int> deadlockReferences)
+        {
+            return true;
         }
 
         #region Train Dispatcher Info

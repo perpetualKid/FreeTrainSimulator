@@ -563,7 +563,7 @@ namespace Orts.Simulation.Track
                 }
 
                 // set deadlock trap if required - do not set deadlock if wait is required at this location
-                if (train.Train.DeadlockInfo.TryGetValue(Index, out List<Dictionary<int, int>> value))
+                if (train.Train.TrainDeadlockInfo.TryGet(Index, out List<Dictionary<int, int>> value))
                 {
                     if (!train.Train.CheckWaitCondition(Index))
                     {
@@ -580,7 +580,7 @@ namespace Orts.Simulation.Track
                         TrackCircuitSection endSection = routeElement.StartAlternativePath.TrackCircuitSection;
 
                         // no deadlock yet active
-                        if (train.Train.DeadlockInfo.TryGetValue(endSection.Index, out List<Dictionary<int, int>> deadlockList))
+                        if (train.Train.TrainDeadlockInfo.TryGet(endSection.Index, out List<Dictionary<int, int>> deadlockList))
                         {
                             endSection.SetDeadlockTrap(train.Train, deadlockList);
                         }
@@ -604,7 +604,7 @@ namespace Orts.Simulation.Track
                             TrackCircuitSection endSection = TrackCircuitList[endSectionIndex];
 
                             // no deadlock yet active - do not set deadlock if train has wait within deadlock section
-                            if (train.Train.DeadlockInfo.TryGetValue(endSection.Index, out List<Dictionary<int, int>> deadlockList))
+                            if (train.Train.TrainDeadlockInfo.TryGet(endSection.Index, out List<Dictionary<int, int>> deadlockList))
                             {
                                 if (!train.Train.HasActiveWait(Index, endSection.Index))
                                 {
@@ -635,7 +635,7 @@ namespace Orts.Simulation.Track
             }
 
             // set deadlock trap if required
-            if (train.Train.DeadlockInfo.TryGetValue(Index, out List<Dictionary<int, int>> value))
+            if (train.Train.TrainDeadlockInfo.TryGet(Index, out List<Dictionary<int, int>> value))
             {
                 SetDeadlockTrap(train.Train, value);
             }
@@ -756,7 +756,7 @@ namespace Orts.Simulation.Track
 
             // set deadlock trap if required
 
-            if (train.Train.DeadlockInfo.TryGetValue(Index, out List<Dictionary<int, int>> value))
+            if (train.Train.TrainDeadlockInfo.TryGet(Index, out List<Dictionary<int, int>> value))
             {
                 SetDeadlockTrap(train.Train, value);
             }
@@ -773,7 +773,7 @@ namespace Orts.Simulation.Track
 
                     // set deadlock trap for next section
 
-                    if (train.Train.DeadlockInfo.TryGetValue(endSection.Index, out value))
+                    if (train.Train.TrainDeadlockInfo.TryGet(endSection.Index, out value))
                     {
                         endSection.SetDeadlockTrap(train.Train, value);
                     }

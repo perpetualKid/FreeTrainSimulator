@@ -1,38 +1,44 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Models.State;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;
 
 namespace Orts.Simulation.Track
 {
+
     /// <summary>
     /// Track Circuit Route Path
     /// </summary>
-    internal class TrackCircuitRoutePath
+    internal class TrackCircuitRoutePath : ISaveStateApi<TrackCircuitRoutePathSaveState>
     {
         public List<TrackCircuitPartialPathRoute> TCRouteSubpaths { get; } = new List<TrackCircuitPartialPathRoute>();
         public List<TrackCircuitPartialPathRoute> TCAlternativePaths { get; } = new List<TrackCircuitPartialPathRoute>();
         public int ActiveSubPath { get; set; }
         public int ActiveAlternativePath { get; set; }
-        public List<int[]> WaitingPoints { get; } = new List<int[]>(); // [0] = sublist in which WP is placed; 
-                                                                       // [1] = WP section; [2] = WP wait time (delta); [3] = WP depart time;
-                                                                       // [4] = hold signal
+        public List<WaitingPointDetail> WaitingPoints { get; } = new List<WaitingPointDetail>(); // [0] = sublist in which WP is placed; 
+                                                                                                 // [1] = WP section; [2] = WP wait time (delta); [3] = WP depart time;
+                                                                                                 // [4] = hold signal
         public List<TrackCircuitReversalInfo> ReversalInfo { get; } = new List<TrackCircuitReversalInfo>();
         public List<RoughReversalInfo> RoughReversalInfos { get; } = new List<RoughReversalInfo>();
         public List<int> LoopEnd { get; } = new List<int>();
         public Dictionary<string, int[]> StationCrossReferences { get; } = new Dictionary<string, int[]>(StringComparer.OrdinalIgnoreCase);
         // int[0] = subpath index, int[1] = element index, int[2] = platform ID
         public int OriginalSubpath { get; set; } = -1; // reminds original subpath when train manually rerouted
+
+        public TrackCircuitRoutePath() { }
 
         /// <summary>
         /// Constructor (from AIPath)
@@ -268,7 +274,8 @@ namespace Orts.Simulation.Track
                     nextPathNode = currentPathNode.NextMainNode;
 
                     // if we were on last main node, direction was already set
-                    if (nextPathNode != null) currentDir = newDir;
+                    if (nextPathNode != null)
+                        currentDir = newDir;
 
                 }
                 else
@@ -289,7 +296,8 @@ namespace Orts.Simulation.Track
                         float reverseOffset = 0;
                         int sectionIndex = -1;
                         TrackDirection validDir = currentDir;
-                        if (reversal % 2 == 1) validDir = validDir.Reverse();
+                        if (reversal % 2 == 1)
+                            validDir = validDir.Reverse();
                         if (validDir == TrackDirection.Ahead)
                         {
                             reverseOffset = -offset;
@@ -321,17 +329,18 @@ namespace Orts.Simulation.Track
                     else if (nextPathNode.Type == AIPathNodeType.Stop)
                     {
                         TrackDirection validDir = currentDir;
-                        if (reversal % 2 == 1) validDir = validDir.Reverse();
+                        if (reversal % 2 == 1)
+                            validDir = validDir.Reverse();
                         offset = GetOffsetToPathNode(aiPath, validDir, nextPathNode);
-                        int[] waitingPoint = new int[6];
-                        waitingPoint[0] = sublist + reversal;
-                        waitingPoint[1] = ConvertWaitingPoint(nextPathNode);
-
-                        waitingPoint[2] = nextPathNode.WaitTimeS;
-                        waitingPoint[3] = nextPathNode.WaitUntil;
-                        waitingPoint[4] = -1; // hold signal set later
-                        waitingPoint[5] = (int)offset;
-                        WaitingPoints.Add(waitingPoint);
+                        WaitingPoints.Add(new WaitingPointDetail()
+                        {
+                            SubListIndex = sublist + reversal,
+                            WaitingPointSection = ConvertWaitingPoint(nextPathNode),
+                            WaitTime = nextPathNode.WaitTimeS,
+                            DepartTime = nextPathNode.WaitUntil,
+                            HoldSignal = -1, // hold signal set later
+                            Offset = (int)offset,
+                        });
                     }
 
                     // other type of path need not be processed
@@ -597,7 +606,8 @@ namespace Orts.Simulation.Track
                     int itemToRemove = RoughReversalInfos.FindIndex(r => r.SubPathIndex >= iSub);
                     if (itemToRemove != -1)
                     {
-                        if (RoughReversalInfos[itemToRemove].SubPathIndex == iSub) RoughReversalInfos.RemoveAt(itemToRemove);
+                        if (RoughReversalInfos[itemToRemove].SubPathIndex == iSub)
+                            RoughReversalInfos.RemoveAt(itemToRemove);
                         for (int i = itemToRemove; i < RoughReversalInfos.Count; i++)
                         {
                             RoughReversalInfos[i].SubPathIndex--;
@@ -619,9 +629,9 @@ namespace Orts.Simulation.Track
             // if removed, update indices of waiting points
             if (removed > 0)
             {
-                foreach (int[] thisWP in WaitingPoints)
+                foreach (WaitingPointDetail waitPoint in WaitingPoints)
                 {
-                    thisWP[0] = newIndices[thisWP[0]];
+                    waitPoint.SubListIndex = newIndices[waitPoint.SubListIndex];
                 }
 
                 // if remove, update indices of alternative paths
@@ -820,9 +830,7 @@ namespace Orts.Simulation.Track
 
             for (int iWaitingPoint = 0; iWaitingPoint < source.WaitingPoints.Count; iWaitingPoint++)
             {
-                int[] oldWaitingPoint = source.WaitingPoints[iWaitingPoint];
-                int[] newWaitingPoint = new int[oldWaitingPoint.Length];
-                oldWaitingPoint.CopyTo(newWaitingPoint, 0);
+                WaitingPointDetail newWaitingPoint = new WaitingPointDetail(source.WaitingPoints[iWaitingPoint]);
                 WaitingPoints.Add(newWaitingPoint);
             }
 
@@ -847,112 +855,36 @@ namespace Orts.Simulation.Track
             }
         }
 
-        //================================================================================================//
-        //
-        // Restore
-        //
-
-        public TrackCircuitRoutePath(BinaryReader inf)
+        public async ValueTask<TrackCircuitRoutePathSaveState> Snapshot()
         {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            ActiveSubPath = inf.ReadInt32();
-            ActiveAlternativePath = inf.ReadInt32();
-
-            int totalSubpath = inf.ReadInt32();
-            for (int i = 0; i < totalSubpath; i++)
+            return new TrackCircuitRoutePathSaveState()
             {
-                TrackCircuitPartialPathRoute thisSubpath = new TrackCircuitPartialPathRoute(inf);
-                TCRouteSubpaths.Add(thisSubpath);
-            }
-
-            int totalAltpath = inf.ReadInt32();
-            for (int i = 0; i < totalAltpath; i++)
-            {
-                TrackCircuitPartialPathRoute thisSubpath = new TrackCircuitPartialPathRoute(inf);
-                TCAlternativePaths.Add(thisSubpath);
-            }
-
-            int totalWaitingPoint = inf.ReadInt32();
-            for (int i = 0; i < totalWaitingPoint; i++)
-            {
-                int[] waitingPoint = new int[6];
-                waitingPoint[0] = inf.ReadInt32();
-                waitingPoint[1] = inf.ReadInt32();
-                waitingPoint[2] = inf.ReadInt32();
-                waitingPoint[3] = inf.ReadInt32();
-                waitingPoint[4] = inf.ReadInt32();
-                waitingPoint[5] = inf.ReadInt32();
-
-                WaitingPoints.Add(waitingPoint);
-            }
-
-            int totalReversalPoint = inf.ReadInt32();
-            for (int i = 0; i < totalReversalPoint; i++)
-            {
-                ReversalInfo.Add(new TrackCircuitReversalInfo(inf));
-            }
-
-            int totalLoopEnd = inf.ReadInt32();
-            for (int i = 0; i < totalLoopEnd; i++)
-            {
-                LoopEnd.Add(inf.ReadInt32());
-            }
-
-            OriginalSubpath = inf.ReadInt32();
-
-            // note : stationXRef only used on init, not saved
+                ActivePath = ActiveSubPath,
+                ActiveAlternativePath = ActiveAlternativePath,
+                RoutePaths = await TCRouteSubpaths.SnapshotCollection<TrackCircuitPartialPathRouteSaveState, TrackCircuitPartialPathRoute>().ConfigureAwait(false),
+                AlternativePaths = await TCAlternativePaths.SnapshotCollection<TrackCircuitPartialPathRouteSaveState, TrackCircuitPartialPathRoute>().ConfigureAwait(false),
+                Waitpoints = new Collection<int[]>(WaitingPoints.Select(item => item.Values).ToList()),
+                LoopEnd = new Collection<int>(LoopEnd),
+                OriginalSubPath = OriginalSubpath,
+                ReversalInfoSaveStates = await ReversalInfo.SnapshotCollection<TrackCircuitReversalInfoSaveState, TrackCircuitReversalInfo>().ConfigureAwait(false),
+            };
         }
 
-        //================================================================================================//
-        //
-        // Save
-        //
-
-        public void Save(BinaryWriter outf)
+        public async ValueTask Restore(TrackCircuitRoutePathSaveState saveState)
         {
-            ArgumentNullException.ThrowIfNull(outf);
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-            outf.Write(ActiveSubPath);
-            outf.Write(ActiveAlternativePath);
-            outf.Write(TCRouteSubpaths.Count);
-            foreach (TrackCircuitPartialPathRoute thisSubpath in TCRouteSubpaths)
-            {
-                thisSubpath.Save(outf);
-            }
+            ActiveSubPath = saveState.ActivePath;
+            ActiveAlternativePath = saveState.ActiveAlternativePath;
 
-            outf.Write(TCAlternativePaths.Count);
-            foreach (TrackCircuitPartialPathRoute thisAltpath in TCAlternativePaths)
-            {
-                thisAltpath.Save(outf);
-            }
+            await TCRouteSubpaths.RestoreCollectionCreateNewInstances(saveState.RoutePaths).ConfigureAwait(false);
+            await TCAlternativePaths.RestoreCollectionCreateNewInstances(saveState.AlternativePaths).ConfigureAwait(false);
+            WaitingPoints.AddRange(saveState.Waitpoints.Select(waitPoint => new WaitingPointDetail(waitPoint))); 
+            await ReversalInfo.RestoreCollectionCreateNewInstances(saveState.ReversalInfoSaveStates).ConfigureAwait(false);
+            LoopEnd.AddRange(saveState.LoopEnd);
+            OriginalSubpath = saveState.OriginalSubPath;
 
-            outf.Write(WaitingPoints.Count);
-            foreach (int[] waitingPoint in WaitingPoints)
-            {
-                outf.Write(waitingPoint[0]);
-                outf.Write(waitingPoint[1]);
-                outf.Write(waitingPoint[2]);
-                outf.Write(waitingPoint[3]);
-                outf.Write(waitingPoint[4]);
-                outf.Write(waitingPoint[5]);
-            }
-
-            outf.Write(ReversalInfo.Count);
-            for (int iRP = 0; iRP < ReversalInfo.Count; iRP++)
-            {
-                ReversalInfo[iRP].Save(outf);
-            }
-
-            outf.Write(LoopEnd.Count);
-            for (int iLE = 0; iLE < LoopEnd.Count; iLE++)
-            {
-                outf.Write(LoopEnd[iLE]);
-            }
-
-            outf.Write(OriginalSubpath);
-
-            // note : stationXRef only used on init, need not be saved
+            // note : stationXRef only used on init, not saved
         }
 
         //  SPA: Used with enhanced MSTS Mode, please don't change
@@ -1622,9 +1554,10 @@ namespace Orts.Simulation.Track
 
                     ReversalInfo.Insert(i, dummyReversal);
 
-                    foreach (int[] waitingPoint in WaitingPoints)
+                    foreach (WaitingPointDetail waitingPoint in WaitingPoints)
                     {
-                        if (waitingPoint[0] >= i) waitingPoint[0]++;
+                        if (waitingPoint.SubListIndex >= i)
+                            waitingPoint.SubListIndex++;
                     }
                 }
             }
@@ -1775,9 +1708,9 @@ namespace Orts.Simulation.Track
             LoopEnd.Insert(0, -1);
 
             // adjust waiting point indices
-            foreach (int[] wp in WaitingPoints)
+            foreach (WaitingPointDetail waitingPoint in WaitingPoints)
             {
-                wp[0] += 1;
+                waitingPoint.SubListIndex++;
             }
 
             // shift subroute index for station stops

@@ -482,22 +482,6 @@ namespace Orts.Simulation
 
         public async ValueTask<SimulatorSaveState> Snapshot()
         {
-            ConcurrentBag<MovingTableSaveState> movingTableSaveStates = new ConcurrentBag<MovingTableSaveState>();
-            await Parallel.ForEachAsync(MovingTables, async (movingTable, cancellationToken) =>
-            {
-                movingTableSaveStates.Add(await movingTable.Snapshot().ConfigureAwait(false));
-            }).ConfigureAwait(false);
-            ConcurrentDictionary<int, ContainerStationSaveState> containerStations = new ConcurrentDictionary<int, ContainerStationSaveState>();
-            await Parallel.ForEachAsync(ContainerManager.ContainerStations, async (containerStation, cancellationToken) =>
-            {
-                containerStations.TryAdd(containerStation.Key, await containerStation.Value.Snapshot().ConfigureAwait(false));
-            }).ConfigureAwait(false);
-            ConcurrentDictionary<string, TimetablePoolSaveState> timetablePools = new ConcurrentDictionary<string, TimetablePoolSaveState>();
-            await Parallel.ForEachAsync(PoolHolder.Pools, async (pool, cancellationToken) =>
-            {
-                timetablePools.TryAdd(pool.Key, await pool.Value.Snapshot().ConfigureAwait(false));
-            }).ConfigureAwait(false);
-
             return new SimulatorSaveState()
             {
                 ClockTime = ClockTime,
@@ -506,11 +490,12 @@ namespace Orts.Simulation
                 WeatherFile = UserWeatherFile,
                 TimetableMode = TimetableMode,
                 SignalEnvironmentSaveState = await SignalEnvironment.Snapshot().ConfigureAwait(false),
-                MovingTables = new Collection<MovingTableSaveState>(movingTableSaveStates.ToList()),
+                MovingTables = await MovingTables.SnapshotCollection<MovingTableSaveState, MovingTable>().ConfigureAwait(false),
                 ActiveMovingTable = MovingTables.IndexOf(activeMovingTable),
                 Activity = ActivityRun == null ? null : await ActivityRun.Snapshot().ConfigureAwait(false),
-                ContainerStations = containerStations.ToDictionary(),
-                TimeTablePools = timetablePools.ToDictionary(),
+                Trains = await SaveTrains(),
+                ContainerStations = await ContainerManager.ContainerStations.SnapshotDictionary<ContainerStationSaveState, ContainerHandlingStation, int>().ConfigureAwait(false),
+                TimeTablePools = await PoolHolder.Pools.SnapshotDictionary<TimetablePoolSaveState, TimetablePool, string>().ConfigureAwait(false),
             };
         }
 
@@ -574,7 +559,7 @@ namespace Orts.Simulation
 
             //PoolHolder.Save(outf);
             //            SignalEnvironment.Save(outf);
-            SaveTrains(outf);
+            //SaveTrains(outf);
             // LevelCrossings
             // InterlockingSystem
             AI.Save(outf);
@@ -1518,6 +1503,28 @@ namespace Orts.Simulation
             }// for each train
         }
 
+        private async Task<Collection<TrainSaveState>> SaveTrains()
+        {
+            if (PlayerLocomotive.Train != Trains[0])
+            {
+                for (int i = 1; i < Trains.Count; i++)
+                {
+                    if (PlayerLocomotive.Train == Trains[i])
+                    {
+                        Trains[i] = Trains[0];
+                        Trains[0] = PlayerLocomotive.Train;
+                        break;
+                    }
+                }
+            }
+
+            // do not save AI trains (done by AITrain)
+            // do not save Timetable Trains (done by TTTrain through AITrain)
+
+            return await Trains.Where((train) => train.TrainType != TrainType.Ai && train.TrainType != TrainType.AiPlayerDriven && train.TrainType != TrainType.AiPlayerHosting &&
+                    train.TrainType != TrainType.AiIncorporated && !(train is TTTrain)).SnapshotCollection<TrainSaveState, Train>().ConfigureAwait(false);
+        }
+
         private void SaveTrains(BinaryWriter outf)
         {
             if (PlayerLocomotive.Train != Trains[0])
@@ -1958,7 +1965,7 @@ namespace Orts.Simulation
 
                     // and now let the former static train die
                     dyingTrain.RemoveFromTrack();
-                    dyingTrain.ClearDeadlocks();
+                    dyingTrain.TrainDeadlockInfo.ClearDeadlocks();
                     Trains.Remove(dyingTrain);
                     TrainDictionary.Remove(dyingTrain.Number);
                     NameDictionary.Remove(dyingTrain.Name);
