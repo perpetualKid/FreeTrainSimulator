@@ -28,8 +28,6 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
 using Orts.Formats.Msts;
 using Orts.Models.State;
 using Orts.Simulation.Track;

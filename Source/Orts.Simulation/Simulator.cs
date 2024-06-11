@@ -493,7 +493,7 @@ namespace Orts.Simulation
                 MovingTables = await MovingTables.SnapshotCollection<MovingTableSaveState, MovingTable>().ConfigureAwait(false),
                 ActiveMovingTable = MovingTables.IndexOf(activeMovingTable),
                 Activity = ActivityRun == null ? null : await ActivityRun.Snapshot().ConfigureAwait(false),
-                Trains = await SaveTrains(),
+                Trains = await SaveTrains().ConfigureAwait(false),
                 ContainerStations = await ContainerManager.ContainerStations.SnapshotDictionary<ContainerStationSaveState, ContainerHandlingStation, int>().ConfigureAwait(false),
                 TimeTablePools = await PoolHolder.Pools.SnapshotDictionary<TimetablePoolSaveState, TimetablePool, string>().ConfigureAwait(false),
             };

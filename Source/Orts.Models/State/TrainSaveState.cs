@@ -69,9 +69,11 @@ namespace Orts.Models.State
         public string DisplayMessage { get; set; }
         public TimeSpan? Delay { get; set; }
         public Dictionary<int, float> PassedSignalSpeeds { get; set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] LastPassedSignals { get; set; }
         public int LoopSection { get; set; }
         public AuthoritySaveState[] AuthoritySaveStates { get; set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         public int ServiceTrafficTime { get; set; }
         public Collection<ServiceTrafficItemSaveState> ServiceTrafficItemSaveStates { get; set; }
         public TrainControlMode TrainControlMode { get; set; }
