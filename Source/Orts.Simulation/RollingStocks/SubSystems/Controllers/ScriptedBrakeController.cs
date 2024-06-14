@@ -556,26 +556,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             return ValueTask.CompletedTask;
         }
 
-        public void Save(BinaryWriter outf)
-        {
-            outf.Write((int)ControllerType.BrakeController);
-
-            outf.Write(CurrentValue);
-
-            outf.Write(EmergencyBrakingPushButton);
-            outf.Write(TCSEmergencyBraking);
-            outf.Write(TCSFullServiceBraking);
-        }
-
-        public void Restore(BinaryReader inf)
-        {
-            SignalEvent(BrakeControllerEvent.SetCurrentValue, inf.ReadSingle());
-
-            EmergencyBrakingPushButton = inf.ReadBoolean();
-            TCSEmergencyBraking = inf.ReadBoolean();
-            TCSFullServiceBraking = inf.ReadBoolean();
-        }
-
         private protected virtual void UpdateBrakeStatus()
         {
             brakeInfo["State"] = script?.State.GetLocalizedDescription();
@@ -590,7 +570,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             updateBrakeStatus = true;
             return brakeInfo;
         }
-
     }
 
     public class ScriptedTrainBrakeController : ScriptedBrakeController

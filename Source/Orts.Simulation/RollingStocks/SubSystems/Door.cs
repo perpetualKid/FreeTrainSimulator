@@ -147,18 +147,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
         }
 
-        public virtual void Save(BinaryWriter outf)
-        {
-            outf.Write((int)State);
-            outf.Write(Locked);
-        }
-
-        public virtual void Restore(BinaryReader inf)
-        {
-            State = (DoorState)inf.ReadInt32();
-            Locked = inf.ReadBoolean();
-        }
-
         public virtual void Update(double elapsedClockSeconds)
         {
             switch (State)
