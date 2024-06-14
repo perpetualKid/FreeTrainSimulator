@@ -901,7 +901,7 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        public async ValueTask<TrainSaveState> Snapshot()
+        public virtual async ValueTask<TrainSaveState> Snapshot()
         {
             AuxActionsContainer.PreSave();
 
@@ -978,7 +978,7 @@ namespace Orts.Simulation.Physics
             };
         }
 
-        public async ValueTask Restore(TrainSaveState saveState)
+        public virtual async ValueTask Restore(TrainSaveState saveState)
         {
             ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
@@ -1157,6 +1157,12 @@ namespace Orts.Simulation.Physics
 
         TrainCar ISaveStateRestoreApi<TrainCarSaveState, TrainCar>.CreateRuntimeTarget(TrainCarSaveState saveState)
         {
+            return CreateRuntimeTarget(saveState);
+        }
+
+        protected TrainCar CreateRuntimeTarget(TrainCarSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
             return RollingStock.Load(this, saveState.WagonSaveState.WagonFile, false);
         }
 

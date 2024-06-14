@@ -262,6 +262,7 @@ namespace Orts.Simulation.AIs
                 ServiceDefinition.Add(new TrafficItem(inf.ReadSingle(), 0, 0.0f, inf.ReadInt32()));
             }
         }
+
         //================================================================================================//
         /// <summary>
         /// Save
@@ -303,6 +304,18 @@ namespace Orts.Simulation.AIs
                 ServiceDefinition.Save(outf);
             else
                 outf.Write(-1);
+        }
+
+        public override async ValueTask<TrainSaveState> Snapshot()
+        {
+            TrainSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            return saveState;
+        }
+
+        public override async ValueTask Restore([NotNull] TrainSaveState saveState)
+        {
+            await base.Restore(saveState).ConfigureAwait(false);
         }
 
         //================================================================================================//
