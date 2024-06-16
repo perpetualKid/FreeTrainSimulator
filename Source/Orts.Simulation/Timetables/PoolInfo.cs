@@ -41,10 +41,8 @@ namespace Orts.Simulation.Timetables
         /// <param name="arguments"></param>
         /// <param name="cancellation"></param>
         /// <returns></returns>
-        public static Dictionary<string, TimetablePool> ProcessPools(string fileName, CancellationToken cancellationToken)
+        public static void ProcessPools(string fileName, Dictionary<string, TimetablePool> pools, CancellationToken cancellationToken)
         {
-            Dictionary<string, TimetablePool> pools = new Dictionary<string, TimetablePool>();
-
             // get filenames to process
             Trace.Write("\n");
             foreach (string filePath in EnumeratePoolFiles(fileName, significantFileName))
@@ -89,8 +87,6 @@ namespace Orts.Simulation.Timetables
                     }
                 }
             }
-
-            return (pools);
         }
 
         //================================================================================================//

@@ -85,6 +85,25 @@ namespace Orts.Models.State
         public bool Pathless { get; set; }
         public Dictionary<int, List<Dictionary<int, int>>> DeadlockInfo { get; set; }
         public Collection<AuxActionRefSaveState> AuxActionsSaveStates { get; set; }
+        public AiTrainSaveState AiTrainSaveState { get; set; }
 #pragma warning restore CA2227 // Collection properties should be read only
+    }
+
+    [MemoryPackable]
+    public sealed partial class AiTrainSaveState : SaveStateBase
+    {
+        public int? StartTime { get; set; }
+        public float MaxAcceleration { get; set; }
+        public float MaxDeceleration { get; set; }
+        public bool PowerState { get; set; }
+        public int Alpha10 { get; set; }
+        public AiMovementState MovementState { get; set; }
+        public float Efficiency { get; set; }
+        public float MaxVelocity { get; set; }
+        public bool UnconditionalAttach { get; set; }
+        public float DoorsCloseAdvance { get; set; }
+        public float DoorsOpenDelay { get; set; }
+        public LevelCrossingHornPattern LevelCrossingHornPattern { get; set; }
+        public Collection<TrafficItemSaveState> TrafficItemSaveStates { get; set; }
     }
 }

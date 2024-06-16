@@ -475,8 +475,8 @@ namespace Orts.Simulation
             //activeMovingTable = movingTableIndex >= 0 && movingTableIndex < MovingTables.Count ? MovingTables[movingTableIndex] : null;
 
             //            ActivityRun = Activity.Restore(inf, this, ActivityRun);
-            SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
-            SignalEnvironment.Update(true);           // update all signals once to set proper stat
+            //SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
+            //SignalEnvironment.Update(true);           // update all signals once to set proper stat
             //ContainerManager.Restore(inf);
         }
 
@@ -509,30 +509,16 @@ namespace Orts.Simulation
         {
             ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
+            FreightAnimationDiscrete.FreightAnimNeedsInitialization = false;
+
             ClockTime = saveState.ClockTime;
             Season = saveState.Season;
             WeatherType = saveState.Weather;
             UserWeatherFile = saveState.WeatherFile;
             TimetableMode = saveState.TimetableMode;
 
-            ConcurrentDictionary<string, TimetablePool> poolsRestore = new ConcurrentDictionary<string, TimetablePool>();
-            await Parallel.ForEachAsync(saveState.TimeTablePools, async (pool, cancellationToken) =>
-            {
-                switch (pool.Value.PoolType)
-                {
-                    case TimetablePoolType.TimetablePool:
-                        TimetablePool timetablePool = new TimetablePool();
-                        await timetablePool.Restore(pool.Value).ConfigureAwait(false);
-                        poolsRestore.TryAdd(pool.Key, timetablePool);
-                        break;
-                    case TimetablePoolType.TimetableTurntablePool:
-                        TimetableTurntablePool timetableTurntablePool = new TimetableTurntablePool();
-                        await timetableTurntablePool.Restore(pool.Value).ConfigureAwait(false);
-                        poolsRestore.TryAdd(pool.Key, timetableTurntablePool);
-                        break;
-                }
-            }).ConfigureAwait(false);
-            PoolHolder = new Poolholder(poolsRestore.ToDictionary());
+            PoolHolder = new Poolholder();
+            await PoolHolder.Pools.RestoreDictionaryCreateNewInstances(saveState.TimeTablePools, PoolHolder).ConfigureAwait(false);
             SignalEnvironment = new SignalEnvironment(SignalConfig, false, CancellationToken.None);
             await SignalEnvironment.Restore(saveState.SignalEnvironmentSaveState).ConfigureAwait(false);
 
@@ -547,10 +533,11 @@ namespace Orts.Simulation
             {
                 await ActivityRun.Restore(saveState.Activity).ConfigureAwait(false);
             }
-            await Parallel.ForEachAsync(ContainerManager.ContainerStations, async (containerStation, cancellationToken) =>
-            {
-                await containerStation.Value.Restore(saveState.ContainerStations[containerStation.Key]).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await ContainerManager.ContainerStations.RestoreDictionaryOnExistingInstances(saveState.ContainerStations).ConfigureAwait(false);
+
+            SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
+            SignalEnvironment.Update(true);           // update all signals once to set proper stat
+
         }
 
         public void Save(BinaryWriter outf)

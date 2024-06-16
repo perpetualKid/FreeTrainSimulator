@@ -652,7 +652,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
             //start position is the center of the text
             var start = new Vector3(0, 0, 0);
-            var rotation = 0;
 
             //find the left-most of text
             Vector3 offset;
@@ -664,7 +663,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             var color = DistributedPowerInterface.ColorYellow;
             var headerIndex = 0;
             float tX, tY;
-            Matrix rot;
             for (int iRow = 0; iRow < DPITable.NumberOfRowsFull; iRow++)
             {
                 // fill with blanks at startup
@@ -820,7 +818,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             string param = "";
             Color color;
             float tX, tY;
-            Matrix rot;
             for (int iRow = 0; iRow < DPITable.NumberOfRowsFull; iRow++)
             {
                 numIndices = 6 * iRow * (1 + (NumColumns - 1) * MaxDigits);
@@ -979,7 +976,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             return x;
         }
 
-        static float GetTextureCoordY(string param, int iChar, Color color)
+        private static float GetTextureCoordY(string param, int iChar, Color color)
         {
             float y = 0f;
             switch (param)
@@ -994,7 +991,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                     if (color == Color.Yellow) y += 0.125f;
                     return y;
             }
-            return 1.0f;
         }
 
         public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)

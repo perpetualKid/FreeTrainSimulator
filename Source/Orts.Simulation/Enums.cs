@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+﻿using Orts.Common;
 
 namespace Orts.Simulation
 {
@@ -68,26 +68,6 @@ namespace Orts.Simulation
         Engine,
         Tender,
         AuxiliaryTender,
-    }
-
-    public enum AiMovementState
-    {
-        Static,
-        Init,
-        Stopped,
-        StationStop,
-        Braking,
-        Accelerating,
-        Following,
-        Running,
-        ApproachingEndOfPath,
-        StoppedExisting,
-        InitAction,
-        HandleAction,
-        Suspended,
-        Frozen,
-        Turntable,
-        Unknown
     }
 
     public enum AiStartMovement

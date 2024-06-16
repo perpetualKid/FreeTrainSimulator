@@ -28,11 +28,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
@@ -49,13 +49,11 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
-using Orts.Simulation.World;
 
 namespace Orts.Simulation.AIs
 {
     public class AITrain : Train
     {
-        private protected int uid;
         internal AIPath Path { get; set; }
 
         public float MaxDecelMpSSP = 1.0f;               // maximum decelleration
@@ -85,7 +83,7 @@ namespace Orts.Simulation.AIs
         public float PathLength;
 
 
-        public AiMovementState MovementState = AiMovementState.Init;  // actual movement state
+        public AiMovementState MovementState { get; set; } = AiMovementState.Init;  // actual movement state
 
         public AI AI;
 
@@ -103,16 +101,13 @@ namespace Orts.Simulation.AIs
         internal const float minStopDistanceM = 3.0f;           // minimum clear distance for stopping at signal in station
         internal const float signalApproachDistanceM = 20.0f;   // final approach to signal
 
-        //================================================================================================//
         /// <summary>
         /// Constructor
         /// </summary>
-
         public AITrain(Services sd, AI ai, AIPath path, float efficiency, string name, ServiceTraffics trafficService, float maxVelocityA)
             : base()
         {
             ServiceDefinition = sd;
-            uid = ServiceDefinition.UiD;
             AI = ai;
             Path = path;
             TrainType = TrainType.AiNotStarted;
@@ -137,11 +132,14 @@ namespace Orts.Simulation.AIs
             TrainType = TrainType.AiNotStarted;
         }
 
-        //================================================================================================//
+        public AITrain(AI airef)
+        {
+            AI = airef;
+        }
+
         /// <summary>
         /// convert route and build station list
         /// </summary>
-
         public void CreateRoute(bool usePosition)
         {
             if (Path != null)
@@ -156,84 +154,79 @@ namespace Orts.Simulation.AIs
             }
         }
 
-        //================================================================================================//
-        /// <summary>
-        /// Restore
-        /// </summary>
-
-        public AITrain(BinaryReader inf, AI airef)
-            : base(inf)
+        public override async ValueTask<TrainSaveState> Snapshot()
         {
-            AI = airef;
+            TrainSaveState saveState = await base.Snapshot().ConfigureAwait(false);
+
+            saveState.AiTrainSaveState = new AiTrainSaveState()
+            {
+                StartTime = StartTime,
+                MaxAcceleration = MaxAccelMpSS,
+                MaxDeceleration = MaxDecelMpSS,
+                PowerState = PowerState,
+                Alpha10 = Alpha10,
+
+                MovementState = MovementState,
+                Efficiency = Efficiency,
+                MaxVelocity = MaxVelocityA,
+                UnconditionalAttach = UncondAttach,
+                DoorsCloseAdvance = doorCloseAdvance,
+                DoorsOpenDelay = doorOpenDelay,
+                LevelCrossingHornPattern = AILevelCrossingHornPattern.LevelCrossingHornPatternType(LevelCrossingHornPattern),
+                TrafficItemSaveStates = ServiceDefinition == null ? null : await ServiceDefinition.SnapshotCollection<TrafficItemSaveState, TrafficItem>().ConfigureAwait(false),
+            };
+            return saveState;
+        }
+
+        public override async ValueTask Restore([NotNull] TrainSaveState saveState)
+        {
+            await base.Restore(saveState).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(saveState.AiTrainSaveState, nameof(saveState.AiTrainSaveState));
+
+            AiTrainSaveState aiTrainSaveState = saveState.AiTrainSaveState;
             ColdStart = false;
-            uid = inf.ReadInt32();
-            MaxDecelMpSS = inf.ReadSingle();
-            MaxAccelMpSS = inf.ReadSingle();
+            MaxDecelMpSS = aiTrainSaveState.MaxDeceleration;
+            MaxAccelMpSS = aiTrainSaveState.MaxAcceleration;
 
             if (Cars.Count < StandardTrainMinCarNo)
                 ActivityClearingDistanceM = ShortClearingDistanceM;
 
-            int startTimeValue = inf.ReadInt32();
-            if (startTimeValue < 0)
-            {
-                StartTime = null;
-            }
-            else
-            {
-                StartTime = startTimeValue;
-            }
+            StartTime = aiTrainSaveState.StartTime;
 
-            PowerState = inf.ReadBoolean();
-            Alpha10 = inf.ReadInt32();
+            PowerState = aiTrainSaveState.PowerState;
+            Alpha10 = aiTrainSaveState.Alpha10;
 
-            MovementState = (AiMovementState)inf.ReadInt32();
+            MovementState = aiTrainSaveState.MovementState;
             if (MovementState == AiMovementState.InitAction || MovementState == AiMovementState.HandleAction)
                 MovementState = AiMovementState.Braking;
 
-            Efficiency = inf.ReadSingle();
-            MaxVelocityA = inf.ReadSingle();
-            UncondAttach = inf.ReadBoolean();
-            doorCloseAdvance = inf.ReadSingle();
-            doorOpenDelay = inf.ReadSingle();
+            Efficiency = aiTrainSaveState.Efficiency;
+            MaxVelocityA = aiTrainSaveState.MaxVelocity;
+            UncondAttach = aiTrainSaveState.UnconditionalAttach;
+            doorCloseAdvance = aiTrainSaveState.DoorsCloseAdvance;
+            doorOpenDelay = aiTrainSaveState.DoorsOpenDelay;
             if (!simulator.TimetableMode && doorOpenDelay <= 0 && doorCloseAdvance > 0 && simulator.OpenDoorsInAITrains &&
                 MovementState == AiMovementState.StationStop && StationStops.Count > 0)
             {
-                StationStop thisStation = StationStops[0];
-                var frontIsFront = thisStation.PlatformReference == thisStation.PlatformItem.PlatformFrontUiD;
-                if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Left) == PlatformDetails.PlatformSides.Left)
+                StationStop stationStop = StationStops[0];
+                bool frontIsFront = stationStop.PlatformReference == stationStop.PlatformItem.PlatformFrontUiD;
+                if ((stationStop.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Left) == PlatformDetails.PlatformSides.Left)
                 {
                     //open left doors
                     SetDoors(frontIsFront ? DoorSide.Right : DoorSide.Left, true);
                 }
-                if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right)
+                if ((stationStop.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right)
                 {
                     //open right doors
                     SetDoors(frontIsFront ? DoorSide.Left : DoorSide.Right, true);
                 }
             }
-            var doesLevelCrossingPatternExist = inf.ReadInt32();
-            if (doesLevelCrossingPatternExist == 0)
-                LevelCrossingHornPattern = AILevelCrossingHornPattern.Restore(inf);
-            int serviceListCount = inf.ReadInt32();
-            if (serviceListCount > 0)
-                RestoreServiceDefinition(inf, serviceListCount);
+            LevelCrossingHornPattern = AILevelCrossingHornPattern.CreateInstance(aiTrainSaveState.LevelCrossingHornPattern);
+            ServiceDefinition = new Services();
+            await ServiceDefinition.RestoreCollectionCreateNewInstances(aiTrainSaveState.TrafficItemSaveStates).ConfigureAwait(false);
 
             // set signals and actions if train is active train
-
-            bool activeTrain = true;
-
-            if (TrainType == TrainType.AiNotStarted)
-                activeTrain = false;
-            if (TrainType == TrainType.AiAutoGenerated)
-                activeTrain = false;
-            if (TrainType == TrainType.AiIncorporated)
-                activeTrain = false;
-
-            if (activeTrain)
-            {
-                if (MovementState == AiMovementState.Static || MovementState == AiMovementState.Init)
-                    activeTrain = false;
-            }
+            bool activeTrain = (TrainType != TrainType.AiNotStarted && TrainType != TrainType.AiAutoGenerated && TrainType != TrainType.AiIncorporated && MovementState != AiMovementState.Static && MovementState != AiMovementState.Init);
 
             if (activeTrain)
             {
@@ -244,78 +237,8 @@ namespace Orts.Simulation.AIs
                     ObtainRequiredActions(0);
             }
             // associate location events
-            if (simulator.ActivityRun != null)
-                simulator.ActivityRun.AssociateEvents(this);
+            simulator.ActivityRun?.AssociateEvents(this);
             LastSpeedMpS = SpeedMpS;
-        }
-
-        //================================================================================================//
-        //
-        // Restore of useful Service Items parameters
-        //
-
-        public void RestoreServiceDefinition(BinaryReader inf, int serviceLC)
-        {
-            ServiceDefinition = new Services();
-            for (int iServiceList = 0; iServiceList < serviceLC; iServiceList++)
-            {
-                ServiceDefinition.Add(new TrafficItem(inf.ReadSingle(), 0, 0.0f, inf.ReadInt32()));
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Save
-        /// </summary>
-
-        public override void Save(BinaryWriter outf)
-        {
-            // if something changes in this list, it must be changed also in Save(BinaryWriter outf) within TTTrain.cs
-            outf.Write("AI");
-            base.Save(outf);
-            outf.Write(uid);
-            outf.Write(MaxDecelMpSS);
-            outf.Write(MaxAccelMpSS);
-            if (StartTime.HasValue)
-            {
-                outf.Write(StartTime.Value);
-            }
-            else
-            {
-                outf.Write(-1);
-            }
-            outf.Write(PowerState);
-            outf.Write(Alpha10);
-
-            outf.Write((int)MovementState);
-            outf.Write(Efficiency);
-            outf.Write(MaxVelocityA);
-            outf.Write(UncondAttach);
-            outf.Write(doorCloseAdvance);
-            outf.Write(doorOpenDelay);
-            if (LevelCrossingHornPattern != null)
-            {
-                outf.Write(0);
-                LevelCrossingHornPattern.Save(outf);
-            }
-            else
-                outf.Write(-1);
-            if (ServiceDefinition != null)
-                ServiceDefinition.Save(outf);
-            else
-                outf.Write(-1);
-        }
-
-        public override async ValueTask<TrainSaveState> Snapshot()
-        {
-            TrainSaveState saveState = await base.Snapshot().ConfigureAwait(false);
-
-            return saveState;
-        }
-
-        public override async ValueTask Restore([NotNull] TrainSaveState saveState)
-        {
-            await base.Restore(saveState).ConfigureAwait(false);
         }
 
         //================================================================================================//
@@ -5258,266 +5181,6 @@ namespace Orts.Simulation.AIs
 
                 }
             }
-        }
-    }
-
-
-    /// <summary>
-    /// Abstract class for a programmatic horn pattern sounded by the AI at level crossings.
-    /// </summary>
-    public abstract class AILevelCrossingHornPattern
-    {
-        /// <summary>
-        /// Determines whether or not to create an <see cref="AIActionHornRef"/> based on the states of the train and the approaching level crossing.
-        /// </summary>
-        /// <param name="crossing">The level crossing group.</param>
-        /// <param name="absoluteSpeedMpS">The absolute value of the current speed of the train.</param>
-        /// <param name="distanceToCrossingM">The closest distance between the train (front or rear) and the level crossing (either end).</param>
-        /// <returns></returns>
-        public abstract bool ShouldActivate(LevelCrossing crossing, float absoluteSpeedMpS, float distanceToCrossingM);
-
-        /// <summary>
-        /// Sound the horn pattern using the provided locomotive. Called by <see cref="AuxActionHornItem"/>.
-        /// </summary>
-        /// <param name="locomotive">The locomotive to manipulate.</param>
-        /// <param name="durationS">The duration ("delay") set for this horn event, if set.</param>
-        /// <returns>On each iteration, set the locomotive's controls, then yield the clock time until the next step.</returns>
-        public abstract IEnumerator<int> Execute(MSTSLocomotive locomotive, int? durationS);
-
-        public LevelCrossingHornPattern LevelCrossingHornPatternType()
-        {
-            return this switch
-            {
-                AILevelCrossingSingleHorn _ => LevelCrossingHornPattern.Single,
-                AILevelCrossingAmericanHorn _ => LevelCrossingHornPattern.US,
-                _ => throw new InvalidCastException("Invalid LevelCrossingHornPattern"),
-            };
-        }
-
-        /// <summary>
-        /// Get the horn pattern that corresponds to a <see cref="LevelCrossingHornPattern"/> value.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static AILevelCrossingHornPattern CreateInstance(LevelCrossingHornPattern type)
-        {
-            return type switch
-            {
-                LevelCrossingHornPattern.Single => new AILevelCrossingSingleHorn(),
-                LevelCrossingHornPattern.US => new AILevelCrossingAmericanHorn(),
-                _ => throw new ArgumentException("Invalid LevelCrossingHornPattern:", nameof(type)),
-            };
-        }
-
-        /// <summary>
-        /// Save type (not state) information to a save file.
-        /// </summary>
-        /// <param name="outf"></param>
-        public void Save(BinaryWriter outf)
-        {
-            LevelCrossingHornPattern type;
-            if (this is AILevelCrossingSingleHorn)
-                type = LevelCrossingHornPattern.Single;
-            else if (this is AILevelCrossingAmericanHorn)
-                type = LevelCrossingHornPattern.US;
-            else
-                throw new InvalidCastException("Invalid LevelCrossingHornPattern");
-            outf.Write((int)type);
-        }
-
-        /// <summary>
-        /// Restore type (not state) information from a save file.
-        /// </summary>
-        /// <param name="inf"></param>
-        /// <returns></returns>
-        public static AILevelCrossingHornPattern Restore(BinaryReader inf)
-            => CreateInstance((LevelCrossingHornPattern)inf.ReadInt32());
-    }
-
-
-    /// <summary>
-    /// Sound a single blast just before reaching the level crossing, with a slightly randomized duration, and stop the bell after 30 seconds if triggered.
-    /// </summary>
-    public class AILevelCrossingSingleHorn : AILevelCrossingHornPattern
-    {
-        /// <summary>
-        /// Sound the horn within 6s of the crossing.
-        /// </summary>
-        public override bool ShouldActivate(LevelCrossing crossing, float absoluteSpeedMpS, float distanceToCrossingM)
-            => distanceToCrossingM / absoluteSpeedMpS < 6f;
-
-        public override IEnumerator<int> Execute(MSTSLocomotive locomotive, int? durationS)
-        {
-            if (!durationS.HasValue)
-            {
-                // Sound the horn for a pseudorandom period of seconds between 2 and 5.
-                durationS = (DateTime.Now.Millisecond % 10) / 3 + 2;
-            }
-
-            locomotive.ManualHorn = true;
-            yield return durationS.Value;
-
-            locomotive.ManualHorn = false;
-
-            if (locomotive.DoesHornTriggerBell)
-            {
-                yield return 30 - durationS.Value;
-                locomotive.BellState = MSTSLocomotive.SoundState.Stopped;
-            }
-        }
-    }
-
-
-    /// <summary>
-    /// Sound the long-long-short-long pattern used in the United States and Canada, and stop the bell after 30 seconds if triggered.
-    /// </summary>
-    public class AILevelCrossingAmericanHorn : AILevelCrossingHornPattern
-    {
-        /// <summary>
-        /// Sound the horn within 19s of crossing to accomodate the full sequence.
-        /// </summary>
-        public override bool ShouldActivate(LevelCrossing crossing, float absoluteSpeedMpS, float distanceToCrossingM)
-            => distanceToCrossingM / absoluteSpeedMpS < 19f;
-
-        /// <summary>
-        /// This pattern ignores the supplied duration.
-        /// </summary>
-        public override IEnumerator<int> Execute(MSTSLocomotive locomotive, int? durationS)
-        {
-            locomotive.ManualHorn = true;
-            yield return 3;
-
-            locomotive.ManualHorn = false;
-            yield return 2;
-
-            locomotive.ManualHorn = true;
-            yield return 3;
-
-            locomotive.ManualHorn = false;
-            yield return 2;
-
-            locomotive.ManualHorn = true;
-            yield return 0;
-
-            locomotive.ManualHorn = false;
-            yield return 1;
-
-            locomotive.ManualHorn = true;
-            yield return 8;
-
-            locomotive.ManualHorn = false;
-
-            if (locomotive.DoesHornTriggerBell)
-            {
-                yield return 11;
-                locomotive.BellState = MSTSLocomotive.SoundState.Stopped;
-            }
-        }
-    }
-
-
-    //================================================================================================//
-    /// <summary>
-    /// AIActionItem class : class to hold info on next restrictive action
-    /// </summary>
-
-
-    internal class AIActionItem : DistanceTravelledItem
-    {
-        public float RequiredSpeedMpS { get; set; }
-        public float ActivateDistanceM { get; set; }
-        public float InsertedDistanceM { get; set; }
-        internal SignalItemInfo ActiveItem { get; set; }
-        public int ReqTablePath { get; set; }
-
-        public AiActionType NextAction { get; set; } = AiActionType.None;
-
-        //================================================================================================//
-        /// <summary>
-        /// constructor for AIActionItem
-        /// </summary>
-
-        public AIActionItem() { }
-
-        internal AIActionItem(SignalItemInfo thisItem, AiActionType thisAction)
-        {
-            ActiveItem = thisItem;
-            NextAction = thisAction;
-        }
-
-        public void SetParam(float requiredDistance, float requiredSpeedMpS, float activateDistanceM, float insertedDistanceM)
-        {
-            RequiredDistance = requiredDistance;
-            RequiredSpeedMpS = requiredSpeedMpS;
-            ActivateDistanceM = activateDistanceM;
-            InsertedDistanceM = insertedDistanceM;
-        }
-
-        public override async ValueTask<ActionItemSaveState> Snapshot()
-        {
-            ActionItemSaveState saveState = await base.Snapshot().ConfigureAwait(false);
-
-            saveState.ActionItemType = ActionItemType.AiActionItem;
-
-            saveState.RequiredSpeed = RequiredSpeedMpS;
-            saveState.ActivateDistance = ActivateDistanceM;
-            saveState.InsertedDistance = InsertedDistanceM;
-            saveState.RequestedTablePath = ReqTablePath;
-
-            saveState.SignalItemSaveState = ActiveItem == null ? null : await ActiveItem.Snapshot().ConfigureAwait(false);
-            saveState.NextActionType = NextAction;
-            return saveState;
-        }
-
-        public override async ValueTask Restore([NotNull] ActionItemSaveState saveState)
-        {
-            await base.Restore(saveState).ConfigureAwait(false);
-
-            RequiredSpeedMpS = saveState.RequiredSpeed;
-            ActivateDistanceM = saveState.ActivateDistance;
-            InsertedDistanceM = saveState.InsertedDistance;
-            ReqTablePath = saveState.RequestedTablePath;
-
-            if (null != saveState.SignalItemSaveState)
-            {
-                ActiveItem = new SignalItemInfo();
-                await ActiveItem.Restore(saveState.SignalItemSaveState).ConfigureAwait(false);
-            }
-            NextAction = saveState.NextActionType;
-        }
-
-        //================================================================================================//
-        //
-        //  Generic Handler for all derived class
-        //
-        public virtual bool ValidAction(Train thisTrain)
-        {
-            return false;
-        }
-
-        public virtual AiMovementState InitAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
-        {
-            return movementState;
-        }
-
-        public virtual AiMovementState HandleAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
-        {
-            return movementState;
-        }
-
-        public virtual AiMovementState ProcessAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AiMovementState movementState)
-        {
-            return movementState;
-        }
-
-        public virtual AiMovementState ProcessAction(Train thisTrain, int presentTime)
-        {
-            return AiMovementState.Static;
-        }
-
-        public virtual string AsString(AITrain thisTrain)
-        {
-            return " ??(";
         }
     }
 }

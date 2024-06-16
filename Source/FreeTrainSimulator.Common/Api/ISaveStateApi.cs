@@ -29,6 +29,8 @@ namespace FreeTrainSimulator.Common.Api
             where TSaveState : SaveStateBase
             where TRuntime : ISaveStateApi<TSaveState>
         {
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+
             return new Collection<TSaveState>(await Task.WhenAll(source.Select(async item =>
             {
                 return await ValueTask.FromResult(item == null ? null : await item.Snapshot().ConfigureAwait(false)).ConfigureAwait(false);
@@ -97,6 +99,8 @@ namespace FreeTrainSimulator.Common.Api
             where TSaveState : SaveStateBase
             where TRuntime : ISaveStateApi<TSaveState>
         {
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+
             ConcurrentDictionary<TKey, TSaveState> saveStates = new ConcurrentDictionary<TKey, TSaveState>();
                 await Parallel.ForEachAsync(source, async (sourceItem, cancellationToken) =>
                 {
@@ -156,8 +160,11 @@ namespace FreeTrainSimulator.Common.Api
 
         public static async ValueTask RestoreDictionaryOnExistingInstances<TSaveState, TRuntime, TKey>(this IDictionary<TKey, TRuntime> target, IDictionary<TKey, TSaveState> saveStates)
             where TSaveState: SaveStateBase
-            where TRuntime: ISaveStateApi<TSaveState>, new()
+            where TRuntime: ISaveStateApi<TSaveState>
         {
+            ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
+            ArgumentNullException.ThrowIfNull(target, nameof(target));
+
             await Parallel.ForEachAsync(target, async (targetInstance, cancellationToken) =>
             {
                 await targetInstance.Value.Restore(saveStates[targetInstance.Key]).ConfigureAwait(false);

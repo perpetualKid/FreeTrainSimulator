@@ -43,6 +43,8 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
 
+using SharpDX.Direct3D9;
+
 namespace Orts.Simulation.Timetables
 {
     /// <summary>
@@ -50,16 +52,17 @@ namespace Orts.Simulation.Timetables
     /// Interface class for access from Simulator
     /// </summary>
     public class Poolholder
+        : ISaveStateRestoreApi<TimetablePoolSaveState, TimetablePool>
     {
-        public Dictionary<string, TimetablePool> Pools { get; private set; }
+        public Dictionary<string, TimetablePool> Pools { get; }
 
         /// <summary>
         /// loader for timetable mode
         /// </summary>
-        public Poolholder(string fileName, CancellationToken cancellationToken)
+        public Poolholder(string fileName, CancellationToken cancellationToken): this()
         {
             // process pools
-            Pools = PoolInfo.ProcessPools(fileName, cancellationToken);
+            PoolInfo.ProcessPools(fileName, Pools, cancellationToken);
 
             // process turntables
             Dictionary<string, TimetableTurntablePool> TTTurntables = TurntableInfo.ProcessTurntables(fileName, cancellationToken);
@@ -75,9 +78,19 @@ namespace Orts.Simulation.Timetables
         /// <summary>
         /// loader for activity mode (dummy)
         /// </summary>
-        public Poolholder(Dictionary<string, TimetablePool> pools = null)
+        public Poolholder()
         {
-            Pools = pools;
+            Pools = new Dictionary<string, TimetablePool>();
+        }
+
+        TimetablePool ISaveStateRestoreApi<TimetablePoolSaveState, TimetablePool>.CreateRuntimeTarget(TimetablePoolSaveState saveState)
+        {
+            return saveState.PoolType switch
+            {
+                TimetablePoolType.TimetablePool => new TimetablePool(),
+                TimetablePoolType.TimetableTurntablePool => new TimetableTurntablePool(),
+                _ => throw new NotImplementedException(),
+            };
         }
     }
 
@@ -1163,7 +1176,7 @@ namespace Orts.Simulation.Timetables
 
             selectedTrain.Forms = -1;
             selectedTrain.RemoveTrain();
-            train.FormedOfType = TTTrain.FormCommand.TerminationFormed;
+            train.FormedOfType = TimetableFormationCommand.TerminationFormed;
             train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
 
 #if DEBUG_POOLINFO

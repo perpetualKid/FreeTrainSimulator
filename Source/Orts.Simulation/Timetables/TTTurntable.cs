@@ -948,7 +948,7 @@ namespace Orts.Simulation.Timetables
 
             selectedTrain.Forms = -1;
             selectedTrain.RemoveTrain();
-            train.FormedOfType = TTTrain.FormCommand.TerminationFormed;
+            train.FormedOfType = TimetableFormationCommand.TerminationFormed;
 
 #if DEBUG_POOLINFO
             sob = new StringBuilder();

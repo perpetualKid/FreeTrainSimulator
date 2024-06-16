@@ -1161,6 +1161,7 @@ namespace Orts.Common
     /// </summary>
     public enum LevelCrossingHornPattern
     {
+        None,
         /// <summary>
         /// A single blast just before the crossing.
         /// </summary>
@@ -1513,5 +1514,34 @@ namespace Orts.Common
         [Description("End Auth")] EndOfAuthority,                             // when moving backward in Auto mode
         [Description("No Path")] NoPathReserved,
 #pragma warning restore CA1700 // Do not name enum values 'Reserved'
+    }
+
+    public enum TimetableFormationCommand                                           //enum to indicate type of form sequence
+    {
+        TerminationFormed,
+        TerminationTriggered,
+        Detached,
+        Created,
+        None,
+    }
+
+    public enum AiMovementState
+    {
+        Static,
+        Init,
+        Stopped,
+        StationStop,
+        Braking,
+        Accelerating,
+        Following,
+        Running,
+        ApproachingEndOfPath,
+        StoppedExisting,
+        InitAction,
+        HandleAction,
+        Suspended,
+        Frozen,
+        Turntable,
+        Unknown
     }
 }

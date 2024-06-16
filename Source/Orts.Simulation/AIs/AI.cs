@@ -90,7 +90,7 @@ namespace Orts.Simulation.AIs
 
         // constructor for Timetable trains
         // trains allready have a number - must not be changed!
-        public AI(Simulator simulator, List<TTTrain> allTrains, int playerTrainOriginalTrain, TTTrain.FormCommand playerTrainFormedOfType, TTTrain playerTrain, CancellationToken cancellation)
+        public AI(Simulator simulator, List<TTTrain> allTrains, int playerTrainOriginalTrain, TimetableFormationCommand playerTrainFormedOfType, TTTrain playerTrain, CancellationToken cancellation)
         {
             this.simulator = simulator;
 
@@ -158,7 +158,8 @@ namespace Orts.Simulation.AIs
                 // activity mode trains
                 if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
-                    AITrain aiTrain = new AITrain(inf, this);
+                    //AITrain aiTrain = new AITrain(inf, this);
+                    AITrain aiTrain = new AITrain(this);
                     AITrains.Add(aiTrain);
                     this.simulator.Trains.Add(aiTrain);
                     simulator.TrainDictionary.Add(aiTrain.Number, aiTrain);
@@ -192,7 +193,8 @@ namespace Orts.Simulation.AIs
                 string trainType = inf.ReadString();
                 if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
-                    AITrain aiTrain = new AITrain(inf, this);
+                    //AITrain aiTrain = new AITrain(inf, this);
+                    AITrain aiTrain = new AITrain(this);
                     StartList.InsertTrain(aiTrain);
                     this.simulator.StartReference.Add(aiTrain.Number);
                 }
@@ -211,7 +213,8 @@ namespace Orts.Simulation.AIs
                 string trainType = inf.ReadString();
                 if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
-                    AITrain aiTrain = new AITrain(inf, this);
+                    //AITrain aiTrain = new AITrain(inf, this);
+                    AITrain aiTrain = new AITrain(this);
                     AutoGenTrains.Add(aiTrain);
                     this.simulator.AutoGenDictionary.Add(aiTrain.Number, aiTrain);
                 }
@@ -258,7 +261,8 @@ namespace Orts.Simulation.AIs
             this.simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
             Debug.Assert(simulator.Trains != null, "Cannot restore AI without Simulator.Trains.");
             _ = inf?.ReadString() ?? throw new ArgumentNullException(nameof(inf)); // may be ignored, can be AI only
-            AITrain aiTrain = new AITrain(inf, this);
+            //AITrain aiTrain = new AITrain(inf, this);
+            AITrain aiTrain = new AITrain(this);
             int PlayerLocomotiveIndex = inf.ReadInt32();
             if (PlayerLocomotiveIndex >= 0)
                 this.simulator.PlayerLocomotive = aiTrain.Cars[PlayerLocomotiveIndex] as MSTSLocomotive ?? throw new InvalidCastException(nameof(AI.simulator.PlayerLocomotive));
@@ -350,14 +354,14 @@ namespace Orts.Simulation.AIs
                     simulator.SignalEnvironment.Update(true);
                     ClockTime = runTime;
                     if (cancellation.IsCancellationRequested)
-                        return; 
+                        return;
                 }
             }
         }
 
 
         // prerun for timetable mode
-        private void PrerunAI(int playerTrainOriginalTrain, TTTrain.FormCommand playerTrainFormedOfType, TTTrain playerTrain, CancellationToken cancellation)
+        private void PrerunAI(int playerTrainOriginalTrain, TimetableFormationCommand playerTrainFormedOfType, TTTrain playerTrain, CancellationToken cancellation)
         {
             bool endPreRun = false;
 
@@ -390,7 +394,7 @@ namespace Orts.Simulation.AIs
 
                     ClockTime = runTime;
                     if (cancellation.IsCancellationRequested)
-                        return; 
+                        return;
                 }
 
                 // prerun finished - check if train from which player train originates has run and is finished
@@ -400,7 +404,7 @@ namespace Orts.Simulation.AIs
                 TTTrain PlayTrain = null;
 
                 // player train is pre-created - check if it exists already
-                if (playerTrainFormedOfType == TTTrain.FormCommand.Created)
+                if (playerTrainFormedOfType == TimetableFormationCommand.Created)
                 {
                     PlayTrain = simulator.Trains.GetAITrainByNumber(0) as TTTrain;
                     // train exists - set as player train
@@ -456,7 +460,7 @@ namespace Orts.Simulation.AIs
                 }
 
                 // player train is formed out of other train
-                else if (playerTrainOriginalTrain > 0 && (playerTrainFormedOfType == TTTrain.FormCommand.TerminationFormed || playerTrainFormedOfType == TTTrain.FormCommand.TerminationTriggered))
+                else if (playerTrainOriginalTrain > 0 && (playerTrainFormedOfType == TimetableFormationCommand.TerminationFormed || playerTrainFormedOfType == TimetableFormationCommand.TerminationTriggered))
                 {
                     OrgTrainNotStarted = simulator.Trains.CheckTrainNotStartedByNumber(playerTrainOriginalTrain);
                     OrgTrain = simulator.Trains.GetAITrainByNumber(playerTrainOriginalTrain) as TTTrain;
@@ -477,7 +481,7 @@ namespace Orts.Simulation.AIs
                 }
 
                 // if player train is detached from other train
-                else if (playerTrainOriginalTrain > 0 && playerTrainFormedOfType == TTTrain.FormCommand.Detached)
+                else if (playerTrainOriginalTrain > 0 && playerTrainFormedOfType == TimetableFormationCommand.Detached)
                 {
                     PlayTrain = simulator.Trains.GetAITrainByNumber(0) as TTTrain;
                     // train exists - set as player train
@@ -571,13 +575,13 @@ namespace Orts.Simulation.AIs
                             }
                         }
 
-                        if (playerTrainOriginalTrain > 0 && (playerTrainFormedOfType == TTTrain.FormCommand.TerminationFormed || playerTrainFormedOfType == TTTrain.FormCommand.TerminationTriggered))
+                        if (playerTrainOriginalTrain > 0 && (playerTrainFormedOfType == TimetableFormationCommand.TerminationFormed || playerTrainFormedOfType == TimetableFormationCommand.TerminationTriggered))
                         {
                             OrgTrainNotStarted = simulator.Trains.CheckTrainNotStartedByNumber(playerTrainOriginalTrain);
                             OrgTrain = simulator.Trains.GetAITrainByNumber(playerTrainOriginalTrain) as TTTrain;
                             playerTrainStarted = (!OrgTrainNotStarted && OrgTrain == null);
                         }
-                        else if (playerTrainOriginalTrain > 0 && playerTrainFormedOfType == TTTrain.FormCommand.Detached)
+                        else if (playerTrainOriginalTrain > 0 && playerTrainFormedOfType == TimetableFormationCommand.Detached)
                         {
                             PlayTrain = simulator.Trains.GetAITrainByNumber(0) as TTTrain;
                             // train exists - set as player train
@@ -1366,7 +1370,7 @@ namespace Orts.Simulation.AIs
                 Trace.TraceInformation("Train : " + thisTrain.Name + " : missing start time, train not included");
                 return;
             }
-            
+
             if (this.Count == 0)
             {
                 this.AddFirst(thisTrain);

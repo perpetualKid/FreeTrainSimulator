@@ -120,7 +120,7 @@ namespace Orts.Formats.Msts.Models
         public ValueTask<ServiceTrafficItemSaveState> Snapshot()
         {
             return ValueTask.FromResult(new ServiceTrafficItemSaveState()
-            { 
+            {
                 ArrivalTime = ArrivalTime,
                 DepartureTime = DepartTime,
                 Distance = DistanceDownPath,
@@ -131,7 +131,7 @@ namespace Orts.Formats.Msts.Models
         public ValueTask Restore(ServiceTrafficItemSaveState saveState)
         {
             ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
-            
+
             ArrivalTime = saveState.ArrivalTime;
             DepartTime = saveState.DepartureTime;
             DistanceDownPath = saveState.Distance;
@@ -140,12 +140,14 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
-    public class TrafficItem
+    public class TrafficItem : ISaveStateApi<TrafficItemSaveState>
     {
         public float Efficiency { get; private set; }
         public int SkipCount { get; private set; }
         public float DistanceDownPath { get; private set; }
         public int PlatformStartID { get; private set; }
+
+        public TrafficItem() { }
 
         public TrafficItem(float efficiency, int skipCount, float distanceDownPath, int platformStartID)
         {
@@ -158,6 +160,25 @@ namespace Orts.Formats.Msts.Models
         public void SetAlternativeStationStop(int platformStartId)
         {
             PlatformStartID = platformStartId;
+        }
+
+        public ValueTask<TrafficItemSaveState> Snapshot()
+        {
+            return ValueTask.FromResult(new TrafficItemSaveState()
+            {
+                Efficiency = Efficiency,
+                PlatformStartId = PlatformStartID,
+            });
+        }
+
+        public ValueTask Restore(TrafficItemSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            Efficiency = saveState.Efficiency;
+            PlatformStartID = saveState.PlatformStartId;
+
+            return ValueTask.CompletedTask;
         }
     }
 
@@ -202,25 +223,6 @@ namespace Orts.Formats.Msts.Models
 
         public Services()
         { }
-
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
-
-            if (Count == 0)
-            {
-                outf.Write(-1);
-            }
-            else
-            {
-                outf.Write(Count);
-                foreach (TrafficItem traffic in this)
-                {
-                    outf.Write(traffic.Efficiency);
-                    outf.Write(traffic.PlatformStartID);
-                }
-            }
-        }
     }
 
     /// <summary>

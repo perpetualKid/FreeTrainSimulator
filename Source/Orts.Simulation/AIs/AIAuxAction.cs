@@ -840,7 +840,7 @@ namespace Orts.Simulation.AIs
             AuxActionRefSaveState saveState = await base.Snapshot().ConfigureAwait(false);
 
             saveState.Duration = duration;
-            //saveState.LevelCrossingHornPattern = hornPattern.LevelCrossingHornPatternType();
+            saveState.LevelCrossingHornPattern = AILevelCrossingHornPattern.LevelCrossingHornPatternType(hornPattern);
             return saveState;
         }
 
