@@ -102,10 +102,10 @@ namespace FreeTrainSimulator.Common.Api
             ArgumentNullException.ThrowIfNull(source, nameof(source));
 
             ConcurrentDictionary<TKey, TSaveState> saveStates = new ConcurrentDictionary<TKey, TSaveState>();
-                await Parallel.ForEachAsync(source, async (sourceItem, cancellationToken) =>
-                {
-                    _ = saveStates.TryAdd(sourceItem.Key, sourceItem.Value == null ? null : await sourceItem.Value.Snapshot().ConfigureAwait(false));
-                }).ConfigureAwait(false);
+            await Parallel.ForEachAsync(source, async (sourceItem, cancellationToken) =>
+            {
+                _ = saveStates.TryAdd(sourceItem.Key, sourceItem.Value == null ? null : await sourceItem.Value.Snapshot().ConfigureAwait(false));
+            }).ConfigureAwait(false);
 
             return saveStates.ToDictionary();
         }
@@ -154,13 +154,13 @@ namespace FreeTrainSimulator.Common.Api
                 _ = restoreItems.TryAdd(saveState.Key, targetInstance);
             }).ConfigureAwait(false);
 
-            foreach(KeyValuePair<TKey, TRuntime> item in restoreItems)
+            foreach (KeyValuePair<TKey, TRuntime> item in restoreItems)
                 _ = target.TryAdd(item.Key, item.Value);
         }
 
         public static async ValueTask RestoreDictionaryOnExistingInstances<TSaveState, TRuntime, TKey>(this IDictionary<TKey, TRuntime> target, IDictionary<TKey, TSaveState> saveStates)
-            where TSaveState: SaveStateBase
-            where TRuntime: ISaveStateApi<TSaveState>
+            where TSaveState : SaveStateBase
+            where TRuntime : ISaveStateApi<TSaveState>
         {
             ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
             ArgumentNullException.ThrowIfNull(target, nameof(target));
@@ -171,5 +171,36 @@ namespace FreeTrainSimulator.Common.Api
             }).ConfigureAwait(false);
         }
         #endregion
+
+        #region Dictionary of Collections
+        public static ValueTask<Dictionary<TKey, Collection<TRuntime>>> SnapshotListDictionary<TRuntime, TKey>(this IDictionary<TKey, List<TRuntime>> source)
+            where TRuntime : struct
+        {
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+
+            ConcurrentDictionary<TKey, Collection<TRuntime>> saveStates = new ConcurrentDictionary<TKey, Collection<TRuntime>>();
+            Parallel.ForEach(source, (sourceItem, cancellationToken) =>
+            {
+                _ = saveStates.TryAdd(sourceItem.Key, sourceItem.Value == null ? null : new Collection<TRuntime>(sourceItem.Value));
+            });
+
+            return ValueTask.FromResult(saveStates.ToDictionary());
+        }
+
+        public static async ValueTask<Dictionary<TKey, Collection<TSaveState>>> SnapshotListDictionary<TSaveState, TRuntime, TKey>(this IDictionary<TKey, List<TRuntime>> source)
+            where TSaveState : SaveStateBase
+            where TRuntime : ISaveStateApi<TSaveState>
+        {
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+
+            ConcurrentDictionary<TKey, Collection<TSaveState>> saveStates = new ConcurrentDictionary<TKey, Collection<TSaveState>>();
+            await Parallel.ForEachAsync(source, async (sourceItem, cancellationToken) =>
+            {
+                _ = saveStates.TryAdd(sourceItem.Key, sourceItem.Value == null ? null : await sourceItem.Value.SnapshotCollection<TSaveState, TRuntime>().ConfigureAwait(false));
+            }).ConfigureAwait(false);
+
+            return saveStates.ToDictionary();
+            #endregion
+        }
     }
 }

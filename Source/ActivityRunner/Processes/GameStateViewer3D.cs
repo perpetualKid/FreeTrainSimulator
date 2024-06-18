@@ -175,7 +175,6 @@ namespace Orts.ActivityRunner.Processes
 
             using (BinaryWriter outf = new BinaryWriter(new MemoryStream()))
             {
-                simulator.Save(outf);
                 // Save multiplayer parameters
                 if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
                     MultiPlayerManager.OnlineTrains.Save(outf);

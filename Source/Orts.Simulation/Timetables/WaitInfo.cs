@@ -21,11 +21,6 @@
  * 
  */
 
-// #define DEBUG_REPORTS
-// #define DEBUG_DEADLOCK
-// #define DEBUG_TTANALYSIS
-// DEBUG flag for debug prints
-
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -36,16 +31,11 @@ using Orts.Common;
 using Orts.Models.State;
 using Orts.Simulation.Track;
 
-using SharpDX.Direct2D1;
-
 namespace Orts.Simulation.Timetables
 {
-    //================================================================================================//
-    //================================================================================================//
     /// <summary>
     /// Class for waiting instructions
     /// <\summary>
-
     public class WaitInfo : IComparable<WaitInfo>, ISaveStateApi<WaitInfoSaveState>
     {
         // General info
@@ -84,15 +74,10 @@ namespace Orts.Simulation.Timetables
 
         public PathCheckDirection PathDirection = PathCheckDirection.Same; // required path direction
 
-        //================================================================================================//
-        /// <summary>
-        /// Empty constructor
-        /// </summary>
         public WaitInfo()
         {
         }
 
-        //================================================================================================//
         /// <summary>
         /// Constructor for restore
         /// </summary>
@@ -195,136 +180,30 @@ namespace Orts.Simulation.Timetables
             }
         }
 
-        //================================================================================================//
-        /// <summary>
-        /// Save
-        /// </summary>
-        /// <param name="outf"></param>
-        public void Save(BinaryWriter outf)
-        {
-            outf.Write((int)WaitType);
-            outf.Write(WaitActive);
-
-            outf.Write(activeSubrouteIndex);
-            outf.Write(activeSectionIndex);
-            outf.Write(activeRouteIndex);
-
-            outf.Write(waitTrainNumber);
-
-            if (maxDelayS.HasValue)
-            {
-                outf.Write(maxDelayS.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (ownDelayS.HasValue)
-            {
-                outf.Write(ownDelayS.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (notStarted.HasValue)
-            {
-                outf.Write(1f);
-                outf.Write(notStarted.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (atStart.HasValue)
-            {
-                outf.Write(1f);
-                outf.Write(atStart.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (waittrigger.HasValue)
-            {
-                outf.Write(waittrigger.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (waitendtrigger.HasValue)
-            {
-                outf.Write(waitendtrigger.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            outf.Write(waitTrainSubpathIndex);
-            outf.Write(waitTrainRouteIndex);
-
-            outf.Write(stationIndex);
-
-            if (holdTimeS.HasValue)
-            {
-                outf.Write(holdTimeS.Value);
-            }
-            else
-            {
-                outf.Write(-1f);
-            }
-
-            if (CheckPath == null)
-            {
-                outf.Write(-1);
-            }
-            else
-            {
-                outf.Write(1);
-                CheckPath.Save(outf);
-                outf.Write((int)PathDirection);
-            }
-        }
-
-        //================================================================================================//
         //
         // Compare To (to allow sort)
         //
-
         public int CompareTo(WaitInfo other)
         {
             // all connects are moved to the end of the queue
-            if (WaitType == WaitInfoType.Connect)
+            return WaitType == WaitInfoType.Connect
+                ? other.WaitType == WaitInfoType.Connect ? 0 : 1
+                : other.WaitType switch
             {
-                return other.WaitType == WaitInfoType.Connect ? 0 : 1;
-            }
-            if (other.WaitType == WaitInfoType.Connect)
-                return (-1);
-
-            if (this.activeSubrouteIndex < other.activeSubrouteIndex)
-                return (-1);
-            if (this.activeSubrouteIndex == other.activeSubrouteIndex && this.activeRouteIndex < other.activeRouteIndex)
-                return (-1);
-            if (this.activeSubrouteIndex == other.activeSubrouteIndex && this.activeRouteIndex == other.activeRouteIndex)
-                return (0);
-            return (1);
+                WaitInfoType.Connect => -1,
+                _ => activeSubrouteIndex < other.activeSubrouteIndex || activeSubrouteIndex == other.activeSubrouteIndex && activeRouteIndex < other.activeRouteIndex
+                ? -1
+                : activeSubrouteIndex == other.activeSubrouteIndex && activeRouteIndex == other.activeRouteIndex ? 0 : 1
+            };
         }
 
-        //================================================================================================//
         /// <summary>
         /// Create full copy
         /// </summary>
         /// <returns></returns>
         public WaitInfo CreateCopy()
         {
-            return ((WaitInfo)this.MemberwiseClone());
+            return (WaitInfo)MemberwiseClone();
         }
 
         public async ValueTask<WaitInfoSaveState> Snapshot()

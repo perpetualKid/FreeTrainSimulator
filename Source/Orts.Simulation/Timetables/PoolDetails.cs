@@ -34,7 +34,6 @@ using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Timetables
 {
-
     public class PoolDetails : ISaveStateApi<TimetablePoolDetailSaveState>
     {
         public TrackCircuitPartialPathRoute StoragePath { get; set; }    // path defined as storage location

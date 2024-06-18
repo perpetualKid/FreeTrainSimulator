@@ -1525,6 +1525,123 @@ namespace Orts.Common
         None,
     }
 
+    public enum TriggerActivationType
+    {
+        Start,
+        Dispose,
+        StationStop,
+        StationDepart,
+    }
+
+    public enum DetachPositionInfo
+    {
+        Start,
+        Station,
+        Section,
+        End,
+        Activation,
+    }
+
+    public enum TransferUnits
+    {
+        OnlyPower,
+        LeadingPower,
+        AllLeadingPower,
+        TrailingPower,
+        AllTrailingPower,
+        NonPower,
+        UnitsAtFront,
+        UnitsAtEnd,
+        Consists
+    }
+
+    public enum MovingTableState
+    {
+        WaitingMovingTableAvailability,
+        WaitingAccessToMovingTable,
+        AccessToMovingTable,
+        AccessOnMovingTable,
+        WaitingStorageToMovingTable,
+        StorageToMovingTable,
+        StorageOnMovingTable,
+        Completed,
+        Inactive,
+    }
+
+    public enum DetachDetailsIndex
+    {
+        DetachDetailsList,
+        DetachActiveList,
+    }
+
+    public enum AiStartMovement
+    {
+        SignalCleared,
+        SignalRestricted,
+        FollowTrain,
+        EndStationStop,
+        NewTrain,
+        PathAction,
+        Turntable,
+        Reset             // used to clear state
+    }
+
+    public enum MovingTableAction
+    {
+        FromAccess,
+        FromStorage,
+        Turning,
+        Undefined,
+    }
+
+    public enum TransferType
+    {
+        Give,
+        Take,
+        Keep,
+        Leave,
+    }
+
+    public enum SpeedValueType
+    {
+        MaxSpeed,       // timetable defined max speed
+        CruiseSpeed,    // timetable defined cruise speed
+        CreepSpeed,     // timetable defined creep speed
+        AttachSpeed,    // timetable defined attach speed
+        DetachSpeed,    // timetable defined detach speed
+        MovingtableSpeed,// timetable defined speed for moving tables
+        RouteSpeed,     // route defined max speed
+        ConsistSpeed,   // consist defined max speed
+    }
+
+    public enum DelayedStartType
+    {
+        NewStart,
+        PathRestart,
+        FollowRestart,
+        StationRestart,
+        AttachRestart,
+        DetachRestart,
+        MovingTableRestart,
+    }
+
+
+    public enum PoolAccessState
+    {
+        // used to indicate access state to pool, combined with storage index
+        // values are <0, value >= 0 is returned storage index
+        PoolClaimed = -1,
+        PoolOverflow = -2,
+        PoolInvalid = -3,
+    }
+
+    public enum PoolExitDirection
+    {
+        Undefined,
+        Backward,
+        Forward,
+    }
+
     public enum AiMovementState
     {
         Static,

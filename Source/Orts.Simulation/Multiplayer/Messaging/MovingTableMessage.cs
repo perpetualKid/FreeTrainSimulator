@@ -13,7 +13,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
     public sealed partial class MovingTableMessage : MultiPlayerMessageContent
     {
         public int MovingTableIndex { get; set; }
-        public MovingTable.MessageCode MessageCode { get; set; }
+        public MovingTable.MovingTableAction MessageCode { get; set; }
         public Rotation MovingDirection { get; set; }
         public float Delta { get; set; }
 
@@ -24,7 +24,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             {
                 switch (MessageCode)
                 {
-                    case MovingTable.MessageCode.GoToTarget:
+                    case MovingTable.MovingTableAction.GoToTarget:
                         turntable.RemotelyControlled = true;
                         if (Math.Abs(MathHelper.WrapAngle(turntable.YAngle - Delta)) > 0.2f)
                         {
@@ -34,7 +34,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                         }
                         turntable.GeneralComputeTarget(MovingDirection == Rotation.Clockwise);
                         break;
-                    case MovingTable.MessageCode.StartingContinuous:
+                    case MovingTable.MovingTableAction.StartingContinuous:
                         turntable.YAngle = Delta;
                         turntable.TargetY = Delta;
                         turntable.AlignToRemote = true;
@@ -48,7 +48,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             {
                 switch (MessageCode)
                 {
-                    case MovingTable.MessageCode.GoToTarget:
+                    case MovingTable.MovingTableAction.GoToTarget:
                         transfertable.RemotelyControlled = true;
                         if (Math.Abs(transfertable.OffsetPos - Delta) > 2.8f)
                         {
@@ -58,7 +58,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                         }
                         transfertable.GeneralComputeTarget(MovingDirection == Rotation.Clockwise);
                         break;
-                    case MovingTable.MessageCode.StartingContinuous:
+                    case MovingTable.MovingTableAction.StartingContinuous:
                         transfertable.OffsetPos = Delta;
                         transfertable.TargetOffset = Delta;
                         transfertable.AlignToRemote = true;

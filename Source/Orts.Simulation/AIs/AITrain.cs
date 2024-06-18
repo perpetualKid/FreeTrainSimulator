@@ -21,9 +21,6 @@
  * 
  */
 
-// #define DEBUG_DEADLOCK
-// DEBUG flag for debug prints
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -88,18 +85,18 @@ namespace Orts.Simulation.AIs
         public AI AI;
 
         //  SPA:    Add public in order to be able to get these infos in new AIActionItems
-        protected const float keepDistanceStatTrainM_P = 10.0f;  // stay 10m behind stationary train (pass in station)
-        protected const float keepDistanceStatTrainM_F = 50.0f;  // stay 50m behind stationary train (freight or pass outside station)
-        protected const float followDistanceStatTrainM = 30.0f;  // min dist for starting to follow
-        protected const float keepDistanceMovingTrainM = 300.0f; // stay 300m behind moving train
-        protected const float creepSpeedMpS = 2.5f;              // speed for creeping up behind train or upto signal
-        protected const float couplingSpeedMpS = 0.4f;           // speed for coupling to other train
-        protected const float maxFollowSpeedMpS = 15.0f;         // max. speed when following
-        protected const float movingtableSpeedMpS = 2.5f;        // speed for moving tables (approx. max 8 kph)
-        protected const float hysterisMpS = 0.5f;                // speed hysteris value to avoid instability
-        internal const float clearingDistanceM = 30.0f;         // clear distance to stopping point
-        internal const float minStopDistanceM = 3.0f;           // minimum clear distance for stopping at signal in station
-        internal const float signalApproachDistanceM = 20.0f;   // final approach to signal
+        protected const float KeepDistanceStatTrainPassenger = 10.0f;  // stay 10m behind stationary train (pass in station)
+        protected const float KeepDistanceStatTrainFreight = 50.0f;  // stay 50m behind stationary train (freight or pass outside station)
+        protected const float FollowDistanceStatTrain = 30.0f;  // min dist for starting to follow
+        protected const float KeepDistanceMovingTrain = 300.0f; // stay 300m behind moving train
+        protected const float PresetCreepSpeed = 2.5f;              // speed for creeping up behind train or upto signal
+        protected const float PresetCouplingSpeed = 0.4f;           // speed for coupling to other train
+        protected const float MaxFollowSpeed = 15.0f;         // max. speed when following
+        protected const float PresetMovingtableSpeed = 2.5f;        // speed for moving tables (approx. max 8 kph)
+        protected const float SpeedHysteris = 0.5f;                // speed hysteris value to avoid instability
+        internal const float ClearingDistance = 30.0f;         // clear distance to stopping point
+        internal const float MinStopDistance = 3.0f;           // minimum clear distance for stopping at signal in station
+        internal const float SignalApproachDistance = 20.0f;   // final approach to signal
 
         /// <summary>
         /// Constructor
@@ -130,11 +127,7 @@ namespace Orts.Simulation.AIs
             : base()
         {
             TrainType = TrainType.AiNotStarted;
-        }
-
-        public AITrain(AI airef)
-        {
-            AI = airef;
+            AI = simulator.AI;
         }
 
         /// <summary>
@@ -160,6 +153,7 @@ namespace Orts.Simulation.AIs
 
             saveState.AiTrainSaveState = new AiTrainSaveState()
             {
+                PlayerLocomotiveIndex = Cars.IndexOf(simulator.PlayerLocomotive),
                 StartTime = StartTime,
                 MaxAcceleration = MaxAccelMpSS,
                 MaxDeceleration = MaxDecelMpSS,
@@ -774,7 +768,7 @@ namespace Orts.Simulation.AIs
                         {
                             process_req = false;
                         }
-                        else if (thisInfo.DistanceToTrain > signalApproachDistanceM ||
+                        else if (thisInfo.DistanceToTrain > SignalApproachDistance ||
                                  (MovementState == AiMovementState.Running && SpeedMpS > setSpeed) ||
                                   MovementState == AiMovementState.Accelerating)
                         {
@@ -814,7 +808,7 @@ namespace Orts.Simulation.AIs
                         !thisInfo.Processed && thisInfo.SignalDetails.OverridePermission != SignalPermission.Granted)
                 {
                     if (!(ControlMode == TrainControlMode.AutoNode &&
-                                    thisInfo.DistanceToTrain > (EndAuthorities[Direction.Forward].Distance - clearingDistanceM)))
+                                    thisInfo.DistanceToTrain > (EndAuthorities[Direction.Forward].Distance - ClearingDistance)))
                     {
                         if (thisInfo.SignalState == SignalAspectState.Stop ||
                             thisInfo.SignalDetails.EnabledTrain != RoutedForward)
@@ -823,7 +817,7 @@ namespace Orts.Simulation.AIs
                                     thisInfo.DistanceToTrain, thisInfo,
                                     AiActionType.SignalAspectStop);
                             processedList.Add(thisInfo);
-                            var validClearingDistanceM = simulator.TimetableMode ? clearingDistanceM : ActivityClearingDistanceM;
+                            var validClearingDistanceM = simulator.TimetableMode ? ClearingDistance : ActivityClearingDistanceM;
                             if (((thisInfo.DistanceToTrain - validClearingDistanceM) < validClearingDistanceM) &&
                                          (SpeedMpS > 0.0f || MovementState == AiMovementState.Accelerating))
                             {
@@ -834,7 +828,7 @@ namespace Orts.Simulation.AIs
                                     ObtainRequiredActions(movedBackward); // fast track to stop train; else a precious update is lost
                             }
                         }
-                        else if (thisInfo.DistanceToTrain > 2.0f * signalApproachDistanceM) // set restricted only if not close
+                        else if (thisInfo.DistanceToTrain > 2.0f * SignalApproachDistance) // set restricted only if not close
                         {
                             if (!thisInfo.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
                             {
@@ -1162,20 +1156,20 @@ namespace Orts.Simulation.AIs
                     {
                         Train OtherTrain = trainAhead.Key;
                         if (Math.Abs(OtherTrain.SpeedMpS) < 0.001f &&
-                                    (EndAuthorities[Direction.Forward].Distance > followDistanceStatTrainM || UncondAttach || OtherTrain.TrainType == TrainType.Static ||
+                                    (EndAuthorities[Direction.Forward].Distance > FollowDistanceStatTrain || UncondAttach || OtherTrain.TrainType == TrainType.Static ||
                                     OtherTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex ==
                                     TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index
                                     || OtherTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex ==
                                     TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index))
                         {
                             // allow creeping closer
-                            CreateTrainAction(creepSpeedMpS, 0.0f, EndAuthorities[Direction.Forward].Distance, null, AiActionType.TrainAhead);
+                            CreateTrainAction(PresetCreepSpeed, 0.0f, EndAuthorities[Direction.Forward].Distance, null, AiActionType.TrainAhead);
                             MovementState = AiMovementState.Following;
                             StartMoving(AiStartMovement.FollowTrain);
                         }
 
                         else if (Math.Abs(OtherTrain.SpeedMpS) > 0 &&
-                            EndAuthorities[Direction.Forward].Distance > keepDistanceMovingTrainM)
+                            EndAuthorities[Direction.Forward].Distance > KeepDistanceMovingTrain)
                         {
                             // train started moving
                             MovementState = AiMovementState.Following;
@@ -1246,7 +1240,7 @@ namespace Orts.Simulation.AIs
                         {
                             if (nextObject.SignalDetails != NextSignalObjects[Direction.Forward]) // not signal we are waiting for
                             {
-                                if (nextObject.DistanceToTrain > 2.0 * clearingDistanceM)
+                                if (nextObject.DistanceToTrain > 2.0 * ClearingDistance)
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
@@ -1279,7 +1273,7 @@ namespace Orts.Simulation.AIs
                         {
                             if (nextObject.SignalDetails != NextSignalObjects[Direction.Forward]) // not signal we are waiting for
                             {
-                                if (nextObject.DistanceToTrain > 2.0 * clearingDistanceM)
+                                if (nextObject.DistanceToTrain > 2.0 * ClearingDistance)
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
@@ -1303,7 +1297,7 @@ namespace Orts.Simulation.AIs
                 else if (nextAspect == SignalAspectState.Stop)
                 {
                     // if stop but train is well away from signal allow to close; also if at end of path.
-                    if (DistanceToSignal.HasValue && DistanceToSignal.Value > 5 * signalApproachDistanceM ||
+                    if (DistanceToSignal.HasValue && DistanceToSignal.Value > 5 * SignalApproachDistance ||
                         (TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1 == PresentPosition[Direction.Forward].RouteListIndex))
                     {
                         MovementState = AiMovementState.Accelerating;
@@ -1372,7 +1366,7 @@ namespace Orts.Simulation.AIs
                 }
             }
             float distanceToNextSignal = DistanceToSignal.HasValue ? DistanceToSignal.Value : 0.1f;
-            if (AuxActionnextActionInfo != null && MovementState == AiMovementState.Stopped && tryBraking && distanceToNextSignal > clearingDistanceM
+            if (AuxActionnextActionInfo != null && MovementState == AiMovementState.Stopped && tryBraking && distanceToNextSignal > ClearingDistance
                 && EndAuthorities[Direction.Forward].EndAuthorityType != EndAuthorityType.ReservedSwitch && EndAuthorities[Direction.Forward].Distance <= 2.0f * JunctionOverlapM)   // && ControlMode == TRAIN_CONTROL.AUTO_NODE)
             {
                 MovementState = AiMovementState.Braking;
@@ -1671,7 +1665,7 @@ namespace Orts.Simulation.AIs
                 else if (nextActionInfo.ActiveItem.SignalState != SignalAspectState.Stop)
                 {
                     nextActionInfo.NextAction = AiActionType.SignalAspectRestricted;
-                    if (((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < signalApproachDistanceM) ||
+                    if (((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
                          nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
                     {
                         clearAction = true;
@@ -1684,7 +1678,7 @@ namespace Orts.Simulation.AIs
             else if (nextActionInfo.NextAction == AiActionType.SignalAspectRestricted)
             {
                 if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1) ||
-                   ((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < signalApproachDistanceM) ||
+                   ((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
                    (nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal)))
                 {
                     clearAction = true;
@@ -1726,7 +1720,7 @@ namespace Orts.Simulation.AIs
                 ResetActions(true);
                 MovementState = AiMovementState.Running;
                 Alpha10 = PreUpdate ? 2 : 10;
-                if (SpeedMpS < AllowedMaxSpeedMpS - 3.0f * hysterisMpS)
+                if (SpeedMpS < AllowedMaxSpeedMpS - 3.0f * SpeedHysteris)
                 {
                     AdjustControlsBrakeOff();
                 }
@@ -1736,7 +1730,7 @@ namespace Orts.Simulation.AIs
             // check ideal speed
 
             float requiredSpeedMpS = 0;
-            float creepDistanceM = 3.0f * signalApproachDistanceM;
+            float creepDistanceM = 3.0f * SignalApproachDistance;
 
             if (nextActionInfo != null)
             {
@@ -1747,9 +1741,9 @@ namespace Orts.Simulation.AIs
                 {
                     if (Cars != null && Cars.Count < 10)
                     {
-                        distanceToGoM = nextActionInfo.ActiveItem.DistanceToTrain - signalApproachDistanceM / 4;
+                        distanceToGoM = nextActionInfo.ActiveItem.DistanceToTrain - SignalApproachDistance / 4;
                         if (PreUpdate)
-                            distanceToGoM -= signalApproachDistanceM * 0.25f;
+                            distanceToGoM -= SignalApproachDistance * 0.25f;
                         // Be more conservative if braking downhill
                         /* else if (FirstCar != null)
                         {
@@ -1759,7 +1753,7 @@ namespace Orts.Simulation.AIs
                         }*/
                     }
                     else
-                        distanceToGoM = nextActionInfo.ActiveItem.DistanceToTrain - signalApproachDistanceM;
+                        distanceToGoM = nextActionInfo.ActiveItem.DistanceToTrain - SignalApproachDistance;
                     //                    distanceToGoM = nextActionInfo.ActiveItem.distance_to_train - signalApproachDistanceM;
                 }
 
@@ -1835,7 +1829,7 @@ namespace Orts.Simulation.AIs
                 else if (nextActionInfo.RequiredSpeedMpS == 0)
                 {
                     NextStopDistanceM = distanceToGoM;
-                    if (distanceToGoM < signalApproachDistanceM * 0.75f)
+                    if (distanceToGoM < SignalApproachDistance * 0.75f)
                     {
                         AdjustControlsBrakeMore(MaxDecelMpSS, elapsedClockSeconds, 50);
                         AITrainThrottlePercent = 0;
@@ -1866,7 +1860,7 @@ namespace Orts.Simulation.AIs
                     {
                         if (distanceToGoM < creepDistanceM)
                         {
-                            requiredSpeedMpS = creepSpeedMpS;
+                            requiredSpeedMpS = PresetCreepSpeed;
                         }
                     }
                 }
@@ -1875,13 +1869,13 @@ namespace Orts.Simulation.AIs
             if (nextActionInfo != null && nextActionInfo.NextAction == AiActionType.StationStop)
                 creepDistanceM = 0.0f;
             if (nextActionInfo == null && requiredSpeedMpS == 0)
-                creepDistanceM = clearingDistanceM;
+                creepDistanceM = ClearingDistance;
 
             // keep speed within required speed band
 
             // preset, also valid for reqSpeed > 0
             float lowestSpeedMpS = requiredSpeedMpS;
-            creepDistanceM = 0.5f * signalApproachDistanceM;
+            creepDistanceM = 0.5f * SignalApproachDistance;
 
             if (requiredSpeedMpS == 0)
             {
@@ -1889,25 +1883,25 @@ namespace Orts.Simulation.AIs
                 if (nextActionInfo != null && nextActionInfo.NextAction == AiActionType.StationStop)
                 {
                     creepDistanceM = 0.0f;
-                    lowestSpeedMpS = creepSpeedMpS;
+                    lowestSpeedMpS = PresetCreepSpeed;
                 }
                 // signal : use 3 * signalApproachDistanceM as final stop approach to avoid signal overshoot
                 if (nextActionInfo != null && nextActionInfo.NextAction == AiActionType.SignalAspectStop)
                 {
-                    creepDistanceM = 3.0f * signalApproachDistanceM;
+                    creepDistanceM = 3.0f * SignalApproachDistance;
                     lowestSpeedMpS =
-                        distanceToGoM < creepDistanceM ? (0.5f * creepSpeedMpS) : creepSpeedMpS;
+                        distanceToGoM < creepDistanceM ? (0.5f * PresetCreepSpeed) : PresetCreepSpeed;
                 }
                 // otherwise use clearingDistanceM as approach distance
                 else if (nextActionInfo == null)
                 {
-                    creepDistanceM = clearingDistanceM;
+                    creepDistanceM = ClearingDistance;
                     lowestSpeedMpS =
-                        distanceToGoM < creepDistanceM ? (0.5f * creepSpeedMpS) : creepSpeedMpS;
+                        distanceToGoM < creepDistanceM ? (0.5f * PresetCreepSpeed) : PresetCreepSpeed;
                 }
                 else
                 {
-                    lowestSpeedMpS = creepSpeedMpS;
+                    lowestSpeedMpS = PresetCreepSpeed;
                 }
 
             }
@@ -1933,11 +1927,11 @@ namespace Orts.Simulation.AIs
                 maxPossSpeedMpS = Math.Max(lowestSpeedMpS, maxPossSpeedMpS);
             }
 
-            float idealSpeedMpS = requiredSpeedMpS == 0 ? Math.Min((AllowedMaxSpeedMpS - 2f * hysterisMpS), maxPossSpeedMpS) : Math.Min(AllowedMaxSpeedMpS, maxPossSpeedMpS) - (2f * hysterisMpS);
-            float idealLowBandMpS = Math.Max(0.25f * lowestSpeedMpS, idealSpeedMpS - (3f * hysterisMpS));
-            float ideal3LowBandMpS = Math.Max(0.5f * lowestSpeedMpS, idealSpeedMpS - (9f * hysterisMpS));
-            float idealHighBandMpS = Math.Min(AllowedMaxSpeedMpS, Math.Max(lowestSpeedMpS, idealSpeedMpS) + hysterisMpS);
-            float ideal3HighBandMpS = Math.Min(AllowedMaxSpeedMpS, Math.Max(lowestSpeedMpS, idealSpeedMpS) + (2f * hysterisMpS));
+            float idealSpeedMpS = requiredSpeedMpS == 0 ? Math.Min((AllowedMaxSpeedMpS - 2f * SpeedHysteris), maxPossSpeedMpS) : Math.Min(AllowedMaxSpeedMpS, maxPossSpeedMpS) - (2f * SpeedHysteris);
+            float idealLowBandMpS = Math.Max(0.25f * lowestSpeedMpS, idealSpeedMpS - (3f * SpeedHysteris));
+            float ideal3LowBandMpS = Math.Max(0.5f * lowestSpeedMpS, idealSpeedMpS - (9f * SpeedHysteris));
+            float idealHighBandMpS = Math.Min(AllowedMaxSpeedMpS, Math.Max(lowestSpeedMpS, idealSpeedMpS) + SpeedHysteris);
+            float ideal3HighBandMpS = Math.Min(AllowedMaxSpeedMpS, Math.Max(lowestSpeedMpS, idealSpeedMpS) + (2f * SpeedHysteris));
 
             float deltaSpeedMpS = SpeedMpS - requiredSpeedMpS;
             float idealDecelMpSS = Math.Max((0.5f * MaxDecelMpSS), (deltaSpeedMpS * deltaSpeedMpS / (2.0f * distanceToGoM)));
@@ -1949,7 +1943,7 @@ namespace Orts.Simulation.AIs
             if (distanceToGoM < 0f)
             {
                 idealSpeedMpS = requiredSpeedMpS;
-                idealLowBandMpS = Math.Max(0.0f, idealSpeedMpS - hysterisMpS);
+                idealLowBandMpS = Math.Max(0.0f, idealSpeedMpS - SpeedHysteris);
                 idealHighBandMpS = idealSpeedMpS;
                 idealDecelMpSS = MaxDecelMpSS;
             }
@@ -2112,12 +2106,12 @@ namespace Orts.Simulation.AIs
                 }
                 Alpha10 = PreUpdate ? 1 : 5;
             }
-            else if (requiredSpeedMpS == 0 && distanceToGoM > creepDistanceM && SpeedMpS < creepSpeedMpS)
+            else if (requiredSpeedMpS == 0 && distanceToGoM > creepDistanceM && SpeedMpS < PresetCreepSpeed)
             {
                 AdjustControlsBrakeOff();
                 AdjustControlsAccelMore(0.5f * MaxAccelMpSS, elapsedClockSeconds, 20);
             }
-            else if (requiredSpeedMpS == 0 && distanceToGoM > signalApproachDistanceM && SpeedMpS < creepSpeedMpS)
+            else if (requiredSpeedMpS == 0 && distanceToGoM > SignalApproachDistance && SpeedMpS < PresetCreepSpeed)
             {
                 AdjustControlsBrakeOff();
                 AdjustControlsAccelMore(0.25f * MaxAccelMpSS, elapsedClockSeconds, 10);
@@ -2127,7 +2121,7 @@ namespace Orts.Simulation.AIs
             // check if at present speed train would pass beyond end of authority
             if (PreUpdate)
             {
-                if (requiredSpeedMpS == 0 && (elapsedClockSeconds * SpeedMpS) > distanceToGoM && SpeedMpS > creepSpeedMpS)
+                if (requiredSpeedMpS == 0 && (elapsedClockSeconds * SpeedMpS) > distanceToGoM && SpeedMpS > PresetCreepSpeed)
                 {
                     SpeedMpS = (0.5f * SpeedMpS);
                 }
@@ -2150,7 +2144,7 @@ namespace Orts.Simulation.AIs
                 AdjustControlsAccelMore(Efficiency * corrFactor * MaxAccelMpSS, elapsedClockSeconds, stepSize);
             }
 
-            if (SpeedMpS > (AllowedMaxSpeedMpS - ((9.0f - 6.0f * Efficiency) * hysterisMpS)))
+            if (SpeedMpS > (AllowedMaxSpeedMpS - ((9.0f - 6.0f * Efficiency) * SpeedHysteris)))
             {
                 AdjustControlsAccelLess(0.0f, elapsedClockSeconds, (int)(AITrainThrottlePercent * 0.5f));
                 MovementState = AiMovementState.Running;
@@ -2230,7 +2224,7 @@ namespace Orts.Simulation.AIs
 
                             // <CScomment> Make check when this train in same section of OtherTrain or other train at less than 50m;
                             // if other train is static or other train is in last section of this train, pass to passive coupling
-                            if (Math.Abs(OtherTrain.SpeedMpS) < 0.025f && distanceToTrain <= 2 * keepDistanceMovingTrainM)
+                            if (Math.Abs(OtherTrain.SpeedMpS) < 0.025f && distanceToTrain <= 2 * KeepDistanceMovingTrain)
                             {
                                 if (OtherTrain.TrainType == TrainType.Static || (OtherTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex ==
                                     TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index
@@ -2246,11 +2240,11 @@ namespace Orts.Simulation.AIs
                             }
                             if (Math.Abs(OtherTrain.SpeedMpS) >= 0.025f)
                             {
-                                keepDistanceTrainM = keepDistanceMovingTrainM;
+                                keepDistanceTrainM = KeepDistanceMovingTrain;
                             }
                             else if (!attachToTrain)
                             {
-                                keepDistanceTrainM = (OtherTrain.IsFreight || IsFreight) ? keepDistanceStatTrainM_F : keepDistanceStatTrainM_P;
+                                keepDistanceTrainM = (OtherTrain.IsFreight || IsFreight) ? KeepDistanceStatTrainFreight : KeepDistanceStatTrainPassenger;
                             }
 
                             if (nextActionInfo != null && nextActionInfo.NextAction == AiActionType.TrainAhead)
@@ -2283,9 +2277,9 @@ namespace Orts.Simulation.AIs
                                 float brakingDistance = SpeedMpS * SpeedMpS * 0.5f * (0.5f * MaxDecelMpSS);
                                 float reqspeed = (float)Math.Sqrt(distanceToTrain * MaxDecelMpSS);
 
-                                float maxspeed = Math.Max(reqspeed / 2, creepSpeedMpS); // allow continue at creepspeed
-                                if (distanceToTrain < keepDistanceStatTrainM_P - 2.0f && attachToTrain)
-                                    maxspeed = Math.Min(maxspeed, couplingSpeedMpS);
+                                float maxspeed = Math.Max(reqspeed / 2, PresetCreepSpeed); // allow continue at creepspeed
+                                if (distanceToTrain < KeepDistanceStatTrainPassenger - 2.0f && attachToTrain)
+                                    maxspeed = Math.Min(maxspeed, PresetCouplingSpeed);
                                 maxspeed = Math.Min(maxspeed, AllowedMaxSpeedMpS); // but never beyond valid speed limit
 
                                 // set brake or acceleration as required
@@ -2333,7 +2327,7 @@ namespace Orts.Simulation.AIs
                                 //                            if (distanceToTrain < keepDistanceStatTrainM_P - 4.0f || (distanceToTrain - brakingDistance) <= keepDistanceTrainM) // Other possibility
                                 if ((distanceToTrain - brakingDistance) <= keepDistanceTrainM)
                                 {
-                                    float reqMinSpeedMpS = attachToTrain ? couplingSpeedMpS : 0;
+                                    float reqMinSpeedMpS = attachToTrain ? PresetCouplingSpeed : 0;
                                     bool thisTrainFront;
                                     bool otherTrainFront;
 
@@ -2364,7 +2358,7 @@ namespace Orts.Simulation.AIs
                                     else if (attachToTrain)
                                     {
                                         AdjustControlsBrakeOff();
-                                        if (SpeedMpS < 0.2 * creepSpeedMpS)
+                                        if (SpeedMpS < 0.2 * PresetCreepSpeed)
                                         {
                                             AdjustControlsAccelMore(0.2f * MaxAccelMpSSP, 0.0f, 20);
                                         }
@@ -2446,15 +2440,15 @@ namespace Orts.Simulation.AIs
                                 if (PresentPosition[Direction.Forward].TrackCircuitSectionIndex == OtherTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex &&
                                     PresentPosition[Direction.Forward].Direction != OtherTrain.PresentPosition[Direction.Forward].Direction)
                                     runningAgainst = true;
-                                if ((SpeedMpS > (OtherTrain.SpeedMpS + hysterisMpS) && !runningAgainst) ||
-                                    SpeedMpS > (maxFollowSpeedMpS + hysterisMpS) ||
-                                    distanceToTrain < (keepDistanceTrainM - clearingDistanceM))
+                                if ((SpeedMpS > (OtherTrain.SpeedMpS + SpeedHysteris) && !runningAgainst) ||
+                                    SpeedMpS > (MaxFollowSpeed + SpeedHysteris) ||
+                                    distanceToTrain < (keepDistanceTrainM - ClearingDistance))
                                 {
                                     AdjustControlsBrakeMore(0.5f * MaxAccelMpSS, elapsedClockSeconds, 10);
                                 }
-                                else if ((SpeedMpS < (OtherTrain.SpeedMpS - hysterisMpS) && !runningAgainst) &&
-                                           SpeedMpS < maxFollowSpeedMpS &&
-                                           distanceToTrain > (keepDistanceTrainM + clearingDistanceM))
+                                else if ((SpeedMpS < (OtherTrain.SpeedMpS - SpeedHysteris) && !runningAgainst) &&
+                                           SpeedMpS < MaxFollowSpeed &&
+                                           distanceToTrain > (keepDistanceTrainM + ClearingDistance))
                                 {
                                     AdjustControlsAccelMore(0.5f * MaxAccelMpSS, elapsedClockSeconds, 2);
                                 }
@@ -2475,9 +2469,9 @@ namespace Orts.Simulation.AIs
 
         public virtual void UpdateRunningState(double elapsedClockSeconds)
         {
-            float topBand = AllowedMaxSpeedMpS > creepSpeedMpS ? AllowedMaxSpeedMpS - ((1.5f - Efficiency) * hysterisMpS) : AllowedMaxSpeedMpS;
-            float highBand = AllowedMaxSpeedMpS > creepSpeedMpS ? Math.Max(0.5f, AllowedMaxSpeedMpS - ((3.0f - 2.0f * Efficiency) * hysterisMpS)) : AllowedMaxSpeedMpS;
-            float lowBand = AllowedMaxSpeedMpS > creepSpeedMpS ? Math.Max(0.4f, AllowedMaxSpeedMpS - ((9.0f - 3.0f * Efficiency) * hysterisMpS)) : AllowedMaxSpeedMpS;
+            float topBand = AllowedMaxSpeedMpS > PresetCreepSpeed ? AllowedMaxSpeedMpS - ((1.5f - Efficiency) * SpeedHysteris) : AllowedMaxSpeedMpS;
+            float highBand = AllowedMaxSpeedMpS > PresetCreepSpeed ? Math.Max(0.5f, AllowedMaxSpeedMpS - ((3.0f - 2.0f * Efficiency) * SpeedHysteris)) : AllowedMaxSpeedMpS;
+            float lowBand = AllowedMaxSpeedMpS > PresetCreepSpeed ? Math.Max(0.4f, AllowedMaxSpeedMpS - ((9.0f - 3.0f * Efficiency) * SpeedHysteris)) : AllowedMaxSpeedMpS;
             int throttleTop = 90;
 
             // check speed
@@ -4011,47 +4005,18 @@ namespace Orts.Simulation.AIs
             requestedSignal.CheckRouteState(false, requestedSignal.SignalRoute, RoutedForward, false);
         }
 
-
-        //================================================================================================//
-        /// <summary>
-        /// Remove train
-        /// </summary>
-
         internal override void RemoveTrain()
         {
             RemoveFromTrack();
             TrainDeadlockInfo.ClearDeadlocks();
 
-#if DEBUG_DEADLOCK
-            File.AppendAllText(@"C:\Temp\deadlock.txt", "\n === Remove train : " + Number + " - Clearing Deadlocks : \n");
-
-            foreach (TrackCircuitSection thisSection in Simulator.Signals.TrackCircuitList)
-            {
-                if (thisSection.DeadlockTraps.Count > 0)
-                {
-                    File.AppendAllText(@"C:\Temp\deadlock.txt", "Section : " + thisSection.Index.ToString() + "\n");
-                    foreach (KeyValuePair<int, List<int>> thisDeadlock in thisSection.DeadlockTraps)
-                    {
-                        File.AppendAllText(@"C:\Temp\deadlock.txt", "    Train : " + thisDeadlock.Key.ToString() + "\n");
-                        File.AppendAllText(@"C:\Temp\deadlock.txt", "       With : " + "\n");
-                        foreach (int otherTrain in thisDeadlock.Value)
-                        {
-                            File.AppendAllText(@"C:\Temp\deadlock.txt", "          " + otherTrain.ToString() + "\n");
-                        }
-                    }
-                }
-            }
-#endif
             // remove train
-
             AI.TrainsToRemove.Add(this);
         }
 
-        //================================================================================================//
         /// <summary>
         /// Suspend train because incorporated in other train
         /// </summary>
-
         public virtual void SuspendTrain(Train incorporatingTrain)
         {
             RemoveFromTrack();
@@ -4082,7 +4047,7 @@ namespace Orts.Simulation.AIs
             float activateDistanceTravelledM = PresentPosition[Direction.Forward].DistanceTravelled + distanceToTrainM;
             if (thisItem != null)
             {
-                activateDistanceTravelledM -= simulator.TimetableMode ? clearingDistanceM : ActivityClearingDistanceM;
+                activateDistanceTravelledM -= simulator.TimetableMode ? ClearingDistance : ActivityClearingDistanceM;
             }
 
             // calculate braking distance
@@ -4138,7 +4103,7 @@ namespace Orts.Simulation.AIs
             }
 
             // correct trigger for approach distance but not backward beyond present position
-            triggerDistanceM = Math.Max(PresentPosition[Direction.Forward].DistanceTravelled, triggerDistanceM - (3.0f * signalApproachDistanceM));
+            triggerDistanceM = Math.Max(PresentPosition[Direction.Forward].DistanceTravelled, triggerDistanceM - (3.0f * SignalApproachDistance));
 
             // for signal stop item : check if action allready in list, if so, remove (can be result of restore action)
             LinkedListNode<DistanceTravelledItem> thisItemLink = RequiredActions.First;
@@ -4334,7 +4299,7 @@ namespace Orts.Simulation.AIs
             // <CScomment> following statement should be valid in general, as it seems there was a bug here in the original SW
             AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedMpS, TrainMaxSpeedMpS);
 
-            if (MovementState == AiMovementState.Running && SpeedMpS < AllowedMaxSpeedMpS - 2.0f * hysterisMpS)
+            if (MovementState == AiMovementState.Running && SpeedMpS < AllowedMaxSpeedMpS - 2.0f * SpeedHysteris)
             {
                 MovementState = AiMovementState.Accelerating;
                 Alpha10 = PreUpdate & !simulator.TimetableMode ? 2 : 10;
@@ -4397,7 +4362,7 @@ namespace Orts.Simulation.AIs
                 else if (thisItem.ActiveItem.SignalState != SignalAspectState.Stop)
                 {
                     thisItem.NextAction = AiActionType.SignalAspectRestricted;
-                    if (((thisItem.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < signalApproachDistanceM) ||
+                    if (((thisItem.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
                          thisItem.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
                     {
                         actionValid = false;
@@ -4406,7 +4371,7 @@ namespace Orts.Simulation.AIs
                 }
 
                 // recalculate braking distance if train is running slow
-                if (actionValid && SpeedMpS < creepSpeedMpS)
+                if (actionValid && SpeedMpS < PresetCreepSpeed)
                 {
                     float firstPartTime = 0.0f;
                     float firstPartRangeM = 0.0f;
@@ -4441,7 +4406,7 @@ namespace Orts.Simulation.AIs
             else if (thisItem.NextAction == AiActionType.SignalAspectRestricted)
             {
                 if (thisItem.ActiveItem.SignalState >= SignalAspectState.Approach_1 ||
-                (thisItem.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < signalApproachDistanceM)
+                (thisItem.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance)
                 {
                     actionValid = false;
                 }

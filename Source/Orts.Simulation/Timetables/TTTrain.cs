@@ -21,20 +21,18 @@
  * 
  */
 
-// #define DEBUG_REPORTS
-// #define DEBUG_DEADLOCK
-// #define DEBUG_TTANALYSIS
-// DEBUG flag for debug prints
-
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using Microsoft.Xna.Framework;
 
@@ -43,6 +41,8 @@ using Orts.Common.Calc;
 using Orts.Common.DebugInfo;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Models.Simplified;
+using Orts.Models.State;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -51,52 +51,45 @@ using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Timetables
 {
-    public class TTTrain : AITrain
+    public partial class TTTrain : AITrain
     {
-        public float DefMaxDecelMpSSP = 1.0f;               // maximum decelleration
-        public float DefMaxAccelMpSSP = 1.0f;               // maximum accelleration
-        public float DefMaxDecelMpSSF = 0.8f;               // maximum decelleration
-        public float DefMaxAccelMpSSF = 0.5f;               // maximum accelleration
+        public const float DefMaxDecelMpSSP = 1.0f;               // maximum decelleration
+        public const float DefMaxAccelMpSSP = 1.0f;               // maximum accelleration
+        public const float DefMaxDecelMpSSF = 0.8f;               // maximum decelleration
+        public const float DefMaxAccelMpSSF = 0.5f;               // maximum accelleration
 
         public bool Closeup;                           // closeup to other train when stabling
-        public static float keepDistanceCloseupM = 2.5f;       // stay 2.5m from end of route when closeup required (for stabling only)
-        public static float keepDistanceTrainAheadCloseupM = 0.5f;       // stay 0.5m from train ahead when closeup required (for stabling only)
-        public static float keepDistanceCloseupSignalM = 7.0f;          // stay 10m from signal ahead when signalcloseup required
-        public static float endOfRouteDistance = 150f;         // Max length to remain for train to continue on route
+        private const float keepDistanceCloseupM = 2.5f;       // stay 2.5m from end of route when closeup required (for stabling only)
+        private const float keepDistanceTrainAheadCloseupM = 0.5f;       // stay 0.5m from train ahead when closeup required (for stabling only)
+        private const float keepDistanceCloseupSignalM = 7.0f;          // stay 10m from signal ahead when signalcloseup required
+        private const float endOfRouteDistance = 150f;         // Max length to remain for train to continue on route
 
         public int? ActivateTime;                           // time train is activated
         public bool TriggeredActivationRequired;    // train activation is triggered by other train
 
         public bool Created;                        // train is created at start
-        public string CreateAhead = String.Empty;           // train is created ahead of other train
-        public string CreateInPool = String.Empty;          // train is to be created in pool at start of timetable
-        public string CreateFromPool = String.Empty;        // train is to be created from pool
-        public TimetablePool.PoolExitDirectionEnum CreatePoolDirection = TimetablePool.PoolExitDirectionEnum.Undefined;
+        public string CreateAhead = string.Empty;           // train is created ahead of other train
+        public string CreateInPool = string.Empty;          // train is to be created in pool at start of timetable
+        public string CreateFromPool = string.Empty;        // train is to be created from pool
+        public PoolExitDirection CreatePoolDirection = PoolExitDirection.Undefined;
         // required direction on leaving pool (if applicable)
-        public string ForcedConsistName = String.Empty;     // forced consist name for extraction from pool
+        public string ForcedConsistName = string.Empty;     // forced consist name for extraction from pool
 
         // Timetable Commands info
-        public List<WaitInfo> WaitList;                            //used when in timetable mode for wait instructions
-        public Dictionary<int, List<WaitInfo>> WaitAnyList;        //used when in timetable mode for waitany instructions
-        public bool Stable_CallOn;                                //used when in timetable mode to show stabled train is allowed to call on
+        private List<WaitInfo> waitList;                            //used when in timetable mode for wait instructions
+        private Dictionary<int, List<WaitInfo>> waitAnyList;        //used when in timetable mode for waitany instructions
+        public bool StableCallOn;                                //used when in timetable mode to show stabled train is allowed to call on
         public bool DriverOnlyOperation;                          //used when in timetable mode to indicate driver only operation
         public bool ForceReversal;                                //used when in timetable mode to force reversal at diverging point ignoring signals
 
         public int Forms = -1;                                            //indicates which train is to be formed out of this train on termination
         public bool FormsStatic;                                  //indicate if train is to remain as static
-        public string ExitPool = String.Empty;                            //set if train is to be stabled in pool
+        public string ExitPool = string.Empty;                            //set if train is to be stabled in pool
         public int PoolAccessSection = -1;                                //set to last section index if train is to be stabled in pool, section is access section to pool
 
-        public enum PoolAccessState                                       // used to indicate access state to pool, combined with storage index
-                                                                          // values are <0, value >= 0 is returned storage index
-        {
-            PoolClaimed = -1,
-            PoolOverflow = -2,
-            PoolInvalid = -3,
-        }
         public int PoolStorageIndex = -1;                                 // index in selected pool path (>=0)
 
-        public TimetablePool.PoolExitDirectionEnum PoolExitDirection = TimetablePool.PoolExitDirectionEnum.Undefined;
+        public PoolExitDirection PoolExitDirection = PoolExitDirection.Undefined;
         // required exit direction from pool (if applicable) 
         public TimetableTurntableControl ActiveTurntable;          //active turntable
 
@@ -110,7 +103,7 @@ namespace Orts.Simulation.Timetables
         // detach details
         public Dictionary<int, List<DetachInfo>> DetachDetails = new Dictionary<int, List<DetachInfo>>();
         // key is platform reference (use -1 for detach at start or end), list is detach commands at that location
-        public int[] DetachActive = new int[2] { -1, -1 };                // detach is activated - first index is key in DetachDetails, second index is index in valuelist
+        public EnumArray<int, DetachDetailsIndex> DetachActive { get; } = new EnumArray<int, DetachDetailsIndex>(-1);// detach is activated - first index is key in DetachDetails, second index is index in valuelist
         // 2nd index = -1 indicates invalid (first index -1 is a valid index)
         public int DetachUnits;                                       // no. of units to detach
         public bool DetachPosition;                               // if true detach from front
@@ -118,13 +111,13 @@ namespace Orts.Simulation.Timetables
 
         // attach details
         public AttachInfo AttachDetails;                                  // attach details
-        public Dictionary<int, List<int>> NeedAttach = new Dictionary<int, List<int>>();
+        public Dictionary<int, List<int>> NeedAttach { get; private set; } = new Dictionary<int, List<int>>();
         // key is platform reference or -1 for attach to static train, list are trains which are to attach
 
         // pickup details
-        public List<PickUpInfo> PickUpDetails = new List<PickUpInfo>();   // only used during train building
-        public List<int> PickUpTrains = new List<int>();                  // list of train to be picked up
-        public List<int> PickUpStatic = new List<int>();                  // index of locations where static consists are to be picked up
+        public List<PickUpInfo> PickUpDetails { get; private set; } = new List<PickUpInfo>();   // only used during train building
+        public List<int> PickUpTrains { get; private set; } = new List<int>();                  // list of train to be picked up
+        public List<int> PickUpStatic { get; private set; } = new List<int>();                  // index of locations where static consists are to be picked up
         public bool PickUpStaticOnForms;                          // set if pickup of static is required when forming next train
         public bool NeedPickUp;                                   // indicates pickup is required
 
@@ -140,44 +133,17 @@ namespace Orts.Simulation.Timetables
         // number of required train transfers per section
 
         // delayed restart
-        public bool DelayedStart;                                 // start is delayed
+        public bool DelayStart;                                 // start is delayed
         public float RestdelayS;                                   // time to wait
         public AiStartMovement DelayedStartState;               // state to start
 
-        public struct DelayedStartBase
-        {
-            public int fixedPartS;                                        // fixed part for restart delay
-            public int randomPartS;                                       // random part for restart delay
-        }
+        public EnumArray<DelayedStart, DelayedStartType> DelayedStartSettings { get; } = new EnumArray<DelayedStart, DelayedStartType>();
+        public float ReverseAddedDelaySperM;                          // additional delay on reversal based on train length
 
-        public struct DelayedStartValues
-        {
-            public DelayedStartBase newStart;                             // delay on new start
-            public DelayedStartBase pathRestart;                          // delay on pathing stop restart (e.g. signal, reversal, node)
-            public DelayedStartBase followRestart;                        // delay on restart when following other train
-            public DelayedStartBase stationRestart;                       // delay on restart from station stop
-            public DelayedStartBase attachRestart;                        // delay on restart after attaching
-            public DelayedStartBase detachRestart;                        // delay between stop and detaching
-            public DelayedStartBase movingtableRestart;                   // delay for movement of train and moving table
-            public float reverseAddedDelaySperM;                          // additional delay on reversal based on train length
-        }
+        public EnumArray<float?, SpeedValueType> SpeedSettings { get; } = new EnumArray<float?, SpeedValueType>();
 
-        public struct SpeedValues
-        {
-            public float? maxSpeedMpS;                                    // timetable defined max speed
-            public float? cruiseSpeedMpS;                                 // timetable defined cruise speed
-            public int? cruiseMaxDelayS;                                  // max. delay to maintain cruise speed
-            public float? creepSpeedMpS;                                  // timetable defined creep speed
-            public float? attachSpeedMpS;                                 // timetable defined attach speed
-            public float? detachSpeedMpS;                                 // timetable defined detach speed
-            public float? movingtableSpeedMpS;                            // timetable defined speed for moving tables
-            public float routeSpeedMpS;                                   // route defined max speed
-            public float consistSpeedMpS;                                 // consist defined max speed
-            public bool restrictedSet;                                    // special speed has been set
-        }
-
-        public DelayedStartValues DelayedStartSettings;
-        public SpeedValues SpeedSettings;
+        public bool SpeedRestrictionActive { get; set; }                // special speed has been set
+        public int? CruiseMaxDelay;                                     // max. delay to maintain cruise speed
 
         // special patch conditions
         public enum LastSignalStop
@@ -188,23 +154,7 @@ namespace Orts.Simulation.Timetables
         }
         public LastSignalStop ReqLastSignalStop = LastSignalStop.None;
 
-        public enum TriggerActivationType
-        {
-            Start,
-            Dispose,
-            StationStop,
-            StationDepart,
-        }
-
-        public struct TriggerActivation
-        {
-            public int activatedTrain;                                    // train to be activated
-            public TriggerActivationType activationType;                  // type of activation
-            public int platformId;                                        // trigger platform ident (in case of station stop)
-            public string activatedName;                                  // name of activated train (used in processing timetable only)
-        }
-
-        public List<TriggerActivation> activatedTrainTriggers = new List<TriggerActivation>();
+        public List<TriggerActivation> ActivatedTrainTriggers { get; } = new List<TriggerActivation>();
         public string Briefing { get; set; } = string.Empty;
 
         //================================================================================================//
@@ -214,9 +164,6 @@ namespace Orts.Simulation.Timetables
         public TTTrain()
             : base()
         {
-            // set AI reference
-            AI = simulator.AI;
-
             // preset accel and decel values
             MaxAccelMpSSP = DefMaxAccelMpSSP;
             MaxAccelMpSSF = DefMaxAccelMpSSF;
@@ -227,31 +174,16 @@ namespace Orts.Simulation.Timetables
             MovementState = AiMovementState.Static;
 
             // preset restart delays
-            DelayedStartSettings.newStart.fixedPartS = 0;
-            DelayedStartSettings.newStart.randomPartS = 10;
-            DelayedStartSettings.pathRestart.fixedPartS = 1;
-            DelayedStartSettings.pathRestart.randomPartS = 10;
-            DelayedStartSettings.followRestart.fixedPartS = 15;
-            DelayedStartSettings.followRestart.randomPartS = 10;
-            DelayedStartSettings.stationRestart.fixedPartS = 0;
-            DelayedStartSettings.stationRestart.randomPartS = 15;
-            DelayedStartSettings.attachRestart.fixedPartS = 30;
-            DelayedStartSettings.attachRestart.randomPartS = 30;
-            DelayedStartSettings.detachRestart.fixedPartS = 5;
-            DelayedStartSettings.detachRestart.randomPartS = 20;
-            DelayedStartSettings.movingtableRestart.fixedPartS = 1;
-            DelayedStartSettings.movingtableRestart.randomPartS = 10;
-            DelayedStartSettings.reverseAddedDelaySperM = 0.5f;
+            DelayedStartSettings[DelayedStartType.NewStart] = new DelayedStart(0, 10);
+            DelayedStartSettings[DelayedStartType.PathRestart] = new DelayedStart(1, 10);
+            DelayedStartSettings[DelayedStartType.FollowRestart] = new DelayedStart(15, 10);
+            DelayedStartSettings[DelayedStartType.StationRestart] = new DelayedStart(0, 15);
+            DelayedStartSettings[DelayedStartType.AttachRestart] = new DelayedStart(30, 30);
+            DelayedStartSettings[DelayedStartType.DetachRestart] = new DelayedStart(5, 20);
+            DelayedStartSettings[DelayedStartType.MovingTableRestart] = new DelayedStart(1, 10);
+            ReverseAddedDelaySperM = 0.5f;
 
             // preset speed values
-            SpeedSettings.maxSpeedMpS = null;
-            SpeedSettings.cruiseSpeedMpS = null;
-            SpeedSettings.cruiseMaxDelayS = null;
-            SpeedSettings.creepSpeedMpS = null;
-            SpeedSettings.attachSpeedMpS = null;
-            SpeedSettings.detachSpeedMpS = null;
-            SpeedSettings.movingtableSpeedMpS = null;
-            SpeedSettings.restrictedSet = false;
         }
 
         //================================================================================================//
@@ -286,7 +218,7 @@ namespace Orts.Simulation.Timetables
         /// <\summary>
 
         public TTTrain(BinaryReader inf, AI airef)
-            : base(airef)
+            : base()
         {
             // TTTrains own additional fields
             Closeup = inf.ReadBoolean();
@@ -295,7 +227,7 @@ namespace Orts.Simulation.Timetables
             CreateFromPool = inf.ReadString();
             CreateInPool = inf.ReadString();
             ForcedConsistName = inf.ReadString();
-            CreatePoolDirection = (TimetablePool.PoolExitDirectionEnum)inf.ReadInt32();
+            CreatePoolDirection = (PoolExitDirection)inf.ReadInt32();
 
             MaxAccelMpSSP = inf.ReadSingle();
             MaxAccelMpSSF = inf.ReadSingle();
@@ -315,26 +247,27 @@ namespace Orts.Simulation.Timetables
             TriggeredActivationRequired = inf.ReadBoolean();
 
             int triggerActivations = inf.ReadInt32();
-            activatedTrainTriggers = new List<TriggerActivation>();
 
             for (int itrigger = 0; itrigger < triggerActivations; itrigger++)
             {
-                TriggerActivation newTrigger = new TriggerActivation();
-                newTrigger.activatedName = inf.ReadString();
-                newTrigger.activatedTrain = inf.ReadInt32();
-                newTrigger.activationType = (TriggerActivationType)inf.ReadInt32();
-                newTrigger.platformId = inf.ReadInt32();
+                TriggerActivation newTrigger = new TriggerActivation
+                {
+                    ActivatedTrainName = inf.ReadString(),
+                    ActivatedTrain = inf.ReadInt32(),
+                    ActivationType = (TriggerActivationType)inf.ReadInt32(),
+                    PlatformId = inf.ReadInt32()
+                };
 
-                activatedTrainTriggers.Add(newTrigger);
+                ActivatedTrainTriggers.Add(newTrigger);
             }
 
             int totalWait = inf.ReadInt32();
             if (totalWait > 0)
             {
-                WaitList = new List<WaitInfo>();
+                waitList = new List<WaitInfo>();
                 for (int iWait = 0; iWait < totalWait; iWait++)
                 {
-                    WaitList.Add(new WaitInfo(inf));
+                    waitList.Add(new WaitInfo(inf));
                 }
             }
 
@@ -342,7 +275,7 @@ namespace Orts.Simulation.Timetables
 
             if (totalWaitAny > 0)
             {
-                WaitAnyList = new Dictionary<int, List<WaitInfo>>();
+                waitAnyList = new Dictionary<int, List<WaitInfo>>();
                 for (int iWait = 0; iWait < totalWaitAny; iWait++)
                 {
                     int keyvalue = inf.ReadInt32();
@@ -353,23 +286,23 @@ namespace Orts.Simulation.Timetables
                     {
                         newList.Add(new WaitInfo(inf));
                     }
-                    WaitAnyList.Add(keyvalue, newList);
+                    waitAnyList.Add(keyvalue, newList);
                 }
             }
 
-            Stable_CallOn = inf.ReadBoolean();
+            StableCallOn = inf.ReadBoolean();
 
             Forms = inf.ReadInt32();
             FormsStatic = inf.ReadBoolean();
             ExitPool = inf.ReadString();
             PoolAccessSection = inf.ReadInt32();
             PoolStorageIndex = inf.ReadInt32();
-            PoolExitDirection = (TimetablePool.PoolExitDirectionEnum)inf.ReadInt32();
+            PoolExitDirection = (PoolExitDirection)inf.ReadInt32();
 
             ActiveTurntable = null;
             if (inf.ReadBoolean())
             {
-                ActiveTurntable = new TimetableTurntableControl(inf, simulator, this);
+                ActiveTurntable = new TimetableTurntableControl(this);
             }
 
             FormedOf = inf.ReadInt32();
@@ -388,14 +321,14 @@ namespace Orts.Simulation.Timetables
                 List<DetachInfo> DetachDetailsList = new List<DetachInfo>();
                 for (int iDetach = 0; iDetach < totalDetach; iDetach++)
                 {
-                    DetachDetailsList.Add(new DetachInfo(inf));
+                    DetachDetailsList.Add(new DetachInfo());
                 }
                 DetachDetails.Add(detachKey, DetachDetailsList);
             }
 
-            DetachActive = new int[2];
-            DetachActive[0] = inf.ReadInt32();
-            DetachActive[1] = inf.ReadInt32();
+            //DetachActive = new int[2];
+            //DetachActive[0] = inf.ReadInt32();
+            //DetachActive[1] = inf.ReadInt32();
             DetachUnits = inf.ReadInt32();
             DetachPosition = inf.ReadBoolean();
             DetachPending = inf.ReadBoolean();
@@ -404,7 +337,7 @@ namespace Orts.Simulation.Timetables
             AttachDetails = null;
             if (attachValid)
             {
-                AttachDetails = new AttachInfo(inf);
+                AttachDetails = new AttachInfo();
             }
 
             PickUpTrains = new List<int>();
@@ -430,7 +363,7 @@ namespace Orts.Simulation.Timetables
             for (int iTransferList = 0; iTransferList < totalStationTransfers; iTransferList++)
             {
                 int stationKey = inf.ReadInt32();
-                TransferInfo thisTransfer = new TransferInfo(inf);
+                TransferInfo thisTransfer = new TransferInfo();
                 TransferStationDetails.Add(stationKey, thisTransfer);
             }
 
@@ -443,7 +376,7 @@ namespace Orts.Simulation.Timetables
                 List<TransferInfo> thisTransferList = new List<TransferInfo>();
                 for (int iTransfer = 0; iTransfer < totalTransfer; iTransfer++)
                 {
-                    TransferInfo thisTransfer = new TransferInfo(inf);
+                    TransferInfo thisTransfer = new TransferInfo();
                     thisTransferList.Add(thisTransfer);
                 }
                 TransferTrainDetails.Add(trainKey, thisTransferList);
@@ -493,97 +426,97 @@ namespace Orts.Simulation.Timetables
                 NeedTrainTransfer.Add(transferTrainKey, transferTrainValue);
             }
 
-            DelayedStartSettings = new DelayedStartValues();
-            DelayedStartSettings.newStart.fixedPartS = inf.ReadInt32();
-            DelayedStartSettings.newStart.randomPartS = inf.ReadInt32();
-            DelayedStartSettings.pathRestart.fixedPartS = inf.ReadInt32();
-            DelayedStartSettings.pathRestart.randomPartS = inf.ReadInt32();
-            DelayedStartSettings.followRestart.fixedPartS = inf.ReadInt32();
-            DelayedStartSettings.followRestart.randomPartS = inf.ReadInt32();
-            DelayedStartSettings.stationRestart.fixedPartS = inf.ReadInt32();
-            DelayedStartSettings.stationRestart.randomPartS = inf.ReadInt32();
-            DelayedStartSettings.attachRestart.fixedPartS = inf.ReadInt32();
-            DelayedStartSettings.attachRestart.randomPartS = inf.ReadInt32();
-            DelayedStartSettings.detachRestart.fixedPartS = inf.ReadInt32();
-            DelayedStartSettings.detachRestart.randomPartS = inf.ReadInt32();
-            DelayedStartSettings.movingtableRestart.fixedPartS = inf.ReadInt32();
-            DelayedStartSettings.movingtableRestart.randomPartS = inf.ReadInt32();
-            DelayedStartSettings.reverseAddedDelaySperM = inf.ReadSingle();
+            //DelayedStartSettings = new DelayedStartValues();
+            //DelayedStartSettings.newStart.FixedPart = inf.ReadInt32();
+            //DelayedStartSettings.newStart.RandomPart = inf.ReadInt32();
+            //DelayedStartSettings.pathRestart.FixedPart = inf.ReadInt32();
+            //DelayedStartSettings.pathRestart.RandomPart = inf.ReadInt32();
+            //DelayedStartSettings.followRestart.FixedPart = inf.ReadInt32();
+            //DelayedStartSettings.followRestart.RandomPart = inf.ReadInt32();
+            //DelayedStartSettings.stationRestart.FixedPart = inf.ReadInt32();
+            //DelayedStartSettings.stationRestart.RandomPart = inf.ReadInt32();
+            //DelayedStartSettings.attachRestart.FixedPart = inf.ReadInt32();
+            //DelayedStartSettings.attachRestart.RandomPart = inf.ReadInt32();
+            //DelayedStartSettings.detachRestart.FixedPart = inf.ReadInt32();
+            //DelayedStartSettings.detachRestart.RandomPart = inf.ReadInt32();
+            //DelayedStartSettings.movingtableRestart.FixedPart = inf.ReadInt32();
+            //DelayedStartSettings.movingtableRestart.RandomPart = inf.ReadInt32();
+            ReverseAddedDelaySperM = inf.ReadSingle();
 
-            DelayedStart = inf.ReadBoolean();
+            DelayStart = inf.ReadBoolean();
             DelayedStartState = (AiStartMovement)inf.ReadInt32();
             RestdelayS = inf.ReadSingle();
 
-            // preset speed values
-            SpeedSettings = new SpeedValues();
+            //// preset speed values
+            //SpeedSettings = new SpeedValues();
 
-            SpeedSettings.routeSpeedMpS = inf.ReadSingle();
-            SpeedSettings.consistSpeedMpS = inf.ReadSingle();
+            //SpeedSettings.RouteSpeed = inf.ReadSingle();
+            //SpeedSettings.ConsistSpeed = inf.ReadSingle();
 
-            if (inf.ReadBoolean())
-            {
-                SpeedSettings.maxSpeedMpS = inf.ReadSingle();
-            }
-            else
-            {
-                SpeedSettings.maxSpeedMpS = null;
-            }
+            //if (inf.ReadBoolean())
+            //{
+            //    SpeedSettings.MaxSpeed = inf.ReadSingle();
+            //}
+            //else
+            //{
+            //    SpeedSettings.MaxSpeed = null;
+            //}
 
-            if (inf.ReadBoolean())
-            {
-                SpeedSettings.cruiseSpeedMpS = inf.ReadSingle();
-            }
-            else
-            {
-                SpeedSettings.cruiseSpeedMpS = null;
-            }
+            //if (inf.ReadBoolean())
+            //{
+            //    SpeedSettings.CruiseSpeed = inf.ReadSingle();
+            //}
+            //else
+            //{
+            //    SpeedSettings.CruiseSpeed = null;
+            //}
 
-            if (inf.ReadBoolean())
-            {
-                SpeedSettings.cruiseMaxDelayS = inf.ReadInt32();
-            }
-            else
-            {
-                SpeedSettings.cruiseMaxDelayS = null;
-            }
+            //if (inf.ReadBoolean())
+            //{
+            //    SpeedSettings.CruiseMaxDelay = inf.ReadInt32();
+            //}
+            //else
+            //{
+            //    SpeedSettings.CruiseMaxDelay = null;
+            //}
 
-            if (inf.ReadBoolean())
-            {
-                SpeedSettings.creepSpeedMpS = inf.ReadSingle();
-            }
-            else
-            {
-                SpeedSettings.creepSpeedMpS = null;
-            }
+            //if (inf.ReadBoolean())
+            //{
+            //    SpeedSettings.CreepSpeed = inf.ReadSingle();
+            //}
+            //else
+            //{
+            //    SpeedSettings.CreepSpeed = null;
+            //}
 
-            if (inf.ReadBoolean())
-            {
-                SpeedSettings.attachSpeedMpS = inf.ReadSingle();
-            }
-            else
-            {
-                SpeedSettings.attachSpeedMpS = null;
-            }
+            //if (inf.ReadBoolean())
+            //{
+            //    SpeedSettings.AttachSpeed = inf.ReadSingle();
+            //}
+            //else
+            //{
+            //    SpeedSettings.AttachSpeed = null;
+            //}
 
-            if (inf.ReadBoolean())
-            {
-                SpeedSettings.detachSpeedMpS = inf.ReadSingle();
-            }
-            else
-            {
-                SpeedSettings.detachSpeedMpS = null;
-            }
+            //if (inf.ReadBoolean())
+            //{
+            //    SpeedSettings.DetachSpeed = inf.ReadSingle();
+            //}
+            //else
+            //{
+            //    SpeedSettings.DetachSpeed = null;
+            //}
 
-            if (inf.ReadBoolean())
-            {
-                SpeedSettings.movingtableSpeedMpS = inf.ReadSingle();
-            }
-            else
-            {
-                SpeedSettings.movingtableSpeedMpS = null;
-            }
+            //if (inf.ReadBoolean())
+            //{
+            //    SpeedSettings.MovingtableSpeed = inf.ReadSingle();
+            //}
+            //else
+            //{
+            //    SpeedSettings.MovingtableSpeed = null;
+            //}
 
-            SpeedSettings.restrictedSet = inf.ReadBoolean();
+            //SpeedSettings.RestrictedSet = inf.ReadBoolean();
 
             DriverOnlyOperation = inf.ReadBoolean();
             ForceReversal = inf.ReadBoolean();
@@ -610,297 +543,329 @@ namespace Orts.Simulation.Timetables
             }
         }
 
-        //================================================================================================//
-        /// <summary>
-        /// Save
-        /// Override from Train class
-        /// </summary>
-
-        public override void Save(BinaryWriter outf)
+        public override async ValueTask<TrainSaveState> Snapshot()
         {
-            outf.Write("TT");
-            base.Save(outf);
+            TrainSaveState saveState = await base.Snapshot().ConfigureAwait(false);
 
-            outf.Write(MaxDecelMpSS);
-            outf.Write(MaxAccelMpSS);
-
-            if (StartTime.HasValue)
+            saveState.TimetableTrainSaveState = new TimetableTrainSaveState()
             {
-                outf.Write(StartTime.Value);
-            }
-            else
-            {
-                outf.Write(-1);
-            }
+                CloseUpStabling = Closeup,
+                Created = Created,
+                CreatedAhead = CreateAhead,
+                CreatedFromPool = CreateFromPool,
+                CreatedInPool = CreateInPool,
+                ConsistName = ForcedConsistName,
+                CreatePoolDirection = CreatePoolDirection,
+                MaxAccelerationPassenger = MaxAccelMpSSP,
+                MaxDecelerationPassenger = MaxDecelMpSSP,
+                MaxAccelerationFreight = MaxAccelMpSSF,
+                MaxDecelerationFreight = MaxDecelMpSSF,
+                ActivationTime = ActivateTime,
+                TriggeredActivationRequired = TriggeredActivationRequired,
+                ActivationTriggerSaveStates = await ActivatedTrainTriggers.SnapshotCollection<TriggerActivationSaveState, TriggerActivation>().ConfigureAwait(false),
+                WaitInfoSaveStates = waitList == null ? null : await waitList.SnapshotCollection<WaitInfoSaveState, WaitInfo>().ConfigureAwait(false),
+                WaitInfoAnySaveStates = waitAnyList == null ? null : await waitAnyList.SnapshotListDictionary<WaitInfoSaveState, WaitInfo, int>().ConfigureAwait(false),
+                StableCallOn = StableCallOn,
+                FormedTrainNumber = Forms,
+                FormedStaticTrain = FormsStatic,
+                ExitPool = ExitPool,
+                PoolAccessSection = PoolAccessSection,
+                PoolStorageIndex = PoolStorageIndex,
+                PoolExitDirection = PoolExitDirection,
+                FormedFromTrainNumber = FormedOf,
+                OriginalAiTrainNumber = OrgAINumber,
+                TimetableFormationCommand = FormedOfType,
+                FormsAtStation = FormsAtStation,
+                InheritStationStop = SetStop,
 
-            outf.Write(PowerState);
-            outf.Write(Alpha10);
-
-            outf.Write((int)MovementState);
-            outf.Write(Efficiency);
-            outf.Write(MaxVelocityA);
-            outf.Write(UncondAttach);
-            outf.Write(doorCloseAdvance);
-            outf.Write(doorOpenDelay);
-            // dummy for level crossing horn pattern
-            outf.Write(-1);
-
-            // dummy for service list count
-            outf.Write(-1);
-
-            //TTTrains own additional fields
-            outf.Write(Closeup);
-            outf.Write(Created);
-            outf.Write(CreateAhead);
-            outf.Write(CreateFromPool);
-            outf.Write(CreateInPool);
-            outf.Write(ForcedConsistName);
-            outf.Write((int)CreatePoolDirection);
-
-            outf.Write(MaxAccelMpSSP);
-            outf.Write(MaxAccelMpSSF);
-            outf.Write(MaxDecelMpSSP);
-            outf.Write(MaxDecelMpSSF);
-
-            if (ActivateTime.HasValue)
-            {
-                outf.Write(ActivateTime.Value);
-            }
-            else
-            {
-                outf.Write(-1);
-            }
-
-            outf.Write(TriggeredActivationRequired);
-
-            if (activatedTrainTriggers.Count > 0)
-            {
-                outf.Write(activatedTrainTriggers.Count);
-                foreach (TriggerActivation thisTrigger in activatedTrainTriggers)
-                {
-                    outf.Write(thisTrigger.activatedName);
-                    outf.Write(thisTrigger.activatedTrain);
-                    outf.Write((int)thisTrigger.activationType);
-                    outf.Write(thisTrigger.platformId);
-                }
-            }
-            else
-            {
-                outf.Write(-1);
-            }
-
-            if (WaitList == null)
-            {
-                outf.Write(-1);
-            }
-            else
-            {
-                outf.Write(WaitList.Count);
-                foreach (WaitInfo thisWait in WaitList)
-                {
-                    thisWait.Save(outf);
-                }
-            }
-
-            if (WaitAnyList == null)
-            {
-                outf.Write(-1);
-            }
-            else
-            {
-                outf.Write(WaitAnyList.Count);
-                foreach (KeyValuePair<int, List<WaitInfo>> thisWInfo in WaitAnyList)
-                {
-                    outf.Write((int)thisWInfo.Key);
-                    List<WaitInfo> thisWaitList = thisWInfo.Value;
-
-                    outf.Write(thisWaitList.Count);
-                    foreach (WaitInfo thisWaitInfo in thisWaitList)
-                    {
-                        thisWaitInfo.Save(outf);
-                    }
-                }
-            }
-
-            outf.Write(Stable_CallOn);
-
-            outf.Write(Forms);
-            outf.Write(FormsStatic);
-            outf.Write(ExitPool);
-            outf.Write(PoolAccessSection);
-            outf.Write(PoolStorageIndex);
-            outf.Write((int)PoolExitDirection);
-
-            if (ActiveTurntable == null)
-            {
-                outf.Write(false);
-            }
-            else
-            {
-                outf.Write(true);
-                ActiveTurntable.Save(outf);
-            }
-
-            outf.Write(FormedOf);
-            outf.Write((int)FormedOfType);
-            outf.Write(OrgAINumber);
-            outf.Write(SetStop);
-            outf.Write(FormsAtStation);
-
-            outf.Write(DetachDetails.Count);
-            foreach (KeyValuePair<int, List<DetachInfo>> thisDetachInfo in DetachDetails)
-            {
-                outf.Write(thisDetachInfo.Key);
-                outf.Write(thisDetachInfo.Value.Count);
-                foreach (DetachInfo thisDetach in thisDetachInfo.Value)
-                {
-                    thisDetach.Save(outf);
-                }
-            }
-            outf.Write(DetachActive[0]);
-            outf.Write(DetachActive[1]);
-            outf.Write(DetachUnits);
-            outf.Write(DetachPosition);
-            outf.Write(DetachPending);
-
-            if (AttachDetails == null)
-            {
-                outf.Write(false);
-            }
-            else
-            {
-                outf.Write(true);
-                AttachDetails.Save(outf);
-            }
-
-            outf.Write(PickUpTrains.Count);
-            foreach (int thisTrainNumber in PickUpTrains)
-            {
-                outf.Write(thisTrainNumber);
-            }
-
-            outf.Write(PickUpStatic.Count);
-            foreach (int thisStaticNumber in PickUpStatic)
-            {
-                outf.Write(thisStaticNumber);
-            }
-
-            outf.Write(PickUpStaticOnForms);
-
-            outf.Write(NeedPickUp);
-
-            outf.Write(TransferStationDetails.Count);
-            foreach (KeyValuePair<int, TransferInfo> thisStationTransfer in TransferStationDetails)
-            {
-                outf.Write(thisStationTransfer.Key);
-                TransferInfo thisTransfer = thisStationTransfer.Value;
-                thisTransfer.Save(outf);
-            }
-
-            outf.Write(TransferTrainDetails.Count);
-            foreach (KeyValuePair<int, List<TransferInfo>> thisTrainTransfer in TransferTrainDetails)
-            {
-                outf.Write(thisTrainTransfer.Key);
-                List<TransferInfo> thisTransferList = thisTrainTransfer.Value;
-                outf.Write(thisTransferList.Count);
-                foreach (TransferInfo thisTransfer in thisTransferList)
-                {
-                    thisTransfer.Save(outf);
-                }
-            }
-
-            outf.Write(NeedAttach.Count);
-            foreach (KeyValuePair<int, List<int>> thisNeedAttach in NeedAttach)
-            {
-                outf.Write(thisNeedAttach.Key);
-                outf.Write(thisNeedAttach.Value.Count);
-                foreach (int needAttachInfo in thisNeedAttach.Value)
-                {
-                    outf.Write(needAttachInfo);
-                }
-            }
-
-            outf.Write(NeedStationTransfer.Count);
-            foreach (KeyValuePair<int, List<int>> thisNeedTransfer in NeedStationTransfer)
-            {
-                outf.Write(thisNeedTransfer.Key);
-                outf.Write(thisNeedTransfer.Value.Count);
-                foreach (int needTransferInfo in thisNeedTransfer.Value)
-                {
-                    outf.Write(needTransferInfo);
-                }
-            }
-
-            outf.Write(NeedTrainTransfer.Count);
-            foreach (KeyValuePair<int, int> thisNeedTransfer in NeedTrainTransfer)
-            {
-                outf.Write(thisNeedTransfer.Key);
-                outf.Write(thisNeedTransfer.Value);
-            }
-
-            outf.Write(DelayedStartSettings.newStart.fixedPartS);
-            outf.Write(DelayedStartSettings.newStart.randomPartS);
-            outf.Write(DelayedStartSettings.pathRestart.fixedPartS);
-            outf.Write(DelayedStartSettings.pathRestart.randomPartS);
-            outf.Write(DelayedStartSettings.followRestart.fixedPartS);
-            outf.Write(DelayedStartSettings.followRestart.randomPartS);
-            outf.Write(DelayedStartSettings.stationRestart.fixedPartS);
-            outf.Write(DelayedStartSettings.stationRestart.randomPartS);
-            outf.Write(DelayedStartSettings.attachRestart.fixedPartS);
-            outf.Write(DelayedStartSettings.attachRestart.randomPartS);
-            outf.Write(DelayedStartSettings.detachRestart.fixedPartS);
-            outf.Write(DelayedStartSettings.detachRestart.randomPartS);
-            outf.Write(DelayedStartSettings.movingtableRestart.fixedPartS);
-            outf.Write(DelayedStartSettings.movingtableRestart.randomPartS);
-            outf.Write(DelayedStartSettings.reverseAddedDelaySperM);
-
-            outf.Write(DelayedStart);
-            outf.Write((int)DelayedStartState);
-            outf.Write(RestdelayS);
-
-            outf.Write(SpeedSettings.routeSpeedMpS);
-            outf.Write(SpeedSettings.consistSpeedMpS);
-
-            outf.Write(SpeedSettings.maxSpeedMpS.HasValue);
-            if (SpeedSettings.maxSpeedMpS.HasValue)
-            {
-                outf.Write(SpeedSettings.maxSpeedMpS.Value);
-            }
-            outf.Write(SpeedSettings.cruiseSpeedMpS.HasValue);
-            if (SpeedSettings.cruiseSpeedMpS.HasValue)
-            {
-                outf.Write(SpeedSettings.cruiseSpeedMpS.Value);
-            }
-            outf.Write(SpeedSettings.cruiseMaxDelayS.HasValue);
-            if (SpeedSettings.cruiseMaxDelayS.HasValue)
-            {
-                outf.Write(SpeedSettings.cruiseMaxDelayS.Value);
-            }
-            outf.Write(SpeedSettings.creepSpeedMpS.HasValue);
-            if (SpeedSettings.creepSpeedMpS.HasValue)
-            {
-                outf.Write(SpeedSettings.creepSpeedMpS.Value);
-            }
-            outf.Write(SpeedSettings.attachSpeedMpS.HasValue);
-            if (SpeedSettings.attachSpeedMpS.HasValue)
-            {
-                outf.Write(SpeedSettings.attachSpeedMpS.Value);
-            }
-            outf.Write(SpeedSettings.detachSpeedMpS.HasValue);
-            if (SpeedSettings.detachSpeedMpS.HasValue)
-            {
-                outf.Write(SpeedSettings.detachSpeedMpS.Value);
-            }
-            outf.Write(SpeedSettings.movingtableSpeedMpS.HasValue);
-            if (SpeedSettings.movingtableSpeedMpS.HasValue)
-            {
-                outf.Write(SpeedSettings.movingtableSpeedMpS.Value);
-            }
-            outf.Write(SpeedSettings.restrictedSet);
-            outf.Write(DriverOnlyOperation);
-            outf.Write(ForceReversal);
-            outf.Write(Briefing);
+                AttachInfoSaveState = AttachDetails == null ? null : await AttachDetails.Snapshot().ConfigureAwait(false),
+                DetachInfoSaveStates = DetachDetails == null ? null : await DetachDetails.SnapshotListDictionary<DetachInfoSaveState, DetachInfo, int>().ConfigureAwait(false),
+                TrainOnTurntableSaveState = ActiveTurntable == null ? null : await ActiveTurntable.Snapshot().ConfigureAwait(false),
+                ActiveDetaches = DetachActive.ToArray(),
+                DetachUnits = DetachUnits,
+                DetachPosition = DetachPosition,
+                DetachPending = DetachPending,
+                PickupTrains = new Collection<int>(PickUpTrains),
+                PickupStaticTrains = new Collection<int>(PickUpStatic),
+                PickupNeeded = NeedPickUp,
+                PickupStaticOnForms = PickUpStaticOnForms,
+                TransferStationDetailsSaveStates = await TransferStationDetails.SnapshotDictionary<TransferInfoSaveState, TransferInfo, int>().ConfigureAwait(false),
+                TransferTrainDetailSateStates = await TransferTrainDetails.SnapshotListDictionary<TransferInfoSaveState, TransferInfo, int>().ConfigureAwait(false),
+                NeedAttach = await NeedAttach.SnapshotListDictionary().ConfigureAwait(false),
+                NeedStationTransfer = await NeedStationTransfer.SnapshotListDictionary().ConfigureAwait(false),
+                NeedTrainTransfer = new Dictionary<int, int>(NeedTrainTransfer),
+                DelayedStarts = DelayedStartSettings.ToArray(),
+                ReverseAddedDelay = ReverseAddedDelaySperM,
+                DelayedStart = DelayStart,
+                DelayedStartState = DelayedStartState,
+                RemainingDelay = RestdelayS,
+                SpeedSettings = SpeedSettings.ToArray(),
+                SpeedRestrictionActive = SpeedRestrictionActive,
+                CruiseDelayMax = CruiseMaxDelay,
+                DriverOnlyOperation = DriverOnlyOperation,
+                ForceReversal = ForceReversal,
+                Briefing = Briefing,
+            };
+            return saveState;
         }
+
+        //public override void Save(BinaryWriter outf)
+        //{
+        //    #region
+        //    //TTTrains own additional fields
+        //    //outf.Write(Closeup);
+        //    //outf.Write(Created);
+        //    //outf.Write(CreateAhead);
+        //    //outf.Write(CreateFromPool);
+        //    //outf.Write(CreateInPool);
+        //    //outf.Write(ForcedConsistName);
+        //    //outf.Write((int)CreatePoolDirection);
+
+        //    //outf.Write(MaxAccelMpSSP);
+        //    //outf.Write(MaxAccelMpSSF);
+        //    //outf.Write(MaxDecelMpSSP);
+        //    //outf.Write(MaxDecelMpSSF);
+
+        //    //if (ActivateTime.HasValue)
+        //    //{
+        //    //    outf.Write(ActivateTime.Value);
+        //    //}
+        //    //else
+        //    //{
+        //    //    outf.Write(-1);
+        //    //}
+
+        //    //outf.Write(TriggeredActivationRequired);
+        //    //if (ActivatedTrainTriggers.Count > 0)
+        //    //{
+        //    //    outf.Write(ActivatedTrainTriggers.Count);
+        //    //    foreach (TriggerActivation thisTrigger in ActivatedTrainTriggers)
+        //    //    {
+        //    //        outf.Write(thisTrigger.ActivatedTrainName);
+        //    //        outf.Write(thisTrigger.ActivatedTrain);
+        //    //        outf.Write((int)thisTrigger.ActivationType);
+        //    //        outf.Write(thisTrigger.PlatformId);
+        //    //    }
+        //    //}
+        //    //else
+        //    //{
+        //    //    outf.Write(-1);
+        //    //}
+
+        //    //if (WaitList == null)
+        //    //{
+        //    //    outf.Write(-1);
+        //    //}
+        //    //else
+        //    //{
+        //    //    outf.Write(WaitList.Count);
+        //    //    foreach (WaitInfo thisWait in WaitList)
+        //    //    {
+        //    //        thisWait.Save(outf);
+        //    //    }
+        //    //}
+
+        //    //if (WaitAnyList == null)
+        //    //{
+        //    //    outf.Write(-1);
+        //    //}
+        //    //else
+        //    //{
+        //    //    outf.Write(WaitAnyList.Count);
+        //    //    foreach (KeyValuePair<int, List<WaitInfo>> thisWInfo in WaitAnyList)
+        //    //    {
+        //    //        outf.Write((int)thisWInfo.Key);
+        //    //        List<WaitInfo> thisWaitList = thisWInfo.Value;
+
+        //    //        outf.Write(thisWaitList.Count);
+        //    //        foreach (WaitInfo thisWaitInfo in thisWaitList)
+        //    //        {
+        //    //            thisWaitInfo.Save(outf);
+        //    //        }
+        //    //    }
+        //    //}
+
+        //    //outf.Write(StableCallOn);
+
+        //    //outf.Write(Forms);
+        //    //outf.Write(FormsStatic);
+        //    //outf.Write(ExitPool);
+        //    //outf.Write(PoolAccessSection);
+        //    //outf.Write(PoolStorageIndex);
+        //    //outf.Write((int)PoolExitDirection);
+
+        //    //if (ActiveTurntable == null)
+        //    //{
+        //    //    outf.Write(false);
+        //    //}
+        //    //else
+        //    //{
+        //    //    outf.Write(true);
+        //    //    ActiveTurntable.Save(outf);
+        //    //}
+
+        //    //outf.Write(FormedOf);
+        //    //outf.Write((int)FormedOfType);
+        //    //outf.Write(OrgAINumber);
+        //    //outf.Write(SetStop);
+        //    //outf.Write(FormsAtStation);
+
+        //    //outf.Write(DetachDetails.Count);
+        //    //foreach (KeyValuePair<int, List<DetachInfo>> thisDetachInfo in DetachDetails)
+        //    //{
+        //    //    outf.Write(thisDetachInfo.Key);
+        //    //    outf.Write(thisDetachInfo.Value.Count);
+        //    //    foreach (DetachInfo thisDetach in thisDetachInfo.Value)
+        //    //    {
+        //    //        thisDetach.Save(outf);
+        //    //    }
+        //    //}
+        //    //outf.Write(DetachActive[0]);
+        //    //outf.Write(DetachActive[1]);
+        //    //outf.Write(DetachUnits);
+        //    //outf.Write(DetachPosition);
+        //    //outf.Write(DetachPending);
+
+        //    //if (AttachDetails == null)
+        //    //{
+        //    //    outf.Write(false);
+        //    //}
+        //    //else
+        //    //{
+        //    //    outf.Write(true);
+        //    //    AttachDetails.Save(outf);
+        //    //}
+
+        //    //outf.Write(PickUpTrains.Count);
+        //    //foreach (int thisTrainNumber in PickUpTrains)
+        //    //{
+        //    //    outf.Write(thisTrainNumber);
+        //    //}
+
+        //    //outf.Write(PickUpStatic.Count);
+        //    //foreach (int thisStaticNumber in PickUpStatic)
+        //    //{
+        //    //    outf.Write(thisStaticNumber);
+        //    //}
+
+        //    //outf.Write(PickUpStaticOnForms);
+
+        //    //outf.Write(NeedPickUp);
+
+        //    //outf.Write(TransferStationDetails.Count);
+        //    //foreach (KeyValuePair<int, TransferInfo> thisStationTransfer in TransferStationDetails)
+        //    //{
+        //    //    outf.Write(thisStationTransfer.Key);
+        //    //    TransferInfo thisTransfer = thisStationTransfer.Value;
+        //    //    thisTransfer.Save(outf);
+        //    //}
+
+        //    //outf.Write(TransferTrainDetails.Count);
+        //    //foreach (KeyValuePair<int, List<TransferInfo>> thisTrainTransfer in TransferTrainDetails)
+        //    //{
+        //    //    outf.Write(thisTrainTransfer.Key);
+        //    //    List<TransferInfo> thisTransferList = thisTrainTransfer.Value;
+        //    //    outf.Write(thisTransferList.Count);
+        //    //    foreach (TransferInfo thisTransfer in thisTransferList)
+        //    //    {
+        //    //        thisTransfer.Save(outf);
+        //    //    }
+        //    //}
+
+        //    //outf.Write(NeedAttach.Count);
+        //    //foreach (KeyValuePair<int, List<int>> thisNeedAttach in NeedAttach)
+        //    //{
+        //    //    outf.Write(thisNeedAttach.Key);
+        //    //    outf.Write(thisNeedAttach.Value.Count);
+        //    //    foreach (int needAttachInfo in thisNeedAttach.Value)
+        //    //    {
+        //    //        outf.Write(needAttachInfo);
+        //    //    }
+        //    //}
+
+        //    //outf.Write(NeedStationTransfer.Count);
+        //    //foreach (KeyValuePair<int, List<int>> thisNeedTransfer in NeedStationTransfer)
+        //    //{
+        //    //    outf.Write(thisNeedTransfer.Key);
+        //    //    outf.Write(thisNeedTransfer.Value.Count);
+        //    //    foreach (int needTransferInfo in thisNeedTransfer.Value)
+        //    //    {
+        //    //        outf.Write(needTransferInfo);
+        //    //    }
+        //    //}
+
+        //    //outf.Write(NeedTrainTransfer.Count);
+        //    //foreach (KeyValuePair<int, int> thisNeedTransfer in NeedTrainTransfer)
+        //    //{
+        //    //    outf.Write(thisNeedTransfer.Key);
+        //    //    outf.Write(thisNeedTransfer.Value);
+        //    //}
+
+        //    //outf.Write(DelayedStartSettings.newStart.FixedPart);
+        //    //outf.Write(DelayedStartSettings.newStart.RandomPart);
+        //    //outf.Write(DelayedStartSettings.pathRestart.FixedPart);
+        //    //outf.Write(DelayedStartSettings.pathRestart.RandomPart);
+        //    //outf.Write(DelayedStartSettings.followRestart.FixedPart);
+        //    //outf.Write(DelayedStartSettings.followRestart.RandomPart);
+        //    //outf.Write(DelayedStartSettings.stationRestart.FixedPart);
+        //    //outf.Write(DelayedStartSettings.stationRestart.RandomPart);
+        //    //outf.Write(DelayedStartSettings.attachRestart.FixedPart);
+        //    //outf.Write(DelayedStartSettings.attachRestart.RandomPart);
+        //    //outf.Write(DelayedStartSettings.detachRestart.FixedPart);
+        //    //outf.Write(DelayedStartSettings.detachRestart.RandomPart);
+        //    //outf.Write(DelayedStartSettings.movingtableRestart.FixedPart);
+        //    //outf.Write(DelayedStartSettings.movingtableRestart.RandomPart);
+        //    //outf.Write(DelayedStartSettings.reverseAddedDelaySperM);
+
+        //    //outf.Write(DelayStart);
+        //    //outf.Write((int)DelayedStartState);
+        //    //outf.Write(RestdelayS);
+
+        //    //outf.Write(SpeedSettings.RouteSpeed);
+        //    //outf.Write(SpeedSettings.ConsistSpeed);
+
+        //    //outf.Write(SpeedSettings.MaxSpeed.HasValue);
+        //    //if (SpeedSettings.MaxSpeed.HasValue)
+        //    //{
+        //    //    outf.Write(SpeedSettings.MaxSpeed.Value);
+        //    //}
+        //    //outf.Write(SpeedSettings.CruiseSpeed.HasValue);
+        //    //if (SpeedSettings.CruiseSpeed.HasValue)
+        //    //{
+        //    //    outf.Write(SpeedSettings.CruiseSpeed.Value);
+        //    //}
+        //    //outf.Write(SpeedSettings.CruiseMaxDelay.HasValue);
+        //    //if (SpeedSettings.CruiseMaxDelay.HasValue)
+        //    //{
+        //    //    outf.Write(SpeedSettings.CruiseMaxDelay.Value);
+        //    //}
+        //    //outf.Write(SpeedSettings.CreepSpeed.HasValue);
+        //    //if (SpeedSettings.CreepSpeed.HasValue)
+        //    //{
+        //    //    outf.Write(SpeedSettings.CreepSpeed.Value);
+        //    //}
+        //    //outf.Write(SpeedSettings.AttachSpeed.HasValue);
+        //    //if (SpeedSettings.AttachSpeed.HasValue)
+        //    //{
+        //    //    outf.Write(SpeedSettings.AttachSpeed.Value);
+        //    //}
+        //    //outf.Write(SpeedSettings.DetachSpeed.HasValue);
+        //    //if (SpeedSettings.DetachSpeed.HasValue)
+        //    //{
+        //    //    outf.Write(SpeedSettings.DetachSpeed.Value);
+        //    //}
+        //    //outf.Write(SpeedSettings.MovingtableSpeed.HasValue);
+        //    //if (SpeedSettings.MovingtableSpeed.HasValue)
+        //    //{
+        //    //    outf.Write(SpeedSettings.MovingtableSpeed.Value);
+        //    //}
+        //    //outf.Write(SpeedSettings.RestrictedSet);
+
+        //    //outf.Write(DriverOnlyOperation);
+        //    //outf.Write(ForceReversal);
+        //    //outf.Write(Briefing);
+        //    #endregion
+        //}
 
 
         //================================================================================================//
@@ -1009,7 +974,7 @@ namespace Orts.Simulation.Timetables
                         // calculate new stop
 
                         StationStop newStop = CalculateStationStop(Simulator.Instance.SignalEnvironment.PlatformDetailsList[altPlatformIndex].PlatformReference[SignalLocation.NearEnd],
-                        orgStop.ArrivalTime, orgStop.DepartTime, clearingDistanceM, minStopDistanceM,
+                        orgStop.ArrivalTime, orgStop.DepartTime, ClearingDistance, MinStopDistance,
                         orgStop.Terminal, orgStop.ActualMinStopTime, orgStop.KeepClearFront, orgStop.KeepClearRear, orgStop.ForcePosition,
                         orgStop.CloseupSignal, orgStop.Closeup, orgStop.RestrictPlatformToSignal, orgStop.ExtendPlatformToSignal, orgStop.EndStop);
                         // add new holding signal if required
@@ -1266,12 +1231,6 @@ namespace Orts.Simulation.Timetables
                         CreateLogFile();
                     }
                 }
-
-                // if debug, print out all passing paths
-
-#if DEBUG_DEADLOCK
-                Printout_PassingPaths();
-#endif
             }
 
             return (validPosition);
@@ -1622,7 +1581,7 @@ namespace Orts.Simulation.Timetables
                 // check if terminal is at start of route
                 if (firstRouteIndex == 0 || !routeNodeBeforeStart)
                 {
-                    stopOffset = beginOffset + (0.5f * clearingDistanceM) + Length;
+                    stopOffset = beginOffset + (0.5f * ClearingDistance) + Length;
                 }
                 // if at end of route use closeup distance
                 else if (lastRouteIndex == thisRoute.Count - 1 || !routeNodeAfterEnd)
@@ -1632,7 +1591,7 @@ namespace Orts.Simulation.Timetables
                 // if inbetween use safety distance
                 else
                 {
-                    stopOffset = endOffset - (0.5f * clearingDistanceM);
+                    stopOffset = endOffset - (0.5f * ClearingDistance);
                 }
             }
 
@@ -1787,7 +1746,7 @@ namespace Orts.Simulation.Timetables
                         if (platformHasEndSignal)
                         {
                             endPosition = endOffset + distanceToEndSignal;   // distance to signal
-                            endPosition = closeupSignal ? (endPosition - keepDistanceCloseupSignalM - 1.0f) : (endPosition - clearingDistanceM - 1.0f);   // correct for clearing distance
+                            endPosition = closeupSignal ? (endPosition - keepDistanceCloseupSignalM - 1.0f) : (endPosition - ClearingDistance - 1.0f);   // correct for clearing distance
                         }
 
                         stopOffset = Math.Min((beginOffset + keepClearRear.Value + Length), endPosition);
@@ -1839,7 +1798,7 @@ namespace Orts.Simulation.Timetables
                         {
                             stopOffset = Math.Min(stopOffset, endOffset + distanceToEndSignal - keepDistanceCloseupSignalM - 1.0f);
                         }
-                        else if (!closeupSignal && (distanceToEndSignal + (endOffset - stopOffset)) < clearingDistanceM)
+                        else if (!closeupSignal && (distanceToEndSignal + (endOffset - stopOffset)) < ClearingDistance)
                         {
                             if (forceThroughSignal)
                             {
@@ -1848,11 +1807,11 @@ namespace Orts.Simulation.Timetables
                             }
                             else
                             {
-                                stopOffset = endOffset + distanceToEndSignal - clearingDistanceM - 1.0f;
+                                stopOffset = endOffset + distanceToEndSignal - ClearingDistance - 1.0f;
                                 // check if train still fits in platform
                                 if ((stopOffset - beginOffset) < Length)
                                 {
-                                    float keepDistanceM = Math.Max((0.5f * clearingDistanceM), (endOffset + distanceToEndSignal) - (beginOffset + Length));
+                                    float keepDistanceM = Math.Max((0.5f * ClearingDistance), (endOffset + distanceToEndSignal) - (beginOffset + Length));
                                     stopOffset = endOffset + distanceToEndSignal - keepDistanceM;
                                 }
                             }
@@ -1877,7 +1836,7 @@ namespace Orts.Simulation.Timetables
                         EndSignal = -1;
                     }
                     // if most of train fits in platform then stop at signal
-                    else if ((distanceToEndSignal - clearingDistanceM + thisPlatform.Length) > (0.6 * Length))
+                    else if ((distanceToEndSignal - ClearingDistance + thisPlatform.Length) > (0.6 * Length))
                     {
                         HoldSignal = true;
                         if (closeupSignal || ExtendPlatformToSignal || restrictPlatformToSignal)
@@ -1886,7 +1845,7 @@ namespace Orts.Simulation.Timetables
                         }
                         else
                         {
-                            stopOffset = endOffset + distanceToEndSignal - clearingDistanceM - 1.0f;
+                            stopOffset = endOffset + distanceToEndSignal - ClearingDistance - 1.0f;
                         }
                         // set 1m earlier to give priority to station stop over signal
                     }
@@ -1914,17 +1873,17 @@ namespace Orts.Simulation.Timetables
                     {
                         HoldSignal = true;
 
-                        if ((stopOffset - Length - beginOffset + thisPlatform.DistanceToSignals[useDirection]) < clearingDistanceM)
+                        if ((stopOffset - Length - beginOffset + thisPlatform.DistanceToSignals[useDirection]) < ClearingDistance)
                         {
-                            stopOffset = beginOffset - thisPlatform.DistanceToSignals[useDirection] + Length + clearingDistanceM + 1.0f;
+                            stopOffset = beginOffset - thisPlatform.DistanceToSignals[useDirection] + Length + ClearingDistance + 1.0f;
                         }
                     }
                     // if most of train fits in platform then stop at signal
-                    else if ((thisPlatform.DistanceToSignals[useDirection] - clearingDistanceM + thisPlatform.Length) >
+                    else if ((thisPlatform.DistanceToSignals[useDirection] - ClearingDistance + thisPlatform.Length) >
                                   (0.6 * Length))
                     {
                         // set 1m earlier to give priority to station stop over signal
-                        stopOffset = beginOffset - thisPlatform.DistanceToSignals[useDirection] + Length + clearingDistanceM + 1.0f;
+                        stopOffset = beginOffset - thisPlatform.DistanceToSignals[useDirection] + Length + ClearingDistance + 1.0f;
 
                         // check if stop is clear of end signal (if any)
                         if (thisPlatform.EndSignals[(TrackDirection)thisElement.Direction] != -1)
@@ -2084,10 +2043,6 @@ namespace Orts.Simulation.Timetables
             int beginSectionRouteIndex = ValidRoutes[Direction.Forward].GetRouteIndex(beginSectionIndex, 0);
 
             // check position
-
-            float margin = 0.0f;
-            if (simulator.PreUpdate)
-                margin = 2.0f * clearingDistanceM;  // allow margin in pre-update due to low update rate
 
             int stationIndex = ValidRoutes[Direction.Forward].GetRouteIndex(stationTCSectionIndex, PresentPosition[Direction.Forward].RouteListIndex);
 
@@ -2284,7 +2239,7 @@ namespace Orts.Simulation.Timetables
                 LeadLocomotiveIndex = otherTrain.LeadLocomotiveIndex;
 
                 // copy other train speed if not restricted for either train
-                if (!otherTrain.SpeedSettings.restrictedSet && !SpeedSettings.restrictedSet)
+                if (!otherTrain.SpeedRestrictionActive && !SpeedRestrictionActive)
                 {
                     TrainMaxSpeedMpS = otherTrain.TrainMaxSpeedMpS;
                 }
@@ -2307,24 +2262,24 @@ namespace Orts.Simulation.Timetables
                         for (int iDetach = detachList.Count - 1; iDetach >= 0; iDetach--)
                         {
                             DetachInfo thisDetach = detachList[iDetach];
-                            if (thisDetach.DetachPosition == DetachInfo.DetachPositionInfo.atStart)
+                            if (thisDetach.DetachPosition == DetachPositionInfo.Start)
                             {
                                 switch (thisDetach.DetachUnits)
                                 {
-                                    case DetachInfo.DetachUnitsInfo.allLeadingPower:
-                                        thisDetach.DetachUnits = DetachInfo.DetachUnitsInfo.allTrailingPower;
+                                    case TransferUnits.AllLeadingPower:
+                                        thisDetach.DetachUnits = TransferUnits.AllTrailingPower;
                                         break;
 
-                                    case DetachInfo.DetachUnitsInfo.allTrailingPower:
-                                        thisDetach.DetachUnits = DetachInfo.DetachUnitsInfo.allLeadingPower;
+                                    case TransferUnits.AllTrailingPower:
+                                        thisDetach.DetachUnits = TransferUnits.AllLeadingPower;
                                         break;
 
-                                    case DetachInfo.DetachUnitsInfo.unitsAtEnd:
-                                        thisDetach.DetachUnits = DetachInfo.DetachUnitsInfo.unitsAtFront;
+                                    case TransferUnits.UnitsAtEnd:
+                                        thisDetach.DetachUnits = TransferUnits.UnitsAtFront;
                                         break;
 
-                                    case DetachInfo.DetachUnitsInfo.unitsAtFront:
-                                        thisDetach.DetachUnits = DetachInfo.DetachUnitsInfo.unitsAtEnd;
+                                    case TransferUnits.UnitsAtFront:
+                                        thisDetach.DetachUnits = TransferUnits.UnitsAtEnd;
                                         break;
 
                                     default:
@@ -2608,7 +2563,7 @@ namespace Orts.Simulation.Timetables
                 if (lengthToGoM < EndAuthorities[Direction.Forward].Distance)
                 {
                     EndAuthorities[Direction.Forward].EndAuthorityType = EndAuthorityType.EndOfPath;
-                    EndAuthorities[Direction.Forward].Distance = NextStopDistanceM = lengthToGoM + clearingDistanceM; // add clearing distance to avoid position lock short of turntable
+                    EndAuthorities[Direction.Forward].Distance = NextStopDistanceM = lengthToGoM + ClearingDistance; // add clearing distance to avoid position lock short of turntable
                 }
             }
         }
@@ -2643,15 +2598,15 @@ namespace Orts.Simulation.Timetables
             }
 
             // update max speed if separate cruise speed is set
-            if (SpeedSettings.cruiseSpeedMpS.HasValue)
+            if (SpeedSettings[SpeedValueType.CruiseSpeed].HasValue)
             {
-                if (SpeedSettings.cruiseMaxDelayS.HasValue && Delay.HasValue && Delay.Value.TotalSeconds > SpeedSettings.cruiseMaxDelayS.Value)
+                if (CruiseMaxDelay.HasValue && Delay.HasValue && Delay.Value.TotalSeconds > CruiseMaxDelay.Value)
                 {
-                    TrainMaxSpeedMpS = SpeedSettings.maxSpeedMpS.Value;
+                    TrainMaxSpeedMpS = SpeedSettings[SpeedValueType.MaxSpeed].Value;
                 }
                 else
                 {
-                    TrainMaxSpeedMpS = SpeedSettings.cruiseSpeedMpS.Value;
+                    TrainMaxSpeedMpS = SpeedSettings[SpeedValueType.CruiseSpeed].Value;
                 }
             }
         }
@@ -2725,18 +2680,18 @@ namespace Orts.Simulation.Timetables
                     {
 
                         bool validTime = !thisDetach.DetachTime.HasValue || thisDetach.DetachTime.Value < presentTime;
-                        if (thisDetach.DetachPosition == DetachInfo.DetachPositionInfo.atStart && validTime)
+                        if (thisDetach.DetachPosition == DetachPositionInfo.Start && validTime)
                         {
-                            DetachActive[0] = -1;
-                            DetachActive[1] = iDetach;
+                            DetachActive[DetachDetailsIndex.DetachDetailsList] = -1;
+                            DetachActive[DetachDetailsIndex.DetachActiveList] = iDetach;
                             thisDetach.PerformDetach(this, true);
                             thisDetach.Valid = false;
                         }
 
-                        if (reqActivate && thisDetach.DetachPosition == DetachInfo.DetachPositionInfo.atActivation)
+                        if (reqActivate && thisDetach.DetachPosition == DetachPositionInfo.Activation)
                         {
-                            DetachActive[0] = -1;
-                            DetachActive[1] = iDetach;
+                            DetachActive[DetachDetailsIndex.DetachDetailsList] = -1;
+                            DetachActive[DetachDetailsIndex.DetachActiveList] = iDetach;
                             thisDetach.PerformDetach(this, true);
                             thisDetach.Valid = false;
                         }
@@ -2873,7 +2828,7 @@ namespace Orts.Simulation.Timetables
                     CheckReadyToAttach();                         // check for attach
                 }
             }
-            else if (EndAuthorities[Direction.Forward].EndAuthorityType == EndAuthorityType.ReservedSwitch || 
+            else if (EndAuthorities[Direction.Forward].EndAuthorityType == EndAuthorityType.ReservedSwitch ||
                 EndAuthorities[Direction.Forward].EndAuthorityType == EndAuthorityType.Loop ||
                 EndAuthorities[Direction.Forward].EndAuthorityType == EndAuthorityType.NoPathReserved)
             {
@@ -2887,7 +2842,7 @@ namespace Orts.Simulation.Timetables
                 (nextActionInfo == null || nextActionInfo.NextAction == AiActionType.EndOfRoute))
             {
                 ResetActions(false);
-                NextStopDistanceM = EndAuthorities[Direction.Forward].Distance - clearingDistanceM;
+                NextStopDistanceM = EndAuthorities[Direction.Forward].Distance - ClearingDistance;
             }
         }
 
@@ -2900,12 +2855,12 @@ namespace Orts.Simulation.Timetables
         public override AiMovementState UpdateStoppedState(double elapsedClockSeconds)
         {
             // check if restart is delayed
-            if (DelayedStart && simulator.Settings.TTUseRestartDelays)
+            if (DelayStart && simulator.Settings.TTUseRestartDelays)
             {
                 RestdelayS -= (float)elapsedClockSeconds;
                 if (RestdelayS <= 0)   // wait time has elapsed - start moving
                 {
-                    DelayedStart = false;
+                    DelayStart = false;
                     RestdelayS = 0;
                     StartMoving(DelayedStartState);
                 }
@@ -2978,16 +2933,16 @@ namespace Orts.Simulation.Timetables
                         }
 
                         if (Math.Abs(OtherTrain.SpeedMpS) < 0.1f &&
-                                    distanceToTrain > followDistanceStatTrainM)
+                                    distanceToTrain > FollowDistanceStatTrain)
                         {
                             // allow creeping closer
-                            CreateTrainAction(SpeedSettings.creepSpeedMpS.Value, 0.0f,
+                            CreateTrainAction(SpeedSettings[SpeedValueType.CreepSpeed].Value, 0.0f,
                                     distanceToTrain, null, AiActionType.TrainAhead);
                             DelayedStartMoving(AiStartMovement.FollowTrain);
                         }
 
                         else if (Math.Abs(OtherTrain.SpeedMpS) > 0.1f &&
-                            distanceToTrain > keepDistanceMovingTrainM)
+                            distanceToTrain > KeepDistanceMovingTrain)
                         {
                             // train started moving
                             DelayedStartMoving(AiStartMovement.FollowTrain);
@@ -3068,13 +3023,13 @@ namespace Orts.Simulation.Timetables
                 if (EndAuthorities[Direction.Forward].EndAuthorityType == EndAuthorityType.ReservedSwitch || EndAuthorities[Direction.Forward].EndAuthorityType == EndAuthorityType.Loop)
                 {
                     float ReqStopDistanceM = EndAuthorities[Direction.Forward].Distance - 2.0f * JunctionOverlapM;
-                    if (ReqStopDistanceM > clearingDistanceM)
+                    if (ReqStopDistanceM > ClearingDistance)
                     {
                         NextStopDistanceM = EndAuthorities[Direction.Forward].Distance;
                         DelayedStartMoving(AiStartMovement.SignalCleared);
                     }
                 }
-                else if (EndAuthorities[Direction.Forward].Distance > clearingDistanceM)
+                else if (EndAuthorities[Direction.Forward].Distance > ClearingDistance)
                 {
                     NextStopDistanceM = EndAuthorities[Direction.Forward].Distance;
                     DelayedStartMoving(AiStartMovement.SignalCleared);
@@ -3117,7 +3072,7 @@ namespace Orts.Simulation.Timetables
                         {
                             if (nextObject.SignalDetails != NextSignalObjects[Direction.Forward]) // not signal we are waiting for
                             {
-                                if (nextObject.DistanceToTrain > 2.0 * clearingDistanceM)
+                                if (nextObject.DistanceToTrain > 2.0 * ClearingDistance)
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
@@ -3150,7 +3105,7 @@ namespace Orts.Simulation.Timetables
                         {
                             if (nextObject.SignalDetails != NextSignalObjects[Direction.Forward]) // not signal we are waiting for
                             {
-                                if (nextObject.DistanceToTrain > 2.0 * clearingDistanceM)
+                                if (nextObject.DistanceToTrain > 2.0 * ClearingDistance)
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
@@ -3185,7 +3140,7 @@ namespace Orts.Simulation.Timetables
                 else if (nextAspect == SignalAspectState.Stop)
                 {
                     // if stop but train is well away from signal allow to close
-                    if (DistanceToSignal.HasValue && DistanceToSignal.Value > 5 * signalApproachDistanceM)
+                    if (DistanceToSignal.HasValue && DistanceToSignal.Value > 5 * SignalApproachDistance)
                     {
                         ResetActions(true);
                         DelayedStartMoving(AiStartMovement.PathAction);
@@ -3227,12 +3182,12 @@ namespace Orts.Simulation.Timetables
         {
 
             // check if delayed action is due
-            if (DelayedStart)
+            if (DelayStart)
             {
                 RestdelayS -= (float)elapsedTimeSeconds;
                 if (RestdelayS <= 0)   // wait time has elapsed - start moving
                 {
-                    DelayedStart = false;
+                    DelayStart = false;
                     RestdelayS = 0;
                 }
                 else
@@ -3283,10 +3238,6 @@ namespace Orts.Simulation.Timetables
                     actualdepart = (int)thisStation.ActualDepart;
                 }
 
-#if DEBUG_TTANALYSIS
-                    TTAnalysisUpdateStationState1(presentTime, thisStation);
-#endif
-
                 // check for activation of other train
                 ActivateTriggeredTrain(TriggerActivationType.StationStop, thisStation.PlatformReference);
 
@@ -3319,8 +3270,8 @@ namespace Orts.Simulation.Timetables
                         DetachInfo thisDetach = detachList[iDetach];
                         if (thisDetach.Valid)
                         {
-                            DetachActive[0] = thisStation.PlatformReference;
-                            DetachActive[1] = iDetach;
+                            DetachActive[DetachDetailsIndex.DetachDetailsList] = thisStation.PlatformReference;
+                            DetachActive[DetachDetailsIndex.DetachActiveList] = iDetach;
                             thisDetach.PerformDetach(this, true);
                             thisDetach.Valid = false;
                         }
@@ -3430,7 +3381,7 @@ namespace Orts.Simulation.Timetables
                         foreach (KeyValuePair<TrainRouted, Direction> trainToCheckInfo in thisSection.CircuitState.OccupationState)
                         {
                             TTTrain otherTrain = trainToCheckInfo.Key.Train as TTTrain;
-                            if (otherTrain.OrgAINumber == AttachDetails.AttachTrain)
+                            if (otherTrain.OrgAINumber == AttachDetails.TrainNumber)
                             {
                                 attachAtStation = true;
                                 AttachDetails.StationPlatformReference = StationStops[0].PlatformReference; // set attach is at this station
@@ -3444,7 +3395,7 @@ namespace Orts.Simulation.Timetables
 
             if (readyToAttach)
             {
-                trainToTransfer = GetOtherTTTrainByNumber(AttachDetails.AttachTrain);
+                trainToTransfer = GetOtherTTTrainByNumber(AttachDetails.TrainNumber);
 
                 // check if train exists
                 if (trainToTransfer == null)
@@ -3452,18 +3403,18 @@ namespace Orts.Simulation.Timetables
                     // if firstin, check if train is among trains to be started, or if it is an autogen train, or if it is waiting to be started
                     if (AttachDetails.FirstIn)
                     {
-                        trainToTransfer = simulator.GetAutoGenTTTrainByNumber(AttachDetails.AttachTrain);
+                        trainToTransfer = simulator.GetAutoGenTTTrainByNumber(AttachDetails.TrainNumber);
 
                         if (trainToTransfer == null)
                         {
-                            trainToTransfer = AI.StartList.GetNotStartedTTTrainByNumber(AttachDetails.AttachTrain, false);
+                            trainToTransfer = AI.StartList.GetNotStartedTTTrainByNumber(AttachDetails.TrainNumber, false);
                         }
 
                         if (trainToTransfer == null)
                         {
                             foreach (TTTrain wtrain in AI.TrainsToAdd)
                             {
-                                if (wtrain.Number == AttachDetails.AttachTrain || wtrain.OrgAINumber == AttachDetails.AttachTrain)
+                                if (wtrain.Number == AttachDetails.TrainNumber || wtrain.OrgAINumber == AttachDetails.TrainNumber)
                                 {
                                     return;  // found train - just wait a little longer
                                 }
@@ -3473,7 +3424,7 @@ namespace Orts.Simulation.Timetables
                         // train cannot be found
                         if (trainToTransfer == null)
                         {
-                            Trace.TraceInformation("Train {0} : cannot find train {1} to attach", Name, AttachDetails.AttachTrainName);
+                            Trace.TraceInformation("Train {0} : cannot find train {1} to attach", Name, AttachDetails.TrainName);
                             AttachDetails = null;
                         }
                         else
@@ -3484,7 +3435,7 @@ namespace Orts.Simulation.Timetables
                     // not first in - train not found
                     else
                     {
-                        Trace.TraceInformation("Train {0} : cannot find train {1} to attach", Name, AttachDetails.AttachTrainName);
+                        Trace.TraceInformation("Train {0} : cannot find train {1} to attach", Name, AttachDetails.TrainName);
                         AttachDetails = null;
                     }
                 }
@@ -3612,11 +3563,6 @@ namespace Orts.Simulation.Timetables
             // if not end of path, check if departure allowed
             if (!endOfPath[0] && exitSignalStop)
             {
-
-#if DEBUG_TTANALYSIS
-                    TTAnalysisUpdateStationState2();
-#endif
-
                 return;  // do not depart if exit signal at danger and waiting is required
             }
 
@@ -3632,7 +3578,7 @@ namespace Orts.Simulation.Timetables
                     thisStation.Passed = true;
 
                     MovementState = AiMovementState.Stopped;   // if state is still station_stop and ready and allowed to depart - change to stop to check action
-                    RestdelayS = DelayedStartSettings.stationRestart.fixedPartS + (StaticRandom.Next(DelayedStartSettings.stationRestart.randomPartS * 10) / 10f);
+                    RestdelayS = DelayedStartSettings[DelayedStartType.StationRestart].FixedPart + (StaticRandom.Next(DelayedStartSettings[DelayedStartType.StationRestart].RandomPart * 10) / 10f);
                     if (!endOfPath[0])
                     {
                         removeStation = true;  // set next station if not at end of path
@@ -3669,7 +3615,7 @@ namespace Orts.Simulation.Timetables
             // check if action still required
 
             bool clearAction = false;
-            float distanceToGoM = clearingDistanceM;
+            float distanceToGoM = ClearingDistance;
 
             if (MovementState == AiMovementState.Turntable)
             {
@@ -3688,7 +3634,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else if (EndAuthorities[Direction.Forward].EndAuthorityType == EndAuthorityType.EndOfPath || EndAuthorities[Direction.Forward].EndAuthorityType == EndAuthorityType.EndOfAuthority)
                     {
-                        distanceToGoM = EndAuthorities[Direction.Forward].Distance - (Closeup ? keepDistanceCloseupM : clearingDistanceM);
+                        distanceToGoM = EndAuthorities[Direction.Forward].Distance - (Closeup ? keepDistanceCloseupM : ClearingDistance);
                     }
 
                     if (distanceToGoM <= 0)
@@ -3699,27 +3645,15 @@ namespace Orts.Simulation.Timetables
                         }
                     }
 
-                    if (distanceToGoM < clearingDistanceM && SpeedMpS <= 0)
+                    if (distanceToGoM < ClearingDistance && SpeedMpS <= 0)
                     {
                         MovementState = AiMovementState.Stopped;
-
-#if DEBUG_TTANALYSIS
-                        TTAnalysisUpdateBrakingState1();
-#endif
-
                         return;
                     }
                 }
                 else // action cleared - set running or stopped
                 {
-                    if (SpeedMpS > 0)
-                    {
-                        MovementState = AiMovementState.Running;
-                    }
-                    else
-                    {
-                        MovementState = AiMovementState.Stopped;
-                    }
+                    MovementState = SpeedMpS > 0 ? AiMovementState.Running : AiMovementState.Stopped;
                     return;
                 }
             }
@@ -3750,7 +3684,7 @@ namespace Orts.Simulation.Timetables
                 else if (nextActionInfo.ActiveItem.SignalState != SignalAspectState.Stop)
                 {
                     nextActionInfo.NextAction = AiActionType.SignalAspectRestricted;
-                    if (((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < signalApproachDistanceM) ||
+                    if (((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
                          nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
                     {
                         clearAction = true;
@@ -3763,7 +3697,7 @@ namespace Orts.Simulation.Timetables
             else if (nextActionInfo.NextAction == AiActionType.SignalAspectRestricted)
             {
                 if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1) ||
-                   ((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < signalApproachDistanceM) ||
+                   ((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
                    (nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal)))
                 {
                     clearAction = true;
@@ -3801,7 +3735,7 @@ namespace Orts.Simulation.Timetables
                 ResetActions(true);
                 MovementState = AiMovementState.Running;
                 Alpha10 = 10;
-                if (SpeedMpS < AllowedMaxSpeedMpS - 3.0f * hysterisMpS)
+                if (SpeedMpS < AllowedMaxSpeedMpS - 3.0f * SpeedHysteris)
                 {
                     AdjustControlsBrakeOff();
                 }
@@ -3811,11 +3745,11 @@ namespace Orts.Simulation.Timetables
             // check ideal speed
 
             float requiredSpeedMpS = 0;
-            float creepDistanceM = 3.0f * signalApproachDistanceM;
+            float creepDistanceM = 3.0f * SignalApproachDistance;
 
             if (MovementState == AiMovementState.Turntable)
             {
-                creepDistanceM = distanceToGoM + signalApproachDistanceM; // ensure creep distance always exceeds distance to go
+                creepDistanceM = distanceToGoM + SignalApproachDistance; // ensure creep distance always exceeds distance to go
                 NextStopDistanceM = distanceToGoM;
 
                 // if almost in the middle, apply full brakes
@@ -3852,7 +3786,7 @@ namespace Orts.Simulation.Timetables
 
                     if (NextSignalObjects[Direction.Forward] != null && NextSignalObjects[Direction.Forward].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop)
                     {
-                        float reqsignaldistance = StationStops[0].CloseupSignal ? keepDistanceCloseupSignalM : signalApproachDistanceM;
+                        float reqsignaldistance = StationStops[0].CloseupSignal ? keepDistanceCloseupSignalM : SignalApproachDistance;
                         if (distanceToGoM > DistanceToSignal.Value - reqsignaldistance)
                         {
                             distanceToGoM = DistanceToSignal.Value - reqsignaldistance;
@@ -3911,7 +3845,7 @@ namespace Orts.Simulation.Timetables
                 {
                     if (SpeedMpS < 0.05f)
                         MovementState = AiMovementState.Stopped;
-                    RestdelayS = DelayedStartSettings.reverseAddedDelaySperM * Length;
+                    RestdelayS = ReverseAddedDelaySperM * Length;
                 }
 
                 // check if stopped at signal
@@ -3919,7 +3853,7 @@ namespace Orts.Simulation.Timetables
                 else if (nextActionInfo.RequiredSpeedMpS == 0)
                 {
                     NextStopDistanceM = distanceToGoM;
-                    float stopDistanceM = signalApproachDistanceM;
+                    float stopDistanceM = SignalApproachDistance;
 
                     // allow closeup on end of route
                     if (nextActionInfo.NextAction == AiActionType.EndOfRoute && Closeup)
@@ -3927,7 +3861,7 @@ namespace Orts.Simulation.Timetables
 
                     // set distance for signal
                     else if (nextActionInfo.NextAction == AiActionType.SignalAspectStop)
-                        stopDistanceM = clearingDistanceM;
+                        stopDistanceM = ClearingDistance;
 
                     if (distanceToGoM < stopDistanceM)
                     {
@@ -3937,10 +3871,6 @@ namespace Orts.Simulation.Timetables
                         {
                             SpeedMpS = 0;
                             MovementState = AiMovementState.Stopped;
-#if DEBUG_TTANALYSIS
-                            TTAnalysisUpdateBrakingState2();
-#endif
-
                         }
                         else
                         {
@@ -3948,7 +3878,7 @@ namespace Orts.Simulation.Timetables
                         }
 
                         // if approaching signal and at 0.25 of approach distance and still moving, force stop
-                        if (distanceToGoM < (0.25 * signalApproachDistanceM) && SpeedMpS > 0 &&
+                        if (distanceToGoM < (0.25 * SignalApproachDistance) && SpeedMpS > 0 &&
                             nextActionInfo != null && nextActionInfo.NextAction == AiActionType.SignalAspectStop)
                         {
                             SpeedMpS = 0.0f;
@@ -3965,7 +3895,7 @@ namespace Orts.Simulation.Timetables
                     {
                         if (distanceToGoM < creepDistanceM)
                         {
-                            requiredSpeedMpS = SpeedSettings.creepSpeedMpS.Value;
+                            requiredSpeedMpS = SpeedSettings[SpeedValueType.CreepSpeed].Value;
                         }
                     }
                 }
@@ -3982,25 +3912,25 @@ namespace Orts.Simulation.Timetables
                 if (nextActionInfo != null && nextActionInfo.NextAction == AiActionType.StationStop)
                 {
                     creepDistanceM = keepDistanceCloseupSignalM;
-                    lowestSpeedMpS = SpeedSettings.creepSpeedMpS.Value;
+                    lowestSpeedMpS = SpeedSettings[SpeedValueType.CreepSpeed].Value;
                 }
                 // signal : use 3 * signalApproachDistanceM as final stop approach to avoid signal overshoot
                 else if (nextActionInfo != null && nextActionInfo.NextAction == AiActionType.SignalAspectStop)
                 {
-                    creepDistanceM = 3.0f * signalApproachDistanceM;
+                    creepDistanceM = 3.0f * SignalApproachDistance;
                     lowestSpeedMpS =
-                        distanceToGoM < creepDistanceM ? (0.5f * SpeedSettings.creepSpeedMpS.Value) : SpeedSettings.creepSpeedMpS.Value;
+                        distanceToGoM < creepDistanceM ? (0.5f * SpeedSettings[SpeedValueType.CreepSpeed].Value) : SpeedSettings[SpeedValueType.CreepSpeed].Value;
                 }
                 // otherwise use clearingDistanceM as approach distance
                 else if (nextActionInfo == null && requiredSpeedMpS == 0)
                 {
-                    creepDistanceM = clearingDistanceM;
+                    creepDistanceM = ClearingDistance;
                     lowestSpeedMpS =
-                        distanceToGoM < creepDistanceM ? (0.5f * SpeedSettings.creepSpeedMpS.Value) : SpeedSettings.creepSpeedMpS.Value;
+                        distanceToGoM < creepDistanceM ? (0.5f * SpeedSettings[SpeedValueType.CreepSpeed].Value) : SpeedSettings[SpeedValueType.CreepSpeed].Value;
                 }
                 else
                 {
-                    lowestSpeedMpS = SpeedSettings.creepSpeedMpS.Value;
+                    lowestSpeedMpS = SpeedSettings[SpeedValueType.CreepSpeed].Value;
                 }
 
             }
@@ -4026,11 +3956,11 @@ namespace Orts.Simulation.Timetables
                 maxPossSpeedMpS = Math.Max(lowestSpeedMpS, maxPossSpeedMpS);
             }
 
-            float idealSpeedMpS = requiredSpeedMpS == 0 ? Math.Min((AllowedMaxSpeedMpS - 2f * hysterisMpS), maxPossSpeedMpS) : Math.Min(AllowedMaxSpeedMpS, maxPossSpeedMpS) - (2f * hysterisMpS);
-            float idealLowBandMpS = Math.Max(0.25f * lowestSpeedMpS, idealSpeedMpS - (3f * hysterisMpS));
-            float ideal3LowBandMpS = Math.Max(0.5f * lowestSpeedMpS, idealSpeedMpS - (9f * hysterisMpS));
-            float idealHighBandMpS = Math.Min(AllowedMaxSpeedMpS, Math.Max(lowestSpeedMpS, idealSpeedMpS) + hysterisMpS);
-            float ideal3HighBandMpS = Math.Min(AllowedMaxSpeedMpS, Math.Max(lowestSpeedMpS, idealSpeedMpS) + (2f * hysterisMpS));
+            float idealSpeedMpS = requiredSpeedMpS == 0 ? Math.Min((AllowedMaxSpeedMpS - 2f * SpeedHysteris), maxPossSpeedMpS) : Math.Min(AllowedMaxSpeedMpS, maxPossSpeedMpS) - (2f * SpeedHysteris);
+            float idealLowBandMpS = Math.Max(0.25f * lowestSpeedMpS, idealSpeedMpS - (3f * SpeedHysteris));
+            float ideal3LowBandMpS = Math.Max(0.5f * lowestSpeedMpS, idealSpeedMpS - (9f * SpeedHysteris));
+            float idealHighBandMpS = Math.Min(AllowedMaxSpeedMpS, Math.Max(lowestSpeedMpS, idealSpeedMpS) + SpeedHysteris);
+            float ideal3HighBandMpS = Math.Min(AllowedMaxSpeedMpS, Math.Max(lowestSpeedMpS, idealSpeedMpS) + (2f * SpeedHysteris));
 
             float deltaSpeedMpS = SpeedMpS - requiredSpeedMpS;
             float idealDecelMpSS = Math.Max((0.5f * MaxDecelMpSS), (deltaSpeedMpS * deltaSpeedMpS / (2.0f * distanceToGoM)));
@@ -4042,7 +3972,7 @@ namespace Orts.Simulation.Timetables
             if (distanceToGoM < 0f)
             {
                 idealSpeedMpS = requiredSpeedMpS;
-                idealLowBandMpS = Math.Max(0.0f, idealSpeedMpS - hysterisMpS);
+                idealLowBandMpS = Math.Max(0.0f, idealSpeedMpS - SpeedHysteris);
                 idealHighBandMpS = idealSpeedMpS;
                 idealDecelMpSS = MaxDecelMpSS;
             }
@@ -4266,7 +4196,7 @@ namespace Orts.Simulation.Timetables
                     AdjustControlsAccelMore(0.5f * MaxAccelMpSS, elapsedClockSeconds, 20);
                 }
             }
-            else if (requiredSpeedMpS == 0 && distanceToGoM > signalApproachDistanceM && SpeedMpS < ideal3LowBandMpS)
+            else if (requiredSpeedMpS == 0 && distanceToGoM > SignalApproachDistance && SpeedMpS < ideal3LowBandMpS)
             {
                 if (AITrainBrakePercent > 0)
                 {
@@ -4282,7 +4212,7 @@ namespace Orts.Simulation.Timetables
             // check if at present speed train would pass beyond end of authority
             if (PreUpdate)
             {
-                if (requiredSpeedMpS == 0 && distanceToGoM < (10.0f * clearingDistanceM) && (elapsedClockSeconds * SpeedMpS) > (0.5f * distanceToGoM) && SpeedMpS > SpeedSettings.creepSpeedMpS)
+                if (requiredSpeedMpS == 0 && distanceToGoM < (10.0f * ClearingDistance) && (elapsedClockSeconds * SpeedMpS) > (0.5f * distanceToGoM) && SpeedMpS > SpeedSettings[SpeedValueType.CreepSpeed])
                 {
                     SpeedMpS = (0.5f * SpeedMpS);
                 }
@@ -4305,7 +4235,7 @@ namespace Orts.Simulation.Timetables
                 AdjustControlsAccelMore(Efficiency * 0.5f * MaxAccelMpSS, elapsedClockSeconds, 10);
             }
 
-            if (SpeedMpS > (AllowedMaxSpeedMpS - ((9.0f - 6.0f * Efficiency) * hysterisMpS)))
+            if (SpeedMpS > (AllowedMaxSpeedMpS - ((9.0f - 6.0f * Efficiency) * SpeedHysteris)))
             {
                 AdjustControlsAccelLess(0.0f, elapsedClockSeconds, (int)(AITrainThrottlePercent * 0.5f));
                 MovementState = AiMovementState.Running;
@@ -4417,7 +4347,7 @@ namespace Orts.Simulation.Timetables
                         int? transferTrainIndex = null;
 
                         // check attach details
-                        if (AttachDetails != null && AttachDetails.Valid && AttachDetails.ReadyToAttach && AttachDetails.AttachTrain == OtherTrain.OrgAINumber)
+                        if (AttachDetails != null && AttachDetails.Valid && AttachDetails.ReadyToAttach && AttachDetails.TrainNumber == OtherTrain.OrgAINumber)
                         {
                             attachToTrain = true;
                         }
@@ -4433,11 +4363,11 @@ namespace Orts.Simulation.Timetables
 
                         if (Math.Abs(OtherTrain.SpeedMpS) > 0.1f)
                         {
-                            keepDistanceTrainM = keepDistanceMovingTrainM;
+                            keepDistanceTrainM = KeepDistanceMovingTrain;
                         }
                         else if (!attachToTrain && !pickUpTrain && !transferTrain)
                         {
-                            keepDistanceTrainM = (OtherTrain.IsFreight || IsFreight) ? keepDistanceStatTrainM_F : keepDistanceStatTrainM_P;
+                            keepDistanceTrainM = (OtherTrain.IsFreight || IsFreight) ? KeepDistanceStatTrainFreight : KeepDistanceStatTrainPassenger;
                             // if closeup is set for termination
                             if (Closeup)
                             {
@@ -4507,7 +4437,7 @@ namespace Orts.Simulation.Timetables
 
                         if (Math.Abs(OtherTrain.SpeedMpS) < 0.1f && atCouplePosition)
                         {
-                            float reqMinSpeedMpS = SpeedSettings.attachSpeedMpS.Value;
+                            float reqMinSpeedMpS = SpeedSettings[SpeedValueType.AttachSpeed].Value;
                             if (attachToTrain)
                             {
                                 // check if any other train needs to be activated
@@ -4543,11 +4473,11 @@ namespace Orts.Simulation.Timetables
                             float reqspeed = (float)Math.Sqrt(distanceToTrain * MaxDecelMpSS);
 
                             // allow creepspeed, but if to attach, allow only attach speed
-                            float maxspeed = attachToTrain || pickUpTrain || transferTrain ? Math.Max(reqspeed / 2, SpeedSettings.attachSpeedMpS.Value) : Math.Max(reqspeed / 2, SpeedSettings.creepSpeedMpS.Value);
+                            float maxspeed = attachToTrain || pickUpTrain || transferTrain ? Math.Max(reqspeed / 2, SpeedSettings[SpeedValueType.AttachSpeed].Value) : Math.Max(reqspeed / 2, SpeedSettings[SpeedValueType.CreepSpeed].Value);
 
                             if (attachToTrain && AttachDetails.SetBack)
                             {
-                                maxspeed = SpeedSettings.attachSpeedMpS.Value;
+                                maxspeed = SpeedSettings[SpeedValueType.AttachSpeed].Value;
                             }
 
                             maxspeed = Math.Min(maxspeed, AllowedMaxSpeedMpS); // but never beyond valid speed limit
@@ -4587,7 +4517,7 @@ namespace Orts.Simulation.Timetables
                             }
                             else
                             {
-                                float reqMinSpeedMpS = attachToTrain || pickUpTrain || transferTrain ? SpeedSettings.attachSpeedMpS.Value : 0.0f;
+                                float reqMinSpeedMpS = attachToTrain || pickUpTrain || transferTrain ? SpeedSettings[SpeedValueType.AttachSpeed].Value : 0.0f;
                                 if ((SpeedMpS - reqMinSpeedMpS) > 0.1f)
                                 {
                                     AdjustControlsBrakeMore(MaxDecelMpSS, elapsedClockSeconds, 50);
@@ -4609,7 +4539,7 @@ namespace Orts.Simulation.Timetables
                                 else if (attachToTrain || pickUpTrain || transferTrain)
                                 {
                                     AdjustControlsBrakeOff();
-                                    if (SpeedMpS < 0.2 * SpeedSettings.creepSpeedMpS.Value)
+                                    if (SpeedMpS < 0.2 * SpeedSettings[SpeedValueType.CreepSpeed].Value)
                                     {
                                         AdjustControlsAccelMore(0.2f * MaxAccelMpSSP, 0.0f, 20);
                                     }
@@ -4691,22 +4621,22 @@ namespace Orts.Simulation.Timetables
                             }
                         }
                         // if getting too close apply full brake
-                        else if (distanceToTrain < (2 * clearingDistanceM))
+                        else if (distanceToTrain < (2 * ClearingDistance))
                         {
                             AdjustControlsBrakeFull();
                         }
                         // check only if train is close and other train speed is below allowed speed
-                        else if (distanceToTrain < keepDistanceTrainM - clearingDistanceM && OtherTrain.SpeedMpS < AllowedMaxSpeedMpS)
+                        else if (distanceToTrain < keepDistanceTrainM - ClearingDistance && OtherTrain.SpeedMpS < AllowedMaxSpeedMpS)
                         {
-                            if (SpeedMpS > (OtherTrain.SpeedMpS + hysterisMpS) ||
-                                SpeedMpS > (maxFollowSpeedMpS + hysterisMpS) ||
-                                       distanceToTrain < (keepDistanceTrainM - clearingDistanceM))
+                            if (SpeedMpS > (OtherTrain.SpeedMpS + SpeedHysteris) ||
+                                SpeedMpS > (MaxFollowSpeed + SpeedHysteris) ||
+                                       distanceToTrain < (keepDistanceTrainM - ClearingDistance))
                             {
                                 AdjustControlsBrakeMore(0.5f * MaxAccelMpSS, elapsedClockSeconds, 10);
                             }
-                            else if (SpeedMpS < (OtherTrain.SpeedMpS - hysterisMpS) &&
-                                       SpeedMpS < maxFollowSpeedMpS &&
-                                       distanceToTrain > (keepDistanceTrainM + clearingDistanceM))
+                            else if (SpeedMpS < (OtherTrain.SpeedMpS - SpeedHysteris) &&
+                                       SpeedMpS < MaxFollowSpeed &&
+                                       distanceToTrain > (keepDistanceTrainM + ClearingDistance))
                             {
                                 AdjustControlsAccelMore(0.5f * MaxAccelMpSS, elapsedClockSeconds, 2);
                             }
@@ -4730,9 +4660,9 @@ namespace Orts.Simulation.Timetables
         public override void UpdateRunningState(double elapsedClockSeconds)
         {
 
-            float topBand = AllowedMaxSpeedMpS - ((1.5f - Efficiency) * hysterisMpS);
-            float highBand = Math.Max(0.5f, AllowedMaxSpeedMpS - ((3.0f - 2.0f * Efficiency) * hysterisMpS));
-            float lowBand = Math.Max(0.4f, AllowedMaxSpeedMpS - ((9.0f - 3.0f * Efficiency) * hysterisMpS));
+            float topBand = AllowedMaxSpeedMpS - ((1.5f - Efficiency) * SpeedHysteris);
+            float highBand = Math.Max(0.5f, AllowedMaxSpeedMpS - ((3.0f - 2.0f * Efficiency) * SpeedHysteris));
+            float lowBand = Math.Max(0.4f, AllowedMaxSpeedMpS - ((9.0f - 3.0f * Efficiency) * SpeedHysteris));
 
             // check speed
 
@@ -4860,54 +4790,28 @@ namespace Orts.Simulation.Timetables
             if (simulator.PreUpdate)
             {
                 RestdelayS = 0.0f;
-                DelayedStart = false;
+                DelayStart = false;
                 StartMoving(reason);
                 return;
             }
 
             // note : RestDelayS may have a preset value due to previous action (e.g. reverse)
-            int randDelayPart = 0;
-            float baseDelayPart = 0;
 
-            switch (reason)
+            DelayedStart delayedStart = reason switch
             {
-                case AiStartMovement.EndStationStop: // not used as state is processed through stop - rest delay is preset
-                    break;
+                //AiStartMovement.EndStationStop: // not used as state is processed through stop - rest delay is preset
+                AiStartMovement.FollowTrain => DelayedStartSettings[DelayedStartType.FollowRestart],
+                AiStartMovement.NewTrain => DelayedStartSettings[DelayedStartType.NewStart],
+                AiStartMovement.PathAction => DelayedStartSettings[DelayedStartType.PathRestart],
+                AiStartMovement.SignalCleared => DelayedStartSettings[DelayedStartType.PathRestart],
+                AiStartMovement.SignalRestricted => DelayedStartSettings[DelayedStartType.PathRestart],
+                AiStartMovement.Turntable => DelayedStartSettings[DelayedStartType.MovingTableRestart],
+                _ => new DelayedStart(),
+            };
 
-                case AiStartMovement.FollowTrain:
-                    baseDelayPart = DelayedStartSettings.followRestart.fixedPartS;
-                    randDelayPart = DelayedStartSettings.followRestart.randomPartS * 10;
-                    break;
-
-                case AiStartMovement.NewTrain:
-                    baseDelayPart = DelayedStartSettings.newStart.fixedPartS;
-                    randDelayPart = DelayedStartSettings.newStart.randomPartS * 10;
-                    break;
-
-                case AiStartMovement.PathAction:
-                case AiStartMovement.SignalCleared:
-                case AiStartMovement.SignalRestricted:
-                    baseDelayPart = DelayedStartSettings.pathRestart.fixedPartS;
-                    randDelayPart = DelayedStartSettings.pathRestart.randomPartS * 10;
-                    break;
-
-                case AiStartMovement.Turntable:
-                    baseDelayPart = DelayedStartSettings.movingtableRestart.fixedPartS;
-                    randDelayPart = DelayedStartSettings.movingtableRestart.randomPartS * 10;
-                    break;
-
-                default:
-                    break;
-            }
-
-            float randDelay = StaticRandom.Next(randDelayPart);
-            RestdelayS += (baseDelayPart + (randDelay / 10f));
-            DelayedStart = true;
+            RestdelayS += delayedStart.RemainingDelay();
+            DelayStart = true;
             DelayedStartState = reason;
-
-#if DEBUG_TTANALYSIS
-            TTAnalysisStartMoving("Delayed");
-#endif
         }
 
         //================================================================================================//
@@ -4959,10 +4863,6 @@ namespace Orts.Simulation.Timetables
             }
 
             SetPercentsFromTrainToTrainset();
-
-#if DEBUG_TTANALYSIS
-            TTAnalysisStartMoving("Move");
-#endif
         }
 
         //================================================================================================//
@@ -5534,12 +5434,12 @@ namespace Orts.Simulation.Timetables
         protected override void UpdateSectionStateAdditional(int sectionIndex)
         {
             // clear any entries in WaitAnyList as these are now redundant
-            if (WaitAnyList != null && WaitAnyList.ContainsKey(sectionIndex))
+            if (waitAnyList != null && waitAnyList.ContainsKey(sectionIndex))
             {
-                WaitAnyList.Remove(sectionIndex);
-                if (WaitAnyList.Count <= 0)
+                waitAnyList.Remove(sectionIndex);
+                if (waitAnyList.Count <= 0)
                 {
-                    WaitAnyList = null;
+                    waitAnyList = null;
                 }
             }
         }
@@ -5618,7 +5518,7 @@ namespace Orts.Simulation.Timetables
             // check for attach for player train
             if (AttachDetails.Valid && AttachDetails.ReadyToAttach)
             {
-                TTTrain attachTrain = GetOtherTTTrainByNumber(AttachDetails.AttachTrain);
+                TTTrain attachTrain = GetOtherTTTrainByNumber(AttachDetails.TrainNumber);
 
                 if (attachTrain != null)
                 {
@@ -5643,18 +5543,18 @@ namespace Orts.Simulation.Timetables
                 // check if train not yet started
                 else
                 {
-                    attachTrain = AI.StartList.GetNotStartedTTTrainByNumber(AttachDetails.AttachTrain, false);
+                    attachTrain = AI.StartList.GetNotStartedTTTrainByNumber(AttachDetails.TrainNumber, false);
 
                     if (attachTrain == null)
                     {
-                        attachTrain = simulator.GetAutoGenTTTrainByNumber(AttachDetails.AttachTrain);
+                        attachTrain = simulator.GetAutoGenTTTrainByNumber(AttachDetails.TrainNumber);
                     }
                 }
 
                 // train cannot be found
                 if (attachTrain == null)
                 {
-                    Trace.TraceWarning("Train {0} : Train {1} to attach to not found", Name, AttachDetails.AttachTrainName);
+                    Trace.TraceWarning("Train {0} : Train {1} to attach to not found", Name, AttachDetails.TrainName);
                     AttachDetails.Valid = false;
                 }
             }
@@ -5670,7 +5570,7 @@ namespace Orts.Simulation.Timetables
                         foreach (TrainRouted routedTrain in allTrains)
                         {
                             TTTrain otherTrain = routedTrain.Train as TTTrain;
-                            if (otherTrain.OrgAINumber == AttachDetails.AttachTrain && otherTrain.MovementState == AiMovementState.Static && otherTrain.ActivateTime != null)
+                            if (otherTrain.OrgAINumber == AttachDetails.TrainNumber && otherTrain.MovementState == AiMovementState.Static && otherTrain.ActivateTime != null)
                             {
                                 AttachDetails.ReadyToAttach = true;
                             }
@@ -5877,7 +5777,7 @@ namespace Orts.Simulation.Timetables
         internal override bool TestCallOn(Signal thisSignal, bool allowOnNonePlatform, TrackCircuitPartialPathRoute thisRoute)
         {
             // always allow if set for stable working
-            if (Stable_CallOn)
+            if (StableCallOn)
             {
                 return (true);
             }
@@ -5920,7 +5820,7 @@ namespace Orts.Simulation.Timetables
                         }
 
                         bool goingToAttach = false;
-                        if (AttachDetails != null && AttachDetails.Valid && AttachDetails.ReadyToAttach && AttachDetails.AttachTrain == occTTTrain.OrgAINumber)
+                        if (AttachDetails != null && AttachDetails.Valid && AttachDetails.ReadyToAttach && AttachDetails.TrainNumber == occTTTrain.OrgAINumber)
                         {
                             goingToAttach = true;
                         }
@@ -6046,7 +5946,7 @@ namespace Orts.Simulation.Timetables
                         foreach (TrainRouted routedTrain in allTrains)
                         {
                             TTTrain otherTrain = routedTrain.Train as TTTrain;
-                            if (otherTrain.OrgAINumber == AttachDetails.AttachTrain && otherTrain.MovementState == AiMovementState.Static && otherTrain.ActivateTime != null)
+                            if (otherTrain.OrgAINumber == AttachDetails.TrainNumber && otherTrain.MovementState == AiMovementState.Static && otherTrain.ActivateTime != null)
                             {
                                 AttachDetails.ReadyToAttach = true;
                                 break;
@@ -6244,7 +6144,7 @@ namespace Orts.Simulation.Timetables
                     int stationIndex = otherTrain.StationStops[0].PlatformReference;
                     if (TransferStationDetails.TryGetValue(stationIndex, out TransferInfo thisTransfer))
                     {
-                        if (thisTransfer.TransferTrain == otherTrain.OrgAINumber)
+                        if (thisTransfer.TrainNumber == otherTrain.OrgAINumber)
                         {
                             transferTrain = true;
                             stationTransferIndex = stationIndex;
@@ -6406,12 +6306,12 @@ namespace Orts.Simulation.Timetables
         {
             bool inWaitState = false;
 
-            if (WaitList != null && WaitList.Count > 0 && WaitList[0].WaitActive)
+            if (waitList != null && waitList.Count > 0 && waitList[0].WaitActive)
                 inWaitState = true;
 
-            if (WaitAnyList != null)
+            if (waitAnyList != null)
             {
-                foreach (KeyValuePair<int, List<WaitInfo>> actWInfo in WaitAnyList)
+                foreach (KeyValuePair<int, List<WaitInfo>> actWInfo in waitAnyList)
                 {
                     foreach (WaitInfo actWait in actWInfo.Value)
                     {
@@ -6436,7 +6336,7 @@ namespace Orts.Simulation.Timetables
         /// <returns></returns>
         internal override bool CheckAnyWaitCondition(int index)
         {
-            if (WaitAnyList != null && WaitAnyList.TryGetValue(index, out List<WaitInfo> value))
+            if (waitAnyList != null && waitAnyList.TryGetValue(index, out List<WaitInfo> value))
             {
                 foreach (WaitInfo reqWait in value)
                 {
@@ -6572,11 +6472,11 @@ namespace Orts.Simulation.Timetables
                             }
                         }
 
-                        if (WaitList == null)
+                        if (waitList == null)
                         {
-                            WaitList = new List<WaitInfo>();
+                            waitList = new List<WaitInfo>();
                         }
-                        WaitList.Add(newWaitItem);
+                        waitList.Add(newWaitItem);
                     }
                     break;
 
@@ -6676,11 +6576,11 @@ namespace Orts.Simulation.Timetables
                             }
                         }
 
-                        if (WaitList == null)
+                        if (waitList == null)
                         {
-                            WaitList = new List<WaitInfo>();
+                            waitList = new List<WaitInfo>();
                         }
-                        WaitList.Add(newWaitItem);
+                        waitList.Add(newWaitItem);
                     }
                     break;
 
@@ -6750,11 +6650,11 @@ namespace Orts.Simulation.Timetables
                                 }
                             }
 
-                            if (WaitList == null)
+                            if (waitList == null)
                             {
-                                WaitList = new List<WaitInfo>();
+                                waitList = new List<WaitInfo>();
                             }
-                            WaitList.Add(newWaitItem);
+                            waitList.Add(newWaitItem);
                         }
                     }
                     break;
@@ -6819,19 +6719,19 @@ namespace Orts.Simulation.Timetables
                             // if overlap found : insert in waiting list
                             if (overlapSection >= 0)
                             {
-                                if (WaitAnyList == null)
+                                if (waitAnyList == null)
                                 {
-                                    WaitAnyList = new Dictionary<int, List<WaitInfo>>();
+                                    waitAnyList = new Dictionary<int, List<WaitInfo>>();
                                 }
 
-                                if (WaitAnyList.TryGetValue(overlapSection, out List<WaitInfo> waitList))
+                                if (waitAnyList.TryGetValue(overlapSection, out List<WaitInfo> waitList))
                                 {
                                     waitList.Add(newWaitItem);
                                 }
                                 else
                                 {
                                     waitList = [newWaitItem];
-                                    WaitAnyList.Add(overlapSection, waitList);
+                                    waitAnyList.Add(overlapSection, waitList);
                                 }
                             }
                         }
@@ -7104,25 +7004,25 @@ namespace Orts.Simulation.Timetables
 
                     if (plattformReferenceID >= 0)
                     {
-                        thisTrigger.platformId = plattformReferenceID;
-                        thisTrigger.activationType = TriggerActivationType.StationStop;
+                        thisTrigger.PlatformId = plattformReferenceID;
+                        thisTrigger.ActivationType = TriggerActivationType.StationStop;
 
                         if (thisCommand.CommandQualifiers != null && thisCommand.CommandQualifiers.Count > 0)
                         {
                             TTTrainCommands.TTTrainComQualifiers thisQualifier = thisCommand.CommandQualifiers[0]; // takes only 1 qualifier
                             if (thisQualifier.QualifierName.Equals("depart", StringComparison.OrdinalIgnoreCase))
                             {
-                                thisTrigger.activationType = TriggerActivationType.StationDepart;
+                                thisTrigger.ActivationType = TriggerActivationType.StationDepart;
                             }
                         }
                     }
                     else
                     {
-                        thisTrigger.activationType = TriggerActivationType.Start;
+                        thisTrigger.ActivationType = TriggerActivationType.Start;
                     }
 
-                    thisTrigger.activatedName = thisCommand.CommandValues[0];
-                    activatedTrainTriggers.Add(thisTrigger);
+                    thisTrigger.ActivatedTrainName = thisCommand.CommandValues[0];
+                    ActivatedTrainTriggers.Add(thisTrigger);
 
                     break;
 
@@ -7140,12 +7040,12 @@ namespace Orts.Simulation.Timetables
         public void FinalizeTimetableCommands()
         {
             // process all wait information
-            if (WaitList != null)
+            if (waitList != null)
             {
                 TTTrain otherTrain = null;
                 List<WaitInfo> newWaitItems = new List<WaitInfo>();
 
-                foreach (WaitInfo reqWait in WaitList)
+                foreach (WaitInfo reqWait in waitList)
                 {
                     switch (reqWait.WaitType)
                     {
@@ -7185,22 +7085,22 @@ namespace Orts.Simulation.Timetables
                 }
 
                 // remove processed and invalid items
-                for (int iWaitItem = WaitList.Count - 1; iWaitItem >= 0; iWaitItem--)
+                for (int iWaitItem = waitList.Count - 1; iWaitItem >= 0; iWaitItem--)
                 {
-                    if (WaitList[iWaitItem].WaitType == WaitInfoType.Invalid)
+                    if (waitList[iWaitItem].WaitType == WaitInfoType.Invalid)
                     {
-                        WaitList.RemoveAt(iWaitItem);
+                        waitList.RemoveAt(iWaitItem);
                     }
                 }
 
                 // add new created items
                 foreach (WaitInfo newWait in newWaitItems)
                 {
-                    WaitList.Add(newWait);
+                    waitList.Add(newWait);
                 }
 
                 // sort list - list is sorted on subpath and route index
-                WaitList.Sort();
+                waitList.Sort();
             }
         }
 
@@ -7667,7 +7567,7 @@ namespace Orts.Simulation.Timetables
         internal override bool CheckWaitCondition(int trackSectionIndex)
         {
             // no waits defined
-            if (WaitList == null || WaitList.Count <= 0)
+            if (waitList == null || waitList.Count <= 0)
             {
                 return (false);
             }
@@ -7677,7 +7577,7 @@ namespace Orts.Simulation.Timetables
             // check if first wait is this section
 
             int processedWait = 0;
-            WaitInfo firstWait = WaitList[processedWait];
+            WaitInfo firstWait = waitList[processedWait];
 
             // if first wait is connect : no normal waits or follows to process
             if (firstWait.WaitType == WaitInfoType.Connect)
@@ -7702,18 +7602,18 @@ namespace Orts.Simulation.Timetables
                 // wait list may have changed if first item is no longer valid
                 if (!waitState)
                 {
-                    if (processedWait > WaitList.Count - 1)
+                    if (processedWait > waitList.Count - 1)
                     {
                         break; // no more waits to check
                     }
-                    else if (firstWait == WaitList[processedWait])  // wait was maintained
+                    else if (firstWait == waitList[processedWait])  // wait was maintained
                     {
                         processedWait++;
                     }
 
-                    if (WaitList.Count > processedWait)
+                    if (waitList.Count > processedWait)
                     {
-                        firstWait = WaitList[processedWait];
+                        firstWait = waitList[processedWait];
                     }
                     else
                     {
@@ -7743,9 +7643,9 @@ namespace Orts.Simulation.Timetables
 
             if (AttachDetails != null)
             {
-                if (deadlockReferences.Contains(AttachDetails.AttachTrain))
+                if (deadlockReferences.Contains(AttachDetails.TrainNumber))
                 {
-                    possibleAttachTrains.Add(AttachDetails.AttachTrain);
+                    possibleAttachTrains.Add(AttachDetails.TrainNumber);
                 }
             }
 
@@ -7753,9 +7653,9 @@ namespace Orts.Simulation.Timetables
             {
                 foreach (KeyValuePair<int, TransferInfo> thisTransfer in TransferStationDetails)
                 {
-                    if (deadlockReferences.Contains(thisTransfer.Value.TransferTrain))
+                    if (deadlockReferences.Contains(thisTransfer.Value.TrainNumber))
                     {
-                        possibleAttachTrains.Add(thisTransfer.Value.TransferTrain);
+                        possibleAttachTrains.Add(thisTransfer.Value.TrainNumber);
                     }
                 }
             }
@@ -7766,9 +7666,9 @@ namespace Orts.Simulation.Timetables
                 {
                     foreach (TransferInfo thisTransfer in thisTransferList.Value)
                     {
-                        if (deadlockReferences.Contains(thisTransfer.TransferTrain))
+                        if (deadlockReferences.Contains(thisTransfer.TrainNumber))
                         {
-                            possibleAttachTrains.Add(thisTransfer.TransferTrain);
+                            possibleAttachTrains.Add(thisTransfer.TrainNumber);
                         }
                     }
                 }
@@ -7941,7 +7841,7 @@ namespace Orts.Simulation.Timetables
 
             if (!waitState) // wait is no longer valid
             {
-                WaitList.RemoveAt(0); // remove this wait
+                waitList.RemoveAt(0); // remove this wait
             }
 
             return (waitState);
@@ -8026,7 +7926,7 @@ namespace Orts.Simulation.Timetables
             for (int iRouteIndex = startRouteIndex; iRouteIndex <= endRouteIndex; iRouteIndex++)
             {
                 int sectionIndex = ValidRoutes[Direction.Forward][iRouteIndex].TrackCircuitSection.Index;
-                if (WaitList != null && WaitList.Count > 0)
+                if (waitList != null && waitList.Count > 0)
                 {
                     if (CheckWaitCondition(sectionIndex))
                     {
@@ -8034,9 +7934,9 @@ namespace Orts.Simulation.Timetables
                     }
                 }
 
-                if (WaitAnyList != null && WaitAnyList.Count > 0)
+                if (waitAnyList != null && waitAnyList.Count > 0)
                 {
-                    if (WaitAnyList.TryGetValue(sectionIndex, out List<WaitInfo> value))
+                    if (waitAnyList.TryGetValue(sectionIndex, out List<WaitInfo> value))
                     {
                         foreach (WaitInfo reqWait in value)
                         {
@@ -8162,7 +8062,7 @@ namespace Orts.Simulation.Timetables
             // check if train is to form new train
             // note : if formed train == 0, formed train is player train which requires different actions
 
-            if (Forms >= 0 && DetachActive[1] == -1)
+            if (Forms >= 0 && DetachActive[DetachDetailsIndex.DetachActiveList] == -1)
             {
                 // check if anything needs be detached
                 bool allowForm = true; // preset form may be activated
@@ -8172,10 +8072,10 @@ namespace Orts.Simulation.Timetables
                     for (int iDetach = detachList.Count - 1; iDetach >= 0; iDetach--)
                     {
                         DetachInfo thisDetach = detachList[iDetach];
-                        if (thisDetach.DetachPosition == DetachInfo.DetachPositionInfo.atEnd && thisDetach.Valid)
+                        if (thisDetach.DetachPosition == DetachPositionInfo.End && thisDetach.Valid)
                         {
-                            DetachActive[0] = -1;
-                            DetachActive[1] = iDetach;
+                            DetachActive[DetachDetailsIndex.DetachDetailsList] = -1;
+                            DetachActive[DetachDetailsIndex.DetachActiveList] = iDetach;
                             allowForm = thisDetach.PerformDetach(this, true);
                             thisDetach.Valid = false;
                         }
@@ -8201,10 +8101,10 @@ namespace Orts.Simulation.Timetables
                     for (int iDetach = detachList.Count - 1; iDetach >= 0; iDetach--)
                     {
                         DetachInfo thisDetach = detachList[iDetach];
-                        if (thisDetach.DetachPosition == DetachInfo.DetachPositionInfo.atEnd && thisDetach.Valid)
+                        if (thisDetach.DetachPosition == DetachPositionInfo.End && thisDetach.Valid)
                         {
-                            DetachActive[0] = -1;
-                            DetachActive[1] = iDetach;
+                            DetachActive[DetachDetailsIndex.DetachDetailsList] = -1;
+                            DetachActive[DetachDetailsIndex.DetachActiveList] = iDetach;
                             thisDetach.PerformDetach(this, true);
                             thisDetach.Valid = false;
                         }
@@ -8418,7 +8318,7 @@ namespace Orts.Simulation.Timetables
                         {
                             return (false);
                         }
-                        else if (AttachDetails != null && AttachDetails.Valid && AttachDetails.AttachTrain == otherTTTrain.OrgAINumber)
+                        else if (AttachDetails != null && AttachDetails.Valid && AttachDetails.TrainNumber == otherTTTrain.OrgAINumber)
                         {
                             return (false);
                         }
@@ -8475,7 +8375,7 @@ namespace Orts.Simulation.Timetables
                     if (thisPool.GetType() == typeof(TimetableTurntablePool))
                     {
                         TimetableTurntablePool thisTurntablePool = thisPool as TimetableTurntablePool;
-                        ActiveTurntable = new TimetableTurntableControl(thisTurntablePool, thisTurntablePool.PoolName, thisTurntablePool.AdditionalTurntableDetails.TurntableIndex,this);
+                        ActiveTurntable = new TimetableTurntableControl(thisTurntablePool, thisTurntablePool.PoolName, thisTurntablePool.AdditionalTurntableDetails.TurntableIndex, this);
                         ActiveTurntable.MovingTableState = MovingTableState.WaitingMovingTableAvailability;
                         ActiveTurntable.MovingTableAction = MovingTableAction.FromAccess;
                         MovementState = AiMovementState.Turntable;
@@ -8836,37 +8736,14 @@ namespace Orts.Simulation.Timetables
                 }
             }
 
-#if DEBUG_DEADLOCK
-            File.AppendAllText(@"C:\Temp\deadlock.txt", "\n === Remove train : " + Number + " - Clearing Deadlocks : \n");
-
-            foreach (TrackCircuitSection thisSection in Simulator.Signals.TrackCircuitList)
-            {
-                if (thisSection.DeadlockTraps.Count > 0)
-                {
-                    File.AppendAllText(@"C:\Temp\deadlock.txt", "Section : " + thisSection.Index.ToString() + "\n");
-                    foreach (KeyValuePair<int, List<int>> thisDeadlock in thisSection.DeadlockTraps)
-                    {
-                        File.AppendAllText(@"C:\Temp\deadlock.txt", "    Train : " + thisDeadlock.Key.ToString() + "\n");
-                        File.AppendAllText(@"C:\Temp\deadlock.txt", "       With : " + "\n");
-                        foreach (int otherTrain in thisDeadlock.Value)
-                        {
-                            File.AppendAllText(@"C:\Temp\deadlock.txt", "          " + otherTrain.ToString() + "\n");
-                        }
-                    }
-                }
-            }
-#endif
             // remove train
-
             AI.TrainsToRemove.Add(this);
         }
 
-        //================================================================================================//
         /// <summary>
         /// Add reversal info to TrackMonitorInfo
         /// Override from Train class
         /// </summary>
-
         private protected override void AddTrainReversalInfo(TrainInfo trainInfo, TrackCircuitReversalInfo reversalInfo)
         {
             if (!reversalInfo.Valid)
@@ -9060,15 +8937,15 @@ namespace Orts.Simulation.Timetables
                     // check for detach
                     if (DetachDetails.TryGetValue(StationStops[0].PlatformReference, out List<DetachInfo> detachList))
                     {
-                        bool detachPerformed = DetachActive[1] < 0;
+                        bool detachPerformed = DetachActive[DetachDetailsIndex.DetachActiveList] < 0;
 
                         for (int iDetach = 0; iDetach < detachList.Count; iDetach++)
                         {
                             DetachInfo thisDetach = detachList[iDetach];
                             if (thisDetach.Valid)
                             {
-                                DetachActive[0] = StationStops[0].PlatformReference;
-                                DetachActive[1] = iDetach;
+                                DetachActive[DetachDetailsIndex.DetachDetailsList] = StationStops[0].PlatformReference;
+                                DetachActive[DetachDetailsIndex.DetachActiveList] = iDetach;
                                 detachPerformed = thisDetach.PerformDetach(this, true);
                                 thisDetach.Valid = false;
                             }
@@ -9128,10 +9005,10 @@ namespace Orts.Simulation.Timetables
 
                     if (AttachDetails != null && AttachDetails.StationPlatformReference == StationStops[0].PlatformReference && AttachDetails.FirstIn)
                     {
-                        attachTrain = GetOtherTTTrainByNumber(AttachDetails.AttachTrain);
+                        attachTrain = GetOtherTTTrainByNumber(AttachDetails.TrainNumber);
                         if (attachTrain != null)
                         {
-                            waitArrivalAttach = AttachDetails.AttachTrain;
+                            waitArrivalAttach = AttachDetails.TrainNumber;
                             if (attachTrain.MovementState == AiMovementState.StationStop && attachTrain.StationStops[0].PlatformReference == StationStops[0].PlatformReference)
                             {
                                 // attach not already taking place
@@ -9494,7 +9371,7 @@ namespace Orts.Simulation.Timetables
                         foreach (TrainRouted routedTrain in allTrains)
                         {
                             TTTrain otherTrain = routedTrain.Train as TTTrain;
-                            if (otherTrain.OrgAINumber == AttachDetails.AttachTrain)
+                            if (otherTrain.OrgAINumber == AttachDetails.TrainNumber)
                             {
                                 if (otherTrain.AtStation)
                                 {
@@ -9695,10 +9572,10 @@ namespace Orts.Simulation.Timetables
             }
 
             // check if final station not yet processed and any detach actions required
-            bool allowForm = DetachActive[1] == -1; // preset if form is allowed to proceed - may not proceed if detach action is still active
+            bool allowForm = DetachActive[DetachDetailsIndex.DetachActiveList] == -1; // preset if form is allowed to proceed - may not proceed if detach action is still active
 
             // check if detach action active
-            if (DetachActive[1] == -1)
+            if (DetachActive[DetachDetailsIndex.DetachActiveList] == -1)
             {
                 if (StationStops != null && StationStops.Count > 0)
                 {
@@ -9707,10 +9584,10 @@ namespace Orts.Simulation.Timetables
                         for (int iDetach = detachActionList.Count - 1; iDetach >= 0; iDetach--)
                         {
                             DetachInfo thisDetach = detachActionList[iDetach];
-                            if (thisDetach.DetachPosition == DetachInfo.DetachPositionInfo.atEnd && thisDetach.Valid)
+                            if (thisDetach.DetachPosition == DetachPositionInfo.End && thisDetach.Valid)
                             {
-                                DetachActive[0] = -1;
-                                DetachActive[1] = iDetach;
+                                DetachActive[DetachDetailsIndex.DetachDetailsList] = -1;
+                                DetachActive[DetachDetailsIndex.DetachActiveList] = iDetach;
                                 allowForm = thisDetach.PerformDetach(this, true);
                                 thisDetach.Valid = false;
                             }
@@ -9726,10 +9603,10 @@ namespace Orts.Simulation.Timetables
                     for (int iDetach = detachList.Count - 1; iDetach >= 0; iDetach--)
                     {
                         DetachInfo thisDetach = detachList[iDetach];
-                        if (thisDetach.DetachPosition == DetachInfo.DetachPositionInfo.atEnd && thisDetach.Valid)
+                        if (thisDetach.DetachPosition == DetachPositionInfo.End && thisDetach.Valid)
                         {
-                            DetachActive[0] = -1;
-                            DetachActive[1] = iDetach;
+                            DetachActive[DetachDetailsIndex.DetachDetailsList] = -1;
+                            DetachActive[DetachDetailsIndex.DetachActiveList] = iDetach;
                             allowForm = thisDetach.PerformDetach(this, true);
                             thisDetach.Valid = false;
                         }
@@ -9930,59 +9807,54 @@ namespace Orts.Simulation.Timetables
 
         public void ProcessSpeedSettings()
         {
-            SpeedSettings.consistSpeedMpS = SpeedSettings.consistSpeedMpS == 0 ? SpeedSettings.routeSpeedMpS : Math.Min(SpeedSettings.consistSpeedMpS, SpeedSettings.routeSpeedMpS);
+            SpeedSettings[SpeedValueType.ConsistSpeed] = SpeedSettings[SpeedValueType.ConsistSpeed] == 0 ? SpeedSettings[SpeedValueType.RouteSpeed] : Math.Min(SpeedSettings[SpeedValueType.ConsistSpeed].Value, SpeedSettings[SpeedValueType.RouteSpeed].Value);
 
             // correct cruise speed if value is incorrect
-            if (SpeedSettings.maxSpeedMpS.HasValue && SpeedSettings.cruiseSpeedMpS.HasValue &&
-                SpeedSettings.maxSpeedMpS < SpeedSettings.cruiseSpeedMpS)
+            if (SpeedSettings[SpeedValueType.MaxSpeed].HasValue && SpeedSettings[SpeedValueType.CruiseSpeed].HasValue &&
+                SpeedSettings[SpeedValueType.MaxSpeed] < SpeedSettings[SpeedValueType.CruiseSpeed])
             {
-                SpeedSettings.cruiseSpeedMpS = SpeedSettings.maxSpeedMpS;
+                SpeedSettings[SpeedValueType.CruiseSpeed] = SpeedSettings[SpeedValueType.MaxSpeed];
             }
 
             // take max of maxspeed and consist speed, or set maxspeed
-            if (SpeedSettings.maxSpeedMpS.HasValue)
+            if (SpeedSettings[SpeedValueType.MaxSpeed].HasValue)
             {
-                SpeedSettings.maxSpeedMpS = Math.Min(SpeedSettings.maxSpeedMpS.Value, SpeedSettings.consistSpeedMpS);
-                SpeedSettings.restrictedSet = true;
+                SpeedSettings[SpeedValueType.MaxSpeed] = Math.Min(SpeedSettings[SpeedValueType.MaxSpeed].Value, SpeedSettings[SpeedValueType.ConsistSpeed].Value);
+                SpeedRestrictionActive = true;
             }
             else
             {
-                SpeedSettings.maxSpeedMpS = SpeedSettings.consistSpeedMpS;
+                SpeedSettings[SpeedValueType.MaxSpeed] = SpeedSettings[SpeedValueType.ConsistSpeed];
             }
 
             // take max of cruisespeed and consist speed
-            if (SpeedSettings.cruiseSpeedMpS.HasValue)
+            if (SpeedSettings[SpeedValueType.CruiseSpeed].HasValue)
             {
-                SpeedSettings.cruiseSpeedMpS = Math.Min(SpeedSettings.cruiseSpeedMpS.Value, SpeedSettings.consistSpeedMpS);
+                SpeedSettings[SpeedValueType.CruiseSpeed] = Math.Min(SpeedSettings[SpeedValueType.CruiseSpeed].Value, SpeedSettings[SpeedValueType.CruiseSpeed].Value);
             }
 
             // set creep, attach and detach speed if not defined
-            if (!SpeedSettings.creepSpeedMpS.HasValue)
+            if (!SpeedSettings[SpeedValueType.CruiseSpeed].HasValue)
             {
-                SpeedSettings.creepSpeedMpS = TTTrain.creepSpeedMpS;
+                SpeedSettings[SpeedValueType.CreepSpeed] = PresetCreepSpeed;
             }
 
-            if (!SpeedSettings.attachSpeedMpS.HasValue)
+            if (!SpeedSettings[SpeedValueType.AttachSpeed].HasValue)
             {
-                SpeedSettings.attachSpeedMpS = TTTrain.couplingSpeedMpS;
+                SpeedSettings[SpeedValueType.AttachSpeed] = PresetCouplingSpeed;
             }
 
-            if (!SpeedSettings.detachSpeedMpS.HasValue)
+            if (!SpeedSettings[SpeedValueType.DetachSpeed].HasValue)
             {
-                SpeedSettings.detachSpeedMpS = TTTrain.couplingSpeedMpS;
+                SpeedSettings[SpeedValueType.DetachSpeed] = PresetCouplingSpeed;
             }
 
-            if (!SpeedSettings.movingtableSpeedMpS.HasValue)
+            if (!SpeedSettings[SpeedValueType.MovingtableSpeed].HasValue)
             {
-                SpeedSettings.movingtableSpeedMpS = TTTrain.movingtableSpeedMpS;
+                SpeedSettings[SpeedValueType.MovingtableSpeed] = PresetMovingtableSpeed;
             }
 
-            if (!SpeedSettings.movingtableSpeedMpS.HasValue)
-            {
-                SpeedSettings.movingtableSpeedMpS = TTTrain.movingtableSpeedMpS;
-            }
-
-            TrainMaxSpeedMpS = SpeedSettings.maxSpeedMpS.Value;
+            TrainMaxSpeedMpS = SpeedSettings[SpeedValueType.MaxSpeed].Value;
         }
 
         //================================================================================================//
@@ -9995,14 +9867,14 @@ namespace Orts.Simulation.Timetables
         /// <param name="detachConsist"></param>
         /// <param name="frontpos"></param>
         /// <returns></returns>
-        public int GetUnitsToDetach(DetachInfo.DetachUnitsInfo detachUnits, int numberOfUnits, List<string> detachConsist, ref bool frontpos)
+        public int GetUnitsToDetach(TransferUnits detachUnits, int numberOfUnits, List<string> detachConsist, ref bool frontpos)
         {
             int iunits = 0;
             var thisCar = Cars[0];
 
             switch (detachUnits)
             {
-                case DetachInfo.DetachUnitsInfo.leadingPower:
+                case TransferUnits.LeadingPower:
                     bool checktender = false;
                     bool checkengine = false;
 
@@ -10054,7 +9926,7 @@ namespace Orts.Simulation.Timetables
                     }
                     break;
 
-                case DetachInfo.DetachUnitsInfo.allLeadingPower:
+                case TransferUnits.AllLeadingPower:
                     for (int iCar = 0; iCar < Cars.Count; iCar++)
                     {
                         thisCar = Cars[iCar];
@@ -10069,7 +9941,7 @@ namespace Orts.Simulation.Timetables
                     }
                     break;
 
-                case DetachInfo.DetachUnitsInfo.trailingPower:
+                case TransferUnits.TrailingPower:
                     checktender = false;
                     checkengine = false;
                     frontpos = false;
@@ -10122,7 +9994,7 @@ namespace Orts.Simulation.Timetables
                     }
                     break;
 
-                case DetachInfo.DetachUnitsInfo.allTrailingPower:
+                case TransferUnits.AllTrailingPower:
                     frontpos = false;
 
                     for (int iCar = Cars.Count - 1; iCar >= 0; iCar--)
@@ -10139,7 +10011,7 @@ namespace Orts.Simulation.Timetables
                     }
                     break;
 
-                case DetachInfo.DetachUnitsInfo.nonPower:
+                case TransferUnits.NonPower:
 
                     int frontunits = 0;
                     // power is at front
@@ -10180,7 +10052,7 @@ namespace Orts.Simulation.Timetables
                     }
                     break;
 
-                case DetachInfo.DetachUnitsInfo.consists:
+                case TransferUnits.Consists:
                     bool inConsist = false;
 
                     // check if front must be detached
@@ -10233,7 +10105,7 @@ namespace Orts.Simulation.Timetables
                         Trace.TraceInformation("Train {0} : no. of units to detach ({1}) : value too large, only {2} units on train\n", Name, iunits, Cars.Count);
                         iunits = Cars.Count - 1;
                     }
-                    frontpos = detachUnits == DetachInfo.DetachUnitsInfo.unitsAtFront;
+                    frontpos = detachUnits == TransferUnits.UnitsAtFront;
                     break;
             }
 
@@ -10606,9 +10478,8 @@ namespace Orts.Simulation.Timetables
             // if normal stop, set restart delay
             if (!AtStation && !attachTrain.AtStation)
             {
-                float randDelay = StaticRandom.Next(DelayedStartSettings.attachRestart.randomPartS * 10);
-                RestdelayS = DelayedStartSettings.attachRestart.fixedPartS + (randDelay / 10f);
-                DelayedStart = true;
+                RestdelayS = DelayedStartSettings[DelayedStartType.AttachRestart].RemainingDelay();
+                DelayStart = true;
                 DelayedStartState = AiStartMovement.PathAction;
             }
         }
@@ -10754,9 +10625,8 @@ namespace Orts.Simulation.Timetables
             newTrain.StartTime = null; // time will be set later
 
             // set delay
-            float randDelay = StaticRandom.Next(DelayedStartSettings.detachRestart.randomPartS * 10);
-            RestdelayS = DelayedStartSettings.detachRestart.fixedPartS + (randDelay / 10f);
-            DelayedStart = true;
+            RestdelayS = DelayedStartSettings[DelayedStartType.DetachRestart].RemainingDelay();
+            DelayStart = true;
             DelayedStartState = AiStartMovement.NewTrain;
 
             if (!newIsPlayer)
@@ -10890,9 +10760,8 @@ namespace Orts.Simulation.Timetables
             // if normal stop, set restart delay
             if (MovementState == AiMovementState.Stopped)
             {
-                randDelay = StaticRandom.Next(DelayedStartSettings.detachRestart.randomPartS * 10);
-                RestdelayS = DelayedStartSettings.detachRestart.fixedPartS + (randDelay / 10f);
-                DelayedStart = true;
+                RestdelayS = DelayedStartSettings[DelayedStartType.DetachRestart].RemainingDelay();
+                DelayStart = true;
                 DelayedStartState = AiStartMovement.PathAction;
             }
 
@@ -10909,23 +10778,23 @@ namespace Orts.Simulation.Timetables
         /// <returns></returns>
         public void ActivateTriggeredTrain(TriggerActivationType thisTriggerType, int reqPlatformID)
         {
-            for (int itrigger = activatedTrainTriggers.Count - 1; itrigger >= 0; itrigger--)
+            for (int itrigger = ActivatedTrainTriggers.Count - 1; itrigger >= 0; itrigger--)
             {
-                TriggerActivation thisTrigger = activatedTrainTriggers[itrigger];
-                if (thisTrigger.activationType == thisTriggerType)
+                TriggerActivation thisTrigger = ActivatedTrainTriggers[itrigger];
+                if (thisTrigger.ActivationType == thisTriggerType)
                 {
                     if (thisTriggerType == TriggerActivationType.StationDepart || thisTriggerType == TriggerActivationType.StationStop)
                     {
-                        if (thisTrigger.platformId != reqPlatformID)
+                        if (thisTrigger.PlatformId != reqPlatformID)
                         {
                             continue;
                         }
                     }
 
-                    TTTrain triggeredTrain = GetOtherTTTrainByNumber(thisTrigger.activatedTrain);
+                    TTTrain triggeredTrain = GetOtherTTTrainByNumber(thisTrigger.ActivatedTrain);
                     if (triggeredTrain == null)
                     {
-                        triggeredTrain = AI.StartList.GetNotStartedTTTrainByNumber(thisTrigger.activatedTrain, false);
+                        triggeredTrain = AI.StartList.GetNotStartedTTTrainByNumber(thisTrigger.ActivatedTrain, false);
                     }
 
                     if (triggeredTrain != null)
@@ -10934,10 +10803,10 @@ namespace Orts.Simulation.Timetables
                     }
                     else
                     {
-                        Trace.TraceInformation("Train to trigger : {0} not found for train {1}", thisTrigger.activatedName, Name);
+                        Trace.TraceInformation("Train to trigger : {0} not found for train {1}", thisTrigger.ActivatedTrainName, Name);
                     }
 
-                    activatedTrainTriggers.RemoveAt(itrigger);
+                    ActivatedTrainTriggers.RemoveAt(itrigger);
                 }
             }
         }
@@ -11351,9 +11220,9 @@ namespace Orts.Simulation.Timetables
             bool trainfound = false;
             StringBuilder waitforstring = new StringBuilder();
 
-            if (WaitList != null && WaitList.Count > 0 && WaitList[0].WaitActive)
+            if (waitList != null && waitList.Count > 0 && waitList[0].WaitActive)
             {
-                waitforstring.Append(CultureInfo.InvariantCulture, $"WAIT : {WaitList[0].waitTrainNumber} ({WaitList[0].WaitType})");
+                waitforstring.Append(CultureInfo.InvariantCulture, $"WAIT : {waitList[0].waitTrainNumber} ({waitList[0].WaitType})");
                 trainfound = true;
             }
 
@@ -11410,9 +11279,9 @@ namespace Orts.Simulation.Timetables
                 bool trainfound = false;
                 StringBuilder waitforstring = new StringBuilder();
 
-                if (WaitList != null && WaitList.Count > 0 && WaitList[0].WaitActive)
+                if (waitList != null && waitList.Count > 0 && waitList[0].WaitActive)
                 {
-                    waitforstring.Append($"WAIT : {WaitList[0].waitTrainNumber} ({WaitList[0].WaitType})");
+                    waitforstring.Append($"WAIT : {waitList[0].waitTrainNumber} ({waitList[0].WaitType})");
                     trainfound = true;
                 }
 
@@ -11471,9 +11340,9 @@ namespace Orts.Simulation.Timetables
 
                 bool trainfound = false;
 
-                if (WaitList != null && WaitList.Count > 0 && WaitList[0].WaitActive)
+                if (waitList != null && waitList.Count > 0 && waitList[0].WaitActive)
                 {
-                    waitforstring.Append(CultureInfo.InvariantCulture, $"WAIT : {WaitList[0].waitTrainNumber} ({WaitList[0].WaitType})");
+                    waitforstring.Append(CultureInfo.InvariantCulture, $"WAIT : {waitList[0].waitTrainNumber} ({waitList[0].WaitType})");
                     trainfound = true;
                 }
 
@@ -11525,16 +11394,6 @@ namespace Orts.Simulation.Timetables
             File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
         }
 
-        public void TTAnalysisStartMoving(string info)
-        {
-            DateTime baseDTA = new DateTime();
-            DateTime moveTimeA = baseDTA.AddSeconds(AI.ClockTime);
-
-            StringBuilder sob = new StringBuilder();
-            sob.Append(CultureInfo.InvariantCulture, $"{Number};{AI.ClockTime};{Name};{Delay};;;;;;{moveTimeA:HH:mm:ss)};;;{info}");
-            File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
-        }
-
         private protected override INameValueInformationProvider GetDispatcherInfoProvider() => new TimeTableTrainDispatcherInfo(this);
 
         private protected class TimeTableTrainDispatcherInfo : AiTrainDispatcherInfo
@@ -11558,1993 +11417,6 @@ namespace Orts.Simulation.Timetables
                             this["AiData"] = train.TriggeredActivationRequired ? catalog.GetString("Triggered Activation") :
                                 train.ActivateTime.HasValue ? $"{TimeSpan.FromSeconds(train.ActivateTime.Value):c}" : "--------";
                             break;
-                    }
-                }
-            }
-        }
-    }
-
-    //================================================================================================//
-    //================================================================================================//
-    /// <summary>
-    /// Class for detach information
-    /// </summary>
-    public class DetachInfo
-    {
-        public enum DetachPositionInfo
-        {
-            atStart,
-            atStation,
-            atSection,
-            atEnd,
-            atActivation,
-        }
-
-        public enum DetachUnitsInfo
-        {
-            onlyPower,
-            leadingPower,
-            allLeadingPower,
-            trailingPower,
-            allTrailingPower,
-            nonPower,
-            unitsAtFront,
-            unitsAtEnd,
-            consists
-        }
-
-        public DetachPositionInfo DetachPosition;
-        public int DetachSectionInfo;
-        public DetachUnitsInfo DetachUnits;
-        public List<String> DetachConsists;
-        public int NumberOfUnits;
-        public int DetachFormedTrain;                       // used for auto formed detaches
-        public String DetachFormedTrainName = String.Empty;   // used for station and startup detaches
-        public bool DetachFormedStatic;                     // used for station and startup detaches
-        public bool? ReverseDetachedTrain;
-        public bool PlayerAutoDetach;
-        public int? DetachTime;
-        public bool Valid;
-
-        //================================================================================================//
-        /// <summary>
-        /// Default constructor for auto-generated detach
-        /// </summary>
-        /// <param name="atStart"></param>
-        /// <param name="atEnd"></param>
-        /// <param name="atStation"></param>
-        /// <param name="sectionIndex"></param>
-        /// <param name="leadingPower"></param>
-        /// <param name="trailingPower"></param>
-        /// <param name="units"></param>
-        public DetachInfo(bool atStart, bool atEnd, bool atStation, int sectionIndex, bool leadingPower, bool allLeadingPower, bool trailingPower, bool allTrailingPower,
-            bool onlyPower, bool nonPower, int units, int? time, int formedTrain, bool reverseTrain)
-        {
-            if (atStart)
-            {
-                DetachPosition = DetachPositionInfo.atStart;
-            }
-            else if (atEnd)
-            {
-                DetachPosition = DetachPositionInfo.atEnd;
-            }
-            else if (atStation)
-            {
-                DetachPosition = DetachPositionInfo.atStation;
-                DetachSectionInfo = sectionIndex;
-            }
-            else
-            {
-                DetachPosition = DetachPositionInfo.atSection;
-                DetachSectionInfo = sectionIndex;
-            }
-
-            if (leadingPower)
-            {
-                DetachUnits = DetachUnitsInfo.leadingPower;
-            }
-            else if (allLeadingPower)
-            {
-                DetachUnits = DetachUnitsInfo.allLeadingPower;
-            }
-            else if (trailingPower)
-            {
-                DetachUnits = DetachUnitsInfo.trailingPower;
-            }
-            else if (allTrailingPower)
-            {
-                DetachUnits = DetachUnitsInfo.allTrailingPower;
-            }
-            else if (onlyPower)
-            {
-                DetachUnits = DetachUnitsInfo.onlyPower;
-            }
-            else if (nonPower)
-            {
-                DetachUnits = DetachUnitsInfo.nonPower;
-            }
-            else if (units < 0)
-            {
-                DetachUnits = DetachUnitsInfo.unitsAtEnd;
-                NumberOfUnits = -units;
-            }
-            else
-            {
-                DetachUnits = DetachUnitsInfo.unitsAtFront;
-                NumberOfUnits = units;
-            }
-
-            DetachTime = time;
-            DetachFormedTrain = formedTrain;
-            DetachFormedStatic = false;
-            ReverseDetachedTrain = reverseTrain;
-            PlayerAutoDetach = true;
-            DetachConsists = null;
-            Valid = true;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Default constructor for detach at station or at start
-        /// </summary>
-        /// <param name="thisTrain"></param>
-        /// <param name="commandInfo"></param>
-        /// <param name="atActivation"></param>
-        /// <param name="atStation"></param>
-        /// <param name="detachSectionIndex"></param>
-        /// <param name="detachTime"></param>
-        public DetachInfo(TTTrain thisTrain, TTTrainCommands commandInfo, bool atActivation, bool atStation, bool atForms, int detachSectionIndex, int? detachTime)
-        {
-            DetachPosition = atActivation ? DetachPositionInfo.atActivation : atStation ? DetachPositionInfo.atStation : atForms ? DetachPositionInfo.atEnd : DetachPositionInfo.atSection;
-            DetachSectionInfo = detachSectionIndex;
-            DetachFormedTrain = -1;
-            PlayerAutoDetach = true;
-            DetachConsists = null;
-            DetachFormedTrainName = String.Empty;
-
-            bool portionDefined = false;
-            bool formedTrainDefined = false;
-
-
-            if (commandInfo?.CommandQualifiers == null || commandInfo.CommandQualifiers.Count < 1)
-            {
-                Trace.TraceInformation("Train {0} : missing detach command qualifiers", thisTrain?.Name);
-                Valid = false;
-                return;
-            }
-
-            foreach (TTTrainCommands.TTTrainComQualifiers Qualifier in commandInfo.CommandQualifiers)
-            {
-                switch (Qualifier.QualifierName)
-                {
-                    // detach info qualifiers
-                    case string tranferType when tranferType.Equals("power", StringComparison.OrdinalIgnoreCase):
-                        DetachUnits = DetachUnitsInfo.onlyPower;
-                        portionDefined = true;
-                        break;
-
-                    case string tranferType when tranferType.Equals("leadingpower", StringComparison.OrdinalIgnoreCase):
-                        DetachUnits = DetachUnitsInfo.leadingPower;
-                        portionDefined = true;
-                        break;
-
-                    case string tranferType when tranferType.Equals("allleadingpower", StringComparison.OrdinalIgnoreCase):
-                        DetachUnits = DetachUnitsInfo.allLeadingPower;
-                        portionDefined = true;
-                        break;
-
-                    case string tranferType when tranferType.Equals("trailingpower", StringComparison.OrdinalIgnoreCase):
-                        DetachUnits = DetachUnitsInfo.trailingPower;
-                        portionDefined = true;
-                        break;
-
-                    case string tranferType when tranferType.Equals("alltrailingpower", StringComparison.OrdinalIgnoreCase):
-                        DetachUnits = DetachUnitsInfo.allTrailingPower;
-                        portionDefined = true;
-                        break;
-
-                    case string tranferType when tranferType.Equals("nonpower", StringComparison.OrdinalIgnoreCase):
-                        DetachUnits = DetachUnitsInfo.nonPower;
-                        portionDefined = true;
-                        break;
-
-                    case string tranferType when tranferType.Equals("units", StringComparison.OrdinalIgnoreCase):
-
-                        if (int.TryParse(Qualifier.QualifierValues[0], out int nounits))
-                        {
-                            if (nounits > 0)
-                            {
-                                DetachUnits = DetachUnitsInfo.unitsAtFront;
-                            }
-                            else
-                            {
-                                DetachUnits = DetachUnitsInfo.unitsAtEnd;
-                            }
-                            NumberOfUnits = Math.Abs(nounits);
-                            portionDefined = true;
-                        }
-                        else
-                        {
-                            Trace.TraceInformation("Train {0} : invalid value for units qualifier in detach command : {1}", thisTrain.Name, Qualifier.QualifierValues[0]);
-                        }
-                        break;
-
-                    case string tranferType when tranferType.Equals("consist", StringComparison.OrdinalIgnoreCase):
-                        DetachUnits = DetachUnitsInfo.consists;
-
-                        if (DetachConsists == null)
-                            DetachConsists = new List<string>();
-
-                        foreach (string consistname in Qualifier.QualifierValues)
-                        {
-                            DetachConsists.Add(consistname);
-                        }
-                        portionDefined = true;
-                        break;
-
-                    // form qualifier
-                    case string tranferType when tranferType.Equals("forms", StringComparison.OrdinalIgnoreCase):
-                        if (Qualifier.QualifierValues == null || Qualifier.QualifierValues.Count <= 0)
-                        {
-                            Trace.TraceInformation("Train {0} : detach command : missing name for formed train", thisTrain.Name);
-                        }
-                        else
-                        {
-                            DetachFormedTrainName = Qualifier.QualifierValues[0];
-                            if (!DetachFormedTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
-                            {
-                                int seppos = thisTrain.Name.IndexOf(':', StringComparison.OrdinalIgnoreCase);
-                                DetachFormedTrainName += $":{thisTrain.Name[(seppos + 1)..]}";
-                            }
-
-                            DetachFormedStatic = false;
-                            formedTrainDefined = true;
-                        }
-                        break;
-
-                    // static qualifier
-                    case string tranferType when tranferType.Equals("static", StringComparison.OrdinalIgnoreCase):
-                        if (Qualifier.QualifierValues != null && Qualifier.QualifierValues.Count > 0)
-                        {
-                            DetachFormedTrainName = Qualifier.QualifierValues[0];
-                            if (!DetachFormedTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
-                            {
-                                int seppos = thisTrain.Name.IndexOf(':', StringComparison.OrdinalIgnoreCase);
-                                DetachFormedTrainName += $":{thisTrain.Name.Substring(seppos + 1)}";
-                            }
-                        }
-
-                        DetachFormedStatic = true;
-                        formedTrainDefined = true;
-                        break;
-
-                    // manual or auto detach for player train (note : not yet implemented)
-                    case string tranferType when tranferType.Equals("manual", StringComparison.OrdinalIgnoreCase):
-                        PlayerAutoDetach = false;
-                        break;
-
-                    case string tranferType when tranferType.Equals("auto", StringComparison.OrdinalIgnoreCase):
-                        PlayerAutoDetach = true;
-                        break;
-
-                    // default : invalid qualifier
-                    default:
-                        Trace.TraceWarning("Train {0} : invalid qualifier for detach command : {1}", thisTrain.Name, Qualifier.QualifierName.Trim());
-                        break;
-                }
-            }
-
-            // set detach time to arrival time or activate time
-            DetachTime = detachTime ?? 0;
-
-            if (!portionDefined)
-            {
-                Trace.TraceWarning("Train {0} : detach command : missing portion information", thisTrain.Name);
-                Valid = false;
-            }
-            else if (!formedTrainDefined)
-            {
-                Trace.TraceWarning("Train {0} : detach command : no train defined for detached portion", thisTrain.Name);
-                Valid = false;
-            }
-            else
-            {
-                Valid = true;
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor for Restore
-        /// </summary>
-        /// <param name="inf"></param>
-        public DetachInfo(BinaryReader inf)
-        {
-            DetachPosition = (DetachPositionInfo)inf.ReadInt32();
-            DetachSectionInfo = inf.ReadInt32();
-            DetachUnits = (DetachUnitsInfo)inf.ReadInt32();
-            NumberOfUnits = inf.ReadInt32();
-            int detachTimeValue = inf.ReadInt32();
-            if (detachTimeValue < 0)
-            {
-                DetachTime = null;
-            }
-            else
-            {
-                DetachTime = detachTimeValue;
-            }
-
-            DetachFormedTrain = inf.ReadInt32();
-            DetachFormedTrainName = inf.ReadString();
-            bool RevDetTrainValid = inf.ReadBoolean();
-            if (RevDetTrainValid)
-                ReverseDetachedTrain = inf.ReadBoolean();
-            PlayerAutoDetach = inf.ReadBoolean();
-            int noConstistStrings = inf.ReadInt32();
-            if (noConstistStrings <= 0)
-            {
-                DetachConsists = null;
-            }
-            else
-            {
-                DetachConsists = new List<string>();
-                for (int cstring = 1; cstring <= noConstistStrings; cstring++)
-                {
-                    DetachConsists.Add(inf.ReadString());
-                }
-            }
-
-            DetachFormedStatic = inf.ReadBoolean();
-            Valid = inf.ReadBoolean();
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Save routine
-        /// </summary>
-        /// <param name="outf"></param>
-        public void Save(BinaryWriter outf)
-        {
-            outf.Write((int)DetachPosition);
-            outf.Write(DetachSectionInfo);
-            outf.Write((int)DetachUnits);
-            outf.Write(NumberOfUnits);
-            if (DetachTime.HasValue)
-            {
-                outf.Write(DetachTime.Value);
-            }
-            else
-            {
-                outf.Write(-1);
-            }
-            outf.Write(DetachFormedTrain);
-            outf.Write(DetachFormedTrainName);
-            if (ReverseDetachedTrain.HasValue)
-            {
-                outf.Write(true);
-                outf.Write(ReverseDetachedTrain.Value);
-            }
-            else
-            {
-                outf.Write(false);
-            }
-            outf.Write(PlayerAutoDetach);
-
-            if (DetachConsists == null || DetachConsists.Count == 0)
-            {
-                outf.Write(-1);
-            }
-            else
-            {
-                outf.Write(DetachConsists.Count);
-                foreach (String cString in DetachConsists)
-                {
-                    outf.Write(cString);
-                }
-            }
-
-            outf.Write(DetachFormedStatic);
-            outf.Write(Valid);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Perform detach, return state : true if detach may be performed, false if detach is handled through window
-        /// </summary>
-        /// <param name="train"></param>
-        /// <param name="presentTime"></param>
-        /// <returns></returns>
-        public bool PerformDetach(TTTrain train, bool allowPlayerSelect)
-        {
-            // Determine no. of units to detach
-
-            int iunits = 0;
-            bool frontpos = true;
-
-            // if position of power not defined, set position according to present position of power
-            if (DetachUnits == DetachUnitsInfo.onlyPower)
-            {
-                DetachUnits = DetachUnitsInfo.allLeadingPower;
-                if (train.Cars[0].WagonType == WagonType.Engine || train.Cars[0].WagonType == WagonType.Tender)
-                {
-                    DetachUnits = DetachUnitsInfo.allLeadingPower;
-                }
-                else
-                {
-                    DetachUnits = DetachUnitsInfo.allTrailingPower;
-                }
-            }
-
-            iunits = train.GetUnitsToDetach(this.DetachUnits, this.NumberOfUnits, this.DetachConsists, ref frontpos);
-
-            // check if anything to detach and anything left on train
-
-            TTTrain newTrain = null;
-            if (DetachFormedTrain == 0)
-            {
-                newTrain = Simulator.Instance.PlayerLocomotive.Train as TTTrain;
-            }
-            else
-            {
-                newTrain = Simulator.Instance.GetAutoGenTTTrainByNumber(DetachFormedTrain);
-            }
-
-            if (newTrain == null)
-            {
-                Trace.TraceInformation("Train {0} : detach to train {1} : cannot find new train", train.Name, DetachFormedTrainName);
-            }
-
-            train.DetachUnits = iunits;
-            train.DetachPosition = frontpos;
-
-            if (iunits == 0)
-            {
-                Trace.TraceInformation("Train {0} : detach to train {1} : no units to detach", train.Name, DetachFormedTrainName);
-            }
-            else if (iunits == train.Cars.Count)
-            {
-                Trace.TraceInformation("Train {0} : detach to train {1} : no units remaining on train", train.Name, DetachFormedTrainName);
-            }
-            else
-            {
-                if (newTrain == null)
-                {
-                    // create dummy train - train will be removed but timetable can continue
-                    newTrain = new TTTrain(train);
-                    newTrain.AI = train.AI;  // set AT as Simulator.AI does not exist in prerun mode
-                    newTrain.ValidRoutes[Direction.Forward] = SignalEnvironment.BuildTempRoute(newTrain, train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex,
-                        train.PresentPosition[Direction.Forward].Offset, train.PresentPosition[Direction.Forward].Direction, train.Length, true, true, false);
-                    newTrain.PresentPosition[Direction.Forward].UpdateFrom(train.PresentPosition[Direction.Forward]);
-                    newTrain.PresentPosition[Direction.Backward].UpdateFrom(train.PresentPosition[Direction.Backward]);
-
-                    ReverseDetachedTrain = false;
-                    int newLocoIndex = train.TTUncoupleBehind(newTrain, ReverseDetachedTrain.Value, train.LeadLocomotiveIndex, false);
-                    newTrain.RemoveTrain();
-                }
-                else
-                {
-                    // if new train has no route, create from present position
-                    if (newTrain.TCRoute == null)
-                    {
-                        TrackCircuitPartialPathRoute newTrainPath = new TrackCircuitPartialPathRoute(train.ValidRoutes[Direction.Forward], train.PresentPosition[Direction.Backward].RouteListIndex, train.PresentPosition[Direction.Forward].RouteListIndex);
-                        newTrain.TCRoute = new TrackCircuitRoutePath(newTrainPath);
-                        newTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(newTrain.TCRoute.TCRouteSubpaths[0]);
-                    }
-
-                    // handle player train
-                    if (train.TrainType == TrainType.Player)
-                    {
-                        bool detachablePower = CheckDetachedDriveablePower(train);
-                        bool keepPower = CheckKeepDriveablePower(train);
-
-                        // if both portions contain detachable power, display window
-                        // quit method as detaching is handled through window button activation
-                        if (detachablePower && keepPower && allowPlayerSelect)
-                        {
-                            // reinsert newtrain as autogen train otherwise it cannot be found
-                            train.AI.AutoGenTrains.Add(newTrain);
-                            Simulator.Instance.AutoGenDictionary.Add(newTrain.Number, newTrain);
-
-                            // show window, set detach action is pending
-                            Simulator.Instance.OnRequestTTDetachWindow();
-                            train.DetachPending = true;
-                            return (false);
-                        }
-
-                        // detachable portion has no power, so detach immediately
-
-                        bool playerEngineInRemainingPortion = CheckPlayerPowerPortion(train);
-
-                        // player engine is in remaining portion
-                        if (playerEngineInRemainingPortion)
-                        {
-                            if (!ReverseDetachedTrain.HasValue)
-                            {
-                                ReverseDetachedTrain = GetDetachReversalInfo(train, newTrain);
-                            }
-                            int newLocoIndex = train.TTUncoupleBehind(newTrain, ReverseDetachedTrain.Value, train.LeadLocomotiveIndex, false);
-                            train.LeadLocomotiveIndex = newLocoIndex;
-                            Simulator.Instance.Confirmer?.Information($"{train.DetachUnits} units detached as train : {newTrain.Name}");
-                            train.DetachActive[1] = -1;
-
-                            // set proper details for new train
-                            newTrain.SetFormedOccupied();
-                            newTrain.ControlMode = TrainControlMode.Inactive;
-                            newTrain.MovementState = AiMovementState.Static;
-                            newTrain.SetupStationStopHandling();
-                        }
-                        // keep portion has no power, so detach immediately and switch to new train
-                        else
-                        {
-                            if (!ReverseDetachedTrain.HasValue)
-                            {
-                                ReverseDetachedTrain = GetDetachReversalInfo(train, newTrain);
-                            }
-                            int newLocoIndex = train.TTUncoupleBehind(newTrain, ReverseDetachedTrain.Value, train.LeadLocomotiveIndex, true);
-                            Simulator.Instance.Confirmer?.Information($"{train.DetachUnits} units detached as train : {newTrain.Name}");
-                            Trace.TraceInformation($"Detach : {train.DetachUnits} units detached as train : {newTrain.Name}");
-                            train.DetachActive[1] = -1;
-
-                            // set proper details for existing train
-                            train.Number = train.OrgAINumber;
-                            train.TrainType = TrainType.Ai;
-                            train.LeadLocomotiveIndex = -1;
-                            Simulator.Instance.Trains.Remove(train);
-                            train.AI.TrainsToRemoveFromAI.Add(train);
-                            train.AI.TrainsToAdd.Add(train);
-
-                            // set proper details for new train
-                            newTrain.AI.TrainsToRemoveFromAI.Add(newTrain);
-
-                            // set proper details for new formed train
-                            newTrain.OrgAINumber = newTrain.Number;
-                            newTrain.Number = 0;
-                            newTrain.LeadLocomotiveIndex = newLocoIndex;
-                            newTrain.AI.TrainsToAdd.Add(newTrain);
-                            newTrain.AI.TrainListChanged = true;
-                            Simulator.Instance.Trains.Add(newTrain);
-
-                            newTrain.SetFormedOccupied();
-                            newTrain.TrainType = TrainType.Player;
-                            newTrain.ControlMode = TrainControlMode.Inactive;
-                            newTrain.MovementState = AiMovementState.Static;
-
-                            // inform viewer about player train switch
-                            Simulator.Instance.OnPlayerTrainChanged(train, newTrain);
-                            Simulator.Instance.PlayerLocomotive.Train = newTrain;
-
-                            newTrain.SetupStationStopHandling();
-
-                            // clear replay commands
-                            Simulator.Instance.Log.CommandList.Clear();
-
-                            // display messages
-                            Simulator.Instance.Confirmer?.Information("Player switched to train : " + newTrain.Name);// As Confirmer may not be created until after a restore.
-                        }
-                    }
-                    else
-                    {
-                        Simulator.Instance.AutoGenDictionary?.Remove(newTrain.Number);
-
-                        if (!ReverseDetachedTrain.HasValue)
-                        {
-                            ReverseDetachedTrain = GetDetachReversalInfo(train, newTrain);
-                        }
-
-                        bool newIsPlayer = newTrain.TrainType == TrainType.PlayerIntended;
-                        newTrain.LeadLocomotiveIndex = train.TTUncoupleBehind(newTrain, ReverseDetachedTrain.Value, -1, newIsPlayer);
-                        train.DetachActive[1] = -1;
-                    }
-                }
-
-
-                // if train is player or intended player, determine new loco lead index
-                if (train.TrainType == TrainType.Player || train.TrainType == TrainType.PlayerIntended)
-                {
-                    if (train.LeadLocomotiveIndex >= 0)
-                    {
-                        train.LeadLocomotive = Simulator.Instance.PlayerLocomotive = train.Cars[train.LeadLocomotiveIndex] as MSTSLocomotive;
-                    }
-                    else
-                    {
-                        train.LeadLocomotive = null;
-                        Simulator.Instance.PlayerLocomotive = null;
-
-                        for (int iCar = 0; iCar <= train.Cars.Count - 1 && train.LeadLocomotiveIndex < 0; iCar++)
-                        {
-                            var eachCar = train.Cars[iCar];
-                            if (eachCar is MSTSLocomotive locomotive)
-                            {
-                                train.LeadLocomotive = Simulator.Instance.PlayerLocomotive = locomotive;
-                                train.LeadLocomotiveIndex = iCar;
-                            }
-                        }
-                    }
-                }
-
-                else if (newTrain.TrainType == TrainType.Player || newTrain.TrainType == TrainType.PlayerIntended)
-                {
-                    newTrain.TrainType = TrainType.Player;
-                    newTrain.ControlMode = TrainControlMode.Inactive;
-                    newTrain.MovementState = AiMovementState.Static;
-                    if (!newTrain.StartTime.HasValue)
-                        newTrain.StartTime = 0;
-
-                    newTrain.AI.TrainsToAdd.Add(newTrain);
-
-                    if (newTrain.LeadLocomotiveIndex >= 0)
-                    {
-                        newTrain.LeadLocomotive = Simulator.Instance.PlayerLocomotive = newTrain.Cars[newTrain.LeadLocomotiveIndex] as MSTSLocomotive;
-                    }
-                    else
-                    {
-                        newTrain.LeadLocomotive = null;
-                        Simulator.Instance.PlayerLocomotive = null;
-
-                        for (int iCar = 0; iCar <= newTrain.Cars.Count - 1 && newTrain.LeadLocomotiveIndex < 0; iCar++)
-                        {
-                            var eachCar = newTrain.Cars[iCar];
-                            if (eachCar is MSTSLocomotive locomotive)
-                            {
-                                newTrain.LeadLocomotive = Simulator.Instance.PlayerLocomotive = locomotive;
-                                newTrain.LeadLocomotiveIndex = iCar;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return (true);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Perform detach for player train
-        /// Called from player detach selection window
-        /// </summary>
-        /// <param name="train"></param>
-        /// <param name="newTrainNumber"></param>
-        public void DetachPlayerTrain(TTTrain train, int newTrainNumber)
-        {
-            // Determine no. of units to detach
-
-            int iunits = 0;
-            bool frontpos = true;
-
-            // if position of power not defined, set position according to present position of power
-            if (DetachUnits == DetachUnitsInfo.onlyPower)
-            {
-                DetachUnits = DetachUnitsInfo.allLeadingPower;
-                if (train.Cars[0].WagonType == WagonType.Engine || train.Cars[0].WagonType == WagonType.Tender)
-                {
-                    DetachUnits = DetachUnitsInfo.allLeadingPower;
-                }
-                else
-                {
-                    DetachUnits = DetachUnitsInfo.allTrailingPower;
-                }
-            }
-
-            iunits = train.GetUnitsToDetach(this.DetachUnits, this.NumberOfUnits, this.DetachConsists, ref frontpos);
-
-            // check if anything to detach and anything left on train
-
-            train.DetachUnits = iunits;
-            train.DetachPosition = frontpos;
-
-            TTTrain newTrain = Simulator.Instance.GetAutoGenTTTrainByNumber(newTrainNumber);
-            if (newTrain == null)
-            {
-                newTrain = train.AI.StartList.GetNotStartedTTTrainByNumber(newTrainNumber, true);
-            }
-            bool playerEngineInRemainingPortion = CheckPlayerPowerPortion(train);
-
-            ReverseDetachedTrain = GetDetachReversalInfo(train, newTrain);
-
-            int newLocoIndex = train.TTUncoupleBehind(newTrain, ReverseDetachedTrain.Value, train.LeadLocomotiveIndex, !playerEngineInRemainingPortion);
-            Simulator.Instance.Confirmer?.Information($"{train.DetachUnits} units detached as train : {newTrain.Name}");
-            Trace.TraceInformation($"{train.DetachUnits} units detached as train : {newTrain.Name}");
-            train.DetachActive[1] = -1;
-
-            // player engine is in remaining portion
-            if (playerEngineInRemainingPortion)
-            {
-                train.LeadLocomotiveIndex = newLocoIndex;
-            }
-
-            // player engine is in detached portion, so switch trains
-            else
-            {
-                // set proper details for existing train
-                train.Number = train.OrgAINumber;
-                train.TrainType = TrainType.Ai;
-                train.MovementState = train.AtStation ? AiMovementState.StationStop : AiMovementState.Stopped;
-                train.LeadLocomotiveIndex = -1;
-                Simulator.Instance.Trains.Remove(train);
-                train.AI.TrainsToRemoveFromAI.Add(train);
-                train.AI.TrainsToAdd.Add(train);
-                train.MUDirection = MidpointDirection.Forward;
-
-                // set proper details for new formed train
-                newTrain.AI.TrainsToRemoveFromAI.Add(newTrain);
-
-                newTrain.OrgAINumber = newTrain.Number;
-                newTrain.Number = 0;
-                newTrain.LeadLocomotiveIndex = newLocoIndex;
-                newTrain.TrainType = TrainType.Player;
-                newTrain.ControlMode = TrainControlMode.Inactive;
-                newTrain.MovementState = AiMovementState.Static;
-                newTrain.AI.TrainsToAdd.Add(newTrain);
-                newTrain.AI.TrainListChanged = true;
-                Simulator.Instance.Trains.Add(newTrain);
-
-                newTrain.SetFormedOccupied();
-
-                // inform viewer about player train switch
-                Simulator.Instance.OnPlayerTrainChanged(train, newTrain);
-                Simulator.Instance.PlayerLocomotive.Train = newTrain;
-
-                newTrain.SetupStationStopHandling();
-
-                // clear replay commands
-                Simulator.Instance.Log.CommandList.Clear();
-
-                // display messages
-                Simulator.Instance.Confirmer?.Information("Player switched to train : " + newTrain.Name);// As Confirmer may not be created until after a restore.
-                Trace.TraceInformation("Player switched to train : " + newTrain.Name);
-            }
-
-            train.DetachPending = false;   // detach completed
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Set detach cross-reference train information
-        /// </summary>
-        /// <param name="dettrain"></param>
-        /// <param name="trainList"></param>
-        /// <param name="playerTrain"></param>
-        public void SetDetachXRef(TTTrain dettrain, List<TTTrain> trainList, TTTrain playerTrain)
-        {
-            bool trainFound = false;
-
-            foreach (TTTrain otherTrain in trainList)
-            {
-                if (string.Equals(otherTrain.Name, DetachFormedTrainName, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (otherTrain.FormedOf >= 0)
-                    {
-                        Trace.TraceWarning("Train : {0} : detach details : detached train {1} already formed out of another train",
-                            dettrain.Name, otherTrain.Name);
-                        break;
-                    }
-
-                    otherTrain.FormedOf = dettrain.Number;
-                    otherTrain.FormedOfType = TimetableFormationCommand.Detached;
-                    otherTrain.TrainType = TrainType.AiAutoGenerated;
-                    DetachFormedTrain = otherTrain.Number;
-                    trainFound = true;
-
-                    break;
-                }
-            }
-
-            // if not found, try player train
-            if (!trainFound)
-            {
-                if (playerTrain != null && string.Equals(playerTrain.Name, DetachFormedTrainName, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (playerTrain.FormedOf >= 0)
-                    {
-                        Trace.TraceWarning("Train : {0} : detach details : detached train {1} already formed out of another train",
-                            dettrain.Name, playerTrain.Name);
-                    }
-
-                    playerTrain.FormedOf = dettrain.Number;
-                    playerTrain.FormedOfType = TimetableFormationCommand.Detached;
-                    DetachFormedTrain = playerTrain.Number;
-                    trainFound = true;
-                }
-            }
-
-            // issue warning if train not found
-            if (!trainFound)
-            {
-                Trace.TraceWarning("Train :  {0} : detach details : detached train {1} not found",
-                    dettrain.Name, DetachFormedTrainName);
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Check if detached portion off player train has driveable power
-        /// </summary>
-        /// <param name="train"></param>
-        /// <returns></returns>
-        public bool CheckDetachedDriveablePower(TTTrain train)
-        {
-            bool portionHasDriveablePower = false;
-
-            // detach at front
-            if (train.DetachPosition)
-            {
-                for (int iCar = 0; iCar < train.DetachUnits && !portionHasDriveablePower; iCar++)
-                {
-                    var thisCar = train.Cars[iCar];
-                    if (thisCar is MSTSLocomotive)
-                        portionHasDriveablePower = true;
-                }
-            }
-            // detach at rear
-            else
-            {
-                for (int iCar = 0; iCar < train.DetachUnits && !portionHasDriveablePower; iCar++)
-                {
-                    int actCar = train.Cars.Count - 1 - iCar;
-                    var thisCar = train.Cars[actCar];
-                    if (thisCar is MSTSLocomotive)
-                        portionHasDriveablePower = true;
-                }
-            }
-            return (portionHasDriveablePower);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Check if remaining portion off player train has driveable power
-        /// </summary>
-        /// <param name="train"></param>
-        /// <returns></returns>
-        public bool CheckKeepDriveablePower(TTTrain train)
-        {
-            bool portionHasDriveablePower = false;
-
-            // detach at front - so check rear portion
-            if (train.DetachPosition)
-            {
-                for (int iCar = 0; iCar < (train.Cars.Count - train.DetachUnits) && !portionHasDriveablePower; iCar++)
-                {
-                    int actCar = train.Cars.Count - 1 - iCar;
-                    var thisCar = train.Cars[actCar];
-                    if (thisCar is MSTSLocomotive)
-                        portionHasDriveablePower = true;
-                }
-            }
-            // detach at rear - so check front portion
-            else
-            {
-                for (int iCar = 0; iCar < (train.Cars.Count - train.DetachUnits) && !portionHasDriveablePower; iCar++)
-                {
-                    var thisCar = train.Cars[iCar];
-                    if (thisCar is MSTSLocomotive)
-                        portionHasDriveablePower = true;
-                }
-            }
-            return (portionHasDriveablePower);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Check if player engine is in remaining or detached portion
-        /// </summary>
-        /// <param name="train"></param>
-        /// <returns></returns>
-        public bool CheckPlayerPowerPortion(TTTrain train)
-        {
-            bool PlayerInRemainingPortion = false;
-
-            // detach at front - so check rear portion
-            if (train.DetachPosition)
-            {
-                for (int iCar = 0; iCar < (train.Cars.Count - train.DetachUnits) && !PlayerInRemainingPortion; iCar++)
-                {
-                    int actCar = train.Cars.Count - 1 - iCar;
-                    if (actCar == train.LeadLocomotiveIndex)
-                    {
-                        PlayerInRemainingPortion = true;
-                    }
-                }
-            }
-            // detach at rear - so check front portion
-            else
-            {
-                for (int iCar = 0; iCar < (train.Cars.Count - train.DetachUnits) && !PlayerInRemainingPortion; iCar++)
-                {
-                    if (iCar == train.LeadLocomotiveIndex)
-                    {
-                        PlayerInRemainingPortion = true;
-                    }
-                }
-            }
-            return (PlayerInRemainingPortion);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Determine if detached train is to be reversed
-        /// </summary>
-        /// <param name="thisTrain"></param>
-        /// <param name="detachedTrain"></param>
-        /// <returns></returns>
-        public bool GetDetachReversalInfo(TTTrain thisTrain, TTTrain detachedTrain)
-        {
-            bool reversed = false;
-
-            // if detached at front, use front position
-            if (thisTrain.DetachPosition)
-            {
-                int frontSectionIndex = thisTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
-                TrackDirection thisDirection = thisTrain.PresentPosition[Direction.Forward].Direction;
-
-                TrackCircuitPartialPathRoute otherPath = detachedTrain.TCRoute.TCRouteSubpaths[0];
-                int otherTrainIndex = otherPath.GetRouteIndex(frontSectionIndex, 0);
-
-                if (otherTrainIndex >= 0)
-                {
-                    TrackDirection otherTrainDirection = otherPath[otherTrainIndex].Direction;
-                    reversed = (thisDirection != otherTrainDirection);
-                }
-            }
-            else
-            {
-                int frontSectionIndex = thisTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
-                TrackDirection thisDirection = thisTrain.PresentPosition[Direction.Backward].Direction;
-
-                TrackCircuitPartialPathRoute otherPath = detachedTrain.TCRoute.TCRouteSubpaths[0];
-                int otherTrainIndex = otherPath.GetRouteIndex(frontSectionIndex, 0);
-
-                if (otherTrainIndex >= 0)
-                {
-                    TrackDirection otherTrainDirection = otherPath[otherTrainIndex].Direction;
-                    reversed = (thisDirection != otherTrainDirection);
-                }
-            }
-
-            return (reversed);
-        }
-    }
-
-    //================================================================================================//
-    //================================================================================================//
-    /// <summary>
-    /// Class AttachInfo : class for attach details
-    /// </summary>
-    public class AttachInfo
-    {
-        public int AttachTrain;                             // train number to which to attach
-        public string AttachTrainName = String.Empty;       // train name to which to attach
-
-        public int StationPlatformReference;                // station platform reference - set to -1 if attaching to static train in dispose command
-        public bool FirstIn;                                // this train arrives first
-        public bool SetBack;                                // reverse in order to attach
-        public bool Valid;                                  // attach info is valid
-
-        public bool ReadyToAttach;                          // trains are ready to attach
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor for attach details at station
-        /// </summary>
-        /// <param name="stationPlatformReference"></param>
-        /// <param name="thisCommand"></param>
-        /// <param name="thisTrain"></param>
-        public AttachInfo(int stationPlatformReference, TTTrainCommands thisCommand, TTTrain thisTrain)
-        {
-            FirstIn = false;
-            SetBack = false;
-            ReadyToAttach = false;
-
-            StationPlatformReference = stationPlatformReference;
-
-            if (thisCommand.CommandValues == null || thisCommand.CommandValues.Count <= 0)
-            {
-                Trace.TraceInformation("Train {0} : missing train name in attach command", thisTrain.Name);
-                Valid = false;
-                return;
-            }
-
-            AttachTrainName = thisCommand.CommandValues[0];
-            if (!AttachTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
-            {
-                int seppos = thisTrain.Name.IndexOf(':', StringComparison.OrdinalIgnoreCase);
-                AttachTrainName += $":{thisTrain.Name.Substring(seppos + 1)}";
-            }
-
-            if (thisCommand.CommandQualifiers != null)
-            {
-                foreach (TTTrainCommands.TTTrainComQualifiers thisQualifier in thisCommand.CommandQualifiers)
-                {
-                    switch (thisQualifier.QualifierName)
-                    {
-                        case "firstin":
-                            if (StationPlatformReference < 0)
-                            {
-                                Trace.TraceWarning("Train {0} : dispose attach command : FirstIn not allowed for dispose command", thisTrain.Name);
-                            }
-                            else
-                            {
-                                FirstIn = true;
-                            }
-                            break;
-
-                        case "setback":
-                            if (StationPlatformReference < 0)
-                            {
-                                Trace.TraceWarning("Train {0} : dispose attach command : SetBack not allowed for dispose command", thisTrain.Name);
-                            }
-                            else
-                            {
-                                SetBack = true;
-                                FirstIn = true;
-                            }
-                            break;
-
-                        default:
-                            Trace.TraceWarning("Train {0} : Invalid qualifier for attach command : {1}", thisTrain.Name, thisQualifier.QualifierName);
-                            break;
-                    }
-                }
-
-            }
-
-            // straight forward attach in station without first in and no set back : set no need to store (attach can be set directly)
-            if (!FirstIn && !SetBack && StationPlatformReference >= 0)
-            {
-                ReadyToAttach = true;
-            }
-
-            Valid = true;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Contructor for attach at dispose
-        /// </summary>
-        /// <param name="rrtrain"></param>
-        public AttachInfo(TTTrain rrtrain)
-        {
-            AttachTrain = rrtrain.Number;
-            AttachTrainName = rrtrain.Name;
-            StationPlatformReference = -1;
-            FirstIn = false;
-            SetBack = false;
-
-            Valid = true;
-            ReadyToAttach = true;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Contructor for restore
-        /// </summary>
-        /// <param name="inf"></param>
-        public AttachInfo(BinaryReader inf)
-        {
-            AttachTrain = inf.ReadInt32();
-            AttachTrainName = inf.ReadString();
-
-            StationPlatformReference = inf.ReadInt32();
-            FirstIn = inf.ReadBoolean();
-            SetBack = inf.ReadBoolean();
-
-            Valid = inf.ReadBoolean();
-            ReadyToAttach = inf.ReadBoolean();
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Save method
-        /// </summary>
-        /// <param name="outf"></param>
-        public void Save(BinaryWriter outf)
-        {
-            outf.Write(AttachTrain);
-            outf.Write(AttachTrainName);
-
-            outf.Write(StationPlatformReference);
-            outf.Write(FirstIn);
-            outf.Write(SetBack);
-
-            outf.Write(Valid);
-            outf.Write(ReadyToAttach);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        ///  Finalize attach details - if valid, work out cross reference informatio
-        /// </summary>
-        /// <param name="thisTrain"></param>
-        /// <param name="trainList"></param>
-        /// <param name="playerTrain"></param>
-        public void FinalizeAttachDetails(TTTrain thisTrain, List<TTTrain> trainList, TTTrain playerTrain)
-        {
-            if (Valid)
-            {
-                // set Xref to train to which to attach
-                SetAttachXRef(thisTrain, trainList, playerTrain);
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Set attach cross-reference train information
-        /// </summary>
-        /// <param name="dettrain"></param>
-        /// <param name="trainList"></param>
-        /// <param name="playerTrain"></param>
-        public void SetAttachXRef(TTTrain dettrain, List<TTTrain> trainList, TTTrain playerTrain)
-        {
-            bool trainFound = false;
-            TTTrain attachedTrain = null;
-
-            foreach (TTTrain otherTrain in trainList)
-            {
-                if (string.Equals(otherTrain.Name, AttachTrainName, StringComparison.OrdinalIgnoreCase))
-                {
-                    AttachTrain = otherTrain.OrgAINumber;
-                    attachedTrain = otherTrain;
-                    trainFound = true;
-                    break;
-                }
-            }
-
-            // if not found, try player train
-            if (!trainFound)
-            {
-                if (playerTrain != null && string.Equals(playerTrain.Name, AttachTrainName, StringComparison.OrdinalIgnoreCase))
-                {
-                    AttachTrain = playerTrain.OrgAINumber;
-                    attachedTrain = playerTrain;
-                    trainFound = true;
-                }
-            }
-
-            // issue warning if train not found
-            if (!trainFound)
-            {
-                Trace.TraceWarning("Train :  {0} : attach details : train {1} to attach to is not found",
-                    dettrain.Name, AttachTrainName);
-            }
-
-            // search for station stop if set
-            else if (StationPlatformReference >= 0)
-            {
-                int stationIndex = -1;
-                for (int iStationStop = 0; iStationStop < attachedTrain.StationStops.Count && stationIndex < 0; iStationStop++)
-                {
-                    if (attachedTrain.StationStops[iStationStop].PlatformReference == StationPlatformReference)
-                    {
-                        stationIndex = iStationStop;
-                    }
-                }
-
-                if (stationIndex < 0)
-                {
-                    Trace.TraceWarning("Train {0} : attach details : station stop for train {1} not found", dettrain.Name, attachedTrain.Name);
-                    trainFound = false;
-                }
-            }
-
-            // if train is found, set need attach information
-            if (trainFound)
-            {
-                // set need attach
-                if (attachedTrain.NeedAttach.TryGetValue(StationPlatformReference, out List<int> needAttachList))
-                {
-                    needAttachList.Add(dettrain.OrgAINumber);
-                }
-                else
-                {
-                    needAttachList = [dettrain.OrgAINumber];
-                    attachedTrain.NeedAttach.Add(StationPlatformReference, needAttachList);
-                }
-            }
-            else
-            // if not found, set attach to invalid (nothing to attach to)
-            {
-                Valid = false;
-                Trace.TraceWarning("Train {0} : attach command to attach to train {1} : command invalid", dettrain.Name, AttachTrainName);
-            }
-        }
-    }
-
-    //================================================================================================//
-    //================================================================================================//
-    /// <summary>
-    /// Class for pick up information
-    /// </summary>
-    public class PickUpInfo
-    {
-        public int PickUpTrain;                             // train number to which to attach
-        public string PickUpTrainName = String.Empty;       // train name to which to attach
-        public bool PickUpStatic;                         // pickup unnamed static consist
-
-        public int StationPlatformReference;                // station platform reference - set to -1 if attaching to static train in dispose command
-        public bool Valid;                                  // attach info is valid
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor for pick up at station
-        /// </summary>
-        /// <param name="stationPlatformReference"></param>
-        /// <param name="thisCommand"></param>
-        /// <param name="thisTrain"></param>
-        public PickUpInfo(int stationPlatformReference, TTTrainCommands thisCommand, TTTrain thisTrain)
-        {
-            Valid = true;
-            StationPlatformReference = stationPlatformReference;
-            PickUpTrain = -1;
-            PickUpStatic = false;
-
-            if (thisCommand.CommandValues != null && thisCommand.CommandValues.Count > 0)
-            {
-                PickUpTrainName = thisCommand.CommandValues[0];
-                if (!PickUpTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
-                {
-                    int seppos = thisTrain.Name.IndexOf(':', StringComparison.OrdinalIgnoreCase);
-                    PickUpTrainName += $":{thisTrain.Name[(seppos + 1)..]}";
-                }
-            }
-            else if (thisCommand.CommandQualifiers != null && thisCommand.CommandQualifiers.Count > 0)
-            {
-                switch (thisCommand.CommandQualifiers[0].QualifierName)
-                {
-                    case "static":
-                        PickUpStatic = true;
-                        StationPlatformReference = stationPlatformReference;
-                        break;
-
-                    default:
-                        Trace.TraceInformation("Train : {0} : unknown pickup qualifier : {1}", thisTrain.Name, thisCommand.CommandQualifiers[0].QualifierName);
-                        break;
-                }
-            }
-            else
-            {
-                Trace.TraceInformation("Train : {0} : pick-up command must include a train name or static qualifier", thisTrain.Name);
-                Valid = false;
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor for restore
-        /// </summary>
-        /// <param name="inf"></param>
-        public PickUpInfo(BinaryReader inf)
-        {
-            PickUpTrain = inf.ReadInt32();
-            PickUpTrainName = inf.ReadString();
-            PickUpStatic = inf.ReadBoolean();
-
-            StationPlatformReference = inf.ReadInt32();
-
-            Valid = inf.ReadBoolean();
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Save method
-        /// </summary>
-        /// <param name="outf"></param>
-        public void Save(BinaryWriter outf)
-        {
-            outf.Write(PickUpTrain);
-            outf.Write(PickUpTrainName);
-            outf.Write(PickUpStatic);
-
-            outf.Write(StationPlatformReference);
-
-            outf.Write(Valid);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Finalize pickup details : set cross-reference information and check validity
-        /// </summary>
-        /// <param name="thisTrain"></param>
-        /// <param name="trainList"></param>
-        /// <param name="playerTrain"></param>
-        public void FinalizePickUpDetails(TTTrain thisTrain, List<TTTrain> trainList, TTTrain playerTrain)
-        {
-            // set Xref to train to which to attach
-            SetPickUpXRef(thisTrain, trainList, playerTrain);
-
-            // sort out information per train or per location
-            foreach (PickUpInfo thisPickUp in thisTrain.PickUpDetails)
-            {
-                thisTrain.PickUpStaticOnForms = false;
-
-                if (thisPickUp.Valid)
-                {
-                    if (thisPickUp.PickUpStatic)
-                    {
-                        if (thisPickUp.StationPlatformReference >= 0)
-                        {
-                            if (thisTrain.PickUpStatic.Contains(thisPickUp.StationPlatformReference))
-                            {
-                                Trace.TraceInformation("Train {0} : multiple PickUp definition for same location : {1}", thisTrain.Name, thisPickUp.StationPlatformReference);
-                            }
-                            else
-                            {
-                                thisTrain.PickUpStatic.Add(thisPickUp.StationPlatformReference);
-                            }
-                        }
-                        else
-                        {
-                            thisTrain.PickUpStaticOnForms = true;
-                        }
-                    }
-                    else
-                    {
-                        if (thisTrain.PickUpTrains.Contains(thisPickUp.PickUpTrain))
-                        {
-                            Trace.TraceInformation("Train {0} : multiple PickUp definition for same train : {1}", thisTrain.Name, thisPickUp.PickUpTrainName);
-                        }
-                        else
-                        {
-                            thisTrain.PickUpTrains.Add(thisPickUp.PickUpTrain);
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Set pickup cross-reference train information
-        /// </summary>
-        /// <param name="dettrain"></param>
-        /// <param name="trainList"></param>
-        /// <param name="playerTrain"></param>
-        public void SetPickUpXRef(TTTrain dettrain, List<TTTrain> trainList, TTTrain playerTrain)
-        {
-            bool trainFound = false;
-            TTTrain pickUpTrain = null;
-
-            if (!PickUpStatic)
-            {
-                foreach (TTTrain otherTrain in trainList)
-                {
-                    if (string.Equals(otherTrain.Name, PickUpTrainName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        PickUpTrain = otherTrain.OrgAINumber;
-                        pickUpTrain = otherTrain;
-                        trainFound = true;
-                        break;
-                    }
-                }
-
-                // if not found, try player train
-                if (!trainFound)
-                {
-                    if (playerTrain != null && string.Equals(playerTrain.Name, PickUpTrainName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        PickUpTrain = playerTrain.OrgAINumber;
-                        pickUpTrain = playerTrain;
-                        trainFound = true;
-                    }
-                }
-
-                // issue warning if train not found
-                if (!trainFound)
-                {
-                    Trace.TraceWarning("Train :  {0} : pickup details : train {1} to pick up is not found",
-                        dettrain.Name, PickUpTrainName);
-                    Valid = false;
-                    Trace.TraceWarning("Train {0} : pickup command to pick up train {1} : command invalid", dettrain.Name, PickUpTrainName);
-                }
-            }
-        }
-    }
-
-    //================================================================================================//
-    //================================================================================================//
-    /// <summary>
-    /// Class for transfer details
-    /// </summary>
-    public class TransferInfo
-    {
-        public enum TransferType
-        {
-            Give,
-            Take,
-            Keep,
-            Leave,
-        }
-
-        public TransferType TypeOfTransfer;                     // type of transfer
-        public DetachInfo.DetachUnitsInfo TransferUnitsInfo;    // type of unit definition
-        public int TransferUnitCount;                           // no. of units (if defined as units)
-        public List<string> TransferConsist;             // consists to transfer (if defined as consist)
-        public int TransferTrain;                               // Number of other train
-        public string TransferTrainName = String.Empty;         // Name of other train
-        public int StationPlatformReference;                    // platform reference of transfer location
-        public bool Valid;                                      // transfer is valid
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor for new transfer details
-        /// </summary>
-        /// <param name="stationPlatformReference"></param>
-        /// <param name="thisCommand"></param>
-        /// <param name="thisTrain"></param>
-        public TransferInfo(int stationPlatformReference, TTTrainCommands thisCommand, TTTrain thisTrain)
-        {
-            bool trainDefined = true;
-            bool typeDefined = false;
-            bool portionDefined = false;
-
-            // set station platform reference
-            StationPlatformReference = stationPlatformReference;
-
-            // set transfer train name
-            if (thisCommand.CommandValues?.Count > 0)
-            {
-                TransferTrainName = thisCommand.CommandValues[0];
-                if (!TransferTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
-                {
-                    int seppos = thisTrain.Name.IndexOf(':', StringComparison.OrdinalIgnoreCase);
-                    TransferTrainName = string.Concat(TransferTrainName, ":", thisTrain.Name[(seppos + 1)..]);
-                }
-            }
-            else if (thisCommand.CommandQualifiers != null && thisCommand.CommandQualifiers.Count > 0)
-            {
-                switch (thisCommand.CommandQualifiers[0].QualifierName)
-                {
-                    // static is allowed, will be inserted with key -99
-                    case "static":
-                        TransferTrain = -99;
-                        break;
-
-                    // other qualifiers processed below
-                    default:
-                        break;
-                }
-            }
-            else
-            {
-                Trace.TraceInformation("Train {0} : transfer command : missing other train name in transfer command", thisTrain.Name);
-                trainDefined = false;
-            }
-
-            // transfer unit type
-            if (thisCommand.CommandQualifiers == null || thisCommand.CommandQualifiers.Count <= 0)
-            {
-                Trace.TraceInformation("Train {0} : transfer command : missing transfer type", thisTrain.Name);
-            }
-            else
-            {
-                foreach (TTTrainCommands.TTTrainComQualifiers Qualifier in thisCommand.CommandQualifiers)
-                {
-                    switch (Qualifier.QualifierName)
-                    {
-                        // transfer type qualifiers
-                        case string tranferType when tranferType.Equals("give", StringComparison.OrdinalIgnoreCase):
-                            TypeOfTransfer = TransferType.Give;
-                            typeDefined = true;
-                            break;
-
-                        case string tranferType when tranferType.Equals("take", StringComparison.OrdinalIgnoreCase):
-                            TypeOfTransfer = TransferType.Take;
-                            typeDefined = true;
-                            break;
-
-                        case string tranferType when tranferType.Equals("keep", StringComparison.OrdinalIgnoreCase):
-                            TypeOfTransfer = TransferType.Keep;
-                            typeDefined = true;
-                            break;
-
-                        case string tranferType when tranferType.Equals("leave", StringComparison.OrdinalIgnoreCase):
-                            TypeOfTransfer = TransferType.Leave;
-                            typeDefined = true;
-                            break;
-
-                        // transfer info qualifiers
-                        case string tranferType when tranferType.Equals("onepower", StringComparison.OrdinalIgnoreCase):
-                            TransferUnitsInfo = DetachInfo.DetachUnitsInfo.leadingPower;
-                            portionDefined = true;
-                            break;
-
-                        case string tranferType when tranferType.Equals("allpower", StringComparison.OrdinalIgnoreCase):
-                            TransferUnitsInfo = DetachInfo.DetachUnitsInfo.allLeadingPower;
-                            portionDefined = true;
-                            break;
-
-                        case string tranferType when tranferType.Equals("nonpower", StringComparison.OrdinalIgnoreCase):
-                            TransferUnitsInfo = DetachInfo.DetachUnitsInfo.nonPower;
-                            portionDefined = true;
-                            break;
-
-                        case string tranferType when tranferType.Equals("units", StringComparison.OrdinalIgnoreCase):
-                            if (int.TryParse(Qualifier.QualifierValues[0], out int nounits))
-                            {
-                                if (nounits > 0)
-                                {
-                                    TransferUnitsInfo = DetachInfo.DetachUnitsInfo.unitsAtFront;
-                                    TransferUnitCount = nounits;
-                                    portionDefined = true;
-                                }
-                                else
-                                {
-                                    Trace.TraceInformation("Train {0} : transfer command : invalid definition for units to transfer : {1}", thisTrain.Name, Qualifier.QualifierValues[0]);
-                                }
-                            }
-                            else
-                            {
-                                Trace.TraceInformation("Train {0} : invalid value for units qualifier in transfer command : {1}", thisTrain.Name, Qualifier.QualifierValues[0]);
-                            }
-                            break;
-
-                        case string tranferType when tranferType.Equals("consist", StringComparison.OrdinalIgnoreCase):
-                            TransferUnitsInfo = DetachInfo.DetachUnitsInfo.consists;
-
-                            if (TransferConsist == null)
-                                TransferConsist = new List<string>();
-                            foreach (string consistname in Qualifier.QualifierValues)
-                            {
-                                TransferConsist.Add(consistname);
-                            }
-                            portionDefined = true;
-                            break;
-
-                        // static is allready processed, so skip
-                        case string tranferType when tranferType.Equals("static", StringComparison.OrdinalIgnoreCase):
-                            break;
-
-                        default:
-                            Trace.TraceInformation($"Train {thisTrain.Name} : transfer command : invalid qualifier : {Qualifier.QualifierName}");
-                            break;
-                    }
-                }
-            }
-            if (!typeDefined)
-            {
-                Trace.TraceInformation("Train {0} : transfer command : no valid transfer type defined", thisTrain.Name);
-            }
-            else if (!portionDefined)
-            {
-                Trace.TraceInformation("Train {0} : transfer command : no valid transfer portion defined", thisTrain.Name);
-            }
-            else if (trainDefined)
-            {
-                Valid = true;
-            }
-            else
-            {
-                Trace.TraceInformation("Train {0} : transfer command : invalid transfer command, command ignored", thisTrain.Name);
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor for restore
-        /// </summary>
-        /// <param name="inf"></param>
-        public TransferInfo(BinaryReader inf)
-        {
-            TypeOfTransfer = (TransferType)inf.ReadInt32();
-            TransferUnitsInfo = (DetachInfo.DetachUnitsInfo)inf.ReadInt32();
-            TransferUnitCount = inf.ReadInt32();
-
-            int totalTransferConsist = inf.ReadInt32();
-            TransferConsist = null;
-
-            if (totalTransferConsist > 0)
-            {
-                TransferConsist = new List<string>();
-                for (int iConsist = 0; iConsist < totalTransferConsist; iConsist++)
-                {
-                    TransferConsist.Add(inf.ReadString());
-                }
-            }
-
-            TransferTrain = inf.ReadInt32();
-            TransferTrainName = inf.ReadString();
-
-            StationPlatformReference = inf.ReadInt32();
-            Valid = inf.ReadBoolean();
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Save method
-        /// </summary>
-        /// <param name="outf"></param>
-        public void Save(BinaryWriter outf)
-        {
-            outf.Write((int)TypeOfTransfer);
-            outf.Write((int)TransferUnitsInfo);
-            outf.Write(TransferUnitCount);
-
-            if (TransferConsist == null || TransferConsist.Count <= 0)
-            {
-                outf.Write(-1);
-            }
-            else
-            {
-                outf.Write(TransferConsist.Count);
-                foreach (string thisConsist in TransferConsist)
-                {
-                    outf.Write(thisConsist);
-                }
-            }
-
-            outf.Write(TransferTrain);
-            outf.Write(TransferTrainName);
-            outf.Write(StationPlatformReference);
-            outf.Write(Valid);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Perform transfer
-        /// </summary>
-        /// <param name="otherTrain"></param>
-        /// <param name="otherTrainFront"></param>
-        /// <param name="thisTrain"></param>
-        /// <param name="thisTrainFront"></param>
-        public void PerformTransfer(TTTrain otherTrain, bool otherTrainFront, TTTrain thisTrain, bool thisTrainFront)
-        {
-            TTTrain GivingTrain = null;
-            TTTrain TakingTrain = null;
-
-            bool GiveTrainFront = false;
-            bool TakeTrainFront = false;
-
-            // stop train
-            thisTrain.SpeedMpS = 0;
-            foreach (var car in thisTrain.Cars)
-            {
-                car.SpeedMpS = 0;
-            }
-
-            if (thisTrain.TrainType != TrainType.Player)
-                thisTrain.AdjustControlsThrottleOff();
-            thisTrain.PhysicsUpdate(0);
-
-            // sort out what to detach
-            int iunits = 0;
-            bool frontpos = true;
-            DetachInfo.DetachUnitsInfo thisInfo;
-            bool reverseUnits = false;
-
-            switch (TypeOfTransfer)
-            {
-                case TransferType.Give:
-                    GivingTrain = thisTrain;
-                    GiveTrainFront = thisTrainFront;
-
-                    TakingTrain = otherTrain;
-                    TakeTrainFront = otherTrainFront;
-
-                    iunits = GivingTrain.GetUnitsToDetach(TransferUnitsInfo, TransferUnitCount, TransferConsist, ref frontpos);
-                    break;
-
-                case TransferType.Take:
-                    GivingTrain = otherTrain;
-                    GiveTrainFront = otherTrainFront;
-                    TakingTrain = thisTrain;
-                    TakeTrainFront = thisTrainFront;
-
-                    if (GiveTrainFront)
-                    {
-                        iunits = GivingTrain.GetUnitsToDetach(TransferUnitsInfo, TransferUnitCount, TransferConsist, ref frontpos);
-                    }
-                    else
-                    {
-                        thisInfo = TransferUnitsInfo;
-                        switch (thisInfo)
-                        {
-                            case DetachInfo.DetachUnitsInfo.leadingPower:
-                                TransferUnitsInfo = DetachInfo.DetachUnitsInfo.trailingPower;
-                                break;
-
-                            case DetachInfo.DetachUnitsInfo.allLeadingPower:
-                                TransferUnitsInfo = DetachInfo.DetachUnitsInfo.allTrailingPower;
-                                break;
-
-                            case DetachInfo.DetachUnitsInfo.nonPower:
-                                TransferUnitsInfo = DetachInfo.DetachUnitsInfo.allLeadingPower;
-                                reverseUnits = true;
-                                break;
-
-                            case DetachInfo.DetachUnitsInfo.unitsAtFront:
-                                TransferUnitsInfo = DetachInfo.DetachUnitsInfo.unitsAtEnd;
-                                break;
-
-                            // other definitions : no change
-                            default:
-                                break;
-                        }
-                        iunits = GivingTrain.GetUnitsToDetach(TransferUnitsInfo, TransferUnitCount, TransferConsist, ref frontpos);
-
-                        if (reverseUnits)
-                        {
-                            iunits = GivingTrain.Cars.Count - iunits;
-                            frontpos = !frontpos;
-                        }
-                    }
-                    break;
-
-                case TransferType.Leave:
-                    GivingTrain = otherTrain;
-                    GiveTrainFront = otherTrainFront;
-                    TakingTrain = thisTrain;
-                    TakeTrainFront = thisTrainFront;
-
-                    if (GiveTrainFront)
-                    {
-                        thisInfo = TransferUnitsInfo;
-                        switch (thisInfo)
-                        {
-                            case DetachInfo.DetachUnitsInfo.leadingPower:
-                                TransferUnitsInfo = DetachInfo.DetachUnitsInfo.trailingPower;
-                                reverseUnits = true;
-                                break;
-
-                            case DetachInfo.DetachUnitsInfo.allLeadingPower:
-                                TransferUnitsInfo = DetachInfo.DetachUnitsInfo.allTrailingPower;
-                                reverseUnits = true;
-                                break;
-
-                            case DetachInfo.DetachUnitsInfo.nonPower:
-                                TransferUnitsInfo = DetachInfo.DetachUnitsInfo.allLeadingPower;
-                                break;
-
-                            case DetachInfo.DetachUnitsInfo.unitsAtFront:
-                                TransferUnitsInfo = DetachInfo.DetachUnitsInfo.unitsAtEnd;
-                                reverseUnits = true;
-                                break;
-
-                            case DetachInfo.DetachUnitsInfo.consists:
-                                reverseUnits = true;
-                                break;
-                        }
-                        iunits = GivingTrain.GetUnitsToDetach(TransferUnitsInfo, TransferUnitCount, TransferConsist, ref frontpos);
-
-                        if (reverseUnits)
-                        {
-                            iunits = GivingTrain.Cars.Count - iunits;
-                            frontpos = !frontpos;
-                        }
-                    }
-                    else
-                    {
-                        thisInfo = TransferUnitsInfo;
-                        switch (thisInfo)
-                        {
-                            case DetachInfo.DetachUnitsInfo.leadingPower:
-                                reverseUnits = true;
-                                break;
-
-                            case DetachInfo.DetachUnitsInfo.allLeadingPower:
-                                reverseUnits = true;
-                                break;
-
-                            case DetachInfo.DetachUnitsInfo.nonPower:
-                                TransferUnitsInfo = DetachInfo.DetachUnitsInfo.allTrailingPower;
-                                break;
-
-                            case DetachInfo.DetachUnitsInfo.unitsAtFront:
-                                reverseUnits = true;
-                                break;
-
-                            case DetachInfo.DetachUnitsInfo.consists:
-                                reverseUnits = true;
-                                break;
-                        }
-                        iunits = GivingTrain.GetUnitsToDetach(TransferUnitsInfo, TransferUnitCount, TransferConsist, ref frontpos);
-
-                        if (reverseUnits)
-                        {
-                            iunits = GivingTrain.Cars.Count - iunits;
-                            frontpos = !frontpos;
-                        }
-                    }
-                    break;
-
-                case TransferType.Keep:
-                    GivingTrain = thisTrain;
-                    GiveTrainFront = thisTrainFront;
-                    TakingTrain = otherTrain;
-                    TakeTrainFront = otherTrainFront;
-
-                    thisInfo = TransferUnitsInfo;
-                    switch (thisInfo)
-                    {
-                        case DetachInfo.DetachUnitsInfo.leadingPower:
-                            TransferUnitsInfo = DetachInfo.DetachUnitsInfo.trailingPower;
-                            reverseUnits = true;
-                            break;
-
-                        case DetachInfo.DetachUnitsInfo.allLeadingPower:
-                            TransferUnitsInfo = DetachInfo.DetachUnitsInfo.allTrailingPower;
-                            reverseUnits = true;
-                            break;
-
-                        case DetachInfo.DetachUnitsInfo.nonPower:
-                            TransferUnitsInfo = DetachInfo.DetachUnitsInfo.allLeadingPower;
-                            break;
-
-                        case DetachInfo.DetachUnitsInfo.unitsAtFront:
-                            TransferUnitsInfo = DetachInfo.DetachUnitsInfo.unitsAtEnd;
-                            reverseUnits = true;
-                            break;
-
-                        case DetachInfo.DetachUnitsInfo.consists:
-                            reverseUnits = true;
-                            break;
-                    }
-
-                    iunits = GivingTrain.GetUnitsToDetach(TransferUnitsInfo, TransferUnitCount, TransferConsist, ref frontpos);
-
-                    if (reverseUnits)
-                    {
-                        iunits = GivingTrain.Cars.Count - iunits;
-                        frontpos = !frontpos;
-                    }
-                    break;
-
-            }
-
-            if (iunits == 0)
-            {
-                Trace.TraceInformation("Train {0} : transfer command : no units to transfer from train {0} to train {1}", thisTrain.Name, GivingTrain.Name, TakingTrain.Name);
-            }
-            else if (iunits == GivingTrain.Cars.Count)
-            {
-                Trace.TraceInformation("Train {0} : transfer command : transfer requires all units of train {0} to transfer to train {1}", thisTrain.Name, GivingTrain.Name, TakingTrain.Name);
-                if (thisTrain.OrgAINumber == GivingTrain.OrgAINumber)
-                {
-                    thisTrain.TTCouple(TakingTrain, true, frontpos);
-                }
-                else
-                {
-                    GivingTrain.TTCouple(thisTrain, frontpos, true);
-                }
-            }
-            else
-            {
-                // create temp train which will hold transfered units
-                List<TTTrain> tempList = new List<TTTrain>();
-                string tempName = $"T_{thisTrain.OrgAINumber:0000}";
-                int formedTrainNo = thisTrain.CreateStaticTrain(thisTrain, ref tempList, tempName, thisTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
-                TTTrain tempTrain = tempList[0];
-
-                // add new train (stored in tempList) to AutoGenTrains
-                thisTrain.AI.AutoGenTrains.Add(tempList[0]);
-                Simulator.Instance.AutoGenDictionary.Add(formedTrainNo, tempList[0]);
-
-                // if detached at rear set negative no of units
-                if (!frontpos)
-                    iunits = -iunits;
-
-                // create detach command
-                DetachInfo thisDetach = new DetachInfo(true, false, false, -1, false, false, false, false, false, false, iunits, null, formedTrainNo, false);
-
-                // perform detach on giving train
-                thisDetach.PerformDetach(GivingTrain, false);
-
-                // attach temp train to taking train
-                tempTrain.TTCouple(TakingTrain, GiveTrainFront, TakeTrainFront);
-
-                // remove train from need transfer list
-                if (StationPlatformReference >= 0)
-                {
-                    if (otherTrain.NeedStationTransfer.TryGetValue(StationPlatformReference, out List<int> needTransferList))
-                    {
-                        needTransferList.Remove(thisTrain.Number);
-
-                        // remove list if empty
-                        if (tempList.Count < 1)
-                        {
-                            otherTrain.NeedStationTransfer.Remove(StationPlatformReference);
-                        }
-                    }
-                }
-                else if (TransferTrain == otherTrain.OrgAINumber)
-                {
-                    // get last section as reference to transfer position
-                    int lastSectionIndex = thisTrain.TCRoute.TCRouteSubpaths.Last().Last().TrackCircuitSection.Index;
-                    if (otherTrain.NeedTrainTransfer.TryGetValue(lastSectionIndex, out int transferCount))
-                    {
-                        transferCount--;
-                        otherTrain.NeedTrainTransfer.Remove(lastSectionIndex);
-
-                        if (transferCount > 0)
-                        {
-                            otherTrain.NeedTrainTransfer.Add(lastSectionIndex, transferCount);
-                        }
-                    }
-                }
-            }
-
-            // if transfer was part of dispose command, curtail train route so train is positioned at end of route
-            if (StationPlatformReference < 0)
-            {
-                // get furthest index
-                int firstSectionIndex = thisTrain.OccupiedTrack[0].Index;
-                int lastSectionIndex = thisTrain.OccupiedTrack.Last().Index;
-                int lastRouteIndex = Math.Max(thisTrain.ValidRoutes[Direction.Forward].GetRouteIndex(firstSectionIndex, 0), thisTrain.ValidRoutes[Direction.Forward].GetRouteIndex(lastSectionIndex, 0));
-                TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute(thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.ActiveSubPath], 0, lastRouteIndex);
-                thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.ActiveSubPath] = new TrackCircuitPartialPathRoute(newRoute);
-                thisTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(newRoute);
-
-                thisTrain.MovementState = AiMovementState.Stopped;
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Set transfer cross-reference train information
-        /// </summary>
-        /// <param name="dettrain"></param>
-        /// <param name="trainList"></param>
-        /// <param name="playerTrain"></param>
-        public void SetTransferXRef(TTTrain dettrain, List<TTTrain> trainList, TTTrain playerTrain, bool stationTransfer, bool trainTransfer)
-        {
-            bool trainFound = false;
-            TTTrain transferTrain = null;
-
-            foreach (TTTrain otherTrain in trainList)
-            {
-                if (string.Equals(otherTrain.Name, TransferTrainName, StringComparison.OrdinalIgnoreCase))
-                {
-                    TransferTrain = otherTrain.OrgAINumber;
-                    transferTrain = otherTrain;
-                    trainFound = true;
-                    break;
-                }
-            }
-
-            // if not found, try player train
-            if (!trainFound)
-            {
-                if (playerTrain != null && string.Equals(playerTrain.Name, TransferTrainName, StringComparison.OrdinalIgnoreCase))
-                {
-                    TransferTrain = playerTrain.OrgAINumber;
-                    transferTrain = playerTrain;
-                    trainFound = true;
-                }
-            }
-
-            // issue warning if train not found
-            if (!trainFound)
-            {
-                Trace.TraceWarning("Train :  {0} : transfer details : train {1} is not found",
-                    dettrain.Name, TransferTrainName);
-                Valid = false;
-                Trace.TraceWarning("Train {0} : transfer command with train {1} : command invalid", dettrain.Name, TransferTrainName);
-            }
-            else
-            // set need to transfer
-            {
-                if (stationTransfer)
-                {
-                    if (transferTrain.NeedStationTransfer.TryGetValue(StationPlatformReference, out List<int> value))
-                    {
-                        value.Add(dettrain.OrgAINumber);
-                    }
-                    else
-                    {
-                        value = [dettrain.OrgAINumber];
-                        transferTrain.NeedStationTransfer.Add(StationPlatformReference, value);
-                    }
-                }
-                else
-                {
-                    // get last section if train - assume this to be the transfer section
-                    int lastSectionIndex = dettrain.TCRoute.TCRouteSubpaths.Last().Last().TrackCircuitSection.Index;
-                    if (transferTrain.NeedTrainTransfer.TryGetValue(lastSectionIndex, out int value))
-                    {
-                        int transferCount = value;
-                        transferCount++;
-                        transferTrain.NeedTrainTransfer.Remove(lastSectionIndex);
-                        transferTrain.NeedTrainTransfer.Add(lastSectionIndex, transferCount);
-                    }
-                    else
-                    {
-                        transferTrain.NeedTrainTransfer.Add(lastSectionIndex, 1);
                     }
                 }
             }

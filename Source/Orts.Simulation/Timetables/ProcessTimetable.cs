@@ -227,15 +227,15 @@ namespace Orts.Simulation.Timetables
                         thisTransfer.SetTransferXRef(thisTrain, trainList, playerTrain.TTTrain, false, true);
                         if (thisTransfer.Valid)
                         {
-                            if (thisTrain.TransferTrainDetails.ContainsKey(thisTransfer.TransferTrain))
+                            if (thisTrain.TransferTrainDetails.ContainsKey(thisTransfer.TrainNumber))
                             {
-                                Trace.TraceInformation("Train {0} : transfer command : cannot transfer to same train twice : {1}", thisTrain.Name, thisTransfer.TransferTrainName);
+                                Trace.TraceInformation("Train {0} : transfer command : cannot transfer to same train twice : {1}", thisTrain.Name, thisTransfer.TrainName);
                             }
                             else
                             {
                                 List<TransferInfo> thisTransferList = new List<TransferInfo>();
                                 thisTransferList.Add(thisTransfer);
-                                thisTrain.TransferTrainDetails.Add(thisTransfer.TransferTrain, thisTransferList);
+                                thisTrain.TransferTrainDetails.Add(thisTransfer.TrainNumber, thisTransferList);
                             }
                         }
                     }
@@ -822,7 +822,7 @@ namespace Orts.Simulation.Timetables
                         {
                             if (!thisDetach.DetachFormedStatic)
                             {
-                                if (thisDetach.DetachFormedTrain < 0)
+                                if (thisDetach.TrainNumber < 0)
                                 {
                                     thisDetach.SetDetachXRef(reqTrain.TTTrain, trainList, playerTrain.TTTrain);
                                 }
@@ -830,7 +830,7 @@ namespace Orts.Simulation.Timetables
                             else
                             {
                                 int lastSectionIndex = reqTrain.TTTrain.TCRoute.TCRouteSubpaths.Last().Last().TrackCircuitSection.Index;
-                                thisDetach.DetachFormedTrain = reqTrain.TTTrain.CreateStaticTrainRef(reqTrain.TTTrain, ref trainList, thisDetach.DetachFormedTrainName, lastSectionIndex, detachCount);
+                                thisDetach.TrainNumber = reqTrain.TTTrain.CreateStaticTrainRef(reqTrain.TTTrain, ref trainList, thisDetach.TrainName, lastSectionIndex, detachCount);
                                 detachCount++;
                             }
                         }
@@ -916,11 +916,11 @@ namespace Orts.Simulation.Timetables
 
                 foreach (DetachInfo thisDetach in detachList)
                 {
-                    if (thisDetach.DetachFormedTrain < 0)
+                    if (thisDetach.TrainNumber < 0)
                     {
                         if (!thisDetach.DetachFormedStatic)
                         {
-                            if (thisDetach.DetachFormedTrain < 0)
+                            if (thisDetach.TrainNumber < 0)
                             {
                                 thisDetach.SetDetachXRef(reqTrain.TTTrain, trainList, null);
                             }
@@ -928,7 +928,7 @@ namespace Orts.Simulation.Timetables
                         else
                         {
                             int lastSectionIndex = reqTrain.TTTrain.TCRoute.TCRouteSubpaths.Last().Last().TrackCircuitSection.Index;
-                            thisDetach.DetachFormedTrain = reqTrain.TTTrain.CreateStaticTrainRef(reqTrain.TTTrain, ref trainList, thisDetach.DetachFormedTrainName, lastSectionIndex, detachCount);
+                            thisDetach.TrainNumber = reqTrain.TTTrain.CreateStaticTrainRef(reqTrain.TTTrain, ref trainList, thisDetach.TrainName, lastSectionIndex, detachCount);
                             detachCount++;
                         }
                     }
@@ -969,15 +969,15 @@ namespace Orts.Simulation.Timetables
                     thisTransfer.SetTransferXRef(reqTrain.TTTrain, trainList, null, false, true);
                     if (thisTransfer.Valid)
                     {
-                        if (reqTrain.TTTrain.TransferTrainDetails.ContainsKey(thisTransfer.TransferTrain))
+                        if (reqTrain.TTTrain.TransferTrainDetails.ContainsKey(thisTransfer.TrainNumber))
                         {
-                            Trace.TraceInformation("Train {0} : transfer command : cannot transfer to same train twice : {1}", reqTrain.TTTrain.Name, thisTransfer.TransferTrainName);
+                            Trace.TraceInformation("Train {0} : transfer command : cannot transfer to same train twice : {1}", reqTrain.TTTrain.Name, thisTransfer.TrainName);
                         }
                         else
                         {
                             List<TransferInfo> thisTransferList = new List<TransferInfo>();
                             thisTransferList.Add(thisTransfer);
-                            reqTrain.TTTrain.TransferTrainDetails.Add(thisTransfer.TransferTrain, thisTransferList);
+                            reqTrain.TTTrain.TransferTrainDetails.Add(thisTransfer.TrainNumber, thisTransferList);
                         }
                     }
                 }
@@ -1026,13 +1026,13 @@ namespace Orts.Simulation.Timetables
             // process all activation commands
             foreach (TTTrain thisTrain in trainList)
             {
-                if (thisTrain.activatedTrainTriggers != null && thisTrain.activatedTrainTriggers.Count > 0)
+                if (thisTrain.ActivatedTrainTriggers != null && thisTrain.ActivatedTrainTriggers.Count > 0)
                 {
-                    for (int itrigger = thisTrain.activatedTrainTriggers.Count - 1; itrigger >= 0; itrigger--)
+                    for (int itrigger = thisTrain.ActivatedTrainTriggers.Count - 1; itrigger >= 0; itrigger--)
                     {
-                        TTTrain.TriggerActivation thisTrigger = thisTrain.activatedTrainTriggers[itrigger];
-                        thisTrain.activatedTrainTriggers.RemoveAt(itrigger);
-                        string otherTrainName = thisTrigger.activatedName;
+                        TriggerActivation actvationTrigger = thisTrain.ActivatedTrainTriggers[itrigger];
+                        thisTrain.ActivatedTrainTriggers.RemoveAt(itrigger);
+                        string otherTrainName = actvationTrigger.ActivatedTrainName;
 
                         if (!otherTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
                         {
@@ -1049,8 +1049,8 @@ namespace Orts.Simulation.Timetables
                         {
                             if (activatedTrains.Remove(otherTrain.OrgAINumber))
                             {
-                                thisTrigger.activatedTrain = otherTrain.Number;
-                                thisTrain.activatedTrainTriggers.Insert(itrigger, thisTrigger);
+                                actvationTrigger.ActivatedTrain = otherTrain.Number;
+                                thisTrain.ActivatedTrainTriggers.Insert(itrigger, actvationTrigger);
                             }
                             else
                             {
@@ -1062,13 +1062,13 @@ namespace Orts.Simulation.Timetables
             }
 
             // process activation request for player train
-            if (reqPlayerTrain.activatedTrainTriggers != null && reqPlayerTrain.activatedTrainTriggers.Count > 0)
+            if (reqPlayerTrain.ActivatedTrainTriggers != null && reqPlayerTrain.ActivatedTrainTriggers.Count > 0)
             {
-                for (int itrigger = reqPlayerTrain.activatedTrainTriggers.Count - 1; itrigger >= 0; itrigger--)
+                for (int itrigger = reqPlayerTrain.ActivatedTrainTriggers.Count - 1; itrigger >= 0; itrigger--)
                 {
-                    TTTrain.TriggerActivation thisTrigger = reqPlayerTrain.activatedTrainTriggers[itrigger];
-                    reqPlayerTrain.activatedTrainTriggers.RemoveAt(itrigger);
-                    string otherTrainName = thisTrigger.activatedName;
+                    TriggerActivation thisTrigger = reqPlayerTrain.ActivatedTrainTriggers[itrigger];
+                    reqPlayerTrain.ActivatedTrainTriggers.RemoveAt(itrigger);
+                    string otherTrainName = thisTrigger.ActivatedTrainName;
 
                     if (!otherTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
                     {
@@ -1085,8 +1085,8 @@ namespace Orts.Simulation.Timetables
                     {
                         if (activatedTrains.Remove(otherTrain.OrgAINumber))
                         {
-                            thisTrigger.activatedTrain = otherTrain.Number;
-                            reqPlayerTrain.activatedTrainTriggers.Insert(itrigger, thisTrigger);
+                            thisTrigger.ActivatedTrain = otherTrain.Number;
+                            reqPlayerTrain.ActivatedTrainTriggers.Insert(itrigger, thisTrigger);
                         }
                         else
                         {
@@ -1480,7 +1480,7 @@ namespace Orts.Simulation.Timetables
                                             List<TransferInfo> newList = new List<TransferInfo>();
                                             newList.Add(thisTransfer);
 
-                                            if (thisTransfer.TransferTrain == -99)
+                                            if (thisTransfer.TrainNumber == -99)
                                             {
                                                 TTTrain.TransferTrainDetails.Add(-99, newList); //set key to -99 as reference
                                             }
@@ -1498,11 +1498,12 @@ namespace Orts.Simulation.Timetables
                                             break;
                                         }
 
-                                        TTTrain.TriggerActivation thisTrigger = new TTTrain.TriggerActivation();
-
-                                        thisTrigger.activationType = TTTrain.TriggerActivationType.Dispose;
-                                        thisTrigger.activatedName = disposeCommands.CommandValues[0];
-                                        TTTrain.activatedTrainTriggers.Add(thisTrigger);
+                                        TriggerActivation activationTrigger = new TriggerActivation
+                                        {
+                                            ActivationType = TriggerActivationType.Dispose,
+                                            ActivatedTrainName = disposeCommands.CommandValues[0]
+                                        };
+                                        TTTrain.ActivatedTrainTriggers.Add(activationTrigger);
 
                                         break;
 
@@ -1864,15 +1865,15 @@ namespace Orts.Simulation.Timetables
                         switch (createPoolDirection)
                         {
                             case "backward":
-                                TTTrain.CreatePoolDirection = TimetablePool.PoolExitDirectionEnum.Backward;
+                                TTTrain.CreatePoolDirection = PoolExitDirection.Backward;
                                 break;
 
                             case "forward":
-                                TTTrain.CreatePoolDirection = TimetablePool.PoolExitDirectionEnum.Forward;
+                                TTTrain.CreatePoolDirection = PoolExitDirection.Forward;
                                 break;
 
                             default:
-                                TTTrain.CreatePoolDirection = TimetablePool.PoolExitDirectionEnum.Undefined;
+                                TTTrain.CreatePoolDirection = PoolExitDirection.Undefined;
                                 break;
                         }
                     }
@@ -1947,37 +1948,37 @@ namespace Orts.Simulation.Timetables
                     {
                         // delay when new
                         case string newTrain when newTrain.Equals("new", StringComparison.OrdinalIgnoreCase):
-                            TTTrain.DelayedStartSettings.newStart = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
+                            TTTrain.DelayedStartSettings[DelayedStartType.NewStart] = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
                             break;
 
                         // delay when restarting from signal or other path action
                         case string path when path.Equals("path", StringComparison.OrdinalIgnoreCase):
-                            TTTrain.DelayedStartSettings.pathRestart = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
+                            TTTrain.DelayedStartSettings[DelayedStartType.PathRestart] = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
                             break;
 
                         // delay when restarting from station stop
                         case string station when station.Equals("station", StringComparison.OrdinalIgnoreCase):
-                            TTTrain.DelayedStartSettings.stationRestart = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
+                            TTTrain.DelayedStartSettings[DelayedStartType.StationRestart] = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
                             break;
 
                         // delay when restarting when following stopped train
                         case string follow when follow.Equals("follow", StringComparison.OrdinalIgnoreCase):
-                            TTTrain.DelayedStartSettings.followRestart = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
+                            TTTrain.DelayedStartSettings[DelayedStartType.FollowRestart] = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
                             break;
 
                         // delay after attaching
                         case string attach when attach.Equals("attach", StringComparison.OrdinalIgnoreCase):
-                            TTTrain.DelayedStartSettings.attachRestart = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
+                            TTTrain.DelayedStartSettings[DelayedStartType.AttachRestart] = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
                             break;
 
                         // delay on detaching
                         case string detach when detach.Equals("detach", StringComparison.OrdinalIgnoreCase):
-                            TTTrain.DelayedStartSettings.detachRestart = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
+                            TTTrain.DelayedStartSettings[DelayedStartType.DetachRestart] = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
                             break;
 
                         // delay for train and moving table
                         case string movingTable when movingTable.Equals("movingtable", StringComparison.OrdinalIgnoreCase):
-                            TTTrain.DelayedStartSettings.movingtableRestart = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
+                            TTTrain.DelayedStartSettings[DelayedStartType.MovingTableRestart] = ProcessRestartDelayValues(TTTrain.Name, thisCommand.CommandQualifiers, thisCommand.CommandToken);
                             break;
 
                         // delay when restarting at reversal
@@ -1991,7 +1992,7 @@ namespace Orts.Simulation.Timetables
                                     case string additional when additional.Equals("additional", StringComparison.OrdinalIgnoreCase):
                                         try
                                         {
-                                            TTTrain.DelayedStartSettings.reverseAddedDelaySperM = Convert.ToSingle(thisQual.QualifierValues[0], CultureInfo.CurrentCulture);
+                                            TTTrain.ReverseAddedDelaySperM = Convert.ToSingle(thisQual.QualifierValues[0], CultureInfo.CurrentCulture);
                                         }
                                         catch
                                         {
@@ -2013,7 +2014,7 @@ namespace Orts.Simulation.Timetables
                 }
             }
 
-            //================================================================================================//
+
             /// <summary>
             /// Read and convert input of restart delay values
             /// </summary>
@@ -2021,10 +2022,10 @@ namespace Orts.Simulation.Timetables
             /// <param name="commandQualifiers"></param>
             /// <param name="delayType"></param>
             /// <returns></returns>
-            public TTTrain.DelayedStartBase ProcessRestartDelayValues(string trainName, List<TTTrainCommands.TTTrainComQualifiers> commandQualifiers, string delayType)
+            private static Models.Simplified.DelayedStart ProcessRestartDelayValues(string trainName, List<TTTrainCommands.TTTrainComQualifiers> commandQualifiers, string delayType)
             {
-                // preset values
-                TTTrain.DelayedStartBase newDelayInfo = new TTTrain.DelayedStartBase();
+                int fixedPart = 0;
+                int randomPart = 0;
 
                 // process command qualifiers
                 foreach (TTTrainCommands.TTTrainComQualifiers thisQual in commandQualifiers)
@@ -2034,7 +2035,7 @@ namespace Orts.Simulation.Timetables
                         case string fix when fix.Equals("fix", StringComparison.OrdinalIgnoreCase):
                             try
                             {
-                                newDelayInfo.fixedPartS = Convert.ToInt32(thisQual.QualifierValues[0], CultureInfo.CurrentCulture);
+                                fixedPart = Convert.ToInt32(thisQual.QualifierValues[0], CultureInfo.CurrentCulture);
                             }
                             catch
                             {
@@ -2046,7 +2047,7 @@ namespace Orts.Simulation.Timetables
                         case string var when var.Equals("var", StringComparison.OrdinalIgnoreCase):
                             try
                             {
-                                newDelayInfo.randomPartS = Convert.ToInt32(thisQual.QualifierValues[0], CultureInfo.CurrentCulture);
+                                randomPart = Convert.ToInt32(thisQual.QualifierValues[0], CultureInfo.CurrentCulture);
                             }
                             catch
                             {
@@ -2060,8 +2061,7 @@ namespace Orts.Simulation.Timetables
                             break;
                     }
                 }
-
-                return (newDelayInfo);
+                return new Models.Simplified.DelayedStart(fixedPart, randomPart);
             }
 
             //================================================================================================//
@@ -2099,7 +2099,7 @@ namespace Orts.Simulation.Timetables
                             case string max when max.Equals("max", StringComparison.OrdinalIgnoreCase):
                                 try
                                 {
-                                    TTTrain.SpeedSettings.maxSpeedMpS = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
+                                    TTTrain.SpeedSettings[SpeedValueType.MaxSpeed] = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
                                 }
                                 catch
                                 {
@@ -2111,7 +2111,7 @@ namespace Orts.Simulation.Timetables
                             case string cruise when cruise.Equals("cruise", StringComparison.OrdinalIgnoreCase):
                                 try
                                 {
-                                    TTTrain.SpeedSettings.cruiseSpeedMpS = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
+                                    TTTrain.SpeedSettings[SpeedValueType.CruiseSpeed] = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
                                 }
                                 catch
                                 {
@@ -2123,7 +2123,7 @@ namespace Orts.Simulation.Timetables
                             case string maxDelay when maxDelay.Equals("maxdelay", StringComparison.OrdinalIgnoreCase):
                                 try
                                 {
-                                    TTTrain.SpeedSettings.cruiseMaxDelayS = Convert.ToInt32(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * 60; // defined in minutes
+                                    TTTrain.CruiseMaxDelay = Convert.ToInt32(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * 60; // defined in minutes
                                 }
                                 catch
                                 {
@@ -2135,7 +2135,7 @@ namespace Orts.Simulation.Timetables
                             case string creep when creep.Equals("creep", StringComparison.OrdinalIgnoreCase):
                                 try
                                 {
-                                    TTTrain.SpeedSettings.creepSpeedMpS = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
+                                    TTTrain.SpeedSettings[SpeedValueType.CreepSpeed] = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
                                 }
                                 catch
                                 {
@@ -2147,7 +2147,7 @@ namespace Orts.Simulation.Timetables
                             case string attach when attach.Equals("attach", StringComparison.OrdinalIgnoreCase):
                                 try
                                 {
-                                    TTTrain.SpeedSettings.attachSpeedMpS = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
+                                    TTTrain.SpeedSettings[SpeedValueType.AttachSpeed] = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
                                 }
                                 catch
                                 {
@@ -2159,7 +2159,7 @@ namespace Orts.Simulation.Timetables
                             case string detach when detach.Equals("detach", StringComparison.OrdinalIgnoreCase):
                                 try
                                 {
-                                    TTTrain.SpeedSettings.detachSpeedMpS = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
+                                    TTTrain.SpeedSettings[SpeedValueType.DetachSpeed] = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
                                 }
                                 catch
                                 {
@@ -2171,7 +2171,7 @@ namespace Orts.Simulation.Timetables
                             case string movingTable when movingTable.Equals("movingtable", StringComparison.OrdinalIgnoreCase):
                                 try
                                 {
-                                    TTTrain.SpeedSettings.movingtableSpeedMpS = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
+                                    TTTrain.SpeedSettings[SpeedValueType.MovingtableSpeed] = Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture) * actSpeedConv;
                                 }
                                 catch
                                 {
@@ -2360,7 +2360,7 @@ namespace Orts.Simulation.Timetables
                 TTTrain.CheckFreight();
                 TTTrain.SetDistributedPowerUnitIds();
                 TTTrain.ReinitializeEOT();
-                TTTrain.SpeedSettings.routeSpeedMpS = (float)simulator.Route.SpeedLimit;
+                TTTrain.SpeedSettings[SpeedValueType.RouteSpeed] = simulator.Route.SpeedLimit;
 
                 if (!confMaxSpeed.HasValue || confMaxSpeed.Value <= 0f)
                 {
@@ -2384,11 +2384,11 @@ namespace Orts.Simulation.Timetables
                         }
                     }
 
-                    TTTrain.SpeedSettings.consistSpeedMpS = tempMaxSpeedMpS;
+                    TTTrain.SpeedSettings[SpeedValueType.ConsistSpeed] = tempMaxSpeedMpS;
                 }
                 else
                 {
-                    TTTrain.SpeedSettings.consistSpeedMpS = confMaxSpeed.Value;
+                    TTTrain.SpeedSettings[SpeedValueType.ConsistSpeed] = confMaxSpeed.Value;
                 }
 
                 return true;
@@ -2620,8 +2620,8 @@ namespace Orts.Simulation.Timetables
                         case "acc":
                             try
                             {
-                                actTTTrain.MaxAccelMpSSP = actTTTrain.DefMaxAccelMpSSP * Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture);
-                                actTTTrain.MaxAccelMpSSF = actTTTrain.DefMaxAccelMpSSF * Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture);
+                                actTTTrain.MaxAccelMpSSP = TTTrain.DefMaxAccelMpSSP * Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture);
+                                actTTTrain.MaxAccelMpSSF = TTTrain.DefMaxAccelMpSSF * Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture);
                             }
                             catch
                             {
@@ -2633,8 +2633,8 @@ namespace Orts.Simulation.Timetables
                         case "dec":
                             try
                             {
-                                actTTTrain.MaxDecelMpSSP = actTTTrain.DefMaxDecelMpSSP * Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture);
-                                actTTTrain.MaxDecelMpSSF = actTTTrain.DefMaxDecelMpSSF * Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture);
+                                actTTTrain.MaxDecelMpSSP = TTTrain.DefMaxDecelMpSSP * Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture);
+                                actTTTrain.MaxDecelMpSSF = TTTrain.DefMaxDecelMpSSF * Convert.ToSingle(thisCommand.CommandValues[0], CultureInfo.CurrentCulture);
                             }
                             catch
                             {
@@ -2807,8 +2807,8 @@ namespace Orts.Simulation.Timetables
                         outTrain.TrainType = TrainType.AiAutoGenerated;
                         if (DisposeDetails.DisposeSpeed != null)
                         {
-                            outTrain.SpeedSettings.maxSpeedMpS = DisposeDetails.DisposeSpeed.Value;
-                            outTrain.SpeedSettings.restrictedSet = true;
+                            outTrain.SpeedSettings[SpeedValueType.MaxSpeed] = DisposeDetails.DisposeSpeed.Value;
+                            outTrain.SpeedRestrictionActive = true;
                             outTrain.ProcessSpeedSettings();
                         }
                         trainList.Add(outTrain);
@@ -2849,11 +2849,11 @@ namespace Orts.Simulation.Timetables
                             inTrain.Forms = finalForms;
                             inTrain.SetStop = DisposeDetails.SetStop;
                             inTrain.FormsStatic = false;
-                            inTrain.Stable_CallOn = DisposeDetails.CallOn;
+                            inTrain.StableCallOn = DisposeDetails.CallOn;
                             if (DisposeDetails.DisposeSpeed != null)
                             {
-                                inTrain.SpeedSettings.maxSpeedMpS = DisposeDetails.DisposeSpeed.Value;
-                                inTrain.SpeedSettings.restrictedSet = true;
+                                inTrain.SpeedSettings[SpeedValueType.MaxSpeed] = DisposeDetails.DisposeSpeed.Value;
+                                inTrain.SpeedRestrictionActive = true;
                                 inTrain.ProcessSpeedSettings();
                             }
 
@@ -2936,15 +2936,15 @@ namespace Orts.Simulation.Timetables
                         switch (DisposeDetails.PoolExitDirection)
                         {
                             case "backward":
-                                TTTrain.PoolExitDirection = TimetablePool.PoolExitDirectionEnum.Backward;
+                                TTTrain.PoolExitDirection = PoolExitDirection.Backward;
                                 break;
 
                             case "forward":
-                                TTTrain.PoolExitDirection = TimetablePool.PoolExitDirectionEnum.Forward;
+                                TTTrain.PoolExitDirection = PoolExitDirection.Forward;
                                 break;
 
                             default:
-                                TTTrain.PoolExitDirection = TimetablePool.PoolExitDirectionEnum.Undefined;
+                                TTTrain.PoolExitDirection = PoolExitDirection.Undefined;
                                 break;
                         }
                     }
@@ -2991,8 +2991,8 @@ namespace Orts.Simulation.Timetables
                     formedTrain.TrainType = TrainType.AiAutoGenerated;
                     if (disposeDetails.DisposeSpeed != null)
                     {
-                        formedTrain.SpeedSettings.maxSpeedMpS = disposeDetails.DisposeSpeed.Value;
-                        formedTrain.SpeedSettings.restrictedSet = true;
+                        formedTrain.SpeedSettings[SpeedValueType.MaxSpeed] = disposeDetails.DisposeSpeed.Value;
+                        formedTrain.SpeedRestrictionActive = true;
                         formedTrain.ProcessSpeedSettings();
                     }
 
@@ -3374,8 +3374,8 @@ namespace Orts.Simulation.Timetables
                     }
 
                     // create station stop info
-                    validStop = actTrain.CreateStationStop(actPlatformID, arrivalTime, departureTime, AITrain.clearingDistanceM,
-                        AITrain.minStopDistanceM, terminal, actMinStopTime, keepClearFront, keepClearRear, forcePosition, closeupSignal, closeup, restrictPlatformToSignal, extendPlatformToSignal, endStop);
+                    validStop = actTrain.CreateStationStop(actPlatformID, arrivalTime, departureTime, AITrain.ClearingDistance,
+                        AITrain.MinStopDistance, terminal, actMinStopTime, keepClearFront, keepClearRear, forcePosition, closeupSignal, closeup, restrictPlatformToSignal, extendPlatformToSignal, endStop);
 
                     // override holdstate using stop info - but only if exit signal is defined
 

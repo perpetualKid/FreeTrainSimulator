@@ -43,8 +43,6 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
 
-using SharpDX.Direct3D9;
-
 namespace Orts.Simulation.Timetables
 {
     /// <summary>
@@ -108,14 +106,6 @@ namespace Orts.Simulation.Timetables
             ForceCreated,
             Failed,
         }
-
-        public enum PoolExitDirectionEnum
-        {
-            Backward,
-            Forward,
-            Undefined,
-        }
-
 
         public string PoolName { get; private protected set; } = string.Empty;
         private protected bool forceCreation;
@@ -574,7 +564,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="train"></param>
         virtual public int CreateInPool(TTTrain train, List<TTTrain> nextTrains)
         {
-            int PoolStorageState = (int)TTTrain.PoolAccessState.PoolInvalid;
+            int PoolStorageState = (int)PoolAccessState.PoolInvalid;
             train.TCRoute.TCRouteSubpaths[0] = PlaceInPool(train, out PoolStorageState, false);
             train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
             train.TCRoute.ActiveSubPath = 0;
@@ -650,7 +640,7 @@ namespace Orts.Simulation.Timetables
         {
             // new route
             TrackCircuitPartialPathRoute newRoute = null;
-            poolStorageState = (int)TTTrain.PoolAccessState.PoolInvalid;
+            poolStorageState = (int)PoolAccessState.PoolInvalid;
 
             // set dispose states
             train.FormsStatic = true;
@@ -665,7 +655,7 @@ namespace Orts.Simulation.Timetables
             poolStorageState = GetPoolExitIndex(train);
 
             // pool overflow
-            if (poolStorageState == (int)TTTrain.PoolAccessState.PoolOverflow)
+            if (poolStorageState == (int)PoolAccessState.PoolOverflow)
             {
                 Trace.TraceWarning("Pool : " + PoolName + " : overflow : cannot place train : " + train.Name + "\n");
 
@@ -675,7 +665,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // pool invalid
-            else if (poolStorageState == (int)TTTrain.PoolAccessState.PoolInvalid)
+            else if (poolStorageState == (int)PoolAccessState.PoolInvalid)
             {
                 Trace.TraceWarning("Pool : " + PoolName + " : no valid pool found : " + train.Name + "\n");
 
@@ -790,7 +780,7 @@ namespace Orts.Simulation.Timetables
         {
             // find storage path with enough space to store train
 
-            int reqPool = (int)TTTrain.PoolAccessState.PoolInvalid;
+            int reqPool = (int)PoolAccessState.PoolInvalid;
             for (int iPool = 0; iPool < StoragePool.Count && reqPool < 0; iPool++)
             {
                 PoolDetails thisStorage = StoragePool[iPool];
@@ -828,13 +818,13 @@ namespace Orts.Simulation.Timetables
             // else state is pool overflow
             if (reqPool < 0)
             {
-                reqPool = (int)TTTrain.PoolAccessState.PoolOverflow;
+                reqPool = (int)PoolAccessState.PoolOverflow;
 
                 foreach (PoolDetails thisPool in StoragePool)
                 {
                     if (thisPool.ClaimUnits.Count > 0)
                     {
-                        reqPool = (int)TTTrain.PoolAccessState.PoolClaimed;
+                        reqPool = (int)PoolAccessState.PoolClaimed;
                         break;
                     }
                 }
@@ -1271,9 +1261,8 @@ namespace Orts.Simulation.Timetables
                 else
                 {
                     // set delay
-                    float randDelay = StaticRandom.Next(train.DelayedStartSettings.newStart.randomPartS * 10);
-                    train.RestdelayS = train.DelayedStartSettings.newStart.fixedPartS + (randDelay / 10f);
-                    train.DelayedStart = true;
+                    train.RestdelayS = train.DelayedStartSettings[DelayedStartType.NewStart].RemainingDelay();
+                    train.DelayStart = true;
                     train.DelayedStartState = AiStartMovement.NewTrain;
 
                     train.TrainType = TrainType.Ai;

@@ -264,7 +264,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         {
                             if (timetableTrain.TransferStationDetails.TryGetValue(timetableTrain.StationStops[0].PlatformReference, out TransferInfo transfer))
                             {
-                                transferMessage = Catalog.GetString($"Transfer units at next station with train {transfer.TransferTrainName}");
+                                transferMessage = Catalog.GetString($"Transfer units at next station with train {transfer.TrainName}");
                                 transferValid = true;
                             }
                         }
@@ -273,7 +273,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             foreach (KeyValuePair<int, List<TransferInfo>> transferDetails in timetableTrain.TransferTrainDetails)
                             {
                                 TransferInfo transfer = transferDetails.Value[0];
-                                transferMessage = Catalog.GetString($"Transfer units with train {transfer.TransferTrainName}");
+                                transferMessage = Catalog.GetString($"Transfer units with train {transfer.TrainName}");
                                 transferValid = true;
                                 break;  // only show first
                             }
@@ -304,12 +304,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             {
                                 if (timetableTrain.AttachDetails.Valid)
                                 {
-                                    message.Text = Catalog.GetString($"Train is to attach to : {timetableTrain.AttachDetails.AttachTrainName}");
+                                    message.Text = Catalog.GetString($"Train is to attach to : {timetableTrain.AttachDetails.TrainName}");
                                     message.TextColor = Color.Orange;
                                 }
                                 else
                                 {
-                                    message.Text = Catalog.GetString($"Train is to attach to : {timetableTrain.AttachDetails.AttachTrainName}; other train not yet ready");
+                                    message.Text = Catalog.GetString($"Train is to attach to : {timetableTrain.AttachDetails.TrainName}; other train not yet ready");
                                     message.TextColor = Color.Orange;
                                 }
                             }

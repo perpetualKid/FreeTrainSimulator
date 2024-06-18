@@ -4,6 +4,7 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
@@ -51,8 +52,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             if (detachRequest != null)
             {
-                detachRequest.DetachPlayerTrain(playerTrain, detachRequest.DetachFormedTrain);
-                playerTrain.DetachDetails.Remove(playerTrain.DetachActive[0]);
+                detachRequest.DetachPlayerTrain(playerTrain, detachRequest.TrainNumber);
+                playerTrain.DetachDetails.Remove(playerTrain.DetachActive[DetachDetailsIndex.DetachDetailsList]);
 
                 detachRequest.Valid = false;
                 _ = Close();
@@ -65,13 +66,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             if (result)
             {
                 playerTrain = Simulator.Instance.PlayerLocomotive.Train as TTTrain;
-                if (playerTrain?.DetachActive[1] >= 0)
+                if (playerTrain?.DetachActive[DetachDetailsIndex.DetachActiveList] >= 0)
                 {
-                    List<DetachInfo> detachList = playerTrain.DetachDetails[playerTrain.DetachActive[0]];
-                    detachRequest = detachList[playerTrain.DetachActive[1]];
+                    List<DetachInfo> detachList = playerTrain.DetachDetails[playerTrain.DetachActive[DetachDetailsIndex.DetachDetailsList]];
+                    detachRequest = detachList[playerTrain.DetachActive[DetachDetailsIndex.DetachActiveList]];
                     string formedTrain = Catalog.GetString("static consist");
-                    if (!string.IsNullOrEmpty(detachRequest.DetachFormedTrainName))
-                        formedTrain += $" : {detachRequest.DetachFormedTrainName}";
+                    if (!string.IsNullOrEmpty(detachRequest.TrainName))
+                        formedTrain += $" : {detachRequest.TrainName}";
 
                     string formedPortion = Catalog.GetString("Rear");
                     string otherPortion = Catalog.GetString("Front");

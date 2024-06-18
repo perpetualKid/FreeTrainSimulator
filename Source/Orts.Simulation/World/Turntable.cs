@@ -157,7 +157,7 @@ namespace Orts.Simulation.World
                 MultiPlayerManager.Broadcast(new MovingTableMessage()
                 {
                     MovingTableIndex = Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable),
-                    MessageCode = MessageCode.GoToTarget,
+                    MessageCode = MovingTableAction.GoToTarget,
                     Delta = YAngle,
                     MovingDirection = clockwise ? Rotation.Clockwise : Rotation.CounterClockwise
                 });
@@ -278,7 +278,7 @@ namespace Orts.Simulation.World
                 MultiPlayerManager.Broadcast(new MovingTableMessage()
                 {
                     MovingTableIndex = Simulator.Instance.MovingTables.IndexOf(Simulator.Instance.ActiveMovingTable),
-                    MessageCode = MessageCode.StartingContinuous,
+                    MessageCode = MovingTableAction.StartingContinuous,
                     Delta = YAngle,
                     MovingDirection = clockwise ? Rotation.Clockwise : Rotation.CounterClockwise
                 });

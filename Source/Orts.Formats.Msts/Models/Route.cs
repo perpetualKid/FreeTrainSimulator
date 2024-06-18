@@ -81,10 +81,10 @@ namespace Orts.Formats.Msts.Models
         public RouteStart RouteStart { get; private set; }
         public Environment Environment { get; private set; }
         public bool MilepostUnitsMetric { get; private set; }
-        public double MaxLineVoltage { get; private set; }
+        public float MaxLineVoltage { get; private set; }
         public bool Electrified { get; private set; } = true;
-        public double OverheadWireHeight { get; private set; } = 6.0;
-        public double SpeedLimit { get; private set; } = 500.0f; //global speed limit m/s.
+        public float OverheadWireHeight { get; private set; } = 6.0f;
+        public float SpeedLimit { get; private set; } = 500.0f; //global speed limit m/s.
         public string DefaultCrossingSMS { get; private set; }
         public string DefaultCoalTowerSMS { get; private set; }
         public string DefaultDieselTowerSMS { get; private set; }

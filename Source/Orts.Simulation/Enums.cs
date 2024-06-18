@@ -70,18 +70,6 @@ namespace Orts.Simulation
         AuxiliaryTender,
     }
 
-    public enum AiStartMovement
-    {
-        SignalCleared,
-        SignalRestricted,
-        FollowTrain,
-        EndStationStop,
-        NewTrain,
-        PathAction,
-        Turntable,
-        Reset             // used to clear state
-    }
-
     public enum ActivityEventType
     {
         Timer,
@@ -128,25 +116,5 @@ namespace Orts.Simulation
         SpringLoadedBackwards,
         SpringLoadedBackwardsImmediately,
         CCNeedIncreaseAfterAnyBrake
-    }
-    public enum MovingTableState
-    {
-        WaitingMovingTableAvailability,
-        WaitingAccessToMovingTable,
-        AccessToMovingTable,
-        AccessOnMovingTable,
-        WaitingStorageToMovingTable,
-        StorageToMovingTable,
-        StorageOnMovingTable,
-        Completed,
-        Inactive,
-    }
-
-    public enum MovingTableAction
-    {
-        FromAccess,
-        FromStorage,
-        Turning,
-        Undefined,
     }
 }

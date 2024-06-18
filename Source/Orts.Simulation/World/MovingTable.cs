@@ -34,8 +34,6 @@ using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
-using SharpDX.Direct2D1;
-
 namespace Orts.Simulation.World
 {
     /// <summary>
@@ -78,7 +76,7 @@ namespace Orts.Simulation.World
 
     public abstract class MovingTable : ISaveStateApi<MovingTableSaveState>
     {
-        public enum MessageCode
+        public enum MovingTableAction
         {
             GoToTarget,
             StartingContinuous,
@@ -350,25 +348,9 @@ namespace Orts.Simulation.World
 
         public TrainOnMovingTable(int trainNumber, bool frontOnBoard, bool rearOnBoard, Train train = null)
         {
-            Train = Simulator.Instance.Trains.GetTrainByNumber(trainNumber);
-            Train = train ?? Train;
+            Train = train ?? Simulator.Instance.Trains.GetTrainByNumber(trainNumber);
             FrontOnBoard = frontOnBoard;
             BackOnBoard = rearOnBoard;
-        }
-
-        internal void Save(BinaryWriter outf)
-        {
-            outf.Write(Train.Number);
-            outf.Write(FrontOnBoard);
-            outf.Write(BackOnBoard);
-        }
-
-        internal void Restore(BinaryReader inf, Train train = null)
-        {
-            Train = Simulator.Instance.Trains.GetTrainByNumber(inf.ReadInt32());
-            Train = train ?? Train;
-            FrontOnBoard = inf.ReadBoolean();
-            BackOnBoard = inf.ReadBoolean();
         }
 
         public void SetFrontState(bool frontOnBoard)

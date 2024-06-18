@@ -159,7 +159,7 @@ namespace Orts.Simulation.AIs
                 if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
                     //AITrain aiTrain = new AITrain(inf, this);
-                    AITrain aiTrain = new AITrain(this);
+                    AITrain aiTrain = new AITrain();
                     AITrains.Add(aiTrain);
                     this.simulator.Trains.Add(aiTrain);
                     simulator.TrainDictionary.Add(aiTrain.Number, aiTrain);
@@ -194,7 +194,7 @@ namespace Orts.Simulation.AIs
                 if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
                     //AITrain aiTrain = new AITrain(inf, this);
-                    AITrain aiTrain = new AITrain(this);
+                    AITrain aiTrain = new AITrain();
                     StartList.InsertTrain(aiTrain);
                     this.simulator.StartReference.Add(aiTrain.Number);
                 }
@@ -214,7 +214,7 @@ namespace Orts.Simulation.AIs
                 if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
                     //AITrain aiTrain = new AITrain(inf, this);
-                    AITrain aiTrain = new AITrain(this);
+                    AITrain aiTrain = new AITrain();
                     AutoGenTrains.Add(aiTrain);
                     this.simulator.AutoGenDictionary.Add(aiTrain.Number, aiTrain);
                 }
@@ -262,7 +262,7 @@ namespace Orts.Simulation.AIs
             Debug.Assert(simulator.Trains != null, "Cannot restore AI without Simulator.Trains.");
             _ = inf?.ReadString() ?? throw new ArgumentNullException(nameof(inf)); // may be ignored, can be AI only
             //AITrain aiTrain = new AITrain(inf, this);
-            AITrain aiTrain = new AITrain(this);
+            AITrain aiTrain = new AITrain();
             int PlayerLocomotiveIndex = inf.ReadInt32();
             if (PlayerLocomotiveIndex >= 0)
                 this.simulator.PlayerLocomotive = aiTrain.Cars[PlayerLocomotiveIndex] as MSTSLocomotive ?? throw new InvalidCastException(nameof(AI.simulator.PlayerLocomotive));
@@ -274,60 +274,10 @@ namespace Orts.Simulation.AIs
             this.simulator = simulator;
         }
 
-        // save game state
-        public void Save(BinaryWriter outf)
+        public void BeforeSnapshot()
         {
-
             RemoveTrains();   // remove trains waiting to be removed
             AddTrains();      // add trains waiting to be added
-
-            // in timetable mode, include player train train[0]
-            if (simulator.TimetableMode)
-            {
-                outf.Write(AITrains.Count + 1);
-                simulator.Trains[0].Save(outf);
-            }
-            else
-            {
-                outf.Write(AITrains.Count);
-            }
-
-            foreach (AITrain train in AITrains)
-            {
-                train.Save(outf);
-            }
-
-            outf.Write(StartList.Count);
-            foreach (AITrain thisStartTrain in StartList)
-            {
-                thisStartTrain.Save(outf);
-            }
-
-            outf.Write(AutoGenTrains.Count);
-            foreach (AITrain train in AutoGenTrains)
-            {
-                train.Save(outf);
-            }
-        }
-
-        // Saves train in autopilot mode
-        public void SaveAutopil(Physics.Train train, BinaryWriter outf)
-        {
-            ((AITrain)train).Save(outf);
-            if (simulator.PlayerLocomotive != null)
-            {
-                var j = 0;
-                int PlayerLocomotiveIndex = -1;
-                foreach (TrainCar car in train.Cars)
-                {
-                    if (car == simulator.PlayerLocomotive)
-                    { PlayerLocomotiveIndex = j; break; }
-                    j++;
-                }
-                outf.Write(PlayerLocomotiveIndex);
-            }
-            else
-                outf.Write(-1);
         }
 
         // prerun for activity mode

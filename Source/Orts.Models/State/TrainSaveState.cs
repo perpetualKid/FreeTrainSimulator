@@ -9,6 +9,7 @@ using MemoryPack;
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Models.Simplified;
 
 namespace Orts.Models.State
 {
@@ -85,13 +86,15 @@ namespace Orts.Models.State
         public bool Pathless { get; set; }
         public Dictionary<int, List<Dictionary<int, int>>> DeadlockInfo { get; set; }
         public Collection<AuxActionRefSaveState> AuxActionsSaveStates { get; set; }
-        public AiTrainSaveState AiTrainSaveState { get; set; }
 #pragma warning restore CA2227 // Collection properties should be read only
+        public AiTrainSaveState AiTrainSaveState { get; set; }
+        public TimetableTrainSaveState TimetableTrainSaveState { get; set; }
     }
 
     [MemoryPackable]
     public sealed partial class AiTrainSaveState : SaveStateBase
     {
+        public int PlayerLocomotiveIndex { get; set; }
         public int? StartTime { get; set; }
         public float MaxAcceleration { get; set; }
         public float MaxDeceleration { get; set; }
@@ -105,5 +108,65 @@ namespace Orts.Models.State
         public float DoorsOpenDelay { get; set; }
         public LevelCrossingHornPattern LevelCrossingHornPattern { get; set; }
         public Collection<TrafficItemSaveState> TrafficItemSaveStates { get; set; }
+    }
+
+    [MemoryPackable]
+    public sealed partial class TimetableTrainSaveState : SaveStateBase
+    {
+        public bool CloseUpStabling { get; set; }
+        public bool Created { get; set; }
+        public string CreatedAhead { get; set; }
+        public string CreatedFromPool { get; set; }
+        public string CreatedInPool { get; set; }
+        public string ConsistName { get; set; }
+        public PoolExitDirection CreatePoolDirection { get; set; }
+        public float MaxAccelerationPassenger { get; set; }
+        public float MaxDecelerationPassenger { get; set; }
+        public float MaxAccelerationFreight { get; set; }
+        public float MaxDecelerationFreight { get; set; }
+        public int? ActivationTime { get; set; }
+        public bool TriggeredActivationRequired { get; set; }
+        public Collection<TriggerActivationSaveState> ActivationTriggerSaveStates { get; set; }
+        public Collection<WaitInfoSaveState> WaitInfoSaveStates { get; set; }
+        public Dictionary<int, Collection<WaitInfoSaveState>> WaitInfoAnySaveStates { get; set; }
+        public bool StableCallOn { get; set; }
+        public int FormedTrainNumber { get; set; }
+        public bool FormedStaticTrain { get; set; }
+        public string ExitPool { get; set; }
+        public int PoolAccessSection { get; set; }
+        public int PoolStorageIndex { get; set; }
+        public PoolExitDirection PoolExitDirection { get; set; }
+        public int FormedFromTrainNumber { get; set; }
+        public TimetableFormationCommand TimetableFormationCommand { get; set; }
+        public int OriginalAiTrainNumber { get; set; }
+        public bool InheritStationStop { get; set; }
+        public bool FormsAtStation { get; set; }
+        public AttachInfoSaveState AttachInfoSaveState { get; set; }
+        public Dictionary<int, Collection<DetachInfoSaveState>> DetachInfoSaveStates { get; set; }
+        public TimetableTurntableControlSaveState TrainOnTurntableSaveState { get; set; }
+        public int[] ActiveDetaches { get; set; }
+        public int DetachUnits { get; set; }
+        public bool DetachPosition { get; set; }
+        public bool DetachPending { get; set; }
+        public Collection<int> PickupTrains { get; set; }
+        public Collection<int> PickupStaticTrains { get; set; }
+        public bool PickupStaticOnForms { get; set; }
+        public bool PickupNeeded { get; set; }
+        public Dictionary<int, TransferInfoSaveState> TransferStationDetailsSaveStates { get; set; }
+        public Dictionary<int, Collection<TransferInfoSaveState>> TransferTrainDetailSateStates { get; set; }
+        public Dictionary<int, Collection<int>> NeedAttach { get; set; }
+        public Dictionary<int, Collection<int>> NeedStationTransfer { get; set; }
+        public Dictionary<int, int> NeedTrainTransfer { get; set; }
+        public DelayedStart[] DelayedStarts { get; set; }
+        public float ReverseAddedDelay { get; set; }
+        public AiStartMovement DelayedStartState { get; set; }
+        public bool DelayedStart { get; set; }
+        public float RemainingDelay { get; set; }
+        public float?[] SpeedSettings { get; set; }
+        public bool SpeedRestrictionActive { get; set; }
+        public int? CruiseDelayMax { get; set; }
+        public bool DriverOnlyOperation { get; set; }
+        public bool ForceReversal { get; set; }
+        public string Briefing { get; set; }
     }
 }

@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Formats.OR.Files;
 
 namespace Orts.Models.Simplified
@@ -177,6 +178,24 @@ namespace Orts.Models.Simplified
                 }
                 return result;
             }
+        }
+    }
+
+    public readonly struct DelayedStart
+    {
+        public readonly int FixedPart;                                        // fixed part for restart delay
+        public readonly int RandomPart;                                       // random part for restart delay
+
+        public DelayedStart(int fixedPart, int randomPart)
+        {
+            FixedPart = fixedPart;
+            RandomPart = randomPart;
+        }
+
+        public float RemainingDelay()
+        {
+            float randDelay = StaticRandom.Next(RandomPart * 10);
+            return FixedPart + (randDelay / 10f);
         }
     }
 }
