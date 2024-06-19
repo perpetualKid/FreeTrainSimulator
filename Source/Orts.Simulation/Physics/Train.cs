@@ -949,7 +949,7 @@ namespace Orts.Simulation.Physics
                 EvaluationFile = evaluationLogFile,
 
                 ValidRoutes = await ValidRoutes.SnapshotCollection<TrackCircuitPartialPathRouteSaveState, TrackCircuitPartialPathRoute>().ConfigureAwait(false),
-                RoutePathSaveState = await TCRoute.Snapshot().ConfigureAwait(false),
+                RoutePathSaveState = TCRoute == null ? null : await TCRoute.Snapshot().ConfigureAwait(false),
                 OccupiedTracks = new Collection<int>(OccupiedTrack.Select(track => track.Index).ToList()),
                 HoldingSignals = new Collection<int>(HoldingSignals),
                 StationStopSaveStates = await StationStops.SnapshotCollection<StationStopSaveState, StationStop>().ConfigureAwait(false),

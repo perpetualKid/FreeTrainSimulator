@@ -570,9 +570,9 @@ namespace Orts.Simulation.RollingStocks
             TrainCarSaveState saveState = await base.Snapshot().ConfigureAwait(false);
 
             saveState.LocomotiveSaveState.DieselLocomotiveSaveState = new DieselLocomotiveSaveState()
-            { 
+            {
                 DieselLevel = DieselLevelL,
-                GearboxControllerSaveState = await GearBoxController.Snapshot().ConfigureAwait(false),
+                GearboxControllerSaveState = GearBoxController == null ? null : await GearBoxController.Snapshot().ConfigureAwait(false),
                 EngineSaveStates = await DieselEngines.SnapshotCollection<DieselEngineSaveState, DieselEngine>().ConfigureAwait(false),
             };
 
@@ -587,9 +587,11 @@ namespace Orts.Simulation.RollingStocks
             DieselLocomotiveSaveState dieselLocomotiveSave = saveState.LocomotiveSaveState.DieselLocomotiveSaveState;
 
             DieselLevelL = dieselLocomotiveSave.DieselLevel;
-            GearBoxController = new MSTSNotchController();
-            await GearBoxController.Restore(dieselLocomotiveSave.GearboxControllerSaveState).ConfigureAwait(false);
-
+            if (null != dieselLocomotiveSave.GearboxControllerSaveState)
+            {
+                GearBoxController = new MSTSNotchController();
+                await GearBoxController.Restore(dieselLocomotiveSave.GearboxControllerSaveState).ConfigureAwait(false);
+            }
             await DieselEngines.RestoreCollectionCreateNewInstances(dieselLocomotiveSave.EngineSaveStates, DieselEngines).ConfigureAwait(false);
         }
 
