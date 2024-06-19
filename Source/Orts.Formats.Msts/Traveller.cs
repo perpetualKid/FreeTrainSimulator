@@ -336,20 +336,6 @@ namespace Orts.Formats.Msts
         }
 
         /// <summary>
-        /// Saves a traveller to persisted data.
-        /// </summary>
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
-
-            outf.Write((byte)direction);
-            outf.Write(trackVectorSectionOffset);
-            outf.Write(TrackNode.Index);
-            if (TrackNodeType == TrackNodeType.Track)
-                outf.Write(TrackVectorSectionIndex);
-        }
-
-        /// <summary>
         /// Test whether the given location is indeed on (or at least close to) the tracknode given by its index.
         /// If it is, we initialize the (current) traveller such that it is placed on the correct location on the track.
         /// The current traveller will not be changed if initialization is not successfull.

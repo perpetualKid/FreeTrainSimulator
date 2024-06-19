@@ -394,21 +394,5 @@ namespace Orts.Common.Calc
             Value += timeSpan * value;
             return IsLimited ? Math.Clamp(Value, min, max) : Value;
         }
-
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
-            outf.Write(Value);
-        }
-
-        public void Restore(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-            Value = inf.ReadDouble();
-
-            for (int i = 0; i < 4; i++)
-                previousValues[i] = Value;
-        }
-
     }
 }

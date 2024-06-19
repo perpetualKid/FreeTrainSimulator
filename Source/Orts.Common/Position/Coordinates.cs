@@ -352,21 +352,6 @@ namespace Orts.Common.Position
         }
 
         /// <summary>
-        /// Save the object to binary format
-        /// </summary>
-        /// <param name="outf">output file</param>
-        public static void Save(in WorldLocation instance, BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
-
-            outf.Write(instance.TileX);
-            outf.Write(instance.TileZ);
-            outf.Write(instance.Location.X);
-            outf.Write(instance.Location.Y);
-            outf.Write(instance.Location.Z);
-        }
-
-        /// <summary>
         /// Restore the object from binary format
         /// </summary>
         /// <param name="inf">input file</param>

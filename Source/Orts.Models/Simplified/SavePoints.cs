@@ -83,6 +83,7 @@ namespace Orts.Models.Simplified
                                 File = fileName,
                                 Distance = $"{double.NaN}",
                                 RouteName = "<Invalid Savepoint>",
+                                Valid = false,
                             });
                         }
                     }

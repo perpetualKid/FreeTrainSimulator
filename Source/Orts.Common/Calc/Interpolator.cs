@@ -195,54 +195,43 @@ namespace Orts.Common.Calc
                 y2Array[i] = y2Array[i] * y2Array[i + 1] + u[i];
         }
 
-        // restore game state
-        public Interpolator(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
+        //// restore game state
+        //public Interpolator(BinaryReader inf)
+        //{
+        //    ArgumentNullException.ThrowIfNull(inf);
 
-            size = inf.ReadInt32();
-            xArray = new double[size];
-            yArray = new double[size];
-            for (int i = 0; i < size; i++)
-            {
-                xArray[i] = inf.ReadDouble();
-                yArray[i] = inf.ReadDouble();
-            }
-            if (inf.ReadBoolean())
-            {
-                y2Array = new double[size];
-                for (int i = 0; i < size; i++)
-                    y2Array[i] = inf.ReadDouble();
-            }
-        }
+        //    size = inf.ReadInt32();
+        //    xArray = new double[size];
+        //    yArray = new double[size];
+        //    for (int i = 0; i < size; i++)
+        //    {
+        //        xArray[i] = inf.ReadDouble();
+        //        yArray[i] = inf.ReadDouble();
+        //    }
+        //    if (inf.ReadBoolean())
+        //    {
+        //        y2Array = new double[size];
+        //        for (int i = 0; i < size; i++)
+        //            y2Array[i] = inf.ReadDouble();
+        //    }
+        //}
 
-        // save game state
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
+        //// save game state
+        //public void Save(BinaryWriter outf)
+        //{
+        //    ArgumentNullException.ThrowIfNull(outf);
 
-            outf.Write(size);
-            for (int i = 0; i < size; i++)
-            {
-                outf.Write(xArray[i]);
-                outf.Write(yArray[i]);
-            }
-            outf.Write(y2Array != null);
-            if (y2Array != null)
-                for (int i = 0; i < size; i++)
-                    outf.Write(y2Array[i]);
-        }
-
-        public void Test(string label, int n)
-        {
-            double dx = (MaxX() - MinX()) / (n - 1);
-            for (int i = 0; i < n; i++)
-            {
-                double x = MinX() + i * dx;
-                double y = this[x];
-                Trace.WriteLine($"{label} {x} {y}");
-            }
-        }
+        //    outf.Write(size);
+        //    for (int i = 0; i < size; i++)
+        //    {
+        //        outf.Write(xArray[i]);
+        //        outf.Write(yArray[i]);
+        //    }
+        //    outf.Write(y2Array != null);
+        //    if (y2Array != null)
+        //        for (int i = 0; i < size; i++)
+        //            outf.Write(y2Array[i]);
+        //}
 
         public int Size => (xArray.Length == yArray.Length) ? size : -1;
 
@@ -261,7 +250,6 @@ namespace Orts.Common.Calc
             }
             return result;
         }
-
     }
 
     /// <summary>

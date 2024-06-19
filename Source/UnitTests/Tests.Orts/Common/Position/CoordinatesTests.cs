@@ -83,22 +83,22 @@ namespace Tests.Orts.Common.Position
             Assert.IsFalse(Equals(WorldLocation.None.Equals(new object())));
         }
 
-        [TestMethod]
-        public void WorldLocationSerializationTest()
-        {
-            WorldLocation location1 = new WorldLocation(-17, 13, -45.3f, 62.8f, 91.7f);
-            WorldLocation location2;
+        //[TestMethod]
+        //public void WorldLocationSerializationTest()
+        //{
+        //    WorldLocation location1 = new WorldLocation(-17, 13, -45.3f, 62.8f, 91.7f);
+        //    WorldLocation location2;
 
-            using (BinaryWriter writer = new BinaryWriter(new MemoryStream()))
-            {
-                WorldLocation.Save(location1, writer);
-                writer.BaseStream.Position = 0;
-                using (BinaryReader reader = new BinaryReader(writer.BaseStream))
-                    location2 = WorldLocation.Restore(reader);
-            }
+        //    using (BinaryWriter writer = new BinaryWriter(new MemoryStream()))
+        //    {
+        //        WorldLocation.Save(location1, writer);
+        //        writer.BaseStream.Position = 0;
+        //        using (BinaryReader reader = new BinaryReader(writer.BaseStream))
+        //            location2 = WorldLocation.Restore(reader);
+        //    }
 
-            Assert.IsTrue(Equals(location1, location2));
-        }
+        //    Assert.IsTrue(Equals(location1, location2));
+        //}
 
         [TestMethod]
         public void WorldPositionCtorTest()

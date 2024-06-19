@@ -82,29 +82,5 @@ namespace Orts.Simulation.AIs
                 _ => throw new ArgumentException("Invalid LevelCrossingHornPattern:", nameof(type)),
             };
         }
-
-        /// <summary>
-        /// Save type (not state) information to a save file.
-        /// </summary>
-        /// <param name="outf"></param>
-        public void Save(BinaryWriter outf)
-        {
-            LevelCrossingHornPattern type;
-            if (this is AILevelCrossingSingleHorn)
-                type = LevelCrossingHornPattern.Single;
-            else if (this is AILevelCrossingAmericanHorn)
-                type = LevelCrossingHornPattern.US;
-            else
-                throw new InvalidCastException("Invalid LevelCrossingHornPattern");
-            outf.Write((int)type);
-        }
-
-        /// <summary>
-        /// Restore type (not state) information from a save file.
-        /// </summary>
-        /// <param name="inf"></param>
-        /// <returns></returns>
-        public static AILevelCrossingHornPattern Restore(BinaryReader inf)
-            => CreateInstance((LevelCrossingHornPattern)inf.ReadInt32());
     }
 }

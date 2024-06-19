@@ -29,8 +29,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         void Copy(T source);
         void Initialize();
         void InitializeMoving();
-        //void Save(BinaryWriter outf);
-        //void Restore(BinaryReader inf);
         void Update(double elapsedClockSeconds);
     }
 
