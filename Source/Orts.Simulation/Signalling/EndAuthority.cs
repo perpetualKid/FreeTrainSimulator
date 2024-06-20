@@ -50,7 +50,7 @@ using FreeTrainSimulator.Common.Api;
 using Orts.Common;
 using Orts.Models.State;
 
-namespace Orts.Simulation.Physics
+namespace Orts.Simulation.Signalling
 {
     public class EndAuthority : ISaveStateApi<AuthoritySaveState>
     {
