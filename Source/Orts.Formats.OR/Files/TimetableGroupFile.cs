@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 
 namespace Orts.Formats.OR.Files
@@ -29,7 +30,7 @@ namespace Orts.Formats.OR.Files
 
     public class TimetableGroupFile
     {
-        public List<TimetableFile> TimeTables { get; } = new List<TimetableFile>();
+        public Collection<TimetableFile> TimeTables { get; } = new Collection<TimetableFile>();
         public string Description { get; private set; }
 
         public TimetableGroupFile(string fileName)
@@ -54,6 +55,8 @@ namespace Orts.Formats.OR.Files
 
         public TimetableGroupFile(TimetableFile singleTimetableFile)
         {
+            ArgumentNullException.ThrowIfNull(singleTimetableFile, nameof(singleTimetableFile));
+
             Description = singleTimetableFile.Description;
             TimeTables.Add(singleTimetableFile);
         }
@@ -82,9 +85,9 @@ namespace Orts.Formats.OR.Files
         /// extracts filenames from multiTTfile, extents names to full path
         /// </summary>
         /// <returns></returns>
-        public static List<string> GetTimeTableList(string fileName)
+        public static Collection<string> GetTimeTableList(string fileName)
         {
-            List<string> result = new List<string>();
+            Collection<string> result = new Collection<string>();
             using (StreamReader scrStream = new StreamReader(fileName, true))
             {
                 // read first line - first character is separator, rest is train info

@@ -335,34 +335,6 @@ namespace Orts.Simulation.Physics
         // TODO: Replace this with an event
         public bool FormationReversed { get; set; }          // flags the execution of the ReverseFormation method (executed at reversal points)
 
-        public class EndAuthority : ISaveStateApi<AuthoritySaveState>
-        {
-            public EndAuthorityType EndAuthorityType { get; set; } = EndAuthorityType.NoPathReserved;
-            public int LastReservedSection { get; set; } = -1;// index of furthest cleared section (for NODE control)
-            public float Distance { get; set; }// distance to end of authority
-
-            public ValueTask Restore(AuthoritySaveState saveState)
-            {
-                ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
-
-                EndAuthorityType = saveState.EndAuthorityType;
-                LastReservedSection = saveState.LastReservedSection;
-                Distance = saveState.Distance;
-
-                return ValueTask.CompletedTask;
-            }
-
-            public ValueTask<AuthoritySaveState> Snapshot()
-            {
-                return ValueTask.FromResult(new AuthoritySaveState()
-                {
-                    EndAuthorityType = EndAuthorityType,
-                    LastReservedSection = LastReservedSection,
-                    Distance = Distance,
-                });
-            }
-        }
-
         public EnumArray<EndAuthority, Direction> EndAuthorities { get; } = new EnumArray<EndAuthority, Direction>(() => new EndAuthority());
 
         internal int LoopSection { get; set; } = -1;                                    // section where route loops back onto itself

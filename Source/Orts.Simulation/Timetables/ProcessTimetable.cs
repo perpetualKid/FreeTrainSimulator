@@ -18,13 +18,9 @@
 // This code processes the Timetable definition and converts it into playable train information
 //
 
-// Set debug flag to extract additional info
-// Info is printed to C:\temp\timetableproc.txt
-// #define DEBUG_TIMETABLE
-//
-
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -111,7 +107,7 @@ namespace Orts.Simulation.Timetables
             List<TTTrain> trainList = new List<TTTrain>();
             List<TTTrainInfo> trainInfoList = new List<TTTrainInfo>();
             TTTrainInfo playerTrain = null;
-            List<string> filenames;
+            Collection<string> filenames;
             int indexcount = 0;
 
             // get filenames to process
@@ -124,10 +120,6 @@ namespace Orts.Simulation.Timetables
                 // get contents as strings
                 Trace.Write("TT File : " + filePath + "\n");
                 var fileContents = new TimetableReader(filePath);
-
-#if DEBUG_TIMETABLE
-                File.AppendAllText(@"C:\temp\timetableproc.txt", "\nProcessing file : " + filePath + "\n");
-#endif
 
                 // convert to train info
                 indexcount = ConvertFileContents(fileContents, simulator.SignalEnvironment, ref trainInfoList, indexcount, filePath);
@@ -282,9 +274,9 @@ namespace Orts.Simulation.Timetables
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        private List<string> GetFilenames(string filePath)
+        private Collection<string> GetFilenames(string filePath)
         {
-            List<string> filenames = new List<string>();
+            Collection<string> filenames = new Collection<string>();
 
             // check type of timetable file - list or single
             string fileExtension = Path.GetExtension(filePath);
@@ -305,20 +297,7 @@ namespace Orts.Simulation.Timetables
                 default:
                     break;
             }
-
-#if DEBUG_TIMETABLE
-            if (File.Exists(@"C:\temp\timetableproc.txt"))
-            {
-                File.Delete(@"C:\temp\timetableproc.txt");
-            }
-
-            File.AppendAllText(@"C:\temp\timetableproc.txt", "Files : \n");
-            foreach (string ttfile in filenames)
-            {
-                File.AppendAllText(@"C:\temp\timetableproc.txt", ttfile + "\n");
-            }
-#endif
-            return (filenames);
+            return filenames;
         }
 
         //================================================================================================//
@@ -558,40 +537,6 @@ namespace Orts.Simulation.Timetables
                     }
                 }
             }
-
-#if DEBUG_TIMETABLE
-            File.AppendAllText(@"C:\temp\timetableproc.txt", "\n Row and Column details : \n");
-
-            File.AppendAllText(@"C:\temp\timetableproc.txt", "\n Columns : \n");
-            for (int iColumn = 0; iColumn <= ColInfo.Length - 1; iColumn++)
-            {
-                columnType ctype = ColInfo[iColumn];
-
-                var stbuild = new StringBuilder();
-                stbuild.AppendFormat("Column : {0} = {1}", iColumn, ctype.ToString());
-                if (ctype == columnType.trainDefinition)
-                {
-                    stbuild.AppendFormat(" = train : {0}", trainHeaders[iColumn]);
-                }
-                stbuild.Append("\n");
-                File.AppendAllText(@"C:\temp\timetableproc.txt", stbuild.ToString());
-            }
-
-            File.AppendAllText(@"C:\temp\timetableproc.txt", "\n Rows : \n");
-            for (int iRow = 0; iRow <= RowInfo.Length - 1; iRow++)
-            {
-                rowType rtype = RowInfo[iRow];
-
-                var stbuild = new StringBuilder();
-                stbuild.AppendFormat("Row    : {0} = {1}", iRow, rtype.ToString());
-                if (rtype == rowType.stationInfo)
-                {
-                    stbuild.AppendFormat(" = station {0}", stationNames[iRow]);
-                }
-                stbuild.Append("\n");
-                File.AppendAllText(@"C:\temp\timetableproc.txt", stbuild.ToString());
-            }
-#endif
 
             bool validFile = true;
 

@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -33,7 +34,7 @@ namespace Orts.Models.Simplified
     {
         private static readonly string[] extensions = { "*.timetable_or", "*.timetable-or", "*.timetablelist_or", "*.timetablelist-or" };
 
-        public List<TimetableFile> TimeTables { get; private set; } = new List<TimetableFile>();
+        public Collection<TimetableFile> TimeTables { get; private set; } = new Collection<TimetableFile>();
         public string Description { get; private set; }
         public string FileName { get; private set; }
 
@@ -181,7 +182,9 @@ namespace Orts.Models.Simplified
         }
     }
 
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public readonly struct DelayedStart
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         public readonly int FixedPart;                                        // fixed part for restart delay
         public readonly int RandomPart;                                       // random part for restart delay

@@ -107,7 +107,9 @@ namespace Orts.Models.State
         public float DoorsCloseAdvance { get; set; }
         public float DoorsOpenDelay { get; set; }
         public LevelCrossingHornPattern LevelCrossingHornPattern { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
         public Collection<TrafficItemSaveState> TrafficItemSaveStates { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
     }
 
     [MemoryPackable]
@@ -126,6 +128,7 @@ namespace Orts.Models.State
         public float MaxDecelerationFreight { get; set; }
         public int? ActivationTime { get; set; }
         public bool TriggeredActivationRequired { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
         public Collection<TriggerActivationSaveState> ActivationTriggerSaveStates { get; set; }
         public Collection<WaitInfoSaveState> WaitInfoSaveStates { get; set; }
         public Dictionary<int, Collection<WaitInfoSaveState>> WaitInfoAnySaveStates { get; set; }
@@ -144,6 +147,7 @@ namespace Orts.Models.State
         public AttachInfoSaveState AttachInfoSaveState { get; set; }
         public Dictionary<int, Collection<DetachInfoSaveState>> DetachInfoSaveStates { get; set; }
         public TimetableTurntableControlSaveState TrainOnTurntableSaveState { get; set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] ActiveDetaches { get; set; }
         public int DetachUnits { get; set; }
         public bool DetachPosition { get; set; }
@@ -168,5 +172,7 @@ namespace Orts.Models.State
         public bool DriverOnlyOperation { get; set; }
         public bool ForceReversal { get; set; }
         public string Briefing { get; set; }
+#pragma warning restore CA1819 // Properties should not return arrays
+#pragma warning restore CA2227 // Collection properties should be read only
     }
 }

@@ -20,7 +20,9 @@ namespace Orts.Models.State
         public int? DetachTime { get; set; }
         public bool? ReverseDetachedTrain { get; set; }
         public bool PlayerAutoDetach { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
         public Collection<string> DetachConsists { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
         public bool Valid { get; set; }
         public bool DetachFormedStatic { get; set; }
     }
