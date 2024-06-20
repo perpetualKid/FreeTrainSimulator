@@ -21,9 +21,6 @@
  * 
  */
 
-// #define DEBUG_DEADLOCK
-// DEBUG flag for debug prints
-
 using System.Collections.Generic;
 
 using Orts.Simulation.RollingStocks;

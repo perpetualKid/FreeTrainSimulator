@@ -270,30 +270,30 @@ namespace Orts.Simulation.Multiplayer
             player.Train = train;
         }
 
-        // Save
-        public void Save(BinaryWriter outf)
-        {
-            outf.Write(Players.Count);
-            foreach (var onlinePlayer in Players.Values)
-            {
-                onlinePlayer.Save(outf);
-            }
-        }
+        //// Save
+        //public void Save(BinaryWriter outf)
+        //{
+        //    outf.Write(Players.Count);
+        //    foreach (var onlinePlayer in Players.Values)
+        //    {
+        //        onlinePlayer.Save(outf);
+        //    }
+        //}
 
-        // Restore
-        public void Restore(BinaryReader inf)
-        {
-            var onlinePlayersCount = inf.ReadInt32();
-            if (onlinePlayersCount > 0)
-            {
-                while (onlinePlayersCount > 0)
-                {
-                    OnlinePlayer player = new OnlinePlayer(inf);
-                    Players.Add(player.Username, player);
-                    onlinePlayersCount -= 1;
-                }
-            }
-        }
+        //// Restore
+        //public void Restore(BinaryReader inf)
+        //{
+        //    var onlinePlayersCount = inf.ReadInt32();
+        //    if (onlinePlayersCount > 0)
+        //    {
+        //        while (onlinePlayersCount > 0)
+        //        {
+        //            OnlinePlayer player = new OnlinePlayer(inf);
+        //            Players.Add(player.Username, player);
+        //            onlinePlayersCount -= 1;
+        //        }
+        //    }
+        //}
     }
 
     public struct OnlineLocomotive

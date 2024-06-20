@@ -50,51 +50,51 @@ namespace Orts.Simulation.Multiplayer
 		public OnlinePlayerStatus Status { get; set; } = OnlinePlayerStatus.Valid;//is this player removed by the dispatcher
         public bool Protected { get; set; } //when in true, will not force this player out, to protect the one that others uses the same name
 
-        // Used to restore
-        public OnlinePlayer(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
+        //// Used to restore
+        //public OnlinePlayer(BinaryReader inf)
+        //{
+        //    ArgumentNullException.ThrowIfNull(inf);
 
-            Username = inf.ReadString();
-            LeadingLocomotiveID = inf.ReadString();
-            int trainNo = inf.ReadInt32();
-            Train = Simulator.Instance.Trains.GetTrainByNumber(trainNo);
-            Consist = inf.ReadString();
-            Path = inf.ReadString();
-            CreatedTime = inf.ReadDouble();
-            QuitTime = inf.ReadDouble();
-            Status = (OnlinePlayerStatus)inf.ReadInt32();
-            Protected = inf.ReadBoolean();
-            Status = OnlinePlayerStatus.Quit;
-            Train.SpeedMpS = 0;
-            QuitTime = Simulator.Instance.GameTime; // allow a total of 10 minutes to reenter game.
-            for (int i = 0; i < Train.Cars.Count; i++)
-            {
-                TrainCar car = Train.Cars[i];
-                if (car is MSTSLocomotive && MultiPlayerManager.IsServer())
-                    MultiPlayerManager.Instance().AddOrRemoveLocomotive(Username, Train.Number, i, true);
-            }
+        //    Username = inf.ReadString();
+        //    LeadingLocomotiveID = inf.ReadString();
+        //    int trainNo = inf.ReadInt32();
+        //    Train = Simulator.Instance.Trains.GetTrainByNumber(trainNo);
+        //    Consist = inf.ReadString();
+        //    Path = inf.ReadString();
+        //    CreatedTime = inf.ReadDouble();
+        //    QuitTime = inf.ReadDouble();
+        //    Status = (OnlinePlayerStatus)inf.ReadInt32();
+        //    Protected = inf.ReadBoolean();
+        //    Status = OnlinePlayerStatus.Quit;
+        //    Train.SpeedMpS = 0;
+        //    QuitTime = Simulator.Instance.GameTime; // allow a total of 10 minutes to reenter game.
+        //    for (int i = 0; i < Train.Cars.Count; i++)
+        //    {
+        //        TrainCar car = Train.Cars[i];
+        //        if (car is MSTSLocomotive && MultiPlayerManager.IsServer())
+        //            MultiPlayerManager.Instance().AddOrRemoveLocomotive(Username, Train.Number, i, true);
+        //    }
 
-            if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(Username))
-            {
-                MultiPlayerManager.Instance().lostPlayer.Add(Username, this);
-                MultiPlayerManager.Instance().AddRemovedPlayer(this);//add this player to be removed
-            }
-        }
+        //    if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(Username))
+        //    {
+        //        MultiPlayerManager.Instance().lostPlayer.Add(Username, this);
+        //        MultiPlayerManager.Instance().AddRemovedPlayer(this);//add this player to be removed
+        //    }
+        //}
 
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
+        //public void Save(BinaryWriter outf)
+        //{
+        //    ArgumentNullException.ThrowIfNull(outf);
 
-            outf.Write(Username);
-            outf.Write(LeadingLocomotiveID);
-            outf.Write(Train.Number);
-            outf.Write(Consist);
-            outf.Write(Path);
-            outf.Write(CreatedTime);
-            outf.Write(QuitTime);
-            outf.Write((int)Status);
-            outf.Write(Protected);
-        }
+        //    outf.Write(Username);
+        //    outf.Write(LeadingLocomotiveID);
+        //    outf.Write(Train.Number);
+        //    outf.Write(Consist);
+        //    outf.Write(Path);
+        //    outf.Write(CreatedTime);
+        //    outf.Write(QuitTime);
+        //    outf.Write((int)Status);
+        //    outf.Write(Protected);
+        //}
 	}
 }

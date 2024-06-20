@@ -45,6 +45,7 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
+using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
 
 namespace Orts.Simulation.AIs
@@ -233,6 +234,9 @@ namespace Orts.Simulation.AIs
             // associate location events
             simulator.ActivityRun?.AssociateEvents(this);
             LastSpeedMpS = SpeedMpS;
+
+            if ( aiTrainSaveState.PlayerLocomotiveIndex >= 0)
+                simulator.PlayerLocomotive = Cars[aiTrainSaveState.PlayerLocomotiveIndex] as MSTSLocomotive ?? throw new InvalidCastException(nameof(simulator.PlayerLocomotive));
         }
 
         //================================================================================================//

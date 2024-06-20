@@ -16,8 +16,6 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Diagnostics;
-using System.IO;
 
 namespace Orts.Common.Calc
 {

@@ -20,7 +20,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,7 +31,6 @@ using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.Common;
 using Orts.Common.Info;
-using Orts.Common.Position;
 using Orts.Models.State;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
@@ -172,13 +170,6 @@ namespace Orts.ActivityRunner.Processes
 
             instance.Viewer.PrepareSave(fileStem);
             GameSaveState saveState = await instance.Snapshot().ConfigureAwait(false);
-
-            using (BinaryWriter outf = new BinaryWriter(new MemoryStream()))
-            {
-                // Save multiplayer parameters
-                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
-                    MultiPlayerManager.OnlineTrains.Save(outf);
-            }
 
             await GameSaveState.ToFile(Path.Combine(RuntimeInfo.UserDataFolder, fileStem + FileNameExtensions.SaveFile), saveState, CancellationToken.None).ConfigureAwait(false);
 

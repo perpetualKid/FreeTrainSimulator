@@ -306,35 +306,28 @@ namespace Orts.ActivityRunner.Processes
             string saveFile = GetSaveFile(data);
             GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
-            Pipe pipe = new Pipe();
+            activityType = saveState.ActivityType;
+            data = saveState.Arguments.ToArray();
+            InitSimulator(settings);
+            simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
+            await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
 
-            using (BinaryReader inf = new BinaryReader(pipe.Reader.AsStream()))
+            Viewer = new Viewer(simulator, Game);
+            Viewer.Initialize();
+            if (MultiPlayerManager.IsMultiPlayer())
             {
-                activityType = saveState.ActivityType;
-                data = saveState.Arguments.ToArray();
-                InitSimulator(settings);
-                simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
-                await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
-                simulator.Restore(inf);
-                Viewer = new Viewer(simulator, Game);
-                Viewer.Initialize();
-                if (MultiPlayerManager.IsMultiPlayer())
-                {
-                    if (activityType == ActivityType.Activity)
-                        simulator.SetPathAndConsist();
-                    MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
-                }
-                await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
+                if (activityType == ActivityType.Activity)
+                    simulator.SetPathAndConsist();
+                MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
+            }
+            await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
 
-                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
-                    MultiPlayerManager.OnlineTrains.Restore(inf);
-                // Reload the command log
-                simulator.Log.LoadLog(Path.ChangeExtension(saveFile, "replay"));
+            // Reload the command log
+            simulator.Log.LoadLog(Path.ChangeExtension(saveFile, "replay"));
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                Game.ReplaceState(new GameStateViewer3D(Viewer));
+            Game.ReplaceState(new GameStateViewer3D(Viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            }
         }
 
         /// <summary>
@@ -435,22 +428,17 @@ namespace Orts.ActivityRunner.Processes
             {
                 GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(previousSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
-                Pipe pipe = new Pipe();
-
                 // Resume from previous SaveFile and then replay
-                using (BinaryReader inf = new BinaryReader(pipe.Reader.AsStream()))
-                {
-                    activityType = saveState.ActivityType;
-                    data = saveState.Arguments.ToArray();
-                    actionType = ActionType.Resume;
-                    InitSimulator(settings);
-                    simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
-                    await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
-                    simulator.Restore(inf);
-                    Viewer = new Viewer(simulator, Game);
-                    Viewer.Initialize();
-                    await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
-                }
+                activityType = saveState.ActivityType;
+                data = saveState.Arguments.ToArray();
+                actionType = ActionType.Resume;
+                InitSimulator(settings);
+                simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
+                await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
+
+                Viewer = new Viewer(simulator, Game);
+                Viewer.Initialize();
+                await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
             }
 
             // Now Simulator exists, link the log to it in both directions

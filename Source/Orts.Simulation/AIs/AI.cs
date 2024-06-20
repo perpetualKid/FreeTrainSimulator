@@ -24,11 +24,6 @@
  * 
  */
 
-// 
-// Flag to print deadlock info
-// #define DEBUG_DEADLOCK
-//
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -141,132 +136,6 @@ namespace Orts.Simulation.AIs
             PrerunAI(playerTrainOriginalTrain, playerTrainFormedOfType, playerTrain, cancellation);
 
             localTime = false;
-        }
-
-        // restore game state
-        public AI(Simulator simulator, BinaryReader inf)
-        {
-            Debug.Assert(simulator.Trains != null, "Cannot restore AI without Simulator.Trains.");
-            this.simulator = simulator;
-
-            int totalAITrains = inf.ReadInt32();
-
-            for (int iTrain = 0; iTrain < totalAITrains; iTrain++)
-            {
-                string trainType = inf.ReadString();
-
-                // activity mode trains
-                if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
-                {
-                    //AITrain aiTrain = new AITrain(inf, this);
-                    AITrain aiTrain = new AITrain();
-                    AITrains.Add(aiTrain);
-                    this.simulator.Trains.Add(aiTrain);
-                    simulator.TrainDictionary.Add(aiTrain.Number, aiTrain);
-                    if (!this.simulator.NameDictionary.ContainsKey(aiTrain.Name))
-                        this.simulator.NameDictionary.Add(aiTrain.Name, aiTrain);
-                }
-
-                // timetable mode trains
-                else
-                {
-                    TTTrain aiTrain = new TTTrain(inf, this);
-                    if (aiTrain.TrainType != TrainType.Player) // add to AITrains except when it is player train
-                    {
-                        AITrains.Add(aiTrain);
-                    }
-
-                    if (!this.simulator.TrainDictionary.ContainsKey(aiTrain.Number))
-                    {
-                        this.simulator.Trains.Add(aiTrain);
-                        simulator.TrainDictionary.Add(aiTrain.Number, aiTrain);
-                    }
-                    if (!this.simulator.NameDictionary.ContainsKey(aiTrain.Name))
-                        this.simulator.NameDictionary.Add(aiTrain.Name, aiTrain);
-                }
-            }
-
-            int totalStarting = inf.ReadInt32();
-
-            for (int iStarting = 0; iStarting < totalStarting; iStarting++)
-            {
-                string trainType = inf.ReadString();
-                if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
-                {
-                    //AITrain aiTrain = new AITrain(inf, this);
-                    AITrain aiTrain = new AITrain();
-                    StartList.InsertTrain(aiTrain);
-                    this.simulator.StartReference.Add(aiTrain.Number);
-                }
-                else
-                {
-                    TTTrain aiTrain = new TTTrain(inf, this);
-                    StartList.InsertTrain(aiTrain);
-                    this.simulator.StartReference.Add(aiTrain.Number);
-                }
-            }
-
-            int totalAutoGen = inf.ReadInt32();
-
-            for (int iAutoGen = 0; iAutoGen < totalAutoGen; iAutoGen++)
-            {
-                string trainType = inf.ReadString();
-                if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
-                {
-                    //AITrain aiTrain = new AITrain(inf, this);
-                    AITrain aiTrain = new AITrain();
-                    AutoGenTrains.Add(aiTrain);
-                    this.simulator.AutoGenDictionary.Add(aiTrain.Number, aiTrain);
-                }
-                else
-                {
-                    TTTrain aiTrain = new TTTrain(inf, this);
-                    AutoGenTrains.Add(aiTrain);
-                    this.simulator.AutoGenDictionary.Add(aiTrain.Number, aiTrain);
-                }
-            }
-
-            if (this.simulator.PlayerLocomotive != null)
-            {
-                if (this.simulator.PlayerLocomotive.Train is AITrain)
-                    ((AITrain)this.simulator.PlayerLocomotive.Train).AI = this;
-            }
-
-            // in timetable mode : find player train and place it in Simulator.Trains on position 0.
-            if (this.simulator.TimetableMode)
-            {
-                int playerindex = -1;
-                for (int tindex = 0; tindex < this.simulator.Trains.Count && playerindex < 0; tindex++)
-                {
-                    if (this.simulator.Trains[tindex].Number == 0)
-                    {
-                        playerindex = tindex;
-                    }
-                }
-
-                if (playerindex > 0)
-                {
-                    var tmptrain = this.simulator.Trains[playerindex];
-                    this.simulator.Trains[playerindex] = this.simulator.Trains[0];
-                    this.simulator.Trains[0] = tmptrain;
-                }
-
-                this.simulator.PlayerLocomotive = this.simulator.Trains[0].LeadLocomotive;
-            }
-        }
-
-        // Restore in autopilot mode
-        public AI(Simulator simulator, BinaryReader inf, bool autopilot)
-        {
-            this.simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
-            Debug.Assert(simulator.Trains != null, "Cannot restore AI without Simulator.Trains.");
-            _ = inf?.ReadString() ?? throw new ArgumentNullException(nameof(inf)); // may be ignored, can be AI only
-            //AITrain aiTrain = new AITrain(inf, this);
-            AITrain aiTrain = new AITrain();
-            int PlayerLocomotiveIndex = inf.ReadInt32();
-            if (PlayerLocomotiveIndex >= 0)
-                this.simulator.PlayerLocomotive = aiTrain.Cars[PlayerLocomotiveIndex] as MSTSLocomotive ?? throw new InvalidCastException(nameof(AI.simulator.PlayerLocomotive));
-            this.simulator.Trains.Add(aiTrain);
         }
 
         public AI(Simulator simulator)
@@ -1013,27 +882,6 @@ namespace Orts.Simulation.AIs
                 }
             }
 
-#if DEBUG_DEADLOCK
-            File.AppendAllText(@"C:\Temp\deadlock.txt", "Added Train : " + thisTrain.Number.ToString() + " , accepted : " + validPosition.ToString()+"\n");
-
-            foreach (TrackCircuitSection thisSection in Simulator.Signals.TrackCircuitList)
-            {
-                if (thisSection.DeadlockTraps.Count > 0)
-                {
-                    File.AppendAllText(@"C:\Temp\deadlock.txt", "Section : " + thisSection.Index.ToString() + "\n");
-                    foreach (KeyValuePair<int, List<int>> thisDeadlock in thisSection.DeadlockTraps)
-                    {
-                        File.AppendAllText(@"C:\Temp\deadlock.txt", "    Train : " + thisDeadlock.Key.ToString() + "\n");
-                        File.AppendAllText(@"C:\Temp\deadlock.txt", "       With : " + "\n");
-                        foreach (int otherTrain in thisDeadlock.Value)
-                        {
-                            File.AppendAllText(@"C:\Temp\deadlock.txt", "          " + otherTrain.ToString() + "\n");
-                        }
-                    }
-                }
-            }
-#endif
-
             return validPosition;
         }
 
@@ -1185,26 +1033,6 @@ namespace Orts.Simulation.AIs
                     simulator.StartReference.Add(thisTrain.Number);
                 }
             }
-#if DEBUG_DEADLOCK
-            File.AppendAllText(@"C:\Temp\deadlock.txt", "Added Train : " + thisTrain.Number.ToString() + " , accepted : " + validPosition.ToString() + "\n");
-
-            foreach (TrackCircuitSection thisSection in Simulator.Signals.TrackCircuitList)
-            {
-                if (thisSection.DeadlockTraps.Count > 0)
-                {
-                    File.AppendAllText(@"C:\Temp\deadlock.txt", "Section : " + thisSection.Index.ToString() + "\n");
-                    foreach (KeyValuePair<int, List<int>> thisDeadlock in thisSection.DeadlockTraps)
-                    {
-                        File.AppendAllText(@"C:\Temp\deadlock.txt", "    Train : " + thisDeadlock.Key.ToString() + "\n");
-                        File.AppendAllText(@"C:\Temp\deadlock.txt", "       With : " + "\n");
-                        foreach (int otherTrain in thisDeadlock.Value)
-                        {
-                            File.AppendAllText(@"C:\Temp\deadlock.txt", "          " + otherTrain.ToString() + "\n");
-                        }
-                    }
-                }
-            }
-#endif
             return (endPreRun);
         }
 
