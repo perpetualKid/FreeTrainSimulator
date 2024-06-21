@@ -592,7 +592,7 @@ namespace Orts.Simulation.RollingStocks
                 GearBoxController = new MSTSNotchController();
                 await GearBoxController.Restore(dieselLocomotiveSave.GearboxControllerSaveState).ConfigureAwait(false);
             }
-            await DieselEngines.RestoreCollectionCreateNewInstances(dieselLocomotiveSave.EngineSaveStates, DieselEngines).ConfigureAwait(false);
+            await DieselEngines.RestoreCollectionCreateNewItems(dieselLocomotiveSave.EngineSaveStates, DieselEngines).ConfigureAwait(false);
         }
 
         //================================================================================================//

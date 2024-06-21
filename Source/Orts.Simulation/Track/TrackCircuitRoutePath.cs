@@ -877,10 +877,10 @@ namespace Orts.Simulation.Track
             ActiveSubPath = saveState.ActivePath;
             ActiveAlternativePath = saveState.ActiveAlternativePath;
 
-            await TCRouteSubpaths.RestoreCollectionCreateNewInstances(saveState.RoutePaths).ConfigureAwait(false);
-            await TCAlternativePaths.RestoreCollectionCreateNewInstances(saveState.AlternativePaths).ConfigureAwait(false);
+            await TCRouteSubpaths.RestoreCollectionCreateNewItems(saveState.RoutePaths).ConfigureAwait(false);
+            await TCAlternativePaths.RestoreCollectionCreateNewItems(saveState.AlternativePaths).ConfigureAwait(false);
             WaitingPoints.AddRange(saveState.Waitpoints.Select(waitPoint => new WaitingPointDetail(waitPoint))); 
-            await ReversalInfo.RestoreCollectionCreateNewInstances(saveState.ReversalInfoSaveStates).ConfigureAwait(false);
+            await ReversalInfo.RestoreCollectionCreateNewItems(saveState.ReversalInfoSaveStates).ConfigureAwait(false);
             LoopEnd.AddRange(saveState.LoopEnd);
             OriginalSubpath = saveState.OriginalSubPath;
 

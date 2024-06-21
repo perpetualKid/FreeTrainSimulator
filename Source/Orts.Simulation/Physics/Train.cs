@@ -647,7 +647,7 @@ namespace Orts.Simulation.Physics
             RoutedForward = new TrainRouted(this, Direction.Forward);
             RoutedBackward = new TrainRouted(this, Direction.Backward);
             ColdStart = false;
-            await Cars.RestoreCollectionCreateNewInstances(saveState.TrainCars, this).ConfigureAwait(false);
+            await Cars.RestoreCollectionCreateNewItems(saveState.TrainCars, this).ConfigureAwait(false);
             foreach (TrainCar car in Cars)
                 car.Initialize();
             SetDistributedPowerUnitIds(true);
@@ -726,7 +726,7 @@ namespace Orts.Simulation.Physics
             }
 
             List<TrackCircuitPartialPathRoute> list = new List<TrackCircuitPartialPathRoute>();
-            await list.RestoreCollectionCreateNewInstances(saveState.ValidRoutes).ConfigureAwait(false);
+            await list.RestoreCollectionCreateNewItems(saveState.ValidRoutes).ConfigureAwait(false);
             ValidRoutes.FromArray(list.ToArray());
 
             foreach (int occupiedTrack in saveState.OccupiedTracks)
@@ -738,7 +738,7 @@ namespace Orts.Simulation.Physics
                 HoldingSignals.Add(holdingSignal);
             }
 
-            await StationStops.RestoreCollectionCreateNewInstances(saveState.StationStopSaveStates).ConfigureAwait(false);
+            await StationStops.RestoreCollectionCreateNewItems(saveState.StationStopSaveStates).ConfigureAwait(false);
             if (saveState.LastStationStop != null)
             {
                 PreviousStop = new StationStop();
@@ -760,13 +760,13 @@ namespace Orts.Simulation.Physics
             if (saveState.ServiceTrafficItemSaveStates != null)
             {
                 trafficService = new ServiceTraffics(saveState.ServiceTrafficTime);
-                await trafficService.RestoreCollectionCreateNewInstances(saveState.ServiceTrafficItemSaveStates).ConfigureAwait(false);
+                await trafficService.RestoreCollectionCreateNewItems(saveState.ServiceTrafficItemSaveStates).ConfigureAwait(false);
             }
 
             ControlMode = saveState.TrainControlMode;
             OutOfControlReason = saveState.OutOfControlReason;
             List<EndAuthority> endAuthorityList = new List<EndAuthority>();
-            await endAuthorityList.RestoreCollectionCreateNewInstances(saveState.AuthoritySaveStates).ConfigureAwait(false);
+            await endAuthorityList.RestoreCollectionCreateNewItems(saveState.AuthoritySaveStates).ConfigureAwait(false);
             EndAuthorities.FromArray(endAuthorityList.ToArray());
             LoopSection = saveState.LoopSection;
 
@@ -783,10 +783,10 @@ namespace Orts.Simulation.Physics
                 PresentPosition[Direction.Backward].RouteListIndex = ValidRoutes[Direction.Backward].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
             }
 
-            await RequiredActions.RestoreCollectionCreateNewInstances(saveState.DistanceTravelledActions, new DistanceTravelledItemActivator()).ConfigureAwait(false);
+            await RequiredActions.RestoreCollectionCreateNewItems(saveState.DistanceTravelledActions, new DistanceTravelledItemActivator()).ConfigureAwait(false);
 
             AuxActionsContainer = new AuxActionsContainer(this);
-            await AuxActionsContainer.SpecAuxActions.RestoreCollectionCreateNewInstances(saveState.AuxActionsSaveStates, AuxActionsContainer).ConfigureAwait(false);
+            await AuxActionsContainer.SpecAuxActions.RestoreCollectionCreateNewItems(saveState.AuxActionsSaveStates, AuxActionsContainer).ConfigureAwait(false);
             TrainDeadlockInfo = new TrainDeadlockInfo(this, saveState.DeadlockInfo);
 
             InitialSpeed = (float)saveState.InitialSpeed;

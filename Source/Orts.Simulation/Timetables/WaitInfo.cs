@@ -263,7 +263,6 @@ namespace Orts.Simulation.Timetables
             }
             else
             {
-
                 CheckPath = new TrackCircuitPartialPathRoute();
                 await CheckPath.Restore(saveState.CheckPath).ConfigureAwait(false);
                 PathDirection = saveState.CheckDirection;

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeTrainSimulator.Common.Api
@@ -24,6 +25,12 @@ namespace FreeTrainSimulator.Common.Api
 
     public static class SaveStateCollectionExtension
     {
+        private static void AddAll<T>(this ICollection<T> collection, IEnumerable<T> source)
+        {
+            foreach (T item in source)
+                collection.Add(item);
+        }
+
         #region Collection
         public static async ValueTask<Collection<TSaveState>> SnapshotCollection<TSaveState, TRuntime>(this IEnumerable<TRuntime> source)
             where TSaveState : SaveStateBase
@@ -37,26 +44,28 @@ namespace FreeTrainSimulator.Common.Api
             })).ConfigureAwait(false));
         }
 
-        public static async ValueTask RestoreCollectionCreateNewInstances<TSaveState, TRuntime>(this ICollection<TRuntime> target, ICollection<TSaveState> saveStates)
+        public static async ValueTask RestoreCollectionCreateNewItems<TSaveState, TRuntime>(this ICollection<TRuntime> target, ICollection<TSaveState> saveStates)
             where TSaveState : SaveStateBase
             where TRuntime : ISaveStateApi<TSaveState>, new()
         {
             ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
             ArgumentNullException.ThrowIfNull(target, nameof(target));
 
-            await Task.WhenAll(saveStates.Select(async saveState =>
+            TRuntime[] results = await Task.WhenAll(saveStates.Select(async saveState =>
             {
-                TRuntime targetInstance = default;
+                TRuntime targetItem = default;
                 if (saveState != null)
                 {
-                    targetInstance = new TRuntime();
-                    await targetInstance.Restore(saveState).ConfigureAwait(false);
+                    targetItem = new TRuntime();
+                    await targetItem.Restore(saveState).ConfigureAwait(false);
                 }
-                target.Add(targetInstance);
+                return targetItem;
             })).ConfigureAwait(false);
+
+            target.AddAll(results);
         }
 
-        public static async ValueTask RestoreCollectionCreateNewInstances<TSaveState, TRuntime, TActivator>(this ICollection<TRuntime> target, ICollection<TSaveState> saveStates, TActivator activator)
+        public static async ValueTask RestoreCollectionCreateNewItems<TSaveState, TRuntime, TActivator>(this ICollection<TRuntime> target, ICollection<TSaveState> saveStates, TActivator activator)
             where TSaveState : SaveStateBase
             where TRuntime : ISaveStateApi<TSaveState>
             where TActivator : ISaveStateRestoreApi<TSaveState, TRuntime>
@@ -65,18 +74,19 @@ namespace FreeTrainSimulator.Common.Api
             ArgumentNullException.ThrowIfNull(target, nameof(target));
             ArgumentNullException.ThrowIfNull(activator, nameof(activator));
 
-            await Task.WhenAll(saveStates.Select(async saveState =>
+            TRuntime[] results = await Task.WhenAll(saveStates.Select(async saveState =>
             {
-                TRuntime targetInstance = default;
+                TRuntime targetItem = default;
                 if (saveState != null)
                 {
-                    targetInstance = activator.CreateRuntimeTarget(saveState);
-                    if (null != targetInstance)
-                        await targetInstance.Restore(saveState).ConfigureAwait(false);
+                    targetItem = activator.CreateRuntimeTarget(saveState);
+                    if (null != targetItem)
+                        await targetItem.Restore(saveState).ConfigureAwait(false);
                 }
-                if (null != targetInstance)
-                    target.Add(targetInstance);
+                return targetItem;
             })).ConfigureAwait(false);
+
+            target.AddAll(results);
         }
 
         public static async ValueTask RestoreCollectionOnExistingInstances<TSaveState, TRuntime>(this IEnumerable<TRuntime> target, IEnumerable<TSaveState> saveStates)
@@ -86,11 +96,10 @@ namespace FreeTrainSimulator.Common.Api
             ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
             ArgumentNullException.ThrowIfNull(target, nameof(target));
 
-            foreach ((TRuntime targetInstance, TSaveState saveState) in target.Zip(saveStates))
-            {
-                if (null != targetInstance && null != saveState)
-                    await targetInstance.Restore(saveState).ConfigureAwait(false);
-            }
+            await Parallel.ForEachAsync(target.Zip(saveStates), async (targetInstance, cancellationToken) => {
+                if (null != targetInstance.First && null != targetInstance.Second)
+                    await targetInstance.First.Restore(targetInstance.Second).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
         #endregion
 
@@ -158,16 +167,16 @@ namespace FreeTrainSimulator.Common.Api
                 _ = target.TryAdd(item.Key, item.Value);
         }
 
-        public static async ValueTask RestoreDictionaryOnExistingInstances<TSaveState, TRuntime, TKey>(this IDictionary<TKey, TRuntime> target, IDictionary<TKey, TSaveState> saveStates)
+        public static async ValueTask RestoreDictionaryOnExistingItems<TSaveState, TRuntime, TKey>(this IDictionary<TKey, TRuntime> target, IDictionary<TKey, TSaveState> saveStates)
             where TSaveState : SaveStateBase
             where TRuntime : ISaveStateApi<TSaveState>
         {
             ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
             ArgumentNullException.ThrowIfNull(target, nameof(target));
 
-            await Parallel.ForEachAsync(target, async (targetInstance, cancellationToken) =>
+            await Parallel.ForEachAsync(target, async (targetItem, cancellationToken) =>
             {
-                await targetInstance.Value.Restore(saveStates[targetInstance.Key]).ConfigureAwait(false);
+                await targetItem.Value.Restore(saveStates[targetItem.Key]).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
         #endregion
@@ -187,6 +196,23 @@ namespace FreeTrainSimulator.Common.Api
             return ValueTask.FromResult(saveStates.ToDictionary());
         }
 
+        public static ValueTask RestoreListDictionary<TRuntime, TKey>(this IDictionary<TKey, List<TRuntime>> target, IDictionary<TKey, Collection<TRuntime>> saveStates)
+            where TRuntime : struct
+        {
+            ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
+            ArgumentNullException.ThrowIfNull(target, nameof(target));
+
+            ConcurrentDictionary<TKey, List<TRuntime>> restoreItems = new ConcurrentDictionary<TKey, List<TRuntime>>();
+            Parallel.ForEach(saveStates, (saveState, cancellationToken) =>
+            {
+                List<TRuntime> targetItem = new List<TRuntime>(saveState.Value);
+            });
+
+            target.AddAll(restoreItems);
+            return ValueTask.CompletedTask;
+        }
+
+
         public static async ValueTask<Dictionary<TKey, Collection<TSaveState>>> SnapshotListDictionary<TSaveState, TRuntime, TKey>(this IDictionary<TKey, List<TRuntime>> source)
             where TSaveState : SaveStateBase
             where TRuntime : ISaveStateApi<TSaveState>
@@ -201,6 +227,28 @@ namespace FreeTrainSimulator.Common.Api
 
             return saveStates.ToDictionary();
             #endregion
+        }
+
+        public static async ValueTask RestoreListDictionaryCreateNewItem<TSaveState, TRuntime, TKey>(this IDictionary<TKey, List<TRuntime>> target, IDictionary<TKey, Collection<TSaveState>> saveStates)
+            where TSaveState : SaveStateBase
+            where TRuntime : ISaveStateApi<TSaveState>, new()
+        {
+            ArgumentNullException.ThrowIfNull(saveStates, nameof(saveStates));
+            ArgumentNullException.ThrowIfNull(target, nameof(target));
+
+            ConcurrentDictionary<TKey, List<TRuntime>> restoreItems = new ConcurrentDictionary<TKey, List<TRuntime>>();
+            await Parallel.ForEachAsync(saveStates, async (saveState, cancellationToken) =>
+            {
+                List<TRuntime> targetItem = default;
+                if (saveState.Value != null)
+                {
+                    targetItem = new List<TRuntime>();
+                    await targetItem.RestoreCollectionCreateNewItems(saveState.Value).ConfigureAwait(false);
+                }
+                _ = restoreItems.TryAdd(saveState.Key, targetItem);
+            }).ConfigureAwait(false);
+
+            target.AddAll(restoreItems);
         }
     }
 }

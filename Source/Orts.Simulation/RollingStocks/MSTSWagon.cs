@@ -1777,11 +1777,11 @@ namespace Orts.Simulation.RollingStocks
             DerailExpected = wagonSaveState.DerailExpected;
             derailElapsedTime = wagonSaveState.DerailElapsedTime;
 
-            await Pantographs.RestoreCollectionCreateNewInstances(wagonSaveState.PantographSaveStates, Pantographs).ConfigureAwait(false);
+            await Pantographs.RestoreCollectionCreateNewItems(wagonSaveState.PantographSaveStates, Pantographs).ConfigureAwait(false);
             await Doors.RestoreCollectionOnExistingInstances(wagonSaveState.DoorSaveStates).ConfigureAwait(false);
 
             List<Coupler> restoreCouplers = new List<Coupler>();
-            await restoreCouplers.RestoreCollectionCreateNewInstances(wagonSaveState.CouplerSaveStates).ConfigureAwait(false);
+            await restoreCouplers.RestoreCollectionCreateNewItems(wagonSaveState.CouplerSaveStates).ConfigureAwait(false);
             couplers = new EnumArray<Coupler, TrainCarLocation>(restoreCouplers);
             if (null != PassengerCarPowerSupply)
                 await PassengerCarPowerSupply.Restore(wagonSaveState.PowerSupplySaveStates).ConfigureAwait(false);

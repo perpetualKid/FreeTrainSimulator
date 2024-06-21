@@ -904,9 +904,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 }
             }
             Collection<FreightAnimationDiscrete> discreteFreightAnimations = new Collection<FreightAnimationDiscrete>();
-            await discreteFreightAnimations.RestoreCollectionCreateNewInstances<FreightAnimationSaveState, FreightAnimationDiscrete, FreightAnimations>(saveState.FreightAnimations, this).ConfigureAwait(false);
+            await discreteFreightAnimations.RestoreCollectionCreateNewItems<FreightAnimationSaveState, FreightAnimationDiscrete, FreightAnimations>(saveState.FreightAnimations, this).ConfigureAwait(false);
             Animations.AddRange(discreteFreightAnimations);
-            await EmptyAnimations.RestoreCollectionCreateNewInstances<FreightAnimationSaveState, FreightAnimationDiscrete, FreightAnimations>(saveState.EmptyAnimations, this).ConfigureAwait(false);
+            await EmptyAnimations.RestoreCollectionCreateNewItems<FreightAnimationSaveState, FreightAnimationDiscrete, FreightAnimations>(saveState.EmptyAnimations, this).ConfigureAwait(false);
         }
     }
 

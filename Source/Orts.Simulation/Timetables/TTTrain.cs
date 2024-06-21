@@ -25,10 +25,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
@@ -212,337 +211,6 @@ namespace Orts.Simulation.Timetables
             SpeedSettings = TTrain.SpeedSettings;
         }
 
-        //================================================================================================//
-        /// <summary>
-        /// Restore
-        /// <\summary>
-
-        public TTTrain(BinaryReader inf, AI airef)
-            : base()
-        {
-            // TTTrains own additional fields
-            Closeup = inf.ReadBoolean();
-            Created = inf.ReadBoolean();
-            CreateAhead = inf.ReadString();
-            CreateFromPool = inf.ReadString();
-            CreateInPool = inf.ReadString();
-            ForcedConsistName = inf.ReadString();
-            CreatePoolDirection = (PoolExitDirection)inf.ReadInt32();
-
-            MaxAccelMpSSP = inf.ReadSingle();
-            MaxAccelMpSSF = inf.ReadSingle();
-            MaxDecelMpSSP = inf.ReadSingle();
-            MaxDecelMpSSF = inf.ReadSingle();
-
-            int activateTimeValue = inf.ReadInt32();
-            if (activateTimeValue < 0)
-            {
-                ActivateTime = null;
-            }
-            else
-            {
-                ActivateTime = activateTimeValue;
-            }
-
-            TriggeredActivationRequired = inf.ReadBoolean();
-
-            int triggerActivations = inf.ReadInt32();
-
-            for (int itrigger = 0; itrigger < triggerActivations; itrigger++)
-            {
-                TriggerActivation newTrigger = new TriggerActivation
-                {
-                    ActivatedTrainName = inf.ReadString(),
-                    ActivatedTrain = inf.ReadInt32(),
-                    ActivationType = (TriggerActivationType)inf.ReadInt32(),
-                    PlatformId = inf.ReadInt32()
-                };
-
-                ActivatedTrainTriggers.Add(newTrigger);
-            }
-
-            int totalWait = inf.ReadInt32();
-            if (totalWait > 0)
-            {
-                waitList = new List<WaitInfo>();
-                for (int iWait = 0; iWait < totalWait; iWait++)
-                {
-                    waitList.Add(new WaitInfo(inf));
-                }
-            }
-
-            int totalWaitAny = inf.ReadInt32();
-
-            if (totalWaitAny > 0)
-            {
-                waitAnyList = new Dictionary<int, List<WaitInfo>>();
-                for (int iWait = 0; iWait < totalWaitAny; iWait++)
-                {
-                    int keyvalue = inf.ReadInt32();
-
-                    List<WaitInfo> newList = new List<WaitInfo>();
-                    int totalWaitInfo = inf.ReadInt32();
-                    for (int iWinfo = 0; iWinfo < totalWaitInfo; iWinfo++)
-                    {
-                        newList.Add(new WaitInfo(inf));
-                    }
-                    waitAnyList.Add(keyvalue, newList);
-                }
-            }
-
-            StableCallOn = inf.ReadBoolean();
-
-            Forms = inf.ReadInt32();
-            FormsStatic = inf.ReadBoolean();
-            ExitPool = inf.ReadString();
-            PoolAccessSection = inf.ReadInt32();
-            PoolStorageIndex = inf.ReadInt32();
-            PoolExitDirection = (PoolExitDirection)inf.ReadInt32();
-
-            ActiveTurntable = null;
-            if (inf.ReadBoolean())
-            {
-                ActiveTurntable = new TimetableTurntableControl(this);
-            }
-
-            FormedOf = inf.ReadInt32();
-            FormedOfType = (TimetableFormationCommand)inf.ReadInt32();
-            OrgAINumber = inf.ReadInt32();
-            SetStop = inf.ReadBoolean();
-            FormsAtStation = inf.ReadBoolean();
-
-            int totalDetachLists = inf.ReadInt32();
-            DetachDetails = new Dictionary<int, List<DetachInfo>>();
-
-            for (int iDetachList = 0; iDetachList < totalDetachLists; iDetachList++)
-            {
-                int detachKey = inf.ReadInt32();
-                int totalDetach = inf.ReadInt32();
-                List<DetachInfo> DetachDetailsList = new List<DetachInfo>();
-                for (int iDetach = 0; iDetach < totalDetach; iDetach++)
-                {
-                    DetachDetailsList.Add(new DetachInfo());
-                }
-                DetachDetails.Add(detachKey, DetachDetailsList);
-            }
-
-            //DetachActive = new int[2];
-            //DetachActive[0] = inf.ReadInt32();
-            //DetachActive[1] = inf.ReadInt32();
-            DetachUnits = inf.ReadInt32();
-            DetachPosition = inf.ReadBoolean();
-            DetachPending = inf.ReadBoolean();
-
-            bool attachValid = inf.ReadBoolean();
-            AttachDetails = null;
-            if (attachValid)
-            {
-                AttachDetails = new AttachInfo();
-            }
-
-            PickUpTrains = new List<int>();
-            int totalPickUpTrains = inf.ReadInt32();
-            for (int iPickUp = 0; iPickUp < totalPickUpTrains; iPickUp++)
-            {
-                PickUpTrains.Add(inf.ReadInt32());
-            }
-
-            PickUpStatic = new List<int>();
-            int totalPickUpStatic = inf.ReadInt32();
-            for (int iPickUp = 0; iPickUp < totalPickUpStatic; iPickUp++)
-            {
-                PickUpStatic.Add(inf.ReadInt32());
-            }
-
-            PickUpStaticOnForms = inf.ReadBoolean();
-
-            NeedPickUp = inf.ReadBoolean();
-
-            TransferStationDetails = new Dictionary<int, TransferInfo>();
-            int totalStationTransfers = inf.ReadInt32();
-            for (int iTransferList = 0; iTransferList < totalStationTransfers; iTransferList++)
-            {
-                int stationKey = inf.ReadInt32();
-                TransferInfo thisTransfer = new TransferInfo();
-                TransferStationDetails.Add(stationKey, thisTransfer);
-            }
-
-            TransferTrainDetails = new Dictionary<int, List<TransferInfo>>();
-            int totalTrainTransfers = inf.ReadInt32();
-            for (int iTransferList = 0; iTransferList < totalTrainTransfers; iTransferList++)
-            {
-                int trainKey = inf.ReadInt32();
-                int totalTransfer = inf.ReadInt32();
-                List<TransferInfo> thisTransferList = new List<TransferInfo>();
-                for (int iTransfer = 0; iTransfer < totalTransfer; iTransfer++)
-                {
-                    TransferInfo thisTransfer = new TransferInfo();
-                    thisTransferList.Add(thisTransfer);
-                }
-                TransferTrainDetails.Add(trainKey, thisTransferList);
-            }
-
-            int totalNeedAttach = inf.ReadInt32();
-            NeedAttach = new Dictionary<int, List<int>>();
-
-            for (int iNeedAttach = 0; iNeedAttach < totalNeedAttach; iNeedAttach++)
-            {
-                int needAttachKey = inf.ReadInt32();
-                int totalNeedAttachInfo = inf.ReadInt32();
-                List<int> allNeedAttachInfo = new List<int>();
-
-                for (int iNeedInfo = 0; iNeedInfo < totalNeedAttachInfo; iNeedInfo++)
-                {
-                    int needAttachInfo = inf.ReadInt32();
-                    allNeedAttachInfo.Add(needAttachInfo);
-                }
-
-                NeedAttach.Add(needAttachKey, allNeedAttachInfo);
-            }
-
-            int totalNeedStationTransfer = inf.ReadInt32();
-            NeedStationTransfer = new Dictionary<int, List<int>>();
-
-            for (int iNeedTransferList = 0; iNeedTransferList < totalNeedStationTransfer; iNeedTransferList++)
-            {
-                int transferStationKey = inf.ReadInt32();
-                List<int> tempList = new List<int>();
-                int totalTransfers = inf.ReadInt32();
-
-                for (int iTransfer = 0; iTransfer < totalTransfers; iTransfer++)
-                {
-                    tempList.Add(inf.ReadInt32());
-                }
-                NeedStationTransfer.Add(transferStationKey, tempList);
-            }
-
-            int totalNeedTrainTransfer = inf.ReadInt32();
-            NeedTrainTransfer = new Dictionary<int, int>();
-
-            for (int iNeedTransferList = 0; iNeedTransferList < totalNeedTrainTransfer; iNeedTransferList++)
-            {
-                int transferTrainKey = inf.ReadInt32();
-                int transferTrainValue = inf.ReadInt32();
-                NeedTrainTransfer.Add(transferTrainKey, transferTrainValue);
-            }
-
-            //DelayedStartSettings = new DelayedStartValues();
-            //DelayedStartSettings.newStart.FixedPart = inf.ReadInt32();
-            //DelayedStartSettings.newStart.RandomPart = inf.ReadInt32();
-            //DelayedStartSettings.pathRestart.FixedPart = inf.ReadInt32();
-            //DelayedStartSettings.pathRestart.RandomPart = inf.ReadInt32();
-            //DelayedStartSettings.followRestart.FixedPart = inf.ReadInt32();
-            //DelayedStartSettings.followRestart.RandomPart = inf.ReadInt32();
-            //DelayedStartSettings.stationRestart.FixedPart = inf.ReadInt32();
-            //DelayedStartSettings.stationRestart.RandomPart = inf.ReadInt32();
-            //DelayedStartSettings.attachRestart.FixedPart = inf.ReadInt32();
-            //DelayedStartSettings.attachRestart.RandomPart = inf.ReadInt32();
-            //DelayedStartSettings.detachRestart.FixedPart = inf.ReadInt32();
-            //DelayedStartSettings.detachRestart.RandomPart = inf.ReadInt32();
-            //DelayedStartSettings.movingtableRestart.FixedPart = inf.ReadInt32();
-            //DelayedStartSettings.movingtableRestart.RandomPart = inf.ReadInt32();
-            ReverseAddedDelaySperM = inf.ReadSingle();
-
-            DelayStart = inf.ReadBoolean();
-            DelayedStartState = (AiStartMovement)inf.ReadInt32();
-            RestdelayS = inf.ReadSingle();
-
-            //// preset speed values
-            //SpeedSettings = new SpeedValues();
-
-            //SpeedSettings.RouteSpeed = inf.ReadSingle();
-            //SpeedSettings.ConsistSpeed = inf.ReadSingle();
-
-            //if (inf.ReadBoolean())
-            //{
-            //    SpeedSettings.MaxSpeed = inf.ReadSingle();
-            //}
-            //else
-            //{
-            //    SpeedSettings.MaxSpeed = null;
-            //}
-
-            //if (inf.ReadBoolean())
-            //{
-            //    SpeedSettings.CruiseSpeed = inf.ReadSingle();
-            //}
-            //else
-            //{
-            //    SpeedSettings.CruiseSpeed = null;
-            //}
-
-            //if (inf.ReadBoolean())
-            //{
-            //    SpeedSettings.CruiseMaxDelay = inf.ReadInt32();
-            //}
-            //else
-            //{
-            //    SpeedSettings.CruiseMaxDelay = null;
-            //}
-
-            //if (inf.ReadBoolean())
-            //{
-            //    SpeedSettings.CreepSpeed = inf.ReadSingle();
-            //}
-            //else
-            //{
-            //    SpeedSettings.CreepSpeed = null;
-            //}
-
-            //if (inf.ReadBoolean())
-            //{
-            //    SpeedSettings.AttachSpeed = inf.ReadSingle();
-            //}
-            //else
-            //{
-            //    SpeedSettings.AttachSpeed = null;
-            //}
-
-            //if (inf.ReadBoolean())
-            //{
-            //    SpeedSettings.DetachSpeed = inf.ReadSingle();
-            //}
-            //else
-            //{
-            //    SpeedSettings.DetachSpeed = null;
-            //}
-
-            //if (inf.ReadBoolean())
-            //{
-            //    SpeedSettings.MovingtableSpeed = inf.ReadSingle();
-            //}
-            //else
-            //{
-            //    SpeedSettings.MovingtableSpeed = null;
-            //}
-
-            //SpeedSettings.RestrictedSet = inf.ReadBoolean();
-
-            DriverOnlyOperation = inf.ReadBoolean();
-            ForceReversal = inf.ReadBoolean();
-
-            Briefing = inf.ReadString();
-
-            // reset actions if train is active
-            bool activeTrain = true;
-
-            if (TrainType == TrainType.AiNotStarted)
-                activeTrain = false;
-            if (TrainType == TrainType.AiAutoGenerated)
-                activeTrain = false;
-
-            if (activeTrain)
-            {
-                if (MovementState == AiMovementState.Static || MovementState == AiMovementState.Init)
-                    activeTrain = false;
-            }
-
-            if (activeTrain)
-            {
-                ResetActions(true);
-            }
-        }
-
         public override async ValueTask<TrainSaveState> Snapshot()
         {
             TrainSaveState saveState = await base.Snapshot().ConfigureAwait(false);
@@ -609,270 +277,138 @@ namespace Orts.Simulation.Timetables
             return saveState;
         }
 
-        //public override void Save(BinaryWriter outf)
-        //{
-        //    #region
-        //    //TTTrains own additional fields
-        //    //outf.Write(Closeup);
-        //    //outf.Write(Created);
-        //    //outf.Write(CreateAhead);
-        //    //outf.Write(CreateFromPool);
-        //    //outf.Write(CreateInPool);
-        //    //outf.Write(ForcedConsistName);
-        //    //outf.Write((int)CreatePoolDirection);
+        public override async ValueTask Restore([NotNull] TrainSaveState saveState)
+        {
+            await base.Restore(saveState);
+            ArgumentNullException.ThrowIfNull(saveState.TimetableTrainSaveState, nameof(saveState.TimetableTrainSaveState));
 
-        //    //outf.Write(MaxAccelMpSSP);
-        //    //outf.Write(MaxAccelMpSSF);
-        //    //outf.Write(MaxDecelMpSSP);
-        //    //outf.Write(MaxDecelMpSSF);
-
-        //    //if (ActivateTime.HasValue)
-        //    //{
-        //    //    outf.Write(ActivateTime.Value);
-        //    //}
-        //    //else
-        //    //{
-        //    //    outf.Write(-1);
-        //    //}
-
-        //    //outf.Write(TriggeredActivationRequired);
-        //    //if (ActivatedTrainTriggers.Count > 0)
-        //    //{
-        //    //    outf.Write(ActivatedTrainTriggers.Count);
-        //    //    foreach (TriggerActivation thisTrigger in ActivatedTrainTriggers)
-        //    //    {
-        //    //        outf.Write(thisTrigger.ActivatedTrainName);
-        //    //        outf.Write(thisTrigger.ActivatedTrain);
-        //    //        outf.Write((int)thisTrigger.ActivationType);
-        //    //        outf.Write(thisTrigger.PlatformId);
-        //    //    }
-        //    //}
-        //    //else
-        //    //{
-        //    //    outf.Write(-1);
-        //    //}
-
-        //    //if (WaitList == null)
-        //    //{
-        //    //    outf.Write(-1);
-        //    //}
-        //    //else
-        //    //{
-        //    //    outf.Write(WaitList.Count);
-        //    //    foreach (WaitInfo thisWait in WaitList)
-        //    //    {
-        //    //        thisWait.Save(outf);
-        //    //    }
-        //    //}
-
-        //    //if (WaitAnyList == null)
-        //    //{
-        //    //    outf.Write(-1);
-        //    //}
-        //    //else
-        //    //{
-        //    //    outf.Write(WaitAnyList.Count);
-        //    //    foreach (KeyValuePair<int, List<WaitInfo>> thisWInfo in WaitAnyList)
-        //    //    {
-        //    //        outf.Write((int)thisWInfo.Key);
-        //    //        List<WaitInfo> thisWaitList = thisWInfo.Value;
-
-        //    //        outf.Write(thisWaitList.Count);
-        //    //        foreach (WaitInfo thisWaitInfo in thisWaitList)
-        //    //        {
-        //    //            thisWaitInfo.Save(outf);
-        //    //        }
-        //    //    }
-        //    //}
-
-        //    //outf.Write(StableCallOn);
-
-        //    //outf.Write(Forms);
-        //    //outf.Write(FormsStatic);
-        //    //outf.Write(ExitPool);
-        //    //outf.Write(PoolAccessSection);
-        //    //outf.Write(PoolStorageIndex);
-        //    //outf.Write((int)PoolExitDirection);
-
-        //    //if (ActiveTurntable == null)
-        //    //{
-        //    //    outf.Write(false);
-        //    //}
-        //    //else
-        //    //{
-        //    //    outf.Write(true);
-        //    //    ActiveTurntable.Save(outf);
-        //    //}
-
-        //    //outf.Write(FormedOf);
-        //    //outf.Write((int)FormedOfType);
-        //    //outf.Write(OrgAINumber);
-        //    //outf.Write(SetStop);
-        //    //outf.Write(FormsAtStation);
-
-        //    //outf.Write(DetachDetails.Count);
-        //    //foreach (KeyValuePair<int, List<DetachInfo>> thisDetachInfo in DetachDetails)
-        //    //{
-        //    //    outf.Write(thisDetachInfo.Key);
-        //    //    outf.Write(thisDetachInfo.Value.Count);
-        //    //    foreach (DetachInfo thisDetach in thisDetachInfo.Value)
-        //    //    {
-        //    //        thisDetach.Save(outf);
-        //    //    }
-        //    //}
-        //    //outf.Write(DetachActive[0]);
-        //    //outf.Write(DetachActive[1]);
-        //    //outf.Write(DetachUnits);
-        //    //outf.Write(DetachPosition);
-        //    //outf.Write(DetachPending);
-
-        //    //if (AttachDetails == null)
-        //    //{
-        //    //    outf.Write(false);
-        //    //}
-        //    //else
-        //    //{
-        //    //    outf.Write(true);
-        //    //    AttachDetails.Save(outf);
-        //    //}
-
-        //    //outf.Write(PickUpTrains.Count);
-        //    //foreach (int thisTrainNumber in PickUpTrains)
-        //    //{
-        //    //    outf.Write(thisTrainNumber);
-        //    //}
-
-        //    //outf.Write(PickUpStatic.Count);
-        //    //foreach (int thisStaticNumber in PickUpStatic)
-        //    //{
-        //    //    outf.Write(thisStaticNumber);
-        //    //}
-
-        //    //outf.Write(PickUpStaticOnForms);
-
-        //    //outf.Write(NeedPickUp);
-
-        //    //outf.Write(TransferStationDetails.Count);
-        //    //foreach (KeyValuePair<int, TransferInfo> thisStationTransfer in TransferStationDetails)
-        //    //{
-        //    //    outf.Write(thisStationTransfer.Key);
-        //    //    TransferInfo thisTransfer = thisStationTransfer.Value;
-        //    //    thisTransfer.Save(outf);
-        //    //}
-
-        //    //outf.Write(TransferTrainDetails.Count);
-        //    //foreach (KeyValuePair<int, List<TransferInfo>> thisTrainTransfer in TransferTrainDetails)
-        //    //{
-        //    //    outf.Write(thisTrainTransfer.Key);
-        //    //    List<TransferInfo> thisTransferList = thisTrainTransfer.Value;
-        //    //    outf.Write(thisTransferList.Count);
-        //    //    foreach (TransferInfo thisTransfer in thisTransferList)
-        //    //    {
-        //    //        thisTransfer.Save(outf);
-        //    //    }
-        //    //}
-
-        //    //outf.Write(NeedAttach.Count);
-        //    //foreach (KeyValuePair<int, List<int>> thisNeedAttach in NeedAttach)
-        //    //{
-        //    //    outf.Write(thisNeedAttach.Key);
-        //    //    outf.Write(thisNeedAttach.Value.Count);
-        //    //    foreach (int needAttachInfo in thisNeedAttach.Value)
-        //    //    {
-        //    //        outf.Write(needAttachInfo);
-        //    //    }
-        //    //}
-
-        //    //outf.Write(NeedStationTransfer.Count);
-        //    //foreach (KeyValuePair<int, List<int>> thisNeedTransfer in NeedStationTransfer)
-        //    //{
-        //    //    outf.Write(thisNeedTransfer.Key);
-        //    //    outf.Write(thisNeedTransfer.Value.Count);
-        //    //    foreach (int needTransferInfo in thisNeedTransfer.Value)
-        //    //    {
-        //    //        outf.Write(needTransferInfo);
-        //    //    }
-        //    //}
-
-        //    //outf.Write(NeedTrainTransfer.Count);
-        //    //foreach (KeyValuePair<int, int> thisNeedTransfer in NeedTrainTransfer)
-        //    //{
-        //    //    outf.Write(thisNeedTransfer.Key);
-        //    //    outf.Write(thisNeedTransfer.Value);
-        //    //}
-
-        //    //outf.Write(DelayedStartSettings.newStart.FixedPart);
-        //    //outf.Write(DelayedStartSettings.newStart.RandomPart);
-        //    //outf.Write(DelayedStartSettings.pathRestart.FixedPart);
-        //    //outf.Write(DelayedStartSettings.pathRestart.RandomPart);
-        //    //outf.Write(DelayedStartSettings.followRestart.FixedPart);
-        //    //outf.Write(DelayedStartSettings.followRestart.RandomPart);
-        //    //outf.Write(DelayedStartSettings.stationRestart.FixedPart);
-        //    //outf.Write(DelayedStartSettings.stationRestart.RandomPart);
-        //    //outf.Write(DelayedStartSettings.attachRestart.FixedPart);
-        //    //outf.Write(DelayedStartSettings.attachRestart.RandomPart);
-        //    //outf.Write(DelayedStartSettings.detachRestart.FixedPart);
-        //    //outf.Write(DelayedStartSettings.detachRestart.RandomPart);
-        //    //outf.Write(DelayedStartSettings.movingtableRestart.FixedPart);
-        //    //outf.Write(DelayedStartSettings.movingtableRestart.RandomPart);
-        //    //outf.Write(DelayedStartSettings.reverseAddedDelaySperM);
-
-        //    //outf.Write(DelayStart);
-        //    //outf.Write((int)DelayedStartState);
-        //    //outf.Write(RestdelayS);
-
-        //    //outf.Write(SpeedSettings.RouteSpeed);
-        //    //outf.Write(SpeedSettings.ConsistSpeed);
-
-        //    //outf.Write(SpeedSettings.MaxSpeed.HasValue);
-        //    //if (SpeedSettings.MaxSpeed.HasValue)
-        //    //{
-        //    //    outf.Write(SpeedSettings.MaxSpeed.Value);
-        //    //}
-        //    //outf.Write(SpeedSettings.CruiseSpeed.HasValue);
-        //    //if (SpeedSettings.CruiseSpeed.HasValue)
-        //    //{
-        //    //    outf.Write(SpeedSettings.CruiseSpeed.Value);
-        //    //}
-        //    //outf.Write(SpeedSettings.CruiseMaxDelay.HasValue);
-        //    //if (SpeedSettings.CruiseMaxDelay.HasValue)
-        //    //{
-        //    //    outf.Write(SpeedSettings.CruiseMaxDelay.Value);
-        //    //}
-        //    //outf.Write(SpeedSettings.CreepSpeed.HasValue);
-        //    //if (SpeedSettings.CreepSpeed.HasValue)
-        //    //{
-        //    //    outf.Write(SpeedSettings.CreepSpeed.Value);
-        //    //}
-        //    //outf.Write(SpeedSettings.AttachSpeed.HasValue);
-        //    //if (SpeedSettings.AttachSpeed.HasValue)
-        //    //{
-        //    //    outf.Write(SpeedSettings.AttachSpeed.Value);
-        //    //}
-        //    //outf.Write(SpeedSettings.DetachSpeed.HasValue);
-        //    //if (SpeedSettings.DetachSpeed.HasValue)
-        //    //{
-        //    //    outf.Write(SpeedSettings.DetachSpeed.Value);
-        //    //}
-        //    //outf.Write(SpeedSettings.MovingtableSpeed.HasValue);
-        //    //if (SpeedSettings.MovingtableSpeed.HasValue)
-        //    //{
-        //    //    outf.Write(SpeedSettings.MovingtableSpeed.Value);
-        //    //}
-        //    //outf.Write(SpeedSettings.RestrictedSet);
-
-        //    //outf.Write(DriverOnlyOperation);
-        //    //outf.Write(ForceReversal);
-        //    //outf.Write(Briefing);
-        //    #endregion
-        //}
+            TimetableTrainSaveState timetableTrainSaveState = saveState.TimetableTrainSaveState;
 
 
-        //================================================================================================//
+            // TTTrains own additional fields
+            Closeup = timetableTrainSaveState.CloseUpStabling;
+            Created = timetableTrainSaveState.Created;
+            CreateAhead = timetableTrainSaveState.CreatedAhead;
+            CreateFromPool = timetableTrainSaveState.CreatedFromPool;
+            CreateInPool = timetableTrainSaveState.CreatedInPool;
+            ForcedConsistName = timetableTrainSaveState.ConsistName;
+            CreatePoolDirection = timetableTrainSaveState.PoolExitDirection;
+
+            MaxAccelMpSSP = timetableTrainSaveState.MaxAccelerationPassenger;
+            MaxAccelMpSSF = timetableTrainSaveState.MaxAccelerationFreight;
+            MaxDecelMpSSP = timetableTrainSaveState.MaxDecelerationPassenger;
+            MaxDecelMpSSF = timetableTrainSaveState.MaxDecelerationFreight;
+
+            ActivateTime = timetableTrainSaveState.ActivationTime;
+
+            TriggeredActivationRequired = timetableTrainSaveState.TriggeredActivationRequired;
+
+            await ActivatedTrainTriggers.RestoreCollectionCreateNewItems(timetableTrainSaveState.ActivationTriggerSaveStates).ConfigureAwait(false);
+
+            if (timetableTrainSaveState.WaitInfoSaveStates?.Count > 0)
+            {
+                waitList = new List<WaitInfo>();
+                await waitList.RestoreCollectionCreateNewItems(timetableTrainSaveState.WaitInfoSaveStates).ConfigureAwait(false);
+            }
+
+            if (timetableTrainSaveState.WaitInfoAnySaveStates?.Count > 0)
+            {
+                waitAnyList = new Dictionary<int, List<WaitInfo>>();
+                await waitAnyList.RestoreListDictionaryCreateNewItem(timetableTrainSaveState.WaitInfoAnySaveStates).ConfigureAwait(false);
+            }
+
+            StableCallOn = timetableTrainSaveState.StableCallOn;
+
+            Forms = timetableTrainSaveState.FormedTrainNumber;
+            FormsStatic = timetableTrainSaveState.FormedStaticTrain;
+            ExitPool = timetableTrainSaveState.ExitPool;
+            PoolAccessSection = timetableTrainSaveState.PoolAccessSection;
+            PoolStorageIndex = timetableTrainSaveState.PoolStorageIndex;
+            PoolExitDirection = timetableTrainSaveState.PoolExitDirection;
+
+            
+            if (timetableTrainSaveState.TrainOnTurntableSaveState != null)
+                await ActiveTurntable.Restore(timetableTrainSaveState.TrainOnTurntableSaveState).ConfigureAwait(false);
+
+            FormedOf = timetableTrainSaveState.FormedFromTrainNumber;
+            FormedOfType = timetableTrainSaveState.TimetableFormationCommand;
+            OrgAINumber = timetableTrainSaveState.OriginalAiTrainNumber;
+            SetStop = timetableTrainSaveState.InheritStationStop;
+            FormsAtStation = timetableTrainSaveState.FormsAtStation;
+
+            DetachDetails = new Dictionary<int, List<DetachInfo>>();
+            if (timetableTrainSaveState.DetachInfoSaveStates != null)
+                await DetachDetails.RestoreListDictionaryCreateNewItem(timetableTrainSaveState.DetachInfoSaveStates).ConfigureAwait(false);
+
+            DetachActive.FromArray(timetableTrainSaveState.ActiveDetaches);
+            DetachUnits = timetableTrainSaveState.DetachUnits;
+            DetachPosition = timetableTrainSaveState.DetachPosition;
+            DetachPending = timetableTrainSaveState.DetachPending;
+
+            if (timetableTrainSaveState.AttachInfoSaveState != null)
+            {
+                AttachDetails = new AttachInfo();
+                await AttachDetails.Restore(timetableTrainSaveState.AttachInfoSaveState).ConfigureAwait(false);
+            }
+
+            PickUpTrains = new List<int>(timetableTrainSaveState.PickupTrains);
+            PickUpStatic = new List<int>(timetableTrainSaveState.PickupStaticTrains);
+            PickUpStaticOnForms = timetableTrainSaveState.PickupStaticOnForms;
+            NeedPickUp = timetableTrainSaveState.PickupNeeded;
+
+            TransferStationDetails = new Dictionary<int, TransferInfo>();
+            await TransferStationDetails.RestoreDictionaryCreateNewInstances(timetableTrainSaveState.TransferStationDetailsSaveStates).ConfigureAwait(false);
+
+            TransferTrainDetails = new Dictionary<int, List<TransferInfo>>();
+            await TransferTrainDetails.RestoreListDictionaryCreateNewItem(timetableTrainSaveState.TransferTrainDetailSateStates).ConfigureAwait(false);
+
+            NeedAttach = new Dictionary<int, List<int>>();
+            await NeedAttach.RestoreListDictionary(timetableTrainSaveState.NeedAttach).ConfigureAwait(false);
+
+            NeedStationTransfer = new Dictionary<int, List<int>>();
+            await NeedStationTransfer.RestoreListDictionary(timetableTrainSaveState.NeedStationTransfer).ConfigureAwait(false);
+
+            NeedTrainTransfer = new Dictionary<int, int>(timetableTrainSaveState.NeedTrainTransfer);
+
+            DelayedStartSettings.FromArray(timetableTrainSaveState.DelayedStarts);
+            ReverseAddedDelaySperM = timetableTrainSaveState.ReverseAddedDelay;
+
+            DelayStart = timetableTrainSaveState.DelayedStart;
+            DelayedStartState = timetableTrainSaveState.DelayedStartState;
+            RestdelayS = timetableTrainSaveState.RemainingDelay;
+
+            // preset speed values
+            SpeedSettings.FromArray(timetableTrainSaveState.SpeedSettings);
+            SpeedRestrictionActive = timetableTrainSaveState.SpeedRestrictionActive;
+            CruiseMaxDelay = timetableTrainSaveState.CruiseDelayMax;
+
+            DriverOnlyOperation = timetableTrainSaveState.DriverOnlyOperation;
+            ForceReversal = timetableTrainSaveState.ForceReversal;
+
+            Briefing = timetableTrainSaveState.Briefing;
+
+            // reset actions if train is active
+            bool activeTrain = true;
+
+            if (TrainType == TrainType.AiNotStarted)
+                activeTrain = false;
+            if (TrainType == TrainType.AiAutoGenerated)
+                activeTrain = false;
+
+            if (activeTrain)
+            {
+                if (MovementState == AiMovementState.Static || MovementState == AiMovementState.Init)
+                    activeTrain = false;
+            }
+            if (activeTrain)
+            {
+                ResetActions(true);
+            }
+        }
+
         /// <summary>
         /// Terminate route at last signal in train's direction
         /// </summary>
-
         public void EndRouteAtLastSignal()
         {
             // no action required
@@ -11179,12 +10715,10 @@ namespace Orts.Simulation.Timetables
             return (simulator.Trains.GetTrainByName(reqName) as TTTrain);
         }
 
-        //================================================================================================//
         /// <summary>
         /// Check if other train is yet to be started
         /// Use Simulator.Trains to get other train
         /// </summary>
-
         public bool CheckTTTrainNotStartedByNumber(int reqNumber)
         {
             bool notStarted = false;
@@ -11210,188 +10744,6 @@ namespace Orts.Simulation.Timetables
                 }
 
             return (notStarted);
-        }
-
-        public void TTAnalysisUpdateStationState2()
-        {
-            StringBuilder signalstring = new StringBuilder();
-            signalstring.Append(CultureInfo.InvariantCulture, $"Signal : {NextSignalObjects[Direction.Forward].SignalHeads[0].TDBIndex}");
-
-            bool trainfound = false;
-            StringBuilder waitforstring = new StringBuilder();
-
-            if (waitList != null && waitList.Count > 0 && waitList[0].WaitActive)
-            {
-                waitforstring.Append(CultureInfo.InvariantCulture, $"WAIT : {waitList[0].waitTrainNumber} ({waitList[0].WaitType})");
-                trainfound = true;
-            }
-
-            for (int isection = PresentPosition[Direction.Forward].RouteListIndex + 1; isection <= ValidRoutes[Direction.Forward].Count - 1 && !trainfound; isection++)
-            {
-                TrackCircuitSection thisSection = ValidRoutes[Direction.Forward][isection].TrackCircuitSection;
-                if (thisSection.CircuitState.OccupationState.Count > 0)
-                {
-                    foreach (KeyValuePair<TrainRouted, Direction> traininfo in thisSection.CircuitState.OccupationState)
-                    {
-                        TrainRouted trainahead = traininfo.Key;
-                        waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {trainahead.Train.Name}");
-                        trainfound = true;
-                        break;
-                    }
-                }
-
-                if (!trainfound && thisSection.CircuitState.TrainReserved != null)
-                {
-                    Train trainahead = thisSection.CircuitState.TrainReserved.Train;
-                    if (trainahead != this)
-                    {
-                        waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {thisSection.CircuitState.TrainReserved.Train.Name}");
-                        trainfound = true;
-                    }
-                }
-
-                if (!trainfound && thisSection.CircuitState.TrainClaimed.Count > 0)
-                {
-                    Train trainahead = thisSection.CircuitState.TrainClaimed.PeekTrain();
-                    if (trainahead != this)
-                    {
-                        waitforstring.Append(CultureInfo.InvariantCulture, $"Train claimed : {trainahead.Name}");
-                        trainfound = true;
-                    }
-                }
-            }
-
-            DateTime baseDT = new DateTime();
-            DateTime stopTime = baseDT.AddSeconds(AI.ClockTime);
-
-            StringBuilder sob = new StringBuilder();
-            sob.Append(CultureInfo.InvariantCulture, $"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
-            File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
-        }
-
-        public void TTAnalysisUpdateBrakingState1()
-        {
-            if (nextActionInfo != null && nextActionInfo.NextAction == AiActionType.SignalAspectStop)
-            {
-                StringBuilder signalstring = new StringBuilder();
-                signalstring.Append($"Signal : {NextSignalObjects[Direction.Forward].SignalHeads[0].TDBIndex}");
-
-                bool trainfound = false;
-                StringBuilder waitforstring = new StringBuilder();
-
-                if (waitList != null && waitList.Count > 0 && waitList[0].WaitActive)
-                {
-                    waitforstring.Append($"WAIT : {waitList[0].waitTrainNumber} ({waitList[0].WaitType})");
-                    trainfound = true;
-                }
-
-                for (int isection = PresentPosition[Direction.Forward].RouteListIndex + 1; isection <= ValidRoutes[Direction.Forward].Count - 1 && !trainfound; isection++)
-                {
-                    TrackCircuitSection thisSection = ValidRoutes[Direction.Forward][isection].TrackCircuitSection;
-                    if (thisSection.CircuitState.OccupationState.Count > 0)
-                    {
-                        foreach (KeyValuePair<TrainRouted, Direction> traininfo in thisSection.CircuitState.OccupationState)
-                        {
-                            TrainRouted trainahead = traininfo.Key;
-                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {trainahead.Train.Name}");
-                            trainfound = true;
-                            break;
-                        }
-                    }
-
-                    if (!trainfound && thisSection.CircuitState.TrainReserved != null)
-                    {
-                        Train trainahead = thisSection.CircuitState.TrainReserved.Train;
-                        if (trainahead != this)
-                        {
-                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {thisSection.CircuitState.TrainReserved.Train.Name}");
-                            trainfound = true;
-                        }
-                    }
-
-                    if (!trainfound && thisSection.CircuitState.TrainClaimed.Count > 0)
-                    {
-                        Train trainahead = thisSection.CircuitState.TrainClaimed.PeekTrain();
-                        if (trainahead != this)
-                        {
-                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train claimed : {trainahead.Name}");
-                            trainfound = true;
-                        }
-                    }
-                }
-
-                DateTime baseDT = new DateTime();
-                DateTime stopTime = baseDT.AddSeconds(AI.ClockTime);
-
-                StringBuilder sob = new StringBuilder();
-                sob.Append(CultureInfo.InvariantCulture, $"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
-                File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
-            }
-        }
-
-        public void TTAnalysisUpdateBrakingState2()
-        {
-            var signalstring = new StringBuilder();
-            var waitforstring = new StringBuilder();
-
-            if (NextSignalObjects[Direction.Forward] != null)
-            {
-                signalstring.Append(CultureInfo.InvariantCulture, $"Signal : {NextSignalObjects[Direction.Forward].SignalHeads[0].TDBIndex}");
-
-                bool trainfound = false;
-
-                if (waitList != null && waitList.Count > 0 && waitList[0].WaitActive)
-                {
-                    waitforstring.Append(CultureInfo.InvariantCulture, $"WAIT : {waitList[0].waitTrainNumber} ({waitList[0].WaitType})");
-                    trainfound = true;
-                }
-
-                for (int isection = PresentPosition[Direction.Forward].RouteListIndex + 1; isection <= ValidRoutes[Direction.Forward].Count - 1 && !trainfound; isection++)
-                {
-                    TrackCircuitSection thisSection = ValidRoutes[Direction.Forward][isection].TrackCircuitSection;
-                    if (thisSection.CircuitState.OccupationState.Count > 0)
-                    {
-                        foreach (KeyValuePair<TrainRouted, Direction> traininfo in thisSection.CircuitState.OccupationState)
-                        {
-                            TrainRouted trainahead = traininfo.Key;
-                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {trainahead.Train.Name}");
-                            trainfound = true;
-                            break;
-                        }
-                    }
-
-                    if (!trainfound && thisSection.CircuitState.TrainReserved != null)
-                    {
-                        Train trainahead = thisSection.CircuitState.TrainReserved.Train;
-                        if (trainahead != this)
-                        {
-                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train occupying : {thisSection.CircuitState.TrainReserved.Train.Name}");
-                            trainfound = true;
-                        }
-                    }
-
-                    if (!trainfound && thisSection.CircuitState.TrainClaimed.Count > 0)
-                    {
-                        Train trainahead = thisSection.CircuitState.TrainClaimed.PeekTrain();
-                        if (trainahead != this)
-                        {
-                            waitforstring.Append(CultureInfo.InvariantCulture, $"Train claimed : {trainahead.Name}");
-                            trainfound = true;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                signalstring.Append(CultureInfo.InvariantCulture, $"Action : {nextActionInfo.NextAction}");
-            }
-
-            DateTime baseDT = new DateTime();
-            DateTime stopTime = baseDT.AddSeconds(AI.ClockTime);
-
-            StringBuilder sob = new StringBuilder();
-            sob.Append(CultureInfo.InvariantCulture, $"{Number};{AI.ClockTime};{Name};{Delay};;;;;;;{stopTime:HH:mm:ss)};{signalstring};{waitforstring}");
-            File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
         }
 
         private protected override INameValueInformationProvider GetDispatcherInfoProvider() => new TimeTableTrainDispatcherInfo(this);
