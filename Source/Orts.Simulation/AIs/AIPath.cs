@@ -26,22 +26,27 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common.Api;
+
+using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Models.State;
 
 namespace Orts.Simulation.AIs
 {
-    public enum AIPathNodeType { Other, Stop, SidingStart, SidingEnd, Uncouple, Reverse, Invalid };
-
-    public class AIPath
+    public class AIPath : ISaveStateApi<AiPathSaveState>
     {
         public AIPathNode FirstNode { get; }    // path starting node
         //public AIPathNode LastVisitedNode; not used anymore
         public List<AIPathNode> Nodes { get; } = new List<AIPathNode>();
         public string PathName { get; } //name of the path to be able to print it.
+
+        public AIPath() { }
 
         /// <summary>
         /// Creates an AIPath from PAT file information.
@@ -101,7 +106,7 @@ namespace Orts.Simulation.AIs
                 }
 
                 if (node.NextMainNode != null && node.NextSidingNode != null)
-                    node.Type = AIPathNodeType.SidingStart;
+                    node.Type = TrainPathNodeType.SidingStart;
             }
 
             FindSidingEnds();
@@ -170,57 +175,10 @@ namespace Orts.Simulation.AIs
                     node2 = node2.NextSidingNode;
                 }
                 if (node2 != null)
-                    node2.Type = AIPathNodeType.SidingEnd;
+                    node2.Type = Common.TrainPathNodeType.SidingEnd;
             }
             //foreach (KeyValuePair<int, AIPathNode> kvp in lastUse)
             //    kvp.Value.IsLastSwitchUse = true;
-        }
-
-        // restore game state
-        public AIPath(BinaryReader inf)
-        {
-            PathName = inf.ReadString();
-
-            int n = inf.ReadInt32();
-            for (int i = 0; i < n; i++)
-                Nodes.Add(new AIPathNode(inf));
-            for (int i = 0; i < n; i++)
-            {
-                Nodes[i].NextMainNode = ReadNode(inf);
-                Nodes[i].NextSidingNode = ReadNode(inf);
-            }
-            FirstNode = Nodes[0];
-            //LastVisitedNode = ReadNode(inf);
-        }
-        public AIPathNode ReadNode(BinaryReader inf)
-        {
-            int index = inf.ReadInt32();
-            if (index < 0 || index > Nodes.Count)
-                return null;
-            else
-                return Nodes[index];
-        }
-
-        // save game state
-        public void Save(BinaryWriter outf)
-        {
-            outf.Write(PathName);
-            outf.Write(Nodes.Count);
-            for (int i = 0; i < Nodes.Count; i++)
-                Nodes[i].Save(outf);
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                WriteNode(outf, Nodes[i].NextMainNode);
-                WriteNode(outf, Nodes[i].NextSidingNode);
-            }
-            //WriteNode(outf, LastVisitedNode);
-        }
-        public static void WriteNode(BinaryWriter outf, AIPathNode node)
-        {
-            if (node == null)
-                outf.Write((int)-1);
-            else
-                outf.Write(node.Index);
         }
 
         /// <summary>
@@ -236,12 +194,34 @@ namespace Orts.Simulation.AIs
                 return false;
             return true;
         }
+
+        public async ValueTask<AiPathSaveState> Snapshot()
+        {
+            return new AiPathSaveState()
+            {
+                AiPathNodeSaveStates = await Nodes.SnapshotCollection<AiPathNodeSaveState, AIPathNode>().ConfigureAwait(false),
+            };
+        }
+
+        public async ValueTask Restore(AiPathSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            await Nodes.RestoreCollectionCreateNewItems(saveState.AiPathNodeSaveStates).ConfigureAwait(false);
+
+            foreach (AiPathNodeSaveState saveNode in saveState.AiPathNodeSaveStates)
+            {
+                AIPathNode result = Nodes.Find(node => node.Index == saveNode.Index);
+                result.NextMainNode = Nodes[saveNode.NextMainNodeIndex];
+                result.NextSidingNode = Nodes[saveNode.NextSidingNodeIndex];
+            }
+        }
     }
 
-    public class AIPathNode
+    public class AIPathNode : ISaveStateApi<AiPathNodeSaveState>
     {
         public int Index { get; set; }
-        public AIPathNodeType Type { get; set; } = AIPathNodeType.Other;
+        public Common.TrainPathNodeType Type { get; set; } = Common.TrainPathNodeType.Other;
         public int WaitTimeS { get; private set; }               // number of seconds to wait after stopping at this node
         public int WaitUntil { get; private set; }               // clock time to wait until if not zero
         public AIPathNode NextMainNode { get; set; }     // next path node on main path
@@ -252,6 +232,8 @@ namespace Orts.Simulation.AIs
         public int JunctionIndex { get; set; } = -1;      // index of junction node, -1 if none
         public bool IsFacingPoint { get; set; }          // true if this node entered from the facing point end
 
+        public AIPathNode() { }
+
         /// <summary>
         /// Creates a single AIPathNode and initializes everything that do not depend on other nodes.
         /// The AIPath constructor will initialize the rest.
@@ -260,14 +242,14 @@ namespace Orts.Simulation.AIs
         {
             ArgumentNullException.ThrowIfNull(tpn);
 
-            if (tpn.NodeType == PathNodeType.Reversal)
-                Type = AIPathNodeType.Reverse;
-            else if (tpn.NodeType == PathNodeType.Wait)
-                Type = AIPathNodeType.Stop;
+            if (tpn.NodeType == Formats.Msts.PathNodeType.Reversal)
+                Type = Common.TrainPathNodeType.Reverse;
+            else if (tpn.NodeType == Formats.Msts.PathNodeType.Wait)
+                Type = Common.TrainPathNodeType.Stop;
 
             if (tpn.Invalid && isTimetableMode) // not a valid point
             {
-                Type = AIPathNodeType.Invalid;
+                Type = Common.TrainPathNodeType.Invalid;
             }
 
             WaitTimeS = tpn.WaitTime;
@@ -299,36 +281,40 @@ namespace Orts.Simulation.AIs
             IsFacingPoint = otherNode.IsFacingPoint;
         }
 
-        // restore game state
-        public AIPathNode(BinaryReader inf)
+
+        public ValueTask<AiPathNodeSaveState> Snapshot()
         {
-            Index = inf.ReadInt32();
-            Type = (AIPathNodeType)inf.ReadInt32();
-            WaitTimeS = inf.ReadInt32();
-            WaitUntil = inf.ReadInt32();
-            NextMainTVNIndex = inf.ReadInt32();
-            NextSidingTVNIndex = inf.ReadInt32();
-            JunctionIndex = inf.ReadInt32();
-            IsFacingPoint = inf.ReadBoolean();
-            Location = WorldLocation.Restore(inf);
+            return ValueTask.FromResult(new AiPathNodeSaveState()
+            { 
+                Index = Index,
+                NodeType = Type,
+                WaitTime = WaitTimeS,
+                WaitUntil = WaitUntil,
+                NextMainNodeIndex = NextMainNode == null ? -1 : NextMainNode.Index,
+                NextMainTrackVectorNodeIndex = NextMainTVNIndex,
+                NextSidingNodeIndex = NextSidingNode == null ? -1 : NextSidingNode.Index,
+                NextSidingTrackVectorNodeIndex = NextSidingTVNIndex,
+                JunctionIndex = JunctionIndex,
+                FacingJunction = IsFacingPoint,
+                Location = Location,
+            });
         }
 
-        // save game state
-        public void Save(BinaryWriter outf)
+        public ValueTask Restore(AiPathNodeSaveState saveState)
         {
-            outf.Write(Index);
-            outf.Write((int)Type);
-            outf.Write(WaitTimeS);
-            outf.Write(WaitUntil);
-            outf.Write(NextMainTVNIndex);
-            outf.Write(NextSidingTVNIndex);
-            outf.Write(JunctionIndex);
-            outf.Write(IsFacingPoint);
-            outf.Write(Location.TileX);
-            outf.Write(Location.TileZ);
-            outf.Write(Location.Location.X);
-            outf.Write(Location.Location.Y);
-            outf.Write(Location.Location.Z);
+            ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
+
+            Index = saveState.Index;
+            Type = saveState.NodeType;
+            WaitTimeS = saveState.WaitTime;
+            WaitUntil = saveState.WaitUntil;
+            NextMainTVNIndex = saveState.NextMainTrackVectorNodeIndex;
+            NextSidingTVNIndex = saveState.NextSidingTrackVectorNodeIndex;
+            JunctionIndex = saveState.JunctionIndex;
+            IsFacingPoint = saveState.FacingJunction;
+            Location = saveState.Location;
+
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>

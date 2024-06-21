@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
@@ -9,9 +7,6 @@ using FreeTrainSimulator.Common.Api;
 using Orts.Common;
 using Orts.Formats.Msts.Models;
 using Orts.Models.State;
-using Orts.Simulation.Signalling;
-
-using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.Track
 {
@@ -72,11 +67,10 @@ namespace Orts.Simulation.Track
                                                                   // used for moving table approach in timetable mode
 
         public TrackCircuitRouteElement() { }
-        //================================================================================================//
+
         /// <summary>
         /// Constructor from tracknode
         /// </summary>
-
         public TrackCircuitRouteElement(TrackNode node, int trackCircuitIndex, TrackDirection direction)
         {
             ArgumentNullException.ThrowIfNull(node);
@@ -100,7 +94,6 @@ namespace Orts.Simulation.Track
             MovingTableApproachPath = -1;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Constructor from CircuitSection
         /// </summary>
@@ -123,7 +116,6 @@ namespace Orts.Simulation.Track
             MovingTableApproachPath = -1;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Constructor for additional items for route checking (not part of train route, NORMAL items only)
         /// </summary>
@@ -137,7 +129,6 @@ namespace Orts.Simulation.Track
             MovingTableApproachPath = -1;
         }
 
-        //================================================================================================//
         //
         // Constructor from other route element
         //
@@ -163,75 +154,6 @@ namespace Orts.Simulation.Track
             FacingPoint = source.FacingPoint;
             UsedAlternativePath = source.UsedAlternativePath;
             MovingTableApproachPath = source.MovingTableApproachPath;
-        }
-
-        //================================================================================================//
-        //
-        // Restore
-        //
-        public TrackCircuitRouteElement(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-            int index = inf.ReadInt32();
-
-            TrackCircuitSection = index > -1 ? TrackCircuitSection.TrackCircuitList[index] : TrackCircuitSection.Invalid;
-            Direction = (TrackDirection)inf.ReadInt32();
-            OutPin = new EnumArray<TrackDirection, SignalLocation>(new TrackDirection[] { (TrackDirection)inf.ReadInt32(), (TrackDirection)inf.ReadInt32() });
-
-            int altindex = inf.ReadInt32();
-            if (altindex >= 0)
-            {
-                StartAlternativePath = new AlternativePath(altindex, TrackCircuitSection.TrackCircuitList[inf.ReadInt32()]);
-            }
-
-            altindex = inf.ReadInt32();
-            if (altindex >= 0)
-            {
-                EndAlternativePath = new AlternativePath(altindex, TrackCircuitSection.TrackCircuitList[inf.ReadInt32()]);
-            }
-
-            FacingPoint = inf.ReadBoolean();
-            UsedAlternativePath = inf.ReadInt32();
-            MovingTableApproachPath = inf.ReadInt32();
-        }
-
-        //================================================================================================//
-        //
-        // Save
-        //
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
-
-            outf.Write(TrackCircuitSection.Index);
-            outf.Write((int)Direction);
-            outf.Write((int)OutPin[SignalLocation.NearEnd]);
-            outf.Write((int)OutPin[SignalLocation.FarEnd]);
-
-            if (StartAlternativePath != null)
-            {
-                outf.Write(StartAlternativePath.PathIndex);
-                outf.Write(StartAlternativePath.TrackCircuitSection.Index);
-            }
-            else
-            {
-                outf.Write(-1);
-            }
-
-
-            if (EndAlternativePath != null)
-            {
-                outf.Write(EndAlternativePath.PathIndex);
-                outf.Write(EndAlternativePath.TrackCircuitSection.Index);
-            }
-            else
-            {
-                outf.Write(-1);
-            }
-
-            outf.Write(FacingPoint);
-            outf.Write(UsedAlternativePath);
-            outf.Write(MovingTableApproachPath);
         }
 
         // Invalidate preceding section index to avoid wrong indexing when building route forward (in Reserve())

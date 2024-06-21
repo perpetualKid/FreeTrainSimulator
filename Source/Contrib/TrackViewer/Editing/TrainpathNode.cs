@@ -732,13 +732,13 @@ namespace ORTS.TrackViewer.Editing
 
             NodeType = tpn.NodeType switch
             {
-                PathNodeType.Junction => TrainpathNodeType.Other,
-                PathNodeType.Intermediate => TrainpathNodeType.Other,
-                PathNodeType.Start => TrainpathNodeType.Other,
-                PathNodeType.End => TrainpathNodeType.Other,
-                PathNodeType.Wait => TrainpathNodeType.Stop,
-                PathNodeType.Reversal => TrainpathNodeType.Reverse,
-                PathNodeType.Temporary => TrainpathNodeType.Other,
+                Orts.Formats.Msts.PathNodeType.Junction => TrainpathNodeType.Other,
+                Orts.Formats.Msts.PathNodeType.Intermediate => TrainpathNodeType.Other,
+                Orts.Formats.Msts.PathNodeType.Start => TrainpathNodeType.Other,
+                Orts.Formats.Msts.PathNodeType.End => TrainpathNodeType.Other,
+                Orts.Formats.Msts.PathNodeType.Wait => TrainpathNodeType.Stop,
+                Orts.Formats.Msts.PathNodeType.Reversal => TrainpathNodeType.Reverse,
+                Orts.Formats.Msts.PathNodeType.Temporary => TrainpathNodeType.Other,
                 _ => throw new NotImplementedException(),
             };
         }

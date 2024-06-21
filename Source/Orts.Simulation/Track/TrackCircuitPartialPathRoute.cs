@@ -2,10 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
@@ -134,15 +131,9 @@ namespace Orts.Simulation.Track
 
         public async ValueTask<TrackCircuitPartialPathRouteSaveState> Snapshot()
         {
-            ConcurrentBag<TrackCircuitRouteElementSaveState> routeElementSaveStates = new ConcurrentBag<TrackCircuitRouteElementSaveState>();
-            await Parallel.ForEachAsync(this, async (element, cancellationToken) =>
-            {
-                routeElementSaveStates.Add(await element.Snapshot().ConfigureAwait(false));
-            }).ConfigureAwait(false);
-
             return new TrackCircuitPartialPathRouteSaveState()
             {
-                RouteElements = new Collection<TrackCircuitRouteElementSaveState>(routeElementSaveStates.ToList()),
+                RouteElements = await this.SnapshotCollection<TrackCircuitRouteElementSaveState, TrackCircuitRouteElement>().ConfigureAwait(false),
             };
         }
 
@@ -156,38 +147,7 @@ namespace Orts.Simulation.Track
             ConcurrentBag<TrackCircuitRouteElement> routeElements = new ConcurrentBag<TrackCircuitRouteElement>();
             if (saveState.RouteElements != null)
             {
-                await Parallel.ForEachAsync(saveState.RouteElements, async (trackCircuitRouteElementSaveState, cancellationToken) =>
-                {
-                    TrackCircuitRouteElement routeElement = new TrackCircuitRouteElement();
-                    await routeElement.Restore(trackCircuitRouteElementSaveState).ConfigureAwait(false);
-                    routeElements.Add(routeElement);
-                }).ConfigureAwait(false);
-            }
-            list.AddRange(routeElements);
-        }
-
-        // Restore
-        public TrackCircuitPartialPathRoute(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-            list = new List<TrackCircuitRouteElement>();
-
-            int totalElements = inf.ReadInt32();
-
-            for (int i = 0; i < totalElements; i++)
-            {
-                Add(new TrackCircuitRouteElement(inf));
-            }
-        }
-
-        // Save
-        public void Save(BinaryWriter outf)
-        {
-            ArgumentNullException.ThrowIfNull(outf);
-            outf.Write(Count);
-            foreach (TrackCircuitRouteElement element in this)
-            {
-                element.Save(outf);
+                await list.RestoreCollectionCreateNewItems(saveState.RouteElements);
             }
         }
 

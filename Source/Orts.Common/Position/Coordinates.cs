@@ -40,7 +40,6 @@
  */
 
 using System;
-using System.IO;
 
 using Microsoft.Xna.Framework;
 
@@ -349,22 +348,6 @@ namespace Orts.Common.Position
         public override string ToString()
         {
             return $"{{TileX:{TileX} TileZ:{TileZ} X:{Location.X} Y:{Location.Y} Z:{Location.Z}}}";
-        }
-
-        /// <summary>
-        /// Restore the object from binary format
-        /// </summary>
-        /// <param name="inf">input file</param>
-        public static WorldLocation Restore(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            int tileX = inf.ReadInt32();
-            int tileZ = inf.ReadInt32();
-            float x = inf.ReadSingle();
-            float y = inf.ReadSingle();
-            float z = inf.ReadSingle();
-            return new WorldLocation(tileX, tileZ, x, y, z);
         }
 
         public static bool operator ==(in WorldLocation a, in WorldLocation b)

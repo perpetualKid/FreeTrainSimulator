@@ -25,7 +25,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -34,8 +33,6 @@ using FreeTrainSimulator.Common.Api;
 using Orts.Common;
 using Orts.Models.State;
 using Orts.Simulation.Track;
-
-using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.Timetables
 {
@@ -486,7 +483,7 @@ namespace Orts.Simulation.Timetables
                     iunits = -iunits;
 
                 // create detach command
-                DetachInfo thisDetach = new DetachInfo(true, false, false, -1, false, false, false, false, false, false, iunits, null, formedTrainNo, false);
+                DetachInfo thisDetach = new DetachInfo(DetachPositionInfo.Start, -1, TransferUnits.UnitsAtFront, iunits, null, formedTrainNo, false);
 
                 // perform detach on giving train
                 thisDetach.PerformDetach(givingTrain, false);

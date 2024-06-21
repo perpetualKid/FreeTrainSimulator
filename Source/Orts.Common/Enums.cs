@@ -1661,4 +1661,15 @@ namespace Orts.Common
         Turntable,
         Unknown
     }
+
+    public enum TrainPathNodeType
+    {
+        Other,
+        Stop, 
+        SidingStart, 
+        SidingEnd, 
+        Uncouple, 
+        Reverse, 
+        Invalid
+    }
 }

@@ -64,61 +64,22 @@ namespace Orts.Simulation.Timetables
         /// <param name="leadingPower"></param>
         /// <param name="trailingPower"></param>
         /// <param name="units"></param>
-        public DetachInfo(bool atStart, bool atEnd, bool atStation, int sectionIndex, bool leadingPower, bool allLeadingPower, bool trailingPower, bool allTrailingPower,
-            bool onlyPower, bool nonPower, int units, int? time, int formedTrain, bool reverseTrain)
+        public DetachInfo(DetachPositionInfo detachPosition, int sectionIndex, TransferUnits detachUnits, int units, int? time, int formedTrain, bool reverseTrain)
         {
-            if (atStart)
+            DetachPosition = detachPosition;
+            if (detachPosition == DetachPositionInfo.Station || detachPosition == DetachPositionInfo.Section)
             {
-                DetachPosition = DetachPositionInfo.Start;
-            }
-            else if (atEnd)
-            {
-                DetachPosition = DetachPositionInfo.End;
-            }
-            else if (atStation)
-            {
-                DetachPosition = DetachPositionInfo.Station;
-                StationPlatformReference = sectionIndex;
-            }
-            else
-            {
-                DetachPosition = DetachPositionInfo.Section;
                 StationPlatformReference = sectionIndex;
             }
 
-            if (leadingPower)
-            {
-                DetachUnits = TransferUnits.LeadingPower;
-            }
-            else if (allLeadingPower)
-            {
-                DetachUnits = TransferUnits.AllLeadingPower;
-            }
-            else if (trailingPower)
-            {
-                DetachUnits = TransferUnits.TrailingPower;
-            }
-            else if (allTrailingPower)
-            {
-                DetachUnits = TransferUnits.AllTrailingPower;
-            }
-            else if (onlyPower)
-            {
-                DetachUnits = TransferUnits.OnlyPower;
-            }
-            else if (nonPower)
-            {
-                DetachUnits = TransferUnits.NonPower;
-            }
-            else if (units < 0)
-            {
-                DetachUnits = TransferUnits.UnitsAtEnd;
+            if (detachUnits == TransferUnits.UnitsAtEnd)
                 numberOfUnits = -units;
-            }
-            else
+
+            DetachUnits = detachUnits;
+
+            if (detachUnits == TransferUnits.UnitsAtFront || detachUnits == TransferUnits.UnitsAtEnd)
             {
-                DetachUnits = TransferUnits.UnitsAtFront;
-                numberOfUnits = units;
+                    numberOfUnits = Math.Abs(units);
             }
 
             DetachTime = time;

@@ -77,7 +77,7 @@ namespace Orts.Graphics.MapView
         {
             ToolboxContent.ContentMode = ToolboxContentMode.EditPath;
             trainPath = new EditorTrainPath(ToolboxContent.ContentArea.Game);
-            pathItem = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
+            pathItem = new EditorPathPoint(PointD.None, PointD.None, Formats.Msts.PathNodeType.Start);
         }
 
         protected bool AddPathEndPoint()
@@ -85,7 +85,7 @@ namespace Orts.Graphics.MapView
             if (trainPath?.PathPoints.Count > 1 && pathItem.ValidationResult == PathNodeInvalidReasons.None)
             {
                 (trainPath.PathPoints[^1] as EditorPathPoint).UpdateDirection(trainPath.PathPoints[^2].Location);
-                (trainPath.PathPoints[^1] as EditorPathPoint).UpdateNodeType(PathNodeType.End);
+                (trainPath.PathPoints[^1] as EditorPathPoint).UpdateNodeType(Formats.Msts.PathNodeType.End);
                 pathItem = null;
                 ToolboxContent.ContentMode = ToolboxContentMode.ViewPath;
                 return true;

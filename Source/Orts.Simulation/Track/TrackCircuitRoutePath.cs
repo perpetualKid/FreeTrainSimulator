@@ -95,7 +95,7 @@ namespace Orts.Simulation.Track
                     }
                     else
                     {
-                        if (pNode.Type == AIPathNodeType.Other)
+                        if (pNode.Type == Common.TrainPathNodeType.Other)
                             prevTNode = pNode.NextMainTVNIndex;
                     }
                 }
@@ -123,7 +123,7 @@ namespace Orts.Simulation.Track
 
                 // process siding items
 
-                if (currentPathNode.Type == AIPathNodeType.SidingStart)
+                if (currentPathNode.Type == Common.TrainPathNodeType.SidingStart)
                 {
                     TrackNode sidingNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
                     int startTCSectionIndex = sidingNode.TrackCircuitCrossReferences[0].Index;
@@ -134,9 +134,9 @@ namespace Orts.Simulation.Track
                     alternativeRoutes.Add(startTCSectionIndex, altRouteReference);
                     ActiveAlternativeRoutes.Enqueue(startTCSectionIndex);
 
-                    currentPathNode.Type = AIPathNodeType.Other;
+                    currentPathNode.Type = Common.TrainPathNodeType.Other;
                 }
-                else if (currentPathNode.Type == AIPathNodeType.SidingEnd)
+                else if (currentPathNode.Type == Common.TrainPathNodeType.SidingEnd)
                 {
                     TrackNode sidingNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
                     int endTCSectionIndex = sidingNode.TrackCircuitCrossReferences[0].Index;
@@ -145,14 +145,14 @@ namespace Orts.Simulation.Track
                     int[] altRouteReference = alternativeRoutes[refStartIndex];
                     altRouteReference[2] = endTCSectionIndex;
 
-                    currentPathNode.Type = AIPathNodeType.Other;
+                    currentPathNode.Type = Common.TrainPathNodeType.Other;
                 }
 
                 //
                 // process last non-junction section
                 //
 
-                if (currentPathNode.Type == AIPathNodeType.Other)
+                if (currentPathNode.Type == Common.TrainPathNodeType.Other)
                 {
                     thisNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
 
@@ -287,7 +287,7 @@ namespace Orts.Simulation.Track
                 {
                     lastPathNode = nextPathNode;
 
-                    if (nextPathNode.Type == AIPathNodeType.Reverse)
+                    if (nextPathNode.Type == Common.TrainPathNodeType.Reverse)
                     {
                         TrackVectorNode reversalNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[nextPathNode.NextMainTVNIndex];
                         TrackVectorSection firstSection = reversalNode.TrackVectorSections[0];
@@ -326,7 +326,7 @@ namespace Orts.Simulation.Track
                         reversalIndex.Add(sublist);
                         reversal++;
                     }
-                    else if (nextPathNode.Type == AIPathNodeType.Stop)
+                    else if (nextPathNode.Type == Common.TrainPathNodeType.Stop)
                     {
                         TrackDirection validDir = currentDir;
                         if (reversal % 2 == 1)
@@ -1010,7 +1010,7 @@ namespace Orts.Simulation.Track
                     while (currentPathNode != null)
                     {
                         // process last non-junction section
-                        if (currentPathNode.Type == AIPathNodeType.Other)
+                        if (currentPathNode.Type == Common.TrainPathNodeType.Other)
                         {
                             if (trackNodeIndex > 0)
                             {
@@ -1185,7 +1185,7 @@ namespace Orts.Simulation.Track
                         AIPathNode nextPathNode;
 
                         // process last non-junction section
-                        if (pathNode.Type == AIPathNodeType.Other)
+                        if (pathNode.Type == Common.TrainPathNodeType.Other)
                         {
                             if (trackNodeIndex > 0)
                             {

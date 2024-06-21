@@ -22,7 +22,6 @@
  */
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
@@ -76,108 +75,6 @@ namespace Orts.Simulation.Timetables
 
         public WaitInfo()
         {
-        }
-
-        /// <summary>
-        /// Constructor for restore
-        /// </summary>
-        /// <param name="inf"></param>
-        public WaitInfo(BinaryReader inf)
-        {
-            WaitType = (WaitInfoType)inf.ReadInt32();
-            WaitActive = inf.ReadBoolean();
-
-            activeSubrouteIndex = inf.ReadInt32();
-            activeSectionIndex = inf.ReadInt32();
-            activeRouteIndex = inf.ReadInt32();
-
-            waitTrainNumber = inf.ReadInt32();
-            int mdelayValue = inf.ReadInt32();
-            if (mdelayValue < 0)
-            {
-                maxDelayS = null;
-            }
-            else
-            {
-                maxDelayS = mdelayValue;
-            }
-
-            int odelayValue = inf.ReadInt32();
-            if (odelayValue < 0)
-            {
-                ownDelayS = null;
-            }
-            else
-            {
-                ownDelayS = odelayValue;
-            }
-
-            int notStartedValue = inf.ReadInt32();
-            if (notStartedValue > 0)
-            {
-                notStarted = inf.ReadBoolean();
-            }
-            else
-            {
-                notStarted = null;
-            }
-
-            int atStartValue = inf.ReadInt32();
-            if (atStartValue > 0)
-            {
-                atStart = inf.ReadBoolean();
-            }
-            else
-            {
-                atStart = null;
-            }
-
-            int triggervalue = inf.ReadInt32();
-            if (triggervalue > 0)
-            {
-                waittrigger = triggervalue;
-            }
-            else
-            {
-                waittrigger = null;
-            }
-
-            int endtriggervalue = inf.ReadInt32();
-            if (endtriggervalue > 0)
-            {
-                waitendtrigger = endtriggervalue;
-            }
-            else
-            {
-                waitendtrigger = null;
-            }
-
-            waitTrainSubpathIndex = inf.ReadInt32();
-            waitTrainRouteIndex = inf.ReadInt32();
-
-            stationIndex = inf.ReadInt32();
-            int holdTimevalue = inf.ReadInt32();
-            if (holdTimevalue < 0)
-            {
-                holdTimeS = null;
-            }
-            else
-            {
-                holdTimeS = holdTimevalue;
-            }
-
-            int validCheckPath = inf.ReadInt32();
-
-            if (validCheckPath < 0)
-            {
-                CheckPath = null;
-                PathDirection = PathCheckDirection.Same;
-            }
-            else
-            {
-                CheckPath = new TrackCircuitPartialPathRoute(inf);
-                PathDirection = (PathCheckDirection)inf.ReadInt32();
-            }
         }
 
         //

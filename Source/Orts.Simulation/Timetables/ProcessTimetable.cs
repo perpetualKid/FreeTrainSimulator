@@ -26,6 +26,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
 using Orts.Common.Calc;
@@ -35,6 +38,7 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Parsers;
+using Orts.Models.State;
 using Orts.Simulation.AIs;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
@@ -1073,15 +1077,14 @@ namespace Orts.Simulation.Timetables
             foreach (string thisRoute in routeNames)
             {
                 // read route
-                bool pathValid = true;
-                LoadPath(thisRoute, out pathValid);
+                LoadPath(thisRoute, out bool pathValid);
                 if (!pathValid)
                     allPathsLoaded = false;
                 if (cancellation.IsCancellationRequested)
                     return (false);
             }
 
-            return (allPathsLoaded);
+            return allPathsLoaded;
         }
 
         //================================================================================================//
@@ -1101,7 +1104,7 @@ namespace Orts.Simulation.Timetables
             if (string.IsNullOrEmpty(pathExtension))
                 formedpathFilefull = Path.ChangeExtension(formedpathFilefull, "pat");
 
-            if (!Paths.TryGetValue(formedpathFilefull, out var outPath))
+            if (!Paths.TryGetValue(formedpathFilefull, out AIPath outPath))
             {
                 // try to load binary path if required
                 bool binaryloaded = false;
@@ -1119,15 +1122,16 @@ namespace Orts.Simulation.Timetables
                     {
                         try
                         {
-                            BinaryReader infpath = new BinaryReader(new FileStream(formedpathFilefullBinary, FileMode.Open, FileAccess.Read));
-                            string cachePath = infpath.ReadString();
+                            AiPathSaveState saveState = SaveStateBase.FromFile<AiPathSaveState>(formedpathFilefullBinary, CancellationToken.None).Result;
+                            string cachePath = saveState.ExpectedPath;
                             if (cachePath != formedpathFilefull)
                             {
                                 Trace.TraceWarning($"Expected cache file for '{formedpathFilefull}'; got '{cachePath}' in {formedpathFilefullBinary}");
                             }
                             else
                             {
-                                outPath = new AIPath(infpath);
+                                outPath = new AIPath();
+                                outPath.Restore(saveState).AsTask().Wait();
 
                                 if (outPath.Nodes != null)
                                 {
@@ -1135,7 +1139,6 @@ namespace Orts.Simulation.Timetables
                                     binaryloaded = true;
                                 }
                             }
-                            infpath.Close();
                         }
                         catch (Exception ex) when (ex is Exception)
                         {
@@ -1182,23 +1185,15 @@ namespace Orts.Simulation.Timetables
                     {
                         if (!binaryloaded && binaryPaths)
                         {
-                            try
-                            {
-                                var outfpath = new BinaryWriter(new FileStream(formedpathFilefullBinary, FileMode.Create));
-                                outfpath.Write(formedpathFilefull);
-                                outPath.Save(outfpath);
-                                outfpath.Close();
-                            }
-                            // dummy catch to avoid error
-                            catch
-                            { }
+                                AiPathSaveState saveState = outPath.Snapshot().AsTask().Result;
+                                saveState.ExpectedPath = formedpathFilefull;
+                                SaveStateBase.ToFile(formedpathFilefullBinary, saveState, CancellationToken.None).AsTask().Wait();
                         }
                     }
                     // report path load failure
                 }
             }
-
-            return (outPath);
+            return outPath;
         }
 
         //================================================================================================//
@@ -2953,7 +2948,7 @@ namespace Orts.Simulation.Timetables
                     if (atStart)
                     {
                         int? rrtime = disposeDetails.RunRoundTime;
-                        DetachInfo detachDetails = new DetachInfo(true, false, false, 0, false, false, false, false, true, false, -1, rrtime, formedTrain.Number, reverseTrain);
+                        DetachInfo detachDetails = new DetachInfo(DetachPositionInfo.Start, 0, TransferUnits.OnlyPower, -1, rrtime, formedTrain.Number, reverseTrain);
                         if (rrtrain.DetachDetails.TryGetValue(-1, out List<DetachInfo> value))
                         {
                             value.Add(detachDetails);
@@ -2967,7 +2962,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else
                     {
-                        DetachInfo detachDetails = new DetachInfo(false, true, false, 0, false, false, false, false, true, false, -1, null, formedTrain.Number, reverseTrain);
+                        DetachInfo detachDetails = new DetachInfo(DetachPositionInfo.End, 0, TransferUnits.OnlyPower, -1, null, formedTrain.Number, reverseTrain);
                         if (rrtrain.DetachDetails.TryGetValue(-1, out List<DetachInfo> value))
                         {
                             value.Add(detachDetails);
