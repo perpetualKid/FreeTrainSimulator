@@ -780,7 +780,7 @@ namespace Orts.Simulation.Physics
                 CalculatePositionOfCars();
 
                 PresentPosition[Direction.Forward].RouteListIndex = ValidRoutes[Direction.Forward].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
-                PresentPosition[Direction.Backward].RouteListIndex = ValidRoutes[Direction.Backward].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
+                PresentPosition[Direction.Backward].RouteListIndex = ValidRoutes[Direction.Forward].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
             }
 
             await RequiredActions.RestoreCollectionCreateNewItems(saveState.DistanceTravelledActions, new DistanceTravelledItemActivator()).ConfigureAwait(false);

@@ -593,7 +593,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     windowManager[ViewerWindowType.DebugOverlay].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.GameFullscreen, KeyEventType.KeyPressed, RenderProcess.ToggleFullScreen);
-            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, async delegate (UserCommandArgs userCommandArgs) { await Game.State.Save().ConfigureAwait(false); userCommandArgs.Handled = true; });
+//            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, async delegate (UserCommandArgs userCommandArgs) { await Game.State.Save().ConfigureAwait(false); userCommandArgs.Handled = true; });
+            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, delegate (UserCommandArgs userCommandArgs) { Game.State.Save().AsTask().Wait(); userCommandArgs.Handled = true; });
             UserCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)

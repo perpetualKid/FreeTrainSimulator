@@ -1477,12 +1477,18 @@ namespace Orts.Simulation.RollingStocks
             CabLightOn = locomotiveSaveState.CabLight;
             UsingRearCab = locomotiveSaveState.RearCab;
             CalculatedCarHeaterSteamUsageLBpS = (float)locomotiveSaveState.CalculatedCarHeaterSteamUsage;
-            await ThrottleController.Restore(locomotiveSaveState.ThrottleController).ConfigureAwait(false);
-            await TrainBrakeController.Restore(locomotiveSaveState.TrainBrakeController).ConfigureAwait(false);
-            await EngineBrakeController.Restore(locomotiveSaveState.EngineBrakeController).ConfigureAwait(false);
-            await BrakemanBrakeController.Restore(locomotiveSaveState.BrakemanBrakeController).ConfigureAwait(false);
-            await DynamicBrakeController.Restore(locomotiveSaveState.DynamicBrakeController).ConfigureAwait(false);
-            await SteamHeatController.Restore(locomotiveSaveState.SteamHeatController).ConfigureAwait(false);
+            if (locomotiveSaveState.ThrottleController != null)
+                await ThrottleController.Restore(locomotiveSaveState.ThrottleController).ConfigureAwait(false);
+            if (locomotiveSaveState.TrainBrakeController!= null)
+                await TrainBrakeController.Restore(locomotiveSaveState.TrainBrakeController).ConfigureAwait(false);
+            if (locomotiveSaveState.EngineBrakeController != null)
+                await EngineBrakeController.Restore(locomotiveSaveState.EngineBrakeController).ConfigureAwait(false);
+            if (locomotiveSaveState.BrakemanBrakeController != null)
+                await BrakemanBrakeController.Restore(locomotiveSaveState.BrakemanBrakeController).ConfigureAwait(false);
+            if (locomotiveSaveState.DynamicBrakeController != null)
+                await DynamicBrakeController.Restore(locomotiveSaveState.DynamicBrakeController).ConfigureAwait(false);
+            if (locomotiveSaveState.SteamHeatController != null)
+                await SteamHeatController.Restore(locomotiveSaveState.SteamHeatController).ConfigureAwait(false);
             PowerReduction = locomotiveSaveState.PowerReduction;
             ScoopIsBroken = locomotiveSaveState.ScoopBroken;
             IsWaterScoopDown = locomotiveSaveState.WaterScoopDown;

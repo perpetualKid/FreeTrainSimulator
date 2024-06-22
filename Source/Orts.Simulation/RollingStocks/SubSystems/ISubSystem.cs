@@ -15,15 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System.IO;
-
-using FreeTrainSimulator.Common.Api;
-
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
-    //public interface ISubSystem<T, U> : ISaveStateApi<U> where T : ISubSystem<T, U> where U : SaveStateBase
     public interface ISubSystem<T> where T : ISubSystem<T>
     {
         void Copy(T source);
