@@ -17,7 +17,7 @@ namespace Orts.Models.State
         public bool LocationPassingPathsEnabled { get; set; }
         public Dictionary<int, int> DeadlockReferences { get; set; }
         public int GlobalDeadlockIndex { get; set; }
-        public Collection<DeadlockInfoSaveState> DeadlockDetails { get; set;}
+        public Dictionary<int, DeadlockInfoSaveState> DeadlockDetails { get; set;}
 #pragma warning restore CA2227 // Collection properties should be read only
     }
 }

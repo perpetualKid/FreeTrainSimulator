@@ -144,7 +144,6 @@ namespace Orts.Simulation.Track
             items = null;
             routeDirections = null;
 
-            ConcurrentBag<TrackCircuitRouteElement> routeElements = new ConcurrentBag<TrackCircuitRouteElement>();
             if (saveState.RouteElements != null)
             {
                 await list.RestoreCollectionCreateNewItems(saveState.RouteElements);

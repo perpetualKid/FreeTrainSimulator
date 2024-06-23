@@ -315,7 +315,6 @@ namespace Orts.Formats.Msts
                 TrackNodeIndex = trackNode.Index,
                 TrackVectorSectionIndex = TrackNodeType == TrackNodeType.Track ? TrackVectorSectionIndex : -1,
             });
-            throw new NotImplementedException();
         }
 
         public ValueTask Restore(TravellerSaveState saveState)

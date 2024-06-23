@@ -821,7 +821,9 @@ namespace Orts.Simulation.Physics
         protected TrainCar CreateRuntimeTarget(TrainCarSaveState saveState)
         {
             ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
-            return RollingStock.Load(this, saveState.WagonSaveState.WagonFile, false);
+            TrainCar result = RollingStock.Load(this, saveState.WagonSaveState.WagonFile, false);
+            Cars.Remove(result);// remove the loaded car, since it's added after restore is complete
+            return result;
         }
 
         //================================================================================================//

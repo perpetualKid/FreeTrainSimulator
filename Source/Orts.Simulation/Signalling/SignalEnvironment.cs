@@ -20,7 +20,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -49,7 +48,9 @@ namespace Orts.Simulation.Signalling
     /// <summary>
     /// Class Signals
     /// </summary>
-    public class SignalEnvironment : ISaveStateApi<SignalEnvironmentSaveState>
+    public class SignalEnvironment :
+        ISaveStateApi<SignalEnvironmentSaveState>,
+        ISaveStateRestoreApi<DeadlockInfoSaveState, DeadlockInfo>
     {
         /// Gets an array of all the SignalObjects.
         public List<Signal> Signals { get; private set; }
@@ -189,33 +190,15 @@ namespace Orts.Simulation.Signalling
 
         public async ValueTask<SignalEnvironmentSaveState> Snapshot()
         {
-            ConcurrentBag<SignalSaveState> signalSaveStates = new ConcurrentBag<SignalSaveState>();
-            await Parallel.ForEachAsync(Signals ?? Enumerable.Empty<Signal>(), async (signal, cancellationToken) =>
-            {
-                signalSaveStates.Add(await signal.Snapshot().ConfigureAwait(false));
-            }).ConfigureAwait(false);
-
-            ConcurrentBag<TrackCircuitSectionSaveState> trackCircuitSections = new ConcurrentBag<TrackCircuitSectionSaveState>();
-            await Parallel.ForEachAsync(TrackCircuitSection.TrackCircuitList ?? Enumerable.Empty<TrackCircuitSection>(), async (trackCircuit, cancellationToken) =>
-            {
-                trackCircuitSections.Add(await trackCircuit.Snapshot().ConfigureAwait(false));
-            }).ConfigureAwait(false);
-
-            ConcurrentBag<DeadlockInfoSaveState> deadlockDetails = new ConcurrentBag<DeadlockInfoSaveState>();
-            await Parallel.ForEachAsync(DeadlockInfoList, async (deadlockInfo, cancellationToken) =>
-            {
-                deadlockDetails.Add(await deadlockInfo.Value.Snapshot().ConfigureAwait(false));
-            }).ConfigureAwait(false);
-
             return new SignalEnvironmentSaveState()
             {
-                Signals = signalSaveStates?.Count > 0 ? new Collection<SignalSaveState>(signalSaveStates.ToList()) : null,
+                Signals = Signals?.Count > 0 ? await Signals.SnapshotCollection<SignalSaveState, Signal>().ConfigureAwait(false) : null,
                 TrackCircuitSectionsCount = TrackCircuitSection.TrackCircuitList?.Count ?? -1,
-                TrackCircuitSections = trackCircuitSections?.Count > 0 ? new Collection<TrackCircuitSectionSaveState>(trackCircuitSections.ToList()) : null,
+                TrackCircuitSections = TrackCircuitSection.TrackCircuitList?.Count > 0 ? await TrackCircuitSection.TrackCircuitList.SnapshotCollection<TrackCircuitSectionSaveState, TrackCircuitSection>().ConfigureAwait(false) : null,
                 LocationPassingPathsEnabled = UseLocationPassingPaths,
                 DeadlockReferences = new Dictionary<int, int>(DeadlockReference),
                 GlobalDeadlockIndex = DeadlockInfo.GlobalDeadlockIndex,
-                DeadlockDetails = new Collection<DeadlockInfoSaveState>(deadlockDetails.ToList()),
+                DeadlockDetails = await DeadlockInfoList.SnapshotDictionary<DeadlockInfoSaveState, DeadlockInfo, int>().ConfigureAwait(false),
             };
         }
 
@@ -223,37 +206,29 @@ namespace Orts.Simulation.Signalling
         {
             ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-            await Parallel.ForEachAsync(saveState.Signals ?? Enumerable.Empty<SignalSaveState>(), async (signalSaveState, cancellationToken) =>
+            if (null != Signals && Signals?.Count == saveState.Signals?.Count)
             {
-                Signal signal = Signals[signalSaveState.SignalIndex];
-                await signal.Restore(signalSaveState).ConfigureAwait(false);
-            }).ConfigureAwait(false);
-
-            if (saveState.TrackCircuitSectionsCount != TrackCircuitSection.TrackCircuitList.Count)
-            {
-                Trace.TraceError("Mismatch between saved : {0} and existing : {1} TrackCircuits", saveState.TrackCircuitSectionsCount, TrackCircuitSection.TrackCircuitList.Count);
-                throw new InvalidDataException("Cannot resume route due to altered data");
+                await Signals.RestoreCollectionOnExistingInstances(saveState.Signals).ConfigureAwait(false);
             }
             else
             {
-                await Parallel.ForEachAsync(saveState.TrackCircuitSections ?? Enumerable.Empty<TrackCircuitSectionSaveState>(), async (trackCircuitState, cancellationToken) =>
-                {
-                    await TrackCircuitSection.TrackCircuitList[trackCircuitState.Index].Restore(trackCircuitState).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                throw new InvalidDataException("Cannot resume route due to altered data: Signals do not match.");
+
+            }
+
+            if (TrackCircuitSection.TrackCircuitList != null && TrackCircuitSection.TrackCircuitList?.Count == saveState.TrackCircuitSections?.Count)
+            {
+                await TrackCircuitSection.TrackCircuitList.RestoreCollectionOnExistingInstances(saveState.TrackCircuitSections).ConfigureAwait(false);
+            }
+            else
+            {
+                throw new InvalidDataException("Cannot resume route due to altered data: TrackCircuits do not match.");
             }
             UseLocationPassingPaths = saveState.LocationPassingPathsEnabled;
             DeadlockReference = new Dictionary<int, int>(saveState.GlobalDeadlockIndex);
             DeadlockInfo.GlobalDeadlockIndex = saveState.GlobalDeadlockIndex;
 
-            ConcurrentDictionary<int, DeadlockInfo> deadlockRestore = new ConcurrentDictionary<int, DeadlockInfo>();
-            await Parallel.ForEachAsync(saveState.DeadlockDetails, async (deadlockInfoSaveState, cancellationToken) =>
-            {
-                DeadlockInfo deadlockInfo = new DeadlockInfo(true);
-                await deadlockInfo.Restore(deadlockInfoSaveState).ConfigureAwait(false);
-                deadlockRestore.TryAdd(deadlockInfo.DeadlockIndex, deadlockInfo);
-            }).ConfigureAwait(false);
-
-            DeadlockInfoList = deadlockRestore.ToDictionary();
+            await DeadlockInfoList.RestoreDictionaryCreateNewInstances(saveState.DeadlockDetails).ConfigureAwait(false);
         }
 
         /// <summary>

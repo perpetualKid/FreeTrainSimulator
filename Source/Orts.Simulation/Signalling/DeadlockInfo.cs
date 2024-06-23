@@ -18,11 +18,8 @@
 // This module covers all classes and code for signal, speed post, track occupation and track reservation control
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
@@ -71,7 +68,10 @@ namespace Orts.Simulation.Signalling
         /// Constructor
         /// </summary>
 
-        public DeadlockInfo(bool surpressIndexing = false)
+        public DeadlockInfo(): this(true)
+        { }
+
+        public DeadlockInfo(bool surpressIndexing)
         {
             AvailablePathList = new List<DeadlockPathInfo>();
             PathReferences = new Dictionary<int, List<int>>();
@@ -88,16 +88,10 @@ namespace Orts.Simulation.Signalling
 
         public async ValueTask<DeadlockInfoSaveState> Snapshot()
         {
-            ConcurrentBag<DeadlockPathInfoSaveState> pathInfoSaveStates = new ConcurrentBag<DeadlockPathInfoSaveState>();
-            await Parallel.ForEachAsync(AvailablePathList, async (pathInfo, cancellationToken) =>
-            {
-                pathInfoSaveStates.Add(await pathInfo.Snapshot().ConfigureAwait(false));
-            }).ConfigureAwait(false);
-
             return new DeadlockInfoSaveState()
             {
                 DeadlockIndex = DeadlockIndex,                
-                AvailablePaths = new Collection<DeadlockPathInfoSaveState>(pathInfoSaveStates.ToList()),
+                AvailablePaths = await AvailablePathList.SnapshotCollection<DeadlockPathInfoSaveState, DeadlockPathInfo>().ConfigureAwait(false),
                 PathReferences = new Dictionary<int, List<int>>(PathReferences),
                 TrainReferences = new Dictionary<int, List<int>>(TrainReferences),
                 TrainLengthFit = new Dictionary<int, Dictionary<int, bool>>(TrainLengthFit),
@@ -112,15 +106,9 @@ namespace Orts.Simulation.Signalling
         {
             ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
 
-            ConcurrentBag<DeadlockPathInfo> deadlockPathInfos = new ConcurrentBag<DeadlockPathInfo>();
-            await Parallel.ForEachAsync(saveState.AvailablePaths, async (deadlockPathInfo, cancellationToken) =>
-            {
-                DeadlockPathInfo pathInfo = new DeadlockPathInfo();
-                await pathInfo.Restore(deadlockPathInfo).ConfigureAwait(false);
-            }).ConfigureAwait(false);
-
             DeadlockIndex = saveState.DeadlockIndex;
-            AvailablePathList = deadlockPathInfos.ToList();
+            AvailablePathList = new List<DeadlockPathInfo>();
+            await AvailablePathList.RestoreCollectionCreateNewItems(saveState.AvailablePaths).ConfigureAwait(false);
             PathReferences = saveState.PathReferences;
             TrainReferences = saveState.TrainReferences;
             TrainLengthFit = saveState.TrainLengthFit;
@@ -242,7 +230,7 @@ namespace Orts.Simulation.Signalling
                 {
                     if (CheckNoOverlapDeadlockPaths(partPath))
                     {
-                        newDeadlockInfo = new DeadlockInfo();
+                        newDeadlockInfo = new DeadlockInfo(false);
                         Simulator.Instance.SignalEnvironment.DeadlockReference.Add(startSectionIndex, newDeadlockInfo.DeadlockIndex);
                         Simulator.Instance.SignalEnvironment.DeadlockReference.Add(endSectionIndex, newDeadlockInfo.DeadlockIndex);
 
