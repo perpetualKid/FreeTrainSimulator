@@ -25,11 +25,11 @@ using System.Linq;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.DebugInfo;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Common.Logging;
 using Orts.Graphics.Xna;

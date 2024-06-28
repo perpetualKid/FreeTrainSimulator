@@ -1,11 +1,12 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common.DebugInfo;
+
 using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.DebugInfo;
 using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.Physics;

@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
+using FreeTrainSimulator.Common.DebugInfo;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 
 namespace Tests.Orts.Common.DebugInfo

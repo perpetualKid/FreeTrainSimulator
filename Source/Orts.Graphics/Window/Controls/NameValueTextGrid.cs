@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common.DebugInfo;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common.DebugInfo;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Window.Controls

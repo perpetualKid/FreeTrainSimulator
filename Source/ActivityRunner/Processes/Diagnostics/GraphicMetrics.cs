@@ -17,10 +17,10 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using FreeTrainSimulator.Common.DebugInfo;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
-using Orts.Common.DebugInfo;
 
 namespace Orts.ActivityRunner.Processes
 {

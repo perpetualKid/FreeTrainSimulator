@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 
-namespace Orts.Common.DebugInfo
+namespace FreeTrainSimulator.Common.DebugInfo
 {
     /// <summary>
     /// Specialized dictionary which does not throw but returns null if a key was not found 
@@ -39,9 +39,7 @@ namespace Orts.Common.DebugInfo
             {
                 dictionary[key] = value;
                 if (version != (version = versionGet(dictionary)))
-                {
                     Interlocked.Exchange(ref currentKeys, dictionary.Keys.ToList());
-                }
             }
         }
 

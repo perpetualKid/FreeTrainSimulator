@@ -54,6 +54,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.DebugInfo;
 
 using GetText;
 
@@ -61,7 +62,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.DebugInfo;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;

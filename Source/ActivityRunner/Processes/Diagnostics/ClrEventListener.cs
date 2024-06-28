@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 
-using Microsoft.Xna.Framework;
+using FreeTrainSimulator.Common.DebugInfo;
 
-using Orts.Common.DebugInfo;
+using Microsoft.Xna.Framework;
 
 namespace Orts.ActivityRunner.Processes.Diagnostics
 {

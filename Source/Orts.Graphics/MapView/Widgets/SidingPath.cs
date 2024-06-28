@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-using Orts.Common.DebugInfo;
+using FreeTrainSimulator.Common.DebugInfo;
+
 using Orts.Common.Position;
 using Orts.Models.Track;
 

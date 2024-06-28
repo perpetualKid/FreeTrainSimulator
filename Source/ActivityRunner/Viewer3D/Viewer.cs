@@ -28,6 +28,7 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.DebugInfo;
 
 using GetText;
 
@@ -42,7 +43,6 @@ using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Native;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace Orts.Common.DebugInfo
+namespace FreeTrainSimulator.Common.DebugInfo
 {
     public abstract class DetailInfoProxyBase : DetailInfoBase
     {

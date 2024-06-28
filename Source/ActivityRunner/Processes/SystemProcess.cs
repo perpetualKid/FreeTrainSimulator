@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common.DebugInfo;
+
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common.Calc;
-using Orts.Common.DebugInfo;
 
 namespace Orts.ActivityRunner.Processes
 {

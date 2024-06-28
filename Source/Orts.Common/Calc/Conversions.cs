@@ -603,21 +603,15 @@ namespace Orts.Common.Calc
             /// <param name="outputUnit">Unit to convert To</param>
             public static double FromKPa(double pressure, Unit outputUnit)
             {
-                switch (outputUnit)
+                return outputUnit switch
                 {
-                    case Unit.KPa:
-                        return pressure;
-                    case Unit.Bar:
-                        return ToBar(pressure);
-                    case Unit.InHg:
-                        return ToInHg(pressure);
-                    case Unit.KgfpCm2:
-                        return ToKgfpCm2(pressure);
-                    case Unit.PSI:
-                        return ToPSI(pressure);
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(outputUnit), $"Pressure unit '{outputUnit}' not recognized");
-                }
+                    Unit.KPa => pressure,
+                    Unit.Bar => ToBar(pressure),
+                    Unit.InHg => ToInHg(pressure),
+                    Unit.KgfpCm2 => ToKgfpCm2(pressure),
+                    Unit.PSI => ToPSI(pressure),
+                    _ => throw new ArgumentOutOfRangeException(nameof(outputUnit), $"Pressure unit '{outputUnit}' not recognized"),
+                };
             }
 
             /// <summary>
@@ -627,21 +621,15 @@ namespace Orts.Common.Calc
             /// <param name="inputUnit">Unit to convert from</param>
             public static double ToKPa(double pressure, Unit inputUnit)
             {
-                switch (inputUnit)
+                return inputUnit switch
                 {
-                    case Unit.KPa:
-                        return pressure;
-                    case Unit.Bar:
-                        return FromBar(pressure);
-                    case Unit.InHg:
-                        return FromInHg(pressure);
-                    case Unit.KgfpCm2:
-                        return FromKgfpCm2(pressure);
-                    case Unit.PSI:
-                        return FromPSI(pressure);
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(inputUnit), $"Pressure unit '{inputUnit}' not recognized");
-                }
+                    Unit.KPa => pressure,
+                    Unit.Bar => FromBar(pressure),
+                    Unit.InHg => FromInHg(pressure),
+                    Unit.KgfpCm2 => FromKgfpCm2(pressure),
+                    Unit.PSI => FromPSI(pressure),
+                    _ => throw new ArgumentOutOfRangeException(nameof(inputUnit), $"Pressure unit '{inputUnit}' not recognized"),
+                };
             }
         }
     }

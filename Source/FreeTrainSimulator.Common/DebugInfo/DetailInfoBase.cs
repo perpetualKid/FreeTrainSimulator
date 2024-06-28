@@ -2,7 +2,7 @@
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Common.DebugInfo
+namespace FreeTrainSimulator.Common.DebugInfo
 {
     public class DetailInfoBase : InformationDictionary, INameValueInformationProvider
     {
@@ -17,9 +17,7 @@ namespace Orts.Common.DebugInfo
         public virtual void Update(GameTime gameTime)
         {
             if (UpdateNeeded)
-            {
                 UpdateNeeded = false;
-            }
         }
 
         public virtual InformationDictionary DetailInfo

@@ -1,6 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FreeTrainSimulator.Common.DebugInfo;
 
-using Orts.Common.DebugInfo;
+using Microsoft.Xna.Framework;
+
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;

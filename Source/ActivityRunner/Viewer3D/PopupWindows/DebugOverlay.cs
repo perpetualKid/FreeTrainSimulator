@@ -2,6 +2,7 @@
 using System.ComponentModel;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.DebugInfo;
 
 using GetText;
 
@@ -10,7 +11,6 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
-using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Graphics;
 using Orts.Graphics.Window;

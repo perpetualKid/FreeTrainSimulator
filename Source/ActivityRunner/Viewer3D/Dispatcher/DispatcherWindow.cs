@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.DebugInfo;
 
 using GetText;
 using GetText.WindowsForms;
@@ -17,7 +18,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows;
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
