@@ -46,6 +46,7 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
+using Orts.Simulation.World;
 
 using SharpDX.DXGI;
 

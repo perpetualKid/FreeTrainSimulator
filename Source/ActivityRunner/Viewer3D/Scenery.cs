@@ -436,7 +436,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             if (((CarSpawnerObject)worldObject).CarSpawnerListIndex < 0 || ((CarSpawnerObject)worldObject).CarSpawnerListIndex > Simulator.Instance.CarSpawnerLists.Count - 1) ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
                         }
                         else ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
-                        CarSpawners.Add(new RoadCarSpawner(viewer, worldMatrix, (CarSpawnerObject)worldObject));
+                        CarSpawners.Add(new RoadCarSpawner(worldMatrix, (CarSpawnerObject)worldObject));
                     }
                     else if (worldObject.GetType() == typeof(SidingObject))
                     {
