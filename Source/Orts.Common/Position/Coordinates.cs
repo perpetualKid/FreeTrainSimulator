@@ -186,9 +186,9 @@ namespace Orts.Common.Position
         public static ref readonly WorldLocation None => ref none;
 
         /// <summary>The x-value of the tile</summary>
-        public readonly int TileX;
+        public readonly int TileX => Tile.X;
         /// <summary>The z-value of the tile</summary>
-        public readonly int TileZ;
+        public readonly int TileZ => Tile.Z;
         /// <summary>The vector to the location within a tile, relative to center of tile in MSTS coordinates</summary>
         public readonly Vector3 Location;
 
