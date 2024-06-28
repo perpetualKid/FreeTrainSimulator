@@ -34,11 +34,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
 using Orts.Common.Position;
 using Orts.Simulation;
 using Orts.ActivityRunner.Processes;
+using FreeTrainSimulator.Common.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

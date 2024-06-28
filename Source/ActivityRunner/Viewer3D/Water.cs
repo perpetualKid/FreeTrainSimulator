@@ -20,10 +20,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
+using FreeTrainSimulator.Common.Xna;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.Common;
-using Orts.Common.Xna;
+
 using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D

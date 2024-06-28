@@ -20,12 +20,13 @@
 using System;
 using System.IO;
 
+using FreeTrainSimulator.Common.Xna;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Shaders;
-using Orts.Common.Xna;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D

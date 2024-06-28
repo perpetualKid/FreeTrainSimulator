@@ -28,6 +28,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -37,7 +38,6 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.Position;
-using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Models.State;

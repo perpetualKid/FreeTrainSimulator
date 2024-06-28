@@ -1,4 +1,4 @@
-﻿namespace Orts.Common.Xna
+﻿namespace FreeTrainSimulator.Common.Xna
 {
 #pragma warning disable CA1815 // Override equals and operator equals on value types
     public readonly struct Matrix3x3

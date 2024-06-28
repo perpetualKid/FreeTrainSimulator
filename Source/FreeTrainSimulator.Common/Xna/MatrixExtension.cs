@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Common.Xna
+namespace FreeTrainSimulator.Common.Xna
 {
     public static class MatrixExtension
     {

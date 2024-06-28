@@ -1,9 +1,10 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common.Xna;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Orts.Common.Position;
-using Orts.Common.Xna;
 
 namespace Tests.Orts.Common.Position
 {

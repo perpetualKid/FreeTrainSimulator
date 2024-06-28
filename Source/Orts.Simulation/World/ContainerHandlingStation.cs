@@ -26,12 +26,12 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Position;
-using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Models;
 using Orts.Models.State;

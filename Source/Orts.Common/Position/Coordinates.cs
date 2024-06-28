@@ -41,9 +41,9 @@
 
 using System;
 
-using Microsoft.Xna.Framework;
+using FreeTrainSimulator.Common.Xna;
 
-using Orts.Common.Xna;
+using Microsoft.Xna.Framework;
 
 namespace Orts.Common.Position
 {

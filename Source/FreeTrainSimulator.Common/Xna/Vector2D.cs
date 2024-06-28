@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Orts.Common.Xna
+namespace FreeTrainSimulator.Common.Xna
 {
 #pragma warning disable CA1815 // Override equals and operator equals on value types
 #pragma warning disable CA2225 // Operator overloads have named alternates
@@ -27,7 +27,7 @@ namespace Orts.Common.Xna
         /// <returns>The length of this <see cref="Vector2"/>.</returns>
         public double Length()
         {
-            return Math.Sqrt((X * X) + (Y * Y));
+            return Math.Sqrt(X * X + Y * Y);
         }
 
         #region operators

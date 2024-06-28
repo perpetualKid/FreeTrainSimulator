@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Orts.Common.Xna
+namespace FreeTrainSimulator.Common.Xna
 {
     public static class MathHelperD
     {
@@ -13,7 +13,7 @@ namespace Orts.Common.Xna
         public static double Clamp(double value, double min, double max)
         {
             // First we check to see if we're greater than the max
-            return (value > max) ? max : (value < min) ? min : value; ;
+            return value > max ? max : value < min ? min : value;
         }
 
         /// <summary>
@@ -24,14 +24,10 @@ namespace Orts.Common.Xna
         public static double WrapAngle(double angle)
         {
             const double twoPi = Math.PI * 2.0;
-            if ((angle > -Math.PI) && (angle <= Math.PI))
+            if (angle > -Math.PI && angle <= Math.PI)
                 return angle;
             angle %= twoPi;
-            if (angle <= -Math.PI)
-                return angle + twoPi;
-            if (angle > Math.PI)
-                return angle - twoPi;
-            return angle;
+            return angle <= -Math.PI ? angle + twoPi : angle > Math.PI ? angle - twoPi : angle;
         }
 
     }

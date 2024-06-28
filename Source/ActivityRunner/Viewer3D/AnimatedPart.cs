@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts.Models;
-using Orts.Common.Xna;
+using FreeTrainSimulator.Common.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
