@@ -615,7 +615,7 @@ namespace Orts.Simulation.RollingStocks
                         if (freightAnimationDiscrete.Loaded && freightAnimationDiscrete.Container != null)
                         {
                             World.Container container = freightAnimationDiscrete.Container;
-                            container.SetWorldPosition(new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(container.RelativeContainerMatrix, freightAnimationDiscrete.Wagon.WorldPosition.XNAMatrix)));
+                            container.SetWorldPosition(new WorldPosition(WorldPosition.Tile, MatrixExtension.Multiply(container.RelativeContainerMatrix, freightAnimationDiscrete.Wagon.WorldPosition.XNAMatrix)));
                         }
                     }
                 }
@@ -2371,7 +2371,7 @@ namespace Orts.Simulation.RollingStocks
             m.M41 = p0.A[0];
             m.M42 = p0.A[1] + 0.275f;
             m.M43 = -p0.A[2];
-            worldPosition = new WorldPosition(tileX, tileZ, m);
+            worldPosition = new WorldPosition(traveller.Tile, m);
 
             UpdatedTraveller(traveller, elapsedTimeS, distance, speed);
 
@@ -2456,7 +2456,7 @@ namespace Orts.Simulation.RollingStocks
                 prevElev = z;
             }
 
-            worldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(Matrix.CreateRotationZ(z), WorldPosition.XNAMatrix));
+            worldPosition = new WorldPosition(WorldPosition.Tile, MatrixExtension.Multiply(Matrix.CreateRotationZ(z), WorldPosition.XNAMatrix));
         }
         #endregion
 
@@ -2592,7 +2592,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 var rotation = Matrix.CreateFromYawPitchRoll(VibrationRotationRad.Y, VibrationRotationRad.X, VibrationRotationRad.Z + TiltingZRot);
                 var translation = Matrix.CreateTranslation(VibrationTranslationM.X, VibrationTranslationM.Y, 0);
-                worldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(MatrixExtension.Multiply(rotation, translation), WorldPosition.XNAMatrix));
+                worldPosition = new WorldPosition(WorldPosition.Tile, MatrixExtension.Multiply(MatrixExtension.Multiply(rotation, translation), WorldPosition.XNAMatrix));
                 VibrationInverseMatrix = Matrix.Invert(rotation * translation);
             }
         }

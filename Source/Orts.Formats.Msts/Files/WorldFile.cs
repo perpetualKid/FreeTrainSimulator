@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 
@@ -26,9 +27,8 @@ namespace Orts.Formats.Msts.Files
 {
     public class WorldFile
     {
-        public int TileX { get; private set; }
-        public int TileZ { get; private set; }
-        public WorldObjects Objects { get; private set; }
+        public Tile Tile { get; }
+        public WorldObjects Objects { get; set; }
 
         public WorldFile(string fileName)
             : this(fileName, null)
@@ -45,14 +45,13 @@ namespace Orts.Formats.Msts.Files
                 int p = fileName.LastIndexOf("\\WORLD\\W", StringComparison.OrdinalIgnoreCase);
                 if (!int.TryParse(fileName.AsSpan(p + 8, 7), out int tileX) || !int.TryParse(fileName.AsSpan(p + 15, 7), out int tileZ))
                     throw new InvalidDataException($"Could not parse filename {fileName} for X and Z tile information.");
-                TileX = tileX;
-                TileZ = tileZ;
+                Tile = new Tile(tileX, tileZ);
 
                 using (SBR sbr = SBR.Open(fileName))
                 {
                     using (SBR block = sbr.ReadSubBlock())
                     {
-                        Objects = new WorldObjects(block, allowedTokens, TileX, TileZ);
+                        Objects = new WorldObjects(block, allowedTokens, Tile);
                     }
                     // some w files have additional comments at the end 
                     //       eg _Skip ( "TS DB-Utility - Version: 3.4.05(13.10.2009), Filetype='World', Copyright (C) 2003-2009 by ...CarlosHR..." )

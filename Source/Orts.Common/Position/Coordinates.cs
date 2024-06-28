@@ -115,12 +115,11 @@ namespace Orts.Common.Position
         /// </summary>
         public WorldPosition Normalize()
         {
-            int xTileDistance = (int)Math.Round((int)(XNAMatrix.M41 / 1024) / 2.0, MidpointRounding.AwayFromZero);
-            int zTileDistance = (int)Math.Round((int)(XNAMatrix.M43 / 1024) / 2.0, MidpointRounding.AwayFromZero);
+            Tile delta = new Tile((int)Math.Round((int)(XNAMatrix.M41 / 1024) / 2.0, MidpointRounding.AwayFromZero),
+                (int)Math.Round((int)(XNAMatrix.M43 / 1024) / 2.0, MidpointRounding.AwayFromZero));
 
-            return (xTileDistance == 0 && zTileDistance == 0) ? this : new WorldPosition(Tile.X + xTileDistance, Tile.Z + zTileDistance,
-                MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 - (xTileDistance * TileSize)),
-                XNAMatrix.M42, (float)(XNAMatrix.M43 - (zTileDistance * TileSize))));
+            return (delta == Tile.Zero) ? this : new WorldPosition(delta, MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 - (delta.X * TileSize)),
+                XNAMatrix.M42, (float)(XNAMatrix.M43 - (delta.Z * TileSize))));
         }
 
         /// <summary>
@@ -128,14 +127,17 @@ namespace Orts.Common.Position
         /// </summary>
         /// <param name="tileX">The x-value of the tile to normalize to</param>
         /// <param name="tileZ">The x-value of the tile to normalize to</param>
-        public WorldPosition NormalizeTo(int tileX, int tileZ)
-        {
-            int xDiff = Tile.X - tileX;
-            int zDiff = Tile.Z - tileZ;
+        public WorldPosition NormalizeTo(int tileX, int tileZ) => NormalizeTo(new Tile(tileX, tileZ));
 
-            return (xDiff == 0 && zDiff == 0) ? this : new WorldPosition(tileX, tileZ, 
-                MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 + (xDiff * TileSize)),
-                XNAMatrix.M42, (float)(XNAMatrix.M43 + (zDiff * TileSize))));
+        /// <summary>
+        /// Change tile and location values to make it as if the location where on the requested tile.
+        /// </summary>
+        public WorldPosition NormalizeTo(Tile tile)
+        {
+            Tile delta = Tile - tile;
+
+            return (delta == Tile.Zero) ? this : new WorldPosition(tile, MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 + (delta.X * TileSize)),
+                XNAMatrix.M42, (float)(XNAMatrix.M43 + (delta.Z * TileSize))));
         }
 
         /// <summary>
@@ -178,7 +180,7 @@ namespace Orts.Common.Position
     public readonly struct WorldLocation : IEquatable<WorldLocation>
     {
         public const double TileSize = Tile.TileSize;
-		private static readonly WorldLocation none;
+        private static readonly WorldLocation none;
 
         /// <summary>
         /// Returns a WorldLocation representing no location at all.
@@ -215,7 +217,7 @@ namespace Orts.Common.Position
         /// <summary>
         /// Constructor using values for tileX, tileZ, x, y, and z.
         /// </summary>
-        public WorldLocation(int tileX, int tileZ, float x, float y, float z, bool normalize = false): 
+        public WorldLocation(int tileX, int tileZ, float x, float y, float z, bool normalize = false) :
             this(new Tile(tileX, tileZ), new Vector3(x, y, z), normalize)
         {
         }
@@ -223,7 +225,7 @@ namespace Orts.Common.Position
         /// <summary>
         /// Constructor using values for tileX and tileZ, and a vector for x, y, z
         /// </summary>
-        public WorldLocation(int tileX, int tileZ, Vector3 location, bool normalize = false):
+        public WorldLocation(int tileX, int tileZ, Vector3 location, bool normalize = false) :
             this(new Tile(tileX, tileZ), location, normalize)
         {
         }
@@ -236,7 +238,7 @@ namespace Orts.Common.Position
             int xTileDistance = (int)Math.Round((int)(Location.X / 1024) / 2.0, MidpointRounding.AwayFromZero);
             int zTileDistance = (int)Math.Round((int)(Location.Z / 1024) / 2.0, MidpointRounding.AwayFromZero);
 
-            return (xTileDistance == 0 && zTileDistance == 0) ? this : new WorldLocation(Tile.X + xTileDistance, Tile.Z + zTileDistance, 
+            return (xTileDistance == 0 && zTileDistance == 0) ? this : new WorldLocation(Tile.X + xTileDistance, Tile.Z + zTileDistance,
                 new Vector3((float)(Location.X - (xTileDistance * TileSize)), Location.Y, (float)(Location.Z - (zTileDistance * TileSize))));
         }
 
@@ -252,7 +254,7 @@ namespace Orts.Common.Position
             int xDiff = Tile.X - tile.X;
             int zDiff = Tile.Z - tile.Z;
 
-            return (xDiff == 0 && zDiff == 0) ? this : new WorldLocation(tile.X, tile.Z, 
+            return (xDiff == 0 && zDiff == 0) ? this : new WorldLocation(tile.X, tile.Z,
                 new Vector3((float)(Location.X + (xDiff * TileSize)), Location.Y, (float)(Location.Z + (zDiff * TileSize))));
         }
 
@@ -314,8 +316,8 @@ namespace Orts.Common.Position
         public static Vector3 GetDistance(in WorldLocation locationFrom, in WorldLocation locationTo)
         {
             return new Vector3(
-                (float)(locationTo.Location.X - locationFrom.Location.X + (locationTo.Tile.X - locationFrom.Tile.X) * TileSize), 
-                locationTo.Location.Y - locationFrom.Location.Y, 
+                (float)(locationTo.Location.X - locationFrom.Location.X + (locationTo.Tile.X - locationFrom.Tile.X) * TileSize),
+                locationTo.Location.Y - locationFrom.Location.Y,
                 (float)(locationTo.Location.Z - locationFrom.Location.Z + (locationTo.Tile.Z - locationFrom.Tile.Z) * TileSize));
         }
 
@@ -325,7 +327,7 @@ namespace Orts.Common.Position
         public static Vector2 GetDistance2D(in WorldLocation locationFrom, in WorldLocation locationTo)
         {
             return new Vector2(
-                (float)(locationTo.Location.X - locationFrom.Location.X + (locationTo.Tile.X - locationFrom.Tile.X) * TileSize), 
+                (float)(locationTo.Location.X - locationFrom.Location.X + (locationTo.Tile.X - locationFrom.Tile.X) * TileSize),
                 (float)(locationTo.Location.Z - locationFrom.Location.Z + (locationTo.TileZ - locationFrom.Tile.Z) * TileSize));
         }
 

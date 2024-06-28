@@ -86,7 +86,7 @@ namespace Tests.Orts.Common.Position
         [TestMethod]
         public void WorldPositionCtorTest()
         {
-            Assert.AreEqual(WorldPosition.None, new WorldPosition(0, 0, Microsoft.Xna.Framework.Matrix.Identity));
+            Assert.AreEqual(WorldPosition.None, new WorldPosition(Tile.Zero, Microsoft.Xna.Framework.Matrix.Identity));
             WorldLocation location = new WorldLocation(3, 4, 5, 6, 7);
             WorldPosition position = new WorldPosition(location);
             Assert.AreEqual(location.Location, position.Location);
@@ -113,7 +113,7 @@ namespace Tests.Orts.Common.Position
             Assert.AreEqual(2, position.TileZ);
             Assert.AreEqual(-22, position.Location.Z);
 
-            position = new WorldPosition(0, 0, MatrixExtension.SetTranslation(Microsoft.Xna.Framework.Matrix.Identity, 3834, 0, -4118)).Normalize();
+            position = new WorldPosition(Tile.Zero, MatrixExtension.SetTranslation(Microsoft.Xna.Framework.Matrix.Identity, 3834, 0, -4118)).Normalize();
 
             Assert.AreEqual(2, position.TileX);
             Assert.AreEqual(-262, position.Location.X);
@@ -125,7 +125,7 @@ namespace Tests.Orts.Common.Position
         [TestMethod]
         public void WorldPositionNormalizeToTest()
         {
-            WorldPosition position = new WorldPosition(-1, 1, MatrixExtension.SetTranslation(Microsoft.Xna.Framework.Matrix.Identity, 3834, 0, -4118)).NormalizeTo(4, 4);
+            WorldPosition position = new WorldPosition(new Tile(-1, 1), MatrixExtension.SetTranslation(Microsoft.Xna.Framework.Matrix.Identity, 3834, 0, -4118)).NormalizeTo(new Tile(4, 4));
 
             Assert.AreEqual(4, position.TileX);
             Assert.AreEqual(-6406, position.Location.X);
