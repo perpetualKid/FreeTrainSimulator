@@ -1445,8 +1445,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 UpdateTrainBrowsing(elapsedTime);
                 attachedLocation.Z += browseDistance * (attachedToFront ? 1 : -1);
-                lookedAtPosition = new WorldPosition(browsedTraveller.TileX, browsedTraveller.TileZ,
-                    Matrix.CreateFromYawPitchRoll(-browsedTraveller.RotY, 0, 0)).SetTranslation(browsedTraveller.X, browsedTraveller.Y, -browsedTraveller.Z);
+                lookedAtPosition = new WorldPosition(browsedTraveller.Tile, Matrix.CreateFromYawPitchRoll(-browsedTraveller.RotY, 0, 0)).SetTranslation(browsedTraveller.X, browsedTraveller.Y, -browsedTraveller.Z);
             }
             else if (AttachedCar != null)
             {

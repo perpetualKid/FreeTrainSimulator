@@ -116,7 +116,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot, root, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
-                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix));// Store heading change
+                    nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix));// Store heading change
                 }
 
                 // Update nextRoot with new translation component

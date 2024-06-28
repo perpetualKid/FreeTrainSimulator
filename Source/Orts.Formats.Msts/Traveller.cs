@@ -63,6 +63,7 @@ namespace Orts.Formats.Msts
         public ref readonly WorldLocation WorldLocation { get { if (!locationSet) SetLocation(); return ref location; } }
         public int TileX { get { if (!locationSet) SetLocation(); return location.TileX; } }
         public int TileZ { get { if (!locationSet) SetLocation(); return location.TileZ; } }
+        public Tile Tile { get { if (!locationSet) SetLocation(); return location.Tile; } }
         public Vector3 Location { get { if (!locationSet) SetLocation(); return location.Location; } }
         public float X { get { if (!locationSet) SetLocation(); return location.Location.X; } }
         public float Y { get { if (!locationSet) SetLocation(); return location.Location.Y; } }
