@@ -96,7 +96,7 @@ namespace Orts.Simulation.World
                 totalOffset.Y += freightAnimDiscreteSource.Container.HeightM;
             Matrix translation = Matrix.CreateTranslation(totalOffset);
 
-            worldPosition = new WorldPosition(Wagon.WorldPosition.TileX, Wagon.WorldPosition.TileZ, MatrixExtension.Multiply(translation, Wagon.WorldPosition.XNAMatrix));
+            worldPosition = new WorldPosition(Wagon.WorldPosition.Tile, MatrixExtension.Multiply(translation, Wagon.WorldPosition.XNAMatrix));
 
             RelativeContainerMatrix = MatrixExtension.Multiply(WorldPosition.XNAMatrix, Matrix.Invert(freightAnimDiscrete.Wagon.WorldPosition.XNAMatrix));
         }
@@ -230,7 +230,7 @@ namespace Orts.Simulation.World
             {
                 ArgumentNullException.ThrowIfNull(Wagon);
                 RelativeContainerMatrix = saveState.RelativeStationPosition;
-                worldPosition = new WorldPosition(Wagon.WorldPosition.TileX, Wagon.WorldPosition.TileZ, MatrixExtension.Multiply(RelativeContainerMatrix, Wagon.WorldPosition.XNAMatrix));
+                worldPosition = new WorldPosition(Wagon.WorldPosition.Tile, MatrixExtension.Multiply(RelativeContainerMatrix, Wagon.WorldPosition.XNAMatrix));
             }
             return ValueTask.CompletedTask;
         }
@@ -262,7 +262,7 @@ namespace Orts.Simulation.World
             Vector3 offset = freightAnimDiscrete.Offset;
             //            if (freightAnimDiscrete.Container != null) offset.Y += freightAnimDiscrete.Container.HeightM;
             Matrix translation = Matrix.CreateTranslation(offset - IntrinsicShapeOffset);
-            worldPosition = new WorldPosition(freightAnimDiscrete.Wagon.WorldPosition.TileX, freightAnimDiscrete.Wagon.WorldPosition.TileZ,
+            worldPosition = new WorldPosition(freightAnimDiscrete.Wagon.WorldPosition.Tile,
                 MatrixExtension.Multiply(translation, freightAnimDiscrete.Wagon.WorldPosition.XNAMatrix));
             Matrix invWagonMatrix = Matrix.Invert(freightAnimDiscrete.Wagon.WorldPosition.XNAMatrix);
             RelativeContainerMatrix = Matrix.Multiply(WorldPosition.XNAMatrix, invWagonMatrix);

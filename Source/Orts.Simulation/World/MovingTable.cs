@@ -302,7 +302,7 @@ namespace Orts.Simulation.World
                     relativeCarPositions = new List<Matrix>();
                     foreach (TrainCar trainCar in train.Cars)
                     {
-                        trainCar.UpdateWorldPosition(trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ));
+                        trainCar.UpdateWorldPosition(trainCar.WorldPosition.NormalizeTo(WorldPosition.Tile));
                         Matrix relativeCarPosition = Matrix.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
                         relativeCarPositions.Add(relativeCarPosition);
                     }

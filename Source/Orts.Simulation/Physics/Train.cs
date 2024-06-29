@@ -11730,9 +11730,9 @@ namespace Orts.Simulation.Physics
         internal void ReenterTrackSections(int trackNodeIndex, Vector3 finalFrontTravellerXNALocation, Vector3 finalRearTravellerXNALocation, Direction direction)
         {
             FrontTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex],
-                 Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalFrontTravellerXNALocation.X, -finalFrontTravellerXNALocation.Z, FrontTDBTraveller.Direction);
+                 Cars[0].WorldPosition.Tile, finalFrontTravellerXNALocation.X, -finalFrontTravellerXNALocation.Z, FrontTDBTraveller.Direction);
             RearTDBTraveller = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex],
-                Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalRearTravellerXNALocation.X, -finalRearTravellerXNALocation.Z, RearTDBTraveller.Direction);
+                Cars[0].WorldPosition.Tile, finalRearTravellerXNALocation.X, -finalRearTravellerXNALocation.Z, RearTDBTraveller.Direction);
             if (direction == Direction.Backward)
             {
                 FrontTDBTraveller.ReverseDirection();

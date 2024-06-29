@@ -147,7 +147,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Vector3 trackLoc = ts.Location.Location;
                 trackLoc.Z *= - 1;
 
-                WorldPosition root = new WorldPosition(ts.Location.TileX, ts.Location.TileZ, MatrixExtension.CreateFromYawPitchRoll(ts.Direction)).SetTranslation(Vector3.Transform(trackLoc, Matrix.Identity));
+                WorldPosition root = new WorldPosition(ts.Location.Tile, MatrixExtension.CreateFromYawPitchRoll(ts.Direction)).SetTranslation(Vector3.Transform(trackLoc, Matrix.Identity));
 
                 var sign = -Math.Sign(tss.Angle); var to = Math.Abs(tss.Angle * 0.0174f);
                 var vectorCurveStartToCenter = Vector3.Left * tss.Radius * sign;
@@ -262,7 +262,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Matrix trackRot = Matrix.CreateRotationY(0);
 
             //heading = Vector3.Transform(heading, trackRot); // Heading change
-            nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
+            nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
             int[] sections = path.TrackSections;
 
             int count = -1;
@@ -297,7 +297,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
-                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(MatrixExtension.Multiply(trackRot, rot), nextRoot.XNAMatrix)); // Store heading change
+                    nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(MatrixExtension.Multiply(trackRot, rot), nextRoot.XNAMatrix)); // Store heading change
 
                 }
                 nextRoot = nextRoot.SetTranslation(sectionOrigin + displacement);
@@ -387,7 +387,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
-                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix)); // Store heading change
+                    nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix)); // Store heading change
                 }
 
                 // Update nextRoot with new translation component

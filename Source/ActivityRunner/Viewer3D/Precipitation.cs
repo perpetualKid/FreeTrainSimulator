@@ -307,7 +307,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Vertices[vertex + j].StartPosition_StartTime = new Vector4(position.XNAMatrix.Translation - particleDirection * particleDuration, time);
                     Vertices[vertex + j].StartPosition_StartTime.Y += ParticleBoxHeightM;
                     Vertices[vertex + j].EndPosition_EndTime = new Vector4(position.XNAMatrix.Translation, time + particleDuration);
-                    Vertices[vertex + j].TileXZ_Vertex = new Vector4(position.TileX, position.TileZ, j, 0);
+                    Vertices[vertex + j].TileXZ_Vertex = new Vector4(position.Tile.X, position.Tile.Z, j, 0);
                 }
 
                 firstFreeParticle = particle;

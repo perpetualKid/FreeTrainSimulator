@@ -206,9 +206,8 @@ namespace Orts.Simulation.World
             // Search if ContainerStation present in file
             foreach (ContainerStationPopulation loadStationPopulation in containerManager.LoadStationsPopulationFile.LoadStationsPopulation)
             {
-                var tileX = int.Parse(loadStationPopulation.LoadStationId.WorldFile.Substring(1, 7));
-                var tileZ = int.Parse(loadStationPopulation.LoadStationId.WorldFile.Substring(8, 7));
-                if (tileX == Location.TileX && tileZ == Location.TileZ && loadStationPopulation.LoadStationId.UiD == pickupObject.UiD)
+                Tile tile = new Tile (int.Parse(loadStationPopulation.LoadStationId.WorldFile.Substring(1, 7)), int.Parse(loadStationPopulation.LoadStationId.WorldFile.Substring(8, 7)));
+                if (tile == Location.Tile && loadStationPopulation.LoadStationId.UiD == pickupObject.UiD)
                 {
                     string trainSetFolder = Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder;
 
@@ -628,7 +627,7 @@ namespace Orts.Simulation.World
             activeOperations++;
             LinkedFreightAnimation = linkedFreightAnimation;
             relativeContainerPosition = new Matrix();
-            LinkedFreightAnimation.Wagon.UpdateWorldPosition(LinkedFreightAnimation.Wagon.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ));
+            LinkedFreightAnimation.Wagon.UpdateWorldPosition(LinkedFreightAnimation.Wagon.WorldPosition.NormalizeTo(WorldPosition.Tile));
             var container = LinkedFreightAnimation.Container;
             relativeContainerPosition = Matrix.Multiply(container.WorldPosition.XNAMatrix, initialInvAnimationXNAMatrix);
             relativeContainerPosition.M42 += pickingSurfaceYOffset;
@@ -680,7 +679,7 @@ namespace Orts.Simulation.World
             if (ContainerAttached)
             {
                 // Move together also containers
-                handledContainer.SetWorldPosition(new WorldPosition(handledContainer.WorldPosition.TileX, handledContainer.WorldPosition.TileZ, MatrixExtension.Multiply(relativeContainerPosition, this.animationXNAMatrix)));
+                handledContainer.SetWorldPosition(new WorldPosition(handledContainer.WorldPosition.Tile, MatrixExtension.Multiply(relativeContainerPosition, this.animationXNAMatrix)));
             }
         }
 

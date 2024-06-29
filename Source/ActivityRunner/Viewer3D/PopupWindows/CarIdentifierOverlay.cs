@@ -42,7 +42,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly List<Label3DOverlay> labelList = new List<Label3DOverlay>();
         private readonly CameraViewProjectionHolder cameraViewProjection;
 
-        public CarIdentifierOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : 
+        public CarIdentifierOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) :
             base(owner, catalog ?? CatalogManager.Catalog)
         {
             ArgumentNullException.ThrowIfNull(viewer);
@@ -68,11 +68,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 labelList.Clear();
                 foreach (Train train in Simulator.Instance.Trains)
                 {
-                    ref readonly WorldPosition firstCarPosition = ref train.FirstCar.WorldPosition;
-                    ref readonly WorldPosition lastCarPosition = ref train.LastCar.WorldPosition;
+                    Tile firstCarDelta = train.FirstCar.WorldPosition.Tile - cameraLocation.Tile;
+                    Tile lastCarDelta = train.LastCar.WorldPosition.Tile - cameraLocation.Tile;
+
                     //only consider trains which are within 1 tile max distance from current camera position
-                    if ((Math.Abs(firstCarPosition.TileX - cameraLocation.TileX) < 2 && Math.Abs(firstCarPosition.TileZ - cameraLocation.TileZ) < 2) ||
-                        ((Math.Abs(lastCarPosition.TileX - cameraLocation.TileX) < 2 && Math.Abs(lastCarPosition.TileZ - cameraLocation.TileZ) < 2)))
+                    if ((Math.Abs(firstCarDelta.X) < 2 && Math.Abs(firstCarDelta.Z) < 2) || ((Math.Abs(lastCarDelta.X) < 2 && Math.Abs(lastCarDelta.Z) < 2)))
                     {
                         switch (viewMode)
                         {

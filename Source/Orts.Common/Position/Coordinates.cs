@@ -37,20 +37,10 @@ namespace Orts.Common.Position
     {
         public const double TileSize = Tile.TileSize;
 
-        /// <summary>The x-value of the tile</summary>
-        public int TileX => Tile.X;
-        /// <summary>The z-value of the tile</summary>
-        public int TileZ => Tile.Z;
         /// <summary>The position within a tile (relative to the center of tile)</summary>
         public readonly Matrix XNAMatrix;
 
         public readonly Tile Tile;
-
-        public WorldPosition(int tileX, int tileZ, Matrix xnaMatrix)
-        {
-            XNAMatrix = xnaMatrix;
-            Tile = new Tile(tileX, tileZ);
-        }
 
         public WorldPosition(in Tile tile, Matrix xnaMatrix)
         {

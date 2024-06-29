@@ -21,7 +21,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 
 using Microsoft.Xna.Framework;
 
@@ -113,22 +112,13 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Loads a specific tile, if it is not already loaded, and gets the elevation of the terrain at a specific location, interpolating between sample points.
         /// </summary>
-        /// <param name="tileX">MSTS TileX coordinate</param>
-        /// <param name="tileZ">MSTS TileZ coordinate</param>
-        /// <param name="x">MSTS X coordinate within tile</param>
-        /// <param name="z">MSTS Z coordinate within tile</param>
         /// <param name="visible">Flag indicating whether the tile being loaded should be considered "key" to the user experience, and thus whether issues loading it should be shown.</param>
         /// <returns>Elevation at the given coordinates</returns>
-        public float LoadAndGetElevation(int tileX, int tileZ, float x, float z, bool visible)
+        public float LoadAndGetElevation(in Tile tile, float x, float z, bool visible)
         {
-            // Normalize the coordinates to the right tile.
-            while (x >= 1024) { x -= 2048; tileX++; }
-            while (x < -1024) { x += 2048; tileX--; }
-            while (z >= 1024) { z -= 2048; tileZ++; }
-            while (z < -1024) { z += 2048; tileZ--; }
-
-            Load(tileX, tileZ, visible);
-            return GetElevation(new WorldLocation(tileX, tileZ, x, 0, z));
+            WorldLocation location = new WorldLocation(tile, x, 0, z, true);
+            Load(location.TileX, location.Tile.Z, visible);
+            return GetElevation(location);
         }
 
         /// <summary>

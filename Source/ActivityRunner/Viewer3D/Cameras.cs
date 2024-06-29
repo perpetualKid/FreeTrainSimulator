@@ -187,7 +187,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public int TileX => cameraLocation.TileX;
         public int TileZ => cameraLocation.TileZ;
-        public Tile Tile => new Tile(cameraLocation.TileX, cameraLocation.TileZ);
+        public ref readonly Tile Tile => ref cameraLocation.Tile;
         public ref readonly Vector3 Location => ref cameraLocation.Location;
         public ref readonly WorldLocation CameraWorldLocation => ref cameraLocation;
 
@@ -1058,7 +1058,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 source = IsCameraFlipped() ? new Vector3(-attachedLocation.X, attachedLocation.Y, attachedLocation.Z) :
                 new Vector3(attachedLocation.X, attachedLocation.Y, -attachedLocation.Z);
             Vector3.Transform(source, worldPosition.XNAMatrix).Deconstruct(out float x, out float y, out float z);
-            cameraLocation = new WorldLocation(worldPosition.TileX, worldPosition.TileZ, x, y, -z);
+            cameraLocation = new WorldLocation(worldPosition.Tile, x, y, -z);
         }
 
         protected override Matrix GetCameraView()
@@ -1101,7 +1101,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Vector3 source = IsCameraFlipped() ? new Vector3(-attachedLocation.X, attachedLocation.Y, attachedLocation.Z) :
                     new Vector3(attachedLocation.X, attachedLocation.Y, -attachedLocation.Z);
                 Vector3.Transform(source, AttachedCar.WorldPosition.XNAMatrix).Deconstruct(out float x, out float y, out float z);
-                cameraLocation = new WorldLocation(AttachedCar.WorldPosition.TileX, AttachedCar.WorldPosition.TileZ, x, y, -z);
+                cameraLocation = new WorldLocation(AttachedCar.WorldPosition.Tile, x, y, -z);
             }
             UpdateRotation(elapsedTime);
             UpdateListener();

@@ -47,14 +47,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private static WorldPosition RemoveRotation(in WorldPosition position)
         {           
-            return new WorldPosition(position.TileX, position.TileZ, Matrix.CreateTranslation(position.XNAMatrix.Translation));
+            return new WorldPosition(position.Tile, Matrix.CreateTranslation(position.XNAMatrix.Translation));
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            var dTileX = WorldPosition.TileX - viewer.Camera.TileX;
-            var dTileZ = WorldPosition.TileZ - viewer.Camera.TileZ;
-            var mstsLocation = WorldPosition.Location + new Vector3(dTileX * 2048, 0, dTileZ * 2048);
+            Tile delta = WorldPosition.Tile - viewer.Camera.Tile;
+            var mstsLocation = WorldPosition.Location + new Vector3(delta.X * 2048, 0, delta.Z * 2048);
             var xnaMatrix = Matrix.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
             frame.AddAutoPrimitive(mstsLocation, Radius, float.MaxValue, Material, Primitive, RenderPrimitiveGroup.World, ref xnaMatrix, Flags);
         }
@@ -92,7 +91,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     var i = x * (maxZ - minZ + 1) + z;
                     verticies[i].Position.X = (x + minX) * 8 - center.X;
-                    verticies[i].Position.Y = viewer.Tiles.LoadAndGetElevation(position.TileX, position.TileZ, (x + minX) * 8, (z + minZ) * 8, false) - center.Y;
+                    verticies[i].Position.Y = viewer.Tiles.LoadAndGetElevation(position.Tile, (x + minX) * 8, (z + minZ) * 8, false) - center.Y;
                     verticies[i].Position.Z = -(z + minZ) * 8 + center.Z;
 
                     var tc = new Vector3(verticies[i].Position.X, 0, verticies[i].Position.Z);

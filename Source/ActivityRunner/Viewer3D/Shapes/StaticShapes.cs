@@ -88,10 +88,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         private static WorldPosition GetCenterLocation(List<BaseShape> shapes)
         {
-            int tileX = shapes.Min(s => s.WorldPosition.TileX);
-            int tileZ = shapes.Min(s => s.WorldPosition.TileZ);
-            Debug.Assert(tileX == shapes.Max(s => s.WorldPosition.TileX));
-            Debug.Assert(tileZ == shapes.Max(s => s.WorldPosition.TileZ));
+            int tileX = shapes.Min(s => s.WorldPosition.Tile.X);
+            int tileZ = shapes.Min(s => s.WorldPosition.Tile.Z);
+            Debug.Assert(tileX == shapes.Max(s => s.WorldPosition.Tile.X));
+            Debug.Assert(tileZ == shapes.Max(s => s.WorldPosition.Tile.Z));
 
             float minX = shapes.Min(s => s.WorldPosition.Location.X);
             float maxX = shapes.Max(s => s.WorldPosition.Location.X);
@@ -99,7 +99,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             float maxY = shapes.Max(s => s.WorldPosition.Location.Y);
             float minZ = shapes.Min(s => s.WorldPosition.Location.Z);
             float maxZ = shapes.Max(s => s.WorldPosition.Location.Z);
-            return new WorldPosition(tileX, tileZ, Matrix.Identity).SetTranslation((minX + maxX) / 2, (minY + maxY) / 2, - (minZ + maxZ) / 2);
+            return new WorldPosition(new Tile(tileX, tileZ), Matrix.Identity).SetTranslation((minX + maxX) / 2, (minY + maxY) / 2, - (minZ + maxZ) / 2);
         }
 
         private Matrix[] GetMatricies(List<BaseShape> shapes, ShapePrimitive shapePrimitive)
@@ -123,14 +123,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            int dTileX = worldPosition.TileX - viewer.Camera.TileX;
-            int dTileZ = worldPosition.TileZ - viewer.Camera.TileZ;
-            Vector3 mstsLocation = worldPosition.Location + new Vector3(dTileX * 2048, 0, dTileZ * 2048);
-            Matrix.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z, out Matrix xnaMatrix);
+            Matrix xnaMatrix = Matrix.CreateTranslation((worldPosition.Tile - viewer.Camera.Tile).TileVector(true));
 
             foreach (var primitive in primitives)
                 if (primitive.SubObjectIndex != 1 || !nightObjectEnabled || viewer.MaterialManager.sunDirection.Y < 0)
-                    frame.AddAutoPrimitive(mstsLocation, objectRadius, objectViewingDistance, primitive.Material, primitive, RenderPrimitiveGroup.World, ref xnaMatrix, Flags);
+                    frame.AddAutoPrimitive((worldPosition.Tile - viewer.Camera.Tile).TileVector(), objectRadius, objectViewingDistance, primitive.Material, primitive, RenderPrimitiveGroup.World, ref xnaMatrix, Flags);
         }
     }
 

@@ -157,9 +157,8 @@ namespace Orts.ActivityRunner.Viewer3D
             foreach (var lightPrimitive in LightPrimitives)
                 lightPrimitive.PrepareFrame(frame, elapsedTime);
 
-            int dTileX = positionSource.WorldPosition.TileX - Viewer.Camera.TileX;
-            int dTileZ = positionSource.WorldPosition.TileZ - Viewer.Camera.TileZ;
-            Matrix xnaDTileTranslation = Matrix.CreateTranslation(dTileX * 2048, 0, -dTileZ * 2048);  // object is offset from camera this many tiles
+            Vector3 delta = (positionSource.WorldPosition.Tile - Viewer.Camera.Tile).TileVector(true);
+            Matrix xnaDTileTranslation = Matrix.CreateTranslation(delta);  // object is offset from camera this many tiles
             xnaDTileTranslation = positionSource.WorldPosition.XNAMatrix * xnaDTileTranslation;
 
             Vector3 mstsLocation = new Vector3(xnaDTileTranslation.Translation.X, xnaDTileTranslation.Translation.Y, -xnaDTileTranslation.Translation.Z);

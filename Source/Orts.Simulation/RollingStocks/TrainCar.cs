@@ -628,7 +628,7 @@ namespace Orts.Simulation.RollingStocks
         public void InitializeCarTemperatures()
         {
             // Find the latitude reading and set outside temperature
-            EarthCoordinates.ConvertWTC(WorldPosition.TileX, WorldPosition.TileZ, WorldPosition.Location, out double latitude, out _);
+            EarthCoordinates.ConvertWTC(WorldPosition.Tile, WorldPosition.Location, out double latitude, out _);
 
             float LatitudeDeg = MathHelper.ToDegrees((float)latitude);
 

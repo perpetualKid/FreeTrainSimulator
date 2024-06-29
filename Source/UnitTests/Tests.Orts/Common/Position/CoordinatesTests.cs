@@ -108,16 +108,16 @@ namespace Tests.Orts.Common.Position
         {
             WorldPosition position = new WorldPosition(new WorldLocation(0, 0, 3834, 0, -4118)).Normalize();
 
-            Assert.AreEqual(2, position.TileX);
+            Assert.AreEqual(2, position.Tile.X);
             Assert.AreEqual(-262, position.Location.X);
-            Assert.AreEqual(2, position.TileZ);
+            Assert.AreEqual(2, position.Tile.Z);
             Assert.AreEqual(-22, position.Location.Z);
 
             position = new WorldPosition(Tile.Zero, MatrixExtension.SetTranslation(Microsoft.Xna.Framework.Matrix.Identity, 3834, 0, -4118)).Normalize();
 
-            Assert.AreEqual(2, position.TileX);
+            Assert.AreEqual(2, position.Tile.X);
             Assert.AreEqual(-262, position.Location.X);
-            Assert.AreEqual(-2, position.TileZ);
+            Assert.AreEqual(-2, position.Tile.Z);
             Assert.AreEqual(22, position.Location.Z);
             Assert.AreEqual(-22, position.XNAMatrix.M43);
         }
@@ -127,9 +127,9 @@ namespace Tests.Orts.Common.Position
         {
             WorldPosition position = new WorldPosition(new Tile(-1, 1), MatrixExtension.SetTranslation(Microsoft.Xna.Framework.Matrix.Identity, 3834, 0, -4118)).NormalizeTo(new Tile(4, 4));
 
-            Assert.AreEqual(4, position.TileX);
+            Assert.AreEqual(4, position.Tile.X);
             Assert.AreEqual(-6406, position.Location.X);
-            Assert.AreEqual(4, position.TileZ);
+            Assert.AreEqual(4, position.Tile.Z);
             Assert.AreEqual(10262, position.Location.Z);
             Assert.AreEqual(-10262, position.XNAMatrix.M43);
         }

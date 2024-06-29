@@ -70,7 +70,7 @@ namespace Orts.Simulation
             stf.ParseBlock(new[] {
                 new STFReader.TokenProcessor("wfile", () => {
                     WFile = stf.ReadStringBlock(null);
-                    position = new WorldPosition(int.Parse(WFile.Substring(1, 7), CultureInfo.InvariantCulture), int.Parse(WFile.Substring(8, 7), CultureInfo.InvariantCulture), location);
+                    position = new WorldPosition(new Tile(int.Parse(WFile.Substring(1, 7), CultureInfo.InvariantCulture), int.Parse(WFile.Substring(8, 7), CultureInfo.InvariantCulture)), location);
                 }),
                 new STFReader.TokenProcessor("uid", ()=>{ UID = stf.ReadIntBlock(-1); }),
                 new STFReader.TokenProcessor("animation", ()=>{ animation = stf.ReadStringBlock(null);
@@ -129,8 +129,7 @@ namespace Orts.Simulation
             {
                 if (tvn.TrackVectorSections != null)
                 {
-                    int trackVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection =>
-                        (trVectorSection.Location.TileX == WorldPosition.TileX && trVectorSection.Location.TileZ == WorldPosition.TileZ && trVectorSection.WorldFileUiD == UID));
+                    int trackVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection => (trVectorSection.Location.Tile == WorldPosition.Tile && trVectorSection.WorldFileUiD == UID));
                     if (trackVectorSection >= 0)
                     {
                         if (tvn.TrackVectorSections.Length > (int)nSections)
@@ -293,19 +292,21 @@ namespace Orts.Simulation
                     relativeCarPositions = new List<Matrix>();
                     foreach (TrainCar trainCar in train.Cars)
                     {
-                        trainCar.UpdateWorldPosition(trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ));
+                        trainCar.UpdateWorldPosition(trainCar.WorldPosition.NormalizeTo(WorldPosition.Tile));
                         Matrix relativeCarPosition = Matrix.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
                         relativeCarPositions.Add(relativeCarPosition);
                     }
                     Vector3 XNALocation = train.FrontTDBTraveller.Location;
                     XNALocation.Z = -XNALocation.Z;
-                    XNALocation.X += 2048 * (train.FrontTDBTraveller.TileX - WorldPosition.TileX);
-                    XNALocation.Z -= 2048 * (train.FrontTDBTraveller.TileZ - WorldPosition.TileZ);
+                    Vector3 deltaFront = (train.FrontTDBTraveller.Tile - WorldPosition.Tile).TileVector();
+                    XNALocation.X += deltaFront.X;
+                    XNALocation.Z -= deltaFront.Z;
                     relativeFrontTravellerXNALocation = Vector3.Transform(XNALocation, invAnimationXNAMatrix);
                     XNALocation = train.RearTDBTraveller.Location;
                     XNALocation.Z = -XNALocation.Z;
-                    XNALocation.X += 2048 * (train.RearTDBTraveller.TileX - WorldPosition.TileX);
-                    XNALocation.Z -= 2048 * (train.RearTDBTraveller.TileZ - WorldPosition.TileZ);
+                    Vector3 deltaRear = (train.RearTDBTraveller.Tile - WorldPosition.Tile).TileVector();
+                    XNALocation.X += deltaRear.X;
+                    XNALocation.Z -= deltaRear.Z;
                     relativeRearTravellerXNALocation = Vector3.Transform(XNALocation, invAnimationXNAMatrix);
                     train.ControlMode = TrainControlMode.TurnTable;
                 }
@@ -337,8 +338,7 @@ namespace Orts.Simulation
                 int relativeCarPositions = 0;
                 foreach (TrainCar traincar in TrainsOnMovingTable[0].Train.Cars)
                 {
-                    traincar.UpdateWorldPosition(new WorldPosition(traincar.WorldPosition.TileX, traincar.WorldPosition.TileZ,
-                        Matrix.Multiply(base.relativeCarPositions[relativeCarPositions], animationXNAMatrix)));
+                    traincar.UpdateWorldPosition(new WorldPosition(traincar.WorldPosition.Tile, Matrix.Multiply(base.relativeCarPositions[relativeCarPositions], animationXNAMatrix)));
                     traincar.UpdateFreightAnimationDiscretePositions();
                     relativeCarPositions++;
                 }

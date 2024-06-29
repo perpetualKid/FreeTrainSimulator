@@ -246,8 +246,8 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Creates a traveller starting at a specific location within a specified track node, facing in the specified direction.
         /// </summary>
-        public Traveller(TrackNode startTrackNode, int tileX, int tileZ, float x, float z, Direction direction, bool roadTraveller = false)
-            : this(startTrackNode as TrackVectorNode, new WorldLocation(tileX, tileZ, x, 0, z), roadTraveller)
+        public Traveller(TrackNode startTrackNode, in Tile tile, float x, float z, Direction direction, bool roadTraveller = false)
+            : this(startTrackNode as TrackVectorNode, new WorldLocation(tile, x, 0, z), roadTraveller)
         {
             Direction = direction;
         }

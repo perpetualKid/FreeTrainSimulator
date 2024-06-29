@@ -156,9 +156,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // Locate relative to the camera
-            var dTileX = WorldPosition.TileX - viewer.Camera.TileX;
-            var dTileZ = WorldPosition.TileZ - viewer.Camera.TileZ;
-            var xnaTileTranslation = Matrix.CreateTranslation(dTileX * 2048, 0, -dTileZ * 2048);  // object is offset from camera this many tiles
+            var xnaTileTranslation = Matrix.CreateTranslation((WorldPosition.Tile - viewer.Camera.Tile).TileVector(true));  // object is offset from camera this many tiles
             MatrixExtension.Multiply(in WorldPosition.XNAMatrix, in xnaTileTranslation, out Matrix xnaTileTranslationResult);
 
             foreach (var head in Heads)
@@ -169,7 +167,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Unload()
         {
-            foreach (var head in Heads)
+            foreach (SignalShapeHead head in Heads)
                 head.Unload();
             base.Unload();
         }

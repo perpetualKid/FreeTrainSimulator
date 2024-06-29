@@ -104,11 +104,11 @@ namespace Orts.Common.Position
         /// Entry point to this series of methods
         /// Gets Longitude, Latitude from Goode X, Y
         /// </summary>        
-        public static int ConvertWTC(int worldTileLongitude, int worldTileLatitude, in Vector3 tileLocation, out double latitude, out double longitude)
+        public static int ConvertWTC(in Tile tile, in Vector3 tileLocation, out double latitude, out double longitude)
         {
             // Decimal degrees is assumed
-            int gsamp = (worldTileLongitude - wt_ew_offset);  // Gsamp is Goode world tile x
-            int gline = (wt_ns_offset - worldTileLatitude);  // Gline is Goode world tile Y
+            int gsamp = (tile.X - wt_ew_offset);  // Gsamp is Goode world tile x
+            int gline = (wt_ns_offset - tile.Z);  // Gline is Goode world tile Y
             int y = (ul_y - ((gline - 1) * (int)WorldPosition.TileSize) + (int)tileLocation.Z);   // Actual Goode X
             int x = (ul_x + ((gsamp - 1) * (int)WorldPosition.TileSize) + (int)tileLocation.X);   // Actual Goode Y
 

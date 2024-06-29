@@ -47,7 +47,7 @@ namespace ORTS.TrackViewer.Drawing
         {
             if (!Properties.Settings.Default.showLonLat) return;
             
-            EarthCoordinates.ConvertWTC(mstsLocation.TileX, mstsLocation.TileZ, mstsLocation.Location, out double latitude, out double longitude);
+            EarthCoordinates.ConvertWTC(mstsLocation.Tile, mstsLocation.Location, out double latitude, out double longitude);
             string latitudeDegrees = MathHelper.ToDegrees((float)latitude).ToString("F5", System.Globalization.CultureInfo.CurrentCulture);
             string longitudeDegrees = MathHelper.ToDegrees((float)longitude).ToString("F5", System.Globalization.CultureInfo.CurrentCulture);
             string locationText = $"Lon = {longitudeDegrees}; Lat = {latitudeDegrees}";

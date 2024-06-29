@@ -1000,8 +1000,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
             Update3DDPITable();
             Matrix mx = TrainCarShape.WorldPosition.XNAMatrix;
-            mx.M41 += (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048;
-            mx.M43 += (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048;
+            Vector3 delta = (TrainCarShape.WorldPosition.Tile - Viewer.Camera.Tile).TileVector(true);
+            mx.M41 += delta.X;
+            mx.M43 += delta.Z;
             Matrix m = XNAMatrix * mx;
 
             // TODO: Make this use AddAutoPrimitive instead.

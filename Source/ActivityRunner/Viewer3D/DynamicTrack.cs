@@ -167,14 +167,12 @@ namespace Orts.ActivityRunner.Viewer3D
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // Offset relative to the camera-tile origin
-            int dTileX = worldPosition.TileX - Viewer.Camera.TileX;
-            int dTileZ = worldPosition.TileZ - Viewer.Camera.TileZ;
-            Vector3 tileOffsetWrtCamera = new Vector3(dTileX * 2048, 0, -dTileZ * 2048);
+            Tile delta = worldPosition.Tile - Viewer.Camera.Tile;
+            Vector3 tileOffsetWrtCamera = delta.TileVector(true);
 
             // Find midpoint between track section end and track section root.
             // (Section center for straight; section chord center for arc.)
-            Vector3 xnaLODCenter = 0.5f * (Primitive.XNAEnd + worldPosition.XNAMatrix.Translation +
-                                            2 * tileOffsetWrtCamera);
+            Vector3 xnaLODCenter = 0.5f * (Primitive.XNAEnd + worldPosition.XNAMatrix.Translation + 2 * tileOffsetWrtCamera);
             Primitive.MSTSLODCenter = new Vector3(xnaLODCenter.X, xnaLODCenter.Y, -xnaLODCenter.Z);
 
             // Ignore any mesh not in field-of-view

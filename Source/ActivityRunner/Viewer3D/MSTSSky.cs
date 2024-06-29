@@ -238,7 +238,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
 
             // Get the current latitude and longitude coordinates
-            EarthCoordinates.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, out mstsskylatitude, out mstsskylongitude);
+            EarthCoordinates.ConvertWTC(MSTSSkyViewer.Camera.Tile, MSTSSkyViewer.Camera.Location, out mstsskylatitude, out mstsskylongitude);
             float fractClockTime = (float)MSTSSkyViewer.Simulator.ClockTime / 86400;
             mstsskysolarDirection = SunMoonPos.SolarAngle(mstsskylatitude, mstsskylongitude, fractClockTime, date);
             mstsskylatitude = 0;

@@ -264,11 +264,10 @@ namespace Orts.Simulation.Signalling
                                 bool invalid = false;
                                 foreach (SignalUnit signalUnit in signalObject.SignalUnits)
                                 {
-                                    if (signalUnit.TrackItem >= trackDB.TrackItems.Count ||
-                                        Math.Abs(trackDB.TrackItems[signalUnit.TrackItem].Location.TileX - worldObject.WorldPosition.TileX) > 1 ||
-                                        Math.Abs(trackDB.TrackItems[signalUnit.TrackItem].Location.TileZ - worldObject.WorldPosition.TileZ) > 1)
+                                    Tile delta = trackDB.TrackItems[signalUnit.TrackItem].Location.Tile - worldObject.WorldPosition.Tile;
+                                    if (signalUnit.TrackItem >= trackDB.TrackItems.Count || Math.Abs(delta.X) > 1 || Math.Abs(delta.Z) > 1)
                                     {
-                                        Trace.TraceWarning($"Signal referenced in .w file {worldObject.WorldPosition.TileX} {worldObject.WorldPosition.TileZ} as TrItem {signalUnit.TrackItem} not present in .tdb file ");
+                                        Trace.TraceWarning($"Signal referenced in .w file {worldObject.WorldPosition.Tile} as TrItem {signalUnit.TrackItem} not present in .tdb file ");
                                         invalid = true;
                                         break;
                                     }

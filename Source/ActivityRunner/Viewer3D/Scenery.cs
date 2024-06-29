@@ -60,100 +60,98 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
     public class SceneryDrawer
     {
-        private readonly Viewer Viewer;
+        private readonly Viewer viewer;
 
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
         //   assignment of a new instance (possibly cloned and then modified).
         public List<WorldFile> WorldFiles = new List<WorldFile>();
-        private int TileX;
-        private int TileZ;
-        private int VisibleTileX;
-        private int VisibleTileZ;
+
+        private Tile tile;
+        private Tile visibleTile;
 
         public SceneryDrawer(Viewer viewer)
         {
-            Viewer = viewer;
+            this.viewer = viewer;
         }
 
         public void Load()
         {
-            var cancellation = Viewer.LoaderProcess.CancellationToken;
+            CancellationToken cancellationToken = viewer.LoaderProcess.CancellationToken;
 
-            if (TileX != VisibleTileX || TileZ != VisibleTileZ)
+            if (tile != visibleTile)
             {
-                TileX = VisibleTileX;
-                TileZ = VisibleTileZ;
+                tile = visibleTile;
                 var worldFiles = WorldFiles;
                 var newWorldFiles = new List<WorldFile>();
                 var oldWorldFiles = new List<WorldFile>(worldFiles);
-                var needed = (int)Math.Ceiling((float)Viewer.Settings.ViewingDistance / 2048f);
+                var needed = (int)Math.Ceiling((float)viewer.Settings.ViewingDistance / 2048f);
                 for (var x = -needed; x <= needed; x++)
                 {
                     for (var z = -needed; z <= needed; z++)
                     {
-                        if (cancellation.IsCancellationRequested)
+                        if (cancellationToken.IsCancellationRequested)
                             break;
-                        var tile = worldFiles.FirstOrDefault(t => t.Tile.X == TileX + x && t.Tile.Z == TileZ + z);
-                        if (tile == null)
-                            tile = LoadWorldFile(TileX + x, TileZ + z, x == 0 && z == 0);
-                        if (tile != null)
+                        WorldFile worldFile = worldFiles.FirstOrDefault(t => t.Tile.X == tile.X + x && t.Tile.Z == tile.Z + z);
+                        worldFile ??= LoadWorldFile(tile.X + x, tile.Z + z, x == 0 && z == 0);
+                        if (worldFile != null)
                         {
-                            newWorldFiles.Add(tile);
-                            oldWorldFiles.Remove(tile);
+                            newWorldFiles.Add(worldFile);
+                            oldWorldFiles.Remove(worldFile);
                         }
                     }
                 }
                 foreach (var tile in oldWorldFiles)
                     tile.Unload();
                 WorldFiles = newWorldFiles;
-                Viewer.TryLoadingNightTextures = true; // when Tiles loaded change you can try
-                Viewer.TryLoadingDayTextures = true; // when Tiles loaded change you can try
+                viewer.TryLoadingNightTextures = true; // when Tiles loaded change you can try
+                viewer.TryLoadingDayTextures = true; // when Tiles loaded change you can try
             }
-            else if (Viewer.NightTexturesNotLoaded && !Viewer.ClockTimeBeforeNoon && Viewer.TryLoadingNightTextures)
+            else if (viewer.NightTexturesNotLoaded && !Viewer.ClockTimeBeforeNoon && viewer.TryLoadingNightTextures)
             {
-                var sunHeight = Viewer.MaterialManager.sunDirection.Y;
+                var sunHeight = viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight < 0.10f && sunHeight > 0.01)
                 {
-                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - System.Environment.WorkingSet;
+                    long remainingMemorySpace = viewer.LoadMemoryThreshold - System.Environment.WorkingSet;
                     if (remainingMemorySpace >= 0) // if not we'll try again
                     {
                         // Night is coming, it's time to load the night textures
-                        var success = Viewer.MaterialManager.LoadNightTextures();
+                        var success = viewer.MaterialManager.LoadNightTextures();
                         if (success)
                         {
-                            Viewer.NightTexturesNotLoaded = false;
+                            viewer.NightTexturesNotLoaded = false;
                         }
                     }
-                    Viewer.TryLoadingNightTextures = false;
+                    viewer.TryLoadingNightTextures = false;
                 }
                 else if (sunHeight <= 0.01)
-                    Viewer.NightTexturesNotLoaded = false; // too late to try, we must give up and we don't load the night textures
+                    viewer.NightTexturesNotLoaded = false; // too late to try, we must give up and we don't load the night textures
             }
-            else if (Viewer.DayTexturesNotLoaded && Viewer.ClockTimeBeforeNoon && Viewer.TryLoadingDayTextures)
+            else if (viewer.DayTexturesNotLoaded && Viewer.ClockTimeBeforeNoon && viewer.TryLoadingDayTextures)
             {
-                var sunHeight = Viewer.MaterialManager.sunDirection.Y;
+                var sunHeight = viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight > -0.10f && sunHeight < -0.01)
                 {
-                    long remainingMemorySpace = Viewer.LoadMemoryThreshold - System.Environment.WorkingSet;
+                    long remainingMemorySpace = viewer.LoadMemoryThreshold - System.Environment.WorkingSet;
                     if (remainingMemorySpace >= 0) // if not we'll try again
                     {
                         // Day is coming, it's time to load the day textures
-                        var success = Viewer.MaterialManager.LoadDayTextures();
+                        var success = viewer.MaterialManager.LoadDayTextures();
                         if (success)
                         {
-                            Viewer.DayTexturesNotLoaded = false;
+                            viewer.DayTexturesNotLoaded = false;
                         }
                     }
-                    Viewer.TryLoadingDayTextures = false;
+                    viewer.TryLoadingDayTextures = false;
                 }
                 else if (sunHeight >= -0.01)
-                    Viewer.DayTexturesNotLoaded = false; // too late to try, we must give up and we don't load the day textures. TODO: is this OK?
+                    viewer.DayTexturesNotLoaded = false; // too late to try, we must give up and we don't load the day textures. TODO: is this OK?
             }
         }
 
@@ -172,10 +170,14 @@ namespace Orts.ActivityRunner.Viewer3D
         public float GetBoundingBoxTop(int tileX, int tileZ, float x, float z, float blockSize)
         {
             // Normalize the coordinates to the right tile.
-            while (x >= 1024) { x -= 2048; tileX++; }
-            while (x < -1024) { x += 2048; tileX--; }
-            while (z >= 1024) { z -= 2048; tileZ++; }
-            while (z < -1024) { z += 2048; tileZ--; }
+            while (x >= 1024)
+            { x -= 2048; tileX++; }
+            while (x < -1024)
+            { x += 2048; tileX--; }
+            while (z >= 1024)
+            { z -= 2048; tileZ++; }
+            while (z < -1024)
+            { z += 2048; tileZ--; }
 
             // Fetch the tile we're looking up elevation for; if it isn't loaded, no elevation.
             var worldFiles = WorldFiles;
@@ -195,8 +197,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void LoadPrep()
         {
-            VisibleTileX = Viewer.Camera.TileX;
-            VisibleTileZ = Viewer.Camera.TileZ;
+            visibleTile = viewer.Camera.Tile;
         }
 
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
@@ -204,7 +205,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var worldFiles = WorldFiles;
             foreach (var worldFile in worldFiles)
                 // TODO: This might impair some shadows.
-                if (Viewer.Camera.InFov(new Vector3((worldFile.Tile.X - Viewer.Camera.TileX) * 2048, 0, (worldFile.Tile.Z - Viewer.Camera.TileZ) * 2048), 1448))
+                if (viewer.Camera.InFov(new Vector3((worldFile.Tile.X - viewer.Camera.TileX) * 2048, 0, (worldFile.Tile.Z - viewer.Camera.TileZ) * 2048), 1448))
                     worldFile.PrepareFrame(frame, elapsedTime);
         }
 
@@ -213,7 +214,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Trace.Write("W");
             try
             {
-                return new WorldFile(Viewer, tileX, tileZ, visible);
+                return new WorldFile(viewer, tileX, tileZ, visible);
             }
             catch (FileLoadException error)
             {
@@ -223,7 +224,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    public class WorldFile: ITileCoordinate<Tile>
+    public class WorldFile : ITileCoordinate<Tile>
     {
         private const int MinimumInstanceCount = 5;
 
@@ -235,7 +236,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public List<TrItemLabel> Platforms { get; } = new List<TrItemLabel>();
         public List<PickupObject> PickupList { get; } = new List<PickupObject>();
         public List<BoundingBox> BoundingBoxes { get; } = new List<BoundingBox>();
-        
+
         private readonly Tile tile;
 
         public ref readonly Tile Tile => ref tile;
@@ -339,7 +340,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         // We might not have found the junction node; if so, fall back to the static track shape.
                         if (trJunctionNode != null)
                         {
-                            if (viewer.Settings.UseSuperElevation > 0) SuperElevationManager.DecomposeStaticSuperElevation(viewer, DynamicTrackList, trackObj, worldMatrix, tile.X, tile.Z, shapeFilePath);
+                            if (viewer.Settings.UseSuperElevation > 0)
+                                SuperElevationManager.DecomposeStaticSuperElevation(viewer, DynamicTrackList, trackObj, worldMatrix, tile.X, tile.Z, shapeFilePath);
                             SceneryObjects.Add(new SwitchTrackShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), trJunctionNode));
                         }
                         else
@@ -352,7 +354,8 @@ namespace Orts.ActivityRunner.Viewer3D
                                 //if (success == 0) sceneryObjects.Add(new StaticTrackShape(viewer, shapeFilePath, worldMatrix));
                             }
                             //otherwise, use shapes
-                            else if (!containsMovingTable) SceneryObjects.Add(new StaticTrackShape(shapeFilePath, worldMatrix));
+                            else if (!containsMovingTable)
+                                SceneryObjects.Add(new StaticTrackShape(shapeFilePath, worldMatrix));
                             else
                             {
                                 var found = false;
@@ -378,7 +381,8 @@ namespace Orts.ActivityRunner.Viewer3D
                                         break;
                                     }
                                 }
-                                if (!found) SceneryObjects.Add(new StaticTrackShape(shapeFilePath, worldMatrix));
+                                if (!found)
+                                    SceneryObjects.Add(new StaticTrackShape(shapeFilePath, worldMatrix));
                             }
                         }
                         if (viewer.Simulator.Settings.Wire == true && viewer.Simulator.Route.Electrified == true
@@ -388,7 +392,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             int success = Wire.DecomposeStaticWire(viewer, DynamicTrackList, trackObj, worldMatrix);
                             //if cannot draw wire, try to see if it is converted. modified for DynaTrax
-                            if (success == 0 && trackObj.FileName.Contains("Dyna", StringComparison.OrdinalIgnoreCase)) Wire.DecomposeConvertedDynamicWire(viewer, DynamicTrackList, trackObj, worldMatrix);
+                            if (success == 0 && trackObj.FileName.Contains("Dyna", StringComparison.OrdinalIgnoreCase))
+                                Wire.DecomposeConvertedDynamicWire(viewer, DynamicTrackList, trackObj, worldMatrix);
                         }
                     }
                     else if (worldObject.GetType() == typeof(DynamicTrackObject))
@@ -398,7 +403,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         // Add DyntrackDrawers for individual subsections
                         if (viewer.Settings.UseSuperElevation > 0 && SuperElevationManager.UseSuperElevationDyn(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix))
                             SuperElevationManager.DecomposeDynamicSuperElevation(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix);
-                        else DynamicTrack.Decompose(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix);
+                        else
+                            DynamicTrack.Decompose(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix);
 
                     } // end else if DyntrackObj
                     else if (worldObject.GetType() == typeof(Formats.Msts.Models.ForestObject))
@@ -421,7 +427,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     else if (worldObject.GetType() == typeof(HazardObject))
                     {
                         var h = HazardShape.CreateHazard(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (HazardObject)worldObject);
-                        if (h != null) SceneryObjects.Add(h);
+                        if (h != null)
+                            SceneryObjects.Add(h);
                     }
                     else if (worldObject.GetType() == typeof(SpeedPostObject))
                     {
@@ -433,9 +440,11 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             // TODO 20210712 need to find a more robust solution "(Simulator.Instance.CarSpawnerLists as List<CarSpawners>).FindIndex"
                             ((CarSpawnerObject)worldObject).CarSpawnerListIndex = (Simulator.Instance.CarSpawnerLists as List<CarSpawners>).FindIndex(x => x.ListName == ((CarSpawnerObject)worldObject).ListName);
-                            if (((CarSpawnerObject)worldObject).CarSpawnerListIndex < 0 || ((CarSpawnerObject)worldObject).CarSpawnerListIndex > Simulator.Instance.CarSpawnerLists.Count - 1) ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
+                            if (((CarSpawnerObject)worldObject).CarSpawnerListIndex < 0 || ((CarSpawnerObject)worldObject).CarSpawnerListIndex > Simulator.Instance.CarSpawnerLists.Count - 1)
+                                ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
                         }
-                        else ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
+                        else
+                            ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
                         CarSpawners.Add(new RoadCarSpawner(worldMatrix, (CarSpawnerObject)worldObject));
                     }
                     else if (worldObject.GetType() == typeof(SidingObject))
@@ -472,7 +481,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             SceneryObjects.Add(new ContainerHandlingItemShape(shapeFilePath, pickupObject, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, pickupObject));
                         }
                         else
-                        SceneryObjects.Add(new FuelPickupItemShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (PickupObject)worldObject));
+                            SceneryObjects.Add(new FuelPickupItemShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (PickupObject)worldObject));
                         PickupList.Add((PickupObject)worldObject);
                     }
                     else // It's some other type of object - not one of the above.
@@ -492,7 +501,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 foreach (TempSpeedPostItem tempSpeedItem in Viewer.Simulator.ActivityRun.TempSpeedPostItems)
                 {
-                    if (tempSpeedItem.WorldPosition.TileX == tile.X && tempSpeedItem.WorldPosition.TileZ == tile.Z)
+                    if (tempSpeedItem.WorldPosition.Tile == tile)
                     {
                         if (Viewer.SpeedpostDatFile == null)
                         {
@@ -544,8 +553,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-            if (viewer.Settings.UseSuperElevation > 0) SuperElevationManager.DecomposeStaticSuperElevation(Viewer, DynamicTrackList, tile.X, tile.Z);
-            if (Viewer.World.Sounds != null) Viewer.World.Sounds.AddByTile(tile.X, tile.Z);
+            if (viewer.Settings.UseSuperElevation > 0)
+                SuperElevationManager.DecomposeStaticSuperElevation(Viewer, DynamicTrackList, tile.X, tile.Z);
+            if (Viewer.World.Sounds != null)
+                Viewer.World.Sounds.AddByTile(tile.X, tile.Z);
         }
 
         //Method to check a shape name is listed in "openrails\clocks.dat"
@@ -564,7 +575,8 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             foreach (var obj in SceneryObjects)
                 obj.Unload();
-            if (Viewer.World.Sounds != null) Viewer.World.Sounds.RemoveByTile(tile.X, tile.Z);
+            if (Viewer.World.Sounds != null)
+                Viewer.World.Sounds.RemoveByTile(tile.X, tile.Z);
         }
 
         internal void Mark()

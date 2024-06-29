@@ -78,9 +78,10 @@ namespace Orts.Graphics.Window.Controls
 
             ref readonly Viewport viewport = ref Window.Owner.Viewport;
             Vector3 lineLocation3D = positionSource.WorldPosition.XNAMatrix.Translation;
-            lineLocation3D.X += (positionSource.WorldPosition.TileX - viewProjection.Location.TileX) * 2048;
+            Vector3 delta = (positionSource.WorldPosition.Tile - viewProjection.Location.Tile).TileVector();
+            lineLocation3D.X += delta.X;
             lineLocation3D.Y += baseline + 0.2f;
-            lineLocation3D.Z += (viewProjection.Location.TileZ - positionSource.WorldPosition.TileZ) * 2048;
+            lineLocation3D.Z += delta.Z;
 
             Vector3 lineLocation2DStart = viewport.Project(lineLocation3D, viewProjection.Projection, viewProjection.View, Matrix.Identity);
             if (lineLocation2DStart.Z > 1 || lineLocation2DStart.Z < 0)

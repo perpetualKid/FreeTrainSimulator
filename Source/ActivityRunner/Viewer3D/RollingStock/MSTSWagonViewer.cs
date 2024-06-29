@@ -1000,8 +1000,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 Vector3 placement = PositionCoupler(Car, displacement);
 
-                int tileX = Car.WorldPosition.TileX;
-                int tileZ = Car.WorldPosition.TileZ;
+                Tile tile = Car.WorldPosition.Tile;
                 couplerPosition = MatrixExtension.ChangeTranslation(Car.WorldPosition.XNAMatrix, placement);
                 couplerPosition = AlignCouplerWithCar(couplerPosition, Car.Flipped);
                 if (Car.CarAhead != null) // Display animated coupler if there is a car infront of this car
@@ -1021,8 +1020,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (absXc > 0.005 || absYc > 0.005 || absZc > 0.005)
                         {
                             couplerPosition.Translation = Car.CarAhead.RearCouplerLocation; // Set coupler to same location as previous car coupler
-                            tileX = Car.CarAhead.WorldPosition.TileX;
-                            tileZ = Car.CarAhead.WorldPosition.TileZ;
+                            tile = Car.CarAhead.WorldPosition.Tile;
                         }
                     }
                     couplerShape = FrontCouplerShape;
@@ -1035,7 +1033,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     couplerShape = FrontCouplerShape;
                 }
-                couplerShape.PrepareFrame(frame, elapsedTime, new WorldPosition(tileX, tileZ, couplerPosition));
+                couplerShape.PrepareFrame(frame, elapsedTime, new WorldPosition(tile, couplerPosition));
             }
 
             // Display rear coupler in sim if open coupler shape is configured, otherwise skip to next section, and just display closed (default) coupler if configured
@@ -1071,7 +1069,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     couplerShape = RearCouplerShape;
                 }
-                couplerShape.PrepareFrame(frame, elapsedTime, new WorldPosition(Car.WorldPosition.TileX, Car.WorldPosition.TileZ, couplerPosition));
+                couplerShape.PrepareFrame(frame, elapsedTime, new WorldPosition(Car.WorldPosition.Tile, couplerPosition));
             }
 
             if (FrontAirHoseShape != null && !(Viewer.Camera.AttachedCar == MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab3D))
@@ -1115,7 +1113,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         airhoseShape = FrontAirHoseShape;
                     }
                 }
-                airhoseShape.PrepareFrame(frame, elapsedTime, new WorldPosition(Car.WorldPosition.TileX, Car.WorldPosition.TileZ, airhosePosition));
+                airhoseShape.PrepareFrame(frame, elapsedTime, new WorldPosition(Car.WorldPosition.Tile, airhosePosition));
             }
 
 
@@ -1162,7 +1160,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         airhoseShape = RearAirHoseShape;
                     }
                 }
-                airhoseShape.PrepareFrame(frame, elapsedTime, new WorldPosition(Car.WorldPosition.TileX, Car.WorldPosition.TileZ, airhosePosition));
+                airhoseShape.PrepareFrame(frame, elapsedTime, new WorldPosition(Car.WorldPosition.Tile, airhosePosition));
             }
 
 

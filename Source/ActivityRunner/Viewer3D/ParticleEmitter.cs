@@ -320,16 +320,7 @@ namespace Orts.ActivityRunner.Viewer3D
             windDisplacementX = viewer.Simulator.Weather.WindSpeed.X * 0.25f;
             windDisplacementZ = viewer.Simulator.Weather.WindSpeed.Y * 0.25f;
 
-            //var velocity = WorldPosition.Location - LastWorldPosition.Location;
-            //velocity.X += (WorldPosition.TileX - LastWorldPosition.TileX) * 2048;
-            //velocity.Z += (WorldPosition.TileZ - LastWorldPosition.TileZ) * 2048;
-            //velocity.Z *= -1;
-            //velocity /= elapsedTime.ClockSeconds;
-            //LastWorldPosition = LastWorldPosition.SetLocation(WorldPosition.Location);
-
-            var velocity = positionSource.WorldPosition.Location - previousPosition.Location;
-            velocity.X += (positionSource.WorldPosition.TileX - previousPosition.TileX) * 2048;
-            velocity.Z += (positionSource.WorldPosition.TileZ - previousPosition.TileZ) * 2048;
+            Vector3 velocity = positionSource.WorldPosition.Location - previousPosition.Location + (positionSource.WorldPosition.Tile - previousPosition.Tile).TileVector();
             velocity.Z *= -1;
             velocity /= (float)elapsedTime.ClockSeconds;
 
@@ -389,7 +380,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         Vertices[vertex + j].StartPosition_StartTime = new Vector4(position, time);
                         Vertices[vertex + j].InitialVelocity_EndTime = new Vector4(initialVelocity, time + duration);
                         Vertices[vertex + j].TargetVelocity_TargetTime = new Vector4(targetVelocity, ParticleEmitterViewer.DecelerationTime);
-                        Vertices[vertex + j].TileXY_Vertex_ID = new Vector4(positionSource.WorldPosition.TileX, positionSource.WorldPosition.TileZ, j, texture);
+                        Vertices[vertex + j].TileXY_Vertex_ID = new Vector4(positionSource.WorldPosition.Tile.X, positionSource.WorldPosition.Tile.Z, j, texture);
                         Vertices[vertex + j].Color_Random = color_Random;
                     }
 

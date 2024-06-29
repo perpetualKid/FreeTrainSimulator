@@ -88,7 +88,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Matrix trackRot = Matrix.CreateRotationY(-MathHelper.ToRadians(id.AngularOffset));
 
                 heading = Vector3.Transform(heading, trackRot); // Heading change
-                nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
+                nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
                 int[] sections = id.TrackSections;
 
                 for (int i = 0; i < sections.Length; i++)
@@ -121,7 +121,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                                 worldMatrix.XNAMatrix, out localProjectedV);
 
                         heading = Vector3.Transform(heading, rot); // Heading change
-                        nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix)); // Store heading change
+                        nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix)); // Store heading change
 
                     }
                     nextRoot = nextRoot.SetTranslation(sectionOrigin + displacement);
@@ -177,7 +177,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Matrix trackRot = Matrix.CreateRotationY(0);
 
             //heading = Vector3.Transform(heading, trackRot); // Heading change
-            nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
+            nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
             int[] sections = path.TrackSections;
 
             for (int i = 0; i < sections.Length; i++)
@@ -210,7 +210,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
-                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(MatrixExtension.Multiply(trackRot, rot), nextRoot.XNAMatrix)); // Store heading change
+                    nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(MatrixExtension.Multiply(trackRot, rot), nextRoot.XNAMatrix)); // Store heading change
 
                 }
                 nextRoot = nextRoot.SetTranslation(sectionOrigin + displacement);
@@ -293,7 +293,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
-                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix)); // Store heading change
+                    nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix)); // Store heading change
                 }
 
                 // Update nextRoot with new translation component

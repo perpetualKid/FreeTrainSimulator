@@ -764,9 +764,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                                     VectorExtension.Transform(new Vector3(0, 0, -intake.OffsetM), car.WorldPosition.XNAMatrix, out Vector3 intakePosition);
 
-                                    WorldLocation intakeLocation = new WorldLocation(
-                                        car.WorldPosition.TileX, car.WorldPosition.TileZ,
-                                        intakePosition.X, intakePosition.Y, -intakePosition.Z);
+                                    WorldLocation intakeLocation = new WorldLocation(car.WorldPosition.Tile, intakePosition.X, intakePosition.Y, -intakePosition.Z);
 
                                     float d2 = (float)WorldLocation.GetDistanceSquared(intakeLocation, pickup.WorldPosition.WorldLocation);
                                     if (intake.Type == PickupType.Container && containerStation != null &&
@@ -825,9 +823,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             VectorExtension.Transform(new Vector3(0, 0, -match.IntakePoint.OffsetM), match.Wagon.WorldPosition.XNAMatrix, out Vector3 intakePosition);
 
-            var intakeLocation = new WorldLocation(
-                match.Wagon.WorldPosition.TileX, match.Wagon.WorldPosition.TileZ,
-                intakePosition.X, intakePosition.Y, -intakePosition.Z);
+            var intakeLocation = new WorldLocation(match.Wagon.WorldPosition.Tile, intakePosition.X, intakePosition.Y, -intakePosition.Z);
 
             return (float)Math.Sqrt(WorldLocation.GetDistanceSquared(intakeLocation, match.Pickup.WorldPosition.WorldLocation));
         }
@@ -4052,10 +4048,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             UpdateDigit();
 
-            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
-                (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
-                0,
-                (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
+            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix, (TrainCarShape.WorldPosition.Tile - Viewer.Camera.Tile).TileVector(true));
             MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
             // TODO: Make this use AddAutoPrimitive instead.
             frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
@@ -4261,10 +4254,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 return;
 
             UpdateDigit();
-            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
-                (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
-                0,
-                (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
+            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix, (TrainCarShape.WorldPosition.Tile - Viewer.Camera.Tile).TileVector(true));
             MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
 
             // TODO: Make this use AddAutoPrimitive instead.

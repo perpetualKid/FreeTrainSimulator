@@ -603,14 +603,13 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             var lodBias = ((float)viewer.Settings.LODBias / 100 + 1);
 
             // Locate relative to the camera
-            var dTileX = location.TileX - viewer.Camera.TileX;
-            var dTileZ = location.TileZ - viewer.Camera.TileZ;
+            Tile delta = location.Tile - viewer.Camera.Tile;
             var mstsLocation = location.Location;
-            mstsLocation.X += dTileX * 2048;
-            mstsLocation.Z += dTileZ * 2048;
+            mstsLocation.X += delta.X * 2048;
+            mstsLocation.Z += delta.Z * 2048;
             var xnaDTileTranslation = location.XNAMatrix;
-            xnaDTileTranslation.M41 += dTileX * 2048;
-            xnaDTileTranslation.M43 -= dTileZ * 2048;
+            xnaDTileTranslation.M41 += delta.X * 2048;
+            xnaDTileTranslation.M43 -= delta.Z * 2048;
 
             foreach (var lodControl in LodControls)
             {

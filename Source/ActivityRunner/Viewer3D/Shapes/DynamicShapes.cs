@@ -601,9 +601,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // Offset relative to the camera-tile origin
-            int dTileX = WorldPosition.TileX - viewer.Camera.TileX;
-            int dTileZ = WorldPosition.TileZ - viewer.Camera.TileZ;
-            Vector3 tileOffsetWrtCamera = new Vector3(dTileX * 2048, 0, -dTileZ * 2048);
+            Vector3 tileOffsetWrtCamera = (WorldPosition.Tile - viewer.Camera.Tile).TileVector(true);
 
             // Initialize xnaXfmWrtCamTile to object-tile to camera-tile translation:
             MatrixExtension.Multiply(WorldPosition.XNAMatrix, Matrix.CreateTranslation(tileOffsetWrtCamera), out Matrix xnaXfmWrtCamTile);
