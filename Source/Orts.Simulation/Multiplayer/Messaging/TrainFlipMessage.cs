@@ -23,7 +23,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             {
                 if (train.Number == TrainNumber)
                 {
-                    train.ToDoUpdate(TrackNodeIndex, RearLocation.TileX, RearLocation.TileZ, RearLocation.Location.X, RearLocation.Location.Z, DistanceTravelled, Speed, MultiUnitDirection, TrainDirection, Length, true, ReverseMultiUnit);
+                    train.ToDoUpdate(TrackNodeIndex, RearLocation.Tile, RearLocation.Location.X, RearLocation.Location.Z, DistanceTravelled, Speed, MultiUnitDirection, TrainDirection, Length, true, ReverseMultiUnit);
                     return;
                 }
             }

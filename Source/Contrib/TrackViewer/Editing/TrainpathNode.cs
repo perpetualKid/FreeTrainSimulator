@@ -366,7 +366,7 @@ namespace ORTS.TrackViewer.Editing
 
                 if (wantJunctionNode && !(tn is TrackJunctionNode)) continue;
                 if (!wantJunctionNode && !(tn is TrackEndNode)) continue;
-                if (tn.UiD.Location.TileX != Location.TileX || tn.UiD.Location.TileZ != Location.TileZ) continue;
+                if (tn.UiD.Location.Tile != Location.Tile) continue;
 
                 double dx = tn.UiD.Location.Location.X - Location.Location.X;
                 dx += (tn.UiD.Location.TileX - Location.TileX) * WorldLocation.TileSize;

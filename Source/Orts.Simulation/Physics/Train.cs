@@ -11530,7 +11530,7 @@ namespace Orts.Simulation.Physics
         }
 
         //used by remote train to update location based on message received
-        private int expectedTileX, expectedTileZ;
+        private Tile expectedTile;
         private int expectedTracIndex;
         private Direction expectedTDir;
         MidpointDirection expectedDir;
@@ -11543,8 +11543,7 @@ namespace Orts.Simulation.Physics
 
         internal void UpdateTrainJump(in WorldLocation location, Direction direction, float distanceTravelled, float maxSpeed)
         {
-            expectedTileX = location.TileX;
-            expectedTileZ = location.TileZ;
+            expectedTile = location.Tile;
             expectedX = location.Location.X;
             expectedZ = location.Location.Z;
             expectedTDir = direction.Reverse();
@@ -11553,12 +11552,11 @@ namespace Orts.Simulation.Physics
             TrainMaxSpeedMpS = maxSpeed;
         }
 
-        internal void ToDoUpdate(int tni, int tX, int tZ, float x, float z, float eT, float speed, MidpointDirection dir, Direction tDir, float len, bool reverseTrav = false,
+        internal void ToDoUpdate(int tni, in Tile tile, float x, float z, float eT, float speed, MidpointDirection dir, Direction tDir, float len, bool reverseTrav = false,
             bool reverseMU = false)
         {
             SpeedMpS = speed;
-            expectedTileX = tX;
-            expectedTileZ = tZ;
+            expectedTile = tile;
             expectedX = x;
             expectedZ = z;
             expectedTravelled = eT;
@@ -11630,11 +11628,11 @@ namespace Orts.Simulation.Physics
                             Traveller t = null;
                             if (expectedTracIndex <= 0)
                             {
-                                t = new Traveller(new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Direction)expectedTDir);
+                                t = new Traveller(new WorldLocation(expectedTile, expectedX, 0, expectedZ), expectedTDir);
                             }
                             else
                             {
-                                t = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[expectedTracIndex], new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), expectedTDir);
+                                t = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[expectedTracIndex], new WorldLocation(expectedTile, expectedX, 0, expectedZ), expectedTDir);
                             }
                             //move = SpeedMpS > 0 ? 0.001f : -0.001f;
                             DistanceTravelled = expectedTravelled;

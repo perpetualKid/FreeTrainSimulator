@@ -1143,11 +1143,9 @@ namespace ORTS.TrackViewer.Drawing
         /// <remarks>Should perhaps be in the WorldLocation class itself</remarks>
         private static WorldLocation MiddleLocation(in WorldLocation location1, in WorldLocation location2)
         {
-            int tileX = location1.TileX;
-            int tileZ = location1.TileZ;
-            WorldLocation location2Normalized = location2.NormalizeTo(tileX, tileZ);
+            WorldLocation location2Normalized = location2.NormalizeTo(location1.Tile);
             Vector3 middleVector = (location1.Location + location2Normalized.Location) / 2;
-            return new WorldLocation(tileX, tileZ, middleVector);
+            return new WorldLocation(location1.Tile, middleVector);
         }
 
         /// <summary>
@@ -1197,8 +1195,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 // note, angle is 90 degrees off, and different sign. 
                 // So Delta X = cos(90-A)=sin(A); Delta Y,Z = sin(90-A) = cos(A)    
-                return new WorldLocation(location.TileX, location.TileZ,
-                    location.Location.X + sinA * distanceAlongSection, location.Location.Y, location.Location.Z + cosA * distanceAlongSection);
+                return new WorldLocation(location.Tile, location.Location.X + sinA * distanceAlongSection, location.Location.Y, location.Location.Z + cosA * distanceAlongSection);
             }
             else
             {
@@ -1208,8 +1205,7 @@ namespace ORTS.TrackViewer.Drawing
                 float sinArotated = (float)Math.Sin(tvs.Direction.Y + sign * angleRadians);
                 float deltaX = sign * trackSection.Radius * (cosA - cosArotated);
                 float deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
-                return new WorldLocation(location.TileX, location.TileZ,
-                    location.Location.X - deltaX, location.Location.Y, location.Location.Z + deltaZ);
+                return new WorldLocation(location.Tile, location.Location.X - deltaX, location.Location.Y, location.Location.Z + deltaZ);
             }
         }
         #endregion

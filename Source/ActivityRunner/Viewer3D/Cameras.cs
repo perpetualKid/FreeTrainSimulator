@@ -185,8 +185,6 @@ namespace Orts.ActivityRunner.Viewer3D
         // We need to allow different cameras to have different near planes.
         private protected float NearPlane = 1.0f;
 
-        public int TileX => cameraLocation.TileX;
-        public int TileZ => cameraLocation.TileZ;
         public ref readonly Tile Tile => ref cameraLocation.Tile;
         public ref readonly Vector3 Location => ref cameraLocation.Location;
         public ref readonly WorldLocation CameraWorldLocation => ref cameraLocation;
@@ -262,7 +260,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Matrix currentView = xnaView;
             xnaView = GetCameraView();
             ViewChanged = currentView != xnaView;
-            soundBaseTile = new Tile(cameraLocation.TileX, cameraLocation.TileZ);
+            soundBaseTile = cameraLocation.Tile;
         }
 
         /// <summary>
@@ -413,15 +411,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         /// <param name="worldLocation"></param>
         /// <returns></returns>
-        public Vector3 XnaLocation(in WorldLocation worldLocation)
-        {
-            Vector3 xnaVector = worldLocation.Location;
-            xnaVector.X += 2048 * (worldLocation.TileX - cameraLocation.TileX);
-            xnaVector.Z += 2048 * (worldLocation.TileZ - cameraLocation.TileZ);
-            xnaVector.Z *= -1;
-            return xnaVector;
-        }
-
+        public Vector3 XnaLocation(in WorldLocation worldLocation) => (worldLocation.Location + (worldLocation.Tile - cameraLocation.Tile).TileVector()).XnaVector();
 
         protected class CameraAngleClamper
         {
@@ -676,7 +666,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3.Transform(ref movement, ref matrix, out movement);
             matrix = Matrix.CreateRotationY(rotationYRadians);
             Vector3.Transform(ref movement, ref matrix, out movement);
-            cameraLocation = new WorldLocation(cameraLocation.TileX, cameraLocation.TileZ, cameraLocation.Location + movement, true);
+            cameraLocation = new WorldLocation(cameraLocation.Tile, cameraLocation.Location + movement, true);
         }
 
         /// <summary>
@@ -2264,7 +2254,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 j = trainCarShape.Hierarchy[j];
                             }
                             MatrixExtension.Multiply(in startingPoint, in trainCarShape.WorldPosition.XNAMatrix, out Matrix matrix);
-                            WorldLocation matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ,
+                            WorldLocation matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.Tile,
                                 matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
                             Vector3 xnaCenter = XnaLocation(matrixWorldLocation);
                             float distance = xnaCenter.LineSegmentDistanceSquare(nearPoint, farPoint);
@@ -2857,13 +2847,13 @@ namespace Orts.ActivityRunner.Viewer3D
             if (StaticRandom.Next(2) == 0)
             {
                 // Use swapped -X and Z to move to the left of the track.
-                return new WorldLocation(trackCameraLocation.TileX, trackCameraLocation.TileZ,
+                return new WorldLocation(trackCameraLocation.Tile,
                     trackCameraLocation.Location.X - (directionForward.Z / SidewaysScale), trackCameraLocation.Location.Y, trackCameraLocation.Location.Z + (directionForward.X / SidewaysScale));
             }
             else
             {
                 // Use swapped X and -Z to move to the right of the track.
-                return new WorldLocation(trackCameraLocation.TileX, trackCameraLocation.TileZ,
+                return new WorldLocation(trackCameraLocation.Tile,
                     trackCameraLocation.Location.X + (directionForward.Z / SidewaysScale), trackCameraLocation.Location.Y, trackCameraLocation.Location.Z - (directionForward.X / SidewaysScale));
             }
         }
@@ -3075,7 +3065,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                         (((thisPlatform.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right) ? 1 : -1);
                                     float deltaZ = -(PlatformOffsetM + superElevationGaugeOverTwo) * (float)Math.Sin(shortTrav.RotY) *
                                         (((thisPlatform.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right) ? 1 : -1);
-                                    trackCameraLocation = new WorldLocation(tdb.WorldLocation.TileX, tdb.WorldLocation.TileZ,
+                                    trackCameraLocation = new WorldLocation(tdb.WorldLocation.Tile,
                                         tdb.WorldLocation.Location.X + deltaX, tdb.WorldLocation.Location.Y, tdb.WorldLocation.Location.Z + deltaZ);
                                     break;
                                 }

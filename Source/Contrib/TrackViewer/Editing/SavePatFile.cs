@@ -231,7 +231,7 @@ namespace ORTS.TrackViewer.Editing
             int pdpIndex;
             string trackPDPstart = string.Format(System.Globalization.CultureInfo.InvariantCulture,
                 "\tTrackPDP ( {0,6:D} {1,6:D} {2,9} {3,9:F3} {4,9:F3}",
-                node.Location.TileX, node.Location.TileZ, 
+                node.Location.Tile.X, node.Location.Tile.Z, 
                 node.Location.Location.X.ToString("F3", System.Globalization.CultureInfo.CreateSpecificCulture("en-US")),
                 node.Location.Location.Y.ToString("F3", System.Globalization.CultureInfo.CreateSpecificCulture("en-US")),
                 node.Location.Location.Z.ToString("F3", System.Globalization.CultureInfo.CreateSpecificCulture("en-US")));

@@ -65,9 +65,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
             ref readonly WorldLocation cameraLocation = ref viewer.Camera.CameraWorldLocation;
-            if (shouldUpdate && cameraTile != new Tile(cameraLocation.TileX, cameraLocation.TileZ))
+            if (shouldUpdate && cameraTile != cameraLocation.Tile)
             {
-                cameraTile = new Tile(cameraLocation.TileX, cameraLocation.TileZ);
+                cameraTile = cameraLocation.Tile;
                 labelList.Clear();
                 trackOverlay.Clear();
 

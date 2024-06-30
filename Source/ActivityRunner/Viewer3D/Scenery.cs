@@ -164,28 +164,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public float GetBoundingBoxTop(in WorldLocation location, float blockSize)
         {
-            return GetBoundingBoxTop(location.TileX, location.TileZ, location.Location.X, location.Location.Z, blockSize);
-        }
+            WorldLocation normalized = location.Normalize();
 
-        public float GetBoundingBoxTop(int tileX, int tileZ, float x, float z, float blockSize)
-        {
-            // Normalize the coordinates to the right tile.
-            while (x >= 1024)
-            { x -= 2048; tileX++; }
-            while (x < -1024)
-            { x += 2048; tileX--; }
-            while (z >= 1024)
-            { z -= 2048; tileZ++; }
-            while (z < -1024)
-            { z += 2048; tileZ--; }
-
-            // Fetch the tile we're looking up elevation for; if it isn't loaded, no elevation.
-            var worldFiles = WorldFiles;
-            var worldFile = worldFiles.FirstOrDefault(wf => wf.Tile.X == tileX && wf.Tile.Z == tileZ);
-            if (worldFile == null)
-                return float.MinValue;
-
-            return worldFile.GetBoundingBoxTop(x, z, blockSize);
+            WorldFile worldFile = WorldFiles.FirstOrDefault(wf => wf.Tile == tile);
+            return worldFile == null ? float.MinValue : worldFile.GetBoundingBoxTop(location.Location.X, location.Location.Z, blockSize);
         }
 
         public void Update(in ElapsedTime elapsedTime)
@@ -257,7 +239,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var cancellation = Viewer.LoaderProcess.CancellationToken;
 
             // determine file path to the WFile at the specified tile coordinates
-            var WFileName = WorldFileNameFromTileCoordinates(tileX, tileZ);
+            var WFileName = WorldFileNameFromTileCoordinates(tile);
             var WFilePath = Path.Combine(viewer.Simulator.RouteFolder.WorldFolder, WFileName);
 
             // if there isn't a file, then return with an empty WorldFile object
@@ -341,14 +323,14 @@ namespace Orts.ActivityRunner.Viewer3D
                         if (trJunctionNode != null)
                         {
                             if (viewer.Settings.UseSuperElevation > 0)
-                                SuperElevationManager.DecomposeStaticSuperElevation(viewer, DynamicTrackList, trackObj, worldMatrix, tile.X, tile.Z, shapeFilePath);
+                                SuperElevationManager.DecomposeStaticSuperElevation(viewer, DynamicTrackList, trackObj, worldMatrix, tile, shapeFilePath);
                             SceneryObjects.Add(new SwitchTrackShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), trJunctionNode));
                         }
                         else
                         {
                             //if want to use super elevation, we will generate tracks using dynamic tracks
                             if (viewer.Settings.UseSuperElevation > 0
-                                && SuperElevationManager.DecomposeStaticSuperElevation(viewer, DynamicTrackList, trackObj, worldMatrix, tile.X, tile.Z, shapeFilePath))
+                                && SuperElevationManager.DecomposeStaticSuperElevation(viewer, DynamicTrackList, trackObj, worldMatrix, tile, shapeFilePath))
                             {
                                 //var success = SuperElevation.DecomposeStaticSuperElevation(viewer, dTrackList, trackObj, worldMatrix, TileX, TileZ, shapeFilePath);
                                 //if (success == 0) sceneryObjects.Add(new StaticTrackShape(viewer, shapeFilePath, worldMatrix));
@@ -554,9 +536,9 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             if (viewer.Settings.UseSuperElevation > 0)
-                SuperElevationManager.DecomposeStaticSuperElevation(Viewer, DynamicTrackList, tile.X, tile.Z);
+                SuperElevationManager.DecomposeStaticSuperElevation(Viewer, DynamicTrackList, tile);
             if (Viewer.World.Sounds != null)
-                Viewer.World.Sounds.AddByTile(tile.X, tile.Z);
+                Viewer.World.Sounds.AddByTile(tile);
         }
 
         //Method to check a shape name is listed in "openrails\clocks.dat"
@@ -576,7 +558,7 @@ namespace Orts.ActivityRunner.Viewer3D
             foreach (var obj in SceneryObjects)
                 obj.Unload();
             if (Viewer.World.Sounds != null)
-                Viewer.World.Sounds.RemoveByTile(tile.X, tile.Z);
+                Viewer.World.Sounds.RemoveByTile(tile);
         }
 
         internal void Mark()
@@ -624,10 +606,9 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Build a w filename from tile X and Z coordinates.
         /// Returns a string eg "w-011283+014482.w"
         /// </summary>
-        public static string WorldFileNameFromTileCoordinates(int tileX, int tileZ)
+        public static string WorldFileNameFromTileCoordinates(in Tile tile)
         {
-            var filename = "w" + FormatTileCoordinate(tileX) + FormatTileCoordinate(tileZ) + ".w";
-            return filename;
+            return "w" + FormatTileCoordinate(tile.X) + FormatTileCoordinate(tile.Z) + ".w";
         }
 
         /// <summary>

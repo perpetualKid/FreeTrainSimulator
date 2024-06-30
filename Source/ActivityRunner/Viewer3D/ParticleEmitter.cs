@@ -132,8 +132,8 @@ namespace Orts.ActivityRunner.Viewer3D
             // Note: This is quite a hack. We ideally should be able to pass this through RenderItem somehow.
             var XNAWorldLocation = Matrix.Identity;
             XNAWorldLocation.M11 = gameTime;
-            XNAWorldLocation.M21 = Viewer.Camera.TileX;
-            XNAWorldLocation.M22 = Viewer.Camera.TileZ;
+            XNAWorldLocation.M21 = Viewer.Camera.Tile.X;
+            XNAWorldLocation.M22 = Viewer.Camera.Tile.Z;
 
             if (Emitter.HasParticlesToRender())
                 frame.AddPrimitive(Material, Emitter, RenderPrimitiveGroup.Particles, ref XNAWorldLocation);

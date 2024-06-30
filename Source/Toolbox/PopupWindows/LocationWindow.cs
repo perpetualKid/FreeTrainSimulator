@@ -109,7 +109,7 @@ namespace Orts.Toolbox.PopupWindows
                 }
                 else
                 {
-                    tileLabel.Text = $"Tile (X:Z) {location.TileX}:{location.TileZ}";
+                    tileLabel.Text = $"Tile (X:Z) {location.Tile.X}:{location.Tile.Z}";
                     locationLabel.Text = $"Location (x, z) {location.Location.X,4:00.##} {location.Location.Z,4:00.##}";
                 }
             }

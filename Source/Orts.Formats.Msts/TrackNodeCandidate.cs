@@ -131,10 +131,8 @@ namespace Orts.Formats.Msts
         private static TrackNodeCandidate TryTrackSectionCurved(in WorldLocation location, TrackVectorSection trackVectorSection, TrackSection trackSection)
         {
             // TODO: Consider adding y component.
-            Vector3 l = location.Location;
             // We're working relative to the track section, so offset as needed.
-            l.X += (location.TileX - trackVectorSection.Location.TileX) * 2048;
-            l.Z += (location.TileZ - trackVectorSection.Location.TileZ) * 2048;
+            Vector3 l = location.Location + (location.Tile - trackVectorSection.Location.Tile).TileVector();
             float sx = trackVectorSection.Location.Location.X;
             float sz = trackVectorSection.Location.Location.Z;
 
@@ -178,32 +176,30 @@ namespace Orts.Formats.Msts
         /// Try whether the given location is indeed on (or at least close to) the given straight tracksection.
         /// If it is, we return a TrackNodeCandidate object 
         /// </summary>
-        /// <param name="loc">The location we are looking for</param>
+        /// <param name="location">The location we are looking for</param>
         /// <param name="trackVectorSection">The trackvector section that is parent of the tracksection</param>
         /// <param name="trackSection">the specific tracksection we want to try</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        private static TrackNodeCandidate TryTrackSectionStraight(in WorldLocation loc, TrackVectorSection trackVectorSection, TrackSection trackSection)
+        private static TrackNodeCandidate TryTrackSectionStraight(in WorldLocation location, TrackVectorSection trackVectorSection, TrackSection trackSection)
         {
             // TODO: Consider adding y component.
-            float x = loc.Location.X;
-            float z = loc.Location.Z;
             // We're working relative to the track section, so offset as needed.
-            x += (loc.TileX - trackVectorSection.Location.TileX) * 2048;
-            z += (loc.TileZ - trackVectorSection.Location.TileZ) * 2048;
+            Vector3 l = location.Location + (location.Tile - trackVectorSection.Location.Tile).TileVector();
             float sx = trackVectorSection.Location.Location.X;
             float sz = trackVectorSection.Location.Location.Z;
 
             // Do a preliminary cull based on a bounding square around the track section.
             // Bounding distance is (length + error) by (length + error) around starting coordinates.
             float boundingDistance = trackSection.Length + MaximumCenterlineOffset;
-            float dx = Math.Abs(x - sx);
-            float dz = Math.Abs(z - sz);
+            float dx = Math.Abs(l.X - sx);
+            float dz = Math.Abs(l.Z - sz);
+
             if (dx > boundingDistance || dz > boundingDistance)
                 return null;
 
             // Calculate distance along and away from the track centerline.
             float lat, lon;
-            (lat, lon) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
+            (lat, lon) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, l.X, l.Z);
             if (Math.Abs(lat) > MaximumCenterlineOffset)
                 return null;
             if (lon < -InitErrorMargin || lon > trackSection.Length + InitErrorMargin)

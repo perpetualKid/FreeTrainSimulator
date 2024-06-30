@@ -167,7 +167,7 @@ namespace ORTS.TrackViewer.UserInterface
         private void SetMouseLocationStatus(in WorldLocation mouseLocation)
         {
             tileXZ.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                "{0,-7} {1,-7}", mouseLocation.TileX, mouseLocation.TileZ);
+                "{0,-7} {1,-7}", mouseLocation.Tile.X, mouseLocation.Tile.Z);
             LocationX.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture,
                 "{0,3:F3} ", mouseLocation.Location.X);
             LocationZ.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture,

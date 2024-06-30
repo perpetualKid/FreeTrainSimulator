@@ -117,7 +117,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public float LoadAndGetElevation(in Tile tile, float x, float z, bool visible)
         {
             WorldLocation location = new WorldLocation(tile, x, 0, z, true);
-            Load(location.TileX, location.Tile.Z, visible);
+            Load(location.Tile.X, location.Tile.Z, visible);
             return GetElevation(location);
         }
 
@@ -155,9 +155,10 @@ namespace Orts.ActivityRunner.Viewer3D
             if (tile == null)
                 return 0;
 
+            Tile delta = currentLocation.Tile - tile.Tile;
             // Adjust x/z based on the tile we found - this may not be in the same TileX/Z as we requested due to large (e.g. 2x2) tiles.
-            float x = currentLocation.Location.X + 1024 + 2048 * (currentLocation.TileX - tile.Tile.X);
-            float z = currentLocation.Location.Z + 1024 + 2048 * (currentLocation.TileZ - tile.Tile.Z - tile.Size);
+            float x = currentLocation.Location.X + 1024 + 2048 * (delta.X);
+            float z = currentLocation.Location.Z + 1024 + 2048 * (delta.X - tile.Size);
             z *= -1;
 
             // Convert x/z in meters to terrain tile samples and get the coordinates of the NW corner.

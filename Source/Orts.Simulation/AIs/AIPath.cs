@@ -409,7 +409,7 @@ namespace Orts.Simulation.AIs
                     continue;
                 if (!wantJunctionNode && !(tn is TrackEndNode))
                     continue;
-                if (tn.UiD.Location.TileX != location.TileX || tn.UiD.Location.TileZ != location.TileZ)
+                if (tn.UiD.Location.Tile != location.Tile)
                     continue;
 
                 float dx = tn.UiD.Location.Location.X - location.Location.X;

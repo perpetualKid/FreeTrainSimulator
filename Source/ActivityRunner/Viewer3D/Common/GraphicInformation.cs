@@ -37,7 +37,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
                 this["Render Primitives Seq"] = string.Join('\t', sumSeparator.Concat(EnumExtension.GetNames<RenderPrimitiveSequence>()).Select(s => s.Max(12)));
                 this["Render Primitives"] = string.Join('\t', new string[] { $"{viewer.RenderProcess.PrimitivePerFrame.Sum():0}" }.Concat(viewer.RenderProcess.PrimitivePerFrame.Select(p => $"{p:F0}")));
-                this["Camera"] = $"{viewer.Camera.TileX:F0}\t{viewer.Camera.TileZ:F0}\t{viewer.Camera.Location.X:F2} \t{viewer.Camera.Location.Y:F2}\t{viewer.Camera.Location.Z:F2}\t{viewer.Tiles.GetElevation(viewer.Camera.CameraWorldLocation):F1} {FormatStrings.m}\t{viewer.Settings.LODBias} %\t{viewer.Settings.ViewingDistance} {FormatStrings.m}\t{(viewer.Settings.DistantMountains ? $"{viewer.Settings.DistantMountainsViewingDistance * 1e-3f:F0} {FormatStrings.km}" : "")}";
+                this["Camera"] = $"{viewer.Camera.Tile.X:F0}\t{viewer.Camera.Tile.Z:F0}\t{viewer.Camera.Location.X:F2} \t{viewer.Camera.Location.Y:F2}\t{viewer.Camera.Location.Z:F2}\t{viewer.Tiles.GetElevation(viewer.Camera.CameraWorldLocation):F1} {FormatStrings.m}\t{viewer.Settings.LODBias} %\t{viewer.Settings.ViewingDistance} {FormatStrings.m}\t{(viewer.Settings.DistantMountains ? $"{viewer.Settings.DistantMountainsViewingDistance * 1e-3f:F0} {FormatStrings.km}" : "")}";
                 base.Update(gameTime);
             }
         }

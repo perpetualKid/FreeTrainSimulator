@@ -90,8 +90,8 @@ namespace Orts.Common.Position
         public static (double latitude, double longitude) ConvertWTC(in WorldLocation location)
         {
             // Decimal degrees is assumed
-            int gsamp = (location.TileX - wt_ew_offset);  // Gsamp is Goode world tile x
-            int gline = (wt_ns_offset - location.TileZ);  // Gline is Goode world tile Y
+            int gsamp = (location.Tile.X - wt_ew_offset);  // Gsamp is Goode world tile x
+            int gline = (wt_ns_offset - location.Tile.Z);  // Gline is Goode world tile Y
             int y = (ul_y - ((gline - 1) * (int)WorldPosition.TileSize) + (int)location.Location.Z);   // Actual Goode X
             int x = (ul_x + ((gsamp - 1) * (int)WorldPosition.TileSize) + (int)location.Location.X);   // Actual Goode Y
 

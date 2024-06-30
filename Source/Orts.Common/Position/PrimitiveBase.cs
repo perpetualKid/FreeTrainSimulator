@@ -49,7 +49,7 @@
 
         protected void SetLocation(in WorldLocation location)
         {
-            tile = new Tile(location.TileX, location.TileZ);
+            tile = location.Tile;
             this.location = PointD.FromWorldLocation(location);
         }
     }
@@ -100,7 +100,7 @@
 
         protected void SetVector(in WorldLocation end)
         {
-            otherTile = new Tile(end.TileX, end.TileZ);
+            otherTile = end.Tile;
             vectorEnd = PointD.FromWorldLocation(end);
         }
 

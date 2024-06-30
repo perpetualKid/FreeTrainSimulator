@@ -123,8 +123,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            Vector3 mstsLocation = (worldPosition.Tile - viewer.Camera.Tile).TileVector();
-            Matrix xnaMatrix = Matrix.CreateTranslation((worldPosition.Location + (worldPosition.Tile - viewer.Camera.Tile).TileVector()).XnaVector());
+            Vector3 mstsLocation = worldPosition.Location + (worldPosition.Tile - viewer.Camera.Tile).TileVector();
+            Matrix xnaMatrix = Matrix.CreateTranslation(mstsLocation.XnaVector());
 
             foreach (var primitive in primitives)
                 if (primitive.SubObjectIndex != 1 || !nightObjectEnabled || viewer.MaterialManager.sunDirection.Y < 0)

@@ -311,8 +311,8 @@ namespace Orts.ActivityRunner.Viewer3D
                             {
                                 // Track type out of range
                                 curTrackSoundType = 0;
-                                Trace.TraceWarning("Sound region {0} out of range in tile {1} {2}", wagonViewer.TrackSoundType,
-                                    Car.WorldPosition.WorldLocation.TileX, Car.WorldPosition.WorldLocation.TileZ);
+                                Trace.TraceWarning("Sound region {0} out of range in tile {1}", wagonViewer.TrackSoundType,
+                                    Car.WorldPosition.WorldLocation.Tile);
                                 wagonViewer.TrackSoundType = 0;
                             }
                         else
@@ -2458,9 +2458,9 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             return retval;
         }
 
-        public void AddByTile(int TileX, int TileZ)
+        public void AddByTile(in Tile tile)
         {
-            string name = Path.Combine(Simulator.Instance.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s");
+            string name = Path.Combine(Simulator.Instance.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(tile) + "s");
             WorldSoundFile wf = new WorldSoundFile(name, RuntimeData.Instance.TrackDB.TrackItems.Count);
             if (wf.TrackItemSound != null)
             {
@@ -2469,7 +2469,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                 Collection<SoundSourceBase> ls = new Collection<SoundSourceBase>();
                 foreach (var fss in wf.TrackItemSound.SoundSources)
                 {
-                    WorldLocation wl = new WorldLocation(TileX, TileZ, fss.Position);
+                    WorldLocation wl = new WorldLocation(tile, fss.Position);
                     var fullPath = FolderStructure.FindFileFromFolders(pathArray, fss.FileName);
                     if (fullPath != null)
                     {
@@ -2489,9 +2489,9 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             }
         }
 
-        public void RemoveByTile(int TileX, int TileZ)
+        public void RemoveByTile(in Tile tile)
         {
-            string name = Path.Combine(viewer.Simulator.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s");
+            string name = Path.Combine(viewer.Simulator.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(tile) + "s");
             viewer.SoundProcess.RemoveSoundSources(name);
             lock (soundRegions)
             {

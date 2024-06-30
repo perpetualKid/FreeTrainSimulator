@@ -115,13 +115,6 @@ namespace Orts.Common.Position
         /// <summary>
         /// Change tile and location values to make it as if the location where on the requested tile.
         /// </summary>
-        /// <param name="tileX">The x-value of the tile to normalize to</param>
-        /// <param name="tileZ">The x-value of the tile to normalize to</param>
-        public WorldPosition NormalizeTo(int tileX, int tileZ) => NormalizeTo(new Tile(tileX, tileZ));
-
-        /// <summary>
-        /// Change tile and location values to make it as if the location where on the requested tile.
-        /// </summary>
         public WorldPosition NormalizeTo(Tile tile)
         {
             Tile delta = Tile - tile;

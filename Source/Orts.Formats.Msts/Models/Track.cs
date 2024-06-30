@@ -567,7 +567,7 @@ namespace Orts.Formats.Msts.Models
                             TrackNodes.Add(TrackNode.ReadTrackNode(stf, TrackNodes.Count, numberOfTrackNodes));
                             if (TrackNodes[^1] is TrackJunctionNode junctionNode)
                             {
-                                string key = $"{junctionNode.UiD.WorldId}-{junctionNode.UiD.Location.TileX}-{junctionNode.UiD.Location.TileZ}";
+                                string key = $"{junctionNode.UiD.WorldId}-{junctionNode.UiD.Location.Tile.X}-{junctionNode.UiD.Location.Tile.Z}";
                                 junctionNodes.TryAdd(key, junctionNode);
                                 // only need any (first) junction node with that key here to relate back to ShapeIndex
                             }
@@ -1160,7 +1160,7 @@ namespace Orts.Formats.Msts.Models
         /// <returns>String giving info on this section</returns>
         public override string ToString()
         {
-            return $"{{TileX:{location.TileX} TileZ:{location.TileZ} X:{location.Location.X} Y:{location.Location.Y} Z:{location.Location.Z} UiD:{WorldFileUiD} Section:{SectionIndex} Shape:{ShapeIndex}}}";
+            return $"{{Tile:{location.Tile} X:{location.Location.X} Y:{location.Location.Y} Z:{location.Location.Z} UiD:{WorldFileUiD} Section:{SectionIndex} Shape:{ShapeIndex}}}";
         }
     }
     #endregion

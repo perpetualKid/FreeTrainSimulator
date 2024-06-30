@@ -270,7 +270,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 continue;
                             foreach (var section in trackVectorNode.TrackVectorSections)
                             {
-                                var key = "" + section.Location.TileX + "." + section.Location.TileZ;
+                                string key = section.Location.Tile.ToString();
                                 if (!SectionMap.ContainsKey(key))
                                     SectionMap.Add(key, new List<TrackVectorSection>());
                                 SectionMap[key].Add(section);

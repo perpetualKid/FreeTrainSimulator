@@ -110,7 +110,7 @@ namespace Orts.Models.Simplified
                     PathName = saveState.PathName,
                     GameTime = new DateTime().AddSeconds(saveState.GameTime).TimeOfDay,
                     RealTime = saveState.RealSaveTime.ToLocalTime(),
-                    CurrentTile = $"{saveState.PlayerLocation.TileX:F0}, {saveState.PlayerLocation.TileZ:F0}",
+                    CurrentTile = $"{saveState.PlayerLocation.Tile.X:F0}, {saveState.PlayerLocation.Tile.Z:F0}",
                     Distance = $"{Math.Sqrt(WorldLocation.GetDistanceSquared(saveState.PlayerLocation, saveState.InitialLocation)):F1}",
                     IsMultiplayer = saveState.MultiplayerGame,
                     //Debrief Eval

@@ -226,7 +226,7 @@ namespace Orts.Formats.Msts
                         throw new InvalidDataException($"Track node {startTrackNode.UiD} could not be found in the track database.");
                     else
                     {
-                        throw new MissingTrackNodeException($"Missing Track Node at {location.TileX} {location.TileZ}!");
+                        throw new MissingTrackNodeException($"Missing Track Node at {location.Tile.X} {location.Tile.Z}!");
                     }
                 }
 
@@ -568,13 +568,13 @@ namespace Orts.Formats.Msts
                 Matrix curveRotation = Matrix.CreateRotationY(to * sign);
                 InterpolateHelper.InterpolateAlongCurveLine(Vector3.Zero, vectorCurveStartToCenter, curveRotation, tvs.Direction, out _, out Vector3 displacement);
                 displacement.Z *= -1;
-                location = new WorldLocation(location.TileX, location.TileZ, location.Location + displacement);
+                location = new WorldLocation(location.Tile, location.Location + displacement);
                 directionVector.Y -= to * sign;
             }
             else
             {
                 InterpolateHelper.InterpolateAlongStraightLine(Vector3.Zero, Vector3.UnitZ, to, tvs.Direction, out _, out Vector3 displacement);
-                location = new WorldLocation(location.TileX, location.TileZ, location.Location + displacement);
+                location = new WorldLocation(location.Tile, location.Location + displacement);
             }
 
             if (direction == Direction.Backward)
@@ -586,7 +586,7 @@ namespace Orts.Formats.Msts
             directionVector.Y = MathHelper.WrapAngle(directionVector.Y);
 
             if (trackVectorSection != null)
-                location = location.NormalizeTo(trackVectorSection.Location.TileX, trackVectorSection.Location.TileZ);
+                location = location.NormalizeTo(trackVectorSection.Location.Tile);
         }
 
         private void SetLength()

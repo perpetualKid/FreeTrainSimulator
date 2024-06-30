@@ -47,7 +47,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="TileX">TileX coordinates.</param>
         /// <param name="TileZ">TileZ coordinates.</param>
         /// <param name="shapeFilePath">Path to the shape file.</param>
-        public static bool DecomposeStaticSuperElevation(Viewer viewer, List<DynamicTrackViewer> trackList, TrackObject trackObj, in WorldPosition worldMatrixInput, int TileX, int TileZ, string shapeFilePath)
+        public static bool DecomposeStaticSuperElevation(Viewer viewer, List<DynamicTrackViewer> trackList, TrackObject trackObj, in WorldPosition worldMatrixInput, in Tile tile, string shapeFilePath)
         {
             TrackShape shape;
             try
@@ -84,7 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         //with strait track, will remove all related sections later
                     }
                     TrackVectorSection tmp = null;
-                    tmp = FindSectionValue(shape, section, TileX, TileZ, trackObj.UiD);
+                    tmp = FindSectionValue(shape, section, tile, trackObj.UiD);
 
                     if (tmp == null) //cannot find the track for super elevation, will return 0;
                     {
@@ -131,9 +131,9 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         //no use anymore
-        public static int DecomposeStaticSuperElevation(Viewer viewer, List<DynamicTrackViewer> dTrackList, int TileX, int TileZ)
+        public static int DecomposeStaticSuperElevation(Viewer viewer, List<DynamicTrackViewer> dTrackList, in Tile tile)
         {
-            int key = Math.Abs(TileX) + Math.Abs(TileZ);
+            int key = Math.Abs(tile.X) + Math.Abs(tile.Z);
             if (!Simulator.Instance.SuperElevation.Sections.TryGetValue(key, out List<TrackVectorSection> sections))
                 return 0;//cannot find sections associated with this tile
             if (sections == null) 
@@ -142,7 +142,7 @@ namespace Orts.ActivityRunner.Viewer3D
             foreach (TrackVectorSection ts in sections)
             {
                 TrackSection tss = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(ts.SectionIndex);
-                if (tss == null || !tss.Curved || ts.Location.TileX != TileX || ts.Location.TileZ != TileZ)
+                if (tss == null || !tss.Curved || ts.Location.Tile != tile)
                     continue;
                 Vector3 trackLoc = ts.Location.Location;
                 trackLoc.Z *= - 1;
@@ -167,17 +167,17 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private static float sv, ev, mv, dir;
         //a function to find the elevation of a section ,by searching the TDB database
-        public static TrackVectorSection FindSectionValue(TrackShape shape, TrackSection section, int TileX, int TileZ, uint UID)
+        public static TrackVectorSection FindSectionValue(TrackShape shape, TrackSection section, in Tile tile, uint UID)
         {
             if (!section.Curved)
                 return null;
             sv = ev = mv = 0f; dir = 1f;
-            var key = (int)(Math.Abs(TileX) + Math.Abs(TileZ));
+            var key = (int)(Math.Abs(tile.X) + Math.Abs(tile.Z));
             if (!Simulator.Instance.SuperElevation.Sections.TryGetValue(key, out List<TrackVectorSection> tileSections))
                 return null;//we do not have the maps of sections on the given tile, will not bother to search
             foreach (var s in tileSections)
             {
-                if (s.Location.TileX == TileX && s.Location.TileZ == TileZ && s.WorldFileUiD == UID && section.SectionIndex == s.SectionIndex)
+                if (s.Location.Tile == tile && s.WorldFileUiD == UID && section.SectionIndex == s.SectionIndex)
                 {
                     return s;
                 }
@@ -187,7 +187,7 @@ namespace Orts.ActivityRunner.Viewer3D
             foreach (var s in tileSections)
             {
                 var sec = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(s.SectionIndex);
-                if (s.Location.TileX == TileX && s.Location.TileZ == TileZ && s.WorldFileUiD == UID && section.Radius == sec.Radius
+                if (s.Location.Tile == tile && s.WorldFileUiD == UID && section.Radius == sec.Radius
                     && section.Angle == -sec.Angle)
                 {
                     return s;
@@ -199,7 +199,7 @@ namespace Orts.ActivityRunner.Viewer3D
         //remove a section from the tile-section map
         public static void RemoveSectionsFromMap(TrackVectorSection section)
         {
-            int key = Math.Abs(section.Location.TileX) + Math.Abs(section.Location.TileZ);
+            int key = Math.Abs(section.Location.Tile.X) + Math.Abs(section.Location.Tile.Z);
             if (Simulator.Instance.SuperElevation.Sections.TryGetValue(key, out List<TrackVectorSection> value))
                 value.Remove(section);
         }

@@ -27,7 +27,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 //if I am a remote controlled train now
                 if (Simulator.Instance.PlayerLocomotive.Train.TrainType == TrainType.Remote)
                 {
-                    Simulator.Instance.PlayerLocomotive.Train.ToDoUpdate(TrackNodeIndex, RearLocation.TileX, RearLocation.TileZ, RearLocation.Location.X, RearLocation.Location.Z, DistanceTravelled, Speed, MultiUnitDirection, TrainDirection, Length);
+                    Simulator.Instance.PlayerLocomotive.Train.ToDoUpdate(TrackNodeIndex, RearLocation.Tile, RearLocation.Location.X, RearLocation.Location.Z, DistanceTravelled, Speed, MultiUnitDirection, TrainDirection, Length);
                 }
                 return;
             }
@@ -54,7 +54,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     //    //                                    reverseTrav = true;
                     //    //                                }
                     //}
-                    train.ToDoUpdate(TrackNodeIndex, RearLocation.TileX, RearLocation.TileZ, RearLocation.Location.X, RearLocation.Location.Z, DistanceTravelled, Speed, MultiUnitDirection, TrainDirection, Length);
+                    train.ToDoUpdate(TrackNodeIndex, RearLocation.Tile, RearLocation.Location.X, RearLocation.Location.Z, DistanceTravelled, Speed, MultiUnitDirection, TrainDirection, Length);
                     return;
                 }
             }
@@ -68,7 +68,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                         Simulator.Instance.PlayerLocomotive == Simulator.Instance.PlayerLocomotive.Train.LeadLocomotive &&
                         train.TrainType != TrainType.Remote && train.TrainType != TrainType.Static)
                         return;
-                    train.ToDoUpdate(TrackNodeIndex, RearLocation.TileX, RearLocation.TileZ, RearLocation.Location.X, RearLocation.Location.Z, DistanceTravelled, Speed, MultiUnitDirection, TrainDirection, Length);
+                    train.ToDoUpdate(TrackNodeIndex, RearLocation.Tile, RearLocation.Location.X, RearLocation.Location.Z, DistanceTravelled, Speed, MultiUnitDirection, TrainDirection, Length);
                     // This is necessary as sometimes a train isn'train in the Trains list
                     multiPlayerManager.AddOrRemoveTrain(train, true);
                     return;

@@ -16,13 +16,13 @@ namespace Tests.Orts.Common.Position
         {
             WorldLocation location = new WorldLocation(0, 0, 3834, 0, -4118, true);
 
-            Assert.AreEqual(2, location.TileX);
+            Assert.AreEqual(2, location.Tile.X);
             Assert.AreEqual(-262, location.Location.X);
-            Assert.AreEqual(-2, location.TileZ);
+            Assert.AreEqual(-2, location.Tile.Z);
             Assert.AreEqual(-22, location.Location.Z);
 
             location = new WorldLocation(0, 0, 3834, 0, -1088, true);
-            Assert.AreEqual(-1, location.TileZ);
+            Assert.AreEqual(-1, location.Tile.Z);
             Assert.AreEqual(960, location.Location.Z);
         }
 
@@ -31,9 +31,9 @@ namespace Tests.Orts.Common.Position
         {
             WorldLocation location = new WorldLocation(-1, 1, 3834, 0, -4118).NormalizeTo(4, 4);
 
-            Assert.AreEqual(4, location.TileX);
+            Assert.AreEqual(4, location.Tile.X);
             Assert.AreEqual(-6406, location.Location.X);
-            Assert.AreEqual(4, location.TileZ);
+            Assert.AreEqual(4, location.Tile.Z);
             Assert.AreEqual(-10262, location.Location.Z);
         }
 

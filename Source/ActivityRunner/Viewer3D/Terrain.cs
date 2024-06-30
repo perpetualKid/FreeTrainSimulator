@@ -31,6 +31,7 @@ using System.Linq;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Common.Position;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -43,10 +44,8 @@ namespace Orts.ActivityRunner.Viewer3D
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
         //   assignment of a new instance (possibly cloned and then modified).
         private List<TerrainTile> TerrainTiles = new List<TerrainTile>();
-        private int TileX;
-        private int TileZ;
-        private int VisibleTileX;
-        private int VisibleTileZ;
+        private Tile tile;
+        private Tile visibleTile;
 
         public TerrainViewer(Viewer viewer)
         {
@@ -57,10 +56,9 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             var cancellation = Viewer.LoaderProcess.CancellationToken;
 
-            if (TileX != VisibleTileX || TileZ != VisibleTileZ)
+            if (tile != visibleTile)
             {
-                TileX = VisibleTileX;
-                TileZ = VisibleTileZ;
+                tile = visibleTile;
                 var terrainTiles = TerrainTiles;
                 var newTerrainTiles = new List<TerrainTile>();
 
@@ -69,17 +67,17 @@ namespace Orts.ActivityRunner.Viewer3D
                 var needed = (int)Math.Ceiling((float)Viewer.Settings.ViewingDistance / 2048);
 
                 // First we establish the regular tiles we need to cover the current viewable area.
-                for (var x = TileX - needed; x <= TileX + needed; x++)
-                    for (var z = TileZ - needed; z <= TileZ + needed; z++)
+                for (var x = tile.X - needed; x <= tile.X + needed; x++)
+                    for (var z = tile.Z - needed; z <= tile.Z + needed; z++)
                         if (!cancellation.IsCancellationRequested)
-                            tiles.Add(Viewer.Tiles.LoadAndGetTile(x, z, x == TileX && z == TileZ));
+                            tiles.Add(Viewer.Tiles.LoadAndGetTile(x, z, x == tile.X && z == tile.Z));
 
                 if (Viewer.Settings.DistantMountains)
                 {
                     // Second we establish the distant mountain/lo-resolution tiles we need.
                     needed = (int)Math.Ceiling((float)Viewer.Settings.DistantMountainsViewingDistance / 2048);
-                    for (var x = 8 * (int)((TileX - needed) / 8); x <= 8 * (int)((TileX + needed + 7) / 8); x += 8)
-                        for (var z = 8 * (int)((TileZ - needed) / 8); z <= 8 * (int)((TileZ + needed + 7) / 8); z += 8)
+                    for (var x = 8 * (int)((tile.X - needed) / 8); x <= 8 * (int)((tile.X + needed + 7) / 8); x += 8)
+                        for (var z = 8 * (int)((tile.Z - needed) / 8); z <= 8 * (int)((tile.Z + needed + 7) / 8); z += 8)
                             if (!cancellation.IsCancellationRequested)
                                 loTiles.Add(Viewer.LoTiles.LoadAndGetTile(x, z, false));
                 }
@@ -102,8 +100,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void LoadPrep()
         {
-            VisibleTileX = Viewer.Camera.TileX;
-            VisibleTileZ = Viewer.Camera.TileZ;
+            visibleTile = Viewer.Camera.Tile;
         }
 
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
@@ -183,7 +180,8 @@ namespace Orts.ActivityRunner.Viewer3D
     public class TerrainPrimitive : RenderPrimitive
     {
         private readonly Viewer Viewer;
-        private readonly int TileX, TileZ, Size, PatchX, PatchZ, PatchSize;
+        private readonly Tile tile;
+        private readonly int Size, PatchX, PatchZ, PatchSize;
         private readonly float AverageElevation;
         private readonly Vector3 PatchLocation;        // In MSTS world coordinates relative to the center of the tile
         private readonly VertexBuffer PatchVertexBuffer;  // Separate vertex buffer for each patch
@@ -201,28 +199,27 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly TileSample Tile;
         private readonly Patch Patch;
 
-        public TerrainPrimitive(Viewer viewer, TileManager tileManager, TileSample tile, int x, int z)
+        public TerrainPrimitive(Viewer viewer, TileManager tileManager, TileSample tileSample, int x, int z)
         {
             Viewer = viewer;
-            TileX = tile.Tile.X;
-            TileZ = tile.Tile.Z;
-            Size = tile.Size;
+            this.tile = tileSample.Tile;
+            Size = tileSample.Size;
 
             PatchX = x;
             PatchZ = z;
-            PatchSize = tile.Size * 2048 / tile.PatchCount;
+            PatchSize = tileSample.Size * 2048 / tileSample.PatchCount;
 
             TileManager = tileManager;
-            Tile = tile;
+            Tile = tileSample;
             Patch = Tile.GetPatch(x, z);
 
             var cx = Patch.CenterX - 1024;
-            var cz = Patch.CenterZ - 1024 + 2048 * tile.Size;
+            var cz = Patch.CenterZ - 1024 + 2048 * tileSample.Size;
             PatchLocation = new Vector3(cx, Tile.Floor, cz);
             PatchVertexBuffer = GetVertexBuffer(out AverageElevation);
             PatchIndexBuffer = GetIndexBuffer(out PatchPrimitiveCount);
 
-            var terrainMaterial = tile.Size > 2 ? "TerrainSharedDistantMountain" : PatchIndexBuffer == null ? "TerrainShared" : "Terrain";
+            var terrainMaterial = tileSample.Size > 2 ? "TerrainSharedDistantMountain" : PatchIndexBuffer == null ? "TerrainShared" : "Terrain";
             var ts = Tile.Shaders[Patch.ShaderIndex].Textureslots;
             var uv = Tile.Shaders[Patch.ShaderIndex].UVCalcs;
             if (ts.Count > 1)
@@ -242,9 +239,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void PrepareFrame(RenderFrame frame)
         {
-            var dTileX = TileX - Viewer.Camera.TileX;
-            var dTileZ = TileZ - Viewer.Camera.TileZ;
-            var mstsLocation = new Vector3(PatchLocation.X + dTileX * 2048, PatchLocation.Y, PatchLocation.Z + dTileZ * 2048);
+            var mstsLocation = PatchLocation + (tile - Viewer.Camera.Tile).TileVector();
             var xnaPatchMatrix = Matrix.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
             mstsLocation.Y += AverageElevation; // Try to keep testing point somewhere useful within the patch's altitude.
             // Low-resolution terrain (Size > 2) should always be drawn (PositiveInfinity), while high-resolution terrain should only be drawn within the viewing distance (MaxValue).

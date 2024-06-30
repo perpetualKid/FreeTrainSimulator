@@ -26,6 +26,7 @@ using FreeTrainSimulator.Common.Xna;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -35,35 +36,34 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         private static KeyValuePair<float, Material>[] WaterLayers;
         private readonly Viewer Viewer;
-        private readonly int TileX, TileZ, Size;
+        private readonly Tile tile;
+        private readonly int size;
         private readonly VertexBuffer VertexBuffer;
         private readonly IndexBuffer IndexBuffer;
         private readonly int PrimitiveCount;
         private readonly VertexBufferBinding[] VertexBufferBindings;
         private Matrix xnaMatrix = Matrix.Identity;
 
-        public WaterPrimitive(Viewer viewer, TileSample tile)
+        public WaterPrimitive(Viewer viewer, TileSample tileSample)
         {
             Viewer = viewer;
-            TileX = tile.Tile.X;
-            TileZ = tile.Tile.Z;
-            Size = tile.Size;
+            tile = tileSample.Tile;
+            size = tileSample.Size;
 
             if (Viewer.ENVFile.WaterLayers != null)
-            WaterLayers = Viewer.ENVFile.WaterLayers.Select(layer => new KeyValuePair<float, Material>(layer.Height, Viewer.MaterialManager.Load("Water", Viewer.Simulator.RouteFolder.EnvironmentTextureFile(layer.TextureName)))).ToArray();
+                WaterLayers = Viewer.ENVFile.WaterLayers.Select(layer => new KeyValuePair<float, Material>(layer.Height, Viewer.MaterialManager.Load("Water", Viewer.Simulator.RouteFolder.EnvironmentTextureFile(layer.TextureName)))).ToArray();
 
-            LoadGeometry(Viewer.Game.GraphicsDevice, tile, out PrimitiveCount, out IndexBuffer, out VertexBuffer);
-            
+            LoadGeometry(Viewer.Game.GraphicsDevice, tileSample, out PrimitiveCount, out IndexBuffer, out VertexBuffer);
+
             VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(GetDummyVertexBuffer(viewer.Game.GraphicsDevice)) };
         }
 
         public void PrepareFrame(RenderFrame frame)
         {
-            var dTileX = TileX - Viewer.Camera.TileX;
-            var dTileZ = TileZ - Viewer.Camera.TileZ;
-            var mstsLocation = new Vector3(dTileX * 2048 - 1024 + 1024 * Size, 0, dTileZ * 2048 - 1024 + 1024 * Size);
+            Tile delta = tile - Viewer.Camera.Tile;
+            var mstsLocation = new Vector3(delta.X * 2048 - 1024 + 1024 * size, 0, delta.Z * 2048 - 1024 + 1024 * size);
 
-            if (Viewer.Camera.InFov(mstsLocation, Size * 1448f) && WaterLayers != null)
+            if (Viewer.Camera.InFov(mstsLocation, size * 1448f) && WaterLayers != null)
             {
                 xnaMatrix.M41 = mstsLocation.X;
                 xnaMatrix.M43 = -mstsLocation.Z;
@@ -92,7 +92,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 for (var x = 0; x < tile.PatchCount; ++x)
                 {
-                    
+
                     var patch = tile.GetPatch(x, z);
 
                     if (!patch.WaterEnabled)
@@ -138,8 +138,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     var a = (float)x / 16;
                     var b = (float)z / 16;
 
-                    var e = (a - 0.5f) * 2048 * Size;
-                    var n = (b - 0.5f) * 2048 * Size;
+                    var e = (a - 0.5f) * 2048 * size;
+                    var n = (b - 0.5f) * 2048 * size;
 
                     var y = waterLevels.Interpolate2D(a, b);
 
@@ -152,7 +152,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         internal static void Mark()
         {
-            if (WaterLayers == null) return;
+            if (WaterLayers == null)
+                return;
             foreach (var material in WaterLayers.Select(kvp => kvp.Value))
                 material.Mark();
         }

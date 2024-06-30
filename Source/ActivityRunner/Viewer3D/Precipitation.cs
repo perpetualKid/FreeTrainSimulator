@@ -72,8 +72,8 @@ namespace Orts.ActivityRunner.Viewer3D
             // Note: This is quite a hack. We ideally should be able to pass this through RenderItem somehow.
             var XNAWorldLocation = Matrix.Identity;
             XNAWorldLocation.M11 = gameTime;
-            XNAWorldLocation.M21 = viewer.Camera.TileX;
-            XNAWorldLocation.M22 = viewer.Camera.TileZ;
+            XNAWorldLocation.M21 = viewer.Camera.Tile.X;
+            XNAWorldLocation.M22 = viewer.Camera.Tile.Z;
 
             frame.AddPrimitive(material, precipitation, RenderPrimitiveGroup.Precipitation, ref XNAWorldLocation);
         }
@@ -291,12 +291,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
             for (var i = 0; i < numToEmit; i++)
             {
-                WorldLocation temp = new WorldLocation(worldLocation.TileX, worldLocation.TileZ,
-                    worldLocation.Location.X + (float)((StaticRandom.NextDouble() - 0.5) * ParticleBoxWidthM),
-                    0,
-                    worldLocation.Location.Z + (float)((StaticRandom.NextDouble() - 0.5) * ParticleBoxLengthM));
-                temp = new WorldLocation(temp.TileX, temp.TileZ, temp.Location.X, heights.GetHeight(temp, tiles, scenery), temp.Location.Z);
-                var position = new WorldPosition(temp);
+                WorldLocation location = new WorldLocation(worldLocation.Tile, worldLocation.Location.X + (float)((StaticRandom.NextDouble() - 0.5) * ParticleBoxWidthM),
+                    0, worldLocation.Location.Z + (float)((StaticRandom.NextDouble() - 0.5) * ParticleBoxLengthM));
+                location = new WorldLocation(location.Tile, location.Location.X, heights.GetHeight(location, tiles, scenery), location.Location.Z);
+                var position = new WorldPosition(location);
 
                 var time = MathHelper.Lerp(timeParticlesLastEmitted, currentTime, (float)i / numToEmit);
                 var particle = (firstFreeParticle + 1) % MaxParticles;
@@ -380,7 +378,7 @@ namespace Orts.ActivityRunner.Viewer3D
             private const int TileCount = 10;
             private readonly int BlockSize;
             private readonly int Divisions;
-            private readonly List<Tile> Tiles = new List<Tile>();
+            private readonly List<PrecipitationTile> Tiles = new List<PrecipitationTile>();
 
             public HeightCache(int blockSize)
             {
@@ -393,9 +391,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 WorldLocation temp = location.Normalize();
 
                 // First, ensure we have the tile in question cached.
-                var tile = Tiles.FirstOrDefault(t => t.TileX == temp.TileX && t.TileZ == temp.TileZ);
+                var tile = Tiles.FirstOrDefault(t => t.Tile == temp.Tile);
                 if (tile == null)
-                    Tiles.Add(tile = new Tile(temp.TileX, temp.TileZ, Divisions));
+                    Tiles.Add(tile = new PrecipitationTile(temp.Tile, Divisions));
 
                 // Remove excess entries.
                 if (Tiles.Count > TileCount)
@@ -424,7 +422,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // If we don't have it cached, load it.
                 if (tile.Height[x, z] == float.MinValue)
                 {
-                    var position = new WorldLocation(temp.TileX, temp.TileZ, (x + 0.5f) * BlockSize - 1024, 0, (z + 0.5f) * BlockSize - 1024);
+                    var position = new WorldLocation(temp.Tile, (x + 0.5f) * BlockSize - 1024, 0, (z + 0.5f) * BlockSize - 1024);
                     tile.Height[x, z] = Math.Max(tiles.GetElevation(position), scenery.GetBoundingBoxTop(position, BlockSize));
                     tile.Used++;
                 }
@@ -433,17 +431,16 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             [DebuggerDisplay("Tile = {TileX},{TileZ} Used = {Used}")]
-            private class Tile
+            private class PrecipitationTile
             {
-                public readonly int TileX;
-                public readonly int TileZ;
+                private readonly Tile tile;
+                public ref readonly Tile Tile => ref tile;
                 public readonly float[,] Height;
                 public int Used;
 
-                public Tile(int tileX, int tileZ, int divisions)
+                public PrecipitationTile(in Tile tile, int divisions)
                 {
-                    TileX = tileX;
-                    TileZ = tileZ;
+                    this.tile = tile;
                     Height = new float[divisions, divisions];
                     for (var x = 0; x < divisions; x++)
                         for (var z = 0; z < divisions; z++)
