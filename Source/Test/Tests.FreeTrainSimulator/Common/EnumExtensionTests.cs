@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using FreeTrainSimulator.Common;
+﻿using FreeTrainSimulator.Common;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Orts.Common;
-
-namespace Tests.Orts.Common
+namespace Tests.FreeTrainSimulator.Common
 {
 
     [TestClass]
@@ -18,7 +10,7 @@ namespace Tests.Orts.Common
     {
         #region SimpleIndexedEnum
         private enum SimpleIndexedEnum
-        { 
+        {
             Null,
             One,
             Two,

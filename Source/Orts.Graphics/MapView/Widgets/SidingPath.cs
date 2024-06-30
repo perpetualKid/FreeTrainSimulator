@@ -4,8 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Common.Position;
 
-using Orts.Common.Position;
 using Orts.Models.Track;
 
 namespace Orts.Graphics.MapView.Widgets

@@ -3,11 +3,11 @@ using System.IO;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models

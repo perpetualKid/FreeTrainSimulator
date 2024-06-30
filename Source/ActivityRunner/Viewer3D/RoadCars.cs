@@ -17,20 +17,11 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-
-using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
-using Orts.Common.Calc;
-using Orts.Common.Position;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
-using Orts.Simulation;
 using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Viewer3D

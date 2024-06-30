@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 
-namespace Orts.Common.Position
+namespace FreeTrainSimulator.Common.Position
 {
     public static class TileHelper
     {
@@ -23,11 +23,11 @@ namespace Orts.Common.Position
             /// <summary>
             /// 4KM^2
             /// </summary>
-            Large = 14, 
+            Large = 14,
             /// <summary>
             /// 2KM^2
             /// </summary>
-            Small = 15, 
+            Small = 15,
         }
 
         public static string FromTileXZ(int tileX, int tileZ, Zoom zoom)
@@ -50,8 +50,10 @@ namespace Orts.Common.Position
                     name.Append(partial.ToString("X", CultureInfo.InvariantCulture));
                     partial = 0;
                 }
-                if (east) rectX += rectW;
-                if (north) rectZ += rectH;
+                if (east)
+                    rectX += rectW;
+                if (north)
+                    rectZ += rectH;
                 rectW /= 2;
                 rectH /= 2;
             }

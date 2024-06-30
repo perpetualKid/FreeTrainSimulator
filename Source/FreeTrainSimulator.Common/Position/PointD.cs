@@ -2,7 +2,7 @@
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Common.Position
+namespace FreeTrainSimulator.Common.Position
 {
     public readonly struct PointD : IEquatable<PointD>
     {
@@ -30,7 +30,7 @@ namespace Orts.Common.Position
             int zTileDistance = (int)Math.Round((int)(location.Y / 1024) / 2.0, MidpointRounding.AwayFromZero);
 
             return new WorldLocation(xTileDistance, zTileDistance,
-                new Vector3((float)(location.X - (xTileDistance * WorldLocation.TileSize)), 0, (float)(location.Y - (zTileDistance * WorldLocation.TileSize))));
+                new Vector3((float)(location.X - xTileDistance * WorldLocation.TileSize), 0, (float)(location.Y - zTileDistance * WorldLocation.TileSize)));
         }
 
         public static Tile ToTile(in PointD location)
@@ -95,7 +95,7 @@ namespace Orts.Common.Position
 
         public static bool operator !=(PointD lhs, PointD rhs)
         {
-            return !(lhs.Equals(rhs));
+            return !lhs.Equals(rhs);
         }
 
         public double DotProduct(PointD other)

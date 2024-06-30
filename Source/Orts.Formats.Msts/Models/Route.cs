@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 
+using FreeTrainSimulator.Common.Position;
+
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models

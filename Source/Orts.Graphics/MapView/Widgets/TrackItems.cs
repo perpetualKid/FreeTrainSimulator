@@ -6,11 +6,11 @@ using System.Globalization;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;

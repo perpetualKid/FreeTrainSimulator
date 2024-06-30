@@ -21,12 +21,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D

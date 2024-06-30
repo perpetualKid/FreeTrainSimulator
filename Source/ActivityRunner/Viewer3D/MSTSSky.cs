@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
@@ -30,7 +31,6 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Input;
-using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;

@@ -1,5 +1,5 @@
 ﻿
-using Orts.Common.Position;
+using FreeTrainSimulator.Common.Position;
 
 namespace Orts.Graphics.MapView.Widgets
 {

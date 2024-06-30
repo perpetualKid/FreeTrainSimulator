@@ -21,7 +21,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Orts.Common.Position;
+using FreeTrainSimulator.Common.Position;
+
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.RollingStocks;

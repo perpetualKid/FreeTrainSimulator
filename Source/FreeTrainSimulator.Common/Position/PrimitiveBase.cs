@@ -1,4 +1,4 @@
-﻿namespace Orts.Common.Position
+﻿namespace FreeTrainSimulator.Common.Position
 {
     /// <summary>
     /// An item which has a location on a (2D) map.
@@ -38,7 +38,7 @@
 
         protected PointPrimitive(in WorldLocation location)
         {
-            this.SetLocation(location);
+            SetLocation(location);
         }
 
         protected void SetLocation(in PointD location)
@@ -81,7 +81,7 @@
             SetVector(start, end);
         }
 
-        protected VectorPrimitive(in WorldLocation start, in WorldLocation end): base(start)
+        protected VectorPrimitive(in WorldLocation start, in WorldLocation end) : base(start)
         {
             SetVector(end);
         }

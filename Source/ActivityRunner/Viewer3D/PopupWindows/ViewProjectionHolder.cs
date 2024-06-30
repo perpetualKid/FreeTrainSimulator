@@ -1,6 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FreeTrainSimulator.Common.Position;
 
-using Orts.Common.Position;
+using Microsoft.Xna.Framework;
+
 using Orts.Graphics.Window.Controls;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows

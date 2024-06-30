@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Position;
 
 using GetText;
 
@@ -12,7 +13,6 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Input;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics.Window;

@@ -20,7 +20,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-using Orts.Common.Position;
+using FreeTrainSimulator.Common.Position;
+
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
 

@@ -17,8 +17,9 @@
 
 using System;
 
+using FreeTrainSimulator.Common.Position;
+
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;

@@ -23,6 +23,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using FreeTrainSimulator.Common.Position;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -30,7 +32,6 @@ using Orts.ActivityRunner.Viewer3D.Environment;
 using Orts.ActivityRunner.Viewer3D.Shaders;
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Position;
 using Orts.Simulation;
 using Orts.Simulation.World;
 

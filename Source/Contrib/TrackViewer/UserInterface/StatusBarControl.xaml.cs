@@ -24,8 +24,8 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using ORTS.TrackViewer.Editing;
-using Orts.Common.Position;
 using ORTS.TrackViewer.Drawing;
+using FreeTrainSimulator.Common.Position;
 
 namespace ORTS.TrackViewer.UserInterface
 {

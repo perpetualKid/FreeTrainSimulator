@@ -2,9 +2,9 @@
 using System.Collections.ObjectModel;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Position;
 
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 

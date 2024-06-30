@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Globalization;
 
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.Models.Track;
 

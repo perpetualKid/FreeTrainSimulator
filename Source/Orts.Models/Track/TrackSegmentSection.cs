@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Orts.Common.Position;
+using FreeTrainSimulator.Common.Position;
 
 namespace Orts.Models.Track
 {

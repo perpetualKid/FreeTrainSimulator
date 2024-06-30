@@ -23,7 +23,8 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 
-using Orts.Common.Position;
+using FreeTrainSimulator.Common.Position;
+
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 

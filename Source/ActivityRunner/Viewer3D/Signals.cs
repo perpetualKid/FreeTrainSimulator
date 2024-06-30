@@ -26,6 +26,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
@@ -35,7 +36,6 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;

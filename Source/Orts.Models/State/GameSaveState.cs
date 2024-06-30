@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Position;
 
 using MemoryPack;
 
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 
 namespace Orts.Models.State

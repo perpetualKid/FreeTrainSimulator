@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Graphics.MapView.Widgets;
 using Orts.Models.Track;

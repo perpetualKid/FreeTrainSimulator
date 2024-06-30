@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Orts.Common.Position;
+using FreeTrainSimulator.Common.Position;
 
 namespace Orts.Models.Track
 {

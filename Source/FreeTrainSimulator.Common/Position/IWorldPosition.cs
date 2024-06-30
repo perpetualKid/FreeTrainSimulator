@@ -1,4 +1,4 @@
-﻿namespace Orts.Common.Position
+﻿namespace FreeTrainSimulator.Common.Position
 {
     public interface IWorldPosition
     {

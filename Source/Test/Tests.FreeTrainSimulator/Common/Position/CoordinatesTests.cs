@@ -1,12 +1,11 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Orts.Common.Position;
-
-namespace Tests.Orts.Common.Position
+namespace Tests.FreeTrainSimulator.Common.Position
 {
     [TestClass]
     public class CoordinatesTests

@@ -31,6 +31,8 @@ using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
 
+using FreeTrainSimulator.Common.Position;
+
 using Microsoft.Xna.Framework;
 
 using Newtonsoft.Json;
@@ -38,7 +40,6 @@ using Newtonsoft.Json.Serialization;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;

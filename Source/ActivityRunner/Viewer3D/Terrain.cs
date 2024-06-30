@@ -31,7 +31,7 @@ using System.Linq;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Common.Position;
+using FreeTrainSimulator.Common.Position;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

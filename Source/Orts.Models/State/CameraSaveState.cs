@@ -1,10 +1,9 @@
 ﻿using System.Numerics;
 
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Position;
 
 using MemoryPack;
-
-using Orts.Common.Position;
 
 namespace Orts.Models.State
 {

@@ -22,8 +22,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+using FreeTrainSimulator.Common.Position;
+
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;

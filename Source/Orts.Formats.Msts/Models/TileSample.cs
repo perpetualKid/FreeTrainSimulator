@@ -22,7 +22,8 @@ using System.Collections;
 using System.Diagnostics;
 using System.IO;
 
-using Orts.Common.Position;
+using FreeTrainSimulator.Common.Position;
+
 using Orts.Formats.Msts.Files;
 
 namespace Orts.Formats.Msts.Models

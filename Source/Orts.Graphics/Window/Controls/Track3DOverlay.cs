@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common.Position;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
-using Orts.Common.Position;
 
 namespace Orts.Graphics.Window.Controls
 {

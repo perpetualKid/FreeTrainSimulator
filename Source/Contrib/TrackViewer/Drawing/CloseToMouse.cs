@@ -18,9 +18,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using FreeTrainSimulator.Common.Position;
+
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 

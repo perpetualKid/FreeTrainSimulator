@@ -18,10 +18,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using FreeTrainSimulator.Common.Position;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 

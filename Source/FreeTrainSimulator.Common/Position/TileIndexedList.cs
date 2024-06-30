@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Orts.Common.Position
+namespace FreeTrainSimulator.Common.Position
 {
     /// <summary>
     /// Generic interface for <seealso cref="TileIndexedList{TTileCoordinate, T}"/> to efficiently index and access elements by 2D tile index.
@@ -74,9 +74,7 @@ namespace Orts.Common.Position
                     ToDictionary(g => g.Key, g => g.Select(f => f.Segment).Cast<TTileCoordinate>().ToList()));
             }
             else
-            {
                 tiles = new SortedList<ITile, List<TTileCoordinate>>(data.GroupBy(d => d.Tile as ITile).ToDictionary(g => g.Key, g => g.ToList()));
-            }
             sortedIndexes = tiles.Keys.ToList();
 
             if (sortedIndexes.Count > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[^1]))
@@ -90,10 +88,8 @@ namespace Orts.Common.Position
         public IEnumerator<TTileCoordinate> GetEnumerator()
         {
             foreach (List<TTileCoordinate> list in tiles.Values)
-            {
                 foreach (TTileCoordinate item in list)
                     yield return item;
-            }
         }
 
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
@@ -110,7 +106,7 @@ namespace Orts.Common.Position
         }
 
         public IEnumerable<TTileCoordinate> BoundingBox(ITile center, int tileRadius = 0)
-        { 
+        {
             ArgumentNullException.ThrowIfNull(center);
 
             Tile bottomLeft = new Tile(center.X - tileRadius, center.Z - tileRadius);

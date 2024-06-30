@@ -26,6 +26,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
@@ -34,7 +35,6 @@ using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Input;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Multiplayer;
@@ -885,7 +885,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         }
                     }
                 }
-                Orts.Common.Position.WorldPosition freightLocation = Car.WorldPosition;
+                WorldPosition freightLocation = Car.WorldPosition;
                 // Set height of FAs - if relevant conditions met, use default position co-ords defined above
                 if (FreightShape.XNAMatrices.Length > 0)
                 {

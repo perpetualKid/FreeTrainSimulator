@@ -28,7 +28,7 @@ using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Common.Position
+namespace FreeTrainSimulator.Common.Position
 {
     /// <summary>
     /// Represents the position and orientation of an object within a tile in XNA coordinates.
@@ -108,8 +108,8 @@ namespace Orts.Common.Position
             Tile delta = new Tile((int)Math.Round((int)(XNAMatrix.M41 / 1024) / 2.0, MidpointRounding.AwayFromZero),
                 (int)Math.Round((int)(XNAMatrix.M43 / 1024) / 2.0, MidpointRounding.AwayFromZero));
 
-            return (delta == Tile.Zero) ? this : new WorldPosition(delta, MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 - (delta.X * TileSize)),
-                XNAMatrix.M42, (float)(XNAMatrix.M43 - (delta.Z * TileSize))));
+            return delta == Tile.Zero ? this : new WorldPosition(delta, MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 - delta.X * TileSize),
+                XNAMatrix.M42, (float)(XNAMatrix.M43 - delta.Z * TileSize)));
         }
 
         /// <summary>
@@ -119,8 +119,8 @@ namespace Orts.Common.Position
         {
             Tile delta = Tile - tile;
 
-            return (delta == Tile.Zero) ? this : new WorldPosition(tile, MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 + (delta.X * TileSize)),
-                XNAMatrix.M42, (float)(XNAMatrix.M43 + (delta.Z * TileSize))));
+            return delta == Tile.Zero ? this : new WorldPosition(tile, MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 + delta.X * TileSize),
+                XNAMatrix.M42, (float)(XNAMatrix.M43 + delta.Z * TileSize)));
         }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace Orts.Common.Position
 
         public override bool Equals(object obj)
         {
-            return (obj is WorldPosition other && Equals(other));
+            return obj is WorldPosition other && Equals(other);
         }
 
         public override int GetHashCode()
@@ -187,9 +187,7 @@ namespace Orts.Common.Position
             Tile = tile;
             Location = location;
             if (normalize)
-            {
                 this = Normalize();
-            }
         }
 
         public WorldLocation(Tile tile, float x, float y, float z, bool normalize = false) :
@@ -221,8 +219,8 @@ namespace Orts.Common.Position
             int xTileDistance = (int)Math.Round((int)(Location.X / 1024) / 2.0, MidpointRounding.AwayFromZero);
             int zTileDistance = (int)Math.Round((int)(Location.Z / 1024) / 2.0, MidpointRounding.AwayFromZero);
 
-            return (xTileDistance == 0 && zTileDistance == 0) ? this : new WorldLocation(Tile.X + xTileDistance, Tile.Z + zTileDistance,
-                new Vector3((float)(Location.X - (xTileDistance * TileSize)), Location.Y, (float)(Location.Z - (zTileDistance * TileSize))));
+            return xTileDistance == 0 && zTileDistance == 0 ? this : new WorldLocation(Tile.X + xTileDistance, Tile.Z + zTileDistance,
+                new Vector3((float)(Location.X - xTileDistance * TileSize), Location.Y, (float)(Location.Z - zTileDistance * TileSize)));
         }
 
         /// <summary>
@@ -237,8 +235,8 @@ namespace Orts.Common.Position
             int xDiff = Tile.X - tile.X;
             int zDiff = Tile.Z - tile.Z;
 
-            return (xDiff == 0 && zDiff == 0) ? this : new WorldLocation(tile.X, tile.Z,
-                new Vector3((float)(Location.X + (xDiff * TileSize)), Location.Y, (float)(Location.Z + (zDiff * TileSize))));
+            return xDiff == 0 && zDiff == 0 ? this : new WorldLocation(tile.X, tile.Z,
+                new Vector3((float)(Location.X + xDiff * TileSize), Location.Y, (float)(Location.Z + zDiff * TileSize)));
         }
 
         /// <summary>

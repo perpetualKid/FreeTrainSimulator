@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Orts.Common.Position
+namespace FreeTrainSimulator.Common.Position
 {
     public interface ITile : IComparable<ITile>, IEquatable<ITile>
     {

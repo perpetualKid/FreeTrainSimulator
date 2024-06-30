@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using FreeTrainSimulator.Common.DebugInfo;
+﻿using FreeTrainSimulator.Common.DebugInfo;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Orts.Common.Info;
-
-namespace Tests.Orts.Common.DebugInfo
+namespace Tests.FreeTrainSimulator.Common.DebugInfo
 {
     [TestClass]
     public class FormatOptionTest

@@ -47,11 +47,12 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common.Position;
+
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;

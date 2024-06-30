@@ -2,12 +2,13 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 
+using FreeTrainSimulator.Common.Position;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 using Orts.Common.Input;
-using Orts.Common.Position;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.MapView.Widgets;

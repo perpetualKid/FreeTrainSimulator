@@ -17,7 +17,8 @@
 
 using System;
 using System.Globalization;
-using Orts.Common.Position;
+
+using FreeTrainSimulator.Common.Position;
 
 using Orts.Formats.Msts.Models;
 

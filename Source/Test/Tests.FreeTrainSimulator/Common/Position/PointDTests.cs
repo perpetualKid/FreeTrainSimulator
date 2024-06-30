@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using FreeTrainSimulator.Common.Position;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Orts.Common.Position;
-
-namespace Tests.Orts.Common.Position
+namespace Tests.FreeTrainSimulator.Common.Position
 {
     [TestClass]
     public class PointDTests
@@ -67,7 +63,7 @@ namespace Tests.Orts.Common.Position
             Assert.AreEqual(new WorldLocation(-1, -1, 100, 0, 100), PointD.ToWorldLocation(new PointD(-1948, -1948)));
 
             Assert.AreEqual(new WorldLocation(3, 3, -96, 0, -96), PointD.ToWorldLocation(new PointD(6048, 6048)));
-            Assert.AreEqual(new WorldLocation(-1, -1, 96, 0, 96), PointD.ToWorldLocation(new PointD(-1952, -1952)));        
+            Assert.AreEqual(new WorldLocation(-1, -1, 96, 0, 96), PointD.ToWorldLocation(new PointD(-1952, -1952)));
         }
 
     }

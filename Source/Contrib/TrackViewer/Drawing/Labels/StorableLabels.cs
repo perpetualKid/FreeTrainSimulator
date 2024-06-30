@@ -18,10 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
+using FreeTrainSimulator.Common.Position;
+
 using Newtonsoft.Json;
 
 using Orts.Common;
-using Orts.Common.Position;
 
 namespace ORTS.TrackViewer.Drawing.Labels
 {

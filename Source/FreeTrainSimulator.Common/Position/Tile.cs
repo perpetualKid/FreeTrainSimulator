@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Common.Position
+namespace FreeTrainSimulator.Common.Position
 {
     public readonly struct Tile : ITile, IEquatable<Tile>
     {
@@ -49,7 +49,7 @@ namespace Orts.Common.Position
 
         public override bool Equals(object obj)
         {
-            return (obj is ITile tile) && Equals(tile);
+            return obj is ITile tile && Equals(tile);
         }
 
         public bool Equals(ITile other)

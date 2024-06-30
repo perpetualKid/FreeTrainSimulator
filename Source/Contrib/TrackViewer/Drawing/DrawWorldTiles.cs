@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using Orts.Common.Position;
+using FreeTrainSimulator.Common.Position;
 
 namespace ORTS.TrackViewer.Drawing
 {

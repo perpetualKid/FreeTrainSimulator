@@ -64,7 +64,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Multiplayer.Hub", "Multipla
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Multiplayer.Shared", "Multiplayer.Shared\Multiplayer.Shared.csproj", "{98E3877D-48EE-4268-9E98-CA574EEA3D5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeTrainSimulator.Common", "FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj", "{AFD0548E-86FA-4586-A7DC-F19A8C48450B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Common", "FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj", "{AFD0548E-86FA-4586-A7DC-F19A8C48450B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.FreeTrainSimulator", "Test\Tests.FreeTrainSimulator\Tests.FreeTrainSimulator.csproj", "{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -172,6 +174,10 @@ Global
 		{AFD0548E-86FA-4586-A7DC-F19A8C48450B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFD0548E-86FA-4586-A7DC-F19A8C48450B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFD0548E-86FA-4586-A7DC-F19A8C48450B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -185,6 +191,7 @@ Global
 		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8} = {1A54D0F8-1A42-43D2-A366-B1542EB3C4CE}
 		{401939A5-9CFD-42DA-8F47-766AE68F2CE5} = {C42BE9F9-199A-4AAA-ACF6-C0E4A32263A8}
 		{FDF85DD6-8414-42B7-A510-20EF87035307} = {1A54D0F8-1A42-43D2-A366-B1542EB3C4CE}
+		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2} = {C42BE9F9-199A-4AAA-ACF6-C0E4A32263A8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C78EAEEC-B64D-44BB-AA6C-C0177ECC2802}

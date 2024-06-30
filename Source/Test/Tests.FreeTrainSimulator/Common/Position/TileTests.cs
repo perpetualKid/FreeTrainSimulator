@@ -1,11 +1,11 @@
 ﻿
 using System;
 
+using FreeTrainSimulator.Common.Position;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Orts.Common.Position;
-
-namespace Tests.Orts.Common.Position
+namespace Tests.FreeTrainSimulator.Common.Position
 {
     [TestClass]
     public class TileTests
@@ -47,7 +47,7 @@ namespace Tests.Orts.Common.Position
         {
             Tile t1 = new Tile();
             Tile t2 = new Tile();
-            
+
             Assert.AreEqual(0, t1.CompareTo(t2));
 
             Tile t3 = new Tile(0, 1);

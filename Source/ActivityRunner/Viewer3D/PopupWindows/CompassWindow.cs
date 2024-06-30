@@ -1,11 +1,12 @@
 ﻿
 using System;
 
+using FreeTrainSimulator.Common.Position;
+
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Position;
 using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;

@@ -34,11 +34,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common.Position;
+
 using GetText;
 
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Multiplayer.Messaging;

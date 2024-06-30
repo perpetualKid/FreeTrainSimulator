@@ -2,10 +2,11 @@
 using System.Diagnostics;
 using System.IO;
 
+using FreeTrainSimulator.Common.Position;
+
 using MemoryPack;
 
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 

@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Numerics;
-using System.Xml.XPath;
+
+using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Models.Track;

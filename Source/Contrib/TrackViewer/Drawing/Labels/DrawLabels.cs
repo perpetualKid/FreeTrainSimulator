@@ -19,9 +19,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
-using Newtonsoft.Json;
+using FreeTrainSimulator.Common.Position;
 
-using Orts.Common.Position;
+using Newtonsoft.Json;
 
 namespace ORTS.TrackViewer.Drawing.Labels
 {

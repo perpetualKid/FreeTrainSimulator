@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common.Position;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 
 namespace Orts.Graphics.MapView.Widgets

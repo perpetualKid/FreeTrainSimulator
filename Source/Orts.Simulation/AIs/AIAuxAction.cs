@@ -28,9 +28,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Position;
 
 using Orts.Common;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Models.State;
 using Orts.Simulation.Physics;

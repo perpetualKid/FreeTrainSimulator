@@ -29,6 +29,7 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
 using GetText;
@@ -47,7 +48,6 @@ using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Native;
-using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;

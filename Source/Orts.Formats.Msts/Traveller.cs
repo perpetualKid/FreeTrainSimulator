@@ -24,13 +24,13 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 
 using SharpDX.Direct2D1;
