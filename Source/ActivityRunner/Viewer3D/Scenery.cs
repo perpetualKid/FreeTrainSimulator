@@ -205,7 +205,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var worldFiles = WorldFiles;
             foreach (var worldFile in worldFiles)
                 // TODO: This might impair some shadows.
-                if (viewer.Camera.InFov(new Vector3((worldFile.Tile.X - viewer.Camera.TileX) * 2048, 0, (worldFile.Tile.Z - viewer.Camera.TileZ) * 2048), 1448))
+                if (viewer.Camera.InFov((worldFile.Tile - viewer.Camera.Tile).TileVector(), 1448))
                     worldFile.PrepareFrame(frame, elapsedTime);
         }
 

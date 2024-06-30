@@ -3,8 +3,6 @@ using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 
-using SharpDX.Direct2D1.Effects;
-
 namespace Orts.Common.Position
 {
     public readonly struct Tile : ITile, IEquatable<Tile>
@@ -91,7 +89,7 @@ namespace Orts.Common.Position
             return Convert.ToInt16(Math.Round((int)(value / 1024) / 2.0, MidpointRounding.AwayFromZero));
         }
 
-        public Vector3 TileVector(bool msts = false) => new Vector3(X * 2048, 0, (msts ? -1 : 1) * Z * 2048);
+        public Vector3 TileVector() => new Vector3(X * 2048, 0, Z * 2048);
 
         public Tile North => new Tile(X, Z + 1);
         public Tile South => new Tile(X, Z - 1);

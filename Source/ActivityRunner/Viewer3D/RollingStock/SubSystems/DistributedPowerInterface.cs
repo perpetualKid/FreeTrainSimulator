@@ -24,6 +24,7 @@ using System.IO;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -1000,7 +1001,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
             Update3DDPITable();
             Matrix mx = TrainCarShape.WorldPosition.XNAMatrix;
-            Vector3 delta = (TrainCarShape.WorldPosition.Tile - Viewer.Camera.Tile).TileVector(true);
+            Vector3 delta = (TrainCarShape.WorldPosition.Tile - Viewer.Camera.Tile).TileVector().XnaVector();
             mx.M41 += delta.X;
             mx.M43 += delta.Z;
             Matrix m = XNAMatrix * mx;

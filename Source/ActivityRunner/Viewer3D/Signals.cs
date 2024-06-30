@@ -156,7 +156,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // Locate relative to the camera
-            var xnaTileTranslation = Matrix.CreateTranslation((WorldPosition.Tile - viewer.Camera.Tile).TileVector(true));  // object is offset from camera this many tiles
+            var xnaTileTranslation = Matrix.CreateTranslation((WorldPosition.Tile - viewer.Camera.Tile).TileVector().XnaVector());  // object is offset from camera this many tiles
             MatrixExtension.Multiply(in WorldPosition.XNAMatrix, in xnaTileTranslation, out Matrix xnaTileTranslationResult);
 
             foreach (var head in Heads)

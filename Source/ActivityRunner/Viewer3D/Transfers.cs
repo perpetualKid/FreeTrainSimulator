@@ -20,6 +20,8 @@
 using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common.Xna;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -52,9 +54,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            Tile delta = WorldPosition.Tile - viewer.Camera.Tile;
-            var mstsLocation = WorldPosition.Location + new Vector3(delta.X * 2048, 0, delta.Z * 2048);
-            var xnaMatrix = Matrix.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
+            Vector3 mstsLocation = WorldPosition.Location + (WorldPosition.Tile - viewer.Camera.Tile).TileVector();
+            Matrix xnaMatrix = Matrix.CreateTranslation(mstsLocation.XnaVector());
             frame.AddAutoPrimitive(mstsLocation, Radius, float.MaxValue, Material, Primitive, RenderPrimitiveGroup.World, ref xnaMatrix, Flags);
         }
 

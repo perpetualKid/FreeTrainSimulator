@@ -123,11 +123,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            Matrix xnaMatrix = Matrix.CreateTranslation((worldPosition.Tile - viewer.Camera.Tile).TileVector(true));
+            Vector3 mstsLocation = (worldPosition.Tile - viewer.Camera.Tile).TileVector();
+            Matrix xnaMatrix = Matrix.CreateTranslation((worldPosition.Location + (worldPosition.Tile - viewer.Camera.Tile).TileVector()).XnaVector());
 
             foreach (var primitive in primitives)
                 if (primitive.SubObjectIndex != 1 || !nightObjectEnabled || viewer.MaterialManager.sunDirection.Y < 0)
-                    frame.AddAutoPrimitive((worldPosition.Tile - viewer.Camera.Tile).TileVector(), objectRadius, objectViewingDistance, primitive.Material, primitive, RenderPrimitiveGroup.World, ref xnaMatrix, Flags);
+                    frame.AddAutoPrimitive(mstsLocation, objectRadius, objectViewingDistance, primitive.Material, primitive, RenderPrimitiveGroup.World, ref xnaMatrix, Flags);
         }
     }
 

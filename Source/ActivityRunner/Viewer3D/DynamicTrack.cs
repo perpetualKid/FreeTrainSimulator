@@ -168,7 +168,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             // Offset relative to the camera-tile origin
             Tile delta = worldPosition.Tile - Viewer.Camera.Tile;
-            Vector3 tileOffsetWrtCamera = delta.TileVector(true);
+            Vector3 tileOffsetWrtCamera = delta.TileVector().XnaVector();
 
             // Find midpoint between track section end and track section root.
             // (Section center for straight; section chord center for arc.)

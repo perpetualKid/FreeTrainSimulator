@@ -4048,7 +4048,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             UpdateDigit();
 
-            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix, (TrainCarShape.WorldPosition.Tile - Viewer.Camera.Tile).TileVector(true));
+            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix, (TrainCarShape.WorldPosition.Tile - Viewer.Camera.Tile).TileVector().XnaVector());
             MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
             // TODO: Make this use AddAutoPrimitive instead.
             frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
@@ -4254,7 +4254,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 return;
 
             UpdateDigit();
-            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix, (TrainCarShape.WorldPosition.Tile - Viewer.Camera.Tile).TileVector(true));
+            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix, (TrainCarShape.WorldPosition.Tile - Viewer.Camera.Tile).TileVector().XnaVector());
             MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
 
             // TODO: Make this use AddAutoPrimitive instead.
