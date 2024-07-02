@@ -287,10 +287,10 @@ namespace ORTS.TrackViewer.Drawing
                 for (int tvsi = 0; tvsi < tn.TrackVectorSections.Length; tvsi++)
                 {
                     TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
-                    if (tvs.Location.TileX < MinTileX) { MinTileX = tvs.Location.TileX; };
-                    if (tvs.Location.TileZ < MinTileZ) { MinTileZ = tvs.Location.TileZ; };
-                    if (tvs.Location.TileX > MaxTileX) { MaxTileX = tvs.Location.TileX; };
-                    if (tvs.Location.TileZ > MaxTileZ) { MaxTileZ = tvs.Location.TileZ; };
+                    if (tvs.Location.Tile.X < MinTileX) { MinTileX = tvs.Location.Tile.X; };
+                    if (tvs.Location.Tile.Z < MinTileZ) { MinTileZ = tvs.Location.Tile.Z; };
+                    if (tvs.Location.Tile.X > MaxTileX) { MaxTileX = tvs.Location.Tile.X; };
+                    if (tvs.Location.Tile.Z > MaxTileZ) { MaxTileZ = tvs.Location.Tile.Z; };
                 }
             }
         }
@@ -392,10 +392,10 @@ namespace ORTS.TrackViewer.Drawing
             // determine the min and max values of the tiles that we actually need to draw
             // in some cases (e.g. during initialization) the drawing area itself is really outside the track database,
             // so we have to account for that.
-            int actualTileXLeft  = Math.Max(Math.Min(drawArea.LocationUpperLeft.TileX , MaxTileX), MinTileX);
-            int actualTileXRight = Math.Min(Math.Max(drawArea.LocationLowerRight.TileX, MinTileX), MaxTileX);
-            int actualTileZBot   = Math.Max(Math.Min(drawArea.LocationLowerRight.TileZ, MaxTileZ), MinTileZ);
-            int actualTileZTop   = Math.Min(Math.Max(drawArea.LocationUpperLeft.TileZ , MinTileZ), MaxTileZ);
+            int actualTileXLeft  = Math.Max(Math.Min(drawArea.LocationUpperLeft.Tile.X , MaxTileX), MinTileX);
+            int actualTileXRight = Math.Min(Math.Max(drawArea.LocationLowerRight.Tile.X, MinTileX), MaxTileX);
+            int actualTileZBot   = Math.Max(Math.Min(drawArea.LocationLowerRight.Tile.Z, MaxTileZ), MinTileZ);
+            int actualTileZTop   = Math.Min(Math.Max(drawArea.LocationUpperLeft.Tile.Z , MinTileZ), MaxTileZ);
 
             SetTileIndexes(actualTileXLeft, actualTileXRight, actualTileZBot, actualTileZTop);
         }
@@ -530,9 +530,9 @@ namespace ORTS.TrackViewer.Drawing
         private void AddLocationToAvailableList<T>(in WorldLocation location, List<T>[][] ArrayOfListsToAddTo, T item)
         {
             //possibly the location is out of the allowed region (e.g. because possibly undefined).
-            if (location.TileX < MinTileX || location.TileX > MaxTileX || location.TileZ < MinTileZ || location.TileZ > MaxTileZ) return;
-            int TileXIndex = location.TileX - MinTileX;
-            int TileZIndex = location.TileZ - MinTileZ;
+            if (location.Tile.X < MinTileX || location.Tile.X > MaxTileX || location.Tile.Z < MinTileZ || location.Tile.Z > MaxTileZ) return;
+            int TileXIndex = location.Tile.X - MinTileX;
+            int TileZIndex = location.Tile.Z - MinTileZ;
             ArrayOfListsToAddTo[TileXIndex][TileZIndex].Add(item);
         }
 
@@ -612,14 +612,12 @@ namespace ORTS.TrackViewer.Drawing
                 // (deltaX, deltaZ) is a vector from begin to end.
                 double deltaX = (endLocation.Location.X - endLocation.Location.X);
                 double deltaZ = (endLocation.Location.Z - endLocation.Location.Z);
-                deltaX += WorldLocation.TileSize * (endLocation.TileX - endLocation.TileX); 
-                deltaZ += WorldLocation.TileSize * (endLocation.TileZ - endLocation.TileZ);
+                deltaX += WorldLocation.TileSize * (endLocation.Tile.X - endLocation.Tile.X); 
+                deltaZ += WorldLocation.TileSize * (endLocation.Tile.Z - endLocation.Tile.Z);
 
-                WorldLocation begin2Location = new WorldLocation(midLocation.TileX, midLocation.TileZ, 
-                    (float)(midLocation.Location.X - deltaX / 2), midLocation.Location.Y, (float)(midLocation.Location.Z - deltaZ / 2));
+                WorldLocation begin2Location = new WorldLocation(midLocation.Tile, (float)(midLocation.Location.X - deltaX / 2), midLocation.Location.Y, (float)(midLocation.Location.Z - deltaZ / 2));
 
-                WorldLocation end2Location = new WorldLocation(midLocation.TileX, midLocation.TileZ,
-                    (float)(midLocation.Location.X + deltaX / 2), midLocation.Location.Y, (float)(midLocation.Location.Z + deltaZ / 2));
+                WorldLocation end2Location = new WorldLocation(midLocation.Tile, (float)(midLocation.Location.X + deltaX / 2), midLocation.Location.Y, (float)(midLocation.Location.Z + deltaZ / 2));
 
                 boxList.Add(begin2Location);
                 boxList.Add(end2Location);
@@ -632,8 +630,8 @@ namespace ORTS.TrackViewer.Drawing
             }
 
             //find Max/Min of tiles
-            List<int> tileXValues = boxList.Select(i => i.TileX).ToList();
-            List<int> tileZValues = boxList.Select(i => i.TileZ).ToList();
+            List<int> tileXValues = boxList.Select(i => (int)i.Tile.X).ToList();
+            List<int> tileZValues = boxList.Select(i => (int)i.Tile.Z).ToList();
             int minTileX = tileXValues.Min();
             int maxTileX = tileXValues.Max();
             int minTileZ = tileZValues.Min();

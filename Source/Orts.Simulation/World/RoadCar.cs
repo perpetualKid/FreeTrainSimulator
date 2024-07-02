@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
 
@@ -77,7 +78,7 @@ namespace Orts.Simulation.World
                             frontY = rearY;
                     }
                 }
-                position = new WorldPosition(FrontTraveller.Tile, Simulator.XNAMatrixFromMSTSCoordinates(front.X, frontY, front.Z, rear.X, rearY, rear.Z));
+                position = new WorldPosition(FrontTraveller.Tile, MatrixExtension.XNAMatrixFromMSTSCoordinates(front.X, frontY, front.Z, rear.X, rearY, rear.Z));
                 return ref position;
             }
         }

@@ -230,10 +230,10 @@ namespace ORTS.TrackViewer.Drawing
         {
             WorldLocation upperLeft = drawArea.LocationUpperLeft;
             WorldLocation lowerRight = drawArea.LocationLowerRight;
-            visibleTileXmin = upperLeft.TileX;
-            visibleTileXmax = lowerRight.TileX;
-            visibleTileZmin = lowerRight.TileZ;
-            visibleTileZmax = upperLeft.TileZ;
+            visibleTileXmin = upperLeft.Tile.X;
+            visibleTileXmax = lowerRight.Tile.X;
+            visibleTileZmin = lowerRight.Tile.Z;
+            visibleTileZmax = upperLeft.Tile.Z;
         }
 
         #endregion
@@ -459,7 +459,7 @@ namespace ORTS.TrackViewer.Drawing
             StatusInformation = "unknown";
             foreach (int zoomSize in GetZoomSizesToShow(true))
             {
-                uint storeIndex = locationTranslator.TileIndex(location.TileX, location.TileZ, zoomSize);
+                uint storeIndex = locationTranslator.TileIndex(location.Tile.X, location.Tile.Z, zoomSize);
                 if (terrainTiles.TryGetValue(storeIndex, out TerrainTile2D value))
                 {
                     StatusInformation = value.GetStatusInformation(location);

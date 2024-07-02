@@ -368,13 +368,7 @@ namespace ORTS.TrackViewer.Drawing
         private DistanceLon CalcRealDistanceSquared(TrackVectorSection trackVectorSection, TrackSection trackSection)
         {
             //Calculate the vector from start of track to the mouse
-            Vector3 vectorToMouse = new Vector3
-            {
-                X = storedMouseLocation.Location.X - trackVectorSection.Location.Location.X,
-                Z = storedMouseLocation.Location.Z - trackVectorSection.Location.Location.Z
-            };
-            vectorToMouse.X += (float)((storedMouseLocation.TileX - trackVectorSection.Location.TileX) * WorldLocation.TileSize);
-            vectorToMouse.Z += (float)((storedMouseLocation.TileZ - trackVectorSection.Location.TileZ) * WorldLocation.TileSize);
+            Vector3 vectorToMouse = (storedMouseLocation.Location - trackVectorSection.Location.Location) + (storedMouseLocation.Tile - trackVectorSection.Location.Tile).TileVector();
 
             //Now rotate the vector such that a direction along the track is in a direction (x=0, z=1)
             vectorToMouse = Vector3.Transform(vectorToMouse, Matrix.CreateRotationY(-trackVectorSection.Direction.Y));

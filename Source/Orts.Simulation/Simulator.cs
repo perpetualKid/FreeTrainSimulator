@@ -1588,53 +1588,6 @@ namespace Orts.Simulation
             return (returnTrain);
         }
 
-        /// <summary>
-        /// The front end of a railcar is at MSTS world coordinates x1,y1,z1
-        /// The other end is at x2,y2,z2
-        /// Return a rotation and translation matrix for the center of the railcar.
-        /// </summary>
-        public static Matrix XNAMatrixFromMSTSCoordinates(float x1, float y1, float z1, float x2, float y2, float z2)
-        {
-            // translate 1st coordinate to be relative to 0,0,0
-            float dx = (float)(x1 - x2);
-            float dy = (float)(y1 - y2);
-            float dz = (float)(z1 - z2);
-
-            // compute the rotational matrix  
-            float length = (float)Math.Sqrt(dx * dx + dz * dz + dy * dy);
-            float run = (float)Math.Sqrt(dx * dx + dz * dz);
-            // normalize to coordinate to a length of one, ie dx is change in x for a run of 1
-            if (length != 0)    // Avoid zero divide
-            {
-                dx /= length;
-                dy /= length;   // ie if it is tilted back 5 degrees, this is sin 5 = 0.087
-                run /= length;  //                              and   this is cos 5 = 0.996
-                dz /= length;
-            }
-            else
-            {                   // If length is zero all elements of its calculation are zero. Since dy is a sine and is zero,
-                run = 1f;       // run is therefore 1 since it is cosine of the same angle?  See comments above.
-            }
-
-
-            // setup matrix values
-
-            Matrix xnaTilt = new Matrix(1, 0, 0, 0,
-                                     0, run, dy, 0,
-                                     0, -dy, run, 0,
-                                     0, 0, 0, 1);
-
-            Matrix xnaRotation = new Matrix(dz, 0, dx, 0,
-                                            0, 1, 0, 0,
-                                            -dx, 0, dz, 0,
-                                            0, 0, 0, 1);
-
-            Matrix xnaLocation = Matrix.CreateTranslation((x1 + x2) / 2f, (y1 + y2) / 2f, -(z1 + z2) / 2f);
-            MatrixExtension.Multiply(xnaTilt, xnaRotation, out Matrix result);
-            return MatrixExtension.Multiply(result, xnaLocation);
-            //            return xnaTilt * xnaRotation * xnaLocation;
-        }
-
         public void UncoupleBehind(int carPosition)
         {
             // check on car position in case of mouse jitter

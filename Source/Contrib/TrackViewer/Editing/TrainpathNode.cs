@@ -370,9 +370,9 @@ namespace ORTS.TrackViewer.Editing
                 if (tn.UiD.Location.Tile != Location.Tile) continue;
 
                 double dx = tn.UiD.Location.Location.X - Location.Location.X;
-                dx += (tn.UiD.Location.TileX - Location.TileX) * WorldLocation.TileSize;
+                dx += (tn.UiD.Location.Tile.X - Location.Tile.X) * WorldLocation.TileSize;
                 double dz = tn.UiD.Location.Location.Z - Location.Location.Z;
-                dz += (tn.UiD.Location.TileZ - Location.TileZ) * WorldLocation.TileSize;
+                dz += (tn.UiD.Location.Tile.Z - Location.Tile.Z) * WorldLocation.TileSize;
                 double dy = tn.UiD.Location.Location.Y - Location.Location.Y;
                 double d = dx * dx + dy * dy + dz * dz;
                 if (bestDistance2 > d)

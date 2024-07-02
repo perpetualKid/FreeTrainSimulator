@@ -189,7 +189,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="drawTrackDB">Track database used to determine what the complete track area is</param>
         public void ZoomReset(DrawTrackDB drawTrackDB)
         {
-            if (drawTrackDB == null) return;
+            if (drawTrackDB == null)
+                return;
             double minX = drawTrackDB.MinTileX * WorldLocation.TileSize - 1024.0;
             double minZ = drawTrackDB.MinTileZ * WorldLocation.TileSize - 1024.0;
             double maxX = drawTrackDB.MaxTileX * WorldLocation.TileSize + 1024.0;
@@ -229,10 +230,14 @@ namespace ORTS.TrackViewer.Drawing
         {
             Vector2 areaVector = GetAreaVector(point);
             float leeway = (StrictChecking) ? 0 : AreaW;
-            if (areaVector.X < -leeway) return true;
-            if (areaVector.Y < -leeway) return true;
-            if (areaVector.X > AreaW + leeway) return true;
-            if (areaVector.Y > AreaH + leeway) return true;
+            if (areaVector.X < -leeway)
+                return true;
+            if (areaVector.Y < -leeway)
+                return true;
+            if (areaVector.X > AreaW + leeway)
+                return true;
+            if (areaVector.Y > AreaH + leeway)
+                return true;
             return false;
         }
         #endregion
@@ -337,7 +342,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="updateFontSize">do we want to update the </param>
         private void PostZoomTasks(bool updateFontSize)
         {
-            if (drawScaleRuler != null) drawScaleRuler.SetCurrentRuler(Scale);
+            if (drawScaleRuler != null)
+                drawScaleRuler.SetCurrentRuler(Scale);
 
             if (updateFontSize)
             {
@@ -418,12 +424,13 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="location">New worldLocation at center of area</param>
         public void ShiftToLocation(in WorldLocation location)
         {
-            if (location == WorldLocation.None) return;
+            if (location == WorldLocation.None)
+                return;
             // Basic equation areaX = scale * (worldX - offsetX)
             // We want middle of screen to shift to new worldX, so areaW/2 = scale * (worldX - offsetX)
-            // Similarly
-            double worldX = location.TileX * WorldLocation.TileSize + location.Location.X;
-            double worldZ = location.TileZ * WorldLocation.TileSize + location.Location.Z;
+            // Similarly            
+            double worldX = location.Tile.X * WorldLocation.TileSize + location.Location.X;
+            double worldZ = location.Tile.Z * WorldLocation.TileSize + location.Location.Z;
             OffsetX = worldX - AreaW / (2 * Scale);
             OffsetZ = worldZ - AreaH / (2 * Scale);
         }
@@ -448,8 +455,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <returns>location on the drawing area in a 2d vector (in pixels)</returns>
         private Vector2 GetAreaVector(in WorldLocation location)
         {
-            double x = location.TileX * WorldLocation.TileSize + location.Location.X;
-            double y = location.TileZ * WorldLocation.TileSize + location.Location.Z;
+            double x = location.Tile.X * WorldLocation.TileSize + location.Location.X;
+            double y = location.Tile.Z * WorldLocation.TileSize + location.Location.Z;
             return new Vector2((float)(Scale * (x - OffsetX)),
                                (float)(AreaH - Scale * (y - OffsetZ)));
         }
@@ -502,7 +509,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="point2"> WorldLocation of to the last point of the line</param>
         public void DrawLine(float width, Color color, in WorldLocation point1, in WorldLocation point2)
         {
-            if (OutOfArea(point1) && OutOfArea(point2)) return;
+            if (OutOfArea(point1) && OutOfArea(point2))
+                return;
             BasicShapes.DrawLine(GetWindowSize(width), color, GetWindowVector(point1), GetWindowVector(point2));
         }
 
@@ -515,7 +523,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="point2"> WorldLocation of to the last point of the line</param>
         public void DrawDashedLine(float width, Color color, in WorldLocation point1, in WorldLocation point2)
         {
-            if (OutOfArea(point1) && OutOfArea(point2)) return;
+            if (OutOfArea(point1) && OutOfArea(point2))
+                return;
             BasicShapes.DrawDashedLine(GetWindowSize(width), color, GetWindowVector(point1), GetWindowVector(point2));
         }
 
@@ -552,12 +561,11 @@ namespace ORTS.TrackViewer.Drawing
             }
             else
             {
-                beginPoint = new WorldLocation(point.TileX, point.TileZ, 
-                    point.Location.X + lengthOffset * sinAngle, point.Location.Y, point.Location.Z + lengthOffset * cosAngle);
+                beginPoint = new WorldLocation(point.Tile, point.Location.X + lengthOffset * sinAngle, point.Location.Y, point.Location.Z + lengthOffset * cosAngle);
             }
-            WorldLocation endPoint = new WorldLocation(beginPoint.TileX, beginPoint.TileZ,
-                beginPoint.Location.X + length * sinAngle, beginPoint.Location.Y, beginPoint.Location.Z + length * cosAngle); //location of end-point
-            if (OutOfArea(beginPoint) && OutOfArea(endPoint)) return;
+            WorldLocation endPoint = new WorldLocation(beginPoint.Tile, beginPoint.Location.X + length * sinAngle, beginPoint.Location.Y, beginPoint.Location.Z + length * cosAngle); //location of end-point
+            if (OutOfArea(beginPoint) && OutOfArea(endPoint))
+                return;
             // definition of rotation in ORTS is angle right of North
             // rotation in the window/draw area is angle right/south of right-horizontal
             // hence a 90 degree correction
@@ -588,17 +596,15 @@ namespace ORTS.TrackViewer.Drawing
             {
                 float arcRadOffset = arcDegreesOffset * MathHelper.Pi / 180;
                 float lengthOffset = radius * arcRadOffset;
-                beginPoint = new WorldLocation(point.TileX, point.TileZ, 
-                    point.Location.X + lengthOffset * (float)Math.Sin(angle + arcRadOffset / 2), point.Location.Y, point.Location.Z + lengthOffset * (float)Math.Cos(angle + arcRadOffset / 2));
+                beginPoint = new WorldLocation(point.Tile, point.Location.X + lengthOffset * (float)Math.Sin(angle + arcRadOffset / 2), point.Location.Y, point.Location.Z + lengthOffset * (float)Math.Cos(angle + arcRadOffset / 2));
             }
             float arcRad = arcDegrees * MathHelper.Pi / 180;
             float length = radius * arcRad;
-            WorldLocation endPoint = new WorldLocation(beginPoint.TileX, beginPoint.TileZ, 
-                beginPoint.Location.X + length * (float)Math.Sin(angle + arcRad / 2), beginPoint.Location.Y, beginPoint.Location.Z + length * (float)Math.Cos(angle + arcRad / 2)); //approximate location of end-point
-            if (OutOfArea(beginPoint) && OutOfArea(endPoint)) return;
+            WorldLocation endPoint = new WorldLocation(beginPoint.Tile, beginPoint.Location.X + length * (float)Math.Sin(angle + arcRad / 2), beginPoint.Location.Y, beginPoint.Location.Z + length * (float)Math.Cos(angle + arcRad / 2)); //approximate location of end-point
+            if (OutOfArea(beginPoint) && OutOfArea(endPoint))
+                return;
             // for the 90 degree offset, see DrawLine
-            BasicShapes.DrawArc(GetWindowSize(width), color, GetWindowVector(point),
-                GetWindowSize(radius), angle - MathHelper.Pi / 2, arcDegrees, arcDegreesOffset);
+            BasicShapes.DrawArc(GetWindowSize(width), color, GetWindowVector(point), GetWindowSize(radius), angle - MathHelper.Pi / 2, arcDegrees, arcDegreesOffset);
         }
 
         /// <summary>
@@ -641,11 +647,11 @@ namespace ORTS.TrackViewer.Drawing
                 return;
             }
             // draw tile Grid boundaries. Note that coordinates within tile are from -1024 to 1024
-            for (int tileX = LocationUpperLeft.TileX; tileX <= LocationLowerRight.TileX + 1; tileX++)
+            for (int tileX = LocationUpperLeft.Tile.X; tileX <= LocationLowerRight.Tile.X + 1; tileX++)
             {
                 DrawLineVertical(Color.Gray, new WorldLocation(tileX, 0, -1024f, 0f, 0f));
             }
-            for (int tileZ = LocationLowerRight.TileZ; tileZ <= LocationUpperLeft.TileZ + 1; tileZ++)
+            for (int tileZ = LocationLowerRight.Tile.Z; tileZ <= LocationUpperLeft.Tile.Z + 1; tileZ++)
             {
                 DrawLineHorizontal(Color.Gray, new WorldLocation(0, tileZ, 0f, 0f, -1024f));
             }
@@ -714,7 +720,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="offsetY">The offset in Y-direction of the top-left location in pixels</param>
         public void DrawExpandingString(in WorldLocation location, string message, int offsetX, int offsetY)
         {
-            if (OutOfArea(location)) return;
+            if (OutOfArea(location))
+                return;
             Vector2 textOffset = new Vector2(offsetX, offsetY);
             BasicShapes.DrawExpandingString(GetWindowVector(location) + textOffset, DrawColors.colorsNormal.Text, message);
         }
@@ -757,7 +764,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="color">Color you want the simple texture to have</param>
         public void DrawTexture(in WorldLocation location, string textureName, float size, int minPixelSize, Color color, float angle)
         {
-            if (OutOfArea(location)) return;
+            if (OutOfArea(location))
+                return;
             float pixelSize = (float)Math.Max(GetWindowSize(size), minPixelSize);
             BasicShapes.DrawTexture(GetWindowVector(location), textureName, angle, pixelSize, color, false);
         }
@@ -770,9 +778,10 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="angle">Rotation angle for the texture</param>
         /// <param name="size">Size of the texture in world-meters</param>
         ///<param name="flip">Whether the texture needs to be flipped (vertically)</param>
-        public void DrawTexture(in WorldLocation location, string textureName, float size,  float angle, bool flip)
+        public void DrawTexture(in WorldLocation location, string textureName, float size, float angle, bool flip)
         {
-            if (OutOfArea(location)) return;
+            if (OutOfArea(location))
+                return;
             float pixelSize = GetWindowSize(size);
             BasicShapes.DrawTexture(GetWindowVector(location), textureName, angle, pixelSize, Color.White, flip);
         }
@@ -803,7 +812,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="color">Color you want the simple texture to have</param>
         public void DrawTexture(in WorldLocation location, string textureName, float size, int minPixelSize, int maxPixelSize, Color color, float angle)
         {
-            if (OutOfArea(location)) return;
+            if (OutOfArea(location))
+                return;
             float pixelSize = (float)Math.Min(Math.Max(GetWindowSize(size), minPixelSize), maxPixelSize);
             BasicShapes.DrawTexture(GetWindowVector(location), textureName, angle, pixelSize, color, false);
         }
@@ -847,12 +857,12 @@ namespace ORTS.TrackViewer.Drawing
             while (stepIndex >= discreteSteps.Length)
             {
                 stepIndex -= discreteSteps.Length;
-                powerOfTen ++;
+                powerOfTen++;
             }
             while (stepIndex < 0)
             {
                 stepIndex += discreteSteps.Length;
-                powerOfTen --;
+                powerOfTen--;
                 if (powerOfTen < minPowerOfTen)
                 {
                     powerOfTen = minPowerOfTen;
@@ -869,8 +879,9 @@ namespace ORTS.TrackViewer.Drawing
         public void ApproximateTo(double requestedValue)
         {
             powerOfTen = Convert.ToInt32(Math.Floor(Math.Log10(requestedValue))) - 1;
-            double restValue = requestedValue *  Math.Pow(10 , -powerOfTen);
-            for (stepIndex = 0; stepIndex < discreteSteps.Length && discreteSteps[stepIndex] < restValue; stepIndex++) { };
+            double restValue = requestedValue * Math.Pow(10, -powerOfTen);
+            for (stepIndex = 0; stepIndex < discreteSteps.Length && discreteSteps[stepIndex] < restValue; stepIndex++)
+            { };
             if (stepIndex == discreteSteps.Length)
             {   // the value requested is larger than 90. 10^n, which means we get 100.10^n.
                 // This needs to be 10.10^(n+1)

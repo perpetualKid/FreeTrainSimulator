@@ -133,7 +133,7 @@ namespace ORTS.TrackViewer.Drawing
                 // Shift signal a little bit to be able to distinguish backfacing from normal facing
                 Microsoft.Xna.Framework.Vector3 shiftedLocation = WorldLocation.Location + 
                     0.0001f * new Microsoft.Xna.Framework.Vector3((float) Math.Cos(angle), 0f, -(float) Math.Sin(angle));
-                WorldLocation = new WorldLocation(WorldLocation.TileX, WorldLocation.TileZ, shiftedLocation );
+                WorldLocation = new WorldLocation(WorldLocation.Tile, shiftedLocation );
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch { }
