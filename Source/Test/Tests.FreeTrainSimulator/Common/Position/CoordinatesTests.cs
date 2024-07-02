@@ -28,7 +28,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
         [TestMethod]
         public void WorldLocationNormalizeToTest()
         {
-            WorldLocation location = new WorldLocation(-1, 1, 3834, 0, -4118).NormalizeTo(4, 4);
+            WorldLocation location = new WorldLocation(new Tile(-1, 1), 3834, 0, -4118).NormalizeTo(4, 4);
 
             Assert.AreEqual(4, location.Tile.X);
             Assert.AreEqual(-6406, location.Location.X);

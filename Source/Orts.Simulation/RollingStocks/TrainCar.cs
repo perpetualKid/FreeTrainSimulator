@@ -2305,8 +2305,7 @@ namespace Orts.Simulation.RollingStocks
 
             for (int j = 0; j < Parts.Count; j++)
                 Parts[j].InitLineFit();
-            int tileX = traveller.TileX;
-            int tileZ = traveller.TileZ;
+            ref readonly Tile start = ref traveller.Tile;
             if (Flipped == backToFront)
             {
                 float o = -CarLengthM / 2 - centreOfGravityM.Z;
@@ -2315,9 +2314,10 @@ namespace Orts.Simulation.RollingStocks
                     float d = WheelAxles[k].OffsetM - o;
                     o = WheelAxles[k].OffsetM;
                     traveller.Move(d);
-                    float x = traveller.X + 2048 * (traveller.TileX - tileX);
+                    Tile delta = traveller.Tile - start;
+                    float x = traveller.X + 2048 * delta.X;
                     float y = traveller.Y;
-                    float z = traveller.Z + 2048 * (traveller.TileZ - tileZ);
+                    float z = traveller.Z + 2048 * delta.Z;
                     WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0);
                 }
                 o = CarLengthM / 2 - centreOfGravityM.Z - o;
@@ -2331,9 +2331,10 @@ namespace Orts.Simulation.RollingStocks
                     float d = o - WheelAxles[k].OffsetM;
                     o = WheelAxles[k].OffsetM;
                     traveller.Move(d);
-                    float x = traveller.X + 2048 * (traveller.TileX - tileX);
+                    Tile delta = traveller.Tile - start;
+                    float x = traveller.X + 2048 * delta.X;
                     float y = traveller.Y;
-                    float z = traveller.Z + 2048 * (traveller.TileZ - tileZ);
+                    float z = traveller.Z + 2048 * delta.Z;
                     WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0);
                 }
                 o = CarLengthM / 2 + centreOfGravityM.Z + o;

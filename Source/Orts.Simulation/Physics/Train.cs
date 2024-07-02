@@ -3207,34 +3207,11 @@ namespace Orts.Simulation.Physics
                     // traveller is positioned at the front of the car
                     // advance to the first bogie 
                     traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);
-                    int tileX = traveller.TileX;
-                    int tileZ = traveller.TileZ;
-                    float x = traveller.X;
-                    float y = traveller.Y;
-                    float z = traveller.Z;
-                    traveller.Move(bogieSpacing);
 
+                    ref readonly Tile start = ref traveller.WorldLocation.Tile;
+                    traveller.Move(bogieSpacing);
                     // normalize across tile boundaries
-                    while (tileX > traveller.TileX)
-                    {
-                        x += TileSize;
-                        --tileX;
-                    }
-                    while (tileX < traveller.TileX)
-                    {
-                        x -= TileSize;
-                        ++tileX;
-                    }
-                    while (tileZ > traveller.TileZ)
-                    {
-                        z += TileSize;
-                        --tileZ;
-                    }
-                    while (tileZ < traveller.TileZ)
-                    {
-                        z -= TileSize;
-                        ++tileZ;
-                    }
+                    WorldLocation current = traveller.WorldLocation.NormalizeTo(start);
 
                     // note the railcar sits 0.275meters above the track database path  TODO - is this always consistent?
                     Matrix flipMatrix = Matrix.Identity;
@@ -3244,7 +3221,7 @@ namespace Orts.Simulation.Physics
                         flipMatrix.M11 = -1;
                         flipMatrix.M33 = -1;
                     }
-                    car.UpdateWorldPosition(new WorldPosition(traveller.Tile, MatrixExtension.Multiply(flipMatrix, MatrixExtension.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, x, y + 0.275f, z))));
+                    car.UpdateWorldPosition(new WorldPosition(traveller.Tile, MatrixExtension.Multiply(flipMatrix, MatrixExtension.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, current.Location.X, current.Location.Y + 0.275f, current.Location.Z))));
                     traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);
                 }
                 if (i < Cars.Count - 1)
@@ -3299,35 +3276,10 @@ namespace Orts.Simulation.Physics
                     // traveller is positioned at the back of the car
                     // advance to the first bogie 
                     traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);
-                    int tileX = traveller.TileX;
-                    int tileZ = traveller.TileZ;
-                    float x = traveller.X;
-                    float y = traveller.Y;
-                    float z = traveller.Z;
+                    ref readonly Tile start = ref traveller.WorldLocation.Tile;
                     traveller.Move(bogieSpacing);
-
                     // normalize across tile boundaries
-                    while (tileX > traveller.TileX)
-                    {
-                        x += TileSize;
-                        --tileX;
-                    }
-                    while (tileX < traveller.TileX)
-                    {
-                        x -= TileSize;
-                        ++tileX;
-                    }
-                    while (tileZ > traveller.TileZ)
-                    {
-                        z += TileSize;
-                        --tileZ;
-                    }
-                    while (tileZ < traveller.TileZ)
-                    {
-                        z -= TileSize;
-                        ++tileZ;
-                    }
-
+                    WorldLocation current = traveller.WorldLocation.NormalizeTo(start);
 
                     // note the railcar sits 0.275meters above the track database path  TODO - is this always consistent?
                     Matrix flipMatrix = Matrix.Identity;
@@ -3337,7 +3289,7 @@ namespace Orts.Simulation.Physics
                         flipMatrix.M11 = -1;
                         flipMatrix.M33 = -1;
                     }
-                    car.UpdateWorldPosition(new WorldPosition(traveller.Tile, MatrixExtension.Multiply(flipMatrix, MatrixExtension.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, x, y + 0.275f, z))));
+                    car.UpdateWorldPosition(new WorldPosition(traveller.Tile, MatrixExtension.Multiply(flipMatrix, MatrixExtension.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, current.Location.X, current.Location.Y + 0.275f, current.Location.Z))));
 
                     traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);  // Move to the front of the car 
 
@@ -3375,34 +3327,10 @@ namespace Orts.Simulation.Physics
                 // traveller is positioned at the back of the car
                 // advance to the first bogie 
                 traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);
-                var tileX = traveller.TileX;
-                var tileZ = traveller.TileZ;
-                var x = traveller.X;
-                var y = traveller.Y;
-                var z = traveller.Z;
+                ref readonly Tile start = ref traveller.WorldLocation.Tile;
                 traveller.Move(bogieSpacing);
-
                 // normalize across tile boundaries
-                while (tileX > traveller.TileX)
-                {
-                    x += 2048;
-                    --tileX;
-                }
-                while (tileX < traveller.TileX)
-                {
-                    x -= 2048;
-                    ++tileX;
-                }
-                while (tileZ > traveller.TileZ)
-                {
-                    z += 2048;
-                    --tileZ;
-                }
-                while (tileZ < traveller.TileZ)
-                {
-                    z -= 2048;
-                    ++tileZ;
-                }
+                WorldLocation current = traveller.WorldLocation.NormalizeTo(start);
 
                 // note the railcar sits 0.275meters above the track database path  TODO - is this always consistent?
                 Matrix flipMatrix = Matrix.Identity;
@@ -3412,7 +3340,7 @@ namespace Orts.Simulation.Physics
                     flipMatrix.M11 = -1;
                     flipMatrix.M33 = -1;
                 }
-                car.UpdateWorldPosition(new WorldPosition(traveller.Tile, MatrixExtension.Multiply(flipMatrix, MatrixExtension.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, x, y + 0.275f, z))));
+                car.UpdateWorldPosition(new WorldPosition(traveller.Tile, MatrixExtension.Multiply(flipMatrix, MatrixExtension.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, current.Location.X, current.Location.Y + 0.275f, current.Location.Z))));
 
                 traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);  // Move to the front of the car 
 

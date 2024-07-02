@@ -974,7 +974,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (Car == null && WorldLocation != WorldLocation.None && !Ignore3D && IsExternal)
             {
-                WorldLocation = WorldLocation.NormalizeTo(Camera.SoundBaseTile.X, Camera.SoundBaseTile.Z);
+                WorldLocation = WorldLocation.NormalizeTo(Camera.SoundBaseTile);
                 float[] position = new float[] {
                     WorldLocation.Location.X,
                     WorldLocation.Location.Y,

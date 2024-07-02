@@ -435,7 +435,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public void UpdateListener()
         {
-            Vector3 listenerLocation = CameraWorldLocation.NormalizeTo(SoundBaseTile.X, SoundBaseTile.Z).Location;
+            Vector3 listenerLocation = CameraWorldLocation.NormalizeTo(SoundBaseTile).Location;
             float[] cameraPosition = new float[] {
                         listenerLocation.X,
                         listenerLocation.Y,

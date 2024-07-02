@@ -33,8 +33,6 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Models;
 
-using SharpDX.Direct2D1;
-
 namespace Orts.Formats.Msts
 {
     /// <summary>
@@ -61,9 +59,7 @@ namespace Orts.Formats.Msts
         private float trackNodeOffset;
 
         public ref readonly WorldLocation WorldLocation { get { if (!locationSet) SetLocation(); return ref location; } }
-        public int TileX { get { if (!locationSet) SetLocation(); return location.TileX; } }
-        public int TileZ { get { if (!locationSet) SetLocation(); return location.TileZ; } }
-        public Tile Tile { get { if (!locationSet) SetLocation(); return location.Tile; } }
+        public ref readonly Tile Tile { get { if (!locationSet) SetLocation(); return ref location.Tile; } }
         public Vector3 Location { get { if (!locationSet) SetLocation(); return location.Location; } }
         public float X { get { if (!locationSet) SetLocation(); return location.Location.X; } }
         public float Y { get { if (!locationSet) SetLocation(); return location.Location.Y; } }
@@ -821,8 +817,9 @@ namespace Orts.Formats.Msts
         {
             ArgumentNullException.ThrowIfNull(other);
 
-            float dx = X - other.X + 2048 * (TileX - other.TileX);
-            float dz = Z - other.Z + 2048 * (TileZ - other.TileZ);
+            Tile delta = Tile - other.Tile;
+            float dx = X - other.X + 2048 * delta.X;
+            float dz = Z - other.Z + 2048 * delta.Z;
             float dy = Y - other.Y;
             if (dx * dx + dz * dz > 1)
                 return 1;
@@ -842,16 +839,19 @@ namespace Orts.Formats.Msts
             float dy = Y - other.Y;
             if (Math.Abs(dy) > 1)
                 return 1;
-            float dx = farMe.X - other.X + 2048 * (farMe.TileX - other.TileX);
-            float dz = farMe.Z - other.Z + 2048 * (farMe.TileZ - other.TileZ);
+            Tile tileDelta = farMe.Tile - other.Tile;   
+            float dx = farMe.X - other.X + 2048 * tileDelta.X;
+            float dz = farMe.Z - other.Z + 2048 * tileDelta.Z;
             if (dx * dx + dz * dz > lengthMe * lengthMe)
                 return 1;
-            dx = X - farOther.X + 2048 * (TileX - farOther.TileX);
-            dz = Z - farOther.Z + 2048 * (TileZ - farOther.TileZ);
+            tileDelta = Tile - farOther.Tile;
+            dx = X - farOther.X + 2048 * tileDelta.X;
+            dz = Z - farOther.Z + 2048 * tileDelta.Z;
             if (dx * dx + dz * dz > lengthOther * lengthOther)
                 return 1;
-            dx = X - other.X + 2048 * (TileX - other.TileX);
-            dz = Z - other.Z + 2048 * (TileZ - other.TileZ);
+            tileDelta = Tile - other.Tile;
+            dx = X - other.X + 2048 * tileDelta.X;
+            dz = Z - other.Z + 2048 * tileDelta.Z;
             float diagonal = dx * dx + dz * dz;
             if (diagonal < 200 && diagonal < (lengthMe + lengthOther) * (lengthMe + lengthOther))
             {

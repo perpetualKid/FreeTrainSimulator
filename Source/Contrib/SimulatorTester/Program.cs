@@ -130,8 +130,8 @@ namespace Orts.SimulatorTester
                 }
 
                 DateTimeOffset endTime = DateTimeOffset.Now;
-                double actualTileX = simulator.Trains[0].FrontTDBTraveller.TileX + (simulator.Trains[0].FrontTDBTraveller.X / WorldPosition.TileSize);
-                double actualTileZ = simulator.Trains[0].FrontTDBTraveller.TileZ + (simulator.Trains[0].FrontTDBTraveller.Z / WorldPosition.TileSize);
+                double actualTileX = simulator.Trains[0].FrontTDBTraveller.Tile.X + (simulator.Trains[0].FrontTDBTraveller.X / WorldPosition.TileSize);
+                double actualTileZ = simulator.Trains[0].FrontTDBTraveller.Tile.Z + (simulator.Trains[0].FrontTDBTraveller.Z / WorldPosition.TileSize);
                 double initialToExpectedM = Math.Sqrt(Math.Pow(data.ExpectedTileX - data.InitialTileX, 2) + Math.Pow(data.ExpectedTileZ - data.InitialTileZ, 2)) * WorldPosition.TileSize;
                 double expectedToActualM = Math.Sqrt(Math.Pow(actualTileX - data.ExpectedTileX, 2) + Math.Pow(actualTileZ - data.ExpectedTileZ, 2)) * WorldPosition.TileSize;
 
