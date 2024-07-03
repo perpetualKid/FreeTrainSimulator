@@ -38,7 +38,7 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         private const int MaximumCachedTiles = 8 * 8;
         private readonly string filePath;
-        private readonly TileHelper.Zoom zoom;
+        private readonly TileHelper.TileZoom zoom;
 
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
@@ -53,7 +53,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public TileManager(string filePath, bool loTiles)
         {
             this.filePath = filePath;
-            zoom = loTiles ? TileHelper.Zoom.DMSmall : TileHelper.Zoom.Small;
+            zoom = loTiles ? TileHelper.TileZoom.DistantMountainSmall : TileHelper.TileZoom.Small;
         }
 
         /// <summary>
@@ -70,12 +70,13 @@ namespace Orts.ActivityRunner.Viewer3D
             while (tileList.Count >= MaximumCachedTiles)
                 tileList.RemoveAt(0);
 
+            Tile tile = new Tile(tileX, tileZ);
+            tile = TileHelper.Snap(tile, zoom);
             // Check for 1x1 (or 8x8) tiles.
-            TileHelper.Snap(ref tileX, ref tileZ, zoom);
-            if (Tiles.ByXZ.ContainsKey(((uint)tileX << 16) + (uint)tileZ))
+            if (Tiles.ByXZ.ContainsKey(tile))
                 return;
 
-            TileSample newTile = new TileSample(filePath, tileX, tileZ, zoom, visible);
+            TileSample newTile = new TileSample(filePath, tile.X, tile.Z, zoom, visible);
             if (newTile.Valid)
             {
                 tileList.Add(newTile);
@@ -84,8 +85,8 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             // Check for 2x2 (or 16x16) tiles.
-            TileHelper.Snap(ref tileX, ref tileZ, zoom - 1);
-            if (Tiles.ByXZ.ContainsKey(((uint)tileX << 16) + (uint)tileZ))
+            tile = TileHelper.Snap(tile, zoom - 1);
+            if (Tiles.ByXZ.ContainsKey(tile))
                 return;
 
             newTile = new TileSample(filePath, tileX, tileZ, zoom - 1, visible);
@@ -131,14 +132,14 @@ namespace Orts.ActivityRunner.Viewer3D
         public TileSample GetTile(int tileX, int tileZ)
         {
             // Check for 1x1 (or 8x8) tiles.
-            TileHelper.Snap(ref tileX, ref tileZ, zoom);
-            if (Tiles.ByXZ.TryGetValue(((uint)tileX << 16) + (uint)tileZ, out TileSample tile) && tile.Valid && tile.Size == (1 << (15 - (int)zoom)))
-                return tile;
+            Tile tile = TileHelper.Snap(new Tile(tileX, tileZ), zoom);
+            if (Tiles.ByXZ.TryGetValue(tile, out TileSample tileSample) && tileSample.Valid && tileSample.Size == (1 << (15 - (int)zoom)))
+                return tileSample;
 
             // Check for 2x2 (or 16x16) tiles.
-            TileHelper.Snap(ref tileX, ref tileZ, zoom - 1);
-            if (Tiles.ByXZ.TryGetValue(((uint)tileX << 16) + (uint)tileZ, out tile) && tile.Valid && tile.Size == (1 << (15 - (int)zoom + 1)))
-                return tile;
+            tile = TileHelper.Snap(new Tile(tileX, tileZ), zoom - 1);
+            if (Tiles.ByXZ.TryGetValue(tile, out tileSample) && tileSample.Valid && tileSample.Size == (1 << (15 - (int)zoom + 1)))
+                return tileSample;
 
             return null;
         }
@@ -264,12 +265,12 @@ namespace Orts.ActivityRunner.Viewer3D
             /// <summary>
             /// Stores tiles by their TileX, TileZ location, so lookup is fast.
             /// </summary>
-            public readonly Dictionary<uint, TileSample> ByXZ;
+            public readonly Dictionary<Tile, TileSample> ByXZ;
 
             public TileList(List<TileSample> list)
             {
                 List = list;
-                ByXZ = list.ToDictionary(t => ((uint)t.Tile.X << 16) + (uint)t.Tile.Z);
+                ByXZ = list.ToDictionary(t => (t.Tile));
             }
         }
     }

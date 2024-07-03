@@ -77,7 +77,7 @@ namespace Orts.Formats.Msts.Models
             return terrain.Patchsets[0].Patches[z * PatchCount + x];
         }
 
-        public TileSample(string filePath, int tileX, int tileZ, TileHelper.Zoom zoom, bool visible)
+        public TileSample(string filePath, int tileX, int tileZ, TileHelper.TileZoom zoom, bool visible)
         {
             if (!Directory.Exists(filePath))
                 return;

@@ -76,7 +76,7 @@ namespace Orts.DataConverter
                     throw new InvalidCommandLineException("Unable to parse tile coordinates from world filename: " + filename);
                 }
                 string tilesDirectory = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(conversion.Input)), "Tiles");
-                string tileName = TileHelper.FromTileXZ(tileX, tileZ, TileHelper.Zoom.Small);
+                string tileName = TileHelper.FromTileXZ(tileX, tileZ, TileHelper.TileZoom.Small);
                 conversion.SetInput(Path.Combine(tilesDirectory, tileName + ".t"));
             }
 

@@ -232,11 +232,10 @@ namespace FreeTrainSimulator.Common.Position
 
         public WorldLocation NormalizeTo(in Tile tile)
         {
-            int xDiff = Tile.X - tile.X;
-            int zDiff = Tile.Z - tile.Z;
+            Tile delta = Tile - tile;
 
-            return xDiff == 0 && zDiff == 0 ? this : new WorldLocation(tile.X, tile.Z,
-                new Vector3((float)(Location.X + xDiff * TileSize), Location.Y, (float)(Location.Z + zDiff * TileSize)));
+            return delta == Tile.Zero ? this : new WorldLocation(tile.X, tile.Z,
+                new Vector3((float)(Location.X + delta.X * TileSize), Location.Y, (float)(Location.Z + delta.Z * TileSize)));
         }
 
         /// <summary>

@@ -299,15 +299,15 @@ namespace ORTS.TrackViewer.Drawing
         /// <returns>The tile information as a 'Tile' object</returns>
         private TileSample LoadTile(int tileX, int tileZ, bool loTiles)
         {
-            TileHelper.Zoom zoom = loTiles ? TileHelper.Zoom.DMSmall : TileHelper.Zoom.Small;
+            TileHelper.TileZoom zoom = loTiles ? TileHelper.TileZoom.DistantMountainSmall : TileHelper.TileZoom.Small;
             string path = loTiles ? lotilesPath : tilesPath;
 
             // Note, code is similar to ORTS.Viewer3D.TileManager.Load
             // Check for 1x1 or 8x8 tiles.
-            TileHelper.Snap(ref tileX, ref tileZ, zoom);
+            Tile tile = TileHelper.Snap(new Tile(tileX, tileZ), zoom);
 
             // we set visible to false to make sure errors are loaded
-            TileSample newTile = new TileSample(path, tileX, tileZ, zoom, false);
+            TileSample newTile = new TileSample(path, tile.X, tile.Z, zoom, false);
             if (newTile.Valid)
             {
                 return newTile;
@@ -315,8 +315,8 @@ namespace ORTS.TrackViewer.Drawing
             else
             {
                 // Check for 2x2 or 16x16 tiles.
-                TileHelper.Snap(ref tileX, ref tileZ, zoom - 1);
-                newTile = new TileSample(tilesPath, tileX, tileZ, zoom - 1, false);
+                tile = TileHelper.Snap(new Tile(tileX, tileZ), zoom);
+                newTile = new TileSample(tilesPath, tile.X, tile.Z, zoom - 1, false);
                 if (newTile.Valid)
                 {
                     return newTile;
@@ -528,10 +528,10 @@ namespace ORTS.TrackViewer.Drawing
     /// </summary>
     internal class Translate3Dto2D
     {
-        private readonly int referenceTileX;
-        private readonly int referenceTileZ;
-        private static readonly Dictionary<int, TileHelper.Zoom> zoomFromInt = new Dictionary<int, TileHelper.Zoom> {
-            {1, TileHelper.Zoom.Small}, {2, TileHelper.Zoom.Large}, {8, TileHelper.Zoom.DMSmall}, {16, TileHelper.Zoom.DMLarge}
+        private readonly Tile referenceTile;
+
+        private static readonly Dictionary<int, TileHelper.TileZoom> zoomFromInt = new Dictionary<int, TileHelper.TileZoom> {
+            {1, TileHelper.TileZoom.Small}, {2, TileHelper.TileZoom.Large}, {8, TileHelper.TileZoom.DistantMountainSmall}, {16, TileHelper.TileZoom.DistantMountainLarge}
         };
 
         /// <summary>
@@ -551,8 +551,8 @@ namespace ORTS.TrackViewer.Drawing
                 if (tileZ > TileZmax) { TileZmax = tileZ; }
                 if (tileZ < TileZmin) { TileZmin = tileZ; }
             }));
-            referenceTileX = (TileXmax + TileXmin) / 2;
-            referenceTileZ = (TileZmax + TileZmin) / 2;
+
+            referenceTile = new Tile((TileXmax + TileXmin) / 2, (TileZmax + TileZmin) / 2);
         }
 
         /// <summary>
@@ -562,7 +562,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="location">Source World location</param>
         public Vector3 VertexPosition(in WorldLocation location)
         {
-            WorldLocation normalizedLocation = location.NormalizeTo(referenceTileX, referenceTileZ);
+            WorldLocation normalizedLocation = location.NormalizeTo(referenceTile);
             return new Vector3(normalizedLocation.Location.X, 0, normalizedLocation.Location.Z);
         }
 
@@ -581,9 +581,9 @@ namespace ORTS.TrackViewer.Drawing
             // Basically, this means routes that can have relative tiles ranging from about -4000 to + 4000, or 8000 * 2km = 16000 km. More than enough.
 
             // We also snap the tileX and tileZ to multiples of the size.
-            TileHelper.Snap(ref tileX, ref tileZ, zoomFromInt[zoomSize]);
+            Tile tile = TileHelper.Snap(new Tile(tileX, tileZ), zoomFromInt[zoomSize]);
 
-            uint index = ((uint)zoomSize << 26) + ((uint)(tileX - referenceTileX + 4096) << 13) + (uint)(tileZ - referenceTileZ + 4096);
+            uint index = ((uint)zoomSize << 26) + ((uint)(tile.X - referenceTile.X + 4096) << 13) + (uint)(tile.Z - referenceTile.Z + 4096);
 
             //debug (I guess a unit test would have been better)
             //uint indexX = (uint)(tileX - referenceTileX + 4096);
@@ -734,9 +734,7 @@ namespace ORTS.TrackViewer.Drawing
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
         private string[,] textureNames;
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
-        private readonly int snappedTileX;
-        private readonly int snappedTileZ;
-
+        private readonly Tile snappedTile;
         //Injection dependencies
         private readonly TerrainTextureManager textureManager;
         private readonly Translate3Dto2D locationTranslator;
@@ -756,9 +754,7 @@ namespace ORTS.TrackViewer.Drawing
             this.locationTranslator = locationTranslator;
             TileSize = tile.Size;
 
-            snappedTileX = tile.Tile.X;
-            snappedTileZ = tile.Tile.Z;
-            TileHelper.Snap(ref snappedTileX, ref snappedTileZ, zoomFromInt[TileSize]);
+            snappedTile = TileHelper.Snap(tile.Tile, zoomFromInt[TileSize]);
 
             verticesFull = CreateVerticesFromTile(tile);
         }
@@ -868,7 +864,7 @@ namespace ORTS.TrackViewer.Drawing
         public string GetStatusInformation(in WorldLocation location)
         {
             // first make sure we normalize to the snapped tile
-            WorldLocation snappedLocation = location.NormalizeTo(snappedTileX, snappedTileZ);
+            WorldLocation snappedLocation = location.NormalizeTo(snappedTile);
 
             float totalSize = 2048 * TileSize;
             int patchIndexX = (int)((snappedLocation.Location.X + 1024) / totalSize * textureNames.GetLength(0));
@@ -878,8 +874,8 @@ namespace ORTS.TrackViewer.Drawing
             return $"({patchIndexX}, {patchIndexZ}) for {TileSize}x{TileSize} tile: {textureNames[patchIndexX, patchIndexZ]}";
         }
 
-        private static readonly Dictionary<int, TileHelper.Zoom> zoomFromInt = new Dictionary<int, TileHelper.Zoom> {
-            {1, TileHelper.Zoom.Small}, {2, TileHelper.Zoom.Large}, {8, TileHelper.Zoom.DMSmall}, {16, TileHelper.Zoom.DMLarge}
+        private static readonly Dictionary<int, TileHelper.TileZoom> zoomFromInt = new Dictionary<int, TileHelper.TileZoom> {
+            {1, TileHelper.TileZoom.Small}, {2, TileHelper.TileZoom.Large}, {8, TileHelper.TileZoom.DistantMountainSmall}, {16, TileHelper.TileZoom.DistantMountainLarge}
         };
 
         public void DrawPatchLines(DrawArea drawArea)
@@ -889,8 +885,8 @@ namespace ORTS.TrackViewer.Drawing
             float tileL = totalSize / iMax;
             for (int i = 0; i <= iMax; i++)
             {
-                drawArea.DrawLine(1, Color.NavajoWhite, new WorldLocation(snappedTileX, snappedTileZ, i * tileL - 1024, 0, -1024), totalSize, 0, 0);
-                drawArea.DrawLine(1, Color.NavajoWhite, new WorldLocation(snappedTileX, snappedTileZ, -1024, 0, i * tileL - 1024), totalSize, MathHelper.PiOver2, 0);
+                drawArea.DrawLine(1, Color.NavajoWhite, new WorldLocation(snappedTile, i * tileL - 1024, 0, -1024), totalSize, 0, 0);
+                drawArea.DrawLine(1, Color.NavajoWhite, new WorldLocation(snappedTile, -1024, 0, i * tileL - 1024), totalSize, MathHelper.PiOver2, 0);
             }
         }
     }

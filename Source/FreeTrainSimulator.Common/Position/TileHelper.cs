@@ -5,17 +5,17 @@ namespace FreeTrainSimulator.Common.Position
 {
     public static class TileHelper
     {
-        public enum Zoom
+        public enum TileZoom
         {
             Invalid = 0,
             /// <summary>
             /// 32KM^2
             /// </summary>
-            DMLarge = 11,
+            DistantMountainLarge = 11,
             /// <summary>
             /// 16KM^2
             /// </summary>
-            DMSmall = 12,
+            DistantMountainSmall = 12,
             /// <summary>
             /// 8KM^2 
             /// </summary>
@@ -30,7 +30,7 @@ namespace FreeTrainSimulator.Common.Position
             Small = 15,
         }
 
-        public static string FromTileXZ(int tileX, int tileZ, Zoom zoom)
+        public static string FromTileXZ(int tileX, int tileZ, TileZoom zoom)
         {
             int rectX = -16384;
             int rectZ = -16384;
@@ -62,13 +62,17 @@ namespace FreeTrainSimulator.Common.Position
             return name.ToString();
         }
 
-        public static void Snap(ref int tileX, ref int tileZ, Zoom zoom)
+        /// <summary>
+        /// Snap tile to the lower-left corner according to zoom setting
+        /// </summary>
+        public static Tile Snap(in Tile tile, TileZoom zoom)
         {
             int step = 15 - (int)zoom;
-            tileX >>= step;
+            int tileX = tile.X >> step;
             tileX <<= step;
-            tileZ >>= step;
+            int tileZ = tile.Z >> step;
             tileZ <<= step;
+            return new Tile(tileX, tileZ);
         }
     }
 }
