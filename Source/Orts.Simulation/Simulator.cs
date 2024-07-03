@@ -445,42 +445,6 @@ namespace Orts.Simulation
                 MultiPlayerManager.Stop();
         }
 
-        public void Restore(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            FreightAnimationDiscrete.FreightAnimNeedsInitialization = false;
-            //PathName = pathName;
-            //InitialLocation = initialLocation;
-            //PoolHolder = new Poolholder(inf, this);
-
-            //SignalEnvironment = new SignalEnvironment(SignalConfig, false, cancellationToken);
-            //SignalEnvironment.Restore(inf);
-
-            //RestoreTrains(inf);
-            //LevelCrossings = new LevelCrossings();
-            //AI = new AI(this, inf);
-            // Find original player train
-            //OriginalPlayerTrain = Trains.Find(item => item.Number == 0);
-            //if (OriginalPlayerTrain == null)
-            //    OriginalPlayerTrain = AI.AITrains.Find(item => item.Number == 0);
-
-            //// initialization of turntables
-            //int movingTableIndex = inf.ReadInt32();
-            //MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
-            //if (MovingTables.Count >= 0)
-            //{
-            //    foreach (MovingTable movingTable in MovingTables)
-            //        movingTable.Restore(inf, this);
-            //}
-            //activeMovingTable = movingTableIndex >= 0 && movingTableIndex < MovingTables.Count ? MovingTables[movingTableIndex] : null;
-
-            //            ActivityRun = Activity.Restore(inf, this, ActivityRun);
-            //SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
-            //SignalEnvironment.Update(true);           // update all signals once to set proper stat
-            //ContainerManager.Restore(inf);
-        }
-
         public async ValueTask<SimulatorSaveState> Snapshot()
         {
             AI.BeforeSnapshot();

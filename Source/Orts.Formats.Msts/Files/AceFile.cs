@@ -31,7 +31,7 @@ namespace Orts.Formats.Msts.Files
     {
         public static Texture2D Texture2DFromFile(GraphicsDevice graphicsDevice, string fileName)
         {
-            using (FileStream stream = File.OpenRead(fileName))
+            using (MemoryStream stream = new MemoryStream(File.ReadAllBytes(fileName)))
                 return Texture2DFromStream(graphicsDevice, stream);
         }
 

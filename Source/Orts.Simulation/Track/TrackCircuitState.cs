@@ -66,62 +66,6 @@ namespace Orts.Simulation.Track
             TrainClaimed = new TrainQueue();
         }
 
-
-        //================================================================================================//
-        /// <summary>
-        /// Restore
-        /// IMPORTANT : trains are restored to dummy value, will be restored to full contents later
-        /// </summary>
-        public void Restore(BinaryReader inf)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            int occupied = inf.ReadInt32();
-            for (int train = 0; train < occupied; train++)
-            {
-                int trainNumber = inf.ReadInt32();
-                int trainRouteIndex = inf.ReadInt32();
-                int trainDirection = inf.ReadInt32();
-                Train thisTrain = new Train(trainNumber);
-                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, (Direction)trainRouteIndex);
-                OccupationState.Add(thisRouted, (Direction)trainDirection);
-            }
-
-            int trainReserved = inf.ReadInt32();
-            if (trainReserved >= 0)
-            {
-                int trainRouteIndexR = inf.ReadInt32();
-                Train thisTrain = new Train(trainReserved);
-                Train.TrainRouted trainRoute = new Train.TrainRouted(thisTrain, (Direction)trainRouteIndexR);
-                TrainReserved = trainRoute;
-            }
-
-            SignalReserved = inf.ReadInt32();
-
-            int noPreReserve = inf.ReadInt32();
-            for (int trainNo = 0; trainNo < noPreReserve; trainNo++)
-            {
-                int trainNumber = inf.ReadInt32();
-                int trainRouteIndex = inf.ReadInt32();
-                Train thisTrain = new Train(trainNumber);
-                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, (Direction)trainRouteIndex);
-                TrainPreReserved.Enqueue(thisRouted);
-            }
-
-            int noClaimed = inf.ReadInt32();
-            for (int trainNo = 0; trainNo < noClaimed; trainNo++)
-            {
-                int trainNumber = inf.ReadInt32();
-                int trainRouteIndex = inf.ReadInt32();
-                Train thisTrain = new Train(trainNumber);
-                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, (Direction)trainRouteIndex);
-                TrainClaimed.Enqueue(thisRouted);
-            }
-            Forced = inf.ReadBoolean();
-
-        }
-
-
         //================================================================================================//
         /// <summary>
         /// Reset train references after restore

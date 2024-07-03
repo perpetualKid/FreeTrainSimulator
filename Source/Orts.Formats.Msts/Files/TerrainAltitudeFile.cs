@@ -32,7 +32,7 @@ namespace Orts.Formats.Msts.Files
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
             try
             {
-                using (BinaryReader reader = new BinaryReader(File.OpenRead(fileName)))
+                using (BinaryReader reader = new BinaryReader(new MemoryStream(File.ReadAllBytes(fileName))))
                     for (int z = 0; z < sampleCount; z++)
                         for (int x = 0; x < sampleCount; x++)
                             elevation[x, z] = reader.ReadUInt16();
@@ -53,7 +53,7 @@ namespace Orts.Formats.Msts.Files
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
             try
             {
-                using (BinaryReader reader = new BinaryReader(File.OpenRead(fileName)))
+                using (BinaryReader reader = new BinaryReader(new MemoryStream(File.ReadAllBytes(fileName))))
                     for (int z = 0; z < sampleCount; z++)
                         for (int x = 0; x < sampleCount; x++)
                             result[x, z] = reader.ReadUInt16();

@@ -463,7 +463,7 @@ namespace Orts.Graphics.Xna
         /// <param name="loadMipMap">If true it will load the mip-map chain for this texture.</param>
         public static void DDSFromFile(string fileName, GraphicsDevice device, bool loadMipMap, out Texture2D texture)
         {
-            using (Stream stream = File.OpenRead(fileName))
+            using (MemoryStream stream = new MemoryStream(File.ReadAllBytes(fileName)))
             {
                 InternalDDSFromStream(stream, device, 0, loadMipMap, out Texture tex);
 
@@ -488,7 +488,7 @@ namespace Orts.Graphics.Xna
         /// <param name="loadMipMap">If true it will load the mip-map chain for this texture.</param>
         public static void DDSFromFile(string fileName, GraphicsDevice device, bool loadMipMap, out TextureCube texture)
         {
-            using (Stream stream = File.OpenRead(fileName))
+            using (MemoryStream stream = new MemoryStream(File.ReadAllBytes(fileName)))
             {
                 InternalDDSFromStream(stream, device, 0, loadMipMap, out Texture tex);
 
@@ -513,7 +513,7 @@ namespace Orts.Graphics.Xna
         /// <param name="loadMipMap">If true it will load the mip-map chain for this texture.</param>
         public static void DDSFromFile(string fileName, GraphicsDevice device, bool loadMipMap, out Texture3D texture)
         {
-            using (Stream stream = File.OpenRead(fileName))
+            using (MemoryStream stream = new MemoryStream(File.ReadAllBytes(fileName)))
             {
                 InternalDDSFromStream(stream, device, 0, loadMipMap, out Texture tex);
 

@@ -25,8 +25,6 @@ using FreeTrainSimulator.Common;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-
 namespace Orts.Formats.Msts.Parsers
 {
     /// <summary>
@@ -42,7 +40,8 @@ namespace Orts.Formats.Msts.Parsers
 
         public static SBR Open(string fileName)
         {
-            Stream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            //Stream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            Stream fileStream = new MemoryStream(File.ReadAllBytes(fileName));
 
             byte[] buffer = new byte[34];
             fileStream.Read(buffer, 0, 2);

@@ -281,28 +281,6 @@ namespace Orts.Formats.Msts
             trackNodeOffset = source.trackNodeOffset;
         }
 
-        /// <summary>
-        /// Creates a traveller from persisted data.
-        /// </summary>
-        public Traveller(BinaryReader inf, bool roadTraveller = false)
-            : this(roadTraveller)
-        {
-            ArgumentNullException.ThrowIfNull(inf);
-
-            locationSet = lengthSet = false;
-            direction = (Direction)inf.ReadByte();
-            trackVectorSectionOffset = inf.ReadSingle();
-            int trackNodeIndex = inf.ReadInt32();
-            trackNode = trackNodes[trackNodeIndex];
-            if (TrackNodeType == TrackNodeType.Track)
-            {
-                TrackVectorSectionIndex = inf.ReadInt32();
-                trackVectorSection = (trackNode as TrackVectorNode).TrackVectorSections[TrackVectorSectionIndex];
-                trackSection = RuntimeData.Instance.TSectionDat.TrackSections[trackVectorSection.SectionIndex];
-            }
-        }
-
-
         public ValueTask<TravellerSaveState> Snapshot()
         {
             return ValueTask.FromResult(new TravellerSaveState()

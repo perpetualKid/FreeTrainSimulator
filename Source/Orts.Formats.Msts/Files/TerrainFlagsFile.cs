@@ -32,7 +32,7 @@ namespace Orts.Formats.Msts.Files
             BitArray result = new BitArray(sampleCount * sampleCount);
             try
             {
-                using (BinaryReader reader = new BinaryReader(File.OpenRead(fileName)))
+                using (BinaryReader reader = new BinaryReader(new MemoryStream(File.ReadAllBytes(fileName))))
                     for (int z = 0; z < sampleCount; z++)
                         for (int x = 0; x < sampleCount; x++)
                             result[x * sampleCount + z] = (reader.ReadByte() & 0x04) == 0x04;
