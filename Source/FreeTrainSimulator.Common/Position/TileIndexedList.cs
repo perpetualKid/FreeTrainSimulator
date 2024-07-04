@@ -64,8 +64,8 @@ namespace FreeTrainSimulator.Common.Position
             data = data.ToList();
             if (data is IEnumerable<ITileCoordinateVector<T>> vectorData)
             {
-                IEnumerable<ITileCoordinateVector<T>> singleTile = vectorData.Where(d => d.Tile.Equals(d.OtherTile));
-                IEnumerable<ITileCoordinateVector<T>> multiTile = vectorData.Where(d => !d.Tile.Equals(d.OtherTile));
+                IEnumerable<ITileCoordinateVector<T>> singleTile = vectorData.Where(d => d.Tile.Equals(d.OtherTile)).ToList();
+                IEnumerable<ITileCoordinateVector<T>> multiTile = vectorData.Where(d => !d.Tile.Equals(d.OtherTile)).ToList();
 
                 tiles = new SortedList<ITile, List<TTileCoordinate>>(
                     singleTile.Select(d => new { Segment = d, Tile = d.Tile as ITile }).

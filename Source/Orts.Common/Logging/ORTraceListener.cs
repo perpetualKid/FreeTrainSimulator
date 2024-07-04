@@ -134,7 +134,7 @@ namespace Orts.Common.Logging
                 if (o is FatalException)
                     Trace.TraceError("{0}", (o as FatalException).InnerException);
                 else
-                    Trace.TraceWarning("{o}", o);
+                    Trace.TraceWarning("{0}", o);
                 Trace.CorrelationManager.StopLogicalOperation();
             }
             else if (!errorsOnly)

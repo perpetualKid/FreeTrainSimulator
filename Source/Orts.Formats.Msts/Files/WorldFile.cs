@@ -29,7 +29,7 @@ namespace Orts.Formats.Msts.Files
     public class WorldFile
     {
         public Tile Tile { get; }
-        public WorldObjects Objects { get; set; }
+        public WorldObjects Objects { get; private set; }
 
         public WorldFile(string fileName)
             : this(fileName, null)
