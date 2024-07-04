@@ -1,6 +1,8 @@
 ﻿
 using System;
 
+using FreeTrainSimulator.Common;
+
 using GetText;
 
 using Microsoft.Xna.Framework;
@@ -84,7 +86,7 @@ namespace Orts.Toolbox.PopupWindows
                             {
                                 contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
                                 contentArea?.SetTrackingPosition(segmentSection.MidPoint);
-                                contentArea.Content.HighlightItem(Common.MapContentType.Tracks, segmentSection.SectionSegments[0]);
+                                contentArea.Content.HighlightItem(MapContentType.Tracks, segmentSection.SectionSegments[0]);
                             }
                             break;
                         case SearchType.Road:
@@ -93,7 +95,7 @@ namespace Orts.Toolbox.PopupWindows
                             {
                                 contentArea?.UpdateScaleToFit(roadSegmentSection.TopLeftBound, roadSegmentSection.BottomRightBound);
                                 contentArea?.SetTrackingPosition(roadSegmentSection.MidPoint);
-                                contentArea.Content.HighlightItem(Common.MapContentType.Roads, roadSegmentSection.SectionSegments[0]);
+                                contentArea.Content.HighlightItem(MapContentType.Roads, roadSegmentSection.SectionSegments[0]);
                             }
                             break;
                     }

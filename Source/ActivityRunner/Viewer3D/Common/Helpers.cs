@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Simulation;
 

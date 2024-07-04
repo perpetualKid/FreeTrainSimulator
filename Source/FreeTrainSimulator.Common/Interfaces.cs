@@ -1,4 +1,4 @@
-﻿namespace Orts.Common
+﻿namespace FreeTrainSimulator.Common
 {
     public interface IRuntimeReferenceResolver
     {
@@ -16,14 +16,14 @@
     }
 
     public enum SwitchState
-    { 
+    {
         Invalid = -1,
         MainRoute,
         SideRoute,
     }
 
     public interface ISignal
-    { 
+    {
         SignalState State { get; set; }
         public bool CallOnEnabled { get; }
     }
@@ -34,7 +34,7 @@
     }
 
     public interface ITrain
-    { 
+    {
         string Name { get; }
         int Number { get; }
         TrainType TrainType { get; }

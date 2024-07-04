@@ -228,7 +228,7 @@ namespace Orts.Settings
 
         // Updater settings
         #region update settings
-        [Default((int)Common.UpdateCheckFrequency.Always)]
+        [Default((int)FreeTrainSimulator.Common.UpdateCheckFrequency.Always)]
         public int UpdateCheckFrequency { get; set; }
         [Default("https://orts.blob.core.windows.net/releases/index.json")]
         public string UpdateSource { get; set; }

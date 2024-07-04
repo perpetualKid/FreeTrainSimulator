@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
@@ -113,8 +114,8 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             TypeOfLocomotive = powerSupply.Type switch
             {
-                Orts.Common.PowerSupplyType.DieselMechanical or Orts.Common.PowerSupplyType.DieselHydraulic or Orts.Common.PowerSupplyType.DieselElectric => "diesel",
-                Orts.Common.PowerSupplyType.Steam => "steam",
+                PowerSupplyType.DieselMechanical or PowerSupplyType.DieselHydraulic or PowerSupplyType.DieselElectric => "diesel",
+                PowerSupplyType.Steam => "steam",
                 _ => "electric",
             };
         }

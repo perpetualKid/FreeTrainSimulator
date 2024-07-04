@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 

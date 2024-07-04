@@ -22,6 +22,7 @@ using System.Linq;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using Orts.Common;
+using FreeTrainSimulator.Common;
 
 namespace Orts.ContentManager.Models
 {

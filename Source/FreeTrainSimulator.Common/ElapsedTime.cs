@@ -15,8 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-
-namespace Orts.Common
+namespace FreeTrainSimulator.Common
 {
 #pragma warning disable CA1815 // Override equals and operator equals on value types
     public readonly struct ElapsedTime

@@ -13,6 +13,7 @@ using Orts.Toolbox.PopupWindows;
 using Orts.Formats.Msts.Files;
 using Orts.Graphics.Xna;
 using Orts.Models.Track;
+using FreeTrainSimulator.Common;
 
 namespace Orts.Toolbox
 {

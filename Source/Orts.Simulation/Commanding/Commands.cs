@@ -28,6 +28,7 @@ using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.World;
 using System.IO;
 using Orts.Simulation.RollingStocks.SubSystems.ControlSystems;
+using FreeTrainSimulator.Common;
 
 namespace Orts.Simulation.Commanding
 {

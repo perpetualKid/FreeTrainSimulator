@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
@@ -28,7 +29,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D

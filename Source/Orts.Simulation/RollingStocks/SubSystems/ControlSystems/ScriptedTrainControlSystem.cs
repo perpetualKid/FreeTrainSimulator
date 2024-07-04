@@ -25,6 +25,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Native;
 

@@ -4,6 +4,8 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
+using FreeTrainSimulator.Common;
+
 namespace Orts.Common.Logging
 {
     public class ORTraceListener : TraceListener

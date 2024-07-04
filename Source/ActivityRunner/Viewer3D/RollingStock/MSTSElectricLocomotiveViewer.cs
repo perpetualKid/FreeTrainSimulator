@@ -17,6 +17,8 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Simulation;

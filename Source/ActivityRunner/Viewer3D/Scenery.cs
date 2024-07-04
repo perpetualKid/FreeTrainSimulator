@@ -42,6 +42,7 @@
  * 
  */
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;

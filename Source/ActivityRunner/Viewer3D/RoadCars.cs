@@ -20,8 +20,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
+
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common;
 using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Viewer3D

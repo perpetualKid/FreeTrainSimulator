@@ -23,7 +23,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Formats.Msts;
 using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,6 +31,7 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Common;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

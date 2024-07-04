@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;

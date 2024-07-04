@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
+
 using MemoryPack;
 
 using Orts.Common;

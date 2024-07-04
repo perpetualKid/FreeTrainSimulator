@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;

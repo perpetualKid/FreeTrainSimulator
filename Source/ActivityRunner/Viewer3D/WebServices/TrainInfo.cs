@@ -17,6 +17,8 @@
 
 using System;
 
+using FreeTrainSimulator.Common;
+
 using Orts.ActivityRunner.Viewer3D;
 using Orts.Common;
 

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 
+using FreeTrainSimulator.Common;
+
 using MemoryPack;
 
 using Orts.Common;

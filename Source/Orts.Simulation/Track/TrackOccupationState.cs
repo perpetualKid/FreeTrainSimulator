@@ -19,6 +19,8 @@
 
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Simulation.Physics;
 

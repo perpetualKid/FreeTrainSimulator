@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
 using MemoryPack;

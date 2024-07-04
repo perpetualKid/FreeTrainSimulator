@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
+
 using Grpc.Core;
 using Grpc.Net.Client;
 
@@ -12,7 +14,6 @@ using MagicOnion.Serialization.MemoryPack;
 
 using Multiplayer.Shared;
 
-using Orts.Common;
 using Orts.Simulation.Multiplayer.Messaging;
 
 namespace Orts.Simulation.Multiplayer

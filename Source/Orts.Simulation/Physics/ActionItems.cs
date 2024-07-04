@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;
@@ -115,7 +116,7 @@ namespace Orts.Simulation.Physics
         {
             ActionItemSaveState saveState = await base.Snapshot().ConfigureAwait(false);
 
-            saveState.ActionItemType = Common.ActionItemType.ActiveSpeedLimit;
+            saveState.ActionItemType = FreeTrainSimulator.Common.ActionItemType.ActiveSpeedLimit;
             saveState.MaxSpeedLimit = MaxSpeedMpSLimit;
             saveState.MaxSpeedSignal = MaxSpeedMpSSignal;
             saveState.MaxTempSpeedLimit = MaxTempSpeedMpSLimit;

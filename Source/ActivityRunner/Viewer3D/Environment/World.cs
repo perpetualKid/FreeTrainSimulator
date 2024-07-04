@@ -21,6 +21,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
@@ -29,7 +30,6 @@ using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.Sound;
-using Orts.Common;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment

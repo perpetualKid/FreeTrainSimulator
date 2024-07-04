@@ -1,4 +1,4 @@
-﻿namespace Orts.Common
+﻿namespace FreeTrainSimulator.Common
 {
 #pragma warning disable CA1052 // Static holder types should be Static or NotInheritable
     public class ControllerCommandArgs

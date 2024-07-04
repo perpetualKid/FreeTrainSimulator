@@ -48,6 +48,7 @@ using Orts.Simulation.Track;
 using Orts.Simulation.World;
 
 using SharpDX.Direct2D1;
+
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 namespace Orts.Simulation.Timetables

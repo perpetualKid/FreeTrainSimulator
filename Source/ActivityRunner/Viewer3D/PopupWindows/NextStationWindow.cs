@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common;
+
 using GetText;
 
 using Microsoft.Xna.Framework;

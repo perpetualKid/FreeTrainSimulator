@@ -30,7 +30,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;

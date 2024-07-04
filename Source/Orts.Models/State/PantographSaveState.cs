@@ -1,4 +1,5 @@
-﻿using FreeTrainSimulator.Common.Api;
+﻿using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
 

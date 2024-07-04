@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Orts.Common
+namespace FreeTrainSimulator.Common
 {
     [Serializable]
     public sealed class FatalException : Exception

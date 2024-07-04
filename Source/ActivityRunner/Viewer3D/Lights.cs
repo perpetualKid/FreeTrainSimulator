@@ -39,6 +39,7 @@ using Orts.Simulation;
 using Orts.ActivityRunner.Processes;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Common;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

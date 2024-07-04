@@ -1,4 +1,5 @@
-﻿using FreeTrainSimulator.Common.DebugInfo;
+﻿using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.DebugInfo;
 
 using Microsoft.Xna.Framework;
 

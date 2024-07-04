@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
 using Newtonsoft.Json;

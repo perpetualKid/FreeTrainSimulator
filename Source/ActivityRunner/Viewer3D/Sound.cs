@@ -47,6 +47,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;

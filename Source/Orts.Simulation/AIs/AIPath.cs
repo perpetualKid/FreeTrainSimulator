@@ -28,6 +28,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 
@@ -175,7 +176,7 @@ namespace Orts.Simulation.AIs
                     node2 = node2.NextSidingNode;
                 }
                 if (node2 != null)
-                    node2.Type = Common.TrainPathNodeType.SidingEnd;
+                    node2.Type = FreeTrainSimulator.Common.TrainPathNodeType.SidingEnd;
             }
             //foreach (KeyValuePair<int, AIPathNode> kvp in lastUse)
             //    kvp.Value.IsLastSwitchUse = true;
@@ -221,7 +222,7 @@ namespace Orts.Simulation.AIs
     public class AIPathNode : ISaveStateApi<AiPathNodeSaveState>
     {
         public int Index { get; set; }
-        public Common.TrainPathNodeType Type { get; set; } = Common.TrainPathNodeType.Other;
+        public FreeTrainSimulator.Common.TrainPathNodeType Type { get; set; } = FreeTrainSimulator.Common.TrainPathNodeType.Other;
         public int WaitTimeS { get; private set; }               // number of seconds to wait after stopping at this node
         public int WaitUntil { get; private set; }               // clock time to wait until if not zero
         public AIPathNode NextMainNode { get; set; }     // next path node on main path
@@ -243,13 +244,13 @@ namespace Orts.Simulation.AIs
             ArgumentNullException.ThrowIfNull(tpn);
 
             if (tpn.NodeType == Formats.Msts.PathNodeType.Reversal)
-                Type = Common.TrainPathNodeType.Reverse;
+                Type = FreeTrainSimulator.Common.TrainPathNodeType.Reverse;
             else if (tpn.NodeType == Formats.Msts.PathNodeType.Wait)
-                Type = Common.TrainPathNodeType.Stop;
+                Type = FreeTrainSimulator.Common.TrainPathNodeType.Stop;
 
             if (tpn.Invalid && isTimetableMode) // not a valid point
             {
-                Type = Common.TrainPathNodeType.Invalid;
+                Type = FreeTrainSimulator.Common.TrainPathNodeType.Invalid;
             }
 
             WaitTimeS = tpn.WaitTime;

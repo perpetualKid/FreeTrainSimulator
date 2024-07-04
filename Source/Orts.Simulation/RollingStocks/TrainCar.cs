@@ -2627,11 +2627,11 @@ namespace Orts.Simulation.RollingStocks
         {
             bool overTrough = false;
             // start at front of train
-            int sectionIndex = Train.PresentPosition[Common.Direction.Forward].TrackCircuitSectionIndex;
+            int sectionIndex = Train.PresentPosition[FreeTrainSimulator.Common.Direction.Forward].TrackCircuitSectionIndex;
             if (sectionIndex < 0)
                 return overTrough;
-            float sectionOffset = Train.PresentPosition[Common.Direction.Forward].Offset;
-            TrackDirection sectionDirection = Train.PresentPosition[Common.Direction.Forward].Direction;
+            float sectionOffset = Train.PresentPosition[FreeTrainSimulator.Common.Direction.Forward].Offset;
+            TrackDirection sectionDirection = Train.PresentPosition[FreeTrainSimulator.Common.Direction.Forward].Direction;
 
             float usedCarLength = CarLengthM;
             float processedCarLength = 0;
@@ -2674,13 +2674,13 @@ namespace Orts.Simulation.RollingStocks
                 // tested this section, any need to go beyond?
                 processedCarLength += usedCarLength;
                 // go back one section
-                int sectionRouteIndex = Train.ValidRoutes[Common.Direction.Forward].GetRouteIndexBackward(sectionIndex, Train.PresentPosition[Common.Direction.Forward].RouteListIndex);
+                int sectionRouteIndex = Train.ValidRoutes[FreeTrainSimulator.Common.Direction.Forward].GetRouteIndexBackward(sectionIndex, Train.PresentPosition[FreeTrainSimulator.Common.Direction.Forward].RouteListIndex);
                 if (sectionRouteIndex >= 0)
                 {
                     sectionIndex = sectionRouteIndex;
                     section = TrackCircuitSection.TrackCircuitList[sectionIndex];
                     sectionOffset = section.Length;  // always at end of next section
-                    sectionDirection = Train.ValidRoutes[Common.Direction.Forward][sectionRouteIndex].Direction;
+                    sectionDirection = Train.ValidRoutes[FreeTrainSimulator.Common.Direction.Forward][sectionRouteIndex].Direction;
                 }
                 else // ran out of train
                 {
@@ -2697,7 +2697,7 @@ namespace Orts.Simulation.RollingStocks
         protected bool IsOverJunction()
         {
 
-            if (Train.PresentPosition[Common.Direction.Forward].TrackCircuitSectionIndex != Train.PresentPosition[Common.Direction.Backward].TrackCircuitSectionIndex)
+            if (Train.PresentPosition[FreeTrainSimulator.Common.Direction.Forward].TrackCircuitSectionIndex != Train.PresentPosition[FreeTrainSimulator.Common.Direction.Backward].TrackCircuitSectionIndex)
             {
                 foreach (TrackCircuitSection section in Train.OccupiedTrack)
                 {

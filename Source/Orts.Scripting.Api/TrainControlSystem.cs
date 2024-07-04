@@ -3,6 +3,7 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;

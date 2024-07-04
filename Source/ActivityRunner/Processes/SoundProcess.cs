@@ -24,6 +24,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes.Diagnostics;

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using FreeTrainSimulator.Common;
+
 using MemoryPack;
 
 using Orts.Common;

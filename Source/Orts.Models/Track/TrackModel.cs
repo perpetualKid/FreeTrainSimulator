@@ -248,7 +248,7 @@ namespace Orts.Models.Track
                     {
                         if (pin.Link == vectorNode.Index)
                             continue;
-                        yield return SegmentSections[pin.Link].SectionSegments[pin.Direction == Common.TrackDirection.Reverse ? 0 : ^1];
+                        yield return SegmentSections[pin.Link].SectionSegments[pin.Direction == FreeTrainSimulator.Common.TrackDirection.Reverse ? 0 : ^1];
                     }
                 }
             }

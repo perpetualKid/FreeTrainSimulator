@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Orts.Common;

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 
 namespace Orts.Scripting.Api

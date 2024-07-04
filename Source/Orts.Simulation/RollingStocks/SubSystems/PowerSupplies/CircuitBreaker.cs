@@ -19,6 +19,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 
 using Orts.Common;

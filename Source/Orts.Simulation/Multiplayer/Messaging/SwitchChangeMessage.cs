@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
+
 using GetText;
 
 using MemoryPack;
 
-using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Track;

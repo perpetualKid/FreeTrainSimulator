@@ -21,10 +21,11 @@
 using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;

@@ -16,13 +16,13 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using Orts.Formats.Msts;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts.Models;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Common;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

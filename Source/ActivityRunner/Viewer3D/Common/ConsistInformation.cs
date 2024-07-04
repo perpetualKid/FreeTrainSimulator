@@ -1,5 +1,6 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
 
 using GetText;

@@ -29,6 +29,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Models.State;
 using SharpDX.Direct2D1;
+using FreeTrainSimulator.Common;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment
 {

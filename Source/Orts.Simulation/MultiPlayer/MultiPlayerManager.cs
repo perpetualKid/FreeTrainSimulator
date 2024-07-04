@@ -34,6 +34,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
 using GetText;

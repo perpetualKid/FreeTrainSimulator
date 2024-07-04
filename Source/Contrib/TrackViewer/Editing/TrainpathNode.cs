@@ -39,6 +39,7 @@
 
 using System;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
 using Orts.Common;

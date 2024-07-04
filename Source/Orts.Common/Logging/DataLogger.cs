@@ -21,6 +21,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
+
 namespace Orts.Common.Logging
 {
     public class DataLogger : IDisposable

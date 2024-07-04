@@ -34,6 +34,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using FreeTrainSimulator.Common;
+
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;

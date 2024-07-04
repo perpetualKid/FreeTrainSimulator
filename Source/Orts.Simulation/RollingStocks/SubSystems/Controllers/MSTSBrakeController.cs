@@ -17,6 +17,8 @@
 
 using System;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Common;
 using Orts.Scripting.Api;
 

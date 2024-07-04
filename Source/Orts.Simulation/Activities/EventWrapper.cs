@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 
