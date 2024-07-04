@@ -20,6 +20,7 @@ using System.IO;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 
 using Orts.Common;
 using Orts.Common.Calc;
@@ -169,8 +170,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public override void Initialize()
         {
-            PantographFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(0.7f), 0.001f);
-            VoltageFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(0.7f), 0.001f);
+            PantographFilter = new IIRFilter(IIRFilterType.Butterworth, Frequency.Angular.HzToRad(0.7), 0.001);
+            VoltageFilter = new IIRFilter(IIRFilterType.Butterworth, Frequency.Angular.HzToRad(0.7), 0.001);
             
             PowerOnTimer = new Timer(this);
             PowerOnTimer.Setup(PowerOnDelayS());

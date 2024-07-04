@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 

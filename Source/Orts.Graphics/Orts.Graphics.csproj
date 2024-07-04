@@ -45,7 +45,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
-		<ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
 		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
 		<ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
 		<ProjectReference Include="..\Orts.Models\Orts.Models.csproj" />

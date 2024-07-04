@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Orts.Common.Calc;
+using FreeTrainSimulator.Common.Calc;
 
 namespace Orts.Formats.Msts.Parsers
 {

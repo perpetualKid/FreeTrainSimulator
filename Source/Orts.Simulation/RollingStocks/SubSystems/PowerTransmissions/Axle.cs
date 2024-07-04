@@ -20,6 +20,7 @@ using System.IO;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.Xna.Framework;
 

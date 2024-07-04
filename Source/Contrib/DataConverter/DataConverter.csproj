@@ -9,7 +9,6 @@
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
   </ItemGroup>
 </Project>

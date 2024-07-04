@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 
 using Orts.Common.Calc;

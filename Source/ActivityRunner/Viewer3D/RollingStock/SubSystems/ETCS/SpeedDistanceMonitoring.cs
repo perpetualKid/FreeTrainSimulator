@@ -20,6 +20,8 @@
 using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common.Calc;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 

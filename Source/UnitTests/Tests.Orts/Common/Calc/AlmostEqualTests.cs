@@ -1,5 +1,9 @@
 ﻿using System;
+
+using FreeTrainSimulator.Common.Calc;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using Orts.Common.Calc;
 
 namespace Tests.Orts.Common.Calc

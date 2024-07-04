@@ -1,31 +1,13 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2013 by the Open Rails project.
-//
-// This file is part of Open Rails.
-//
-// Open Rails is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Open Rails is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
-
-using System;
+﻿using System;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 
+using FreeTrainSimulator.Common.Calc;
+
 using GetText;
 
-using Orts.Common.Calc;
-
-namespace Orts.Common
+namespace FreeTrainSimulator.Common
 {
     /// <summary>
     /// Class to convert various quantities (so a value with a unit) into nicely formatted strings for display
@@ -109,53 +91,51 @@ namespace Orts.Common
         /// <summary>
         /// Formatted unlocalized speed string, used in reports and logs.
         /// </summary>
-        public static string FormatSpeed(double speed, bool isMetric)
+        public static string FormatSpeed(double speed, bool metric)
         {
             return string.Format(CultureInfo.CurrentCulture,
-                "{0:F1}{1}", Speed.MeterPerSecond.FromMpS(speed, isMetric), isMetric ? kmph : mph);
+                "{0:F1}{1}", Speed.MeterPerSecond.FromMpS(speed, metric), metric ? kmph : mph);
         }
 
         /// <summary>
         /// Formatted localized speed string, used to display tracking speed, with 1 decimal precision
         /// </summary>
-        public static string FormatSpeedDisplay(double speed, bool isMetric)
+        public static string FormatSpeedDisplay(double speed, bool metric)
         {
             return string.Format(CultureInfo.CurrentCulture,
-                "{0:F1} {1}", Speed.MeterPerSecond.FromMpS(speed, isMetric), isMetric ? kmph : mph);
+                "{0:F1} {1}", Speed.MeterPerSecond.FromMpS(speed, metric), metric ? kmph : mph);
         }
 
         /// <summary>
         /// Formatted localized speed string, used to display speed limits, with 0 decimal precision
         /// </summary>
-        public static string FormatSpeedLimit(double speed, bool isMetric)
+        public static string FormatSpeedLimit(double speed, bool metric)
         {
             return string.Format(CultureInfo.CurrentCulture,
-                "{0:F0} {1}", Speed.MeterPerSecond.FromMpS(speed, isMetric), isMetric ? kmph : mph);
+                "{0:F0} {1}", Speed.MeterPerSecond.FromMpS(speed, metric), metric ? kmph : mph);
         }
 
         /// <summary>
         /// Formatted localized speed string, used to display speed limits, with 0 decimal precision and no unit of measure
         /// </summary>
-        public static string FormatSpeedLimitNoUoM(double speed, bool isMetric)
+        public static string FormatSpeedLimitNoUoM(double speed, bool metric)
         {
             return string.Format(CultureInfo.CurrentCulture,
-                "{0:F0}", Speed.MeterPerSecond.FromMpS(speed, isMetric));
+                "{0:F0}", Speed.MeterPerSecond.FromMpS(speed, metric));
         }
 
         /// <summary>
         /// Formatted unlocalized distance string, used in reports and logs.
         /// </summary>
-        public static string FormatDistance(double distance, bool isMetric)
+        public static string FormatDistance(double distance, bool metric)
         {
-            if (isMetric)
-            {
+            if (metric)
                 // <0.1 kilometres, show metres.
                 return Math.Abs(distance) < 100
                     ? string.Format(CultureInfo.CurrentCulture,
                         "{0:N0}m", distance)
                     : string.Format(CultureInfo.CurrentCulture,
                     "{0:F1}km", Size.Length.ToKM(distance));
-            }
             // <0.1 miles, show yards.
             return Math.Abs(distance) < Size.Length.FromMi(0.1)
                 ? string.Format(CultureInfo.CurrentCulture, "{0:N0}yd", Size.Length.ToYd(distance))
@@ -165,31 +145,29 @@ namespace Orts.Common
         /// <summary>
         /// Formatted localized distance string, as displayed in in-game windows
         /// </summary>
-        public static string FormatDistanceDisplay(double distance, bool isMetric)
+        public static string FormatDistanceDisplay(double distance, bool metric)
         {
-            if (isMetric)
-            {
+            if (metric)
                 // <0.1 kilometres, show metres.
                 return Math.Abs(distance) < 100
                     ? string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", distance, m)
                     : string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToKM(distance), km);
-            }
             // <0.1 miles, show yards.
             return Math.Abs(distance) < Size.Length.FromMi(0.1)
                 ? string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", Size.Length.ToYd(distance), yd)
                 : string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToMi(distance), mi);
         }
 
-        public static string FormatShortDistanceDisplay(double distanceM, bool isMetric)
+        public static string FormatShortDistanceDisplay(double distanceM, bool metric)
         {
-            return isMetric
+            return metric
                 ? string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", distanceM, m)
                 : string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", Size.Length.ToFt(distanceM), ft);
         }
 
-        public static string FormatVeryShortDistanceDisplay(double distanceM, bool isMetric)
+        public static string FormatVeryShortDistanceDisplay(double distanceM, bool metric)
         {
-            return isMetric
+            return metric
                 ? string.Format(CultureInfo.CurrentCulture, "{0:N3} {1}", distanceM, m)
                 : string.Format(CultureInfo.CurrentCulture, "{0:N3} {1}", Size.Length.ToFt(distanceM), ft);
         }
@@ -198,10 +176,10 @@ namespace Orts.Common
         /// format localized mass string, as displayed in in-game windows.
         /// </summary>
         /// <param name="massKg">mass in kg or in Lb</param>
-        /// <param name="isMetric">use kg if true, Lb if false</param>
-        public static string FormatMass(double mass, bool isMetric)
+        /// <param name="metric">use kg if true, Lb if false</param>
+        public static string FormatMass(double mass, bool metric)
         {
-            if (isMetric)
+            if (metric)
             {
                 // < 1 tons, show kilograms.
                 double tonnes = Mass.Kilogram.ToTonnes(mass);
@@ -210,91 +188,89 @@ namespace Orts.Common
                     : string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", mass, kg);
             }
             else
-            {
-                return string.Format(CultureInfo.CurrentCulture,"{0:F0} {1}", Mass.Kilogram.ToLb(mass), lb);
-            }
+                return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", Mass.Kilogram.ToLb(mass), lb);
         }
 
         /// <summary>
         /// format localized mass string, as displayed in in-game windows, to Metric Kg/Tonne or UK or British Tons
         /// </summary>
-        public static string FormatLargeMass(double mass, bool isMetric, bool isUK)
+        public static string FormatLargeMass(double mass, bool metric, bool isUK)
         {
-            if (isMetric)
-                return FormatMass(mass, isMetric);
+            if (metric)
+                return FormatMass(mass, metric);
 
             double massT = isUK ? Mass.Kilogram.ToTonsUK(mass) : Mass.Kilogram.ToTonsUS(mass);
-            return massT > 1 ? string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", massT, isUK ? tonUK : tonUS) : FormatMass(mass, isMetric);
+            return massT > 1 ? string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", massT, isUK ? tonUK : tonUS) : FormatMass(mass, metric);
         }
 
         /// <summary>
         /// Format localized area
         /// </summary>
-        public static string FormatArea(double area, bool isMetric)
+        public static string FormatArea(double area, bool metric)
         {
-            area = isMetric ? area : Size.Area.ToFt2(area);
-            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", area, isMetric ? m2 : ft2);
+            area = metric ? area : Size.Area.ToFt2(area);
+            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", area, metric ? m2 : ft2);
         }
 
         /// <summary>
         /// Format localized qubic volume
         /// </summary>
-        public static string FormatVolume(double volume, bool isMetric)
+        public static string FormatVolume(double volume, bool metric)
         {
-            volume = isMetric ? volume : Size.Volume.ToFt3(volume);
-            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", volume, isMetric ? m3 : ft3);
+            volume = metric ? volume : Size.Volume.ToFt3(volume);
+            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", volume, metric ? m3 : ft3);
         }
 
         /// <summary>
         /// Format localized liquid volume
         /// </summary>
-        public static string FormatFuelVolume(double volume, bool isMetric, bool isUK)
+        public static string FormatFuelVolume(double volume, bool metric, bool isUK)
         {
-            volume = isMetric ? volume : isUK ? Size.LiquidVolume.ToGallonUK(volume) : Size.LiquidVolume.ToGallonUS(volume);
-            return string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", volume, isMetric ? l : isUK ? galUK : galUS);
+            volume = metric ? volume : isUK ? Size.LiquidVolume.ToGallonUK(volume) : Size.LiquidVolume.ToGallonUS(volume);
+            return string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", volume, metric ? l : isUK ? galUK : galUS);
         }
 
-        public static string FormatPower(double power, bool isMetric, bool isImperialBHP, bool isImperialBTUpS)
+        public static string FormatPower(double power, bool metric, bool isImperialBHP, bool isImperialBTUpS)
         {
-            power = isMetric ? Dynamics.Power.ToKW(power) : 
-                isImperialBHP ? Dynamics.Power.ToBhp(power) : 
-                isImperialBTUpS ? Dynamics.Power.ToBTUpS(power) : 
+            power = metric ? Dynamics.Power.ToKW(power) :
+                isImperialBHP ? Dynamics.Power.ToBhp(power) :
+                isImperialBTUpS ? Dynamics.Power.ToBTUpS(power) :
                 Dynamics.Power.ToHp(power);
-            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", power, isMetric ? kW : isImperialBHP ? bhp : isImperialBTUpS ? $"{btu}/{s}" : hp);
+            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", power, metric ? kW : isImperialBHP ? bhp : isImperialBTUpS ? $"{btu}/{s}" : hp);
         }
 
-        public static string FormatForce(double force, bool isMetric)
+        public static string FormatForce(double force, bool metric)
         {
-            force = isMetric ? force : Dynamics.Force.ToLbf(force);
+            force = metric ? force : Dynamics.Force.ToLbf(force);
             bool kilo;
             if (kilo = Math.Abs(force) > 1e4f)
                 force *= 1e-3f;
-            string unit = isMetric ? kilo ? kN : n : kilo ? klbf : lbf;
+            string unit = metric ? kilo ? kN : n : kilo ? klbf : lbf;
             return string.Format(CultureInfo.CurrentCulture, kilo ? "{0:F1} {1}" : "{0:F0} {1}", force, unit);
         }
 
-        public static string FormatTemperature(double temperature, bool isMetric)
+        public static string FormatTemperature(double temperature, bool metric)
         {
-            temperature = isMetric ? temperature : Temperature.Celsius.ToF(temperature);
-            return string.Format(CultureInfo.CurrentCulture, "{0:F0}{1}", temperature, isMetric ? c : f);
+            temperature = metric ? temperature : Temperature.Celsius.ToF(temperature);
+            return string.Format(CultureInfo.CurrentCulture, "{0:F0}{1}", temperature, metric ? c : f);
         }
 
-        public static string FormatEnergyDensityByMass(double energyDensity, bool isMetric)
+        public static string FormatEnergyDensityByMass(double energyDensity, bool metric)
         {
-            energyDensity = isMetric ? energyDensity : Energy.Density.Mass.ToBTUpLb(energyDensity);
-            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}/{2}", energyDensity, isMetric ? kJ : btu, isMetric ? kg : lb);
+            energyDensity = metric ? energyDensity : Energy.Density.Mass.ToBTUpLb(energyDensity);
+            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}/{2}", energyDensity, metric ? kJ : btu, metric ? kg : lb);
         }
 
-        public static string FormatEnergyDensityByVolume(double energyDensity, bool isMetric)
+        public static string FormatEnergyDensityByVolume(double energyDensity, bool metric)
         {
-            energyDensity = isMetric ? energyDensity : Energy.Density.Volume.ToBTUpFt3(energyDensity);
-            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}/{2}", energyDensity, isMetric ? kJ : btu, $"{(isMetric ? m : ft)}³");
+            energyDensity = metric ? energyDensity : Energy.Density.Volume.ToBTUpFt3(energyDensity);
+            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}/{2}", energyDensity, metric ? kJ : btu, $"{(metric ? m : ft)}³");
         }
 
-        public static string FormatEnergy(double energy, bool isMetric)
+        public static string FormatEnergy(double energy, bool metric)
         {
-            energy = isMetric ? energy * 1e-6f : Dynamics.Power.ToBTUpS(energy);
-            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", energy, isMetric ? MJ : btu);
+            energy = metric ? energy * 1e-6f : Dynamics.Power.ToBTUpS(energy);
+            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", energy, metric ? MJ : btu);
         }
 
         /// <summary>

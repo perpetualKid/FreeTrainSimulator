@@ -17,7 +17,7 @@
 
 using System;
 
-namespace Orts.Common.Calc
+namespace FreeTrainSimulator.Common.Calc
 {
     public static class AlmostEqualExtension
     {
@@ -31,7 +31,7 @@ namespace Orts.Common.Calc
         /// <returns></returns>
         public static bool AlmostEqual(this float value, float other, float tolerance)
         {
-            return Math.Round((Math.Abs(value - other)), 4) <= tolerance;       //added rounding to overcome float imprecision. Using max fractional 4 digits 
+            return Math.Round(Math.Abs(value - other), 4) <= tolerance;       //added rounding to overcome float imprecision. Using max fractional 4 digits 
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Orts.Common.Calc
         /// <returns></returns>
         public static bool AlmostEqual(this double value, double other, double tolerance)
         {
-            return Math.Round((Math.Abs(value - other)), 4) <= tolerance;       //added rounding to overcome float imprecision. Using max fractional 4 digits 
+            return Math.Round(Math.Abs(value - other), 4) <= tolerance;       //added rounding to overcome float imprecision. Using max fractional 4 digits 
         }
     }
 }

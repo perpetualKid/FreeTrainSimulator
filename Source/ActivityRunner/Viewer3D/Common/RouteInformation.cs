@@ -3,7 +3,6 @@ using FreeTrainSimulator.Common.DebugInfo;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;

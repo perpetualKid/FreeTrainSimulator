@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Calc;
 
 using Orts.Common;
 using Orts.Common.Calc;

@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Launcher", "Launcher\Launch
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Formats.Msts", "Orts.Formats.Msts\Orts.Formats.Msts.csproj", "{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Common", "Orts.Common\Orts.Common.csproj", "{DA94D876-7D35-46C3-AECE-AFACE72C686C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Settings", "Orts.Settings\Orts.Settings.csproj", "{67F84996-8769-4FD8-819B-464AF269037B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Updater", "Orts.Updater\Orts.Updater.csproj", "{88108A94-0389-43FF-A75C-C55BD202FC8D}"
@@ -66,7 +64,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Multiplayer.Shared", "Multi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Common", "FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj", "{AFD0548E-86FA-4586-A7DC-F19A8C48450B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.FreeTrainSimulator", "Test\Tests.FreeTrainSimulator\Tests.FreeTrainSimulator.csproj", "{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.FreeTrainSimulator", "Test\Tests.FreeTrainSimulator\Tests.FreeTrainSimulator.csproj", "{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -86,10 +84,6 @@ Global
 		{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DA94D876-7D35-46C3-AECE-AFACE72C686C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DA94D876-7D35-46C3-AECE-AFACE72C686C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DA94D876-7D35-46C3-AECE-AFACE72C686C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DA94D876-7D35-46C3-AECE-AFACE72C686C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{67F84996-8769-4FD8-819B-464AF269037B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{67F84996-8769-4FD8-819B-464AF269037B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67F84996-8769-4FD8-819B-464AF269037B}.Release|Any CPU.ActiveCfg = Release|Any CPU

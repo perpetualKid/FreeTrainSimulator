@@ -2,10 +2,10 @@
 using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 
 using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models

@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 
 using Microsoft.Xna.Framework;

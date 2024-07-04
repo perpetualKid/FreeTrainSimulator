@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;

@@ -11,7 +11,6 @@
     <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
   </ItemGroup>
 </Project>

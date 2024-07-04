@@ -10,7 +10,6 @@
 	<ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />
   </ItemGroup>
 </Project>

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Linq;
 
+using FreeTrainSimulator.Common.Calc;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using Orts.Common.Calc;
 
-using static Orts.Common.Calc.Frequency;
+using static FreeTrainSimulator.Common.Calc.Frequency;
 
 namespace Tests.Orts.Common.Calc
 {

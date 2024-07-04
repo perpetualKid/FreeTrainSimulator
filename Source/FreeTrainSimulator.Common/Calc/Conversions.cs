@@ -1,23 +1,7 @@
 ﻿using System;
 
-namespace Orts.Common.Calc
+namespace FreeTrainSimulator.Common.Calc
 {
-    // Classes are provided for converting into and out of these internal units.
-    // OR will use metric units (m, kg, s, A, 'C) for internal properties and calculations, preferably from SI (m/s, not km/hr).
-    // Use these classes rather than in-line literal factors.
-    //
-    // For example to convert a number from metres to inches, use "DiameterIn = M.ToIn(DiameterM);"
-    //
-    // Many units begin with a lowercase letter (kg, kW, in, lb) but capitalised here (Kg, KW, In, Lb) for ease of reading.
-    //
-    //  //2019-07 below comment is questionable but not further investigated one way or another
-    // Web research suggests that VC++ will optimize "/ 2.0" replacing it with "* 0.5f" but VC# will not and cost is around 15 cycles.
-    // To prevent this, we replace "/ 2.0f" by "(1.0f / 2.0f)", which will be replaced by "*0.5f" already in CIL code (verified in CIL).
-    // This enables us to use the same number for both directions of conversion, while not costing any speed.
-    //
-    // Also because of performance reasons, derived quantities still are hard-coded, instead of calling basic conversions and do multiplication
-    //
-
 #pragma warning disable CA1034 // Nested types should not be visible
     /// <summary>
     /// Frequency conversions
@@ -36,7 +20,7 @@ namespace Orts.Common.Calc
             /// <returns>Frequency in Hertz</returns>
             public static double RadToHz(double rad)
             {
-                return (rad / (2 * Math.PI));
+                return rad / (2 * Math.PI);
             }
 
             /// <summary>
@@ -46,7 +30,7 @@ namespace Orts.Common.Calc
             /// <returns>Frequency in radians per second</returns>
             public static double HzToRad(double hz)
             {
-                return (2 * Math.PI * hz);
+                return 2 * Math.PI * hz;
             }
         }
 
@@ -102,18 +86,12 @@ namespace Orts.Common.Calc
             public static int Latest(int timeOfDay1, int timeOfDay2)
             {
                 if (timeOfDay1 > sixteenHundredHours && timeOfDay2 < eightHundredHours)
-                {
-                    return (timeOfDay2);
-                }
+                    return timeOfDay2;
                 else if (timeOfDay1 < eightHundredHours && timeOfDay2 > sixteenHundredHours)
-                {
-                    return (timeOfDay1);
-                }
+                    return timeOfDay1;
                 else if (timeOfDay1 > timeOfDay2)
-                {
-                    return (timeOfDay1);
-                }
-                return (timeOfDay2);
+                    return timeOfDay1;
+                return timeOfDay2;
             }
 
             /// <summary>
@@ -122,18 +100,12 @@ namespace Orts.Common.Calc
             public static int Earliest(int timeOfDay1, int timetimeOfDay2)
             {
                 if (timeOfDay1 > sixteenHundredHours && timetimeOfDay2 < eightHundredHours)
-                {
-                    return (timeOfDay1);
-                }
+                    return timeOfDay1;
                 else if (timeOfDay1 < eightHundredHours && timetimeOfDay2 > sixteenHundredHours)
-                {
-                    return (timetimeOfDay2);
-                }
+                    return timetimeOfDay2;
                 else if (timeOfDay1 > timetimeOfDay2)
-                {
-                    return (timetimeOfDay2);
-                }
-                return (timeOfDay1);
+                    return timetimeOfDay2;
+                return timeOfDay1;
             }
         }
     }
@@ -311,9 +283,9 @@ namespace Orts.Common.Calc
         public static class Resistance
         {
             /// <summary>Convert from pound-force per mile per hour to Newton per meter per second</summary>
-            public static double FromLbfpMpH(double lbfMpH) { return (Force.FromLbf(lbfMpH) / Speed.MeterPerSecond.FromMpH(1)); }
+            public static double FromLbfpMpH(double lbfMpH) { return Force.FromLbf(lbfMpH) / Speed.MeterPerSecond.FromMpH(1); }
             /// <summary>Convert from pound-force per mile per hour squared to Newton per meter per second</summary>
-            public static double FromLbfpMpH2(double lbfMpH) { return (Force.FromLbf(lbfMpH) / (Speed.MeterPerSecond.FromMpH(1) * Speed.MeterPerSecond.FromMpH(1))); }
+            public static double FromLbfpMpH2(double lbfMpH) { return Force.FromLbf(lbfMpH) / (Speed.MeterPerSecond.FromMpH(1) * Speed.MeterPerSecond.FromMpH(1)); }
         }
 
         /// <summary>

@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Simulation.RollingStocks;
 
-using static Orts.Common.Calc.Dynamics;
+using static FreeTrainSimulator.Common.Calc.Dynamics;
 
 namespace Orts.Simulation.Physics
 {

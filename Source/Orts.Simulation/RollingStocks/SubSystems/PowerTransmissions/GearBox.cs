@@ -29,6 +29,7 @@ using FreeTrainSimulator.Common.Api;
 using Orts.Models.State;
 using System.Threading.Tasks;
 using SharpDX.Direct2D1;
+using FreeTrainSimulator.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {

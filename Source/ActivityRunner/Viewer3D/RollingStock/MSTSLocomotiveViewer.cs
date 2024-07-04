@@ -28,6 +28,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
@@ -39,7 +40,6 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs;
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;

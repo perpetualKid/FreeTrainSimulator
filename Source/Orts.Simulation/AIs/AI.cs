@@ -31,6 +31,7 @@ using System.IO;
 using System.Threading;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 
 using Orts.Common;
 using Orts.Common.Calc;

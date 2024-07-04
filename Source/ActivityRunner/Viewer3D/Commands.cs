@@ -18,7 +18,6 @@
 // This file is the responsibility of the 3D & Environment Team.
 
 using System;
-using Orts.Common;
 using Orts.ActivityRunner.Viewer3D.PopupWindows;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Simulation.Commanding;

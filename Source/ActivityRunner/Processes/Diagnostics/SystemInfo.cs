@@ -7,7 +7,6 @@ using FreeTrainSimulator.Common.Info;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Processes.Diagnostics

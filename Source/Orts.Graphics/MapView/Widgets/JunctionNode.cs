@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 

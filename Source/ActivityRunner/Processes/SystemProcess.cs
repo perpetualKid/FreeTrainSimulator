@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 
 using Microsoft.Xna.Framework;

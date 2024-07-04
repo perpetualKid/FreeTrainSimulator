@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 
 using Orts.Common;
 using Orts.Common.Calc;

@@ -24,6 +24,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;

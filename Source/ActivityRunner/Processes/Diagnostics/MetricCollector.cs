@@ -2,6 +2,7 @@
 using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.Xna.Framework;
 

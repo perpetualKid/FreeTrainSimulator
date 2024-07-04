@@ -23,6 +23,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 

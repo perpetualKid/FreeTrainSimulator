@@ -12,7 +12,6 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics;

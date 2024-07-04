@@ -7,7 +7,6 @@
     <RootNamespace>Orts.Models</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
     <PackageReference Include="GetText.NET" Version="1.9.14" />

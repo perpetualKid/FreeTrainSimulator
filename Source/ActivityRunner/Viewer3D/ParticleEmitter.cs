@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
@@ -365,9 +366,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
                     // Target/final velocity vaies in X, Y and Z.
                     var targetVelocity = globalTargetVelocity;
-                    targetVelocity.X += Noise.Generate(time + PerlinStart[0]) * ParticleEmitterViewer.SpreadRate;
-                    targetVelocity.Y += Noise.Generate(time + PerlinStart[1]) * ParticleEmitterViewer.SpreadRate;
-                    targetVelocity.Z += Noise.Generate(time + PerlinStart[2]) * ParticleEmitterViewer.SpreadRate;
+                    targetVelocity.X += (float)Noise.Generate(time + PerlinStart[0]) * ParticleEmitterViewer.SpreadRate;
+                    targetVelocity.Y += (float)Noise.Generate(time + PerlinStart[1]) * ParticleEmitterViewer.SpreadRate;
+                    targetVelocity.Z += (float)Noise.Generate(time + PerlinStart[2]) * ParticleEmitterViewer.SpreadRate;
 
                     // Add wind speed
                     targetVelocity.X += windDisplacementX;
@@ -379,7 +380,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     for (var j = 0; j < VerticiesPerParticle; j++)
                     {
                         Vertices[vertex + j].StartPosition_StartTime = new Vector4(position, time);
-                        Vertices[vertex + j].InitialVelocity_EndTime = new Vector4(initialVelocity, time + duration);
+                        Vertices[vertex + j].InitialVelocity_EndTime = new Vector4(initialVelocity, (float)(time + duration));
                         Vertices[vertex + j].TargetVelocity_TargetTime = new Vector4(targetVelocity, ParticleEmitterViewer.DecelerationTime);
                         Vertices[vertex + j].TileXY_Vertex_ID = new Vector4(positionSource.WorldPosition.Tile.X, positionSource.WorldPosition.Tile.Z, j, texture);
                         Vertices[vertex + j].Color_Random = color_Random;

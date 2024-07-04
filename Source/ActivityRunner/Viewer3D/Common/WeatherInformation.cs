@@ -3,7 +3,6 @@ using FreeTrainSimulator.Common.DebugInfo;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Common

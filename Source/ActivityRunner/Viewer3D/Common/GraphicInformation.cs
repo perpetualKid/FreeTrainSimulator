@@ -6,7 +6,6 @@ using FreeTrainSimulator.Common.DebugInfo;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
-using Orts.Common;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {

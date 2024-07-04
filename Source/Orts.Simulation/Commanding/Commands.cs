@@ -20,8 +20,6 @@
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using System;
 using System.Diagnostics;   // Used by Trace.Warnings
-
-using Orts.Common;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;

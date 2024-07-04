@@ -9,6 +9,6 @@
     <PackageReference Include="GetText.NET" Version="1.9.14" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
+    <ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
   </ItemGroup>
 </Project>

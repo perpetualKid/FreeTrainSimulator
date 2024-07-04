@@ -1,23 +1,6 @@
-﻿// COPYRIGHT 2010, 2011, 2012 by the Open Rails project.
-// 
-// This file is part of Open Rails.
-// 
-// Open Rails is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// Open Rails is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
+﻿using System;
 
-using System;
-
-namespace Orts.Common.Calc
+namespace FreeTrainSimulator.Common.Calc
 {
     /// <summary>
     /// Interpolated table lookup
@@ -72,7 +55,6 @@ namespace Orts.Common.Calc
             get
             {
                 if (x < xArray[prevIndex] || x > xArray[prevIndex + 1])
-                {
                     if (x < xArray[1])
                         prevIndex = 0;
                     else if (x > xArray[size - 2])
@@ -91,7 +73,6 @@ namespace Orts.Common.Calc
                         }
                         prevIndex = i;
                     }
-                }
                 double d = xArray[prevIndex + 1] - xArray[prevIndex];
                 double a = (xArray[prevIndex + 1] - x) / d;
                 double b = (x - xArray[prevIndex]) / d;
@@ -127,10 +108,8 @@ namespace Orts.Common.Calc
         public bool CheckForNegativeValue()
         {
             for (int i = 1; i < size; i++)
-            {
                 if (yArray[i] < 0)
                     return true;
-            }
             return false;
         }
 
@@ -145,10 +124,8 @@ namespace Orts.Common.Calc
             for (int i = 0; i < size; i++)
                 yArray[i] *= factor;
             if (y2Array != null)
-            {
                 for (int i = 0; i < size; i++)
                     y2Array[i] *= factor;
-            }
         }
 
         public void ComputeSpline()
@@ -181,9 +158,7 @@ namespace Orts.Common.Calc
                     sig * u[i - 1]) / p;
             }
             if (yp2 == null)
-            {
                 y2Array[size - 1] = 0;
-            }
             else
             {
                 double d = xArray[size - 1] - xArray[size - 2];
@@ -231,21 +206,19 @@ namespace Orts.Common.Calc
         //            outf.Write(y2Array[i]);
         //}
 
-        public int Size => (xArray.Length == yArray.Length) ? size : -1;
+        public int Size => xArray.Length == yArray.Length ? size : -1;
 
         public bool CheckForConsistentIncrease(double step)
         {
             bool result = false;
             double value = yArray[0];
             for (int i = 1; i < size; i++)
-            {
                 if (yArray[i] <= value)
                 {
                     step = value + step;
                     yArray[i] = step;
                     result = true;
                 }
-            }
             return result;
         }
     }
@@ -287,7 +260,6 @@ namespace Orts.Common.Calc
         public double Get(double x, double y)
         {
             if (x < xArray[prevIndex] || x > xArray[prevIndex + 1])
-            {
                 if (x < xArray[1])
                     prevIndex = 0;
                 else if (x > xArray[size - 2])
@@ -306,7 +278,6 @@ namespace Orts.Common.Calc
                     }
                     prevIndex = i;
                 }
-            }
             double d = xArray[prevIndex + 1] - xArray[prevIndex];
             double a = (xArray[prevIndex + 1] - x) / d;
             double b = (x - xArray[prevIndex]) / d;
@@ -349,13 +320,11 @@ namespace Orts.Common.Calc
             {
                 int size = yArray[i].Size;
                 for (int j = 0; j < size; j++)
-                {
                     if (yArray[i].CheckForNegativeValue())
                     {
                         HasNegativeValues = true;
                         return;
                     }
-                }
             }
         }
     }

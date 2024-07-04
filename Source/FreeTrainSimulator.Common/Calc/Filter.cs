@@ -1,23 +1,6 @@
-﻿// COPYRIGHT 2011 by the Open Rails project.
-// 
-// This file is part of Open Rails.
-// 
-// Open Rails is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// Open Rails is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
+﻿using System;
 
-using System;
-
-namespace Orts.Common.Calc
+namespace FreeTrainSimulator.Common.Calc
 {
     public enum IIRFilterType
     {
@@ -48,7 +31,6 @@ namespace Orts.Common.Calc
     /// 
     /// Note: Sampling frequency MUST be always higher than cutoff frequency - if variable sampling period is used the Filter() function
     /// checks this condition and is skipped if not passed (may cause problems with result stability)
-    /// 
     /// </summary>
     public class IIRFilter
     {
@@ -127,10 +109,9 @@ namespace Orts.Common.Calc
         /// Creates an instance of IIRFilter class
         /// </summary>
         /// <param name="type">Filter type</param>
-        /// <param name="order">Filter order</param>
         /// <param name="cutoffFrequency">Filter cutoff frequency in radians per second</param>
         /// <param name="samplingPeriod">Filter sampling period</param>
-        public IIRFilter(IIRFilterType type, int order, double cutoffFrequency, double samplingPeriod)
+        public IIRFilter(IIRFilterType type, double cutoffFrequency, double samplingPeriod)
         {
             aCoef = new double[2];
             bCoef = new double[2];
@@ -142,7 +123,7 @@ namespace Orts.Common.Calc
             {
                 case IIRFilterType.Butterworth:
 
-                    ComputeButterworth(order, cutoffFrequency, samplingPeriod);
+                    ComputeButterworth(cutoffFrequency, samplingPeriod);
                     break;
                 default:
                     throw new NotImplementedException("Other filter types are not implemented yet.");
@@ -159,13 +140,7 @@ namespace Orts.Common.Calc
         /// </summary>
         public double CutoffFrequencyRadpS
         {
-            set
-            {
-                if (value >= 0.0)
-                    cuttoffFreqRadpS = value;
-                else
-                    throw new NotSupportedException("Filter cutoff frequency must be positive number");
-            }
+            set => cuttoffFreqRadpS = value >= 0.0 ? value : throw new NotSupportedException("Filter cutoff frequency must be positive number");
             get => cuttoffFreqRadpS;
         }
 
@@ -174,17 +149,9 @@ namespace Orts.Common.Calc
         /// </summary>
         public double SamplingPeriod
         {
-            set
-            {
-                if (value >= 0.0)
-                    samplingPeriod = value;
-                else
-                    throw new NotSupportedException("Sampling period must be positive number");
-            }
+            set => samplingPeriod = value >= 0.0 ? value : throw new NotSupportedException("Sampling period must be positive number");
             get => samplingPeriod;
         }
-
-        public int Order { set; get; }
 
         public IIRFilterType FilterType { set; get; }
 
@@ -228,12 +195,10 @@ namespace Orts.Common.Calc
                 case IIRFilterType.Butterworth:
                     if (samplingPeriod != this.samplingPeriod)
                     {
-                        if ((1 / (samplingPeriod) < Frequency.Angular.RadToHz(cuttoffFreqRadpS)))
-                        {
+                        if (1 / samplingPeriod < Frequency.Angular.RadToHz(cuttoffFreqRadpS))
                             //Reset();
                             return sample;
-                        }
-                        ComputeButterworth(Order, cuttoffFreqRadpS, this.samplingPeriod = samplingPeriod);
+                        ComputeButterworth(cuttoffFreqRadpS, this.samplingPeriod = samplingPeriod);
                     }
                     break;
                 default:
@@ -249,9 +214,7 @@ namespace Orts.Common.Calc
             x[0] = sample;
             y[0] = aCoef[0] * x[0];
             for (int n = 1; n < numberCoefficients; n++)
-            {
                 y[0] = y[0] + aCoef[n] * x[n] - bCoef[n] * y[n];
-            }
 
             return y[0];
         }
@@ -273,10 +236,8 @@ namespace Orts.Common.Calc
         /// <param name="initValue">Initial value</param>
         public void Reset(double initValue)
         {
-            for (double t = 0; t < (10.0 * cuttoffFreqRadpS); t += 0.1)
-            {
+            for (double t = 0; t < 10.0 * cuttoffFreqRadpS; t += 0.1)
                 Filter(initValue, 0.1f);
-            }
         }
 
         /// <summary>
@@ -334,21 +295,20 @@ namespace Orts.Common.Calc
         /// <param name="cutoffFrequency">Cuttof frequency in rad/s</param>
         /// <param name="samplingPeriod">Sampling period</param>
 #pragma warning disable CA1801 // Review unused parameters
-        private void ComputeButterworth(int order, double cutoffFrequency, double samplingPeriod)
+        private void ComputeButterworth(double cutoffFrequency, double samplingPeriod)
 #pragma warning restore CA1801 // Review unused parameters
         {
             double Ts_p = 0.5;
             double w_cd_p = 2 / Ts_p * Math.Tan(cutoffFrequency * samplingPeriod / 2.0);
 
             //a1
-            aCoef[0] = (w_cd_p * Ts_p) / (2.0 + w_cd_p * Ts_p);
+            aCoef[0] = w_cd_p * Ts_p / (2.0 + w_cd_p * Ts_p);
             //a2
-            aCoef[1] = (w_cd_p * Ts_p) / (2.0 + w_cd_p * Ts_p);
+            aCoef[1] = w_cd_p * Ts_p / (2.0 + w_cd_p * Ts_p);
             //b1 = always 1.0
             bCoef[0] = 1.0;
             //b2
             bCoef[1] = (w_cd_p * Ts_p - 2.0) / (2.0 + w_cd_p * Ts_p);
-
         }
     }
 }

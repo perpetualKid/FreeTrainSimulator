@@ -28,6 +28,7 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
@@ -45,7 +46,6 @@ using Orts.ActivityRunner.Viewer3D.Environment;
 using Orts.ActivityRunner.Viewer3D.PopupWindows;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;

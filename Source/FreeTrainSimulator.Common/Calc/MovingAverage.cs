@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Orts.Common.Calc
+namespace FreeTrainSimulator.Common.Calc
 {
     public class MovingAverage
     {
@@ -27,10 +27,9 @@ namespace Orts.Common.Calc
         {
             buffer.Clear();
             for (int i = 0; i < size; i++)
-            {
                 buffer.Enqueue(value);
-            }
         }
+
         public void Initialize()
         {
             Initialize(0f);

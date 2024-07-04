@@ -31,7 +31,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Calc;
+using FreeTrainSimulator.Common.Calc;
 
 #region Original STFreader
 #if !NEW_READER

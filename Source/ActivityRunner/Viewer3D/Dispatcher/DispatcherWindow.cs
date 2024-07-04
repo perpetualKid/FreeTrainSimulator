@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;

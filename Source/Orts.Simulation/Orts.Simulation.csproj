@@ -17,7 +17,6 @@
 	</ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MultiPlayer.Shared\Multiplayer.Shared.csproj" />
-    <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
     <ProjectReference Include="..\Orts.Models\Orts.Models.csproj" />

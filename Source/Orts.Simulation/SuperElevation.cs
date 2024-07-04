@@ -18,6 +18,8 @@
 using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common.Calc;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Calc;

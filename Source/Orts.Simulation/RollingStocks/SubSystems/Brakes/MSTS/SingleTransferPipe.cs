@@ -18,8 +18,8 @@
 using System;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 
-using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
 

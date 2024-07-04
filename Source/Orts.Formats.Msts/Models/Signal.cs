@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;

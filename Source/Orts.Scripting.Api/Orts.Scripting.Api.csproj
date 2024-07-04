@@ -4,11 +4,11 @@
     <AssemblyTitle>Free Train Simulator Scripting API Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
-  </ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" />
 		<PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
 	</ItemGroup>
 </Project>

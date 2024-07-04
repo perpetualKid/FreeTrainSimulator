@@ -27,7 +27,7 @@ using Newtonsoft.Json;
 
 using ORTS.TrackViewer.Drawing;
 
-using static Orts.Common.Calc.Size;
+using static FreeTrainSimulator.Common.Calc.Size;
 
 namespace ORTS.TrackViewer.Editing.Charts
 {

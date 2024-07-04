@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
-
 namespace Orts.Scripting.Api
 {
     public abstract class BrakeController : TrainScriptBase

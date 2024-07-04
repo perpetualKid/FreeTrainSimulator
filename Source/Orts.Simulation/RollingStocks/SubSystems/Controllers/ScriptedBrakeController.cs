@@ -22,9 +22,9 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 
-using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
 using Orts.Models.State;

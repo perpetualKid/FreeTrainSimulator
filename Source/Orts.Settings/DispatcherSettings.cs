@@ -7,7 +7,6 @@ using System.Reflection;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
 using Orts.Settings.Store;
 
 namespace Orts.Settings

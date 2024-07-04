@@ -49,12 +49,11 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -486,8 +485,8 @@ namespace Orts.Simulation.RollingStocks
             BrakeCutsPowerAtBrakeCylinderPressurePSI = 4.0f;
 
             LocomotiveAxle = new Axle(AxleDriveType.ForceDriven);
-            currentFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(0.5f), 0.001f);
-            adhesionFilter = new IIRFilter(IIRFilterType.Butterworth, 1, Frequency.Angular.HzToRad(1f), 0.001f);
+            currentFilter = new IIRFilter(IIRFilterType.Butterworth, Frequency.Angular.HzToRad(0.5), 0.001);
+            adhesionFilter = new IIRFilter(IIRFilterType.Butterworth, Frequency.Angular.HzToRad(1.0), 0.001);
 
             TrainBrakeController = new ScriptedTrainBrakeController(this);
             EngineBrakeController = new ScriptedEngineBrakeController(this);

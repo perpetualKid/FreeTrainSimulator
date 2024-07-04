@@ -91,7 +91,6 @@
     <PackageReference Include="GetText.NET.WindowsForms" Version="1.9.14" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\..\Orts.Graphics\Orts.Graphics.csproj" />
   </ItemGroup>

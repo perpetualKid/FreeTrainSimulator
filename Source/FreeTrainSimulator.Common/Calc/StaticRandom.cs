@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Orts.Common.Calc
+namespace FreeTrainSimulator.Common.Calc
 {
     /// <summary>
     /// Thread-safe equivalent of System.Random, using just static methods.
@@ -27,13 +27,11 @@ namespace Orts.Common.Calc
         public static int Next()
         {
             lock (lockObj)
-            {
                 return random.Next();
-            }
         }
 
         /// <summary>
-        /// Returns a nonnegative random number less than the specified maximum. 
+        /// Returns a non negative random number less than the specified maximum. 
         /// </summary>
         /// <returns>
         /// A 32-bit signed integer greater than or equal to zero, and less than maxValue; 
@@ -43,9 +41,7 @@ namespace Orts.Common.Calc
         public static int Next(int max)
         {
             lock (lockObj)
-            {
                 return random.Next(max);
-            }
         }
 
         /// <summary>
@@ -65,9 +61,7 @@ namespace Orts.Common.Calc
         public static int Next(int min, int max)
         {
             lock (lockObj)
-            {
                 return random.Next(min, max);
-            }
         }
 
         /// <summary>
@@ -77,9 +71,7 @@ namespace Orts.Common.Calc
         public static double NextDouble()
         {
             lock (lockObj)
-            {
                 return random.NextDouble();
-            }
         }
 
         /// <summary>
@@ -90,9 +82,7 @@ namespace Orts.Common.Calc
         public static void NextBytes(byte[] buffer)
         {
             lock (lockObj)
-            {
                 random.NextBytes(buffer);
-            }
         }
 #pragma warning restore CA5394 // Do not use insecure randomness
     }
