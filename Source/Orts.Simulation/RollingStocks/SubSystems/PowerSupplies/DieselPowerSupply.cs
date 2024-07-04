@@ -21,7 +21,6 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
 using Orts.Formats.Msts.Parsers;
 using Orts.Models.State;
 using Orts.Scripting.Api;

@@ -2,7 +2,6 @@
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
 using Orts.Formats.OR.Parsers;
 
 namespace Orts.Formats.OR.Models

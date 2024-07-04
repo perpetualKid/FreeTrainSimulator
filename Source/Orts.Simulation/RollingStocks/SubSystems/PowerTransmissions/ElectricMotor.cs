@@ -17,7 +17,7 @@
 
 using System;
 
-using Orts.Common.Calc;
+using FreeTrainSimulator.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {

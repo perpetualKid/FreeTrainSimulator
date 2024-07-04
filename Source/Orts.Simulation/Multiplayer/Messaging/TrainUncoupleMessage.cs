@@ -8,8 +8,6 @@ using FreeTrainSimulator.Common.Calc;
 
 using MemoryPack;
 
-using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;

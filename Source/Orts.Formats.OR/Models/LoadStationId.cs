@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+
+using FreeTrainSimulator.Common;
 
 using Orts.Formats.OR.Parsers;
-using Orts.Common;
-using FreeTrainSimulator.Common;
 
 namespace Orts.Formats.OR.Models
 {

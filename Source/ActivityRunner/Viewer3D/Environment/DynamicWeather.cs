@@ -18,19 +18,16 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Formats.Msts.Models;
-using Orts.Simulation;
 using Orts.Models.State;
-using SharpDX.Direct2D1;
-using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Common.Calc;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment
 {

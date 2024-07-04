@@ -10,7 +10,6 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Calc;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;

@@ -5,8 +5,6 @@ using System.Diagnostics;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 
-using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;

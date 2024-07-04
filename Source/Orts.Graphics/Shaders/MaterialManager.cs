@@ -5,8 +5,6 @@ using FreeTrainSimulator.Common;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common;
-
 namespace Orts.Graphics.Shaders
 {
     public class MaterialManager

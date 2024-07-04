@@ -1,7 +1,5 @@
 ﻿using FreeTrainSimulator.Common;
 
-using Orts.Common;
-
 namespace Orts.ActivityRunner.Viewer3D.Sound
 {
     public enum SoundEventSource

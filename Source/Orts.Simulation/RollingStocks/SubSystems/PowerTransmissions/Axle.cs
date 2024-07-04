@@ -16,7 +16,6 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
@@ -24,10 +23,7 @@ using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Calc;
 using Orts.Models.State;
-
-using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
@@ -9,7 +8,6 @@ using FreeTrainSimulator.Common.Info;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common.Calc;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Window.Controls

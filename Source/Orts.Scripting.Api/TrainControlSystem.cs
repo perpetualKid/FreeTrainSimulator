@@ -8,9 +8,6 @@ using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
 
-using Microsoft.VisualBasic;
-
-using Orts.Common;
 using Orts.Scripting.Api.Etcs;
 
 namespace Orts.Scripting.Api

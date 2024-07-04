@@ -15,21 +15,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using Orts.Common;
-using Orts.Formats.Msts.Parsers;
-using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
-using System;
-using Orts.Common.Calc;
+using System.Threading.Tasks;
+
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
-using Orts.Models.State;
-using System.Threading.Tasks;
-using SharpDX.Direct2D1;
 using FreeTrainSimulator.Common.Calc;
+
+using Microsoft.Xna.Framework;
+
+using Orts.Formats.Msts.Parsers;
+using Orts.Models.State;
+using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {

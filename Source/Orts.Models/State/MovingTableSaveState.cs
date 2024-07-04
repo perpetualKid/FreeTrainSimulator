@@ -8,8 +8,6 @@ using MemoryPack;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-
 namespace Orts.Models.State
 {
 #pragma warning disable CA1815 // Override equals and operator equals on value types

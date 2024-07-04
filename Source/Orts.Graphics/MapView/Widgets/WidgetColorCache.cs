@@ -5,7 +5,6 @@ using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.MapView.Widgets

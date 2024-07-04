@@ -4,16 +4,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-using Orts.Models.Simplified;
 using Orts.Graphics.MapView;
-using Orts.Toolbox.PopupWindows;
-using Orts.Formats.Msts.Files;
 using Orts.Graphics.Xna;
-using Orts.Models.Track;
-using FreeTrainSimulator.Common;
+using Orts.Models.Simplified;
+using Orts.Toolbox.PopupWindows;
 
 namespace Orts.Toolbox
 {

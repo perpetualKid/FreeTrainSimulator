@@ -28,14 +28,11 @@
  */
 
 using System;
-using System.IO;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 
-using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;

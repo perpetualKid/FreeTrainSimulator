@@ -40,10 +40,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
-using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Simulation;
-using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
 namespace Orts.ActivityRunner.Viewer3D.WebServices

@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
@@ -7,8 +6,6 @@ using FreeTrainSimulator.Common.Api;
 using MemoryPack;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Common;
 
 namespace Orts.Models.State
 {

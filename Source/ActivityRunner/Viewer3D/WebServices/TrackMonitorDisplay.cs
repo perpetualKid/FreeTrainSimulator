@@ -24,12 +24,10 @@ using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.WebServices
 {

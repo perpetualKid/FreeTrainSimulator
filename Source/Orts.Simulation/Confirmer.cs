@@ -21,8 +21,6 @@ using System.Globalization;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
-
 namespace Orts.Simulation
 {
     public class DisplayMessageEventArgs : EventArgs

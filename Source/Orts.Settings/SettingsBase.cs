@@ -28,7 +28,6 @@ using FreeTrainSimulator.Common;
 
 using GetText;
 
-using Orts.Common;
 using Orts.Settings.Store;
 
 namespace Orts.Settings

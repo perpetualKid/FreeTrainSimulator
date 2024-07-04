@@ -30,7 +30,6 @@ using FreeTrainSimulator.Common.Info;
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Settings;
 using Orts.Updater;

@@ -36,7 +36,6 @@ using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Parsers;
@@ -46,10 +45,6 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Track;
 using Orts.Simulation.World;
-
-using SharpDX.Direct2D1;
-
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 namespace Orts.Simulation.Timetables
 {

@@ -38,7 +38,6 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
-using Orts.Common;
 using Orts.Settings;
 
 using VersionInfo = FreeTrainSimulator.Common.Info.VersionInfo;

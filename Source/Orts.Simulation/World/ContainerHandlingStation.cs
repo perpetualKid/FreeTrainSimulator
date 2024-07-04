@@ -31,7 +31,6 @@ using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Models;
 using Orts.Models.State;

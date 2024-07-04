@@ -7,7 +7,6 @@ using MemoryPack;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Formats.Msts;
 
 namespace Orts.Models.State

@@ -25,7 +25,6 @@ using FreeTrainSimulator.Common.Calc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common.Calc;
 using Orts.Graphics.Xna;
 using Orts.Scripting.Api.Etcs;
 

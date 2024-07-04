@@ -24,7 +24,6 @@ using System.Threading.Tasks.Dataflow;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
 using Orts.Formats.Msts.Files;
 
 namespace Orts.Models.Simplified

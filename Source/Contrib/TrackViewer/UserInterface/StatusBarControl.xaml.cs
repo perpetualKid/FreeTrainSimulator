@@ -16,16 +16,16 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
-using Orts.Common;
+
+using FreeTrainSimulator.Common.Position;
+
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Formats.Msts.Files;
-using ORTS.TrackViewer.Editing;
+
 using ORTS.TrackViewer.Drawing;
-using FreeTrainSimulator.Common.Position;
+using ORTS.TrackViewer.Editing;
 
 namespace ORTS.TrackViewer.UserInterface
 {

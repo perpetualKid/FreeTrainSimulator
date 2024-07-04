@@ -5,8 +5,6 @@ using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
 
-using Orts.Common;
-
 namespace Orts.Models.State
 {
     [MemoryPackable]

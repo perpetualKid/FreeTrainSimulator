@@ -7,9 +7,6 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
 
-using GetText;
-
-using Orts.Common;
 using Orts.Settings;
 using Orts.Settings.Util;
 

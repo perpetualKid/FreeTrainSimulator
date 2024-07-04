@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Orts.Common.Calc
+namespace FreeTrainSimulator.Common.Calc
 {
     public enum IntegratorMethod
     {
@@ -159,9 +159,7 @@ namespace Orts.Common.Calc
 
             //Skip when timeSpan is less then zero
             if (timeSpan <= 0.0f)
-            {
                 return Value;
-            }
 
             int count;
             //if (timeSpan > MinStep)
@@ -178,19 +176,16 @@ namespace Orts.Common.Calc
                 //    Method = IntegratorMethods.RungeKutta4;
             }
             else
-            {
                 if (--waitBeforeSpeedingUp <= 0)    //wait for a while before speeding up the integration
-                {
-                    count = --NumOfSubstepsPS;
-                    if (count < 1)
-                        count = 1;
+            {
+                count = --NumOfSubstepsPS;
+                if (count < 1)
+                    count = 1;
 
-                    waitBeforeSpeedingUp = 10;      //not so fast ;)
-                }
-                else
-                    count = NumOfSubstepsPS;
-                //IsStepDividing = false;
+                waitBeforeSpeedingUp = 10;      //not so fast ;)
             }
+            else
+                count = NumOfSubstepsPS;
 
             timeSpan /= count;
             NumOfSubstepsPS = count;
@@ -201,14 +196,13 @@ namespace Orts.Common.Calc
             #region SOLVERS
             //while ((step += timeSpan) <= end)
             for (step = timeSpan; step <= end; step += timeSpan)
-            {
                 switch (Method)
                 {
                     case IntegratorMethod.EulerBackward:
-                        Value += (derivation = timeSpan * value);
+                        Value += derivation = timeSpan * value;
                         break;
                     case IntegratorMethod.EulerBackMod:
-                        Value += (derivation = timeSpan / 2.0 * (previousValues[0] + value));
+                        Value += derivation = timeSpan / 2.0 * (previousValues[0] + value);
                         previousValues[0] = value;
                         break;
                     case IntegratorMethod.EulerForward:
@@ -217,14 +211,14 @@ namespace Orts.Common.Calc
                     case IntegratorMethod.RungeKutta2:
                         k1 = Value + timeSpan / 2 * value;
                         k2 = 2 * (k1 - Value) / timeSpan;
-                        Value += (derivation = timeSpan * k2);
+                        Value += derivation = timeSpan * k2;
                         break;
                     case IntegratorMethod.RungeKutta4:
                         k1 = timeSpan * value;
                         k2 = k1 + timeSpan / 2.0 * value;
                         k3 = k1 + timeSpan / 2.0 * k2;
                         double k4 = timeSpan * k3;
-                        Value += (derivation = (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0);
+                        Value += derivation = (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
                         break;
                     case IntegratorMethod.NewtonRhapson:
                         throw new NotImplementedException("Not implemented yet!");
@@ -246,17 +240,13 @@ namespace Orts.Common.Calc
                         throw new NotImplementedException("Not implemented yet!");
 
                 }
-                //To make sure the loop exits
-                //if (count-- < 0)
-                //    break;
-            }
 
             #endregion
 
             prevDerivation = derivation;
 
             //Limit if enabled
-            return IsLimited ? (Value <= min) ? (Value = min) : ((Value >= max) ? (Value = max) : Value) : Value;
+            return IsLimited ? Value <= min ? (Value = min) : Value >= max ? (Value = max) : Value : Value;
         }
 
         /// <summary>
@@ -274,9 +264,7 @@ namespace Orts.Common.Calc
 
             //Skip when timeSpan is less then zero
             if (timeSpan <= 0.0f)
-            {
                 return Value;
-            }
             int count;
             if (Math.Abs(prevDerivation) > Error)
             {
@@ -286,15 +274,13 @@ namespace Orts.Common.Calc
                 waitBeforeSpeedingUp = 100;
             }
             else
-            {
                 if (--waitBeforeSpeedingUp <= 0)    //wait for a while before speeding up the integration
-                {
-                    count = Math.Max(--NumOfSubstepsPS, 1);
-                    waitBeforeSpeedingUp = 10;      //not so fast ;)
-                }
-                else
-                    count = NumOfSubstepsPS;
+            {
+                count = Math.Max(--NumOfSubstepsPS, 1);
+                waitBeforeSpeedingUp = 10;      //not so fast ;)
             }
+            else
+                count = NumOfSubstepsPS;
 
             timeSpan /= count;
             NumOfSubstepsPS = count;
@@ -305,14 +291,13 @@ namespace Orts.Common.Calc
             #region SOLVERS
             //while ((step += timeSpan) <= end)
             for (step = timeSpan; step <= end; step += timeSpan)
-            {
                 switch (Method)
                 {
                     case IntegratorMethod.EulerBackward:
-                        Value += (derivation = timeSpan * value(Value));
+                        Value += derivation = timeSpan * value(Value);
                         break;
                     case IntegratorMethod.EulerBackMod:
-                        Value += (derivation = timeSpan / 2.0f * (previousValues[0] + value(Value)));
+                        Value += derivation = timeSpan / 2.0f * (previousValues[0] + value(Value));
                         previousValues[0] = value(Value);
                         break;
                     case IntegratorMethod.EulerForward:
@@ -321,14 +306,14 @@ namespace Orts.Common.Calc
                     case IntegratorMethod.RungeKutta2:
                         k1 = Value + timeSpan / 2 * value(Value);
                         k2 = 2 * (k1 - Value) / timeSpan;
-                        Value += (derivation = timeSpan * k2);
+                        Value += derivation = timeSpan * k2;
                         break;
                     case IntegratorMethod.RungeKutta4:
                         k1 = value(Value);
                         k2 = value(Value + k1 * timeSpan / 2.0f);
                         k3 = value(Value + k2 * timeSpan / 2.0f);
                         double k4 = value(Value + k3 * timeSpan);
-                        Value += (derivation = (k1 + 2.0f * k2 + 2.0f * k3 + k4) * timeSpan / 6.0f);
+                        Value += derivation = (k1 + 2.0f * k2 + 2.0f * k3 + k4) * timeSpan / 6.0f;
                         break;
                     case IntegratorMethod.NewtonRhapson:
                         throw new NotImplementedException("Not implemented yet!");
@@ -350,10 +335,6 @@ namespace Orts.Common.Calc
                         throw new NotImplementedException("Not implemented yet!");
 
                 }
-                //To make sure the loop exits
-                //if (count-- < 0)
-                //    break;
-            }
 
             #endregion
 

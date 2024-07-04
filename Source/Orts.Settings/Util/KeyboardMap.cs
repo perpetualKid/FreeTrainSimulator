@@ -9,8 +9,6 @@ using FreeTrainSimulator.Common.Input;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-
 namespace Orts.Settings.Util
 {
     /// <summary>

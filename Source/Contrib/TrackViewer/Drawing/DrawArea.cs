@@ -27,19 +27,10 @@
 // Note: screen (area and window) coordinates are given by x, y (from left to right, and top to bottom), 
 // whereas world locations are in x, z (from left to right but from bottom to top).
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
-
-using Orts.Common;
-
-using ORTS.TrackViewer.Properties;
 
 namespace ORTS.TrackViewer.Drawing
 {

@@ -20,7 +20,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -34,8 +33,6 @@ using FreeTrainSimulator.Common.Xna;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Sound;
-using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Models.State;
@@ -43,8 +40,6 @@ using Orts.Simulation;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.World;
-
-using SharpDX.Direct2D1;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment
 {

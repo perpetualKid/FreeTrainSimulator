@@ -19,8 +19,6 @@ using FreeTrainSimulator.Common;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-
 namespace Orts.Simulation.World
 {
     public class Weather

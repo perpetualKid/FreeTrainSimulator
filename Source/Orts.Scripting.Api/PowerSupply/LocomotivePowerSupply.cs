@@ -20,8 +20,6 @@ using System;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
-
 namespace Orts.Scripting.Api.PowerSupply
 {
     public abstract class LocomotivePowerSupply : PowerSupply

@@ -15,11 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using FreeTrainSimulator.Common;
-
-using Orts.Common;
-
 using System;
+
+using FreeTrainSimulator.Common;
 
 namespace Orts.Scripting.Api.PowerSupply
 {

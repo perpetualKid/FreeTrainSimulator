@@ -23,23 +23,21 @@
 //#define DEBUG_LIGHT_CONE
 //#define DEBUG_LIGHT_CONE_FULL
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Formats.Msts;
-using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
-using Orts.Common;
-using Orts.Scripting.Api;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Orts.Formats.Msts.Models;
-using Orts.Simulation;
-using Orts.ActivityRunner.Processes;
-using FreeTrainSimulator.Common.Xna;
-using FreeTrainSimulator.Common.Position;
+
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Common.Xna;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

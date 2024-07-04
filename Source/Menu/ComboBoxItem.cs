@@ -5,10 +5,6 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 
-using GetText;
-
-using Orts.Common;
-
 namespace Orts.Menu
 {
     internal class ComboBoxItem<T>

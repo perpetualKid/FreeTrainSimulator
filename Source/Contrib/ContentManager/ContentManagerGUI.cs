@@ -28,7 +28,6 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
 using Orts.Settings;
 
 namespace Orts.ContentManager

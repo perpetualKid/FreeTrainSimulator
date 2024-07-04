@@ -20,8 +20,6 @@
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
 
-using Orts.Common;
-using Orts.Simulation;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;

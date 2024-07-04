@@ -4,8 +4,6 @@ using FreeTrainSimulator.Common.Input;
 
 using Microsoft.Xna.Framework.Input;
 
-using Orts.Common;
-
 namespace Orts.Toolbox.Settings
 {
     public static class InputSettings

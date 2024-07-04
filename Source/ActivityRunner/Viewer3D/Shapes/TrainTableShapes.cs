@@ -9,7 +9,6 @@ using FreeTrainSimulator.Common.Xna;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Sound;
-using Orts.Common;
 using Orts.Simulation;
 using Orts.Simulation.World;
 

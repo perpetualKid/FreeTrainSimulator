@@ -25,12 +25,10 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
-using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
 
 namespace Orts.Simulation.World
 {

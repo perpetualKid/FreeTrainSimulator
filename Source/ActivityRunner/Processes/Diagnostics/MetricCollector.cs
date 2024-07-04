@@ -6,9 +6,6 @@ using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-using Orts.Common.Calc;
-
 namespace Orts.ActivityRunner.Processes.Diagnostics
 {
     internal sealed class MetricCollector

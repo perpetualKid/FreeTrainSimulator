@@ -10,7 +10,6 @@ using FreeTrainSimulator.Common.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common;
 using Orts.Graphics.MapView;
 using Orts.Toolbox.PopupWindows;
 

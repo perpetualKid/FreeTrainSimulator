@@ -21,7 +21,6 @@ using System.IO;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
 using Orts.Formats.Msts.Files;
 
 using Path = System.IO.Path;

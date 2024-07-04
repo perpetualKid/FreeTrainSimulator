@@ -1,11 +1,7 @@
-﻿using System.Security.Permissions;
-
-using FreeTrainSimulator.Common;
+﻿using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
-
-using Orts.Common;
 
 namespace Orts.Models.State
 {

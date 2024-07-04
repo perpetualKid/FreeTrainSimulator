@@ -42,12 +42,9 @@ using System;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
-using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-
-using ORTS.TrackViewer.Drawing;
 
 namespace ORTS.TrackViewer.Editing
 {

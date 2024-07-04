@@ -1,17 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Simulation.RollingStocks;
-
-using static FreeTrainSimulator.Common.Calc.Dynamics;
 
 namespace Orts.Simulation.Physics
 {

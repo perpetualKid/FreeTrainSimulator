@@ -3,8 +3,6 @@ using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
 
-using Orts.Common;
-
 namespace Orts.Formats.Msts
 {
     [MemoryPackable]

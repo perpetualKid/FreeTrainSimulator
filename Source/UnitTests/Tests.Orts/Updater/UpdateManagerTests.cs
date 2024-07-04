@@ -5,7 +5,6 @@ using FreeTrainSimulator.Common;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Orts.Common;
 using Orts.Updater;
 
 namespace Tests.Orts.Updater

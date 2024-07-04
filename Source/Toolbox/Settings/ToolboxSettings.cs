@@ -8,7 +8,6 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
 using Orts.Graphics;
 using Orts.Settings;
 using Orts.Settings.Store;

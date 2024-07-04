@@ -26,7 +26,6 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 
-using Orts.Common.Calc;
 using Orts.Simulation;
 using Orts.Simulation.Commanding;
 

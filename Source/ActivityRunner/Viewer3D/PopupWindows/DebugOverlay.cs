@@ -11,7 +11,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
-using Orts.Common;
 using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;

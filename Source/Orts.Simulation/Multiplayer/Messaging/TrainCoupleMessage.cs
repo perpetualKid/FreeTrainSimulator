@@ -6,7 +6,6 @@ using FreeTrainSimulator.Common;
 
 using MemoryPack;
 
-using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;

@@ -20,8 +20,6 @@ using System;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 
-using Orts.Common.Calc;
-
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
 

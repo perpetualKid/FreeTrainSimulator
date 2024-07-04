@@ -15,12 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System.IO;
+
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
 using Orts.Formats.Msts.Parsers;
-
-using System.IO;
 
 // <Comment> This file parses only the shape names for temporary speed restrictions; the other shape names are not needed
 // </Comment>

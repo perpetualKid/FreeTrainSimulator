@@ -24,15 +24,12 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 
-using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.PowerSupply;
 using Orts.Simulation.Physics;
-
-using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {

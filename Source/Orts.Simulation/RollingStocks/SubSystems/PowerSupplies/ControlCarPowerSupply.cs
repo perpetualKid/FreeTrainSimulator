@@ -17,7 +17,6 @@
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
 using Orts.Scripting.Api.PowerSupply;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies

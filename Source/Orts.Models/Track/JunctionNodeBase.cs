@@ -6,7 +6,6 @@ using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.Models.Track

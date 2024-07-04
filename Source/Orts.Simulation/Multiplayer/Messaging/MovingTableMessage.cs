@@ -6,7 +6,6 @@ using MemoryPack;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Simulation.World;
 
 namespace Orts.Simulation.Multiplayer.Messaging

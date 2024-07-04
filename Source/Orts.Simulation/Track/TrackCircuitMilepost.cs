@@ -21,7 +21,6 @@ using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
 using Orts.Simulation.Signalling;
 
 namespace Orts.Simulation.Track

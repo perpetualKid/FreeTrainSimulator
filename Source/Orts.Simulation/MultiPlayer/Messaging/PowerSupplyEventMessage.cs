@@ -2,7 +2,6 @@
 
 using MemoryPack;
 
-using Orts.Common;
 using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.Multiplayer.Messaging

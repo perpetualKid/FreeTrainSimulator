@@ -22,7 +22,6 @@ using System.IO;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Common;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Common

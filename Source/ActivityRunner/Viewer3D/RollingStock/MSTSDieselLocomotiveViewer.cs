@@ -26,8 +26,6 @@ using FreeTrainSimulator.Common.Input;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-using Orts.Simulation;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.RollingStocks;
 

@@ -20,7 +20,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -29,8 +28,6 @@ using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.Models.State;

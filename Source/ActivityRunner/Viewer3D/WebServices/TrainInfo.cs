@@ -19,9 +19,6 @@ using System;
 
 using FreeTrainSimulator.Common;
 
-using Orts.ActivityRunner.Viewer3D;
-using Orts.Common;
-
 namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
     /// <summary>

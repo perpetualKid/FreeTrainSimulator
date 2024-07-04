@@ -6,7 +6,6 @@ using System.IO;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
-using Orts.Common;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models

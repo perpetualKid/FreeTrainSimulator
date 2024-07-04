@@ -9,7 +9,6 @@ using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 
 namespace Orts.Simulation.World

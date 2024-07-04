@@ -7,7 +7,6 @@ using FreeTrainSimulator.Common.DebugInfo;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes.Diagnostics;
-using Orts.Common.Calc;
 
 namespace Orts.ActivityRunner.Processes
 {

@@ -8,8 +8,6 @@ using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
 

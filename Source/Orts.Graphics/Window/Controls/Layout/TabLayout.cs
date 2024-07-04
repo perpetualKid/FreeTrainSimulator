@@ -4,7 +4,6 @@ using FreeTrainSimulator.Common;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Window.Controls.Layout

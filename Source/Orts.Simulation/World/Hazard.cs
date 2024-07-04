@@ -24,7 +24,6 @@ using System.Linq;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;

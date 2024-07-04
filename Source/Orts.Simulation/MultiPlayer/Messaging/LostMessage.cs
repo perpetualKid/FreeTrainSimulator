@@ -2,8 +2,6 @@
 
 using MemoryPack;
 
-using Orts.Common;
-
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]

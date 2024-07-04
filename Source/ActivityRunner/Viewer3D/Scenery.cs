@@ -42,20 +42,6 @@
  * 
  */
 
-using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Common.Position;
-
-using Microsoft.Xna.Framework;
-
-using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
-using Orts.Formats.OR.Models;
-using Orts.Simulation;
-using Orts.Simulation.World;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -63,6 +49,19 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+
+using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Position;
+
+using Microsoft.Xna.Framework;
+
+using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
+using Orts.Formats.OR.Models;
+using Orts.Simulation;
+using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

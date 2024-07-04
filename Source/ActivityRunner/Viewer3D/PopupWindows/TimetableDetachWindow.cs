@@ -6,7 +6,6 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;

@@ -30,7 +30,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Debugging;
-using Orts.Common;
 using Orts.Models.State;
 using Orts.Simulation;
 using Orts.Simulation.Activities;

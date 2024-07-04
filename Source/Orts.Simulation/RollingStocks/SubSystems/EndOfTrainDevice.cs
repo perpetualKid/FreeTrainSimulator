@@ -18,23 +18,18 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 
-using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Simulation.Physics;
-
-using SharpDX.Direct2D1;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {

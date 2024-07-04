@@ -35,7 +35,6 @@ using FreeTrainSimulator.Common.Info;
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Common;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.Models.Simplified;

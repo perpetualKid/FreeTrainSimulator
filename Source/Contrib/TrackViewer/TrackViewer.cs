@@ -32,7 +32,6 @@ using GetText;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Models.Simplified;
 

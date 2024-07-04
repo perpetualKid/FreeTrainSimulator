@@ -21,16 +21,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 
-using Microsoft.CodeAnalysis.Operations;
-
-using Orts.Common;
 using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;

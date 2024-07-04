@@ -10,8 +10,6 @@ using FreeTrainSimulator.Common;
 
 using Microsoft.Win32;
 
-using Orts.Common;
-
 namespace Orts.Settings.Store
 {
     /// <summary>

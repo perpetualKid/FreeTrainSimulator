@@ -40,8 +40,6 @@ using FreeTrainSimulator.Common.Position;
 
 using GetText;
 
-using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Multiplayer.Messaging;

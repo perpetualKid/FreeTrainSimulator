@@ -11,9 +11,6 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-using Orts.Formats.Msts.Files;
-using Orts.Graphics.MapView;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;

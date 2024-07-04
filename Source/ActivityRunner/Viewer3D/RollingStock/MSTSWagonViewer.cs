@@ -35,7 +35,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Multiplayer;

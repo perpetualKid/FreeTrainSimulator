@@ -42,7 +42,6 @@ using FreeTrainSimulator.Common.Logging;
 
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
-using Orts.Common.Calc;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 

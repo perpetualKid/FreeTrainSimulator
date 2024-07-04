@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 
-using Orts.Common;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models

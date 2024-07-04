@@ -3,8 +3,6 @@ using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
 
-using Orts.Common;
-
 namespace Orts.Models.State
 {
     public class WeatherConditionSaveState : SaveStateBase

@@ -9,7 +9,6 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 
-using Orts.Common;
 using Orts.Graphics;
 using Orts.Models.Simplified;
 

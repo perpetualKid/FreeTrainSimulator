@@ -23,8 +23,6 @@ using System;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 
-using Orts.Common;
-using Orts.Common.Calc;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.Etcs;
 

@@ -5,8 +5,6 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common;
-using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.DrawableComponents

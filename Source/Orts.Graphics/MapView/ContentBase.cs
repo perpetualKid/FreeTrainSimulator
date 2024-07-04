@@ -8,7 +8,6 @@ using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Graphics.MapView.Widgets;
 using Orts.Models.Track;

@@ -5,8 +5,6 @@ using MemoryPack;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-
 namespace Orts.Models.State
 {
     [MemoryPackable]

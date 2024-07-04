@@ -14,13 +14,9 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-using System;
-
 using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Common;
 
 namespace ORTS.TrackViewer.Drawing
 {

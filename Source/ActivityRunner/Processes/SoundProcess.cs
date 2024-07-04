@@ -30,7 +30,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.ActivityRunner.Viewer3D;
-using Orts.Common;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Processes

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Xna;
 
-using Orts.Common.Calc;
 using Orts.Formats.OR.Parsers;
 
 namespace Orts.Formats.OR.Models

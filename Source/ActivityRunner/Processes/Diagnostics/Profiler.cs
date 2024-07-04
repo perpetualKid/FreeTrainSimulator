@@ -25,8 +25,6 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Native;
 
-using Orts.Common.Calc;
-
 namespace Orts.ActivityRunner.Processes.Diagnostics
 {
     internal sealed class Profiler

@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-
-using Orts.Common;
-using Orts.Graphics.MapView.Shapes;
 
 namespace Orts.Graphics.Window.Controls
 {

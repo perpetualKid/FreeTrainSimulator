@@ -5,10 +5,6 @@ using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Orts.Common.Calc;
-
-using static FreeTrainSimulator.Common.Calc.Frequency;
-
 namespace Tests.Orts.Common.Calc
 {
     [TestClass]
