@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using FreeTrainSimulator.Common;
-
 using Microsoft.Xna.Framework;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
     public class KeyboardInputHandler<T> where T : Enum
     {
@@ -27,9 +25,7 @@ namespace Orts.Common.Input
                 List<(int keyEventCode, T command)> result = new List<(int, T)>();
                 UserCommandKeyInput keyInput = userCommands[command] as UserCommandKeyInput;
                 foreach (KeyEventType keyEventType in EnumExtension.GetValues<KeyEventType>())
-                {
                     result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers, keyEventType), command));
-                }
                 return result;
             }).ToLookup(i => i.keyEventCode, c => c.command);
 

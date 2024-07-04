@@ -5,14 +5,14 @@ using System.IO;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Input;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.Info;
-using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Graphics;

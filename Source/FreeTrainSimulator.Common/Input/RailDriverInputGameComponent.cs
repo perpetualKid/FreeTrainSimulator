@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
-
-using FreeTrainSimulator.Common;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
     public class RailDriverInputGameComponent : GameComponent
     {
@@ -66,17 +63,15 @@ namespace Orts.Common.Input
                     fullRangeThrottle = true;
                 }
                 else
-                {
                     if (Convert.ToBoolean(calibrationSettings[RailDriverCalibrationSetting.ReverseThrottle]))
-                    {
-                        throttle = (calibrationSettings[RailDriverCalibrationSetting.DynamicBrake], calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup]);
-                        dynamicBrake = (calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.ThrottleFull]);
-                    }
-                    else
-                    {
-                        throttle = (calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.ThrottleFull]);
-                        dynamicBrake = (calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[RailDriverCalibrationSetting.DynamicBrake]);
-                    }
+                {
+                    throttle = (calibrationSettings[RailDriverCalibrationSetting.DynamicBrake], calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup]);
+                    dynamicBrake = (calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.ThrottleFull]);
+                }
+                else
+                {
+                    throttle = (calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.ThrottleFull]);
+                    dynamicBrake = (calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[RailDriverCalibrationSetting.DynamicBrake]);
                 }
                 throttle = UpdateCutOff(throttle, cutOff);
                 dynamicBrake = UpdateCutOff(dynamicBrake, cutOff);
@@ -147,9 +142,7 @@ namespace Orts.Common.Input
         public override void Update(GameTime gameTime)
         {
             if (!Game.IsActive || !Active)
-            {
                 return;
-            }
 
             (readBufferHistory, readBuffer) = (readBuffer, readBufferHistory);
 
@@ -193,7 +186,7 @@ namespace Orts.Common.Input
                     handleActionHandler?.Invoke(RailDriverHandleEventType.BailOff, gameTime, new UserCommandArgs<bool>() { Value = bailOff });
                 // emergency brake
                 buttonPress = emergency;
-                emergency = (trainBrakePercent >= 100) && Percentage(readBuffer[3], emergencyBrake) > 50;
+                emergency = trainBrakePercent >= 100 && Percentage(readBuffer[3], emergencyBrake) > 50;
                 if (emergency != buttonPress)
                     handleActionHandler?.Invoke(RailDriverHandleEventType.Emergency, gameTime, new UserCommandArgs<bool>() { Value = emergency });
 
@@ -211,8 +204,8 @@ namespace Orts.Common.Input
 
                 for (byte command = 0; command < 48; command++)
                 {
-                    bool down = (readBuffer[8 + command / 8] & (1 << (command % 8))) == (1 << (command % 8));
-                    bool downPreviously = (readBufferHistory[8 + command / 8] & (1 << (command % 8))) == (1 << (command % 8));
+                    bool down = (readBuffer[8 + command / 8] & 1 << command % 8) == 1 << command % 8;
+                    bool downPreviously = (readBufferHistory[8 + command / 8] & 1 << command % 8) == 1 << command % 8;
 
                     if (down && !downPreviously)
                     {
@@ -259,9 +252,7 @@ namespace Orts.Common.Input
                     InitializeSync();
                 }
                 else
-                {
                     railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
-                }
             }
         }
 

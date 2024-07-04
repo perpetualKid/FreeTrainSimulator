@@ -24,7 +24,6 @@ using System.Text;
 using GetText;
 
 using Orts.Common.Calc;
-using Orts.Common.Info;
 
 namespace Orts.Common
 {

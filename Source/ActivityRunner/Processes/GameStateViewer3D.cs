@@ -24,13 +24,13 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
 
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.Common;
-using Orts.Common.Info;
 using Orts.Models.State;
 using Orts.Simulation;
 using Orts.Simulation.Activities;

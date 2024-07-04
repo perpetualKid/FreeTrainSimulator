@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Common.Logging;
 
 using GetText;
 using GetText.WindowsForms;
@@ -16,11 +19,7 @@ using GetText.WindowsForms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Info;
-using Orts.Common.Input;
-using Orts.Common.Logging;
 using Orts.Graphics;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.MapView;

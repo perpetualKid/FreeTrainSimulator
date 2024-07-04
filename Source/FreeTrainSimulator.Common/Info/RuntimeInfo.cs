@@ -6,9 +6,9 @@ using System.IO.Hashing;
 using System.Reflection;
 using System.Text;
 
-using Orts.Common.Logging;
+using FreeTrainSimulator.Common.Logging;
 
-namespace Orts.Common.Info
+namespace FreeTrainSimulator.Common.Info
 {
     public static class RuntimeInfo
     {
@@ -18,7 +18,7 @@ namespace Orts.Common.Info
 
         public static readonly string ProductName = VersionInfo.ProductName();
 
-        public const string WikiLink = "https://github.com/perpetualKid/ORTS-MG/wiki";
+        public const string WikiLink = "https://github.com/perpetualKid/FreeTrainSimulator/wiki";
 
         public static string ApplicationName => FileVersionInfo.GetVersionInfo(Assembly.GetCallingAssembly().Location).FileDescription;
 
@@ -75,7 +75,7 @@ namespace Orts.Common.Info
             string directory = Path.Combine(UserDataFolder, "Cache", cacheType);
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
-            return Path.Combine(directory, hash + ".dat");
+            return Path.Combine(directory, hash + FileNameExtensions.DataFile);
         }
 
     }

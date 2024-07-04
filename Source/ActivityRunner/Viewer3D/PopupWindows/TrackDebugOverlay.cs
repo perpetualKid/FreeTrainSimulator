@@ -5,8 +5,6 @@ using System.Linq;
 using GetText;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Common.Input;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts;
 using Orts.Graphics.Window;
@@ -16,6 +14,7 @@ using Orts.Graphics.Xna;
 using Orts.Settings;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Common.Input;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {

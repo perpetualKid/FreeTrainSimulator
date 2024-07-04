@@ -29,8 +29,10 @@
 
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+
+using FreeTrainSimulator.Common.Input;
+
 using Microsoft.Xna.Framework.Input;
-using Orts.Common.Input;
 
 namespace ORTS.TrackViewer.UserInterface
 {

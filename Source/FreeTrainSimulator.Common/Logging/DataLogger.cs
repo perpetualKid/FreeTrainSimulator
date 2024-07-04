@@ -21,11 +21,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Common;
-
-namespace Orts.Common.Logging
+namespace FreeTrainSimulator.Common.Logging
 {
-    public class DataLogger : IDisposable
+    public sealed class DataLogger : IDisposable
     {
         private const int cacheSize = 2048 * 1024;  // 2 Megs
         private readonly string filePath;
@@ -67,32 +65,23 @@ namespace Orts.Common.Logging
 
         public void Flush()
         {
-            Task.Run(FlushAsync);
-        }
-
-        private async Task FlushAsync()
-        {
-            await fileAccess.WaitAsync().ConfigureAwait(false);
-            using (StreamWriter file = File.AppendText(filePath))
+            Task.Run(() =>
             {
-                Task writeTask = file.WriteAsync(cache.ToString());
+                string data = cache.ToString();
                 cache.Clear();
-                await writeTask.ConfigureAwait(false);
-                fileAccess.Release();
-            }
+                File.AppendAllText(filePath, data);
+            });
         }
 
         #region IDisposable Support
         private bool disposedValue; // To detect redundant calls
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
                 if (disposing)
-                {
                     fileAccess.Dispose();
-                }
                 disposedValue = true;
             }
         }

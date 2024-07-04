@@ -2,10 +2,10 @@
 using System.Diagnostics;
 using System.IO;
 
+using FreeTrainSimulator.Common.Info;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
-using Orts.Common.Info;
 
 namespace Orts.Graphics.Shaders
 {

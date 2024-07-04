@@ -1,7 +1,5 @@
 ﻿using GetText;
 
-using Orts.Common.Info;
-
 namespace Orts.Models.Simplified
 {
     public abstract class ContentBase

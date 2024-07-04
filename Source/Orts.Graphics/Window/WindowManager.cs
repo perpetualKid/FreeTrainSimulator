@@ -6,13 +6,13 @@ using System.Threading;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Native;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common.Info;
-using Orts.Common.Input;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Shaders;
 using Orts.Graphics.Xna;

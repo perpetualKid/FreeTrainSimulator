@@ -4,11 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-using FreeTrainSimulator.Common;
-
-namespace Orts.Common.Logging
+namespace FreeTrainSimulator.Common.Logging
 {
-    public class ORTraceListener : TraceListener
+    public sealed class LoggingTraceListener : TraceListener
     {
         private readonly TextWriter writer;
         private readonly bool errorsOnly;
@@ -18,15 +16,15 @@ namespace Orts.Common.Logging
         public int EventCount(TraceEventType eventType)
         {
             int errorLevel = (int)(Math.Log((int)eventType) / Math.Log(2));
-            return (errorLevel < eventCounts.Length) ? eventCounts[errorLevel] : -1;
+            return errorLevel < eventCounts.Length ? eventCounts[errorLevel] : -1;
         }
 
-        public ORTraceListener(TextWriter writer)
+        public LoggingTraceListener(TextWriter writer)
             : this(writer, false)
         {
         }
 
-        public ORTraceListener(TextWriter writer, bool errorsOnly)
+        public LoggingTraceListener(TextWriter writer, bool errorsOnly)
         {
             this.writer = writer;
             this.errorsOnly = errorsOnly;
@@ -34,19 +32,19 @@ namespace Orts.Common.Logging
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id)
         {
-            if ((Filter == null) || Filter.ShouldTrace(eventCache, source, eventType, id, null, null, null, null))
+            if (Filter == null || Filter.ShouldTrace(eventCache, source, eventType, id, null, null, null, null))
                 TraceEventInternal(eventCache, source, eventType, id, "", Array.Empty<object>());
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
         {
-            if ((Filter == null) || Filter.ShouldTrace(eventCache, source, eventType, id, message, null, null, null))
+            if (Filter == null || Filter.ShouldTrace(eventCache, source, eventType, id, message, null, null, null))
                 TraceEventInternal(eventCache, source, eventType, id, message, Array.Empty<object>());
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
         {
-            if ((Filter == null) || Filter.ShouldTrace(eventCache, source, eventType, id, format, args, null, null))
+            if (Filter == null || Filter.ShouldTrace(eventCache, source, eventType, id, format, args, null, null))
                 TraceEventInternal(eventCache, source, eventType, id, format, args ?? Array.Empty<object>());
         }
 
@@ -95,14 +93,12 @@ namespace Orts.Common.Logging
                     output.AppendLine(string.Join(Environment.NewLine, catchStack, catchIndex + 1, catchStack.Length - catchIndex - 1));
             }
             else
-            {
 
                 // Only log a stack trace for critical and error levels.
-                if ((eventType < TraceEventType.Warning) && (TraceOutputOptions & TraceOptions.Callstack) != 0)
-                {
-                    output.AppendLine();
-                    output.AppendLine(new StackTrace(true).ToString());
-                }
+                if (eventType < TraceEventType.Warning && (TraceOutputOptions & TraceOptions.Callstack) != 0)
+            {
+                output.AppendLine();
+                output.AppendLine(new StackTrace(true).ToString());
             }
 
             output.AppendLine();

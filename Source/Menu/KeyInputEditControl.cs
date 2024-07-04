@@ -20,7 +20,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-using Orts.Common.Input;
+using FreeTrainSimulator.Common.Input;
 
 using static FreeTrainSimulator.Common.Native.NativeMethods;
 

@@ -4,9 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Logging;
+
 using Orts.ActivityRunner.Processes.Diagnostics;
-using Orts.Common.Info;
-using Orts.Common.Logging;
 using Orts.Settings;
 using Orts.Simulation;
 
@@ -38,7 +39,7 @@ namespace Orts.ActivityRunner.Processes
         {
             // Append to CSV file in format suitable for Excel
             string summaryFileName = Path.Combine(RuntimeInfo.UserDataFolder, "TestingSummary.csv");
-            ORTraceListener traceListener = Trace.Listeners.OfType<ORTraceListener>().FirstOrDefault();
+            LoggingTraceListener traceListener = Trace.Listeners.OfType<LoggingTraceListener>().FirstOrDefault();
             // Could fail if already opened by Excel
             try
             {

@@ -21,10 +21,10 @@ using System;
 using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Input;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.RollingStocks;
 

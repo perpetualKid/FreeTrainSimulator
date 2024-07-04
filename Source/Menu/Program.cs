@@ -20,7 +20,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 
-using Orts.Common.Info;
+using FreeTrainSimulator.Common.Info;
+
 using Orts.Models.Simplified;
 
 [assembly: CLSCompliant(false)]

@@ -35,14 +35,14 @@ using System.Linq;
 using System.Text;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Common.Logging;
 
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Info;
-using Orts.Common.Input;
-using Orts.Common.Logging;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 

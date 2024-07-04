@@ -22,10 +22,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
+using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 
 using Orts.Common.Calc;
-using Orts.Common.Info;
 using Orts.Simulation;
 using Orts.Simulation.Commanding;
 

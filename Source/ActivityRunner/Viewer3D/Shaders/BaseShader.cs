@@ -19,9 +19,9 @@
 
 using System.IO;
 
-using Microsoft.Xna.Framework.Graphics;
+using FreeTrainSimulator.Common.Info;
 
-using Orts.Common.Info;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Orts.ActivityRunner.Viewer3D.Shaders
 {

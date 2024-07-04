@@ -4,7 +4,7 @@ using System.Reflection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
     public class KeyboardInputGameComponent : GameComponent
     {
@@ -102,19 +102,19 @@ namespace Orts.Common.Input
                     //if (key == Keys.LeftShift || key == Keys.RightShift || key == Keys.LeftControl || key == Keys.RightControl || key == Keys.LeftAlt || key == Keys.RightAlt)
                     if ((int)key > 159 && (int)key < 166)
                         continue;
-                    if (previousKeyboardState.IsKeyDown(key) && (currentModifiers == previousModifiers))
+                    if (previousKeyboardState.IsKeyDown(key) && currentModifiers == previousModifiers)
                     {
                         // Key (still) down
                         int lookup = (int)key << KeyDownShift ^ (int)currentModifiers;
                         inputActionHandler?.Invoke(lookup, gameTime, KeyEventType.KeyDown, currentModifiers);
                     }
-                    if (previousKeyboardState.IsKeyDown(key) && (currentModifiers != previousModifiers))
+                    if (previousKeyboardState.IsKeyDown(key) && currentModifiers != previousModifiers)
                     {
                         // Key Up, state may have changed due to a modifier changed
                         int lookup = (int)key << KeyUpShift ^ (int)previousModifiers;
                         inputActionHandler?.Invoke(lookup, gameTime, KeyEventType.KeyReleased, previousModifiers);
                     }
-                    if (!previousKeyboardState.IsKeyDown(key) || (currentModifiers != previousModifiers))
+                    if (!previousKeyboardState.IsKeyDown(key) || currentModifiers != previousModifiers)
                     {
                         //Key just pressed
                         int lookup = (int)key << KeyPressShift ^ (int)currentModifiers;
@@ -155,7 +155,7 @@ namespace Orts.Common.Input
                         return true;
                     break;
                 case KeyEventType.KeyReleased:
-                    if ((!currentKeyboardState.IsKeyDown(key) || previousModifiers != currentModifiers) && (previousModifiers == modifiers && previousKeyboardState.IsKeyDown(key)))
+                    if ((!currentKeyboardState.IsKeyDown(key) || previousModifiers != currentModifiers) && previousModifiers == modifiers && previousKeyboardState.IsKeyDown(key))
                         return true;
                     break;
                 default:

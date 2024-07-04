@@ -8,9 +8,9 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using Orts.Common.Info;
+using FreeTrainSimulator.Common.Info;
 
-namespace Orts.Common.Logging
+namespace FreeTrainSimulator.Common.Logging
 {
     public static partial class LoggingUtil
     {
@@ -19,7 +19,7 @@ namespace Orts.Common.Logging
 
         public static readonly string SeparatorLine = new string('-', 80);
 
-        public const string BugTrackerUrl = "https://github.com/perpetualKid/ORTS-MG/issues";
+        public const string BugTrackerUrl = "https://github.com/perpetualKid/FreeTrainSimulator/issues";
 
         static LoggingUtil()
         {
@@ -66,14 +66,13 @@ namespace Orts.Common.Logging
 
             try
             {
-
                 StreamWriter writer = new StreamWriter(logFileName, true, Encoding.Default, 512)
                 {
                     AutoFlush = true
                 };
 
                 // Captures Trace.Trace* calls and others and formats.
-                ORTraceListener traceListener = new ORTraceListener(writer, errorsOnly)
+                LoggingTraceListener traceListener = new LoggingTraceListener(writer, errorsOnly)
                 {
                     TraceOutputOptions = TraceOptions.Callstack
                 };

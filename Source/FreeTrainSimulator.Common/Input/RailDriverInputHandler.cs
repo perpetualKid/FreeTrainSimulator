@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using FreeTrainSimulator.Common;
-
 using Microsoft.Xna.Framework;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
     public class RailDriverInputHandler<T> where T : Enum
     {
@@ -43,10 +41,8 @@ namespace Orts.Common.Input
                             emergencyCommand.CommandValue = commandByte;
                             emergencyCommand.AvailableForMapping = true;
                         }
-                        else 
-                        {
+                        else
                             emergencyCommand.AvailableForMapping = false;
-                        }
                         break;
                     case HornCommandUp:
                     case HornCommandDown:
@@ -57,9 +53,7 @@ namespace Orts.Common.Input
                             hornCommand.AvailableForMapping = true;
                         }
                         else
-                        {
                             hornCommand.AvailableForMapping = false;
-                        }
                         break;
                 }
             }
@@ -70,26 +64,20 @@ namespace Orts.Common.Input
             {
                 byte command = emergencyCommand.CommandValue == EmergencyStopCommandUp ? EmergencyStopCommandDown : EmergencyStopCommandUp;
                 foreach (KeyEventType keyEventType in EnumExtension.GetValues<KeyEventType>())
-                {
                     additionalCommands.Add((RailDriverInputGameComponent.KeyEventCode(command, keyEventType), emergencyCommand.Command));
-                }
             }
             if (hornCommand.AvailableForMapping)
             {
                 byte command = hornCommand.CommandValue == HornCommandUp ? HornCommandDown : HornCommandUp;
                 foreach (KeyEventType keyEventType in EnumExtension.GetValues<KeyEventType>())
-                {
                     additionalCommands.Add((RailDriverInputGameComponent.KeyEventCode(command, keyEventType), hornCommand.Command));
-                }
             }
 
             userCommandsLookup = EnumExtension.GetValues<T>().Where(command => userCommands[command] < byte.MaxValue).SelectMany(command =>
             {
                 List<(int keyEventCode, T command)> result = new List<(int, T)>();
                 foreach (KeyEventType keyEventType in EnumExtension.GetValues<KeyEventType>())
-                {
                     result.Add((RailDriverInputGameComponent.KeyEventCode(userCommands[command], keyEventType), command));
-                }
                 return result;
             }).Concat(additionalCommands).ToLookup(i => i.keyEventCode, c => c.command);
 
@@ -110,16 +98,36 @@ namespace Orts.Common.Input
             AnalogUserCommand command = AnalogUserCommand.None;
             switch (eventType)
             {
-                case RailDriverHandleEventType.Lights: command = AnalogUserCommand.Light; break;
-                case RailDriverHandleEventType.Wipers: command = AnalogUserCommand.Wiper; break;
-                case RailDriverHandleEventType.Direction: command = AnalogUserCommand.Direction; break;
-                case RailDriverHandleEventType.Throttle: command = AnalogUserCommand.Throttle; break;
-                case RailDriverHandleEventType.DynamicBrake: command = AnalogUserCommand.DynamicBrake; break;
-                case RailDriverHandleEventType.TrainBrake: command = AnalogUserCommand.TrainBrake; break;
-                case RailDriverHandleEventType.EngineBrake: command = AnalogUserCommand.EngineBrake; break;
-                case RailDriverHandleEventType.BailOff: command = AnalogUserCommand.BailOff; break;
-                case RailDriverHandleEventType.Emergency: command = AnalogUserCommand.Emergency; break;
-                case RailDriverHandleEventType.CabActivity: command = AnalogUserCommand.CabActivity; break;
+                case RailDriverHandleEventType.Lights:
+                    command = AnalogUserCommand.Light;
+                    break;
+                case RailDriverHandleEventType.Wipers:
+                    command = AnalogUserCommand.Wiper;
+                    break;
+                case RailDriverHandleEventType.Direction:
+                    command = AnalogUserCommand.Direction;
+                    break;
+                case RailDriverHandleEventType.Throttle:
+                    command = AnalogUserCommand.Throttle;
+                    break;
+                case RailDriverHandleEventType.DynamicBrake:
+                    command = AnalogUserCommand.DynamicBrake;
+                    break;
+                case RailDriverHandleEventType.TrainBrake:
+                    command = AnalogUserCommand.TrainBrake;
+                    break;
+                case RailDriverHandleEventType.EngineBrake:
+                    command = AnalogUserCommand.EngineBrake;
+                    break;
+                case RailDriverHandleEventType.BailOff:
+                    command = AnalogUserCommand.BailOff;
+                    break;
+                case RailDriverHandleEventType.Emergency:
+                    command = AnalogUserCommand.Emergency;
+                    break;
+                case RailDriverHandleEventType.CabActivity:
+                    command = AnalogUserCommand.CabActivity;
+                    break;
             }
             userCommandController.Trigger(command, commandArgs, gameTime);
         }
@@ -127,9 +135,7 @@ namespace Orts.Common.Input
         private void ShowSpeedValue(ControllerCommandArgs controllerCommandArgs)
         {
             if (controllerCommandArgs is ControllerCommandArgs<double> speedArgs)
-            {
                 inputGameComponent.ShowSpeed(speedArgs.Value);
-            }
         }
 
         private void Activate(ControllerCommandArgs controllerCommandArgs)

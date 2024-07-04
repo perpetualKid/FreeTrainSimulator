@@ -23,6 +23,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 
 using GetText;
@@ -31,7 +32,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Calc;
-using Orts.Common.Info;
 using Orts.Formats.Msts;
 using Orts.Models.Simplified;
 

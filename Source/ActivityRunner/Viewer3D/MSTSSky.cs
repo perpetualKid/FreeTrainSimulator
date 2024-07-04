@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
@@ -31,7 +32,6 @@ using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Input;
 using Orts.Formats.Msts.Files;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;

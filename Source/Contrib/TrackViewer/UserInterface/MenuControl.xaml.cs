@@ -29,9 +29,9 @@ using System.Windows.Controls;
 
 using System.Windows.Forms.Integration;
 
+using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 
-using Orts.Common.Info;
 using Orts.Models.Simplified;
 
 using ORTS.TrackViewer.Drawing; // for colors

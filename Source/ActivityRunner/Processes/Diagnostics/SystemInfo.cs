@@ -3,11 +3,11 @@ using System.Globalization;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Common.Info;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.Info;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Processes.Diagnostics
@@ -28,7 +28,7 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
             this["Game Time"] = null;
             this["OS"] = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}";
             this["Framework"] = $"{System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}";
-            this["Adapter"] = $"{gameHost.GraphicsDevice.Adapter.Description} ({Common.Info.SystemInfo.GraphicAdapterMemoryInformation})";
+            this["Adapter"] = $"{gameHost.GraphicsDevice.Adapter.Description} ({FreeTrainSimulator.Common.Info.SystemInfo.GraphicAdapterMemoryInformation})";
             this["Resolution"] = gameHost.Window.ClientBounds.ToString();
             this["CPU"] = null;
             this["Memory"] = null;

@@ -30,12 +30,12 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
 
 using GetText;
 using GetText.WindowsForms;
 
 using Orts.Common;
-using Orts.Common.Info;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.Models.Simplified;

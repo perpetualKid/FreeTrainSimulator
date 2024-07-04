@@ -18,9 +18,9 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 
 using Orts.Common;
-using Orts.Common.Input;
 using Orts.Simulation;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.RollingStocks;

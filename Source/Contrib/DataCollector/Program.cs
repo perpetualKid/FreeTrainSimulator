@@ -21,7 +21,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-using Orts.Common.Info;
+using FreeTrainSimulator.Common.Info;
+
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 

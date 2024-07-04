@@ -25,6 +25,7 @@ using System.Reflection;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -32,7 +33,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.Common;
-using Orts.Common.Info;
 using Orts.Graphics;
 using Orts.Graphics.Xna;
 
@@ -134,7 +134,7 @@ namespace Orts.ActivityRunner.Processes
 
             windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
-            Common.Info.SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
+            FreeTrainSimulator.Common.Info.SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
         }
 
         private void WindowForm_LocationChanged(object sender, EventArgs e)

@@ -5,7 +5,7 @@ using FreeTrainSimulator.Common;
 
 using RailDriver;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
 #pragma warning disable CA1708 // Identifiers should differ by more than case
     public enum RailDriverDisplaySign
@@ -94,9 +94,7 @@ namespace Orts.Common.Input
             get
             {
                 if (null == instance)
-                {
                     instance = new RailDriverDevice();
-                }
                 return instance;
             }
         }
@@ -160,9 +158,9 @@ namespace Orts.Common.Input
             if (value < 10)
                 SetLeds(0, 0, LedDigits[value]);
             else if (value < 100)
-                SetLeds(0, LedDigits[(value / 10) % 10], LedDigits[(value) % 10]);
+                SetLeds(0, LedDigits[value / 10 % 10], LedDigits[value % 10]);
             else if (value < 1000)
-                SetLeds(LedDigits[(value / 100) % 10], LedDigits[(value / 10) % 10], LedDigits[(value) % 10]);
+                SetLeds(LedDigits[value / 100 % 10], LedDigits[value / 10 % 10], LedDigits[value % 10]);
         }
 
         /// <summary>
@@ -176,9 +174,9 @@ namespace Orts.Common.Input
             if (s < 100)
                 SetLeds(0, LedDecimalDigits[s / 10], LedDigits[s % 10]);
             else if (s < 1000)
-                SetLeds(LedDigits[(s / 100) % 10], LedDecimalDigits[(s / 10) % 10], LedDigits[s % 10]);
+                SetLeds(LedDigits[s / 100 % 10], LedDecimalDigits[s / 10 % 10], LedDigits[s % 10]);
             else if (s < 10000)
-                SetLeds(LedDigits[(s / 1000) % 10], LedDigits[(s / 100) % 10], LedDecimalDigits[(s / 10) % 10]);
+                SetLeds(LedDigits[s / 1000 % 10], LedDigits[s / 100 % 10], LedDecimalDigits[s / 10 % 10]);
         }
 
         public void ClearDisplay()

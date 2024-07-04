@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
     /// <summary>
     /// Specifies game commands.

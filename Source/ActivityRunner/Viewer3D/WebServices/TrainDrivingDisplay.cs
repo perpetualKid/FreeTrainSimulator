@@ -20,10 +20,10 @@ using System.Collections.Generic;
 using System.Drawing;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 
 using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Common;
-using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;

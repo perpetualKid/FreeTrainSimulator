@@ -21,8 +21,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-using Orts.Common.Info;
-using Orts.Common.Logging;
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Logging;
 
 [assembly: CLSCompliant(false)]
 
@@ -122,10 +122,10 @@ namespace Orts.ContentChecker
         /// </summary>
         /// <param name="verbose"></param>
         /// <returns></returns>
-        private static ORTraceListener SetUpTracing(bool verbose)
+        private static LoggingTraceListener SetUpTracing(bool verbose)
         {
             // Captures Trace.Trace* calls and others and formats.
-            ORTraceListener traceListener = new ORTraceListener(Console.Out)
+            LoggingTraceListener traceListener = new LoggingTraceListener(Console.Out)
             {
                 TraceOutputOptions = TraceOptions.Callstack
             };
@@ -194,7 +194,7 @@ namespace Orts.ContentChecker
         /// <param name="additionType"> The type of files that need to be added</param>
         private static void LoadFiles(IEnumerable<string> files, bool verbose, AdditionType additionType)
         {
-            ORTraceListener traceListener = SetUpTracing(verbose);
+            LoggingTraceListener traceListener = SetUpTracing(verbose);
 
             SetRequestedFiles(files);
             if (additionType == AdditionType.None)
@@ -336,7 +336,7 @@ namespace Orts.ContentChecker
         /// Print the final report of files loaded, skipped and the amount of errors, warnings, informations
         /// </summary>
         /// <param name="traceListener"></param>
-        private static void ShowTracingReport(ORTraceListener traceListener)
+        private static void ShowTracingReport(LoggingTraceListener traceListener)
         {
             if (FilesLoaded <= 1)
             {

@@ -22,13 +22,13 @@ using System.Linq;
 using System.Text;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 
 using GetText;
 
 using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
-using Orts.Common.Input;
 using Orts.Settings.Store;
 using Orts.Settings.Util;
 

@@ -5,11 +5,11 @@ using System.IO;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.Input;
 
 namespace Orts.Settings.Util
 {

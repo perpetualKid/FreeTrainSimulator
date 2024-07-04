@@ -8,16 +8,16 @@ using FreeTrainSimulator.Common.Native;
 
 using Microsoft.Xna.Framework.Input;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
     public static class ScanCodeKeyUtils
     {
         public static Keys GetScanCodeKeys(int scanCode)
         {
             if (scanCode >= 0x0100)
-                scanCode = 0xE100 | (scanCode & 0x7F);
+                scanCode = 0xE100 | scanCode & 0x7F;
             else if (scanCode >= 0x0080)
-                scanCode = 0xE000 | (scanCode & 0x7F);
+                scanCode = 0xE000 | scanCode & 0x7F;
             return (Keys)NativeMethods.MapVirtualKey(scanCode, NativeMethods.MapVirtualKeyType.ScanToVirtualEx);
         }
 
@@ -33,7 +33,7 @@ namespace Orts.Common.Input
                 // Pick the XNA key name because:
                 //   Pause (0x11D) is mapped to "Right Control".
                 //   GetKeyNameText prefers "NUM 9" to "PAGE UP".
-                if (!string.IsNullOrEmpty(xnaName) && ((scanCode == 0x11D) || keyName.StartsWith("NUM ", StringComparison.OrdinalIgnoreCase) || keyName.StartsWith(xnaName, StringComparison.OrdinalIgnoreCase) || xnaName.StartsWith(keyName, StringComparison.OrdinalIgnoreCase)))
+                if (!string.IsNullOrEmpty(xnaName) && (scanCode == 0x11D || keyName.StartsWith("NUM ", StringComparison.OrdinalIgnoreCase) || keyName.StartsWith(xnaName, StringComparison.OrdinalIgnoreCase) || xnaName.StartsWith(keyName, StringComparison.OrdinalIgnoreCase)))
                     return xnaName;
 
                 return keyName;
@@ -42,8 +42,8 @@ namespace Orts.Common.Input
             // If we failed to convert the scan code to a name, show the scan code for debugging.
             return $" [sc=0x{scanCode:X2}]";
         }
-
     }
+
     /// <summary>
     /// Represents a single user-triggerable keyboard input command.
     /// </summary>
@@ -97,7 +97,7 @@ namespace Orts.Common.Input
 
         public static int ComposeUniqueDescriptor(KeyModifiers modifiers, int scanCode, Keys virtualKey)
         {
-            return (((byte)virtualKey << 16) | ((byte)scanCode << 8) | ((byte)modifiers << 0));
+            return (byte)virtualKey << 16 | (byte)scanCode << 8 | (byte)modifiers << 0;
         }
     }
 
@@ -165,7 +165,7 @@ namespace Orts.Common.Input
         protected UserCommandKeyInput(int scanCode, Keys virtualKey, KeyModifiers modifiers) :
             base(scanCode, virtualKey, modifiers)
         {
-            Debug.Assert((scanCode >= 1 && scanCode <= 127) || (virtualKey != Keys.None), "Scan code for keyboard input is outside the allowed range of 1-127.");
+            Debug.Assert(scanCode >= 1 && scanCode <= 127 || virtualKey != Keys.None, "Scan code for keyboard input is outside the allowed range of 1-127.");
             ScanCode = scanCode;
             VirtualKey = virtualKey;
         }
@@ -202,9 +202,9 @@ namespace Orts.Common.Input
 
         protected static bool IsModifiersMatching(KeyboardState keyboardState, bool shift, bool control, bool alt)
         {
-            return ((keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift)) == shift) &&
-                ((keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl)) == control) &&
-                ((keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt)) == alt);
+            return (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift)) == shift &&
+                (keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl)) == control &&
+                (keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt)) == alt;
         }
 
         public override int UniqueDescriptor
@@ -321,9 +321,12 @@ namespace Orts.Common.Input
         public override string ToString()
         {
             StringBuilder key = new StringBuilder(base.ToString());
-            if (IgnoreShift) key.Append(" (+ Shift)");
-            if (IgnoreControl) key.Append(" (+ Control)");
-            if (IgnoreAlt) key.Append(" (+ Alt)");
+            if (IgnoreShift)
+                key.Append(" (+ Shift)");
+            if (IgnoreControl)
+                key.Append(" (+ Control)");
+            if (IgnoreAlt)
+                key.Append(" (+ Alt)");
             return key.ToString();
         }
 
@@ -332,7 +335,7 @@ namespace Orts.Common.Input
             ignoreModifiers = combine.Any(c => c.Shift) ? ignoreModifiers | KeyModifiers.Shift : ignoreModifiers & ~KeyModifiers.Shift;
             ignoreModifiers = combine.Any(c => c.Control) ? ignoreModifiers | KeyModifiers.Control : ignoreModifiers & ~KeyModifiers.Control;
             ignoreModifiers = combine.Any(c => c.Alt) ? ignoreModifiers | KeyModifiers.Alt : ignoreModifiers & ~KeyModifiers.Alt;
-            uniqueIdentifier |= ((byte)ignoreModifiers << 24);
+            uniqueIdentifier |= (byte)ignoreModifiers << 24;
         }
     }
 }

@@ -28,10 +28,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common.Info;
+
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Common.Info;
 using Orts.Models.Simplified;
 using Orts.Settings;
 

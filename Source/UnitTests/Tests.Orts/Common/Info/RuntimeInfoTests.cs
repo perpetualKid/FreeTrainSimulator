@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FreeTrainSimulator.Common.Info;
 
-using Orts.Common.Info;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Tests.Orts.Common.Info
 {

@@ -1,8 +1,8 @@
 ﻿using System;
 
-using Microsoft.Xna.Framework;
+using FreeTrainSimulator.Common.Input;
 
-using Orts.Common.Input;
+using Microsoft.Xna.Framework;
 
 namespace Orts.Graphics.Window
 {

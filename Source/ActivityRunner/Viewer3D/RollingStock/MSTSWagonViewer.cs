@@ -27,6 +27,7 @@ using System.IO;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
@@ -35,7 +36,6 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
-using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Multiplayer;

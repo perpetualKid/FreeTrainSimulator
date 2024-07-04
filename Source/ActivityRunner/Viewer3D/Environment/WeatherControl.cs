@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
@@ -34,7 +35,6 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Models.State;

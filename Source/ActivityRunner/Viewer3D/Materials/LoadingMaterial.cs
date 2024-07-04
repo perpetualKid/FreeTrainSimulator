@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
+using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Xna;
 
 using Microsoft.Xna.Framework;
@@ -9,7 +10,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Shaders;
-using Orts.Common.Info;
 using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials

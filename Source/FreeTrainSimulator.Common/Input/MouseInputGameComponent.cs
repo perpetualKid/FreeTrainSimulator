@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
     public class MouseInputGameComponent : GameComponent
     {
@@ -30,7 +30,7 @@ namespace Orts.Common.Input
                 isTouchEnabled = TouchPanel.GetCapabilities().IsConnected;
             }
             catch (NullReferenceException)
-            { 
+            {
                 isTouchEnabled = false;
             }
         }
@@ -79,19 +79,15 @@ namespace Orts.Common.Input
             MouseState otherMouseState = Mouse.GetState();
 
             if (!Game.GraphicsDevice.PresentationParameters.Bounds.Contains(currentMouseState.Position))
-            {
                 return;
-            }
 
             void MouseButtonEvent(ButtonState currentButton, ButtonState previousButton, MouseButtonEventType down, MouseButtonEventType pressed, MouseButtonEventType released)
             {
                 if (currentButton == ButtonState.Pressed)
-                {
                     if (previousButton == ButtonState.Pressed)
                         mouseButtonEvents[down]?.Invoke(currentMouseState.Position, gameTime);
                     else
                         mouseButtonEvents[pressed]?.Invoke(currentMouseState.Position, gameTime);
-                }
                 else if (previousButton == ButtonState.Pressed)
                     mouseButtonEvents[released]?.Invoke(currentMouseState.Position, gameTime);
             }
@@ -106,27 +102,15 @@ namespace Orts.Common.Input
             {
                 TouchCollection touchState;
                 if (isTouchEnabled && (touchState = TouchPanel.GetState(Game.Window).GetState()).Count > 0 && touchState[0].State != TouchLocationState.Released)
-                {
                     if (touchState[0].TryGetPreviousLocation(out TouchLocation previousTouchState))
-                    {
-                        mouseMoveEvents[MouseMovedEventType.MouseMovedLeftButtonDown]?.Invoke(currentMouseState.Position, (touchState[0].Position - previousTouchState.Position), gameTime);
-                    }
-                }
+                        mouseMoveEvents[MouseMovedEventType.MouseMovedLeftButtonDown]?.Invoke(currentMouseState.Position, touchState[0].Position - previousTouchState.Position, gameTime);
                 else if (currentMouseState.Position != previousMouseState.Position)
-                {
                     if (currentMouseState.LeftButton == ButtonState.Pressed)
-                    {
                         mouseMoveEvents[MouseMovedEventType.MouseMovedLeftButtonDown]?.Invoke(currentMouseState.Position, (currentMouseState.Position - previousMouseState.Position).ToVector2(), gameTime);
-                    }
                     else if (currentMouseState.RightButton == ButtonState.Pressed)
-                    {
                         mouseMoveEvents[MouseMovedEventType.MouseMovedRightButtonDown]?.Invoke(currentMouseState.Position, (currentMouseState.Position - previousMouseState.Position).ToVector2(), gameTime);
-                    }
                     else
-                    {
                         mouseMoveEvents[MouseMovedEventType.MouseMoved]?.Invoke(currentMouseState.Position, (currentMouseState.Position - previousMouseState.Position).ToVector2(), gameTime);
-                    }
-                }
 
                 int mouseWheelDelta;
                 if ((mouseWheelDelta = currentMouseState.ScrollWheelValue - previousMouseState.ScrollWheelValue) != 0)

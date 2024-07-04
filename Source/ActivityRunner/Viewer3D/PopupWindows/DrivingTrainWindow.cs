@@ -4,13 +4,13 @@ using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Common.Input;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Graphics;
 using Orts.Graphics.Window;

@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Input;
 
 using GetText;
 
 using Orts.Common;
-using Orts.Common.Info;
-using Orts.Common.Input;
 using Orts.Settings;
 
 namespace Orts.Menu

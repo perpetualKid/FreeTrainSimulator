@@ -1,10 +1,10 @@
 ﻿
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 
 using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
-using Orts.Common.Input;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 {

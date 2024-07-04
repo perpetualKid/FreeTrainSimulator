@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
 #pragma warning disable CA1008 // Enums should have zero value
     public enum KeyEventType
@@ -92,7 +92,7 @@ namespace Orts.Common.Input
     }
 
     public enum AnalogUserCommand
-    { 
+    {
         None,
         Wiper,
         Light,
@@ -107,7 +107,7 @@ namespace Orts.Common.Input
     }
 
     public enum GenericButtonEventType
-    { 
+    {
         None,
         Pressed,
         Down,
@@ -121,11 +121,11 @@ namespace Orts.Common.Input
     }
 
     public enum RailDriverHandleEventType
-    { 
-        Direction, 
+    {
+        Direction,
         Throttle,
         DynamicBrake,
-        TrainBrake, 
+        TrainBrake,
         EngineBrake,
         BailOff,
         Wipers,

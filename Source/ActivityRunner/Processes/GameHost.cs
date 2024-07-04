@@ -26,12 +26,11 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Logging;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
-using Orts.Common.Info;
-using Orts.Common.Logging;
 using Orts.Graphics.Xna;
 using Orts.Settings;
 
@@ -218,11 +217,11 @@ namespace Orts.ActivityRunner.Processes
                 string logFile = Path.Combine(Settings.LoggingPath, Settings.LoggingFilename);
                 DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ProductName} cannot continue.\n\n" +
                         $"    {errorSummary}\n\n" +
-                        $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ProductName} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {logFile}.\n\n" +
+                        $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ProductName} by reporting this error in our bug tracker at {LoggingUtil.BugTrackerUrl} and attaching the log file {logFile}.\n\n" +
                         ">>> Click OK to report this error on the GitHub bug tracker <<<",
                         $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
                 if (openTracker == DialogResult.OK)
-                    Orts.Common.Info.SystemInfo.OpenBrowser(LoggingUtil.BugTrackerUrl);
+                    FreeTrainSimulator.Common.Info.SystemInfo.OpenBrowser(LoggingUtil.BugTrackerUrl);
             }
             // Stop the world!
             Exit();

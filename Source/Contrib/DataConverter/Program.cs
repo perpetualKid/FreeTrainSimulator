@@ -22,7 +22,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using Orts.Common.Info;
+using FreeTrainSimulator.Common.Info;
 
 [assembly: CLSCompliant(false)]
 

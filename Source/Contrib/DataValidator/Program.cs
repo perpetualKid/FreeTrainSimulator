@@ -21,8 +21,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-using Orts.Common.Info;
-using Orts.Common.Logging;
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Logging;
 
 [assembly: CLSCompliant(false)]
 
@@ -59,7 +59,7 @@ namespace Orts.DataValidator
 
         private static void Validate(bool verbose, IEnumerable<string> files)
         {
-            ORTraceListener traceListener = SetUpTracing(verbose);
+            LoggingTraceListener traceListener = SetUpTracing(verbose);
 
             foreach (string file in files)
                 Validate(file);
@@ -67,10 +67,10 @@ namespace Orts.DataValidator
             ShowTracingReport(traceListener);
         }
 
-        private static ORTraceListener SetUpTracing(bool verbose)
+        private static LoggingTraceListener SetUpTracing(bool verbose)
         {
             // Captures Trace.Trace* calls and others and formats.
-            ORTraceListener traceListener = new ORTraceListener(Console.Out)
+            LoggingTraceListener traceListener = new LoggingTraceListener(Console.Out)
             {
                 TraceOutputOptions = TraceOptions.Callstack
             };
@@ -85,7 +85,7 @@ namespace Orts.DataValidator
             return traceListener;
         }
 
-        private static void ShowTracingReport(ORTraceListener traceListener)
+        private static void ShowTracingReport(LoggingTraceListener traceListener)
         {
             Console.WriteLine();
             Console.WriteLine("Validator summary");

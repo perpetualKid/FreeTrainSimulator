@@ -1,10 +1,11 @@
-﻿using GetText;
+﻿using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Input;
+
+using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
-using Orts.Common.Info;
-using Orts.Common.Input;
 using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;

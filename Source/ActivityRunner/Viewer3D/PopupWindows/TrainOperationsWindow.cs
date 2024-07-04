@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
 
 using GetText;
 
@@ -8,9 +9,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-using Orts.Common;
-using Orts.Common.Info;
-using Orts.Common.Input;
 using Orts.Graphics;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;

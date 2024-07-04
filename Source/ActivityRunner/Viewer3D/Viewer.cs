@@ -29,7 +29,8 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.DebugInfo;
-using FreeTrainSimulator.Common.Native;
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 
@@ -46,8 +47,6 @@ using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Info;
-using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -542,7 +541,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // all loading is performed on a single thread that we can handle in debugging and tracing.
             World.LoadPrep();
             MaterialManager.LoadPrep();
-            LoadMemoryThreshold = (long)GetVirtualAddressLimit() - 512; // * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
+            LoadMemoryThreshold = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes - 512;
             Load();
 
             // MUST be after loading is done! (Or we try and load shapes on the main thread.)
@@ -1682,13 +1681,6 @@ namespace Orts.ActivityRunner.Viewer3D
             windowManager[ViewerWindowType.NotificationOverlay].Open();
         }
 
-        private static ulong GetVirtualAddressLimit()
-        {
-            var buffer = new NativeStructs.MEMORYSTATUSEX { Size = 64 };
-            NativeMethods.GlobalMemoryStatusEx(buffer);
-            return Math.Min(buffer.TotalVirtual, buffer.TotalPhysical);
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -1778,7 +1770,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             NightTexturesNotLoaded = !saveState.NightTexturesLoaded;
             DayTexturesNotLoaded = !saveState.DayTexturesLoaded;
-            LoadMemoryThreshold = (long)GetVirtualAddressLimit() - 512;// * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
+            LoadMemoryThreshold = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes - 512;
             TryLoadingNightTextures = true;
             TryLoadingDayTextures = true;
 

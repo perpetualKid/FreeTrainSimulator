@@ -2,9 +2,9 @@
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
-    public class MouseInputHandler<T> where T: Enum
+    public class MouseInputHandler<T> where T : Enum
     {
         private UserCommandController<T> userCommandController;
         private KeyboardInputGameComponent keyboardInputGameComponent;

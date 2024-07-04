@@ -4,13 +4,13 @@ using System.IO;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Input;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
-using Orts.Common.Info;
-using Orts.Common.Input;
 using Orts.Graphics.MapView;
 using Orts.Toolbox.PopupWindows;
 

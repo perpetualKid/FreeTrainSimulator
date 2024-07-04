@@ -1,7 +1,6 @@
-﻿
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
     public class UserCommandArgs
     {
@@ -21,7 +20,7 @@ namespace Orts.Common.Input
     }
 
     public class ScrollCommandArgs : PointerCommandArgs
-    { 
+    {
         public int Delta { get; internal set; }
     }
 
@@ -31,7 +30,7 @@ namespace Orts.Common.Input
     }
 
     public class UserCommandArgs<T> : UserCommandArgs
-    { 
+    {
         public T Value { get; internal set; }
     }
 }

@@ -2,12 +2,12 @@
 using System.Linq;
 using System.Reflection;
 
+using FreeTrainSimulator.Common.Info;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using NuGet.Common;
 using NuGet.Versioning;
-
-using Orts.Common.Info;
 
 namespace Tests.Orts.Common.Info
 {

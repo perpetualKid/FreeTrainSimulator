@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-using FreeTrainSimulator.Common;
-
 using Microsoft.Xna.Framework;
 
-namespace Orts.Common.Input
+namespace FreeTrainSimulator.Common.Input
 {
     /// <summary>
     /// Non-Generic base class just to enable holder-properties in non-generic types
@@ -17,7 +15,7 @@ namespace Orts.Common.Input
         public bool SuppressDownLevelEventHandling { get; set; }
     }
 
-    public class UserCommandController<T>: UserCommandController where T : Enum
+    public class UserCommandController<T> : UserCommandController where T : Enum
     {
         /// <summary>
         /// https://stackoverflow.com/questions/16968546/assigning-a-method-to-a-delegate-where-the-delegate-has-more-parameters-than-the?noredirect=1&lq=1
@@ -41,13 +39,11 @@ namespace Orts.Common.Input
 
                 Expression<TTarget> expression;
                 if (indexes != null)
-                {
                     expression = Expression.Lambda<TTarget>(
                         Expression.Invoke(
                             Expression.Constant(sourceDelegate),
                             parameterExpressions.Where((p, i) => indexes.Contains(i))),
                         parameterExpressions);
-                }
                 else
                 {
                     int sourceParametersCount = typeof(TSource)
@@ -147,12 +143,10 @@ namespace Orts.Common.Input
             Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action, Action<UserCommandArgs, GameTime>>(action);
             configurableUserCommands[userCommand, keyEventType] += command;
             if (enableUnsubscribe)
-            {
                 if (!sourceActions.ContainsKey(action))
                     sourceActions.Add(action, new List<Action<UserCommandArgs, GameTime>>() { command });
                 else
                     sourceActions[action].Add(command);
-            }
         }
 
         public void AddEvent(T userCommand, KeyEventType keyEventType, Action<GameTime> action, bool enableUnsubscribe = false)
@@ -160,12 +154,10 @@ namespace Orts.Common.Input
             Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<GameTime>, Action<UserCommandArgs, GameTime>>(action, parameterIndexes0);
             configurableUserCommands[userCommand, keyEventType] += command;
             if (enableUnsubscribe)
-            {
                 if (!sourceActions.ContainsKey(action))
                     sourceActions.Add(action, new List<Action<UserCommandArgs, GameTime>>() { command });
                 else
                     sourceActions[action].Add(command);
-            }
         }
 
         public void AddEvent(T userCommand, KeyEventType keyEventType, Action<UserCommandArgs> action, bool enableUnsubscribe = false)
@@ -173,12 +165,10 @@ namespace Orts.Common.Input
             Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs>, Action<UserCommandArgs, GameTime>>(action);
             configurableUserCommands[userCommand, keyEventType] += command;
             if (enableUnsubscribe)
-            {
                 if (!sourceActions.ContainsKey(action))
                     sourceActions.Add(action, new List<Action<UserCommandArgs, GameTime>>() { command });
                 else
                     sourceActions[action].Add(command);
-            }
         }
 
         public void RemoveEvent(T userCommand, KeyEventType keyEventType, Action<UserCommandArgs, GameTime> action)

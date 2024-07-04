@@ -27,6 +27,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
 
 using Newtonsoft.Json;
 
@@ -38,10 +39,9 @@ using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
 using Orts.Common;
-using Orts.Common.Info;
 using Orts.Settings;
 
-using VersionInfo = Orts.Common.Info.VersionInfo;
+using VersionInfo = FreeTrainSimulator.Common.Info.VersionInfo;
 
 namespace Orts.Updater
 {

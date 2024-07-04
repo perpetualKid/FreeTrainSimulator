@@ -26,6 +26,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Logging;
 using FreeTrainSimulator.Common.Native;
 
 using MemoryPack;
@@ -34,9 +36,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Primitives;
-using Orts.Common;
-using Orts.Common.Info;
-using Orts.Common.Logging;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Models.State;
