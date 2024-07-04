@@ -22,10 +22,9 @@ using System.Diagnostics;
 using System.Threading;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Native;
 
-using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Native;
 
 namespace Orts.ActivityRunner.Processes.Diagnostics
 {

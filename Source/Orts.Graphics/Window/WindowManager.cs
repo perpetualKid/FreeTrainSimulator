@@ -6,18 +6,16 @@ using System.Threading;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Native;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Graphics.MapView.Shapes;
 using Orts.Graphics.Shaders;
 using Orts.Graphics.Xna;
-
-using static Orts.Common.Native.NativeMethods;
 
 namespace Orts.Graphics.Window
 {
@@ -460,7 +458,7 @@ namespace Orts.Graphics.Window
                     Top = screen.Bounds.Top
                 })
                 {
-                    return (float)Math.Round(GetDpiForWindow(testForm.Handle) / 96.0, 2);
+                    return (float)Math.Round(NativeMethods.GetDpiForWindow(testForm.Handle) / 96.0, 2);
                 }
             }
             catch (EntryPointNotFoundException)//running on Windows 7 or other unsupported OS
@@ -470,7 +468,7 @@ namespace Orts.Graphics.Window
                     try
                     {
                         IntPtr desktop = g.GetHdc();
-                        int dpi = GetDeviceCaps(desktop, (int)DeviceCap.LOGPIXELSX);
+                        int dpi = NativeMethods.GetDeviceCaps(desktop, (int)NativeMethods.DeviceCap.LOGPIXELSX);
                         return (float)Math.Round(dpi / 96.0, 2);
                     }
                     finally

@@ -17,13 +17,12 @@
 
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 using Orts.Common.Input;
 
-using static Orts.Common.Native.NativeMethods;
+using static FreeTrainSimulator.Common.Native.NativeMethods;
 
 using Xna = Microsoft.Xna.Framework.Input;
 

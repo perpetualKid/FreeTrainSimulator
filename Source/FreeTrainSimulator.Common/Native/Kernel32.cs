@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Orts.Common.Native
+namespace FreeTrainSimulator.Common.Native
 {
     /// <summary>
     /// P/Invoke for Kernel32.dll

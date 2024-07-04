@@ -5,9 +5,7 @@ using System.Linq;
 using System.Text;
 
 using FreeTrainSimulator.Common;
-
-using Orts.Common;
-using Orts.Common.Native;
+using FreeTrainSimulator.Common.Native;
 
 namespace Orts.Settings.Store
 {

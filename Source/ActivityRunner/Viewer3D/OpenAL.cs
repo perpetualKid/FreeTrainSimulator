@@ -24,6 +24,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using FreeTrainSimulator.Common.Native;
+
 namespace Orts.ActivityRunner.Viewer3D
 {
     /// <summary>
@@ -341,19 +343,19 @@ namespace Orts.ActivityRunner.Viewer3D
             try
             {
                 StringBuilder result = new StringBuilder(255);
-                if (Orts.Common.Native.NativeMethods.GetPrivateProfileString("General", "sources", string.Empty, result, 255, configFile) > 0)
+                if (NativeMethods.GetPrivateProfileString("General", "sources", string.Empty, result, 255, configFile) > 0)
                 {
                     if (int.TryParse(result.ToString(), out int sources))
                     {
                         if (sources < 1024)
                         {
-                            Orts.Common.Native.NativeMethods.WritePrivateProfileString("General", "sources", "1024", configFile);
+                            NativeMethods.WritePrivateProfileString("General", "sources", "1024", configFile);
                         }
                     }
                 }
                 else
                 {
-                    Orts.Common.Native.NativeMethods.WritePrivateProfileString("General", "sources", "1024", configFile);
+                    NativeMethods.WritePrivateProfileString("General", "sources", "1024", configFile);
                 }
             }
 #pragma warning disable CA1031 // Do not catch general exception types

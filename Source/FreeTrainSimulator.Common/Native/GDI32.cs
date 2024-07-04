@@ -2,11 +2,10 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Orts.Common.Native
+namespace FreeTrainSimulator.Common.Native
 {
     public static partial class NativeMethods
     {
-
         public static IntPtr CreateCompatibleDC(IntPtr hdc)
         { return CreateCompatibleDCNative(hdc); }
         [DllImport("gdi32.dll", EntryPoint = "CreateCompatibleDC", SetLastError = true)]

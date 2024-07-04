@@ -26,6 +26,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Common.Native;
 
 using Orts.Common;
 using Orts.Common.Calc;
@@ -806,7 +807,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
             if (File.Exists(trainParametersFileName))
             {
                 buffer = new string('\0', 256);
-                length = Common.Native.NativeMethods.GetPrivateProfileString(sectionName, keyName, null, buffer, buffer.Length, trainParametersFileName);
+                length = NativeMethods.GetPrivateProfileString(sectionName, keyName, null, buffer, buffer.Length, trainParametersFileName);
                 if (length > 0)
                 {
                     buffer = buffer.Trim();
@@ -817,7 +818,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
             if (File.Exists(parametersFileName))
             {
                 buffer = new string('\0', 256);
-                length = Common.Native.NativeMethods.GetPrivateProfileString(sectionName, keyName, null, buffer, buffer.Length, parametersFileName);
+                length = NativeMethods.GetPrivateProfileString(sectionName, keyName, null, buffer, buffer.Length, parametersFileName);
 
                 if (length > 0)
                 {

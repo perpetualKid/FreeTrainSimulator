@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-using Microsoft.Xna.Framework.Input;
+using FreeTrainSimulator.Common.Native;
 
-using Orts.Common.Native;
+using Microsoft.Xna.Framework.Input;
 
 namespace Orts.Common.Input
 {

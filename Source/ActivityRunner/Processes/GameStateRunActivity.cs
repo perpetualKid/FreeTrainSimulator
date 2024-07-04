@@ -20,13 +20,13 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Pipelines;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Native;
 
 using MemoryPack;
 
@@ -37,7 +37,6 @@ using Orts.ActivityRunner.Viewer3D.Primitives;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Logging;
-using Orts.Common.Native;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Models.State;

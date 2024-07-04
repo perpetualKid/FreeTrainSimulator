@@ -17,15 +17,14 @@
 
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using Microsoft.Xna.Framework.Graphics;
+using FreeTrainSimulator.Common.Native;
 
-using Orts.Common.Native;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Orts.Common.Info
 {

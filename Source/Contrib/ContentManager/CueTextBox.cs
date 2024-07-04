@@ -17,7 +17,8 @@
 
 using System;
 using System.Windows.Forms;
-using static Orts.Common.Native.NativeMethods;
+
+using FreeTrainSimulator.Common.Native;
 
 namespace Orts.ContentManager
 {
@@ -43,7 +44,7 @@ namespace Orts.ContentManager
         {
             if (IsHandleCreated && !string.IsNullOrEmpty(cueText))
             {
-                SendMessage(Handle, EM_SETCUEBANNER, (IntPtr)Convert.ToInt32(ShowCueWhenFocused), cueText);
+                NativeMethods.SendMessage(Handle, EM_SETCUEBANNER, (IntPtr)Convert.ToInt32(ShowCueWhenFocused), cueText);
             }
         }
 
