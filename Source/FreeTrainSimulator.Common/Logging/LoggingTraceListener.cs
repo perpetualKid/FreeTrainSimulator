@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace FreeTrainSimulator.Common.Logging
@@ -11,13 +13,9 @@ namespace FreeTrainSimulator.Common.Logging
         private readonly TextWriter writer;
         private readonly bool errorsOnly;
         private bool lastWrittenFormatted;
-        private readonly int[] eventCounts = new int[5];
+        private readonly Dictionary<TraceEventType, int> eventCounts = new Dictionary<TraceEventType, int>(EnumExtension.GetValues<TraceEventType>().ToDictionary(t => t, t => 0));
 
-        public int EventCount(TraceEventType eventType)
-        {
-            int errorLevel = (int)(Math.Log((int)eventType) / Math.Log(2));
-            return errorLevel < eventCounts.Length ? eventCounts[errorLevel] : -1;
-        }
+        public int EventCount(TraceEventType eventType) => eventCounts[eventType];
 
         public LoggingTraceListener(TextWriter writer)
             : this(writer, false)
@@ -54,10 +52,7 @@ namespace FreeTrainSimulator.Common.Logging
                 return;
             _ = source;
             _ = id;
-            // Convert eventType (an enum) back to an index so we can count the different types of error separately.
-            int errorLevel = (int)(Math.Log((int)eventType) / Math.Log(2));
-            if (errorLevel < eventCounts.Length)
-                eventCounts[errorLevel]++;
+            eventCounts[eventType]++;
 
             // Event is less important than error (and critical) and we're logging only errors... bail.
             if (eventType > TraceEventType.Error && errorsOnly)
