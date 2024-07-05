@@ -63,15 +63,17 @@ namespace FreeTrainSimulator.Common.Input
                     fullRangeThrottle = true;
                 }
                 else
+                {
                     if (Convert.ToBoolean(calibrationSettings[RailDriverCalibrationSetting.ReverseThrottle]))
-                {
-                    throttle = (calibrationSettings[RailDriverCalibrationSetting.DynamicBrake], calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup]);
-                    dynamicBrake = (calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.ThrottleFull]);
-                }
-                else
-                {
-                    throttle = (calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.ThrottleFull]);
-                    dynamicBrake = (calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[RailDriverCalibrationSetting.DynamicBrake]);
+                    {
+                        throttle = (calibrationSettings[RailDriverCalibrationSetting.DynamicBrake], calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup]);
+                        dynamicBrake = (calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.ThrottleFull]);
+                    }
+                    else
+                    {
+                        throttle = (calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.ThrottleFull]);
+                        dynamicBrake = (calibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[RailDriverCalibrationSetting.DynamicBrake]);
+                    }
                 }
                 throttle = UpdateCutOff(throttle, cutOff);
                 dynamicBrake = UpdateCutOff(dynamicBrake, cutOff);
