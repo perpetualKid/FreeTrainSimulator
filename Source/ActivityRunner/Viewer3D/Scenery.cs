@@ -207,7 +207,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    public class WorldFile : ITileCoordinate<Tile>
+    public class WorldFile : ITileCoordinate
     {
         private const int MinimumInstanceCount = 5;
 

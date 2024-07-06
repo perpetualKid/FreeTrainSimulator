@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Common.Position
 {
-    public readonly struct Tile : ITile, IEquatable<Tile>
+    public readonly struct Tile : IEquatable<Tile>, IComparable<Tile>
     {
         public const int TileSize = 2048;
 
@@ -15,14 +15,13 @@ namespace FreeTrainSimulator.Common.Position
 
         public static ref readonly Tile Zero => ref zero;
 
-        public short X { get; }
+        public readonly short X;
 
-        public short Z { get; }
+        public readonly short Z;
 
-        public Tile(ITile source)
+        public Tile(Tile source)
         {
-            X = source?.X ?? throw new ArgumentNullException(nameof(source));
-            Z = source.Z;
+            this = source;
         }
 
         public Tile(short x, short z)
@@ -37,10 +36,8 @@ namespace FreeTrainSimulator.Common.Position
             Z = Convert.ToInt16(z);
         }
 
-        public int CompareTo(ITile other)
+        public int CompareTo(Tile other)
         {
-            if (other == null)
-                return 1;
             int result = X.CompareTo(other.X);
             if (result == 0)
                 result = Z.CompareTo(other.Z);
@@ -49,12 +46,12 @@ namespace FreeTrainSimulator.Common.Position
 
         public override bool Equals(object obj)
         {
-            return obj is ITile tile && Equals(tile);
+            return obj is Tile tile && Equals(tile);
         }
 
-        public bool Equals(ITile other)
+        public bool Equals(Tile other)
         {
-            return X == other?.X && Z == other?.Z;
+            return X == other.X && Z == other.Z;
         }
 
         public override int GetHashCode()
@@ -62,26 +59,21 @@ namespace FreeTrainSimulator.Common.Position
             return HashCode.Combine(X, Z);
         }
 
-        public bool Equals(Tile other)
-        {
-            return Equals(other as ITile);
-        }
+        public static bool operator ==(in Tile left, in Tile right) => Equals(left, right);
 
-        public static bool operator ==(in Tile left, in ITile right) => Equals(left, right);
+        public static bool operator !=(in Tile left, in Tile right) => !Equals(left, right);
 
-        public static bool operator !=(in Tile left, in ITile right) => !Equals(left, right);
+        public static bool operator <(in Tile left, in Tile right) => left.CompareTo(right) < 0;
 
-        public static bool operator <(in Tile left, in ITile right) => left.CompareTo(right) < 0;
+        public static bool operator <=(in Tile left, in Tile right) => left.CompareTo(right) <= 0;
 
-        public static bool operator <=(in Tile left, in ITile right) => left.CompareTo(right) <= 0;
+        public static bool operator >(in Tile left, in Tile right) => left.CompareTo(right) > 0;
 
-        public static bool operator >(in Tile left, in ITile right) => left.CompareTo(right) > 0;
+        public static bool operator >=(in Tile left, in Tile right) => left.CompareTo(right) >= 0;
 
-        public static bool operator >=(in Tile left, in ITile right) => left.CompareTo(right) >= 0;
+        public static Tile operator +(in Tile left, in Tile right) => new Tile(left.X + right.X, left.Z + right.Z);
 
-        public static Tile operator +(in Tile left, in ITile right) => new Tile(left.X + right?.X ?? throw new ArgumentNullException(nameof(right)), left.Z + right.Z);
-
-        public static Tile operator -(in Tile left, in ITile right) => new Tile(left.X - right?.X ?? throw new ArgumentNullException(nameof(right)), left.Z - right.Z);
+        public static Tile operator -(in Tile left, in Tile right) => new Tile(left.X - right.X, left.Z - right.Z);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short TileFromAbs(double value)

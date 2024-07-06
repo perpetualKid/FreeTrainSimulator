@@ -38,9 +38,9 @@ namespace FreeTrainSimulator.Common.Position
             return new Tile((int)Math.Round((int)(location.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(location.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
         }
 
-        public static PointD TileCenter(in ITile tile)
+        public static PointD TileCenter(in Tile tile)
         {
-            return tile == null ? throw new ArgumentNullException(nameof(tile)) : new PointD(tile.X * Tile.TileSize, tile.Z * Tile.TileSize);
+            return new PointD(tile.X * Tile.TileSize, tile.Z * Tile.TileSize);
         }
 
         public double Distance(in PointD other)

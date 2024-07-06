@@ -15,7 +15,7 @@
         public float Size { get; protected set; }
     }
 
-    public abstract class PointPrimitive : CoordinatePrimitiveBase, ITileCoordinate<Tile>
+    public abstract class PointPrimitive : CoordinatePrimitiveBase, ITileCoordinate
     {
         protected const double ProximityTolerance = 1.0; //allow for a 1m proximity error (rounding, placement) when trying to locate points/locations along a track segment
 
@@ -54,7 +54,7 @@
         }
     }
 
-    public abstract class VectorPrimitive : PointPrimitive, ITileCoordinateVector<Tile>
+    public abstract class VectorPrimitive : PointPrimitive, ITileCoordinateVector
     {
         private PointD vectorEnd;
 

@@ -19,7 +19,7 @@ namespace Orts.Graphics.MapView
         private protected readonly Game game;
         private protected EnumArray<bool, MapContentType> viewSettings = new EnumArray<bool, MapContentType>(true);
 
-        private protected readonly EnumArray<ITileCoordinate<Tile>, MapContentType> nearestItems = new EnumArray<ITileCoordinate<Tile>, MapContentType>();
+        private protected readonly EnumArray<ITileCoordinate, MapContentType> nearestItems = new EnumArray<ITileCoordinate, MapContentType>();
 
         private protected TrackModel trackModel;
              
@@ -57,14 +57,14 @@ namespace Orts.Graphics.MapView
             this.viewSettings = settings;
         }
 
-        public void HighlightItem(MapContentType mapviewItem, ITileCoordinate<Tile> item)
+        public void HighlightItem(MapContentType mapviewItem, ITileCoordinate item)
         {
             nearestItems[mapviewItem] = item;
         }
 
-        internal abstract void Draw(ITile bottomLeft, ITile topRight);
+        internal abstract void Draw(in Tile bottomLeft, in Tile topRight);
 
-        internal abstract void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight);
+        internal abstract void UpdatePointerLocation(in PointD position, in Tile bottomLeft, in Tile topRight);
 
         private protected void InitializeBounds()
         {
@@ -96,8 +96,8 @@ namespace Orts.Graphics.MapView
             }
             else
             {
-                minX = Math.Min(minX, (trackModel.ContentByTile[MapContentType.Grid] as TileIndexedList<GridTile, Tile>)[0][0].Tile.X);
-                maxX = Math.Max(maxX, (trackModel.ContentByTile[MapContentType.Grid] as TileIndexedList<GridTile, Tile>)[^1][0].Tile.X);
+                minX = Math.Min(minX, (trackModel.ContentByTile[MapContentType.Grid] as TileIndexedList<GridTile>)[0][0].Tile.X);
+                maxX = Math.Max(maxX, (trackModel.ContentByTile[MapContentType.Grid] as TileIndexedList<GridTile>)[^1][0].Tile.X);
                 foreach (GridTile tile in trackModel.ContentByTile[MapContentType.Grid])
                 {
                     minY = Math.Min(minY, tile.Tile.Z);

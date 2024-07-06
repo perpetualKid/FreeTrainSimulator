@@ -4,7 +4,9 @@ using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Tests.Orts.Common.Calc
+using Tests.FreeTrainSimulator.Common;
+
+namespace Tests.FreeTrainSimulator.Common.Calc
 {
 
     [TestClass]
@@ -37,9 +39,7 @@ namespace Tests.Orts.Common.Calc
         public void AngularRoundTripTest()
         {
             for (double i = 0; i < 30; i += .1)
-            {
                 Assert.AreEqual(i, Frequency.Angular.RadToHz(Frequency.Angular.HzToRad(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
-            }
         }
 
         [TestMethod]
@@ -203,9 +203,7 @@ namespace Tests.Orts.Common.Calc
         public void ForceRoundTripTest()
         {
             for (double i = 0; i < 30; i += 0.1)
-            {
                 Assert.AreEqual(i, Dynamics.Force.FromLbf(Dynamics.Force.ToLbf(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
-            }
         }
 
         [TestMethod]

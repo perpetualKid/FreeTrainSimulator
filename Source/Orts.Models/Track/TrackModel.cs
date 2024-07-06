@@ -108,7 +108,7 @@ namespace Orts.Models.Track
         public IReadOnlyList<EndNodeBase> RoadEndNodes { get; }
         public IReadOnlyList<TrackSegmentSection> RoadSegmentSections { get; }
 
-        public EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate<Tile>, Tile>, MapContentType>();
+        public EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
 
         private TrackModel(RuntimeData runtimeData)
         {
@@ -153,9 +153,9 @@ namespace Orts.Models.Track
             (Junctions as PartialTrackElementList<JunctionNodeBase>).AddRange(junctionNodes);
             (EndNodes as PartialTrackElementList<EndNodeBase>).AddRange(endNodes);
 
-            ContentByTile[MapContentType.Tracks] = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
-            ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase, Tile>(Junctions);
-            ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNodeBase, Tile>(EndNodes);
+            ContentByTile[MapContentType.Tracks] = new TileIndexedList<TrackSegmentBase>(trackSegments);
+            ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase>(Junctions);
+            ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNodeBase>(EndNodes);
         }
 
         public void InitializeRoadTrack(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<EndNodeBase> endNodes)
@@ -175,8 +175,8 @@ namespace Orts.Models.Track
 
             (RoadEndNodes as PartialTrackElementList<EndNodeBase>).AddRange(endNodes);
 
-            ContentByTile[MapContentType.Roads] = new TileIndexedList<TrackSegmentBase, Tile>(trackSegments);
-            ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNodeBase, Tile>(RoadEndNodes);
+            ContentByTile[MapContentType.Roads] = new TileIndexedList<TrackSegmentBase>(trackSegments);
+            ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNodeBase>(RoadEndNodes);
         }
 
         public void InitializeTrackItems(IEnumerable<TrackItemBase> trackItems)

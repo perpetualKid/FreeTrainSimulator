@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using FreeTrainSimulator.Common.Info;
+﻿using FreeTrainSimulator.Common.Info;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Tests.Orts.Common.Info
+namespace Tests.FreeTrainSimulator.Common.Info
 {
     [TestClass]
     public class RuntimeInfoTests

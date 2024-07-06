@@ -63,12 +63,12 @@ namespace Orts.Graphics.MapView
 
         public override async Task Initialize()
         {
-            await Task.Run(() => AddTrackSegments()).ConfigureAwait(false);
-            await Task.Run(() => AddTrackItems()).ConfigureAwait(false);
+            await Task.Run(AddTrackSegments).ConfigureAwait(false);
+            await Task.Run(AddTrackItems).ConfigureAwait(false);
 
             ContentArea.Initialize();
             //just put an empty list so the draw method does not skip the paths
-            trackModel.ContentByTile[MapContentType.Paths] = new TileIndexedList<EditorTrainPath, Tile>(new List<EditorTrainPath>() { });
+            trackModel.ContentByTile[MapContentType.Paths] = new TileIndexedList<EditorTrainPath>(new List<EditorTrainPath>() { });
 
             DetailInfo["Metric Scale"] = RuntimeData.GameInstance(game).UseMetricUnits.ToString();
             DetailInfo["Track Nodes"] = $"{trackModel.SegmentSections.Count}";
@@ -91,7 +91,7 @@ namespace Orts.Graphics.MapView
             }
         }
 
-        internal override void UpdatePointerLocation(in PointD position, ITile bottomLeft, ITile topRight)
+        internal override void UpdatePointerLocation(in PointD position, in Tile bottomLeft, in Tile topRight)
         {
             nearestSegmentForStatus = (float.MaxValue, null);
             nearestItemForStatus = (float.MaxValue, null);
@@ -109,7 +109,7 @@ namespace Orts.Graphics.MapView
                     continue;
                 if (viewSettings[viewItem] && trackModel.ContentByTile[viewItem] != null)
                 {
-                    foreach (ITileCoordinate<Tile> item in trackModel.ContentByTile[viewItem].BoundingBox(bottomLeft, topRight))
+                    foreach (ITileCoordinate item in trackModel.ContentByTile[viewItem].BoundingBox(bottomLeft, topRight))
                     {
                         if (item is VectorPrimitive vectorPrimitive)
                         {
@@ -164,7 +164,7 @@ namespace Orts.Graphics.MapView
             }
         }
 
-        internal override void Draw(ITile bottomLeft, ITile topRight)
+        internal override void Draw(in Tile bottomLeft, in Tile topRight)
         {
             foreach (MapContentType viewItemSetting in EnumExtension.GetValues<MapContentType>())
             {
@@ -176,7 +176,7 @@ namespace Orts.Graphics.MapView
                     }
                     else
                     {
-                        foreach (ITileCoordinate<Tile> item in trackModel.ContentByTile[viewItemSetting].BoundingBox(bottomLeft, topRight))
+                        foreach (ITileCoordinate item in trackModel.ContentByTile[viewItemSetting].BoundingBox(bottomLeft, topRight))
                         {
                             // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                             // but the performance impact/overhead seems invariant
@@ -290,11 +290,11 @@ namespace Orts.Graphics.MapView
             trackModel.InitializeRoadTrack(roadSegments, roadEndSegments);
 
             // identify all tiles by looking at tracks and roads and their respective end segments
-            trackModel.ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile, Tile>(
-                trackModel.ContentByTile[MapContentType.Tracks].Select(d => d.Tile as ITile).Distinct()
-                .Union(trackModel.ContentByTile[MapContentType.EndNodes].Select(d => d.Tile as ITile).Distinct())
-                .Union(trackModel.ContentByTile[MapContentType.Roads].Select(d => d.Tile as ITile).Distinct())
-                .Union(trackModel.ContentByTile[MapContentType.RoadEndNodes].Select(d => d.Tile as ITile).Distinct())
+            trackModel.ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile>(
+                trackModel.ContentByTile[MapContentType.Tracks].Select(d => d.Tile).Distinct()
+                .Union(trackModel.ContentByTile[MapContentType.EndNodes].Select(d => d.Tile).Distinct())
+                .Union(trackModel.ContentByTile[MapContentType.Roads].Select(d => d.Tile).Distinct())
+                .Union(trackModel.ContentByTile[MapContentType.RoadEndNodes].Select(d => d.Tile).Distinct())
                 .Select(t => new GridTile(t)));
 
             trackModel.ContentByTile[MapContentType.Grid] = trackModel.ContentByTile[MapContentType.Grid];
@@ -313,30 +313,30 @@ namespace Orts.Graphics.MapView
             trackModel.InitializeTrackItems(trackItems);
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<PlatformTrackItem>());
-            trackModel.ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath, Tile>(platforms);
+            trackModel.ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);
 
             IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackModel, trackItems.OfType<SidingTrackItem>());
-            trackModel.ContentByTile[MapContentType.Sidings] = new TileIndexedList<SidingPath, Tile>(sidings);
+            trackModel.ContentByTile[MapContentType.Sidings] = new TileIndexedList<SidingPath>(sidings);
 
             IEnumerable<SignalTrackItem> signals = trackItems.OfType<SignalTrackItem>();
 
-            trackModel.ContentByTile[MapContentType.Signals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
-            trackModel.ContentByTile[MapContentType.OtherSignals] = new TileIndexedList<SignalTrackItem, Tile>(trackItems.OfType<SignalTrackItem>().Where(s => !s.Normal));
-            trackModel.ContentByTile[MapContentType.MilePosts] = new TileIndexedList<SpeedPostTrackItem, Tile>(trackItems.OfType<SpeedPostTrackItem>().Where(s => s.MilePost));
-            trackModel.ContentByTile[MapContentType.SpeedPosts] = new TileIndexedList<SpeedPostTrackItem, Tile>(trackItems.OfType<SpeedPostTrackItem>().Where(s => !s.MilePost));
-            trackModel.ContentByTile[MapContentType.CrossOvers] = new TileIndexedList<CrossOverTrackItem, Tile>(trackItems.OfType<CrossOverTrackItem>());
-            trackModel.ContentByTile[MapContentType.RoadCrossings] = new TileIndexedList<LevelCrossingTrackItem, Tile>(trackItems.OfType<LevelCrossingTrackItem>().Where(s => s.RoadLevelCrossing));
-            trackModel.ContentByTile[MapContentType.LevelCrossings] = new TileIndexedList<LevelCrossingTrackItem, Tile>(trackItems.OfType<LevelCrossingTrackItem>().Where(s => !s.RoadLevelCrossing));
-            trackModel.ContentByTile[MapContentType.Hazards] = new TileIndexedList<HazardTrackItem, Tile>(trackItems.OfType<HazardTrackItem>());
-            trackModel.ContentByTile[MapContentType.Pickups] = new TileIndexedList<PickupTrackItem, Tile>(trackItems.OfType<PickupTrackItem>());
-            trackModel.ContentByTile[MapContentType.SoundRegions] = new TileIndexedList<SoundRegionTrackItem, Tile>(trackItems.OfType<SoundRegionTrackItem>());
-            trackModel.ContentByTile[MapContentType.CarSpawners] = new TileIndexedList<CarSpawnerTrackItem, Tile>(trackItems.OfType<CarSpawnerTrackItem>());
-            trackModel.ContentByTile[MapContentType.Empty] = new TileIndexedList<EmptyTrackItem, Tile>(trackItems.OfType<EmptyTrackItem>());
+            trackModel.ContentByTile[MapContentType.Signals] = new TileIndexedList<SignalTrackItem>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
+            trackModel.ContentByTile[MapContentType.OtherSignals] = new TileIndexedList<SignalTrackItem>(trackItems.OfType<SignalTrackItem>().Where(s => !s.Normal));
+            trackModel.ContentByTile[MapContentType.MilePosts] = new TileIndexedList<SpeedPostTrackItem>(trackItems.OfType<SpeedPostTrackItem>().Where(s => s.MilePost));
+            trackModel.ContentByTile[MapContentType.SpeedPosts] = new TileIndexedList<SpeedPostTrackItem>(trackItems.OfType<SpeedPostTrackItem>().Where(s => !s.MilePost));
+            trackModel.ContentByTile[MapContentType.CrossOvers] = new TileIndexedList<CrossOverTrackItem>(trackItems.OfType<CrossOverTrackItem>());
+            trackModel.ContentByTile[MapContentType.RoadCrossings] = new TileIndexedList<LevelCrossingTrackItem>(trackItems.OfType<LevelCrossingTrackItem>().Where(s => s.RoadLevelCrossing));
+            trackModel.ContentByTile[MapContentType.LevelCrossings] = new TileIndexedList<LevelCrossingTrackItem>(trackItems.OfType<LevelCrossingTrackItem>().Where(s => !s.RoadLevelCrossing));
+            trackModel.ContentByTile[MapContentType.Hazards] = new TileIndexedList<HazardTrackItem>(trackItems.OfType<HazardTrackItem>());
+            trackModel.ContentByTile[MapContentType.Pickups] = new TileIndexedList<PickupTrackItem>(trackItems.OfType<PickupTrackItem>());
+            trackModel.ContentByTile[MapContentType.SoundRegions] = new TileIndexedList<SoundRegionTrackItem>(trackItems.OfType<SoundRegionTrackItem>());
+            trackModel.ContentByTile[MapContentType.CarSpawners] = new TileIndexedList<CarSpawnerTrackItem>(trackItems.OfType<CarSpawnerTrackItem>());
+            trackModel.ContentByTile[MapContentType.Empty] = new TileIndexedList<EmptyTrackItem>(trackItems.OfType<EmptyTrackItem>());
 
             IEnumerable<IGrouping<string, PlatformPath>> stations = platforms.GroupBy(p => p.StationName, StringComparer.OrdinalIgnoreCase);
-            trackModel.ContentByTile[MapContentType.StationNames] = new TileIndexedList<StationNameItem, Tile>(StationNameItem.CreateStationItems(stations));
-            trackModel.ContentByTile[MapContentType.PlatformNames] = new TileIndexedList<PlatformNameItem, Tile>(platforms.Select(p => new PlatformNameItem(p)));
-            trackModel.ContentByTile[MapContentType.SidingNames] = new TileIndexedList<SidingNameItem, Tile>(sidings.Select(p => new SidingNameItem(p)));
+            trackModel.ContentByTile[MapContentType.StationNames] = new TileIndexedList<StationNameItem>(StationNameItem.CreateStationItems(stations));
+            trackModel.ContentByTile[MapContentType.PlatformNames] = new TileIndexedList<PlatformNameItem>(platforms.Select(p => new PlatformNameItem(p)));
+            trackModel.ContentByTile[MapContentType.SidingNames] = new TileIndexedList<SidingNameItem>(sidings.Select(p => new SidingNameItem(p)));
         }
         #endregion
 

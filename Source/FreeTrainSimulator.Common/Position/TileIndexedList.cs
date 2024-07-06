@@ -12,7 +12,7 @@ namespace FreeTrainSimulator.Common.Position
     /// </summary>
     /// <typeparam name="TTileCoordinate"></typeparam>
     /// <typeparam name="T"></typeparam>
-    public interface ITileIndexedList<out TTileCoordinate, T> : IEnumerable<TTileCoordinate> where T : struct, ITile where TTileCoordinate : ITileCoordinate<T>
+    public interface ITileIndexedList<out TTileCoordinate> : IEnumerable<TTileCoordinate> where TTileCoordinate : ITileCoordinate
     {
         /// <summary>
         /// Number of tiles in this list
@@ -24,28 +24,26 @@ namespace FreeTrainSimulator.Common.Position
         /// </summary>
         int ItemCount { get; }
 
-        IEnumerable<TTileCoordinate> BoundingBox(ITile center, int tileRadius);
-        IEnumerable<TTileCoordinate> BoundingBox(ITile bottomLeft, ITile topRight);
+        IEnumerable<TTileCoordinate> BoundingBox(Tile center, int tileRadius);
+        IEnumerable<TTileCoordinate> BoundingBox(Tile bottomLeft, Tile topRight);
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
-        IEnumerable<TTileCoordinate> this[ITile tile] { get; }
+        IEnumerable<TTileCoordinate> this[Tile tile] { get; }
 #pragma warning restore CA1043 // Use Integral Or String Argument For Indexers
         IEnumerable<TTileCoordinate> FindNearest(PointD position);
-        IEnumerable<TTileCoordinate> FindNearest(PointD position, ITile bottomLeft, ITile topRight);
+        IEnumerable<TTileCoordinate> FindNearest(PointD position, Tile bottomLeft, Tile topRight);
     }
 
     /// <summary>
     /// Generic type to efficiently index and access elements by 2D tile index.
     /// Allows to enumerate elements within a certain "bounding box" area.
     /// Also has basic capabilities to find nearest element from a given position.<br/>
-    /// TTileCoordinate is the type of elements in this list. The type needs to implement <seealso cref="ITileCoordinate{T}"/><br/>
-    /// T is the tile-type, implementing <seealso cref="ITile"/>
+    /// TTileCoordinate is the type of elements in this list. The type needs to implement <seealso cref="ITileCoordinate"/><br/>
     /// </summary>
     /// <typeparam name="TTileCoordinate"></typeparam>
-    /// <typeparam name="T"></typeparam>
-    public class TileIndexedList<TTileCoordinate, T> : ITileIndexedList<TTileCoordinate, T> where T : struct, ITile where TTileCoordinate : ITileCoordinate<T>
+    public class TileIndexedList<TTileCoordinate> : ITileIndexedList<TTileCoordinate> where TTileCoordinate : ITileCoordinate
     {
-        private readonly SortedList<ITile, List<TTileCoordinate>> tiles;
-        private readonly List<ITile> sortedIndexes;
+        private readonly SortedList<Tile, List<TTileCoordinate>> tiles;
+        private readonly List<Tile> sortedIndexes;
 
         /// <summary>
         /// <inheritdoc/>
@@ -62,19 +60,19 @@ namespace FreeTrainSimulator.Common.Position
         public TileIndexedList(IEnumerable<TTileCoordinate> data)
         {
             data = data.ToList();
-            if (data is IEnumerable<ITileCoordinateVector<T>> vectorData)
+            if (data is IEnumerable<ITileCoordinateVector> vectorData)
             {
-                IEnumerable<ITileCoordinateVector<T>> singleTile = vectorData.Where(d => d.Tile.Equals(d.OtherTile)).ToList();
-                IEnumerable<ITileCoordinateVector<T>> multiTile = vectorData.Where(d => !d.Tile.Equals(d.OtherTile)).ToList();
+                IEnumerable<ITileCoordinateVector> singleTile = vectorData.Where(d => d.Tile.Equals(d.OtherTile)).ToList();
+                IEnumerable<ITileCoordinateVector> multiTile = vectorData.Where(d => !d.Tile.Equals(d.OtherTile)).ToList();
 
-                tiles = new SortedList<ITile, List<TTileCoordinate>>(
-                    singleTile.Select(d => new { Segment = d, Tile = d.Tile as ITile }).
-                    Concat(multiTile.Select(d => new { Segment = d, Tile = d.Tile as ITile })).
-                    Concat(multiTile.Select(d => new { Segment = d, Tile = d.OtherTile as ITile })).GroupBy(d => d.Tile).
+                tiles = new SortedList<Tile, List<TTileCoordinate>>(
+                    singleTile.Select(d => new { Segment = d, Tile = d.Tile }).
+                    Concat(multiTile.Select(d => new { Segment = d, Tile = d.Tile })).
+                    Concat(multiTile.Select(d => new { Segment = d, Tile = d.OtherTile })).GroupBy(d => d.Tile).
                     ToDictionary(g => g.Key, g => g.Select(f => f.Segment).Cast<TTileCoordinate>().ToList()));
             }
             else
-                tiles = new SortedList<ITile, List<TTileCoordinate>>(data.GroupBy(d => d.Tile as ITile).ToDictionary(g => g.Key, g => g.ToList()));
+                tiles = new SortedList<Tile, List<TTileCoordinate>>(data.GroupBy(d => d.Tile).ToDictionary(g => g.Key, g => g.ToList()));
             sortedIndexes = tiles.Keys.ToList();
 
             if (sortedIndexes.Count > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[^1]))
@@ -93,7 +91,7 @@ namespace FreeTrainSimulator.Common.Position
         }
 
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
-        public IEnumerable<TTileCoordinate> this[ITile tile]
+        public IEnumerable<TTileCoordinate> this[Tile tile]
 #pragma warning restore CA1043 // Use Integral Or String Argument For Indexers
         {
             get
@@ -105,7 +103,7 @@ namespace FreeTrainSimulator.Common.Position
             }
         }
 
-        public IEnumerable<TTileCoordinate> BoundingBox(ITile center, int tileRadius = 0)
+        public IEnumerable<TTileCoordinate> BoundingBox(Tile center, int tileRadius = 0)
         {
             ArgumentNullException.ThrowIfNull(center);
 
@@ -114,7 +112,7 @@ namespace FreeTrainSimulator.Common.Position
             return BoundingBox(bottomLeft, topRight);
         }
 
-        public IEnumerable<TTileCoordinate> BoundingBox(ITile bottomLeft, ITile topRight)
+        public IEnumerable<TTileCoordinate> BoundingBox(Tile bottomLeft, Tile topRight)
         {
             ArgumentNullException.ThrowIfNull(bottomLeft);
             ArgumentNullException.ThrowIfNull(topRight);
@@ -125,9 +123,9 @@ namespace FreeTrainSimulator.Common.Position
                 yield break;
 
             int tileLookupIndex = FindNearestIndexFloor(bottomLeft);
-            ITile end = sortedIndexes[FindNearestIndexCeiling(topRight)];
+            Tile end = sortedIndexes[FindNearestIndexCeiling(topRight)];
 
-            ITile key = sortedIndexes[tileLookupIndex];
+            Tile key = sortedIndexes[tileLookupIndex];
 
             while (key.Z < bottomLeft.Z && key.CompareTo(end) < 0)
             {
@@ -162,13 +160,13 @@ namespace FreeTrainSimulator.Common.Position
         public IEnumerable<TTileCoordinate> FindNearest(PointD position)
         {
             Tile current = Tile.TileFromAbs(position.X, position.Y);
-            ITile key = sortedIndexes[FindNearestIndexCeiling(current)];
+            Tile key = sortedIndexes[FindNearestIndexCeiling(current)];
             double minDistance = double.MaxValue;
             if (current != key)
             {
                 int tileDistance = Math.Abs(current.X - key.X) + Math.Abs(current.Z - key.Z);
-                ITile tileMin = new Tile(current.X - tileDistance, current.Z - tileDistance);
-                ITile tileMax = new Tile(current.X + tileDistance, current.Z + tileDistance);
+                Tile tileMin = new Tile(current.X - tileDistance, current.Z - tileDistance);
+                Tile tileMax = new Tile(current.X + tileDistance, current.Z + tileDistance);
                 int tileMaxIndex = FindNearestIndexCeiling(tileMax);
                 for (int i = FindNearestIndexFloor(tileMin); i < tileMaxIndex; i++)
                 {
@@ -183,18 +181,18 @@ namespace FreeTrainSimulator.Common.Position
             return tiles[key];
         }
 
-        public IEnumerable<TTileCoordinate> FindNearest(PointD position, ITile bottomLeft, ITile topRight)
+        public IEnumerable<TTileCoordinate> FindNearest(PointD position, Tile bottomLeft, Tile topRight)
         {
             Tile current = Tile.TileFromAbs(position.X, position.Y);
-            ITile key = sortedIndexes[FindNearestIndexCeiling(current)];
+            Tile key = sortedIndexes[FindNearestIndexCeiling(current)];
             double minDistance = double.MaxValue;
             if (current != key)
             {
                 int tileDistance = Math.Abs(current.X - key.X) + Math.Abs(current.Z - key.Z);
-                ITile tileMin = new Tile(current.X - tileDistance, current.Z - tileDistance);
+                Tile tileMin = new Tile(current.X - tileDistance, current.Z - tileDistance);
                 if (tileMin.CompareTo(bottomLeft) < 0)
                     tileMin = bottomLeft;
-                ITile tileMax = new Tile(current.X + tileDistance, current.Z + tileDistance);
+                Tile tileMax = new Tile(current.X + tileDistance, current.Z + tileDistance);
                 if (tileMax.CompareTo(topRight) > 0)
                     tileMax = topRight;
                 int tileMaxIndex = FindNearestIndexCeiling(tileMax);
@@ -216,7 +214,7 @@ namespace FreeTrainSimulator.Common.Position
             return GetEnumerator();
         }
 
-        private int FindNearestIndexFloor(ITile possibleKey)
+        private int FindNearestIndexFloor(Tile possibleKey)
         {
             int keyIndex = sortedIndexes.BinarySearch(possibleKey);
             if (keyIndex < 0)
@@ -228,7 +226,7 @@ namespace FreeTrainSimulator.Common.Position
             return keyIndex;
         }
 
-        private int FindNearestIndexCeiling(ITile possibleKey)
+        private int FindNearestIndexCeiling(Tile possibleKey)
         {
             int keyIndex = sortedIndexes.BinarySearch(possibleKey);
             if (keyIndex < 0)

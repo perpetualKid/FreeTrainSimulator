@@ -5,7 +5,7 @@ using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Tests.Orts.Common.Calc
+namespace Tests.FreeTrainSimulator.Common.Calc
 {
     [TestClass]
     public class SmoothedDataTests

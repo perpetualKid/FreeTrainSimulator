@@ -6,10 +6,9 @@ using FreeTrainSimulator.Common.Info;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using NuGet.Common;
 using NuGet.Versioning;
 
-namespace Tests.Orts.Common.Info
+namespace Tests.FreeTrainSimulator.Common.Info
 {
     [TestClass]
     public class VersionInfoTests

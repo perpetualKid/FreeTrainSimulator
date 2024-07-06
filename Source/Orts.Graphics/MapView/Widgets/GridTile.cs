@@ -15,13 +15,13 @@ namespace Orts.Graphics.MapView.Widgets
             WidgetColorCache.SetColors<GridTile>(Color.Black);
         }
 
-        public GridTile(ITile tile): base(WorldLocationFromTile(tile, -1024, -1024), WorldLocationFromTile(tile, 1024, 1024))
+        public GridTile(Tile tile): base(WorldLocationFromTile(tile, -1024, -1024), WorldLocationFromTile(tile, 1024, 1024))
         {
             upperLeft = PointD.FromWorldLocation(WorldLocationFromTile(tile, -1024, 1024));
             lowerRight = PointD.FromWorldLocation(WorldLocationFromTile(tile, 1024, -1024));
         }
 
-        private static WorldLocation WorldLocationFromTile(ITile tile, int x, int z)
+        private static WorldLocation WorldLocationFromTile(Tile tile, int x, int z)
         {
             return new WorldLocation(tile.X, tile.Z, x, 0, z);
         }

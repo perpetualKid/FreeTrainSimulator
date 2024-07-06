@@ -5,7 +5,7 @@ using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Tests.Orts.Common
+namespace Tests.FreeTrainSimulator.Common
 {
     [TestClass]
     public class FormatStringsTests

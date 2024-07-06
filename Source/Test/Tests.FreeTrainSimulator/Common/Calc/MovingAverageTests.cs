@@ -2,7 +2,7 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Tests.Orts.Common.Calc
+namespace Tests.FreeTrainSimulator.Common.Calc
 {
     [TestClass]
     public class MovingAverageTests
@@ -13,9 +13,7 @@ namespace Tests.Orts.Common.Calc
             MovingAverage instance = new MovingAverage();
             double result = 0;
             for (int i = 0; i < 10; i++)
-            {
                 result = instance.Update(i);
-            }
             Assert.AreEqual((9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1 + 0) / (double)instance.Size, result);
         }
 
@@ -26,9 +24,7 @@ namespace Tests.Orts.Common.Calc
             MovingAverage instance = new MovingAverage(size);
             double result = 0;
             for (int i = 0; i < 10; i++)
-            {
                 result = instance.Update(i);
-            }
             Assert.AreEqual(result, (9 + 8 + 7 + 6 + 5) / (double)size);
         }
 
