@@ -838,42 +838,22 @@ namespace FreeTrainSimulator.Graphics.Xna
                     texture = tex;
                 }
             }
-
         }
 
         private static byte XNATextureNumAlphaBits(Texture texture)
         {
-            switch (texture.Format)
+            return texture.Format switch
             {
-                case SurfaceFormat.Vector2:
-                case SurfaceFormat.HalfVector2:
-                case SurfaceFormat.Rg32:
-                case SurfaceFormat.NormalizedByte2:
-                case SurfaceFormat.NormalizedByte4:
-                case SurfaceFormat.Bgr565:
-                case SurfaceFormat.Single:
-                case SurfaceFormat.HalfSingle:
-                    return 0;
-                case SurfaceFormat.Dxt1:
-                case SurfaceFormat.Bgra5551:
-                    return 1;
-                case SurfaceFormat.Rgba1010102:
-                    return 2;
-                case SurfaceFormat.Dxt3:
-                case SurfaceFormat.Dxt5:
-                case SurfaceFormat.Bgra4444:
-                    return 4;
-                case SurfaceFormat.Alpha8:
-                case SurfaceFormat.Color:
-                    return 8;
-                case SurfaceFormat.Rgba64:
-                case SurfaceFormat.HalfVector4:
-                    return 16;
-                case SurfaceFormat.Vector4:
-                    return 32;
-                default:
-                    return 0;
-            }
+                SurfaceFormat.Vector2 or SurfaceFormat.HalfVector2 or SurfaceFormat.Rg32 or SurfaceFormat.NormalizedByte2 
+                    or SurfaceFormat.NormalizedByte4 or SurfaceFormat.Bgr565 or SurfaceFormat.Single or SurfaceFormat.HalfSingle => 0,
+                SurfaceFormat.Dxt1 or SurfaceFormat.Bgra5551 => 1,
+                SurfaceFormat.Rgba1010102 => 2,
+                SurfaceFormat.Dxt3 or SurfaceFormat.Dxt5 or SurfaceFormat.Bgra4444 => 4,
+                SurfaceFormat.Alpha8 or SurfaceFormat.Color => 8,
+                SurfaceFormat.Rgba64 or SurfaceFormat.HalfVector4 => 16,
+                SurfaceFormat.Vector4 => 32,
+                _ => 0,
+            };
         }
     }
 }
