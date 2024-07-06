@@ -4,8 +4,8 @@
 		<AssemblyTitle>Free Train Simulator Graphics Library</AssemblyTitle>
 		<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
 		<OutputPath>..\..\Program</OutputPath>
-		<AssemblyName>Orts.Graphics</AssemblyName>
-		<RootNamespace>Orts.Graphics</RootNamespace>
+		<AssemblyName>FreeTrainSimulator.Graphics</AssemblyName>
+		<RootNamespace>FreeTrainSimulator.Graphics</RootNamespace>
 		<RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
 	</PropertyGroup>
 	<ItemGroup>

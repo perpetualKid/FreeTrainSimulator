@@ -18,7 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
-    <ProjectReference Include="..\..\Orts.Graphics\Orts.Graphics.csproj" />
+    <ProjectReference Include="..\..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
     <ProjectReference Include="..\..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />
     <ProjectReference Include="..\..\Orts.Updater\Orts.Updater.csproj" />
