@@ -3,9 +3,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.MapView.Shapes;
-
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public class CompassControl : WindowControl
     {
@@ -28,7 +26,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            int northLocation = (Heading % 360) * markerScaling;
+            int northLocation = Heading % 360 * markerScaling;
             if (northLocation < Bounds.Width)
                 northLocation += 360 * markerScaling;
             clippingRectangle = new Rectangle(northLocation - halfWidth, 0, Bounds.Width, compassTexture.Height);
@@ -66,14 +64,14 @@ namespace Orts.Graphics.Window.Controls
                                 if (x % 30 == 0)
                                 {
                                     markerPen.Width = 2;
-                                    g.DrawLine(markerPen, x * markerScaling - 1, markerLength * 2, x * markerScaling - 1, markerLength * 4);
+                                    g.DrawLine(markerPen, (x * markerScaling) - 1, markerLength * 2, (x * markerScaling) - 1, markerLength * 4);
                                     System.Drawing.SizeF textSize = g.MeasureString($"{x % 360}", Window.Owner.TextFontDefault);
-                                    g.DrawString($"{x % 360}", Window.Owner.TextFontDefault, fontBrush, x * markerScaling - textSize.Width / 2f, 0);
+                                    g.DrawString($"{x % 360}", Window.Owner.TextFontDefault, fontBrush, (x * markerScaling) - (textSize.Width / 2f), 0);
                                 }
                                 else
                                 {
                                     markerPen.Width = 1;
-                                    g.DrawLine(markerPen, x * markerScaling, markerLength * 3, x * markerScaling, markerLength * 4 - 2);
+                                    g.DrawLine(markerPen, x * markerScaling, markerLength * 3, x * markerScaling, (markerLength * 4) - 2);
                                 }
                             }
 

@@ -1,18 +1,19 @@
 ﻿using System;
 
+using FreeTrainSimulator.Graphics.MapView.Shapes;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Formats.Msts;
-using Orts.Graphics.MapView.Shapes;
 
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public class TrainPathItemControl : WindowTextureControl
     {
         private readonly BasicTextureType textureType;
 
-        public TrainPathItemControl(FormBase window, PathNodeType nodeType) : 
+        public TrainPathItemControl(FormBase window, PathNodeType nodeType) :
             base(window ?? throw new ArgumentNullException(nameof(window)), 0, 0, window.Owner.TextFontDefault.Height, window.Owner.TextFontDefault.Height)
         {
             textureType = nodeType switch

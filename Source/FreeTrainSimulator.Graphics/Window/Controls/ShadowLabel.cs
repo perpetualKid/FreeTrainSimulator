@@ -3,7 +3,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public class ShadowLabel : Label
     {
@@ -48,7 +48,7 @@ namespace Orts.Graphics.Window.Controls
                 return;
             }
             topRight = new Point(texture.Width - cornerRadius, 0);
-            rectangleShadow = new Rectangle(cornerRadius, 0, texture.Width - 2 * cornerRadius, texture.Height);
+            rectangleShadow = new Rectangle(cornerRadius, 0, texture.Width - (2 * cornerRadius), texture.Height);
             PrepareShadowTexture();
 
             switch (Alignment)
@@ -57,10 +57,10 @@ namespace Orts.Graphics.Window.Controls
                     alignmentOffset = Point.Zero;
                     break;
                 case HorizontalAlignment.Center:
-                    alignmentOffset = new Point((Bounds.Width - System.Math.Min(texture.Width, Bounds.Width)) / 2, 0);
+                    alignmentOffset = new Point((Bounds.Width - Math.Min(texture.Width, Bounds.Width)) / 2, 0);
                     break;
                 case HorizontalAlignment.Right:
-                    alignmentOffset = new Point(Bounds.Width - System.Math.Min(texture.Width, Bounds.Width), 0);
+                    alignmentOffset = new Point(Bounds.Width - Math.Min(texture.Width, Bounds.Width), 0);
                     break;
             }
         }
@@ -74,10 +74,10 @@ namespace Orts.Graphics.Window.Controls
                 // Rounded corner background.
                 for (int y = 0; y < height; y++)
                     for (int x = 0; x < cornerRadius; x++)
-                        if ((y > cornerRadius && y < height - cornerRadius)
-                            || (Math.Sqrt((x - cornerRadius) * (x - cornerRadius) + (y - cornerRadius) * (y - cornerRadius)) < cornerRadius)
-                            || (Math.Sqrt((x - cornerRadius) * (x - cornerRadius) + (y - height + cornerRadius) * (y - height + cornerRadius)) < cornerRadius))
-                            data[y * cornerRadius + x] = Window.Owner.BackgroundColor;
+                        if (y > cornerRadius && y < height - cornerRadius
+                            || Math.Sqrt(((x - cornerRadius) * (x - cornerRadius)) + ((y - cornerRadius) * (y - cornerRadius))) < cornerRadius
+                            || Math.Sqrt(((x - cornerRadius) * (x - cornerRadius)) + ((y - height + cornerRadius) * (y - height + cornerRadius))) < cornerRadius)
+                            data[(y * cornerRadius) + x] = Window.Owner.BackgroundColor;
                 roundedShadowTexture = new Texture2D(Window.Owner.GraphicsDevice, cornerRadius, height, false, SurfaceFormat.Color);
                 roundedShadowTexture.SetData(data);
 

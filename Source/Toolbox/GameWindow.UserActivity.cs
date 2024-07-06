@@ -6,11 +6,11 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Graphics.MapView;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.MapView;
 using Orts.Toolbox.PopupWindows;
 
 namespace Orts.Toolbox

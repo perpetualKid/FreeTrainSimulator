@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Xna
+namespace FreeTrainSimulator.Graphics.Xna
 {
     /// <summary>
     /// Renders text string to a Texture2D
@@ -44,9 +44,7 @@ namespace Orts.Graphics.Xna
         protected override void Dispose(bool disposing)
         {
             if (disposing)
-            {
                 whiteBrush?.Dispose();
-            }
             base.Dispose(disposing);
         }
     }

@@ -2,12 +2,11 @@
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal static class WidgetColorCache
     {

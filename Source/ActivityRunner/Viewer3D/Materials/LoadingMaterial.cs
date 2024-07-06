@@ -4,13 +4,13 @@ using System.IO;
 
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.Shaders;
-using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials
 {

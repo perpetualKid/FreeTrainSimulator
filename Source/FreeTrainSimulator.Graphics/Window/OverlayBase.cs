@@ -1,9 +1,8 @@
-﻿
-using GetText;
+﻿using GetText;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Graphics.Window
+namespace FreeTrainSimulator.Graphics.Window
 {
     public abstract class OverlayBase : FormBase
     {

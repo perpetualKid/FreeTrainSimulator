@@ -20,11 +20,13 @@ using System.IO;
 using System.Linq;
 using System.Windows.Media.Imaging;
 
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.Xna;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Formats.Msts.Files;
-using Orts.Graphics.Xna;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -541,8 +543,8 @@ namespace ORTS.TrackViewer.Drawing
         private TextManager(Game game)
         {
             textTextures = TextTextureResourceHolder.Instance(game);
-            Orts.Graphics.FontManager.ScalingFactor *= 96f / 72;
-            DefaultFont = Orts.Graphics.FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[10];
+            FontManager.ScalingFactor *= 96f / 72;
+            DefaultFont = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[10];
         }
 
 
@@ -566,7 +568,7 @@ namespace ORTS.TrackViewer.Drawing
             size = fontSizes.Where(s => s >= size).OrderByDescending(s => s).FirstOrDefault();
             if (size == 0)
                 size = fontSizes[^1];
-            sizedFont = Orts.Graphics.FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[10];
+            sizedFont = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[10];
         }
 
         public Texture2D PrepareZoomed(string text)

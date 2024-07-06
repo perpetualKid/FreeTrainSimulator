@@ -5,13 +5,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.MapView.Shapes
+namespace FreeTrainSimulator.Graphics.MapView.Shapes
 {
     internal class BasicShapes
     {
@@ -73,7 +72,7 @@ namespace Orts.Graphics.MapView.Shapes
             textureOffsets[BasicTextureType.Hazard] = Vector2.Zero;
             textureOffsets[BasicTextureType.Pickup] = Vector2.Zero;
             textureOffsets[BasicTextureType.CarSpawner] = Vector2.Zero;
-        }   
+        }
 
         #region Drawing
         /// <summary>
@@ -87,10 +86,10 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="flip">Whether the texture needs to be flipped (vertically)</param>
         public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, bool flipHorizontal, bool flipVertical, bool highlight, SpriteBatch spriteBatch)
         {
-            Vector2 scaledSize = size < 0 ? new Vector2(-size) : new Vector2(size / this.basicTextures[texture].Width);
+            Vector2 scaledSize = size < 0 ? new Vector2(-size) : new Vector2(size / basicTextures[texture].Width);
 
             SpriteEffects flipMode = (flipHorizontal ? SpriteEffects.FlipHorizontally : SpriteEffects.None) | (flipVertical ? SpriteEffects.FlipVertically : SpriteEffects.None);
-            spriteBatch.Draw(highlight ? this.basicHighlightTextures[texture] : this.basicTextures[texture], point, null, Color.White, (float)angle, this.textureOffsets[texture], scaledSize, flipMode, 0);
+            spriteBatch.Draw(highlight ? basicHighlightTextures[texture] : basicTextures[texture], point, null, Color.White, (float)angle, textureOffsets[texture], scaledSize, flipMode, 0);
         }
 
         /// <summary>
@@ -104,9 +103,9 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="flip">Whether the texture needs to be flipped (vertically)</param>
         public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, SpriteBatch spriteBatch)
         {
-            Vector2 scaledSize = size < 0 ? new Vector2(-size) : new Vector2(size / this.basicTextures[texture].Width);
+            Vector2 scaledSize = size < 0 ? new Vector2(-size) : new Vector2(size / basicTextures[texture].Width);
 
-            spriteBatch.Draw(this.basicTextures[texture], point, null, color, (float)angle, this.textureOffsets[texture], scaledSize, SpriteEffects.None, 0);
+            spriteBatch.Draw(basicTextures[texture], point, null, color, (float)angle, textureOffsets[texture], scaledSize, SpriteEffects.None, 0);
         }
 
         /// <summary>
@@ -117,7 +116,7 @@ namespace Orts.Graphics.MapView.Shapes
         /// <param name="color">Color mask for the texture to draw (white will not affect the texture)<br/></param>
         public void DrawTexture(BasicTextureType texture, Rectangle targetRectangle, Color color, SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(this.basicTextures[texture], targetRectangle, color);
+            spriteBatch.Draw(basicTextures[texture], targetRectangle, color);
         }
 
         /// <summary>
@@ -134,10 +133,10 @@ namespace Orts.Graphics.MapView.Shapes
             if (width >= 2)
             {
                 Vector2 offset = new Vector2((float)(width * Math.Sin(angle) / 2.0), (float)(-width * Math.Cos(angle) / 2));
-                spriteBatch.Draw(this.basicTextures[BasicTextureType.BlankPixel], point + offset, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
+                spriteBatch.Draw(basicTextures[BasicTextureType.BlankPixel], point + offset, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
             }
             else
-                spriteBatch.Draw(this.basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
+                spriteBatch.Draw(basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
         }
 
         /// <summary>
@@ -171,12 +170,12 @@ namespace Orts.Graphics.MapView.Shapes
 
             int pixelsPerSegment = 10; // this is a target value. We will always start and end with a segment.
             int segments = 1 + (int)(length / (2 * pixelsPerSegment));
-            float lengthPerSegment = length / (2 * segments - 1);
+            float lengthPerSegment = length / ((2 * segments) - 1);
             Vector2 segmentOffset = 2 * lengthPerSegment * new Vector2(cosAngle, sinAngle);
 
             for (int i = 0; i < segments; i++)
             {
-                Vector2 segmentStartPoint = point1 + i * segmentOffset;
+                Vector2 segmentStartPoint = point1 + (i * segmentOffset);
                 DrawLine(width, color, segmentStartPoint, lengthPerSegment, angle, spriteBatch);
             }
         }
@@ -201,7 +200,7 @@ namespace Orts.Graphics.MapView.Shapes
             // The idea is to start to find the center of the circle. The direction from center to origin is
             // 90 degrees different from angle
             Vector2 centerToPointDirection = sign * new Vector2(-(float)Math.Sin(angle), (float)Math.Cos(angle)); // unit vector
-            Vector2 center = point - (float)radius * centerToPointDirection;
+            Vector2 center = point - ((float)radius * centerToPointDirection);
 
             // To determine the amount of straight lines we need to calculate we first 
             // determine then lenght of the arc, and divide that by the maximum we allow;
@@ -225,10 +224,10 @@ namespace Orts.Graphics.MapView.Shapes
             while (arcStepsRemaining > 0)
             {
                 int arcSteps = Math.Min(arcStepsRemaining, arcStepsPerLine); //angle steps we cover in this line
-                point = center + centerToPointDirection * (float)(radius - sign * width / 2.0);  // correct for width of line
-                double length = radius * arcSteps * minAngle + 1; // the +1 to prevent white lines in between arc sections
+                point = center + (centerToPointDirection * (float)(radius - (sign * width / 2.0)));  // correct for width of line
+                double length = (radius * arcSteps * minAngle) + 1; // the +1 to prevent white lines in between arc sections
 
-                spriteBatch.Draw(this.basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2((float)length, width), SpriteEffects.None, 0);
+                spriteBatch.Draw(basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2((float)length, width), SpriteEffects.None, 0);
 
                 // prepare for next straight line
                 arcStepsRemaining -= arcSteps;
@@ -238,8 +237,8 @@ namespace Orts.Graphics.MapView.Shapes
                     angle -= sign * arcSteps * minAngle;
                     //Rotate the centerToPointDirection, and calculate new point
                     centerToPointDirection = new Vector2(
-                             (float)(cosTable[arcSteps] * centerToPointDirection.X + sign * sinTable[arcSteps] * centerToPointDirection.Y),
-                       (float)(-sign * sinTable[arcSteps] * centerToPointDirection.X + cosTable[arcSteps] * centerToPointDirection.Y)
+                             (float)((cosTable[arcSteps] * centerToPointDirection.X) + (sign * sinTable[arcSteps] * centerToPointDirection.Y)),
+                       (float)((-sign * sinTable[arcSteps] * centerToPointDirection.X) + (cosTable[arcSteps] * centerToPointDirection.Y))
                         );
                 }
             }

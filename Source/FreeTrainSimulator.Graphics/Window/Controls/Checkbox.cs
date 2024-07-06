@@ -2,7 +2,7 @@
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public enum CheckMarkStyle
     {
@@ -53,7 +53,7 @@ namespace Orts.Graphics.Window.Controls
         {
             if (ReadOnly)
                 return false;
-            State = tristate ? (!State.HasValue ? false : (State.Value ? (bool?)null : true)) : State = !State;
+            State = tristate ? !State.HasValue ? false : State.Value ? null : true : State = !State;
             _ = base.RaiseMouseClick(e);
             return true;
         }

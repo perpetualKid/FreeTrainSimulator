@@ -5,7 +5,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Xna
+namespace FreeTrainSimulator.Graphics.Xna
 {
     public class TextTextureResourceHolder : ResourceGameComponent<Texture2D>
     {
@@ -25,9 +25,7 @@ namespace Orts.Graphics.Xna
 
             TextTextureResourceHolder instance;
             if ((instance = game.Components.OfType<TextTextureResourceHolder>().FirstOrDefault()) == null)
-            {
                 instance = new TextTextureResourceHolder(game, 30);
-            }
             return instance;
         }
 

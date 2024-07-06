@@ -5,7 +5,7 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Xna
+namespace FreeTrainSimulator.Graphics.Xna
 {
     public static class PointExtension
     {

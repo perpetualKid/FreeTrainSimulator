@@ -1,16 +1,16 @@
 ﻿
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView.Shapes;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Graphics.MapView.Shapes;
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal class PathSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
-        private protected PathSegment(): base()
+        private protected PathSegment() : base()
         { }
 
         public PathSegment(TrackSegmentBase source, float remainingLength, float startOffset, bool reverse) : base(source, remainingLength, startOffset, reverse)

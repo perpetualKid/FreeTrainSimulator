@@ -9,16 +9,16 @@ using Microsoft.Xna.Framework;
 using Orts.Formats.Msts.Models;
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal class EndNode: EndNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
+    internal class EndNode : EndNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "End Node" };
 
         private const int width = 3;
         protected const int Length = 2;
 
-        public EndNode(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections): 
+        public EndNode(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections) :
             base(trackEndNode, connectedVectorNode, trackSections)
         {
             Size = width;
@@ -56,7 +56,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public RoadEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections sections) : 
+        public RoadEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections sections) :
             base(trackEndNode, connectedVectorNode, sections)
         {
         }

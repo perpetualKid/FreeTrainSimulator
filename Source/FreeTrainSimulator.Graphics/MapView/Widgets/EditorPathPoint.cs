@@ -1,14 +1,14 @@
 ﻿using System;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView.Shapes;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
-using Orts.Graphics.MapView.Shapes;
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal class EditorPathPoint : TrainPathPointBase, IDrawable<PointPrimitive>
     {

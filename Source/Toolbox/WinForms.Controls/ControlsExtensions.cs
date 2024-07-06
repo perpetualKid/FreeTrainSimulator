@@ -4,11 +4,10 @@ using System.Linq;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Graphics;
-using Orts.Graphics.Xna;
 
 namespace Orts.Toolbox.WinForms.Controls
 {

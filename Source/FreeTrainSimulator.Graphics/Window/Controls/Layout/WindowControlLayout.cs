@@ -1,4 +1,4 @@
-﻿namespace Orts.Graphics.Window.Controls.Layout
+﻿namespace FreeTrainSimulator.Graphics.Window.Controls.Layout
 {
     internal class WindowControlLayout : ControlLayout
     {

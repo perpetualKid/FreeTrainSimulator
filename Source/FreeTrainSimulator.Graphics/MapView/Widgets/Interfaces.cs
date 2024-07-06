@@ -1,7 +1,7 @@
 ﻿
 using FreeTrainSimulator.Common.Position;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal interface IDrawable<T> where T : PointPrimitive
     {

@@ -2,17 +2,17 @@
 using System;
 using System.Linq;
 
+using FreeTrainSimulator.Graphics.Xna;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.DrawableComponents
+namespace FreeTrainSimulator.Graphics.DrawableComponents
 {
     public class TextShape : ResourceGameComponent<Texture2D>
     {
         private readonly SpriteBatch spriteBatch;
-        private readonly TextTextureRenderer textRenderer; 
+        private readonly TextTextureRenderer textRenderer;
 
         public OutlineRenderOptions OutlineRenderOptions { get; set; }
 
@@ -28,9 +28,7 @@ namespace Orts.Graphics.DrawableComponents
 
             TextShape instance;
             if ((instance = game.Components.OfType<TextShape>().FirstOrDefault()) == null)
-            {
                 instance = new TextShape(game, spriteBatch);
-            }
             return instance;
         }
 
@@ -50,8 +48,8 @@ namespace Orts.Graphics.DrawableComponents
             Vector2 center = point;
             point -= new Vector2(texture.Width * ((int)horizontalAlignment / 2f), texture.Height * ((int)verticalAlignment / 2f));
             Vector2 vector = point - center;
-            float x = (float)(Math.Cos(angle) * vector.X - Math.Sin(angle) * vector.Y);
-            float y = (float)(Math.Sin(angle) * vector.X + Math.Cos(angle) * vector.Y);
+            float x = (float)((Math.Cos(angle) * vector.X) - (Math.Sin(angle) * vector.Y));
+            float y = (float)((Math.Sin(angle) * vector.X) + (Math.Cos(angle) * vector.Y));
             point = center + new Vector2(x, y);
             //p'x = cos(theta) * (px-ox) - sin(theta) * (py-oy) + ox
             //p'y = sin(theta) * (px-ox) + cos(theta) * (py-oy) + oy

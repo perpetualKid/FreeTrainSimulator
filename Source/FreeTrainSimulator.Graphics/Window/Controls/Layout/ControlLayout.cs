@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Window.Controls.Layout
+namespace FreeTrainSimulator.Graphics.Window.Controls.Layout
 {
 #pragma warning disable CA1710 // Identifiers should have correct suffix
     public abstract class ControlLayout : WindowControl, ICollection<WindowControl>
@@ -71,12 +71,12 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public void AddHorizontalSeparator(bool padding = true)
         {
-            Add(new Separator(Window, RemainingWidth, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * Window.Owner.DpiScaling), padding ? (int)(SeparatorPadding * Window.Owner.DpiScaling) : 0));
+            Add(new Separator(Window, RemainingWidth, (int)(((2 * (padding ? SeparatorPadding : 0)) + 1) * Window.Owner.DpiScaling), padding ? (int)(SeparatorPadding * Window.Owner.DpiScaling) : 0));
         }
 
         public void AddVerticalSeparator(bool padding = true)
         {
-            Add(new Separator(Window, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * Window.Owner.DpiScaling), RemainingHeight, padding ? (int)(SeparatorPadding * Window.Owner.DpiScaling) : 0));
+            Add(new Separator(Window, (int)(((2 * (padding ? SeparatorPadding : 0)) + 1) * Window.Owner.DpiScaling), RemainingHeight, padding ? (int)(SeparatorPadding * Window.Owner.DpiScaling) : 0));
         }
 
         public ControlLayoutPanel AddLayoutPanel(int width, int height)

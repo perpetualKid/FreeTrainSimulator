@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView.Shapes;
+using FreeTrainSimulator.Graphics.MapView.Widgets;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.MapView.Shapes;
-using Orts.Graphics.MapView.Widgets;
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.DrawableComponents
+namespace FreeTrainSimulator.Graphics.DrawableComponents
 {
     public class InsetComponent : TextureContentComponent
     {
@@ -106,8 +105,8 @@ namespace Orts.Graphics.DrawableComponents
             double xScale = (double)size.X / content.Content.Bounds.Width;
             double yScale = (double)size.Y / content.Content.Bounds.Height;
             scale = Math.Min(xScale, yScale);
-            offsetX = (content.Content.Bounds.Left + content.Content.Bounds.Right) / 2 - size.X / 2 / scale;
-            offsetY = (content.Content.Bounds.Top + content.Content.Bounds.Bottom) / 2 - size.Y / 2 / scale;
+            offsetX = ((content.Content.Bounds.Left + content.Content.Bounds.Right) / 2) - (size.X / 2 / scale);
+            offsetY = ((content.Content.Bounds.Top + content.Content.Bounds.Bottom) / 2) - (size.Y / 2 / scale);
         }
 
         private void DrawClippingMarker()
@@ -124,13 +123,13 @@ namespace Orts.Graphics.DrawableComponents
             content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition, screenHeight, MathHelper.ToRadians(90), spriteBatch);
             content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(screenWidth, 0), screenHeight, MathHelper.ToRadians(90), spriteBatch);
             if (screenWidth < 10 || screenHeight < 10)
-                content.BasicShapes.DrawTexture(BasicTextureType.Circle, clippingPosition + new Vector2(screenWidth, screenHeight) / 2, 0, -0.5f, Color.Red, spriteBatch);
+                content.BasicShapes.DrawTexture(BasicTextureType.Circle, clippingPosition + (new Vector2(screenWidth, screenHeight) / 2), 0, -0.5f, Color.Red, spriteBatch);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Vector2 WorldToScreenCoordinates(in PointD location)
         {
-            return new Vector2((float)(scale * (location.X - offsetX)), (float)(size.Y - scale * (location.Y - offsetY)));
+            return new Vector2((float)(scale * (location.X - offsetX)), (float)(size.Y - (scale * (location.Y - offsetY))));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

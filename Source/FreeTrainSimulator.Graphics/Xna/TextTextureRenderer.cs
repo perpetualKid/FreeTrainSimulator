@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Xna
+namespace FreeTrainSimulator.Graphics.Xna
 {
     public class OutlineRenderOptions : IDisposable
     {
@@ -108,9 +108,9 @@ namespace Orts.Graphics.Xna
                     if (actual.Height < font.Height * 1.2)
                         paddingWidth += (int)(text.Length * outlineOptions.OutlineWidth / 2);
                     else
-                        paddingWidth += (int)(actual.Width/font.Height * outlineOptions.OutlineWidth);
+                        paddingWidth += (int)(actual.Width / font.Height * outlineOptions.OutlineWidth);
                 }
-                size = new Size((int)Math.Ceiling(actual.Width + paddingWidth), (int)Math.Ceiling(actual.Height + padding / 2));
+                size = new Size((int)Math.Ceiling(actual.Width + paddingWidth), (int)Math.Ceiling(actual.Height + (padding / 2)));
             }
             measureGraphicsHolder.Enqueue(measureContainer);
             return size;
@@ -119,7 +119,7 @@ namespace Orts.Graphics.Xna
         public Texture2D Resize(string text, Font font, OutlineRenderOptions outlineOptions = null)
         {
             Size size = Measure(text, font, outlineOptions);
-            return (size.Width == 0 || size.Height == 0) ? EmptyTexture : new Texture2D(game.GraphicsDevice, size.Width, size.Height, false, SurfaceFormat.Color);
+            return size.Width == 0 || size.Height == 0 ? EmptyTexture : new Texture2D(game.GraphicsDevice, size.Width, size.Height, false, SurfaceFormat.Color);
         }
 
         public Texture2D RenderText(string text, Font font, OutlineRenderOptions outlineOptions = null)
@@ -132,7 +132,7 @@ namespace Orts.Graphics.Xna
         public void RenderText(string text, Font font, Texture2D texture, OutlineRenderOptions outlineOptions = null)
         {
             ArgumentNullException.ThrowIfNull(texture);
-            if (texture == EmptyTexture || (texture.Width == 1 && texture.Height == 1))
+            if (texture == EmptyTexture || texture.Width == 1 && texture.Height == 1)
                 return;
             ArgumentNullException.ThrowIfNull(font);
 

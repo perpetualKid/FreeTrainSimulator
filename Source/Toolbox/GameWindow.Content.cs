@@ -5,11 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Graphics.MapView;
-using Orts.Graphics.Xna;
 using Orts.Models.Simplified;
 using Orts.Toolbox.PopupWindows;
 

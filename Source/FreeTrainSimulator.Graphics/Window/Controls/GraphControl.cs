@@ -1,12 +1,12 @@
 ﻿using System;
 
+using FreeTrainSimulator.Graphics.Shaders;
+using FreeTrainSimulator.Graphics.Xna;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Shaders;
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public class GraphControl : WindowControl
     {
@@ -80,8 +80,8 @@ namespace Orts.Graphics.Window.Controls
             Window.Owner.GraphShader.ScreenSize = Window.Owner.Size.ToVector2();
 
             labelNamePosition = Bounds.Location + new Point((Bounds.Size.X - labelName.Width) / 2, 4);
-            labelMaxPosition = Bounds.Location + new Point((Bounds.Size.X - labelMax.Width), 4);
-            labelMinPosition = Bounds.Location + new Point((Bounds.Size.X - labelMin.Width), Bounds.Size.Y - labelMin.Height);
+            labelMaxPosition = Bounds.Location + new Point(Bounds.Size.X - labelMax.Width, 4);
+            labelMinPosition = Bounds.Location + new Point(Bounds.Size.X - labelMin.Width, Bounds.Size.Y - labelMin.Height);
         }
 
         public void AddSample(double value)

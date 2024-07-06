@@ -1,8 +1,7 @@
-﻿
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Shaders
+namespace FreeTrainSimulator.Graphics.Shaders
 {
     public class PopupWindowShader : EffectShader
     {
@@ -30,7 +29,7 @@ namespace Orts.Graphics.Shaders
             WorldViewProjection = wvp;
         }
 
-        public PopupWindowShader(GraphicsDevice graphicsDevice): 
+        public PopupWindowShader(GraphicsDevice graphicsDevice) :
             base(graphicsDevice, "PopupWindow")
         {
             CurrentTechnique = Techniques["PopupWindow"];

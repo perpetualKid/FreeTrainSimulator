@@ -2,7 +2,7 @@
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Graphics.Window.Controls.Layout
+namespace FreeTrainSimulator.Graphics.Window.Controls.Layout
 {
     public class ControlLayoutOffset : ControlLayout
     {
@@ -12,7 +12,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         }
 
         internal ControlLayoutOffset(FormBase window, int width, int height, int offset) :
-            base(window, offset, offset, width - offset * 2, height - offset * 2)
+            base(window, offset, offset, width - (offset * 2), height - (offset * 2))
         {
         }
     }
@@ -40,7 +40,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             HorizontalAlignment.Right => Controls.Count > 0 ? Controls.Min(c => c.Bounds.Left) - Bounds.Left : Bounds.Right - Bounds.Left,
             HorizontalAlignment.Center => Controls.Count > 0 ? Controls.Max(c => c.Bounds.Right) - Bounds.Left : Bounds.Width / 2,
             _ => 0,
-        }; 
+        };
 
         private protected override int HorizontalChildAlignmentOffset(in Rectangle childBounds)
         {

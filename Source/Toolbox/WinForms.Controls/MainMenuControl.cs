@@ -8,8 +8,8 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Graphics;
 
-using Orts.Graphics;
 using Orts.Models.Simplified;
 
 namespace Orts.Toolbox.WinForms.Controls

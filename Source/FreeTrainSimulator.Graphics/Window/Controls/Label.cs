@@ -1,10 +1,9 @@
-﻿
+﻿using FreeTrainSimulator.Graphics.Xna;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public class Label : TextControl
     {
@@ -18,9 +17,9 @@ namespace Orts.Graphics.Window.Controls
             set
             {
                 if (value != text)
-                { 
-                    text = value; 
-                    Initialize(); 
+                {
+                    text = value;
+                    Initialize();
                 }
             }
         }
@@ -72,7 +71,7 @@ namespace Orts.Graphics.Window.Controls
             get => font;
             set
             {
-                this.font = value ?? Window?.Owner.TextFontDefault;
+                font = value ?? Window?.Owner.TextFontDefault;
                 Initialize();
             }
         }

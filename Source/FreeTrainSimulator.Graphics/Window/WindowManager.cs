@@ -9,15 +9,14 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Native;
+using FreeTrainSimulator.Graphics.MapView.Shapes;
+using FreeTrainSimulator.Graphics.Shaders;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.MapView.Shapes;
-using Orts.Graphics.Shaders;
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.Window
+namespace FreeTrainSimulator.Graphics.Window
 {
     public class ModalWindowEventArgs : EventArgs
     {
@@ -45,7 +44,7 @@ namespace Orts.Graphics.Window
                 return (x.TopMost || x.Modal) == (y.TopMost || y.Modal) ?
                     x == host.activeWindow ?
                     1 : y == host.activeWindow ? -11 : x.ZOrder.CompareTo(y.ZOrder) :
-                    x == host.activeWindow ? 1 : (x.TopMost || x.Modal).CompareTo((y.TopMost || y.Modal));
+                    x == host.activeWindow ? 1 : (x.TopMost || x.Modal).CompareTo(y.TopMost || y.Modal);
             }
         }
 
@@ -224,9 +223,7 @@ namespace Orts.Graphics.Window
         internal bool OpenWindow(FormBase window)
         {
             if (modalWindows.TryPeek(out _) && (!window.Modal || !MultiLayerModalWindows))
-            {
                 return false;
-            }
 
             if (!WindowOpen(window))
             {
@@ -331,7 +328,7 @@ namespace Orts.Graphics.Window
             {
                 SuppressDrawing = false;
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                if ((activeWindow != null && modalWindows.Count == 0) || modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == activeWindow)
+                if ((activeWindow != null && modalWindows.Count == 0) || (modalWindows.TryPeek(out WindowBase currentModalWindow) && currentModalWindow == activeWindow))
                 {
                     activeWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
                     userCommandArgs.Handled = true;
@@ -416,9 +413,7 @@ namespace Orts.Graphics.Window
                 FormBase window = windows[i];
                 WindowShader.Opacity = window == activeWindow ? opacityDefault * 1.25f : opacityDefault;
                 if (window is WindowBase framedWindow)
-                {
                     framedWindow.WindowDraw();
-                }
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default, null, null);
                 window.Draw(spriteBatch);
                 spriteBatch.End();
@@ -433,9 +428,7 @@ namespace Orts.Graphics.Window
             //TODO 20220929 could distribute the shouldUpdate for each Window to be in a different Update Cycle
             bool shouldUpdate = Environment.TickCount64 > nextWindowUpdate;
             if (shouldUpdate)
-            {
                 nextWindowUpdate = Environment.TickCount64 + 100;
-            }
 
             for (int i = 0; i < windows.Count; i++)
             {
@@ -463,11 +456,11 @@ namespace Orts.Graphics.Window
             }
             catch (EntryPointNotFoundException)//running on Windows 7 or other unsupported OS
             {
-                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromHwnd(IntPtr.Zero))
+                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromHwnd(nint.Zero))
                 {
                     try
                     {
-                        IntPtr desktop = g.GetHdc();
+                        nint desktop = g.GetHdc();
                         int dpi = NativeMethods.GetDeviceCaps(desktop, (int)NativeMethods.DeviceCap.LOGPIXELSX);
                         return (float)Math.Round(dpi / 96.0, 2);
                     }
@@ -539,9 +532,7 @@ namespace Orts.Graphics.Window
             foreach (TWindowType windowType in EnumExtension.GetValues<TWindowType>())
             {
                 if (WindowInitialized(windowType))
-                {
                     windows[windowType]?.Dispose();
-                }
             }
             base.Dispose(disposing);
         }

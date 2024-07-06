@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public class NameValueTextGrid : WindowControl
     {
@@ -58,12 +57,12 @@ namespace Orts.Graphics.Window.Controls
                 if (value != null)
                 {
                     multiColumn = true;
-                    int heigth = (int)Math.Ceiling((font.Height * LineSpacing));
+                    int heigth = (int)Math.Ceiling(font.Height * LineSpacing);
                     columnClippingRectangles = new Rectangle?[value.Length];
                     for (int i = 0; i < value.Length; i++)
                     {
                         if (value[i] > 0)
-                            columnClippingRectangles[i] = new Rectangle(0, 0, (int)Math.Ceiling((value[i] * Window.Owner.DpiScaling)), heigth);
+                            columnClippingRectangles[i] = new Rectangle(0, 0, (int)Math.Ceiling(value[i] * Window.Owner.DpiScaling), heigth);
                     }
                 }
             }
@@ -100,9 +99,7 @@ namespace Orts.Graphics.Window.Controls
                     System.Drawing.Font currentFont = font;
                     FormatOption formatOption = null;
                     if ((InformationProvider.FormattingOptions?.TryGetValue(identifier, out formatOption) ?? false) && formatOption != null)
-                    {
                         currentFont = FontManager.Scaled(Window.Owner.FontName, formatOption.FontStyle)[Window.Owner.FontSize];
-                    }
 
                     string emptySpace = identifier;
                     if (emptySpace.StartsWith('.'))
@@ -186,7 +183,7 @@ namespace Orts.Graphics.Window.Controls
                 {
                     columnOffset = 0;
                     (keyPosition, texture, valuePosition, textures, color) = drawItems[i];
-                    if (!boundsSet || (valuePosition.Y - rowOffset.Y + texture.Height) < Bounds.Height)
+                    if (!boundsSet || valuePosition.Y - rowOffset.Y + texture.Height < Bounds.Height)
                     {
                         if (null != texture && texture != textureHolder.EmptyTexture)
                             spriteBatch.Draw(texture, keyPosition + locationVector - rowOffset, columnClippingRectangles[0], color);

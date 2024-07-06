@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     /// <summary>
     /// a whole train as composition of multiple <see cref="TrainCarWidget"/> widgets
@@ -41,7 +41,8 @@ namespace Orts.Graphics.MapView.Widgets
                 if (distance <= ProximityTolerance)
                     break;
             }
-            return distance; ;
+            return distance;
+            ;
         }
 
         public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
@@ -69,13 +70,13 @@ namespace Orts.Graphics.MapView.Widgets
         private readonly float length;
         private Color color;
 
-        public TrainCarWidget(in WorldPosition position, float length, WagonType wagonType): base()
+        public TrainCarWidget(in WorldPosition position, float length, WagonType wagonType) : base()
         {
             this.length = length > 3 ? length - 1f : length - 0.5f; //visually shortening traincar a bit to have a visible space between them
             //using the rotation vector 2D to get the car orientation
             angle = (float)Math.Atan2(position.XNAMatrix.Forward.Z, position.XNAMatrix.Forward.X);
             // offsetting the starting point location half the car length, since position is centre of the car
-            SetLocation(PointD.FromWorldLocation(position.WorldLocation) + new PointD((-this.length * Math.Cos(angle) / 2.0), this.length * Math.Sin(angle) / 2));
+            SetLocation(PointD.FromWorldLocation(position.WorldLocation) + new PointD(-this.length * Math.Cos(angle) / 2.0, this.length * Math.Sin(angle) / 2));
             color = wagonType switch
             {
                 WagonType.Engine => Color.Red,
@@ -91,7 +92,7 @@ namespace Orts.Graphics.MapView.Widgets
             //using the rotation vector 2D to get the car orientation
             angle = (float)Math.Atan2(position.XNAMatrix.Forward.Z, position.XNAMatrix.Forward.X);
             // offsetting the starting point location half the car length, since position is centre of the car
-            SetLocation(PointD.FromWorldLocation(position.WorldLocation) + new PointD((-this.length * Math.Cos(angle) / 2.0), this.length * Math.Sin(angle) / 2));
+            SetLocation(PointD.FromWorldLocation(position.WorldLocation) + new PointD(-length * Math.Cos(angle) / 2.0, length * Math.Sin(angle) / 2));
         }
 
         void IDrawable<PointPrimitive>.Draw(ContentArea contentArea, ColorVariation colorVariation, double scaleFactor)
@@ -114,7 +115,7 @@ namespace Orts.Graphics.MapView.Widgets
         public override double DistanceSquared(in PointD point)
         {
             double distanceSquared;
-            PointD vectorEnd = new PointD(Location.X + Math.Cos(angle) * length, Location.Y - Math.Sin(angle) * length);
+            PointD vectorEnd = new PointD(Location.X + (Math.Cos(angle) * length), Location.Y - (Math.Sin(angle) * length));
             distanceSquared = length * length;
             // Calculate the t that minimizes the distance.
             double t = (point - Location).DotProduct(vectorEnd - Location) / distanceSquared;
@@ -125,7 +126,7 @@ namespace Orts.Graphics.MapView.Widgets
                 return (distanceSquared = point.DistanceSquared(Location)) > ProximityTolerance ? double.NaN : distanceSquared;
             else if (t > 1)
                 return (distanceSquared = point.DistanceSquared(vectorEnd)) > ProximityTolerance ? double.NaN : distanceSquared;
-            return point.DistanceSquared(Location + (vectorEnd - Location) * t);
+            return point.DistanceSquared(Location + ((vectorEnd - Location) * t));
         }
         #endregion
 

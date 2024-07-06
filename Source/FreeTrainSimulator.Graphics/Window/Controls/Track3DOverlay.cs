@@ -6,7 +6,7 @@ using FreeTrainSimulator.Common.Position;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public class Track3DOverlay : WindowControl
     {
@@ -75,7 +75,7 @@ namespace Orts.Graphics.Window.Controls
 
         private static Vector3 Normalize(in WorldLocation location, IViewProjection cameraView)
         {
-            return new Vector3(location.Location.X + (location.TileX - cameraView.Location.TileX) * 2048, location.Location.Y, -location.Location.Z - (location.TileZ - cameraView.Location.TileZ) * 2048);
+            return new Vector3(location.Location.X + ((location.TileX - cameraView.Location.TileX) * 2048), location.Location.Y, -location.Location.Z - ((location.TileZ - cameraView.Location.TileZ) * 2048));
         }
 
         private static Vector3 Project3D(Vector3 position, in Viewport viewport, IViewProjection cameraView)

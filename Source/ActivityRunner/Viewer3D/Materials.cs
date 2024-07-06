@@ -24,13 +24,13 @@ using System.IO;
 using System.Linq;
 
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Formats.Msts.Files;
-using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

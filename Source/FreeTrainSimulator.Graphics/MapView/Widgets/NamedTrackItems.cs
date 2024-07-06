@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal abstract class NamedTrackItem : PointPrimitive, IDrawable<PointPrimitive>
     {
@@ -73,7 +73,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             direction = source.DirectionAt(source.Length / 2);
             if (System.Math.Abs(direction) > MathHelper.PiOver2)
-                direction -= (MathHelper.Pi);
+                direction -= MathHelper.Pi;
         }
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
@@ -89,7 +89,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             direction = source.DirectionAt(source.Length / 2);
             if (System.Math.Abs(direction) > MathHelper.PiOver2)
-                direction -= (MathHelper.Pi);
+                direction -= MathHelper.Pi;
         }
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

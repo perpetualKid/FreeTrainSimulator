@@ -1,12 +1,13 @@
 ﻿using System;
 
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+
 using GetText;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Window;
-using Orts.Graphics.Window.Controls.Layout;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows

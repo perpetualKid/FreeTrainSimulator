@@ -25,6 +25,8 @@ using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.DrawableComponents;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -33,8 +35,6 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics;
-using Orts.Graphics.DrawableComponents;
 using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems

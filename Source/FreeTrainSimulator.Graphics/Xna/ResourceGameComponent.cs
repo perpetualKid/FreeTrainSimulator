@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Graphics.Xna
+namespace FreeTrainSimulator.Graphics.Xna
 {
     /// <summary>
     /// Abstract base class to host (updateable) resources which are expensive to create and 

@@ -10,6 +10,12 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.DrawableComponents;
+using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Graphics.MapView.Widgets;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Xna;
 
 using GetText;
 using GetText.WindowsForms;
@@ -19,12 +25,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows;
 using Orts.Formats.Msts;
-using Orts.Graphics;
-using Orts.Graphics.DrawableComponents;
-using Orts.Graphics.MapView;
-using Orts.Graphics.MapView.Widgets;
-using Orts.Graphics.Window;
-using Orts.Graphics.Xna;
 using Orts.Models.Track;
 using Orts.Settings;
 using Orts.Simulation;
@@ -279,7 +279,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             foreach (Train train in Simulator.Instance.Trains)
             {
                 ((List<int>)trackedTrains).Add(train.Number);
-                if (!content.Trains.TryGetValue(train.Number, out Graphics.MapView.Widgets.TrainWidget trainWidget))
+                if (!content.Trains.TryGetValue(train.Number, out TrainWidget trainWidget))
                 {
                     trainWidget = new TrainWidget(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation, train);
                     foreach (TrainCar car in train.Cars)

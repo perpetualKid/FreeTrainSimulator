@@ -1,11 +1,11 @@
 ﻿using System;
 
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Graphics.MapView;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Files;
-using Orts.Graphics.MapView;
 using Orts.Models.Simplified;
 using Orts.Models.Track;
 

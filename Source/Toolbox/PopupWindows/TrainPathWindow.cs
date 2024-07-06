@@ -6,14 +6,15 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Graphics.Window;
-using Orts.Graphics.Window.Controls;
-using Orts.Graphics.Window.Controls.Layout;
 using Orts.Models.Track;
 using Orts.Toolbox.Settings;
 
@@ -124,7 +125,7 @@ namespace Orts.Toolbox.PopupWindows
             {
                 ControlLayout headerLine = layoutContainer.AddLayoutHorizontalLineOfText();
                 Label headerLabel;
-                headerLine.Add(headerLabel = new Label(this, layoutContainer.RemainingWidth, headerLine.RemainingHeight, Catalog.GetString("Available Train Paths") + TextInput.SearchIcon) { Alignment = Graphics.HorizontalAlignment.Center });
+                headerLine.Add(headerLabel = new Label(this, layoutContainer.RemainingWidth, headerLine.RemainingHeight, Catalog.GetString("Available Train Paths") + TextInput.SearchIcon) { Alignment = HorizontalAlignment.Center });
                 headerLabel.OnClick += PathSearchHeaderLabel_OnClick;
                 headerLine.Add(searchBox = new TextInput(this, -headerLine.Bounds.Width, 0, layout.RemainingWidth, (int)(Owner.TextFontDefault.Height * 1.2)));
                 searchBox.Visible = false;

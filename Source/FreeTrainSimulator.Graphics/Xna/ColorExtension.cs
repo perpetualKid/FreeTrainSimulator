@@ -4,7 +4,7 @@ using System.Linq;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Graphics.Xna
+namespace FreeTrainSimulator.Graphics.Xna
 {
     public static class ColorExtension
     {
@@ -30,7 +30,7 @@ namespace Orts.Graphics.Xna
         // return a color which is complement, i.e. to use as Foreground/Background combination
         public static Color ComplementColor(in this Color color)
         {
-            return new Color(255 - color.R, 255 - color.G, 255- color.B, 255);
+            return new Color(255 - color.R, 255 - color.G, 255 - color.B, 255);
         }
 
         public static System.Drawing.Color ToSystemDrawingColor(in this Color color)
@@ -66,7 +66,7 @@ namespace Orts.Graphics.Xna
             r = lightness;   // default to gray
             g = lightness;
             b = lightness;
-            v = (lightness <= 0.5) ? (lightness * (1.0 + saturation)) : (lightness + saturation - lightness * saturation);
+            v = lightness <= 0.5 ? lightness * (1.0 + saturation) : lightness + saturation - (lightness * saturation);
 
             if (v > 0)
             {

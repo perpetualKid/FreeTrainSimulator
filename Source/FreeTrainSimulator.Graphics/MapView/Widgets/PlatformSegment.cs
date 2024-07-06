@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
 
     internal class PlatformSegment : TrackSegmentBase, IDrawable<VectorPrimitive>

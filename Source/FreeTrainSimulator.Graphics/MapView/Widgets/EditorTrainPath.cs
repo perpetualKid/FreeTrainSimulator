@@ -9,7 +9,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal class EditorTrainPath : TrainPathBase, IDrawable<VectorPrimitive>
     {
@@ -23,7 +23,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public int SelectedNodeIndex { get; set; } = -1;
 
-        public TrainPathPointBase SelectedNode => (SelectedNodeIndex >= 0 && SelectedNodeIndex < PathPoints.Count) ? PathPoints[SelectedNodeIndex] : null;
+        public TrainPathPointBase SelectedNode => SelectedNodeIndex >= 0 && SelectedNodeIndex < PathPoints.Count ? PathPoints[SelectedNodeIndex] : null;
 
         private class TrainPathSection : TrainPathSectionBase, IDrawable<VectorPrimitive>
         {
@@ -121,9 +121,7 @@ namespace Orts.Graphics.MapView.Widgets
                     TrackSegmentSectionBase<TrainPathSegmentBase> previous = PathSections[^1];
                     bool reverse = previous.SectionSegments[0].IsReverseDirectionTowards(previous.Location, previous.Vector);
                     if (sections[0].TrackNodeIndex == previous.TrackNodeIndex && reverse != sections[0].SectionSegments[0].IsReverseDirectionTowards(editorSegmentStart.Location, location))
-                    {
                         (PathPoints[^1] as EditorPathPoint).UpdateNodeType(PathNodeType.Reversal);
-                    }
                     else
                     {
                         (PathPoints[^1] as EditorPathPoint).UpdateNodeType(PathNodeType.Junction);

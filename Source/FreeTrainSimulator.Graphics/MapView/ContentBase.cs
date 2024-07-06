@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView.Widgets;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
-using Orts.Graphics.MapView.Widgets;
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView
+namespace FreeTrainSimulator.Graphics.MapView
 {
     public abstract class ContentBase : INameValueInformationProvider
     {
@@ -22,10 +22,10 @@ namespace Orts.Graphics.MapView
         private protected readonly EnumArray<ITileCoordinate, MapContentType> nearestItems = new EnumArray<ITileCoordinate, MapContentType>();
 
         private protected TrackModel trackModel;
-             
+
         public bool UseMetricUnits { get; }
 
-        public string RouteName { get; } 
+        public string RouteName { get; }
 
         public ContentArea ContentArea { get; }
 
@@ -49,12 +49,12 @@ namespace Orts.Graphics.MapView
 
         public void UpdateItemVisiblity(MapContentType setting, bool value)
         {
-            this.viewSettings[setting] = value;
+            viewSettings[setting] = value;
         }
 
         public void InitializeItemVisiblity(EnumArray<bool, MapContentType> settings)
         {
-            this.viewSettings = settings;
+            viewSettings = settings;
         }
 
         public void HighlightItem(MapContentType mapviewItem, ITileCoordinate item)
@@ -103,10 +103,10 @@ namespace Orts.Graphics.MapView
                     minY = Math.Min(minY, tile.Tile.Z);
                     maxY = Math.Max(maxY, tile.Tile.Z);
                 }
-                minX = minX * WorldLocation.TileSize - WorldLocation.TileSize / 2;
-                maxX = maxX * WorldLocation.TileSize + WorldLocation.TileSize / 2;
-                minY = minY * WorldLocation.TileSize - WorldLocation.TileSize / 2;
-                maxY = maxY * WorldLocation.TileSize + WorldLocation.TileSize / 2;
+                minX = (minX * WorldLocation.TileSize) - (WorldLocation.TileSize / 2);
+                maxX = (maxX * WorldLocation.TileSize) + (WorldLocation.TileSize / 2);
+                minY = (minY * WorldLocation.TileSize) - (WorldLocation.TileSize / 2);
+                maxY = (maxY * WorldLocation.TileSize) + (WorldLocation.TileSize / 2);
             }
             Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
         }

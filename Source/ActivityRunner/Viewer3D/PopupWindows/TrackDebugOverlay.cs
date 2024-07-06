@@ -7,14 +7,14 @@ using GetText;
 using Microsoft.Xna.Framework;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts;
-using Orts.Graphics.Window;
-using Orts.Graphics.Window.Controls;
-using Orts.Graphics.Window.Controls.Layout;
-using Orts.Graphics.Xna;
 using Orts.Settings;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {

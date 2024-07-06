@@ -1,14 +1,13 @@
 ﻿using System;
 
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.MapView.Shapes;
-using Orts.Graphics.Window.Controls.Layout;
-
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
-    public abstract class WindowControl: IDisposable
+    public abstract class WindowControl : IDisposable
     {
         private Rectangle bounds;
         private bool disposedValue;

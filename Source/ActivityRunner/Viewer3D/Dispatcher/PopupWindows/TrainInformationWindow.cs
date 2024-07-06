@@ -5,14 +5,14 @@ using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Graphics.Window;
-using Orts.Graphics.Window.Controls;
-using Orts.Graphics.Window.Controls.Layout;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;

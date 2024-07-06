@@ -1,14 +1,14 @@
 ﻿using System;
 
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+
 using GetText;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Window.Controls;
-using Orts.Graphics.Window.Controls.Layout;
-
-namespace Orts.Graphics.Window
+namespace FreeTrainSimulator.Graphics.Window
 {
     public abstract class FormBase : IDisposable
     {
@@ -45,7 +45,7 @@ namespace Orts.Graphics.Window
         protected FormBase(WindowManager owner, Catalog catalog)
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
-            Catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));            ;
+            Catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         }
 
         internal protected virtual void Initialize()
@@ -102,9 +102,7 @@ namespace Orts.Graphics.Window
             if (!disposedValue)
             {
                 if (disposing)
-                {
                     windowLayout?.Dispose();
-                }
                 disposedValue = true;
             }
         }

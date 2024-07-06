@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using FreeTrainSimulator.Graphics.MapView.Shapes;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.MapView.Shapes;
-
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public class RadioButton : WindowTextureControl
     {

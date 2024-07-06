@@ -1,5 +1,9 @@
 ﻿using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Graphics.Xna;
 
 using GetText;
 
@@ -8,10 +12,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics.Window;
-using Orts.Graphics.Window.Controls;
-using Orts.Graphics.Window.Controls.Layout;
-using Orts.Graphics.Xna;
 using Orts.Simulation;
 using Orts.Simulation.Track;
 

@@ -3,9 +3,9 @@ using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal class GridTile: VectorPrimitive, IDrawable<VectorPrimitive>
+    internal class GridTile : VectorPrimitive, IDrawable<VectorPrimitive>
     {
         private readonly PointD upperLeft;
         private readonly PointD lowerRight;
@@ -15,7 +15,7 @@ namespace Orts.Graphics.MapView.Widgets
             WidgetColorCache.SetColors<GridTile>(Color.Black);
         }
 
-        public GridTile(Tile tile): base(WorldLocationFromTile(tile, -1024, -1024), WorldLocationFromTile(tile, 1024, 1024))
+        public GridTile(Tile tile) : base(WorldLocationFromTile(tile, -1024, -1024), WorldLocationFromTile(tile, 1024, 1024))
         {
             upperLeft = PointD.FromWorldLocation(WorldLocationFromTile(tile, -1024, 1024));
             lowerRight = PointD.FromWorldLocation(WorldLocationFromTile(tile, 1024, -1024));

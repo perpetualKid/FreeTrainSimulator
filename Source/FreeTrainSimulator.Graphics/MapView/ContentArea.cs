@@ -4,17 +4,16 @@ using System.Runtime.CompilerServices;
 
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.DrawableComponents;
+using FreeTrainSimulator.Graphics.MapView.Shapes;
+using FreeTrainSimulator.Graphics.MapView.Widgets;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-using Orts.Graphics.DrawableComponents;
-using Orts.Graphics.MapView.Shapes;
-using Orts.Graphics.MapView.Widgets;
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.MapView
+namespace FreeTrainSimulator.Graphics.MapView
 {
     public class ContentArea : DrawableGameComponent
     {
@@ -60,8 +59,8 @@ namespace Orts.Graphics.MapView
 
         public double Scale { get; private set; }
 
-        public double CenterX => (BottomRightBound.X - TopLeftBound.X) / 2 + TopLeftBound.X;
-        public double CenterY => (TopLeftBound.Y - BottomRightBound.Y) / 2 + BottomRightBound.Y;
+        public double CenterX => ((BottomRightBound.X - TopLeftBound.X) / 2) + TopLeftBound.X;
+        public double CenterY => ((TopLeftBound.Y - BottomRightBound.Y) / 2) + BottomRightBound.Y;
 
         public bool SuppressDrawing { get; internal set; }
 
@@ -72,10 +71,10 @@ namespace Orts.Graphics.MapView
         public System.Drawing.Font CurrentFont { get; private set; }
         public System.Drawing.Font ConstantSizeFont { get; private set; }
 
-        public OutlineRenderOptions FontOutlineOptions 
+        public OutlineRenderOptions FontOutlineOptions
         {
             get => contentText.OutlineRenderOptions;
-            set => contentText.OutlineRenderOptions = value; 
+            set => contentText.OutlineRenderOptions = value;
         }
 
         internal ContentArea(Game game, ContentBase content) :
@@ -217,7 +216,7 @@ namespace Orts.Graphics.MapView
         }
 
         public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
-        {            
+        {
             double xScale = WindowSize.X / Math.Abs(bottomRight.X - topLeft.X);
             double yScale = (WindowSize.Y - screenHeightDelta) / Math.Abs(topLeft.Y - bottomRight.Y);
             Scale = Math.Min(xScale, yScale) * 0.95;
@@ -227,11 +226,11 @@ namespace Orts.Graphics.MapView
 
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
-            double scale = Scale * Math.Pow((steps > 0 ? 1 / 0.95 : (steps < 0 ? 0.95 : 1)), Math.Abs(steps));
-            if ((scale < scaleMin && steps < 0) || (scale > scaleMax && steps > 0))
+            double scale = Scale * Math.Pow(steps > 0 ? 1 / 0.95 : steps < 0 ? 0.95 : 1, Math.Abs(steps));
+            if (scale < scaleMin && steps < 0 || scale > scaleMax && steps > 0)
                 return;
-            offsetX += scaleAt.X * (scale / Scale - 1.0) / scale;
-            offsetY += (WindowSize.Y - scaleAt.Y) * (scale / Scale - 1.0) / scale;
+            offsetX += scaleAt.X * ((scale / Scale) - 1.0) / scale;
+            offsetY += (WindowSize.Y - scaleAt.Y) * ((scale / Scale) - 1.0) / scale;
             Scale = scale;
 
             UpdateFontSize();
@@ -263,18 +262,14 @@ namespace Orts.Graphics.MapView
             BottomRightBound = ScreenToWorldCoordinates(WindowSize);
 
             if (TopLeftBound.X > bounds.Right)
-            {
                 offsetX = bounds.Right;
-            }
             else if (BottomRightBound.X < bounds.Left)
             {
                 offsetX = bounds.Left - (BottomRightBound.X - TopLeftBound.X);
             }
 
             if (BottomRightBound.Y > bounds.Bottom)
-            {
                 offsetY = bounds.Bottom;
-            }
             else if (TopLeftBound.Y < bounds.Top)
             {
                 offsetY = bounds.Top - (TopLeftBound.Y - BottomRightBound.Y);
@@ -298,25 +293,19 @@ namespace Orts.Graphics.MapView
         public void MouseDragging(UserCommandArgs userCommandArgs)
         {
             if (userCommandArgs is PointerMoveCommandArgs mouseMoveCommandArgs)
-            {
                 UpdatePosition(mouseMoveCommandArgs.Delta);
-            }
         }
 
         public void MouseWheelAt(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
             if (userCommandArgs is ScrollCommandArgs mouseWheelCommandArgs)
-            {
                 UpdateScaleAt(mouseWheelCommandArgs.Position, Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
-            }
         }
 
         public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
             if (userCommandArgs is ScrollCommandArgs mouseWheelCommandArgs)
-            {
                 UpdateScale(Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
-            }
         }
 
         public void MoveByKeyLeft(UserCommandArgs commandArgs)
@@ -404,15 +393,15 @@ namespace Orts.Graphics.MapView
 
         private void CenterView()
         {
-            offsetX = (bounds.Left + bounds.Right) / 2 - WindowSize.X / 2 / Scale;
-            offsetY = (bounds.Top + bounds.Bottom) / 2 - (WindowSize.Y) / 2 / Scale;
+            offsetX = ((bounds.Left + bounds.Right) / 2) - (WindowSize.X / 2 / Scale);
+            offsetY = ((bounds.Top + bounds.Bottom) / 2) - (WindowSize.Y / 2 / Scale);
             SetBounds();
         }
 
         private void CenterAround(in PointD centerPoint)
         {
-            offsetX = centerPoint.X - WindowSize.X / 2 / Scale;
-            offsetY = centerPoint.Y - (WindowSize.Y) / 2 / Scale;
+            offsetX = centerPoint.X - (WindowSize.X / 2 / Scale);
+            offsetY = centerPoint.Y - (WindowSize.Y / 2 / Scale);
             SetBounds();
         }
 
@@ -437,22 +426,22 @@ namespace Orts.Graphics.MapView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 WorldToScreenCoordinates(in WorldLocation worldLocation)
         {
-            double x = worldLocation.TileX * WorldLocation.TileSize + worldLocation.Location.X;
-            double y = worldLocation.TileZ * WorldLocation.TileSize + worldLocation.Location.Z;
-            return new Vector2((float)(Scale * (x - offsetX)), (float)(WindowSize.Y - Scale * (y - offsetY)));
+            double x = (worldLocation.TileX * WorldLocation.TileSize) + worldLocation.Location.X;
+            double y = (worldLocation.TileZ * WorldLocation.TileSize) + worldLocation.Location.Z;
+            return new Vector2((float)(Scale * (x - offsetX)), (float)(WindowSize.Y - (Scale * (y - offsetY))));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public PointD ScreenToWorldCoordinates(in Point screenLocation)
         {
-            return new PointD(offsetX + screenLocation.X / Scale, offsetY + (WindowSize.Y - screenLocation.Y) / Scale);
+            return new PointD(offsetX + (screenLocation.X / Scale), offsetY + ((WindowSize.Y - screenLocation.Y) / Scale));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 WorldToScreenCoordinates(in PointD location)
         {
             return new Vector2((float)(Scale * (location.X - offsetX)),
-                               (float)(WindowSize.Y - Scale * (location.Y - offsetY)));
+                               (float)(WindowSize.Y - (Scale * (location.Y - offsetY))));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -473,8 +462,8 @@ namespace Orts.Graphics.MapView
         {
             ref readonly PointD start = ref vectorPrimitive.Location;
             ref readonly PointD end = ref vectorPrimitive.Vector;
-            bool outside = (start.X < TopLeftBound.X && end.X < TopLeftBound.X) || (start.X > BottomRightBound.X && end.X > BottomRightBound.X) ||
-                (start.Y > TopLeftBound.Y && end.Y > TopLeftBound.Y) || (start.Y < BottomRightBound.Y && end.Y < BottomRightBound.Y);
+            bool outside = start.X < TopLeftBound.X && end.X < TopLeftBound.X || start.X > BottomRightBound.X && end.X > BottomRightBound.X ||
+                start.Y > TopLeftBound.Y && end.Y > TopLeftBound.Y || start.Y < BottomRightBound.Y && end.Y < BottomRightBound.Y;
             return !outside;
         }
 

@@ -4,17 +4,16 @@ using System.Linq;
 
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-using Orts.Graphics.MapView;
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.DrawableComponents
+namespace FreeTrainSimulator.Graphics.DrawableComponents
 {
-    public class WorldCoordinatesComponent: VolatileTextComponent
+    public class WorldCoordinatesComponent : VolatileTextComponent
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly MouseInputGameComponent input;
@@ -22,7 +21,7 @@ namespace Orts.Graphics.DrawableComponents
         private MouseState lastMouseState;
         private const double piRad = 180 / Math.PI;
 
-        public WorldCoordinatesComponent(Game game, System.Drawing.Font font, Color color, Vector2 position) : 
+        public WorldCoordinatesComponent(Game game, System.Drawing.Font font, Color color, Vector2 position) :
             base(game, font, color, position)
         {
             Enabled = false;

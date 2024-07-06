@@ -1,26 +1,4 @@
-﻿// COPYRIGHT 2014 by the Open Rails project.
-// 
-// This file is part of Open Rails.
-// 
-// Open Rails is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// Open Rails is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
-// This file is the responsibility of the 3D & Environment Team.
-
-// File is partially backported to XNA 3.1 and adapted to OpenRails needs.
-// Original license is as follows:
-
-#region File Description + License
+﻿#region File Description + License
 //-----------------------------------------------------------------------------
 // DDSFromFile.cs
 // Read/Write dds files from/to files or from streams.
@@ -57,7 +35,7 @@ using System.IO;
 
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Xna
+namespace FreeTrainSimulator.Graphics.Xna
 {
     /// <summary>
     /// Read/Write dds files from/to files or from streams.
@@ -157,24 +135,24 @@ namespace Orts.Graphics.Xna
         // Indicates whether this texture is cube map.
         private static bool IsCubemapTest(int ddsCaps1, int ddsCaps2)
         {
-            return ((ddsCaps1 & DDSCAPS_COMPLEX) != 0) && ((ddsCaps2 & DDSCAPS2_CUBEMAP) != 0);
+            return (ddsCaps1 & DDSCAPS_COMPLEX) != 0 && (ddsCaps2 & DDSCAPS2_CUBEMAP) != 0;
         }
 
         // Indicates whether this texture is volume map. 
         private static bool IsVolumeTextureTest(int ddsCaps2)
         {
-            return ((ddsCaps2 & DDSCAPS2_VOLUME) != 0);
+            return (ddsCaps2 & DDSCAPS2_VOLUME) != 0;
         }
 
         //Test if the texture is using any compression.
         private static bool IsCompressedTest(uint pfFlags)
         {
-            return ((pfFlags & DDPF_FOURCC) != 0);
+            return (pfFlags & DDPF_FOURCC) != 0;
         }
 
         private static bool HasAlphaTest(uint pfFlags)
         {
-            return ((pfFlags & DDPF_ALPHAPIXELS) != 0);
+            return (pfFlags & DDPF_ALPHAPIXELS) != 0;
         }
 
         //We need the mip size, we shift until we get there but the smallest mip must be at least of 1 pixel.
@@ -222,15 +200,24 @@ namespace Orts.Graphics.Xna
         {
             switch ((FourCC)pixelFourCC)
             {
-                case FourCC.D3DFMT_A16B16G16R16: return LoadSurfaceFormat.A16B16G16R16;
-                case FourCC.D3DFMT_G32R32F: return LoadSurfaceFormat.G32R32F;
-                case FourCC.D3DFMT_G16R16F: return LoadSurfaceFormat.G16R16F;
-                case FourCC.D3DFMT_Q8W8V8U8: return LoadSurfaceFormat.Q8W8V8U8; //This is true if the file was generated with the nvidia tools.
-                case FourCC.D3DFMT_CxV8U8: return LoadSurfaceFormat.CxV8U8;
-                case FourCC.D3DFMT_A16B16G16R16F: return LoadSurfaceFormat.A16B16G16R16F;
-                case FourCC.D3DFMT_A32B32G32R32F: return LoadSurfaceFormat.A32B32G32R32F;
-                case FourCC.D3DFMT_R32F: return LoadSurfaceFormat.R32F;
-                case FourCC.D3DFMT_R16F: return LoadSurfaceFormat.R16F;
+                case FourCC.D3DFMT_A16B16G16R16:
+                    return LoadSurfaceFormat.A16B16G16R16;
+                case FourCC.D3DFMT_G32R32F:
+                    return LoadSurfaceFormat.G32R32F;
+                case FourCC.D3DFMT_G16R16F:
+                    return LoadSurfaceFormat.G16R16F;
+                case FourCC.D3DFMT_Q8W8V8U8:
+                    return LoadSurfaceFormat.Q8W8V8U8; //This is true if the file was generated with the nvidia tools.
+                case FourCC.D3DFMT_CxV8U8:
+                    return LoadSurfaceFormat.CxV8U8;
+                case FourCC.D3DFMT_A16B16G16R16F:
+                    return LoadSurfaceFormat.A16B16G16R16F;
+                case FourCC.D3DFMT_A32B32G32R32F:
+                    return LoadSurfaceFormat.A32B32G32R32F;
+                case FourCC.D3DFMT_R32F:
+                    return LoadSurfaceFormat.R32F;
+                case FourCC.D3DFMT_R16F:
+                    return LoadSurfaceFormat.R16F;
             }
 
             if ((pixelFlags & DDPF_FOURCC) != 0)
@@ -238,86 +225,63 @@ namespace Orts.Graphics.Xna
                 //The texture is compressed(Dxt1,Dxt3/Dxt2,Dxt5/Dxt4).
                 switch (pixelFourCC)
                 {
-                    case 0x31545844: return LoadSurfaceFormat.Dxt1;
+                    case 0x31545844:
+                        return LoadSurfaceFormat.Dxt1;
                     case 0x33545844:
-                    case 0x32545844: return LoadSurfaceFormat.Dxt3;
+                    case 0x32545844:
+                        return LoadSurfaceFormat.Dxt3;
                     case 0x35545844:
-                    case 0x34545844: return LoadSurfaceFormat.Dxt5;
+                    case 0x34545844:
+                        return LoadSurfaceFormat.Dxt5;
                 }
             }
 
             if ((pixelFlags & DDPF_RGB) != 0)
             {
                 if (pixelFlags == 0x40 && bitCount == 0x10 && pixelFourCC == 0 && rBitMask == 0x00007c00 && gBitMask == 0x000003e0 && bBitMask == 0x0000001f && aBitMask == 0x0)
-                {
                     return LoadSurfaceFormat.RGB555;
-                }
 
                 if (pixelFlags == 0x41 && bitCount == 0x20 && pixelFourCC == 0 && rBitMask == 0xff0000 && gBitMask == 0xff00 && bBitMask == 0xff && aBitMask == 0xff000000)
-                {
                     return LoadSurfaceFormat.A8R8G8B8;
-                }
 
                 if (pixelFlags == 0x40 && bitCount == 0x20 && pixelFourCC == 0 && rBitMask == 0xff0000 && gBitMask == 0xff00 && bBitMask == 0xff && aBitMask == 0x0)
-                {
                     //DDS_FORMAT_X8R8G8B8
                     return LoadSurfaceFormat.X8R8G8B8;
-                }
 
                 if (pixelFlags == 0x41 && bitCount == 0x20 && pixelFourCC == 0 && rBitMask == 0xff && gBitMask == 0xff00 && bBitMask == 0xff0000 && aBitMask == 0xff000000)
-                {
                     //DDS_FORMAT_A8B8G8R8
                     return LoadSurfaceFormat.A8B8G8R8;
-                }
 
                 if (pixelFlags == 0x40 && bitCount == 0x20 && pixelFourCC == 0 && rBitMask == 0xff && gBitMask == 0xff00 && bBitMask == 0xff0000 && aBitMask == 0x0)
-                {
                     //DDS_FORMAT_X8B8G8R8
                     return LoadSurfaceFormat.X8B8G8R8;
-                }
 
                 if (pixelFlags == 0x41 && bitCount == 0x10 && pixelFourCC == 0 && rBitMask == 0x7c00 && gBitMask == 0x3e0 && bBitMask == 0x1f && aBitMask == 0x8000)
-                {
                     return LoadSurfaceFormat.Bgra5551;
-                }
 
                 if (pixelFlags == 0x41 && bitCount == 0x10 && pixelFourCC == 0 && rBitMask == 0xf00 && gBitMask == 240 && bBitMask == 15 && aBitMask == 0xf000)
-                {
                     return LoadSurfaceFormat.Bgra4444;
-                }
 
                 if (pixelFlags == 0x40 && bitCount == 0x18 && pixelFourCC == 0 && rBitMask == 0xff0000 && gBitMask == 0xff00 && bBitMask == 0xff && aBitMask == 0)
-                {
                     //DDS_FORMAT_R8G8B8
                     return LoadSurfaceFormat.R8G8B8;
-                }
 
                 if (pixelFlags == 0x40 && bitCount == 0x10 && pixelFourCC == 0 && rBitMask == 0xf800 && gBitMask == 0x7e0 && bBitMask == 0x1f && aBitMask == 0)
-                {
                     return LoadSurfaceFormat.Bgr565;
-                }
 
                 if (pixelFlags == 0x2 && bitCount == 0x8 && pixelFourCC == 0 && rBitMask == 0 && gBitMask == 0 && bBitMask == 0 && aBitMask == 255)
-                {
                     return LoadSurfaceFormat.Alpha8;
-                }
 
                 if (pixelFlags == 0x40 && bitCount == 32 && pixelFourCC == 0 && rBitMask == 0x0000ffff && gBitMask == 0xffff0000 && bBitMask == 0 && aBitMask == 0)
-                {
                     return LoadSurfaceFormat.G16R16;
-                }
 
                 if (pixelFlags == 0x41 && bitCount == 32 && pixelFourCC == 0 && rBitMask == 0x3ff00000 && gBitMask == 0x000ffc00 && bBitMask == 0x000003ff && aBitMask == 0xc0000000)
-                {
                     return LoadSurfaceFormat.A2B10G10R10;
-                }
             }
 
             //We consider the standard dx pixelFourCC + pixelFourCC == 63(nvidia tools generated dds)
             if (pixelFlags == 0x00080000 && bitCount == 32 && (pixelFourCC == 0 || pixelFourCC == 63) && rBitMask == 0x000000ff && gBitMask == 0x0000ff00 && bBitMask == 0x00ff0000 && aBitMask == 0xff000000)
-            {
                 return LoadSurfaceFormat.Q8W8V8U8;
-            }
 
             return LoadSurfaceFormat.Unknown;
         }
@@ -338,20 +302,29 @@ namespace Orts.Graphics.Xna
             //as a result for this formats we must hardcode the outcome.
             switch (compressionFormat)
             {
-                case FourCC.D3DFMT_R32F: return width * height * 4;
-                case FourCC.D3DFMT_R16F: return width * height * 2;
-                case FourCC.D3DFMT_A32B32G32R32F: return width * height * 16;
-                case FourCC.D3DFMT_A16B16G16R16F: return width * height * 8;
-                case FourCC.D3DFMT_CxV8U8: return width * height * 2;
-                case FourCC.D3DFMT_Q8W8V8U8: return width * height * 4;
-                case FourCC.D3DFMT_G16R16F: return width * height * 4;
-                case FourCC.D3DFMT_G32R32F: return width * height * 8;
-                case FourCC.D3DFMT_A16B16G16R16: return width * height * 8;
+                case FourCC.D3DFMT_R32F:
+                    return width * height * 4;
+                case FourCC.D3DFMT_R16F:
+                    return width * height * 2;
+                case FourCC.D3DFMT_A32B32G32R32F:
+                    return width * height * 16;
+                case FourCC.D3DFMT_A16B16G16R16F:
+                    return width * height * 8;
+                case FourCC.D3DFMT_CxV8U8:
+                    return width * height * 2;
+                case FourCC.D3DFMT_Q8W8V8U8:
+                    return width * height * 4;
+                case FourCC.D3DFMT_G16R16F:
+                    return width * height * 4;
+                case FourCC.D3DFMT_G32R32F:
+                    return width * height * 8;
+                case FourCC.D3DFMT_A16B16G16R16:
+                    return width * height * 8;
             }
 
             if (isCompressed)
             {
-                int blockSize = (compressionFormat == FourCC.D3DFMT_DXT1 ? 8 : 16);
+                int blockSize = compressionFormat == FourCC.D3DFMT_DXT1 ? 8 : 16;
                 return (width + 3) / 4 * ((height + 3) / 4) * blockSize;
             }
             else
@@ -375,14 +348,10 @@ namespace Orts.Graphics.Xna
             numBytes = MipMapSizeInBytes(map, width, height, isCompressed, compressionFormat, rgbBitCount);
 
             if (data == null || data.Length < numBytes)
-            {
                 data = new byte[numBytes];
-            }
 
             if (!isCompressed && rgbBitCount == 24)
-            {
-                numBytes += (numBytes / 3);
-            }
+                numBytes += numBytes / 3;
             if (!isCompressed && loadSurfaceFormat == LoadSurfaceFormat.R8G8B8)
             {
                 for (int i = 0; i < numBytes; i += 4)
@@ -410,7 +379,7 @@ namespace Orts.Graphics.Xna
                 loadSurfaceFormat == LoadSurfaceFormat.X8R8G8B8 ||
                 loadSurfaceFormat == LoadSurfaceFormat.R8G8B8)
             {
-                int bytesPerPixel = (rgbBitCount == 32 || rgbBitCount == 24) ? 4 : 3;
+                int bytesPerPixel = rgbBitCount == 32 || rgbBitCount == 24 ? 4 : 3;
 
                 byte g, b;
                 if (bytesPerPixel == 3)
@@ -447,7 +416,7 @@ namespace Orts.Graphics.Xna
                 imaginariMipMax++;
             }
 
-            return (imaginariMipMax <= numMip);
+            return imaginariMipMax <= numMip;
         }
 
         /// <summary>
@@ -469,9 +438,7 @@ namespace Orts.Graphics.Xna
 
                 texture = tex as Texture2D;
                 if (texture == null)
-                {
                     throw new InvalidDataException($"The data in the stream contains a {tex.GetType().Name} but not Texture2D");
-                }
             }
         }
 
@@ -494,9 +461,7 @@ namespace Orts.Graphics.Xna
 
                 texture = tex as TextureCube;
                 if (texture == null)
-                {
                     throw new InvalidDataException($"The data in the stream contains a {tex.GetType().Name} but not TextureCube");
-                }
             }
         }
 
@@ -519,9 +484,7 @@ namespace Orts.Graphics.Xna
 
                 texture = tex as Texture3D;
                 if (texture == null)
-                {
                     throw new InvalidDataException($"The data in the stream contains a {tex.GetType().Name} but not Texture3D");
-                }
             }
         }
 
@@ -533,42 +496,71 @@ namespace Orts.Graphics.Xna
         {
             switch (loadSurfaceFormat)
             {
-                case LoadSurfaceFormat.Alpha8: return SurfaceFormat.Alpha8;
-                case LoadSurfaceFormat.Bgr565: return SurfaceFormat.Bgr565;
-                case LoadSurfaceFormat.Bgra4444: return SurfaceFormat.Bgra4444;
-                case LoadSurfaceFormat.Bgra5551: return SurfaceFormat.Bgra5551;
-                case LoadSurfaceFormat.A8R8G8B8: return SurfaceFormat.Color;
-                case LoadSurfaceFormat.Dxt1: return SurfaceFormat.Dxt1;
-                case LoadSurfaceFormat.Dxt3: return SurfaceFormat.Dxt3;
-                case LoadSurfaceFormat.Dxt5: return SurfaceFormat.Dxt5;
-                case LoadSurfaceFormat.R8G8B8: return SurfaceFormat.Color;//Updated at load time to X8R8B8B8
-                case LoadSurfaceFormat.X8B8G8R8: return SurfaceFormat.Color;
-                case LoadSurfaceFormat.X8R8G8B8: return SurfaceFormat.Color;
-                case LoadSurfaceFormat.A8B8G8R8: return SurfaceFormat.Color;
-                case LoadSurfaceFormat.R32F: return SurfaceFormat.Single;
-                case LoadSurfaceFormat.A32B32G32R32F: return SurfaceFormat.Vector4;
-                case LoadSurfaceFormat.G32R32F: return SurfaceFormat.Vector2;
-                case LoadSurfaceFormat.R16F: return SurfaceFormat.HalfSingle;
-                case LoadSurfaceFormat.G16R16F: return SurfaceFormat.HalfVector2;
-                case LoadSurfaceFormat.A16B16G16R16F: return SurfaceFormat.HalfVector4;
-                case LoadSurfaceFormat.CxV8U8: return SurfaceFormat.NormalizedByte2;
-                case LoadSurfaceFormat.Q8W8V8U8: return SurfaceFormat.NormalizedByte4;
-                case LoadSurfaceFormat.G16R16: return SurfaceFormat.Rg32;
-                case LoadSurfaceFormat.A2B10G10R10: return SurfaceFormat.Rgba1010102;
-                case LoadSurfaceFormat.A16B16G16R16: return SurfaceFormat.Rgba64;
+                case LoadSurfaceFormat.Alpha8:
+                    return SurfaceFormat.Alpha8;
+                case LoadSurfaceFormat.Bgr565:
+                    return SurfaceFormat.Bgr565;
+                case LoadSurfaceFormat.Bgra4444:
+                    return SurfaceFormat.Bgra4444;
+                case LoadSurfaceFormat.Bgra5551:
+                    return SurfaceFormat.Bgra5551;
+                case LoadSurfaceFormat.A8R8G8B8:
+                    return SurfaceFormat.Color;
+                case LoadSurfaceFormat.Dxt1:
+                    return SurfaceFormat.Dxt1;
+                case LoadSurfaceFormat.Dxt3:
+                    return SurfaceFormat.Dxt3;
+                case LoadSurfaceFormat.Dxt5:
+                    return SurfaceFormat.Dxt5;
+                case LoadSurfaceFormat.R8G8B8:
+                    return SurfaceFormat.Color;//Updated at load time to X8R8B8B8
+                case LoadSurfaceFormat.X8B8G8R8:
+                    return SurfaceFormat.Color;
+                case LoadSurfaceFormat.X8R8G8B8:
+                    return SurfaceFormat.Color;
+                case LoadSurfaceFormat.A8B8G8R8:
+                    return SurfaceFormat.Color;
+                case LoadSurfaceFormat.R32F:
+                    return SurfaceFormat.Single;
+                case LoadSurfaceFormat.A32B32G32R32F:
+                    return SurfaceFormat.Vector4;
+                case LoadSurfaceFormat.G32R32F:
+                    return SurfaceFormat.Vector2;
+                case LoadSurfaceFormat.R16F:
+                    return SurfaceFormat.HalfSingle;
+                case LoadSurfaceFormat.G16R16F:
+                    return SurfaceFormat.HalfVector2;
+                case LoadSurfaceFormat.A16B16G16R16F:
+                    return SurfaceFormat.HalfVector4;
+                case LoadSurfaceFormat.CxV8U8:
+                    return SurfaceFormat.NormalizedByte2;
+                case LoadSurfaceFormat.Q8W8V8U8:
+                    return SurfaceFormat.NormalizedByte4;
+                case LoadSurfaceFormat.G16R16:
+                    return SurfaceFormat.Rg32;
+                case LoadSurfaceFormat.A2B10G10R10:
+                    return SurfaceFormat.Rgba1010102;
+                case LoadSurfaceFormat.A16B16G16R16:
+                    return SurfaceFormat.Rgba64;
                 case LoadSurfaceFormat.Unknown:
                     switch (compressionFormat)
                     {
-                        case FourCC.D3DFMT_DXT1: return SurfaceFormat.Dxt1;
-                        case FourCC.D3DFMT_DXT3: return SurfaceFormat.Dxt3;
-                        case FourCC.D3DFMT_DXT5: return SurfaceFormat.Dxt5;
+                        case FourCC.D3DFMT_DXT1:
+                            return SurfaceFormat.Dxt1;
+                        case FourCC.D3DFMT_DXT3:
+                            return SurfaceFormat.Dxt3;
+                        case FourCC.D3DFMT_DXT5:
+                            return SurfaceFormat.Dxt5;
                         case 0:
                             switch (rgbBitCount)
                             {
-                                case 8: return SurfaceFormat.Alpha8;
-                                case 16: return HasAlphaTest(pixelFlags) ? SurfaceFormat.Bgr565 : SurfaceFormat.Bgra4444;
+                                case 8:
+                                    return SurfaceFormat.Alpha8;
+                                case 16:
+                                    return HasAlphaTest(pixelFlags) ? SurfaceFormat.Bgr565 : SurfaceFormat.Bgra4444;
                                 case 24:
-                                case 32: return SurfaceFormat.Color;
+                                case 32:
+                                    return SurfaceFormat.Color;
                             }
                             break;
                         default:
@@ -617,25 +609,19 @@ namespace Orts.Graphics.Xna
         private static void InternalDDSFromStream(Stream stream, GraphicsDevice device, int streamOffset, bool loadMipMap, out Texture texture)
         {
             if (stream == null)
-            {
                 throw new ArgumentNullException(nameof(stream), "Can't read from a null stream");
-            }
 
             using (BinaryReader reader = new BinaryReader(stream))
             {
 
                 if (streamOffset > reader.BaseStream.Length)
-                {
                     throw new InvalidDataException("The stream you offered is smaller then the offset you are proposing for it.");
-                }
 
                 reader.BaseStream.Seek(streamOffset, SeekOrigin.Begin);
 
                 //First element of a dds file is a "magic-number" a system to identify that the file is a dds if translated as asci chars the first 4 charachters should be 'DDS '
                 if (!(reader.ReadUInt32() == DDS_MAGIC))
-                {
                     throw new InvalidDataException("Can't open non DDS data.");
-                }
 
                 reader.BaseStream.Position += 8;
 
@@ -697,9 +683,7 @@ namespace Orts.Graphics.Xna
                 FourCC compressionFormat = GetCompressionFormat(pixelFlags, pixelFourCC);
 
                 if (compressionFormat == FourCC.DX10)
-                {
                     throw new NotImplementedException("The Dxt 10 header reader is not implemented");
-                }
 
                 LoadSurfaceFormat loadSurfaceFormat = GetLoadSurfaceFormat(pixelFlags, pixelFourCC, rgbBitCount, rBitMask, gBitMask, bBitMask, aBitMask);
 
@@ -715,9 +699,7 @@ namespace Orts.Graphics.Xna
                     int byteAcumulator = 0;
 
                     if (numMips == 0)
-                    {
                         numMips = 1;
-                    }
 
                     if (!hasMipMaps)
                     {
@@ -734,14 +716,10 @@ namespace Orts.Graphics.Xna
                         mipData = localMipData;
 
                         if (hasMipMaps)
-                        {
                             byteAcumulator += numBytes;
-                        }
 
                         if (j == 0 || hasMipMaps)
-                        {
                             tex.SetData(CubeMapFace.PositiveX, j, null, localMipData, 0, numBytes);
-                        }
                         else
                         {
                             break;
@@ -755,9 +733,7 @@ namespace Orts.Graphics.Xna
                         mipData = localMipData;
 
                         if (j == 0 || hasMipMaps)
-                        {
                             tex.SetData(CubeMapFace.NegativeX, j, null, localMipData, 0, numBytes);
-                        }
                         else
                         {
                             break;
@@ -771,9 +747,7 @@ namespace Orts.Graphics.Xna
                         mipData = localMipData;
 
                         if (j == 0 || hasMipMaps)
-                        {
                             tex.SetData(CubeMapFace.PositiveY, j, null, localMipData, 0, numBytes);
-                        }
                         else
                         {
                             break;
@@ -787,9 +761,7 @@ namespace Orts.Graphics.Xna
                         mipData = localMipData;
 
                         if (j == 0 || hasMipMaps)
-                        {
                             tex.SetData(CubeMapFace.NegativeY, j, null, localMipData, 0, numBytes);
-                        }
                         else
                         {
                             break;
@@ -803,9 +775,7 @@ namespace Orts.Graphics.Xna
                         mipData = localMipData;
 
                         if (j == 0 || hasMipMaps)
-                        {
                             tex.SetData(CubeMapFace.PositiveZ, j, null, localMipData, 0, numBytes);
-                        }
                         else
                         {
                             break;
@@ -819,9 +789,7 @@ namespace Orts.Graphics.Xna
                         mipData = localMipData;
 
                         if (j == 0 || hasMipMaps)
-                        {
                             tex.SetData(CubeMapFace.NegativeZ, j, null, localMipData, 0, numBytes);
-                        }
                         else
                         {
                             break;
@@ -875,7 +843,7 @@ namespace Orts.Graphics.Xna
 
         private static byte XNATextureNumAlphaBits(Texture texture)
         {
-            switch ((texture).Format)
+            switch (texture.Format)
             {
                 case SurfaceFormat.Vector2:
                 case SurfaceFormat.HalfVector2:

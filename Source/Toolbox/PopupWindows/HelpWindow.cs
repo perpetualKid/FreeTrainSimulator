@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Graphics.Window;
-using Orts.Graphics.Window.Controls;
-using Orts.Graphics.Window.Controls.Layout;
 using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
@@ -41,10 +42,10 @@ namespace Orts.Toolbox.PopupWindows
             ControlLayoutHorizontal line = layout.AddLayoutHorizontalLineOfText();
             int width = line.RemainingWidth / 2;
             Label headerLabel;
-            line.Add(headerLabel = new Label(this, width, line.RemainingHeight, Catalog.GetString("Command") + TextInput.SearchIcon, Graphics.HorizontalAlignment.Center));
+            line.Add(headerLabel = new Label(this, width, line.RemainingHeight, Catalog.GetString("Command") + TextInput.SearchIcon, HorizontalAlignment.Center));
             headerLabel.Tag = SearchColumn.Command;
             headerLabel.OnClick += HeaderLabel_OnClick;
-            line.Add(headerLabel = new Label(this, width, line.RemainingHeight, Catalog.GetString("Key") + TextInput.SearchIcon, Graphics.HorizontalAlignment.Center));
+            line.Add(headerLabel = new Label(this, width, line.RemainingHeight, Catalog.GetString("Key") + TextInput.SearchIcon, HorizontalAlignment.Center));
             headerLabel.Tag = SearchColumn.Key;
             headerLabel.OnClick += HeaderLabel_OnClick;
             line.Add(searchBox = new TextInput(this, -line.Bounds.Width, 0, layout.RemainingWidth, (int)(Owner.TextFontDefault.Height * 1.2)));

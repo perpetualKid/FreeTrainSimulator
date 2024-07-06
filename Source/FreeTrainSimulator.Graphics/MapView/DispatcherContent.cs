@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.DrawableComponents;
+using FreeTrainSimulator.Graphics.MapView.Widgets;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics.DrawableComponents;
-using Orts.Graphics.MapView.Widgets;
-using Orts.Graphics.Xna;
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView
+namespace FreeTrainSimulator.Graphics.MapView
 {
     public class DispatcherContent : ContentBase
     {
@@ -95,9 +95,7 @@ namespace Orts.Graphics.MapView
         {
             GridTile nearestGridTile = trackModel.ContentByTile[MapContentType.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
             if (nearestGridTile != nearestItems[MapContentType.Grid])
-            {
                 nearestItems[MapContentType.Grid] = nearestGridTile;
-            }
 
             double distance = 400; // max 20m (sqrt(400)
             nearestDispatchItem = null;

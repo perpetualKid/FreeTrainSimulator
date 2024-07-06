@@ -1,8 +1,7 @@
 ﻿using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.Window.Controls;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Graphics.Window.Controls;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {

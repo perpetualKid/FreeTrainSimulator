@@ -1,8 +1,8 @@
 ﻿using System.Drawing;
 
-using Orts.Graphics.Xna;
+using FreeTrainSimulator.Graphics.Xna;
 
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public abstract class TextControl : WindowTextureControl
     {

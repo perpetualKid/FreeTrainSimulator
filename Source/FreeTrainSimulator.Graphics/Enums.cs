@@ -1,4 +1,4 @@
-﻿namespace Orts.Graphics
+﻿namespace FreeTrainSimulator.Graphics
 {
     public enum HorizontalAlignment
     {
@@ -46,10 +46,10 @@
     }
 
     public enum ColorVariation
-    { 
-        None, 
+    {
+        None,
         Highlight,
-        Complement, 
+        Complement,
         ComplementHighlight,
     }
 

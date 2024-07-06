@@ -4,13 +4,12 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.DrawableComponents
+namespace FreeTrainSimulator.Graphics.DrawableComponents
 {
     /// <summary>
     /// Draw a ruler on screen for current scale.

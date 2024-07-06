@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Formats.Msts.Files;
 
-namespace Orts.Graphics.Xna
+namespace FreeTrainSimulator.Graphics.Xna
 {
     public class TextureManager : ResourceGameComponent<Texture2D>
     {
@@ -73,9 +73,7 @@ namespace Orts.Graphics.Xna
                     case string _ when ".dds".Equals(extension, StringComparison.OrdinalIgnoreCase):
                         {
                             if (File.Exists(path))
-                            {
                                 DDSLib.DDSFromFile(path, game.GraphicsDevice, true, out result);
-                            }
                             else
                             {
                                 Trace.TraceWarning($"Required dds texture {path} not existing; trying ace texture instead.");

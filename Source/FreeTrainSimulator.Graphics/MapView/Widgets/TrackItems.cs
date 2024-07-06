@@ -7,16 +7,16 @@ using System.Globalization;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView.Shapes;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics.MapView.Shapes;
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     #region TrackItemBase
     internal abstract class TrackItemWidget : TrackItemBase, IDrawable<PointPrimitive>, INameValueInformationProvider
@@ -47,7 +47,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public abstract void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
 
-        public TrackItemWidget(TrackItem source): base(source.Location)
+        public TrackItemWidget(TrackItem source) : base(source.Location)
         {
             Size = 3;
             TrackItemId = source.TrackItemId;
@@ -136,7 +136,7 @@ namespace Orts.Graphics.MapView.Widgets
                         result.Add(new SoundRegionTrackItem(soundRegionItem));
                         break;
                     case SignalItem signalItem:
-                        bool normalSignal = (signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out SignalType signalType) && signalType.FunctionType == SignalFunction.Normal);
+                        bool normalSignal = signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out SignalType signalType) && signalType.FunctionType == SignalFunction.Normal;
                         result.Add(new SignalTrackItem(signalItem, trackNodeSegments[trackItemNodes[signalItem.TrackItemId].Index], normalSignal));
                         break;
                     case CrossoverItem crossOverItem:
@@ -431,9 +431,7 @@ namespace Orts.Graphics.MapView.Widgets
         public SignalTrackItem(SignalItem source, TrackSegmentSection segments, bool normalSignal) : base(source)
         {
             if (source.SignalObject > -1)
-            {
                 Signal = RuntimeData.Instance.RuntimeReferenceResolver?.SignalById(source.SignalObject);
-            }
             signalType = source.SignalType;
             Size = 2f;
 
@@ -442,7 +440,7 @@ namespace Orts.Graphics.MapView.Widgets
 
             Normal = normalSignal;
             Vector3 shiftedLocation = source.Location.Location +
-                    0.1f * new Vector3((float)Math.Cos(angle), 0f, -(float)Math.Sin(angle));
+                    (0.1f * new Vector3((float)Math.Cos(angle), 0f, -(float)Math.Sin(angle)));
             SetLocation(new WorldLocation(source.Location.TileX, source.Location.TileZ, shiftedLocation));
         }
 

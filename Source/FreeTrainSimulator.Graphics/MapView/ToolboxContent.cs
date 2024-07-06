@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.DrawableComponents;
+using FreeTrainSimulator.Graphics.MapView.Widgets;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics.DrawableComponents;
-using Orts.Graphics.MapView.Widgets;
-using Orts.Graphics.Xna;
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView
+namespace FreeTrainSimulator.Graphics.MapView
 {
     public enum ToolboxContentMode
     {
@@ -97,9 +97,7 @@ namespace Orts.Graphics.MapView
             nearestItemForStatus = (float.MaxValue, null);
             GridTile nearestGridTile = trackModel.ContentByTile[MapContentType.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
             if (nearestGridTile != nearestItems[MapContentType.Grid])
-            {
                 nearestItems[MapContentType.Grid] = nearestGridTile;
-            }
 
             foreach (MapContentType viewItem in EnumExtension.GetValues<MapContentType>())
             {
@@ -171,9 +169,7 @@ namespace Orts.Graphics.MapView
                 if (viewSettings[viewItemSetting] && trackModel.ContentByTile[viewItemSetting] != null)
                 {
                     if (viewItemSetting == MapContentType.Paths)
-                    {
                         PathEditor?.Draw();
-                    }
                     else
                     {
                         foreach (ITileCoordinate item in trackModel.ContentByTile[viewItemSetting].BoundingBox(bottomLeft, topRight))
@@ -181,9 +177,7 @@ namespace Orts.Graphics.MapView
                             // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                             // but the performance impact/overhead seems invariant
                             if (item is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
-                            {
                                 (item as IDrawable<VectorPrimitive>).Draw(ContentArea);
-                            }
                             else if (item is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
                             {
                                 (item as IDrawable<PointPrimitive>).Draw(ContentArea);

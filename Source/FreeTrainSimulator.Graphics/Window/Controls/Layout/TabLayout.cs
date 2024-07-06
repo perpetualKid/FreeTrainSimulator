@@ -1,12 +1,11 @@
 ﻿using System;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.Window.Controls.Layout
+namespace FreeTrainSimulator.Graphics.Window.Controls.Layout
 {
     /// <summary>
     /// Tabbed layout, similar to <cref="TabControl"/> but without UI interaction to change tabs, and no tab header.
@@ -83,7 +82,7 @@ namespace Orts.Graphics.Window.Controls.Layout
                 if (tabLayout != null)
                     availableTabs++;
 
-            if (hideEmptyTabs && (availableTabs == 0))
+            if (hideEmptyTabs && availableTabs == 0)
                 return;
 
             foreach (T item in EnumExtension.GetValues<T>())
@@ -106,9 +105,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             CurrentTab = tab;
             Client.Clear();
             if (tabData[CurrentTab].TabLayout != null)
-            {
                 Client.Controls.Add(tabData[CurrentTab].TabLayout);
-            }
             else
             {
                 if (TabLayouts[CurrentTab] != null)

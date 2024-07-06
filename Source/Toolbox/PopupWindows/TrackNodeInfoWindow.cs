@@ -2,15 +2,16 @@
 using System;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Graphics.MapView;
-using Orts.Graphics.Window;
-using Orts.Graphics.Window.Controls;
-using Orts.Graphics.Window.Controls.Layout;
 using Orts.Models.Track;
 
 namespace Orts.Toolbox.PopupWindows
@@ -56,7 +57,7 @@ namespace Orts.Toolbox.PopupWindows
             searchBoxLine.Add(radioButton = new RadioButton(this, searchTypeButtons) { State = false, Tag = SearchType.Road });
             searchBoxLine.Add(new Label(this, columnWidth, searchBoxLine.RemainingHeight, Catalog.GetString("Roads")));
 
-            line.Add(headerLabel = new Label(this, -line.Bounds.Width, 0, line.Bounds.Width, line.RemainingHeight, TextInput.SearchIcon + " " + Catalog.GetString("Find Track Node by Index"), Graphics.HorizontalAlignment.Center, Owner.TextFontDefault, Color.White));
+            line.Add(headerLabel = new Label(this, -line.Bounds.Width, 0, line.Bounds.Width, line.RemainingHeight, TextInput.SearchIcon + " " + Catalog.GetString("Find Track Node by Index"), HorizontalAlignment.Center, Owner.TextFontDefault, Color.White));
             headerLabel.OnClick += HeaderLabel_OnClick;
 
             layout.AddHorizontalSeparator();

@@ -1,16 +1,15 @@
 ﻿using System;
 
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Window.Controls;
-using Orts.Graphics.Window.Controls.Layout;
-
-namespace Orts.Graphics.Window
+namespace FreeTrainSimulator.Graphics.Window
 {
     public abstract class WindowBase : FormBase
     {
@@ -31,7 +30,7 @@ namespace Orts.Graphics.Window
 
         public string Caption { get; protected set; }
 
-        protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size, Catalog catalog) : 
+        protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size, Catalog catalog) :
             base(owner, catalog)
         {
             Caption = caption;
@@ -214,25 +213,25 @@ namespace Orts.Graphics.Window
                 int gp = Math.Min(24, borderRect.Height / 2);
                 VertexPositionTexture[] vertexData = new[] {
 					//  0  1  2  3
-					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 0 * borderRect.Height + 00, 0), new Vector2(0.00f / 2.001f, 0.00f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 0 * borderRect.Height + 00, 0), new Vector2(0.25f / 2.001f, 0.00f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 0 * borderRect.Height + 00, 0), new Vector2(0.75f / 2.001f, 0.00f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 0 * borderRect.Height + 00, 0), new Vector2(1.00f / 2.001f, 0.00f / 1.001f)),
+					new VertexPositionTexture(new Vector3((0 * borderRect.Width) + 00, (0 * borderRect.Height) + 00, 0), new Vector2(0.00f / 2.001f, 0.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((0 * borderRect.Width) + gp, (0 * borderRect.Height) + 00, 0), new Vector2(0.25f / 2.001f, 0.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((1 * borderRect.Width) - gp, (0 * borderRect.Height) + 00, 0), new Vector2(0.75f / 2.001f, 0.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((1 * borderRect.Width) - 00, (0 * borderRect.Height) + 00, 0), new Vector2(1.00f / 2.001f, 0.00f / 1.001f)),
 					//  4  5  6  7
-					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 0 * borderRect.Height + gp, 0), new Vector2(0.00f / 2.001f, 0.25f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 0 * borderRect.Height + gp, 0), new Vector2(0.25f / 2.001f, 0.25f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 0 * borderRect.Height + gp, 0), new Vector2(0.75f / 2.001f, 0.25f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 0 * borderRect.Height + gp, 0), new Vector2(1.00f / 2.001f, 0.25f / 1.001f)),
+					new VertexPositionTexture(new Vector3((0 * borderRect.Width) + 00, (0 * borderRect.Height) + gp, 0), new Vector2(0.00f / 2.001f, 0.25f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((0 * borderRect.Width) + gp, (0 * borderRect.Height) + gp, 0), new Vector2(0.25f / 2.001f, 0.25f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((1 * borderRect.Width) - gp, (0 * borderRect.Height) + gp, 0), new Vector2(0.75f / 2.001f, 0.25f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((1 * borderRect.Width) - 00, (0 * borderRect.Height) + gp, 0), new Vector2(1.00f / 2.001f, 0.25f / 1.001f)),
 					//  8  9 10 11
-					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 1 * borderRect.Height - gp, 0), new Vector2(0.00f / 2.001f, 0.75f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 1 * borderRect.Height - gp, 0), new Vector2(0.25f / 2.001f, 0.75f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 1 * borderRect.Height - gp, 0), new Vector2(0.75f / 2.001f, 0.75f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 1 * borderRect.Height - gp, 0), new Vector2(1.00f / 2.001f, 0.75f / 1.001f)),
+					new VertexPositionTexture(new Vector3((0 * borderRect.Width) + 00, (1 * borderRect.Height) - gp, 0), new Vector2(0.00f / 2.001f, 0.75f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((0 * borderRect.Width) + gp, (1 * borderRect.Height) - gp, 0), new Vector2(0.25f / 2.001f, 0.75f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((1 * borderRect.Width) - gp, (1 * borderRect.Height) - gp, 0), new Vector2(0.75f / 2.001f, 0.75f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((1 * borderRect.Width) - 00, (1 * borderRect.Height) - gp, 0), new Vector2(1.00f / 2.001f, 0.75f / 1.001f)),
 					// 12 13 14 15
-					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 1 * borderRect.Height - 00, 0), new Vector2(0.00f / 2.001f, 1.00f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 1 * borderRect.Height - 00, 0), new Vector2(0.25f / 2.001f, 1.00f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 1 * borderRect.Height - 00, 0), new Vector2(0.75f / 2.001f, 1.00f / 1.001f)),
-                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 1 * borderRect.Height - 00, 0), new Vector2(1.00f / 2.001f, 1.00f / 1.001f)),
+					new VertexPositionTexture(new Vector3((0 * borderRect.Width) + 00, (1 * borderRect.Height) - 00, 0), new Vector2(0.00f / 2.001f, 1.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((0 * borderRect.Width) + gp, (1 * borderRect.Height) - 00, 0), new Vector2(0.25f / 2.001f, 1.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((1 * borderRect.Width) - gp, (1 * borderRect.Height) - 00, 0), new Vector2(0.75f / 2.001f, 1.00f / 1.001f)),
+                    new VertexPositionTexture(new Vector3((1 * borderRect.Width) - 00, (1 * borderRect.Height) - 00, 0), new Vector2(1.00f / 2.001f, 1.00f / 1.001f)),
                 };
                 windowVertexBuffer = new VertexBuffer(Owner.GraphicsDevice, typeof(VertexPositionTexture), vertexData.Length, BufferUsage.WriteOnly);
                 windowVertexBuffer.SetData(vertexData);

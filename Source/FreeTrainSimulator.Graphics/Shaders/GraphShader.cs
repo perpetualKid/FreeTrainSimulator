@@ -3,11 +3,11 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Shaders
+namespace FreeTrainSimulator.Graphics.Shaders
 {
     internal class GraphShader : EffectShader
     {
-        public Vector2 ScreenSize 
+        public Vector2 ScreenSize
         {
             set => Parameters["ScreenSize"].SetValue(value);
         }

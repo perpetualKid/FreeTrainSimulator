@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace Orts.Graphics
+namespace FreeTrainSimulator.Graphics
 {
     public class FontManager
     {

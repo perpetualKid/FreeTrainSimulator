@@ -1,10 +1,12 @@
-﻿using GetText;
+﻿using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+
+using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Graphics.Window;
-using Orts.Graphics.Window.Controls;
-using Orts.Graphics.Window.Controls.Layout;
 using Orts.Simulation.Multiplayer;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
@@ -28,7 +30,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             layout.AddHorizontalSeparator();
             layout.Add(textInput = new TextInput(this, layout.RemainingWidth, (int)(Owner.TextFontDefault.Height * 1.2)));
             textInput.OnEnterKey += TextInput_OnEnterKey;
-            layout.Add(sendButton = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, "Send", Graphics.HorizontalAlignment.Center));
+            layout.Add(sendButton = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, "Send", HorizontalAlignment.Center));
             sendButton.OnClick += SendButton_OnClick;
             return layout;
         }

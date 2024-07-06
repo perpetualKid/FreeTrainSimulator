@@ -8,7 +8,7 @@ using FreeTrainSimulator.Common.Position;
 
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal class SidingPath : TrackSegmentPathBase<SidingSegment>, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
@@ -73,9 +73,7 @@ namespace Orts.Graphics.MapView.Widgets
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
             if (PathSections.Count == 0)
-            {
                 Trace.TraceWarning($"Siding items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.TrackVectorNode.Index} and {end.TrackVectorNode.Index}. This may indicate an error or inconsistency in the route data.");
-            }
         }
 
         public static List<SidingPath> CreateSidings(TrackModel trackModel, IEnumerable<SidingTrackItem> sidingItems)
@@ -90,9 +88,7 @@ namespace Orts.Graphics.MapView.Widgets
                 if (sidingItemMappings.TryGetValue(start.LinkedId, out SidingTrackItem end))
                 {
                     if (end.LinkedId != start.TrackItemId)
-                    {
                         Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {start.TrackItemId} to target {start.LinkedId} vs Target id {end.TrackItemId} to source {end.LinkedId}.");
-                    }
                     _ = sidingItemMappings.Remove(end.TrackItemId);
                     result.Add(new SidingPath(trackModel, start, end));
                 }
@@ -114,7 +110,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public override double DistanceSquared(in PointD point)
         {
-            foreach (SidingSection section in this.PathSections)
+            foreach (SidingSection section in PathSections)
             {
                 foreach (SidingSegment segment in section.SectionSegments)
                 {

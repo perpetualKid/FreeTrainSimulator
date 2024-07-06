@@ -4,7 +4,7 @@ using FreeTrainSimulator.Common.Input;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Graphics.Window
+namespace FreeTrainSimulator.Graphics.Window
 {
     public class MouseClickEventArgs : EventArgs
     {

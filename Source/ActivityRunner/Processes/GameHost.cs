@@ -31,7 +31,6 @@ using FreeTrainSimulator.Common.Logging;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Graphics.Xna;
 using Orts.Settings;
 
 namespace Orts.ActivityRunner.Processes

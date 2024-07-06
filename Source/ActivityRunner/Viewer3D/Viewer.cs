@@ -34,6 +34,8 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Xna;
 
 using GetText;
 
@@ -49,8 +51,6 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics.Window;
-using Orts.Graphics.Xna;
 using Orts.Models.State;
 using Orts.Settings;
 using Orts.Settings.Util;
@@ -965,7 +965,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Simulator.ActivityRun.OnEventTriggered += ActivityRun_OnEventTriggered;
         }
 
-        private void WindowManager_OnModalWindow(object sender, Graphics.Window.ModalWindowEventArgs e)
+        private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {
             forceMouseVisible = e.ModalWindowOpen;
         }

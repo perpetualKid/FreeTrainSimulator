@@ -13,6 +13,11 @@ using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Logging;
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.DrawableComponents;
+using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Xna;
 
 using GetText;
 using GetText.WindowsForms;
@@ -20,11 +25,6 @@ using GetText.WindowsForms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics;
-using Orts.Graphics.DrawableComponents;
-using Orts.Graphics.MapView;
-using Orts.Graphics.Window;
-using Orts.Graphics.Xna;
 using Orts.Toolbox.PopupWindows;
 using Orts.Toolbox.Settings;
 

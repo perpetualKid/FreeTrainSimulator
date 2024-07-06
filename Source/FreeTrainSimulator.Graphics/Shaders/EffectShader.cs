@@ -7,7 +7,7 @@ using FreeTrainSimulator.Common.Info;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Shaders
+namespace FreeTrainSimulator.Graphics.Shaders
 {
     public abstract class EffectShader : Effect
     {
@@ -20,7 +20,7 @@ namespace Orts.Graphics.Shaders
             set => Parameters[worldIndex].SetValue(value);
         }
 
-        public Matrix WorldViewProjection 
+        public Matrix WorldViewProjection
         {
             set => Parameters[wvpIndex].SetValue(value);
         }

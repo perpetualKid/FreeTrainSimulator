@@ -3,14 +3,13 @@ using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView.Shapes;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.MapView.Shapes;
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public interface IViewProjection
     {
@@ -22,7 +21,7 @@ namespace Orts.Graphics.Window.Controls
     public enum LabelType
     {
         Car,
-        Platform, 
+        Platform,
         Sidings,
         TrackDebug,
         RoadTrackDebug,
@@ -33,11 +32,11 @@ namespace Orts.Graphics.Window.Controls
         private static readonly EnumArray<(float VerticalOffset, int MinimumDistance, int MaximumDistance, OutlineRenderOptions OutlineOptions, Color OutlineColor, Color FillColor, System.Drawing.Font TextFont), LabelType> settings =
             new EnumArray<(float, int, int, OutlineRenderOptions, Color, Color, System.Drawing.Font), LabelType>(new[]
             {
-                (8.0f, 100, 800, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.White), ColorExtension.ToSystemDrawingColor(Color.Blue)), Color.White, Color.Blue, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
-                (12.0f, 100, 800, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.Black), ColorExtension.ToSystemDrawingColor(Color.Yellow)), Color.Black, Color.Yellow, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
-                (18.0f, 100, 500, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.Black), ColorExtension.ToSystemDrawingColor(Color.Orange)), Color.Black, Color.Orange, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
-                (6.0f, 100, 500, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.Black), ColorExtension.ToSystemDrawingColor(Color.LightBlue)), Color.Black, Color.LightBlue, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
-                (6.0f, 100, 500, new OutlineRenderOptions(2, ColorExtension.ToSystemDrawingColor(Color.Black), ColorExtension.ToSystemDrawingColor(Color.Salmon)), Color.Black, Color.Salmon, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
+                (8.0f, 100, 800, new OutlineRenderOptions(2, Color.White.ToSystemDrawingColor(), Color.Blue.ToSystemDrawingColor()), Color.White, Color.Blue, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
+                (12.0f, 100, 800, new OutlineRenderOptions(2, Color.Black.ToSystemDrawingColor(), Color.Yellow.ToSystemDrawingColor()), Color.Black, Color.Yellow, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
+                (18.0f, 100, 500, new OutlineRenderOptions(2, Color.Black.ToSystemDrawingColor(), Color.Orange.ToSystemDrawingColor()), Color.Black, Color.Orange, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
+                (6.0f, 100, 500, new OutlineRenderOptions(2, Color.Black.ToSystemDrawingColor(), Color.LightBlue.ToSystemDrawingColor()), Color.Black, Color.LightBlue, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
+                (6.0f, 100, 500, new OutlineRenderOptions(2, Color.Black.ToSystemDrawingColor(), Color.Salmon.ToSystemDrawingColor()), Color.Black, Color.Salmon, FontManager.Scaled(WindowManager.DefaultFontName, System.Drawing.FontStyle.Regular)[(int)(WindowManager.DefaultFontSize * 1.25)]),
             });
 
         private readonly IWorldPosition positionSource;
@@ -64,8 +63,8 @@ namespace Orts.Graphics.Window.Controls
             this.positionSource = positionSource;
             this.baseline = baseline;
             this.text = text;
-            this.font = settings[labelType].TextFont;
-            this.outlineRenderOptions = settings[labelType].OutlineOptions;
+            font = settings[labelType].TextFont;
+            outlineRenderOptions = settings[labelType].OutlineOptions;
             outline = settings[labelType].OutlineColor;
             fill = settings[labelType].FillColor;
             InitializeText(text);
@@ -92,7 +91,7 @@ namespace Orts.Graphics.Window.Controls
             lineLocation3D.Y += settings[labelType].VerticalOffset;
             float lineLocation2DEndY = viewport.Project(lineLocation3D, viewProjection.Projection, viewProjection.View, Matrix.Identity).Y;
 
-            labelLocation = new Vector2(lineLocation2DStart.X - texture.Width / 2 - 2, lineLocation2DEndY - texture.Height);
+            labelLocation = new Vector2(lineLocation2DStart.X - (texture.Width / 2) - 2, lineLocation2DEndY - texture.Height);
 
             float distance = WorldLocation.GetDistance(positionSource.WorldPosition.WorldLocation, viewProjection.Location).Length();
             float distanceRatio = (MathHelper.Clamp(distance, settings[labelType].MinimumDistance, settings[labelType].MaximumDistance) - settings[labelType].MinimumDistance) / (settings[labelType].MaximumDistance - settings[labelType].MinimumDistance);

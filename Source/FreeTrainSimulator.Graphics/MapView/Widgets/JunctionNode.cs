@@ -6,15 +6,15 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView.Shapes;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics.MapView.Shapes;
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     /// <summary>
     /// Graphical representation of a track junction (switch)
@@ -24,7 +24,7 @@ namespace Orts.Graphics.MapView.Widgets
         private const int diameter = 3;
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Junction" };
 
-        public JunctionNode(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections): 
+        public JunctionNode(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections) :
             base(junctionNode, mainRoute, vectorNodes, trackSections)
         {
             Size = diameter;
@@ -59,7 +59,7 @@ namespace Orts.Graphics.MapView.Widgets
 
         public IJunction Junction { get; }
 
-        public ActiveJunctionSegment(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections) : 
+        public ActiveJunctionSegment(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections) :
             base(junctionNode, mainRoute, vectorNodes, trackSections)
         {
             trackSectionAngles = new float[vectorNodes.Count - 1];

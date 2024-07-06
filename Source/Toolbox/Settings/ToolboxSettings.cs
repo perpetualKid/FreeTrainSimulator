@@ -7,8 +7,8 @@ using System.Reflection;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics;
 
-using Orts.Graphics;
 using Orts.Settings;
 using Orts.Settings.Store;
 using Orts.Toolbox.PopupWindows;

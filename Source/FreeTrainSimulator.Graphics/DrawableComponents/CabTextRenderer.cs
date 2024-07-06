@@ -2,12 +2,12 @@
 using System;
 using System.Linq;
 
+using FreeTrainSimulator.Graphics.Xna;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.DrawableComponents
+namespace FreeTrainSimulator.Graphics.DrawableComponents
 {
     /// <summary>
     /// Render text for in-game cab controls
@@ -28,9 +28,7 @@ namespace Orts.Graphics.DrawableComponents
 
             CabTextRenderer instance;
             if ((instance = game.Components.OfType<CabTextRenderer>().FirstOrDefault()) == null)
-            {
                 instance = new CabTextRenderer(game);
-            }
             return instance;
         }
 
@@ -49,7 +47,7 @@ namespace Orts.Graphics.DrawableComponents
             ArgumentNullException.ThrowIfNull(texture);
             ArgumentNullException.ThrowIfNull(spriteBatch);
 
-            Vector2 position = new Vector2(target.Left + (target.Width - texture.Width) * ((int)horizontalAlignment / 2f), target.Top + (target.Height - texture.Height) * ((int)verticalAlignment / 2f));
+            Vector2 position = new Vector2(target.Left + ((target.Width - texture.Width) * ((int)horizontalAlignment / 2f)), target.Top + ((target.Height - texture.Height) * ((int)verticalAlignment / 2f)));
             spriteBatch.Draw(texture, position, null, color, rotation, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
         }
 

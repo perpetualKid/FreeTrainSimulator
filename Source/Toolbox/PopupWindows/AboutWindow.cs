@@ -1,14 +1,14 @@
 ﻿
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Graphics.Window;
-using Orts.Graphics.Window.Controls;
-using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Toolbox.PopupWindows
 {
@@ -27,7 +27,7 @@ namespace Orts.Toolbox.PopupWindows
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
             layout = base.Layout(layout, headerScaling);
-            Label label = new Label(this, layout.RemainingWidth, layout.RemainingHeight, $"{RuntimeInfo.ApplicationName}\r\nv{VersionInfo.FullVersion}", Graphics.HorizontalAlignment.Center);
+            Label label = new Label(this, layout.RemainingWidth, layout.RemainingHeight, $"{RuntimeInfo.ApplicationName}\r\nv{VersionInfo.FullVersion}", HorizontalAlignment.Center);
             label.OnClick += Label_OnClick;
             layout.Add(label);
             return layout;

@@ -5,7 +5,7 @@ using FreeTrainSimulator.Common;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Shaders
+namespace FreeTrainSimulator.Graphics.Shaders
 {
     public class MaterialManager
     {
@@ -23,9 +23,7 @@ namespace Orts.Graphics.Shaders
 
             MaterialManager result;
             if ((result = game.Services.GetService<MaterialManager>()) == null)
-            {
                 game.Services.AddService(result = new MaterialManager(game.GraphicsDevice));
-            }
             return result;
         }
     }

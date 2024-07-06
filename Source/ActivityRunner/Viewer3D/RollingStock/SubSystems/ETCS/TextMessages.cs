@@ -19,10 +19,11 @@
 
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Graphics.Xna;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Xna;
 using Orts.Scripting.Api.Etcs;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs

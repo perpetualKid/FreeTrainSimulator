@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using FreeTrainSimulator.Graphics.Xna;
+﻿using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
 
-namespace Tests.Orts.Graphics.Xna
+namespace Tests.FreeTrainSimulator.Graphics.Xna
 {
     [TestClass]
     public class ResourceGameComponentTest
-    {        
+    {
         [TestMethod]
         public void ExistsReferenceTypeTest()
         {

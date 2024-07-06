@@ -4,13 +4,12 @@ using System.Collections.Generic;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public class TrackMonitorControl : WindowControl
     {
@@ -169,9 +168,9 @@ namespace Orts.Graphics.Window.Controls
         public TrackMonitorControl(FormBase window, int width, int height, bool metric) :
             base(window, 0, 0, width, height)
         {
-            if ((width / Window.Owner.DpiScaling) < 150)
+            if (width / Window.Owner.DpiScaling < 150)
                 throw new ArgumentOutOfRangeException(nameof(width), "TrackMonitor width must be 150 or more");
-            if ((height / Window.Owner.DpiScaling) < 200)
+            if (height / Window.Owner.DpiScaling < 200)
                 throw new ArgumentOutOfRangeException(nameof(height), "TrackMonitor height must be 250 or more");
             scaling = Window.Owner.DpiScaling;
             iconSize = (int)(iconSize * scaling);
@@ -285,7 +284,7 @@ namespace Orts.Graphics.Window.Controls
                 {
                     TrainPositionMode.ForwardAuto or TrainPositionMode.ForwardMultiPlayer => Bounds.Height - (int)(iconSize * 1.5),
                     TrainPositionMode.BackwardMultiPlayer => (int)(iconSize * 0.5),
-                    _ => Bounds.Height / 2 - iconSize / 2,
+                    _ => (Bounds.Height / 2) - (iconSize / 2),
                 };
 
                 #region right hand side distance markers
@@ -293,7 +292,7 @@ namespace Orts.Graphics.Window.Controls
                 prepareDistanceMarkers.Clear();
                 int numberMarkers = controlMode is TrainPositionMode.BothWaysManual or TrainPositionMode.NeutralMultiPlayer ? 3 : 5;
 
-                distanceFactor = ((PositionMode == TrainPositionMode.BackwardMultiPlayer ? (Bounds.Height - (int)(iconSize * 1.5)) : trainPositionOffset) - 18 * scaling) / maxDistance;
+                distanceFactor = ((PositionMode == TrainPositionMode.BackwardMultiPlayer ? Bounds.Height - (int)(iconSize * 1.5) : trainPositionOffset) - (18 * scaling)) / maxDistance;
                 markerInterval = Size.Length.ToM((maxDistanceDisplay / numberMarkers) switch
                 {
                     <= 0.6 => 0.5,
@@ -374,7 +373,7 @@ namespace Orts.Graphics.Window.Controls
 
         private void DrawEyeLooking(SpriteBatch spriteBatch, Point offset)
         {
-            spriteBatch.Draw(symbolTexture, new Rectangle(offset.X + trackItemOffset, offset.Y + (CabOrientation == Direction.Backward ? Bounds.Height - iconSize / 4 * 3 : -iconSize / 4), iconSize, iconSize), symbols[Symbols.Eye], Color.White);
+            spriteBatch.Draw(symbolTexture, new Rectangle(offset.X + trackItemOffset, offset.Y + (CabOrientation == Direction.Backward ? Bounds.Height - (iconSize / 4 * 3) : -iconSize / 4), iconSize, iconSize), symbols[Symbols.Eye], Color.White);
         }
 
         private void DrawDirectionArrow(SpriteBatch spriteBatch, Point offset)
@@ -435,7 +434,7 @@ namespace Orts.Graphics.Window.Controls
             DrawSwitches(spriteBatch, offset, container);
             DrawSignals(spriteBatch, offset, container);
 
-            if (nearestItem < (markerInterval * 0.9) || (nearestItem > maxDistance && nearestItem < int.MaxValue))
+            if (nearestItem < markerInterval * 0.9 || nearestItem > maxDistance && nearestItem < int.MaxValue)
                 DrawNearestItemDistanceMarker(spriteBatch, offset, nearestItem, container.Direction);
         }
 
@@ -481,7 +480,7 @@ namespace Orts.Graphics.Window.Controls
         {
             foreach ((float distance, int length) in container.Platforms)
             {
-                int platformLengthOffset = (int)(Math.Min(iconSize, 2 * length * distanceFactor));
+                int platformLengthOffset = (int)Math.Min(iconSize, 2 * length * distanceFactor);
                 int itemOffset = (int)(distance * distanceFactor) + (container.Direction == Direction.Forward ? -platformLengthOffset : +platformLengthOffset);
                 DrawTexture(spriteBatch, offset, trackItemOffset, itemOffset, iconSize, platformLengthOffset, symbolTexture, symbols[Symbols.Station], container.Direction);
             }

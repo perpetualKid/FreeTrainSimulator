@@ -23,15 +23,15 @@ using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.DrawableComponents;
+using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Graphics;
-using Orts.Graphics.DrawableComponents;
-using Orts.Graphics.Xna;
 using Orts.Scripting.Api.Etcs;
 using Orts.Simulation.RollingStocks;
 

@@ -1,19 +1,19 @@
 ﻿
 using System;
 
+using FreeTrainSimulator.Graphics.MapView;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.MapView;
-
-namespace Orts.Graphics.Xna
+namespace FreeTrainSimulator.Graphics.Xna
 {
     /// <summary>
     /// Abstract base class for components containing content which gets rendered to a texture when it updates, 
     /// and when drawn, the texture is drawn to screen
     /// Component includes some basic handling for screen positioning
     /// </summary>
-    public abstract class TextureContentComponent: DrawableGameComponent
+    public abstract class TextureContentComponent : DrawableGameComponent
     {
         private protected Texture2D texture;
         private protected ContentArea content;
@@ -23,16 +23,14 @@ namespace Orts.Graphics.Xna
         private protected readonly SpriteBatch spriteBatch;
         private protected Color color;
 
-        protected TextureContentComponent(Game game, Color color, Vector2 position) : 
+        protected TextureContentComponent(Game game, Color color, Vector2 position) :
             base(game)
         {
             spriteBatch = new SpriteBatch(game?.GraphicsDevice);
             this.color = color;
             this.position = position;
             if (position.X < 0 || position.Y < 0)
-            {
                 positionOffset = position;
-            }
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
         }
 

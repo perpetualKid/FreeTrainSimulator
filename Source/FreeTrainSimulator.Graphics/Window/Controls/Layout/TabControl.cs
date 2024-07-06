@@ -3,9 +3,9 @@ using System.Drawing;
 
 using FreeTrainSimulator.Common;
 
-namespace Orts.Graphics.Window.Controls.Layout
+namespace FreeTrainSimulator.Graphics.Window.Controls.Layout
 {
-    public class TabChangedEventArgs<T> : EventArgs where T: Enum
+    public class TabChangedEventArgs<T> : EventArgs where T : Enum
     {
         public T Tab { get; }
 
@@ -48,7 +48,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             highlightFont = FontManager.Scaled(window.Owner.FontName, FontStyle.Bold | FontStyle.Underline)[window.Owner.FontSize];
             Client = verticalLayout.AddLayoutVertical();
             this.hideEmptyTabs = hideEmptyTabs;
-            
+
         }
 
         public void UpdateTabLayout(T tab)
@@ -64,9 +64,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         private void TabLabel_OnClick(object sender, MouseClickEventArgs e)
         {
             if (sender is Label label)
-            {
                 ActivateTab((T)label.Tag);
-            }
         }
 
         internal override void Initialize()
@@ -76,7 +74,7 @@ namespace Orts.Graphics.Window.Controls.Layout
                 if (tabLayout != null)
                     availableTabs++;
 
-            if (hideEmptyTabs && (availableTabs == 0))
+            if (hideEmptyTabs && availableTabs == 0)
                 return;
 
             int labelWidth = RemainingWidth / (hideEmptyTabs ? availableTabs : EnumExtension.GetLength<T>());
@@ -87,7 +85,7 @@ namespace Orts.Graphics.Window.Controls.Layout
                     tabData[item] = new TabData()
                     {
                         Tab = item,
-                        TabLabel = new Label(this.Window, labelWidth, tabHeader.RemainingHeight, item.GetLocalizedDescription(), HorizontalAlignment.Center)
+                        TabLabel = new Label(Window, labelWidth, tabHeader.RemainingHeight, item.GetLocalizedDescription(), HorizontalAlignment.Center)
                         {
                             Tag = item,
                         },
@@ -112,9 +110,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             Client.Clear();
             tabData[CurrentTab].TabLabel.Font = highlightFont;
             if (tabData[CurrentTab].TabLayout != null)
-            {
                 Client.Controls.Add(tabData[CurrentTab].TabLayout);
-            }
             else
             {
                 if (TabLayouts[CurrentTab] != null)

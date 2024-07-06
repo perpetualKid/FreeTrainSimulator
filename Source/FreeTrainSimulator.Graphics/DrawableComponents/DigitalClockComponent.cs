@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Globalization;
 
+using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Graphics.Xna;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Graphics.MapView;
-using Orts.Graphics.Xna;
-
-namespace Orts.Graphics.DrawableComponents
+namespace FreeTrainSimulator.Graphics.DrawableComponents
 {
     public enum TimeType
     {
@@ -43,7 +43,7 @@ namespace Orts.Graphics.DrawableComponents
         public string FormatMask
         {
             get => formatMask;
-            set 
+            set
             {
                 Resize(TimeSpan.Zero.ToString(value, CultureInfo.DefaultThreadCurrentUICulture));
                 formatMask = value;
@@ -56,13 +56,17 @@ namespace Orts.Graphics.DrawableComponents
             switch (timeType)
             {
                 case TimeType.GameElapsedTime:
-                    timestamp = gameTime?.ElapsedGameTime.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture); break;
+                    timestamp = gameTime?.ElapsedGameTime.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture);
+                    break;
                 case TimeType.GameTotalTime:
-                    timestamp = gameTime?.TotalGameTime.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture); break;
+                    timestamp = gameTime?.TotalGameTime.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture);
+                    break;
                 case TimeType.RealWorlUtcTime:
-                    timestamp = DateTime.UtcNow.TimeOfDay.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture); break;
+                    timestamp = DateTime.UtcNow.TimeOfDay.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture);
+                    break;
                 case TimeType.RealWorldLocalTime:
-                    timestamp = DateTime.Now.TimeOfDay.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture); break;
+                    timestamp = DateTime.Now.TimeOfDay.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture);
+                    break;
             }
             if (timestamp != previousTimestamp)
             {

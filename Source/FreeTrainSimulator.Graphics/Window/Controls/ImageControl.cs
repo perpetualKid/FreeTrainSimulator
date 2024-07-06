@@ -3,7 +3,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.Graphics.Window.Controls
+namespace FreeTrainSimulator.Graphics.Window.Controls
 {
     public class ImageControl : WindowTextureControl
     {
@@ -12,7 +12,7 @@ namespace Orts.Graphics.Window.Controls
         public Color Color { get; set; } = Color.White;
 
         public ImageControl(FormBase window, Texture2D image, int x, int y) :
-            base(window ?? throw new ArgumentNullException(nameof(window)), x, y, 
+            base(window ?? throw new ArgumentNullException(nameof(window)), x, y,
                 (int)((image?.Width ?? throw new ArgumentNullException(nameof(image))) * window.Owner.DpiScaling), (int)(image.Height * window.Owner.DpiScaling))
         {
             texture = image;
@@ -36,7 +36,7 @@ namespace Orts.Graphics.Window.Controls
             Rectangle destination = Bounds;
             destination.Offset(offset);
             spriteBatch.Draw(texture, destination, ClippingRectangle, Color);
-            base.Draw(spriteBatch, offset); 
+            base.Draw(spriteBatch, offset);
         }
     }
 }

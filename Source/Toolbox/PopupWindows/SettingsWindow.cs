@@ -3,17 +3,17 @@ using System.ComponentModel;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Graphics.Xna;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Graphics;
-using Orts.Graphics.MapView;
-using Orts.Graphics.Window;
-using Orts.Graphics.Window.Controls;
-using Orts.Graphics.Window.Controls.Layout;
-using Orts.Graphics.Xna;
 using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows

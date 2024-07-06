@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework;
 using Orts.Formats.Msts.Models;
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView.Widgets
+namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal class TrackSegment : TrackSegmentBase, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
@@ -41,7 +41,7 @@ namespace Orts.Graphics.MapView.Widgets
             }
         }
 
-        public TrackSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex): 
+        public TrackSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex) :
             base(trackVectorSection, trackSections, trackNodeIndex, trackVectorSectionIndex)
         {
         }

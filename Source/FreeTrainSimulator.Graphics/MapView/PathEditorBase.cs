@@ -1,12 +1,13 @@
 ﻿using System;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView.Widgets;
 
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
-using Orts.Graphics.MapView.Widgets;
 using Orts.Models.Track;
 
-namespace Orts.Graphics.MapView
+namespace FreeTrainSimulator.Graphics.MapView
 {
     public abstract class PathEditorBase : IDisposable
     {
@@ -39,15 +40,11 @@ namespace Orts.Graphics.MapView
             PointD snapLocation = nearestSegment?.SnapToSegment(location) ?? location;
             JunctionNodeBase junction;
             if ((junction = TrackModel.JunctionAt(snapLocation)) != null) //if within junction proximity, snap to the junction
-            {
                 snapLocation = junction.Location;
-            }
             pathItem.UpdateLocation(snapLocation, nearestSegment != null);
             trainPath.UpdateLocation(snapLocation);
             if (trainPath.PathPoints.Count > 0)
-            {
                 (trainPath.PathPoints[^1] as EditorPathPoint).UpdateDirection(snapLocation);
-            }
         }
 
         internal void Draw()
@@ -76,7 +73,7 @@ namespace Orts.Graphics.MapView
         {
             ToolboxContent.ContentMode = ToolboxContentMode.EditPath;
             trainPath = new EditorTrainPath(ToolboxContent.ContentArea.Game);
-            pathItem = new EditorPathPoint(PointD.None, PointD.None, Formats.Msts.PathNodeType.Start);
+            pathItem = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
         }
 
         protected bool AddPathEndPoint()
@@ -84,7 +81,7 @@ namespace Orts.Graphics.MapView
             if (trainPath?.PathPoints.Count > 1 && pathItem.ValidationResult == PathNodeInvalidReasons.None)
             {
                 (trainPath.PathPoints[^1] as EditorPathPoint).UpdateDirection(trainPath.PathPoints[^2].Location);
-                (trainPath.PathPoints[^1] as EditorPathPoint).UpdateNodeType(Formats.Msts.PathNodeType.End);
+                (trainPath.PathPoints[^1] as EditorPathPoint).UpdateNodeType(PathNodeType.End);
                 pathItem = null;
                 ToolboxContent.ContentMode = ToolboxContentMode.ViewPath;
                 return true;
@@ -112,9 +109,7 @@ namespace Orts.Graphics.MapView
             if (!disposedValue)
             {
                 if (disposing)
-                {
                     ToolboxContent.PathEditor = null;
-                }
                 disposedValue = true;
             }
         }
