@@ -2304,7 +2304,7 @@ namespace Orts.Simulation.RollingStocks
 
             for (int j = 0; j < Parts.Count; j++)
                 Parts[j].InitLineFit();
-            ref readonly Tile start = ref traveller.Tile;
+            Tile start = traveller.Tile;
             if (Flipped == backToFront)
             {
                 float o = -CarLengthM / 2 - centreOfGravityM.Z;
