@@ -161,7 +161,7 @@ namespace FreeTrainSimulator.Common.Position
 
         public IEnumerable<TTileCoordinate> FindNearest(PointD position)
         {
-            Tile current = new Tile(Tile.TileFromAbs(position.X), Tile.TileFromAbs(position.Y));
+            Tile current = Tile.TileFromAbs(position.X, position.Y);
             ITile key = sortedIndexes[FindNearestIndexCeiling(current)];
             double minDistance = double.MaxValue;
             if (current != key)
@@ -185,7 +185,7 @@ namespace FreeTrainSimulator.Common.Position
 
         public IEnumerable<TTileCoordinate> FindNearest(PointD position, ITile bottomLeft, ITile topRight)
         {
-            Tile current = new Tile(Tile.TileFromAbs(position.X), Tile.TileFromAbs(position.Y));
+            Tile current = Tile.TileFromAbs(position.X, position.Y);
             ITile key = sortedIndexes[FindNearestIndexCeiling(current)];
             double minDistance = double.MaxValue;
             if (current != key)

@@ -89,6 +89,14 @@ namespace FreeTrainSimulator.Common.Position
             return Convert.ToInt16(Math.Round((int)(value / 1024) / 2.0, MidpointRounding.AwayFromZero));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Tile TileFromAbs(double x, double y)
+        {
+            return new Tile(
+                Convert.ToInt16(Math.Round((int)(x / 1024) / 2.0, MidpointRounding.AwayFromZero)), 
+                Convert.ToInt16(Math.Round((int)(y / 1024) / 2.0, MidpointRounding.AwayFromZero)));
+        }
+
         public Vector3 TileVector() => new Vector3(X * 2048, 0, Z * 2048);
 
         public Tile North => new Tile(X, Z + 1);

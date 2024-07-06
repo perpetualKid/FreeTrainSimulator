@@ -398,8 +398,8 @@ namespace Orts.Graphics.MapView
             TopLeftBound = ScreenToWorldCoordinates(Point.Zero);
             BottomRightBound = ScreenToWorldCoordinates(WindowSize);
 
-            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftBound.X), Tile.TileFromAbs(BottomRightBound.Y));
-            topRight = new Tile(Tile.TileFromAbs(BottomRightBound.X), Tile.TileFromAbs(TopLeftBound.Y));
+            bottomLeft = Tile.TileFromAbs(TopLeftBound.X, BottomRightBound.Y);
+            topRight = Tile.TileFromAbs(BottomRightBound.X, TopLeftBound.Y);
         }
 
         private void CenterView()
