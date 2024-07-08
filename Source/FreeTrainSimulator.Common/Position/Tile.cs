@@ -72,8 +72,10 @@ namespace FreeTrainSimulator.Common.Position
         public static bool operator >=(in Tile left, in Tile right) => left.CompareTo(right) >= 0;
 
         public static Tile operator +(in Tile left, in Tile right) => new Tile(left.X + right.X, left.Z + right.Z);
+        public static Tile Add(in Tile left, in Tile right) => left + right;
 
         public static Tile operator -(in Tile left, in Tile right) => new Tile(left.X - right.X, left.Z - right.Z);
+        public static Tile Subtract(in Tile left, in Tile right) => new Tile(left.X - right.X, left.Z - right.Z);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short TileFromAbs(double value)
