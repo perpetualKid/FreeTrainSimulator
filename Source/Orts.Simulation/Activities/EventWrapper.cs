@@ -47,7 +47,7 @@ namespace Orts.Simulation.Activities
         public ActivityEvent ActivityEvent { get; }     // Points to object parsed from file *.act
         public int OriginalActivationLevel { get; internal set; } // Needed to reset .ActivationLevel
         public int TimesTriggered { get; internal set; }          // Needed for evaluation after activity ends
-        public bool Enabled { get; internal set; }          // Used for a reversible event to prevent it firing again until after it has been reset.
+        public bool Enabled { get; internal set; } = true;          // Used for a reversible event to prevent it firing again until after it has been reset.
         public Train Train { get; internal set; }              // Train involved in event; if null actual or original player train
 
         protected EventWrapper(ActivityEvent activityEvent)
