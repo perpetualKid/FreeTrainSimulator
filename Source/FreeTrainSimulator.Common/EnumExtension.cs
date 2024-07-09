@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using GetText;
 
@@ -14,8 +15,8 @@ namespace FreeTrainSimulator.Common
     {
         private static class EnumCache<T> where T : Enum
         {
-            internal static readonly ReadOnlyCollection<string> Names;
-            internal static readonly ReadOnlyCollection<T> Values;
+            internal static readonly ImmutableArray<string> Names;
+            internal static readonly ImmutableArray<T> Values;
             internal static readonly Dictionary<T, string> ValueToDescriptionMap;
             internal static readonly string EnumDescription;
             internal static readonly Dictionary<string, T> NameValuePairs;
@@ -32,8 +33,8 @@ namespace FreeTrainSimulator.Common
             static EnumCache()
 #pragma warning restore CA1810 // Initialize reference type static fields inline
             {
-                Values = new ReadOnlyCollection<T>((T[])Enum.GetValues(typeof(T)));
-                Names = new ReadOnlyCollection<string>(Enum.GetNames(typeof(T)));
+                Values = ImmutableCollectionsMarshal.AsImmutableArray((T[])Enum.GetValues(typeof(T)));
+                Names = ImmutableCollectionsMarshal.AsImmutableArray(Enum.GetNames(typeof(T)));
                 ValueToDescriptionMap = new Dictionary<T, string>();
                 EnumDescription = typeof(T).GetCustomAttributes(typeof(DescriptionAttribute), false).
                     Cast<DescriptionAttribute>().
@@ -45,7 +46,7 @@ namespace FreeTrainSimulator.Common
                 NameValuePairs = Names.Zip(Values, (k, v) => new { k, v })
                               .ToDictionary(x => x.k, x => x.v, StringComparer.OrdinalIgnoreCase);
 
-                Length = Values.Count;
+                Length = Values.Length;
                 if (typeof(int).IsAssignableFrom(Enum.GetUnderlyingType(typeof(T))))
                 {
                     if (Length == 2 && (int)(object)Values[0] == 0 && (int)(object)Values[1] == 1)      //Simple case having two values only (like Forward and Backward, values 0 and 1 only)
