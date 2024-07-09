@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Formats.Msts", "Orts.F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Settings", "Orts.Settings\Orts.Settings.csproj", "{67F84996-8769-4FD8-819B-464AF269037B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Updater", "Orts.Updater\Orts.Updater.csproj", "{88108A94-0389-43FF-A75C-C55BD202FC8D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Updater", "FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj", "{88108A94-0389-43FF-A75C-C55BD202FC8D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContentManager", "Contrib\ContentManager\ContentManager.csproj", "{E3E04859-2734-46EA-99B6-8A9721E85D3F}"
 EndProject

@@ -16,12 +16,12 @@
     <PackageReference Include="NuGet.Versioning" Version="6.10.1" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj" />
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
     <ProjectReference Include="..\..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
     <ProjectReference Include="..\..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />
-    <ProjectReference Include="..\..\Orts.Updater\Orts.Updater.csproj" />
 		<ProjectReference Include="..\..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
 	</ItemGroup>
 </Project>	

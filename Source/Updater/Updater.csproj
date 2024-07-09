@@ -16,7 +16,7 @@
     <PackageReference Include="System.Resources.Extensions" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
-    <ProjectReference Include="..\Orts.Updater\Orts.Updater.csproj" />
   </ItemGroup>
 </Project>
