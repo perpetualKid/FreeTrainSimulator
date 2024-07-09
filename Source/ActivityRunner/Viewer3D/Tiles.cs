@@ -33,7 +33,7 @@ namespace Orts.ActivityRunner.Viewer3D
     /// <summary>
     /// Provides a MRU cache of tile data for a given resolution.
     /// </summary>
-    [DebuggerDisplay("Count = {Tiles.List.Count}, Zoom = {Zoom}")]
+    [DebuggerDisplay("Count = {Tiles.List.Count}, Zoom = {zoom}")]
     public class TileManager
     {
         private const int MaximumCachedTiles = 8 * 8;

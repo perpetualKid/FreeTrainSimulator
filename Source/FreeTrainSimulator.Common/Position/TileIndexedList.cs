@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace FreeTrainSimulator.Common.Position
@@ -42,13 +43,13 @@ namespace FreeTrainSimulator.Common.Position
     /// <typeparam name="TTileCoordinate"></typeparam>
     public class TileIndexedList<TTileCoordinate> : ITileIndexedList<TTileCoordinate> where TTileCoordinate : ITileCoordinate
     {
-        private readonly SortedList<Tile, List<TTileCoordinate>> tiles;
-        private readonly List<Tile> sortedIndexes;
+        private readonly SortedList<Tile, ImmutableArray<TTileCoordinate>> tiles;
+        private readonly ImmutableArray<Tile> sortedIndexes;
 
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
-        public int Count => sortedIndexes.Count;
+        public int Count => sortedIndexes.Length;
 
         /// <summary>
         /// <inheritdoc/>
@@ -59,23 +60,26 @@ namespace FreeTrainSimulator.Common.Position
 
         public TileIndexedList(IEnumerable<TTileCoordinate> data)
         {
-            data = data.ToList();
+            data = data is IList ? data : data.ToList();
             if (data is IEnumerable<ITileCoordinateVector> vectorData)
             {
                 IEnumerable<ITileCoordinateVector> singleTile = vectorData.Where(d => d.Tile.Equals(d.OtherTile)).ToList();
                 IEnumerable<ITileCoordinateVector> multiTile = vectorData.Where(d => !d.Tile.Equals(d.OtherTile)).ToList();
 
-                tiles = new SortedList<Tile, List<TTileCoordinate>>(
+                tiles = new SortedList<Tile, ImmutableArray<TTileCoordinate>>(
                     singleTile.Select(d => new { Segment = d, Tile = d.Tile }).
                     Concat(multiTile.Select(d => new { Segment = d, Tile = d.Tile })).
                     Concat(multiTile.Select(d => new { Segment = d, Tile = d.OtherTile })).GroupBy(d => d.Tile).
-                    ToDictionary(g => g.Key, g => g.Select(f => f.Segment).Cast<TTileCoordinate>().ToList()));
+                    ToDictionary(g => g.Key, g => ImmutableArray.Create(g.Select(f => f.Segment).Cast<TTileCoordinate>().ToArray())));
             }
             else
-                tiles = new SortedList<Tile, List<TTileCoordinate>>(data.GroupBy(d => d.Tile).ToDictionary(g => g.Key, g => g.ToList()));
-            sortedIndexes = tiles.Keys.ToList();
+            {
+                tiles = new SortedList<Tile, ImmutableArray<TTileCoordinate>>(data.GroupBy(d => d.Tile).ToDictionary(g => g.Key, g => ImmutableArray.Create(g.ToArray())));
+            }
 
-            if (sortedIndexes.Count > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[^1]))
+            sortedIndexes = ImmutableArray.Create(tiles.Keys.ToArray());
+
+            if (sortedIndexes.Length > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[^1]))
             {
                 sortedIndexes.Remove(Tile.Zero);
                 tiles.Remove(Tile.Zero);
@@ -85,9 +89,13 @@ namespace FreeTrainSimulator.Common.Position
 
         public IEnumerator<TTileCoordinate> GetEnumerator()
         {
-            foreach (List<TTileCoordinate> list in tiles.Values)
-                foreach (TTileCoordinate item in list)
+            foreach (ImmutableArray<TTileCoordinate> tileValues in tiles.Values)
+            {
+                foreach (TTileCoordinate item in tileValues)
+                {
                     yield return item;
+                }
+            }
         }
 
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
@@ -96,10 +104,15 @@ namespace FreeTrainSimulator.Common.Position
         {
             get
             {
-                if (!tiles.TryGetValue(tile, out List<TTileCoordinate> value))
+                if (!tiles.TryGetValue(tile, out ImmutableArray<TTileCoordinate> value))
+                {
                     yield break;
+                }
+
                 foreach (TTileCoordinate item in value)
+                {
                     yield return item;
+                }
             }
         }
 
@@ -119,7 +132,7 @@ namespace FreeTrainSimulator.Common.Position
             if (bottomLeft.CompareTo(topRight) > 0)
                 throw new ArgumentOutOfRangeException(nameof(bottomLeft), $"{nameof(bottomLeft)} can not be larger than {nameof(topRight)}");
 
-            if (sortedIndexes.Count == 0)
+            if (sortedIndexes.Length == 0)
                 yield break;
 
             int tileLookupIndex = FindNearestIndexFloor(bottomLeft);
@@ -142,7 +155,7 @@ namespace FreeTrainSimulator.Common.Position
                     yield return item;
 
                 tileLookupIndex++;
-                if (tileLookupIndex >= sortedIndexes.Count)
+                if (tileLookupIndex >= sortedIndexes.Length)
                     yield break;
                 key = sortedIndexes[tileLookupIndex];
 
@@ -214,19 +227,19 @@ namespace FreeTrainSimulator.Common.Position
             return GetEnumerator();
         }
 
-        private int FindNearestIndexFloor(Tile possibleKey)
+        private int FindNearestIndexFloor(in Tile possibleKey)
         {
             int keyIndex = sortedIndexes.BinarySearch(possibleKey);
             if (keyIndex < 0)
             {
                 keyIndex = ~keyIndex;
-                if (keyIndex == sortedIndexes.Count)
-                    keyIndex = sortedIndexes.Count - 1;
+                if (keyIndex == sortedIndexes.Length)
+                    keyIndex = sortedIndexes.Length - 1;
             }
             return keyIndex;
         }
 
-        private int FindNearestIndexCeiling(Tile possibleKey)
+        private int FindNearestIndexCeiling(in Tile possibleKey)
         {
             int keyIndex = sortedIndexes.BinarySearch(possibleKey);
             if (keyIndex < 0)

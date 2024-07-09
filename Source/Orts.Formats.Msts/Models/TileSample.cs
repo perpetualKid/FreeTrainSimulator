@@ -32,7 +32,7 @@ namespace Orts.Formats.Msts.Models
     /// Represents a single MSTS tile stored on disk, of whatever size (2KM, 4KM, 16KM or 32KM sqaure).
     /// </summary>
     [DebuggerDisplay("TileX = {Tile.X}, TileZ = {Tile.Z}, Size = {Size}")]
-    public class TileSample
+    public class TileSample: ITileCoordinate
     {
         private readonly Terrain terrain;
         private readonly BitArray terrainFlags;

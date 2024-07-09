@@ -19,19 +19,20 @@
 
 //#define SUPERSMOOTHNORMALS
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Formats.Msts;
-using Orts.ActivityRunner.Viewer3D.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
-using FreeTrainSimulator.Common.Position;
+
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Position;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Orts.ActivityRunner.Viewer3D.Common;
+using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -88,10 +89,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Now we turn each unique (distinct) loaded tile in to a terrain tile.
                 newTerrainTiles = tiles
                     .Where(t => t != null).Distinct()
-                    .Select(tile => terrainTiles.FirstOrDefault(tt => tt.TileX == tile.Tile.X && tt.TileZ == tile.Tile.Z && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.Tiles, tile))
+                    .Select(tile => terrainTiles.FirstOrDefault(tt => tt.Tile == tile.Tile && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.Tiles, tile))
                     .Union(loTiles
                         .Where(t => t != null).Distinct()
-                        .Select(tile => terrainTiles.FirstOrDefault(tt => tt.TileX == tile.Tile.X && tt.TileZ == tile.Tile.Z && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.LoTiles, tile))
+                        .Select(tile => terrainTiles.FirstOrDefault(tt => tt.Tile == tile.Tile && tt.Size == tile.Size) ?? new TerrainTile(Viewer, Viewer.LoTiles, tile))
                     ).ToList();
 
                 TerrainTiles = newTerrainTiles;
@@ -123,25 +124,28 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [DebuggerDisplay("TileX = {TileX}, TileZ = {TileZ}, Size = {Size}")]
+    [DebuggerDisplay("TileX = {Tile}, Size = {Size}")]
     public class TerrainTile
     {
-        public readonly int TileX, TileZ, Size, PatchCount;
+        private readonly Tile tile;
+        public ref readonly Tile Tile => ref tile;
+        public int Size { get; }
+        public int PatchCount { get; }
+
         private readonly TerrainPrimitive[,] TerrainPatches;
         private readonly WaterPrimitive WaterTile;
 
         public TerrainTile(Viewer viewer, TileManager tileManager, TileSample tile)
         {
             Trace.Write(tile.Size > 2 ? "L" : "T");
-            TileX = tile.Tile.X;
-            TileZ = tile.Tile.Z;
+            this.tile = tile.Tile;
             Size = tile.Size;
             PatchCount = tile.PatchCount;
 
             // Terrain needs the next tiles over from its east (X+) and south (Z-) edges.
-            viewer.Tiles.Load(TileX + tile.Size, TileZ, false);
-            viewer.Tiles.Load(TileX + tile.Size, TileZ - 1, false);
-            viewer.Tiles.Load(TileX, TileZ - 1, false);
+            viewer.Tiles.Load(Tile.X + tile.Size, Tile.Z, false);
+            viewer.Tiles.Load(Tile.X + tile.Size, Tile.Z - 1, false);
+            viewer.Tiles.Load(Tile.X, Tile.Z - 1, false);
 
             TerrainPatches = new TerrainPrimitive[PatchCount, PatchCount];
             for (var x = 0; x < PatchCount; ++x)
@@ -155,13 +159,15 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (WaterTile != null)
-                WaterTile.PrepareFrame(frame);
+            WaterTile?.PrepareFrame(frame);
 
             for (var x = 0; x < PatchCount; ++x)
+            {
                 for (var z = 0; z < PatchCount; ++z)
-                    if (TerrainPatches[x, z] != null)
-                        TerrainPatches[x, z].PrepareFrame(frame);
+                {
+                    TerrainPatches[x, z]?.PrepareFrame(frame);
+                }
+            }
         }
 
         internal void Mark()
@@ -170,9 +176,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 WaterPrimitive.Mark();
 
             for (var x = 0; x < PatchCount; ++x)
+            {
                 for (var z = 0; z < PatchCount; ++z)
-                    if (TerrainPatches[x, z] != null)
-                        TerrainPatches[x, z].Mark();
+                {
+                    TerrainPatches[x, z]?.Mark();
+                }
+            }
         }
     }
 
@@ -191,8 +200,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly VertexBufferBinding[] VertexBufferBindings;
 
         // These can be shared since they are the same for all patches
-        public static IndexBuffer SharedPatchIndexBuffer;
-        public static int SharedPatchVertexStride;
+        public static IndexBuffer SharedPatchIndexBuffer { get; private set; }
 
         // These are only used while the contructor runs and are discarded after.
         private readonly TileManager TileManager;
@@ -223,7 +231,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var ts = Tile.Shaders[Patch.ShaderIndex].Textureslots;
             var uv = Tile.Shaders[Patch.ShaderIndex].UVCalcs;
             if (ts.Count > 1)
-                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(ts[0].FileName) + 
+                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(ts[0].FileName) +
                     $"\0{Helpers.GetTerrainTextureFile(ts[1].FileName)}{(uv[1].D != 0 && uv[1].D != 32 ? $"\0{uv[1].D}" : "")}");
             else
                 PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(ts[0].FileName) + "\0" + Helpers.GetTerrainTextureFile("microtex.ace"));
@@ -308,17 +316,25 @@ namespace Orts.ActivityRunner.Viewer3D
             var d = Size * 8;
             var center = new Vector3(x, Elevation(x, z), z);
 
-            var n = new Vector3(x + 0, Elevation(x + 0, z - 1), z - d); var toN = Vector3.Normalize(n - center);
-            var e = new Vector3(x + d, Elevation(x + 1, z - 0), z - 0); var toE = Vector3.Normalize(e - center);
-            var s = new Vector3(x - 0, Elevation(x - 0, z + 1), z + d); var toS = Vector3.Normalize(s - center);
-            var w = new Vector3(x - d, Elevation(x - 1, z + 0), z + 0); var toW = Vector3.Normalize(w - center);
+            var n = new Vector3(x + 0, Elevation(x + 0, z - 1), z - d);
+            var toN = Vector3.Normalize(n - center);
+            var e = new Vector3(x + d, Elevation(x + 1, z - 0), z - 0);
+            var toE = Vector3.Normalize(e - center);
+            var s = new Vector3(x - 0, Elevation(x - 0, z + 1), z + d);
+            var toS = Vector3.Normalize(s - center);
+            var w = new Vector3(x - d, Elevation(x - 1, z + 0), z + 0);
+            var toW = Vector3.Normalize(w - center);
 
             if ((z & 1) == (x & 1))  // Triangles alternate
             {
-                var ne = new Vector3(x + d, Elevation(x + 1, z - 1), z - d); var toNE = Vector3.Normalize(ne - center);
-                var se = new Vector3(x + d, Elevation(x + 1, z + 1), z + d); var toSE = Vector3.Normalize(se - center);
-                var sw = new Vector3(x - d, Elevation(x - 1, z + 1), z + d); var toSW = Vector3.Normalize(sw - center);
-                var nw = new Vector3(x - d, Elevation(x - 1, z - 1), z - d); var toNW = Vector3.Normalize(nw - center);
+                var ne = new Vector3(x + d, Elevation(x + 1, z - 1), z - d);
+                var toNE = Vector3.Normalize(ne - center);
+                var se = new Vector3(x + d, Elevation(x + 1, z + 1), z + d);
+                var toSE = Vector3.Normalize(se - center);
+                var sw = new Vector3(x - d, Elevation(x - 1, z + 1), z + d);
+                var toSW = Vector3.Normalize(sw - center);
+                var nw = new Vector3(x - d, Elevation(x - 1, z - 1), z - d);
+                var toNW = Vector3.Normalize(nw - center);
 
                 var nneFaceNormal = Vector3.Normalize(Vector3.Cross(toNE, toN));
                 var eneFaceNormal = Vector3.Normalize(Vector3.Cross(toE, toNE));
@@ -503,7 +519,7 @@ namespace Orts.ActivityRunner.Viewer3D
             patchTexture = base.viewer.TextureManager.Get(textures[0], defaultTexture);
             patchTextureOverlay = textures.Length > 1 ? base.viewer.TextureManager.Get(textures[1]) : null;
             var converted = textures.Length > 2 && Int32.TryParse(textures[2], out OverlayScale);
-            OverlayScale = OverlayScale != 0 && converted ?  OverlayScale : 32;
+            OverlayScale = OverlayScale != 0 && converted ? OverlayScale : 32;
             shader = base.viewer.MaterialManager.SceneryShader;
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
