@@ -12,7 +12,7 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 
-namespace Orts.Updater
+namespace FreeTrainSimulator.Updater
 {
     public static class NugetCoreExtension
     {
@@ -42,7 +42,7 @@ namespace Orts.Updater
                     JObject catalogItem = await httpSourceResource.HttpSource.GetJObjectAsync(new HttpSourceRequest(catalogItemUrl, NullLogger.Instance), NullLogger.Instance, cancellationToken).ConfigureAwait(false);
                     return catalogItem.Value<long>("packageSize");
                 }
-                catch (Exception ex) when (ex is FatalProtocolException|| ex is HttpRequestException)
+                catch (Exception ex) when (ex is FatalProtocolException || ex is HttpRequestException)
                 {
                     return 0;
                 }
@@ -60,7 +60,7 @@ namespace Orts.Updater
         {
             if (Position < 350) //quite some hack but seems the first 314 bytes are never read (Position is never 0
                 percentage = 0;
-            if (base.CanRead && (Position / (Length / 100)) > percentage)
+            if (base.CanRead && Position / (Length / 100) > percentage)
             {
                 ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(percentage = (int)(Position / (Length / 100)), null));
             }
@@ -73,7 +73,7 @@ namespace Orts.Updater
             {
                 ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(percentage = (int)((base.Position + buffer.Length) / (ExpectedLength / 100)), null));
             }
-            return base.WriteAsync(buffer, offset, count, cancellationToken); ;
+            return base.WriteAsync(buffer, offset, count, cancellationToken);
         }
 
         public override ValueTask WriteAsync(ReadOnlyMemory<byte> source, CancellationToken cancellationToken = default)
@@ -85,6 +85,4 @@ namespace Orts.Updater
             return base.WriteAsync(source, cancellationToken);
         }
     }
-
-
 }

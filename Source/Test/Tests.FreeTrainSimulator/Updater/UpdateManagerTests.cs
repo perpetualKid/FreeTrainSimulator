@@ -2,12 +2,11 @@
 using System.IO;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Updater;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Orts.Updater;
-
-namespace Tests.Orts.Updater
+namespace Tests.FreeTrainSimulator.Updater
 {
     [TestClass]
     public class UpdateManagerTests
@@ -30,7 +29,8 @@ namespace Tests.Orts.Updater
 
             Assert.IsFalse(UpdateManager.CheckUpdateNeeded(UpdateCheckFrequency.Monthly));
 
-            using (File.Create(UpdateManager.VersionFile)) { }
+            using (File.Create(UpdateManager.VersionFile))
+            { }
             File.SetLastWriteTime(UpdateManager.VersionFile, DateTime.Now.AddDays(-20));
 
             Assert.IsTrue(UpdateManager.CheckUpdateNeeded(UpdateCheckFrequency.Daily));

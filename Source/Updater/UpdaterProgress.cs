@@ -1,21 +1,4 @@
-﻿// COPYRIGHT 2014, 2015 by the Open Rails project.
-// 
-// This file is part of Open Rails.
-// 
-// Open Rails is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// Open Rails is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -31,7 +14,6 @@ using GetText;
 using GetText.WindowsForms;
 
 using Orts.Settings;
-using Orts.Updater;
 
 namespace FreeTrainSimulator.Updater
 {
@@ -106,7 +88,7 @@ namespace FreeTrainSimulator.Updater
                     if (int.TryParse(waitPid.AsSpan(9), out int processId))
                     {
                         Process process = Process.GetProcessById(processId);
-                        waitList.Add(WaitForProcessExitAsync(process));
+                        waitList.Add(process.WaitForExitAsync(cts.Token));
                     }
                 }
                 catch (ArgumentException)
@@ -189,42 +171,6 @@ namespace FreeTrainSimulator.Updater
             if (relaunchApplication)
             {
                 await UpdateManager.RunProcess(new ProcessStartInfo(RuntimeInfo.LauncherPath)).ConfigureAwait(true);
-            }
-        }
-
-        /// <summary>
-        /// Waits asynchronously for the process to exit.
-        /// </summary>
-        /// <param name="process">The process to wait for cancellation.</param>
-        /// <param name="cancellationToken">A cancellation token. If invoked, the task will return 
-        /// immediately as canceled.</param>
-        /// <returns>A Task representing waiting for the process to end.</returns>
-        private static async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken = default)
-        {
-            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-            void Process_Exited(object sender, EventArgs e)
-            {
-                _ = tcs.TrySetResult(true);
-                process.Dispose();
-            }
-
-            try
-            {
-                if (process.HasExited)
-                {
-                    process.Close();
-                    return;
-                }
-                process.EnableRaisingEvents = true;
-                process.Exited += Process_Exited;
-                using (cancellationToken.Register(() => tcs.TrySetCanceled()))
-                {
-                    _ = await tcs.Task.ConfigureAwait(false);
-                }
-            }
-            finally
-            {
-                process.Exited -= Process_Exited;
             }
         }
     }

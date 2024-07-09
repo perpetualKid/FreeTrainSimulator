@@ -26,13 +26,13 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Updater;
 
 using GetText;
 using GetText.WindowsForms;
 
 using Orts.Formats.Msts;
 using Orts.Settings;
-using Orts.Updater;
 
 namespace Orts.Menu
 {

@@ -1,21 +1,4 @@
-﻿// COPYRIGHT 2014, 2015 by the Open Rails project.
-// 
-// This file is part of Open Rails.
-// 
-// Open Rails is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// Open Rails is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -42,12 +25,15 @@ using Orts.Settings;
 
 using VersionInfo = FreeTrainSimulator.Common.Info.VersionInfo;
 
-namespace Orts.Updater
+namespace FreeTrainSimulator.Updater
 {
-    public class UpdateManager: IDisposable
+    public partial class UpdateManager : IDisposable
     {
+        [GeneratedRegex(".(g[a-z0-9]{8}$)", RegexOptions.Compiled)]
+        private static partial Regex removeCommitDataRegex();
+
         private const string versionFile = "updates.json";
-        private static readonly Regex removeCommitData = new Regex(".(g[a-z0-9]{8}$)", RegexOptions.Compiled);
+        private static readonly Regex removeCommitData = removeCommitDataRegex();
 
         private const string developerBuildsUrl = "https://orts.blob.core.windows.net/builds/index.json"; //TODO 20210418 this may be somewhere in configuration instead hard coded
 
@@ -178,12 +164,18 @@ namespace Orts.Updater
             //we just check the update file's timestamp against the target
             switch (target)
             {
-                case UpdateCheckFrequency.Never: return false;
-                case UpdateCheckFrequency.Daily: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(1) < DateTime.Now;
-                case UpdateCheckFrequency.Weekly: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(7) < DateTime.Now;
-                case UpdateCheckFrequency.Biweekly: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(14) < DateTime.Now;
-                case UpdateCheckFrequency.Monthly: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddMonths(1) < DateTime.Now;
-                default: return true; //Always
+                case UpdateCheckFrequency.Never:
+                    return false;
+                case UpdateCheckFrequency.Daily:
+                    return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(1) < DateTime.Now;
+                case UpdateCheckFrequency.Weekly:
+                    return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(7) < DateTime.Now;
+                case UpdateCheckFrequency.Biweekly:
+                    return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(14) < DateTime.Now;
+                case UpdateCheckFrequency.Monthly:
+                    return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddMonths(1) < DateTime.Now;
+                default:
+                    return true; //Always
             }
         }
 
@@ -194,9 +186,7 @@ namespace Orts.Updater
 
         public static string NormalizedPackageVersion(string packageVersion)
         {
-            if (packageVersion == null)
-                return packageVersion;
-            return removeCommitData.Replace(packageVersion, string.Empty);
+            return packageVersion == null ? packageVersion : removeCommitData.Replace(packageVersion, string.Empty);
         }
 
         public async Task<NuGetVersion> GetBestAvailableVersion(bool refresh)
@@ -299,7 +289,8 @@ namespace Orts.Updater
             //// Scan the files in any order.
             foreach (string file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
             {
-                try { File.Delete(file); }
+                try
+                { File.Delete(file); }
                 catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
                 { Trace.TraceWarning($"{path} :: {ex.Message}"); };
             }
@@ -307,13 +298,15 @@ namespace Orts.Updater
                 return Task.FromCanceled(token);
             foreach (string directory in Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly))
             {
-                try { Directory.Delete(directory, true); }
+                try
+                { Directory.Delete(directory, true); }
                 catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
                 { Trace.TraceWarning($"{path} :: {ex.Message}"); };
             }
             if (token.IsCancellationRequested)
                 return Task.FromCanceled(token);
-            try { Directory.Delete(path, true); }
+            try
+            { Directory.Delete(path, true); }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
             { Trace.TraceWarning($"{path} :: {ex.Message}"); };
             return Task.CompletedTask;
@@ -332,7 +325,7 @@ namespace Orts.Updater
             {
                 using (ProgressMemoryStream packageStream = new ProgressMemoryStream())
                 {
-                    packageStream.ProgressChanged += (object sender, ProgressChangedEventArgs e) =>
+                    packageStream.ProgressChanged += (sender, e) =>
                     {
                         TriggerApplyProgressChanged(progressMin + progressLength * e.ProgressPercentage / 100);
                     };
@@ -500,16 +493,12 @@ namespace Orts.Updater
                 {
                     updateVersions?.Dispose();
                 }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
                 disposedValue = true;
             }
         }
 
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
