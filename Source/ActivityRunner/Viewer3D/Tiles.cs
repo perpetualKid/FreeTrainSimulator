@@ -76,7 +76,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Tiles.ByXZ.ContainsKey(tile))
                 return;
 
-            TileSample newTile = new TileSample(filePath, tile.X, tile.Z, zoom, visible);
+            TileSample newTile = new TileSample(filePath, tile, zoom, visible);
             if (newTile.Valid)
             {
                 tileList.Add(newTile);
@@ -89,7 +89,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Tiles.ByXZ.ContainsKey(tile))
                 return;
 
-            newTile = new TileSample(filePath, tileX, tileZ, zoom - 1, visible);
+            newTile = new TileSample(filePath, tile, zoom - 1, visible);
             if (newTile.Valid)
             {
                 tileList.Add(newTile);

@@ -307,7 +307,7 @@ namespace ORTS.TrackViewer.Drawing
             Tile tile = TileHelper.Snap(new Tile(tileX, tileZ), zoom);
 
             // we set visible to false to make sure errors are loaded
-            TileSample newTile = new TileSample(path, tile.X, tile.Z, zoom, false);
+            TileSample newTile = new TileSample(path, tile, zoom, false);
             if (newTile.Valid)
             {
                 return newTile;
@@ -316,7 +316,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 // Check for 2x2 or 16x16 tiles.
                 tile = TileHelper.Snap(new Tile(tileX, tileZ), zoom);
-                newTile = new TileSample(tilesPath, tile.X, tile.Z, zoom - 1, false);
+                newTile = new TileSample(tilesPath, tile, zoom - 1, false);
                 if (newTile.Valid)
                 {
                     return newTile;

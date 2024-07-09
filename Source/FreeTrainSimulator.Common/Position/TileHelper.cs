@@ -30,7 +30,7 @@ namespace FreeTrainSimulator.Common.Position
             Small = 15,
         }
 
-        public static string FromTileXZ(int tileX, int tileZ, TileZoom zoom)
+        public static string TileFileName(in Tile tile, TileZoom zoom)
         {
             int rectX = -16384;
             int rectZ = -16384;
@@ -41,8 +41,8 @@ namespace FreeTrainSimulator.Common.Position
 
             for (int z = 0; z < (int)zoom; z++)
             {
-                bool east = tileX >= rectX + rectW;
-                bool north = tileZ >= rectZ + rectH;
+                bool east = tile.X >= rectX + rectW;
+                bool north = tile.Z >= rectZ + rectH;
                 partial <<= 2;
                 partial += (north ? 0 : 2) + (east ^ north ? 0 : 1);
                 if (z % 2 == 1)

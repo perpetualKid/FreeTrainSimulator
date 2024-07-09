@@ -77,15 +77,15 @@ namespace Orts.Formats.Msts.Models
             return terrain.Patchsets[0].Patches[z * PatchCount + x];
         }
 
-        public TileSample(string filePath, int tileX, int tileZ, TileHelper.TileZoom zoom, bool visible)
+        public TileSample(string filePath, in Tile tile, TileHelper.TileZoom zoom, bool visible)
         {
             if (!Directory.Exists(filePath))
                 return;
 
-            tile = new Tile(tileX, tileZ);
+            this.tile = tile;
             Size = 1 << (15 - (int)zoom);
 
-            string filePattern = TileHelper.FromTileXZ(tileX, tileZ, zoom);
+            string filePattern = TileHelper.TileFileName(tile, zoom);
 
             foreach (string fileName in Directory.EnumerateFiles(filePath, filePattern + "??.*"))
             {
