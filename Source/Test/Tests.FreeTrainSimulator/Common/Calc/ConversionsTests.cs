@@ -4,8 +4,6 @@ using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Tests.FreeTrainSimulator.Common;
-
 namespace Tests.FreeTrainSimulator.Common.Calc
 {
 

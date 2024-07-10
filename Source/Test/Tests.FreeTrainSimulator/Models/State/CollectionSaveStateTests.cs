@@ -11,7 +11,7 @@ using Orts.Models.State;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
 
-namespace Tests.Orts.Models.Track
+namespace Tests.FreeTrainSimulator.Models.State
 {
     [TestClass]
     public class CollectionSaveStateTests

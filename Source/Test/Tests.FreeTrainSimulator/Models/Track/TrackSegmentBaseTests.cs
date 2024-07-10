@@ -1,22 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using FreeTrainSimulator.Common.Position;
+﻿using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Track;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
 
-namespace Tests.Orts.Models.Track
+namespace Tests.FreeTrainSimulator.Models.Track
 {
     [TestClass]
     public class TrackSegmentBaseTests
     {
-        private class TrackSegmentTestClass: TrackSegmentBase
+        private class TrackSegmentTestClass : TrackSegmentBase
         {
             public TrackSegmentTestClass() : base()
             { }
