@@ -24,6 +24,6 @@ namespace Orts.Models.State
         public bool TrainBrakeActive { get; set; }
 
 
-             
+
     }
 }

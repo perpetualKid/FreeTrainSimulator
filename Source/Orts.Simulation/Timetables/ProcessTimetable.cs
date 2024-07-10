@@ -1961,7 +1961,7 @@ namespace Orts.Simulation.Timetables
             /// <param name="commandQualifiers"></param>
             /// <param name="delayType"></param>
             /// <returns></returns>
-            private static Models.Simplified.DelayedStart ProcessRestartDelayValues(string trainName, List<TTTrainCommands.TTTrainComQualifiers> commandQualifiers, string delayType)
+            private static FreeTrainSimulator.Models.Simplified.DelayedStart ProcessRestartDelayValues(string trainName, List<TTTrainCommands.TTTrainComQualifiers> commandQualifiers, string delayType)
             {
                 int fixedPart = 0;
                 int randomPart = 0;
@@ -2000,7 +2000,7 @@ namespace Orts.Simulation.Timetables
                             break;
                     }
                 }
-                return new Models.Simplified.DelayedStart(fixedPart, randomPart);
+                return new FreeTrainSimulator.Models.Simplified.DelayedStart(fixedPart, randomPart);
             }
 
             //================================================================================================//

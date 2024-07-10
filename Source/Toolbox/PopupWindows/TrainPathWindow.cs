@@ -10,12 +10,13 @@ using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Models.Track;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Models.Track;
 using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
@@ -278,8 +279,8 @@ namespace Orts.Toolbox.PopupWindows
             {
                 RadioButtonGroup group = new RadioButtonGroup();
                 ControlLayout line;
-                IEnumerable<Models.Simplified.Path> trainPaths = (Formats.Msts.RuntimeData.GameInstance(Owner.Game) as TrackData).TrainPaths;
-                foreach (Models.Simplified.Path path in trainPaths)
+                IEnumerable<Path> trainPaths = (Formats.Msts.RuntimeData.GameInstance(Owner.Game) as TrackData).TrainPaths;
+                foreach (Path path in trainPaths)
                 {
                     RadioButton radioButton;
                     line = pathScrollbox.Client.AddLayoutHorizontalLineOfText();
@@ -302,7 +303,7 @@ namespace Orts.Toolbox.PopupWindows
                 pathEditor.InitializePath(null);
                 (line.Controls[0] as RadioButton).State = false;
             }
-            else if (line?.Tag is Models.Simplified.Path path)
+            else if (line?.Tag is Path path)
             {
                 if (!((line.Controls[0] as RadioButton).State = pathEditor.InitializePath(path)))
                 {
@@ -314,7 +315,7 @@ namespace Orts.Toolbox.PopupWindows
         private void PathSelectRadioButton_OnClick(object sender, MouseClickEventArgs e)
         {
             ControlLayout line = (sender as RadioButton)?.Container;
-            if ((currentPath == null || line.BorderColor == Color.Transparent) && line?.Tag is Models.Simplified.Path path)
+            if ((currentPath == null || line.BorderColor == Color.Transparent) && line?.Tag is Path path)
             {
                 if (!((line.Controls[0] as RadioButton).State = pathEditor.InitializePath(path)))
                 {
@@ -365,7 +366,7 @@ namespace Orts.Toolbox.PopupWindows
             if (null == pathScrollbox || null == currentPath)
                 return;
 
-            WindowControl pathLine = pathScrollbox.Client.Controls.Where(c => c.Tag is Models.Simplified.Path pathModel && pathModel.FilePath == currentPath.FilePath).FirstOrDefault();
+            WindowControl pathLine = pathScrollbox.Client.Controls.Where(c => c.Tag is Path pathModel && pathModel.FilePath == currentPath.FilePath).FirstOrDefault();
             foreach (WindowControl control in pathScrollbox.Client.Controls)
             {
                 if (control != pathLine)

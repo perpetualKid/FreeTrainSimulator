@@ -5,8 +5,7 @@ using System.Linq;
 
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
-
-using Orts.Models.Track;
+using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {

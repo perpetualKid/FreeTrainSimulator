@@ -6,7 +6,7 @@ using MemoryPack;
 namespace Orts.Models.State
 {
     [MemoryPackable]
-    public sealed partial class AuxActionRefSaveState: SaveStateBase
+    public sealed partial class AuxActionRefSaveState : SaveStateBase
     {
         public AuxiliaryAction NextAction { get; set; }
         public float RequiredSpeed { get; set; }

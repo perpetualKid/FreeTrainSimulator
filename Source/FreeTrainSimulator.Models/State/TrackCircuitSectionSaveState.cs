@@ -10,7 +10,7 @@ using Orts.Formats.Msts.Models;
 namespace Orts.Models.State
 {
     [MemoryPackable]
-    public sealed partial class TrackCircuitSectionSaveState: SaveStateBase
+    public sealed partial class TrackCircuitSectionSaveState : SaveStateBase
     {
         public int Index { get; set; }
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
@@ -20,7 +20,7 @@ namespace Orts.Models.State
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
         public int JunctionSetManual { get; set; }
         public int JunctionLastRoute { get; set; }
-        public TrackCircuitStateSaveState TrackCircuitState {  get; set; }
+        public TrackCircuitStateSaveState TrackCircuitState { get; set; }
 #pragma warning disable CA2227 // Collection properties should be read only
         public Dictionary<int, List<int>> DeadlockTraps { get; set; }
         public Collection<int> DeadlocksActive { get; set; }

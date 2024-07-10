@@ -16,6 +16,7 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Track;
 
 using GetText;
 using GetText.WindowsForms;
@@ -25,7 +26,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows;
 using Orts.Formats.Msts;
-using Orts.Models.Track;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;

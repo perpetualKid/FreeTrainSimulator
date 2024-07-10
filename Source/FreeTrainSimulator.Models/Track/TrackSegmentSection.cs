@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 using FreeTrainSimulator.Common.Position;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
     public class TrackSegmentSection : TrackSegmentSectionBase<TrackSegmentBase>
     {
-        public TrackSegmentSection(int trackNodeIndex, IEnumerable<TrackSegmentBase> trackSegments): 
+        public TrackSegmentSection(int trackNodeIndex, IEnumerable<TrackSegmentBase> trackSegments) :
             base(trackNodeIndex, trackSegments)
         {
         }

@@ -26,7 +26,7 @@ using FreeTrainSimulator.Common;
 
 using Orts.Formats.Msts.Files;
 
-namespace Orts.Models.Simplified
+namespace FreeTrainSimulator.Models.Simplified
 {
     public class Activity : ContentBase
     {
@@ -130,7 +130,7 @@ namespace Orts.Models.Simplified
 #pragma warning restore CA1031 // Do not catch general exception types
             {
                 return null;
-                    }
+            }
         }
 
         public override string ToString()
@@ -157,7 +157,7 @@ namespace Orts.Models.Simplified
                         {
                             return FromPath(activityFile, folder, route);
                         },
-                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = System.Environment.ProcessorCount, CancellationToken = token });
+                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
 
 
                     ActionBlock<Activity> actionBlock = new ActionBlock<Activity>

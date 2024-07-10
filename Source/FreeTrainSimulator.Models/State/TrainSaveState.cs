@@ -4,12 +4,12 @@ using System.Collections.ObjectModel;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Models.Simplified;
 
 using MemoryPack;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Models.Simplified;
 
 namespace Orts.Models.State
 {

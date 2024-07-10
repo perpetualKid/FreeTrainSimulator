@@ -10,6 +10,6 @@ namespace Orts.Models.State
         public bool CommandSwitch { get; set; }
         public bool CommandButtonOn { get; set; }
         public bool CommandButtonOff { get; set; }
-        public bool State {  get; set; }
+        public bool State { get; set; }
     }
 }

@@ -16,7 +16,7 @@ namespace Orts.Models.State
         public float DistanceObject { get; set; }
         public float PassengerSpeed { get; set; }
         public float FreightSpeed { get; set; }
-        public bool Flag {  get; set; }
+        public bool Flag { get; set; }
         public float ActualSpeed { get; set; }
         public bool Processed { get; set; }
     }

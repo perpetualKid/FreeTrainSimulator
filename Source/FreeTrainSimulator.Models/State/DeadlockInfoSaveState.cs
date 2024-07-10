@@ -16,7 +16,7 @@ namespace Orts.Models.State
         public Dictionary<int, List<int>> PathReferences { get; set; }
         public Dictionary<int, List<int>> TrainReferences { get; set; }
         public Dictionary<int, Dictionary<int, bool>> TrainLengthFit { get; set; }
-        public Dictionary<int, int> TrainOwnPath {  get; set; }
+        public Dictionary<int, int> TrainOwnPath { get; set; }
         public Dictionary<int, int> InverseInfo { get; set; }
         public Dictionary<int, Dictionary<int, int>> TrainSubpathIndex { get; set; }
 #pragma warning restore CA2227 // Collection properties should be read only

@@ -20,7 +20,7 @@ namespace Orts.Models.State
 #pragma warning disable CA2227 // Collection properties should be read only
         public Collection<MovingTableSaveState> MovingTables { get; set; }
         public int ActiveMovingTable { get; set; }
-        public ActivitySaveState Activity {  get; set; }
+        public ActivitySaveState Activity { get; set; }
         public Dictionary<int, ContainerStationSaveState> ContainerStations { get; set; }
         public Dictionary<string, TimetablePoolSaveState> TimeTablePools { get; set; }
         public Collection<TrainSaveState> Trains { get; set; }

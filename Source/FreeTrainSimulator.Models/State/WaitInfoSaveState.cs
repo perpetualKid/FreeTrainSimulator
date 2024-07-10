@@ -9,7 +9,7 @@ namespace Orts.Models.State
     public sealed partial class WaitInfoSaveState : SaveStateBase
     {
         public WaitInfoType WaitInfoType { get; set; }
-        public bool ActiveWait {  get; set; }
+        public bool ActiveWait { get; set; }
         public int ActiveRouteIndex { get; set; }
         public int ActiveSubrouteIndex { get; set; }
         public int ActiveSectionIndex { get; set; }
@@ -26,7 +26,7 @@ namespace Orts.Models.State
         public int? HoldTime { get; set; }
         public TrackCircuitPartialPathRouteSaveState CheckPath { get; set; }
         public PathCheckDirection CheckDirection { get; set; }
-             
+
 
     }
 }

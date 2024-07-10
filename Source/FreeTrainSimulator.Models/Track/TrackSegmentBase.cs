@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
     /// <summary>
     /// A single segment along a track, covering a single <see cref="TrackVectorSection"/> as part of a <see cref="TrackNode"/><br/>
@@ -97,8 +97,8 @@ namespace Orts.Models.Track
                 double deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
                 SetVector(new PointD(location.TileX * WorldLocation.TileSize + location.Location.X - deltaX, location.TileZ * WorldLocation.TileSize + location.Location.Z + deltaZ));
 
-                centerPoint = base.Location - (new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius);
-                centerToStartDirection = MathHelper.WrapAngle(Direction + (sign * MathHelper.PiOver2));
+                centerPoint = Location - new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius;
+                centerToStartDirection = MathHelper.WrapAngle(Direction + sign * MathHelper.PiOver2);
                 centerToEndDirection = MathHelper.WrapAngle(centerToStartDirection + Angle);
             }
             else
@@ -232,8 +232,8 @@ namespace Orts.Models.Track
                 Angle += deltaAngle;
 
                 int sign = -Math.Sign(Angle);
-                centerPoint = base.Location - (new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius);
-                centerToStartDirection = MathHelper.WrapAngle(Direction + (sign * MathHelper.PiOver2));
+                centerPoint = Location - new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius;
+                centerToStartDirection = MathHelper.WrapAngle(Direction + sign * MathHelper.PiOver2);
                 centerToEndDirection = MathHelper.WrapAngle(centerToStartDirection + Angle);
                 Length = Radius * Math.Abs(Angle);
             }
@@ -261,8 +261,8 @@ namespace Orts.Models.Track
             {
                 PointD delta = point - centerPoint;
                 float angle = MathHelper.WrapAngle((float)Math.Atan2(delta.X, delta.Y) - MathHelper.PiOver2);
-                if (Angle < 0 && ((angle < centerToStartDirection && angle > centerToEndDirection)
-                    || (centerToStartDirection < centerToEndDirection && (angle > centerToEndDirection || angle < centerToStartDirection)))
+                if ((Angle < 0 && ((angle < centerToStartDirection && angle > centerToEndDirection)
+                    || (centerToStartDirection < centerToEndDirection && (angle > centerToEndDirection || angle < centerToStartDirection))))
                     || (Angle > 0 && ((angle > centerToStartDirection && angle < centerToEndDirection)
                     || (centerToStartDirection > centerToEndDirection && (angle > centerToStartDirection || angle < centerToEndDirection)))))
                     return (distanceSquared = centerPoint.Distance(point) - Radius) * distanceSquared;
@@ -288,9 +288,9 @@ namespace Orts.Models.Track
                 // if t < 0 or > 1 the point is basically not perpendicular to the line, so we return NaN if this is even beyond the tolerance
                 // (else if needed could return the distance from either start or end point)
                 if (t < 0)
-                    return ((distanceSquared = point.DistanceSquared(Location)) < ProximityTolerance) ? distanceSquared : double.NaN;
+                    return (distanceSquared = point.DistanceSquared(Location)) < ProximityTolerance ? distanceSquared : double.NaN;
                 else if (t > 1)
-                    return ((distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance) ? distanceSquared : double.NaN;
+                    return (distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance ? distanceSquared : double.NaN;
                 else
                     return point.DistanceSquared(Location + (Vector - Location) * t);
                 //return (t < 0 || t > 1 || (distanceSquared = point.DistanceSquared(Location + (Vector - Location) * t)) > ProximityTolerance) ? double.NaN : distanceSquared;
@@ -351,13 +351,13 @@ namespace Orts.Models.Track
             {
                 int sign = Math.Sign(Angle);
                 double direction = Direction + sign * distance / Radius;
-                return (centerPoint + new PointD(sign * Math.Sin(direction) * Radius, sign * Math.Cos(direction) * Radius));
+                return centerPoint + new PointD(sign * Math.Sin(direction) * Radius, sign * Math.Cos(direction) * Radius);
             }
             else
             {
                 double dx = Vector.X - Location.X;
                 double dy = Vector.Y - Location.Y;
-                return (new PointD(Location.X + dx * distance / Length, Location.Y + dy * distance / Length));
+                return new PointD(Location.X + dx * distance / Length, Location.Y + dy * distance / Length);
             }
         }
 

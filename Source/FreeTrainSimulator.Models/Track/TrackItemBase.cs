@@ -2,7 +2,7 @@
 
 using FreeTrainSimulator.Common.Position;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
     #region TrackItemBase
     public abstract class TrackItemBase : PointPrimitive, IIndexedElement

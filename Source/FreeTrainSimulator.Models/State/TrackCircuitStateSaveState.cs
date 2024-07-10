@@ -22,7 +22,7 @@ namespace Orts.Models.State
     }
 
     [MemoryPackable]
-    public sealed partial class TrackCircuitStateSaveState: SaveStateBase
+    public sealed partial class TrackCircuitStateSaveState : SaveStateBase
     {
 #pragma warning disable CA2227 // Collection properties should be read only
         public Collection<TrainReservationItemSaveState> OccupationStates { get; set; }

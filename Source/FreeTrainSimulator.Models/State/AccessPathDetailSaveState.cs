@@ -9,7 +9,7 @@ namespace Orts.Models.State
     [MemoryPackable]
     public sealed partial class AccessPathDetailSaveState : SaveStateBase
     {
-        public TrackCircuitPartialPathRouteSaveState AccessPath {  get; set; }
+        public TrackCircuitPartialPathRouteSaveState AccessPath { get; set; }
         public TravellerSaveState AccessTraveller { get; set; }
         public string AccessPathName { get; set; }
         public int TableExitIndex { get; set; }

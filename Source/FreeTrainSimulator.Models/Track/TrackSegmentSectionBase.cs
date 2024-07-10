@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 using FreeTrainSimulator.Common.Position;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
     /// <summary>
     /// A collection of multiple <see cref="TrackSegmentBase"></see> segments along a track, covering all or 
@@ -62,7 +62,7 @@ namespace Orts.Models.Track
             {
                 Length += item.Length;
             }
-            midPoint = Location + (Vector - Location) / 2.0;
+            midPoint = Location + ((Vector - Location) / 2.0);
             TrackNodeIndex = trackNodeIndex;
             SetBounds();
         }
@@ -85,7 +85,7 @@ namespace Orts.Models.Track
                 sectionSegments.Add(CreateItem(segment));
                 Length += SectionSegments[^1].Length;
             }
-            midPoint = Location + (Vector - Location) / 2.0;
+            midPoint = Location + ((Vector - Location) / 2.0);
             TrackNodeIndex = trackNodeIndex;
             SetBounds();
         }
@@ -94,7 +94,7 @@ namespace Orts.Models.Track
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 
-            midPoint = Location + (Vector - Location) / 2.0;
+            midPoint = Location + ((Vector - Location) / 2.0);
             TrackNodeIndex = trackNodeIndex;
 
             TrackSegmentBase startSegment;
@@ -189,7 +189,7 @@ namespace Orts.Models.Track
 
             topLeft = new PointD(minX, maxY);
             bottomRight = new PointD(maxX, minY);
-            midPoint = topLeft + (bottomRight - topLeft) / 2.0;
+            midPoint = topLeft + ((bottomRight - topLeft) / 2.0);
         }
     }
 }

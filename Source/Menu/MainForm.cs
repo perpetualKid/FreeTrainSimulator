@@ -31,6 +31,7 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Simplified;
 using FreeTrainSimulator.Updater;
 
 using GetText;
@@ -38,11 +39,10 @@ using GetText.WindowsForms;
 
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
-using Orts.Models.Simplified;
 using Orts.Settings;
 
-using Activity = Orts.Models.Simplified.Activity;
-using Path = Orts.Models.Simplified.Path;
+using Activity = FreeTrainSimulator.Models.Simplified.Activity;
+using Path = FreeTrainSimulator.Models.Simplified.Path;
 
 namespace Orts.Menu
 {

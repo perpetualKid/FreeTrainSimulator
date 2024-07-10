@@ -21,7 +21,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 
-using Orts.Models.Simplified;
+using FreeTrainSimulator.Models.Simplified;
 
 using ORTS.TrackViewer.Drawing;
 

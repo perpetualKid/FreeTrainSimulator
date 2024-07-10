@@ -6,9 +6,9 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
-    public abstract class EndNodeBase: PointPrimitive, IIndexedElement
+    public abstract class EndNodeBase : PointPrimitive, IIndexedElement
     {
         public float Direction { get; }
         public int TrackNodeIndex { get; }
@@ -17,7 +17,7 @@ namespace Orts.Models.Track
         int IIndexedElement.Index => TrackNodeIndex;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
 
-        protected EndNodeBase(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections): 
+        protected EndNodeBase(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections) :
             base(trackEndNode?.UiD.Location ?? throw new ArgumentNullException(nameof(trackEndNode)))
         {
             ArgumentNullException.ThrowIfNull(trackSections);

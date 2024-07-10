@@ -23,7 +23,7 @@ using System.Threading.Tasks.Dataflow;
 
 using Orts.Formats.Msts;
 
-namespace Orts.Models.Simplified
+namespace FreeTrainSimulator.Models.Simplified
 {
     public class Folder : ContentBase
     {

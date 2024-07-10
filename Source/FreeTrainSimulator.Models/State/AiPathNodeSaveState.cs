@@ -7,7 +7,7 @@ using MemoryPack;
 namespace Orts.Models.State
 {
     [MemoryPackable]
-    public sealed partial class AiPathNodeSaveState: SaveStateBase
+    public sealed partial class AiPathNodeSaveState : SaveStateBase
     {
         public int Index { get; set; }
         public TrainPathNodeType NodeType { get; set; }

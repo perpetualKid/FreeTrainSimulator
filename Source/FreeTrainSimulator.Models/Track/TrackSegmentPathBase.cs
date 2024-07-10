@@ -7,7 +7,7 @@ using FreeTrainSimulator.Common.Position;
 
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
     /// <summary>
     /// A collection of one or more <see cref="TrackSegmentSectionBase{T}"/> forming a train's path.
@@ -37,7 +37,7 @@ namespace Orts.Models.Track
         protected TrackSegmentPathBase(in PointD start, in PointD end)
             : base(start, end)
         {
-            midPoint = Location + (Vector - Location) / 2.0;
+            midPoint = Location + ((Vector - Location) / 2.0);
             Length = (float)Vector.Distance(Location);
         }
 
@@ -47,7 +47,7 @@ namespace Orts.Models.Track
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 
-            midPoint = Location + (Vector - Location) / 2.0;
+            midPoint = Location + ((Vector - Location) / 2.0);
             TrackVectorNode startVectorNode = trackModel.RuntimeData.TrackDB.TrackNodes[startTrackNodeIndex] as TrackVectorNode;
             TrackVectorNode endVectorNode = trackModel.RuntimeData.TrackDB.TrackNodes[endTrackNodeIndex] as TrackVectorNode;
 
@@ -148,7 +148,7 @@ namespace Orts.Models.Track
 
             topLeft = new PointD(minX, maxY);
             bottomRight = new PointD(maxX, minY);
-            midPoint = topLeft + (bottomRight - topLeft) / 2.0;
+            midPoint = topLeft + ((bottomRight - topLeft) / 2.0);
         }
     }
 }

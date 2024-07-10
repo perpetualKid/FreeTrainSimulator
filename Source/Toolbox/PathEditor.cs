@@ -2,12 +2,12 @@
 
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Files;
-using Orts.Models.Simplified;
-using Orts.Models.Track;
 
 namespace Orts.Toolbox
 {

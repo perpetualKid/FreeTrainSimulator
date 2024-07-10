@@ -29,12 +29,12 @@ namespace Orts.Models.State
         public float PrecipitationActualRate { get; set; }
         public float PrecipitationRequiredRate { get; set; }
         public float PrecipitationRateOfChange { get; set; }
-        public float PrecipitationEndSpell {  get; set; }
+        public float PrecipitationEndSpell { get; set; }
         public float PrecipitationNextSpell { get; set; }
         public float PrecipitationStartRate { get; set; }
         public float PrecipitationEndRate { get; set; }
         // cloud
-        public float OvercastCloudCover {  get; set; }
+        public float OvercastCloudCover { get; set; }
         public float OvercastCloudRateOfChange { get; set; }
     }
 }

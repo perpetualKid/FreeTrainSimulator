@@ -9,9 +9,9 @@ using Orts.Formats.Msts;
 namespace Orts.Models.State
 {
     [MemoryPackable]
-    public sealed partial class TimetablePoolDetailSaveState: SaveStateBase
+    public sealed partial class TimetablePoolDetailSaveState : SaveStateBase
     {
-        public TrackCircuitPartialPathRouteSaveState StoragePath {  get; set; }
+        public TrackCircuitPartialPathRouteSaveState StoragePath { get; set; }
         public TravellerSaveState StoragePathTraveller { get; set; }
         public TravellerSaveState StoragePathReverseTraveller { get; set; }
         public string StorageName { get; set; }

@@ -18,7 +18,7 @@ namespace Orts.Models.State
         public float PrecipitationLiquidity { get; set; }
         public float WindDirection { get; set; }
         public Vector2 WindSpeed { get; set; }
-        public DynamicWeatherSaveState DynamicWeather {  get; set; }
+        public DynamicWeatherSaveState DynamicWeather { get; set; }
         public AutomaticWeatherSaveState AutomaticWeather { get; set; }
     }
 }

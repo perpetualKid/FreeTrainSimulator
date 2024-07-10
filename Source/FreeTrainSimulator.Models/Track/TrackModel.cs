@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
     public sealed class TrackModel
     {
@@ -72,7 +72,7 @@ namespace Orts.Models.Track
                 public NodeEnumerator(List<int> elements, List<IIndexedElement> source)
                 {
                     this.elements = elements;
-                    this.trackNodes = source;
+                    trackNodes = source;
                     current = -1;
                 }
 
@@ -246,7 +246,7 @@ namespace Orts.Models.Track
                     {
                         if (pin.Link == vectorNode.Index)
                             continue;
-                        yield return SegmentSections[pin.Link].SectionSegments[pin.Direction == FreeTrainSimulator.Common.TrackDirection.Reverse ? 0 : ^1];
+                        yield return SegmentSections[pin.Link].SectionSegments[pin.Direction == TrackDirection.Reverse ? 0 : ^1];
                     }
                 }
             }
@@ -404,7 +404,7 @@ namespace Orts.Models.Track
                     else if (junction.TrackPins[i].Link == end.ConnectedSegments[0].TrackNodeIndex)
                     { endSet = true; }
                 }
-                if (startSet ^ endSet) 
+                if (startSet ^ endSet)
                     return new TrainPathPoint(Junctions[junction.Index], this);
             }
             return null;

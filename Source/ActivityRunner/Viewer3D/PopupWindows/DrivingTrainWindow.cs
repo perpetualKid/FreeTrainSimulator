@@ -15,14 +15,11 @@ using GetText;
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
-using Orts.Models.Simplified;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;
-using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
-using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {

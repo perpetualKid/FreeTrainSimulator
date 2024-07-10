@@ -25,9 +25,9 @@ using System.Threading.Tasks.Dataflow;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 
-namespace Orts.Models.Simplified
+namespace FreeTrainSimulator.Models.Simplified
 {
-    public class Route: ContentBase
+    public class Route : ContentBase
     {
         public string Name { get; private set; }
         public string RouteID { get; private set; }

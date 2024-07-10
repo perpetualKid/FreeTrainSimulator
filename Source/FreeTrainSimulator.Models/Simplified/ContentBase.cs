@@ -1,6 +1,6 @@
 ﻿using GetText;
 
-namespace Orts.Models.Simplified
+namespace FreeTrainSimulator.Models.Simplified
 {
     public abstract class ContentBase
     {

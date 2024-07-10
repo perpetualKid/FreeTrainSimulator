@@ -7,7 +7,7 @@ using MemoryPack;
 namespace Orts.Models.State
 {
     [MemoryPackable]
-    public sealed partial class DeadlockPathInfoSaveState: SaveStateBase
+    public sealed partial class DeadlockPathInfoSaveState : SaveStateBase
     {
         public string Name { get; set; }
         public TrackCircuitPartialPathRouteSaveState PathInfo { get; set; }

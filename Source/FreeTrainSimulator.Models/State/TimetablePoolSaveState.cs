@@ -20,7 +20,7 @@ namespace Orts.Models.State
         public int TurntableIndex { get; set; }
         public float TurntableApproachClearance { get; set; }
         public float TurntableReleaseClearance { get; set; }
-        public float? TurntableSpeed {  get; set; }
+        public float? TurntableSpeed { get; set; }
         public int? TurntableFrameRate { get; set; }
 
     }

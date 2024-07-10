@@ -6,11 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
-
-using Orts.Models.Track;
 
 namespace Tests.Orts.Models.Track
 {

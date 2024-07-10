@@ -10,13 +10,13 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Models.Track;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {

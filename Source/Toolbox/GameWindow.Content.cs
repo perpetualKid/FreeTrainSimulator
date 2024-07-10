@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Simplified;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Models.Simplified;
 using Orts.Toolbox.PopupWindows;
 
 namespace Orts.Toolbox

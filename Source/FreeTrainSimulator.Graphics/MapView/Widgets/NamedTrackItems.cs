@@ -2,10 +2,9 @@
 using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Models.Track;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {

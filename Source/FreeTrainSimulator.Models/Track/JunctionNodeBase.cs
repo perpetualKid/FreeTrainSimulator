@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
     public abstract class JunctionNodeBase : PointPrimitive, IIndexedElement
     {
@@ -100,7 +100,7 @@ namespace Orts.Models.Track
             foreach (TrackPin pin in junctionNode.TrackPins)
             {
                 TrackSegmentSection segment = trackModel.SegmentSections[pin.Link];
-                yield return segment.SectionSegments[(pin .Direction == TrackDirection.Reverse) ? 0 : ^1];
+                yield return segment.SectionSegments[pin.Direction == TrackDirection.Reverse ? 0 : ^1];
             }
         }
     }

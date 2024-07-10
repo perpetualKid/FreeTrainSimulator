@@ -2,10 +2,10 @@
 
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
+using FreeTrainSimulator.Models.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
-using Orts.Models.Track;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {

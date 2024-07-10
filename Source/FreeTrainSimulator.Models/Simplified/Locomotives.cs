@@ -2,7 +2,7 @@
 
 using Orts.Formats.Msts.Files;
 
-namespace Orts.Models.Simplified
+namespace FreeTrainSimulator.Models.Simplified
 {
     public class Locomotive : ContentBase
     {

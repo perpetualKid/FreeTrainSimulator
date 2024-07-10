@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
     public abstract class TrainPathBase : TrackSegmentPathBase<TrainPathSegmentBase>
     {

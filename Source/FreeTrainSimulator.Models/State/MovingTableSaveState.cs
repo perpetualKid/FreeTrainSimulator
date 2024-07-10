@@ -53,8 +53,8 @@ namespace Orts.Models.State
         public int? TurntableFrameRate { get; set; }
         public int ConnectedTrackEnd { get; set; }
         public bool SendNotifications { get; set; }
-        public bool Used {  get; set; }
-        public Vector3 RelativeFrontTraveller {  get; set; }
+        public bool Used { get; set; }
+        public Vector3 RelativeFrontTraveller { get; set; }
         public Vector3 RelativeRearTraveller { get; set; }
         public Vector3 FinalFrontTraveller { get; set; }
         public Vector3 FinalRearTraveller { get; set; }
@@ -68,7 +68,7 @@ namespace Orts.Models.State
         public float TargetOffset { get; set; }
         public Rotation RotationDirection { get; set; }
         public Rotation AutoRotationDirection { get; set; }
-        public Vector2 Target {  get; set; }
+        public Vector2 Target { get; set; }
 #pragma warning restore CA2227 // Collection properties should be read only
 
     }

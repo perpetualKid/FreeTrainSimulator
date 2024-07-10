@@ -40,7 +40,8 @@ namespace Orts.Models.State
         {
             get => Arguments;
             set
-            {   ArgumentNullException.ThrowIfNull(value, nameof(value));
+            {
+                ArgumentNullException.ThrowIfNull(value, nameof(value));
                 Arguments = new Collection<string>();
                 foreach (string item in value)
                 {

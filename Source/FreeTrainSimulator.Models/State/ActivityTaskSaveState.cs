@@ -17,12 +17,12 @@ namespace Orts.Models.State
         public TimeSpan? ActualArrival { get; set; }
         public TimeSpan? ActualDeparture { get; set; }
         public int PlatformEnd1 { get; set; }
-        public int PlatformEnd2 { get; set;}
+        public int PlatformEnd2 { get; set; }
         public double BooardingTime { get; set; }
         public double BoardingEndTime { get; set; }
         public int TimerCheck { get; set; }
         public bool Arrived { get; set; }
-        public bool ReadyToDepart {  get; set; }
+        public bool ReadyToDepart { get; set; }
         public float DistanceToSignal { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
     [Flags]
     public enum PathNodeInvalidReasons

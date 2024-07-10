@@ -25,7 +25,7 @@ using System.Threading.Tasks.Dataflow;
 
 using Orts.Formats.Msts.Files;
 
-namespace Orts.Models.Simplified
+namespace FreeTrainSimulator.Models.Simplified
 {
     /// <summary>
     /// Representation of the metadata of a path, where the path is coded in a .pat file. So not the full .pat file,
@@ -126,7 +126,7 @@ namespace Orts.Models.Simplified
                         {
                             return new Path(pathFile);
                         },
-                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = System.Environment.ProcessorCount, CancellationToken = token });
+                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
 
 
                     ActionBlock<Path> actionBlock = new ActionBlock<Path>
@@ -152,7 +152,7 @@ namespace Orts.Models.Simplified
                     inputBlock.Complete();
                     await actionBlock.Completion.ConfigureAwait(false);
                 }
-                return result.Where(p => p != null && p.PlayerPath || includeNonPlayerPaths);
+                return result.Where(p => (p != null && p.PlayerPath) || includeNonPlayerPaths);
             }
         }
 

@@ -8,9 +8,9 @@ using FreeTrainSimulator.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
-    public abstract class TrainPathPointBase: PointPrimitive
+    public abstract class TrainPathPointBase : PointPrimitive
     {
         private readonly int nextMainNode;
         private readonly int nextSidingNode;
@@ -80,7 +80,7 @@ namespace Orts.Models.Track
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
 
-        protected TrainPathPointBase(JunctionNodeBase junction, TrackModel trackModel): base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)))
+        protected TrainPathPointBase(JunctionNodeBase junction, TrackModel trackModel) : base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)))
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 

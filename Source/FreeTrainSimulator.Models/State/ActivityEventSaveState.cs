@@ -9,6 +9,6 @@ namespace Orts.Models.State
     {
         public int TimesTriggered { get; set; }
         public bool Enabled { get; set; }
-        public int  ActivationLevel { get; set; }
+        public int ActivationLevel { get; set; }
     }
 }

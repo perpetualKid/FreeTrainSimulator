@@ -13,7 +13,7 @@ using MemoryPack;
 
 using Orts.Models.State;
 
-namespace Orts.Models.Simplified
+namespace FreeTrainSimulator.Models.Simplified
 {
     public class SavePoint : ContentBase
     {
@@ -100,7 +100,7 @@ namespace Orts.Models.Simplified
         {
             try
             {
-                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(fileName, cancellationToken).ConfigureAwait(false);
+                GameSaveState saveState = await Common.Api.SaveStateBase.FromFile<GameSaveState>(fileName, cancellationToken).ConfigureAwait(false);
                 SavePoint result = new SavePoint()
                 {
                     File = fileName,

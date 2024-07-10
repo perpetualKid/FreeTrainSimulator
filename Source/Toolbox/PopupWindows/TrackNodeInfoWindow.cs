@@ -7,12 +7,11 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Models.Track;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Models.Track;
 
 namespace Orts.Toolbox.PopupWindows
 {

@@ -18,12 +18,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using FreeTrainSimulator.Models.Simplified;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Models.Simplified;
 
 using ORTS.TrackViewer.Editing;
 

@@ -6,7 +6,7 @@ using MemoryPack;
 namespace Orts.Models.State
 {
     [MemoryPackable]
-    public sealed partial class DieselEngineSaveState: SaveStateBase
+    public sealed partial class DieselEngineSaveState : SaveStateBase
     {
         public DieselEngineState DieselEngineState { get; set; }
         public float Rpm { get; set; }

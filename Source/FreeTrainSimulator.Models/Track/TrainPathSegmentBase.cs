@@ -1,8 +1,8 @@
 ﻿using FreeTrainSimulator.Common.Position;
 
-namespace Orts.Models.Track
+namespace FreeTrainSimulator.Models.Track
 {
-    public abstract class TrainPathSegmentBase: TrackSegmentBase
+    public abstract class TrainPathSegmentBase : TrackSegmentBase
     {
         protected TrainPathSegmentBase(TrackSegmentBase source) : base(source)
         {

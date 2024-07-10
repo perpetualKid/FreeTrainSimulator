@@ -5,7 +5,7 @@ using MemoryPack;
 namespace Orts.Models.State
 {
     [MemoryPackable]
-    public sealed partial class ActivityEvaluationState: SaveStateBase
+    public sealed partial class ActivityEvaluationState : SaveStateBase
     {
         public int CouplerBreaks { get; set; }
         public int TravellingTooFast { get; set; }

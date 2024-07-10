@@ -26,9 +26,9 @@ using System.Threading.Tasks.Dataflow;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Models.Simplified
+namespace FreeTrainSimulator.Models.Simplified
 {
-    public class Consist: ContentBase
+    public class Consist : ContentBase
     {
         public static Consist Missing { get; } = new Consist($"<{catalog.GetString("missing:")} {Unknown}>", Unknown);
 

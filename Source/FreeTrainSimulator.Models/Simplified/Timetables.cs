@@ -29,7 +29,7 @@ using FreeTrainSimulator.Common.Calc;
 
 using Orts.Formats.OR.Files;
 
-namespace Orts.Models.Simplified
+namespace FreeTrainSimulator.Models.Simplified
 {
     public class TimetableInfo : ContentBase
     {
@@ -98,7 +98,7 @@ namespace Orts.Models.Simplified
                         {
                             return new TimetableInfo(timeTableFile);
                         },
-                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = System.Environment.ProcessorCount, CancellationToken = token });
+                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
 
 
                     ActionBlock<TimetableInfo> actionBlock = new ActionBlock<TimetableInfo>
@@ -116,7 +116,7 @@ namespace Orts.Models.Simplified
                         });
 
                     inputBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
-                    foreach (string timeTableFile in extensions.SelectMany(extension => (Directory.EnumerateFiles(orActivitiesDirectory, extension))))
+                    foreach (string timeTableFile in extensions.SelectMany(extension => Directory.EnumerateFiles(orActivitiesDirectory, extension)))
                         await inputBlock.SendAsync(timeTableFile).ConfigureAwait(false);
 
                     inputBlock.Complete();
@@ -138,7 +138,7 @@ namespace Orts.Models.Simplified
 
         public override string ToString()
         {
-            return (fileDetails.Name);
+            return fileDetails.Name;
         }
 
         public string FullName => fileDetails.FullName;

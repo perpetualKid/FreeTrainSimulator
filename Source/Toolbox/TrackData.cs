@@ -3,13 +3,13 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Models.Simplified;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Models.Simplified;
-using Orts.Models.Track;
 
 namespace Orts.Toolbox
 {
@@ -23,7 +23,7 @@ namespace Orts.Toolbox
             TrainPaths = trainPaths;
         }
 
-        internal static async Task LoadTrackData(Game game, Models.Simplified.Route route, bool? useMetricUnits, CancellationToken cancellationToken)
+        internal static async Task LoadTrackData(Game game, FreeTrainSimulator.Models.Simplified.Route route, bool? useMetricUnits, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;

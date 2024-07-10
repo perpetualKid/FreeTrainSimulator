@@ -20,8 +20,8 @@ namespace Orts.Models.State
     }
 
     [MemoryPackable]
-    public sealed partial class WeatherConditionOvercastSaveState: WeatherConditionSaveState 
-    { 
+    public sealed partial class WeatherConditionOvercastSaveState : WeatherConditionSaveState
+    {
         public float Overcast { get; set; }
         public float Variation { get; set; }
         public float RateOfChange { get; set; }

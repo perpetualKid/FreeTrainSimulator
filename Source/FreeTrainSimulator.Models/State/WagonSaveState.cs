@@ -30,7 +30,7 @@ namespace Orts.Models.State
         public float MaxHandbrakeForce { get; set; }
         public double CurrentSteamHeatBoilerFuelCapacity { get; set; }
         public double CurrentCarSteamHeatBoilerWaterCapacity { get; set; }
-        public double CarInsideTemp {  get; set; }
+        public double CarInsideTemp { get; set; }
         public bool WheelBrakeSlideProtectionActive { get; set; }
         public double WheelBrakeSlideProtectionTimer { get; set; }
         public float DerailClimbDistance { get; set; }

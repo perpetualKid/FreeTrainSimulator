@@ -18,7 +18,7 @@ namespace Orts.Models.State
         public float AuxReservoirPressure { get; set; }
         public float EmergencyReservoirPressure { get; set; }
         public float ControlReservoirPressure { get; set; }
-        public float CylinderPressure {  get; set; }
+        public float CylinderPressure { get; set; }
         public float VacuumReservoirPressure { get; set; }
         public float FullServicePressure { get; set; }
         public ValveState TripleValveState { get; set; }
@@ -28,7 +28,7 @@ namespace Orts.Models.State
         public bool BleedOffValveOpen { get; set; }
         public ValveState HoldingValveState { get; set; }
         public float CylinderVolume { get; set; }
-        public bool BailOffOn {  get; set; }
-        public float ManualBraking {  get; set; }
+        public bool BailOffOn { get; set; }
+        public float ManualBraking { get; set; }
     }
 }

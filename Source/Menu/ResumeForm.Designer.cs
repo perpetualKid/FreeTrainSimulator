@@ -1,4 +1,7 @@
-﻿namespace Orts.Menu {
+﻿using FreeTrainSimulator.Models.Simplified;
+
+namespace Orts.Menu
+{
     partial class ResumeForm {
         /// <summary>
         /// Required designer variable.
@@ -107,7 +110,7 @@
             // 
             // saveBindingSource
             // 
-            saveBindingSource.DataSource = typeof(Models.Simplified.SavePoint);
+            saveBindingSource.DataSource = typeof(SavePoint);
             // 
             // buttonResume
             // 

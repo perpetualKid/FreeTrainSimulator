@@ -15,9 +15,9 @@ namespace Orts.Models.State
     {
         public readonly bool Usable;
         public readonly Collection<ContainerSaveState> Containers;
-        
+
         public ContainerStackItem(bool usable, int count)
-        { 
+        {
             Usable = usable;
             if (count > 0)
                 Containers = new Collection<ContainerSaveState>(EnumerableExtension.PresetCollection<ContainerSaveState>(count));

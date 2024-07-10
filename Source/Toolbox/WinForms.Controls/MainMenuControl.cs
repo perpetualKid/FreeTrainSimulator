@@ -9,8 +9,7 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Graphics;
-
-using Orts.Models.Simplified;
+using FreeTrainSimulator.Models.Simplified;
 
 namespace Orts.Toolbox.WinForms.Controls
 {
@@ -354,12 +353,12 @@ namespace Orts.Toolbox.WinForms.Controls
 
         #region Path Methods
 
-        internal void PopulatePaths(IEnumerable<Models.Simplified.Path> paths)
+        internal void PopulatePaths(IEnumerable<FreeTrainSimulator.Models.Simplified.Path> paths)
         {
             Invoke((MethodInvoker)delegate
             {
                 List<ToolStripMenuItem> menuItems = new List<ToolStripMenuItem>();
-                foreach (Models.Simplified.Path path in paths)
+                foreach (FreeTrainSimulator.Models.Simplified.Path path in paths)
                 {
                     ToolStripMenuItem pathItem = new ToolStripMenuItem(path.Name)
                     {
@@ -382,7 +381,7 @@ namespace Orts.Toolbox.WinForms.Controls
 
         private void LoadPathToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is Models.Simplified.Path path)
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is FreeTrainSimulator.Models.Simplified.Path path)
             {
                 if (menuItem.Checked)
                 {
@@ -412,7 +411,7 @@ namespace Orts.Toolbox.WinForms.Controls
             {
                 foreach (object dropdownItem in loadPathToolStripMenuItem.DropDownItems)
                 {
-                    if (dropdownItem is ToolStripMenuItem menuItem && (menuItem.Tag as Models.Simplified.Path)?.FilePath == pathFile)
+                    if (dropdownItem is ToolStripMenuItem menuItem && (menuItem.Tag as FreeTrainSimulator.Models.Simplified.Path)?.FilePath == pathFile)
                     {
                         UncheckOtherMenuItems(menuItem);
                         break;

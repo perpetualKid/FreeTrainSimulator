@@ -18,10 +18,10 @@ using System;
 using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Simplified;
 
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Models.Simplified;
 
 using ORTS.TrackViewer.Drawing;
 

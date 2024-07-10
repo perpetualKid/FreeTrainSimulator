@@ -8,7 +8,7 @@ using MemoryPack;
 namespace Orts.Models.State
 {
     [MemoryPackable]
-    public sealed partial class TransferInfoSaveState: SaveStateBase
+    public sealed partial class TransferInfoSaveState : SaveStateBase
     {
         public TransferType TransferType { get; set; }
         public TransferUnits TransferUnits { get; set; }

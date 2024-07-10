@@ -6,7 +6,7 @@ using MemoryPack;
 namespace Orts.Models.State
 {
     [MemoryPackable]
-    public sealed partial class PowerSupplySaveState: SaveStateBase
+    public sealed partial class PowerSupplySaveState : SaveStateBase
     {
         public CommandSwitchSaveState BatterySwitchState { get; set; }
         public CommandSwitchSaveState MasterKeyState { get; set; }

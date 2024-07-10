@@ -1,4 +1,7 @@
-﻿namespace Orts.Menu {
+﻿using FreeTrainSimulator.Models.Simplified;
+
+namespace Orts.Menu
+{
     partial class TestingForm {
         /// <summary>
         /// Required designer variable.
@@ -254,7 +257,7 @@
             // 
             // testBindingSource
             // 
-            this.testBindingSource.DataSource = typeof(Orts.Models.Simplified.TestActivity);
+            this.testBindingSource.DataSource = typeof(TestActivity);
             // 
             // buttonDetails
             // 

@@ -59,12 +59,12 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Simplified;
 
 using GetText;
 using GetText.WindowsForms;
 
 using Orts.Formats.Msts;
-using Orts.Models.Simplified;
 using Orts.Settings;
 
 using Path = System.IO.Path;

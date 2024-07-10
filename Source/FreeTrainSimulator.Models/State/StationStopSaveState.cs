@@ -17,15 +17,15 @@ namespace Orts.Models.State
         public int SubrouteIndex { get; set; }
         public int TrackCircuitSectionIndex { get; set; }
         public TrackDirection TrackDirection { get; set; }
-        public int ExitSignal {  get; set; }
+        public int ExitSignal { get; set; }
         public bool HoldSignal { get; set; }
         public bool NoWaitSignal { get; set; }
-        public bool NoClaimAllowed {  get; set; }
+        public bool NoClaimAllowed { get; set; }
         public bool CallOnAllowed { get; set; }
         public float StopOffset { get; set; }
         public int ArrivalTime { get; set; }
         public int DepartureTime { get; set; }
-        public double ActualArrival {  get; set; }
+        public double ActualArrival { get; set; }
         public double ActualDeparture { get; set; }
         public bool StationStopPassed { get; set; }
 #pragma warning disable CA2227 // Collection properties should be read only
@@ -36,7 +36,7 @@ namespace Orts.Models.State
         public int? ActualMinStopTime { get; set; }
         public float? KeepClearFront { get; set; }
         public float? KeepClearRear { get; set; }
-        public bool TerminalStop {  get; set; }
+        public bool TerminalStop { get; set; }
         public bool ForcePosition { get; set; }
         public bool CloseupSignal { get; set; }
         public bool Closeup { get; set; }

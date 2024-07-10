@@ -21,8 +21,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Info;
-
-using Orts.Models.Simplified;
+using FreeTrainSimulator.Models.Simplified;
 
 [assembly: CLSCompliant(false)]
 

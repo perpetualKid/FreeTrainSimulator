@@ -6,11 +6,11 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
-using Orts.Models.Track;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {

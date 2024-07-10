@@ -12,7 +12,7 @@ using Orts.Formats.Msts;
 namespace Orts.Models.State
 {
     [MemoryPackable]
-    public sealed partial class FreightAnimationsSetSaveState: SaveStateBase
+    public sealed partial class FreightAnimationsSetSaveState : SaveStateBase
     {
         public float FreightWeight { get; set; }
         public PickupType FreightType { get; set; }
@@ -23,7 +23,7 @@ namespace Orts.Models.State
     }
 
     [MemoryPackable]
-    public sealed partial class FreightAnimationSaveState: SaveStateBase
+    public sealed partial class FreightAnimationSaveState : SaveStateBase
     {
         public float IntakeOffset { get; set; }
         public float IntakeWidth { get; set; }
@@ -33,6 +33,6 @@ namespace Orts.Models.State
         public float AboveLoadingAreaLength { get; set; }
         public LoadPosition LoadPosition { get; set; }
         public bool Loaded { get; set; }
-        public ContainerSaveState Container {  get; set; }
+        public ContainerSaveState Container { get; set; }
     }
 }
