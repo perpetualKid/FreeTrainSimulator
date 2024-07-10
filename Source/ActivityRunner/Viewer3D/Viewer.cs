@@ -53,7 +53,6 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Models.State;
 using Orts.Settings;
-using Orts.Settings.Util;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
@@ -817,11 +816,11 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 //TODO 20210320 move path settings to RuntimeInfo
                 string textPath = Path.Combine(Settings.LoggingPath, "OpenRailsKeyboard.txt");
-                Settings.Input.DumpToText(textPath);
+                Settings.Input.UserCommands.DumpToText(textPath);
                 Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Keyboard map list saved to '{0}'.", textPath), 10);
 
                 string graphicPath = Path.Combine(Settings.LoggingPath, "OpenRailsKeyboard.png");
-                KeyboardMap.DumpToGraphic(Settings.Input, graphicPath);
+                KeyboardMap.DumpToGraphic(Settings.Input.UserCommands, graphicPath);
                 Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Keyboard map image saved to '{0}'.", graphicPath), 10);
             });
 

@@ -19,7 +19,6 @@ using Microsoft.Xna.Framework;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Settings;
-using Orts.Settings.Util;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.RollingStocks;

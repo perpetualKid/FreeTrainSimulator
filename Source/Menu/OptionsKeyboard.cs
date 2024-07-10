@@ -8,7 +8,6 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
 
 using Orts.Settings;
-using Orts.Settings.Util;
 
 namespace Orts.Menu
 {
@@ -112,7 +111,7 @@ namespace Orts.Menu
         private void ButtonExport_Click(object sender, EventArgs e)
         {
             string outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Open Rails Keyboard.txt");
-            settings.Input.DumpToText(outputPath);
+            settings.Input.UserCommands.DumpToText(outputPath);
             MessageBox.Show(catalog.GetString("A listing of all keyboard commands and keys has been placed here:\n\n") + outputPath, RuntimeInfo.ProductName);
         }
 

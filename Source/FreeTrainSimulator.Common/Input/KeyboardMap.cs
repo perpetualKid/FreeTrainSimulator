@@ -4,15 +4,12 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
-using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Common.Input;
-
 using Microsoft.Xna.Framework;
 
-namespace Orts.Settings.Util
+namespace FreeTrainSimulator.Common.Input
 {
     /// <summary>
-    /// Extension class for Input settings to dump keyboard mappings to screen or file
+    /// Extension class to dump keyboard mappings to screen or file
     /// </summary>
     public static class KeyboardMap
     {
@@ -74,7 +71,7 @@ namespace Orts.Settings.Util
 
                     string keyName = ScanCodeKeyUtils.GetScanCodeKeyName(keyScanCode);
                     // Only allow F-keys to show >1 character names. The rest we'll remove for now.
-                    if ((keyName.Length > 1) && !excludedFunctionKeys.Contains(keyScanCode))
+                    if (keyName.Length > 1 && !excludedFunctionKeys.Contains(keyScanCode))
                         keyName = "";
 
                     drawKey?.Invoke(new Rectangle(x, y, x2 - x + 1, 1), keyScanCode, keyName);
@@ -95,22 +92,22 @@ namespace Orts.Settings.Util
             return Color.Transparent;
         }
 
-        public static void DumpToText(this InputSettings input, string filePath)
+        public static void DumpToText(this EnumArray<UserCommandInput, UserCommand> userCommands, string filePath)
         {
-            ArgumentNullException.ThrowIfNull(input);
+            ArgumentNullException.ThrowIfNull(userCommands);
 
             using (StreamWriter writer = new StreamWriter(File.OpenWrite(filePath)))
             {
                 writer.WriteLine("{0,-40}{1,-40}{2}", "Command", "Key", "Unique Inputs");
                 writer.WriteLine(new string('=', 40 * 3));
                 foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
-                    writer.WriteLine("{0,-40}{1,-40}{2}", command.GetLocalizedDescription(), input.UserCommands[command], string.Join(", ", input.UserCommands[command].GetUniqueInputs().OrderBy(s => s).ToArray()));
+                    writer.WriteLine("{0,-40}{1,-40}{2}", command.GetLocalizedDescription(), userCommands[command], string.Join(", ", userCommands[command].GetUniqueInputs().OrderBy(s => s).ToArray()));
             }
         }
 
-        public static void DumpToGraphic(this InputSettings input, string filePath)
+        public static void DumpToGraphic(this EnumArray<UserCommandInput, UserCommand> userCommands, string filePath)
         {
-            ArgumentNullException.ThrowIfNull(input);
+            ArgumentNullException.ThrowIfNull(userCommands);
 
             int keyWidth = 50;
             int keyHeight = 4 * keyWidth;
@@ -122,7 +119,7 @@ namespace Orts.Settings.Util
             {
                 DrawKeyboardMap((keyBox, keyScanCode, keyName) =>
                 {
-                    IEnumerable<UserCommand> keyCommands = GetScanCodeCommands(keyScanCode, input.UserCommands);
+                    IEnumerable<UserCommand> keyCommands = GetScanCodeCommands(keyScanCode, userCommands);
                     string keyCommandNames = string.Join("\n", keyCommands.Select(c => string.Join(" ", c.GetLocalizedDescription().Split(' ').Skip(1))));
 
                     Color keyColor = GetScanCodeColor(keyCommands);
@@ -177,7 +174,7 @@ namespace Orts.Settings.Util
 
         public static IEnumerable<UserCommand> GetScanCodeCommands(int scanCode, EnumArray<UserCommandInput, UserCommand> commands)
         {
-            return EnumExtension.GetValues<UserCommand>().Where(uc => ((commands[uc] as UserCommandKeyInput)?.ScanCode == scanCode));
+            return EnumExtension.GetValues<UserCommand>().Where(uc => (commands[uc] as UserCommandKeyInput)?.ScanCode == scanCode);
         }
     }
 }

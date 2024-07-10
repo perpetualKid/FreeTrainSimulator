@@ -27,7 +27,6 @@ using FreeTrainSimulator.Common.Input;
 using Microsoft.Xna.Framework.Input;
 
 using Orts.Settings.Store;
-using Orts.Settings.Util;
 
 namespace Orts.Settings
 {
