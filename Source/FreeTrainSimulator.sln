@@ -54,7 +54,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Graphics
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox", "Toolbox\Toolbox.csproj", "{B574F717-4792-4748-BC26-BEF32E874489}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Models", "Orts.Models\Orts.Models.csproj", "{A17D2401-1B35-46E8-91FF-E1E917091D64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Models", "FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj", "{A17D2401-1B35-46E8-91FF-E1E917091D64}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulatorTester", "Contrib\SimulatorTester\SimulatorTester.csproj", "{FDF85DD6-8414-42B7-A510-20EF87035307}"
 EndProject

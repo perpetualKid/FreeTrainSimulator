@@ -18,10 +18,10 @@
     <PackageReference Include="System.Resources.Extensions" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
     <ProjectReference Include="..\FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj" />
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
-    <ProjectReference Include="..\Orts.Models\Orts.Models.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
   </ItemGroup>
   <ItemGroup>

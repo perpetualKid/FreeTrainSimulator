@@ -3,8 +3,8 @@
     <Description>Free Train Simulator Entity Models Library</Description>
     <AssemblyTitle>Free Train Simulator Entity Models Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
-    <AssemblyName>Orts.Models</AssemblyName>
-    <RootNamespace>Orts.Models</RootNamespace>
+    <AssemblyName>FreeTrainSimulator.Models</AssemblyName>
+    <RootNamespace>FreeTrainSimulator.Models</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
