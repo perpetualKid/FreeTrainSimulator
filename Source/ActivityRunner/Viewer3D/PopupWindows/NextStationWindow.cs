@@ -19,7 +19,7 @@ using Orts.Simulation.Track;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class NextStationWindow : WindowBase
+    internal sealed class NextStationWindow : WindowBase
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Label stationPlatform;

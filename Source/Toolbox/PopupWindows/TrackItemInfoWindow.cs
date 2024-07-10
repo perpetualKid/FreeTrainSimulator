@@ -14,7 +14,7 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class TrackItemInfoWindow : WindowBase
+    internal sealed class TrackItemInfoWindow : WindowBase
     {
         private ContentArea contentArea;
         private readonly UserCommandController<UserCommand> userCommandController;

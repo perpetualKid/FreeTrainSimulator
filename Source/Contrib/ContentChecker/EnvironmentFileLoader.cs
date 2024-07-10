@@ -22,7 +22,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .env files
     /// </summary>
-    internal class EnvironmentFileLoader : Loader
+    internal sealed class EnvironmentFileLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

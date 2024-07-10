@@ -35,7 +35,7 @@ namespace ORTS.TrackViewer.Drawing
     /// No editing, just plain single-color drawing.
     /// Paths will be drawn in slightly different colors to make it (a bit) easier to distinguish between them.
     /// </summary>
-    internal class DrawMultiplePaths
+    internal sealed class DrawMultiplePaths
     {
 
         /// <summary>For each path name, store the full file name of the .pat file</summary>

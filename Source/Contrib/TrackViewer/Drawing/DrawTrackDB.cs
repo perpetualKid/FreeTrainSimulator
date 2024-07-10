@@ -183,7 +183,7 @@ namespace ORTS.TrackViewer.Drawing
     /// 
     /// At last there are a number of utility methods like GetLength, UIDlocation.
     /// </summary>
-    internal class DrawTrackDB
+    internal sealed class DrawTrackDB
     {
         #region public members
         // Maximal and minimal tile numbers from the track database

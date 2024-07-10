@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .con files
     /// </summary>
-    internal class ConsistLoader : Loader
+    internal sealed class ConsistLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

@@ -9,7 +9,7 @@ using Orts.Simulation.Multiplayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
-    internal class RouteInformation : DetailInfoBase
+    internal sealed class RouteInformation : DetailInfoBase
     {
         private bool replaySet;
 

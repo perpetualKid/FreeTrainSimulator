@@ -33,7 +33,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Class to calculate and store the data needed for showing a chart with altitude, grade and other information for a certain path.
     /// </summary>
-    internal class PathChartData
+    internal sealed class PathChartData
     {
         #region public members
         /// <summary>List of individual points with path data along the path.</summary>
@@ -518,7 +518,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// For each requested tracknode find the track items we want to keep (stations, speed, mile markers, ...) and their location and store this information
     /// </summary>
-    internal class TrackItemManager
+    internal sealed class TrackItemManager
     {
         private readonly Dictionary<TrackNode, IEnumerable<ChartableTrackItem>> cachedItems;
 
@@ -566,7 +566,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <summary>
         /// Comparer to sort doubles in reverse order.
         /// </summary>
-        private class AlongTrackComparer : IComparer<ChartableTrackItem>
+        private sealed class AlongTrackComparer : IComparer<ChartableTrackItem>
         {
             int IComparer<ChartableTrackItem>.Compare(ChartableTrackItem a, ChartableTrackItem b)
             {

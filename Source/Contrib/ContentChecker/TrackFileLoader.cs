@@ -30,7 +30,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .trk files
     /// </summary>
-    internal class TrackFileLoader : Loader
+    internal sealed class TrackFileLoader : Loader
     {
         private RouteFile routeFile;
         private string routePath;

@@ -52,7 +52,7 @@ namespace Orts.ActivityRunner.Processes
             }
         }
 
-        private class PerformanceDetails : DetailInfoBase
+        private sealed class PerformanceDetails : DetailInfoBase
         {
             private readonly int processorCount = Environment.ProcessorCount;
 

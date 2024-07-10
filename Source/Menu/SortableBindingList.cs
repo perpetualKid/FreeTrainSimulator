@@ -64,7 +64,7 @@ namespace Orts.Menu
             sorted = false;
         }
 
-        private class PropertyComparer : Comparer<T>
+        private sealed class PropertyComparer : Comparer<T>
         {
             private readonly PropertyDescriptor prop;
             private readonly ListSortDirection direction;

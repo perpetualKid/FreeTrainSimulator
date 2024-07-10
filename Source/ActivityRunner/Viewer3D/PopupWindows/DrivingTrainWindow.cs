@@ -23,7 +23,7 @@ using Orts.Simulation.RollingStocks.SubSystems;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class DrivingTrainWindow : WindowBase
+    internal sealed class DrivingTrainWindow : WindowBase
     {
         private const int monoLeadColumnWidth = 40;
         private const int normalLeadColumnWidth = 64;

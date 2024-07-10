@@ -19,10 +19,10 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
-    internal class TrainInformationWindow : WindowBase
+    internal sealed class TrainInformationWindow : WindowBase
     {
 
-        private class TrainInformation : INameValueInformationProvider
+        private sealed class TrainInformation : INameValueInformationProvider
         {
             public InformationDictionary DetailInfo { get; } = new InformationDictionary();
 

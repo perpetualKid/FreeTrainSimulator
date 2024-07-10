@@ -32,7 +32,7 @@ using Orts.Simulation.Commanding;
 [assembly: CLSCompliant(false)]
 namespace Orts.SimulatorTester
 {
-    internal class Program
+    internal sealed class Program
     {
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
         private static void Main(string[] args)

@@ -35,7 +35,7 @@ namespace Tests.Orts.Shared
     /// AssertWarnings.ExpectWarning: the code that is given to this method will be executed and will be tested for indeed giving a warning.
     ///     use this as: AssertWarnings.ExpectWarning( () => {code_to_execute;});
     /// </summary>
-    internal class AssertWarnings : TraceListener
+    internal sealed class AssertWarnings : TraceListener
     {
         private static readonly AssertWarnings listener = new AssertWarnings();
 

@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     //passing Camera view/projection and location to Orts.Graphics primitives
-    internal class CameraViewProjectionHolder : IViewProjection
+    internal sealed class CameraViewProjectionHolder : IViewProjection
     {
         public ref readonly Matrix Projection => ref viewer.Camera.XnaProjection;
 

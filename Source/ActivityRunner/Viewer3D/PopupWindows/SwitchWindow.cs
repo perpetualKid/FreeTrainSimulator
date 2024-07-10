@@ -17,7 +17,7 @@ using Orts.Simulation.Track;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class SwitchWindow : WindowBase
+    internal sealed class SwitchWindow : WindowBase
     {
         private const int SwitchImageSize = 32;
 #pragma warning disable CA2213 // Disposable fields should be disposed

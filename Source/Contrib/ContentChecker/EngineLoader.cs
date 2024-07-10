@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .eng files
     /// </summary>
-    internal class EngineLoader : Loader
+    internal sealed class EngineLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

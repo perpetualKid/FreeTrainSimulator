@@ -7,7 +7,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials
 {
-    internal class LoadingScreenMaterial : LoadingMaterial
+    internal sealed class LoadingScreenMaterial : LoadingMaterial
     {
         public LoadingScreenMaterial(GameHost game)
             : base(game, LoadingTexturePath(game))

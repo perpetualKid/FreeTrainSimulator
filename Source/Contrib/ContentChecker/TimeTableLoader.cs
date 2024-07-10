@@ -26,7 +26,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .s files
     /// </summary>
-    internal class TimetableLoader : Loader
+    internal sealed class TimetableLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

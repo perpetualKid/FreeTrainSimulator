@@ -42,7 +42,7 @@ namespace ORTS.TrackViewer.Editing
     /// The amount of points that are drawn can be varied, such that it is easier to follow the path (especially in 
     /// complicated cases.
     /// </summary>
-    internal class DrawPath
+    internal sealed class DrawPath
     {
         /// <summary>Return the last drawn node</summary>
         public TrainpathNode CurrentMainNode { get; private set; }
@@ -451,7 +451,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// This is a datastructure where we can store information about the path that has actually been drawn.
     /// </summary>
-    internal class DrawnPathData
+    internal sealed class DrawnPathData
     {
         /// <summary>
         /// List of main-track nodes that were actually drawn and can therefore be selected for editing

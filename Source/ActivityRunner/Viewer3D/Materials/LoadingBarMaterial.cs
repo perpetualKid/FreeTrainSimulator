@@ -3,7 +3,7 @@ using Orts.ActivityRunner.Processes;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials
 {
-    internal class LoadingBarMaterial : LoadingMaterial
+    internal sealed class LoadingBarMaterial : LoadingMaterial
     {
         public LoadingBarMaterial(GameHost game)
             : base(game)

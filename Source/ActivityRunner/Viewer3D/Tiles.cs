@@ -255,7 +255,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         [DebuggerDisplay("Count = {List.Count}")]
-        private class TileList
+        private sealed class TileList
         {
             /// <summary>
             /// Stores tiles in load order, so eviction is predictable and reasonable.

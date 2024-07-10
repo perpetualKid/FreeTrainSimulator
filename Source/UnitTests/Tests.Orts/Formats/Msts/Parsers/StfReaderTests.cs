@@ -2589,7 +2589,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
     }
 
     #region Test utilities
-    internal class Create
+    internal static class Create
     {
         public static STFReader Reader(string source)
         {
@@ -2652,7 +2652,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
     }
 
     #region Common test utilities
-    internal class StfTokenReaderCommon
+    internal static class StfTokenReaderCommon
     {
         #region Value itself
         public static void OnNoValueWarnAndReturnDefault<T, nullableT>

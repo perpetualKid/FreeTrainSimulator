@@ -9,7 +9,7 @@ using Orts.ActivityRunner.Processes;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class GraphicInformation : DetailInfoBase
+    internal sealed class GraphicInformation : DetailInfoBase
     {
         private readonly Viewer viewer;
         internal static readonly string[] sumSeparator = new string[] { "Sum" };

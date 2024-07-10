@@ -539,7 +539,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         }
         #endregion
 
-        private class CommonDebugInfo : DetailInfoBase
+        private sealed class CommonDebugInfo : DetailInfoBase
         {
             private readonly SmoothedData frameRate = new SmoothedData();
             private readonly ContentArea contentArea;

@@ -21,7 +21,7 @@ using Orts.Toolbox.Settings;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class TrainPathWindow : WindowBase
+    internal sealed class TrainPathWindow : WindowBase
     {
         private enum TabSettings
         {
@@ -33,7 +33,7 @@ namespace Orts.Toolbox.PopupWindows
             Paths,
         }
 
-        private class TrainPathMetadataInformation : DetailInfoBase
+        private sealed class TrainPathMetadataInformation : DetailInfoBase
         {
             public void Update(TrainPathBase path)
             {

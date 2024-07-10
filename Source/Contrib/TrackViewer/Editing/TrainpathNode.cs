@@ -297,7 +297,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Class to describe junction nodes that are part of a train path.
     /// </summary>
-    internal class TrainpathJunctionNode : TrainpathNode
+    internal sealed class TrainpathJunctionNode : TrainpathNode
     {
         /// <summary>index of junction node (in the track data base</summary>
         public int JunctionIndex { get; set; }
@@ -626,7 +626,7 @@ namespace ORTS.TrackViewer.Editing
     /// like where exactly on the vector node it is. It also contains all relevant extra data related to the type it is 
     /// (e.g. for wait points)
     /// </summary>
-    internal class TrainpathVectorNode : TrainpathNode
+    internal sealed class TrainpathVectorNode : TrainpathNode
     {
         /// <summary>Angle that denotes the forward direction of track where this node is</summary>
         private float trackAngleForward;

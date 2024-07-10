@@ -24,7 +24,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .eng files
     /// </summary>
-    internal class SignalConfigLoader : Loader
+    internal sealed class SignalConfigLoader : Loader
     {
         private SignalConfigurationFile sigcfg;
 

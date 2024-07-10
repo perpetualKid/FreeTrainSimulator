@@ -7,7 +7,7 @@ using Orts.ActivityRunner.Viewer3D.Materials;
 
 namespace Orts.ActivityRunner.Viewer3D.Primitives
 {
-    internal class LoadingScreenPrimitive : LoadingPrimitive
+    internal sealed class LoadingScreenPrimitive : LoadingPrimitive
     {
         public LoadingScreenPrimitive(GameHost game)
             : base(game)

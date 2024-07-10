@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class LoggingWindow : WindowBase
+    internal sealed class LoggingWindow : WindowBase
     {
         private readonly string logText;
 

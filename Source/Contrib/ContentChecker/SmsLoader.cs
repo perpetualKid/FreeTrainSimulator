@@ -29,7 +29,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .sms files
     /// </summary>
-    internal class SmsLoader : Loader
+    internal sealed class SmsLoader : Loader
     {
         private SoundManagmentFile sms;
         /// <summary>

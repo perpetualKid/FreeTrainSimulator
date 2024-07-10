@@ -24,7 +24,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .s files
     /// </summary>
-    internal class TerrainLoader : Loader
+    internal sealed class TerrainLoader : Loader
     {
         private Terrain terrain;
 

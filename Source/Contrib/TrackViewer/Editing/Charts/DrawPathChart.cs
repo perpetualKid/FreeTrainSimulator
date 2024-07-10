@@ -35,7 +35,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Wrapper class for drawing charts of paths. This class make sure the data is updated, and also the actual window is shown or closed as needed
     /// </summary>
-    internal class DrawPathChart
+    internal sealed class DrawPathChart
     {
         /// <summary>Does the chart window have focus (actived) or not</summary>
         public bool IsActived => chartWindow.IsActivated;
@@ -590,7 +590,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// The chart that shows the height of the train path as function of the distance along the path.
     /// Also prints the grade in numbers and prints the station names
     /// </summary>
-    internal class HeightChart : SubChart
+    internal sealed class HeightChart : SubChart
     {
         private NiceScaling niceScale;
 
@@ -718,7 +718,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// The chart that shows the grade of the path (in percentages)
     /// Also prints the text of the x-location
     /// </summary>
-    internal class GradeChart : SubChart
+    internal sealed class GradeChart : SubChart
     {
         /// <summary>
         /// Constructor
@@ -801,7 +801,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Chart that shows the curvature of the track along the train path.
     /// </summary>
-    internal class CurvatureChart : SubChart
+    internal sealed class CurvatureChart : SubChart
     {
         /// <summary>
         /// Constructor
@@ -884,7 +884,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Draw the distances along the path
     /// </summary>
-    internal class DistanceChart : SubChart
+    internal sealed class DistanceChart : SubChart
     {
         /// <summary>
         /// Constructor
@@ -936,7 +936,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Draw the distances along the path
     /// </summary>
-    internal class SpeedlimitsChart : SubChart
+    internal sealed class SpeedlimitsChart : SubChart
     {
         /// <summary>
         /// Constructor
@@ -983,7 +983,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Draw the distances along the path
     /// </summary>
-    internal class MileMarkersChart : SubChart
+    internal sealed class MileMarkersChart : SubChart
     {
         /// <summary>
         /// Constructor

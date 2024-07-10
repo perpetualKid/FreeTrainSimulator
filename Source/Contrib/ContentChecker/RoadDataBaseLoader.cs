@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .pat files
     /// </summary>
-    internal class RoadDataBaseLoader : Loader
+    internal sealed class RoadDataBaseLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

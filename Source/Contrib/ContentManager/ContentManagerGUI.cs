@@ -358,7 +358,7 @@ namespace Orts.ContentManager
         }
     }
 
-    internal class SearchResult
+    internal sealed class SearchResult
     {
         public string Name { get; }
         public string[] Path { get; }

@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .w files
     /// </summary>
-    internal class WorldFileLoader : Loader
+    internal sealed class WorldFileLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

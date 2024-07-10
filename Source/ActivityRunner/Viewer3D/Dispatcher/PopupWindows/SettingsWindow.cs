@@ -12,7 +12,7 @@ using Orts.Settings;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
-    internal class SettingsWindow : WindowBase
+    internal sealed class SettingsWindow : WindowBase
     {
         private readonly DispatcherSettings settings;
 #pragma warning disable CA2213 // Disposable fields should be disposed

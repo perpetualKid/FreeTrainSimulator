@@ -15,7 +15,7 @@ using Orts.Simulation.Multiplayer;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class QuitWindow : WindowBase
+    internal sealed class QuitWindow : WindowBase
     {
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly UserSettings settings;

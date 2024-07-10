@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .wag files
     /// </summary>
-    internal class WagonLoader : Loader
+    internal sealed class WagonLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

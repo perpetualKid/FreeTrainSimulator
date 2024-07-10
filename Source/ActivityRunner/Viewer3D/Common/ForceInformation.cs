@@ -14,7 +14,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
-    internal class ForceInformation : DetailInfoBase
+    internal sealed class ForceInformation : DetailInfoBase
     {
         private enum ForceDetailColumn
         {

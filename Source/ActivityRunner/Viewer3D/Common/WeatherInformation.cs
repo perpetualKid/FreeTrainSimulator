@@ -7,7 +7,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
-    internal class WeatherInformation: DetailInfoBase
+    internal sealed class WeatherInformation : DetailInfoBase
     {
         private readonly Simulator simulator;
 

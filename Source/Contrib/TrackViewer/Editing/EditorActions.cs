@@ -177,7 +177,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add Start Node 
     /// </summary>
-    internal class EditorActionAddStart : EditorAction
+    internal sealed class EditorActionAddStart : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionAddStart() : base(TrackViewer.catalog.GetString("Place start point"), "activeTrack") { }
@@ -212,7 +212,7 @@ namespace ORTS.TrackViewer.Editing
     /// Subclass to implement the action: Remove Start point.
     /// This action removes start node and subsequently the complete path. (only path metadata will be unchanged!)
     /// </summary>
-    internal class EditorActionRemoveStart : EditorAction
+    internal sealed class EditorActionRemoveStart : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveStart() : base(TrackViewer.catalog.GetString("Remove start point"), "activeNode") { }
@@ -239,7 +239,7 @@ namespace ORTS.TrackViewer.Editing
     /// Subclass to implement the action: Remove Start point while keeping the tail
     /// This action removes start node and subsequently the complete path (apart from the tail). (only path metadata will be unchanged!)
     /// </summary>
-    internal class EditorActionRemoveStartKeepTail : EditorAction
+    internal sealed class EditorActionRemoveStartKeepTail : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveStartKeepTail() : base(TrackViewer.catalog.GetString("Clear path (keep tail)"), null) { }
@@ -263,7 +263,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Take the other direction  from the start point
     /// </summary>
-    internal class EditorActionOtherStartDirection : EditorAction
+    internal sealed class EditorActionOtherStartDirection : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionOtherStartDirection() : base(TrackViewer.catalog.GetString("Change start direction"), "activeNode") { }
@@ -292,7 +292,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add End Node 
     /// </summary>
-    internal class EditorActionAddEnd : EditorAction
+    internal sealed class EditorActionAddEnd : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionAddEnd() : base(TrackViewer.catalog.GetString("Place end point"), "activeTrack") { }
@@ -331,7 +331,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Remove end node
     /// </summary>
-    internal class EditorActionRemoveEnd : EditorAction
+    internal sealed class EditorActionRemoveEnd : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveEnd() : base(TrackViewer.catalog.GetString("Remove end point"), "activeNode") { }
@@ -357,7 +357,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add Reversal node
     /// </summary>
-    internal class EditorActionAddReverse : EditorAction
+    internal sealed class EditorActionAddReverse : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionAddReverse() : base(TrackViewer.catalog.GetString("Place reversal point"), "activeTrack") { }
@@ -394,7 +394,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Remove reversal node
     /// </summary>
-    internal class EditorActionRemoveReverse : EditorAction
+    internal sealed class EditorActionRemoveReverse : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveReverse() : base(TrackViewer.catalog.GetString("Remove reversal point"), "activeNode") { }
@@ -448,7 +448,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add Wait point
     /// </summary>
-    internal class EditorActionAddWait : EditorActionWait
+    internal sealed class EditorActionAddWait : EditorActionWait
     {
         /// <summary>Constructor</summary>
         public EditorActionAddWait() : base(TrackViewer.catalog.GetString("Place wait point"), "activeTrack") { }
@@ -476,7 +476,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Edit wait point
     /// </summary>
-    internal class EditorActionEditWait : EditorActionWait
+    internal sealed class EditorActionEditWait : EditorActionWait
     {
         /// <summary>Constructor</summary>
         public EditorActionEditWait() : base(TrackViewer.catalog.GetString("Edit wait point"), "activeNode") { }
@@ -500,7 +500,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add Remove wait
     /// </summary>
-    internal class EditorActionRemoveWait : EditorAction
+    internal sealed class EditorActionRemoveWait : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveWait() : base(TrackViewer.catalog.GetString("Remove wait point"), "activeNode") { }
@@ -701,7 +701,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Take the other exit at a junction
     /// </summary>
-    internal class EditorActionTakeOtherExit : EditorActionOtherExit
+    internal sealed class EditorActionTakeOtherExit : EditorActionOtherExit
     {
         private int nodesRemoved;
 
@@ -750,7 +750,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add a passing/siding path
     /// </summary>
-    internal class EditorActionAddPassingPath : EditorActionOtherExit
+    internal sealed class EditorActionAddPassingPath : EditorActionOtherExit
     {
         /// <summary>Constructor</summary>
         public EditorActionAddPassingPath() : base(TrackViewer.catalog.GetString("Add passing path"), "activeNode") { }
@@ -790,7 +790,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Start a passing path here (but only the first part, end in broken node, reconnect later)
     /// </summary>
-    internal class EditorActionStartPassingPath : EditorActionOtherExit
+    internal sealed class EditorActionStartPassingPath : EditorActionOtherExit
     {
         /// <summary>Constructor</summary>
         public EditorActionStartPassingPath() : base(TrackViewer.catalog.GetString("Start passing path"), "activeNode") { }
@@ -855,7 +855,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Remove as passing path
     /// </summary>
-    internal class EditorActionRemovePassingPath : EditorAction
+    internal sealed class EditorActionRemovePassingPath : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemovePassingPath() : base(TrackViewer.catalog.GetString("Remove passing path"), "activeNode") { }
@@ -895,7 +895,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Remove the notion of being broken if it is not really broken
     /// </summary>
-    internal class EditorActionFixInvalidNode : EditorAction
+    internal sealed class EditorActionFixInvalidNode : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionFixInvalidNode() : base(TrackViewer.catalog.GetString("Fix invalid point"), "activeBroken") { }
@@ -919,7 +919,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Remove the rest of the path
     /// </summary>
-    internal class EditorActionRemoveRestOfPath : EditorAction
+    internal sealed class EditorActionRemoveRestOfPath : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveRestOfPath() : base(TrackViewer.catalog.GetString("Delete rest of path"), "activeNode") { }
@@ -948,7 +948,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Cut the path here and store the tail for later use
     /// </summary>
-    internal class EditorActionCutAndStoreTail : EditorAction
+    internal sealed class EditorActionCutAndStoreTail : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionCutAndStoreTail() : base(TrackViewer.catalog.GetString("Cut path here and store its tail"), "activeNode") { }
@@ -992,7 +992,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Auto-fix broken nodes
     /// </summary>
-    internal class EditorActionAutoFixBrokenNodes : EditorAction
+    internal sealed class EditorActionAutoFixBrokenNodes : EditorAction
     {
         /// <summary>The node from which we will start the autofix procedure</summary>
         private TrainpathNode autoFixStartNode;
@@ -1109,7 +1109,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Auto-connect to the stored tail
     /// </summary>
-    internal class EditorActionAutoConnectTail : EditorAction
+    internal sealed class EditorActionAutoConnectTail : EditorAction
     {
         /// <summary>Tooling to do auto connect</summary>
         private readonly AutoConnectTools autoConnectTools;
@@ -1169,7 +1169,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Auto-connect the started passing path (currently only a stub) to here.
     /// </summary>
-    internal class EditorActionReconnectPassingPath : EditorAction
+    internal sealed class EditorActionReconnectPassingPath : EditorAction
     {
         private TrainpathNode sidingStartNode;
 
@@ -1271,7 +1271,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: In a passing path, take the other exit reconnecting to the same siding-end
     /// </summary>
-    internal class EditorActionTakeOtherExitPassingPath : EditorAction
+    internal sealed class EditorActionTakeOtherExitPassingPath : EditorAction
     {
         private TrainpathNode sidingEndNode;
 
@@ -1630,7 +1630,7 @@ namespace ORTS.TrackViewer.Editing
     /// Subclass to implement the actions related to mouse dragging.
     /// This class is about dragging 
     /// </summary>
-    internal class EditorActionMouseDragAutoConnect : EditorActionMouseDrag
+    internal sealed class EditorActionMouseDragAutoConnect : EditorActionMouseDrag
     {
         /// <summary>Tooling to do auto connect</summary>
         private ContinuousAutoConnecting autoConnectForward;
@@ -1890,7 +1890,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the 'action': add Missing ambiguity nodes. This is not an interactive action, but still and edit to the path.
     /// </summary>
-    internal class EditorActionNonInteractive : EditorAction
+    internal sealed class EditorActionNonInteractive : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionNonInteractive() : base(TrackViewer.catalog.GetString(""), "") { }
@@ -1946,7 +1946,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Draw until the currently selected node
     /// </summary>
-    internal class EditorActionDrawUntilHere : EditorAction
+    internal sealed class EditorActionDrawUntilHere : EditorAction
     {
         private readonly AfterEditDelegate callback;
 
@@ -1977,7 +1977,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Find the next broken point and draw till it.
     /// </summary>
-    internal class EditorActionDrawToNextBrokenPoint : EditorAction
+    internal sealed class EditorActionDrawToNextBrokenPoint : EditorAction
     {
         private readonly AfterEditDelegate callback;
 

@@ -26,7 +26,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .s files
     /// </summary>
-    internal class WorldSoundLoader : Loader
+    internal sealed class WorldSoundLoader : Loader
     {
         /// <summary> The track database needed for loading a world-sound file </summary>
         private TrackDB trackDB;

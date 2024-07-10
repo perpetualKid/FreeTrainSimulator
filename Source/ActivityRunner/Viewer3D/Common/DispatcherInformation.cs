@@ -13,7 +13,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
-    internal class DispatcherInformation : DetailInfoBase
+    internal sealed class DispatcherInformation : DetailInfoBase
     {
         private enum DispatcherDetailColumn
         {

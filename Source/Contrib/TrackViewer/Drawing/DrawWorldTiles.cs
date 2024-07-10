@@ -35,7 +35,7 @@ namespace ORTS.TrackViewer.Drawing
     /// Class to draw the world tiles that are present in the route's definition. Tiles themselves are only squares.
     /// The tiles that are present will be determined from the file names in the 'world' subdirectory of the route
     /// </summary>
-    internal class DrawWorldTiles
+    internal sealed class DrawWorldTiles
     {
         // for each index=TileX, a list containing start and stop tileZ's
         // in many cases each list will contain only two elements. But in the case of holes, it might be more.

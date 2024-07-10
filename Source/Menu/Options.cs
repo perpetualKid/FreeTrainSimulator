@@ -683,7 +683,7 @@ namespace Orts.Menu
         /// <summary>
         /// Allows multiple controls to change a single help icon with their hover events.
         /// </summary>
-        private class HelpIconHover
+        private sealed class HelpIconHover
         {
             private readonly PictureBox icon;
 

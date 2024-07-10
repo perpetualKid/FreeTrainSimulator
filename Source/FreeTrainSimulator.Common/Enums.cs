@@ -1415,7 +1415,8 @@ namespace FreeTrainSimulator.Common
 
     public enum ControllerType
     {
-        NotchController = 1,
+        None,
+        NotchController,
         BrakeController
     }
 

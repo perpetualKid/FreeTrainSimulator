@@ -12,7 +12,7 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
-    internal class BrakeInformation : DetailInfoBase
+    internal sealed class BrakeInformation : DetailInfoBase
     {
         private enum BrakeDetailColumn
         {

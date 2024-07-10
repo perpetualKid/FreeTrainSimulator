@@ -15,7 +15,7 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class TrackNodeInfoWindow : WindowBase
+    internal sealed class TrackNodeInfoWindow : WindowBase
     {
         private enum SearchType
         {

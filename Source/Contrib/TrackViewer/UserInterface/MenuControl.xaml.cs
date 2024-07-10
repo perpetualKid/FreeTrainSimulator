@@ -1077,7 +1077,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// <summary>
         /// For preference that can be added from other places, we need to store both a callback and a name
         /// </summary>
-        private class PreferenceData
+        private sealed class PreferenceData
         {
             /// <summary>The callback for a preference</summary>
             public StringPreferenceDelegate Callback;
@@ -1204,7 +1204,7 @@ namespace ORTS.TrackViewer.UserInterface
     /// <summary>
     /// Dictionary that supports saving to stored user settings.
     /// </summary>
-    internal class SaveableSettingsDictionary : Dictionary<string,string>
+    internal sealed class SaveableSettingsDictionary : Dictionary<string,string>
     {
         /// <summary>
         /// Constructor. Also loads the values from stored settings.

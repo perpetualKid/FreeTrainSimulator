@@ -17,7 +17,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class EndOfTrainDeviceWindow : WindowBase
+    internal sealed class EndOfTrainDeviceWindow : WindowBase
     {
         private readonly List<string> availableEotContent = new List<string>();
         private readonly List<Label> eotLabels = new List<Label>();

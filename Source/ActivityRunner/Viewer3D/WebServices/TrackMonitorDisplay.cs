@@ -762,7 +762,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// method can stack items that conflict with each other.
         /// </summary>
         [AttributeUsage(AttributeTargets.Class)]
-        private class ColumnAttribute : Attribute
+        private sealed class ColumnAttribute : Attribute
         {
             public TrackItemColumn Column { get; }
 
@@ -784,7 +784,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         }
 
         [Column(TrackItemColumn.Track)]
-        private class TrackAuthorityItem : TrackItem
+        private sealed class TrackAuthorityItem : TrackItem
         {
             private readonly Rectangle Sprite;
             private readonly string Symbol;
@@ -825,7 +825,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         }
 
         [Column(TrackItemColumn.Signal)]
-        private class TrackSignalForwardItem : TrackItem
+        private sealed class TrackSignalForwardItem : TrackItem
         {
             private readonly bool Metric;
 
@@ -848,7 +848,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         }
 
         [Column(TrackItemColumn.Limit)]
-        private class TrackSpeedpostItem : TrackItem
+        private sealed class TrackSpeedpostItem : TrackItem
         {
             private readonly bool Metric;
 
@@ -882,7 +882,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         }
 
         [Column(TrackItemColumn.Track)]
-        private class TrackStationItem : TrackItem
+        private sealed class TrackStationItem : TrackItem
         {
             public TrackStationItem(TrainPathItem item) : base(item) { }
 
@@ -899,7 +899,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         }
 
         [Column(TrackItemColumn.Track)]
-        private class TrackWaitingPointItem : TrackItem
+        private sealed class TrackWaitingPointItem : TrackItem
         {
             public TrackWaitingPointItem(TrainPathItem item) : base(item) { }
 
@@ -917,7 +917,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         }
 
         [Column(TrackItemColumn.First)]
-        private class TrackMilePostItem : TrackItem
+        private sealed class TrackMilePostItem : TrackItem
         {
             public TrackMilePostItem(TrainPathItem item) : base(item) { }
 
@@ -933,7 +933,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         }
 
         [Column(TrackItemColumn.Track)]
-        private class TrackSwitchItem : TrackItem
+        private sealed class TrackSwitchItem : TrackItem
         {
             public TrackSwitchItem(TrainPathItem item) : base(item) { }
 
@@ -950,7 +950,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         }
 
         [Column(TrackItemColumn.Track)]
-        private class TrackReversalItem : TrackItem
+        private sealed class TrackReversalItem : TrackItem
         {
             public TrackReversalItem(TrainPathItem item) : base(item) { }
 

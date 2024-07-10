@@ -68,7 +68,7 @@ namespace ORTS.TrackViewer.Drawing
     /// Main class to draw the terrain as from far above (so in an effective 2D fashion)
     /// Drawing lines around the patches (each tile is divided in a number, typically 16x16, patches) is also supported
     /// </summary>
-    internal class DrawTerrain : IDisposable
+    internal sealed class DrawTerrain : IDisposable
     {
         #region Properties
         /// <summary>The information to be used in the statusbar</summary>
@@ -498,7 +498,7 @@ namespace ORTS.TrackViewer.Drawing
 
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
@@ -526,7 +526,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// This class translates a 3D WorldLocation (tile-based), into a 2D location (without tile reference) for the flat terrain (in X-Z plane) 
     /// </summary>
-    internal class Translate3Dto2D
+    internal sealed class Translate3Dto2D
     {
         private readonly Tile referenceTile;
 
@@ -603,7 +603,7 @@ namespace ORTS.TrackViewer.Drawing
     /// The manager that loads and stores the various terrain textures. Since normally the textures are shared over multiple tiles,
     /// we want to store them only once.
     /// </summary>
-    internal class TerrainTextureManager : Dictionary<string, ReducableTexture2D>, IDisposable
+    internal sealed class TerrainTextureManager : Dictionary<string, ReducableTexture2D>, IDisposable
     {
         public int CurrentScaleFactor { get; private set; } = 1;
 
@@ -724,7 +724,7 @@ namespace ORTS.TrackViewer.Drawing
     /// This will not actually do the drawing itself, because it is more efficient to combine all vertices of all tiles that use
     /// the same texture (only one draw call is then needed).
     /// </summary>
-    internal class TerrainTile2D
+    internal sealed class TerrainTile2D
     {
         /// <summary>The size of the tile (1x1, 2x2, 8x8, 16x16</summary>
         public int TileSize { get; private set; }
@@ -898,7 +898,7 @@ namespace ORTS.TrackViewer.Drawing
     /// When asked for a reduced version of a texture will be used, in place of the original texture.
     /// Multiple reductions are possible
     /// </summary>
-    internal class ReducableTexture2D : IDisposable
+    internal sealed class ReducableTexture2D : IDisposable
     {
         /// <summary>The actual texture that this is a wrapper for</summary>
         public Texture2D Texture { get; private set; }

@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .cvf files
     /// </summary>
-    internal class CabviewLoader : Loader
+    internal sealed class CabviewLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

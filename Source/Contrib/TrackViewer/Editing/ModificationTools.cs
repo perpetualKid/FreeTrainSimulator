@@ -25,7 +25,7 @@ namespace ORTS.TrackViewer.Editing
     /// These tools work on the path itself and therefore have no state.
     /// Most routines take a reference to an int that is updated with the net amount of nodes added.
     /// </summary>
-    internal class ModificationTools
+    internal sealed class ModificationTools
     {
         #region node counting
         /// <summary>Keeps cound of the net amount of nodes that have been added</summary>

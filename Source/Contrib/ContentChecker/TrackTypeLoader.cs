@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for ttype.dat files
     /// </summary>
-    internal class TrackTypeLoader : Loader
+    internal sealed class TrackTypeLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

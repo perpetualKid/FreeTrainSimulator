@@ -58,7 +58,7 @@ namespace ORTS.TrackViewer
     /// <summary>
     /// This is the main type for your game
     /// </summary>
-    internal class TrackViewer : Game
+    internal sealed class TrackViewer : Game
     {
         #region Public members
         /// <summary>String showing the date of the program</summary>

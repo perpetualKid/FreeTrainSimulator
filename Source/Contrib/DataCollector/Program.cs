@@ -31,7 +31,7 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.DataCollector
 {
-    internal class Program
+    internal sealed class Program
     {
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
         private static void Main(string[] args)

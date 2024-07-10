@@ -16,9 +16,9 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class NotificationOverlay : OverlayBase
+    internal sealed class NotificationOverlay : OverlayBase
     {
-        private class MessageSortComparer : IComparer<(string key, string message, double startTime, double endTime)>
+        private sealed class MessageSortComparer : IComparer<(string key, string message, double startTime, double endTime)>
         {
             public int Compare((string key, string message, double startTime, double endTime) x, (string key, string message, double startTime, double endTime) y)
             {

@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .act files
     /// </summary>
-    internal class ActivityLoader : Loader
+    internal sealed class ActivityLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

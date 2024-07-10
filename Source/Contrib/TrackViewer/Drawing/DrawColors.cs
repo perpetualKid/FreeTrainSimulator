@@ -311,7 +311,7 @@ namespace ORTS.TrackViewer.Drawing
     #endregion
 
     #region ColorGroup classes
-    internal class ColorsGroupBasic {
+    internal sealed class ColorsGroupBasic {
         public ColorWithHighlights Junction { get; set; }
         public ColorWithHighlights EndNode { get; set; }
         public ColorWithHighlights Crossing { get; set; }
@@ -326,13 +326,13 @@ namespace ORTS.TrackViewer.Drawing
         public ColorWithHighlights CandidateNode { get; set; }
     }
 
-    internal class ColorsGroupBackground
+    internal sealed class ColorsGroupBackground
     {
         public ColorWithHighlights Tile { get; set; }
         public ColorWithHighlights ClearWindow { get; set; }
     }
 
-    internal class ColorsGroupTrack
+    internal sealed class ColorsGroupTrack
     {
         public ColorWithHighlights BrokenPath { get; set; }
         public ColorWithHighlights BrokenNode { get; set; }
@@ -347,7 +347,7 @@ namespace ORTS.TrackViewer.Drawing
     /// Exists to facilitate drawing the same thing multiple times but in different colors, like 
     /// highlight colors, path colors, ...
     /// </summary>
-    internal class ColorScheme
+    internal sealed class ColorScheme
     {
         public ColorsGroupBasic TrackItemColors {get; set;}
         public ColorsGroupBackground BackgroundColors { get; set; }
@@ -424,7 +424,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Class to store not only a color but also its highlighted variants
     /// </summary>
-    internal class ColorWithHighlights
+    internal sealed class ColorWithHighlights
     {
         /// <summary>
         /// The current normal, highlight and hotlight colors.

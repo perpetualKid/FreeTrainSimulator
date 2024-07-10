@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .s files
     /// </summary>
-    internal class ShapeLoader : Loader
+    internal sealed class ShapeLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

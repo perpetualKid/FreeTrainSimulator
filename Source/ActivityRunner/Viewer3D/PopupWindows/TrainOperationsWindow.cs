@@ -19,7 +19,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class TrainOperationsWindow : WindowBase
+    internal sealed class TrainOperationsWindow : WindowBase
     {
         private Texture2D couplerTexture;
         private Texture2D carTexture;

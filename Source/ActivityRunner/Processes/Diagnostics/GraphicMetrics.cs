@@ -24,7 +24,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Orts.ActivityRunner.Processes
 {
-    internal class GraphicMetrics : DetailInfoBase
+    internal sealed class GraphicMetrics : DetailInfoBase
     {
         public GraphicsMetrics CurrentMetrics;
 

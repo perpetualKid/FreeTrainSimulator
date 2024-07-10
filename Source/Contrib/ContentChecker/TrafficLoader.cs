@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .trf files
     /// </summary>
-    internal class TrafficLoader : Loader
+    internal sealed class TrafficLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

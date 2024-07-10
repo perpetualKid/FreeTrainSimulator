@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .sd files
     /// </summary>
-    internal class ShapeDescriptorLoader : Loader
+    internal sealed class ShapeDescriptorLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

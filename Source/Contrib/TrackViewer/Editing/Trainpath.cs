@@ -42,7 +42,7 @@ namespace ORTS.TrackViewer.Editing
     ///     
     /// The class contains history functions like Undo and redo.
     /// </summary>
-    internal class Trainpath
+    internal sealed class Trainpath
     {
         #region public members
         /// <summary>Link to the first node of the path (starting point)</summary>
@@ -763,7 +763,7 @@ namespace ORTS.TrackViewer.Editing
         #endregion
 
         #region class TrainPathData
-        private class TrainPathData
+        private sealed class TrainPathData
         {
             #region public fields
             public TrainpathNode firstNode;

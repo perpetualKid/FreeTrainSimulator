@@ -83,7 +83,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// CloseToMouse item specifically for junctions and endnode. But will take any track point
     /// </summary>
-    internal class CloseToMouseJunctionOrEnd:CloseToMousePoint
+    internal sealed class CloseToMouseJunctionOrEnd :CloseToMousePoint
     {
         /// <summary>Tracknode of the closest junction or end node</summary>
         public TrackNode JunctionOrEndNode { get; private set; }
@@ -145,10 +145,10 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// CloseToMouse track item. Stores item as well as its type (name)
     /// </summary>
-    internal class CloseToMouseItem:CloseToMousePoint
+    internal sealed class CloseToMouseItem :CloseToMousePoint
     {
         /// <summary>Link to the item that is closest to the mouse</summary>
-        public DrawableTrackItem DrawableTrackItem { get; protected set; }
+        public DrawableTrackItem DrawableTrackItem { get; private set; }
 
         /// <summary>The index of the original item in whatever table it was defined</summary>
         public override int Index => DrawableTrackItem.Index;
@@ -214,7 +214,7 @@ namespace ORTS.TrackViewer.Drawing
     /// We initially store the distance from mouse to the startpoint of the track section. Because that is fast.
     /// Later we then calculate the real distance for a number of sections
     /// </summary>
-    internal class CloseToMouseTrack : CloseToMouse
+    internal sealed class CloseToMouseTrack : CloseToMouse
     {
         //Note: 'Last' is the one with shortest distance
         /// <summary>Tracknode that is closest</summary>
@@ -255,7 +255,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>
         /// Comparer to sort doubles in reverse order.
         /// </summary>
-        private class ReverseDoubleComparer : IComparer<double>
+        private sealed class ReverseDoubleComparer : IComparer<double>
         {
             int IComparer<double>.Compare(double a, double b)
             {

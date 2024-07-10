@@ -53,7 +53,7 @@ namespace ORTS.TrackViewer.Editing
     /// 
     /// Some terminology: a disambiguity node is a node that only exist to uniquely identify which of two alternative paths
     /// needs to be taken between two junctions.
-    internal class PathEditor
+    internal sealed class PathEditor
     {
         #region Public members
         /// <summary>The current path that we are editing</summary>

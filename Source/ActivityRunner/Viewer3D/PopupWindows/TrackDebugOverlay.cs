@@ -18,7 +18,7 @@ using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class TrackDebugOverlay : OverlayBase
+    internal sealed class TrackDebugOverlay : OverlayBase
     {
         private const int SegmentLength = 10;
         private const float Tolerance = 0.1f;

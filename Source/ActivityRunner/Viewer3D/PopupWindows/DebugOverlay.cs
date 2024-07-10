@@ -23,7 +23,7 @@ using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class DebugOverlay : OverlayBase
+    internal sealed class DebugOverlay : OverlayBase
     {
         private enum TabSettings
         {

@@ -12,7 +12,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class PauseOverlay : OverlayBase
+    internal sealed class PauseOverlay : OverlayBase
     {
 
         private const double AnimationLength = 0.6;

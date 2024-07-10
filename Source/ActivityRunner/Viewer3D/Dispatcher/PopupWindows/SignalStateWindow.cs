@@ -17,7 +17,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
     public class SignalStateWindow : WindowBase
     {
-        private class SignalStateInformation : INameValueInformationProvider
+        private sealed class SignalStateInformation : INameValueInformationProvider
         {
             public InformationDictionary DetailInfo { get; } = new InformationDictionary();
 

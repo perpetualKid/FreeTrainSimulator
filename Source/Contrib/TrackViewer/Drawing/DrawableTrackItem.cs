@@ -88,7 +88,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable signal
     /// </summary>
-    internal class DrawableSignalItem : DrawableTrackItem
+    internal sealed class DrawableSignalItem : DrawableTrackItem
     {
         /// <summary>direction (forward or backward the signal relative to the direction of the track</summary>
         private readonly TrackDirection direction;
@@ -184,7 +184,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable level crossing
     /// </summary>
-    internal class DrawableLevelCrItem : DrawableTrackItem
+    internal sealed class DrawableLevelCrItem : DrawableTrackItem
     {
         /// <summary>
         /// Default constructor
@@ -218,7 +218,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable level crossing on a road
     /// </summary>
-    internal class DrawableRoadLevelCrItem : DrawableTrackItem
+    internal sealed class DrawableRoadLevelCrItem : DrawableTrackItem
     {
         /// <summary>
         /// Default constructor
@@ -252,7 +252,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable siding item
     /// </summary>
-    internal class DrawableSidingItem : DrawableTrackItem
+    internal sealed class DrawableSidingItem : DrawableTrackItem
     {
         private readonly string itemName;
 
@@ -296,7 +296,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable platform item
     /// </summary>
-    internal class DrawablePlatformItem : DrawableTrackItem
+    internal sealed class DrawablePlatformItem : DrawableTrackItem
     {
         private readonly string itemName;
         private readonly string stationName;
@@ -352,7 +352,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable pickup item
     /// </summary>
-    internal class DrawablePickupItem : DrawableTrackItem
+    internal sealed class DrawablePickupItem : DrawableTrackItem
     {
         /// <summary>
         /// Default constructor
@@ -388,7 +388,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable hazard item
     /// </summary>
-    internal class DrawableHazardItem : DrawableTrackItem
+    internal sealed class DrawableHazardItem : DrawableTrackItem
     {
         /// <summary>
         /// Default constructor
@@ -424,7 +424,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable car spawner
     /// </summary>
-    internal class DrawableCarSpawnerItem : DrawableTrackItem
+    internal sealed class DrawableCarSpawnerItem : DrawableTrackItem
     {
         /// <summary>
         /// Default constructor
@@ -460,7 +460,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable empty item (so not much to draw then)
     /// </summary>
-    internal class DrawableEmptyItem : DrawableTrackItem
+    internal sealed class DrawableEmptyItem : DrawableTrackItem
     {
         /// <summary>
         /// Default constructor
@@ -490,7 +490,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable cross-over
     /// </summary>
-    internal class DrawableCrossoverItem : DrawableTrackItem
+    internal sealed class DrawableCrossoverItem : DrawableTrackItem
     {
         /// <summary>
         /// Default constructor
@@ -524,7 +524,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable speedpost (or milepost)
     /// </summary>
-    internal class DrawableSpeedPostItem : DrawableTrackItem
+    internal sealed class DrawableSpeedPostItem : DrawableTrackItem
     {
         private readonly SpeedPostItem originalItem;
 
@@ -573,7 +573,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Represents a drawable sound region
     /// </summary>
-    internal class DrawableSoundRegionItem : DrawableTrackItem
+    internal sealed class DrawableSoundRegionItem : DrawableTrackItem
     {
         /// <summary>
         /// Default constructor

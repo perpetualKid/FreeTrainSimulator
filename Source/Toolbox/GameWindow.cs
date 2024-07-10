@@ -547,7 +547,7 @@ namespace Orts.Toolbox
             graphicsDebugInfo.Update(gameTime);
         }
 
-        private class CommonDebugInfo : DetailInfoBase
+        private sealed class CommonDebugInfo : DetailInfoBase
         {
             private readonly SmoothedData frameRate = new SmoothedData();
             private ContentArea contentArea;
@@ -579,7 +579,7 @@ namespace Orts.Toolbox
             }
         }
 
-        private class GraphicsDebugInfo : DetailInfoBase
+        private sealed class GraphicsDebugInfo : DetailInfoBase
         {
             public override void Update(GameTime gameTime)
             {

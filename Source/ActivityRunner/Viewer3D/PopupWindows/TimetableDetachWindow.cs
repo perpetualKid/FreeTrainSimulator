@@ -15,7 +15,7 @@ using Orts.Simulation.Timetables;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class TimetableDetachWindow : WindowBase
+    internal sealed class TimetableDetachWindow : WindowBase
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Label remainingTrain;

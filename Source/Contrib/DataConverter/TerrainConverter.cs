@@ -30,7 +30,7 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.DataConverter
 {
-    internal class TerrainConverter : IDataConverter
+    internal sealed class TerrainConverter : IDataConverter
     {
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
         public TerrainConverter()
@@ -251,7 +251,7 @@ namespace Orts.DataConverter
         }
     }
 
-    internal class TerrainConverterPatch
+    internal sealed class TerrainConverterPatch
     {
         private readonly Terrain terrain;
         private readonly TerrainAltitudeFile YFile;

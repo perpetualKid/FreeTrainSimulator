@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
-    internal class HelpWindow: WindowBase
+    internal sealed class HelpWindow : WindowBase
     {
         public HelpWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
             base(owner ?? throw new ArgumentNullException(nameof(owner)), (catalog ??= CatalogManager.Catalog).GetString("Help"), relativeLocation, new Point(360, 125), catalog)

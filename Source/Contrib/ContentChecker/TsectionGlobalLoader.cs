@@ -24,7 +24,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for the tsection.dat in the global directory files
     /// </summary>
-    internal class TsectionGlobalLoader : Loader
+    internal sealed class TsectionGlobalLoader : Loader
     {
         private TrackSectionsFile trackSectionDat;
         private readonly string routePath;

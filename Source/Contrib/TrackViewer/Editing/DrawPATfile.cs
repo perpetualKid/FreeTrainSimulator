@@ -38,7 +38,7 @@ namespace ORTS.TrackViewer.Editing
     /// The amount of points that are drawn can be varied, such that it is easier to follow the path (especially in 
     /// complicated cases.
     /// </summary>
-    internal class DrawPATfile
+    internal sealed class DrawPATfile
     {
         /// <summary>the parsed .pat file information</summary>
         private readonly PathFile patFile;

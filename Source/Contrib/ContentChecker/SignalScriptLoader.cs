@@ -27,7 +27,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .eng files
     /// </summary>
-    internal class SignalScriptLoader : Loader
+    internal sealed class SignalScriptLoader : Loader
     {
         /// <summary> The signal configuration file needed for loading a script file </summary>
         private readonly SignalConfigurationFile _sigcfg;

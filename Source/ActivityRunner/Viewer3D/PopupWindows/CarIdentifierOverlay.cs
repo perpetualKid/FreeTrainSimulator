@@ -21,7 +21,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal partial class CarIdentifierOverlay : OverlayBase
+    internal sealed partial class CarIdentifierOverlay : OverlayBase
     {
 
         private enum ViewMode

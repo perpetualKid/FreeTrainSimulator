@@ -13,7 +13,7 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class CompassWindow : WindowBase
+    internal sealed class CompassWindow : WindowBase
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Label latitudeLabel;

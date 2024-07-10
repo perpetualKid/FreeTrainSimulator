@@ -14,7 +14,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
-    internal class TrainInformation : DetailInfoBase
+    internal sealed class TrainInformation : DetailInfoBase
     {
         private Train train;
         private readonly Catalog catalog;

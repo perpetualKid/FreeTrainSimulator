@@ -24,7 +24,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for -f.raw files
     /// </summary>
-    internal class TerrainFlagsLoader : Loader
+    internal sealed class TerrainFlagsLoader : Loader
     {
         /// <summary> The sample count needed for loading a terrain .raw file </summary>
         private readonly int sampleCount;

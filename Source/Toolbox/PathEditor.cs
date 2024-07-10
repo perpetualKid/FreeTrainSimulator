@@ -21,7 +21,7 @@ namespace Orts.Toolbox
         }
     }
 
-    internal class PathEditor: PathEditorBase
+    internal sealed class PathEditor : PathEditorBase
     {
         private Path path;
         private long lastPathClickTick;

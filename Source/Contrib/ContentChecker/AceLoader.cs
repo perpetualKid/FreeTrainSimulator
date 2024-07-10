@@ -22,7 +22,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .ace files
     /// </summary>
-    internal class AceLoader : Loader
+    internal sealed class AceLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

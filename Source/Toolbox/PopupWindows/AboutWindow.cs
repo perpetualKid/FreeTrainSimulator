@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.Toolbox.PopupWindows
 {
-    internal class AboutWindow : WindowBase
+    internal sealed class AboutWindow : WindowBase
     {
         private readonly UserCommandController<UserCommand> userCommandController;
 

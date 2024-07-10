@@ -28,7 +28,7 @@ using FreeTrainSimulator.Common.Logging;
 
 namespace Orts.ContentChecker
 {
-    internal class Program
+    internal sealed class Program
     {
         /// <summary> Contains the list of originally requested files</summary>
         private static readonly List<string> requestedFiles = new List<string>();

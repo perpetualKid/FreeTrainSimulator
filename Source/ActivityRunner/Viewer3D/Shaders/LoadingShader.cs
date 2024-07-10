@@ -23,7 +23,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Orts.ActivityRunner.Viewer3D.Shaders
 {
-    internal class LoadingShader : BaseShader
+    internal sealed class LoadingShader : BaseShader
     {
         private readonly EffectParameter worldViewProjection;
         private readonly EffectParameter loadingPercent;

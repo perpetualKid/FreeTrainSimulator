@@ -14,7 +14,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
-    internal class ConsistInformation : DetailInfoBase
+    internal sealed class ConsistInformation : DetailInfoBase
     {
         private const int Columns = 8;
         private readonly Catalog catalog;

@@ -12,7 +12,7 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
-    internal class PowerSupplyInformation: DetailInfoBase
+    internal sealed class PowerSupplyInformation : DetailInfoBase
     {
         private enum PowerSupplyColumns
         {

@@ -599,7 +599,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// Load and store images in bitmap format (needed for WPF-parts)
     /// </summary>
-    internal class BitmapImageManager
+    internal sealed class BitmapImageManager
     {
         //Singleton class
 

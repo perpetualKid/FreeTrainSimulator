@@ -16,7 +16,7 @@ using Orts.Simulation.Physics;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class TrainListWindow : WindowBase
+    internal sealed class TrainListWindow : WindowBase
     {
         private readonly Viewer viewer;
 #pragma warning disable CA2213 // Disposable fields should be disposed

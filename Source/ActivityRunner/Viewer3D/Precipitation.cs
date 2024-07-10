@@ -374,7 +374,7 @@ namespace Orts.ActivityRunner.Viewer3D
             drawCounter++;
         }
 
-        private class HeightCache
+        private sealed class HeightCache
         {
             private const int TileCount = 10;
             private readonly int BlockSize;
@@ -432,7 +432,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             [DebuggerDisplay("Tile = {TileX},{TileZ} Used = {Used}")]
-            private class PrecipitationTile
+            private sealed class PrecipitationTile
             {
                 private readonly Tile tile;
                 public ref readonly Tile Tile => ref tile;

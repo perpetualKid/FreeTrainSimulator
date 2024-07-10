@@ -25,7 +25,7 @@ using Orts.Simulation.Signalling;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class LocationOverlay : OverlayBase
+    internal sealed class LocationOverlay : OverlayBase
     {
         private enum ViewMode
         {

@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.Toolbox.WinForms.Controls
 {
-    internal class ComboBoxItem<T>
+    internal sealed class ComboBoxItem<T>
     {
         public T Key { get; }
         public string Value { get; }

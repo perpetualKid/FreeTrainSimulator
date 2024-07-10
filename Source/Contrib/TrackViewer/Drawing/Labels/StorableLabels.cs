@@ -26,7 +26,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
     /// This is a data structure to store user-labels that can be shown on a track.
     /// The data must be easy to read and write from file
     /// </summary>
-    internal class StorableLabels
+    internal sealed class StorableLabels
     {
         /// <summary> The 'list' of labels </summary>
         [JsonProperty("LabelList")]

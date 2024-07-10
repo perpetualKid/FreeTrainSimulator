@@ -9,7 +9,7 @@ namespace Tests.FreeTrainSimulator.Models.Track
     [TestClass]
     public class TrackSegmentBaseTests
     {
-        private class TrackSegmentTestClass : TrackSegmentBase
+        private sealed class TrackSegmentTestClass : TrackSegmentBase
         {
             public TrackSegmentTestClass() : base()
             { }

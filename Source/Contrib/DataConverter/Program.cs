@@ -28,7 +28,7 @@ using FreeTrainSimulator.Common.Info;
 
 namespace Orts.DataConverter
 {
-    internal class Program
+    internal sealed class Program
     {
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
         private static void Main(string[] args)
@@ -177,7 +177,7 @@ namespace Orts.DataConverter
         }
     }
 
-    internal class DataConversion
+    internal sealed class DataConversion
     {
         public string Input { get; private set; }
         public List<string> Output { get; private set; }

@@ -1353,7 +1353,7 @@ namespace Orts.Menu
 
         private readonly List<Detail> details = new List<Detail>();
 
-        private class Detail
+        private sealed class Detail
         {
             public readonly Control Title;
             public readonly Control Expander;

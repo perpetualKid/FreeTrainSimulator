@@ -104,7 +104,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// <remarks>
         /// Many thanks to <a href="https://stackoverflow.com/a/44238343">Elliott Darfink of Stack Overflow</a>.
         /// </remarks>
-        private class XnaFriendlyResolver : DefaultContractResolver
+        private sealed class XnaFriendlyResolver : DefaultContractResolver
         {
             protected override JsonContract CreateContract(Type objectType)
             {
@@ -118,7 +118,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
     /// <summary>
     /// An API controller that serves Open Rails data from an attached Viewer.
     /// </summary>
-    internal class OrtsApiController : WebApiController
+    internal sealed class OrtsApiController : WebApiController
     {
         /// <summary>
         /// The Viewer to serve train data from.

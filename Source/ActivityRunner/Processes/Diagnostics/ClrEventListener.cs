@@ -10,7 +10,7 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
 {
     internal sealed class ClrEventListener : EventListener, INameValueInformationProvider
     {
-        private class ClrDebugInfo : DetailInfoBase
+        private sealed class ClrDebugInfo : DetailInfoBase
         {
             internal int[] GcCollections = new int[3];
             internal long[] GcSize = new long[3];

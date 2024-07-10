@@ -19,7 +19,7 @@ using Orts.Simulation.Physics;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class MultiPlayerWindow : WindowBase
+    internal sealed class MultiPlayerWindow : WindowBase
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Label labelTime;

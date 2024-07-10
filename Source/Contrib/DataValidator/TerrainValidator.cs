@@ -22,7 +22,7 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.DataValidator
 {
-    internal class TerrainValidator : Validator
+    internal sealed class TerrainValidator : Validator
     {
         public TerrainValidator(string file)
             : base(file)

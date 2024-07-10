@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .srv files
     /// </summary>
-    internal class ServiceLoader : Loader
+    internal sealed class ServiceLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

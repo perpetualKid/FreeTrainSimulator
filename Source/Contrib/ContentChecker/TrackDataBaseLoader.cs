@@ -24,7 +24,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .tdb files
     /// </summary>
-    internal class TrackDataBaseLoader : Loader
+    internal sealed class TrackDataBaseLoader : Loader
     {
         private TrackDatabaseFile tdbfile;
         /// <summary>

@@ -22,7 +22,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .wav files
     /// </summary>
-    internal class WavLoader : Loader
+    internal sealed class WavLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

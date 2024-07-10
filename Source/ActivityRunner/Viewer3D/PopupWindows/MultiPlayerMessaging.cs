@@ -11,7 +11,7 @@ using Orts.Simulation.Multiplayer;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
-    internal class MultiPlayerMessaging : WindowBase
+    internal sealed class MultiPlayerMessaging : WindowBase
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Label sendButton;

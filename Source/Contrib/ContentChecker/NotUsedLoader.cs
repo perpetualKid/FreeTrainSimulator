@@ -22,7 +22,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for all files that are not recognized.
     /// </summary>
-    internal class NotUsedLoader : Loader
+    internal sealed class NotUsedLoader : Loader
     {
         /// <summary>
         /// Constructor

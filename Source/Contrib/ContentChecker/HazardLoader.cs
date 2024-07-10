@@ -23,7 +23,7 @@ namespace Orts.ContentChecker
     /// <summary>
     /// Loader class for .haz files
     /// </summary>
-    internal class HazardLoader : Loader
+    internal sealed class HazardLoader : Loader
     {
         /// <summary>
         /// Try to load the file.

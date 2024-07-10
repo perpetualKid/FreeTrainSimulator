@@ -33,7 +33,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
 {
     public partial class WeatherControl
     {
-        private class DynamicWeather
+        private sealed class DynamicWeather
         {
             public enum WeatherTarget
             {
@@ -43,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 PrecipicationLiquidity,
             }
 
-            private class WeatherProperty
+            private sealed class WeatherProperty
             {
                 public float ChangeRate { get; set; }
                 public double Timer { get; set; }

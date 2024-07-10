@@ -65,7 +65,7 @@ namespace ORTS.TrackViewer.Drawing
     ///         Also in the Game.Draw, but before spriteBatch.begin:    yourShadowDrawArea.DrawShadowTextures(DrawSomething, background color);
     ///
     ///</summary>
-    internal class ShadowDrawArea : DrawArea, IDisposable
+    internal sealed class ShadowDrawArea : DrawArea, IDisposable
     {
         #region private Fields
         private int blockW; // Width  of single block in pixels

@@ -486,7 +486,7 @@ namespace ORTS.TrackViewer.Editing
     /// This allows the Start node to be changed (e.g. regarding exact location on track, or perhaps moved to another
     /// track), and still be able to find reconnections.
     /// </summary>
-    internal class ContinuousAutoConnecting : AutoConnectTools
+    internal sealed class ContinuousAutoConnecting : AutoConnectTools
     {
         /// <summary>The Start/From node needs to be reversed to be able to make the connection</summary>
         public bool NeedsReverse => FromNodeNeedsReverse;

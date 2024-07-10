@@ -7,7 +7,7 @@ using FreeTrainSimulator.Common;
 
 namespace Orts.Menu
 {
-    internal class ComboBoxItem<T>
+    internal sealed class ComboBoxItem<T>
     {
         public T Key { get; }
         public string Value { get; }

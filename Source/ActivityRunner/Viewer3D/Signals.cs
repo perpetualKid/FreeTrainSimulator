@@ -179,7 +179,7 @@ namespace Orts.ActivityRunner.Viewer3D
             base.Mark();
         }
 
-        private class SignalShapeHead
+        private sealed class SignalShapeHead
         {
             private readonly Viewer Viewer;
             private readonly SignalShape SignalShape;
@@ -607,7 +607,7 @@ namespace Orts.ActivityRunner.Viewer3D
     /// <summary>
     /// Tracks state for individual signal head lamps, with smooth lit/unlit transitions.
     /// </summary>
-    internal class SignalLightState
+    internal sealed class SignalLightState
     {
         private readonly float transitionTime; // Transition time in seconds.
         private double intensity;
