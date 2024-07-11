@@ -16,10 +16,17 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common.Info;
+
+using MemoryPack;
 
 using Microsoft.Xna.Framework.Graphics;
 
@@ -27,15 +34,79 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Formats.Msts.Files
 {
+    [MemoryPackable]
+    public sealed partial class AceTexture
+    {
+        public SurfaceFormat SurfaceFormat { get; set; }
+        public int Height { get; set; }
+        public int Width { get; set; }
+        public bool MipMaps { get; set; }
+        public int Levels { get; set; }
+        public int[] LevelSize { get; set; }
+        public byte DataSize { get; set; }
+        [BrotliFormatter]
+        public byte[] Data { get; set; }
+    }
+
     public static class AceFile
     {
         public static Texture2D Texture2DFromFile(GraphicsDevice graphicsDevice, string fileName)
         {
-            using (MemoryStream stream = new MemoryStream(File.ReadAllBytes(fileName)))
-                return Texture2DFromStream(graphicsDevice, stream);
+            string cacheFile = RuntimeInfo.GetCacheFilePath("Texture", fileName);
+            if (File.Exists(cacheFile))
+            {
+                return Texture2DFromCache(graphicsDevice, cacheFile).AsTask().Result;
+            }
+            else
+            {
+                using (MemoryStream stream = new MemoryStream(File.ReadAllBytes(fileName)))
+                {
+                    (Texture2D result, AceTexture aceTexture) = Texture2DFromStream(graphicsDevice, stream);
+                    Texture2DToCache(cacheFile, aceTexture).AsTask().Wait();
+                    return result;
+                }
+            }
         }
 
-        private static Texture2D Texture2DFromStream(GraphicsDevice graphicsDevice, Stream stream)
+        private static async ValueTask<Texture2D> Texture2DFromCache(GraphicsDevice graphicsDevice, string cacheFile)
+        {
+            using (FileStream saveFile = new FileStream(cacheFile, FileMode.Open, FileAccess.Read))
+            {
+                AceTexture aceTexture = await MemoryPackSerializer.DeserializeAsync<AceTexture>(saveFile, null).ConfigureAwait(false);
+                Texture2D texture = new Texture2D(graphicsDevice, aceTexture.Width, aceTexture.Height, aceTexture.MipMaps, aceTexture.SurfaceFormat);
+
+                int start = 0;
+                for (int i = 0; i < aceTexture.Levels; i++)
+                {
+                    int size = aceTexture.LevelSize[i];
+                    texture.SetData(i, null, aceTexture.Data, start, size);
+                    start += size;
+                }
+                return texture;
+            }
+        }
+
+        private static void ReadSequence(ReadOnlySequence<byte> data, Texture2D texture)
+        {
+            SequenceReader<byte> reader = new SequenceReader<byte>(data);
+            while (!reader.End)
+            {
+                ReadOnlySpan<byte> current = reader.CurrentSpan;
+                texture.SetData<byte>(reader.CurrentSpanIndex, null, current.ToArray(), 0, current.Length);
+            }
+
+        }
+
+        private static async ValueTask Texture2DToCache(string cacheFile, AceTexture aceTexture)
+        {
+            using (FileStream saveFile = new FileStream(cacheFile, FileMode.OpenOrCreate, FileAccess.Write))
+            {
+                await MemoryPackSerializer.SerializeAsync(saveFile, aceTexture, null).ConfigureAwait(false);
+                await saveFile.FlushAsync().ConfigureAwait(false);
+            }
+        }
+
+        private static (Texture2D, AceTexture) Texture2DFromStream(GraphicsDevice graphicsDevice, Stream stream)
         {
             using (BinaryReader reader = new BinaryReader(stream))
             {
@@ -73,7 +144,7 @@ namespace Orts.Formats.Msts.Files
             }
         }
 
-        private static Texture2D Texture2DFromReader(GraphicsDevice graphicsDevice, BinaryReader reader)
+        private static (Texture2D, AceTexture) Texture2DFromReader(GraphicsDevice graphicsDevice, BinaryReader reader)
         {
             string signature = new string(reader.ReadChars(4));
             if (signature != "\x01\x00\x00\x00")
@@ -107,10 +178,17 @@ namespace Orts.Formats.Msts.Files
             // Calculate how many images we're going to load; 1 for non-mipmapped, 1+log(width)/log(2) for mipmapped.
             int imageCount = 1 + (int)((options & SimisAceFormatOptions.MipMaps) != 0 ? Math.Log(width) / Math.Log(2) : 0);
             Texture2D texture;
-            if ((options & SimisAceFormatOptions.MipMaps) == 0)
-                texture = new Texture2D(graphicsDevice, width, height, false, textureFormat);
-            else
-                texture = new Texture2D(graphicsDevice, width, height, true, textureFormat);
+            AceTexture aceTexture;
+            aceTexture = new AceTexture()
+            {
+                Height = height,
+                Width = width,
+                MipMaps = (options & SimisAceFormatOptions.MipMaps) != 0,
+                SurfaceFormat = textureFormat,
+                Levels = imageCount,
+                LevelSize = new int[imageCount],
+            };
+            texture = new Texture2D(graphicsDevice, width, height, (options & SimisAceFormatOptions.MipMaps) != 0, textureFormat);
 
             // Read in the color channels; each one defines a size (in bits) and type (reg, green, blue, mask, alpha).
             List<SimisAceChannel> channels = new List<SimisAceChannel>();
@@ -135,7 +213,7 @@ namespace Orts.Formats.Msts.Files
             {
                 // Raw data is stored as a table of 32bit int offsets to each mipmap level.
                 reader.ReadBytes(imageCount * 4);
-
+                aceTexture.DataSize = 1;
                 byte[] buffer = Array.Empty<byte>();
                 for (int imageIndex = 0; imageIndex < imageCount; imageIndex++)
                 {
@@ -151,6 +229,13 @@ namespace Orts.Formats.Msts.Files
                     // API accepts the 4x4 image's data for the 2x2 and 1x1 case. They do need to be set though!
 
                     texture.SetData(imageIndex, null, buffer, 0, buffer.Length);
+                    aceTexture.LevelSize[imageIndex] = buffer.Length;
+
+                    byte[] result = new byte[(aceTexture.Data?.Length ?? 0) + buffer.Length];
+                    if (aceTexture.Data != null)
+                        Buffer.BlockCopy(aceTexture.Data, 0, result, 0, aceTexture.Data.Length);
+                    Buffer.BlockCopy(buffer, 0, result, (aceTexture.Data?.Length ?? 0), buffer.Length);
+                    aceTexture.Data = result;
                 }
             }
             else
@@ -159,6 +244,7 @@ namespace Orts.Formats.Msts.Files
                 for (int imageIndex = 0; imageIndex < imageCount; imageIndex++)
                     reader.ReadBytes(4 * height / (int)Math.Pow(2, imageIndex));
 
+                aceTexture.DataSize = 4;
                 int[] buffer = new int[width * height];
                 byte[][] channelBuffers = new byte[8][];
                 for (int imageIndex = 0; imageIndex < imageCount; imageIndex++)
@@ -195,10 +281,17 @@ namespace Orts.Formats.Msts.Files
                         }
                     }
                     texture.SetData(imageIndex, null, buffer, 0, imageWidth * imageHeight);
+
+                    byte[] intData = MemoryMarshal.AsBytes<int>(new ReadOnlySpan<int>(buffer, 0, imageWidth * imageHeight)).ToArray();
+                    aceTexture.LevelSize[imageIndex] = intData.Length;
+                    byte[] result = new byte[(aceTexture.Data?.Length ?? 0) + intData.Length];
+                    if (aceTexture.Data != null)
+                        Buffer.BlockCopy(aceTexture.Data, 0, result, 0, aceTexture.Data.Length);
+                    Buffer.BlockCopy(intData, 0, result, (aceTexture.Data?.Length ?? 0), intData.Length);
+                    aceTexture.Data = result;
                 }
             }
-
-            return texture;
+            return (texture, aceTexture);
         }
 
         private static string StringToHex(string signature)
