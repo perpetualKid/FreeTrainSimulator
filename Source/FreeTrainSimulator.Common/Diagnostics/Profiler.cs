@@ -1,33 +1,13 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
-// 
-// This file is part of Open Rails.
-// 
-// Open Rails is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// Open Rails is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
-// This file is the responsibility of the 3D & Environment Team. 
-
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
 
-using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Native;
 
-namespace Orts.ActivityRunner.Processes.Diagnostics
+namespace FreeTrainSimulator.Common.Diagnostics
 {
-    internal sealed class Profiler
+    public sealed class Profiler
     {
         public static EnumArray<Profiler, ProcessType> ProfilingData { get; } = new EnumArray<Profiler, ProcessType>();
 
@@ -103,6 +83,6 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
             // Calculate the Wall and CPU times from timer data.
             Wall.Update(timeTotal / 1000, 100 * timeRunning / timeTotal);
             CPU.Update(timeTotal / 1000, 100 * timeCPU / timeTotal);
-      }
+        }
     }
 }

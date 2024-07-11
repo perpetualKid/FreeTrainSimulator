@@ -25,6 +25,7 @@ using System.Reflection;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Diagnostics;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.Xna;
@@ -32,7 +33,6 @@ using FreeTrainSimulator.Graphics.Xna;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.ActivityRunner.Viewer3D;
 
 namespace Orts.ActivityRunner.Processes

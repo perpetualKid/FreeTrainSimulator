@@ -2,9 +2,9 @@
 using System.Diagnostics;
 using System.Threading;
 
-using Microsoft.Xna.Framework;
+using FreeTrainSimulator.Common.Diagnostics;
 
-using Orts.ActivityRunner.Processes.Diagnostics;
+using Microsoft.Xna.Framework;
 
 namespace Orts.ActivityRunner.Processes
 {

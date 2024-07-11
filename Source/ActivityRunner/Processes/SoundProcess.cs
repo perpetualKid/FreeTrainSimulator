@@ -25,10 +25,10 @@ using System.Collections.ObjectModel;
 using System.Threading;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Diagnostics;
 
 using Microsoft.Xna.Framework;
 
-using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.Simulation;
 

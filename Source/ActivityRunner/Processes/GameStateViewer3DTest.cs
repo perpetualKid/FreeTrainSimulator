@@ -4,10 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Diagnostics;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Logging;
 
-using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Settings;
 using Orts.Simulation;
 

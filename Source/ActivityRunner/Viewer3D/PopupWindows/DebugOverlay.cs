@@ -3,6 +3,7 @@ using System.ComponentModel;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Common.Diagnostics;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.Window;
@@ -15,7 +16,6 @@ using GetText;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
-using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;

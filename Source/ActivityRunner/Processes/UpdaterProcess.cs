@@ -17,9 +17,11 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Diagnostics;
+
 using Microsoft.Xna.Framework;
 
-using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.ActivityRunner.Viewer3D;
 
 namespace Orts.ActivityRunner.Processes

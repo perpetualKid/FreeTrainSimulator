@@ -1,8 +1,5 @@
-﻿using System;
+﻿using FreeTrainSimulator.Common;
 
-using FreeTrainSimulator.Common;
-
-using Orts.Formats.Msts;
 using Orts.Simulation.Track;
 
 namespace Orts.Simulation

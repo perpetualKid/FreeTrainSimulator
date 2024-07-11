@@ -20,9 +20,9 @@ using System.Collections.Generic;
 using System.Drawing;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Diagnostics;
 using FreeTrainSimulator.Common.Input;
 
-using Orts.ActivityRunner.Processes.Diagnostics;
 using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;
@@ -588,7 +588,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("FPS"),
-                    LastCol = $"{Math.Floor(MetricCollector.Instance.Metrics[Processes.SlidingMetric.FrameRate].SmoothedValue)}",
+                    LastCol = $"{Math.Floor(MetricCollector.Instance.Metrics[SlidingMetric.FrameRate].SmoothedValue)}",
                 });
             }
 

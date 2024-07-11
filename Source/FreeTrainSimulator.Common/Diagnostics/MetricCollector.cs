@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
-using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.ActivityRunner.Processes.Diagnostics
+namespace FreeTrainSimulator.Common.Diagnostics
 {
-    internal sealed class MetricCollector
+    public sealed class MetricCollector
     {
         private readonly Process process = Process.GetCurrentProcess();
         private TimeSpan lastCpuTime;
@@ -24,16 +24,15 @@ namespace Orts.ActivityRunner.Processes.Diagnostics
 
         public static MetricCollector Instance { get; } = new MetricCollector();
 
-        internal void Update(GameTime gameTime)
+        public void Update([NotNull] GameTime gameTime)
         {
             double elapsed = gameTime.ElapsedGameTime.TotalSeconds;
             double timeCpu = (process.TotalProcessorTime - lastCpuTime).TotalSeconds;
             lastCpuTime = process.TotalProcessorTime;
 
-            Metrics[SlidingMetric.ProcessorTime].Update(elapsed , 100 * timeCpu / elapsed);
+            Metrics[SlidingMetric.ProcessorTime].Update(elapsed, 100 * timeCpu / elapsed);
             Metrics[SlidingMetric.FrameRate].Update(elapsed, 1 / elapsed);
             Metrics[SlidingMetric.FrameTime].Update(elapsed, elapsed);
-
         }
     }
 }

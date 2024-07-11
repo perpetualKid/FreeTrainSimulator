@@ -6,9 +6,9 @@ using FreeTrainSimulator.Common.DebugInfo;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.ActivityRunner.Processes.Diagnostics
+namespace FreeTrainSimulator.Common.Diagnostics
 {
-    internal sealed class ClrEventListener : EventListener, INameValueInformationProvider
+    public sealed class ClrEventListener : EventListener, INameValueInformationProvider
     {
         private sealed class ClrDebugInfo : DetailInfoBase
         {
