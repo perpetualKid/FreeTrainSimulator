@@ -48,9 +48,9 @@ namespace Orts.Simulation.Timetables
 {
     public class TimetableInfo
     {
-        private Simulator simulator;
+        private readonly Simulator simulator;
 
-        private enum columnType
+        private enum ColumnType
         {
             stationInfo,
             addStationInfo,
@@ -60,7 +60,7 @@ namespace Orts.Simulation.Timetables
             invalid,
         }
 
-        private enum rowType
+        private enum RowType
         {
             trainInfo,
             stationInfo,
@@ -79,12 +79,12 @@ namespace Orts.Simulation.Timetables
         }
 
         private Dictionary<string, AIPath> Paths = new Dictionary<string, AIPath>();                                  // original path referenced by path name
-        private List<string> reportedPaths = new List<string>();                                                      // reported path fails
-        private Dictionary<int, string> TrainRouteXRef = new Dictionary<int, string>();                               // path name referenced from train index    
+        private readonly List<string> reportedPaths = new List<string>();                                                      // reported path fails
+        private readonly Dictionary<int, string> trainRouteCrossRef = new Dictionary<int, string>();                               // path name referenced from train index    
 
         private bool binaryPaths;
 
-        public static int? PlayerTrainOriginalStartTime; // Set by TimetableInfo.ProcessTimetable() and read by AI.PrerunAI()
+        public static int? PlayerTrainOriginalStartTime { get; private set; } // Set by TimetableInfo.ProcessTimetable() and read by AI.PrerunAI()
 
         //================================================================================================//
         /// <summary>
@@ -330,12 +330,12 @@ namespace Orts.Simulation.Timetables
 
             float actSpeedConv = 1.0f;                                                     // actual set speedconversion
 
-            rowType[] RowInfo = new rowType[fileContents.Strings.Count];
-            columnType[] ColInfo = new columnType[fileContents.Strings[0].Length];
+            RowType[] RowInfo = new RowType[fileContents.Strings.Count];
+            ColumnType[] ColInfo = new ColumnType[fileContents.Strings[0].Length];
 
             // process first row separately
 
-            ColInfo[0] = columnType.stationInfo;
+            ColInfo[0] = ColumnType.stationInfo;
 
             for (int iColumn = 1; iColumn <= fileContents.Strings[0].Length - 1; iColumn++)
             {
@@ -346,22 +346,22 @@ namespace Orts.Simulation.Timetables
                 {
                     switch (ColInfo[iColumn - 1])
                     {
-                        case columnType.stationInfo:
-                        case columnType.addStationInfo:
-                            ColInfo[iColumn] = columnType.addStationInfo;
+                        case ColumnType.stationInfo:
+                        case ColumnType.addStationInfo:
+                            ColInfo[iColumn] = ColumnType.addStationInfo;
                             break;
 
-                        case columnType.comment:
-                            ColInfo[iColumn] = columnType.comment;
+                        case ColumnType.comment:
+                            ColInfo[iColumn] = ColumnType.comment;
                             break;
 
-                        case columnType.trainDefinition:
-                            ColInfo[iColumn] = columnType.trainAddInfo;
+                        case ColumnType.trainDefinition:
+                            ColInfo[iColumn] = ColumnType.trainAddInfo;
                             addTrainInfo.Add(iColumn, iColumn - 1);
                             break;
 
-                        case columnType.trainAddInfo:
-                            ColInfo[iColumn] = columnType.trainAddInfo;
+                        case ColumnType.trainAddInfo:
+                            ColInfo[iColumn] = ColumnType.trainAddInfo;
                             addTrainInfo.Add(iColumn, addTrainInfo[iColumn - 1]);
                             break;
                     }
@@ -370,7 +370,7 @@ namespace Orts.Simulation.Timetables
                 // comment
                 else if (string.Equals(columnDef, "#comment", StringComparison.OrdinalIgnoreCase))
                 {
-                    ColInfo[iColumn] = columnType.comment;
+                    ColInfo[iColumn] = ColumnType.comment;
                     if (firstCommentColumn < 0)
                         firstCommentColumn = iColumn;
                 }
@@ -379,21 +379,21 @@ namespace Orts.Simulation.Timetables
                 else if (columnDef[0] == '#')
                 {
                     Trace.TraceWarning("Invalid column definition in {0} : column {1} : {2}", filePath, iColumn, columnDef);
-                    ColInfo[iColumn] = columnType.invalid;
+                    ColInfo[iColumn] = ColumnType.invalid;
                 }
 
                 // otherwise it is a train definition
                 else
                 {
-                    ColInfo[iColumn] = columnType.trainDefinition;
+                    ColInfo[iColumn] = ColumnType.trainDefinition;
                     trainHeaders.Add(iColumn, columnDef);
-                    trainInfo.Add(iColumn, new TTTrainInfo(iColumn, columnDef, simulator, indexcount, this));
+                    trainInfo.Add(iColumn, new TTTrainInfo(iColumn, columnDef, indexcount, this));
                     indexcount++;
                 }
             }
 
             // get row information
-            RowInfo[0] = rowType.trainInfo;
+            RowInfo[0] = RowType.trainInfo;
 
             for (int iRow = 1; iRow <= fileContents.Strings.Count - 1; iRow++)
             {
@@ -412,12 +412,12 @@ namespace Orts.Simulation.Timetables
                 {
                     switch (RowInfo[iRow - 1])
                     {
-                        case rowType.stationInfo:
-                            RowInfo[iRow] = rowType.addStationInfo;
+                        case RowType.stationInfo:
+                            RowInfo[iRow] = RowType.addStationInfo;
                             break;
 
                         default:  // continuation of other types not allowed, treat line as comment
-                            RowInfo[iRow] = rowType.comment;
+                            RowInfo[iRow] = RowType.comment;
                             break;
                     }
                 }
@@ -429,44 +429,44 @@ namespace Orts.Simulation.Timetables
                     switch (rowDef)
                     {
                         case string consist when consist.Equals("#consist", StringComparison.OrdinalIgnoreCase):
-                            RowInfo[iRow] = rowType.consistInfo;
+                            RowInfo[iRow] = RowType.consistInfo;
                             consistRow = iRow;
                             break;
 
                         case string path when path.Equals("#path", StringComparison.OrdinalIgnoreCase):
-                            RowInfo[iRow] = rowType.pathInfo;
+                            RowInfo[iRow] = RowType.pathInfo;
                             pathRow = iRow;
                             if (rowCommands != null && rowCommands.Length >= 2 && string.Equals(rowCommands[1], "binary", StringComparison.OrdinalIgnoreCase))
                                 binaryPaths = true;
                             break;
 
                         case string start when start.Equals("#start", StringComparison.OrdinalIgnoreCase):
-                            RowInfo[iRow] = rowType.startInfo;
+                            RowInfo[iRow] = RowType.startInfo;
                             startRow = iRow;
                             break;
 
                         case string dispose when dispose.Equals("#dispose", StringComparison.OrdinalIgnoreCase):
-                            RowInfo[iRow] = rowType.disposeInfo;
+                            RowInfo[iRow] = RowType.disposeInfo;
                             disposeRow = iRow;
                             break;
 
                         case string direction when direction.Equals("#direction", StringComparison.OrdinalIgnoreCase):
-                            RowInfo[iRow] = rowType.directionInfo;
+                            RowInfo[iRow] = RowType.directionInfo;
                             break;
 
                         case string note when note.Equals("#note", StringComparison.OrdinalIgnoreCase):
-                            RowInfo[iRow] = rowType.trainNotesInfo;
+                            RowInfo[iRow] = RowType.trainNotesInfo;
                             break;
 
                         case string restartDelay when restartDelay.Equals("#restartdelay", StringComparison.OrdinalIgnoreCase):
-                            RowInfo[iRow] = rowType.restartDelayInfo;
+                            RowInfo[iRow] = RowType.restartDelayInfo;
                             break;
 
                         case string speed when speed.Equals("#speed", StringComparison.OrdinalIgnoreCase):
                             bool speeddef = false;
                             for (int rowIndex = 0; rowIndex < iRow; rowIndex++)
                             {
-                                if (RowInfo[rowIndex] == rowType.speedInfo)
+                                if (RowInfo[rowIndex] == RowType.speedInfo)
                                 {
                                     Trace.TraceInformation("Multiple speed row definition - second entry ignored \n");
                                     speeddef = true;
@@ -475,7 +475,7 @@ namespace Orts.Simulation.Timetables
                             }
                             if (!speeddef)
                             {
-                                RowInfo[iRow] = rowType.speedInfo;
+                                RowInfo[iRow] = RowType.speedInfo;
                                 actSpeedConv = 1.0f;
                             }
                             break;
@@ -483,7 +483,7 @@ namespace Orts.Simulation.Timetables
                             speeddef = false;
                             for (int rowIndex = 0; rowIndex < iRow; rowIndex++)
                             {
-                                if (RowInfo[rowIndex] == rowType.speedInfo)
+                                if (RowInfo[rowIndex] == RowType.speedInfo)
                                 {
                                     Trace.TraceInformation("Multiple speed row definition - second entry ignored \n");
                                     speeddef = true;
@@ -492,7 +492,7 @@ namespace Orts.Simulation.Timetables
                             }
                             if (!speeddef)
                             {
-                                RowInfo[iRow] = rowType.speedInfo;
+                                RowInfo[iRow] = RowType.speedInfo;
                                 actSpeedConv = (float)Speed.MeterPerSecond.FromMpH(1.0f);
                             }
                             break;
@@ -500,7 +500,7 @@ namespace Orts.Simulation.Timetables
                             speeddef = false;
                             for (int rowIndex = 0; rowIndex < iRow; rowIndex++)
                             {
-                                if (RowInfo[rowIndex] == rowType.speedInfo)
+                                if (RowInfo[rowIndex] == RowType.speedInfo)
                                 {
                                     Trace.TraceInformation("Multiple speed row definition - second entry ignored \n");
                                     speeddef = true;
@@ -509,19 +509,19 @@ namespace Orts.Simulation.Timetables
                             }
                             if (!speeddef)
                             {
-                                RowInfo[iRow] = rowType.speedInfo;
+                                RowInfo[iRow] = RowType.speedInfo;
                                 actSpeedConv = (float)Speed.MeterPerSecond.FromKpH(1.0f);
                             }
                             break;
 
                         case string comment when comment.Equals("#comment", StringComparison.OrdinalIgnoreCase):
-                            RowInfo[iRow] = rowType.comment;
+                            RowInfo[iRow] = RowType.comment;
                             if (firstCommentRow < 0)
                                 firstCommentRow = iRow;
                             break;
 
                         case string briefing when briefing.Equals("#briefing", StringComparison.OrdinalIgnoreCase):
-                            RowInfo[iRow] = rowType.briefing;
+                            RowInfo[iRow] = RowType.briefing;
                             briefingRow = iRow;
                             break;
 
@@ -529,11 +529,11 @@ namespace Orts.Simulation.Timetables
                             if (rowDef[0] == '#')
                             {
                                 Trace.TraceWarning("Invalid row definition in {0} : {1}", filePath, rowDef);
-                                RowInfo[iRow] = rowType.invalid;
+                                RowInfo[iRow] = RowType.invalid;
                             }
                             else
                             {
-                                RowInfo[iRow] = rowType.stationInfo;
+                                RowInfo[iRow] = RowType.stationInfo;
                                 stationNames.Add(iRow, new StationInfo(rowDef));
                             }
                             break;
@@ -574,12 +574,12 @@ namespace Orts.Simulation.Timetables
 
             for (int iRow = 1; iRow <= fileContents.Strings.Count - 1; iRow++)
             {
-                if (RowInfo[iRow] == rowType.stationInfo)
+                if (RowInfo[iRow] == RowType.stationInfo)
                 {
                     string[] columnStrings = fileContents.Strings[iRow];
                     for (int iColumn = 1; iColumn <= ColInfo.Length - 1; iColumn++)
                     {
-                        if (ColInfo[iColumn] == columnType.addStationInfo)
+                        if (ColInfo[iColumn] == ColumnType.addStationInfo)
                         {
                             string[] stationCommands = columnStrings[iColumn].Split('$');
                             stationNames[iRow].ProcessStationCommands(stationCommands);
@@ -610,7 +610,7 @@ namespace Orts.Simulation.Timetables
 
             for (int iColumn = 1; iColumn <= ColInfo.Length - 1; iColumn++)
             {
-                if (ColInfo[iColumn] == columnType.trainDefinition)
+                if (ColInfo[iColumn] == ColumnType.trainDefinition)
                 {
                     List<int> addColumns = null;
                     addTrainColumns.TryGetValue(iColumn, out addColumns);
@@ -720,7 +720,7 @@ namespace Orts.Simulation.Timetables
             foreach (TTTrainInfo reqTrain in allTrains)
             {
                 // create train route
-                if (TrainRouteXRef.ContainsKey(reqTrain.Index) && Paths.TryGetValue(TrainRouteXRef[reqTrain.Index], out AIPath value))
+                if (trainRouteCrossRef.ContainsKey(reqTrain.Index) && Paths.TryGetValue(trainRouteCrossRef[reqTrain.Index], out AIPath value))
                 {
                     AIPath usedPath = new AIPath(value);
                     reqTrain.TTTrain.RearTDBTraveller = new Traveller(usedPath.FirstNode.Location, usedPath.FirstNode.NextMainNode.Location);
@@ -806,7 +806,7 @@ namespace Orts.Simulation.Timetables
             playerTrain.MovementState = AiMovementState.Static;
 
             // create traveller
-            AIPath usedPath = Paths[TrainRouteXRef[reqTrain.Index]];
+            AIPath usedPath = Paths[trainRouteCrossRef[reqTrain.Index]];
             playerTrain.RearTDBTraveller = new Traveller(usedPath.FirstNode.Location, usedPath.FirstNode.NextMainNode.Location);
 
             // extract train path
@@ -1239,7 +1239,7 @@ namespace Orts.Simulation.Timetables
             /// <param name="trainName"></param>
             /// <param name="simulator"></param>
             /// <param name="ttfilename"></param>
-            public TTTrainInfo(int icolumn, string trainName, Simulator simulator, int index, TimetableInfo thisParent)
+            public TTTrainInfo(int icolumn, string trainName, int index, TimetableInfo thisParent)
             {
                 parentInfo = thisParent;
                 Name = trainName.Trim();
@@ -1260,7 +1260,7 @@ namespace Orts.Simulation.Timetables
             /// <param name="description"></param>
             /// <param name="stationNames"></param>
             /// <param name="ttInfo"></param>
-            public bool BuildTrain(List<string[]> fileStrings, rowType[] RowInfo, int pathRow, int consistRow, int startRow, int disposeRow, int briefingRow, string description,
+            public bool BuildTrain(List<string[]> fileStrings, RowType[] RowInfo, int pathRow, int consistRow, int startRow, int disposeRow, int briefingRow, string description,
                 Dictionary<int, StationInfo> stationNames, float actSpeedConv, TimetableInfo ttInfo)
             {
                 TTDescription = description;
@@ -1304,7 +1304,7 @@ namespace Orts.Simulation.Timetables
                 string consistdef = fileStrings[consistRow][columnIndex];
 
                 // no consist defined : exit
-                if (String.IsNullOrEmpty(consistdef))
+                if (string.IsNullOrEmpty(consistdef))
                 {
                     Trace.TraceInformation("Error for train {0} : no consist defined", TTTrain.Name);
                     return (false);
@@ -1315,9 +1315,9 @@ namespace Orts.Simulation.Timetables
 
                 // extract path
                 string pathExtension = Path.GetExtension(pathFilefull);
-                if (String.IsNullOrEmpty(pathExtension))
+                if (string.IsNullOrEmpty(pathExtension))
                     pathFilefull = Path.ChangeExtension(pathFilefull, "pat");
-                ttInfo.TrainRouteXRef.Add(Index, pathFilefull);    // set reference to path
+                ttInfo.trainRouteCrossRef.Add(Index, pathFilefull);    // set reference to path
 
                 if (!ttInfo.Paths.ContainsKey(pathFilefull))
                 {
@@ -1462,10 +1462,10 @@ namespace Orts.Simulation.Timetables
                 {
                     switch (RowInfo[iRow])
                     {
-                        case rowType.directionInfo:   // no longer used, maintained for compatibility with existing timetables
+                        case RowType.directionInfo:   // no longer used, maintained for compatibility with existing timetables
                             break;
 
-                        case rowType.stationInfo:
+                        case RowType.stationInfo:
                             StationInfo stationDetails = stationNames[iRow];
                             if (!string.IsNullOrEmpty(fileStrings[iRow][columnIndex]))
                             {
@@ -1484,15 +1484,15 @@ namespace Orts.Simulation.Timetables
                             }
                             break;
 
-                        case rowType.restartDelayInfo:
+                        case RowType.restartDelayInfo:
                             ProcessRestartDelay(fileStrings[iRow][columnIndex]);
                             break;
 
-                        case rowType.speedInfo:
+                        case RowType.speedInfo:
                             ProcessSpeedInfo(fileStrings[iRow][columnIndex], actSpeedConv);
                             break;
 
-                        case rowType.trainNotesInfo:
+                        case RowType.trainNotesInfo:
                             if (!string.IsNullOrEmpty(fileStrings[iRow][columnIndex]))
                             {
                                 string[] commandStrings = fileStrings[iRow][columnIndex].Split('$');

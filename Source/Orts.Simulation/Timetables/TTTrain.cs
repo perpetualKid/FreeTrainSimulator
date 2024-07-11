@@ -56,59 +56,59 @@ namespace Orts.Simulation.Timetables
         public const float DefMaxDecelMpSSF = 0.8f;               // maximum decelleration
         public const float DefMaxAccelMpSSF = 0.5f;               // maximum accelleration
 
-        public bool Closeup;                           // closeup to other train when stabling
+        public bool Closeup { get; set; }                           // closeup to other train when stabling
         private const float keepDistanceCloseupM = 2.5f;       // stay 2.5m from end of route when closeup required (for stabling only)
         private const float keepDistanceTrainAheadCloseupM = 0.5f;       // stay 0.5m from train ahead when closeup required (for stabling only)
         private const float keepDistanceCloseupSignalM = 7.0f;          // stay 10m from signal ahead when signalcloseup required
         private const float endOfRouteDistance = 150f;         // Max length to remain for train to continue on route
 
-        public int? ActivateTime;                           // time train is activated
-        public bool TriggeredActivationRequired;    // train activation is triggered by other train
+        public int? ActivateTime { get; set; }                           // time train is activated
+        public bool TriggeredActivationRequired { get; set; }    // train activation is triggered by other train
 
-        public bool Created;                        // train is created at start
-        public string CreateAhead = string.Empty;           // train is created ahead of other train
-        public string CreateInPool = string.Empty;          // train is to be created in pool at start of timetable
-        public string CreateFromPool = string.Empty;        // train is to be created from pool
-        public PoolExitDirection CreatePoolDirection = PoolExitDirection.Undefined;
+        public bool Created { get; set; }                        // train is created at start
+        public string CreateAhead { get; set; } = string.Empty;           // train is created ahead of other train
+        public string CreateInPool { get; set; } = string.Empty;          // train is to be created in pool at start of timetable
+        public string CreateFromPool { get; set; } = string.Empty;        // train is to be created from pool
+        public PoolExitDirection CreatePoolDirection { get; set; } = PoolExitDirection.Undefined;
         // required direction on leaving pool (if applicable)
-        public string ForcedConsistName = string.Empty;     // forced consist name for extraction from pool
+        public string ForcedConsistName { get; set; } = string.Empty;     // forced consist name for extraction from pool
 
         // Timetable Commands info
         private List<WaitInfo> waitList;                            //used when in timetable mode for wait instructions
         private Dictionary<int, List<WaitInfo>> waitAnyList;        //used when in timetable mode for waitany instructions
-        public bool StableCallOn;                                //used when in timetable mode to show stabled train is allowed to call on
-        public bool DriverOnlyOperation;                          //used when in timetable mode to indicate driver only operation
-        public bool ForceReversal;                                //used when in timetable mode to force reversal at diverging point ignoring signals
+        public bool StableCallOn { get; set; }                                //used when in timetable mode to show stabled train is allowed to call on
+        public bool DriverOnlyOperation { get; set; }                          //used when in timetable mode to indicate driver only operation
+        public bool ForceReversal { get; set; }                                //used when in timetable mode to force reversal at diverging point ignoring signals
 
-        public int Forms = -1;                                            //indicates which train is to be formed out of this train on termination
-        public bool FormsStatic;                                  //indicate if train is to remain as static
-        public string ExitPool = string.Empty;                            //set if train is to be stabled in pool
-        public int PoolAccessSection = -1;                                //set to last section index if train is to be stabled in pool, section is access section to pool
+        public int Forms { get; set; } = -1;                                            //indicates which train is to be formed out of this train on termination
+        public bool FormsStatic { get; set; }                                  //indicate if train is to remain as static
+        public string ExitPool { get; set; } = string.Empty;                            //set if train is to be stabled in pool
+        public int PoolAccessSection { get; set; } = -1;                                //set to last section index if train is to be stabled in pool, section is access section to pool
 
-        public int PoolStorageIndex = -1;                                 // index in selected pool path (>=0)
+        public int PoolStorageIndex { get; set; } = -1;                                 // index in selected pool path (>=0)
 
-        public PoolExitDirection PoolExitDirection = PoolExitDirection.Undefined;
+        public PoolExitDirection PoolExitDirection { get; set; } = PoolExitDirection.Undefined;
         // required exit direction from pool (if applicable) 
-        public TimetableTurntableControl ActiveTurntable;          //active turntable
+        public TimetableTurntableControl ActiveTurntable { get; set; }          //active turntable
 
-        public int FormedOf = -1;                                         //indicates out of which train this train is formed
-        public TimetableFormationCommand FormedOfType = TimetableFormationCommand.None;               //indicates type of formed-of command
-        public int OrgAINumber = -1;                                      //original AI number of formed player train
-        public bool SetStop;                                      //indicates train must copy station stop from formed train
-        public bool FormsAtStation;                               //indicates train must form into next service at last station, route must be curtailed to that stop
-        public bool leadLocoAntiSlip;                             //anti slip indication for original leading engine
+        public int FormedOf { get; set; } = -1;                                         //indicates out of which train this train is formed
+        public TimetableFormationCommand FormedOfType { get; set; } = TimetableFormationCommand.None;               //indicates type of formed-of command
+        public int OrgAINumber { get; set; } = -1;                                      //original AI number of formed player train
+        public bool SetStop { get; set; }                                      //indicates train must copy station stop from formed train
+        public bool FormsAtStation { get; set; }                               //indicates train must form into next service at last station, route must be curtailed to that stop
+        public bool LeadLocoAntiSlip { get; private set; }                             //anti slip indication for original leading engine
 
         // detach details
         public Dictionary<int, List<DetachInfo>> DetachDetails = new Dictionary<int, List<DetachInfo>>();
         // key is platform reference (use -1 for detach at start or end), list is detach commands at that location
         public EnumArray<int, DetachDetailsIndex> DetachActive { get; } = new EnumArray<int, DetachDetailsIndex>(-1);// detach is activated - first index is key in DetachDetails, second index is index in valuelist
         // 2nd index = -1 indicates invalid (first index -1 is a valid index)
-        public int DetachUnits;                                       // no. of units to detach
-        public bool DetachPosition;                               // if true detach from front
-        public bool DetachPending;                                // true when player detach window is displayed
+        public int DetachUnits { get; set; }                                       // no. of units to detach
+        public bool DetachPosition { get; set; }                               // if true detach from front
+        public bool DetachPending { get; set; }                                // true when player detach window is displayed
 
         // attach details
-        public AttachInfo AttachDetails;                                  // attach details
+        public AttachInfo AttachDetails { get; set; }                                  // attach details
         public Dictionary<int, List<int>> NeedAttach { get; private set; } = new Dictionary<int, List<int>>();
         // key is platform reference or -1 for attach to static train, list are trains which are to attach
 
@@ -116,24 +116,24 @@ namespace Orts.Simulation.Timetables
         public List<PickUpInfo> PickUpDetails { get; private set; } = new List<PickUpInfo>();   // only used during train building
         public List<int> PickUpTrains { get; private set; } = new List<int>();                  // list of train to be picked up
         public List<int> PickUpStatic { get; private set; } = new List<int>();                  // index of locations where static consists are to be picked up
-        public bool PickUpStaticOnForms;                          // set if pickup of static is required when forming next train
-        public bool NeedPickUp;                                   // indicates pickup is required
+        public bool PickUpStaticOnForms { get; set; }                          // set if pickup of static is required when forming next train
+        public bool NeedPickUp { get; set; }                                   // indicates pickup is required
 
         // transfer details
-        public Dictionary<int, TransferInfo> TransferStationDetails = new Dictionary<int, TransferInfo>();
+        public Dictionary<int, TransferInfo> TransferStationDetails { get; private set; } = new Dictionary<int, TransferInfo>();
         // list of transfer to take place in station
-        public Dictionary<int, List<TransferInfo>> TransferTrainDetails = new Dictionary<int, List<TransferInfo>>();
+        public Dictionary<int, List<TransferInfo>> TransferTrainDetails { get; private set; } = new Dictionary<int, List<TransferInfo>>();
         // list of transfers defined per train - if int = -1, transfer is to be performed on static train
-        public bool NeedTransfer;                                 // indicates transfer is required
-        public Dictionary<int, List<int>> NeedStationTransfer = new Dictionary<int, List<int>>();
+        public bool NeedTransfer { get; set; }                                 // indicates transfer is required
+        public Dictionary<int, List<int>> NeedStationTransfer { get; private set; } = new Dictionary<int, List<int>>();
         // list of required station transfers, per station index
-        public Dictionary<int, int> NeedTrainTransfer = new Dictionary<int, int>();
+        public Dictionary<int, int> NeedTrainTransfer { get; private set; } = new Dictionary<int, int>();
         // number of required train transfers per section
 
         // delayed restart
-        public bool DelayStart;                                 // start is delayed
-        public float RestdelayS;                                   // time to wait
-        public AiStartMovement DelayedStartState;               // state to start
+        public bool DelayStart { get; set; }                                 // start is delayed
+        public float RestdelayS { get; set; }                                   // time to wait
+        public AiStartMovement DelayedStartState { get; set; }               // state to start
 
         public EnumArray<DelayedStart, DelayedStartType> DelayedStartSettings { get; } = new EnumArray<DelayedStart, DelayedStartType>();
         public float ReverseAddedDelaySperM;                          // additional delay on reversal based on train length
@@ -141,7 +141,7 @@ namespace Orts.Simulation.Timetables
         public EnumArray<float?, SpeedValueType> SpeedSettings { get; } = new EnumArray<float?, SpeedValueType>();
 
         public bool SpeedRestrictionActive { get; set; }                // special speed has been set
-        public int? CruiseMaxDelay;                                     // max. delay to maintain cruise speed
+        public int? CruiseMaxDelay { get; set; }                                     // max. delay to maintain cruise speed
 
         // special patch conditions
         public enum LastSignalStop
@@ -150,7 +150,7 @@ namespace Orts.Simulation.Timetables
             Last,
             Reverse,
         }
-        public LastSignalStop ReqLastSignalStop = LastSignalStop.None;
+        public LastSignalStop ReqLastSignalStop { get; set; } = LastSignalStop.None;
 
         public List<TriggerActivation> ActivatedTrainTriggers { get; } = new List<TriggerActivation>();
         public string Briefing { get; set; } = string.Empty;
@@ -5017,7 +5017,7 @@ namespace Orts.Simulation.Timetables
                 {
                     MSTSLocomotive loco = tcar as MSTSLocomotive;
                     loco.SetPower(true);
-                    loco.AntiSlip = leadLocoAntiSlip;
+                    loco.AntiSlip = LeadLocoAntiSlip;
                 }
             }
 
@@ -5911,21 +5911,21 @@ namespace Orts.Simulation.Timetables
 
                         if (sectionIndex < 0)
                         {
-                            newWaitItem.startSectionIndex = TCRoute.TCRouteSubpaths[subrouteIndex][0].TrackCircuitSection.Index;
+                            newWaitItem.StartSectionIndex = TCRoute.TCRouteSubpaths[subrouteIndex][0].TrackCircuitSection.Index;
                         }
                         else
                         {
-                            newWaitItem.startSectionIndex = sectionIndex;
+                            newWaitItem.StartSectionIndex = sectionIndex;
                         }
-                        newWaitItem.startSubrouteIndex = subrouteIndex;
+                        newWaitItem.StartSubrouteIndex = subrouteIndex;
 
-                        newWaitItem.referencedTrainName = reqReferenceTrain;
+                        newWaitItem.ReferencedTrainName = reqReferenceTrain;
 
                         // check if name is full name, otherwise add timetable file info from this train
-                        if (!newWaitItem.referencedTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
+                        if (!newWaitItem.ReferencedTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
                         {
                             int seppos = Name.IndexOf(':', StringComparison.OrdinalIgnoreCase);
-                            newWaitItem.referencedTrainName = $"{newWaitItem.referencedTrainName}:{Name[(seppos + 1)..]}";
+                            newWaitItem.ReferencedTrainName = $"{newWaitItem.ReferencedTrainName}:{Name[(seppos + 1)..]}";
                         }
 
                         // qualifiers : 
@@ -5945,7 +5945,7 @@ namespace Orts.Simulation.Timetables
                                     case "maxdelay":
                                         if (int.TryParse(addQualifier.QualifierValues[0], out int maxDelayS))
                                         {
-                                            newWaitItem.maxDelayS = maxDelayS * 60; // defined in MINUTES!!
+                                            newWaitItem.MaxDelayS = maxDelayS * 60; // defined in MINUTES!!
                                         }
                                         else
                                         {
@@ -5954,15 +5954,15 @@ namespace Orts.Simulation.Timetables
                                         }
                                         break;
                                     case "notstarted":
-                                        newWaitItem.notStarted = true;
+                                        newWaitItem.NotStarted = true;
                                         break;
                                     case "atstart":
-                                        newWaitItem.atStart = true;
+                                        newWaitItem.AtStart = true;
                                         break;
                                     case "owndelay":
                                         if (int.TryParse(addQualifier.QualifierValues[0], out int ownDelayS))
                                         {
-                                            newWaitItem.ownDelayS = ownDelayS * 60; // defined in MINUTES!!
+                                            newWaitItem.OwnDelayS = ownDelayS * 60; // defined in MINUTES!!
                                         }
                                         else
                                         {
@@ -5977,7 +5977,7 @@ namespace Orts.Simulation.Timetables
                                         validTriggerTim = TimeSpan.TryParse(addQualifier.QualifierValues[0], out ttime);
                                         if (validTriggerTim)
                                         {
-                                            newWaitItem.waittrigger = Convert.ToInt32(ttime.TotalSeconds);
+                                            newWaitItem.Waittrigger = Convert.ToInt32(ttime.TotalSeconds);
                                         }
                                         break;
                                     case "endtrigger":
@@ -5987,7 +5987,7 @@ namespace Orts.Simulation.Timetables
                                         validEndTime = TimeSpan.TryParse(addQualifier.QualifierValues[0], out etime);
                                         if (validEndTime)
                                         {
-                                            newWaitItem.waitendtrigger = Convert.ToInt32(etime.TotalSeconds);
+                                            newWaitItem.Waitendtrigger = Convert.ToInt32(etime.TotalSeconds);
                                         }
                                         break;
 
@@ -6024,21 +6024,21 @@ namespace Orts.Simulation.Timetables
 
                         if (sectionIndex < 0)
                         {
-                            newWaitItem.startSectionIndex = TCRoute.TCRouteSubpaths[subrouteIndex][0].TrackCircuitSection.Index;
+                            newWaitItem.StartSectionIndex = TCRoute.TCRouteSubpaths[subrouteIndex][0].TrackCircuitSection.Index;
                         }
                         else
                         {
-                            newWaitItem.startSectionIndex = sectionIndex;
+                            newWaitItem.StartSectionIndex = sectionIndex;
                         }
-                        newWaitItem.startSubrouteIndex = subrouteIndex;
+                        newWaitItem.StartSubrouteIndex = subrouteIndex;
 
-                        newWaitItem.referencedTrainName = reqReferenceTrain;
+                        newWaitItem.ReferencedTrainName = reqReferenceTrain;
 
                         // check if name is full name, otherwise add timetable file info from this train
-                        if (!newWaitItem.referencedTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
+                        if (!newWaitItem.ReferencedTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
                         {
                             int seppos = Name.IndexOf(':', StringComparison.OrdinalIgnoreCase);
-                            newWaitItem.referencedTrainName = $"{newWaitItem.referencedTrainName}:{Name[(seppos + 1)..]}";
+                            newWaitItem.ReferencedTrainName = $"{newWaitItem.ReferencedTrainName}:{Name[(seppos + 1)..]}";
                         }
 
                         // qualifiers : 
@@ -6057,7 +6057,7 @@ namespace Orts.Simulation.Timetables
                                     case "maxdelay":
                                         if (int.TryParse(addQualifier.QualifierValues[0], out int maxDelayS))
                                         {
-                                            newWaitItem.maxDelayS = maxDelayS * 60;
+                                            newWaitItem.MaxDelayS = maxDelayS * 60;
                                         }
                                         else
                                         {
@@ -6066,15 +6066,15 @@ namespace Orts.Simulation.Timetables
                                         }
                                         break;
                                     case "notstarted":
-                                        newWaitItem.notStarted = true;
+                                        newWaitItem.NotStarted = true;
                                         break;
                                     case "atStart":
-                                        newWaitItem.atStart = true;
+                                        newWaitItem.AtStart = true;
                                         break;
                                     case "owndelay":
                                         if (int.TryParse(addQualifier.QualifierValues[0], out int ownDelayS))
                                         {
-                                            newWaitItem.ownDelayS = ownDelayS * 60;
+                                            newWaitItem.OwnDelayS = ownDelayS * 60;
                                         }
                                         else
                                         {
@@ -6089,7 +6089,7 @@ namespace Orts.Simulation.Timetables
                                         validTriggerTim = TimeSpan.TryParse(addQualifier.QualifierValues[0], out ttime);
                                         if (validTriggerTim)
                                         {
-                                            newWaitItem.waittrigger = Convert.ToInt32(ttime.TotalSeconds);
+                                            newWaitItem.Waittrigger = Convert.ToInt32(ttime.TotalSeconds);
                                         }
                                         break;
                                     case "endtrigger":
@@ -6099,7 +6099,7 @@ namespace Orts.Simulation.Timetables
                                         validEndTime = TimeSpan.TryParse(addQualifier.QualifierValues[0], out etime);
                                         if (validEndTime)
                                         {
-                                            newWaitItem.waitendtrigger = Convert.ToInt32(etime.TotalSeconds);
+                                            newWaitItem.Waitendtrigger = Convert.ToInt32(etime.TotalSeconds);
                                         }
                                         break;
 
@@ -6133,17 +6133,17 @@ namespace Orts.Simulation.Timetables
                             WaitInfo newWaitItem = new WaitInfo();
                             newWaitItem.WaitType = WaitInfoType.Connect;
 
-                            newWaitItem.startSectionIndex = sectionIndex;
-                            newWaitItem.startSubrouteIndex = subrouteIndex;
-                            newWaitItem.stationIndex = stationIndex;
+                            newWaitItem.StartSectionIndex = sectionIndex;
+                            newWaitItem.StartSubrouteIndex = subrouteIndex;
+                            newWaitItem.StationIndex = stationIndex;
 
-                            newWaitItem.referencedTrainName = reqReferenceTrain;
+                            newWaitItem.ReferencedTrainName = reqReferenceTrain;
 
                             // check if name is full name, otherwise add timetable file info from this train
-                            if (!newWaitItem.referencedTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
+                            if (!newWaitItem.ReferencedTrainName.Contains(':', StringComparison.OrdinalIgnoreCase))
                             {
                                 int seppos = Name.IndexOf(':', StringComparison.OrdinalIgnoreCase);
-                                newWaitItem.referencedTrainName = $"{newWaitItem.referencedTrainName}:{Name[(seppos + 1)..]}";
+                                newWaitItem.ReferencedTrainName = $"{newWaitItem.ReferencedTrainName}:{Name[(seppos + 1)..]}";
                             }
 
                             // qualifiers : 
@@ -6159,22 +6159,22 @@ namespace Orts.Simulation.Timetables
                                         case "maxdelay":
                                             if (!int.TryParse(addQualifier.QualifierValues[0], out int maxDelayS))
                                             {
-                                                newWaitItem.maxDelayS = null;
+                                                newWaitItem.MaxDelayS = null;
                                                 Trace.TraceInformation("Train {0} : invalid value in $connect command for {1} : {2}",
                                                     Name, addQualifier.QualifierName, addQualifier.QualifierValues[0]);
                                             }
                                             else
-                                                newWaitItem.maxDelayS = maxDelayS * 60; // defined in MINUTES!!
+                                                newWaitItem.MaxDelayS = maxDelayS * 60; // defined in MINUTES!!
                                             break;
                                         case "hold":
                                             if (!int.TryParse(addQualifier.QualifierValues[0], out int holdTimeS))
                                             {
-                                                newWaitItem.holdTimeS = null;
+                                                newWaitItem.HoldTimeS = null;
                                                 Trace.TraceInformation("Train {0} : invalid value in $connect command for {1} : {2}",
                                                     Name, addQualifier.QualifierName, addQualifier.QualifierValues[0]);
                                             }
                                             else
-                                                newWaitItem.holdTimeS = holdTimeS * 60; // defined in MINUTES!!
+                                                newWaitItem.HoldTimeS = holdTimeS * 60; // defined in MINUTES!!
                                             break;
 
                                         default:
@@ -6586,7 +6586,7 @@ namespace Orts.Simulation.Timetables
                     {
                         // WAIT command
                         case WaitInfoType.Wait:
-                            otherTrain = GetOtherTTTrainByName(reqWait.referencedTrainName);
+                            otherTrain = GetOtherTTTrainByName(reqWait.ReferencedTrainName);
                             if (otherTrain != null)
                             {
                                 ProcessWaitRequest(reqWait, otherTrain, true, true, true, ref newWaitItems);
@@ -6596,7 +6596,7 @@ namespace Orts.Simulation.Timetables
 
                         // FOLLOW command
                         case WaitInfoType.Follow:
-                            otherTrain = GetOtherTTTrainByName(reqWait.referencedTrainName);
+                            otherTrain = GetOtherTTTrainByName(reqWait.ReferencedTrainName);
                             if (otherTrain != null)
                             {
                                 ProcessWaitRequest(reqWait, otherTrain, true, false, false, ref newWaitItems);
@@ -6606,7 +6606,7 @@ namespace Orts.Simulation.Timetables
 
                         // CONNECT command
                         case WaitInfoType.Connect:
-                            otherTrain = GetOtherTTTrainByName(reqWait.referencedTrainName);
+                            otherTrain = GetOtherTTTrainByName(reqWait.ReferencedTrainName);
                             if (otherTrain != null)
                             {
                                 ProcessConnectRequest(reqWait, otherTrain, ref newWaitItems);
@@ -6648,8 +6648,8 @@ namespace Orts.Simulation.Timetables
         {
             // find first common section to determine train directions
             int otherRouteIndex = -1;
-            int thisSubpath = reqWait.startSubrouteIndex;
-            int thisIndex = TCRoute.TCRouteSubpaths[thisSubpath].GetRouteIndex(reqWait.startSectionIndex, 0);
+            int thisSubpath = reqWait.StartSubrouteIndex;
+            int thisIndex = TCRoute.TCRouteSubpaths[thisSubpath].GetRouteIndex(reqWait.StartSectionIndex, 0);
             int otherSubpath = 0;
 
             int startSectionIndex = TCRoute.TCRouteSubpaths[thisSubpath][thisIndex].TrackCircuitSection.Index;
@@ -6663,8 +6663,8 @@ namespace Orts.Simulation.Timetables
             TrackCircuitRouteElement thisTrainElement = null;
             TrackCircuitRouteElement otherTrainElement = null;
 
-            int thisTrainStartSubpathIndex = reqWait.startSubrouteIndex;
-            int thisTrainStartRouteIndex = TCRoute.TCRouteSubpaths[thisTrainStartSubpathIndex].GetRouteIndex(reqWait.startSectionIndex, 0);
+            int thisTrainStartSubpathIndex = reqWait.StartSubrouteIndex;
+            int thisTrainStartRouteIndex = TCRoute.TCRouteSubpaths[thisTrainStartSubpathIndex].GetRouteIndex(reqWait.StartSectionIndex, 0);
 
             // loop while no section found and further subpaths available
 
@@ -6740,7 +6740,7 @@ namespace Orts.Simulation.Timetables
                     int notCommonSectionIndex = otherTrain.TCRoute.TCRouteSubpaths[otherSubpath][notCommonSectionRouteIndex].TrackCircuitSection.Index;
                     int lastIndex = TCRoute.TCRouteSubpaths[thisTrainStartSubpathIndex].GetRouteIndex(notCommonSectionIndex, 0);
 
-                    bool atStart = reqWait.atStart.HasValue ? reqWait.atStart.Value : false;
+                    bool atStart = reqWait.AtStart.HasValue ? reqWait.AtStart.Value : false;
 
                     if (lastIndex < TCRoute.TCRouteSubpaths[thisTrainStartSubpathIndex].Count - 1) // not last entry
                     {
@@ -6808,19 +6808,19 @@ namespace Orts.Simulation.Timetables
                     WaitInfo newItem = new WaitInfo();
                     newItem.WaitActive = false;
                     newItem.WaitType = reqWait.WaitType;
-                    newItem.activeSubrouteIndex = sectionfound[0, 0];
-                    newItem.activeRouteIndex = sectionfound[0, 1];
-                    newItem.activeSectionIndex = TCRoute.TCRouteSubpaths[newItem.activeSubrouteIndex][newItem.activeRouteIndex].TrackCircuitSection.Index;
+                    newItem.ActiveSubrouteIndex = sectionfound[0, 0];
+                    newItem.ActiveRouteIndex = sectionfound[0, 1];
+                    newItem.ActiveSectionIndex = TCRoute.TCRouteSubpaths[newItem.ActiveSubrouteIndex][newItem.ActiveRouteIndex].TrackCircuitSection.Index;
 
-                    newItem.waitTrainNumber = otherTrain.OrgAINumber;
-                    newItem.waitTrainSubpathIndex = sectionfound[1, 0];
-                    newItem.waitTrainRouteIndex = sectionfound[1, 1];
-                    newItem.maxDelayS = reqWait.maxDelayS;
-                    newItem.ownDelayS = reqWait.ownDelayS;
-                    newItem.notStarted = reqWait.notStarted;
-                    newItem.atStart = reqWait.atStart;
-                    newItem.waittrigger = reqWait.waittrigger;
-                    newItem.waitendtrigger = reqWait.waitendtrigger;
+                    newItem.WaitTrainNumber = otherTrain.OrgAINumber;
+                    newItem.WaitTrainSubpathIndex = sectionfound[1, 0];
+                    newItem.WaitTrainRouteIndex = sectionfound[1, 1];
+                    newItem.MaxDelayS = reqWait.MaxDelayS;
+                    newItem.OwnDelayS = reqWait.OwnDelayS;
+                    newItem.NotStarted = reqWait.NotStarted;
+                    newItem.AtStart = reqWait.AtStart;
+                    newItem.Waittrigger = reqWait.Waittrigger;
+                    newItem.Waitendtrigger = reqWait.Waitendtrigger;
 
                     newWaitItems.Add(newItem);
 
@@ -6833,17 +6833,17 @@ namespace Orts.Simulation.Timetables
                     }
                     else if (sameDirection)
                     {
-                        endSection = FindCommonSectionEnd(TCRoute.TCRouteSubpaths[newItem.activeSubrouteIndex], newItem.activeRouteIndex,
-                            otherTrain.TCRoute.TCRouteSubpaths[newItem.waitTrainSubpathIndex], newItem.waitTrainRouteIndex);
+                        endSection = FindCommonSectionEnd(TCRoute.TCRouteSubpaths[newItem.ActiveSubrouteIndex], newItem.ActiveRouteIndex,
+                            otherTrain.TCRoute.TCRouteSubpaths[newItem.WaitTrainSubpathIndex], newItem.WaitTrainRouteIndex);
                     }
                     else
                     {
-                        endSection = FindCommonSectionEndReverse(TCRoute.TCRouteSubpaths[newItem.activeSubrouteIndex], newItem.activeRouteIndex,
-                            otherTrain.TCRoute.TCRouteSubpaths[newItem.waitTrainSubpathIndex], newItem.waitTrainRouteIndex);
+                        endSection = FindCommonSectionEndReverse(TCRoute.TCRouteSubpaths[newItem.ActiveSubrouteIndex], newItem.ActiveRouteIndex,
+                            otherTrain.TCRoute.TCRouteSubpaths[newItem.WaitTrainSubpathIndex], newItem.WaitTrainRouteIndex);
                     }
 
                     // last common section
-                    int lastSectionIndex = otherTrain.TCRoute.TCRouteSubpaths[newItem.waitTrainSubpathIndex][endSection].TrackCircuitSection.Index;
+                    int lastSectionIndex = otherTrain.TCRoute.TCRouteSubpaths[newItem.WaitTrainSubpathIndex][endSection].TrackCircuitSection.Index;
                     thisTrainStartRouteIndex = TCRoute.TCRouteSubpaths[thisTrainStartSubpathIndex].GetRouteIndex(lastSectionIndex, thisTrainStartRouteIndex);
                     if (thisTrainStartRouteIndex < TCRoute.TCRouteSubpaths[thisTrainStartSubpathIndex].Count - 1)
                     {
@@ -7060,7 +7060,7 @@ namespace Orts.Simulation.Timetables
         public void ProcessConnectRequest(WaitInfo reqWait, TTTrain otherTrain, ref List<WaitInfo> newWaitItems)
         {
             // find station reference
-            StationStop stopStation = StationStops[reqWait.stationIndex];
+            StationStop stopStation = StationStops[reqWait.StationIndex];
             int otherStationStopIndex = -1;
 
             for (int iStation = 0; iStation <= otherTrain.StationStops.Count - 1; iStation++)
@@ -7075,18 +7075,18 @@ namespace Orts.Simulation.Timetables
             if (otherStationStopIndex >= 0) // if other stop is found
             {
                 WaitInfo newWait = reqWait.CreateCopy();
-                newWait.waitTrainNumber = otherTrain.OrgAINumber;
+                newWait.WaitTrainNumber = otherTrain.OrgAINumber;
                 StationStop otherTrainStationStop = otherTrain.StationStops[otherStationStopIndex];
                 otherTrainStationStop.EnsureListsExists();
                 otherTrainStationStop.ConnectionsWaiting.Add(Number);
-                newWait.waitTrainSubpathIndex = otherTrainStationStop.SubrouteIndex;
-                newWait.startSectionIndex = otherTrainStationStop.TrackCircuitSectionIndex;
+                newWait.WaitTrainSubpathIndex = otherTrainStationStop.SubrouteIndex;
+                newWait.StartSectionIndex = otherTrainStationStop.TrackCircuitSectionIndex;
 
-                newWait.activeSubrouteIndex = reqWait.startSubrouteIndex;
-                newWait.activeSectionIndex = reqWait.startSectionIndex;
+                newWait.ActiveSubrouteIndex = reqWait.StartSubrouteIndex;
+                newWait.ActiveSectionIndex = reqWait.StartSectionIndex;
 
-                stopStation.ConnectionsAwaited.Add(newWait.waitTrainNumber, -1);
-                stopStation.ConnectionDetails.Add(newWait.waitTrainNumber, newWait);
+                stopStation.ConnectionsAwaited.Add(newWait.WaitTrainNumber, -1);
+                stopStation.ConnectionDetails.Add(newWait.WaitTrainNumber, newWait);
 
                 newWaitItems.Add(newWait);
 
@@ -7120,7 +7120,7 @@ namespace Orts.Simulation.Timetables
                 return (false);
             }
 
-            while (firstWait.activeSubrouteIndex == TCRoute.ActiveSubPath && firstWait.activeSectionIndex == trackSectionIndex)
+            while (firstWait.ActiveSubrouteIndex == TCRoute.ActiveSubPath && firstWait.ActiveSectionIndex == trackSectionIndex)
             {
                 switch (firstWait.WaitType)
                 {
@@ -7259,7 +7259,7 @@ namespace Orts.Simulation.Timetables
             bool waitState = false;
 
             // get other train
-            TTTrain otherTrain = GetOtherTTTrainByNumber(reqWait.waitTrainNumber);
+            TTTrain otherTrain = GetOtherTTTrainByNumber(reqWait.WaitTrainNumber);
 
             // get clock time - for AI use AI clock as simulator clock is not valid during pre-process
             double presentTime = simulator.ClockTime;
@@ -7269,30 +7269,30 @@ namespace Orts.Simulation.Timetables
                 presentTime = aitrain.AI.ClockTime;
             }
 
-            if (reqWait.waittrigger.HasValue)
+            if (reqWait.Waittrigger.HasValue)
             {
-                if (reqWait.waittrigger.Value < Convert.ToInt32(presentTime))
+                if (reqWait.Waittrigger.Value < Convert.ToInt32(presentTime))
                 {
                     return (waitState); // exit as wait must be retained
                 }
             }
 
             // check if end trigger time passed
-            if (reqWait.waitendtrigger.HasValue)
+            if (reqWait.Waitendtrigger.HasValue)
             {
-                if (reqWait.waitendtrigger.Value < Convert.ToInt32(presentTime))
+                if (reqWait.Waitendtrigger.Value < Convert.ToInt32(presentTime))
                 {
                     otherTrain = null;          // reset other train to remove wait
-                    reqWait.notStarted = false; // ensure wait is not triggered accidentally
+                    reqWait.NotStarted = false; // ensure wait is not triggered accidentally
                 }
             }
 
             // check on own delay condition
             bool owndelayexceeded = true;  // default is no own delay
-            if (reqWait.ownDelayS.HasValue && Delay.HasValue)
+            if (reqWait.OwnDelayS.HasValue && Delay.HasValue)
             {
                 float ownDelayS = (float)Delay.Value.TotalSeconds;
-                owndelayexceeded = ownDelayS > reqWait.ownDelayS.Value;
+                owndelayexceeded = ownDelayS > reqWait.OwnDelayS.Value;
             }
 
             // other train does exist or wait is cancelled
@@ -7301,13 +7301,13 @@ namespace Orts.Simulation.Timetables
                 // other train in correct subpath
                 // check if trigger time passed
 
-                if (otherTrain.TCRoute.ActiveSubPath == reqWait.waitTrainSubpathIndex)
+                if (otherTrain.TCRoute.ActiveSubPath == reqWait.WaitTrainSubpathIndex)
                 {
                     // check if section on train route and if so, if end of train is beyond this section
                     // check only for forward path - train must have passed section in 'normal' mode
                     if (otherTrain.ValidRoutes[Direction.Forward] != null)
                     {
-                        int waitTrainRouteIndex = otherTrain.ValidRoutes[Direction.Forward].GetRouteIndex(reqWait.activeSectionIndex, 0);
+                        int waitTrainRouteIndex = otherTrain.ValidRoutes[Direction.Forward].GetRouteIndex(reqWait.ActiveSectionIndex, 0);
 
                         if (waitTrainRouteIndex >= 0)
                         {
@@ -7317,7 +7317,7 @@ namespace Orts.Simulation.Timetables
                                 float? ownDelayS = null;
 
                                 // determine own delay
-                                if (reqWait.ownDelayS.HasValue)
+                                if (reqWait.OwnDelayS.HasValue)
                                 {
                                     if (owndelayexceeded)
                                     {
@@ -7328,7 +7328,7 @@ namespace Orts.Simulation.Timetables
                                             ownDelayS -= (float)otherTrain.Delay.Value.TotalSeconds;
                                         }
 
-                                        if (ownDelayS.Value > reqWait.ownDelayS.Value)
+                                        if (ownDelayS.Value > reqWait.OwnDelayS.Value)
                                         {
                                             waitState = true;
                                             reqWait.WaitActive = true;
@@ -7339,9 +7339,9 @@ namespace Orts.Simulation.Timetables
                                 // determine other train delay
                                 else
                                 {
-                                    if (reqWait.maxDelayS.HasValue && otherTrain.Delay.HasValue)
+                                    if (reqWait.MaxDelayS.HasValue && otherTrain.Delay.HasValue)
                                     {
-                                        totalDelayS = reqWait.maxDelayS.Value;
+                                        totalDelayS = reqWait.MaxDelayS.Value;
                                         totalDelayS += Delay.HasValue ? (float)Delay.Value.TotalSeconds : 0f;     // add own delay if set
                                     }
 
@@ -7357,7 +7357,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 // if other train not in this subpath but notstarted is set, wait is valid (except when conditioned by own delay)
-                else if (otherTrain.TCRoute.ActiveSubPath < reqWait.waitTrainSubpathIndex && reqWait.notStarted.HasValue && owndelayexceeded)
+                else if (otherTrain.TCRoute.ActiveSubPath < reqWait.WaitTrainSubpathIndex && reqWait.NotStarted.HasValue && owndelayexceeded)
                 {
                     waitState = true;
                     reqWait.WaitActive = true;
@@ -7365,9 +7365,9 @@ namespace Orts.Simulation.Timetables
             }
 
             // check if waiting is also required if train not yet started
-            else if (reqWait.notStarted.HasValue && owndelayexceeded)
+            else if (reqWait.NotStarted.HasValue && owndelayexceeded)
             {
-                if (CheckTTTrainNotStartedByNumber(reqWait.waitTrainNumber))
+                if (CheckTTTrainNotStartedByNumber(reqWait.WaitTrainNumber))
                 {
                     waitState = true;
                     reqWait.WaitActive = true;
@@ -7767,7 +7767,7 @@ namespace Orts.Simulation.Timetables
                                 if (car.WagonType == WagonType.Engine)
                                 {
                                     MSTSLocomotive loco = car as MSTSLocomotive;
-                                    loco.AntiSlip = formedTrain.leadLocoAntiSlip;
+                                    loco.AntiSlip = formedTrain.LeadLocoAntiSlip;
                                 }
                             }
                         }
@@ -9010,7 +9010,7 @@ namespace Orts.Simulation.Timetables
                 if (reqWait != null && connectionInfo.Value >= 0)
                 {
                     removeKeys.Add(connectionInfo.Key);
-                    int reqHoldTime = (reqWait.holdTimeS.HasValue) ? reqWait.holdTimeS.Value : 0;
+                    int reqHoldTime = (reqWait.HoldTimeS.HasValue) ? reqWait.HoldTimeS.Value : 0;
                     int allowedDepart = (connectionInfo.Value + reqHoldTime) % (24 * 3600);
                     if (helddepart.HasValue)
                     {
@@ -9043,9 +9043,9 @@ namespace Orts.Simulation.Timetables
                         // check if train is not passed the station
                         if (reqStop != null && reqWait != null)
                         {
-                            if (otherTrain.Delay.HasValue && reqWait.maxDelayS.HasValue)
+                            if (otherTrain.Delay.HasValue && reqWait.MaxDelayS.HasValue)
                             {
-                                if (otherTrain.Delay.Value.TotalSeconds <= reqWait.maxDelayS.Value)
+                                if (otherTrain.Delay.Value.TotalSeconds <= reqWait.MaxDelayS.Value)
                                 {
                                     needwait = otherTrainNumber;  // train is within allowed time - wait required
                                     break;                        // no need to check other trains
@@ -9977,7 +9977,7 @@ namespace Orts.Simulation.Timetables
                     if (car.WagonType == WagonType.Engine)
                     {
                         MSTSLocomotive loco = car as MSTSLocomotive;
-                        loco.AntiSlip = attachTrain.leadLocoAntiSlip;
+                        loco.AntiSlip = attachTrain.LeadLocoAntiSlip;
                     }
                 }
             }

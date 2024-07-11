@@ -38,40 +38,40 @@ namespace Orts.Simulation.Timetables
     public class WaitInfo : IComparable<WaitInfo>, ISaveStateApi<WaitInfoSaveState>
     {
         // General info
-        public WaitInfoType WaitType;                         // type of wait instruction
-        public bool WaitActive;                               // wait state is active
+        public WaitInfoType WaitType { get; set; }                         // type of wait instruction
+        public bool WaitActive { get; set; }                               // wait state is active
 
         // preprocessed info - info is removed after processing
-        public int startSectionIndex;                         // section from which command is valid (-1 if valid from start)
-        public int startSubrouteIndex;                        // subpath index from which command is valid
-        public string referencedTrainName;                    // referenced train name (for Wait, Follow or Connect)
+        public int StartSectionIndex { get; set; }                         // section from which command is valid (-1 if valid from start)
+        public int StartSubrouteIndex { get; set; }                        // subpath index from which command is valid
+        public string ReferencedTrainName { get; set; }                    // referenced train name (for Wait, Follow or Connect)
 
         // processed info
-        public int activeSectionIndex;                        // index of TrackCircuitSection where wait must be activated
-        public int activeSubrouteIndex;                       // subpath in which this wait is valid
-        public int activeRouteIndex;                          // index of section in active subpath
+        public int ActiveSectionIndex { get; set; }                        // index of TrackCircuitSection where wait must be activated
+        public int ActiveSubrouteIndex { get; set; }                       // subpath in which this wait is valid
+        public int ActiveRouteIndex { get; set; }                          // index of section in active subpath
 
         // common for Wait, Follow and Connect
-        public int waitTrainNumber;                           // number of train for which to wait
-        public int? maxDelayS;                         // max. delay for waiting (in seconds)
-        public int? ownDelayS;                         // min. own delay for waiting to be active (in seconds)
-        public bool? notStarted;                       // also wait if not yet started
-        public bool? atStart;                          // wait at start of wait section, otherwise wait at first not-common section
-        public int? waittrigger;                       // time at which wait is triggered
-        public int? waitendtrigger;                    // time at which wait is cancelled
+        public int WaitTrainNumber { get; set; }                           // number of train for which to wait
+        public int? MaxDelayS { get; set; }                         // max. delay for waiting (in seconds)
+        public int? OwnDelayS { get; set; }                         // min. own delay for waiting to be active (in seconds)
+        public bool? NotStarted { get; set; }                       // also wait if not yet started
+        public bool? AtStart { get; set; }                          // wait at start of wait section, otherwise wait at first not-common section
+        public int? Waittrigger { get; set; }                       // time at which wait is triggered
+        public int? Waitendtrigger { get; set; }                    // time at which wait is cancelled
 
         // wait types Wait and Follow :
-        public int waitTrainSubpathIndex;                     // subpath index for train - set to -1 if wait is always active
-        public int waitTrainRouteIndex;                       // index of section in active subpath
+        public int WaitTrainSubpathIndex { get; set; }                     // subpath index for train - set to -1 if wait is always active
+        public int WaitTrainRouteIndex { get; set; }                       // index of section in active subpath
 
         // wait types Connect :
-        public int stationIndex;                              // index in this train station stop list
-        public int? holdTimeS;                                // required hold time (in seconds)
+        public int StationIndex { get; set; }                              // index in this train station stop list
+        public int? HoldTimeS { get; set; }                                // required hold time (in seconds)
 
         // wait types WaitInfo (no post-processing required) :
-        public TrackCircuitPartialPathRoute CheckPath;         // required path to check in case of WaitAny
+        public TrackCircuitPartialPathRoute CheckPath { get; set; }         // required path to check in case of WaitAny
 
-        public PathCheckDirection PathDirection = PathCheckDirection.Same; // required path direction
+        public PathCheckDirection PathDirection { get; set; } = PathCheckDirection.Same; // required path direction
 
         public WaitInfo()
         {
@@ -88,9 +88,9 @@ namespace Orts.Simulation.Timetables
                 : other.WaitType switch
             {
                 WaitInfoType.Connect => -1,
-                _ => activeSubrouteIndex < other.activeSubrouteIndex || activeSubrouteIndex == other.activeSubrouteIndex && activeRouteIndex < other.activeRouteIndex
+                _ => ActiveSubrouteIndex < other.ActiveSubrouteIndex || ActiveSubrouteIndex == other.ActiveSubrouteIndex && ActiveRouteIndex < other.ActiveRouteIndex
                 ? -1
-                : activeSubrouteIndex == other.activeSubrouteIndex && activeRouteIndex == other.activeRouteIndex ? 0 : 1
+                : ActiveSubrouteIndex == other.ActiveSubrouteIndex && ActiveRouteIndex == other.ActiveRouteIndex ? 0 : 1
             };
         }
 
@@ -108,21 +108,21 @@ namespace Orts.Simulation.Timetables
             return new WaitInfoSaveState()
             {
                 WaitInfoType = WaitType,
-                TrainNumber = waitTrainNumber,
+                TrainNumber = WaitTrainNumber,
                 ActiveWait = WaitActive,
-                ActiveRouteIndex = activeRouteIndex,
-                ActiveSubrouteIndex = activeSubrouteIndex,
-                ActiveSectionIndex = activeSectionIndex,
-                MaxDelay = maxDelayS,
-                OwnDelay = ownDelayS,
-                NotStarted = notStarted,
-                AtStart = atStart,
-                WaitTrigger = waittrigger,
-                WaitEndTrigger = waitendtrigger,
-                WaitingTrainRouteIndex = waitTrainRouteIndex,
-                WaitingTrainSubpathIndex = waitTrainSubpathIndex,
-                StationIndex = stationIndex,
-                HoldTime = holdTimeS,
+                ActiveRouteIndex = ActiveRouteIndex,
+                ActiveSubrouteIndex = ActiveSubrouteIndex,
+                ActiveSectionIndex = ActiveSectionIndex,
+                MaxDelay = MaxDelayS,
+                OwnDelay = OwnDelayS,
+                NotStarted = NotStarted,
+                AtStart = AtStart,
+                WaitTrigger = Waittrigger,
+                WaitEndTrigger = Waitendtrigger,
+                WaitingTrainRouteIndex = WaitTrainRouteIndex,
+                WaitingTrainSubpathIndex = WaitTrainSubpathIndex,
+                StationIndex = StationIndex,
+                HoldTime = HoldTimeS,
                 CheckPath = CheckPath == null ? null : await CheckPath.Snapshot().ConfigureAwait(false),
                 CheckDirection = PathDirection,
             };
@@ -135,23 +135,23 @@ namespace Orts.Simulation.Timetables
             WaitType = saveState.WaitInfoType;
             WaitActive = saveState.ActiveWait;
 
-            activeRouteIndex = saveState.ActiveRouteIndex;
-            activeSubrouteIndex = saveState.ActiveSubrouteIndex;
-            activeSectionIndex = saveState.ActiveSectionIndex;
+            ActiveRouteIndex = saveState.ActiveRouteIndex;
+            ActiveSubrouteIndex = saveState.ActiveSubrouteIndex;
+            ActiveSectionIndex = saveState.ActiveSectionIndex;
 
-            waitTrainNumber = saveState.TrainNumber;
-            maxDelayS = saveState.MaxDelay;
-            ownDelayS = saveState.OwnDelay;
-            notStarted = saveState.NotStarted;
-            atStart = saveState.AtStart;
-            waittrigger = saveState.WaitTrigger;
-            waitendtrigger = saveState.WaitEndTrigger;
+            WaitTrainNumber = saveState.TrainNumber;
+            MaxDelayS = saveState.MaxDelay;
+            OwnDelayS = saveState.OwnDelay;
+            NotStarted = saveState.NotStarted;
+            AtStart = saveState.AtStart;
+            Waittrigger = saveState.WaitTrigger;
+            Waitendtrigger = saveState.WaitEndTrigger;
 
-            waitTrainSubpathIndex = saveState.WaitingTrainSubpathIndex;
-            waitTrainRouteIndex = saveState.WaitingTrainRouteIndex;
+            WaitTrainSubpathIndex = saveState.WaitingTrainSubpathIndex;
+            WaitTrainRouteIndex = saveState.WaitingTrainRouteIndex;
 
-            stationIndex = saveState.StationIndex;
-            holdTimeS = saveState.HoldTime;
+            StationIndex = saveState.StationIndex;
+            HoldTimeS = saveState.HoldTime;
 
             if (saveState.CheckPath == null)
             {

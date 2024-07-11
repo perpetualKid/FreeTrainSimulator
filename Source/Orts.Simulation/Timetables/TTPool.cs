@@ -1249,7 +1249,7 @@ namespace Orts.Simulation.Timetables
                             if (car.WagonType == WagonType.Engine)
                             {
                                 MSTSLocomotive loco = car as MSTSLocomotive;
-                                loco.AntiSlip = train.leadLocoAntiSlip;
+                                loco.AntiSlip = train.LeadLocoAntiSlip;
                             }
                         }
                     }
