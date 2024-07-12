@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Common.Diagnostics
 {
     public sealed class GraphicMetrics : DetailInfoBase
     {
-        public GraphicsMetrics CurrentMetrics;
+        public GraphicsMetrics CurrentMetrics { get; set; }
 
         public GraphicMetrics() : base(true)
         {

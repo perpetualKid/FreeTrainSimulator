@@ -3151,7 +3151,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public virtual void UpdateFrictionCoefficient(double elapsedClockSeconds)
         {
-            float BaseuMax = (float)(Curtius_KnifflerA / (Speed.MeterPerSecond.ToKpH(AbsSpeedMpS) + Curtius_KnifflerB) + Curtius_KnifflerC); // Base Curtius - Kniffler equation - u = 0.33, all other values are scaled off this formula
+            float BaseuMax = (float)(CurtiusKnifflerA / (Speed.MeterPerSecond.ToKpH(AbsSpeedMpS) + CurtiusKnifflerB) + CurtiusKnifflerC); // Base Curtius - Kniffler equation - u = 0.33, all other values are scaled off this formula
             float SandingFrictionCoefficientFactor = 1.0f;
 
             //Set the friction coeff due to weather - uses the vlaues set in the precipitation module to determine whether clear, rain or snow.

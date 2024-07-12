@@ -424,10 +424,10 @@ namespace Orts.Simulation.RollingStocks
                     var calculatedmaxcontinuousforcekN = CalculatedMaxContinuousForceN / 1000.0f;
                     var designadhesionmaxcontspeed = calculatedmaxcontinuousforcekN / (Mass.Kilogram.ToTonnes(DrvWheelWeightKg) * 10);
                     var zerospeed = 0;
-                    var configuredadhesionzerospeed = (Curtius_KnifflerA / (zerospeed + Curtius_KnifflerB) + Curtius_KnifflerC);
-                    var configuredadhesionmaxcontinuousspeed = (Curtius_KnifflerA / (SpeedOfMaxContinuousForceMpS + Curtius_KnifflerB) + Curtius_KnifflerC);
+                    var configuredadhesionzerospeed = (CurtiusKnifflerA / (zerospeed + CurtiusKnifflerB) + CurtiusKnifflerC);
+                    var configuredadhesionmaxcontinuousspeed = (CurtiusKnifflerA / (SpeedOfMaxContinuousForceMpS + CurtiusKnifflerB) + CurtiusKnifflerC);
                     var dropoffspeed = calculatedmaximumpowerw / (MaxForceN);
-                    var configuredadhesiondropoffspeed = (Curtius_KnifflerA / (dropoffspeed + Curtius_KnifflerB) + Curtius_KnifflerC);
+                    var configuredadhesiondropoffspeed = (CurtiusKnifflerA / (dropoffspeed + CurtiusKnifflerB) + CurtiusKnifflerC);
 
                     Trace.TraceInformation("Slip control system: {0}, Traction motor type: {1}", SlipControlSystem.ToString(), TractionMotorType.ToString()); // Slip control
 
