@@ -62,9 +62,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 {
     public class MSTSLocomotiveViewer : MSTSWagonViewer
     {
-        private MSTSLocomotive Locomotive;
-
-        protected MSTSLocomotive MSTSLocomotive { get { return (MSTSLocomotive)Car; } }
+        private readonly MSTSLocomotive locomotive;
 
         public bool HasCabRenderer { get; private set; }
         public bool Has3DCabRenderer { get; private set; }
@@ -74,66 +72,66 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         private bool emergencyButtonPressed;
 
-        private CruiseControlViewer cruiseControlViewer;
+        private readonly CruiseControlViewer cruiseControlViewer;
 
         public MSTSLocomotiveViewer(Viewer viewer, MSTSLocomotive car)
             : base(viewer, car)
         {
-            Locomotive = car;
+            locomotive = car;
 
-            if (Locomotive.CabSoundFileName != null)
-                LoadCarSound(Path.GetDirectoryName(Locomotive.WagFilePath), Locomotive.CabSoundFileName);
+            if (locomotive.CabSoundFileName != null)
+                LoadCarSound(Path.GetDirectoryName(locomotive.WagFilePath), locomotive.CabSoundFileName);
 
-            if (Locomotive.TrainControlSystem != null && Locomotive.TrainControlSystem.Sounds.Count > 0)
+            if (locomotive.TrainControlSystem != null && locomotive.TrainControlSystem.Sounds.Count > 0)
             {
-                foreach (var script in Locomotive.TrainControlSystem.Sounds.Keys)
+                foreach (var script in locomotive.TrainControlSystem.Sounds.Keys)
                 {
                     try
                     {
                         Viewer.SoundProcess.AddSoundSources(script, new Collection<SoundSourceBase>() {
-                            new SoundSource(Locomotive, this, Locomotive.TrainControlSystem.Sounds[script])});
+                            new SoundSource(locomotive, this, locomotive.TrainControlSystem.Sounds[script])});
                     }
                     catch (Exception error) when (error is Exception)
                     {
-                        Trace.TraceInformation($"File {Locomotive.TrainControlSystem.Sounds[script]} in script of locomotive of train {Locomotive.Train.Name} : {error.Message}");
+                        Trace.TraceInformation($"File {locomotive.TrainControlSystem.Sounds[script]} in script of locomotive of train {locomotive.Train.Name} : {error.Message}");
                     }
                 }
             }
-            if (Locomotive.CruiseControl != null)
+            if (locomotive.CruiseControl != null)
             {
-                cruiseControlViewer = new CruiseControlViewer(viewer, Locomotive);
+                cruiseControlViewer = new CruiseControlViewer(viewer, locomotive);
             }
         }
 
         protected virtual void StartGearBoxIncrease()
         {
-            if (Locomotive.GearBoxController != null)
-                Locomotive.StartGearBoxIncrease();
+            if (locomotive.GearBoxController != null)
+                locomotive.StartGearBoxIncrease();
         }
 
         protected virtual void StopGearBoxIncrease()
         {
-            if (Locomotive.GearBoxController != null)
-                Locomotive.StopGearBoxIncrease();
+            if (locomotive.GearBoxController != null)
+                locomotive.StopGearBoxIncrease();
         }
 
         protected virtual void StartGearBoxDecrease()
         {
-            if (Locomotive.GearBoxController != null)
-                Locomotive.StartGearBoxDecrease();
+            if (locomotive.GearBoxController != null)
+                locomotive.StartGearBoxDecrease();
         }
 
         protected virtual void StopGearBoxDecrease()
         {
-            if (Locomotive.GearBoxController != null)
-                Locomotive.StopGearBoxDecrease();
+            if (locomotive.GearBoxController != null)
+                locomotive.StopGearBoxDecrease();
         }
 
         protected virtual void ReverserControlForwards()
         {
-            if (Locomotive.Direction != MidpointDirection.Forward
-            && (Locomotive.ThrottlePercent >= 1
-            || Math.Abs(Locomotive.SpeedMpS) > 1))
+            if (locomotive.Direction != MidpointDirection.Forward
+            && (locomotive.ThrottlePercent >= 1
+            || Math.Abs(locomotive.SpeedMpS) > 1))
             {
                 Viewer.Simulator.Confirmer.Warning(CabControl.Reverser, CabSetting.Warn1);
                 return;
@@ -143,9 +141,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         protected virtual void ReverserControlBackwards()
         {
-            if (Locomotive.Direction != MidpointDirection.Reverse
-            && (Locomotive.ThrottlePercent >= 1
-            || Math.Abs(Locomotive.SpeedMpS) > 1))
+            if (locomotive.Direction != MidpointDirection.Reverse
+            && (locomotive.ThrottlePercent >= 1
+            || Math.Abs(locomotive.SpeedMpS) > 1))
             {
                 Viewer.Simulator.Confirmer.Warning(CabControl.Reverser, CabSetting.Warn1);
                 return;
@@ -160,15 +158,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             //Debrief eval
-            if (!emergencyButtonPressed && Locomotive.EmergencyButtonPressed && Locomotive.IsPlayerTrain)
+            if (!emergencyButtonPressed && locomotive.EmergencyButtonPressed && locomotive.IsPlayerTrain)
             {
-                if (Math.Abs(Locomotive.SpeedMpS) == 0)
+                if (Math.Abs(locomotive.SpeedMpS) == 0)
                     ActivityEvaluation.Instance.EmergencyButtonStopped++;
                 else
                     ActivityEvaluation.Instance.EmergencyButtonMoving++;
                 emergencyButtonPressed = true;
             }
-            if (emergencyButtonPressed && !Locomotive.EmergencyButtonPressed)
+            if (emergencyButtonPressed && !locomotive.EmergencyButtonPressed)
                 emergencyButtonPressed = false;
         }
 
@@ -179,36 +177,36 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(UserCommand.DebugToggleAdvancedAdhesion, KeyEventType.KeyPressed, DebugToggleAdvancedAdhesionCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyPressed, Locomotive.StartThrottleIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyPressed, Locomotive.StartThrottleDecrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyReleased, Locomotive.StopThrottleIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyReleased, Locomotive.StopThrottleDecrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleZero, KeyEventType.KeyPressed, Locomotive.ThrottleToZero, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeDecrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopTrainBrakeIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopTrainBrakeDecrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeZero, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeZero, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartEngineBrakeIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartEngineBrakeDecrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopEngineBrakeIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopEngineBrakeDecrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartBrakemanBrakeIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartBrakemanBrakeDecrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopBrakemanBrakeIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopBrakemanBrakeDecrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartDynamicBrakeIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartDynamicBrakeDecrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopDynamicBrakeIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopDynamicBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyPressed, locomotive.StartThrottleIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyPressed, locomotive.StartThrottleDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyReleased, locomotive.StopThrottleIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyReleased, locomotive.StopThrottleDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleZero, KeyEventType.KeyPressed, locomotive.ThrottleToZero, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyPressed, locomotive.StartTrainBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyPressed, locomotive.StartTrainBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyReleased, locomotive.StopTrainBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyReleased, locomotive.StopTrainBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeZero, KeyEventType.KeyPressed, locomotive.StartTrainBrakeZero, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyPressed, locomotive.StartEngineBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyPressed, locomotive.StartEngineBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyReleased, locomotive.StopEngineBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyReleased, locomotive.StopEngineBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyPressed, locomotive.StartBrakemanBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyPressed, locomotive.StartBrakemanBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyReleased, locomotive.StopBrakemanBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyReleased, locomotive.StopBrakemanBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyPressed, locomotive.StartDynamicBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyPressed, locomotive.StartDynamicBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyReleased, locomotive.StopDynamicBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyReleased, locomotive.StopDynamicBrakeDecrease, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlGearUp, KeyEventType.KeyPressed, StartGearBoxIncrease, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlGearDown, KeyEventType.KeyPressed, StartGearBoxDecrease, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlGearUp, KeyEventType.KeyReleased, StopGearBoxIncrease, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlGearDown, KeyEventType.KeyReleased, StopGearBoxDecrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyPressed, Locomotive.StartSteamHeatIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyPressed, Locomotive.StartSteamHeatDecrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyReleased, Locomotive.StopSteamHeatIncrease, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyReleased, Locomotive.StopSteamHeatDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyPressed, locomotive.StartSteamHeatIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyPressed, locomotive.StartSteamHeatDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyReleased, locomotive.StopSteamHeatIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyReleased, locomotive.StopSteamHeatDecrease, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlBailOff, KeyEventType.KeyPressed, BailOffOnCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlBailOff, KeyEventType.KeyReleased, BailOffOffCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlInitializeBrakes, KeyEventType.KeyPressed, InitializeBrakesCommand, true);
@@ -284,36 +282,36 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.DebugToggleAdvancedAdhesion, KeyEventType.KeyPressed, DebugToggleAdvancedAdhesionCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyPressed, Locomotive.StartThrottleIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyPressed, Locomotive.StartThrottleDecrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyReleased, Locomotive.StopThrottleIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyReleased, Locomotive.StopThrottleDecrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleZero, KeyEventType.KeyPressed, Locomotive.ThrottleToZero);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeDecrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopTrainBrakeIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopTrainBrakeDecrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeZero, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeZero);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartEngineBrakeIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartEngineBrakeDecrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopEngineBrakeIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopEngineBrakeDecrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartBrakemanBrakeIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartBrakemanBrakeDecrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopBrakemanBrakeIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopBrakemanBrakeDecrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartDynamicBrakeIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartDynamicBrakeDecrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopDynamicBrakeIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopDynamicBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyPressed, locomotive.StartThrottleIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyPressed, locomotive.StartThrottleDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyReleased, locomotive.StopThrottleIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyReleased, locomotive.StopThrottleDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleZero, KeyEventType.KeyPressed, locomotive.ThrottleToZero);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyPressed, locomotive.StartTrainBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyPressed, locomotive.StartTrainBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyReleased, locomotive.StopTrainBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyReleased, locomotive.StopTrainBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeZero, KeyEventType.KeyPressed, locomotive.StartTrainBrakeZero);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyPressed, locomotive.StartEngineBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyPressed, locomotive.StartEngineBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyReleased, locomotive.StopEngineBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyReleased, locomotive.StopEngineBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyPressed, locomotive.StartBrakemanBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyPressed, locomotive.StartBrakemanBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyReleased, locomotive.StopBrakemanBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyReleased, locomotive.StopBrakemanBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyPressed, locomotive.StartDynamicBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyPressed, locomotive.StartDynamicBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyReleased, locomotive.StopDynamicBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyReleased, locomotive.StopDynamicBrakeDecrease);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearUp, KeyEventType.KeyPressed, StartGearBoxIncrease);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearDown, KeyEventType.KeyPressed, StartGearBoxDecrease);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearUp, KeyEventType.KeyReleased, StopGearBoxIncrease);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearDown, KeyEventType.KeyReleased, StopGearBoxDecrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyPressed, Locomotive.StartSteamHeatIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyPressed, Locomotive.StartSteamHeatDecrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyReleased, Locomotive.StopSteamHeatIncrease);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyReleased, Locomotive.StopSteamHeatDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyPressed, locomotive.StartSteamHeatIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyPressed, locomotive.StartSteamHeatDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyReleased, locomotive.StopSteamHeatIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyReleased, locomotive.StopSteamHeatDecrease);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBailOff, KeyEventType.KeyPressed, BailOffOnCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBailOff, KeyEventType.KeyReleased, BailOffOffCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInitializeBrakes, KeyEventType.KeyPressed, InitializeBrakesCommand);
@@ -384,11 +382,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         // To be able to attach and detach from UserCommandController we need some actual instance
         // therefore can't use anonymous lambda
 #pragma warning disable IDE0022 // Use block body for methods
-        private void ShowCabCommand() => Locomotive.ShowCab = !Locomotive.ShowCab;
-        private void DebugResetWheelSlipCommand() => Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip);
+        private void ShowCabCommand() => locomotive.ShowCab = !locomotive.ShowCab;
+        private void DebugResetWheelSlipCommand() => locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip);
         private void DebugToggleAdvancedAdhesionCommand()
         {
-            Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip);
+            locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip);
             Viewer.Settings.UseAdvancedAdhesion = !Viewer.Settings.UseAdvancedAdhesion;
         }
         private void BailOffOnCommand() => _ = new BailOffCommand(Viewer.Log, true);
@@ -400,21 +398,21 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void RetainersOnCommand() => _ = new RetainersCommand(Viewer.Log, true);
         private void BrakeHoseConnectCommand() => _ = new BrakeHoseConnectCommand(Viewer.Log, true);
         private void BrakeHoseDisconnectCommand() => _ = new BrakeHoseConnectCommand(Viewer.Log, false);
-        private void EmergencyPushButtonCommand() => _ = new EmergencyPushButtonCommand(Viewer.Log, !Locomotive.EmergencyButtonPressed);
+        private void EmergencyPushButtonCommand() => _ = new EmergencyPushButtonCommand(Viewer.Log, !locomotive.EmergencyButtonPressed);
         private void EOTEmergencyBrakeCommand() => _ = new ToggleEOTEmergencyBrakeCommand(Viewer.Log);
         private void SanderOnCommand() => _ = new SanderCommand(Viewer.Log, true);
         private void SanderOffCommand() => _ = new SanderCommand(Viewer.Log, false);
-        private void SanderToogleCommand() => _ = new SanderCommand(Viewer.Log, !Locomotive.Sander);
+        private void SanderToogleCommand() => _ = new SanderCommand(Viewer.Log, !locomotive.Sander);
         private void WiperCommand()
         {
-            _ = new WipersCommand(Viewer.Log, !Locomotive.Wiper);
-            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = Locomotive.Wiper ? TrainEvent.WiperOn : TrainEvent.WiperOff });
+            _ = new WipersCommand(Viewer.Log, !locomotive.Wiper);
+            MultiPlayerManager.Broadcast(new TrainEventMessage() { TrainEvent = locomotive.Wiper ? TrainEvent.WiperOn : TrainEvent.WiperOff });
         }
         private void HornOnCommand() => _ = new HornCommand(Viewer.Log, true);
         private void HornOffCommand() => _ = new HornCommand(Viewer.Log, false);
         private void BellOnCommand() => _ = new BellCommand(Viewer.Log, true);
         private void BellOffCommand() => _ = new BellCommand(Viewer.Log, false);
-        private void BellToggleCommand() => _ = new BellCommand(Viewer.Log, !Locomotive.Bell);
+        private void BellToggleCommand() => _ = new BellCommand(Viewer.Log, !locomotive.Bell);
         private void AlerterOnCommand() => _ = new AlerterCommand(Viewer.Log, true);
         private void AlerterOffCommand() => _ = new AlerterCommand(Viewer.Log, false);
         private void HeadlightIncreaseCommand()
@@ -448,14 +446,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void ResetOdometerOnCommand() => _ = new ResetOdometerCommand(Viewer.Log, true);
         private void ResetOdometerOffCommand() => _ = new ResetOdometerCommand(Viewer.Log, false);
         private void ToggleOdometerDirectionCommand() => _ = new ToggleOdometerDirectionCommand(Viewer.Log);
-        private void CabRadioCommand() => _ = new CabRadioCommand(Viewer.Log, !Locomotive.CabRadioOn);
+        private void CabRadioCommand() => _ = new CabRadioCommand(Viewer.Log, !locomotive.CabRadioOn);
         private void ToggleHelpersEngineCommand() => _ = new ToggleHelpersEngineCommand(Viewer.Log);
         private void ToggleGenericCommand1() => _ = new ToggleGenericItem1Command(Viewer.Log);
         private void ToggleGenericCommand2() => _ = new ToggleGenericItem2Command(Viewer.Log);
         private void TCSGenericCommand1On()
         {
             _ = new TCSButtonCommand(Viewer.Log, true, 0);
-            Locomotive.TrainControlSystem.TCSCommandSwitchOn.TryGetValue(0, out bool pressed);
+            locomotive.TrainControlSystem.TCSCommandSwitchOn.TryGetValue(0, out bool pressed);
             _ = new TCSSwitchCommand(Viewer.Log, !pressed, 0);
         }
         private void TCSGenericCommand1Off()
@@ -465,7 +463,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void TCSGenericCommand2On()
         {
             _ = new TCSButtonCommand(Viewer.Log, true, 1);
-            Locomotive.TrainControlSystem.TCSCommandSwitchOn.TryGetValue(1, out bool pressed);
+            locomotive.TrainControlSystem.TCSCommandSwitchOn.TryGetValue(1, out bool pressed);
             _ = new TCSSwitchCommand(Viewer.Log, !pressed, 1);
         }
         private void TCSGenericCommand2Off()
@@ -506,22 +504,22 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (commandArgs is UserCommandArgs<int> switchCommandArgs)
             {
                 // changing Headlight more than one step at a time doesn't work for some reason
-                if (Locomotive.Headlight < HeadLightState.HeadlightOn)
+                if (locomotive.Headlight < HeadLightState.HeadlightOn)
                 {
-                    Locomotive.Headlight = Locomotive.Headlight.Next();
+                    locomotive.Headlight = locomotive.Headlight.Next();
                 }
-                if (Locomotive.Headlight > HeadLightState.HeadlightOff)
+                if (locomotive.Headlight > HeadLightState.HeadlightOff)
                 {
-                    Locomotive.Headlight = Locomotive.Headlight.Previous();
+                    locomotive.Headlight = locomotive.Headlight.Previous();
                 }
-                Locomotive.SignalEvent(Locomotive.Headlight switch
+                locomotive.SignalEvent(locomotive.Headlight switch
                 {
                     HeadLightState.HeadlightOff => TrainEvent.HeadlightOff,
                     HeadLightState.HeadlightDimmed => TrainEvent.HeadlightDim,
                     HeadLightState.HeadlightOn => TrainEvent.HeadlightOn,
                     _ => throw new NotImplementedException()
                 });
-                Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
+                locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
             }
         }
 
@@ -529,10 +527,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (commandArgs is UserCommandArgs<int> switchCommandArgs)
             {
-                if (switchCommandArgs.Value == 1 && Locomotive.Wiper)
-                    Locomotive.SignalEvent(TrainEvent.WiperOff);
-                else if (switchCommandArgs.Value != 1 && !Locomotive.Wiper)
-                    Locomotive.SignalEvent(TrainEvent.WiperOn);
+                if (switchCommandArgs.Value == 1 && locomotive.Wiper)
+                    locomotive.SignalEvent(TrainEvent.WiperOff);
+                else if (switchCommandArgs.Value != 1 && !locomotive.Wiper)
+                    locomotive.SignalEvent(TrainEvent.WiperOn);
             }
         }
 
@@ -541,11 +539,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (commandArgs is UserCommandArgs<float> handleCommandArgs)
             {
                 if (handleCommandArgs.Value > 50)
-                    Locomotive.SetDirection(MidpointDirection.Forward);
+                    locomotive.SetDirection(MidpointDirection.Forward);
                 else if (handleCommandArgs.Value < -50)
-                    Locomotive.SetDirection(MidpointDirection.Reverse);
+                    locomotive.SetDirection(MidpointDirection.Reverse);
                 else
-                    Locomotive.SetDirection(MidpointDirection.N);
+                    locomotive.SetDirection(MidpointDirection.N);
             }
         }
 
@@ -553,7 +551,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (commandArgs is UserCommandArgs<float> handleCommandArgs)
             {
-                Locomotive.SetThrottlePercentWithSound(handleCommandArgs.Value);
+                locomotive.SetThrottlePercentWithSound(handleCommandArgs.Value);
             }
         }
 
@@ -561,8 +559,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (commandArgs is UserCommandArgs<float> handleCommandArgs)
             {
-                if (Locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
-                    Locomotive.SetDynamicBrakePercentWithSound(handleCommandArgs.Value);
+                if (locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
+                    locomotive.SetDynamicBrakePercentWithSound(handleCommandArgs.Value);
             }
         }
 
@@ -570,7 +568,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (commandArgs is UserCommandArgs<float> handleCommandArgs)
             {
-                Locomotive.SetTrainBrakePercent(handleCommandArgs.Value);
+                locomotive.SetTrainBrakePercent(handleCommandArgs.Value);
             }
         }
 
@@ -578,7 +576,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (commandArgs is UserCommandArgs<float> handleCommandArgs)
             {
-                Locomotive.SetEngineBrakePercent(handleCommandArgs.Value);
+                locomotive.SetEngineBrakePercent(handleCommandArgs.Value);
             }
         }
 
@@ -586,7 +584,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (commandArgs is UserCommandArgs<bool> handleCommandArgs)
             {
-                Locomotive.SetBailOff(handleCommandArgs.Value);
+                locomotive.SetBailOff(handleCommandArgs.Value);
             }
         }
 
@@ -600,7 +598,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         private void AlerterResetCommand(UserCommandArgs commandArgs, GameTime gameTime)
         {
-            Locomotive.AlerterReset();
+            locomotive.AlerterReset();
         }
 
 #pragma warning restore IDE0022 // Use block body for methods
@@ -619,10 +617,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             // Wipers and bell animation
-            Wipers.UpdateLoop(Locomotive.Wiper, elapsedTime);
-            Bell.UpdateLoop(Locomotive.Bell, elapsedTime, TrainCarShape.SharedShape.CustomAnimationFPS);
-            Item1Continuous.UpdateLoop(Locomotive.GenericItem1, elapsedTime, TrainCarShape.SharedShape.CustomAnimationFPS);
-            Item2Continuous.UpdateLoop(Locomotive.GenericItem2, elapsedTime, TrainCarShape.SharedShape.CustomAnimationFPS);
+            wipers.UpdateLoop(locomotive.Wiper, elapsedTime);
+            bell.UpdateLoop(locomotive.Bell, elapsedTime, trainCarShape.SharedShape.CustomAnimationFPS);
+            item1Continuous.UpdateLoop(locomotive.GenericItem1, elapsedTime, trainCarShape.SharedShape.CustomAnimationFPS);
+            item2Continuous.UpdateLoop(locomotive.GenericItem2, elapsedTime, trainCarShape.SharedShape.CustomAnimationFPS);
 
             // Draw 2D CAB View - by GeorgeS
             if (Viewer.Camera.AttachedCar == this.MSTSWagon &&
@@ -639,20 +637,20 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (!HasCabRenderer)
             {
-                if (Locomotive.CabViewList.Count > 0)
+                if (locomotive.CabViewList.Count > 0)
                 {
-                    if (Locomotive.CabViewList[(int)CabViewType.Front].CVFFile != null && Locomotive.CabViewList[(int)CabViewType.Front].CVFFile.Views2D.Count > 0)
-                        CabRenderer = new CabRenderer(Viewer, Locomotive);
+                    if (locomotive.CabViewList[(int)CabViewType.Front].CVFFile != null && locomotive.CabViewList[(int)CabViewType.Front].CVFFile.Views2D.Count > 0)
+                        CabRenderer = new CabRenderer(Viewer, locomotive);
                     HasCabRenderer = true;
                 }
             }
             if (!Has3DCabRenderer)
             {
-                if (Locomotive.CabViewpoints != null)
+                if (locomotive.CabViewpoints != null)
                 {
                     try
                     {
-                        ThreeDimentionCabViewer tmp3DViewer = new ThreeDimentionCabViewer(Viewer, this.Locomotive, this);
+                        ThreeDimentionCabViewer tmp3DViewer = new ThreeDimentionCabViewer(Viewer, this.locomotive, this);
                         CabViewer3D = tmp3DViewer; //if not catching an error, we will assign it
                         Has3DCabRenderer = true;
                     }
@@ -677,8 +675,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public override void Unload()
         {
-            if (Locomotive.TrainControlSystem != null && Locomotive.TrainControlSystem.Sounds.Count > 0)
-                foreach (var script in Locomotive.TrainControlSystem.Sounds.Keys)
+            if (locomotive.TrainControlSystem != null && locomotive.TrainControlSystem.Sounds.Count > 0)
+                foreach (var script in locomotive.TrainControlSystem.Sounds.Keys)
                 {
                     Viewer.SoundProcess.RemoveSoundSources(script);
                 }
@@ -833,7 +831,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public void ImmediateRefill()
         {
-            var loco = this.Locomotive;
+            var loco = this.locomotive;
 
             if (loco == null)
                 return;
@@ -869,7 +867,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             MatchedWagonAndPickup = null;   // Ensures that releasing the T key doesn't do anything unless there is something to do.
 
-            var loco = this.Locomotive;
+            var loco = this.locomotive;
 
             var match = GetMatchingPickup(loco.Train, onlyUnload);
             if (match == null && !(loco is MSTSElectricLocomotive && loco.IsSteamHeatFitted))
@@ -1004,7 +1002,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public void RefillChangeTo(float? target)
         {
             MSTSNotchController controller = new MSTSNotchController();
-            var loco = this.Locomotive;
+            var loco = this.locomotive;
 
             var matchedWagonAndPickup = GetMatchingPickup(loco.Train);   // Save away for RefillCommand to use.
             if (matchedWagonAndPickup != null)
@@ -1043,7 +1041,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// <param name="type">Pickup point</param>
         public void StartRefilling(PickupType type, float fraction)
         {
-            var controller = Locomotive.GetRefillController(type);
+            var controller = locomotive.GetRefillController(type);
             if (controller == null)
             {
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.Error, Viewer.Catalog.GetString("Incompatible pickup type"));
@@ -1955,17 +1953,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             Viewer.TextureManager.Mark(Texture);
         }
-    }
-
-    /// <summary>
-    /// Interface for mouse controllable CabViewControls
-    /// </summary>
-    public interface ICabViewMouseControlRenderer
-    {
-        bool IsMouseWithin(Point mousePoint);
-        void HandleUserInput(GenericButtonEventType buttonEventType, Point position, Vector2 delta);
-        string GetControlName(Point mousePoint);
-
     }
 
     /// <summary>
