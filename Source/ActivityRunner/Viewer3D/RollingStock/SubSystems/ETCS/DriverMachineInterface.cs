@@ -30,6 +30,7 @@ using FreeTrainSimulator.Graphics.Xna;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.ActivityRunner.Viewer3D.RollingStock.CabView;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Scripting.Api.Etcs;
@@ -841,7 +842,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             : base(viewer, locomotive, control, shader)
         {
             // Height is adjusted to keep compatibility
-            driverMachineInterface = new DriverMachineInterface((int)(Control.Bounds.Width * 640 / 280), (int)(Control.Bounds.Height * 480 / 300), locomotive, viewer, control);
+            driverMachineInterface = new DriverMachineInterface((int)(base.control.Bounds.Width * 640 / 280), (int)(base.control.Bounds.Height * 480 / 300), locomotive, viewer, control);
             viewer.UserCommandController.AddEvent(CommonUserCommand.AlternatePointerPressed, MouseRightButtonPressed);
             viewer.UserCommandController.AddEvent(CommonUserCommand.AlternatePointerReleased, MouseRightButtonReleased);
         }
@@ -850,15 +851,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         {
             base.PrepareFrame(frame, elapsedTime);
 
-            driverMachineInterface.SizeTo(position.Width, position.Height);
+            driverMachineInterface.SizeTo(digitalPosition.Width, digitalPosition.Height);
             driverMachineInterface.ETCSDefaultWindow.BackgroundColor = Color.Transparent;
             driverMachineInterface.PrepareFrame(elapsedTime.ClockSeconds);
         }
         public override void Draw()
         {
-            driverMachineInterface.Draw(ControlView.SpriteBatch, new Point(position.X, position.Y));
-            ControlView.SpriteBatch.End();
-            ControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
+            driverMachineInterface.Draw(controlView.SpriteBatch, new Point(digitalPosition.X, digitalPosition.Y));
+            controlView.SpriteBatch.End();
+            controlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, shader);
         }
 
         private void MouseRightButtonPressed(UserCommandArgs userCommandArgs)
@@ -882,15 +883,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public DriverMachineInterfaceRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewScreenControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
-            Position.X = Control.Bounds.X;
-            Position.Y = Control.Bounds.Y;
-            if (Control.Bounds.Height == 102 && Control.Bounds.Width == 136)
+            position.X = base.control.Bounds.X;
+            position.Y = base.control.Bounds.Y;
+            if (base.control.Bounds.Height == 102 && base.control.Bounds.Width == 136)
             {
                 // TODO Hack for ETR400 cab, which was built with a bugged size calculation of digital displays
                 //Control.Bounds.Height *= 0.75f;
                 //Control.Bounds.Width *= 0.75f;
             }
-            driverMachineInterface = new DriverMachineInterface(Control.Bounds.Height, Control.Bounds.Width, locomotive, viewer, control);
+            driverMachineInterface = new DriverMachineInterface(base.control.Bounds.Height, base.control.Bounds.Width, locomotive, viewer, control);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, MouseClickedEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.AlternatePointerPressed, MouseRightButtonPressed);
@@ -899,16 +900,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (!IsPowered && Control.HideIfDisabled)
+            if (!IsPowered && control.HideIfDisabled)
                 return;
 
             base.PrepareFrame(frame, elapsedTime);
-            var xScale = Viewer.CabWidthPixels / 640f;
-            var yScale = Viewer.CabHeightPixels / 480f;
-            DrawPosition.X = (int)(Position.X * xScale) - Viewer.CabXOffsetPixels + Viewer.CabXLetterboxPixels;
-            DrawPosition.Y = (int)(Position.Y * yScale) + Viewer.CabYOffsetPixels + Viewer.CabYLetterboxPixels;
-            DrawPosition.Width = (int)(Control.Bounds.Width * xScale);
-            DrawPosition.Height = (int)(Control.Bounds.Height * yScale);
+            var xScale = viewer.CabWidthPixels / 640f;
+            var yScale = viewer.CabHeightPixels / 480f;
+            DrawPosition.X = (int)(position.X * xScale) - viewer.CabXOffsetPixels + viewer.CabXLetterboxPixels;
+            DrawPosition.Y = (int)(position.Y * yScale) + viewer.CabYOffsetPixels + viewer.CabYLetterboxPixels;
+            DrawPosition.Width = (int)(control.Bounds.Width * xScale);
+            DrawPosition.Height = (int)(control.Bounds.Height * yScale);
             if (Zoomed)
             {
                 DrawPosition.Width = driverMachineInterface.Width;
@@ -969,9 +970,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         public override void Draw()
         {
-            driverMachineInterface.Draw(ControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
-            ControlView.SpriteBatch.End();
-            ControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
+            driverMachineInterface.Draw(controlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
+            controlView.SpriteBatch.End();
+            controlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, shader);
         }
 
 

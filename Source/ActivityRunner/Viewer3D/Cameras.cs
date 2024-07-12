@@ -36,6 +36,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
+using Orts.ActivityRunner.Viewer3D.RollingStock.CabView;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Models.State;
@@ -2226,12 +2227,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (controlMap.TryGetValue(animatedPart.Value.Key, out CabViewControlRenderer cabRenderer) && cabRenderer is CabViewDiscreteRenderer screenRenderer)
                 {
                     bool eligibleToCheck = true;
-                    if (screenRenderer.Control.Screens?.Count > 0 && !"all".Equals(screenRenderer.Control.Screens[0], StringComparison.OrdinalIgnoreCase))
+                    if (screenRenderer.control.Screens?.Count > 0 && !"all".Equals(screenRenderer.control.Screens[0], StringComparison.OrdinalIgnoreCase))
                     {
                         eligibleToCheck = false;
-                        foreach (var screen in screenRenderer.Control.Screens)
+                        foreach (var screen in screenRenderer.control.Screens)
                         {
-                            if (mstsLocomotiveViewer.CabRenderer3D.ActiveScreen[screenRenderer.Control.Display] == screen)
+                            if (mstsLocomotiveViewer.CabRenderer3D.ActiveScreen[screenRenderer.control.Display] == screen)
                             {
                                 eligibleToCheck = true;
                                 break;
@@ -2623,10 +2624,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (viewer.PlayerLocomotiveViewer is MSTSLocomotiveViewer mstsLocomotiveViewer && mstsLocomotiveViewer.HasCabRenderer)
             {
-                selectedControl = pointedControl ?? mstsLocomotiveViewer.CabRenderer.ControlMap.Values.OfType<CabViewDiscreteRenderer>().Where(c => c.Control.CabViewpoint == SideLocation && c.IsMouseWithin(pointerCommandArgs.Position)).FirstOrDefault();
-                if (selectedControl?.Control.Screens?.Count > 0 && !"all".Equals(selectedControl.Control.Screens[0], StringComparison.OrdinalIgnoreCase))
+                selectedControl = pointedControl ?? mstsLocomotiveViewer.CabRenderer.ControlMap.Values.OfType<CabViewDiscreteRenderer>().Where(c => c.control.CabViewpoint == SideLocation && c.IsMouseWithin(pointerCommandArgs.Position)).FirstOrDefault();
+                if (selectedControl?.control.Screens?.Count > 0 && !"all".Equals(selectedControl.control.Screens[0], StringComparison.OrdinalIgnoreCase))
                 {
-                    if (!(selectedControl.Control.Screens.Where(s => s == mstsLocomotiveViewer.CabRenderer.ActiveScreen[selectedControl.Control.Display])).Any())
+                    if (!(selectedControl.control.Screens.Where(s => s == mstsLocomotiveViewer.CabRenderer.ActiveScreen[selectedControl.control.Display])).Any())
                         selectedControl = null;
                 }
                 selectedControl?.HandleUserInput(GenericButtonEventType.Pressed, pointerCommandArgs.Position, Vector2.Zero);

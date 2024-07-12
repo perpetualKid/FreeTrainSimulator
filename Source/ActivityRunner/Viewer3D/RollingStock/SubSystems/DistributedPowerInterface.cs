@@ -32,6 +32,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Common;
+using Orts.ActivityRunner.Viewer3D.RollingStock.CabView;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -558,22 +559,22 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public DistributedPowerInterfaceRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewScreenControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
-            Position = Control.Bounds.Location.ToVector2();
-            DPI = new DistributedPowerInterface(Control.Bounds.Height, Control.Bounds.Width, locomotive, viewer, control);
+            position = base.control.Bounds.Location.ToVector2();
+            DPI = new DistributedPowerInterface(base.control.Bounds.Height, base.control.Bounds.Width, locomotive, viewer, control);
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (!IsPowered && Control.HideIfDisabled)
+            if (!IsPowered && control.HideIfDisabled)
                 return;
 
             base.PrepareFrame(frame, elapsedTime);
-            var xScale = Viewer.CabWidthPixels / 640f;
-            var yScale = Viewer.CabHeightPixels / 480f;
-            DrawPosition.X = (int)(Position.X * xScale) - Viewer.CabXOffsetPixels + Viewer.CabXLetterboxPixels;
-            DrawPosition.Y = (int)(Position.Y * yScale) + Viewer.CabYOffsetPixels + Viewer.CabYLetterboxPixels;
-            DrawPosition.Width = (int)(Control.Bounds.Width * xScale);
-            DrawPosition.Height = (int)(Control.Bounds.Height * yScale);
+            var xScale = viewer.CabWidthPixels / 640f;
+            var yScale = viewer.CabHeightPixels / 480f;
+            DrawPosition.X = (int)(position.X * xScale) - viewer.CabXOffsetPixels + viewer.CabXLetterboxPixels;
+            DrawPosition.Y = (int)(position.Y * yScale) + viewer.CabYOffsetPixels + viewer.CabYLetterboxPixels;
+            DrawPosition.Width = (int)(control.Bounds.Width * xScale);
+            DrawPosition.Height = (int)(control.Bounds.Height * yScale);
             if (Zoomed)
             {
                 DrawPosition.Width = 640;
@@ -593,9 +594,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
         public override void Draw()
         {
-            DPI.Draw(ControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
-            ControlView.SpriteBatch.End();
-            ControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
+            DPI.Draw(controlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
+            controlView.SpriteBatch.End();
+            controlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, shader);
         }
     }
 
@@ -995,7 +996,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
         public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
         {
-            if (!CVFR.IsPowered && CVFR.Control.HideIfDisabled)
+            if (!CVFR.IsPowered && CVFR.control.HideIfDisabled)
                 return;
 
             Update3DDPITable();

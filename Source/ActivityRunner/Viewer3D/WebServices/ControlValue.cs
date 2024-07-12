@@ -18,6 +18,7 @@
 using System.Collections.Generic;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
+using Orts.ActivityRunner.Viewer3D.RollingStock.CabView;
 
 namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
@@ -49,8 +50,8 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 controlValueList.Add(new ControlValue
                 { 
                     TypeName = controlRenderer.GetControlType().ToString(), 
-                    MinValue = controlRenderer.Control.ScaleRangeMin, 
-                    MaxValue = controlRenderer.Control.ScaleRangeMax, 
+                    MinValue = controlRenderer.control.ScaleRangeMin, 
+                    MaxValue = controlRenderer.control.ScaleRangeMax, 
                     RangeFraction = controlRenderer.GetRangeFraction()
                     });
             }
