@@ -74,7 +74,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
 
             controlView = (CabSpriteBatchMaterial)viewer.MaterialManager.Load("CabSpriteBatch", null, 0, 0, this.shader);
 
-            cabLightDirectory = CABTextureManager.LoadTextures(this.viewer, this.control.AceFile);
+            cabLightDirectory = CabTextureManager.LoadTextures(this.viewer, this.control.AceFile);
         }
 
         public CabViewControlType GetControlType()

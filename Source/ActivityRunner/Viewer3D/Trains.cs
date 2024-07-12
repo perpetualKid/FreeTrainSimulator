@@ -27,6 +27,7 @@ using System.IO;
 using System.Linq;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common;
+using Orts.ActivityRunner.Viewer3D.RollingStock.CabView;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -103,7 +104,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (car.LightDrawer != null)
                     car.LightDrawer.Mark();
             }
-            CABTextureManager.Mark(Viewer);
+            CabTextureManager.Mark(Viewer);
         }
 
         public TrainCarViewer GetViewer(TrainCar car)

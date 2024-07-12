@@ -57,8 +57,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             : base(viewer, locomotive, control, shader)
         {
             ControlDiscrete = control;
-            CABTextureManager.DisassembleTexture(viewer.Game.GraphicsDevice, base.control.AceFile, base.control.Bounds.Width, base.control.Bounds.Height, ControlDiscrete.FramesCount, ControlDiscrete.FramesX, ControlDiscrete.FramesY);
-            texture = CABTextureManager.GetTextureByIndexes(base.control.AceFile, 0, false, false, out nightTexture, cabLightDirectory);
+            CabTextureManager.DisassembleTexture(viewer.Game.GraphicsDevice, base.control.AceFile, base.control.Bounds.Width, base.control.Bounds.Height, ControlDiscrete.FramesCount, ControlDiscrete.FramesX, ControlDiscrete.FramesY);
+            texture = CabTextureManager.GetTextureByIndexes(base.control.AceFile, 0, false, false, out nightTexture, cabLightDirectory);
             SourceRectangle = new Rectangle(0, 0, texture.Width, texture.Height);
         }
 
@@ -83,7 +83,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
         {
             var dark = viewer.MaterialManager.sunDirection.Y <= -0.085f || viewer.Camera.IsUnderground;
 
-            texture = CABTextureManager.GetTextureByIndexes(control.AceFile, index, dark, locomotive.CabLightOn, out nightTexture, cabLightDirectory);
+            texture = CabTextureManager.GetTextureByIndexes(control.AceFile, index, dark, locomotive.CabLightOn, out nightTexture, cabLightDirectory);
             if (texture == SharedMaterialManager.MissingTexture)
                 return;
 

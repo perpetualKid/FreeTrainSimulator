@@ -56,7 +56,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
         {
             ControlDial = control;
 
-            texture = CABTextureManager.GetTexture(base.control.AceFile, false, false, out nightTexture, cabLightDirectory);
+            texture = CabTextureManager.GetTexture(base.control.AceFile, false, false, out nightTexture, cabLightDirectory);
             if (ControlDial.Bounds.Height < texture.Height)
                 Scale = (float)ControlDial.Bounds.Height / texture.Height;
             Origin = new Vector2((float)texture.Width / 2, ControlDial.Center / Scale);
@@ -66,7 +66,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
         {
             var dark = viewer.MaterialManager.sunDirection.Y <= -0.085f || viewer.Camera.IsUnderground;
 
-            texture = CABTextureManager.GetTexture(control.AceFile, dark, locomotive.CabLightOn, out nightTexture, cabLightDirectory);
+            texture = CabTextureManager.GetTexture(control.AceFile, dark, locomotive.CabLightOn, out nightTexture, cabLightDirectory);
             if (texture == SharedMaterialManager.MissingTexture)
                 return;
 

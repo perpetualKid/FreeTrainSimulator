@@ -97,7 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                     // Loading ACE files, skip displaying ERROR messages
                     foreach (var cabfile in cabView.CVFFile.Views2D)
                     {
-                        cabLightDirectory = CABTextureManager.LoadTextures(viewer, cabfile);
+                        cabLightDirectory = CabTextureManager.LoadTextures(viewer, cabfile);
                     }
 
                     if (firstOne)
@@ -389,7 +389,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             location = viewer.Camera is CabCamera cbc ? cbc.SideLocation : 0;
 
             var i = locomotive.UsingRearCab ? 1 : 0;
-            cabTexture = CABTextureManager.GetTexture(locomotive.CabViewList[i].CVFFile.Views2D[location], Dark, CabLight, out nightTexture, cabLightDirectory);
+            cabTexture = CabTextureManager.GetTexture(locomotive.CabViewList[i].CVFFile.Views2D[location], Dark, CabLight, out nightTexture, cabLightDirectory);
             if (cabTexture == SharedMaterialManager.MissingTexture)
                 return;
 

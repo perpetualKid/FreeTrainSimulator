@@ -54,7 +54,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             if (base.control.ControlType.CabViewControlType == CabViewControlType.Reverser_Plate || Gauge.ControlStyle == CabViewControlStyle.Pointer)
             {
                 DrawColor = Color.White;
-                texture = CABTextureManager.GetTexture(base.control.AceFile, false, base.locomotive.CabLightOn, out nightTexture, cabLightDirectory);
+                texture = CabTextureManager.GetTexture(base.control.AceFile, false, base.locomotive.CabLightOn, out nightTexture, cabLightDirectory);
                 SourceRectangle.Width = texture.Width;
                 SourceRectangle.Height = texture.Height;
             }
@@ -69,8 +69,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             : base(viewer, locomotive, control, shader)
         {
             Gauge = control;
-            cabLightDirectory = CABTextureManager.LoadTextures(base.viewer, control.FireBoxAceFile);
-            texture = CABTextureManager.GetTexture(control.FireBoxAceFile, false, base.locomotive.CabLightOn, out nightTexture, cabLightDirectory);
+            cabLightDirectory = CabTextureManager.LoadTextures(base.viewer, control.FireBoxAceFile);
+            texture = CabTextureManager.GetTexture(control.FireBoxAceFile, false, base.locomotive.CabLightOn, out nightTexture, cabLightDirectory);
             DrawColor = Color.White;
             SourceRectangle.Width = texture.Width;
             SourceRectangle.Height = texture.Height;
@@ -98,7 +98,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             if (Gauge is not CabViewFireboxControl)
             {
                 var dark = viewer.MaterialManager.sunDirection.Y <= -0.085f || viewer.Camera.IsUnderground;
-                texture = CABTextureManager.GetTexture(control.AceFile, dark, locomotive.CabLightOn, out nightTexture, cabLightDirectory);
+                texture = CabTextureManager.GetTexture(control.AceFile, dark, locomotive.CabLightOn, out nightTexture, cabLightDirectory);
             }
             if (texture == SharedMaterialManager.MissingTexture)
                 return;
