@@ -35,9 +35,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -66,11 +64,8 @@ using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
 
-using SharpDX.Direct2D1;
-
 namespace Orts.Simulation.RollingStocks
 {
-
     public abstract class TrainCar : IWorldPosition, ISaveStateApi<TrainCarSaveState>
     {
         #region const
@@ -1840,38 +1835,11 @@ namespace Orts.Simulation.RollingStocks
             prevSpeedMpS = SpeedMpS;
         }
 
-        public bool HasFrontCab
-        {
-            get
-            {
-                int i = (int)CabViewType.Front;
-                if (!(this is MSTSLocomotive loco) || loco.CabViewList.Count <= i || loco.CabViewList[i].CabViewType != CabViewType.Front)
-                    return false;
-                return (loco.CabViewList[i].ViewPointList.Count > 0);
-            }
-        }
+        public bool HasFrontCab => this is MSTSLocomotive locomotive && locomotive.CabViews[CabViewType.Front]?.ViewPointList.Count > 0;
 
-        public bool HasRearCab
-        {
-            get
-            {
-                int i = (int)CabViewType.Rear;
-                if (!(this is MSTSLocomotive loco) || loco.CabViewList.Count <= i)
-                    return false;
-                return (loco.CabViewList[i].ViewPointList.Count > 0);
-            }
-        }
+        public bool HasRearCab => this is MSTSLocomotive locomotive && locomotive.CabViews[CabViewType.Rear]?.ViewPointList.Count > 0;
 
-        public bool HasFront3DCab
-        {
-            get
-            {
-                int i = (int)CabViewType.Front;
-                if (!(this is MSTSLocomotive loco) || loco.CabView3D == null || loco.CabView3D.CabViewType != CabViewType.Front)
-                    return false;
-                return (loco.CabView3D.ViewPointList.Count > i);
-            }
-        }
+        public bool HasFront3DCab => this is MSTSLocomotive locomotive && locomotive.CabView3D?.CabViewType == CabViewType.Front;
 
         public bool HasRear3DCab
         {

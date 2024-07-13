@@ -251,12 +251,6 @@ namespace Orts.Simulation.RollingStocks
         /// True if vehicle is equipped with an additional emergency brake reservoir
         /// </summary>
         public bool EmergencyReservoirPresent { get; set; }
-        public enum BrakeValveType
-        {
-            None,
-            TripleValve, // Plain triple valve
-            Distributor, // Triple valve with graduated release
-        }
         /// <summary>
         /// Type of brake valve in the car
         /// </summary>

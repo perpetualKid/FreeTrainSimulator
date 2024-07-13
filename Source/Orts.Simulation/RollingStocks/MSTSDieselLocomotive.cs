@@ -587,7 +587,7 @@ namespace Orts.Simulation.RollingStocks
                 GearBoxController = new MSTSNotchController();
                 await GearBoxController.Restore(dieselLocomotiveSave.GearboxControllerSaveState).ConfigureAwait(false);
             }
-//            await DieselEngines.RestoreCollectionCreateNewItems(dieselLocomotiveSave.EngineSaveStates, DieselEngines).ConfigureAwait(false);
+            //            await DieselEngines.RestoreCollectionCreateNewItems(dieselLocomotiveSave.EngineSaveStates, DieselEngines).ConfigureAwait(false);
             await DieselEngines.RestoreCollectionOnExistingInstances(dieselLocomotiveSave.EngineSaveStates).ConfigureAwait(false);
         }
 
@@ -1388,24 +1388,23 @@ namespace Orts.Simulation.RollingStocks
                 float maximum = ThrottleController.MaximumValue;
                 ThrottleController.Normalize(ThrottleController.MaximumValue);
                 // correct also .cvf files
-                if (CabViewList.Count > 0)
-                    foreach (var cabView in CabViewList)
+                foreach (CabView cabView in CabViews)
+                {
+                    if (cabView?.CVFFile?.CabViewControls?.Count > 0)
                     {
-                        if (cabView.CVFFile != null && cabView.CVFFile.CabViewControls != null && cabView.CVFFile.CabViewControls.Count > 0)
+                        foreach (var control in cabView.CVFFile.CabViewControls)
                         {
-                            foreach (var control in cabView.CVFFile.CabViewControls)
+                            if (control is CabViewDiscreteControl discreteCabControl && control.ControlType.CabViewControlType == CabViewControlType.Throttle && discreteCabControl.Values.Count > 0 && discreteCabControl.Values[^1] > 1)
                             {
-                                if (control is CabViewDiscreteControl discreteCabControl && control.ControlType.CabViewControlType == CabViewControlType.Throttle && discreteCabControl.Values.Count > 0 && discreteCabControl.Values[^1] > 1)
-                                {
-                                    var discreteControl = discreteCabControl;
-                                    for (var i = 0; i < discreteControl.Values.Count; i++)
-                                        discreteControl.Values[i] /= maximum;
-                                    if (discreteControl.ScaleRangeMax > 0)
-                                        discreteControl.ResetScaleRange(discreteControl.ScaleRangeMin, (float)discreteControl.Values[discreteControl.Values.Count - 1]);
-                                }
+                                var discreteControl = discreteCabControl;
+                                for (var i = 0; i < discreteControl.Values.Count; i++)
+                                    discreteControl.Values[i] /= maximum;
+                                if (discreteControl.ScaleRangeMax > 0)
+                                    discreteControl.ResetScaleRange(discreteControl.ScaleRangeMin, (float)discreteControl.Values[discreteControl.Values.Count - 1]);
                             }
                         }
                     }
+                }
             }
             // Check also for very low DieselEngineIdleRPM
             if (IdleRPM < 10)

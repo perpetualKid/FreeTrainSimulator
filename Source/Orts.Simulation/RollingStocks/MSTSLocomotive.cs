@@ -360,7 +360,7 @@ namespace Orts.Simulation.RollingStocks
         protected const float DefaultMainResVolume = 0.78f; // Value to be inserted if .eng parameters are corrected
         protected const float DefaultMaxMainResPressure = 140; // Max value to be inserted if .eng parameters are corrected
 
-        public List<CabView> CabViewList = new List<CabView>();
+        public EnumArray<CabView, CabViewType> CabViews { get; private set; } = new EnumArray<CabView, CabViewType>();
         public CabView3D CabView3D;
 
         public MSTSNotchController SteamHeatController = new MSTSNotchController(0, 1, 0.1f);
@@ -465,37 +465,27 @@ namespace Orts.Simulation.RollingStocks
             // Could be extended to more than 2 cabs.
             if (CVFFileName != null)
             {
-                var cabView = BuildCabView(WagFilePath, CVFFileName);
+                CabView cabView = BuildCabView(WagFilePath, CVFFileName);
                 if (cabView != null)
                 {
-                    CabViewList.Add(cabView);
+                    CabViews[cabView.CabViewType] = cabView;
                     var reverseCVFFileName = Path.Combine(
                         Path.GetDirectoryName(CVFFileName), // Some CVF paths begin with "..\..\", so Path.GetDirectoryName() is needed.
                         Path.GetFileNameWithoutExtension(CVFFileName) + "_rv.cvf"
                     );
-
-                    {
-                        cabView = BuildCabView(WagFilePath, reverseCVFFileName);
-                        if (cabView != null)
-                            CabViewList.Add(cabView);
-                    }
-                    // practically never happens, but never say never
-                    if (CabViewList.Count == 2 && CabViewList[1].CabViewType == CabViewType.Front && CabViewList[0].CabViewType == CabViewType.Rear)
-                    {
-                        cabView = CabViewList[1];
-                        CabViewList.Insert(0, cabView);
-                        CabViewList.RemoveAt(2);
-                    }
-                    // only one cabview, and it looks rear; insert a void one at first place to maintain fast indexing
-                    else if (CabViewList.Count == 1 && CabViewList[0].CabViewType == CabViewType.Rear)
+                    cabView = BuildCabView(WagFilePath, reverseCVFFileName);
+                    if (null != cabView)
+                        CabViews[cabView.CabViewType] = cabView;
+                    // only a rear cabview, insert a void one at first place to maintain fast indexing
+                    else if (CabViews[CabViewType.Front] == null)
                     {
                         UsingRearCab = true;
-                        CabViewList.Add(CabViewList[0]);
-                        CabViewList[0].CabViewType = CabViewType.Void;
+                        CabViews[CabViewType.Front] = CabViews[CabViewType.Rear];
+                        CabViews[CabViewType.Front].CabViewType = CabViewType.Front;
                     }
                 }
                 CabView3D = BuildCab3DView();
-                if (CabViewList.Count == 0 & CabView3D == null)
+                if (CabViews[CabViewType.Front] == null && CabViews[CabViewType.Rear] == null && CabView3D == null)
                     Trace.TraceWarning("{0} locomotive's CabView references non-existent {1}", wagFilePath, CVFFileName);
             }
 
@@ -577,15 +567,7 @@ namespace Orts.Simulation.RollingStocks
             var dpDynController = new MSTSNotchController();
             CabView cabView = null;
             CabViewMultiStateDisplayControl msDisplay = null;
-            if (CabView3D != null)
-                cabView = CabView3D;
-            else if (CabViewList.Count > 0)
-            {
-                if (CabViewList[0].CabViewType == CabViewType.Front)
-                    cabView = CabViewList[0];
-                else
-                    cabView = CabViewList[1];
-            }
+            cabView = CabView3D != null ? CabView3D : CabViews[CabViewType.Front] ?? CabViews[CabViewType.Rear];
             if (cabView != null)
             {
                 msDisplay = cabView.CVFFile.CabViewControls.OfType<CabViewMultiStateDisplayControl>().Where(
@@ -632,7 +614,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 default:
                 case PressureUnit.Automatic:
-                    if (CabViewList.Count > 0)
+                    CabView cabView = CabViews.Where(c => c != null).FirstOrDefault();
+                    if (cabView != null)
                     {
                         Dictionary<CabViewControlType, BrakeSystemComponent> brakeSystemComponents = new Dictionary<CabViewControlType, BrakeSystemComponent>
                         {
@@ -651,7 +634,7 @@ namespace Orts.Simulation.RollingStocks
                             { CabViewControlUnit.Kgs_Per_Square_Cm, Pressure.Unit.KgfpCm2 }
                        };
 
-                        CabViewControls cvcList = CabViewList[0].CVFFile.CabViewControls;
+                        CabViewControls cvcList = cabView.CVFFile.CabViewControls;
                         foreach (CabViewControl cvc in cvcList)
                         {
                             if (brakeSystemComponents.TryGetValue(cvc.ControlType.CabViewControlType, out BrakeSystemComponent component)
@@ -1226,7 +1209,7 @@ namespace Orts.Simulation.RollingStocks
 
             CabSoundFileName = sourceLocomotive.CabSoundFileName;
             CVFFileName = sourceLocomotive.CVFFileName;
-            CabViewList = sourceLocomotive.CabViewList;
+            CabViews = sourceLocomotive.CabViews;
             CabView3D = sourceLocomotive.CabView3D;
             MaxPowerW = sourceLocomotive.MaxPowerW;
             MaxForceN = sourceLocomotive.MaxForceN;
@@ -1431,7 +1414,7 @@ namespace Orts.Simulation.RollingStocks
             CalculatedCarHeaterSteamUsageLBpS = (float)locomotiveSaveState.CalculatedCarHeaterSteamUsage;
             if (locomotiveSaveState.ThrottleController != null)
                 await ThrottleController.Restore(locomotiveSaveState.ThrottleController).ConfigureAwait(false);
-            if (locomotiveSaveState.TrainBrakeController!= null)
+            if (locomotiveSaveState.TrainBrakeController != null)
                 await TrainBrakeController.Restore(locomotiveSaveState.TrainBrakeController).ConfigureAwait(false);
             if (locomotiveSaveState.EngineBrakeController != null)
                 await EngineBrakeController.Restore(locomotiveSaveState.EngineBrakeController).ConfigureAwait(false);

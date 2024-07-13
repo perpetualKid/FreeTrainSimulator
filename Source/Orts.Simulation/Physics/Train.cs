@@ -3177,7 +3177,7 @@ namespace Orts.Simulation.Physics
                     IsFreight = true;
                 if ((car.WagonType == WagonType.Passenger) || (car is MSTSLocomotive && car.PassengerCapacity > 0))
                     PassengerCarsNumber++;
-                if ((car as MSTSLocomotive)?.CabViewList.Count > 0)
+                if ((car as MSTSLocomotive)?.CabViews[CabViewType.Front] != null || (car as MSTSLocomotive)?.CabViews[CabViewType.Rear] != null)
                     IsPlayable = true;
             }
             if (TrainType == TrainType.AiIncorporated && IncorporatingTrainNo > -1)

@@ -160,9 +160,8 @@ namespace FreeTrainSimulator.Common
 
     public enum CabViewType
     {
-        Front = 0,
-        Rear = 1,
-        Void = 2
+        Front,
+        Rear,
     }
 
     public enum TractionMotorType
@@ -1708,6 +1707,13 @@ namespace FreeTrainSimulator.Common
         Sound,
         System,
         WebServer,
+    }
+
+    public enum BrakeValveType
+    {
+        None,
+        TripleValve, // Plain triple valve
+        Distributor, // Triple valve with graduated release
     }
 
     public enum SlidingMetric

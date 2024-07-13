@@ -625,12 +625,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (!HasCabRenderer)
             {
-                if (locomotive.CabViewList.Count > 0)
-                {
-                    if (locomotive.CabViewList[(int)CabViewType.Front].CVFFile != null && locomotive.CabViewList[(int)CabViewType.Front].CVFFile.Views2D.Count > 0)
-                        CabRenderer = new CabRenderer(Viewer, locomotive);
-                    HasCabRenderer = true;
-                }
+                if (locomotive.CabViews[CabViewType.Front]?.CVFFile != null && locomotive.CabViews[CabViewType.Front]?.CVFFile?.Views2D?.Count > 0)
+                    CabRenderer = new CabRenderer(Viewer, locomotive);
+                HasCabRenderer = true;
             }
             if (!Has3DCabRenderer)
             {
@@ -638,8 +635,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     try
                     {
-                        CabViewer3D tmp3DViewer = new CabViewer3D(Viewer, this.locomotive, this);
-                        CabViewer3D = tmp3DViewer; //if not catching an error, we will assign it
+                        CabViewer3D = new CabViewer3D(Viewer, this.locomotive, this);
                         Has3DCabRenderer = true;
                     }
                     catch (Exception error) when (error is Exception)

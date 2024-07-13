@@ -49,7 +49,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
 
         private Point previousScreenSize;
 
-        private List<List<CabViewControlRenderer>> cabViewControlRenderersList = new List<List<CabViewControlRenderer>>();
+        private readonly EnumArray<List<CabViewControlRenderer>, CabViewType> cabViewControlRenderer = new EnumArray<List<CabViewControlRenderer>, CabViewType>();
+
         private readonly Viewer viewer;
         private readonly MSTSLocomotive locomotive;
         private int location;
@@ -74,13 +75,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             letterboxTexture.SetData(new Color[] { Color.Black });
 
             // Use same shader for both front-facing and rear-facing cabs.
-            if (locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF != null)
+            if (locomotive.CabViews[CabViewType.Front].ExtendedCVF != null)
             {
                 shader = new CabShader(viewer.Game.GraphicsDevice,
-                    ExtendedCVF.TranslatedPosition(locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Position, DisplaySize),
-                    ExtendedCVF.TranslatedPosition(locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Position, DisplaySize),
-                    ExtendedCVF.TranslatedColor(locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Color),
-                    ExtendedCVF.TranslatedColor(locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Color));
+                    ExtendedCVF.TranslatedPosition(locomotive.CabViews[CabViewType.Front].ExtendedCVF.Light1Position, DisplaySize),
+                    ExtendedCVF.TranslatedPosition(locomotive.CabViews[CabViewType.Front].ExtendedCVF.Light2Position, DisplaySize),
+                    ExtendedCVF.TranslatedColor(locomotive.CabViews[CabViewType.Front].ExtendedCVF.Light1Color),
+                    ExtendedCVF.TranslatedColor(locomotive.CabViews[CabViewType.Front].ExtendedCVF.Light2Color));
             }
 
             spriteShader2DCabView = (CabSpriteBatchMaterial)viewer.MaterialManager.Load("CabSpriteBatch", null, 0, 0, shader);
@@ -88,11 +89,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             #region Create Control renderers
             ControlMap = new Dictionary<(ControlType, int), CabViewControlRenderer>();
             Dictionary<ControlType, int> count = new Dictionary<ControlType, int>();
-            var i = 0;
             bool firstOne = true;
-            foreach (var cabView in car.CabViewList)
+            foreach (Simulation.RollingStocks.CabView cabView in car.CabViews)
             {
-                if (cabView.CVFFile != null)
+                if (cabView?.CVFFile != null)
                 {
                     // Loading ACE files, skip displaying ERROR messages
                     foreach (var cabfile in cabView.CVFFile.Views2D)
@@ -107,13 +107,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         this.viewer.CabCamera.ScreenChanged();
                         DisplaySize.Y = this.viewer.CabHeightPixels;
                         // Use same shader for both front-facing and rear-facing cabs.
-                        if (locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF != null)
+                        if (locomotive.CabViews[CabViewType.Front].ExtendedCVF != null)
                         {
                             shader = new CabShader(viewer.Game.GraphicsDevice,
-                            ExtendedCVF.TranslatedPosition(locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Position, DisplaySize),
-                            ExtendedCVF.TranslatedPosition(locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Position, DisplaySize),
-                            ExtendedCVF.TranslatedColor(locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Color),
-                            ExtendedCVF.TranslatedColor(locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Color));
+                            ExtendedCVF.TranslatedPosition(locomotive.CabViews[CabViewType.Front].ExtendedCVF.Light1Position, DisplaySize),
+                            ExtendedCVF.TranslatedPosition(locomotive.CabViews[CabViewType.Front].ExtendedCVF.Light2Position, DisplaySize),
+                            ExtendedCVF.TranslatedColor(locomotive.CabViews[CabViewType.Front].ExtendedCVF.Light1Color),
+                            ExtendedCVF.TranslatedColor(locomotive.CabViews[CabViewType.Front].ExtendedCVF.Light2Color));
                         }
                         spriteShader2DCabView = (CabSpriteBatchMaterial)viewer.MaterialManager.Load("CabSpriteBatch", null, 0, 0, shader);
                         firstOne = false;
@@ -124,7 +124,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
 
                     var controlSortIndex = 1;  // Controls are drawn atop the cabview and in order they appear in the CVF file.
                                                // This allows the segments of moving-scale meters to be hidden by covers (e.g. TGV-A)
-                    cabViewControlRenderersList.Add(new List<CabViewControlRenderer>());
+                    CabViewType cabViewType = cabView.CabViewType;
+                    cabViewControlRenderer[cabViewType] = new List<CabViewControlRenderer>();
                     foreach (CabViewControl cvc in cabView.CVFFile.CabViewControls)
                     {
                         controlSortIndex++;
@@ -136,7 +137,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         {
                             CabViewDialRenderer cvcr = new CabViewDialRenderer(viewer, car, dial, shader);
                             cvcr.SortIndex = controlSortIndex;
-                            cabViewControlRenderersList[i].Add(cvcr);
+                            cabViewControlRenderer[cabViewType].Add(cvcr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, cvcr);
                             count[cvc.ControlType]++;
@@ -147,7 +148,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         {
                             CabViewGaugeRenderer cvgrFire = new CabViewGaugeRenderer(viewer, car, firebox, shader);
                             cvgrFire.SortIndex = controlSortIndex++;
-                            cabViewControlRenderersList[i].Add(cvgrFire);
+                            cabViewControlRenderer[cabViewType].Add(cvgrFire);
                             // don't "continue", because this cvc has to be also recognized as CVCGauge
                         }
                         CabViewGaugeControl gauge = cvc as CabViewGaugeControl;
@@ -155,7 +156,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         {
                             CabViewGaugeRenderer cvgr = new CabViewGaugeRenderer(viewer, car, gauge, shader);
                             cvgr.SortIndex = controlSortIndex;
-                            cabViewControlRenderersList[i].Add(cvgr);
+                            cabViewControlRenderer[cabViewType].Add(cvgr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, cvgr);
                             count[cvc.ControlType]++;
@@ -166,7 +167,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         {
                             CabViewDiscreteRenderer aspr = new CabViewDiscreteRenderer(viewer, car, asp, shader);
                             aspr.SortIndex = controlSortIndex;
-                            cabViewControlRenderersList[i].Add(aspr);
+                            cabViewControlRenderer[cabViewType].Add(aspr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, aspr);
                             count[cvc.ControlType]++;
@@ -177,7 +178,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         {
                             CabViewAnimationsRenderer animr = new CabViewAnimationsRenderer(viewer, car, anim, shader);
                             animr.SortIndex = controlSortIndex;
-                            cabViewControlRenderersList[i].Add(animr);
+                            cabViewControlRenderer[cabViewType].Add(animr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, animr);
                             count[cvc.ControlType]++;
@@ -188,7 +189,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         {
                             CabViewDiscreteRenderer mspr = new CabViewDiscreteRenderer(viewer, car, multi, shader);
                             mspr.SortIndex = controlSortIndex;
-                            cabViewControlRenderersList[i].Add(mspr);
+                            cabViewControlRenderer[cabViewType].Add(mspr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, mspr);
                             count[cvc.ControlType]++;
@@ -199,7 +200,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         {
                             CabViewDiscreteRenderer cvdr = new CabViewDiscreteRenderer(viewer, car, disc, shader);
                             cvdr.SortIndex = controlSortIndex;
-                            cabViewControlRenderersList[i].Add(cvdr);
+                            cabViewControlRenderer[cabViewType].Add(cvdr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, cvdr);
                             count[cvc.ControlType]++;
@@ -214,7 +215,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                             else
                                 cvdr = new CabViewDigitalRenderer(viewer, car, digital, shader);
                             cvdr.SortIndex = controlSortIndex;
-                            cabViewControlRenderersList[i].Add(cvdr);
+                            cabViewControlRenderer[cabViewType].Add(cvdr);
                             if (!ControlMap.ContainsKey(key))
                                 ControlMap.Add(key, cvdr);
                             count[cvc.ControlType]++;
@@ -227,7 +228,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                             {
                                 var cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, shader);
                                 cvr.SortIndex = controlSortIndex;
-                                cabViewControlRenderersList[i].Add(cvr);
+                                cabViewControlRenderer[cabViewType].Add(cvr);
                                 if (!ControlMap.ContainsKey(key))
                                     ControlMap.Add(key, cvr);
                                 count[cvc.ControlType]++;
@@ -237,7 +238,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                             {
                                 var cvr = new DistributedPowerInterfaceRenderer(viewer, car, screen, shader);
                                 cvr.SortIndex = controlSortIndex;
-                                cabViewControlRenderersList[i].Add(cvr);
+                                cabViewControlRenderer[cabViewType].Add(cvr);
                                 if (!ControlMap.ContainsKey(key))
                                     ControlMap.Add(key, cvr);
                                 count[cvc.ControlType]++;
@@ -246,13 +247,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         }
                     }
                 }
-                i++;
             }
             #endregion
 
         }
 
-        public CabRenderer(Viewer viewer, MSTSLocomotive car, CabViewFile CVFFile) //used by 3D cab as a refrence, thus many can be eliminated
+        public CabRenderer(Viewer viewer, MSTSLocomotive car, CabViewFile CVFFile) //used by 3D cab as a reference, thus many can be eliminated
         {
             this.viewer = viewer;
             locomotive = car;
@@ -261,11 +261,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             #region Create Control renderers
             ControlMap = new Dictionary<(ControlType, int), CabViewControlRenderer>();
             Dictionary<ControlType, int> count = new Dictionary<ControlType, int>();
-            var i = 0;
 
             var controlSortIndex = 1;  // Controls are drawn atop the cabview and in order they appear in the CVF file.
                                        // This allows the segments of moving-scale meters to be hidden by covers (e.g. TGV-A)
-            cabViewControlRenderersList.Add(new List<CabViewControlRenderer>());
+            CabViewType cabViewType = CabViewType.Rear;
+            cabViewControlRenderer[cabViewType] = new List<CabViewControlRenderer>();
             foreach (CabViewControl cvc in CVFFile.CabViewControls)
             {
                 controlSortIndex++;
@@ -277,7 +277,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                 {
                     CabViewDialRenderer cvcr = new CabViewDialRenderer(viewer, car, dial, shader);
                     cvcr.SortIndex = controlSortIndex;
-                    cabViewControlRenderersList[i].Add(cvcr);
+                    cabViewControlRenderer[cabViewType].Add(cvcr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, cvcr);
                     count[cvc.ControlType]++;
@@ -288,7 +288,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                 {
                     CabViewGaugeRenderer cvgrFire = new CabViewGaugeRenderer(viewer, car, firebox, shader);
                     cvgrFire.SortIndex = controlSortIndex++;
-                    cabViewControlRenderersList[i].Add(cvgrFire);
+                    cabViewControlRenderer[cabViewType].Add(cvgrFire);
                     // don't "continue", because this cvc has to be also recognized as CVCGauge
                 }
                 CabViewGaugeControl gauge = cvc as CabViewGaugeControl;
@@ -296,7 +296,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                 {
                     CabViewGaugeRenderer cvgr = new CabViewGaugeRenderer(viewer, car, gauge, shader);
                     cvgr.SortIndex = controlSortIndex;
-                    cabViewControlRenderersList[i].Add(cvgr);
+                    cabViewControlRenderer[cabViewType].Add(cvgr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, cvgr);
                     count[cvc.ControlType]++;
@@ -307,7 +307,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                 {
                     CabViewDiscreteRenderer aspr = new CabViewDiscreteRenderer(viewer, car, asp, shader);
                     aspr.SortIndex = controlSortIndex;
-                    cabViewControlRenderersList[i].Add(aspr);
+                    cabViewControlRenderer[cabViewType].Add(aspr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, aspr);
                     count[cvc.ControlType]++;
@@ -318,7 +318,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                 {
                     CabViewDiscreteRenderer mspr = new CabViewDiscreteRenderer(viewer, car, multi, shader);
                     mspr.SortIndex = controlSortIndex;
-                    cabViewControlRenderersList[i].Add(mspr);
+                    cabViewControlRenderer[cabViewType].Add(mspr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, mspr);
                     count[cvc.ControlType]++;
@@ -329,7 +329,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                 {
                     CabViewDiscreteRenderer cvdr = new CabViewDiscreteRenderer(viewer, car, disc, shader);
                     cvdr.SortIndex = controlSortIndex;
-                    cabViewControlRenderersList[i].Add(cvdr);
+                    cabViewControlRenderer[cabViewType].Add(cvdr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, cvdr);
                     count[cvc.ControlType]++;
@@ -344,7 +344,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                     else
                         cvdr = new CabViewDigitalRenderer(viewer, car, digital, shader);
                     cvdr.SortIndex = controlSortIndex;
-                    cabViewControlRenderersList[i].Add(cvdr);
+                    cabViewControlRenderer[cabViewType].Add(cvdr);
                     if (!ControlMap.ContainsKey(key))
                         ControlMap.Add(key, cvdr);
                     count[cvc.ControlType]++;
@@ -357,7 +357,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                     {
                         var cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, shader);
                         cvr.SortIndex = controlSortIndex;
-                        cabViewControlRenderersList[i].Add(cvr);
+                        cabViewControlRenderer[cabViewType].Add(cvr);
                         if (!ControlMap.ContainsKey(key))
                             ControlMap.Add(key, cvr);
                         count[cvc.ControlType]++;
@@ -367,7 +367,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                     {
                         var cvr = new DistributedPowerInterfaceRenderer(viewer, car, screen, shader);
                         cvr.SortIndex = controlSortIndex;
-                        cabViewControlRenderersList[i].Add(cvr);
+                        cabViewControlRenderer[cabViewType].Add(cvr);
                         if (!ControlMap.ContainsKey(key))
                             ControlMap.Add(key, cvr);
                         count[cvc.ControlType]++;
@@ -388,8 +388,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
 
             location = viewer.Camera is CabCamera cbc ? cbc.SideLocation : 0;
 
-            var i = locomotive.UsingRearCab ? 1 : 0;
-            cabTexture = CabTextureManager.GetTexture(locomotive.CabViewList[i].CVFFile.Views2D[location], Dark, CabLight, out nightTexture, cabLightDirectory);
+            CabViewType cabViewType = locomotive.UsingRearCab ? CabViewType.Rear : CabViewType.Front;
+            cabTexture = CabTextureManager.GetTexture(locomotive.CabViews[cabViewType].CVFFile.Views2D[location], Dark, CabLight, out nightTexture, cabLightDirectory);
             if (cabTexture == SharedMaterialManager.MissingTexture)
                 return;
 
@@ -397,14 +397,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             {
                 previousScreenSize = viewer.DisplaySize;
                 shader.SetLightPositions(
-                    ExtendedCVF.TranslatedPosition(locomotive.CabViewList[i].ExtendedCVF.Light1Position, viewer.DisplaySize),
-                    ExtendedCVF.TranslatedPosition(locomotive.CabViewList[i].ExtendedCVF.Light2Position, viewer.DisplaySize));
+                    ExtendedCVF.TranslatedPosition(locomotive.CabViews[cabViewType].ExtendedCVF.Light1Position, viewer.DisplaySize),
+                    ExtendedCVF.TranslatedPosition(locomotive.CabViews[cabViewType].ExtendedCVF.Light2Position, viewer.DisplaySize));
             }
 
             frame.AddPrimitive(spriteShader2DCabView, this, RenderPrimitiveGroup.Cab, ref scale);
             //frame.AddPrimitive(Materials.SpriteBatchMaterial, this, RenderPrimitiveGroup.Cab, ref _Scale);
 
-            foreach (var cvcr in cabViewControlRenderersList[i])
+            foreach (var cvcr in cabViewControlRenderer[cabViewType])
             {
                 if (cvcr.control.CabViewpoint == location)
                 {
@@ -477,8 +477,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
         {
             viewer.TextureManager.Mark(cabTexture);
 
-            var i = locomotive.UsingRearCab ? 1 : 0;
-            foreach (var cvcr in cabViewControlRenderersList[i])
+            foreach (var cvcr in cabViewControlRenderer[locomotive.UsingRearCab ? CabViewType.Rear : CabViewType.Front])
                 cvcr.Mark();
         }
 

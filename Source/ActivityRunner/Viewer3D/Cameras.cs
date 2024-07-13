@@ -2458,12 +2458,9 @@ namespace Orts.ActivityRunner.Viewer3D
         protected override void SetCameraCar(TrainCar car)
         {
             base.SetCameraCar(car);
-            if (car != null)
+            if (car is MSTSLocomotive locomotive)
             {
-                var loco = car as MSTSLocomotive;
-                var viewpoints = (loco.UsingRearCab)
-                ? loco.CabViewList[(int)CabViewType.Rear].ViewPointList
-                : loco.CabViewList[(int)CabViewType.Front].ViewPointList;
+                var viewpoints = locomotive.CabViews[locomotive.UsingRearCab ? CabViewType.Rear : CabViewType.Front].ViewPointList;
                 attachedLocation = viewpoints[SideLocation].Location;
             }
             InitialiseRotation(AttachedCar);
@@ -2479,9 +2476,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             SideLocation += index;
 
-            var count = (loco.UsingRearCab)
-                ? loco.CabViewList[(int)CabViewType.Rear].ViewPointList.Count
-                : loco.CabViewList[(int)CabViewType.Front].ViewPointList.Count;
+            var count = loco.CabViews[loco.UsingRearCab ? CabViewType.Rear : CabViewType.Front].ViewPointList.Count;
             // Wrap around
             if (SideLocation < 0)
                 SideLocation = count - 1;
@@ -2569,9 +2564,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return;
 
             var loco = attachedCar as MSTSLocomotive;
-            var viewpoints = (loco.UsingRearCab)
-            ? loco.CabViewList[(int)CabViewType.Rear].ViewPointList
-            : loco.CabViewList[(int)CabViewType.Front].ViewPointList;
+            var viewpoints = loco.CabViews[loco.UsingRearCab ? CabViewType.Rear : CabViewType.Front].ViewPointList;
 
             rotationXRadians = MathHelper.ToRadians(viewpoints[SideLocation].StartDirection.X) - rotationRatio * (viewer.CabYOffsetPixels + viewer.CabExceedsDisplay / 2);
             rotationYRadians = MathHelper.ToRadians(viewpoints[SideLocation].StartDirection.Y) - rotationRatioHorizontal * (-viewer.CabXOffsetPixels + viewer.CabExceedsDisplayHorizontally / 2);
