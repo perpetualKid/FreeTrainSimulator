@@ -78,77 +78,77 @@ namespace Orts.Simulation.RollingStocks
     /// to the basic TrainCar.
     /// Use as a base for Electric, Diesel or Steam locomotives.
     /// </summary>
-    public abstract partial class MSTSLocomotive : MSTSWagon
+    public abstract class MSTSLocomotive : MSTSWagon
     {
-        protected bool speedSelectorModeDecreasing = false;
+        private bool speedSelectorModeDecreasing = false;
 
         // simulation parameters
-        public bool ManualHorn;
-        public bool TCSHorn;
-        public bool Horn;
+        public bool ManualHorn { get; set; }
+        public bool TCSHorn { get; set; }
+        public bool Horn { get; set; }
         private bool previousHorn;
 
-        public bool ManualBell;
-        public SoundState BellState = SoundState.Stopped;
-        public bool Bell;
+        public bool ManualBell { get; set; }
+        public SoundState BellState { get; set; } = SoundState.Stopped;
+        public bool Bell { get; set; }
         private bool previousBell;
 
-        public bool VacuumExhausterPressed;
-        public bool FastVacuumExhausterFitted;
+        public bool VacuumExhausterPressed { get; set; }
+        public bool FastVacuumExhausterFitted { get; set; }
 
-        public bool AlerterSnd;
-        public bool VigilanceMonitor;
-        public bool Sander;
-        public bool Wiper;
-        public bool BailOff;
-        public bool DynamicBrake;
-        public float MaxPowerW;
-        public float MaxForceN;
-        public float AbsTractionSpeedMpS;
-        public float MaxCurrentA;
-        public float MaxSpeedMpS = 1e3f;
-        public float UnloadingSpeedMpS;
-        public float MainResPressurePSI = 130;
-        public float MaximumMainReservoirPipePressurePSI;
-        public bool CompressorIsOn;
-        public bool CompressorIsMechanical;
-        public float AverageForceN;
-        public float PowerOnDelayS;
-        public bool CabLightOn;
-        public bool ShowCab = true;
-        public int DistributedPowerUnitId;
-        public float DrvWheelWeightKg; // current weight on locomotive drive wheels, includes drag factor (changes as mass changes)
-        public float InitialDrvWheelWeightKg; // initialising weight on locomotive drive wheels, includes drag factor
-        public bool CabRadioOn;
-        public bool OnLineCabRadio;
+        public bool AlerterSnd { get; set; }
+        public bool VigilanceMonitor { get; set; }
+        public bool Sander { get; set; }
+        public bool Wiper { get; set; }
+        public bool BailOff { get; set; }
+        public bool DynamicBrake { get; set; }
+        public float MaxPowerW { get; set; }
+        public float MaxForceN { get; set; }
+        public float AbsTractionSpeedMpS { get; set; }
+        public float MaxCurrentA { get; set; }
+        public float MaxSpeedMpS { get; set; } = 1e3f;
+        public float UnloadingSpeedMpS { get; set; }
+        public float MainResPressurePSI { get; set; } = 130;
+        public float MaximumMainReservoirPipePressurePSI { get; set; }
+        public bool CompressorIsOn { get; set; }
+        public bool CompressorIsMechanical { get; set; }
+        public float AverageForceN { get; set; }
+        public float PowerOnDelayS { get; set; }
+        public bool CabLightOn { get; set; }
+        public bool ShowCab { get; set; } = true;
+        public int DistributedPowerUnitId { get; set; }
+        public float DrvWheelWeightKg { get; set; } // current weight on locomotive drive wheels, includes drag factor (changes as mass changes)
+        public float InitialDrvWheelWeightKg { get; set; } // initialising weight on locomotive drive wheels, includes drag factor
+        public bool CabRadioOn { get; set; }
+        public bool OnLineCabRadio { get; set; }
         public string OnLineCabRadioURL;
 
         // Water trough filling
-        public bool HasWaterScoop; // indicates whether loco + tender have a water scoop or not
-        public float ScoopMaxPickupSpeedMpS = 200.0f; // Maximum scoop pickup speed - used in steam locomotive viewer
-        public bool ScoopIsBroken; // becomes broken if activated where there is no trough
-        public bool RefillingFromTrough; // refilling from through is ongoing
-        public float WaterScoopFillElevationM; // height water has to be raised to fill tender
-        public float WaterScoopDepthM; // depth that water scoop goes into trough (pan)
-        public float WaterScoopWidthM; // width of water scoop
-        public float WaterScoopVelocityMpS; // Velocity of water entering water scoop
-        public float WaterScoopDragForceN; // drag force due to scoop being in water trough
-        public float WaterScoopedQuantityLpS; // Amount of water scooped up by water scoop per second
-        public float WaterScoopInputAmountL; // Water scooped in elapsed time
-        public float WaterScoopMinSpeedMpS; // Minimum speed for water pickup
-        public bool IsWaterScoopDown;
-        public bool WaterScoopDown;
+        public bool HasWaterScoop { get; set; } // indicates whether loco + tender have a water scoop or not
+        public float ScoopMaxPickupSpeedMpS { get; set; } = 200.0f; // Maximum scoop pickup speed - used in steam locomotive viewer
+        public bool ScoopIsBroken { get; set; } // becomes broken if activated where there is no trough
+        public bool RefillingFromTrough { get; set; } // refilling from through is ongoing
+        public float WaterScoopFillElevationM { get; set; } // height water has to be raised to fill tender
+        public float WaterScoopDepthM { get; set; } // depth that water scoop goes into trough (pan)
+        public float WaterScoopWidthM { get; set; } // width of water scoop
+        public float WaterScoopVelocityMpS { get; set; } // Velocity of water entering water scoop
+        public float WaterScoopDragForceN { get; set; } // drag force due to scoop being in water trough
+        public float WaterScoopedQuantityLpS { get; set; } // Amount of water scooped up by water scoop per second
+        public float WaterScoopInputAmountL { get; set; } // Water scooped in elapsed time
+        public float WaterScoopMinSpeedMpS { get; set; } // Minimum speed for water pickup
+        public bool IsWaterScoopDown { get; set; }
+        public bool WaterScoopDown { get; set; }
         public const float GravitationalAccelerationFtpSpS = 32.26f;
-        public float TenderWaterLevelFraction;
-        public float WaterScoopTotalWaterL;
-        private bool WaterScoopOverTroughFlag;
+        public float TenderWaterLevelFraction { get; set; }
+        public float WaterScoopTotalWaterL { get; set; }
+        private bool WaterScoopOverTroughFlag{ get; set; }
         private bool WaterScoopNotFittedFlag;
         private bool WaterScoopSlowSpeedFlag;
         private bool WaterScoopDirectionFlag;
-        public bool IsWaterScoopPlayerLocomotive;
+        public bool IsWaterScoopPlayerLocomotive { get; set; }
         private bool WaterScoopSoundOn;
-        public float MaxTotalCombinedWaterVolumeUKG;
-        public MSTSNotchController WaterController = new MSTSNotchController(0, 1, 0.01f);
+        public float MaxTotalCombinedWaterVolumeUKG { get; set; }
+        public MSTSNotchController WaterController { get; } = new MSTSNotchController(0, 1, 0.01f);
         public float CombinedTenderWaterVolumeUKG          // Decreased by running injectors and increased by refilling
         {
             get { return WaterController.CurrentValue * MaxTotalCombinedWaterVolumeUKG; }
@@ -161,72 +161,72 @@ namespace Orts.Simulation.RollingStocks
             set { WaterController.CurrentValue = (float)(value / maximumSteamHeatBoilerWaterTankCapacityL); }
         }
 
-        public float IsTenderRequired = 1.0f;  // Flag indicates that a tender is required for operation of the locomotive. Typically tank locomotives do not require a tender. Assume by default that tender is required.
+        public float IsTenderRequired { get; set; } = 1.0f;  // Flag indicates that a tender is required for operation of the locomotive. Typically tank locomotives do not require a tender. Assume by default that tender is required.
 
-        public float BoilerPressurePSI;     // Steam Gauge pressure - what the engineer sees.
-        public float MaxBoilerPressurePSI = 180f;  // maximum boiler pressure, safety valve setting
+        public float BoilerPressurePSI { get; set; }     // Steam Gauge pressure - what the engineer sees.
+        public float MaxBoilerPressurePSI { get; set; } = 180f;  // maximum boiler pressure, safety valve setting
 
         // Vacuum Reservoir and Exhauster Settings
 
         // Steam heating Flags
-        public bool IsSteamInitial = true;        // To initialise steam heat
-        public bool IsSteamHeatFirstTime = true;  // Flag for first pass at steam heating.
-        public bool IsSteamHeatFitted;    // Is steam heating fitted to locomotive
-        public float CurrentSteamHeatPressurePSI;   // Current pressure in steam heat system
+        public bool IsSteamInitial { get; set; } = true;        // To initialise steam heat
+        public bool IsSteamHeatFirstTime { get; set; } = true;  // Flag for first pass at steam heating.
+        public bool IsSteamHeatFitted { get; set; }    // Is steam heating fitted to locomotive
+        public float CurrentSteamHeatPressurePSI { get; set; }   // Current pressure in steam heat system
 
         public string LocomotiveName; // Name of locomotive from ENG file
 
         // Carriage Steam Heating Parameters
-        public float MaxSteamHeatPressurePSI;    // Maximum Steam heating pressure
-        public Interpolator SteamHeatPressureToTemperaturePSItoF;
-        public Interpolator SteamDensityPSItoLBpFT3;   // saturated steam density given pressure
-        public Interpolator SteamHeatPSItoBTUpLB;      // total heat in saturated steam given pressure
-        public bool IsSteamHeatingBoilerFitted;   // Flag to indicate when steam heat boiler van is fitted
-        public float CalculatedCarHeaterSteamUsageLBpS;
+        public float MaxSteamHeatPressurePSI { get; set; }    // Maximum Steam heating pressure
+        public Interpolator SteamHeatPressureToTemperaturePSItoF { get; private set; }
+        public Interpolator SteamDensityPSItoLBpFT3 { get; private set; }   // saturated steam density given pressure
+        public Interpolator SteamHeatPSItoBTUpLB { get; private set; }      // total heat in saturated steam given pressure
+        public bool IsSteamHeatingBoilerFitted { get; set; }   // Flag to indicate when steam heat boiler van is fitted
+        public float CalculatedCarHeaterSteamUsageLBpS { get; set; }
 
         // Adhesion parameters
         public SlipControlType SlipControlSystem { get; private set; }
         private float BaseFrictionCoefficientFactor;  // Factor used to adjust Curtius formula depending upon weather conditions
         private float SlipFrictionCoefficientFactor;
-        public float SteamStaticWheelForce;
-        public float SteamTangentialWheelForce;
-        public float SteamDrvWheelWeightLbs;  // Weight on each drive axle
-        public float PreviousThrottleSetting;  // Holds the value of the previous throttle setting for calculating the correct antislip speed
+        public float SteamStaticWheelForce { get; set; }
+        public float SteamTangentialWheelForce { get; set; }
+        public float SteamDrvWheelWeightLbs { get; set; }  // Weight on each drive axle
+        public float PreviousThrottleSetting { get; set; }  // Holds the value of the previous throttle setting for calculating the correct antislip speed
 
         // parameters for Track Sander based upon compressor air and abrasive table for 1/2" sand blasting nozzle @ 50psi
-        public float MaxTrackSandBoxCapacityM3 = (float)Size.Volume.FromFt3(40.0f);  // Capacity of sandbox - assume 40.0 cu ft
-        public float CurrentTrackSandBoxCapacityM3 = 5.0f;   // This value needs to be initialised to the value above, as it reduces as sand is used.
-        public float TrackSanderAirComsumptionM3pS = (float)Size.Volume.FromFt3(195.0f) / 60.0f;  // Default value - cubic feet per min (CFM) 195 ft3/m
-        public float TrackSanderAirPressurePSI = 50.0f;
-        public float TrackSanderSandConsumptionM3pS = (float)Size.Volume.FromFt3(11.6f) / 3600.0f; // Default value 11.6 ft3/h
+        public float MaxTrackSandBoxCapacityM3 { get; set; } = (float)Size.Volume.FromFt3(40.0f);  // Capacity of sandbox - assume 40.0 cu ft
+        public float CurrentTrackSandBoxCapacityM3 { get; set; } = 5.0f;   // This value needs to be initialised to the value above, as it reduces as sand is used.
+        public float TrackSanderAirComsumptionM3pS { get; set; } = (float)Size.Volume.FromFt3(195.0f) / 60.0f;  // Default value - cubic feet per min (CFM) 195 ft3/m
+        public float TrackSanderAirPressurePSI { get; set; } = 50.0f;
+        public float TrackSanderSandConsumptionM3pS { get; set; } = (float)Size.Volume.FromFt3(11.6f) / 3600.0f; // Default value 11.6 ft3/h
 
         // Vacuum Braking parameters
-        public bool SmallSteamEjectorIsOn;
-        public bool LargeSteamEjectorIsOn;
-        public bool VacuumPumpOperating;
-        public float SteamEjectorSmallPressurePSI;
-        public float SteamEjectorLargePressurePSI;
-        public bool VacuumPumpFitted;
-        public bool SmallEjectorControllerFitted;
-        public float VacuumPumpResistanceN;
-        public float EjectorSmallSteamConsumptionLbpS;
-        public float EjectorLargeSteamConsumptionLbpS;
-        public float SteamEjectorSmallSetting;
-        public float SteamEjectorLargeSetting;
-        public float MaxVaccuumMaxPressurePSI = 110.0f;  // Value for the boiler pressure when maximum vacuum will be produced for the steam ejector 
-        public float SmallEjectorFeedFraction = 0.35f;
-        public float LargeEjectorFeedFraction = 1.0f;
-        public bool LargeEjectorControllerFitted;
-        public float VacuumPumpChargingRateInHgpS;
-        public bool VacuumBrakeEQFitted;  // Flag to indicate that equalising resevoir fitted to vacuum brakes
-        public float HUDNetBPLossGainPSI;
-        public float SmallEjectorBrakePipeChargingRatePSIorInHgpS;
-        public float LargeEjectorBrakePipeChargingRatePSIorInHgpS;
-        public float ExhausterHighSBPChargingRatePSIorInHgpS;  // Rate for Exhauster in high speed mode
-        public float ExhausterLowSBPChargingRatePSIorInHgpS;  // Rate for Exhauster in high speed mode
-        public bool VacuumBrakeCutoffActivated;
-        public bool BrakeFlagDecrease;
-        public bool BrakeFlagIncrease;
+        public bool SmallSteamEjectorIsOn { get; set; }
+        public bool LargeSteamEjectorIsOn { get; set; }
+        public bool VacuumPumpOperating { get; set; }
+        public float SteamEjectorSmallPressurePSI { get; set; }
+        public float SteamEjectorLargePressurePSI { get; set; }
+        public bool VacuumPumpFitted { get; set; }
+        public bool SmallEjectorControllerFitted { get; set; }
+        public float VacuumPumpResistanceN { get; set; }
+        public float EjectorSmallSteamConsumptionLbpS { get; set; }
+        public float EjectorLargeSteamConsumptionLbpS { get; set; }
+        public float SteamEjectorSmallSetting { get; set; }
+        public float SteamEjectorLargeSetting { get; set; }
+        public float MaxVaccuumMaxPressurePSI { get; set; } = 110.0f;  // Value for the boiler pressure when maximum vacuum will be produced for the steam ejector 
+        public float SmallEjectorFeedFraction { get; set; } = 0.35f;
+        public float LargeEjectorFeedFraction { get; set; } = 1.0f;
+        public bool LargeEjectorControllerFitted { get; set; }
+        public float VacuumPumpChargingRateInHgpS { get; set; }
+        public bool VacuumBrakeEQFitted { get; set; }  // Flag to indicate that equalising resevoir fitted to vacuum brakes
+        public float HUDNetBPLossGainPSI { get; set; }
+        public float SmallEjectorBrakePipeChargingRatePSIorInHgpS { get; set; }
+        public float LargeEjectorBrakePipeChargingRatePSIorInHgpS { get; set; }
+        public float ExhausterHighSBPChargingRatePSIorInHgpS { get; set; }  // Rate for Exhauster in high speed mode
+        public float ExhausterLowSBPChargingRatePSIorInHgpS { get; set; }  // Rate for Exhauster in high speed mode
+        public bool VacuumBrakeCutoffActivated { get; set; }
+        public bool BrakeFlagDecrease { get; set; }
+        public bool BrakeFlagIncrease { get; set; }
 
         private bool _SmallEjectorSoundOn;
         public bool SmallEjectorSoundOn
@@ -256,22 +256,22 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        public bool DriveWheelOnlyBrakes;
-        public bool SteamEngineBrakeFitted;
-        public bool TrainBrakeFitted;
-        public bool EngineBrakeFitted;
-        public bool BrakemanBrakeFitted;
-        public bool VacuumExhausterIsOn;
-        public float VacuumBrakesMainResVolumeM3 = (float)Size.Volume.FromFt3(200.0f); // Main vacuum reservoir volume
-        public float VacuumBrakesMainResMaxVacuumPSIAorInHg = (float)Pressure.Vacuum.ToPressure(23);
-        public float VacuumBrakesExhausterRestartVacuumPSIAorInHg = (float)Pressure.Vacuum.ToPressure(21);
-        public float VacuumBrakesMainResChargingRatePSIAorInHgpS = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(0.2f));
-        public float VacuumMainResVacuumPSIAorInHg = (float)Pressure.Vacuum.ToPressure(23); // Vacuum currently in Main Reservoir
+        public bool DriveWheelOnlyBrakes { get; set; }
+        public bool SteamEngineBrakeFitted { get; set; }
+        public bool TrainBrakeFitted { get; set; }
+        public bool EngineBrakeFitted { get; set; }
+        public bool BrakemanBrakeFitted { get; set; }
+        public bool VacuumExhausterIsOn { get; set; }
+        public float VacuumBrakesMainResVolumeM3 { get; set; } = (float)Size.Volume.FromFt3(200.0f); // Main vacuum reservoir volume
+        public float VacuumBrakesMainResMaxVacuumPSIAorInHg { get; set; } = (float)Pressure.Vacuum.ToPressure(23);
+        public float VacuumBrakesExhausterRestartVacuumPSIAorInHg { get; set; } = (float)Pressure.Vacuum.ToPressure(21);
+        public float VacuumBrakesMainResChargingRatePSIAorInHgpS { get; set; } = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(0.2f));
+        public float VacuumMainResVacuumPSIAorInHg { get; set; } = (float)Pressure.Vacuum.ToPressure(23); // Vacuum currently in Main Reservoir
 
         // Set values for display in HUD
-        public float WagonCoefficientFrictionHUD;
-        public float LocomotiveCoefficientFrictionHUD;
-        public float HuDGearMaximumTractiveForce;
+        private protected float WagonCoefficientFrictionHUD;
+        private protected float LocomotiveCoefficientFrictionHUD;
+        public float HuDGearMaximumTractiveForce { get; set; }
 
         public Pressure.Unit MainPressureUnit { get; protected set; } = Pressure.Unit.None;
 
@@ -288,58 +288,58 @@ namespace Orts.Simulation.RollingStocks
                     : odometerCountingForwards ? Train.DistanceTravelledM - odometerResetPositionM : odometerResetPositionM - Train.DistanceTravelledM;
 
         // ENG file data
-        public string CabSoundFileName;
-        public string CVFFileName;
-        public float MaxMainResPressurePSI;
-        public float MainResVolumeM3;
-        public float TrainBrakePipeLeakPSIorInHgpS;    // Air leakage from train brake pipe - should normally be no more then 5psi/min - default off
-        public float CompressorRestartPressurePSI = 110;
-        public float CompressorChargingRateM3pS = 0.075f;
-        public float MainResChargingRatePSIpS = 0.4f;
-        public float EngineBrakeReleaseRatePSIpS = 12.5f;
-        public float EngineBrakeApplyRatePSIpS = 12.5f;
-        public float BrakePipeTimeFactorS = 0.0015f;
-        public float BrakePipeDischargeTimeFactor;
-        public float BrakeServiceTimeFactorPSIpS;
-        public float BrakeEmergencyTimeFactorPSIpS;
-        public float BrakePipeChargingRatePSIorInHgpS;
-        public float BrakePipeQuickChargingRatePSIpS;
-        public Interpolator2D TractiveForceCurves;
-        public Interpolator2D DynamicBrakeForceCurves;
-        public float DynamicBrakeSpeed1MpS = (float)Speed.MeterPerSecond.FromKpH(5);
-        public float DynamicBrakeSpeed2MpS = (float)Speed.MeterPerSecond.FromKpH(30);
-        public float DynamicBrakeSpeed3MpS = (float)Speed.MeterPerSecond.FromKpH(999);
-        public float DynamicBrakeSpeed4MpS = (float)Speed.MeterPerSecond.FromKpH(999);
-        public float DynamicBrakeRatioAtSpeed4;
-        public float MaxDynamicBrakeForceN;
-        public float DynamicBrakeMaxCurrentA;
-        public float DynamicBrakeDelayS;
-        public bool DynamicBrakeAutoBailOff;
-        public bool UsingRearCab;   // TODO 20240421 use CabViewType enum
-        public bool BrakeOverchargeSoundOn;
+        public string CabSoundFileName { get; set; }
+        public string CVFFileName { get; set; }
+        public float MaxMainResPressurePSI { get; set; }
+        public float MainResVolumeM3 { get; set; }
+        public float TrainBrakePipeLeakPSIorInHgpS { get; set; }    // Air leakage from train brake pipe - should normally be no more then 5psi/min - default off
+        public float CompressorRestartPressurePSI { get; set; } = 110;
+        public float CompressorChargingRateM3pS { get; set; } = 0.075f;
+        public float MainResChargingRatePSIpS { get; set; } = 0.4f;
+        public float EngineBrakeReleaseRatePSIpS { get; set; } = 12.5f;
+        public float EngineBrakeApplyRatePSIpS { get; set; } = 12.5f;
+        public float BrakePipeTimeFactorS { get; set; } = 0.0015f;
+        public float BrakePipeDischargeTimeFactor { get; set; }
+        public float BrakeServiceTimeFactorPSIpS { get; set; }
+        public float BrakeEmergencyTimeFactorPSIpS { get; set; }
+        public float BrakePipeChargingRatePSIorInHgpS { get; set; }
+        public float BrakePipeQuickChargingRatePSIpS { get; set; }
+        public Interpolator2D TractiveForceCurves { get; private set; }
+        public Interpolator2D DynamicBrakeForceCurves { get; private set; }
+        public float DynamicBrakeSpeed1MpS { get; set; } = (float)Speed.MeterPerSecond.FromKpH(5);
+        public float DynamicBrakeSpeed2MpS { get; set; } = (float)Speed.MeterPerSecond.FromKpH(30);
+        public float DynamicBrakeSpeed3MpS { get; set; } = (float)Speed.MeterPerSecond.FromKpH(999);
+        public float DynamicBrakeSpeed4MpS { get; set; } = (float)Speed.MeterPerSecond.FromKpH(999);
+        public float DynamicBrakeRatioAtSpeed4 { get; set; }
+        public float MaxDynamicBrakeForceN { get; set; }
+        public float DynamicBrakeMaxCurrentA { get; set; }
+        public float DynamicBrakeDelayS { get; set; }
+        public bool DynamicBrakeAutoBailOff { get; set; }
+        public bool UsingRearCab { get; set; }   // TODO 20240421 use CabViewType enum
+        public bool BrakeOverchargeSoundOn { get; set; }
 
-        protected bool DynamicBrakeBlended; // dynamic brake blending is currently active
-        protected bool DynamicBrakeBlendingEnabled; // dynamic brake blending is configured
+        private bool DynamicBrakeBlended; // dynamic brake blending is currently active
+        private bool DynamicBrakeBlendingEnabled; // dynamic brake blending is configured
         public bool DynamicBrakeAvailable { get; protected set; } // dynamic brake is available
         private AirSinglePipe airPipeSystem;
         public double DynamicBrakeCommandStartTime { get; internal set; }
-        protected bool DynamicBrakeBlendingOverride; // true when DB lever >0% should always override the blending. When false, the bigger command is applied.
-        protected bool DynamicBrakeBlendingForceMatch = true; // if true, dynamic brake blending tries to achieve the same braking force as the airbrake would have.
+        private bool DynamicBrakeBlendingOverride; // true when DB lever >0% should always override the blending. When false, the bigger command is applied.
+        private bool DynamicBrakeBlendingForceMatch = true; // if true, dynamic brake blending tries to achieve the same braking force as the airbrake would have.
 
-        public CombinedControl CombinedControlType;
-        public float CombinedControlSplitPosition;
-        public bool HasSmoothStruc;
-        private bool controlTrailerBrakeSystemSet;
+        public CombinedControl CombinedControlType { get; private set; }
+        public float CombinedControlSplitPosition { get; set; }
+        public bool HasSmoothStruc { get; set; }
+        private bool controlTrailerBrakeSystemSet { get; set; }
 
-        public float MaxContinuousForceN;
-        public float SpeedOfMaxContinuousForceMpS;  // Speed where maximum tractive effort occurs
-        public float MSTSSpeedOfMaxContinuousForceMpS;  // Speed where maximum tractive effort occurs - MSTS parameter if used
-        public float ContinuousForceTimeFactor = 1800;
-        public bool AntiSlip;
-        public bool AdvancedAdhesionModel; // flag set depending upon adhesion model used.
-        public float SanderSpeedEffectUpToMpS;
-        public float SanderSpeedOfMpS = 30.0f;
-        public string EngineOperatingProcedures;
+        public float MaxContinuousForceN { get; set; }
+        public float SpeedOfMaxContinuousForceMpS { get; set; }  // Speed where maximum tractive effort occurs
+        public float MSTSSpeedOfMaxContinuousForceMpS { get; set; }  // Speed where maximum tractive effort occurs - MSTS parameter if used
+        public float ContinuousForceTimeFactor { get; set; } = 1800;
+        public bool AntiSlip { get; set; }
+        public bool AdvancedAdhesionModel { get; set; } // flag set depending upon adhesion model used.
+        public float SanderSpeedEffectUpToMpS { get; set; }
+        public float SanderSpeedOfMpS { get; set; } = 30.0f;
+        public string EngineOperatingProcedures { get; set; }
 
         public bool EmergencyButtonPressed { get; set; }
         public bool EmergencyCausesPowerDown { get; private set; }
@@ -354,42 +354,40 @@ namespace Orts.Simulation.RollingStocks
         public float BrakeCutsPowerAtBrakeCylinderPressurePSI { get; private set; }
         public bool DoesHornTriggerBell { get; private set; }
 
-        protected const float DefaultCompressorRestartToMaxSysPressureDiff = 35;    // Used to check if difference between these two .eng parameters is correct, and to correct it
-        protected const float DefaultMaxMainResToCompressorRestartPressureDiff = 10; // Used to check if difference between these two .eng parameters is correct, and to correct it
-        protected const float DefaultMaxCompressorRestartPressure = 135; // Max value to be inserted if .eng parameters are corrected
-        protected const float DefaultMainResVolume = 0.78f; // Value to be inserted if .eng parameters are corrected
-        protected const float DefaultMaxMainResPressure = 140; // Max value to be inserted if .eng parameters are corrected
+        private const float DefaultCompressorRestartToMaxSysPressureDiff = 35;    // Used to check if difference between these two .eng parameters is correct, and to correct it
+        private const float DefaultMaxMainResToCompressorRestartPressureDiff = 10; // Used to check if difference between these two .eng parameters is correct, and to correct it
+        private const float DefaultMaxCompressorRestartPressure = 135; // Max value to be inserted if .eng parameters are corrected
+        private const float DefaultMainResVolume = 0.78f; // Value to be inserted if .eng parameters are corrected
+        private const float DefaultMaxMainResPressure = 140; // Max value to be inserted if .eng parameters are corrected
 
         public EnumArray<CabView, CabViewType> CabViews { get; private set; } = new EnumArray<CabView, CabViewType>();
-        public CabView3D CabView3D;
+        public CabView3D CabView3D { get; private set; }
 
-        public MSTSNotchController SteamHeatController = new MSTSNotchController(0, 1, 0.1f);
+        public MSTSNotchController SteamHeatController { get; private set; } = new MSTSNotchController(0, 1, 0.1f);
 
-        public MSTSNotchController ThrottleController;
+        public MSTSNotchController ThrottleController { get; private set; }
         public ScriptedBrakeController TrainBrakeController { get; private set; }
         public ScriptedBrakeController EngineBrakeController { get; private set; }
         public ScriptedBrakeController BrakemanBrakeController { get; private set; }
-        public ValveState EngineBrakeState = ValveState.Lap;
-        public MSTSNotchController DynamicBrakeController;
-        public MSTSNotchController GearBoxController;
-        public MSTSNotchController DistributedPowerThrottleController;
-        public MSTSNotchController DistributedPowerDynamicBrakeController;
+        public ValveState EngineBrakeState { get; set; } = ValveState.Lap;
+        public MSTSNotchController DynamicBrakeController { get; private set; }
+        public MSTSNotchController GearBoxController { get; protected set; }
+        public MSTSNotchController DistributedPowerThrottleController { get; private set; }
+        public MSTSNotchController DistributedPowerDynamicBrakeController { get; private set; }
 
         private int previousGearBoxNotch;
         private int previousChangedGearBoxNotch;
 
-        public float EngineBrakeIntervention = -1;
-        public float TrainBrakeIntervention = -1;
-        public float ThrottleIntervention = -1;
-        public float DynamicBrakeIntervention = -1;
-        protected float PreviousDynamicBrakeIntervention = -1;
-        protected bool PreviousFullDynamicBrakingOrder;
+        private float ThrottleIntervention = -1;
+        public float DynamicBrakeIntervention { get; set; } = -1;
+        private float PreviousDynamicBrakeIntervention = -1;
+        private bool PreviousFullDynamicBrakingOrder;
 
         public TractionMotorType TractionMotorType { get; private set; } = TractionMotorType.DC;
 
 
         public ILocomotivePowerSupply LocomotivePowerSupply => PowerSupply as ILocomotivePowerSupply;
-        public ScriptedTrainControlSystem TrainControlSystem;
+        public ScriptedTrainControlSystem TrainControlSystem { get; private set; }
 
         private protected readonly LocomotiveBrakeInformation locomotiveBrakeInfo;
         private protected readonly LocomotiveForceInformation locomotiveForceInfo;
@@ -402,13 +400,13 @@ namespace Orts.Simulation.RollingStocks
         private double saveAdhesionFilter;
         private double adhesionConditions;
 
-        public float FilteredMotiveForceN;
+        public float FilteredMotiveForceN { get; set; }
 
-        public double CommandStartTime;
+        public double CommandStartTime { get; set; }
 
-        public double LastBrakeSoundTime;
+        public double LastBrakeSoundTime { get; set; }
 
-        public float PowerReduction;
+        public float PowerReduction { get; set; }
 
         // Cruise Control
         public CruiseControl CruiseControl { get; private set; }
@@ -6205,160 +6203,4 @@ namespace Orts.Simulation.RollingStocks
             }
         }
     } // End Class MSTSLocomotive
-
-    public class CabView
-    {
-        public CabViewFile CVFFile { get; }
-        public ReadOnlyCollection<ViewPoint> ViewPointList { get; }
-        public ExtendedCVF ExtendedCVF { get; }
-        public CabViewType CabViewType { get; internal set; }
-
-        public CabView(CabViewFile cvfFile, IList<ViewPoint> viewPointList, ExtendedCVF extendedCVF, CabViewType cabViewType)
-        {
-            CVFFile = cvfFile;
-            ViewPointList = new ReadOnlyCollection<ViewPoint>(viewPointList);
-            ExtendedCVF = extendedCVF;
-            CabViewType = cabViewType;
-        }
-    }
-
-    public class CabView3D : CabView
-    {
-        public string ShapeFilePath { get; }
-
-        public CabView3D(CabViewFile cvfFile, IList<PassengerViewPoint> cabViewpoints, ExtendedCVF extendedCVF, CabViewType cabViewType, string shapeFilePath)
-            : base(cvfFile, cabViewpoints.Cast<ViewPoint>().ToList(), extendedCVF, cabViewType)
-        {
-            ShapeFilePath = shapeFilePath;
-        }
-    }
-
-    /// <summary>
-    /// Extended CVF data, currently used for CAB light
-    /// By GeorgeS
-    /// </summary>
-    //[OrtsPhysicsFile("lit", "ORTSExtendedCVF")]
-    public class ExtendedCVF
-    {
-        // migrated and refactored from OrtsPhysicsFileAttribute and OrtsPhysicsAttribute
-        private const string token = "ORTSExtendedCVF";
-        private const string extension = "lit";
-
-        /// <summary>
-        /// Translate to current screen resolution
-        /// </summary>
-        /// <param name="displaySize">Current screen resolution</param>
-        /// <returns>Translated vectors</returns>
-        public static Vector4 TranslatedPosition(Vector4 Position, Point displaySize)
-        {
-            return new Vector4(Position.X / 640 * displaySize.X,
-                Position.Y / 480 * displaySize.Y,
-                Position.Z / 640 * displaySize.X,
-                Position.W);
-        }
-
-        internal virtual void Initialize(string wagFilePath)
-        {
-            string fileName = Path.ChangeExtension(wagFilePath, extension);
-            if (File.Exists(fileName))
-            {
-                using (STFReader stf = new STFReader(fileName, false))
-                {
-
-                    stf.MustMatch(token);
-                    stf.MustMatch("(");
-                    stf.ParseBlock(new STFReader.TokenProcessor[] {
-                            new STFReader.TokenProcessor("light1position", () =>
-                            {
-                                Vector4 l1 = Light1Position;
-                                stf.ReadVector4Block(STFReader.Units.Any, ref l1);
-                                Light1Position = l1;
-                            }),
-                            new STFReader.TokenProcessor("light1colorargb", () =>
-                            {
-                                Vector4 v4 = new Vector4(-1);
-                                stf.ReadVector4Block(STFReader.Units.Any, ref v4);
-                                Color c = new Color();
-                                if (v4.W == -1)
-                                {
-                                    c.A = 255;
-                                    c.R = v4.X == -1 ? c.R : (byte)v4.X;
-                                    c.G = v4.Y == -1 ? c.G : (byte)v4.Y;
-                                    c.B = v4.Z == -1 ? c.B : (byte)v4.Z;
-                                }
-                                else
-                                {
-                                    c.A = v4.X == -1 ? c.A : (byte)v4.X;
-                                    c.R = v4.Y == -1 ? c.R : (byte)v4.Y;
-                                    c.G = v4.Z == -1 ? c.G : (byte)v4.Z;
-                                    c.B = v4.W == -1 ? c.B : (byte)v4.W;
-                                }
-                                Light1Color = c;
-                            }),
-                            new STFReader.TokenProcessor("light2position", () =>
-                            {
-                                Vector4 l2 = Light1Position;
-                                stf.ReadVector4Block(STFReader.Units.Any, ref l2);
-                                Light2Position = l2;
-                            }),
-                            new STFReader.TokenProcessor("light2colorargb", () =>
-                            {
-                                Vector4 v4 = new Vector4(-1);
-                                stf.ReadVector4Block(STFReader.Units.Any, ref v4);
-                                Color c = new Color();
-                                if (v4.W == -1)
-                                {
-                                    c.A = 255;
-                                    c.R = v4.X == -1 ? c.R : (byte)v4.X;
-                                    c.G = v4.Y == -1 ? c.G : (byte)v4.Y;
-                                    c.B = v4.Z == -1 ? c.B : (byte)v4.Z;
-                                }
-                                else
-                                {
-                                    c.A = v4.X == -1 ? c.A : (byte)v4.X;
-                                    c.R = v4.Y == -1 ? c.R : (byte)v4.Y;
-                                    c.G = v4.Z == -1 ? c.G : (byte)v4.Z;
-                                    c.B = v4.W == -1 ? c.B : (byte)v4.W;
-                                }
-                                Light2Color = c;
-                            }),
-                        });
-                }
-            }
-        }
-
-        /// <summary>
-        /// Used by the shader
-        /// </summary>
-        public static Vector3 TranslatedColor(Color Color)
-        {
-            return new Vector3((float)Color.R / 255, (float)Color.G / 255, (float)Color.B / 255);
-        }
-
-        //[OrtsPhysics("First light Position", "Light1Position", "The position and aspect of the first cab light", "320 360 155 2")]
-        /// <summary>
-        /// The position and aspect of the first cab light
-        /// </summary>
-        public Vector4 Light1Position { get; private set; } = new Vector4(320, 360, 155, 2);
-
-        //[OrtsPhysics("First light ARGB", "Light1ColorARGB", "The color of the first cab light", "255 216 178 255")]
-        /// <summary>
-        /// The color of the first cab light
-        /// </summary>
-        public Color Light1Color { get; private set; } = new Color(255, 216, 178, 255);
-
-        //[OrtsPhysics("Second light Position", "Light2Position", "The position and aspect of the first cab light", "0 0 0 0")]
-        /// <summary>
-        /// The position and aspect of the first cab light
-        /// </summary>
-        public Vector4 Light2Position { get; private set; }
-
-        //[OrtsPhysics("Second light ARGB", "Light2ColorARGB", "The color of the second cab light", "0 0 0")]
-        /// <summary>
-        /// The color of the second cab light
-        /// </summary>
-        public Color Light2Color { get; private set; }
-
-
-    } // End Class ExtendedCVF 
 }
