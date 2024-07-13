@@ -918,7 +918,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
             else if (Locomotive.gearSaved)
             {
-                State = (DieselEngineState)Locomotive.dieselEngineRestoreState;
+                State = (DieselEngineState)Locomotive.DieselEngineRestoreState;
             }
 
             RPMRange = MaxRPM - IdleRPM;
@@ -943,7 +943,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
             else if (Locomotive.gearSaved)
             {
-                State = (DieselEngineState)Locomotive.dieselEngineRestoreState;
+                State = (DieselEngineState)Locomotive.DieselEngineRestoreState;
             }
 
             GearBox?.InitializeMoving();

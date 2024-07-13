@@ -73,30 +73,6 @@ using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 
 namespace Orts.Simulation.RollingStocks
 {
-
-    ///////////////////////////////////////////////////
-    ///   SIMULATION BEHAVIOUR
-    ///////////////////////////////////////////////////
-
-    public enum CabViewType
-    {
-        Front = 0,
-        Rear = 1,
-        Void = 2
-    }
-
-    public enum TractionMotorType
-    {
-        AC,
-        DC
-    }
-
-    public enum SlipControlType
-    {
-        None,
-        Full
-    }
-
     /// <summary>
     /// Adds Throttle, Direction, Horn, Sander and Wiper control
     /// to the basic TrainCar.
@@ -104,29 +80,6 @@ namespace Orts.Simulation.RollingStocks
     /// </summary>
     public abstract partial class MSTSLocomotive : MSTSWagon
     {
-        private enum Wheelslip
-        {
-            None,
-            Warning,
-            Occurring
-        };
-
-        public enum CombinedControl
-        {
-            None,
-            ThrottleDynamic,
-            ThrottleAir,
-            ThrottleDynamicAir,
-            DynamicAir,
-        }
-
-        public enum SoundState
-        {
-            Stopped,
-            Sound,
-            ContinuousSound
-        }
-
         protected bool speedSelectorModeDecreasing = false;
 
         // simulation parameters
@@ -2219,7 +2172,7 @@ namespace Orts.Simulation.RollingStocks
                         PreviousThrottleSetting = MathHelper.Clamp(PreviousThrottleSetting, 0.0f, 1.0f); // Prevents parameter going outside of bounds 
 
                         // If wheels slip and WheelslipCausesThrottleDown is set in engine file reduce throttle to 0 setting
-                        if (WheelslipCausesThrottleDown && WheelSlip)
+                        if (WheelslipCausesThrottleDown && base.WheelSlip)
                             ThrottleController.SetValue(0.0f);
                     }
 
@@ -2431,7 +2384,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    if (WheelSlip && AdvancedAdhesionModel)
+                    if (base.WheelSlip && AdvancedAdhesionModel)
                     {
                         AbsTractionSpeedMpS = AbsWheelSpeedMpS;
                     }
@@ -2510,7 +2463,7 @@ namespace Orts.Simulation.RollingStocks
             }// end AI locomotive
         }
 
-        private Wheelslip wheelslipState = Wheelslip.None;
+        private WheelSlipState wheelslipState = WheelSlipState.None;
 
         public void ConfirmWheelslip(double elapsedClockSeconds)
         {
@@ -2519,11 +2472,11 @@ namespace Orts.Simulation.RollingStocks
                 if (AdvancedAdhesionModel)
                 {
                     // Wheelslip
-                    if (WheelSlip)
+                    if (base.WheelSlip)
                     {
-                        if (wheelslipState != Wheelslip.Occurring)
+                        if (wheelslipState != WheelSlipState.Occurring)
                         {
-                            wheelslipState = Wheelslip.Occurring;
+                            wheelslipState = WheelSlipState.Occurring;
                             simulator.Confirmer.Warning(CabControl.Wheelslip, CabSetting.On);
                         }
                     }
@@ -2531,17 +2484,17 @@ namespace Orts.Simulation.RollingStocks
                     {
                         if (WheelSlipWarning)
                         {
-                            if (wheelslipState != Wheelslip.Warning)
+                            if (wheelslipState != WheelSlipState.Warning)
                             {
-                                wheelslipState = Wheelslip.Warning;
+                                wheelslipState = WheelSlipState.Warning;
                                 simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Warn1);
                             }
                         }
                         else
                         {
-                            if (wheelslipState != Wheelslip.None)
+                            if (wheelslipState != WheelSlipState.None)
                             {
-                                wheelslipState = Wheelslip.None;
+                                wheelslipState = WheelSlipState.None;
                                 simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Off);
                             }
                         }
@@ -2549,14 +2502,14 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    if (WheelSlip && (wheelslipState != Wheelslip.Occurring))
+                    if (base.WheelSlip && (wheelslipState != WheelSlipState.Occurring))
                     {
-                        wheelslipState = Wheelslip.Occurring;
+                        wheelslipState = WheelSlipState.Occurring;
                         simulator.Confirmer.Warning(CabControl.Wheelslip, CabSetting.On);
                     }
-                    if ((!WheelSlip) && (wheelslipState != Wheelslip.None))
+                    if ((!base.WheelSlip) && (wheelslipState != WheelSlipState.None))
                     {
-                        wheelslipState = Wheelslip.None;
+                        wheelslipState = WheelSlipState.None;
                         simulator.Confirmer.Confirm(CabControl.Wheelslip, CabSetting.Off);
                     }
                 }
@@ -2835,14 +2788,14 @@ namespace Orts.Simulation.RollingStocks
             MotiveForceN = LocomotiveAxle.CompensatedAxleForceN;
             if (elapsedClockSeconds > 0)
             {
-                WheelSlip = LocomotiveAxle.IsWheelSlip;             //Get the wheelslip indicator
+                base.WheelSlip = LocomotiveAxle.IsWheelSlip;             //Get the wheelslip indicator
                 WheelSlipWarning = LocomotiveAxle.IsWheelSlipWarning && SlipControlSystem != SlipControlType.Full;
             }
 
             // This enables steam locomotives to have different speeds for driven and non-driven wheels.
             if (EngineType == EngineType.Steam && this is MSTSSteamLocomotive steamLocomotive1 && steamLocomotive1.SteamEngineType != SteamEngineType.Geared)
             {
-                if (AbsSpeedMpS <= 0.15 && !WheelSlip)
+                if (AbsSpeedMpS <= 0.15 && !base.WheelSlip)
                 {
                     WheelSpeedSlipMpS = SpeedMpS;
                     WheelSpeedMpS = SpeedMpS;
@@ -2935,11 +2888,11 @@ namespace Orts.Simulation.RollingStocks
 
             max1 = max0;
 
-            WheelSlip = false;
+            base.WheelSlip = false;
 
             if (MotiveForceN > max1)
             {
-                WheelSlip = true;
+                base.WheelSlip = true;
                 if (AntiSlip)
                     MotiveForceN = max1;
                 else
@@ -2947,7 +2900,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else if (MotiveForceN < -max1)
             {
-                WheelSlip = true;
+                base.WheelSlip = true;
                 if (AntiSlip)
                     MotiveForceN = -max1;
                 else
@@ -5768,7 +5721,7 @@ namespace Orts.Simulation.RollingStocks
                             if (AdvancedAdhesionModel && Train.TrainType != TrainType.AiPlayerHosting)
                                 data = WheelSlipWarning ? 1 : 0;
                             else
-                                data = WheelSlip ? 1 : 0;
+                                data = base.WheelSlip ? 1 : 0;
                         }
                         break;
                     }
@@ -6136,7 +6089,7 @@ namespace Orts.Simulation.RollingStocks
             // For Locomotive HUD display shows "forward" motive power (& force) as a positive value, braking power (& force) will be shown as negative values.
             carInfo["Power"] = FormatStrings.FormatPower(MotiveForceN * SpeedMpS, simulator.MetricUnits, false, false);
             carInfo["Force"] = FormatStrings.FormatForce(MotiveForceN * (Flipped ? -1 : 1), simulator.MetricUnits);
-            carInfo.FormattingOptions["Force"] = WheelSlip ? FormatOption.RegularOrangeRed : WheelSlipWarning ? FormatOption.RegularYellow : null;
+            carInfo.FormattingOptions["Force"] = base.WheelSlip ? FormatOption.RegularOrangeRed : WheelSlipWarning ? FormatOption.RegularYellow : null;
 
             // Only show steam heating HUD if fitted to locomotive and the train, has passenger cars attached, and is the lead locomotive
             if (IsSteamHeatFitted && Train.PassengerCarsNumber > 0 && IsLeadLocomotive() && Train.CarSteamHeatOn)

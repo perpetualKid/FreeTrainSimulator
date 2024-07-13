@@ -135,6 +135,48 @@ namespace FreeTrainSimulator.Common
         Right,
     }
 
+    public enum WheelSlipState
+    {
+        None,
+        Warning,
+        Occurring
+    };
+
+    public enum CombinedControl
+    {
+        None,
+        ThrottleDynamic,
+        ThrottleAir,
+        ThrottleDynamicAir,
+        DynamicAir,
+    }
+
+    public enum SoundState
+    {
+        Stopped,
+        Sound,
+        ContinuousSound
+    }
+
+    public enum CabViewType
+    {
+        Front = 0,
+        Rear = 1,
+        Void = 2
+    }
+
+    public enum TractionMotorType
+    {
+        AC,
+        DC
+    }
+
+    public enum SlipControlType
+    {
+        None,
+        Full
+    }
+
     public enum CabSetting
     {
         Name,       // name of control

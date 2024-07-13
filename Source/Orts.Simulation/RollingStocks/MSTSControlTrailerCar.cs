@@ -56,11 +56,8 @@ namespace Orts.Simulation.RollingStocks
 
         public MSTSControlTrailerCar(string wagFile) :
             base(wagFile)
-
         {
-
             PowerSupply = new ScriptedControlCarPowerSupply(this);
-
         }
 
         public override void LoadFromWagFile(string wagFilePath)

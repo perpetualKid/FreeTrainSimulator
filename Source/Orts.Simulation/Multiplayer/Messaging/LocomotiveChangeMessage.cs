@@ -1,5 +1,7 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common;
+
 using MemoryPack;
 
 using Orts.Simulation.Physics;

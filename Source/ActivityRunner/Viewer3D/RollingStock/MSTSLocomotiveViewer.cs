@@ -547,7 +547,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (commandArgs is UserCommandArgs<float> handleCommandArgs)
             {
-                if (locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
+                if (locomotive.CombinedControlType != CombinedControl.ThrottleAir)
                     locomotive.SetDynamicBrakePercentWithSound(handleCommandArgs.Value);
             }
         }

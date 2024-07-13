@@ -24,6 +24,8 @@
 using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common;
+
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.World;
 
@@ -56,7 +58,7 @@ namespace Orts.Simulation.AIs
             if (locomotive.DoesHornTriggerBell)
             {
                 yield return 30 - durationS.Value;
-                locomotive.BellState = MSTSLocomotive.SoundState.Stopped;
+                locomotive.BellState = SoundState.Stopped;
             }
         }
     }

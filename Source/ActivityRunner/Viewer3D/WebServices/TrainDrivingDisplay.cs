@@ -232,7 +232,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             string trainBrakeStatus = locomotive.GetTrainBrakeStatus();
             string dynamicBrakeStatus = locomotive.GetDynamicBrakeStatus();
             string engineBrakeStatus = locomotive.GetEngineBrakeStatus();
-            bool combinedControlType = locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic;
+            bool combinedControlType = locomotive.CombinedControlType == CombinedControl.ThrottleDynamic;
             bool showMUReverser = Math.Abs(train.MUReverserPercent) != 100f;
             bool showRetainers = train.BrakeSystem.RetainerSetting != RetainerSetting.Exhaust;
             bool stretched = train.Cars.Count > 1 && train.CouplersPulled == train.Cars.Count - 1;

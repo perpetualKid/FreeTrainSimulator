@@ -67,61 +67,58 @@ namespace Orts.Simulation.RollingStocks
 
         public ScriptedDieselPowerSupply DieselPowerSupply => PowerSupply as ScriptedDieselPowerSupply;
 
-        public float IdleRPM;
-        public float MaxRPM;
-        public float GovernorRPM;
-        public float MaxRPMChangeRate;
-        public float PercentChangePerSec = .2f;
-        public float InitialExhaust;
-        public float InitialMagnitude;
-        public float MaxExhaust = 2.8f;
-        public float MaxMagnitude = 1.5f;
-        public float EngineRPMderivation;
-        private float EngineRPMold;
-        private float EngineRPMRatio; // used to compute Variable1 and Variable2
-        public float MaximumDieselEnginePowerW;
+        public float IdleRPM { get; set; }
+        public float MaxRPM { get; set; }
+        public float GovernorRPM { get; private set; }
+        public float MaxRPMChangeRate { get; set; }
+        public float PercentChangePerSec { get; private set; } = .2f;
+        public float InitialExhaust { get; private set; }
+        public float InitialMagnitude { get; private set; }
+        public float MaxExhaust { get; private set; } = 2.8f;
+        public float MaxMagnitude { get; private set; } = 1.5f;
+        public float EngineRPMderivation { get; private set; }
+        private float engineRPMold;
+        private float engineRPMRatio; // used to compute Variable1 and Variable2
+        public float MaximumDieselEnginePowerW { get; set; }
 
-        public MSTSNotchController FuelController = new MSTSNotchController(0, 1, 0.0025f);
-        public float MaxDieselLevelL = 5000.0f;
+        public MSTSNotchController FuelController { get; } = new MSTSNotchController(0, 1, 0.0025f);
+        public float MaxDieselLevelL { get; private set; } = 5000.0f;
         public float DieselLevelL
         {
             get { return FuelController.CurrentValue * MaxDieselLevelL; }
             set { FuelController.CurrentValue = value / MaxDieselLevelL; }
         }
 
-        public float DieselUsedPerHourAtMaxPowerL = 1.0f;
-        public float DieselUsedPerHourAtIdleL = 1.0f;
-        public float DieselFlowLps;
-        public float DieselWeightKgpL = 0.8508f; //per liter
+        public float DieselUsedPerHourAtMaxPowerL { get; private set; } = 1.0f;
+        public float DieselUsedPerHourAtIdleL { get; private set; } = 1.0f;
+        public float DieselFlowLps { get; private set; }
+        public const float DieselWeightKgpL = 0.8508f; //per liter
         private float InitialMassKg = 100000.0f;
 
-        public float LocomotiveMaxRailOutputPowerW;
+        private float locomotiveMaxRailOutputPowerW;
 
         internal int currentGearIndexRestore = -1;
         internal int currentnextGearRestore = -1;
         internal bool gearSaved;
-        public int dieselEngineRestoreState;
+        public int DieselEngineRestoreState { get; }
 
-        public float EngineRPM;
-        public SmoothedData ExhaustParticles = new SmoothedData(1);
-        public SmoothedData ExhaustMagnitude = new SmoothedData(1);
-        public SmoothedData ExhaustColorR = new SmoothedData(1);
-        public SmoothedData ExhaustColorG = new SmoothedData(1);
-        public SmoothedData ExhaustColorB = new SmoothedData(1);
+        private float EngineRPM;
+        public SmoothedData ExhaustParticles { get; } = new SmoothedData(1);
+        public SmoothedData ExhaustMagnitude { get; } = new SmoothedData(1);
+        public SmoothedData ExhaustColorR { get; } = new SmoothedData(1);
+        public SmoothedData ExhaustColorG { get; } = new SmoothedData(1);
+        public SmoothedData ExhaustColorB { get; } = new SmoothedData(1);
 
-        public float DieselOilPressurePSI;
-        public float DieselMinOilPressurePSI;
-        public float DieselMaxOilPressurePSI;
-        public float DieselTemperatureDeg = 40f;
-        public float DieselMaxTemperatureDeg;
-        public DieselEngine.Cooling DieselEngineCooling = DieselEngine.Cooling.Proportional;
+        public float DieselOilPressurePSI { get; set; }
+        public float DieselMinOilPressurePSI { get; set; }
+        public float DieselMaxOilPressurePSI { get; set; }
+        public float DieselTemperatureDeg { get; set; } = 40f;
+        public float DieselMaxTemperatureDeg { get; set; }
+        public DieselEngine.Cooling DieselEngineCooling { get; set; } = DieselEngine.Cooling.Proportional;
 
         public DieselTransmissionType DieselTransmissionType { get; private set; }
 
         private float CalculatedMaxContinuousForceN;
-
-        // diesel performance reporting
-        public float DieselPerformanceTimeS; // Records the time since starting movement
 
         public DieselEngines DieselEngines { get; private set; }
 
@@ -316,25 +313,25 @@ namespace Orts.Simulation.RollingStocks
             InitialMassKg = MassKG;
 
             // If traction force curves not set (BASIC configuration) then check that power values are set, otherwise locomotive will not move.
-            if (TractiveForceCurves == null && LocomotiveMaxRailOutputPowerW == 0)
+            if (TractiveForceCurves == null && locomotiveMaxRailOutputPowerW == 0)
             {
                 if (MaxPowerW != 0)
                 {
 
-                    LocomotiveMaxRailOutputPowerW = MaxPowerW;  // Set to default power value
+                    locomotiveMaxRailOutputPowerW = MaxPowerW;  // Set to default power value
 
                     if (simulator.Settings.VerboseConfigurationMessages)
                     {
-                        Trace.TraceInformation("MaxRailOutputPower (BASIC Config): set to default value = {0}", FormatStrings.FormatPower(LocomotiveMaxRailOutputPowerW, simulator.MetricUnits, false, false));
+                        Trace.TraceInformation("MaxRailOutputPower (BASIC Config): set to default value = {0}", FormatStrings.FormatPower(locomotiveMaxRailOutputPowerW, simulator.MetricUnits, false, false));
                     }
                 }
                 else
                 {
-                    LocomotiveMaxRailOutputPowerW = 2500000.0f; // If no default value then set to arbitary value
+                    locomotiveMaxRailOutputPowerW = 2500000.0f; // If no default value then set to arbitary value
 
                     if (simulator.Settings.VerboseConfigurationMessages)
                     {
-                        Trace.TraceInformation("MaxRailOutputPower (BASIC Config): set at arbitary value = {0}", FormatStrings.FormatPower(LocomotiveMaxRailOutputPowerW, simulator.MetricUnits, false, false));
+                        Trace.TraceInformation("MaxRailOutputPower (BASIC Config): set at arbitary value = {0}", FormatStrings.FormatPower(locomotiveMaxRailOutputPowerW, simulator.MetricUnits, false, false));
                     }
 
                 }
@@ -342,7 +339,7 @@ namespace Orts.Simulation.RollingStocks
 
                 if (MaximumDieselEnginePowerW == 0)
                 {
-                    MaximumDieselEnginePowerW = LocomotiveMaxRailOutputPowerW;  // If no value set in ENG file, then set the Prime Mover power to same as RailOutputPower (typically the MaxPower value)
+                    MaximumDieselEnginePowerW = locomotiveMaxRailOutputPowerW;  // If no value set in ENG file, then set the Prime Mover power to same as RailOutputPower (typically the MaxPower value)
 
                     if (simulator.Settings.VerboseConfigurationMessages)
                         Trace.TraceInformation("Maximum Diesel Engine Prime Mover Power set the same as MaxRailOutputPower {0} value", FormatStrings.FormatPower(MaximumDieselEnginePowerW, simulator.MetricUnits, false, false));
@@ -358,7 +355,7 @@ namespace Orts.Simulation.RollingStocks
                 if (TractiveForceCurves == null)  // Basic configuration - ie no force and Power tables, etc
                 {
                     float StartingSpeedMpS = 0.1f; // Assumed starting speed for diesel - can't be zero otherwise error will occurr
-                    MaxForceN = LocomotiveMaxRailOutputPowerW / StartingSpeedMpS;
+                    MaxForceN = locomotiveMaxRailOutputPowerW / StartingSpeedMpS;
 
                     if (simulator.Settings.VerboseConfigurationMessages)
                         Trace.TraceInformation("Maximum Force set to {0} value, calculated from Rail Power Value.", FormatStrings.FormatForce(MaxForceN, simulator.MetricUnits));
@@ -384,9 +381,9 @@ namespace Orts.Simulation.RollingStocks
                 float ThrottleSetting = 1.0f; // Must be at full throttle for these calculations
                 if (TractiveForceCurves == null)  // Basic configuration - ie no force and Power tables, etc
                 {
-                    CalculatedMaxContinuousForceN = ThrottleSetting * LocomotiveMaxRailOutputPowerW / SpeedOfMaxContinuousForceMpS;
+                    CalculatedMaxContinuousForceN = ThrottleSetting * locomotiveMaxRailOutputPowerW / SpeedOfMaxContinuousForceMpS;
                     Trace.TraceInformation("Diesel Force Settings (BASIC Config): Max Starting Force {0}, Calculated Max Continuous Force {1} @ speed of {2}", FormatStrings.FormatForce(MaxForceN, simulator.MetricUnits), FormatStrings.FormatForce(CalculatedMaxContinuousForceN, simulator.MetricUnits), FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, simulator.MetricUnits));
-                    Trace.TraceInformation("Diesel Power Settings (BASIC Config): Prime Mover {0}, Max Rail Output Power {1}", FormatStrings.FormatPower(MaximumDieselEnginePowerW, simulator.MetricUnits, false, false), FormatStrings.FormatPower(LocomotiveMaxRailOutputPowerW, simulator.MetricUnits, false, false));
+                    Trace.TraceInformation("Diesel Power Settings (BASIC Config): Prime Mover {0}, Max Rail Output Power {1}", FormatStrings.FormatPower(MaximumDieselEnginePowerW, simulator.MetricUnits, false, false), FormatStrings.FormatPower(locomotiveMaxRailOutputPowerW, simulator.MetricUnits, false, false));
 
                     if (MaxForceN < MaxContinuousForceN)
                     {
@@ -458,11 +455,11 @@ namespace Orts.Simulation.RollingStocks
             MaxRPMChangeRate = locoCopy.MaxRPMChangeRate;
             MaximumDieselEnginePowerW = locoCopy.MaximumDieselEnginePowerW;
             PercentChangePerSec = locoCopy.PercentChangePerSec;
-            LocomotiveMaxRailOutputPowerW = locoCopy.LocomotiveMaxRailOutputPowerW;
+            locomotiveMaxRailOutputPowerW = locoCopy.locomotiveMaxRailOutputPowerW;
             DieselTransmissionType = locoCopy.DieselTransmissionType;
 
             EngineRPMderivation = locoCopy.EngineRPMderivation;
-            EngineRPMold = locoCopy.EngineRPMold;
+            engineRPMold = locoCopy.engineRPMold;
 
             MaxDieselLevelL = locoCopy.MaxDieselLevelL;
             DieselUsedPerHourAtMaxPowerL = locoCopy.DieselUsedPerHourAtMaxPowerL;
@@ -745,10 +742,10 @@ namespace Orts.Simulation.RollingStocks
                 if (TractiveForceCurves == null)
                 {
                     // This sets the maximum force of the locomotive, it will be adjusted down if it exceeds the max power of the locomotive.
-                    float maxForceN = Math.Min(t * MaxForceN * (1 - PowerReduction), AbsTractionSpeedMpS == 0.0f ? (t * MaxForceN * (1 - PowerReduction)) : (t * LocomotiveMaxRailOutputPowerW / AbsTractionSpeedMpS));
+                    float maxForceN = Math.Min(t * MaxForceN * (1 - PowerReduction), AbsTractionSpeedMpS == 0.0f ? (t * MaxForceN * (1 - PowerReduction)) : (t * locomotiveMaxRailOutputPowerW / AbsTractionSpeedMpS));
 
                     // Maximum rail power is reduced by apparent throttle factor and the number of engines running (power ratio)
-                    float maxPowerW = LocomotiveMaxRailOutputPowerW * DieselEngineFractionPower * LocomotiveApparentThrottleSetting;
+                    float maxPowerW = locomotiveMaxRailOutputPowerW * DieselEngineFractionPower * LocomotiveApparentThrottleSetting;
 
                     // If unloading speed is in ENG file, and locomotive speed is greater then unloading speed, and less then max speed, then apply a decay factor to the power/force
                     if (UnloadingSpeedMpS != 0 && AbsTractionSpeedMpS > UnloadingSpeedMpS && AbsTractionSpeedMpS < MaxSpeedMpS && !WheelSlip)
@@ -824,19 +821,19 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         protected override void UpdateSoundVariables(double elapsedClockSeconds)
         {
-            EngineRPMRatio = (DieselEngines[0].RealRPM - DieselEngines[0].IdleRPM) / (DieselEngines[0].MaxRPM - DieselEngines[0].IdleRPM);
+            engineRPMRatio = (DieselEngines[0].RealRPM - DieselEngines[0].IdleRPM) / (DieselEngines[0].MaxRPM - DieselEngines[0].IdleRPM);
 
             soundDebugValues.X = ThrottlePercent / 100.0f;
             // else Variable1 = MotiveForceN / MaxForceN; // Gearbased, Variable1 proportional to motive force
             // allows for motor volume proportional to effort.
 
             // Refined Variable2 setting to graduate
-            if (soundDebugValues.Y != EngineRPMRatio)
+            if (soundDebugValues.Y != engineRPMRatio)
             {
                 // We must avoid Variable2 to run outside of [0, 1] range, even temporarily (because of multithreading)
-                soundDebugValues.Y = EngineRPMRatio < soundDebugValues.Y ?
-                    (float)Math.Max(Math.Max(soundDebugValues.Y - elapsedClockSeconds * PercentChangePerSec, EngineRPMRatio), 0) :
-                    (float)Math.Min(Math.Min(soundDebugValues.Y + elapsedClockSeconds * PercentChangePerSec, EngineRPMRatio), 1);
+                soundDebugValues.Y = engineRPMRatio < soundDebugValues.Y ?
+                    (float)Math.Max(Math.Max(soundDebugValues.Y - elapsedClockSeconds * PercentChangePerSec, engineRPMRatio), 0) :
+                    (float)Math.Min(Math.Min(soundDebugValues.Y + elapsedClockSeconds * PercentChangePerSec, engineRPMRatio), 1);
             }
 
             EngineRPM = soundDebugValues.Y * (MaxRPM - IdleRPM) + IdleRPM;
@@ -847,8 +844,8 @@ namespace Orts.Simulation.RollingStocks
 
             if (elapsedClockSeconds > 0.0f)
             {
-                EngineRPMderivation = (EngineRPM - EngineRPMold) / (float)elapsedClockSeconds;
-                EngineRPMold = EngineRPM;
+                EngineRPMderivation = (EngineRPM - engineRPMold) / (float)elapsedClockSeconds;
+                engineRPMold = EngineRPM;
             }
         }
 

@@ -165,7 +165,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                     }
                     break;
                 case CabViewControlType.Cph_Display:
-                    if (locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic && locomotive.DynamicBrakePercent >= 0)
+                    if (locomotive.CombinedControlType == CombinedControl.ThrottleDynamic && locomotive.DynamicBrakePercent >= 0)
                         // TODO <CSComment> This is a sort of hack to allow MSTS-compliant operation of Dynamic brake indications in the standard USA case with 8 steps (e.g. Dash9)
                         // This hack returns to code of previous OR versions (e.g. release 1.0).
                         // The clean solution for MSTS compliance would be not to increment the percentage of the dynamic brake at first dynamic brake key pression, so that
@@ -175,8 +175,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         index = PercentToIndex(locomotive.GetCombinedHandleValue(false));
                     break;
                 case CabViewControlType.Cp_Handle:
-                    if (locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic && locomotive.DynamicBrakePercent >= 0
-                        || locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleAir && locomotive.TrainBrakeController.CurrentValue > 0)
+                    if (locomotive.CombinedControlType == CombinedControl.ThrottleDynamic && locomotive.DynamicBrakePercent >= 0
+                        || locomotive.CombinedControlType == CombinedControl.ThrottleAir && locomotive.TrainBrakeController.CurrentValue > 0)
                         index = PercentToIndex(locomotive.GetCombinedHandleValue(false));
                     else
                         index = PercentToIndex(locomotive.GetCombinedHandleValue(false));

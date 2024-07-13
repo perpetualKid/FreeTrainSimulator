@@ -2078,7 +2078,7 @@ namespace Orts.Simulation.RollingStocks
                     if (DieselLocomotiveIdentification != null)
                     {
 
-                        MassKG = LoadEmptyMassKg + (DieselLocomotiveIdentification.DieselLevelL * DieselLocomotiveIdentification.DieselWeightKgpL) + (float)DieselLocomotiveIdentification.CurrentLocomotiveSteamHeatBoilerWaterCapacityL;
+                        MassKG = LoadEmptyMassKg + (DieselLocomotiveIdentification.DieselLevelL * MSTSDieselLocomotive.DieselWeightKgpL) + (float)DieselLocomotiveIdentification.CurrentLocomotiveSteamHeatBoilerWaterCapacityL;
                         MassKG = MathHelper.Clamp(MassKG, LoadEmptyMassKg, LoadFullMassKg); // Clamp Mass to between the empty and full wagon values  
                         // Adjust drive wheel weight
                         DieselLocomotiveIdentification.DrvWheelWeightKg = (MassKG / InitialMassKG) * DieselLocomotiveIdentification.InitialDrvWheelWeightKg;
