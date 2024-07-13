@@ -66,7 +66,6 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
@@ -86,10 +85,6 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
-
-using SharpDX.Direct2D1;
-
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -112,24 +107,24 @@ namespace Orts.Simulation.RollingStocks
 
         //Configure a default cutoff controller
         //If none is specified, this will be used, otherwise those values will be overwritten
-        public MSTSNotchController CutoffController = new MSTSNotchController(-0.9f, 0.9f, 0.1f);
-        public MSTSNotchController Injector1Controller = new MSTSNotchController(0, 1, 0.1f);
-        public MSTSNotchController Injector2Controller = new MSTSNotchController(0, 1, 0.1f);
-        public MSTSNotchController BlowerController = new MSTSNotchController(0, 1, 0.1f);
-        public MSTSNotchController DamperController = new MSTSNotchController(0, 1, 0.1f);
-        public MSTSNotchController FiringRateController = new MSTSNotchController(0, 1, 0.1f);
-        public MSTSNotchController FireboxDoorController = new MSTSNotchController(0, 1, 0.1f);
-        public MSTSNotchController FuelController = new MSTSNotchController(0, 1, 0.01f); // Could be coal, wood, oil or even peat !
-        public MSTSNotchController SmallEjectorController = new MSTSNotchController(0, 1, 0.1f);
-        public MSTSNotchController LargeEjectorController = new MSTSNotchController(0, 1, 0.1f);
+        public MSTSNotchController CutoffController { get; private set; } = new MSTSNotchController(-0.9f, 0.9f, 0.1f);
+        public MSTSNotchController Injector1Controller { get; private set; } = new MSTSNotchController(0, 1, 0.1f);
+        public MSTSNotchController Injector2Controller { get; private set; } = new MSTSNotchController(0, 1, 0.1f);
+        public MSTSNotchController BlowerController { get; private set; } = new MSTSNotchController(0, 1, 0.1f);
+        public MSTSNotchController DamperController { get; private set; } = new MSTSNotchController(0, 1, 0.1f);
+        public MSTSNotchController FiringRateController { get; private set; } = new MSTSNotchController(0, 1, 0.1f);
+        public MSTSNotchController FireboxDoorController { get; private set; } = new MSTSNotchController(0, 1, 0.1f);
+        public MSTSNotchController FuelController { get; private set; } = new MSTSNotchController(0, 1, 0.01f); // Could be coal, wood, oil or even peat !
+        public MSTSNotchController SmallEjectorController { get; private set; } = new MSTSNotchController(0, 1, 0.1f);
+        public MSTSNotchController LargeEjectorController { get; private set; } = new MSTSNotchController(0, 1, 0.1f);
 
-        public bool Injector1IsOn;
+        public bool Injector1IsOn { get; private set; }
         private bool Injector1SoundIsOn;
-        public bool Injector2IsOn;
+        public bool Injector2IsOn { get; private set; }
         private bool Injector2SoundIsOn;
-        public bool CylinderCocksAreOpen;
-        public bool BlowdownValveOpen;
-        public bool CylinderCompoundOn;  // Flag to indicate whether compound locomotive is in compound or simple mode of operation - simple = true (ie bypass valve is open)
+        public bool CylinderCocksAreOpen { get; private set; }
+        public bool BlowdownValveOpen { get; private set; }
+        public bool CylinderCompoundOn { get; private set; }  // Flag to indicate whether compound locomotive is in compound or simple mode of operation - simple = true (ie bypass valve is open)
         private bool FiringIsManual;
         private bool BlowerIsOn;
         private bool BoilerIsPriming;
@@ -146,7 +141,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Grate limit of locomotive exceedeed?
         /// </summary>
-        public bool IsGrateLimit { get; protected set; }
+        public bool IsGrateLimit { get; private set; }
         private long grateNotificationTimeout;
 
         private bool HasSuperheater;  // Flag to indicate whether locomotive is superheated steam type
@@ -165,21 +160,21 @@ namespace Orts.Simulation.RollingStocks
         private bool InjectorLockedOut; // Flag to lock injectors from changing within a fixed period of time
 
         // Aux Tender Parameters
-        public bool AuxTenderMoveFlag; // Flag to indicate whether train has moved
+        public bool AuxTenderMoveFlag { get; private set; } // Flag to indicate whether train has moved
         private bool SteamIsAuxTenderCoupled;
         private float TenderWaterPercent;       // Percentage of water in tender
-        public float WaterConsumptionLbpS;
-        public float CurrentAuxTenderWaterMassKG;
-        public float CurrentAuxTenderWaterVolumeUKG;
-        public float CurrentLocoTenderWaterVolumeUKG;
+        public float WaterConsumptionLbpS { get; private set; }
+        public float CurrentAuxTenderWaterMassKG { get; set; }
+        public float CurrentAuxTenderWaterVolumeUKG { get; private set; }
+        public float CurrentLocoTenderWaterVolumeUKG { get; private set; }
         private float PrevCombinedTenderWaterVolumeUKG;
         private float PreviousTenderWaterVolumeUKG;
-        public float MaxLocoTenderWaterMassKG = 1;         // Maximum read from Eng file - this value must be non-zero, if not defined in ENG file, can cause NaN errors
+        public float MaxLocoTenderWaterMassKG { get; set; } = 1;         // Maximum read from Eng file - this value must be non-zero, if not defined in ENG file, can cause NaN errors
         private float RestoredMaxTotalCombinedWaterVolumeUKG; // Values to restore after game save
         private float RestoredCombinedTenderWaterVolumeUKG;     // Values to restore after game save
 
         // Tender
-        public bool HasTenderCoupled = true;
+        public bool HasTenderCoupled { get; set; } = true;
         private float BlowdownSteamUsageLBpS;
         private float BlowdownValveSizeDiaIn2;
         private string steamLocoType;     // Type of steam locomotive type
@@ -200,7 +195,7 @@ namespace Orts.Simulation.RollingStocks
 
         private float baseStartTempK;     // Starting water temp
         private float StartBoilerHeatBTU;
-        public float BoilerMassLB;         // current total mass of water and steam in boiler (changes as boiler usage changes)
+        public float BoilerMassLB { get; private set; }         // current total mass of water and steam in boiler (changes as boiler usage changes)
         private bool RestoredGame; // Flag to indicate that game is being restored. This will stop some values from being "initialised", as this will overwrite restored values.
 
         private float BoilerKW;                 // power of boiler
@@ -211,22 +206,22 @@ namespace Orts.Simulation.RollingStocks
         private float BoilerSteamDensityLBpFT3; // Steam Density based on current boiler pressure
         private float BoilerWaterDensityLBpFT3; // Water Density based on current boiler pressure
         private float BoilerWaterTempK;
-        public float FuelBurnRateSmoothedKGpS;
+        public float FuelBurnRateSmoothedKGpS { get; private set; }
         private float FuelFeedRateKGpS;
         private float DesiredChange;     // Amount of change to increase fire mass, clamped to range 0.0 - 1.0
-        public float CylinderSteamUsageLBpS;
-        public float NewCylinderSteamUsageLBpS;
-        public float BlowerSteamUsageLBpS;
-        public float EvaporationLBpS;          // steam generation rate
-        public float FireMassKG;      // Mass of coal currently on grate area
-        public float FireRatio;     // Ratio of actual firemass to ideal firemass
+        public float CylinderSteamUsageLBpS { get; private set; }
+        public float NewCylinderSteamUsageLBpS { get; private set; }
+        public float BlowerSteamUsageLBpS { get; private set; }
+        public float EvaporationLBpS { get; private set; }          // steam generation rate
+        public float FireMassKG { get; private set; }      // Mass of coal currently on grate area
+        public float FireRatio { get; private set; }     // Ratio of actual firemass to ideal firemass
         private float MaxFiringRateLbpH; // Max coal burnt when steam evaporation (production) rate is maximum
         private float TempFireHeatLossPercent;
         private float FireHeatLossPercent;  // Percentage loss of heat due to too much or too little air for combustion
         private float FlueTempK = 775;      // Initial FlueTemp (best @ 475)
         private float MaxFlueTempK;         // FlueTemp at full boiler performance
-        public bool SafetyIsOn;
-        public readonly SmoothedData SmokeColor = new SmoothedData(2);
+        public bool SafetyIsOn { get; private set; }
+        public SmoothedData SmokeColor { get; } = new SmoothedData(2);
 
         // eng file configuration parameters
 
@@ -245,17 +240,17 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Max combustion rate of the grate; once this is reached, no more steam is produced.
         /// </summary>
-        public float GrateLimitLBpFt2 { get; protected set; } = 150.0f;
+        public float GrateLimitLBpFt2 { get; private set; } = 150.0f;
 
         private float MaxFuelBurnGrateKGpS;            // Maximum rate of fuel burnt depending upon grate limit
         /// <summary>
         /// Grate combustion rate, i.e. how many lbs coal burnt per sq ft grate area.
         /// </summary>
-        public float GrateCombustionRateLBpFt2 { get; protected set; }
+        public float GrateCombustionRateLBpFt2 { get; private set; }
 
         private float ORTSMaxFiringRateKGpS;          // OR equivalent of above
         private float DisplayMaxFiringRateKGpS;     // Display value of MaxFiringRate
-        public float SafetyValveUsageLBpS;
+        public float SafetyValveUsageLBpS { get; private set; }
         private float SafetyValveBoilerHeatOutBTUpS; // Heat removed by blowing of safety valves.
         private float BoilerHeatOutSVAIBTUpS;
         private float SafetyValveDropPSI = 4.0f;      // Pressure drop before Safety valve turns off, normally around 4 psi - First safety valve normally operates between MaxBoilerPressure, and MaxBoilerPressure - 4, ie Max Boiler = 200, cutoff = 196.
@@ -264,7 +259,7 @@ namespace Orts.Simulation.RollingStocks
         private float SuperheatKFactor = 15000.0f;     // Factor used to calculate superheat temperature - guesstimate
         private float MaxSuperheatRefTempF;            // Maximum Superheat temperature in deg Fahrenheit, based upon the heating area.
         private float SuperheatTempRatio;          // A ratio used to calculate the superheat temp - based on the ratio of superheat (using heat area) to "known" curve. 
-        public float CurrentSuperheatTempF;      // current value of superheating based upon boiler steam output
+        public float CurrentSuperheatTempF { get; private set; }      // current value of superheating based upon boiler steam output
         private float SuperheatVolumeRatio;   // Approximate ratio of Superheated steam to saturated steam at same pressure
         private float SuperheatCutoffPressureFactor; // Factor to adjust cutoff pressure for superheat locomotives, defaults to 55.0, user defineable
         private float FuelCalorificKJpKG = 33400;
@@ -285,18 +280,17 @@ namespace Orts.Simulation.RollingStocks
         private float FuelRateSmoothed;     // Smoothed Fuel Rate
 
         // steam performance reporting
-        public float SteamPerformanceTimeS; // Records the time since starting movement
-        public float CumulativeWaterConsumptionLbs;
-        public float CumulativeCylinderSteamConsumptionLbs;
+        public float SteamPerformanceTimeS { get; private set; } // Records the time since starting movement
+        public float CumulativeWaterConsumptionLbs { get; private set; }
+        public float CumulativeCylinderSteamConsumptionLbs { get; private set; }
         private float CumulativeTotalSteamConsumptionLbs;
-        public static float DbfEvalCumulativeWaterConsumptionLbs;//DebriefEval
+        private static float DbfEvalCumulativeWaterConsumptionLbs;//DebriefEval
 
         private int LocoIndex;
-        public float LocoTenderFrictionForceN; // Combined friction of locomotive and tender
-        public float TotalFrictionForceN;
-        public float TrainLoadKg;
-        public float LocomotiveCouplerForceN;
-
+        public float LocoTenderFrictionForceN { get; private set; } // Combined friction of locomotive and tender
+        public float TotalFrictionForceN { get; private set; }
+        public float TrainLoadKg { get; private set; }
+        public float LocomotiveCouplerForceN { get; private set; }
 
         // precomputed values
         private float CylinderSweptVolumeFT3pFT;     // Volume of steam Cylinder
@@ -364,8 +358,8 @@ namespace Orts.Simulation.RollingStocks
         private float IdealFireDepthIN = 7.0f;      // Assume standard coal coverage of grate = 7 inches.
         private float FuelDensityKGpM3 = 864.5f;    // Anthracite Coal : 50 - 58 (lb/ft3), 800 - 929 (kg/m3)
         private float DamperFactorManual = 1.0f;    // factor to control draft through fire when locomotive is running in Manual mode
-        public float WaterLBpUKG = 10.0f;    // lbs of water in 1 gal (uk)
-        public float MaxTenderCoalMassKG = 1;          // Maximum read from Eng File -  - this value must be non-zero, if not defined in ENG file, can cause NaN errors
+        private float WaterLBpUKG = 10.0f;    // lbs of water in 1 gal (uk)
+        public float MaxTenderCoalMassKG { get; set; } = 1;          // Maximum read from Eng File -  - this value must be non-zero, if not defined in ENG file, can cause NaN errors
         public float TenderCoalMassKG              // Decreased by firing and increased by refilling
         {
             get { return FuelController.CurrentValue * MaxTenderCoalMassKG; }
@@ -384,7 +378,7 @@ namespace Orts.Simulation.RollingStocks
         private float TempEjectorSmallSteamConsumptionLbpS;
         private float TempEjectorLargeSteamConsumptionLbpS;
         private float EjectorTotalSteamConsumptionLbpS;
-        public float VacuumPumpOutputFt3pM;
+        private float VacuumPumpOutputFt3pM;
 
         // Air Compressor Characteristics - assume 9.5in x 10in Compressor operating at 120 strokes per min.          
         private float CompCylDiaIN = 9.5f;
@@ -428,15 +422,15 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Heat into boiler in BTU
         /// </summary>
-        public float BoilerHeatInBTUpS { get; protected set; }
+        public float BoilerHeatInBTUpS { get; private set; }
 
         private float BoilerHeatExcess;         // Vlaue of excess boiler heat
         private float InjCylEquivSizeIN;        // Calculate the equivalent cylinder size for purpose of sizing the injector.
         private float InjectorSize;             // size of injector installed on boiler
 
         // Values from previous iteration to use in UpdateFiring() and show in HUD
-        public float PreviousBoilerHeatOutBTUpS { get; protected set; }
-        public float PreviousTotalSteamUsageLBpS { get; protected set; }
+        public float PreviousBoilerHeatOutBTUpS { get; private set; }
+        public float PreviousTotalSteamUsageLBpS { get; private set; }
 
         private float Injector1WaterDelTempF = 65f;   // Injector 1 water delivery temperature - F
         private float Injector2WaterDelTempF = 65f;   // Injector 1 water delivery temperature - F
@@ -457,7 +451,7 @@ namespace Orts.Simulation.RollingStocks
         private float BoilerPrimingDeratingFactor = 0.1f;   // Factor if boiler is priming
 
         private float SuperheaterFactor = 1.0f;               // Currently 2 values respected: 0.0 for no superheat (default), > 1.0 for typical superheat
-        public float SuperheaterSteamUsageFactor = 1.0f;       // Below 1.0, reduces steam usage due to superheater
+        public float SuperheaterSteamUsageFactor { get; private set; } = 1.0f;       // Below 1.0, reduces steam usage due to superheater
         private float Stoker;                // Currently 2 values respected: 0.0 for no mechanical stoker (default), = 1.0 for typical mechanical stoker
         private float StokerMaxUsage = 0.01f;       // Max steam usage of stoker - 1% of max boiler output
         private float StokerMinUsage = 0.005f;      // Min Steam usage - just to keep motor ticking over - 0.5% of max boiler output
@@ -471,8 +465,8 @@ namespace Orts.Simulation.RollingStocks
         private float SpeedEquivMpS = 27.0f;          // Equvalent speed of 60mph in mps (27m/s) - used for damper control
 
         // Cylinder related parameters
-        public float CutoffPressureDropRatio;  // Ratio of Cutoff Pressure to Initial Pressure
-        public float LPCutoffPressureDropRatio; // Ratio of Cutoff Pressure to Initial Pressure - LP Cylinder
+        public float CutoffPressureDropRatio { get; private set; }  // Ratio of Cutoff Pressure to Initial Pressure
+        public float LPCutoffPressureDropRatio { get; private set; } // Ratio of Cutoff Pressure to Initial Pressure - LP Cylinder
         private float CylinderCocksPressureAtmPSI; // Pressure in cylinder (impacted by cylinder cocks).
         private float Pressure_d_AtmPSI;
         private float Pressure_a_AtmPSI;    // Initial Pressure to cylinder @ start if stroke
@@ -493,19 +487,19 @@ namespace Orts.Simulation.RollingStocks
         private float CylinderWork_de_InLbs; // Work done during Exhaust stage of cylinder
 
         // Values for logging and displaying Steam pressure
-        public float LogInitialPressurePSI;
-        public float LogCutoffPressurePSI;
-        public float LogBackPressurePSI;
-        public float LogReleasePressurePSI;
-        public float LogSteamChestPressurePSI;
+        public float LogInitialPressurePSI { get; private set; }
+        public float LogCutoffPressurePSI { get; private set; }
+        public float LogBackPressurePSI { get; private set; }
+        public float LogReleasePressurePSI { get; private set; }
+        public float LogSteamChestPressurePSI { get; private set; }
 
-        public float LogLPInitialPressurePSI;
-        public float LogLPCutoffPressurePSI;
-        public float LogLPBackPressurePSI;
-        public float LogLPReleasePressurePSI;
-        public float LogLPSteamChestPressurePSI;
+        public float LogLPInitialPressurePSI { get; private set; }
+        public float LogLPCutoffPressurePSI { get; private set; }
+        public float LogLPBackPressurePSI { get; private set; }
+        public float LogLPReleasePressurePSI { get; private set; }
+        public float LogLPSteamChestPressurePSI { get; private set; }
 
-        public bool LogIsCompoundLoco;
+        private bool LogIsCompoundLoco;
         private float LogPreCompressionPressurePSI;
         private float LogPreAdmissionPressurePSI;
 
@@ -520,7 +514,7 @@ namespace Orts.Simulation.RollingStocks
         private float HPCompPressure_k_AtmPSI; //  Pre-Admission pressure prior to exhaust valve closing
         private float HPCompPressure_u_AtmPSI;  // Admission pressure
         private float HPCompMeanPressure_gh_AtmPSI;     // Back pressure on HP cylinder
-        public float HPCylinderMEPPSI;                 // Mean effective Pressure of HP Cylinder
+        public float HPCylinderMEPPSI { get; private set; }                 // Mean effective Pressure of HP Cylinder
         private float HPCylinderClearancePC = 0.19f;    // Assume cylinder clearance of 19% of the piston displacement for HP cylinder
         private float CompoundRecieverVolumePCHP = 0.3f; // Volume of receiver or passages between HP and LP cylinder as a fraction of the HP cylinder volume.
         private float HPCylinderVolumeFactor = 1.0f;    // Represents the full volume of the HP steam cylinder    
@@ -543,11 +537,11 @@ namespace Orts.Simulation.RollingStocks
         private float LPPressure_d_AtmPSI;     // Back pressure on LP cylinder
         private float LPPressure_e_AtmPSI;       // Pressure in LP cylinder when exhaust valve closes, and compression commences
         private float LPPressure_f_AtmPSI;    // Pressure in LP cylinder after compression occurs and steam admission starts
-        public float LPCylinderMEPPSI;                     // Mean effective pressure of LP Cylinder
+        public float LPCylinderMEPPSI { get; private set; }                     // Mean effective pressure of LP Cylinder
         private float LPCylinderClearancePC = 0.066f;    // Assume cylinder clearance of 6.6% of the piston displacement for LP cylinder
 
         // Simple locomotive cylinder information
-        public float MeanEffectivePressurePSI;         // Mean effective pressure
+        public float MeanEffectivePressurePSI { get; private set; }         // Mean effective pressure
         private float RatioOfExpansion_bc;             // Ratio of expansion
         private float CylinderClearancePC = 0.09f;    // Assume cylinder clearance of 8% of the piston displacement for saturated locomotives and 9% for superheated locomotive - default to saturated locomotive value
         private float CylinderPortOpeningFactor;   // Model the size of the steam port opening in the cylinder - set to 0.085 as default, if no ENG file value added
@@ -567,9 +561,9 @@ namespace Orts.Simulation.RollingStocks
 
         private const int CylStrokesPerCycle = 2;  // each cylinder does 2 strokes for every wheel rotation, within each stroke
         private float CylinderEfficiencyRate = 1.0f; // Factor to vary the output power of the cylinder without changing steam usage - used as a player customisation factor.
-        public float CylCockSteamUsageLBpS; // Cylinder Cock Steam Usage if locomotive moving
-        public float CylCockSteamUsageStatLBpS; // Cylinder Cock Steam Usage if locomotive stationary
-        public float CylCockSteamUsageDisplayLBpS; // Cylinder Cock Steam Usage for display and effects
+        private float CylCockSteamUsageLBpS; // Cylinder Cock Steam Usage if locomotive moving
+        private float CylCockSteamUsageStatLBpS; // Cylinder Cock Steam Usage if locomotive stationary
+        private float CylCockSteamUsageDisplayLBpS; // Cylinder Cock Steam Usage for display and effects
         private float CylCockDiaIN = 0.5f;          // Steam Cylinder Cock orifice size
         private float CylCockPressReduceFactor;     // Factor to reduce cylinder pressure by if cocks open
         private float CylCockBoilerHeatOutBTUpS;  // Amount of heat taken out by use of cylinder cocks
@@ -585,15 +579,15 @@ namespace Orts.Simulation.RollingStocks
         {
            0.0f, MathHelper.Pi/2, 0.0f, 0.0f  // default 2 cylinder locomotive
         };
-        public float IndicatedHorsePowerHP;   // Indicated Horse Power (IHP), theoretical power of the locomotive, it doesn't take into account the losses due to friction, etc. Typically output HP will be 70 - 90% of the IHP
-        public float DrawbarHorsePowerHP;  // Drawbar Horse Power  (DHP), maximum power available at the wheels.
-        public float DrawBarPullLbsF;      // Drawbar pull in lbf
+        public float IndicatedHorsePowerHP { get; private set; }   // Indicated Horse Power (IHP), theoretical power of the locomotive, it doesn't take into account the losses due to friction, etc. Typically output HP will be 70 - 90% of the IHP
+        public float DrawbarHorsePowerHP { get; private set; }  // Drawbar Horse Power  (DHP), maximum power available at the wheels.
+        public float DrawBarPullLbsF { get; private set; }      // Drawbar pull in lbf
         private float BoilerEvapRateLbspFt2;  // Sets the evaporation rate for the boiler is used to multiple boiler evaporation area by - used as a player customisation factor.
 
         private float MaxSpeedFactor;      // Max Speed factor - factor @ critical piston speed to reduce TE due to speed increase - American locomotive company
         private float DisplaySpeedFactor;  // Value displayed in HUD
 
-        public float MaxTractiveEffortLbf;     // Maximum theoritical tractive effort for locomotive
+        public float MaxTractiveEffortLbf { get; private set; }     // Maximum theoritical tractive effort for locomotive
 
         private float MaxCriticalSpeedTractiveEffortLbf;  // Maximum power value @ critical speed of piston
         private float DisplayCriticalSpeedTractiveEffortLbf;  // Display power value @ speed of piston
@@ -650,60 +644,60 @@ namespace Orts.Simulation.RollingStocks
 
         #region Variables for visual effects (steam, smoke)
 
-        public readonly SmoothedData StackSteamVelocityMpS = new SmoothedData(2);
-        public float StackSteamVolumeM3pS;
-        public float StackParticleDurationS;
-        public float StackCount;
-        public float Cylinders1SteamVelocityMpS;
-        public float Cylinders1SteamVolumeM3pS;
-        public float Cylinders2SteamVelocityMpS;
-        public float Cylinders2SteamVolumeM3pS;
-        public float SafetyValvesSteamVelocityMpS;
-        public float SafetyValvesSteamVolumeM3pS;
-        public float Cylinders11SteamVolumeM3pS;
-        public float Cylinders12SteamVolumeM3pS;
-        public float Cylinders21SteamVolumeM3pS;
-        public float Cylinders22SteamVolumeM3pS;
-        public float Cylinders31SteamVolumeM3pS;
-        public float Cylinders32SteamVolumeM3pS;
-        public float Cylinders41SteamVolumeM3pS;
-        public float Cylinders42SteamVolumeM3pS;
+        public SmoothedData StackSteamVelocityMpS { get; } = new SmoothedData(2);
+        public float StackSteamVolumeM3pS { get; private set; }
+        public float StackParticleDurationS { get; private set; }
+        public float StackCount { get; set; }
+        public float Cylinders1SteamVelocityMpS { get; private set; }
+        public float Cylinders1SteamVolumeM3pS { get; private set; }
+        public float Cylinders2SteamVelocityMpS { get; private set; }
+        public float Cylinders2SteamVolumeM3pS { get; private set; }
+        public float SafetyValvesSteamVelocityMpS { get; private set; }
+        public float SafetyValvesSteamVolumeM3pS { get; private set; }
+        public float Cylinders11SteamVolumeM3pS { get; private set; }
+        public float Cylinders12SteamVolumeM3pS { get; private set; }
+        public float Cylinders21SteamVolumeM3pS { get; private set; }
+        public float Cylinders22SteamVolumeM3pS { get; private set; }
+        public float Cylinders31SteamVolumeM3pS { get; private set; }
+        public float Cylinders32SteamVolumeM3pS { get; private set; }
+        public float Cylinders41SteamVolumeM3pS { get; private set; }
+        public float Cylinders42SteamVolumeM3pS { get; private set; }
 
-        public float CylinderSteamExhaustSteamVelocityMpS;
-        public float CylinderSteamExhaust1SteamVolumeM3pS;
-        public float CylinderSteamExhaust2SteamVolumeM3pS;
-        public float CylinderSteamExhaust3SteamVolumeM3pS;
-        public float CylinderSteamExhaust4SteamVolumeM3pS;
-        private bool CylinderSteamExhaust1On = false;
-        private bool CylinderSteamExhaust2On = false;
-        private bool CylinderSteamExhaust3On = false;
-        private bool CylinderSteamExhaust4On = false;
+        public float CylinderSteamExhaustSteamVelocityMpS { get; private set; }
+        public float CylinderSteamExhaust1SteamVolumeM3pS { get; private set; }
+        public float CylinderSteamExhaust2SteamVolumeM3pS { get; private set; }
+        public float CylinderSteamExhaust3SteamVolumeM3pS { get; private set; }
+        public float CylinderSteamExhaust4SteamVolumeM3pS { get; private set; }
+        private bool CylinderSteamExhaust1On;
+        private bool CylinderSteamExhaust2On;
+        private bool CylinderSteamExhaust3On;
+        private bool CylinderSteamExhaust4On;
 
-        public float BlowdownSteamVolumeM3pS;
-        public float BlowdownSteamVelocityMpS;
-        public float BlowdownParticleDurationS = 3.0f;
+        public float BlowdownSteamVolumeM3pS { get; private set; }
+        public float BlowdownSteamVelocityMpS { get; private set; }
+        public float BlowdownParticleDurationS { get; private set; } = 3.0f;
 
-        public float DrainpipeSteamVolumeM3pS;
-        public float DrainpipeSteamVelocityMpS;
-        public float Injector1SteamVolumeM3pS;
-        public float Injector1SteamVelocityMpS;
-        public float Injector2SteamVolumeM3pS;
-        public float Injector2SteamVelocityMpS;
+        public float DrainpipeSteamVolumeM3pS { get; private set; }
+        public float DrainpipeSteamVelocityMpS { get; private set; }
+        public float Injector1SteamVolumeM3pS { get; private set; }
+        public float Injector1SteamVelocityMpS { get; private set; }
+        public float Injector2SteamVolumeM3pS { get; private set; }
+        public float Injector2SteamVelocityMpS { get; private set; }
 
-        public float SmallEjectorSteamVolumeM3pS;
-        public float SmallEjectorSteamVelocityMpS;
-        public float SmallEjectorParticleDurationS = 3.0f;
+        public float SmallEjectorSteamVolumeM3pS { get; private set; }
+        public float SmallEjectorSteamVelocityMpS { get; private set; }
+        public float SmallEjectorParticleDurationS { get; private set; } = 3.0f;
 
-        public float LargeEjectorSteamVolumeM3pS;
-        public float LargeEjectorSteamVelocityMpS;
-        public float LargeEjectorParticleDurationS = 3.0f;
+        public float LargeEjectorSteamVolumeM3pS { get; private set; }
+        public float LargeEjectorSteamVelocityMpS { get; private set; }
+        public float LargeEjectorParticleDurationS { get; private set; } = 3.0f;
 
-        public float CompressorSteamVolumeM3pS;
-        public float CompressorSteamVelocityMpS;
-        public float GeneratorSteamVolumeM3pS;
-        public float GeneratorSteamVelocityMpS;
-        public float WhistleSteamVolumeM3pS;
-        public float WhistleSteamVelocityMpS;
+        public float CompressorSteamVolumeM3pS { get; private set; }
+        public float CompressorSteamVelocityMpS { get; private set; }
+        public float GeneratorSteamVolumeM3pS { get; private set; }
+        public float GeneratorSteamVelocityMpS { get; private set; }
+        public float WhistleSteamVolumeM3pS { get; private set; }
+        public float WhistleSteamVelocityMpS { get; private set; }
         private float CylinderCockTimerS;
         private float CylinderCockOpenTimeS;
         private bool CylinderCock1On = true;
@@ -716,20 +710,20 @@ namespace Orts.Simulation.RollingStocks
         private bool CylinderCock32On;
         private bool CylinderCock41On = true;
         private bool CylinderCock42On;
-        public bool Cylinder2SteamEffects;
-        public bool CylinderAdvancedSteamEffects;
-        public bool CylinderAdvancedSteamExhaustEffects;
-        public bool GeneratorSteamEffects;
-        public float CompressorParticleDurationS = 3.0f;
-        public float Cylinder1ParticleDurationS = 3.0f;
-        public float Cylinder2ParticleDurationS = 3.0f;
+        public bool Cylinder2SteamEffects { get; set; }
+        public bool CylinderAdvancedSteamEffects { get; set; }
+        public bool CylinderAdvancedSteamExhaustEffects { get; set; }
+        public bool GeneratorSteamEffects { get; set; }
+        public float CompressorParticleDurationS { get; private set; } = 3.0f;
+        public float Cylinder1ParticleDurationS { get; private set; } = 3.0f;
+        public float Cylinder2ParticleDurationS { get; private set; } = 3.0f;
         public float CylinderSteamExhaustParticleDurationS = 3.0f;
-        public float WhistleParticleDurationS = 3.0f;
-        public float SafetyValvesParticleDurationS = 3.0f;
-        public float DrainpipeParticleDurationS = 3.0f;
-        public float Injector1ParticleDurationS = 3.0f;
-        public float Injector2ParticleDurationS = 3.0f;
-        public float GeneratorParticleDurationS = 3.0f;
+        public float WhistleParticleDurationS { get; private set; } = 3.0f;
+        public float SafetyValvesParticleDurationS { get; private set; } = 3.0f;
+        public float DrainpipeParticleDurationS { get; private set; } = 3.0f;
+        public float Injector1ParticleDurationS { get; private set; } = 3.0f;
+        public float Injector2ParticleDurationS { get; private set; } = 3.0f;
+        public float GeneratorParticleDurationS { get; private set; } = 3.0f;
 
         #endregion
 
