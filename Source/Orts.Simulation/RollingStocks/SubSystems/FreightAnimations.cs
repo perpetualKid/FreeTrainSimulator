@@ -43,8 +43,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
     /// FreightAnimation objects.
     /// Called from within the MSTSWagon class.
     /// </summary>
-    public class FreightAnimations : 
-        ISaveStateApi<FreightAnimationsSetSaveState>, 
+    public class FreightAnimations :
+        ISaveStateApi<FreightAnimationsSetSaveState>,
         ISaveStateRestoreApi<FreightAnimationSaveState, FreightAnimationDiscrete>
     {
         public List<FreightAnimation> Animations { get; } = new List<FreightAnimation>();
@@ -873,7 +873,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public async ValueTask<FreightAnimationsSetSaveState> Snapshot()
         {
             return new FreightAnimationsSetSaveState()
-            { 
+            {
                 FreightType = FreightType,
                 FreightWeight = FreightWeight,
                 FreightAnimations = await Animations.OfType<FreightAnimationDiscrete>().SnapshotCollection<FreightAnimationSaveState, FreightAnimationDiscrete>().ConfigureAwait(false),
@@ -916,27 +916,28 @@ namespace Orts.Simulation.RollingStocks.SubSystems
     public abstract class FreightAnimation
     {
         public string ShapeFileName { get; set; }
+        public Vector3 Offset { get; internal set; }
     }
 
     public class FreightAnimationContinuous : FreightAnimation
     {
-        public bool TriggerOnStop;  // Value assumed if property not found.
-        public float MaxHeight;
-        public float MinHeight;
-        public float FreightWeightWhenFull;
-        public bool FullAtStart;
-        public float LoadPerCent;
-        public IntakePoint LinkedIntakePoint;
+        public bool TriggerOnStop { get; set; }  // Value assumed if property not found.
+        public float MaxHeight { get; set; }
+        public float MinHeight { get; set; }
+        public float FreightWeightWhenFull { get; set; }
+        public bool FullAtStart { get; set; }
+        public float LoadPerCent { get; set; }
+        public IntakePoint LinkedIntakePoint { get; set; }
 
         // additions to manage consequences of variable weight on friction and brake forces
-        public float FullORTSDavis_A = -9999;
-        public float FullORTSDavis_B = -9999;
-        public float FullORTSDavis_C = -9999;
-        public float FullORTSWagonFrontalAreaM2 = -9999;
-        public float FullORTSDavisDragConstant = -9999;
-        public float FullMaxBrakeForceN = -9999;
-        public float FullMaxHandbrakeForceN = -9999;
-        public float FullCentreOfGravityM_Y = -9999; // get centre of gravity after adjusted for freight animation
+        public float FullORTSDavis_A { get; set; } = -9999;
+        public float FullORTSDavis_B { get; set; } = -9999;
+        public float FullORTSDavis_C { get; set; } = -9999;
+        public float FullORTSWagonFrontalAreaM2 { get; set; } = -9999;
+        public float FullORTSDavisDragConstant { get; set; } = -9999;
+        public float FullMaxBrakeForceN { get; set; } = -9999;
+        public float FullMaxHandbrakeForceN { get; set; } = -9999;
+        public float FullCentreOfGravityM_Y { get; set; } = -9999; // get centre of gravity after adjusted for freight animation
 
         public FreightAnimationContinuous(STFReader stf, MSTSWagon wagon)
         {
@@ -996,30 +997,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
     public class FreightAnimationStatic : FreightAnimation
     {
-        // index of visibility flag vector
-        public enum VisibleFrom
-        {
-            Outside,
-            Cab2D,
-            Cab3D
-        }
-        public float FreightWeight;
-        public bool Flipped;
-        public bool Cab3DFreightAnim;
-        public bool[] Visibility = { true, false, false };
-        public float XOffset;
-        public float YOffset;
-        public float ZOffset;
+        public float FreightWeight { get; set; }
+        public bool Flipped { get; set; }
+        public bool Cab3DFreightAnim { get; set; }
+        public EnumArray<bool, VisibleFrom> Visibility { get; } = new EnumArray<bool, VisibleFrom>(new bool[] { true, false, false });
 
         // additions to manage consequences of variable weight on friction and brake forces
-        public float FullStaticORTSDavis_A = -9999;
-        public float FullStaticORTSDavis_B = -9999;
-        public float FullStaticORTSDavis_C = -9999;
-        public float FullStaticORTSWagonFrontalAreaM2 = -9999;
-        public float FullStaticORTSDavisDragConstant = -9999;
-        public float FullStaticMaxBrakeForceN = -9999;
-        public float FullStaticMaxHandbrakeForceN = -9999;
-        public float FullStaticCentreOfGravityM_Y = -9999; // get centre of gravity after adjusted for freight animation
+        public float FullStaticORTSDavis_A { get; set; } = -9999;
+        public float FullStaticORTSDavis_B { get; set; } = -9999;
+        public float FullStaticORTSDavis_C { get; set; } = -9999;
+        public float FullStaticORTSWagonFrontalAreaM2 { get; set; } = -9999;
+        public float FullStaticORTSDavisDragConstant { get; set; } = -9999;
+        public float FullStaticMaxBrakeForceN { get; set; } = -9999;
+        public float FullStaticMaxHandbrakeForceN { get; set; } = -9999;
+        public float FullStaticCentreOfGravityM_Y { get; set; } = -9999; // get centre of gravity after adjusted for freight animation
 
         public FreightAnimationStatic(STFReader stf)
         {
@@ -1034,27 +1025,23 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             new STFReader.TokenProcessor("freightweight", ()=>{ FreightWeight = stf.ReadFloatBlock(STFReader.Units.Mass, 0); }),
             new STFReader.TokenProcessor("offset", ()=>{
                 stf.MustMatchBlockStart();
-                XOffset = stf.ReadFloat(STFReader.Units.Distance, 0);
-                YOffset = stf.ReadFloat(STFReader.Units.Distance, 0);
-                ZOffset = stf.ReadFloat(STFReader.Units.Distance, 0);
+                Offset = stf.ReadVector3(STFReader.Units.Distance, Vector3.Zero);
                 stf.MustMatchBlockEnd();
             }),
             new STFReader.TokenProcessor("flip", ()=>{ Flipped = stf.ReadBoolBlock(true);}),
             new STFReader.TokenProcessor("visibility", ()=>{
-                for (int index = 0; index < 3; index++)
-                    Visibility[index] = false;
                 foreach (var visibilityPlace in stf.ReadStringBlock("").ToLower().Replace(" ", "").Split(','))
                 {
                     switch (visibilityPlace)
                     {
                         case "outside":
-                            Visibility[(int)VisibleFrom.Outside] = true;
+                            Visibility[VisibleFrom.Outside] = true;
                             break;
                         case "cab2d":
-                            Visibility[(int)VisibleFrom.Cab2D] = true;
+                            Visibility[VisibleFrom.Cab2D] = true;
                             break;
                         case "cab3d":
-                            Visibility[(int)VisibleFrom.Cab3D] = true;
+                            Visibility[VisibleFrom.Cab3D] = true;
                             break;
                         default:
                             break;
@@ -1077,12 +1064,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public FreightAnimationStatic(FreightAnimationStatic freightAnimStatic)
         {
             ShapeFileName = freightAnimStatic.ShapeFileName;
-            XOffset = freightAnimStatic.XOffset;
-            YOffset = freightAnimStatic.YOffset;
-            ZOffset = freightAnimStatic.ZOffset;
+            Offset = freightAnimStatic.Offset;
             Flipped = freightAnimStatic.Flipped;
-            for (int index = 0; index < 3; index++)
-                Visibility[index] = freightAnimStatic.Visibility[index];
+            Visibility = new EnumArray<bool, VisibleFrom>(freightAnimStatic.Visibility);
             FreightWeight = freightAnimStatic.FreightWeight;
 
             // additions to manage consequences of variable weight on friction and brake forces
@@ -1104,7 +1088,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public bool Loaded { get; internal set; }
         public bool LoadedAtStart { get; private set; }
         public IntakePoint LinkedIntakePoint { get; private set; }
-        public Vector3 Offset { get; internal set; }
         public MSTSWagon Wagon { get; private set; }
         public FreightAnimations FreightAnimations { get; private set; }
         public Container Container { get; internal set; }
@@ -1176,8 +1159,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             Loaded = false;
             LoadedAtStart = false;
             LoadPosition = loadPosition;
-            LinkedIntakePoint = new IntakePoint(freightAnimations.GeneralIntakePoint);
-            LinkedIntakePoint.LinkedFreightAnim = this;
+            LinkedIntakePoint = new IntakePoint(freightAnimations.GeneralIntakePoint)
+            {
+                LinkedFreightAnim = this
+            };
             Wagon.IntakePointList.Add(LinkedIntakePoint);
             LoadingAreaLength = freightAnimations.LoadingAreaLength;
             AboveLoadingAreaLength = freightAnimations.AboveLoadingAreaLength;
@@ -1204,7 +1189,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 LoadingAreaLength = LoadingAreaLength,
                 AboveLoadingAreaLength = AboveLoadingAreaLength,
                 Loaded = Loaded,
-                LoadPosition = LoadPosition,               
+                LoadPosition = LoadPosition,
                 Container = Container == null ? null : await Container.Snapshot().ConfigureAwait(false),
             };
         }

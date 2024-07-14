@@ -1731,4 +1731,13 @@ namespace FreeTrainSimulator.Common
         GpuMetric,
     }
     #endregion
+
+    // Freight Animation visibility flag
+    public enum VisibleFrom
+    {
+        Outside,
+        Cab2D,
+        Cab3D,
+    }
+
 }

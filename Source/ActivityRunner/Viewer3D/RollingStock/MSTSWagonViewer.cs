@@ -912,11 +912,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (freightAnim.Animation is FreightAnimationStatic)
                     {
                         var animation = freightAnim.Animation as FreightAnimationStatic;
-                        if (!((animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Cab3D] &&
+                        if (!((animation.Visibility[VisibleFrom.Cab3D] &&
                             Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab3D) ||
-                            (animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Cab2D] &&
+                            (animation.Visibility[VisibleFrom.Cab2D] &&
                             Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == CameraStyle.Cab) ||
-                            (animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Outside] && (Viewer.Camera.AttachedCar != this.MSTSWagon ||
+                            (animation.Visibility[VisibleFrom.Outside] && (Viewer.Camera.AttachedCar != this.MSTSWagon ||
                             (Viewer.Camera.Style != CameraStyle.Cab3D && Viewer.Camera.Style != CameraStyle.Cab)))))
                             continue;
                     }
@@ -936,9 +936,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             if (freightAnim.Animation is FreightAnimationStatic)
                             {
                                 var staticFreightAnim = freightAnim.Animation as FreightAnimationStatic;
-                                freightAnim.FreightShape.XNAMatrices[0].M41 = staticFreightAnim.XOffset;
-                                freightAnim.FreightShape.XNAMatrices[0].M42 = staticFreightAnim.YOffset;
-                                freightAnim.FreightShape.XNAMatrices[0].M43 = staticFreightAnim.ZOffset;
+                                freightAnim.FreightShape.XNAMatrices[0].M41 = staticFreightAnim.Offset.X;
+                                freightAnim.FreightShape.XNAMatrices[0].M42 = staticFreightAnim.Offset.Y;
+                                freightAnim.FreightShape.XNAMatrices[0].M43 = staticFreightAnim.Offset.Z;
                             }
 
                         }

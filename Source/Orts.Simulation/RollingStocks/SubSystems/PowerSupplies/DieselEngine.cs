@@ -419,44 +419,44 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Actual RPM of the engine
         /// </summary>
-        public float RealRPM;
+        public float RealRPM { get; set; }
 
         /// <summary>
         /// RPM of the engine when gear is re-engaging
         /// </summary>
-        public float ApparentRPM;
+        public float ApparentRPM { get; set; }
 
         /// <summary>
         /// RPM of the engine as defined by throttle setting
         /// </summary>
-        public float RawRpM;
+        public float RawRpM { get; set; }
 
         /// <summary>
         /// RPM of the engine it speeds up
         /// </summary>
-        public float SpeedUpRpM;
+        public float SpeedUpRpM { get; set; }
 
         /// <summary>
         /// RPM treshold when the engine starts to combust fuel
         /// </summary>
-        public float StartingRPM;
+        public float StartingRPM { get; set; }
 
         /// <summary>
         /// RPM treshold when the engine is considered as succesfully started
         /// </summary>
-        public float StartingConfirmationRPM;
+        public float StartingConfirmationRPM { get; set; }
 
         /// <summary>
         /// GearBox unit
         /// </summary>
-        public GearBox GearBox;
+        public GearBox GearBox { get; set; }
 
         /// <summary>
         /// Parent locomotive
         /// </summary>
-        public readonly MSTSDieselLocomotive Locomotive;
+        public MSTSDieselLocomotive Locomotive { get; }
         private SettingsFlags initLevel;          //level of initialization
-        protected MSTSGearBoxParams GearBoxParams => Locomotive.DieselEngines.MSTSGearBoxParams;
+        private protected MSTSGearBoxParams GearBoxParams => Locomotive.DieselEngines.MSTSGearBoxParams;
 
         /// <summary>
         /// Initialization flag - is true when sufficient number of parameters is read succesfully
@@ -485,19 +485,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Type of engine cooling
         /// </summary>
-        public Cooling EngineCooling = Cooling.Proportional;
+        public Cooling EngineCooling { get; set; } = Cooling.Proportional;
 
         /// <summary>
         /// Holds in engine braking mode
         /// </summary>
-        public bool engineBrakingLockout;
+        public bool EngineBrakingLockout { get; set; }
 
         /// <summary>
         /// The RPM controller tries to reach this value
         /// </summary>
-        public float DemandedRPM;
+        public float DemandedRPM { get; set; }
         private float demandedThrottlePercent;
-        float throttleAcclerationFactor = 1.0f;
+        private float throttleAcclerationFactor = 1.0f;
 
         /// <summary>
         /// Demanded throttle percent, usually token from parent locomotive
@@ -506,53 +506,53 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Idle RPM
         /// </summary>
-        public float IdleRPM;
+        public float IdleRPM { get; set; }
         /// <summary>
         /// Maximal RPM
         /// </summary>
-        public float MaxRPM;
+        public float MaxRPM { get; set; }
 
         /// <summary>
         /// Govenor RPM - maximum speed that engine is held to
         /// </summary>
-        public float GovernorRPM;
+        public float GovernorRPM { get; set; }
 
         /// <summary>
         /// RPM change rate from ENG file
         /// </summary>
-        public float RPMRange;
+        public float RPMRange { get; set; }
         /// <summary>
         /// Change rate when accelerating the engine
         /// </summary>
-        public float ChangeUpRPMpS;
+        public float ChangeUpRPMpS { get; set; }
         /// <summary>
         /// Change rate when decelerating the engine
         /// </summary>
-        public float ChangeDownRPMpS;
+        public float ChangeDownRPMpS { get; set; }
         /// <summary>
         /// "Jerk" of the RPM when accelerating the engine
         /// </summary>
-        public float RateOfChangeUpRPMpSS;
+        public float RateOfChangeUpRPMpSS { get; set; }
         /// <summary>
         /// "Jerk" of the RPM when decelerating the engine
         /// </summary>
-        public float RateOfChangeDownRPMpSS;
+        public float RateOfChangeDownRPMpSS { get; set; }
         /// <summary>
         /// Maximum Rated Power output of the diesel engine (prime mover)
         /// </summary>
-        public float MaximumDieselPowerW;
+        public float MaximumDieselPowerW { get; set; }
         /// <summary>
         /// Current power available to the traction motors
         /// </summary>
-        public float CurrentDieselOutputPowerW;
+        public float CurrentDieselOutputPowerW { get; set; }
         /// <summary>
         /// Maximum power available to the rail
         /// </summary>
-        public float MaximumRailOutputPowerW;
+        public float MaximumRailOutputPowerW { get; set; }
         /// <summary>
         /// Real power output of the engine (based upon previous cycle - ie equivalent to Previous Motive Force - to calculate difference in power
         /// </summary>
-        public float OutputPowerW;
+        public float OutputPowerW { get; set; }
         /// <summary>
         /// Relative output power to the MaximalPowerW
         /// </summary>
@@ -560,81 +560,81 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Fuel consumed at max power
         /// </summary>
-        public float DieselUsedPerHourAtMaxPowerL = 1.0f;
+        public float DieselUsedPerHourAtMaxPowerL { get; set; } = 1.0f;
         /// <summary>
         /// Fuel consumed at idle
         /// </summary>
-        public float DieselUsedPerHourAtIdleL = 1.0f;
+        public float DieselUsedPerHourAtIdleL { get; set; } = 1.0f;
         /// <summary>
         /// Current fuel flow
         /// </summary>
-        public float DieselFlowLps;
+        public float DieselFlowLps { get; set; }
         /// <summary>
         /// Engine load table - Max output power vs. RPM
         /// </summary>
-        public Interpolator DieselPowerTab;
+        public Interpolator DieselPowerTab { get; set; }
 
         /// <summary>
         /// Rail power table - Max rail output power vs. RPM
         /// </summary>
-        public Interpolator RailPowerTab;
+        public Interpolator RailPowerTab { get; set; }
 
         /// <summary>
         /// Engine consumption table - Consumption vs. RPM
         /// </summary>
-        public Interpolator DieselConsumptionTab;
+        public Interpolator DieselConsumptionTab { get; set; }
         /// <summary>
         /// Engine throttle settings table - RPM vs. throttle settings
         /// </summary>
-        public Interpolator ThrottleRPMTab;
+        public Interpolator ThrottleRPMTab { get; set; }
         /// <summary>
         /// Engine throttle settings table - Reverse of RPM vs. throttle settings
         /// </summary>
-        public Interpolator ReverseThrottleRPMTab;
+        public Interpolator ReverseThrottleRPMTab { get; set; }
         /// <summary>
         /// Throttle setting as calculated from real RpM
         /// </summary>
-        public float ApparentThrottleSetting;
+        public float ApparentThrottleSetting { get; set; }
         /// <summary>
         /// Engine output torque table - Torque vs. RPM
         /// </summary>
-        public Interpolator DieselTorqueTab;
+        public Interpolator DieselTorqueTab { get; set; }
         /// <summary>
         /// Current exhaust number of particles
         /// </summary>
-        public float ExhaustParticles = 10.0f;
+        public float ExhaustParticles { get; set; } = 10.0f;
         /// <summary>
         /// Current exhaust color
         /// </summary>
-        public Color ExhaustColor;
+        public Color ExhaustColor { get; set; }
         /// <summary>
         /// Exhaust color at steady state (no RPM change)
         /// </summary>
-        public Color ExhaustSteadyColor = Color.Gray;
+        public Color ExhaustSteadyColor { get; set; } = Color.Gray;
         /// <summary>
         /// Exhaust color when accelerating the engine
         /// </summary>
-        public Color ExhaustTransientColor = Color.Black;
+        public Color ExhaustTransientColor { get; set; } = Color.Black;
         /// <summary>
         /// Exhaust color when decelerating the engine
         /// </summary>
-        public Color ExhaustDecelColor = Color.WhiteSmoke;
+        public Color ExhaustDecelColor { get; set; } = Color.WhiteSmoke;
 
-        public Color ExhaustCompressorBlownColor = Color.Gray;
+        public Color ExhaustCompressorBlownColor { get; set; } = Color.Gray;
 
-        public float InitialMagnitude = 1.5f;
-        public float MaxMagnitude = 1.5f;
-        public float MagnitudeRange;
-        public float ExhaustMagnitude = 1.5f;
+        public float InitialMagnitude { get; set; } = 1.5f;
+        public float MaxMagnitude { get; set; } = 1.5f;
+        public float MagnitudeRange { get; set; }
+        public float ExhaustMagnitude { get; set; } = 1.5f;
 
-        public float InitialExhaust = 0.7f;
-        public float MaxExhaust = 2.8f;
-        public float ExhaustRange;
+        public float InitialExhaust { get; set; } = 0.7f;
+        public float MaxExhaust { get; set; } = 2.8f;
+        public float ExhaustRange { get; set; }
 
-        public float ExhaustDecelReduction = 0.75f; //Represents the percentage that exhaust will be reduced while engine is decreasing RPMs.
-        public float ExhaustAccelIncrease = 2.0f; //Represents the percentage that exhaust will be increased while engine is increasing RPMs.
+        public float ExhaustDecelReduction { get; set; } = 0.75f; //Represents the percentage that exhaust will be reduced while engine is decreasing RPMs.
+        public float ExhaustAccelIncrease { get; set; } = 2.0f; //Represents the percentage that exhaust will be increased while engine is increasing RPMs.
 
-        public bool DieselEngineConfigured; // flag to indicate that the user has configured a diesel engine prime mover code block in the ENG file
+        public bool DieselEngineConfigured { get; set; } // flag to indicate that the user has configured a diesel engine prime mover code block in the ENG file
         /// <summary>
         /// Current Engine oil pressure in PSI
         /// </summary>
@@ -644,7 +644,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 float k = (DieselMaxOilPressurePSI - DieselMinOilPressurePSI) / (MaxRPM - IdleRPM);
                 float q = DieselMaxOilPressurePSI - k * MaxRPM;
-                float res = k * RawRpM + q - dieseloilfailurePSI;
+                float res = k * RawRpM + q - DieselOilFailurePSI;
                 if (res < 0f)
                     res = 0f;
                 return res;
@@ -654,58 +654,58 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Governor has activiated
         /// </summary>
-        public bool GovernorEnabled;
+        public bool GovernorEnabled { get; set; }
 
         /// <summary>
         /// Geared Overspeed shutdown has activiated
         /// </summary>
-        public bool GearOverspeedShutdownEnabled;
+        public bool GearOverspeedShutdownEnabled { get; set; }
 
         /// <summary>
         /// Geared Underspeed shutdown has activiated
         /// </summary>
-        public bool GearUnderspeedShutdownEnabled;
+        public bool GearUnderspeedShutdownEnabled { get; set; }
 
         /// <summary>
         /// Minimal oil pressure at IdleRPM
         /// </summary>
-        public float DieselMinOilPressurePSI;
+        public float DieselMinOilPressurePSI { get; set; }
         /// <summary>
         /// Maximal oil pressure at MaxRPM
         /// </summary>
-        public float DieselMaxOilPressurePSI;
+        public float DieselMaxOilPressurePSI { get; set; }
         /// <summary>
         /// Oil failure/leakage is substracted from the DieselOilPressurePSI
         /// </summary>
-        public float dieseloilfailurePSI;              //Intended to be implemented later
+        public float DieselOilFailurePSI { get; set; }              //Intended to be implemented later
         /// <summary>
         /// Actual Engine temperature
         /// </summary>
-        public float DieselTemperatureDeg = 40f;
+        public float DieselTemperatureDeg { get; set; } = 40f;
         /// <summary>
         /// Maximal engine temperature
         /// </summary>
-        public float DieselMaxTemperatureDeg;
+        public float DieselMaxTemperatureDeg { get; set; }
         /// <summary>
         /// Time constant to heat up from zero to 63% of MaxTemperature
         /// </summary>
-        public float DieselTempTimeConstantSec = 720f;
+        public float DieselTempTimeConstantSec { get; set; } = 720f;
         /// <summary>
         /// Optimal temperature of the diesel at rated power
         /// </summary>
-        public float DieselOptimalTemperatureDegC = 95f;
+        public float DieselOptimalTemperatureDegC { get; set; } = 95f;
         /// <summary>
         /// Steady temperature when idling
         /// </summary>
-        public float DieselIdleTemperatureDegC = 75f;
+        public float DieselIdleTemperatureDegC { get; set; } = 75f;
         /// <summary>
         /// Hysteresis of the cooling regulator
         /// </summary>
-        public float DieselTempCoolingHyst = 20f;
+        public float DieselTempCoolingHyst { get; set; } = 20f;
         /// <summary>
         /// Cooling system indicator
         /// </summary>
-        public bool DieselTempCoolingRunning;
+        public bool DieselTempCoolingRunning { get; set; }
 
         /// <summary>
         /// Load of the engine
@@ -924,8 +924,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             RPMRange = MaxRPM - IdleRPM;
             MagnitudeRange = MaxMagnitude - InitialMagnitude;
             ExhaustRange = MaxExhaust - InitialExhaust;
-            ExhaustSteadyColor.A = 10;
-            ExhaustDecelColor.A = 10;
+            ExhaustSteadyColor = new Color(ExhaustSteadyColor, 10);
+            ExhaustDecelColor = new Color(ExhaustDecelColor, 10);
 
             if (GearBoxParams.IsInitialized)
             {
@@ -1038,7 +1038,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         }
                         else if (GearBox.ManualGearBoxChangeOn)
                         {
-                            engineBrakingLockout = true;
+                            EngineBrakingLockout = true;
 
                             // once engine speed is less then shaft speed reset gear change, or is at idle rpm, reset gear change
                             if ((RealRPM <= GearBox.ShaftRPM && GearBox.ShaftRPM < MaxRPM) || RealRPM == IdleRPM)
@@ -1049,7 +1049,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         }
                     }
 
-                    if (DemandedThrottlePercent < GearBox.previousGearThrottleSetting)
+                    if (DemandedThrottlePercent < GearBox.PreviousGearThrottleSetting)
                     {
                         GearBox.GearedThrottleDecrease = true;
                     }
@@ -1066,7 +1066,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         GearBox.GearedThrottleDecrease = false;
                     }
 
-                    GearBox.previousGearThrottleSetting = DemandedThrottlePercent;
+                    GearBox.PreviousGearThrottleSetting = DemandedThrottlePercent;
 
                     // Engine with no loading wll tend to speed up if throttle is open, similarly for situation where freewheeling is occurring
                     // the following is an approximation to calculate rpm speed that motor can achieve when operating at no load - will increase until torque curve 
@@ -1110,13 +1110,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
                     // brakes engine when doing gear change
                     // During a manual gear change brake engine shaft speed to match wheel shaft speed
-                    if (engineBrakingLockout && RealRPM > GearBox.ShaftRPM && RealRPM > IdleRPM)
+                    if (EngineBrakingLockout && RealRPM > GearBox.ShaftRPM && RealRPM > IdleRPM)
                     {
                         DemandedRPM = IdleRPM;
                     }
-                    else if ((engineBrakingLockout && RealRPM < GearBox.ShaftRPM) || RealRPM <= IdleRPM || Locomotive.SpeedMpS < 0.1f)
+                    else if ((EngineBrakingLockout && RealRPM < GearBox.ShaftRPM) || RealRPM <= IdleRPM || Locomotive.SpeedMpS < 0.1f)
                     {
-                        engineBrakingLockout = false;
+                        EngineBrakingLockout = false;
                     }
 
                     // Speeds engine rpm to simulate clutch starting to engage and pulling speed up as clutch slips for friction clutch

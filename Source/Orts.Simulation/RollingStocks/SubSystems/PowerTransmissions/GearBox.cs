@@ -34,34 +34,28 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {
     public class MSTSGearBoxParams
     {
-        public int GearBoxNumberOfGears = 1;
-        public bool ReverseGearBoxIndication;
-        public int GearBoxDirectDriveGear = 1;
-        public bool FreeWheelFitted;
-        public GearBoxType GearBoxType = GearBoxType.Unknown;
-        // GearboxType ( A ) - power is continuous during gear changes (and throttle does not need to be adjusted)
-        // GearboxType ( B ) - power is interrupted during gear changes - but the throttle does not need to be adjusted when changing gear
-        // GearboxType ( C ) - power is interrupted and if GearboxOperation is Manual throttle must be closed when changing gear
-        // GearboxType ( D ) - power is interrupted and if GearboxOperation is Manual throttle must be closed when changing gear, clutch will remain engaged, and can stall engine
-
-        public ClutchType ClutchType = ClutchType.Unknown;
-
-
-        public GearBoxOperation GearBoxOperation = GearBoxOperation.Manual;
-        public GearBoxEngineBraking GearBoxEngineBraking = GearBoxEngineBraking.None;
-        public List<float> GearBoxMaxSpeedForGearsMpS = new List<float>();
-        public List<float> GearBoxChangeUpSpeedRpM = new List<float>();
-        public List<float> GearBoxChangeDownSpeedRpM = new List<float>();
-        public List<float> GearBoxMaxTractiveForceForGearsN = new List<float>();
-        public List<float> GearBoxTractiveForceAtSpeedN = new List<float>();
-        public float GearBoxOverspeedPercentageForFailure = 150f;
-        public float GearBoxBackLoadForceN = 1000;
-        public float GearBoxCoastingForceN = 500;
-        public float GearBoxUpGearProportion = 0.85f;
-        public float GearBoxDownGearProportion = 0.35f;
         private int initLevel;
 
-        public bool MaxTEFound;
+        public int GearBoxNumberOfGears { get; private set; } = 1;
+        public bool ReverseGearBoxIndication { get; private set; }
+        public int GearBoxDirectDriveGear { get; private set; } = 1;
+        public bool FreeWheelFitted { get; private set; }
+        public GearBoxType GearBoxType { get; private set; } = GearBoxType.Unknown;
+        public ClutchType ClutchType { get; private set; } = ClutchType.Unknown;
+        public GearBoxOperation GearBoxOperation { get; private set; } = GearBoxOperation.Manual;
+        public GearBoxEngineBraking GearBoxEngineBraking { get; private set; } = GearBoxEngineBraking.None;
+        public List<float> GearBoxMaxSpeedForGearsMpS { get; } = new List<float>();
+        public List<float> GearBoxChangeUpSpeedRpM { get; } = new List<float>();
+        public List<float> GearBoxChangeDownSpeedRpM { get; } = new List<float>();
+        public List<float> GearBoxMaxTractiveForceForGearsN { get; } = new List<float>();
+        public List<float> GearBoxTractiveForceAtSpeedN { get; } = new List<float>();
+        public float GearBoxOverspeedPercentageForFailure { get; private set; } = 150f;
+        public float GearBoxBackLoadForceN { get; private set; } = 1000;
+        public float GearBoxCoastingForceN { get; private set; } = 500;
+        public float GearBoxUpGearProportion { get; private set; } = 0.85f;
+        public float GearBoxDownGearProportion { get; private set; } = 0.35f;
+
+        public bool MaxTEFound { get; private set; }
 
         public bool IsInitialized { get { return initLevel >= 3; } }
         public bool AtLeastOneParamFound { get { return initLevel >= 1; } }
@@ -95,27 +89,35 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 case "engine(ortsgearboxtype":
                     stf.MustMatch("(");
                     var gearType = stf.ReadString();
-                    if (!EnumExtension.GetValue(gearType, out GearBoxType))
+                    if (!EnumExtension.GetValue(gearType, out GearBoxType gearBoxType))
                         STFException.TraceWarning(stf, "Assumed unknown gear box type " + gearType);
+                    else
+                        GearBoxType = gearBoxType;
                     break;
                 case "engine(ortsmainclutchtype":
                     stf.MustMatch("(");
                     var clutchType = stf.ReadString();
-                    if (!EnumExtension.GetValue(clutchType, out ClutchType))
+                    if (!EnumExtension.GetValue(clutchType, out ClutchType clutch))
                         STFException.TraceWarning(stf, "Assumed unknown main clutch type " + clutchType);
+                    else
+                        ClutchType = clutch;
                     break;
                 case "engine(gearboxoperation":
                     stf.MustMatch("(");
                     var gearOperation = stf.ReadString();
-                    if (!EnumExtension.GetValue(gearOperation, out GearBoxOperation))
+                    if (!EnumExtension.GetValue(gearOperation, out GearBoxOperation gearBoxOperation))
                         STFException.TraceWarning(stf, "Assumed unknown gear box operation type " + gearOperation);
+                    else
+                        GearBoxOperation = gearBoxOperation;
                     initLevel++;
                     break;
                 case "engine(gearboxenginebraking":
                     stf.MustMatch("(");
                     var engineBraking = stf.ReadString();
-                    if (!EnumExtension.GetValue(engineBraking, out GearBoxEngineBraking))
+                    if (!EnumExtension.GetValue(engineBraking, out GearBoxEngineBraking gearBoxEngineBraking))
                         STFException.TraceWarning(stf, "Assumed unknown gear box engine braking type " + engineBraking);
+                    else
+                        GearBoxEngineBraking = gearBoxEngineBraking;
                     break;
                 case "engine(gearboxmaxspeedforgears":
                     temp = stf.ReadItem();
@@ -199,11 +201,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             ClutchType = copy.ClutchType;
             GearBoxOperation = copy.GearBoxOperation;
             GearBoxEngineBraking = copy.GearBoxEngineBraking;
-            GearBoxMaxSpeedForGearsMpS = new List<float>(copy.GearBoxMaxSpeedForGearsMpS);
-            GearBoxChangeUpSpeedRpM = new List<float>(copy.GearBoxChangeUpSpeedRpM);
-            GearBoxChangeDownSpeedRpM = new List<float>(copy.GearBoxChangeDownSpeedRpM);
-            GearBoxMaxTractiveForceForGearsN = new List<float>(copy.GearBoxMaxTractiveForceForGearsN);
-            GearBoxTractiveForceAtSpeedN = new List<float>(copy.GearBoxTractiveForceAtSpeedN);
+            GearBoxMaxSpeedForGearsMpS.Clear();
+            GearBoxMaxSpeedForGearsMpS.AddRange(copy.GearBoxMaxSpeedForGearsMpS);
+            GearBoxChangeUpSpeedRpM.Clear();
+            GearBoxChangeUpSpeedRpM.AddRange(copy.GearBoxChangeUpSpeedRpM);
+            GearBoxChangeDownSpeedRpM.Clear();
+            GearBoxChangeDownSpeedRpM.AddRange(copy.GearBoxChangeDownSpeedRpM);
+            GearBoxMaxTractiveForceForGearsN.Clear();
+            GearBoxMaxTractiveForceForGearsN.AddRange(copy.GearBoxMaxTractiveForceForGearsN);
+            GearBoxTractiveForceAtSpeedN.Clear();
+            GearBoxTractiveForceAtSpeedN.AddRange(copy.GearBoxTractiveForceAtSpeedN);
             GearBoxOverspeedPercentageForFailure = copy.GearBoxOverspeedPercentageForFailure;
             GearBoxBackLoadForceN = copy.GearBoxBackLoadForceN;
             GearBoxCoastingForceN = copy.GearBoxCoastingForceN;
@@ -218,20 +225,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
     {
         private readonly DieselEngine dieselEngine;
         private readonly MSTSDieselLocomotive locomotive;
-        protected MSTSGearBoxParams GearBoxParams => locomotive.DieselEngines.MSTSGearBoxParams;
+        private protected MSTSGearBoxParams GearBoxParams => locomotive.DieselEngines.MSTSGearBoxParams;
         public List<Gear> Gears { get; } = new List<Gear>();
 
-        public bool GearBoxFreeWheelFitted;
-        public bool GearBoxFreeWheelEnabled;
+        public bool GearBoxFreeWheelFitted { get; private set; }
+        public bool GearBoxFreeWheelEnabled { get; set; }
 
-        public bool GearedThrottleDecrease;
-        public float previousGearThrottleSetting;
+        public bool GearedThrottleDecrease { get; set; }
+        public float PreviousGearThrottleSetting { get; set; }
 
-        public float ManualGearTimerResetS = 2;  // Allow gear change to take 2 seconds
-        public float ManualGearTimerS; // Time for gears to change
-        public bool ManualGearBoxChangeOn;
-        public bool ManualGearUp;
-        public bool ManualGearDown;
+        public float ManualGearTimerResetS { get; set; } = 2;  // Allow gear change to take 2 seconds
+        public float ManualGearTimerS { get; set; } // Time for gears to change
+        public bool ManualGearBoxChangeOn { get; set; }
+        public bool ManualGearUp { get; set; }
+        public bool ManualGearDown { get; set; }
 
         private bool clutchLockOut;
 
@@ -640,7 +647,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                             {
                                 var tractiveEffortLimitN = (dieselEngine.DieselPowerTab[dieselEngine.RealRPM] * (dieselEngine.LoadPercent / 100f)) / CurrentSpeedMpS;
 
-                                if (tractiveForceN > tractiveEffortLimitN )
+                                if (tractiveForceN > tractiveEffortLimitN)
                                 {
                                     tractiveForceN = tractiveEffortLimitN;
                                 }
@@ -799,7 +806,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
                         // For purposes of calculating engine efficiency the tractive force at maximum gear speed needs to be used.
                         Gears[i].TractiveForceatMaxSpeedN = GearBoxParams.GearBoxTractiveForceAtSpeedN[i] / locomotive.DieselEngines.Count;
-                    }                        
+                    }
 
                     Gears[i].OverspeedPercentage = GearBoxParams.GearBoxOverspeedPercentageForFailure;
                     Gears[i].UpGearProportion = GearBoxParams.GearBoxUpGearProportion;
@@ -1012,6 +1019,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
     public enum GearBoxType
     {
+        // GearboxType ( A ) - power is continuous during gear changes (and throttle does not need to be adjusted)
+        // GearboxType ( B ) - power is interrupted during gear changes - but the throttle does not need to be adjusted when changing gear
+        // GearboxType ( C ) - power is interrupted and if GearboxOperation is Manual throttle must be closed when changing gear
+        // GearboxType ( D ) - power is interrupted and if GearboxOperation is Manual throttle must be closed when changing gear, clutch will remain engaged, and can stall engine
         Unknown,
         A,
         B,
