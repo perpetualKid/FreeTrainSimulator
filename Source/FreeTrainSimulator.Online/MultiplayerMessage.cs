@@ -3,7 +3,7 @@ using System.Text;
 
 using MemoryPack;
 
-namespace Multiplayer.Shared
+namespace FreeTrainSimulator.Online
 {
     [MemoryPackable()]
     public partial class MultiplayerMessage

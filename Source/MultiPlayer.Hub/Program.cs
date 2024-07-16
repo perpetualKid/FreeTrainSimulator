@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Online;
+
 using MagicOnion.Serialization;
 using MagicOnion.Serialization.MemoryPack;
 using MagicOnion.Server.Hubs;
@@ -10,8 +12,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-
-using Multiplayer.Shared;
 
 namespace Multiplayer.Hub
 {

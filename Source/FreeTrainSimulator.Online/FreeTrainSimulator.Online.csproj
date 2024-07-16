@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<Description>Free Train Simulator Multiplayer Shared Library</Description>
-		<AssemblyTitle>Free Train Simulator Multiplayer Shared Library</AssemblyTitle>
+		<Description>Free Train Simulator Online Player Library</Description>
+		<AssemblyTitle>Free Train Simulator Online Player Library</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
 	</PropertyGroup>
 	<ItemGroup>

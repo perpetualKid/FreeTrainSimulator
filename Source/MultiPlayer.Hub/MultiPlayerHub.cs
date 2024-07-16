@@ -4,9 +4,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-using MagicOnion.Server.Hubs;
+using FreeTrainSimulator.Online;
 
-using Multiplayer.Shared;
+using MagicOnion.Server.Hubs;
 
 namespace Multiplayer.Hub
 {

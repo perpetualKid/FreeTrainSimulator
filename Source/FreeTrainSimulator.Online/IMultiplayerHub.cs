@@ -2,9 +2,9 @@
 
 using MagicOnion;
 
-namespace Multiplayer.Shared
+namespace FreeTrainSimulator.Online
 {
-    public interface IMultiplayerHub: IStreamingHub<IMultiplayerHub, IMultiplayerClient>
+    public interface IMultiplayerHub : IStreamingHub<IMultiplayerHub, IMultiplayerClient>
     {
         ValueTask SendMessageAsync(MultiplayerMessage message);
 

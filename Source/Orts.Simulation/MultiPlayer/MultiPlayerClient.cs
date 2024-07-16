@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Online;
 
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -11,8 +12,6 @@ using Grpc.Net.Client;
 using MagicOnion.Client;
 using MagicOnion.Serialization;
 using MagicOnion.Serialization.MemoryPack;
-
-using Multiplayer.Shared;
 
 using Orts.Simulation.Multiplayer.Messaging;
 

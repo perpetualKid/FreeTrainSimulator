@@ -12,6 +12,6 @@
 	  <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\Multiplayer.Shared\Multiplayer.Shared.csproj" />
+	  <ProjectReference Include="..\FreeTrainSimulator.Online\FreeTrainSimulator.Online.csproj" />
 	</ItemGroup>
 </Project>

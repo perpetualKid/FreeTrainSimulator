@@ -1,9 +1,9 @@
 ﻿using System.IO.Pipelines;
 using System.Threading.Tasks;
 
-using MemoryPack;
+using FreeTrainSimulator.Online;
 
-using Multiplayer.Shared;
+using MemoryPack;
 
 namespace Orts.Simulation.Multiplayer.Messaging
 {

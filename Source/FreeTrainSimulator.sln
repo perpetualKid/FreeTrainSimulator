@@ -60,7 +60,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulatorTester", "Contrib\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Multiplayer.Hub", "Multiplayer.Hub\Multiplayer.Hub.csproj", "{EB6913FF-6EEA-432E-9F6D-8FAF023FE1B8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Multiplayer.Shared", "Multiplayer.Shared\Multiplayer.Shared.csproj", "{98E3877D-48EE-4268-9E98-CA574EEA3D5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Online", "FreeTrainSimulator.Online\FreeTrainSimulator.Online.csproj", "{98E3877D-48EE-4268-9E98-CA574EEA3D5E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Common", "FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj", "{AFD0548E-86FA-4586-A7DC-F19A8C48450B}"
 EndProject
