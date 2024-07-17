@@ -22,7 +22,7 @@ namespace Orts.Scripting.Api
         private static readonly MetadataReference[] CompilerParameters = new MetadataReference[]
         {
             MetadataReference.CreateFromFile(typeof(Trace).GetTypeInfo().Assembly.Location),
-            MetadataReference.CreateFromFile("Orts.Common.dll"),
+            MetadataReference.CreateFromFile("FreeTrainSimulator.Common.dll"),
             MetadataReference.CreateFromFile("Orts.Formats.Msts.dll"),
             MetadataReference.CreateFromFile("Orts.Formats.OR.dll"),
             MetadataReference.CreateFromFile("Orts.Settings.dll"),
