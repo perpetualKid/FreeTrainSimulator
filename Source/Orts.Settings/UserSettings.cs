@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
@@ -437,15 +438,15 @@ namespace Orts.Settings
         public DispatcherSettings Dispatcher { get; private set; }
 
         public UserSettings() :
-            this(Array.Empty<string>())
+            this(ImmutableArray<string>.Empty)
         { }
 
-        public UserSettings(IEnumerable<string> options) :
+        public UserSettings(in ImmutableArray<string> options) :
             this(options, SettingsStore.GetSettingsStore(SettingsStoreType, Location, null))
         {
         }
 
-        public UserSettings(IEnumerable<string> options, SettingsStore store) :
+        public UserSettings(in ImmutableArray<string> options, SettingsStore store) :
             base(store)
         {
             customDefaultValues["LoggingPath"] = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);

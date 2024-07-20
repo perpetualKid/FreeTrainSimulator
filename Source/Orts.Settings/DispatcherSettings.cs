@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace Orts.Settings
 {
     public class DispatcherSettings : SettingsBase
     {
-        internal DispatcherSettings(IEnumerable<string> options, SettingsStore store) :
+        internal DispatcherSettings(in ImmutableArray<string> options, SettingsStore store) :
             base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "Dispatcher"))
         {
             LoadSettings(options);

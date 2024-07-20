@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
@@ -79,10 +80,8 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
 
             weather = this.viewer.Simulator.Weather;
 
-            var pathArray = new[] {
-                Path.Combine(Simulator.Instance.RouteFolder.SoundFolder),
-                Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.SoundFolder)
-            };
+            ImmutableArray<string> pathArray = ImmutableArray.Create(Path.Combine(Simulator.Instance.RouteFolder.SoundFolder),
+                Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.SoundFolder));
 
             clearSound = new Collection<SoundSourceBase>() {
                 new SoundSource(SoundEventSource.InGame, FolderStructure.FindFileFromFolders(pathArray, "clear_in.sms"), false),

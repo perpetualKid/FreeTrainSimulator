@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
@@ -77,7 +78,7 @@ namespace Orts.Settings
 
         public EnumArray<byte, RailDriverCalibrationSetting> CalibrationSettings { get; } = new EnumArray<byte, RailDriverCalibrationSetting>();
 
-        internal RailDriverSettings(IEnumerable<string> options, SettingsStore store) :
+        internal RailDriverSettings(in ImmutableArray<string> options, SettingsStore store) :
             base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "RailDriver"))
         {
             LoadSettings(options);

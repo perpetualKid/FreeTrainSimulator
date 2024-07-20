@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
@@ -68,6 +69,7 @@ namespace Orts.Settings
         /// <param name="settings">The store for the settings</param>
         protected SettingsBase(SettingsStore settings)
         {
+            ArgumentNullException.ThrowIfNull(settings, nameof(settings));
             SettingStore = settings;
         }
 
@@ -183,12 +185,12 @@ namespace Orts.Settings
         /// Load settings from the options
         /// </summary>
         /// <param name="options">overrideable user options</param>
-        protected void LoadSettings(IEnumerable<string> options)
+        protected void LoadSettings(in ImmutableArray<string> options)
         {
             NameValueCollection cmdOptions = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
             bool allowUserSettings = true;
 
-            if (null != options)
+            if (options.Length > 0)
             {
                 // This special command-line option prevents the registry values from being used.
                 allowUserSettings = !options.Contains("skip-user-settings", StringComparer.OrdinalIgnoreCase);

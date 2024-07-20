@@ -26,7 +26,7 @@ namespace Tests.FreeTrainSimulator.Online
         {
             GrpcChannel channel = ClientChannelConfigFactory.HttpChannel("localhost", 30000, true);
             ConnectivityClient client = new ConnectivityClient(channel, CancellationToken.None);
-            Assert.IsFalse(await client.Ping());
+            Assert.IsFalse(await client.Ping().ConfigureAwait(false));
         }
 
         [TestMethod]
@@ -34,7 +34,8 @@ namespace Tests.FreeTrainSimulator.Online
         {
             GrpcChannel channel = ClientChannelConfigFactory.HttpChannel("localhost", 30000, true);
             ConnectivityClient client = new ConnectivityClient(channel, CancellationToken.None);
-            (TimeSpan roundTrip, TimeSpan serverDelta) = await client.TestLatency();
+            (TimeSpan roundTrip, TimeSpan serverDelta) = await client.TestLatency().ConfigureAwait(false);
+            Assert.AreEqual(roundTrip, serverDelta); //both are Zero in regular testing
         }
     }
 }

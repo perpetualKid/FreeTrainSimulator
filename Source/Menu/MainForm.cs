@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -166,8 +167,8 @@ namespace Orts.Menu
 
         private async void MainForm_Shown(object sender, EventArgs e)
         {
-            IEnumerable<string> options = Environment.GetCommandLineArgs().
-                Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]);
+            ImmutableArray<string> options = Environment.GetCommandLineArgs().
+                Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
             settings = new UserSettings(options);
 
             updateManager = new UpdateManager(settings);

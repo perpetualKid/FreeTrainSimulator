@@ -20,6 +20,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -199,10 +200,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
                 if (soundFileName != null)
                 {
-                    string[] soundPathArray = new[] {
-                    Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "SOUND"),
-                    Path.Combine(Simulator.RouteFolder.ContentFolder.SoundFolder),
-                };
+                    ImmutableArray<string> soundPathArray = ImmutableArray.Create(
+                        Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "SOUND"),
+                        Path.Combine(Simulator.RouteFolder.ContentFolder.SoundFolder));
                     var soundPath = FolderStructure.FindFileFromFolders(soundPathArray, soundFileName);
                     if (File.Exists(soundPath))
                         Sounds.Add(script, soundPath);
@@ -241,8 +241,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.NextSignalSpeedLimitMpS = (value) => NextGenericSignalItem(value, ref ItemSpeedLimit, float.MaxValue, TrainPathItemType.Signal, "NORMAL");
                 script.NextSignalAspect = (value) => NextGenericSignalItem(value, ref ItemAspect, float.MaxValue, TrainPathItemType.Signal, "NORMAL");
                 script.NextSignalDistanceM = (value) => NextGenericSignalItem(value, ref ItemDistance, float.MaxValue, TrainPathItemType.Signal, "NORMAL");
-                script.NextNormalSignalDistanceHeadsAspect = () => NextNormalSignalDistanceHeadsAspect();
-                script.DoesNextNormalSignalHaveTwoAspects = () => DoesNextNormalSignalHaveTwoAspects();
+                script.NextNormalSignalDistanceHeadsAspect = NextNormalSignalDistanceHeadsAspect;
+                script.DoesNextNormalSignalHaveTwoAspects = DoesNextNormalSignalHaveTwoAspects;
                 script.NextDistanceSignalAspect = () =>
                     NextGenericSignalItem(0, ref ItemAspect, GenericItemDistance, TrainPathItemType.Signal, "DISTANCE");
                 script.NextDistanceSignalDistanceM = () =>
@@ -254,8 +254,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.NextGenericSignalDistanceM = (type) =>
                     NextGenericSignalItem(0, ref ItemDistance, GenericItemDistance, TrainPathItemType.Signal, type);
                 script.NextGenericSignalFeatures = (arg1, arg2, arg3) => NextGenericSignalFeatures(arg1, arg2, arg3, TrainPathItemType.Signal);
-                script.NextSpeedPostFeatures = (arg1, arg2) => NextSpeedPostFeatures(arg1, arg2);
-                script.DoesNextNormalSignalHaveRepeaterHead = () => DoesNextNormalSignalHaveRepeaterHead();
+                script.NextSpeedPostFeatures = NextSpeedPostFeatures;
+                script.DoesNextNormalSignalHaveRepeaterHead = DoesNextNormalSignalHaveRepeaterHead;
                 script.CurrentPostSpeedLimitMpS = () => Locomotive.Train.AllowedMaxSpeedLimitMpS;
                 script.NextPostSpeedLimitMpS = (value) => NextGenericSignalItem(value, ref ItemSpeedLimit, float.MaxValue, TrainPathItemType.Speedpost);
                 script.NextPostDistanceM = (value) => NextGenericSignalItem(value, ref ItemDistance, float.MaxValue, TrainPathItemType.Speedpost);
@@ -317,7 +317,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.CurrentGradientPercent = () => Locomotive.CurrentElevationPercent;
                 script.LineSpeedMpS = () => (float)Simulator.Route.SpeedLimit;
                 script.SignedDistanceM = () => Locomotive.Train.DistanceTravelledM;
-                script.DoesStartFromTerminalStation = () => DoesStartFromTerminalStation();
+                script.DoesStartFromTerminalStation = DoesStartFromTerminalStation;
                 script.IsColdStart = () => Locomotive.Train.ColdStart;
                 script.GetTrackNodeOffset = () => Locomotive.Train.FrontTDBTraveller.TrackNodeLength - Locomotive.Train.FrontTDBTraveller.TrackNodeOffset;
                 script.NextDivergingSwitchDistanceM = (value) =>
@@ -335,9 +335,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.NextStationDistanceM = () => Locomotive.Train.StationStops != null && Locomotive.Train.StationStops.Count > 0 ? Locomotive.Train.StationStops[0].DistanceToTrainM : float.MaxValue;
 
                 // TrainControlSystem functions
-                script.SpeedCurve = (arg1, arg2, arg3, arg4, arg5) => SpeedCurve(arg1, arg2, arg3, arg4, arg5);
-                script.DistanceCurve = (arg1, arg2, arg3, arg4, arg5) => DistanceCurve(arg1, arg2, arg3, arg4, arg5);
-                script.Deceleration = (arg1, arg2, arg3) => Deceleration(arg1, arg2, arg3);
+                script.SpeedCurve = SpeedCurve;
+                script.DistanceCurve = DistanceCurve;
+                script.Deceleration = Deceleration;
 
                 // TrainControlSystem setters
                 script.SetFullBrake = (value) =>
@@ -466,8 +466,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                         customizedCabviewControlNames[id] = value;
                     }
                 };
-                script.RequestToggleManualMode = () => Locomotive.Train.RequestToggleManualMode();
-                script.ResetOutOfControlMode = () => Locomotive.Train.ManualResetOutOfControlMode();
+                script.RequestToggleManualMode = Locomotive.Train.RequestToggleManualMode;
+                script.ResetOutOfControlMode = Locomotive.Train.ManualResetOutOfControlMode;
 
                 // TrainControlSystem INI configuration file
                 script.GetBoolParameter = (arg1, arg2, arg3) => LoadParameter(arg1, arg2, arg3);

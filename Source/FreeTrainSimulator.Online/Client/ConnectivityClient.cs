@@ -30,7 +30,7 @@ namespace FreeTrainSimulator.Online.Client
                 _ = await client.Connect();
                 return true;
             }
-            catch
+            catch (Exception ex) when (ex is Exception)
             {
                 return false;
             }
@@ -49,7 +49,7 @@ namespace FreeTrainSimulator.Online.Client
 
                 return (roundtrip, serverDelta);
             }
-            catch
+            catch (Exception ex) when (ex is Exception)
             {
                 return (TimeSpan.Zero, TimeSpan.Zero);
             }

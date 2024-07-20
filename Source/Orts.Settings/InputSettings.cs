@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
@@ -63,7 +64,7 @@ namespace Orts.Settings
             InitializeCommands(DefaultCommands);
         }
 
-        public InputSettings(IEnumerable<string> options, SettingsStore store) :
+        public InputSettings(in ImmutableArray<string> options, SettingsStore store) :
             base(SettingsStore.GetSettingsStore(store?.StoreType ?? StoreType.Registry, store.Location, "Keyboard"))
         {
             InitializeCommands(UserCommands);

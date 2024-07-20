@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 using Orts.Settings;
 
@@ -32,7 +33,7 @@ namespace Orts.SimulatorTester
         [Default(10)]
         public int FPS { get; set; }
 
-        public UserSettings(IEnumerable<string> options)
+        public UserSettings(in ImmutableArray<string> options)
             : base(options)
         {
         }

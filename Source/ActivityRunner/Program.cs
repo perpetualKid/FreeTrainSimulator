@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -46,7 +47,7 @@ namespace Orts.ActivityRunner
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
 
-            IEnumerable<string> options = args.Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a.Substring(1));
+            ImmutableArray<string> options = args.Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
             UserSettings settings = new UserSettings(options);
 
             //enables loading of dll for specific architecture(32 or 64bit) from distinct folders, useful when both versions require same name (as for soft_oal.dll)

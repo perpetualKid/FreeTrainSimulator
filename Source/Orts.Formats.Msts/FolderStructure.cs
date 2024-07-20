@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
@@ -26,59 +27,55 @@ namespace Orts.Formats.Msts
 
                 private const string tsection = "tsection.dat";
 
-                private readonly string routeName;
-                private readonly string routeFolder;
-                private readonly ContentFolder parent;
-
                 internal RouteFolder(string route, ContentFolder parent)
                 {
-                    routeName = route;
-                    this.parent = parent;
-                    routeFolder = Path.Combine(parent.RoutesFolder, routeName);
+                    RouteName = route;
+                    this.ContentFolder = parent;
+                    CurrentFolder = Path.Combine(parent.RoutesFolder, RouteName);
                 }
 
                 public bool IsValid => !string.IsNullOrEmpty(TrackFileName);
 
-                public string RouteName => routeName;
+                public string RouteName { get; }
 
                 #region Folders
-                public string CurrentFolder => routeFolder;
+                public string CurrentFolder { get; }
 
-                public ContentFolder ContentFolder => parent;
+                public ContentFolder ContentFolder { get; }
 
-                public string TrackFileName => Directory.EnumerateFiles(routeFolder, "*.trk").FirstOrDefault();
+                public string TrackFileName => Directory.EnumerateFiles(CurrentFolder, "*.trk").FirstOrDefault();
 
-                public string ActivitiesFolder => Path.Combine(routeFolder, "Activities");
+                public string ActivitiesFolder => Path.Combine(CurrentFolder, "Activities");
 
                 public string OpenRailsActivitiesFolder => Path.Combine(ActivitiesFolder, OpenRailsSpecificFolder);
 
-                public string OpenRailsRouteFolder => Path.Combine(routeFolder, OpenRailsSpecificFolder);
+                public string OpenRailsRouteFolder => Path.Combine(CurrentFolder, OpenRailsSpecificFolder);
 
-                public string EnvironmentTexturesFolder => Path.Combine(routeFolder, "EnvFiles", "Textures");
+                public string EnvironmentTexturesFolder => Path.Combine(CurrentFolder, "EnvFiles", "Textures");
 
-                public string EnvironmentFolder => Path.Combine(routeFolder, "EnvFiles");
+                public string EnvironmentFolder => Path.Combine(CurrentFolder, "EnvFiles");
 
-                public string PathsFolder => Path.Combine(routeFolder, "Paths");
+                public string PathsFolder => Path.Combine(CurrentFolder, "Paths");
 
-                public string ServicesFolder => Path.Combine(routeFolder, "Services");
+                public string ServicesFolder => Path.Combine(CurrentFolder, "Services");
 
-                public string ShapesFolder => Path.Combine(routeFolder, "Shapes");
+                public string ShapesFolder => Path.Combine(CurrentFolder, "Shapes");
 
-                public string SoundFolder => Path.Combine(routeFolder, "Sound");
+                public string SoundFolder => Path.Combine(CurrentFolder, "Sound");
 
-                public string TexturesFolder => Path.Combine(routeFolder, "Textures");
+                public string TexturesFolder => Path.Combine(CurrentFolder, "Textures");
 
-                public string TerrainTexturesFolder => Path.Combine(routeFolder, "Terrtex");
+                public string TerrainTexturesFolder => Path.Combine(CurrentFolder, "Terrtex");
 
-                public string TilesFolder => Path.Combine(routeFolder, "Tiles");
+                public string TilesFolder => Path.Combine(CurrentFolder, "Tiles");
 
-                public string TilesFolderLow => Path.Combine(routeFolder, "Lo_Tiles");
+                public string TilesFolderLow => Path.Combine(CurrentFolder, "Lo_Tiles");
 
-                public string TrafficFolder => Path.Combine(routeFolder, "Traffic");
+                public string TrafficFolder => Path.Combine(CurrentFolder, "Traffic");
 
-                public string WeatherFolder => Path.Combine(routeFolder, "WeatherFiles");
+                public string WeatherFolder => Path.Combine(CurrentFolder, "WeatherFiles");
 
-                public string WorldFolder => Path.Combine(routeFolder, "World");
+                public string WorldFolder => Path.Combine(CurrentFolder, "World");
                 #endregion
 
                 #region Files
@@ -87,7 +84,7 @@ namespace Orts.Formats.Msts
                     if (string.IsNullOrEmpty(routeFileName))
                         throw new ArgumentNullException(nameof(routeFileName));
 
-                    return Path.Combine(routeFolder, routeFileName + ".tdb");
+                    return Path.Combine(CurrentFolder, routeFileName + ".tdb");
                 }
 
                 public string RoadTrackDatabaseFile(string routeFileName)
@@ -95,7 +92,7 @@ namespace Orts.Formats.Msts
                     if (string.IsNullOrEmpty(routeFileName))
                         throw new ArgumentNullException(nameof(routeFileName));
 
-                    return Path.Combine(routeFolder, routeFileName + ".rdb");
+                    return Path.Combine(CurrentFolder, routeFileName + ".rdb");
                 }
 
                 public string ServiceFile(string serviceName)
@@ -120,7 +117,7 @@ namespace Orts.Formats.Msts
 
                 public string HazardFile(string hazardName)
                 {
-                    return Path.Combine(routeFolder, hazardName);
+                    return Path.Combine(CurrentFolder, hazardName);
                 }
 
                 public string ShapeFile(string shapeFileName)
@@ -138,35 +135,35 @@ namespace Orts.Formats.Msts
                     get 
                     {
                         string tsectionFile;
-                        if (File.Exists(tsectionFile = Path.Combine(routeFolder, OpenRailsSpecificFolder, tsection)))
+                        if (File.Exists(tsectionFile = Path.Combine(CurrentFolder, OpenRailsSpecificFolder, tsection)))
                             return tsectionFile;
-                        else if (File.Exists(tsectionFile = Path.Combine(routeFolder, Global, tsection)))   // doesn't seem to be a valid option, but might have been used so keep for now
+                        else if (File.Exists(tsectionFile = Path.Combine(CurrentFolder, Global, tsection)))   // doesn't seem to be a valid option, but might have been used so keep for now
                             return tsectionFile;
                         else
-                            return Path.Combine(parent.Folder, Global, tsection);
+                            return Path.Combine(ContentFolder.Folder, Global, tsection);
                     }
                 }
 
-                public string RouteTrackSectionFile => Path.Combine(routeFolder, tsection);
+                public string RouteTrackSectionFile => Path.Combine(CurrentFolder, tsection);
 
                 public string SignalConfigurationFile
                 {
                     get
                     {
                         string signalConfig;
-                        if (File.Exists(signalConfig = Path.Combine(routeFolder, OpenRailsSpecificFolder, "sigcfg.dat")))
+                        if (File.Exists(signalConfig = Path.Combine(CurrentFolder, OpenRailsSpecificFolder, "sigcfg.dat")))
                         {
                             ORSignalConfigFile = true;
                             return signalConfig;
                         }
-                        return Path.Combine(routeFolder, "sigcfg.dat");
+                        return Path.Combine(CurrentFolder, "sigcfg.dat");
                     }
                 }
 
                 public bool ORSignalConfigFile { get; private set; }
 
-                public string CarSpawnerFile => Path.Combine(routeFolder, "carspawn.dat");
-                public string OpenRailsCarSpawnerFile => Path.Combine(routeFolder, OpenRailsSpecificFolder, "carspawn.dat");
+                public string CarSpawnerFile => Path.Combine(CurrentFolder, "carspawn.dat");
+                public string OpenRailsCarSpawnerFile => Path.Combine(CurrentFolder, OpenRailsSpecificFolder, "carspawn.dat");
 
                 #endregion
             }
@@ -331,7 +328,7 @@ namespace Orts.Formats.Msts
         /// </summary>
         private static string badBranch = "";
         private static string badPath = "";
-        private static readonly Dictionary<string, StringDictionary> filesFound = new Dictionary<string, StringDictionary>();
+        private static readonly Dictionary<string, StringDictionary> filesFound = new Dictionary<string, StringDictionary>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Search an array of paths for a file. Paths must be in search sequence.
@@ -340,7 +337,7 @@ namespace Orts.Formats.Msts
         /// <param name="pathArray">2 or more folders, e.g. "D:\MSTS", E:\OR"</param>
         /// <param name="branch">a filename possibly prefixed by a folder, e.g. "folder\file.ext"</param>
         /// <returns>null or the full file path of the first file found</returns>
-        public static string FindFileFromFolders(IEnumerable<string> paths, string fileRelative)
+        public static string FindFileFromFolders(in ImmutableArray<string> paths, string fileRelative)
         {
             ArgumentNullException.ThrowIfNull(paths);
             if (string.IsNullOrEmpty(fileRelative))

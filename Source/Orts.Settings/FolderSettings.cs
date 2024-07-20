@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.Linq;
 
@@ -27,7 +28,7 @@ namespace Orts.Settings
     {
         public Dictionary<string, string> Folders { get; } = new Dictionary<string, string>();
 
-        public FolderSettings(IEnumerable<string> options, SettingsStore store) :
+        public FolderSettings(in ImmutableArray<string> options, SettingsStore store) :
             base(SettingsStore.GetSettingsStore(store?.StoreType ?? StoreType.Json, store.Location, "Folders"))
         {
             LoadSettings(options);

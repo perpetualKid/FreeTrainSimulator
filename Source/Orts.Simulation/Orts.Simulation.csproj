@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
     <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
-		<PackageReference Include="MagicOnion.Client" Version="6.1.3" />
+		<PackageReference Include="MagicOnion.Client" Version="6.1.4" />
 		<PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.2-preview" />
 	</ItemGroup>
   <ItemGroup>

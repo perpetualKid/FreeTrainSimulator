@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Immutable;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orts.Settings;
 using Orts.Settings.Store;
@@ -14,7 +16,7 @@ namespace Tests.Orts.Settings
         {
             using (TestFile testFile = new TestFile(string.Empty))
             {
-                FolderSettings folders = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings folders = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 Assert.IsNotNull(folders.Folders);
             }
         }
@@ -24,7 +26,7 @@ namespace Tests.Orts.Settings
         {
             using (TestFile testFile = new TestFile("[Folders]\r\nName=string:Value"))
             {
-                FolderSettings folders = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings folders = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 Assert.IsTrue(folders.Folders.Count == 1);
             }
         }
@@ -34,10 +36,10 @@ namespace Tests.Orts.Settings
         {
             using (TestFile testFile = new TestFile("[Folders]\r\nName=string:Value"))
             {
-                FolderSettings source = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings source = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 source.Folders.Add("Another", "Folder");
                 source.Save();
-                FolderSettings target = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings target = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 Assert.IsTrue(target.Folders.Count == 2);
             }
         }
@@ -47,10 +49,10 @@ namespace Tests.Orts.Settings
         {
             using (TestFile testFile = new TestFile("[Folders]\r\nName=string:Value"))
             {
-                FolderSettings source = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings source = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 source.Folders.Add("Another", "Folder");
                 source.Save("Another");
-                FolderSettings target = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings target = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 Assert.IsTrue(target.Folders.Count == 2);
             }
         }
@@ -60,11 +62,11 @@ namespace Tests.Orts.Settings
         {
             using (TestFile testFile = new TestFile("[Folders]\r\nName=string:Value"))
             {
-                FolderSettings source = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings source = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 source.Folders.Add("Another", "Folder");
                 source.Folders["Name"] = "NewValue";
                 source.Save();
-                FolderSettings target = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings target = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 Assert.IsTrue(target.Folders.Count == 2);
                 Assert.IsTrue(target.Folders["Name"] == "NewValue");
             }
@@ -75,11 +77,11 @@ namespace Tests.Orts.Settings
         {
             using (TestFile testFile = new TestFile("[Folders]\r\nName=string:Value"))
             {
-                FolderSettings source = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings source = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 source.Folders.Add("Another", "Folder");
                 source.Folders["Name"] = "NewValue";
                 source.Save("Another");
-                FolderSettings target = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings target = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 Assert.IsTrue(target.Folders.Count == 2);
                 Assert.IsTrue(target.Folders["Name"] == "Value");
                 Assert.IsTrue(target.Folders["Another"] == "Folder");
@@ -91,11 +93,11 @@ namespace Tests.Orts.Settings
         {
             using (TestFile testFile = new TestFile("[Folders]\r\nName=string:Value"))
             {
-                FolderSettings source = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings source = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 source.Folders.Add("Another", "Folder");
                 source.Folders["Name"] = null;
                 source.Save("Another");
-                FolderSettings target = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings target = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 Assert.IsTrue(target.Folders.Count == 2);
                 Assert.IsTrue(target.Folders["Name"] == "Value");
                 Assert.IsTrue(target.Folders["Another"] == "Folder");
@@ -107,11 +109,11 @@ namespace Tests.Orts.Settings
         {
             using (TestFile testFile = new TestFile("[Folders]\r\nName=string:Value"))
             {
-                FolderSettings source = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings source = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 source.Folders.Add("Another", "Folder");
                 source.Folders.Remove("Name");
                 source.Save();
-                FolderSettings target = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings target = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 Assert.IsTrue(target.Folders.Count == 1);
                 Assert.IsTrue(target.Folders["Another"] == "Folder");
             }
@@ -122,10 +124,10 @@ namespace Tests.Orts.Settings
         {
             using (TestFile testFile = new TestFile("[Folders]\r\nName=string:Value"))
             {
-                FolderSettings source = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings source = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 source.Reset();
                 source.Save();
-                FolderSettings target = new FolderSettings(null, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
+                FolderSettings target = new FolderSettings(ImmutableArray<string>.Empty, SettingsStore.GetSettingsStore(StoreType.Ini, testFile.FileName, null));
                 Assert.IsTrue(target.Folders.Count == 0);
             }
         }

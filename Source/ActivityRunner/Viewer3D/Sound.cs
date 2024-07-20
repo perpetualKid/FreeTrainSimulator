@@ -41,6 +41,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -224,7 +225,8 @@ namespace Orts.ActivityRunner.Viewer3D
             if (filename == null)
                 return;
 
-            string[] pathArray = { viewer.Simulator.RouteFolder.SoundFolder, viewer.Simulator.RouteFolder.ContentFolder.SoundFolder };
+            ImmutableArray<string> pathArray = ImmutableArray.Create(
+                viewer.Simulator.RouteFolder.SoundFolder, viewer.Simulator.RouteFolder.ContentFolder.SoundFolder);
             var fullPath = FolderStructure.FindFileFromFolders(pathArray, filename);
             if (fullPath == null)
             {
@@ -2299,9 +2301,10 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                 fileIndex = StaticRandom.Next(Files.Count);
             }
 
-            string[] pathArray = {  Simulator.Instance.RouteFolder.SoundFolder,
-                                    ORTSStream.SoundSource.SMSFolder,
-                                    Simulator.Instance.RouteFolder.ContentFolder.SoundFolder };
+            ImmutableArray<string> pathArray = ImmutableArray.Create(
+                Simulator.Instance.RouteFolder.SoundFolder,
+                ORTSStream.SoundSource.SMSFolder,
+                Simulator.Instance.RouteFolder.ContentFolder.SoundFolder);
             return FolderStructure.FindFileFromFolders(pathArray, Files[fileIndex]) ?? string.Empty;
         }
     }
@@ -2463,7 +2466,8 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             WorldSoundFile wf = new WorldSoundFile(name, RuntimeData.Instance.TrackDB.TrackItems.Count);
             if (wf.TrackItemSound != null)
             {
-                string[] pathArray = { Simulator.Instance.RouteFolder.SoundFolder, Simulator.Instance.RouteFolder.ContentFolder.SoundFolder };
+                ImmutableArray<string> pathArray = ImmutableArray.Create(
+                    Simulator.Instance.RouteFolder.SoundFolder, Simulator.Instance.RouteFolder.ContentFolder.SoundFolder);
 
                 Collection<SoundSourceBase> ls = new Collection<SoundSourceBase>();
                 foreach (var fss in wf.TrackItemSound.SoundSources)

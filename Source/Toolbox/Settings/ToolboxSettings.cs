@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
@@ -43,12 +44,12 @@ namespace Orts.Toolbox.Settings
             }
         }
 
-        public ToolboxSettings(IEnumerable<string> options) :
+        public ToolboxSettings(in ImmutableArray<string> options) :
             this(options, SettingsStore.GetSettingsStore(SettingsStoreType, Location, null))
         {
         }
 
-        internal ToolboxSettings(IEnumerable<string> options, SettingsStore store) :
+        internal ToolboxSettings(in ImmutableArray<string> options, SettingsStore store) :
             base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, SettingLiteral))
         {
             LoadSettings(options);
@@ -210,8 +211,7 @@ namespace Orts.Toolbox.Settings
 
         protected override PropertyInfo[] GetProperties()
         {
-            if (properties == null)
-                properties = base.GetProperties().Where(pi => !new string[] { "UserSettings" }.Contains(pi.Name)).ToArray();
+            properties ??= base.GetProperties().Where(pi => !string.Equals("UserSettings", pi.Name, StringComparison.OrdinalIgnoreCase)).ToArray();
             return properties;
         }
 

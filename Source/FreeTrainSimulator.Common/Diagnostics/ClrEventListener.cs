@@ -74,7 +74,7 @@ namespace FreeTrainSimulator.Common.Diagnostics
 
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
-            if (eventSource.Name.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase))
+            if (eventSource?.Name.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase) ?? false)
                 EnableEvents(eventSource, EventLevel.Verbose, EventKeywords.All, new Dictionary<string, string>()
                 {
                     ["EventCounterIntervalSec"] = "1", // SystemProcess.UpdateInterval.ToString(System.Globalization.CultureInfo.InvariantCulture),
@@ -83,7 +83,7 @@ namespace FreeTrainSimulator.Common.Diagnostics
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            if (eventData.EventName.Equals("EventCounters", StringComparison.OrdinalIgnoreCase))
+            if (eventData?.EventName.Equals("EventCounters", StringComparison.OrdinalIgnoreCase) ?? false)
             {
                 for (int i = 0; i < eventData.Payload.Count; ++i)
                 {
@@ -134,7 +134,5 @@ namespace FreeTrainSimulator.Common.Diagnostics
                 _ => $"{bytes} B",
             };
         }
-
-
     }
 }

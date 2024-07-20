@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -56,7 +57,7 @@ namespace Orts.ContentManager
         {
             InitializeComponent();
 
-            settings = new UserSettings(Array.Empty<string>());
+            settings = new UserSettings(ImmutableArray<string>.Empty);
             contentManager = new ContentRoot(settings.FolderSettings);
 
             // Start off the tree with the Content Manager itself at the root and expand to show packages.

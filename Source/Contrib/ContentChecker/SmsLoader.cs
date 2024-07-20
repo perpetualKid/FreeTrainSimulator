@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 using Orts.Formats.Msts;
@@ -48,17 +49,14 @@ namespace Orts.ContentChecker
         {
             GetRouteAndBasePath(loadedFile, out string routePath, out string basePath);
 
-            List<string> possiblePaths = new List<string>
-            {
-                Path.GetDirectoryName(loadedFile)
-            };
+            ImmutableArray<string> possiblePaths = ImmutableArray.Create(Path.GetDirectoryName(loadedFile));
             if (routePath != null)
             {
-                possiblePaths.Add(Path.Combine(routePath, "SOUND"));
+                possiblePaths = possiblePaths.Add(Path.Combine(routePath, "SOUND"));
             }
             if (basePath != null)
             {
-                possiblePaths.Add(Path.Combine(basePath, "SOUND"));
+                possiblePaths = possiblePaths.Add(Path.Combine(basePath, "SOUND"));
             }
 
             // Try to also load all sound files. This is tricky, because quite deep into the structure of a sms
