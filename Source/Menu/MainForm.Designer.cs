@@ -17,928 +17,924 @@ namespace Orts.Menu
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.buttonStart = new System.Windows.Forms.Button();
-            this.labelLogo = new System.Windows.Forms.Label();
-            this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
-            this.checkBoxWarnings = new System.Windows.Forms.CheckBox();
-            this.buttonOptions = new System.Windows.Forms.Button();
-            this.buttonResume = new System.Windows.Forms.Button();
-            this.buttonTools = new System.Windows.Forms.Button();
-            this.comboBoxFolder = new System.Windows.Forms.ComboBox();
-            this.comboBoxRoute = new System.Windows.Forms.ComboBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.textBoxMPHost = new System.Windows.Forms.TextBox();
-            this.label14 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
-            this.textBoxMPUser = new System.Windows.Forms.TextBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.buttonStartMP = new System.Windows.Forms.Button();
-            this.buttonResumeMP = new System.Windows.Forms.Button();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.panelDetails = new System.Windows.Forms.Panel();
-            this.pictureBoxLogo = new System.Windows.Forms.PictureBox();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.buttonDocuments = new System.Windows.Forms.Button();
-            this.label25 = new System.Windows.Forms.Label();
-            this.radioButtonModeActivity = new System.Windows.Forms.RadioButton();
-            this.radioButtonModeTimetable = new System.Windows.Forms.RadioButton();
-            this.panelModeActivity = new System.Windows.Forms.Panel();
-            this.comboBoxHeadTo = new System.Windows.Forms.ComboBox();
-            this.comboBoxStartAt = new System.Windows.Forms.ComboBox();
-            this.comboBoxConsist = new System.Windows.Forms.ComboBox();
-            this.comboBoxLocomotive = new System.Windows.Forms.ComboBox();
-            this.comboBoxActivity = new System.Windows.Forms.ComboBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.comboBoxStartTime = new System.Windows.Forms.ComboBox();
-            this.comboBoxDuration = new System.Windows.Forms.ComboBox();
-            this.comboBoxStartWeather = new System.Windows.Forms.ComboBox();
-            this.label12 = new System.Windows.Forms.Label();
-            this.comboBoxStartSeason = new System.Windows.Forms.ComboBox();
-            this.label10 = new System.Windows.Forms.Label();
-            this.comboBoxDifficulty = new System.Windows.Forms.ComboBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.panelModeTimetable = new System.Windows.Forms.Panel();
-            this.labelTimetableWeatherFile = new System.Windows.Forms.Label();
-            this.comboBoxTimetableWeatherFile = new System.Windows.Forms.ComboBox();
-            this.label24 = new System.Windows.Forms.Label();
-            this.comboBoxTimetableTrain = new System.Windows.Forms.ComboBox();
-            this.label23 = new System.Windows.Forms.Label();
-            this.comboBoxTimetableDay = new System.Windows.Forms.ComboBox();
-            this.label22 = new System.Windows.Forms.Label();
-            this.comboBoxTimetableWeather = new System.Windows.Forms.ComboBox();
-            this.label20 = new System.Windows.Forms.Label();
-            this.comboBoxTimetableSeason = new System.Windows.Forms.ComboBox();
-            this.label21 = new System.Windows.Forms.Label();
-            this.comboBoxTimetable = new System.Windows.Forms.ComboBox();
-            this.comboBoxTimetableSet = new System.Windows.Forms.ComboBox();
-            this.label15 = new System.Windows.Forms.Label();
-            this.linkLabelUpdate = new System.Windows.Forms.LinkLabel();
-            this.testingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.contextMenuStripTools = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.contextMenuStripDocuments = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.groupBox1.SuspendLayout();
-            this.groupBox3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxLogo)).BeginInit();
-            this.panel1.SuspendLayout();
-            this.panelModeActivity.SuspendLayout();
-            this.panelModeTimetable.SuspendLayout();
-            this.contextMenuStripTools.SuspendLayout();
-            this.SuspendLayout();
+            buttonStart = new System.Windows.Forms.Button();
+            labelLogo = new System.Windows.Forms.Label();
+            folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
+            checkBoxWarnings = new System.Windows.Forms.CheckBox();
+            buttonOptions = new System.Windows.Forms.Button();
+            buttonResume = new System.Windows.Forms.Button();
+            buttonTools = new System.Windows.Forms.Button();
+            comboBoxFolder = new System.Windows.Forms.ComboBox();
+            comboBoxRoute = new System.Windows.Forms.ComboBox();
+            label2 = new System.Windows.Forms.Label();
+            textBoxMPHost = new System.Windows.Forms.TextBox();
+            label14 = new System.Windows.Forms.Label();
+            label13 = new System.Windows.Forms.Label();
+            textBoxMPUser = new System.Windows.Forms.TextBox();
+            groupBox1 = new System.Windows.Forms.GroupBox();
+            buttonConnectivityTest = new System.Windows.Forms.Button();
+            buttonStartMP = new System.Windows.Forms.Button();
+            groupBox3 = new System.Windows.Forms.GroupBox();
+            label1 = new System.Windows.Forms.Label();
+            panelDetails = new System.Windows.Forms.Panel();
+            pictureBoxLogo = new System.Windows.Forms.PictureBox();
+            panel1 = new System.Windows.Forms.Panel();
+            buttonDocuments = new System.Windows.Forms.Button();
+            label25 = new System.Windows.Forms.Label();
+            radioButtonModeActivity = new System.Windows.Forms.RadioButton();
+            radioButtonModeTimetable = new System.Windows.Forms.RadioButton();
+            panelModeActivity = new System.Windows.Forms.Panel();
+            comboBoxHeadTo = new System.Windows.Forms.ComboBox();
+            comboBoxStartAt = new System.Windows.Forms.ComboBox();
+            comboBoxConsist = new System.Windows.Forms.ComboBox();
+            comboBoxLocomotive = new System.Windows.Forms.ComboBox();
+            comboBoxActivity = new System.Windows.Forms.ComboBox();
+            label3 = new System.Windows.Forms.Label();
+            label4 = new System.Windows.Forms.Label();
+            label5 = new System.Windows.Forms.Label();
+            label6 = new System.Windows.Forms.Label();
+            label7 = new System.Windows.Forms.Label();
+            label11 = new System.Windows.Forms.Label();
+            label9 = new System.Windows.Forms.Label();
+            comboBoxStartTime = new System.Windows.Forms.ComboBox();
+            comboBoxDuration = new System.Windows.Forms.ComboBox();
+            comboBoxStartWeather = new System.Windows.Forms.ComboBox();
+            label12 = new System.Windows.Forms.Label();
+            comboBoxStartSeason = new System.Windows.Forms.ComboBox();
+            label10 = new System.Windows.Forms.Label();
+            comboBoxDifficulty = new System.Windows.Forms.ComboBox();
+            label8 = new System.Windows.Forms.Label();
+            panelModeTimetable = new System.Windows.Forms.Panel();
+            labelTimetableWeatherFile = new System.Windows.Forms.Label();
+            comboBoxTimetableWeatherFile = new System.Windows.Forms.ComboBox();
+            label24 = new System.Windows.Forms.Label();
+            comboBoxTimetableTrain = new System.Windows.Forms.ComboBox();
+            label23 = new System.Windows.Forms.Label();
+            comboBoxTimetableDay = new System.Windows.Forms.ComboBox();
+            label22 = new System.Windows.Forms.Label();
+            comboBoxTimetableWeather = new System.Windows.Forms.ComboBox();
+            label20 = new System.Windows.Forms.Label();
+            comboBoxTimetableSeason = new System.Windows.Forms.ComboBox();
+            label21 = new System.Windows.Forms.Label();
+            comboBoxTimetable = new System.Windows.Forms.ComboBox();
+            comboBoxTimetableSet = new System.Windows.Forms.ComboBox();
+            label15 = new System.Windows.Forms.Label();
+            linkLabelUpdate = new System.Windows.Forms.LinkLabel();
+            testingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            contextMenuStripTools = new System.Windows.Forms.ContextMenuStrip(components);
+            contextMenuStripDocuments = new System.Windows.Forms.ContextMenuStrip(components);
+            groupBox1.SuspendLayout();
+            groupBox3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBoxLogo).BeginInit();
+            panel1.SuspendLayout();
+            panelModeActivity.SuspendLayout();
+            panelModeTimetable.SuspendLayout();
+            contextMenuStripTools.SuspendLayout();
+            SuspendLayout();
             // 
             // buttonStart
             // 
-            this.buttonStart.Enabled = false;
-            this.buttonStart.Location = new System.Drawing.Point(8, 22);
-            this.buttonStart.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonStart.Name = "buttonStart";
-            this.buttonStart.Size = new System.Drawing.Size(100, 58);
-            this.buttonStart.TabIndex = 0;
-            this.buttonStart.Text = "Start";
-            this.buttonStart.Click += new System.EventHandler(this.ButtonStart_Click);
+            buttonStart.Enabled = false;
+            buttonStart.Location = new System.Drawing.Point(8, 22);
+            buttonStart.Margin = new System.Windows.Forms.Padding(4);
+            buttonStart.Name = "buttonStart";
+            buttonStart.Size = new System.Drawing.Size(100, 58);
+            buttonStart.TabIndex = 0;
+            buttonStart.Text = "Start";
+            buttonStart.Click += ButtonStart_Click;
             // 
             // labelLogo
             // 
-            this.labelLogo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.labelLogo.Font = new System.Drawing.Font("Arial", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.labelLogo.ForeColor = System.Drawing.Color.Gray;
-            this.labelLogo.Location = new System.Drawing.Point(109, 581);
-            this.labelLogo.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.labelLogo.Name = "labelLogo";
-            this.labelLogo.Size = new System.Drawing.Size(299, 79);
-            this.labelLogo.TabIndex = 11;
-            this.labelLogo.Text = "Free Train Simulator";
-            this.labelLogo.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.labelLogo.UseMnemonic = false;
+            labelLogo.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            labelLogo.Font = new System.Drawing.Font("Arial", 18F, System.Drawing.FontStyle.Bold);
+            labelLogo.ForeColor = System.Drawing.Color.Gray;
+            labelLogo.Location = new System.Drawing.Point(109, 581);
+            labelLogo.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelLogo.Name = "labelLogo";
+            labelLogo.Size = new System.Drawing.Size(299, 79);
+            labelLogo.TabIndex = 11;
+            labelLogo.Text = "Free Train Simulator";
+            labelLogo.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            labelLogo.UseMnemonic = false;
             // 
             // folderBrowserDialog
             // 
-            this.folderBrowserDialog.Description = "Navigate to your alternate MSTS installation folder.";
-            this.folderBrowserDialog.ShowNewFolderButton = false;
+            folderBrowserDialog.Description = "Navigate to your alternate MSTS installation folder.";
+            folderBrowserDialog.ShowNewFolderButton = false;
             // 
             // checkBoxWarnings
             // 
-            this.checkBoxWarnings.AutoSize = true;
-            this.checkBoxWarnings.Checked = true;
-            this.checkBoxWarnings.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxWarnings.Location = new System.Drawing.Point(145, 59);
-            this.checkBoxWarnings.Margin = new System.Windows.Forms.Padding(4);
-            this.checkBoxWarnings.Name = "checkBoxWarnings";
-            this.checkBoxWarnings.Size = new System.Drawing.Size(70, 19);
-            this.checkBoxWarnings.TabIndex = 1;
-            this.checkBoxWarnings.Text = "Logging";
-            this.checkBoxWarnings.UseVisualStyleBackColor = true;
+            checkBoxWarnings.AutoSize = true;
+            checkBoxWarnings.Checked = true;
+            checkBoxWarnings.CheckState = System.Windows.Forms.CheckState.Checked;
+            checkBoxWarnings.Location = new System.Drawing.Point(145, 59);
+            checkBoxWarnings.Margin = new System.Windows.Forms.Padding(4);
+            checkBoxWarnings.Name = "checkBoxWarnings";
+            checkBoxWarnings.Size = new System.Drawing.Size(70, 19);
+            checkBoxWarnings.TabIndex = 1;
+            checkBoxWarnings.Text = "Logging";
+            checkBoxWarnings.UseVisualStyleBackColor = true;
             // 
             // buttonOptions
             // 
-            this.buttonOptions.Location = new System.Drawing.Point(145, 22);
-            this.buttonOptions.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonOptions.Name = "buttonOptions";
-            this.buttonOptions.Size = new System.Drawing.Size(100, 28);
-            this.buttonOptions.TabIndex = 0;
-            this.buttonOptions.Text = "Options";
-            this.buttonOptions.Click += new System.EventHandler(this.ButtonOptions_Click);
+            buttonOptions.Location = new System.Drawing.Point(145, 22);
+            buttonOptions.Margin = new System.Windows.Forms.Padding(4);
+            buttonOptions.Name = "buttonOptions";
+            buttonOptions.Size = new System.Drawing.Size(100, 28);
+            buttonOptions.TabIndex = 0;
+            buttonOptions.Text = "Options";
+            buttonOptions.Click += ButtonOptions_Click;
             // 
             // buttonResume
             // 
-            this.buttonResume.Enabled = false;
-            this.buttonResume.Location = new System.Drawing.Point(9, 98);
-            this.buttonResume.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonResume.Name = "buttonResume";
-            this.buttonResume.Size = new System.Drawing.Size(100, 42);
-            this.buttonResume.TabIndex = 1;
-            this.buttonResume.Text = "Resume/ Replay...";
-            this.buttonResume.Click += new System.EventHandler(this.ButtonResume_Click);
+            buttonResume.Enabled = false;
+            buttonResume.Location = new System.Drawing.Point(9, 98);
+            buttonResume.Margin = new System.Windows.Forms.Padding(4);
+            buttonResume.Name = "buttonResume";
+            buttonResume.Size = new System.Drawing.Size(100, 42);
+            buttonResume.TabIndex = 1;
+            buttonResume.Text = "Resume/ Replay...";
+            buttonResume.Click += ButtonResume_Click;
             // 
             // buttonTools
             // 
-            this.buttonTools.Location = new System.Drawing.Point(4, 22);
-            this.buttonTools.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonTools.Name = "buttonTools";
-            this.buttonTools.Size = new System.Drawing.Size(132, 28);
-            this.buttonTools.TabIndex = 19;
-            this.buttonTools.Text = "Tools ▼";
-            this.buttonTools.Click += new System.EventHandler(this.ButtonTools_Click);
+            buttonTools.Location = new System.Drawing.Point(4, 22);
+            buttonTools.Margin = new System.Windows.Forms.Padding(4);
+            buttonTools.Name = "buttonTools";
+            buttonTools.Size = new System.Drawing.Size(132, 28);
+            buttonTools.TabIndex = 19;
+            buttonTools.Text = "Tools ▼";
+            buttonTools.Click += ButtonTools_Click;
             // 
             // comboBoxFolder
             // 
-            this.comboBoxFolder.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxFolder.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxFolder.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxFolder.FormattingEnabled = true;
-            this.comboBoxFolder.Location = new System.Drawing.Point(16, 38);
-            this.comboBoxFolder.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxFolder.Name = "comboBoxFolder";
-            this.comboBoxFolder.Size = new System.Drawing.Size(373, 23);
-            this.comboBoxFolder.TabIndex = 1;
-            this.comboBoxFolder.SelectedIndexChanged += new System.EventHandler(this.ComboBoxFolder_SelectedIndexChanged);
+            comboBoxFolder.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxFolder.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxFolder.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxFolder.FormattingEnabled = true;
+            comboBoxFolder.Location = new System.Drawing.Point(16, 38);
+            comboBoxFolder.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxFolder.Name = "comboBoxFolder";
+            comboBoxFolder.Size = new System.Drawing.Size(373, 23);
+            comboBoxFolder.TabIndex = 1;
+            comboBoxFolder.SelectedIndexChanged += ComboBoxFolder_SelectedIndexChanged;
             // 
             // comboBoxRoute
             // 
-            this.comboBoxRoute.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxRoute.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxRoute.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxRoute.FormattingEnabled = true;
-            this.comboBoxRoute.Location = new System.Drawing.Point(16, 95);
-            this.comboBoxRoute.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxRoute.Name = "comboBoxRoute";
-            this.comboBoxRoute.Size = new System.Drawing.Size(373, 23);
-            this.comboBoxRoute.TabIndex = 3;
-            this.comboBoxRoute.SelectedIndexChanged += new System.EventHandler(this.ComboBoxRoute_SelectedIndexChanged);
+            comboBoxRoute.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxRoute.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxRoute.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxRoute.FormattingEnabled = true;
+            comboBoxRoute.Location = new System.Drawing.Point(16, 95);
+            comboBoxRoute.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxRoute.Name = "comboBoxRoute";
+            comboBoxRoute.Size = new System.Drawing.Size(373, 23);
+            comboBoxRoute.TabIndex = 3;
+            comboBoxRoute.SelectedIndexChanged += ComboBoxRoute_SelectedIndexChanged;
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(16, 70);
-            this.label2.Margin = new System.Windows.Forms.Padding(4);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(41, 15);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Route:";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label2.AutoSize = true;
+            label2.Location = new System.Drawing.Point(16, 70);
+            label2.Margin = new System.Windows.Forms.Padding(4);
+            label2.Name = "label2";
+            label2.Size = new System.Drawing.Size(41, 15);
+            label2.TabIndex = 2;
+            label2.Text = "Route:";
+            label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // textBoxMPHost
             // 
-            this.textBoxMPHost.Location = new System.Drawing.Point(111, 55);
-            this.textBoxMPHost.Margin = new System.Windows.Forms.Padding(4);
-            this.textBoxMPHost.Name = "textBoxMPHost";
-            this.textBoxMPHost.Size = new System.Drawing.Size(206, 23);
-            this.textBoxMPHost.TabIndex = 3;
-            this.textBoxMPHost.TextChanged += new System.EventHandler(this.TextBoxMPUser_TextChanged);
+            textBoxMPHost.Location = new System.Drawing.Point(111, 55);
+            textBoxMPHost.Margin = new System.Windows.Forms.Padding(4);
+            textBoxMPHost.Name = "textBoxMPHost";
+            textBoxMPHost.Size = new System.Drawing.Size(206, 23);
+            textBoxMPHost.TabIndex = 3;
+            textBoxMPHost.TextChanged += TextBoxMPUser_TextChanged;
             // 
             // label14
             // 
-            this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(8, 59);
-            this.label14.Margin = new System.Windows.Forms.Padding(4);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(62, 15);
-            this.label14.TabIndex = 2;
-            this.label14.Text = "Host/port:";
-            this.label14.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label14.AutoSize = true;
+            label14.Location = new System.Drawing.Point(8, 59);
+            label14.Margin = new System.Windows.Forms.Padding(4);
+            label14.Name = "label14";
+            label14.Size = new System.Drawing.Size(57, 15);
+            label14.TabIndex = 2;
+            label14.Text = "Host:Port";
+            label14.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label13
             // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(8, 28);
-            this.label13.Margin = new System.Windows.Forms.Padding(4);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(66, 15);
-            this.label13.TabIndex = 0;
-            this.label13.Text = "User name:";
-            this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label13.AutoSize = true;
+            label13.Location = new System.Drawing.Point(8, 28);
+            label13.Margin = new System.Windows.Forms.Padding(4);
+            label13.Name = "label13";
+            label13.Size = new System.Drawing.Size(63, 15);
+            label13.TabIndex = 0;
+            label13.Text = "User name";
+            label13.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // textBoxMPUser
             // 
-            this.textBoxMPUser.Location = new System.Drawing.Point(111, 22);
-            this.textBoxMPUser.Margin = new System.Windows.Forms.Padding(4);
-            this.textBoxMPUser.Name = "textBoxMPUser";
-            this.textBoxMPUser.Size = new System.Drawing.Size(206, 23);
-            this.textBoxMPUser.TabIndex = 1;
-            this.textBoxMPUser.TextChanged += new System.EventHandler(this.TextBoxMPUser_TextChanged);
+            textBoxMPUser.Location = new System.Drawing.Point(111, 22);
+            textBoxMPUser.Margin = new System.Windows.Forms.Padding(4);
+            textBoxMPUser.Name = "textBoxMPUser";
+            textBoxMPUser.Size = new System.Drawing.Size(206, 23);
+            textBoxMPUser.TabIndex = 1;
+            textBoxMPUser.TextChanged += TextBoxMPUser_TextChanged;
             // 
             // groupBox1
             // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.buttonStartMP);
-            this.groupBox1.Controls.Add(this.buttonResumeMP);
-            this.groupBox1.Controls.Add(this.label13);
-            this.groupBox1.Controls.Add(this.textBoxMPHost);
-            this.groupBox1.Controls.Add(this.textBoxMPUser);
-            this.groupBox1.Controls.Add(this.label14);
-            this.groupBox1.Location = new System.Drawing.Point(796, 512);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox1.Size = new System.Drawing.Size(328, 148);
-            this.groupBox1.TabIndex = 15;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Multiplayer";
+            groupBox1.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            groupBox1.Controls.Add(buttonConnectivityTest);
+            groupBox1.Controls.Add(buttonStartMP);
+            groupBox1.Controls.Add(label13);
+            groupBox1.Controls.Add(textBoxMPHost);
+            groupBox1.Controls.Add(textBoxMPUser);
+            groupBox1.Controls.Add(label14);
+            groupBox1.Location = new System.Drawing.Point(796, 512);
+            groupBox1.Margin = new System.Windows.Forms.Padding(4);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Padding = new System.Windows.Forms.Padding(4);
+            groupBox1.Size = new System.Drawing.Size(328, 148);
+            groupBox1.TabIndex = 15;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Multiplayer";
+            // 
+            // buttonConnectivityTest
+            // 
+            buttonConnectivityTest.Enabled = false;
+            buttonConnectivityTest.Location = new System.Drawing.Point(111, 108);
+            buttonConnectivityTest.Margin = new System.Windows.Forms.Padding(4);
+            buttonConnectivityTest.Name = "buttonConnectivityTest";
+            buttonConnectivityTest.Size = new System.Drawing.Size(100, 28);
+            buttonConnectivityTest.TabIndex = 8;
+            buttonConnectivityTest.Text = "Test Connection";
+            buttonConnectivityTest.Click += ButtonConnectivityTest_Click;
             // 
             // buttonStartMP
             // 
-            this.buttonStartMP.Enabled = false;
-            this.buttonStartMP.Location = new System.Drawing.Point(111, 108);
-            this.buttonStartMP.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonStartMP.Name = "buttonStartMP";
-            this.buttonStartMP.Size = new System.Drawing.Size(100, 28);
-            this.buttonStartMP.TabIndex = 7;
-            this.buttonStartMP.Text = "Start MP";
-            this.buttonStartMP.Click += new System.EventHandler(this.ButtonStartMP_Click);
-            // 
-            // buttonResumeMP
-            // 
-            this.buttonResumeMP.Enabled = false;
-            this.buttonResumeMP.Location = new System.Drawing.Point(219, 108);
-            this.buttonResumeMP.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonResumeMP.Name = "buttonResumeMP";
-            this.buttonResumeMP.Size = new System.Drawing.Size(100, 28);
-            this.buttonResumeMP.TabIndex = 6;
-            this.buttonResumeMP.Text = "Resume MP";
-            this.buttonResumeMP.Click += new System.EventHandler(this.ButtonResumeMP_Click);
+            buttonStartMP.Enabled = false;
+            buttonStartMP.Location = new System.Drawing.Point(220, 108);
+            buttonStartMP.Margin = new System.Windows.Forms.Padding(4);
+            buttonStartMP.Name = "buttonStartMP";
+            buttonStartMP.Size = new System.Drawing.Size(100, 28);
+            buttonStartMP.TabIndex = 7;
+            buttonStartMP.Text = "Start MP";
+            buttonStartMP.Click += ButtonStartMP_Click;
             // 
             // groupBox3
             // 
-            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox3.Controls.Add(this.buttonResume);
-            this.groupBox3.Controls.Add(this.buttonStart);
-            this.groupBox3.Location = new System.Drawing.Point(672, 512);
-            this.groupBox3.Margin = new System.Windows.Forms.Padding(4);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox3.Size = new System.Drawing.Size(116, 148);
-            this.groupBox3.TabIndex = 14;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Singleplayer";
+            groupBox3.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            groupBox3.Controls.Add(buttonResume);
+            groupBox3.Controls.Add(buttonStart);
+            groupBox3.Location = new System.Drawing.Point(672, 512);
+            groupBox3.Margin = new System.Windows.Forms.Padding(4);
+            groupBox3.Name = "groupBox3";
+            groupBox3.Padding = new System.Windows.Forms.Padding(4);
+            groupBox3.Size = new System.Drawing.Size(116, 148);
+            groupBox3.TabIndex = 14;
+            groupBox3.TabStop = false;
+            groupBox3.Text = "Singleplayer";
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(16, 12);
-            this.label1.Margin = new System.Windows.Forms.Padding(4);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(105, 15);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Installation profile:";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(16, 12);
+            label1.Margin = new System.Windows.Forms.Padding(4);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(105, 15);
+            label1.TabIndex = 0;
+            label1.Text = "Installation profile:";
+            label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // panelDetails
             // 
-            this.panelDetails.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.panelDetails.AutoScroll = true;
-            this.panelDetails.BackColor = System.Drawing.SystemColors.Window;
-            this.panelDetails.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelDetails.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.panelDetails.Location = new System.Drawing.Point(399, 38);
-            this.panelDetails.Margin = new System.Windows.Forms.Padding(4);
-            this.panelDetails.Name = "panelDetails";
-            this.panelDetails.Size = new System.Drawing.Size(723, 466);
-            this.panelDetails.TabIndex = 20;
+            panelDetails.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            panelDetails.AutoScroll = true;
+            panelDetails.BackColor = System.Drawing.SystemColors.Window;
+            panelDetails.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            panelDetails.ForeColor = System.Drawing.SystemColors.WindowText;
+            panelDetails.Location = new System.Drawing.Point(399, 38);
+            panelDetails.Margin = new System.Windows.Forms.Padding(4);
+            panelDetails.Name = "panelDetails";
+            panelDetails.Size = new System.Drawing.Size(723, 466);
+            panelDetails.TabIndex = 20;
             // 
             // pictureBoxLogo
             // 
-            this.pictureBoxLogo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.pictureBoxLogo.Image = ((System.Drawing.Image)(resources.GetObject("pictureBoxLogo.Image")));
-            this.pictureBoxLogo.Location = new System.Drawing.Point(16, 581);
-            this.pictureBoxLogo.Margin = new System.Windows.Forms.Padding(4);
-            this.pictureBoxLogo.Name = "pictureBoxLogo";
-            this.pictureBoxLogo.Size = new System.Drawing.Size(85, 79);
-            this.pictureBoxLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBoxLogo.TabIndex = 5;
-            this.pictureBoxLogo.TabStop = false;
+            pictureBoxLogo.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            pictureBoxLogo.Image = (System.Drawing.Image)resources.GetObject("pictureBoxLogo.Image");
+            pictureBoxLogo.Location = new System.Drawing.Point(16, 581);
+            pictureBoxLogo.Margin = new System.Windows.Forms.Padding(4);
+            pictureBoxLogo.Name = "pictureBoxLogo";
+            pictureBoxLogo.Size = new System.Drawing.Size(85, 79);
+            pictureBoxLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            pictureBoxLogo.TabIndex = 5;
+            pictureBoxLogo.TabStop = false;
             // 
             // panel1
             // 
-            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel1.Controls.Add(this.buttonDocuments);
-            this.panel1.Controls.Add(this.buttonOptions);
-            this.panel1.Controls.Add(this.checkBoxWarnings);
-            this.panel1.Controls.Add(this.buttonTools);
-            this.panel1.Location = new System.Drawing.Point(415, 512);
-            this.panel1.Margin = new System.Windows.Forms.Padding(4);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(249, 148);
-            this.panel1.TabIndex = 13;
+            panel1.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            panel1.Controls.Add(buttonDocuments);
+            panel1.Controls.Add(buttonOptions);
+            panel1.Controls.Add(checkBoxWarnings);
+            panel1.Controls.Add(buttonTools);
+            panel1.Location = new System.Drawing.Point(415, 512);
+            panel1.Margin = new System.Windows.Forms.Padding(4);
+            panel1.Name = "panel1";
+            panel1.Size = new System.Drawing.Size(249, 148);
+            panel1.TabIndex = 13;
             // 
             // buttonDocuments
             // 
-            this.buttonDocuments.Location = new System.Drawing.Point(4, 59);
-            this.buttonDocuments.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonDocuments.Name = "buttonDocuments";
-            this.buttonDocuments.Size = new System.Drawing.Size(132, 28);
-            this.buttonDocuments.TabIndex = 22;
-            this.buttonDocuments.Text = "Documents ▼";
-            this.buttonDocuments.UseVisualStyleBackColor = true;
-            this.buttonDocuments.Click += new System.EventHandler(this.ButtonDocuments_Click);
+            buttonDocuments.Location = new System.Drawing.Point(4, 59);
+            buttonDocuments.Margin = new System.Windows.Forms.Padding(4);
+            buttonDocuments.Name = "buttonDocuments";
+            buttonDocuments.Size = new System.Drawing.Size(132, 28);
+            buttonDocuments.TabIndex = 22;
+            buttonDocuments.Text = "Documents ▼";
+            buttonDocuments.UseVisualStyleBackColor = true;
+            buttonDocuments.Click += ButtonDocuments_Click;
             // 
             // label25
             // 
-            this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(16, 128);
-            this.label25.Margin = new System.Windows.Forms.Padding(4);
-            this.label25.Name = "label25";
-            this.label25.Size = new System.Drawing.Size(41, 15);
-            this.label25.TabIndex = 4;
-            this.label25.Text = "Mode:";
-            this.label25.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label25.AutoSize = true;
+            label25.Location = new System.Drawing.Point(16, 128);
+            label25.Margin = new System.Windows.Forms.Padding(4);
+            label25.Name = "label25";
+            label25.Size = new System.Drawing.Size(41, 15);
+            label25.TabIndex = 4;
+            label25.Text = "Mode:";
+            label25.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // radioButtonModeActivity
             // 
-            this.radioButtonModeActivity.Checked = true;
-            this.radioButtonModeActivity.Location = new System.Drawing.Point(16, 152);
-            this.radioButtonModeActivity.Margin = new System.Windows.Forms.Padding(4);
-            this.radioButtonModeActivity.Name = "radioButtonModeActivity";
-            this.radioButtonModeActivity.Size = new System.Drawing.Size(172, 25);
-            this.radioButtonModeActivity.TabIndex = 6;
-            this.radioButtonModeActivity.TabStop = true;
-            this.radioButtonModeActivity.Text = "Activity";
-            this.radioButtonModeActivity.UseVisualStyleBackColor = true;
-            this.radioButtonModeActivity.CheckedChanged += new System.EventHandler(this.RadioButtonMode_CheckedChanged);
+            radioButtonModeActivity.Checked = true;
+            radioButtonModeActivity.Location = new System.Drawing.Point(16, 152);
+            radioButtonModeActivity.Margin = new System.Windows.Forms.Padding(4);
+            radioButtonModeActivity.Name = "radioButtonModeActivity";
+            radioButtonModeActivity.Size = new System.Drawing.Size(172, 25);
+            radioButtonModeActivity.TabIndex = 6;
+            radioButtonModeActivity.TabStop = true;
+            radioButtonModeActivity.Text = "Activity";
+            radioButtonModeActivity.UseVisualStyleBackColor = true;
+            radioButtonModeActivity.CheckedChanged += RadioButtonMode_CheckedChanged;
             // 
             // radioButtonModeTimetable
             // 
-            this.radioButtonModeTimetable.Location = new System.Drawing.Point(218, 151);
-            this.radioButtonModeTimetable.Margin = new System.Windows.Forms.Padding(4);
-            this.radioButtonModeTimetable.Name = "radioButtonModeTimetable";
-            this.radioButtonModeTimetable.Size = new System.Drawing.Size(172, 25);
-            this.radioButtonModeTimetable.TabIndex = 7;
-            this.radioButtonModeTimetable.Text = "Timetable";
-            this.radioButtonModeTimetable.UseVisualStyleBackColor = true;
-            this.radioButtonModeTimetable.CheckedChanged += new System.EventHandler(this.RadioButtonMode_CheckedChanged);
+            radioButtonModeTimetable.Location = new System.Drawing.Point(218, 151);
+            radioButtonModeTimetable.Margin = new System.Windows.Forms.Padding(4);
+            radioButtonModeTimetable.Name = "radioButtonModeTimetable";
+            radioButtonModeTimetable.Size = new System.Drawing.Size(172, 25);
+            radioButtonModeTimetable.TabIndex = 7;
+            radioButtonModeTimetable.Text = "Timetable";
+            radioButtonModeTimetable.UseVisualStyleBackColor = true;
+            radioButtonModeTimetable.CheckedChanged += RadioButtonMode_CheckedChanged;
             // 
             // panelModeActivity
             // 
-            this.panelModeActivity.Controls.Add(this.comboBoxHeadTo);
-            this.panelModeActivity.Controls.Add(this.comboBoxStartAt);
-            this.panelModeActivity.Controls.Add(this.comboBoxConsist);
-            this.panelModeActivity.Controls.Add(this.comboBoxLocomotive);
-            this.panelModeActivity.Controls.Add(this.comboBoxActivity);
-            this.panelModeActivity.Controls.Add(this.label3);
-            this.panelModeActivity.Controls.Add(this.label4);
-            this.panelModeActivity.Controls.Add(this.label5);
-            this.panelModeActivity.Controls.Add(this.label6);
-            this.panelModeActivity.Controls.Add(this.label7);
-            this.panelModeActivity.Controls.Add(this.label11);
-            this.panelModeActivity.Controls.Add(this.label9);
-            this.panelModeActivity.Controls.Add(this.comboBoxStartTime);
-            this.panelModeActivity.Controls.Add(this.comboBoxDuration);
-            this.panelModeActivity.Controls.Add(this.comboBoxStartWeather);
-            this.panelModeActivity.Controls.Add(this.label12);
-            this.panelModeActivity.Controls.Add(this.comboBoxStartSeason);
-            this.panelModeActivity.Controls.Add(this.label10);
-            this.panelModeActivity.Controls.Add(this.comboBoxDifficulty);
-            this.panelModeActivity.Controls.Add(this.label8);
-            this.panelModeActivity.Location = new System.Drawing.Point(12, 180);
-            this.panelModeActivity.Margin = new System.Windows.Forms.Padding(0);
-            this.panelModeActivity.Name = "panelModeActivity";
-            this.panelModeActivity.Size = new System.Drawing.Size(382, 382);
-            this.panelModeActivity.TabIndex = 9;
+            panelModeActivity.Controls.Add(comboBoxHeadTo);
+            panelModeActivity.Controls.Add(comboBoxStartAt);
+            panelModeActivity.Controls.Add(comboBoxConsist);
+            panelModeActivity.Controls.Add(comboBoxLocomotive);
+            panelModeActivity.Controls.Add(comboBoxActivity);
+            panelModeActivity.Controls.Add(label3);
+            panelModeActivity.Controls.Add(label4);
+            panelModeActivity.Controls.Add(label5);
+            panelModeActivity.Controls.Add(label6);
+            panelModeActivity.Controls.Add(label7);
+            panelModeActivity.Controls.Add(label11);
+            panelModeActivity.Controls.Add(label9);
+            panelModeActivity.Controls.Add(comboBoxStartTime);
+            panelModeActivity.Controls.Add(comboBoxDuration);
+            panelModeActivity.Controls.Add(comboBoxStartWeather);
+            panelModeActivity.Controls.Add(label12);
+            panelModeActivity.Controls.Add(comboBoxStartSeason);
+            panelModeActivity.Controls.Add(label10);
+            panelModeActivity.Controls.Add(comboBoxDifficulty);
+            panelModeActivity.Controls.Add(label8);
+            panelModeActivity.Location = new System.Drawing.Point(12, 180);
+            panelModeActivity.Margin = new System.Windows.Forms.Padding(0);
+            panelModeActivity.Name = "panelModeActivity";
+            panelModeActivity.Size = new System.Drawing.Size(382, 382);
+            panelModeActivity.TabIndex = 9;
             // 
             // comboBoxHeadTo
             // 
-            this.comboBoxHeadTo.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxHeadTo.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxHeadTo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxHeadTo.Enabled = false;
-            this.comboBoxHeadTo.FormattingEnabled = true;
-            this.comboBoxHeadTo.Location = new System.Drawing.Point(4, 251);
-            this.comboBoxHeadTo.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxHeadTo.Name = "comboBoxHeadTo";
-            this.comboBoxHeadTo.Size = new System.Drawing.Size(373, 23);
-            this.comboBoxHeadTo.TabIndex = 9;
-            this.comboBoxHeadTo.SelectedIndexChanged += new System.EventHandler(this.ComboBoxHeadTo_SelectedIndexChanged);
+            comboBoxHeadTo.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxHeadTo.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxHeadTo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxHeadTo.Enabled = false;
+            comboBoxHeadTo.FormattingEnabled = true;
+            comboBoxHeadTo.Location = new System.Drawing.Point(4, 251);
+            comboBoxHeadTo.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxHeadTo.Name = "comboBoxHeadTo";
+            comboBoxHeadTo.Size = new System.Drawing.Size(373, 23);
+            comboBoxHeadTo.TabIndex = 9;
+            comboBoxHeadTo.SelectedIndexChanged += ComboBoxHeadTo_SelectedIndexChanged;
             // 
             // comboBoxStartAt
             // 
-            this.comboBoxStartAt.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxStartAt.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxStartAt.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxStartAt.Enabled = false;
-            this.comboBoxStartAt.FormattingEnabled = true;
-            this.comboBoxStartAt.Location = new System.Drawing.Point(4, 194);
-            this.comboBoxStartAt.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxStartAt.Name = "comboBoxStartAt";
-            this.comboBoxStartAt.Size = new System.Drawing.Size(373, 23);
-            this.comboBoxStartAt.TabIndex = 7;
-            this.comboBoxStartAt.SelectedIndexChanged += new System.EventHandler(this.ComboBoxStartAt_SelectedIndexChanged);
+            comboBoxStartAt.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxStartAt.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxStartAt.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxStartAt.Enabled = false;
+            comboBoxStartAt.FormattingEnabled = true;
+            comboBoxStartAt.Location = new System.Drawing.Point(4, 194);
+            comboBoxStartAt.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxStartAt.Name = "comboBoxStartAt";
+            comboBoxStartAt.Size = new System.Drawing.Size(373, 23);
+            comboBoxStartAt.TabIndex = 7;
+            comboBoxStartAt.SelectedIndexChanged += ComboBoxStartAt_SelectedIndexChanged;
             // 
             // comboBoxConsist
             // 
-            this.comboBoxConsist.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxConsist.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxConsist.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxConsist.Enabled = false;
-            this.comboBoxConsist.FormattingEnabled = true;
-            this.comboBoxConsist.Location = new System.Drawing.Point(4, 138);
-            this.comboBoxConsist.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxConsist.Name = "comboBoxConsist";
-            this.comboBoxConsist.Size = new System.Drawing.Size(373, 23);
-            this.comboBoxConsist.TabIndex = 5;
-            this.comboBoxConsist.SelectedIndexChanged += new System.EventHandler(this.ComboBoxConsist_SelectedIndexChanged);
+            comboBoxConsist.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxConsist.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxConsist.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxConsist.Enabled = false;
+            comboBoxConsist.FormattingEnabled = true;
+            comboBoxConsist.Location = new System.Drawing.Point(4, 138);
+            comboBoxConsist.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxConsist.Name = "comboBoxConsist";
+            comboBoxConsist.Size = new System.Drawing.Size(373, 23);
+            comboBoxConsist.TabIndex = 5;
+            comboBoxConsist.SelectedIndexChanged += ComboBoxConsist_SelectedIndexChanged;
             // 
             // comboBoxLocomotive
             // 
-            this.comboBoxLocomotive.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxLocomotive.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxLocomotive.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxLocomotive.Enabled = false;
-            this.comboBoxLocomotive.FormattingEnabled = true;
-            this.comboBoxLocomotive.Location = new System.Drawing.Point(4, 84);
-            this.comboBoxLocomotive.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxLocomotive.Name = "comboBoxLocomotive";
-            this.comboBoxLocomotive.Size = new System.Drawing.Size(373, 23);
-            this.comboBoxLocomotive.TabIndex = 3;
-            this.comboBoxLocomotive.SelectedIndexChanged += new System.EventHandler(this.ComboBoxLocomotive_SelectedIndexChanged);
+            comboBoxLocomotive.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxLocomotive.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxLocomotive.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxLocomotive.Enabled = false;
+            comboBoxLocomotive.FormattingEnabled = true;
+            comboBoxLocomotive.Location = new System.Drawing.Point(4, 84);
+            comboBoxLocomotive.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxLocomotive.Name = "comboBoxLocomotive";
+            comboBoxLocomotive.Size = new System.Drawing.Size(373, 23);
+            comboBoxLocomotive.TabIndex = 3;
+            comboBoxLocomotive.SelectedIndexChanged += ComboBoxLocomotive_SelectedIndexChanged;
             // 
             // comboBoxActivity
             // 
-            this.comboBoxActivity.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxActivity.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxActivity.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxActivity.FormattingEnabled = true;
-            this.comboBoxActivity.Location = new System.Drawing.Point(4, 28);
-            this.comboBoxActivity.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxActivity.Name = "comboBoxActivity";
-            this.comboBoxActivity.Size = new System.Drawing.Size(373, 23);
-            this.comboBoxActivity.TabIndex = 1;
-            this.comboBoxActivity.SelectedIndexChanged += new System.EventHandler(this.ComboBoxActivity_SelectedIndexChanged);
+            comboBoxActivity.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxActivity.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxActivity.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxActivity.FormattingEnabled = true;
+            comboBoxActivity.Location = new System.Drawing.Point(4, 28);
+            comboBoxActivity.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxActivity.Name = "comboBoxActivity";
+            comboBoxActivity.Size = new System.Drawing.Size(373, 23);
+            comboBoxActivity.TabIndex = 1;
+            comboBoxActivity.SelectedIndexChanged += ComboBoxActivity_SelectedIndexChanged;
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(4, 2);
-            this.label3.Margin = new System.Windows.Forms.Padding(2);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(50, 15);
-            this.label3.TabIndex = 0;
-            this.label3.Text = "Activity:";
-            this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label3.AutoSize = true;
+            label3.Location = new System.Drawing.Point(4, 2);
+            label3.Margin = new System.Windows.Forms.Padding(2);
+            label3.Name = "label3";
+            label3.Size = new System.Drawing.Size(50, 15);
+            label3.TabIndex = 0;
+            label3.Text = "Activity:";
+            label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(4, 59);
-            this.label4.Margin = new System.Windows.Forms.Padding(4);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(73, 15);
-            this.label4.TabIndex = 2;
-            this.label4.Text = "Locomotive:";
-            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label4.AutoSize = true;
+            label4.Location = new System.Drawing.Point(4, 59);
+            label4.Margin = new System.Windows.Forms.Padding(4);
+            label4.Name = "label4";
+            label4.Size = new System.Drawing.Size(73, 15);
+            label4.TabIndex = 2;
+            label4.Text = "Locomotive:";
+            label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label5
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(4, 112);
-            this.label5.Margin = new System.Windows.Forms.Padding(4);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(49, 15);
-            this.label5.TabIndex = 4;
-            this.label5.Text = "Consist:";
-            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label5.AutoSize = true;
+            label5.Location = new System.Drawing.Point(4, 112);
+            label5.Margin = new System.Windows.Forms.Padding(4);
+            label5.Name = "label5";
+            label5.Size = new System.Drawing.Size(49, 15);
+            label5.TabIndex = 4;
+            label5.Text = "Consist:";
+            label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label6
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(4, 169);
-            this.label6.Margin = new System.Windows.Forms.Padding(4);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(64, 15);
-            this.label6.TabIndex = 6;
-            this.label6.Text = "Starting at:";
-            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label6.AutoSize = true;
+            label6.Location = new System.Drawing.Point(4, 169);
+            label6.Margin = new System.Windows.Forms.Padding(4);
+            label6.Name = "label6";
+            label6.Size = new System.Drawing.Size(64, 15);
+            label6.TabIndex = 6;
+            label6.Text = "Starting at:";
+            label6.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label7
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(4, 225);
-            this.label7.Margin = new System.Windows.Forms.Padding(4);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(69, 15);
-            this.label7.TabIndex = 8;
-            this.label7.Text = "Heading to:";
-            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label7.AutoSize = true;
+            label7.Location = new System.Drawing.Point(4, 225);
+            label7.Margin = new System.Windows.Forms.Padding(4);
+            label7.Name = "label7";
+            label7.Size = new System.Drawing.Size(69, 15);
+            label7.TabIndex = 8;
+            label7.Text = "Heading to:";
+            label7.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label11
             // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(191, 288);
-            this.label11.Margin = new System.Windows.Forms.Padding(2);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(56, 15);
-            this.label11.TabIndex = 16;
-            this.label11.Text = "Duration:";
-            this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label11.AutoSize = true;
+            label11.Location = new System.Drawing.Point(191, 288);
+            label11.Margin = new System.Windows.Forms.Padding(2);
+            label11.Name = "label11";
+            label11.Size = new System.Drawing.Size(56, 15);
+            label11.TabIndex = 16;
+            label11.Text = "Duration:";
+            label11.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label9
             // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(5, 288);
-            this.label9.Margin = new System.Windows.Forms.Padding(2);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(36, 15);
-            this.label9.TabIndex = 10;
-            this.label9.Text = "Time:";
-            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label9.AutoSize = true;
+            label9.Location = new System.Drawing.Point(5, 288);
+            label9.Margin = new System.Windows.Forms.Padding(2);
+            label9.Name = "label9";
+            label9.Size = new System.Drawing.Size(36, 15);
+            label9.TabIndex = 10;
+            label9.Text = "Time:";
+            label9.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // comboBoxStartTime
             // 
-            this.comboBoxStartTime.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.comboBoxStartTime.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxStartTime.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxStartTime.Enabled = false;
-            this.comboBoxStartTime.FormattingEnabled = true;
-            this.comboBoxStartTime.Location = new System.Drawing.Point(81, 284);
-            this.comboBoxStartTime.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxStartTime.Name = "comboBoxStartTime";
-            this.comboBoxStartTime.Size = new System.Drawing.Size(96, 23);
-            this.comboBoxStartTime.TabIndex = 11;
-            this.comboBoxStartTime.TextChanged += new System.EventHandler(this.ComboBoxStartTime_TextChanged);
+            comboBoxStartTime.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            comboBoxStartTime.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxStartTime.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxStartTime.Enabled = false;
+            comboBoxStartTime.FormattingEnabled = true;
+            comboBoxStartTime.Location = new System.Drawing.Point(81, 284);
+            comboBoxStartTime.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxStartTime.Name = "comboBoxStartTime";
+            comboBoxStartTime.Size = new System.Drawing.Size(96, 23);
+            comboBoxStartTime.TabIndex = 11;
+            comboBoxStartTime.TextChanged += ComboBoxStartTime_TextChanged;
             // 
             // comboBoxDuration
             // 
-            this.comboBoxDuration.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxDuration.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxDuration.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxDuration.Enabled = false;
-            this.comboBoxDuration.FormattingEnabled = true;
-            this.comboBoxDuration.Location = new System.Drawing.Point(281, 284);
-            this.comboBoxDuration.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxDuration.Name = "comboBoxDuration";
-            this.comboBoxDuration.Size = new System.Drawing.Size(96, 23);
-            this.comboBoxDuration.TabIndex = 17;
+            comboBoxDuration.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxDuration.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxDuration.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxDuration.Enabled = false;
+            comboBoxDuration.FormattingEnabled = true;
+            comboBoxDuration.Location = new System.Drawing.Point(281, 284);
+            comboBoxDuration.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxDuration.Name = "comboBoxDuration";
+            comboBoxDuration.Size = new System.Drawing.Size(96, 23);
+            comboBoxDuration.TabIndex = 17;
             // 
             // comboBoxStartWeather
             // 
-            this.comboBoxStartWeather.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxStartWeather.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxStartWeather.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxStartWeather.Enabled = false;
-            this.comboBoxStartWeather.FormattingEnabled = true;
-            this.comboBoxStartWeather.Location = new System.Drawing.Point(81, 352);
-            this.comboBoxStartWeather.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxStartWeather.Name = "comboBoxStartWeather";
-            this.comboBoxStartWeather.Size = new System.Drawing.Size(96, 23);
-            this.comboBoxStartWeather.TabIndex = 15;
-            this.comboBoxStartWeather.SelectedIndexChanged += new System.EventHandler(this.ComboBoxStartWeather_SelectedIndexChanged);
+            comboBoxStartWeather.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxStartWeather.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxStartWeather.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxStartWeather.Enabled = false;
+            comboBoxStartWeather.FormattingEnabled = true;
+            comboBoxStartWeather.Location = new System.Drawing.Point(81, 352);
+            comboBoxStartWeather.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxStartWeather.Name = "comboBoxStartWeather";
+            comboBoxStartWeather.Size = new System.Drawing.Size(96, 23);
+            comboBoxStartWeather.TabIndex = 15;
+            comboBoxStartWeather.SelectedIndexChanged += ComboBoxStartWeather_SelectedIndexChanged;
             // 
             // label12
             // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(5, 356);
-            this.label12.Margin = new System.Windows.Forms.Padding(2);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(54, 15);
-            this.label12.TabIndex = 14;
-            this.label12.Text = "Weather:";
-            this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label12.AutoSize = true;
+            label12.Location = new System.Drawing.Point(5, 356);
+            label12.Margin = new System.Windows.Forms.Padding(2);
+            label12.Name = "label12";
+            label12.Size = new System.Drawing.Size(54, 15);
+            label12.TabIndex = 14;
+            label12.Text = "Weather:";
+            label12.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // comboBoxStartSeason
             // 
-            this.comboBoxStartSeason.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxStartSeason.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxStartSeason.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxStartSeason.Enabled = false;
-            this.comboBoxStartSeason.FormattingEnabled = true;
-            this.comboBoxStartSeason.Location = new System.Drawing.Point(81, 319);
-            this.comboBoxStartSeason.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxStartSeason.Name = "comboBoxStartSeason";
-            this.comboBoxStartSeason.Size = new System.Drawing.Size(96, 23);
-            this.comboBoxStartSeason.TabIndex = 13;
-            this.comboBoxStartSeason.SelectedIndexChanged += new System.EventHandler(this.ComboBoxStartSeason_SelectedIndexChanged);
+            comboBoxStartSeason.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxStartSeason.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxStartSeason.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxStartSeason.Enabled = false;
+            comboBoxStartSeason.FormattingEnabled = true;
+            comboBoxStartSeason.Location = new System.Drawing.Point(81, 319);
+            comboBoxStartSeason.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxStartSeason.Name = "comboBoxStartSeason";
+            comboBoxStartSeason.Size = new System.Drawing.Size(96, 23);
+            comboBoxStartSeason.TabIndex = 13;
+            comboBoxStartSeason.SelectedIndexChanged += ComboBoxStartSeason_SelectedIndexChanged;
             // 
             // label10
             // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(191, 322);
-            this.label10.Margin = new System.Windows.Forms.Padding(2);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(58, 15);
-            this.label10.TabIndex = 18;
-            this.label10.Text = "Difficulty:";
-            this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label10.AutoSize = true;
+            label10.Location = new System.Drawing.Point(191, 322);
+            label10.Margin = new System.Windows.Forms.Padding(2);
+            label10.Name = "label10";
+            label10.Size = new System.Drawing.Size(58, 15);
+            label10.TabIndex = 18;
+            label10.Text = "Difficulty:";
+            label10.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // comboBoxDifficulty
             // 
-            this.comboBoxDifficulty.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxDifficulty.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxDifficulty.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxDifficulty.Enabled = false;
-            this.comboBoxDifficulty.FormattingEnabled = true;
-            this.comboBoxDifficulty.Location = new System.Drawing.Point(281, 319);
-            this.comboBoxDifficulty.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxDifficulty.Name = "comboBoxDifficulty";
-            this.comboBoxDifficulty.Size = new System.Drawing.Size(96, 23);
-            this.comboBoxDifficulty.TabIndex = 19;
+            comboBoxDifficulty.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxDifficulty.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxDifficulty.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxDifficulty.Enabled = false;
+            comboBoxDifficulty.FormattingEnabled = true;
+            comboBoxDifficulty.Location = new System.Drawing.Point(281, 319);
+            comboBoxDifficulty.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxDifficulty.Name = "comboBoxDifficulty";
+            comboBoxDifficulty.Size = new System.Drawing.Size(96, 23);
+            comboBoxDifficulty.TabIndex = 19;
             // 
             // label8
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(5, 322);
-            this.label8.Margin = new System.Windows.Forms.Padding(2);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(47, 15);
-            this.label8.TabIndex = 12;
-            this.label8.Text = "Season:";
-            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label8.AutoSize = true;
+            label8.Location = new System.Drawing.Point(5, 322);
+            label8.Margin = new System.Windows.Forms.Padding(2);
+            label8.Name = "label8";
+            label8.Size = new System.Drawing.Size(47, 15);
+            label8.TabIndex = 12;
+            label8.Text = "Season:";
+            label8.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // panelModeTimetable
             // 
-            this.panelModeTimetable.Controls.Add(this.labelTimetableWeatherFile);
-            this.panelModeTimetable.Controls.Add(this.comboBoxTimetableWeatherFile);
-            this.panelModeTimetable.Controls.Add(this.label24);
-            this.panelModeTimetable.Controls.Add(this.comboBoxTimetableTrain);
-            this.panelModeTimetable.Controls.Add(this.label23);
-            this.panelModeTimetable.Controls.Add(this.comboBoxTimetableDay);
-            this.panelModeTimetable.Controls.Add(this.label22);
-            this.panelModeTimetable.Controls.Add(this.comboBoxTimetableWeather);
-            this.panelModeTimetable.Controls.Add(this.label20);
-            this.panelModeTimetable.Controls.Add(this.comboBoxTimetableSeason);
-            this.panelModeTimetable.Controls.Add(this.label21);
-            this.panelModeTimetable.Controls.Add(this.comboBoxTimetable);
-            this.panelModeTimetable.Controls.Add(this.comboBoxTimetableSet);
-            this.panelModeTimetable.Controls.Add(this.label15);
-            this.panelModeTimetable.Location = new System.Drawing.Point(399, 146);
-            this.panelModeTimetable.Margin = new System.Windows.Forms.Padding(0);
-            this.panelModeTimetable.Name = "panelModeTimetable";
-            this.panelModeTimetable.Size = new System.Drawing.Size(382, 358);
-            this.panelModeTimetable.TabIndex = 10;
-            this.panelModeTimetable.Visible = false;
+            panelModeTimetable.Controls.Add(labelTimetableWeatherFile);
+            panelModeTimetable.Controls.Add(comboBoxTimetableWeatherFile);
+            panelModeTimetable.Controls.Add(label24);
+            panelModeTimetable.Controls.Add(comboBoxTimetableTrain);
+            panelModeTimetable.Controls.Add(label23);
+            panelModeTimetable.Controls.Add(comboBoxTimetableDay);
+            panelModeTimetable.Controls.Add(label22);
+            panelModeTimetable.Controls.Add(comboBoxTimetableWeather);
+            panelModeTimetable.Controls.Add(label20);
+            panelModeTimetable.Controls.Add(comboBoxTimetableSeason);
+            panelModeTimetable.Controls.Add(label21);
+            panelModeTimetable.Controls.Add(comboBoxTimetable);
+            panelModeTimetable.Controls.Add(comboBoxTimetableSet);
+            panelModeTimetable.Controls.Add(label15);
+            panelModeTimetable.Location = new System.Drawing.Point(399, 146);
+            panelModeTimetable.Margin = new System.Windows.Forms.Padding(0);
+            panelModeTimetable.Name = "panelModeTimetable";
+            panelModeTimetable.Size = new System.Drawing.Size(382, 358);
+            panelModeTimetable.TabIndex = 10;
+            panelModeTimetable.Visible = false;
             // 
             // labelTimetableWeatherFile
             // 
-            this.labelTimetableWeatherFile.AutoSize = true;
-            this.labelTimetableWeatherFile.Location = new System.Drawing.Point(8, 261);
-            this.labelTimetableWeatherFile.Margin = new System.Windows.Forms.Padding(4);
-            this.labelTimetableWeatherFile.Name = "labelTimetableWeatherFile";
-            this.labelTimetableWeatherFile.Size = new System.Drawing.Size(75, 15);
-            this.labelTimetableWeatherFile.TabIndex = 14;
-            this.labelTimetableWeatherFile.Text = "Weather File:";
-            this.labelTimetableWeatherFile.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            labelTimetableWeatherFile.AutoSize = true;
+            labelTimetableWeatherFile.Location = new System.Drawing.Point(8, 261);
+            labelTimetableWeatherFile.Margin = new System.Windows.Forms.Padding(4);
+            labelTimetableWeatherFile.Name = "labelTimetableWeatherFile";
+            labelTimetableWeatherFile.Size = new System.Drawing.Size(75, 15);
+            labelTimetableWeatherFile.TabIndex = 14;
+            labelTimetableWeatherFile.Text = "Weather File:";
+            labelTimetableWeatherFile.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // comboBoxTimetableWeatherFile
             // 
-            this.comboBoxTimetableWeatherFile.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxTimetableWeatherFile.FormattingEnabled = true;
-            this.comboBoxTimetableWeatherFile.Location = new System.Drawing.Point(121, 258);
-            this.comboBoxTimetableWeatherFile.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxTimetableWeatherFile.Name = "comboBoxTimetableWeatherFile";
-            this.comboBoxTimetableWeatherFile.Size = new System.Drawing.Size(256, 23);
-            this.comboBoxTimetableWeatherFile.TabIndex = 13;
-            this.comboBoxTimetableWeatherFile.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableWeatherFile_SelectedIndexChanged);
+            comboBoxTimetableWeatherFile.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetableWeatherFile.FormattingEnabled = true;
+            comboBoxTimetableWeatherFile.Location = new System.Drawing.Point(121, 258);
+            comboBoxTimetableWeatherFile.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetableWeatherFile.Name = "comboBoxTimetableWeatherFile";
+            comboBoxTimetableWeatherFile.Size = new System.Drawing.Size(256, 23);
+            comboBoxTimetableWeatherFile.TabIndex = 13;
+            comboBoxTimetableWeatherFile.SelectedIndexChanged += ComboBoxTimetableWeatherFile_SelectedIndexChanged;
             // 
             // label24
             // 
-            this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(4, 98);
-            this.label24.Margin = new System.Windows.Forms.Padding(4);
-            this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(35, 15);
-            this.label24.TabIndex = 4;
-            this.label24.Text = "Train:";
-            this.label24.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label24.AutoSize = true;
+            label24.Location = new System.Drawing.Point(4, 98);
+            label24.Margin = new System.Windows.Forms.Padding(4);
+            label24.Name = "label24";
+            label24.Size = new System.Drawing.Size(35, 15);
+            label24.TabIndex = 4;
+            label24.Text = "Train:";
+            label24.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // comboBoxTimetableTrain
             // 
-            this.comboBoxTimetableTrain.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxTimetableTrain.FormattingEnabled = true;
-            this.comboBoxTimetableTrain.Location = new System.Drawing.Point(121, 94);
-            this.comboBoxTimetableTrain.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxTimetableTrain.Name = "comboBoxTimetableTrain";
-            this.comboBoxTimetableTrain.Size = new System.Drawing.Size(256, 23);
-            this.comboBoxTimetableTrain.TabIndex = 5;
-            this.comboBoxTimetableTrain.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableTrain_SelectedIndexChanged);
+            comboBoxTimetableTrain.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetableTrain.FormattingEnabled = true;
+            comboBoxTimetableTrain.Location = new System.Drawing.Point(121, 94);
+            comboBoxTimetableTrain.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetableTrain.Name = "comboBoxTimetableTrain";
+            comboBoxTimetableTrain.Size = new System.Drawing.Size(256, 23);
+            comboBoxTimetableTrain.TabIndex = 5;
+            comboBoxTimetableTrain.SelectedIndexChanged += ComboBoxTimetableTrain_SelectedIndexChanged;
             // 
             // label23
             // 
-            this.label23.AutoSize = true;
-            this.label23.Location = new System.Drawing.Point(4, 64);
-            this.label23.Margin = new System.Windows.Forms.Padding(4);
-            this.label23.Name = "label23";
-            this.label23.Size = new System.Drawing.Size(62, 15);
-            this.label23.TabIndex = 2;
-            this.label23.Text = "Timetable:";
-            this.label23.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label23.AutoSize = true;
+            label23.Location = new System.Drawing.Point(4, 64);
+            label23.Margin = new System.Windows.Forms.Padding(4);
+            label23.Name = "label23";
+            label23.Size = new System.Drawing.Size(62, 15);
+            label23.TabIndex = 2;
+            label23.Text = "Timetable:";
+            label23.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // comboBoxTimetableDay
             // 
-            this.comboBoxTimetableDay.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxTimetableDay.Enabled = false;
-            this.comboBoxTimetableDay.FormattingEnabled = true;
-            this.comboBoxTimetableDay.Location = new System.Drawing.Point(121, 149);
-            this.comboBoxTimetableDay.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxTimetableDay.Name = "comboBoxTimetableDay";
-            this.comboBoxTimetableDay.Size = new System.Drawing.Size(96, 23);
-            this.comboBoxTimetableDay.TabIndex = 8;
-            this.comboBoxTimetableDay.Visible = false;
-            this.comboBoxTimetableDay.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableDay_SelectedIndexChanged);
+            comboBoxTimetableDay.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetableDay.Enabled = false;
+            comboBoxTimetableDay.FormattingEnabled = true;
+            comboBoxTimetableDay.Location = new System.Drawing.Point(121, 149);
+            comboBoxTimetableDay.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetableDay.Name = "comboBoxTimetableDay";
+            comboBoxTimetableDay.Size = new System.Drawing.Size(96, 23);
+            comboBoxTimetableDay.TabIndex = 8;
+            comboBoxTimetableDay.Visible = false;
+            comboBoxTimetableDay.SelectedIndexChanged += ComboBoxTimetableDay_SelectedIndexChanged;
             // 
             // label22
             // 
-            this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(8, 152);
-            this.label22.Margin = new System.Windows.Forms.Padding(4);
-            this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(30, 15);
-            this.label22.TabIndex = 7;
-            this.label22.Text = "Day:";
-            this.label22.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.label22.Visible = false;
+            label22.AutoSize = true;
+            label22.Location = new System.Drawing.Point(8, 152);
+            label22.Margin = new System.Windows.Forms.Padding(4);
+            label22.Name = "label22";
+            label22.Size = new System.Drawing.Size(30, 15);
+            label22.TabIndex = 7;
+            label22.Text = "Day:";
+            label22.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label22.Visible = false;
             // 
             // comboBoxTimetableWeather
             // 
-            this.comboBoxTimetableWeather.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxTimetableWeather.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxTimetableWeather.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxTimetableWeather.FormattingEnabled = true;
-            this.comboBoxTimetableWeather.Location = new System.Drawing.Point(121, 218);
-            this.comboBoxTimetableWeather.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxTimetableWeather.Name = "comboBoxTimetableWeather";
-            this.comboBoxTimetableWeather.Size = new System.Drawing.Size(96, 23);
-            this.comboBoxTimetableWeather.TabIndex = 12;
-            this.comboBoxTimetableWeather.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableWeather_SelectedIndexChanged);
+            comboBoxTimetableWeather.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxTimetableWeather.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxTimetableWeather.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetableWeather.FormattingEnabled = true;
+            comboBoxTimetableWeather.Location = new System.Drawing.Point(121, 218);
+            comboBoxTimetableWeather.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetableWeather.Name = "comboBoxTimetableWeather";
+            comboBoxTimetableWeather.Size = new System.Drawing.Size(96, 23);
+            comboBoxTimetableWeather.TabIndex = 12;
+            comboBoxTimetableWeather.SelectedIndexChanged += ComboBoxTimetableWeather_SelectedIndexChanged;
             // 
             // label20
             // 
-            this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(8, 220);
-            this.label20.Margin = new System.Windows.Forms.Padding(4);
-            this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(54, 15);
-            this.label20.TabIndex = 11;
-            this.label20.Text = "Weather:";
-            this.label20.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label20.AutoSize = true;
+            label20.Location = new System.Drawing.Point(8, 220);
+            label20.Margin = new System.Windows.Forms.Padding(4);
+            label20.Name = "label20";
+            label20.Size = new System.Drawing.Size(54, 15);
+            label20.TabIndex = 11;
+            label20.Text = "Weather:";
+            label20.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // comboBoxTimetableSeason
             // 
-            this.comboBoxTimetableSeason.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboBoxTimetableSeason.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboBoxTimetableSeason.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxTimetableSeason.FormattingEnabled = true;
-            this.comboBoxTimetableSeason.Location = new System.Drawing.Point(121, 182);
-            this.comboBoxTimetableSeason.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxTimetableSeason.Name = "comboBoxTimetableSeason";
-            this.comboBoxTimetableSeason.Size = new System.Drawing.Size(96, 23);
-            this.comboBoxTimetableSeason.TabIndex = 10;
-            this.comboBoxTimetableSeason.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableSeason_SelectedIndexChanged);
+            comboBoxTimetableSeason.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            comboBoxTimetableSeason.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            comboBoxTimetableSeason.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetableSeason.FormattingEnabled = true;
+            comboBoxTimetableSeason.Location = new System.Drawing.Point(121, 182);
+            comboBoxTimetableSeason.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetableSeason.Name = "comboBoxTimetableSeason";
+            comboBoxTimetableSeason.Size = new System.Drawing.Size(96, 23);
+            comboBoxTimetableSeason.TabIndex = 10;
+            comboBoxTimetableSeason.SelectedIndexChanged += ComboBoxTimetableSeason_SelectedIndexChanged;
             // 
             // label21
             // 
-            this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(8, 188);
-            this.label21.Margin = new System.Windows.Forms.Padding(4);
-            this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(47, 15);
-            this.label21.TabIndex = 9;
-            this.label21.Text = "Season:";
-            this.label21.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label21.AutoSize = true;
+            label21.Location = new System.Drawing.Point(8, 188);
+            label21.Margin = new System.Windows.Forms.Padding(4);
+            label21.Name = "label21";
+            label21.Size = new System.Drawing.Size(47, 15);
+            label21.TabIndex = 9;
+            label21.Text = "Season:";
+            label21.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // comboBoxTimetable
             // 
-            this.comboBoxTimetable.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxTimetable.FormattingEnabled = true;
-            this.comboBoxTimetable.Location = new System.Drawing.Point(121, 60);
-            this.comboBoxTimetable.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxTimetable.Name = "comboBoxTimetable";
-            this.comboBoxTimetable.Size = new System.Drawing.Size(256, 23);
-            this.comboBoxTimetable.TabIndex = 3;
-            this.comboBoxTimetable.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetable_selectedIndexChanged);
-            this.comboBoxTimetable.EnabledChanged += new System.EventHandler(this.ComboBoxTimetable_EnabledChanged);
+            comboBoxTimetable.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetable.FormattingEnabled = true;
+            comboBoxTimetable.Location = new System.Drawing.Point(121, 60);
+            comboBoxTimetable.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetable.Name = "comboBoxTimetable";
+            comboBoxTimetable.Size = new System.Drawing.Size(256, 23);
+            comboBoxTimetable.TabIndex = 3;
+            comboBoxTimetable.SelectedIndexChanged += ComboBoxTimetable_selectedIndexChanged;
+            comboBoxTimetable.EnabledChanged += ComboBoxTimetable_EnabledChanged;
             // 
             // comboBoxTimetableSet
             // 
-            this.comboBoxTimetableSet.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxTimetableSet.FormattingEnabled = true;
-            this.comboBoxTimetableSet.Location = new System.Drawing.Point(4, 28);
-            this.comboBoxTimetableSet.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxTimetableSet.Name = "comboBoxTimetableSet";
-            this.comboBoxTimetableSet.Size = new System.Drawing.Size(373, 23);
-            this.comboBoxTimetableSet.TabIndex = 1;
-            this.comboBoxTimetableSet.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableSet_SelectedIndexChanged);
+            comboBoxTimetableSet.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetableSet.FormattingEnabled = true;
+            comboBoxTimetableSet.Location = new System.Drawing.Point(4, 28);
+            comboBoxTimetableSet.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetableSet.Name = "comboBoxTimetableSet";
+            comboBoxTimetableSet.Size = new System.Drawing.Size(373, 23);
+            comboBoxTimetableSet.TabIndex = 1;
+            comboBoxTimetableSet.SelectedIndexChanged += ComboBoxTimetableSet_SelectedIndexChanged;
             // 
             // label15
             // 
-            this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(4, 4);
-            this.label15.Margin = new System.Windows.Forms.Padding(4);
-            this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(80, 15);
-            this.label15.TabIndex = 0;
-            this.label15.Text = "Timetable set:";
-            this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label15.AutoSize = true;
+            label15.Location = new System.Drawing.Point(4, 4);
+            label15.Margin = new System.Windows.Forms.Padding(4);
+            label15.Name = "label15";
+            label15.Size = new System.Drawing.Size(80, 15);
+            label15.TabIndex = 0;
+            label15.Text = "Timetable set:";
+            label15.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // linkLabelUpdate
             // 
-            this.linkLabelUpdate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.linkLabelUpdate.AutoSize = true;
-            this.linkLabelUpdate.ImageAlign = System.Drawing.ContentAlignment.TopLeft;
-            this.linkLabelUpdate.Location = new System.Drawing.Point(984, 12);
-            this.linkLabelUpdate.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.linkLabelUpdate.Name = "linkLabelUpdate";
-            this.linkLabelUpdate.Size = new System.Drawing.Size(110, 15);
-            this.linkLabelUpdate.TabIndex = 37;
-            this.linkLabelUpdate.TabStop = true;
-            this.linkLabelUpdate.Text = "Link to next Update";
-            this.linkLabelUpdate.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.linkLabelUpdate.UseMnemonic = false;
-            this.linkLabelUpdate.Visible = false;
-            this.linkLabelUpdate.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabelUpdate_LinkClicked);
+            linkLabelUpdate.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            linkLabelUpdate.AutoSize = true;
+            linkLabelUpdate.ImageAlign = System.Drawing.ContentAlignment.TopLeft;
+            linkLabelUpdate.Location = new System.Drawing.Point(984, 12);
+            linkLabelUpdate.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            linkLabelUpdate.Name = "linkLabelUpdate";
+            linkLabelUpdate.Size = new System.Drawing.Size(110, 15);
+            linkLabelUpdate.TabIndex = 37;
+            linkLabelUpdate.TabStop = true;
+            linkLabelUpdate.Text = "Link to next Update";
+            linkLabelUpdate.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            linkLabelUpdate.UseMnemonic = false;
+            linkLabelUpdate.Visible = false;
+            linkLabelUpdate.LinkClicked += LinkLabelUpdate_LinkClicked;
             // 
             // testingToolStripMenuItem
             // 
-            this.testingToolStripMenuItem.Name = "testingToolStripMenuItem";
-            this.testingToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
-            this.testingToolStripMenuItem.Text = "Testing";
-            this.testingToolStripMenuItem.Click += new System.EventHandler(this.TestingToolStripMenuItem_Click);
+            testingToolStripMenuItem.Name = "testingToolStripMenuItem";
+            testingToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
+            testingToolStripMenuItem.Text = "Testing";
+            testingToolStripMenuItem.Click += TestingToolStripMenuItem_Click;
             // 
             // contextMenuStripTools
             // 
-            this.contextMenuStripTools.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.contextMenuStripTools.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.testingToolStripMenuItem});
-            this.contextMenuStripTools.Name = "contextMenuStrip1";
-            this.contextMenuStripTools.Size = new System.Drawing.Size(112, 26);
+            contextMenuStripTools.ImageScalingSize = new System.Drawing.Size(20, 20);
+            contextMenuStripTools.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { testingToolStripMenuItem });
+            contextMenuStripTools.Name = "contextMenuStrip1";
+            contextMenuStripTools.Size = new System.Drawing.Size(112, 26);
             // 
             // contextMenuStripDocuments
             // 
-            this.contextMenuStripDocuments.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.contextMenuStripDocuments.Name = "contextMenuStripDocuments";
-            this.contextMenuStripDocuments.Size = new System.Drawing.Size(61, 4);
+            contextMenuStripDocuments.ImageScalingSize = new System.Drawing.Size(20, 20);
+            contextMenuStripDocuments.Name = "contextMenuStripDocuments";
+            contextMenuStripDocuments.Size = new System.Drawing.Size(61, 4);
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1139, 674);
-            this.Controls.Add(this.panelModeTimetable);
-            this.Controls.Add(this.panelModeActivity);
-            this.Controls.Add(this.radioButtonModeTimetable);
-            this.Controls.Add(this.radioButtonModeActivity);
-            this.Controls.Add(this.label25);
-            this.Controls.Add(this.panel1);
-            this.Controls.Add(this.panelDetails);
-            this.Controls.Add(this.comboBoxFolder);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.groupBox3);
-            this.Controls.Add(this.comboBoxRoute);
-            this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.pictureBoxLogo);
-            this.Controls.Add(this.labelLogo);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.linkLabelUpdate);
-            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(4);
-            this.MaximizeBox = false;
-            this.Name = "MainForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Open Rails";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-            this.Shown += new System.EventHandler(this.MainForm_Shown);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
-            this.groupBox3.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxLogo)).EndInit();
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
-            this.panelModeActivity.ResumeLayout(false);
-            this.panelModeActivity.PerformLayout();
-            this.panelModeTimetable.ResumeLayout(false);
-            this.panelModeTimetable.PerformLayout();
-            this.contextMenuStripTools.ResumeLayout(false);
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(1139, 674);
+            Controls.Add(panelModeTimetable);
+            Controls.Add(panelModeActivity);
+            Controls.Add(radioButtonModeTimetable);
+            Controls.Add(radioButtonModeActivity);
+            Controls.Add(label25);
+            Controls.Add(panel1);
+            Controls.Add(panelDetails);
+            Controls.Add(comboBoxFolder);
+            Controls.Add(label1);
+            Controls.Add(groupBox3);
+            Controls.Add(comboBoxRoute);
+            Controls.Add(groupBox1);
+            Controls.Add(pictureBoxLogo);
+            Controls.Add(labelLogo);
+            Controls.Add(label2);
+            Controls.Add(linkLabelUpdate);
+            Font = new System.Drawing.Font("Segoe UI", 9F);
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
+            Margin = new System.Windows.Forms.Padding(4);
+            MaximizeBox = false;
+            Name = "MainForm";
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            Text = "Open Rails";
+            FormClosing += MainForm_FormClosing;
+            Shown += MainForm_Shown;
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
+            groupBox3.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pictureBoxLogo).EndInit();
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
+            panelModeActivity.ResumeLayout(false);
+            panelModeActivity.PerformLayout();
+            panelModeTimetable.ResumeLayout(false);
+            panelModeTimetable.PerformLayout();
+            contextMenuStripTools.ResumeLayout(false);
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -1004,9 +1000,9 @@ namespace Orts.Menu
         private System.Windows.Forms.ContextMenuStrip contextMenuStripTools;
         private System.Windows.Forms.Button buttonDocuments;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripDocuments;
-        private System.Windows.Forms.Button buttonResumeMP;
         private System.Windows.Forms.Button buttonStartMP;
         private System.Windows.Forms.Label labelTimetableWeatherFile;
         private System.Windows.Forms.ComboBox comboBoxTimetableWeatherFile;
+        private System.Windows.Forms.Button buttonConnectivityTest;
     }
 }

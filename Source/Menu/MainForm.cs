@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -33,6 +34,7 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Online.Client;
 using FreeTrainSimulator.Updater;
 
 using GetText;
@@ -157,7 +159,7 @@ namespace Orts.Menu
                 ctsRouteLoading?.Dispose();
                 ctsActivityLoading?.Dispose();
                 ctsConsistLoading?.Dispose();
-                ctsPathLoading?.Dispose(); ;
+                ctsPathLoading?.Dispose();
                 ctsTimeTableLoading?.Dispose();
                 elevationIcon?.Dispose();
                 updateManager?.Dispose();
@@ -668,6 +670,17 @@ namespace Orts.Menu
             DialogResult = DialogResult.OK;
         }
 
+        private async void ButtonConnectivityTest_Click(object sender, EventArgs e)
+        {
+            string[] mpHost = textBoxMPHost.Text.Split(':');
+            settings.Multiplayer_Host = mpHost[0];
+            settings.Multiplayer_Port = mpHost.Length > 1 && int.TryParse(mpHost[1], out int port) ? port : (int)settings.GetDefaultValue("Multiplayer_Port");
+
+            ConnectivityClient client = new ConnectivityClient(settings.Multiplayer_Host, settings.Multiplayer_Port, CancellationToken.None, true);
+            bool result = await client.Ping();
+            MessageBox.Show($"Connectivity test {(result ? "succeeded" : "failed")}!", "Multiplayer Connection", MessageBoxButtons.OK, result ? MessageBoxIcon.Information : MessageBoxIcon.Exclamation);
+        }
+
         #endregion
 
         #region Options
@@ -740,7 +753,7 @@ namespace Orts.Menu
                 comboBoxActivity.Text.Length > 0 && comboBoxActivity.Text[0] != '<' && comboBoxLocomotive.Text.Length > 0 && comboBoxLocomotive.Text[0] != '<' ?
                 SelectedActivity != null && (!(SelectedActivity is ExploreActivity) || (comboBoxConsist.Items.Count > 0 && comboBoxHeadTo.Items.Count > 0)) :
                 SelectedTimetableTrain != null;
-            buttonResumeMP.Enabled = buttonStartMP.Enabled = buttonStart.Enabled && !string.IsNullOrEmpty(textBoxMPUser.Text) && !string.IsNullOrEmpty(textBoxMPHost.Text);
+            buttonConnectivityTest.Enabled = buttonStartMP.Enabled = buttonStart.Enabled && !string.IsNullOrEmpty(textBoxMPUser.Text) && !string.IsNullOrEmpty(textBoxMPHost.Text);
         }
         #endregion
 
@@ -1515,7 +1528,7 @@ namespace Orts.Menu
                 if (comboBox.DropDownStyle == ComboBoxStyle.DropDown)
                     comboBox.Text = settings.Menu_Selection[(int)index];
                 else
-                    SetComboBoxItem<T>(comboBox, item => string.Equals(map(item),settings.Menu_Selection[(int)index], StringComparison.OrdinalIgnoreCase));
+                    SetComboBoxItem<T>(comboBox, item => string.Equals(map(item), settings.Menu_Selection[(int)index], StringComparison.OrdinalIgnoreCase));
             }
             else
             {

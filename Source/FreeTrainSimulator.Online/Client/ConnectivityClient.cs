@@ -2,6 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Online.Config;
+
 using Grpc.Net.Client;
 
 using MagicOnion.Client;
@@ -13,6 +15,21 @@ namespace FreeTrainSimulator.Online.Client
     public class ConnectivityClient
     {
         private readonly IConnectivity client;
+
+        static ConnectivityClient()
+        {
+            MagicOnionSerializerProvider.Default = MemoryPackMagicOnionSerializerProvider.Instance;
+        }
+
+        public ConnectivityClient(string server, int port, CancellationToken cancellationToken, bool ignoreHttps = false)
+        {
+            if (string.IsNullOrEmpty(server))
+                throw new ArgumentException("Server name is null or empty.", nameof(server));
+
+            GrpcChannel channel = ClientChannelConfigFactory.HttpChannel(server, port, ignoreHttps);
+
+            client = MagicOnionClient.Create<IConnectivity>(channel).WithCancellationToken(cancellationToken);
+        }
 
         public ConnectivityClient(GrpcChannel channel, CancellationToken cancellationToken)
         {
