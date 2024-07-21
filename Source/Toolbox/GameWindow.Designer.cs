@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace Orts.Toolbox
+namespace FreeTrainSimulator.Toolbox
 {
     public partial class GameWindow
     {

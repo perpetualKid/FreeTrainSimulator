@@ -10,13 +10,13 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Toolbox.PopupWindows
+namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     internal sealed class AboutWindow : WindowBase
     {
         private readonly UserCommandController<UserCommand> userCommandController;
 
-        public AboutWindow(WindowManager owner, Point location, Catalog catalog = null) : 
+        public AboutWindow(WindowManager owner, Point location, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("About"), location, new Point(180, 60), catalog)
         {
             Modal = true;

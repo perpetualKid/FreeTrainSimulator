@@ -11,7 +11,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Toolbox
+namespace FreeTrainSimulator.Toolbox
 {
     public class TrackData : RuntimeData
     {
@@ -23,7 +23,7 @@ namespace Orts.Toolbox
             TrainPaths = trainPaths;
         }
 
-        internal static async Task LoadTrackData(Game game, FreeTrainSimulator.Models.Simplified.Route route, bool? useMetricUnits, CancellationToken cancellationToken)
+        internal static async Task LoadTrackData(Game game, Models.Simplified.Route route, bool? useMetricUnits, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;

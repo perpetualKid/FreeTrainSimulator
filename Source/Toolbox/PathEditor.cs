@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Files;
 
-namespace Orts.Toolbox
+namespace FreeTrainSimulator.Toolbox
 {
     public class PathEditorChangedEventArgs : EventArgs
     {
@@ -33,7 +33,7 @@ namespace Orts.Toolbox
 
         internal event EventHandler<PathEditorChangedEventArgs> OnPathUpdated;
 
-        public PathEditor(ContentArea contentArea): base(contentArea) { }
+        public PathEditor(ContentArea contentArea) : base(contentArea) { }
 
         public bool InitializePath(Path path)
         {
@@ -60,13 +60,13 @@ namespace Orts.Toolbox
 
         public void InitializeNewPath()
         {
-            base.InitializePath();
+            InitializePath();
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
         public void MouseAction(Point screenLocation, KeyModifiers keyModifiers)
         {
-            if (System.Environment.TickCount64 - lastPathClickTick < 500 && validPointAdded) //considered as double click
+            if (Environment.TickCount64 - lastPathClickTick < 500 && validPointAdded) //considered as double click
             {
                 _ = AddPathEndPoint();
             }
@@ -74,7 +74,7 @@ namespace Orts.Toolbox
             {
                 validPointAdded = AddPathPoint();
             }
-            lastPathClickTick = System.Environment.TickCount64;
+            lastPathClickTick = Environment.TickCount64;
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
     }

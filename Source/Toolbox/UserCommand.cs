@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Orts.Toolbox
+namespace FreeTrainSimulator.Toolbox
 {
     public enum UserCommand
     {

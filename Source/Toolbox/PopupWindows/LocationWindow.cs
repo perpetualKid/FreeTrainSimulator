@@ -8,14 +8,13 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Toolbox.Settings;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Toolbox.Settings;
-
-namespace Orts.Toolbox.PopupWindows
+namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     public class LocationWindow : WindowBase
     {
@@ -106,7 +105,6 @@ namespace Orts.Toolbox.PopupWindows
                     (double latitude, double longitude) = EarthCoordinates.ConvertWTC(location);
                     (string latitudeText, string longitudeText) = EarthCoordinates.ToString(latitude, longitude);
                     locationLabel.Text = $"{latitudeText} {longitudeText}";
-                    
                 }
                 else
                 {

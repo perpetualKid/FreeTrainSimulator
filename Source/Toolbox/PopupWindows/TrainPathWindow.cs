@@ -12,14 +12,13 @@ using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Models.Simplified;
 using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Toolbox.Settings;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Toolbox.Settings;
-
-namespace Orts.Toolbox.PopupWindows
+namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     internal sealed class TrainPathWindow : WindowBase
     {
@@ -38,7 +37,7 @@ namespace Orts.Toolbox.PopupWindows
             public void Update(TrainPathBase path)
             {
                 if (path == null || path.PathFile == null)
-                    this.Clear();
+                    Clear();
                 else
                 {
                     this["Path ID"] = path.PathFile.PathID;
@@ -77,7 +76,7 @@ namespace Orts.Toolbox.PopupWindows
             pathEditor = (Owner.Game as GameWindow)?.PathEditor;
             pathEditor.OnPathUpdated += PathEditor_OnPathUpdated;
             pathEditor.OnPathChanged += PathEditor_OnPathChanged;
-            this.userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
+            userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
         private void PathEditor_OnPathChanged(object sender, PathEditorChangedEventArgs e)
@@ -279,7 +278,7 @@ namespace Orts.Toolbox.PopupWindows
             {
                 RadioButtonGroup group = new RadioButtonGroup();
                 ControlLayout line;
-                IEnumerable<Path> trainPaths = (Formats.Msts.RuntimeData.GameInstance(Owner.Game) as TrackData).TrainPaths;
+                IEnumerable<Path> trainPaths = (Orts.Formats.Msts.RuntimeData.GameInstance(Owner.Game) as TrackData).TrainPaths;
                 foreach (Path path in trainPaths)
                 {
                     RadioButton radioButton;
@@ -395,7 +394,7 @@ namespace Orts.Toolbox.PopupWindows
 
         private void PathNodeLine_OnClick(object sender, MouseClickEventArgs e)
         {
-            ControlLayout line = (sender as ControlLayout);
+            ControlLayout line = sender as ControlLayout;
             int lineNumber = (int)line.Tag;
             selectedPathNodeLine = lineNumber == selectedPathNodeLine ? -1 : lineNumber;
             SelectPathNodeLineByIndex();

@@ -13,7 +13,7 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Toolbox.PopupWindows
+namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     internal sealed class TrackNodeInfoWindow : WindowBase
     {

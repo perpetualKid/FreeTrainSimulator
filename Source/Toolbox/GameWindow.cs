@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -19,6 +18,9 @@ using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Toolbox;
+using FreeTrainSimulator.Toolbox.PopupWindows;
+using FreeTrainSimulator.Toolbox.Settings;
 
 using GetText;
 using GetText.WindowsForms;
@@ -26,10 +28,7 @@ using GetText.WindowsForms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Toolbox.PopupWindows;
-using Orts.Toolbox.Settings;
-
-namespace Orts.Toolbox
+namespace FreeTrainSimulator.Toolbox
 {
     public partial class GameWindow : Game, IInputCapture
     {
@@ -179,8 +178,8 @@ namespace Orts.Toolbox
                 SetScreenMode(currentScreenMode);
                 //reset Window position to center on new screen
                 windowPosition = new Point(
-                    currentScreen.WorkingArea.Left + (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2,
-                    currentScreen.WorkingArea.Top + (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2);
+                    currentScreen.WorkingArea.Left + ((currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2),
+                    currentScreen.WorkingArea.Top + ((currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2));
             }
         }
 
@@ -219,11 +218,11 @@ namespace Orts.Toolbox
             windowPosition = PointExtension.ToPoint(Settings.WindowSettings[WindowSetting.Location]);
             windowPosition = windowPosition != PointExtension.EmptyPoint
                 ? new Point(
-                    currentScreen.WorkingArea.Left + windowPosition.X * (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 100,
-                    currentScreen.WorkingArea.Top + windowPosition.Y * (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 100)
+                    currentScreen.WorkingArea.Left + (windowPosition.X * (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 100),
+                    currentScreen.WorkingArea.Top + (windowPosition.Y * (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 100))
                 : new Point(
-                    currentScreen.WorkingArea.Left + (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2,
-                    currentScreen.WorkingArea.Top + (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2);
+                    currentScreen.WorkingArea.Left + ((currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2),
+                    currentScreen.WorkingArea.Top + ((currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2));
 
             BackgroundColor = ColorExtension.FromName(Settings.ColorSettings[ColorSetting.Background]);
         }
@@ -558,7 +557,7 @@ namespace Orts.Toolbox
             public CommonDebugInfo(GameWindow gameWindow) : base(true)
             {
                 int targetFps = (int)Math.Round(1000 / gameWindow.TargetElapsedTime.TotalMilliseconds);
-                slowFps = targetFps - targetFps / 6;
+                slowFps = targetFps - (targetFps / 6);
                 frameRate.Preset(targetFps);
                 this["Version"] = VersionInfo.FullVersion;
                 gameWindow.OnContentAreaChanged += GameWindow_OnContentAreaChanged;

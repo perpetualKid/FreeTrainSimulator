@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.IO;
@@ -9,12 +8,12 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Orts.Settings;
 using Orts.Settings.Store;
-using Orts.Toolbox.PopupWindows;
 
-namespace Orts.Toolbox.Settings
+namespace FreeTrainSimulator.Toolbox.Settings
 {
     public class ToolboxSettings : SettingsBase
     {
@@ -29,18 +28,18 @@ namespace Orts.Toolbox.Settings
         static ToolboxSettings()
 #pragma warning restore CA1810 // Initialize reference type static fields inline
         {
-            if (File.Exists(Location = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), EnumExtension.GetDescription(StoreType.Json))))
+            if (File.Exists(Location = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), StoreType.Json.GetDescription())))
             {
                 SettingsStoreType = StoreType.Json;
             }
-            if (File.Exists(Location = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), EnumExtension.GetDescription(StoreType.Ini))))
+            if (File.Exists(Location = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), StoreType.Ini.GetDescription())))
             {
                 SettingsStoreType = StoreType.Ini;
             }
             else
             {
                 SettingsStoreType = StoreType.Registry;
-                Location = EnumExtension.GetDescription(StoreType.Registry);
+                Location = StoreType.Registry.GetDescription();
             }
         }
 

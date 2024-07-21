@@ -6,8 +6,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <OutputPath>..\..\Program</OutputPath>
     <ApplicationIcon>..\FTS.ico</ApplicationIcon>
-    <RootNamespace>Orts.Toolbox</RootNamespace>
-    <Description>Open Rails Toolbox</Description>
+    <RootNamespace>FreeTrainSimulator.Toolbox</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="GetText.NET" Version="1.9.14" />

@@ -8,14 +8,13 @@ using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Toolbox.Settings;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Toolbox.Settings;
-
-namespace Orts.Toolbox.PopupWindows
+namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     public class QuitWindow : WindowBase
     {
@@ -106,7 +105,7 @@ namespace Orts.Toolbox.PopupWindows
 
         private void CancelQuit(UserCommandArgs args)
         {
-            args.Handled= true;
+            args.Handled = true;
             OnQuitCancel?.Invoke(this, EventArgs.Empty);
             Close();
         }

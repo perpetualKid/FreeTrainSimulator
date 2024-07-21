@@ -6,14 +6,13 @@ using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Toolbox.Settings;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Toolbox.Settings;
-
-namespace Orts.Toolbox.PopupWindows
+namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     public class HelpWindow : WindowBase
     {
@@ -38,7 +37,7 @@ namespace Orts.Toolbox.PopupWindows
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
         {
             layout = base.Layout(layout, headerScaling);
-            
+
             ControlLayoutHorizontal line = layout.AddLayoutHorizontalLineOfText();
             int width = line.RemainingWidth / 2;
             Label headerLabel;
@@ -70,7 +69,7 @@ namespace Orts.Toolbox.PopupWindows
 
         private void HeaderLabel_OnClick(object sender, MouseClickEventArgs e)
         {
-            searchMode = (SearchColumn)((sender as Label).Tag);
+            searchMode = (SearchColumn)(sender as Label).Tag;
             searchBox.Container.Controls[0].Visible = false;
             searchBox.Container.Controls[1].Visible = false;
             searchBox.Visible = true;

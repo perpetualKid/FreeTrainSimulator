@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
 
-namespace Orts.Toolbox.WinForms.Controls
+namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 {
     public partial class StatusbarControl : UserControl
     {

@@ -8,12 +8,12 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Toolbox;
+using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Toolbox.PopupWindows;
-
-namespace Orts.Toolbox
+namespace FreeTrainSimulator.Toolbox
 {
     public class ContentAreaChangedEventArgs : EventArgs
     {
@@ -92,7 +92,7 @@ namespace Orts.Toolbox
 
             CancellationToken token = ctsRouteLoading.Token;
 
-            bool? useMetricUnits = (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            bool? useMetricUnits = Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || (Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
             await TrackData.LoadTrackData(this, route, useMetricUnits, token).ConfigureAwait(false);

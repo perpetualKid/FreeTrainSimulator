@@ -9,13 +9,13 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Toolbox.PopupWindows
+namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     internal sealed class LoggingWindow : WindowBase
     {
         private readonly string logText;
 
-        public LoggingWindow(WindowManager owner, string logFile, Point relativeLocation, Catalog catalog = null) : 
+        public LoggingWindow(WindowManager owner, string logFile, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Logging"), relativeLocation, new Point(-50, 300), catalog)
         {
             if (File.Exists(logFile))

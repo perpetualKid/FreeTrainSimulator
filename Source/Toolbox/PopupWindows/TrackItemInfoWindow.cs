@@ -12,7 +12,7 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Toolbox.PopupWindows
+namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     internal sealed class TrackItemInfoWindow : WindowBase
     {
@@ -74,9 +74,9 @@ namespace Orts.Toolbox.PopupWindows
                 IIndexedElement item = TrackModel.Instance(Owner.Game).TrackItemByIndex(nodeIndex);
                 if (item is TrackItemBase trackItem)
                 {
-//                    contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
+                    //                    contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
                     contentArea?.SetTrackingPosition(trackItem.Location);
-//                    contentArea.Content.HighlightItem(Common.MapViewItemSettings.Tracks, segmentSection.SectionSegments[0]);
+                    //                    contentArea.Content.HighlightItem(Common.MapViewItemSettings.Tracks, segmentSection.SectionSegments[0]);
                 }
             }
             SearchBox_OnEscapeKey(sender, e);

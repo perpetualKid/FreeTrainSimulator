@@ -8,7 +8,7 @@ using FreeTrainSimulator.Common.Logging;
 
 [assembly: CLSCompliant(false)]
 
-namespace Orts.Toolbox
+namespace FreeTrainSimulator.Toolbox
 {
     public static class Program
     {

@@ -1,5 +1,5 @@
 ﻿
-namespace Orts.Toolbox.WinForms.Controls
+namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 {
     partial class StatusbarControl
     {

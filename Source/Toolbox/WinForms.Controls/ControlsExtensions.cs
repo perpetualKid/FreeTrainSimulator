@@ -9,7 +9,7 @@ using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Toolbox.WinForms.Controls
+namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 {
     internal sealed class ComboBoxItem<T>
     {

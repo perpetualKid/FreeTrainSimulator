@@ -11,7 +11,7 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Models.Simplified;
 
-namespace Orts.Toolbox.WinForms.Controls
+namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 {
     public partial class MainMenuControl : UserControl
     {

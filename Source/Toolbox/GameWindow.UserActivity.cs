@@ -7,13 +7,12 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Toolbox.PopupWindows;
-
-namespace Orts.Toolbox
+namespace FreeTrainSimulator.Toolbox
 {
     public partial class GameWindow : Game
     {

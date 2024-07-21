@@ -6,14 +6,13 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Toolbox.Settings;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Toolbox.Settings;
-
-namespace Orts.Toolbox.PopupWindows
+namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     public enum DebugScreenInformation
     {

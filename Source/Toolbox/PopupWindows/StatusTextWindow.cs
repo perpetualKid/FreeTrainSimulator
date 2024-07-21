@@ -1,7 +1,4 @@
-﻿
-using System;
-
-using FreeTrainSimulator.Graphics;
+﻿using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
@@ -10,7 +7,7 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Toolbox.PopupWindows
+namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     public class StatusTextWindow : WindowBase
     {

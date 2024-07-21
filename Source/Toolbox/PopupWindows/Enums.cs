@@ -1,4 +1,4 @@
-﻿namespace Orts.Toolbox.PopupWindows
+﻿namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     public enum ToolboxWindowType
     {
