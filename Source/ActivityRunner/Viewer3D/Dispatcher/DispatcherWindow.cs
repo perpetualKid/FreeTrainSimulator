@@ -61,7 +61,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         private CommonDebugInfo debugInfo;
 
         private UserCommandController<UserCommand> userCommandController;
-        private WindowManager<DispatcherWindowType> windowManager;
+        private WindowManager<InternalDispatcherWindowType> windowManager;
 
         private bool followTrain;
 
@@ -161,42 +161,42 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
 
             #region popup windows
-            windowManager = WindowManager.Initialize<UserCommand, DispatcherWindowType>(this, userCommandController.AddTopLayerController());
-            windowManager.SetLazyWindows(DispatcherWindowType.DebugScreen, new Lazy<FormBase>(() =>
+            windowManager = WindowManager.Initialize<UserCommand, InternalDispatcherWindowType>(this, userCommandController.AddTopLayerController());
+            windowManager.SetLazyWindows(InternalDispatcherWindowType.DebugScreen, new Lazy<FormBase>(() =>
             {
                 DebugScreen debugWindow = new DebugScreen(windowManager, BackgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 return debugWindow;
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SignalChange, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(InternalDispatcherWindowType.SignalChange, new Lazy<FormBase>(() =>
             {
                 return new SignalChangeWindow(windowManager, new Point(50, 50));
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SwitchChange, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(InternalDispatcherWindowType.SwitchChange, new Lazy<FormBase>(() =>
             {
                 return new SwitchChangeWindow(windowManager, new Point(50, 50));
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.SignalState, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(InternalDispatcherWindowType.SignalState, new Lazy<FormBase>(() =>
             {
-                return new SignalStateWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.SignalState].ToPoint());
+                return new SignalStateWindow(windowManager, settings.Dispatcher.WindowLocations[InternalDispatcherWindowType.SignalState].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(InternalDispatcherWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
-                return new HelpWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.HelpWindow].ToPoint());
+                return new HelpWindow(windowManager, settings.Dispatcher.WindowLocations[InternalDispatcherWindowType.HelpWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.Settings, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(InternalDispatcherWindowType.Settings, new Lazy<FormBase>(() =>
             {
-                return new SettingsWindow(windowManager, settings.Dispatcher, settings.Dispatcher.WindowLocations[DispatcherWindowType.Settings].ToPoint());
+                return new SettingsWindow(windowManager, settings.Dispatcher, settings.Dispatcher.WindowLocations[InternalDispatcherWindowType.Settings].ToPoint());
             }));
-            windowManager.SetLazyWindows(DispatcherWindowType.TrainInfo, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(InternalDispatcherWindowType.TrainInfo, new Lazy<FormBase>(() =>
             {
-                return new TrainInformationWindow(windowManager, settings.Dispatcher.WindowLocations[DispatcherWindowType.TrainInfo].ToPoint());
+                return new TrainInformationWindow(windowManager, settings.Dispatcher.WindowLocations[InternalDispatcherWindowType.TrainInfo].ToPoint());
             }));
             Components.Add(windowManager);
 
             #endregion
 
-            foreach (DispatcherWindowType windowType in EnumExtension.GetValues<DispatcherWindowType>())
+            foreach (InternalDispatcherWindowType windowType in EnumExtension.GetValues<InternalDispatcherWindowType>())
             {
                 if (settings.Dispatcher.WindowStatus[windowType])
                     windowManager[windowType].Open();
@@ -241,29 +241,29 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseLeftClick);
             userCommandController.AddEvent(CommonUserCommand.AlternatePointerDown, MouseRightClick);
             userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolute(1.5); });
-            userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.DebugScreen].ToggleVisibility());
-            userCommandController.AddEvent(UserCommand.DisplaySignalStateWindow, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.SignalState].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, () => windowManager[InternalDispatcherWindowType.DebugScreen].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplaySignalStateWindow, KeyEventType.KeyPressed, () => windowManager[InternalDispatcherWindowType.SignalState].ToggleVisibility());
             userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
-                    windowManager[DispatcherWindowType.HelpWindow].ToggleVisibility();
+                    windowManager[InternalDispatcherWindowType.HelpWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
-                    windowManager[DispatcherWindowType.Settings].ToggleVisibility();
+                    windowManager[InternalDispatcherWindowType.Settings].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayTrainInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
-                    windowManager[DispatcherWindowType.TrainInfo].ToggleVisibility();
+                    windowManager[InternalDispatcherWindowType.TrainInfo].ToggleVisibility();
             });
             //            userCommandController.AddEvent(UserCommand.DebugStep, KeyEventType.KeyPressed, null);
             #endregion
 
             debugInfo = new CommonDebugInfo(contentArea);
-            if (windowManager.WindowInitialized(DispatcherWindowType.DebugScreen))
-                (windowManager[DispatcherWindowType.DebugScreen] as DebugScreen).SetInformationProvider(DebugScreenInformation.Common, debugInfo);
+            if (windowManager.WindowInitialized(InternalDispatcherWindowType.DebugScreen))
+                (windowManager[InternalDispatcherWindowType.DebugScreen] as DebugScreen).SetInformationProvider(DebugScreenInformation.Common, debugInfo);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -377,7 +377,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             settings.Dispatcher.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
             settings.Dispatcher.WindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
 
-            foreach (DispatcherWindowType windowType in EnumExtension.GetValues<DispatcherWindowType>())
+            foreach (InternalDispatcherWindowType windowType in EnumExtension.GetValues<InternalDispatcherWindowType>())
             {
                 if (windowManager.WindowInitialized(windowType))
                 {
@@ -508,14 +508,14 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         public void MouseLeftClick(UserCommandArgs userCommandArgs)
         {
-            if (content.SignalSelected != null && windowManager.WindowInitialized(DispatcherWindowType.SignalState))
+            if (content.SignalSelected != null && windowManager.WindowInitialized(InternalDispatcherWindowType.SignalState))
             {
-                SignalStateWindow signalstateWindow = windowManager[DispatcherWindowType.SignalState] as SignalStateWindow;
+                SignalStateWindow signalstateWindow = windowManager[InternalDispatcherWindowType.SignalState] as SignalStateWindow;
                 signalstateWindow.UpdateSignal(content.SignalSelected);
             }
-            if (content.Trains != null && windowManager.WindowInitialized(DispatcherWindowType.TrainInfo))
+            if (content.Trains != null && windowManager.WindowInitialized(InternalDispatcherWindowType.TrainInfo))
             {
-                TrainInformationWindow trainInfoWindow = windowManager[DispatcherWindowType.TrainInfo] as TrainInformationWindow;
+                TrainInformationWindow trainInfoWindow = windowManager[InternalDispatcherWindowType.TrainInfo] as TrainInformationWindow;
                 trainInfoWindow.UpdateTrain(content.TrainSelected);
             }
 
@@ -527,12 +527,12 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             {
                 if (content.SignalSelected != null && (MultiPlayerManager.MultiplayerState == MultiplayerState.None))
                 {
-                    SignalChangeWindow signalstateWindow = windowManager[DispatcherWindowType.SignalChange] as SignalChangeWindow;
+                    SignalChangeWindow signalstateWindow = windowManager[InternalDispatcherWindowType.SignalChange] as SignalChangeWindow;
                     signalstateWindow.OpenAt(pointerCommandArgs.Position, content.SignalSelected);
                 }
                 else if (content.SwitchSelected != null && MultiPlayerManager.MultiplayerState == MultiplayerState.None)
                 {
-                    SwitchChangeWindow switchstateWindow = windowManager[DispatcherWindowType.SwitchChange] as SwitchChangeWindow;
+                    SwitchChangeWindow switchstateWindow = windowManager[InternalDispatcherWindowType.SwitchChange] as SwitchChangeWindow;
                     switchstateWindow.OpenAt(pointerCommandArgs.Position, content.SwitchSelected);
                 }
             }

@@ -33,22 +33,22 @@ namespace Orts.Settings
 
         [Default(new string[]
         {
-            nameof(DispatcherWindowType.SignalState) + "=100,100",
-            nameof(DispatcherWindowType.HelpWindow) + "=50,50",
-            nameof(DispatcherWindowType.SignalChange) + "=0,0",
-            nameof(DispatcherWindowType.SwitchChange) + "=0,0",
-            nameof(DispatcherWindowType.DebugScreen) + "=0,0",
-            nameof(DispatcherWindowType.Settings) + "=0,100",
-            nameof(DispatcherWindowType.TrainInfo) + "=75,75",
+            nameof(InternalDispatcherWindowType.SignalState) + "=100,100",
+            nameof(InternalDispatcherWindowType.HelpWindow) + "=50,50",
+            nameof(InternalDispatcherWindowType.SignalChange) + "=0,0",
+            nameof(InternalDispatcherWindowType.SwitchChange) + "=0,0",
+            nameof(InternalDispatcherWindowType.DebugScreen) + "=0,0",
+            nameof(InternalDispatcherWindowType.Settings) + "=0,100",
+            nameof(InternalDispatcherWindowType.TrainInfo) + "=75,75",
         })]
-        public EnumArray<int[], DispatcherWindowType> WindowLocations { get; set; }
+        public EnumArray<int[], InternalDispatcherWindowType> WindowLocations { get; set; }
 
         [Default(new string[]
         {
-            nameof(DispatcherWindowType.SignalState) + "=True",
-            nameof(DispatcherWindowType.HelpWindow) + "=True",
+            nameof(InternalDispatcherWindowType.SignalState) + "=True",
+            nameof(InternalDispatcherWindowType.HelpWindow) + "=True",
         })]
-        public EnumArray<bool, DispatcherWindowType> WindowStatus { get; set; }
+        public EnumArray<bool, InternalDispatcherWindowType> WindowStatus { get; set; }
 
         [Default(new string[]
 {

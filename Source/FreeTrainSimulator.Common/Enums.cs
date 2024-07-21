@@ -1228,7 +1228,7 @@ namespace FreeTrainSimulator.Common
         Size,
     }
 
-    public enum DispatcherWindowType
+    public enum InternalDispatcherWindowType
     {
         DebugScreen,
         SignalChange,

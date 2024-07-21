@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <Description>Free Train Simulator Dispatcher</Description>
+    <AssemblyTitle>Free Train Simulator Dispatcher</AssemblyTitle>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputPath>..\..\Program</OutputPath>
+    <ApplicationIcon>..\FTS.ico</ApplicationIcon>
+    <RootNamespace>FreeTrainSimulator.Dispatcher</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="GetText.NET" Version="1.9.14" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="1.9.14" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
+    <ProjectReference Include="..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
+  </ItemGroup>
+</Project>
