@@ -56,7 +56,7 @@ namespace FreeTrainSimulator.Models.Simplified
                 TransformManyBlock<(Folder, string), (Folder, Route, string)> routeBlock = new TransformManyBlock<(Folder folder, string routeDirectory), (Folder, Route, string)>
                     (routeFile =>
                     {
-                        if (FolderStructure.Route(routeFile.routeDirectory).IsValid)
+                        if (FolderStructure.Route(routeFile.routeDirectory).Valid)
                         {
                             Route route = new Route(routeFile.routeDirectory);
                             string activitiesDirectory = route.RouteFolder.ActivitiesFolder;

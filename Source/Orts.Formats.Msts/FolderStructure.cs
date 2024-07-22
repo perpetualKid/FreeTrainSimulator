@@ -34,7 +34,7 @@ namespace Orts.Formats.Msts
                     CurrentFolder = Path.Combine(parent.RoutesFolder, RouteName);
                 }
 
-                public bool IsValid => !string.IsNullOrEmpty(TrackFileName);
+                public bool Valid => !string.IsNullOrEmpty(TrackFileName);
 
                 public string RouteName { get; }
 

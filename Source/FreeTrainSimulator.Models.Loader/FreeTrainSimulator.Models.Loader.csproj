@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>Free Train Simulator Models Loader</Description>
+		<AssemblyTitle>Free Train Simulator Models Loader</AssemblyTitle>
+		<OutputPath>..\..\Program</OutputPath>
+		<AssemblyName>FreeTrainSimulator.Models.Loader</AssemblyName>
+		<RootNamespace>FreeTrainSimulator.Models.Loader</RootNamespace>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
+		<ProjectReference Include="..\FreeTrainSimulator.Models.Independent\FreeTrainSimulator.Models.Independent.csproj" />
+		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="TrainSimulator\" />
+	  <Folder Include="OpenRails\" />
+	</ItemGroup>
+</Project>

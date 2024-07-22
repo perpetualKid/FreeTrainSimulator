@@ -13,7 +13,7 @@ namespace FreeTrainSimulator.Models.Simplified
         public string Name { get; private set; }
         public string Path { get; private set; }
 
-        internal FolderStructure.ContentFolder ContentFolder { get; private set; }
+        public FolderStructure.ContentFolder ContentFolder { get; private set; }
 
         public Folder(string name, string path)
         {

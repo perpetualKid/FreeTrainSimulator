@@ -70,6 +70,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dispatcher", "Dispatcher\Di
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeTrainSimulator.Models.Independent", "FreeTrainSimulator.Models.Independent\FreeTrainSimulator.Models.Independent.csproj", "{78F6C725-1D6C-49A6-A5A5-68889882D740}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeTrainSimulator.Models.Loader", "FreeTrainSimulator.Models.Loader\FreeTrainSimulator.Models.Loader.csproj", "{D85CE181-5BED-4E86-AA31-9801E7F174A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -184,6 +186,10 @@ Global
 		{78F6C725-1D6C-49A6-A5A5-68889882D740}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78F6C725-1D6C-49A6-A5A5-68889882D740}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78F6C725-1D6C-49A6-A5A5-68889882D740}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D85CE181-5BED-4E86-AA31-9801E7F174A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D85CE181-5BED-4E86-AA31-9801E7F174A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D85CE181-5BED-4E86-AA31-9801E7F174A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D85CE181-5BED-4E86-AA31-9801E7F174A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,12 +5,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
-
-using SharpDX;
 
 namespace FreeTrainSimulator.Models.Simplified
 {
@@ -60,7 +57,7 @@ namespace FreeTrainSimulator.Models.Simplified
 
             await Parallel.ForEachAsync(Directory.EnumerateDirectories(folder.ContentFolder.RoutesFolder), (routeDirectory, cancellationToken) =>
             {
-                if (FolderStructure.Route(routeDirectory).IsValid)
+                if (FolderStructure.Route(routeDirectory).Valid)
                 {
                     Route route = new Route(routeDirectory);
                     results.Add(route);
