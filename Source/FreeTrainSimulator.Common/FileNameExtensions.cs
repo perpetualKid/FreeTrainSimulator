@@ -7,16 +7,20 @@
         /// </summary>
         public const string SaveFile = ".save";
         /// <summary>
-        /// clear text reports
+        /// Clear text reports
         /// </summary>
         public const string TextReport = ".txt";
         /// <summary>
-        /// clear text logs
+        /// Clear text logs
         /// </summary>
         public const string LogFile = ".log";
         /// <summary>
-        /// (binary) data files, such as cached data
+        /// (Binary) data files, such as cached data
         /// </summary>
         public const string DataFile = ".dat";
+        /// <summary>
+        /// Compiled Shader File
+        /// </summary>
+        public const string CompiledShaderFile = ".mgfx";
     }
 }
