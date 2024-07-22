@@ -1631,7 +1631,7 @@ namespace Orts.Simulation.Timetables
                         parentTrain.TCRoute.AddSubrouteAtEnd(parentPool.StoragePool[parentTrain.PoolStorageIndex].StoragePath);
 
                         // send message
-                        var message = Simulator.Catalog.GetString("Turntable is ready for access - allowed speed set to {0}", FormatStrings.FormatSpeedDisplay(parentTrain.AllowedMaxSpeedMpS, RuntimeData.Instance.UseMetricUnits));
+                        var message = Simulator.Catalog.GetString("Turntable is ready for access - allowed speed set to {0}", FormatStrings.FormatSpeedDisplay(parentTrain.AllowedMaxSpeedMpS, RuntimeData.Instance.MetricUnits));
                         Simulator.Instance.Confirmer.Information(message);
 
                         // create train-on-table class
@@ -1671,7 +1671,7 @@ namespace Orts.Simulation.Timetables
                         parentTrain.AllowedMaxSpeedMpS = Math.Min(parentTrain.AllowedMaxSpeedMpS, parentTrain.TrainMaxSpeedMpS);
 
                         // send message
-                        var message = Simulator.Catalog.GetString("Turntable is ready for access - allowed speed set to {0}", FormatStrings.FormatSpeedDisplay(parentTrain.AllowedMaxSpeedMpS, RuntimeData.Instance.UseMetricUnits));
+                        var message = Simulator.Catalog.GetString("Turntable is ready for access - allowed speed set to {0}", FormatStrings.FormatSpeedDisplay(parentTrain.AllowedMaxSpeedMpS, RuntimeData.Instance.MetricUnits));
                         Simulator.Instance.Confirmer.Information(message);
 
                         // create train-on-table class

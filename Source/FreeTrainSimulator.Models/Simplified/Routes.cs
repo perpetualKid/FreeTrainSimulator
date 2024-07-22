@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -7,6 +9,8 @@ using System.Threading.Tasks.Dataflow;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
+
+using SharpDX;
 
 namespace FreeTrainSimulator.Models.Simplified
 {
@@ -52,42 +56,19 @@ namespace FreeTrainSimulator.Models.Simplified
         {
             ArgumentNullException.ThrowIfNull(folder);
 
-            using (SemaphoreSlim addItem = new SemaphoreSlim(1))
+            ConcurrentBag<Route> results = new ConcurrentBag<Route>();
+
+            await Parallel.ForEachAsync(Directory.EnumerateDirectories(folder.ContentFolder.RoutesFolder), (routeDirectory, cancellationToken) =>
             {
-                List<Route> result = new List<Route>();
-
-                string routesDirectory = folder.ContentFolder.RoutesFolder;
-                if (Directory.Exists(routesDirectory))
+                if (FolderStructure.Route(routeDirectory).IsValid)
                 {
-
-                    ActionBlock<string> actionBlock = new ActionBlock<string>
-                    (async routeDirectory =>
-                    {
-                        if (FolderStructure.Route(routeDirectory).IsValid)
-                        {
-                            try
-                            {
-                                Route route = new Route(routeDirectory);
-                                await addItem.WaitAsync(token).ConfigureAwait(false);
-                                result.Add(route);
-                            }
-                            finally
-                            {
-                                addItem.Release();
-                            }
-                        }
-                    },
-                    new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
-
-                    foreach (string routeDirectory in Directory.EnumerateDirectories(routesDirectory))
-                        await actionBlock.SendAsync(routeDirectory).ConfigureAwait(false);
-
-                    actionBlock.Complete();
-                    await actionBlock.Completion.ConfigureAwait(false);
+                    Route route = new Route(routeDirectory);
+                    results.Add(route);
                 }
+                return ValueTask.CompletedTask;
+            }).ConfigureAwait(false);
 
-                return result;
-            }
+            return results.ToFrozenSet();
         }
     }
 }

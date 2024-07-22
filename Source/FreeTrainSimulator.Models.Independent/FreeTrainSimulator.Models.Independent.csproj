@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>Free Train Simulator Entity Models Library</Description>
+		<AssemblyTitle>Free Train Simulator Entity Models Library</AssemblyTitle>
+		<OutputPath>..\..\Program</OutputPath>
+		<AssemblyName>FreeTrainSimulator.Models.Independent</AssemblyName>
+		<RootNamespace>FreeTrainSimulator.Models.Independent</RootNamespace>
+	</PropertyGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
+	</ItemGroup>
+</Project>

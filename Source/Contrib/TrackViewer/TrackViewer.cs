@@ -1037,7 +1037,7 @@ namespace ORTS.TrackViewer
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             AssemblyTitleAttribute assemblyTitle = assembly.GetCustomAttributes(typeof(AssemblyTitleAttribute), false)[0] as AssemblyTitleAttribute;
-            Window.Title = assemblyTitle.Title + ": " + RuntimeData.Instance.RouteName;
+            Window.Title = assemblyTitle.Title + ": " + RuntimeData.Instance.RouteData.RouteName;
         }
 
         #endregion

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Models.Independent.Environment;
 using FreeTrainSimulator.Models.Simplified;
 
 using Microsoft.Xna.Framework;
@@ -17,13 +18,13 @@ namespace FreeTrainSimulator.Dispatcher
     {
         public IEnumerable<Path> TrainPaths { get; }
 
-        private TrackData(string routeName, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IEnumerable<Path> trainPaths) :
-            base(routeName, trackSections, trackDb, roadTrackDB, signalConfig, useMetricUnits, null)
+        private TrackData(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IEnumerable<Path> trainPaths) :
+            base(route, trackSections, trackDb, roadTrackDB, signalConfig, metricUnits, null)
         {
             TrainPaths = trainPaths;
         }
 
-        internal static async Task LoadTrackData(Game game, Models.Simplified.Route route, bool? useMetricUnits, CancellationToken cancellationToken)
+        internal static async Task LoadTrackData(Game game, Models.Simplified.Route route, bool? metricUnitPreference, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;
@@ -70,7 +71,7 @@ namespace FreeTrainSimulator.Dispatcher
                 return;
 
             game.Services.RemoveService(typeof(RuntimeData));
-            game.Services.AddService(typeof(RuntimeData), new TrackData(routeFile.Route.Name, trackSections, trackDB, roadTrackDB, signalConfig, useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric), await pathTask.ConfigureAwait(false)));
+            game.Services.AddService(typeof(RuntimeData), new TrackData(routeFile.Route.RouteData, trackSections, trackDB, roadTrackDB, signalConfig, metricUnitPreference.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric), await pathTask.ConfigureAwait(false)));
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 
 using Orts.Formats.Msts;
 
@@ -30,36 +30,16 @@ namespace FreeTrainSimulator.Models.Simplified
         public static async Task<IEnumerable<Folder>> GetFolders(Dictionary<string, string> folders)
         {
             ArgumentNullException.ThrowIfNull(folders);
+            ConcurrentBag<Folder> results = new ConcurrentBag<Folder>();
 
-            using (SemaphoreSlim addItem = new SemaphoreSlim(1))
+            await Parallel.ForEachAsync(folders, (folderSource, cancellationToken) =>
             {
+                Folder folder = new Folder(folderSource.Key, folderSource.Value);
+                results.Add(folder);
+                return ValueTask.CompletedTask;
+            }).ConfigureAwait(false);
 
-                List<Folder> result = new List<Folder>();
-                //https://stackoverflow.com/questions/11564506/nesting-await-in-parallel-foreach?rq=1
-                ActionBlock<KeyValuePair<string, string>> actionBlock = new ActionBlock<KeyValuePair<string, string>>
-                    (async folderName =>
-                    {
-                        try
-                        {
-                            Folder folder = new Folder(folderName.Key, folderName.Value);
-                            await addItem.WaitAsync().ConfigureAwait(false);
-                            result.Add(folder);
-                        }
-                        finally
-                        {
-                            addItem.Release();
-                        }
-                    },
-                    new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount });
-
-                foreach (KeyValuePair<string, string> folder in folders)
-                    await actionBlock.SendAsync(folder).ConfigureAwait(false);
-
-                actionBlock.Complete();
-                await actionBlock.Completion.ConfigureAwait(false);
-
-                return result;
-            }
+            return results.ToFrozenSet();
         }
     }
 }

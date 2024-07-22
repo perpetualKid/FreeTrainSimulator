@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Independent.Environment;
 
 using Orts.Formats.Msts.Parsers;
 
@@ -121,8 +123,18 @@ namespace Orts.Formats.Msts.Models
         public int CurveSMSNumber { get; private set; } = -1; // defines the number of the curve SMS files in file ttype.dat
         public int CurveSwitchSMSNumber { get; private set; } = -1; // defines the number of the curve-switch SMS files in file ttype.dat
 
+        public RouteModel RouteData { get; private set; }
+
         private void Initialize()
         {
+            RouteData = new RouteModel(RouteStart.Location)
+            {
+                RouteName = Name,
+                Description = Description,
+                MetricUnits = MilepostUnitsMetric,
+                RouteId = RouteID,
+                Version = "1.0",
+            };
             // if no values are in TRK file, calculate default values.
             // Single track Tunnels
 

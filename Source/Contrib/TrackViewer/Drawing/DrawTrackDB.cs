@@ -92,7 +92,7 @@ namespace ORTS.TrackViewer.Drawing
                 //sigcfgFile = null; // default initialization
             }
 
-            Initialize(TRK.Route.Name, tsectionDat, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
+            Initialize(TRK.Route.RouteData, tsectionDat, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
         }
 
         /// <summary>
