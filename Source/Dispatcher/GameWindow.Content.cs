@@ -84,12 +84,11 @@ namespace FreeTrainSimulator.Dispatcher
             windowManager[DispatcherWindowType.StatusWindow].Open();
             UnloadRoute();
 
-            lock (routeModels)
-            {
-                if (ctsRouteLoading != null && !ctsRouteLoading.IsCancellationRequested)
-                    ctsRouteLoading.CancelAsync();
-                ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
-            }
+            await loadRoutesSemaphore.WaitAsync().ConfigureAwait(false);
+            if (ctsRouteLoading != null && !ctsRouteLoading.IsCancellationRequested)
+                await ctsRouteLoading.CancelAsync().ConfigureAwait(false);
+            ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
+            loadRoutesSemaphore.Release();
 
             CancellationToken token = ctsRouteLoading.Token;
 
@@ -165,10 +164,7 @@ namespace FreeTrainSimulator.Dispatcher
 
         private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)
         {
-            if (cts != null)
-            {
-                cts.Dispose();
-            }
+            cts?.Dispose();
             // Create a new cancellation token source so that can cancel all the tokens again 
             return new CancellationTokenSource();
         }

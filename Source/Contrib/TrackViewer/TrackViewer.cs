@@ -927,9 +927,9 @@ namespace ORTS.TrackViewer
             if (newInstallFolder == null)
                 return false;
 
-            ValueTask<System.Collections.Frozen.FrozenSet<RouteModel>> routeTask = RouteLoader.GetRoutes(newInstallFolder.ContentFolder, CancellationToken.None);
+            Task<System.Collections.Frozen.FrozenSet<RouteModel>> routeTask = RouteLoader.GetRoutes(newInstallFolder.ContentFolder, CancellationToken.None).AsTask();
             if (!routeTask.IsCompleted)
-                routeTask.AsTask().Wait();
+                routeTask.Wait();
             Routes = new Collection<RouteModel>(routeTask.Result.ToList());
             // set default route
             DefaultRoute = Routes.Where(r => r.RouteName == Properties.Settings.Default.defaultRoute).FirstOrDefault() ?? Routes.FirstOrDefault();

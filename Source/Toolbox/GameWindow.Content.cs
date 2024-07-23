@@ -164,10 +164,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)
         {
-            if (cts != null)
-            {
-                cts.Dispose();
-            }
+            cts?.Dispose();
             // Create a new cancellation token source so that can cancel all the tokens again 
             return new CancellationTokenSource();
         }
