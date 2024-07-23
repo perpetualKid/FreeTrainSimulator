@@ -3,17 +3,29 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
+using MemoryPack;
+
 namespace FreeTrainSimulator.Common
 {
     /// <summary>An array indexed by an Enum</summary>
     /// <typeparam name="T">Type stored in array</typeparam>
     /// <typeparam name="TEnum">Indexer Enum type</typeparam>
 #pragma warning disable CA1710 // Identifiers should have correct suffix
-    public class EnumArray<T, TEnum> : IEnumerable, IEnumerable<T> where TEnum : Enum
+    [MemoryPackable]    
+    public partial class EnumArray<T, TEnum> : IEnumerable, IEnumerable<T> where TEnum : Enum
 #pragma warning restore CA1710 // Identifiers should have correct suffix
     {
+        [MemoryPackInclude]
         private readonly T[] array;
+        [MemoryPackInclude]
         private readonly int lowBound;
+
+        [MemoryPackConstructor]
+        private EnumArray(T[] array, int lowBound)
+        { 
+            this.array = array;
+            this.lowBound = lowBound;
+        }
 
         public EnumArray()
         {
@@ -93,11 +105,22 @@ namespace FreeTrainSimulator.Common
     /// <typeparam name="T">Type stored in array</typeparam>
     /// <typeparam name="TDimension1">Indexer dimension 1 Enum type</typeparam>
     /// <typeparam name="TDimension2">Indexer dimension 2 Enum type</typeparam>
-    public class EnumArray2D<T, TDimension1, TDimension2> where TDimension1 : Enum where TDimension2 : Enum
+    [MemoryPackable]
+    public partial class EnumArray2D<T, TDimension1, TDimension2> where TDimension1 : Enum where TDimension2 : Enum
     {
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+        [MemoryPackInclude]
         private readonly T[,] array;
+        [MemoryPackInclude]
         private readonly int lowBoundX, lowBoundY;
+
+        [MemoryPackConstructor]
+        private EnumArray2D(T[,] array, int lowBoundX, int lowBoundY)
+        {
+            this.array = array;
+            this.lowBoundX = lowBoundX;
+            this.lowBoundY = lowBoundY;
+        }
 
         public EnumArray2D()
         {
