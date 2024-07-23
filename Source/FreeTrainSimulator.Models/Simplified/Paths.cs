@@ -140,6 +140,56 @@ namespace FreeTrainSimulator.Models.Simplified
         }
 
         /// <summary>
+        /// Return a list of paths that belong to the given route.
+        /// </summary>
+        /// <param name="route">The Route for which the paths need to be found</param>
+        /// <param name="includeNonPlayerPaths">Selects whether non-player paths are included or not</param>
+        public static async Task<IEnumerable<Path>> GetPaths(string pathsDirectory, bool includeNonPlayerPaths, CancellationToken token)
+        {
+            ArgumentNullException.ThrowIfNullOrEmpty(pathsDirectory);
+
+            using (SemaphoreSlim addItem = new SemaphoreSlim(1))
+            {
+                List<Path> result = new List<Path>();
+
+                if (Directory.Exists(pathsDirectory))
+                {
+                    TransformBlock<string, Path> inputBlock = new TransformBlock<string, Path>
+                        (pathFile =>
+                        {
+                            return new Path(pathFile);
+                        },
+                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
+
+
+                    ActionBlock<Path> actionBlock = new ActionBlock<Path>
+                        (async path =>
+                        {
+                            try
+                            {
+                                await addItem.WaitAsync(token).ConfigureAwait(false);
+                                result.Add(path);
+                            }
+                            finally
+                            {
+                                addItem.Release();
+                            }
+                        });
+
+                    inputBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
+
+                    foreach (string pathFile in Directory.EnumerateFiles(pathsDirectory, "*.pat").
+                        Where(f => !brokenPaths.Any(brokenPath => f.EndsWith(brokenPath, StringComparison.OrdinalIgnoreCase))))
+                        await inputBlock.SendAsync(pathFile, token).ConfigureAwait(false);
+
+                    inputBlock.Complete();
+                    await actionBlock.Completion.ConfigureAwait(false);
+                }
+                return result.Where(p => (p != null && p.PlayerPath) || includeNonPlayerPaths);
+            }
+        }
+
+        /// <summary>
         /// Get a path from a certain route with given name.
         /// </summary>
         /// <param name="route">The Route for which the paths need to be found</param>

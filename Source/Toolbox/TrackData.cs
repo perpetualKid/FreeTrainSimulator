@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,7 +25,7 @@ namespace FreeTrainSimulator.Toolbox
             TrainPaths = trainPaths;
         }
 
-        internal static async Task LoadTrackData(Game game, Models.Simplified.Route route, bool? metricUnitPreference, CancellationToken cancellationToken)
+        internal static async Task LoadTrackData(Game game, FolderStructure.ContentFolder.RouteFolder routeFolder, bool? metricUnitPreference, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;
@@ -32,7 +33,6 @@ namespace FreeTrainSimulator.Toolbox
             RoadTrackDB roadTrackDB = null;
             SignalConfigurationFile signalConfig = null;
 
-            FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(route.Path);
             RouteFile routeFile = new RouteFile(routeFolder.TrackFileName);
 
             loadTasks.Add(Task.Run(() =>
@@ -63,7 +63,7 @@ namespace FreeTrainSimulator.Toolbox
             }, cancellationToken));
             loadTasks.Add(Task.Run(() => signalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken));
             Task<IEnumerable<Path>> pathTask;
-            loadTasks.Add(pathTask = Path.GetPaths(route, true, cancellationToken));
+            loadTasks.Add(pathTask = Path.GetPaths(routeFolder.PathsFolder, true, cancellationToken));
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
 

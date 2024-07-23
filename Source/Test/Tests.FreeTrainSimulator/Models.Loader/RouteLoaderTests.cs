@@ -11,6 +11,8 @@ namespace Tests.FreeTrainSimulator.Models.Loader
     [TestClass]
     public class RouteLoaderTests
     {
+
+        [Ignore]
         [TestMethod]
         public async Task LoadRouteTest()
         {

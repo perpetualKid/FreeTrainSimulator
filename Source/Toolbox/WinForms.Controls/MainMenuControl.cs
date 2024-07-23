@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -9,6 +10,7 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Models.Independent.Environment;
 using FreeTrainSimulator.Models.Simplified;
 
 namespace FreeTrainSimulator.Toolbox.WinForms.Controls
@@ -180,15 +182,15 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
                 parent.InputCaptured = true;
         }
 
-        internal void PopulateRoutes(IEnumerable<Route> routes)
+        internal void PopulateRoutes(FrozenSet<RouteModel> routes)
         {
             Invoke((MethodInvoker)delegate
             {
                 SuspendLayout();
                 menuItemRoutes.DropDownItems.Clear();
-                foreach (Route route in routes)
+                foreach (RouteModel route in routes.OrderBy(r => r.RouteName))
                 {
-                    ToolStripMenuItem routeItem = new ToolStripMenuItem(route.Name)
+                    ToolStripMenuItem routeItem = new ToolStripMenuItem(route.RouteName)
                     {
                         Tag = route,
                     };
@@ -201,7 +203,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 
         private async void RouteItem_Click(object sender, EventArgs e)
         {
-            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is Route route)
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is RouteModel route)
             {
                 if (menuItem.Checked)
                 {
