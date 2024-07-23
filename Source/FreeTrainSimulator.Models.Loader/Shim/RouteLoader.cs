@@ -31,7 +31,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
                 await ToFile(routeModelFile, route, cancellationToken).ConfigureAwait(false);
             }
+            route.Path = routePath;
             return route;
+
         }
 
         public static async ValueTask<FrozenSet<RouteModel>> GetRoutes(FolderStructure.ContentFolder contentFolder, CancellationToken cancellationToken)

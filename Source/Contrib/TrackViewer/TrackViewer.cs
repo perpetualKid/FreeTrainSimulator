@@ -21,11 +21,15 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Independent.Environment;
+using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 
 using GetText;
@@ -68,13 +72,13 @@ namespace ORTS.TrackViewer
         /// <summary>Folder where MSTS is installed (or at least, where the files needed for tracks, routes and paths are stored)</summary>
         public Folder InstallFolder { get; private set; }
         /// <summary>List of available routes (in the install directory)</summary>
-        public Collection<Route> Routes { get; private set; } // Collection because of FxCop
+        public Collection<RouteModel> Routes { get; private set; } // Collection because of FxCop
         /// <summary>List of available paths in the current route</summary>
         public Collection<Path> Paths { get; private set; } // Collection because of FxCop
         /// <summary>Route, ie with a path c:\program files\microsoft games\train simulator\routes\usa1  - may be different on different pc's</summary>
-        public Route CurrentRoute { get; private set; }
+        public RouteModel CurrentRoute { get; private set; }
         /// <summary>Route that was used last time</summary>
-        private Route DefaultRoute;
+        private RouteModel DefaultRoute;
         /// <summary>Width of the drawing screen in pixels</summary>
         public int ScreenW { get; private set; }
         /// <summary>Height of the drawing screen in pixels</summary>
@@ -830,7 +834,7 @@ namespace ORTS.TrackViewer
                 return;
             }
 
-            foreach (Route route in Routes)
+            foreach (RouteModel route in Routes)
             {
                 //MessageBox.Show(route.Path);
 
@@ -923,30 +927,14 @@ namespace ORTS.TrackViewer
             if (newInstallFolder == null)
                 return false;
 
-            System.Threading.Tasks.Task<IEnumerable<Route>> task = System.Threading.Tasks.Task.Run(() => Route.GetRoutes(newInstallFolder, System.Threading.CancellationToken.None));
-            task.Wait();
-            List<Route> newRoutes = task.Result.OrderBy(r => r.ToString()).ToList();
-            if (newRoutes.Count > 0)
-            {
-                // set default route
-                DefaultRoute = newRoutes[0];
-                foreach (Route tryRoute in newRoutes)
-                {
-                    string dirName = tryRoute.Path.Split('\\').Last();
-                    if (dirName == Properties.Settings.Default.defaultRoute)
-                    {
-                        DefaultRoute = tryRoute;
-                    }
-                }
-
-                Routes = new Collection<Route>(newRoutes);
+            ValueTask<System.Collections.Frozen.FrozenSet<RouteModel>> routeTask = RouteLoader.GetRoutes(newInstallFolder.ContentFolder, CancellationToken.None);
+            if (!routeTask.IsCompleted)
+                routeTask.AsTask().Wait();
+            Routes = new Collection<RouteModel>(routeTask.Result.ToList());
+            // set default route
+            DefaultRoute = Routes.Where(r => r.RouteName == Properties.Settings.Default.defaultRoute).FirstOrDefault() ?? Routes.FirstOrDefault();
                 menuControl.PopulateRoutes();
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return DefaultRoute != null;
         }
 
         /// <summary>
@@ -961,7 +949,7 @@ namespace ORTS.TrackViewer
         /// Set and load a new route
         /// </summary>
         /// <param name="newRoute">The route to load, containing amongst other the directory name of the route</param>
-        public void SetRoute(Route newRoute)
+        public void SetRoute(RouteModel newRoute)
         {
             if (newRoute == null)
                 return;
@@ -980,7 +968,7 @@ namespace ORTS.TrackViewer
                 drawLabels = new DrawLabels(TextManager.Instance.DefaultFont.Height);
                 CurrentRoute = newRoute;
 
-                Properties.Settings.Default.defaultRoute = CurrentRoute.Path.Split('\\').Last();
+                Properties.Settings.Default.defaultRoute = CurrentRoute.RouteName;
                 if (Properties.Settings.Default.zoomRoutePath != CurrentRoute.Path)
                 {
                     Properties.Settings.Default.zoomScale = -1; // To disable the use of zoom reset
@@ -1048,7 +1036,7 @@ namespace ORTS.TrackViewer
         /// </summary>
         private void FindPaths()
         {
-            System.Threading.Tasks.Task<IEnumerable<Path>> task = System.Threading.Tasks.Task.Run(() => Path.GetPaths(CurrentRoute, true, System.Threading.CancellationToken.None));
+            Task<IEnumerable<Path>> task = Task.Run(() => Path.GetPaths(FolderStructure.Content(System.IO.Path.GetDirectoryName(CurrentRoute.Path)).Route(CurrentRoute.RouteName).PathsFolder, true, CancellationToken.None));
             task.Wait();
             List<Path> newPaths = task.Result.OrderBy(r => r.Name).ToList();
             Paths = new Collection<Path>(newPaths);

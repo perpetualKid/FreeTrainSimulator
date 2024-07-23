@@ -146,7 +146,7 @@ namespace FreeTrainSimulator.Models.Simplified
         /// <param name="includeNonPlayerPaths">Selects whether non-player paths are included or not</param>
         public static async Task<IEnumerable<Path>> GetPaths(string pathsDirectory, bool includeNonPlayerPaths, CancellationToken token)
         {
-            ArgumentNullException.ThrowIfNullOrEmpty(pathsDirectory);
+            ArgumentException.ThrowIfNullOrEmpty(pathsDirectory);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
