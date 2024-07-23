@@ -22,11 +22,11 @@ namespace Tests.FreeTrainSimulator.Common
 
             using (MemoryStream stream = new MemoryStream())
             {
-                await MemoryPackSerializer.SerializeAsync(stream, source);
-                await stream.FlushAsync();
+                await MemoryPackSerializer.SerializeAsync(stream, source).ConfigureAwait(false);
+                await stream.FlushAsync().ConfigureAwait(false);
 
                 stream.Position = 0;
-                EnumArray<string, SeasonType> target = await MemoryPackSerializer.DeserializeAsync<EnumArray<string, SeasonType>>(stream);
+                EnumArray<string, SeasonType> target = await MemoryPackSerializer.DeserializeAsync<EnumArray<string, SeasonType>>(stream).ConfigureAwait(false);
 
                 Assert.IsNotNull(target);
                 Assert.IsNull(target[SeasonType.Autumn]);
@@ -43,11 +43,11 @@ namespace Tests.FreeTrainSimulator.Common
 
             using (MemoryStream stream = new MemoryStream())
             {
-                await MemoryPackSerializer.SerializeAsync(stream, source);
-                await stream.FlushAsync();
+                await MemoryPackSerializer.SerializeAsync(stream, source).ConfigureAwait(false);
+                await stream.FlushAsync().ConfigureAwait(false);
 
                 stream.Position = 0;
-                EnumArray2D<string, SeasonType, WeatherType> target = await MemoryPackSerializer.DeserializeAsync<EnumArray2D<string, SeasonType, WeatherType>>(stream);
+                EnumArray2D<string, SeasonType, WeatherType> target = await MemoryPackSerializer.DeserializeAsync<EnumArray2D<string, SeasonType, WeatherType>>(stream).ConfigureAwait(false);
 
                 Assert.IsNotNull(target);
                 Assert.IsNull(target[SeasonType.Winter, WeatherType.Clear]);

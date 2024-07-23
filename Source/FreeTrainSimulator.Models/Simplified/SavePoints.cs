@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Independent.Environment;
 
 using MemoryPack;
 
@@ -33,7 +35,7 @@ namespace FreeTrainSimulator.Models.Simplified
         public GameSaveState SaveState { get; private set; }
 
         public static async Task<IEnumerable<SavePoint>> GetSavePoints(string directory, string prefix, string routeName,
-            StringBuilder warnings, bool multiPlayer, IEnumerable<Route> mainRoutes, CancellationToken token)
+            StringBuilder warnings, bool multiPlayer, FrozenSet<RouteModel> mainRoutes, CancellationToken token)
         {
             List<SavePoint> result = new List<SavePoint>();
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
@@ -60,7 +62,7 @@ namespace FreeTrainSimulator.Models.Simplified
                             // In case you receive a SavePack where the activity is recognised but the route has been renamed.
                             // Checks the route is not in your list of routes.
                             // If so, add it with a warning.
-                            else if (mainRoutes != null && !mainRoutes.Any(route => route.Name == gameSaveState.RouteName))
+                            else if (mainRoutes != null && !mainRoutes.Any(route => route.RouteName == gameSaveState.RouteName))
                             {
                                 if (!gameSaveState.IsMultiplayer ^ multiPlayer)
                                 {

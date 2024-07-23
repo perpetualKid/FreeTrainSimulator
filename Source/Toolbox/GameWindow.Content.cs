@@ -83,19 +83,18 @@ namespace FreeTrainSimulator.Toolbox
             windowManager[ToolboxWindowType.StatusWindow].Open();
             UnloadRoute();
 
-            lock (routeModels)
-            {
-                if (ctsRouteLoading != null && !ctsRouteLoading.IsCancellationRequested)
-                    ctsRouteLoading.Cancel();
-                ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
-            }
+            await loadRoutesSemaphore.WaitAsync().ConfigureAwait(false);
+            if (ctsRouteLoading != null && !ctsRouteLoading.IsCancellationRequested)
+                await ctsRouteLoading.CancelAsync().ConfigureAwait(false);
+            ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
+            loadRoutesSemaphore.Release();
 
             CancellationToken token = ctsRouteLoading.Token;
 
             bool? useMetricUnits = Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || (Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
-            
+
             await TrackData.LoadTrackData(this, selectedFolder.ContentFolder.Route(route.RouteId), useMetricUnits, token).ConfigureAwait(false);
             if (token.IsCancellationRequested)
                 return;

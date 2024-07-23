@@ -68,26 +68,26 @@ namespace FreeTrainSimulator.Models.Simplified
             FilePath = filePath;
         }
 
-        internal static Activity FromPath(string filePath, Folder folder, Route route)
+        internal static Activity FromPath(string filePath, Folder folder, Orts.Formats.Msts.FolderStructure.ContentFolder.RouteFolder routeFolder)
         {
             Activity result;
             try
             {
                 ActivityFile activityFile = new ActivityFile(filePath);
-                ServiceFile srvFile = new ServiceFile(route.RouteFolder.ServiceFile(activityFile.Activity.PlayerServices.Name));
+                ServiceFile srvFile = new ServiceFile(routeFolder.ServiceFile(activityFile.Activity.PlayerServices.Name));
                 Consist consist = Consist.GetConsist(folder, srvFile.TrainConfig, false);
-                Path path = new Path(route.RouteFolder.PathFile(srvFile.PathId));
+                Path path = new Path(routeFolder.PathFile(srvFile.PathId));
                 if (!path.PlayerPath)
                 {
                     return null;
                     // Not nice to throw an error now. Error was originally thrown by new Path(...);
                     throw new InvalidDataException("Not a player path");
                 }
-                else if (!activityFile.Activity.Header.RouteID.Equals(route.RouteID, StringComparison.OrdinalIgnoreCase))
-                {
-                    //Activity and route have different RouteID.
-                    result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
-                }
+                //else if (!activityFile.Activity.Header.RouteID.Equals(routeFolder.RouteID, StringComparison.OrdinalIgnoreCase))
+                //{
+                //    //Activity and route have different RouteID.
+                //    result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
+                //}
                 else
                     result = new Activity(string.Empty, filePath, activityFile, consist, path);
             }
@@ -121,15 +121,15 @@ namespace FreeTrainSimulator.Models.Simplified
             return Name;
         }
 
-        public static async Task<IEnumerable<Activity>> GetActivities(Folder folder, Route route, CancellationToken token)
+        public static async Task<IEnumerable<Activity>> GetActivities(Folder folder, Orts.Formats.Msts.FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken token)
         {
             ArgumentNullException.ThrowIfNull(folder);
-            ArgumentNullException.ThrowIfNull(route);
+            ArgumentNullException.ThrowIfNull(routeFolder);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
                 List<Activity> result = new List<Activity>();
-                string activitiesDirectory = route.RouteFolder.ActivitiesFolder;
+                string activitiesDirectory = routeFolder.ActivitiesFolder;
                 result.Add(DefaultExploreActivity);
                 result.Add(ExploreThroughActivity);
 
@@ -138,7 +138,7 @@ namespace FreeTrainSimulator.Models.Simplified
                     TransformBlock<string, Activity> inputBlock = new TransformBlock<string, Activity>
                         (activityFile =>
                         {
-                            return FromPath(activityFile, folder, route);
+                            return FromPath(activityFile, folder, routeFolder);
                         },
                         new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
 

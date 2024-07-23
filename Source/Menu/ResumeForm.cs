@@ -49,6 +49,7 @@ Some problems remain (see comments in the code):
 */
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -59,6 +60,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Independent.Environment;
 using FreeTrainSimulator.Models.Simplified;
 
 using GetText;
@@ -74,9 +76,9 @@ namespace Orts.Menu
     public partial class ResumeForm : Form
     {
         private readonly UserSettings settings;
-        private readonly Route route;
+        private readonly RouteModel route;
         private readonly Activity activity;
-        private readonly IEnumerable<Route> globalRoutes;
+        private readonly FrozenSet<RouteModel> globalRoutes;
         private readonly TimetableInfo timeTable;
         private List<SavePoint> savePoints = new List<SavePoint>();
         private CancellationTokenSource ctsLoader;
@@ -87,7 +89,7 @@ namespace Orts.Menu
 
         private readonly Catalog catalog;
 
-        internal ResumeForm(UserSettings settings, Route route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable, IEnumerable<Route> mainRoutes)
+        internal ResumeForm(UserSettings settings, RouteModel route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable, FrozenSet<RouteModel> mainRoutes)
         {
             catalog = CatalogManager.Catalog;
             globalRoutes = mainRoutes;
@@ -109,12 +111,12 @@ namespace Orts.Menu
 
             if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
             {
-                Text += $" - {route.Name} - {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
+                Text += $" - {route.RouteName} - {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
                 pathNameDataGridViewTextBoxColumn.Visible = true;
             }
             else
             {
-                Text += $" - {route.Name} - {(activity.GetType() == typeof(Activity) ? activity.Name : activity is ExploreThroughActivity ? catalog.GetString("Explore in Activity Mode") : catalog.GetString("Explore Route"))}";
+                Text += $" - {route.RouteName} - {(activity.GetType() == typeof(Activity) ? activity.Name : activity is ExploreThroughActivity ? catalog.GetString("Explore in Activity Mode") : catalog.GetString("Explore Route"))}";
                 pathNameDataGridViewTextBoxColumn.Visible = activity.FilePath == null;
             }
 
@@ -184,7 +186,7 @@ namespace Orts.Menu
                 prefix = $"ea${Path.GetFileName(route.Path)}$";
             }
 
-            savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder, prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).OrderByDescending(s => s.RealTime).ToList();
+            savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder, prefix, route.RouteName, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).OrderByDescending(s => s.RealTime).ToList();
             saveBindingSource.DataSource = savePoints;
 
             labelInvalidSaves.Text = catalog.GetString(

@@ -65,14 +65,14 @@ namespace FreeTrainSimulator.Models.Simplified
             return Description;
         }
 
-        public static async Task<IEnumerable<TimetableInfo>> GetTimetableInfo(Route route, CancellationToken token)
+        public static async Task<IEnumerable<TimetableInfo>> GetTimetableInfo(Orts.Formats.Msts.FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken token)
         {
-            ArgumentNullException.ThrowIfNull(route);
+            ArgumentNullException.ThrowIfNull(routeFolder);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
                 List<TimetableInfo> result = new List<TimetableInfo>();
-                string orActivitiesDirectory = route.RouteFolder.OpenRailsActivitiesFolder;
+                string orActivitiesDirectory = routeFolder.OpenRailsActivitiesFolder;
 
                 if (Directory.Exists(orActivitiesDirectory))
                 {
@@ -127,13 +127,13 @@ namespace FreeTrainSimulator.Models.Simplified
         public string FullName => fileDetails.FullName;
 
         // get weatherfiles
-        public static async Task<IEnumerable<WeatherFileInfo>> GetTimetableWeatherFiles(Route route, CancellationToken token)
+        public static async Task<IEnumerable<WeatherFileInfo>> GetTimetableWeatherFiles(Orts.Formats.Msts.FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken token)
         {
-            ArgumentNullException.ThrowIfNull(route);
+            ArgumentNullException.ThrowIfNull(routeFolder);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
-                string weatherDirectory = route.RouteFolder.WeatherFolder;
+                string weatherDirectory = routeFolder.WeatherFolder;
 
                 List<WeatherFileInfo> result = new List<WeatherFileInfo>();
                 if (Directory.Exists(weatherDirectory))

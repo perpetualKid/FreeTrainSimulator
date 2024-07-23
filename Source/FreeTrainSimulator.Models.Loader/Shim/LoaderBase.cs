@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<T> FromFile<T>(string fileName, CancellationToken cancellationToken) where T : ModelBase
         {
-            fileName = fileName + SaveStateExtension;
+            fileName += SaveStateExtension;
             if (File.Exists(fileName))
             {
                 using (FileStream saveFile = new FileStream(fileName, FileMode.Open, FileAccess.Read))
@@ -37,7 +37,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask ToFile<T>(string fileName, T model, CancellationToken cancellationToken) where T : ModelBase
         {
-            fileName = fileName + SaveStateExtension;
+            ArgumentNullException.ThrowIfNull(model, nameof(model));
+
+            fileName += SaveStateExtension;
             model.Version = CurrentVersion;
             using (FileStream saveFile = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {

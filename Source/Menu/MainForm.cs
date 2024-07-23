@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Configuration;
@@ -33,6 +34,8 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Independent.Environment;
+using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 using FreeTrainSimulator.Online.Client;
 using FreeTrainSimulator.Updater;
@@ -40,6 +43,7 @@ using FreeTrainSimulator.Updater;
 using GetText;
 using GetText.WindowsForms;
 
+using Orts.Formats.Msts;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.Settings;
@@ -79,7 +83,7 @@ namespace Orts.Menu
         private bool initialized;
         private UserSettings settings;
         private IEnumerable<Folder> folders = Array.Empty<Folder>();
-        private IEnumerable<Route> routes = Array.Empty<Route>();
+        private FrozenSet<RouteModel> routeModels = FrozenSet<RouteModel>.Empty;
         private IEnumerable<Activity> activities = Array.Empty<Activity>();
         private IEnumerable<Consist> consists = Array.Empty<Consist>();
         private IEnumerable<Path> paths = Array.Empty<Path>();
@@ -90,7 +94,7 @@ namespace Orts.Menu
         private CancellationTokenSource ctsConsistLoading;
         private CancellationTokenSource ctsPathLoading;
         private CancellationTokenSource ctsTimeTableLoading;
-        private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
+        private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         private readonly ResourceManager resources = new ResourceManager("Orts.Menu.Properties.Resources", typeof(MainForm).Assembly);
         private UpdateManager updateManager;
@@ -100,7 +104,7 @@ namespace Orts.Menu
         #region current selection to be passed a startup parameters
         // Base items
         internal Folder SelectedFolder => (Folder)comboBoxFolder.SelectedItem;
-        internal Route SelectedRoute => (Route)comboBoxRoute.SelectedItem;
+        internal RouteModel SelectedRoute => (RouteModel)comboBoxRoute.SelectedItem;
 
         // Activity mode items
         internal Activity SelectedActivity => (Activity)comboBoxActivity.SelectedItem;
@@ -489,7 +493,7 @@ namespace Orts.Menu
             {
                 int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
                 SelectedTimetableConsist = Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
-                Path path = Path.GetPath(SelectedRoute, selectedTrain.Path);
+                Path path = Path.GetPath(FolderStructure.Route(SelectedRoute.Path), selectedTrain.Path);
                 SelectedTimetablePath = path.PlayerPath ? path : null;
 
                 if (updater == 0)
@@ -649,7 +653,7 @@ namespace Orts.Menu
                 return;
             }
 
-            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, routes))
+            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, routeModels))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
@@ -677,7 +681,7 @@ namespace Orts.Menu
             settings.Multiplayer_Port = mpHost.Length > 1 && int.TryParse(mpHost[1], out int port) ? port : (int)settings.GetDefaultValue("Multiplayer_Port");
 
             ConnectivityClient client = new ConnectivityClient(settings.Multiplayer_Host, settings.Multiplayer_Port, CancellationToken.None, true);
-            bool result = await client.Ping();
+            bool result = await client.Ping().ConfigureAwait(true);
             MessageBox.Show($"Connectivity test {(result ? "succeeded" : "failed")}!", "Multiplayer Connection", MessageBoxButtons.OK, result ? MessageBoxIcon.Information : MessageBoxIcon.Exclamation);
         }
 
@@ -828,11 +832,11 @@ namespace Orts.Menu
             Folder selectedFolder = SelectedFolder;
             try
             {
-                routes = (await Route.GetRoutes(selectedFolder, ctsRouteLoading.Token).ConfigureAwait(true)).OrderBy(r => r.Name);
+                routeModels = await RouteLoader.GetRoutes(selectedFolder.ContentFolder, ctsRouteLoading.Token).ConfigureAwait(true);
             }
             catch (TaskCanceledException)
             {
-                routes = Array.Empty<Route>();
+                routeModels = FrozenSet<RouteModel>.Empty;
             }
             //cleanout existing data
             ShowRouteList();
@@ -848,13 +852,13 @@ namespace Orts.Menu
             {
                 comboBoxRoute.BeginUpdate();
                 comboBoxRoute.Items.Clear();
-                comboBoxRoute.Items.AddRange(routes.ToArray());
+                comboBoxRoute.Items.AddRange(routeModels.OrderBy(r => r.RouteName).ToArray());
             }
             finally
             {
                 comboBoxRoute.EndUpdate();
             }
-            UpdateFromMenuSelection<Route>(comboBoxRoute, MenuSelectionIndex.Route, r => r.Path);
+            UpdateFromMenuSelection<RouteModel>(comboBoxRoute, MenuSelectionIndex.Route, r => r.Path);
             if (settings.Menu_Selection.Length > (int)MenuSelectionIndex.Activity)
             {
                 string path = settings.Menu_Selection[(int)MenuSelectionIndex.Activity]; // Activity or Timetable
@@ -884,10 +888,10 @@ namespace Orts.Menu
             }
 
             Folder selectedFolder = SelectedFolder;
-            Route selectedRoute = SelectedRoute;
+            RouteModel selectedRoute = SelectedRoute;
             try
             {
-                activities = (await Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token).ConfigureAwait(true)).OrderBy(a => a.Name);
+                activities = (await Activity.GetActivities(selectedFolder, FolderStructure.Route(selectedRoute.Path), ctsActivityLoading.Token).ConfigureAwait(true)).OrderBy(a => a.Name);
             }
             catch (TaskCanceledException)
             {
@@ -1032,10 +1036,10 @@ namespace Orts.Menu
             ShowStartAtList();
             ShowHeadToList();
 
-            Route selectedRoute = SelectedRoute;
+            RouteModel selectedRoute = SelectedRoute;
             try
             {
-                paths = (await Path.GetPaths(selectedRoute, false, ctsPathLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
+                paths = (await Path.GetPaths(FolderStructure.Route(selectedRoute.Path), false, ctsPathLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
             }
             catch (TaskCanceledException)
             {
@@ -1185,11 +1189,11 @@ namespace Orts.Menu
             ShowTimetableSetList();
 
             Folder selectedFolder = SelectedFolder;
-            Route selectedRoute = SelectedRoute;
+            RouteModel selectedRoute = SelectedRoute;
             try
             {
-                timetableSets = (await TimetableInfo.GetTimetableInfo(selectedRoute, ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(tt => tt.Description);
-                timetableWeatherFileSet = (await WeatherFileInfo.GetTimetableWeatherFiles(selectedRoute, ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
+                timetableSets = (await TimetableInfo.GetTimetableInfo(FolderStructure.Route(selectedRoute.Path), ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(tt => tt.Description);
+                timetableWeatherFileSet = (await WeatherFileInfo.GetTimetableWeatherFiles(FolderStructure.Route(selectedRoute.Path), ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
             }
             catch (TaskCanceledException)
             {
@@ -1308,7 +1312,7 @@ namespace Orts.Menu
         {
             ClearDetails();
             if (SelectedRoute != null && SelectedRoute.Description != null)
-                AddDetailToShow(catalog.GetString("Route: {0}", SelectedRoute.Name), SelectedRoute.Description);
+                AddDetailToShow(catalog.GetString("Route: {0}", SelectedRoute.RouteName), SelectedRoute.Description);
 
             if (radioButtonModeActivity.Checked)
             {

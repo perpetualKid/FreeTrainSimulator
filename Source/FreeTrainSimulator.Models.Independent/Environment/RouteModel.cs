@@ -25,5 +25,10 @@ namespace FreeTrainSimulator.Models.Independent.Environment
         {
             this.routeStart = routeStart;
         }
+
+        public override string ToString()
+        {
+            return RouteName;
+        }
     }
 }

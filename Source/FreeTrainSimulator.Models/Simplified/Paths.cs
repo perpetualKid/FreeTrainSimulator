@@ -91,16 +91,16 @@ namespace FreeTrainSimulator.Models.Simplified
         /// <summary>
         /// Return a list of paths that belong to the given route.
         /// </summary>
-        /// <param name="route">The Route for which the paths need to be found</param>
+        /// <param name="routeFolder">The Route for which the paths need to be found</param>
         /// <param name="includeNonPlayerPaths">Selects whether non-player paths are included or not</param>
-        public static async Task<IEnumerable<Path>> GetPaths(Route route, bool includeNonPlayerPaths, CancellationToken token)
+        public static async Task<IEnumerable<Path>> GetPaths(Orts.Formats.Msts.FolderStructure.ContentFolder.RouteFolder routeFolder, bool includeNonPlayerPaths, CancellationToken token)
         {
-            ArgumentNullException.ThrowIfNull(route);
+            ArgumentNullException.ThrowIfNull(routeFolder);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
                 List<Path> result = new List<Path>();
-                string pathsDirectory = route.RouteFolder.PathsFolder;
+                string pathsDirectory = routeFolder.PathsFolder;
 
                 if (Directory.Exists(pathsDirectory))
                 {
@@ -194,11 +194,11 @@ namespace FreeTrainSimulator.Models.Simplified
         /// </summary>
         /// <param name="route">The Route for which the paths need to be found</param>
         /// <param name="name">The (file) name of the path, without directory, any extension allowed</param>
-        public static Path GetPath(Route route, string name)
+        public static Path GetPath(Orts.Formats.Msts.FolderStructure.ContentFolder.RouteFolder route, string name)
         {
             ArgumentNullException.ThrowIfNull(route);
 
-            string file = route.RouteFolder.PathFile(name);
+            string file = route.PathFile(name);
             return new Path(file);
         }
 

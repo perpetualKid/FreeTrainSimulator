@@ -87,7 +87,7 @@ namespace FreeTrainSimulator.Dispatcher
             lock (routeModels)
             {
                 if (ctsRouteLoading != null && !ctsRouteLoading.IsCancellationRequested)
-                    ctsRouteLoading.Cancel();
+                    ctsRouteLoading.CancelAsync();
                 ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
             }
 
