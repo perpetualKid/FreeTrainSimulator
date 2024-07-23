@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
@@ -133,7 +132,7 @@ namespace Orts.Formats.Msts.Models
                 Description = Description,
                 MetricUnits = MilepostUnitsMetric,
                 RouteId = RouteID,
-                Version = "1.0",
+                EnvironmentConditions = new EnumArray2D<string, SeasonType, WeatherType>(Environment.GetEnvironmentFileName)
             };
             // if no values are in TRK file, calculate default values.
             // Single track Tunnels

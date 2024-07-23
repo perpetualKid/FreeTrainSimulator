@@ -106,7 +106,7 @@ namespace FreeTrainSimulator.Toolbox
             content.UpdateWidgetColorSettings(Settings.ColorSettings);
             content.ContentArea.FontOutlineOptions = Settings.OutlineFont ? OutlineRenderOptions.Default : null;
             ContentArea = content.ContentArea;
-            mainmenu.PopulatePaths((TrackData.GameInstance(this) as TrackData).TrainPaths);
+            mainmenu.PopulatePaths((Orts.Formats.Msts.RuntimeData.GameInstance(this) as TrackData).TrainPaths);
             windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
         }
@@ -126,7 +126,6 @@ namespace FreeTrainSimulator.Toolbox
             if (routeSelection?.Length > 0)
             {
                 Folder folder = mainmenu.SelectContentFolder(routeSelection[0]);
-//                await FindRoutes(folder).ConfigureAwait(false);
 
                 if (routeSelection.Length > 1 && Settings.RestoreLastView)
                 {
@@ -138,7 +137,7 @@ namespace FreeTrainSimulator.Toolbox
                         if (pathSelection.Length > 0)
                         {
                             // only restore first path for now
-                            Path path = (TrackData.GameInstance(this) as TrackData).TrainPaths?.Where(p => p.FilePath.Equals(pathSelection[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                            Path path = (Orts.Formats.Msts.RuntimeData.GameInstance(this) as TrackData).TrainPaths?.Where(p => p.FilePath.Equals(pathSelection[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                             if (null != path)
                             {
                                 if (LoadPath(path))

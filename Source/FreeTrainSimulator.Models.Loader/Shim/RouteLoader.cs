@@ -5,7 +5,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Independent;
 using FreeTrainSimulator.Models.Independent.Environment;
 
 using Orts.Formats.Msts;
@@ -20,7 +19,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             string routeName = Path.GetFileName(routePath);
 
             string routeModelFile = Path.Combine(routePath, routeName + ".route");
-            RouteModel route = await ModelBase.FromFile<RouteModel>(routeModelFile, cancellationToken).ConfigureAwait(false);
+            RouteModel route = await FromFile<RouteModel>(routeModelFile, cancellationToken).ConfigureAwait(false);
 
             if (route == null)
             {
@@ -30,9 +29,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 RouteFile routeFile = new RouteFile(trkFilePath);
                 route = routeFile.Route.RouteData;
 
-                await ModelBase.ToFile(routeModelFile, route, cancellationToken).ConfigureAwait(false);
+                await ToFile(routeModelFile, route, cancellationToken).ConfigureAwait(false);
             }
-
             return route;
         }
 
