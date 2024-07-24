@@ -6,6 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
+using FreeTrainSimulator.Models.Independent.Environment;
+using FreeTrainSimulator.Models.Loader.Shim;
+
 using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Models.Simplified
@@ -23,10 +26,10 @@ namespace FreeTrainSimulator.Models.Simplified
         public string Load { get; set; }
         public string FPS { get; set; }
 
-        private TestActivity(Folder folder, Route route, Activity activity)
+        private TestActivity(Folder folder, string routeName, Activity activity)
         {
-            DefaultSort = $"{folder.Name}/{route.Name}/{activity.Name}";
-            Route = route.Name;
+            DefaultSort = $"{folder.Name}/{routeName}/{activity.Name}";
+            Route = routeName;
             Activity = activity.Name;
             ActivityFilePath = activity.FilePath;
         }
@@ -53,28 +56,28 @@ namespace FreeTrainSimulator.Models.Simplified
                     },
                         new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
 
-                TransformManyBlock<(Folder, string), (Folder, Route, string)> routeBlock = new TransformManyBlock<(Folder folder, string routeDirectory), (Folder, Route, string)>
+                TransformManyBlock<(Folder, string), (Folder, string, string)> routeBlock = new TransformManyBlock<(Folder folder, string routeDirectory), (Folder, string, string)>
                     (routeFile =>
                     {
                         if (FolderStructure.Route(routeFile.routeDirectory).Valid)
                         {
-                            Route route = new Route(routeFile.routeDirectory);
-                            string activitiesDirectory = route.RouteFolder.ActivitiesFolder;
+                            RouteModel routeModel = RouteLoader.LoadRoute(routeFile.routeDirectory, CancellationToken.None).Result;
+                            string activitiesDirectory = FolderStructure.Route(routeModel.Path).ActivitiesFolder;
                             if (Directory.Exists(activitiesDirectory))
                             {
-                                return Directory.EnumerateFiles(activitiesDirectory, "*.act").Select(a => (routeFile.folder, route, a));
+                                return Directory.EnumerateFiles(activitiesDirectory, "*.act").Select(a => (routeFile.folder, routeModel.RouteName, a));
                             }
                         }
-                        return Array.Empty<(Folder, Route, string)>();
+                        return Array.Empty<(Folder, string, string)>();
 
                     },
                     new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
 
-                TransformBlock<(Folder, Route, string), TestActivity> activityBlock = new TransformBlock<(Folder folder, Route route, string activity), TestActivity>
+                TransformBlock<(Folder, string, string), TestActivity> activityBlock = new TransformBlock<(Folder folder, string routeName, string activity), TestActivity>
                     (activityInput =>
                     {
                         Activity activity = Simplified.Activity.FromPathShallow(activityInput.activity);
-                        return activity != null ? new TestActivity(activityInput.folder, activityInput.route, activity) : null;
+                        return activity != null ? new TestActivity(activityInput.folder, activityInput.routeName, activity) : null;
                     },
                     new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
 
