@@ -5,6 +5,7 @@
     <OutputPath>..\..\Program</OutputPath>
     <AssemblyName>FreeTrainSimulator.Models</AssemblyName>
     <RootNamespace>FreeTrainSimulator.Models</RootNamespace>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />

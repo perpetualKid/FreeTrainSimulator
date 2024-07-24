@@ -3,6 +3,7 @@
     <Description>Free Train Simulator Simulation Library</Description>
     <AssemblyTitle>Free Train Simulator Simulation Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Common\**" />

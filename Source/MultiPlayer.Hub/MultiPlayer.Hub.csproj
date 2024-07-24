@@ -5,6 +5,7 @@
 		<AssemblyTitle>Free Train Simulator Multiplayer Hub</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
 		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
+		<Configurations>Debug;Release;CodeAnalysis</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
 	  <PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.2-preview" />

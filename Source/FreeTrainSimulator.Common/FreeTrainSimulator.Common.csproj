@@ -3,6 +3,7 @@
 		<Description>Free Train Simulator Common Library</Description>
 		<AssemblyTitle>Free Train Simulator Common Library</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
+		<Configurations>Debug;Release;CodeAnalysis</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="MemoryPack" Version="1.21.1" />

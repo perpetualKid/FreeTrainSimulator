@@ -8,6 +8,7 @@
 	<RootNamespace>Orts.SimulatorTester</RootNamespace>
 	<AssemblyName>Contrib.SimulatorTester</AssemblyName>
 	<ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
+	<Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />

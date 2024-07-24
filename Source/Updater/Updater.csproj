@@ -8,6 +8,7 @@
     <OutputPath>..\..\Program</OutputPath>
     <RootNamespace>FreeTrainSimulator.Updater</RootNamespace>
     <ApplicationIcon>..\FTS.ico</ApplicationIcon>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="GetText.NET" Version="1.9.14" />

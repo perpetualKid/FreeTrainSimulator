@@ -3,6 +3,7 @@
     <Description>Free Train Simulator MSTS Formats Library</Description>
     <AssemblyTitle>Free Train Simulator MSTS Formats Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />

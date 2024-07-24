@@ -8,6 +8,7 @@
 		<OutputPath>..\..\Program</OutputPath>
 		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 		<RootNamespace>Orts.ActivityRunner</RootNamespace>
+		<Configurations>Debug;Release;CodeAnalysis</Configurations>
 	</PropertyGroup>
 	<PropertyGroup>
 		<ServerGarbageCollection>true</ServerGarbageCollection>
@@ -16,6 +17,10 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DefineConstants>TRACE;DEBUG;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
 		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CodeAnalysis|AnyCPU'">
+	  <DefineConstants>TRACE;DEBUG;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
+	  <PlatformTarget>AnyCPU</PlatformTarget>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<DefineConstants>TRACE;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>

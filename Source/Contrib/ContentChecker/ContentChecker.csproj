@@ -9,6 +9,7 @@
     <RootNamespace>Orts.ContentChecker</RootNamespace>
     <AssemblyName>Contrib.ContentChecker</AssemblyName>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />

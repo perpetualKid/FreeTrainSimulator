@@ -3,6 +3,7 @@
     <Description>Free Train Simulator Updater Library</Description>
     <AssemblyTitle>Free Train Simulator Updater Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

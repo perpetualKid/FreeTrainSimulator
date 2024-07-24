@@ -5,6 +5,7 @@
 		<OutputPath>..\..\Program</OutputPath>
 		<AssemblyName>FreeTrainSimulator.Models.Loader</AssemblyName>
 		<RootNamespace>FreeTrainSimulator.Models.Loader</RootNamespace>
+		<Configurations>Debug;Release;CodeAnalysis</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />

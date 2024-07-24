@@ -9,6 +9,7 @@
     <RootNamespace>ORTS.TrackViewer</RootNamespace>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
     <AssemblyName>Contrib.TrackViewer</AssemblyName>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Editing\EditorContextMenu.cs" />

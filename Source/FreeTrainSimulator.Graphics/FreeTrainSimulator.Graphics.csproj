@@ -7,6 +7,7 @@
 		<AssemblyName>FreeTrainSimulator.Graphics</AssemblyName>
 		<RootNamespace>FreeTrainSimulator.Graphics</RootNamespace>
 		<RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+		<Configurations>Debug;Release;CodeAnalysis</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
 		<EmbeddedResource Include="Resources\ActiveBrokenNode.png" />

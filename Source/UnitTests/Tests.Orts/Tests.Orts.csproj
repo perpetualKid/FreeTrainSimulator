@@ -3,6 +3,7 @@
     <IsPackable>false</IsPackable>
     <Description>Free Train Simulator Unit Tests</Description>
     <AssemblyTitle>Free Train Simulator Unit Tests</AssemblyTitle>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
