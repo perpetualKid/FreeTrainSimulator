@@ -25,13 +25,19 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             {
                 FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(routePath);
 
-                string trkFilePath = routeFolder.TrackFileName;
-                RouteFile routeFile = new RouteFile(trkFilePath);
-                route = routeFile.Route.RouteData;
+                if (routeFolder.Valid)
+                {
+                    string trkFilePath = routeFolder.TrackFileName;
+                    RouteFile routeFile = new RouteFile(trkFilePath);
+                    route = routeFile.Route.RouteData;
 
-                await ToFile(routeModelFile, route, cancellationToken).ConfigureAwait(false);
+                    await ToFile(routeModelFile, route, cancellationToken).ConfigureAwait(false);
+                }
             }
-            route.Path = routePath;
+            if (route != null)
+            {
+                route.Path = routePath;
+            }
             return route;
 
         }
