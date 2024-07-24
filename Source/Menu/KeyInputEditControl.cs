@@ -99,7 +99,7 @@ namespace Orts.Menu
                     Xna.Keys virtualKeyCode = (Xna.Keys)Marshal.ReadInt32(lParam);
                     int scanCode = (int)(Marshal.ReadInt64(lParam) >> 32);
 
-                    switch ((int)wParam)
+                    switch (wParam)
                     {
                         case WM_KEYDOWN:
                         case WM_SYSKEYDOWN:

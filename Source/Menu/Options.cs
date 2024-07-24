@@ -38,6 +38,9 @@ namespace Orts.Menu
 {
     public partial class OptionsForm : Form
     {
+        [GeneratedRegex(@"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$")] //capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
+        private static partial Regex WindowSizeRegex();
+
         private readonly UserSettings settings;
         private readonly UpdateManager updateManager;
 
@@ -390,10 +393,11 @@ namespace Orts.Menu
         /// </summary>
         private int[] GetValidWindowSize(string text)
         {
-            Match match = Regex.Match(text, @"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$");//capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
+            Match match = WindowSizeRegex().Match(text);//capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
             if (match.Success)
             {
-                return new int[2] { int.Parse(match.Groups[1].ValueSpan), int.Parse(match.Groups[2].ValueSpan) };
+                if (int.TryParse(match.Groups[1].ValueSpan, out int width) && int.TryParse(match.Groups[2].ValueSpan, out int height))
+                    return new int[] { width, height };
             }
             return settings.WindowSettings[WindowSetting.Size]; // i.e. no change or message. Just ignore non-numeric entries
         }
@@ -537,7 +541,7 @@ namespace Orts.Menu
         {
             if (bindingSourceContent.Current is ContentFolder current && current.Name != textBoxContentName.Text)
             {
-                if (!Path.GetRelativePath(RuntimeInfo.ProgramRoot, current.Path).StartsWith(".."))
+                if (!Path.GetRelativePath(RuntimeInfo.ProgramRoot, current.Path).StartsWith("..", StringComparison.OrdinalIgnoreCase))
                 {
                     // Block added because a succesful Update operation will empty the Open Rails folder and lose any content stored within it.
                     MessageBox.Show(catalog.GetString
