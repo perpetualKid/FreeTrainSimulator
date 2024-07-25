@@ -23,7 +23,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 using (FileStream saveFile = new FileStream(fileName, FileMode.Open, FileAccess.Read))
                 {
                     T model = await MemoryPackSerializer.DeserializeAsync<T>(saveFile, null, cancellationToken).ConfigureAwait(false);
-                    
+
                     if (VersionInfo.Compare(model.Version) > 0)
                         model = null;
                     return model;
@@ -37,7 +37,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
             fileName += SaveStateExtension;
-            model.Version = CurrentVersion;
+
+            if (VersionInfo.Compare(model.Version) > 0)
+                model.Version = CurrentVersion;
             using (FileStream saveFile = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
                 await MemoryPackSerializer.SerializeAsync(saveFile, model, null, cancellationToken).ConfigureAwait(false);
