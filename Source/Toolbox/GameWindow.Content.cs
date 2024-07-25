@@ -83,11 +83,7 @@ namespace FreeTrainSimulator.Toolbox
             windowManager[ToolboxWindowType.StatusWindow].Open();
             UnloadRoute();
 
-            await loadRoutesSemaphore.WaitAsync().ConfigureAwait(false);
-            if (ctsRouteLoading != null && !ctsRouteLoading.IsCancellationRequested)
-                await ctsRouteLoading.CancelAsync().ConfigureAwait(false);
-            ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
-            loadRoutesSemaphore.Release();
+            ctsRouteLoading = await ResetCancellationTokenSource(loadRoutesSemaphore, ctsRouteLoading);
 
             CancellationToken token = ctsRouteLoading.Token;
 
@@ -162,12 +158,21 @@ namespace FreeTrainSimulator.Toolbox
             PathEditor.InitializePath(null);
         }
 
-        private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)
+        private static async ValueTask<CancellationTokenSource> ResetCancellationTokenSource(SemaphoreSlim semaphore, CancellationTokenSource cts)
         {
-            cts?.Dispose();
-            // Create a new cancellation token source so that can cancel all the tokens again 
-            return new CancellationTokenSource();
+            try
+            {
+                await semaphore.WaitAsync().ConfigureAwait(false);
+                if (cts != null && !cts.IsCancellationRequested)
+                    await cts.CancelAsync().ConfigureAwait(false);
+                cts?.Dispose();
+                // Create a new cancellation token source so that can cancel all the tokens again 
+                return new CancellationTokenSource();
+            }
+            finally
+            {
+                _ = semaphore.Release();
+            }
         }
-
     }
 }
