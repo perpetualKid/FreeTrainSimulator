@@ -20,9 +20,9 @@ namespace FreeTrainSimulator.Common.Info
 
         public const string WikiLink = "https://github.com/perpetualKid/FreeTrainSimulator/wiki";
 
-        public static string ApplicationName { get; } = FileVersionInfo.GetVersionInfo(Assembly.GetCallingAssembly().Location).FileDescription;
+        public static string ApplicationName => FileVersionInfo.GetVersionInfo(Assembly.GetCallingAssembly().Location).FileDescription;
 
-        public static string ApplicationFile { get; } = Path.GetFileName(Assembly.GetCallingAssembly().Location);
+        public static string ApplicationFile => Path.GetFileName(Assembly.GetCallingAssembly().Location);
         /// <summary>
         /// returns the current application base directory, i.e. Program\netcoreapp3.1
         /// </summary>
