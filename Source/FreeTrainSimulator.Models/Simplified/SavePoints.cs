@@ -62,7 +62,7 @@ namespace FreeTrainSimulator.Models.Simplified
                             // In case you receive a SavePack where the activity is recognised but the route has been renamed.
                             // Checks the route is not in your list of routes.
                             // If so, add it with a warning.
-                            else if (mainRoutes != null && !mainRoutes.Any(route => route.RouteName == gameSaveState.RouteName))
+                            else if (mainRoutes != null && !mainRoutes.Any(route => route.Name == gameSaveState.RouteName))
                             {
                                 if (!gameSaveState.IsMultiplayer ^ multiPlayer)
                                 {

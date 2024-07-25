@@ -111,12 +111,12 @@ namespace Orts.Menu
 
             if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
             {
-                Text += $" - {route.RouteName} - {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
+                Text += $" - {route.Name} - {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
                 pathNameDataGridViewTextBoxColumn.Visible = true;
             }
             else
             {
-                Text += $" - {route.RouteName} - {(activity.GetType() == typeof(Activity) ? activity.Name : activity is ExploreThroughActivity ? catalog.GetString("Explore in Activity Mode") : catalog.GetString("Explore Route"))}";
+                Text += $" - {route.Name} - {(activity.GetType() == typeof(Activity) ? activity.Name : activity is ExploreThroughActivity ? catalog.GetString("Explore in Activity Mode") : catalog.GetString("Explore Route"))}";
                 pathNameDataGridViewTextBoxColumn.Visible = activity.FilePath == null;
             }
 
@@ -186,7 +186,7 @@ namespace Orts.Menu
                 prefix = $"ea${Path.GetFileName(route.Path)}$";
             }
 
-            savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder, prefix, route.RouteName, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).OrderByDescending(s => s.RealTime).ToList();
+            savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder, prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).OrderByDescending(s => s.RealTime).ToList();
             saveBindingSource.DataSource = savePoints;
 
             labelInvalidSaves.Text = catalog.GetString(

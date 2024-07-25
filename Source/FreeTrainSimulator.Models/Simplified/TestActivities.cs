@@ -65,7 +65,7 @@ namespace FreeTrainSimulator.Models.Simplified
                             string activitiesDirectory = FolderStructure.Route(routeModel.Path).ActivitiesFolder;
                             if (Directory.Exists(activitiesDirectory))
                             {
-                                return Directory.EnumerateFiles(activitiesDirectory, "*.act").Select(a => (routeFile.folder, routeModel.RouteName, a));
+                                return Directory.EnumerateFiles(activitiesDirectory, "*.act").Select(a => (routeFile.folder, routeModel.Name, a));
                             }
                         }
                         return Array.Empty<(Folder, string, string)>();

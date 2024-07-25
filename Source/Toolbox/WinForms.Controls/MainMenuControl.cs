@@ -188,9 +188,9 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             {
                 SuspendLayout();
                 menuItemRoutes.DropDownItems.Clear();
-                foreach (RouteModel route in routes.OrderBy(r => r.RouteName))
+                foreach (RouteModel route in routes.OrderBy(r => r.Name))
                 {
-                    ToolStripMenuItem routeItem = new ToolStripMenuItem(route.RouteName)
+                    ToolStripMenuItem routeItem = new ToolStripMenuItem(route.Name)
                     {
                         Tag = route,
                     };

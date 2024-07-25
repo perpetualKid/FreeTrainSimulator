@@ -352,11 +352,11 @@ namespace ORTS.TrackViewer.UserInterface
         {
             menuSelectRoute.Items.Clear();
             if (trackViewer.Routes == null) return;
-            foreach (RouteModel route in trackViewer.Routes.OrderBy(r => r.RouteName))
+            foreach (RouteModel route in trackViewer.Routes.OrderBy(r => r.Name))
             {
                 MenuItem menuItem = new MenuItem
                 {
-                    Header = route.RouteName,
+                    Header = route.Name,
                     IsCheckable = false,
                     IsChecked = false
                 };
@@ -375,7 +375,7 @@ namespace ORTS.TrackViewer.UserInterface
             MenuItem selectedMenuItem = sender as MenuItem;
             foreach (RouteModel route in trackViewer.Routes)
             {
-                if (route.RouteName == (string)selectedMenuItem.Header)
+                if (route.Name == (string)selectedMenuItem.Header)
                 {
                     CloseOtherPathsWindow();
                     trackViewer.SetRoute(route);

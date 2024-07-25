@@ -842,7 +842,7 @@ namespace Orts.Menu
             {
                 comboBoxRoute.BeginUpdate();
                 comboBoxRoute.Items.Clear();
-                comboBoxRoute.Items.AddRange(routeModels.OrderBy(r => r.RouteName).ToArray());
+                comboBoxRoute.Items.AddRange(routeModels.OrderBy(r => r.Name).ToArray());
             }
             finally
             {
@@ -1260,7 +1260,7 @@ namespace Orts.Menu
         {
             ClearDetails();
             if (SelectedRoute != null && SelectedRoute.Description != null)
-                AddDetailToShow(catalog.GetString("Route: {0}", SelectedRoute.RouteName), SelectedRoute.Description);
+                AddDetailToShow(catalog.GetString("Route: {0}", SelectedRoute.Name), SelectedRoute.Description);
 
             if (radioButtonModeActivity.Checked)
             {

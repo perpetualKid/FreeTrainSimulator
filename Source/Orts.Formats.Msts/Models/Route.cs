@@ -128,7 +128,7 @@ namespace Orts.Formats.Msts.Models
         {
             RouteData = new RouteModel(RouteStart.Location)
             {
-                RouteName = Name,
+                Name = Name,
                 Description = Description,
                 MetricUnits = MilepostUnitsMetric,
                 RouteId = RouteID,

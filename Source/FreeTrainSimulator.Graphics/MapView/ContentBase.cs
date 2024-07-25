@@ -41,7 +41,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             if (null == RuntimeData.GameInstance(game))
                 throw new InvalidOperationException("RuntimeData not initialized!");
             ContentArea = new ContentArea(game, this);
-            RouteName = RuntimeData.GameInstance(game).RouteData.RouteName;
+            RouteName = RuntimeData.GameInstance(game).RouteData.Name;
             UseMetricUnits = RuntimeData.GameInstance(game).MetricUnits;
         }
 

@@ -11,7 +11,7 @@ namespace FreeTrainSimulator.Models.Independent.Environment
         private readonly WorldLocation routeStart;
 
         public const string Extension = ".route";
-        public string RouteName { get; init; }
+        public string Name { get; init; }
         public string RouteId { get; init; }
         public string Description { get; init; }
         public ref readonly WorldLocation RouteStart => ref routeStart;
@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Models.Independent.Environment
 
         public override string ToString()
         {
-            return RouteName;
+            return Name;
         }
     }
 }

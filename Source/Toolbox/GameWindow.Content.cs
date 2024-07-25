@@ -79,7 +79,7 @@ namespace FreeTrainSimulator.Toolbox
 
         internal async Task LoadRoute(RouteModel route)
         {
-            (windowManager[ToolboxWindowType.StatusWindow] as StatusTextWindow).RouteName = route.RouteName;
+            (windowManager[ToolboxWindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
             windowManager[ToolboxWindowType.StatusWindow].Open();
             UnloadRoute();
 
@@ -128,11 +128,11 @@ namespace FreeTrainSimulator.Toolbox
 
                 if (routeSelection.Length > 1 && Settings.RestoreLastView)
                 {
-                    RouteModel route = (routeModels ??= await FindRoutes(folder).ConfigureAwait(false))?.Where(r => r.RouteName.Equals(routeSelection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    RouteModel route = (routeModels ??= await FindRoutes(folder).ConfigureAwait(false))?.Where(r => r.Name.Equals(routeSelection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(false);
-                        mainmenu.PreSelectRoute(route.RouteName);
+                        mainmenu.PreSelectRoute(route.Name);
                         if (pathSelection.Length > 0)
                         {
                             // only restore first path for now

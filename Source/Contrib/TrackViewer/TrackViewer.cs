@@ -932,7 +932,7 @@ namespace ORTS.TrackViewer
                 routeTask.Wait();
             Routes = new Collection<RouteModel>(routeTask.Result.ToList());
             // set default route
-            DefaultRoute = Routes.Where(r => r.RouteName == Properties.Settings.Default.defaultRoute).FirstOrDefault() ?? Routes.FirstOrDefault();
+            DefaultRoute = Routes.Where(r => r.Name == Properties.Settings.Default.defaultRoute).FirstOrDefault() ?? Routes.FirstOrDefault();
                 menuControl.PopulateRoutes();
             return DefaultRoute != null;
         }
@@ -968,7 +968,7 @@ namespace ORTS.TrackViewer
                 drawLabels = new DrawLabels(TextManager.Instance.DefaultFont.Height);
                 CurrentRoute = newRoute;
 
-                Properties.Settings.Default.defaultRoute = CurrentRoute.RouteName;
+                Properties.Settings.Default.defaultRoute = CurrentRoute.Name;
                 if (Properties.Settings.Default.zoomRoutePath != CurrentRoute.Path)
                 {
                     Properties.Settings.Default.zoomScale = -1; // To disable the use of zoom reset
@@ -1025,7 +1025,7 @@ namespace ORTS.TrackViewer
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             AssemblyTitleAttribute assemblyTitle = assembly.GetCustomAttributes(typeof(AssemblyTitleAttribute), false)[0] as AssemblyTitleAttribute;
-            Window.Title = assemblyTitle.Title + ": " + RuntimeData.Instance.RouteData.RouteName;
+            Window.Title = assemblyTitle.Title + ": " + RuntimeData.Instance.RouteData.Name;
         }
 
         #endregion
@@ -1036,7 +1036,7 @@ namespace ORTS.TrackViewer
         /// </summary>
         private void FindPaths()
         {
-            Task<IEnumerable<Path>> task = Task.Run(() => Path.GetPaths(FolderStructure.Content(System.IO.Path.GetDirectoryName(CurrentRoute.Path)).Route(CurrentRoute.RouteName).PathsFolder, true, CancellationToken.None));
+            Task<IEnumerable<Path>> task = Task.Run(() => Path.GetPaths(FolderStructure.Content(System.IO.Path.GetDirectoryName(CurrentRoute.Path)).Route(CurrentRoute.Name).PathsFolder, true, CancellationToken.None));
             task.Wait();
             List<Path> newPaths = task.Result.OrderBy(r => r.Name).ToList();
             Paths = new Collection<Path>(newPaths);

@@ -57,7 +57,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);
-            DetailInfo["Route Name"] = RuntimeData.GameInstance(game).RouteData.RouteName;
+            DetailInfo["Route Name"] = RuntimeData.GameInstance(game).RouteData.Name;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
         }
 

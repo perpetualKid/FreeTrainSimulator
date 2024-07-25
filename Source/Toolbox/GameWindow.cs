@@ -256,7 +256,7 @@ namespace FreeTrainSimulator.Toolbox
             if (selectedFolder != null)
             {
                 routeSelection = selectedRoute != null ?
-                    (new string[] { selectedFolder.Name, selectedRoute.RouteName }) :
+                    (new string[] { selectedFolder.Name, selectedRoute.Name }) :
                     (new string[] { selectedFolder.Name });
 
                 pathSelection = new string[] { string.IsNullOrEmpty(PathEditor?.FilePath) ? string.Empty : PathEditor.FilePath };
