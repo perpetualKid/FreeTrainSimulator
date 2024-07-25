@@ -1563,7 +1563,7 @@ namespace Orts.Menu
         }
         #endregion
 
-        private static async Task<CancellationTokenSource> ResetCancellationTokenSource(SemaphoreSlim semaphore, CancellationTokenSource cts, bool cancel)
+        private static async ValueTask<CancellationTokenSource> ResetCancellationTokenSource(SemaphoreSlim semaphore, CancellationTokenSource cts, bool cancel)
         {
             try
             {
