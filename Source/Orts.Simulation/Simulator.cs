@@ -1313,11 +1313,10 @@ namespace Orts.Simulation
             InitialLocation = Trains[0].FrontTDBTraveller.WorldLocation;
 
             PlayerLocomotive = InitialPlayerLocomotive();
-            if ((conFile.Train.MaxVelocity == null) ||
-                ((conFile.Train.MaxVelocity.A <= 0f) || (conFile.Train.MaxVelocity.A == 40f)))
-                train.TrainMaxSpeedMpS = Math.Min((float)Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
-            else
-                train.TrainMaxSpeedMpS = Math.Min((float)Route.SpeedLimit, conFile.Train.MaxVelocity.A);
+            train.TrainMaxSpeedMpS = (conFile.Train.MaxVelocity == null) ||
+                ((conFile.Train.MaxVelocity.A <= 0f) || (conFile.Train.MaxVelocity.A == 40f))
+                ? Math.Min((float)Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS)
+                : Math.Min((float)Route.SpeedLimit, conFile.Train.MaxVelocity.A);
 
             double prevEQres = train.BrakeSystem.EqualReservoirPressurePSIorInHg;
             train.AITrainBrakePercent = 100; //<CSComment> This seems a tricky way for the brake modules to test if it is an AI train or not
