@@ -66,9 +66,7 @@ namespace FreeTrainSimulator.Common.Info
 
         public static int Compare(string version)
         {
-            if (!NuGetVersion.TryParse(version, out NuGetVersion result))
-                return 1;
-            return CurrentVersion.CompareTo(result);
+            return !NuGetVersion.TryParse(version, out NuGetVersion result) ? 1 : CurrentVersion.CompareTo(result);
         }
 
         public static NuGetVersion GetBestAvailableVersion(IEnumerable<NuGetVersion> availableVersions, bool includePrerelease)
