@@ -34,6 +34,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{C42BE9F9-199A-4AAA-ACF6-C0E4A32263A8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ActivityRunner", "ActivityRunner\ActivityRunner.csproj", "{9BE44F64-417D-4AA6-AF4D-2A6A0CBC814D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{164D77AC-552C-49DD-A9E7-0369CCED6B49} = {164D77AC-552C-49DD-A9E7-0369CCED6B49}
+		{B574F717-4792-4748-BC26-BEF32E874489} = {B574F717-4792-4748-BC26-BEF32E874489}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContentChecker", "Contrib\ContentChecker\ContentChecker.csproj", "{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}"
 EndProject
