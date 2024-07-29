@@ -12,7 +12,6 @@ using FreeTrainSimulator.Graphics.Xna;
 
 using GetText;
 
-using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Shapes;

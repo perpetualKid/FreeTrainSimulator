@@ -6,12 +6,11 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Independent.Environment
 {
     [MemoryPackable]
-    public sealed partial class RouteModel: ModelBase
+    public sealed partial class RouteModel: ModelBase<RouteModel>
     {
         private readonly WorldLocation routeStart;
 
-        public const string Extension = ".route";
-        public string Name { get; init; }
+        //public override string FileExtension { get; init; } = ".route";
         public string RouteId { get; init; }
         public string Description { get; init; }
         public ref readonly WorldLocation RouteStart => ref routeStart;
@@ -20,9 +19,11 @@ namespace FreeTrainSimulator.Models.Independent.Environment
 
         [MemoryPackIgnore]
         public string Path { get; set; }
+        [MemoryPackIgnore]
+        public new string FileName => System.IO.Path.GetFileName(Path);
 
         public RouteModel(in WorldLocation routeStart)
-        {
+        { 
             this.routeStart = routeStart;
         }
 

@@ -82,7 +82,7 @@ namespace Orts.Menu
 
         private bool initialized;
         private UserSettings settings;
-        private IEnumerable<Folder> folders = Array.Empty<Folder>();
+        private FrozenSet<ContentFolderModel> contentFolderModels = FrozenSet<ContentFolderModel>.Empty;
         private FrozenSet<RouteModel> routeModels = FrozenSet<RouteModel>.Empty;
         private IEnumerable<Activity> activities = Array.Empty<Activity>();
         private IEnumerable<Consist> consists = Array.Empty<Consist>();
@@ -103,7 +103,7 @@ namespace Orts.Menu
 
         #region current selection to be passed a startup parameters
         // Base items
-        internal Folder SelectedFolder => (Folder)comboBoxFolder.SelectedItem;
+        internal ContentFolderModel SelectedFolder => (ContentFolderModel)comboBoxFolder.SelectedItem;
         internal RouteModel SelectedRoute => (RouteModel)comboBoxRoute.SelectedItem;
 
         // Activity mode items
@@ -713,7 +713,7 @@ namespace Orts.Menu
             }
             settings.Menu_Selection = new[] {
                 // Base items
-                SelectedFolder?.Path ?? string.Empty,
+                SelectedFolder?.ContentPath ?? string.Empty,
                 SelectedRoute?.Path ?? string.Empty,
                 // Activity mode items / Explore mode items
                 radioButtonModeActivity.Checked ? SelectedActivity?.FilePath ?? SelectedActivity.Name ?? string.Empty : SelectedTimetableSet?.FileName ?? string.Empty,
@@ -766,18 +766,18 @@ namespace Orts.Menu
         {
             try
             {
-                folders = (await Folder.GetFolders(settings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
+                contentFolderModels = await ContentProfileLoader.GetContentFolders(null, settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
             }
             catch (TaskCanceledException)
             {
-                folders = Array.Empty<Folder>();
+                contentFolderModels = FrozenSet<ContentFolderModel>.Empty;
             }
 
             ShowFolderList();
-            if (folders.Any())
+            if (contentFolderModels.Count > 0)
                 comboBoxFolder.Focus();
 
-            if (!initialized && !folders.Any())
+            if (!initialized && contentFolderModels.Count == 0)
             {
                 using (OptionsForm form = new OptionsForm(settings, updateManager, true))
                 {
@@ -801,7 +801,7 @@ namespace Orts.Menu
             {
                 comboBoxFolder.BeginUpdate();
                 comboBoxFolder.Items.Clear();
-                comboBoxFolder.Items.AddRange(folders.ToArray());
+                comboBoxFolder.Items.AddRange(contentFolderModels.OrderBy(f => f.Name).ToArray());
             }
             finally
             {
@@ -819,7 +819,7 @@ namespace Orts.Menu
             paths = Array.Empty<Path>();
             activities = Array.Empty<Activity>();
 
-            Folder selectedFolder = SelectedFolder;
+            ContentFolderModel selectedFolder = SelectedFolder;
             try
             {
                 routeModels = await RouteLoader.GetRoutes(selectedFolder.ContentFolder, ctsRouteLoading.Token).ConfigureAwait(true);
@@ -866,7 +866,7 @@ namespace Orts.Menu
         private async Task LoadActivityListAsync()
         {
             ctsActivityLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsActivityLoading, true).ConfigureAwait(false);
-            Folder selectedFolder = SelectedFolder;
+            ContentFolderModel selectedFolder = SelectedFolder;
             RouteModel selectedRoute = SelectedRoute;
             try
             {
@@ -913,7 +913,7 @@ namespace Orts.Menu
         {
             ctsConsistLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsConsistLoading, true).ConfigureAwait(false);
 
-            Folder selectedFolder = SelectedFolder;
+            ContentFolderModel selectedFolder = SelectedFolder;
             try
             {
                 consists = (await Consist.GetConsists(selectedFolder, ctsConsistLoading.Token).ConfigureAwait(true)).OrderBy(c => c.Name);
@@ -1136,7 +1136,7 @@ namespace Orts.Menu
             ctsTimeTableLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsTimeTableLoading, true).ConfigureAwait(false);
             ShowTimetableSetList();
 
-            Folder selectedFolder = SelectedFolder;
+            ContentFolderModel selectedFolder = SelectedFolder;
             RouteModel selectedRoute = SelectedRoute;
             try
             {

@@ -1,0 +1,71 @@
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Frozen;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Models.Independent.Environment;
+
+namespace FreeTrainSimulator.Models.Loader.Shim
+{
+    public class ContentProfileLoader : LoaderBase
+    {
+        public static async ValueTask<ContentProfileModel> Load(CancellationToken cancellationToken)
+        {
+            return await Load(ContentProfileModel.Default.Name, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async ValueTask<ContentProfileModel> Load(string profileName, CancellationToken cancellationToken)
+        {
+            string fileName = FileResolver.ContentProfileFile(profileName);
+            ContentProfileModel contentProfile = await FromFile<ContentProfileModel>(fileName, cancellationToken).ConfigureAwait(false);
+
+            if (null == contentProfile)
+            {
+                contentProfile = profileName == ContentProfileModel.Default.Name ? ContentProfileModel.Default : new ContentProfileModel(profileName);
+                await ToFile(fileName, contentProfile, cancellationToken).ConfigureAwait(false);
+
+                string directory = FileResolver.ContentProfileDirectory(profileName);
+                if (!Directory.Exists(directory))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.TraceError(ex.Message);
+                        throw;
+                    }
+                }
+            }
+            return contentProfile;
+        }
+
+        public static async ValueTask<FrozenSet<ContentFolderModel>> GetContentFolders(string profileName, IEnumerable<(string, string)> defaultFolders, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(profileName))
+                profileName = ContentProfileModel.Default.Name;
+
+            ContentProfileModel contentProfile = await Load(profileName, cancellationToken).ConfigureAwait(false);
+
+            if (contentProfile == ContentProfileModel.Default && contentProfile.Count == 0 && defaultFolders != null)
+            {
+                foreach ((string name, string path) in defaultFolders)
+                {
+                    contentProfile.Add(new ContentFolderModel(name, path));
+
+                    if (cancellationToken.IsCancellationRequested)
+                        return FrozenSet<ContentFolderModel>.Empty;
+                }
+                await ToFile(FileResolver.ContentProfileFile(contentProfile.Name), contentProfile, cancellationToken).ConfigureAwait(false);
+            }
+            return contentProfile.ToFrozenSet();
+        }
+
+
+    }
+}

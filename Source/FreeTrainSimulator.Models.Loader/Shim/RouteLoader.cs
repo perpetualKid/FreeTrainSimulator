@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                     RouteFile routeFile = new RouteFile(trkFilePath);
                     route = routeFile.Route.RouteData;
 
-                    await ToFile(routeModelFile, route, cancellationToken).ConfigureAwait(false);
+                    await ToFile("", route, cancellationToken).ConfigureAwait(false);
                 }
             }
             if (route != null)
