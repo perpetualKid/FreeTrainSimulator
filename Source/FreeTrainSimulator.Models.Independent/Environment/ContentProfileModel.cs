@@ -7,7 +7,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Independent.Environment
 {
     [MemoryPackable]
-    public sealed partial class ContentProfileModel : ModelBase<ContentProfileModel>, ICollection<ContentFolderModel>, IEnumerable<ContentFolderModel>
+    public sealed partial record ContentProfileModel : ModelBase<ContentProfileModel>, ICollection<ContentFolderModel>, IEnumerable<ContentFolderModel>
     {
         static partial void StaticConstructor()
         {

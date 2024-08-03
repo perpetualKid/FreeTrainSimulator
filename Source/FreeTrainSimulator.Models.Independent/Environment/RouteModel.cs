@@ -6,7 +6,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Independent.Environment
 {
     [MemoryPackable]
-    public sealed partial class RouteModel: ModelBase<RouteModel>
+    public sealed partial record RouteModel: ModelBase<RouteModel>
     {
         private readonly WorldLocation routeStart;
 

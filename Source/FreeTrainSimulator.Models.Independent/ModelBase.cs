@@ -6,7 +6,7 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Independent
 {
-    public abstract class ModelBase<T> where T : ModelBase<T>
+    public abstract record ModelBase<T> where T : ModelBase<T>
     {
         private static readonly string CurrentVersion = VersionInfo.Version;
         private protected static string fileExtension;

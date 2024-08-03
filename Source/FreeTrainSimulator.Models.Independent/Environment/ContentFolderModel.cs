@@ -3,7 +3,7 @@
 namespace FreeTrainSimulator.Models.Independent.Environment
 {
     [MemoryPackable]
-    public partial class ContentFolderModel : ModelBase<ContentFolderModel>
+    public partial record ContentFolderModel : ModelBase<ContentFolderModel>
     {
         public string ContentPath { get; init; }
 
