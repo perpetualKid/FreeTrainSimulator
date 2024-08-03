@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -40,16 +41,16 @@ namespace FreeTrainSimulator.Models.Simplified
             FilePath = filePath;
         }
 
-        public static Consist GetConsist(Folder folder, string name, bool reverseConsist)
+        public static Consist GetConsist(FolderStructure.ContentFolder folder, string name, bool reverseConsist)
         {
             string file;
-            if (null == folder || !File.Exists(file = folder.ContentFolder.ConsistFile(name)))
+            if (null == folder || !File.Exists(file = folder.ConsistFile(name)))
                 return new Consist($"<{catalog.GetString("missing:")} {name}>", name);
 
             return FromFile(file, folder, reverseConsist);
         }
 
-        internal static Consist FromFile(string fileName, Folder folder, bool reverseConsist)
+        internal static Consist FromFile(string fileName, FolderStructure.ContentFolder folder, bool reverseConsist)
         {
             Consist result;
 
@@ -68,14 +69,14 @@ namespace FreeTrainSimulator.Models.Simplified
             return result;
         }
 
-        public static async Task<IEnumerable<Consist>> GetConsists(Folder folder, CancellationToken token)
+        public static async Task<IEnumerable<Consist>> GetConsists(FolderStructure.ContentFolder folder, CancellationToken token)
         {
             ArgumentNullException.ThrowIfNull(folder);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
                 List<Consist> result = new List<Consist>();
-                string consistsDirectory = folder.ContentFolder.ConsistsFolder;
+                string consistsDirectory = folder.ConsistsFolder;
 
                 if (Directory.Exists(consistsDirectory))
                 {
@@ -115,11 +116,11 @@ namespace FreeTrainSimulator.Models.Simplified
             }
         }
 
-        private static Locomotive GetLocomotive(ConsistFile conFile, Folder folder, bool reverse)
+        private static Locomotive GetLocomotive(ConsistFile conFile, FolderStructure.ContentFolder folder, bool reverse)
         {
             Wagon wagon = reverse ? conFile.Train.Wagons.Where(w => w.IsEngine).LastOrDefault() : conFile.Train.Wagons.Where(w => w.IsEngine).FirstOrDefault();
             if (null != wagon)
-                return Locomotive.GetLocomotive(folder.ContentFolder.EngineFile(wagon.Folder, wagon.Name));
+                return Locomotive.GetLocomotive(folder.EngineFile(wagon.Folder, wagon.Name));
             return null;
         }
     }

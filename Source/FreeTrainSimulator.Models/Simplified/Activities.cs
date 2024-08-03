@@ -7,6 +7,7 @@ using System.Threading.Tasks.Dataflow;
 
 using FreeTrainSimulator.Common;
 
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Simplified
@@ -68,7 +69,7 @@ namespace FreeTrainSimulator.Models.Simplified
             FilePath = filePath;
         }
 
-        internal static Activity FromPath(string filePath, Folder folder, Orts.Formats.Msts.FolderStructure.ContentFolder.RouteFolder routeFolder)
+        internal static Activity FromPath(string filePath, FolderStructure.ContentFolder folder, FolderStructure.ContentFolder.RouteFolder routeFolder)
         {
             Activity result;
             try
@@ -121,7 +122,7 @@ namespace FreeTrainSimulator.Models.Simplified
             return Name;
         }
 
-        public static async Task<IEnumerable<Activity>> GetActivities(Folder folder, Orts.Formats.Msts.FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken token)
+        public static async Task<IEnumerable<Activity>> GetActivities(FolderStructure.ContentFolder folder, FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken token)
         {
             ArgumentNullException.ThrowIfNull(folder);
             ArgumentNullException.ThrowIfNull(routeFolder);

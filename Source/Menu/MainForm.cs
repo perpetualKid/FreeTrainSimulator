@@ -35,6 +35,7 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Environment;
+using FreeTrainSimulator.Models.Loader;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 using FreeTrainSimulator.Online.Client;
@@ -492,7 +493,7 @@ namespace Orts.Menu
             if (comboBoxTimetableTrain.SelectedItem is TrainInformation selectedTrain)
             {
                 int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
-                SelectedTimetableConsist = Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
+                SelectedTimetableConsist = Consist.GetConsist(FileResolver.ContentFolderResolver(SelectedFolder).MstsContentFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
                 Path path = Path.GetPath(FolderStructure.Route(SelectedRoute.Path), selectedTrain.Path);
                 SelectedTimetablePath = path.PlayerPath ? path : null;
 
@@ -716,7 +717,7 @@ namespace Orts.Menu
                 SelectedFolder?.ContentPath ?? string.Empty,
                 SelectedRoute?.Path ?? string.Empty,
                 // Activity mode items / Explore mode items
-                radioButtonModeActivity.Checked ? SelectedActivity?.FilePath ?? SelectedActivity.Name ?? string.Empty : SelectedTimetableSet?.FileName ?? string.Empty,
+                radioButtonModeActivity.Checked ? SelectedActivity?.FilePath ?? SelectedActivity?.Name ?? string.Empty : SelectedTimetableSet?.FileName ?? string.Empty,
                 radioButtonModeActivity.Checked ?
                     SelectedActivity is ExploreActivity && (comboBoxLocomotive.SelectedItem as Locomotive)?.FilePath != null ? (comboBoxLocomotive.SelectedItem as Locomotive).FilePath : string.Empty :
                     SelectedTimetable?.Description ?? string.Empty,
@@ -819,10 +820,9 @@ namespace Orts.Menu
             paths = Array.Empty<Path>();
             activities = Array.Empty<Activity>();
 
-            ContentFolderModel selectedFolder = SelectedFolder;
             try
-            {
-                routeModels = await RouteLoader.GetRoutes(selectedFolder.ContentFolder, ctsRouteLoading.Token).ConfigureAwait(true);
+            {                
+                routeModels = await RouteLoader.GetRoutes(FileResolver.ContentFolderResolver(SelectedFolder).MstsContentFolder, ctsRouteLoading.Token).ConfigureAwait(true);
             }
             catch (TaskCanceledException)
             {
@@ -866,11 +866,9 @@ namespace Orts.Menu
         private async Task LoadActivityListAsync()
         {
             ctsActivityLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsActivityLoading, true).ConfigureAwait(false);
-            ContentFolderModel selectedFolder = SelectedFolder;
-            RouteModel selectedRoute = SelectedRoute;
             try
             {
-                activities = (await Activity.GetActivities(selectedFolder, FolderStructure.Route(selectedRoute.Path), ctsActivityLoading.Token).ConfigureAwait(true)).OrderBy(a => a.Name);
+                activities = (await Activity.GetActivities(FileResolver.ContentFolderResolver(SelectedFolder).MstsContentFolder, FolderStructure.Route(SelectedRoute.Path), ctsActivityLoading.Token).ConfigureAwait(true)).OrderBy(a => a.Name);
             }
             catch (TaskCanceledException)
             {
@@ -913,10 +911,9 @@ namespace Orts.Menu
         {
             ctsConsistLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsConsistLoading, true).ConfigureAwait(false);
 
-            ContentFolderModel selectedFolder = SelectedFolder;
             try
             {
-                consists = (await Consist.GetConsists(selectedFolder, ctsConsistLoading.Token).ConfigureAwait(true)).OrderBy(c => c.Name);
+                consists = (await Consist.GetConsists(FileResolver.ContentFolderResolver(SelectedFolder).MstsContentFolder, ctsConsistLoading.Token).ConfigureAwait(true)).OrderBy(c => c.Name);
             }
             catch (TaskCanceledException)
             {

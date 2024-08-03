@@ -8,6 +8,8 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Environment;
 using FreeTrainSimulator.Models.Loader.Shim;
 
+using Orts.Formats.Msts;
+
 namespace FreeTrainSimulator.Models.Loader
 {
     public static class FileResolver
@@ -47,9 +49,12 @@ namespace FreeTrainSimulator.Models.Loader
     { 
         public ContentFolderModel ContentFolder { get; }
 
+        public FolderStructure.ContentFolder MstsContentFolder { get; }
+
         public ContentFolderResolver(ContentFolderModel contentFolderModel) 
         { 
             ContentFolder = contentFolderModel;
+            MstsContentFolder = FolderStructure.Content(contentFolderModel.ContentPath);
         }
     }
 
