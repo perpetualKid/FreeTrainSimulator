@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Independent.Environment
+namespace FreeTrainSimulator.Models.Independent.Content
 {
     [MemoryPackable]
     public sealed partial record ContentProfileModel : ModelBase<ContentProfileModel>, ICollection<ContentFolderModel>, IEnumerable<ContentFolderModel>
@@ -17,10 +18,10 @@ namespace FreeTrainSimulator.Models.Independent.Environment
         public ContentProfileModel() { }
 
         [MemoryPackConstructor]
-        public ContentProfileModel(List<ContentFolderModel> contentFolders)
+        public ContentProfileModel(IList<ContentFolderModel> contentFolders)
         {
             ArgumentNullException.ThrowIfNull(contentFolders, nameof(contentFolders));
-            this.contentFolders = contentFolders;
+            this.contentFolders = contentFolders.ToList();
         }
 
         public static ContentProfileModel Default { get; } = new ContentProfileModel("default");
@@ -30,6 +31,16 @@ namespace FreeTrainSimulator.Models.Independent.Environment
 
         public ContentProfileModel(string name) : base(name)
         {
+        }
+
+        public bool Equals(ContentProfileModel other)
+        {
+            return other != null && other.Name == Name && other.Version == Version;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Version);
         }
 
         #region ICollection<ContentFolderModel> implementation

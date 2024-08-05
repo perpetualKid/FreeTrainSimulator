@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Independent.Environment;
+using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 
@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Toolbox
     {
         public IEnumerable<Path> TrainPaths { get; }
 
-        private TrackData(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IEnumerable<Path> trainPaths) :
+        private TrackData(ContentRouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IEnumerable<Path> trainPaths) :
             base(route, trackSections, trackDb, roadTrackDB, signalConfig, metricUnits, null)
         {
             TrainPaths = trainPaths;
@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Toolbox
             RoadTrackDB roadTrackDB = null;
             SignalConfigurationFile signalConfig = null;
 
-            RouteModel routeModel = await RouteLoader.LoadRoute(routeFolder.CurrentFolder, cancellationToken).ConfigureAwait(false);
+            ContentRouteModel routeModel = await ContentRouteLoader.LoadRoute(routeFolder.CurrentFolder, cancellationToken).ConfigureAwait(false);
 
             loadTasks.Add(Task.Run(() =>
             {

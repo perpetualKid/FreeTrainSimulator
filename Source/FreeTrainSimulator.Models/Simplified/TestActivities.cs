@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-using FreeTrainSimulator.Models.Independent.Environment;
+using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
 using Orts.Formats.Msts;
@@ -61,7 +61,7 @@ namespace FreeTrainSimulator.Models.Simplified
                     {
                         if (FolderStructure.Route(routeFile.routeDirectory).Valid)
                         {
-                            RouteModel routeModel = RouteLoader.LoadRoute(routeFile.routeDirectory, CancellationToken.None).Result;
+                            ContentRouteModel routeModel = ContentRouteLoader.LoadRoute(routeFile.routeDirectory, CancellationToken.None).Result;
                             string activitiesDirectory = FolderStructure.Route(routeModel.Path).ActivitiesFolder;
                             if (Directory.Exists(activitiesDirectory))
                             {

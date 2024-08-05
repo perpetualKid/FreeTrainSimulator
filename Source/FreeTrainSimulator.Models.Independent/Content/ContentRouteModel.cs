@@ -3,10 +3,10 @@ using FreeTrainSimulator.Common.Position;
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Independent.Environment
+namespace FreeTrainSimulator.Models.Independent.Content
 {
     [MemoryPackable]
-    public sealed partial record RouteModel: ModelBase<RouteModel>
+    public sealed partial record ContentRouteModel: ModelBase<ContentRouteModel>
     {
         private readonly WorldLocation routeStart;
 
@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Models.Independent.Environment
         [MemoryPackIgnore]
         public new string FileName => System.IO.Path.GetFileName(Path);
 
-        public RouteModel(in WorldLocation routeStart)
+        public ContentRouteModel(in WorldLocation routeStart)
         { 
             this.routeStart = routeStart;
         }

@@ -1,6 +1,6 @@
 ﻿using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Independent.Environment
+namespace FreeTrainSimulator.Models.Independent.Content
 {
     [MemoryPackable]
     public partial record ContentFolderModel : ModelBase<ContentFolderModel>
@@ -9,7 +9,7 @@ namespace FreeTrainSimulator.Models.Independent.Environment
 
         static partial void StaticConstructor()
         {
-            fileExtension = ".content";
+            fileExtension = ".contentfolder";
         }
 
         [MemoryPackConstructor]

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Independent.Environment;
-using FreeTrainSimulator.Models.Loader.Shim;
+using FreeTrainSimulator.Models.Independent.Content;
 
 using Orts.Formats.Msts;
 
@@ -16,30 +14,20 @@ namespace FreeTrainSimulator.Models.Loader
     {
         private const string RootPath = "Content";
 
-        private static readonly ConcurrentDictionary<string, ContentFolderResolver> contentFolders = new ConcurrentDictionary<string, ContentFolderResolver>(StringComparer.OrdinalIgnoreCase);
-        private static readonly ConcurrentDictionary<string, ContentProfileModel> contentProfiles = new ConcurrentDictionary<string, ContentProfileModel>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<string, ContentFolderResolver> contentResolvers = new ConcurrentDictionary<string, ContentFolderResolver>(StringComparer.OrdinalIgnoreCase);
 
         public static string ContentProfileFile(string contentProfile) => Path.Combine(RuntimeInfo.UserDataFolder, RootPath, contentProfile + ContentProfileModel.FileExtension);
+        public static string ContentFolderFile(string contentProfile, string contentFolder) => Path.Combine(ContentProfileDirectory(contentProfile), contentFolder + ContentFolderModel.FileExtension);
 
         public static string ContentProfileDirectory(string contentProfile) => Path.Combine(RuntimeInfo.UserDataFolder, RootPath, contentProfile);
 
         public static ContentFolderResolver ContentFolderResolver(ContentFolderModel contentFolder)
         {
             ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
-            if (!contentFolders.TryGetValue(contentFolder.Name, out ContentFolderResolver resolver))
+            if (!contentResolvers.TryGetValue(contentFolder.Name, out ContentFolderResolver resolver))
             {
                 resolver = new ContentFolderResolver(contentFolder);
-                _ = contentFolders.TryAdd(contentFolder.Name, resolver);
-            }
-            return resolver;
-        }
-
-        public static async ValueTask<ContentProfileModel> ContentProfile(string name)
-        {
-            if (!contentProfiles.TryGetValue(name, out ContentProfileModel resolver))
-            {
-                resolver = await ContentProfileLoader.Load(name, CancellationToken.None).ConfigureAwait(false);
-                _ = contentProfiles.TryAdd(name, resolver);
+                _ = contentResolvers.TryAdd(contentFolder.Name, resolver);
             }
             return resolver;
         }

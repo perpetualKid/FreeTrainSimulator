@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Independent.Environment;
+using FreeTrainSimulator.Models.Independent.Content;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {
@@ -21,12 +21,20 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         public static async ValueTask<ContentProfileModel> Load(string profileName, CancellationToken cancellationToken)
         {
             string fileName = FileResolver.ContentProfileFile(profileName);
-            ContentProfileModel contentProfile = await FromFile<ContentProfileModel>(fileName, cancellationToken).ConfigureAwait(false);
+            return await FromFile<ContentProfileModel>(fileName, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async ValueTask<FrozenSet<ContentFolderModel>> GetContentFolders(string profileName, IEnumerable<(string, string)> defaultFolders, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(profileName))
+                profileName = ContentProfileModel.Default.Name;
+
+            ContentProfileModel contentProfile = await Load(profileName, cancellationToken).ConfigureAwait(false);
 
             if (null == contentProfile)
             {
                 contentProfile = profileName == ContentProfileModel.Default.Name ? ContentProfileModel.Default : new ContentProfileModel(profileName);
-                await ToFile(fileName, contentProfile, cancellationToken).ConfigureAwait(false);
+                contentProfile.Initialize(FileResolver.ContentProfileFile(profileName));
 
                 string directory = FileResolver.ContentProfileDirectory(profileName);
                 if (!Directory.Exists(directory))
@@ -41,29 +49,24 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                         throw;
                     }
                 }
-            }
-            return contentProfile;
-        }
-
-        public static async ValueTask<FrozenSet<ContentFolderModel>> GetContentFolders(string profileName, IEnumerable<(string, string)> defaultFolders, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrEmpty(profileName))
-                profileName = ContentProfileModel.Default.Name;
-
-            ContentProfileModel contentProfile = await Load(profileName, cancellationToken).ConfigureAwait(false);
-
-            if (contentProfile == ContentProfileModel.Default && contentProfile.Count == 0 && defaultFolders != null)
-            {
-                foreach ((string name, string path) in defaultFolders)
+                if (contentProfile == ContentProfileModel.Default && contentProfile.Count == 0 && defaultFolders != null)
                 {
-                    contentProfile.Add(new ContentFolderModel(name, path));
+                    foreach ((string name, string path) in defaultFolders)
+                    {
+                        contentProfile.Add(new ContentFolderModel(name, path));
 
-                    if (cancellationToken.IsCancellationRequested)
-                        return FrozenSet<ContentFolderModel>.Empty;
+                        if (cancellationToken.IsCancellationRequested)
+                            return FrozenSet<ContentFolderModel>.Empty;
+                    }
+                    await ToFile(FileResolver.ContentProfileFile(contentProfile.Name), contentProfile, cancellationToken).ConfigureAwait(false);
                 }
-                await ToFile(FileResolver.ContentProfileFile(contentProfile.Name), contentProfile, cancellationToken).ConfigureAwait(false);
             }
-            return contentProfile.ToFrozenSet();
+
+            foreach (ContentFolderModel contentFolder in contentProfile ?? Enumerable.Empty<ContentFolderModel>())
+            {
+                contentFolder.Initialize(FileResolver.ContentFolderFile(profileName, contentFolder.Name));
+            }
+            return contentProfile?.ToFrozenSet();
         }
 
 

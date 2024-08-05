@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Independent.Environment;
+using FreeTrainSimulator.Models.Independent.Content;
 
 using MemoryPack;
 
@@ -35,7 +35,7 @@ namespace FreeTrainSimulator.Models.Simplified
         public GameSaveState SaveState { get; private set; }
 
         public static async Task<IEnumerable<SavePoint>> GetSavePoints(string directory, string prefix, string routeName,
-            StringBuilder warnings, bool multiPlayer, FrozenSet<RouteModel> mainRoutes, CancellationToken token)
+            StringBuilder warnings, bool multiPlayer, FrozenSet<ContentRouteModel> mainRoutes, CancellationToken token)
         {
             List<SavePoint> result = new List<SavePoint>();
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))

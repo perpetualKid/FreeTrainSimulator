@@ -9,7 +9,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Dispatcher.PopupWindows;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Independent.Environment;
+using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 
@@ -30,8 +30,8 @@ namespace FreeTrainSimulator.Dispatcher
     public partial class GameWindow : Game
     {
         private Folder selectedFolder;
-        private RouteModel selectedRoute;
-        private FrozenSet<RouteModel> routeModels;
+        private ContentRouteModel selectedRoute;
+        private FrozenSet<ContentRouteModel> routeModels;
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsRouteLoading;
         private PathEditor pathEditor;
@@ -66,19 +66,19 @@ namespace FreeTrainSimulator.Dispatcher
             }
         }
 
-        internal async Task<FrozenSet<RouteModel>> FindRoutes(Folder routeFolder)
+        internal async Task<FrozenSet<ContentRouteModel>> FindRoutes(Folder routeFolder)
         {
             await loadRoutesSemaphore.WaitAsync().ConfigureAwait(false);
             if (routeFolder != selectedFolder)
             {
-                routeModels = await RouteLoader.GetRoutes(routeFolder.ContentFolder, ctsRouteLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                routeModels = await ContentRouteLoader.GetRoutes(routeFolder.ContentFolder, ctsRouteLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
                 selectedFolder = routeFolder;
             }
             loadRoutesSemaphore.Release();
             return routeModels;
         }
 
-        internal async Task LoadRoute(RouteModel route)
+        internal async Task LoadRoute(ContentRouteModel route)
         {
             (windowManager[DispatcherWindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
             windowManager[DispatcherWindowType.StatusWindow].Open();
@@ -128,7 +128,7 @@ namespace FreeTrainSimulator.Dispatcher
 
                 if (routeSelection.Length > 1 && Settings.RestoreLastView)
                 {
-                    RouteModel route = (routeModels ??= await FindRoutes(folder).ConfigureAwait(false))?.Where(r => r.Name.Equals(routeSelection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    ContentRouteModel route = (routeModels ??= await FindRoutes(folder).ConfigureAwait(false))?.Where(r => r.Name.Equals(routeSelection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(false);

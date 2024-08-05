@@ -14,30 +14,36 @@ namespace FreeTrainSimulator.Models.Loader.Shim
     {
         private const string SaveStateExtension = ".save";
 
-        public static async ValueTask<T> FromFile<T>(string fileName, CancellationToken cancellationToken) where T : ModelBase<T>
+        public static async ValueTask<T> FromFile<T>(string file, CancellationToken cancellationToken) where T : ModelBase<T>
         {
-            fileName += SaveStateExtension;
-            if (File.Exists(fileName))
+            string targetFileName = file + SaveStateExtension;
+            T model = null;
+            if (File.Exists(targetFileName))
             {
-                using (FileStream saveFile = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+                using (FileStream saveFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read))
                 {
-                    return await MemoryPackSerializer.DeserializeAsync<T>(saveFile, null, cancellationToken).ConfigureAwait(false);
+                    model = await MemoryPackSerializer.DeserializeAsync<T>(saveFile, null, cancellationToken).ConfigureAwait(false);
+                }
+                if (model?.Initialize(file) ?? false)
+                {
+                    await ToFile(file, model, cancellationToken).ConfigureAwait(false);
                 }
             }
-            return null;
+            return model;
         }
 
-        public static async ValueTask ToFile<T>(string fileName, T model, CancellationToken cancellationToken) where T : ModelBase<T>
+        public static async ValueTask ToFile<T>(string file, T model, CancellationToken cancellationToken) where T : ModelBase<T>
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
-            fileName += SaveStateExtension;
+            string targetFileName = file + SaveStateExtension;
+            await model.RefreshModel().ConfigureAwait(false);
 
             try
             {
-                _ = Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+                _ = Directory.CreateDirectory(Path.GetDirectoryName(targetFileName));
 
-                using (FileStream saveFile = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+                using (FileStream saveFile = new FileStream(targetFileName, FileMode.Create, FileAccess.Write))
                 {
                     await MemoryPackSerializer.SerializeAsync(saveFile, model, null, cancellationToken).ConfigureAwait(false);
                     await saveFile.FlushAsync(cancellationToken).ConfigureAwait(false);

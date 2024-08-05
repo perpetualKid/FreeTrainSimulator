@@ -60,7 +60,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Independent.Environment;
+using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Simplified;
 
 using GetText;
@@ -76,9 +76,9 @@ namespace Orts.Menu
     public partial class ResumeForm : Form
     {
         private readonly UserSettings settings;
-        private readonly RouteModel route;
+        private readonly ContentRouteModel route;
         private readonly Activity activity;
-        private readonly FrozenSet<RouteModel> globalRoutes;
+        private readonly FrozenSet<ContentRouteModel> globalRoutes;
         private readonly TimetableInfo timeTable;
         private List<SavePoint> savePoints = new List<SavePoint>();
         private CancellationTokenSource ctsLoader;
@@ -89,7 +89,7 @@ namespace Orts.Menu
 
         private readonly Catalog catalog;
 
-        internal ResumeForm(UserSettings settings, RouteModel route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable, FrozenSet<RouteModel> mainRoutes)
+        internal ResumeForm(UserSettings settings, ContentRouteModel route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable, FrozenSet<ContentRouteModel> mainRoutes)
         {
             catalog = CatalogManager.Catalog;
             globalRoutes = mainRoutes;
