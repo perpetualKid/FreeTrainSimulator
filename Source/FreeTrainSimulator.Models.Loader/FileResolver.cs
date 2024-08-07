@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.IO;
 
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Independent;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader.Shim;
 
 using Orts.Formats.Msts;
 
@@ -13,11 +14,14 @@ namespace FreeTrainSimulator.Models.Loader
     public static class FileResolver
     {
         private const string RootPath = "Content";
+        private static readonly string contentRoot = Path.Combine(RuntimeInfo.UserDataFolder, RootPath);
 
         private static readonly ConcurrentDictionary<string, ContentFolderResolver> contentResolvers = new ConcurrentDictionary<string, ContentFolderResolver>(StringComparer.OrdinalIgnoreCase);
 
-        public static string ContentProfileFile(string contentProfile) => Path.Combine(RuntimeInfo.UserDataFolder, RootPath, contentProfile + ContentProfileModel.FileExtension);
-        public static string ContentFolderFile(string contentProfile, string contentFolder) => Path.Combine(ContentProfileDirectory(contentProfile), contentFolder + ContentFolderModel.FileExtension);
+        public static string ModelFileExtension<T>() where T : ModelBase<T> => $"{ModelBase<T>.FileExtension}{LoaderBase.SaveStateExtension}";
+
+        public static string ContentProfileFile(string contentProfile) => Path.Combine(contentRoot, $"{contentProfile}{ContentProfileModel.FileExtension}");
+        public static string ContentFolderFile(string contentProfile, string contentFolder) => Path.Combine(ContentProfileDirectory(contentProfile), $"{contentFolder}{ContentFolderModel.FileExtension}");
 
         public static string ContentProfileDirectory(string contentProfile) => Path.Combine(RuntimeInfo.UserDataFolder, RootPath, contentProfile);
 

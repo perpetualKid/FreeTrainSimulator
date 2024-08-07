@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,6 +92,20 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             ContentFolderResolver resolver = FileResolver.ContentFolderResolver(contentFolder);
             ConcurrentBag<ContentRouteModel> results = new ConcurrentBag<ContentRouteModel>();
+
+            string directory = contentFolder.FilePath;
+            if (!Directory.Exists(directory))
+            {
+                try
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError(ex.Message);
+                    throw;
+                }
+            }
 
             await Parallel.ForEachAsync(Directory.EnumerateDirectories(resolver.MstsContentFolder.RoutesFolder), cancellationToken, async (routeDirectory, token) =>
             {

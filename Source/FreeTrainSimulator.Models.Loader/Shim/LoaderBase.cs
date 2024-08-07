@@ -12,10 +12,11 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public abstract class LoaderBase
     {
-        private const string SaveStateExtension = ".save";
+        public const string SaveStateExtension = ".save";
 
         public static async ValueTask<T> FromFile<T>(string file, CancellationToken cancellationToken) where T : ModelBase<T>
         {
+            FileResolver.ModelFileExtension<T>();
             string targetFileName = file + SaveStateExtension;
             T model = null;
             if (File.Exists(targetFileName))
