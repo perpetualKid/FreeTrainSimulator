@@ -13,14 +13,14 @@ using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {
-    public class ContentRouteLoader : LoaderBase
+    public class ContentRouteLoader : LoaderBase<ContentRouteModel>
     {
         public static async ValueTask<ContentRouteModel> LoadRoute(string routePath, CancellationToken cancellationToken)
         {
             string routeName = Path.GetFileName(routePath);
 
             string routeModelFile = Path.Combine(routePath, routeName + ".route");
-            ContentRouteModel route = await FromFile<ContentRouteModel>(routeModelFile, cancellationToken).ConfigureAwait(false);
+            ContentRouteModel route = await FromFile(routeModelFile, cancellationToken).ConfigureAwait(false);
 
             if (route == null)
             {

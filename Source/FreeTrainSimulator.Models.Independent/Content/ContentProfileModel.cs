@@ -15,8 +15,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
             fileExtension = ".contentprofile";
         }
 
-        public ContentProfileModel() { }
-
         [MemoryPackConstructor]
         public ContentProfileModel(IList<ContentFolderModel> contentFolders)
         {
@@ -29,7 +27,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
         [MemoryPackInclude]
         private readonly List<ContentFolderModel> contentFolders = new List<ContentFolderModel>();
 
-        public ContentProfileModel(string name) : base(name)
+        public ContentProfileModel(string name) : base(name, null)
         {
         }
 

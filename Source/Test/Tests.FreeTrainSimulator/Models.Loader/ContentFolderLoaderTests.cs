@@ -15,9 +15,16 @@ namespace Tests.FreeTrainSimulator.Models.Loader
         [TestMethod]
         public async Task LoadContentFolder()
         {
-            ContentProfileModel result = await ContentProfileLoader.Load(CancellationToken.None).ConfigureAwait(false);
+            ContentProfileModel profile = new ContentProfileModel("something");
+            ContentFolderModel folder = new ContentFolderModel("TestModel",".", profile);
 
-            ContentProfileModel otherresult = await ContentProfileLoader.Load(CancellationToken.None).ConfigureAwait(false);
+            string contentFolderFile = ModelFileResolver<ContentFolderModel>.FilePath("test123", profile);
+
+            contentFolderFile = ModelFileResolver<ContentFolderModel>.FilePath(folder);
+
+            //ContentProfileModel result = await ContentProfileLoader.Load(CancellationToken.None).ConfigureAwait(false);
+
+            //ContentProfileModel otherresult = await ContentProfileLoader.Load(CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

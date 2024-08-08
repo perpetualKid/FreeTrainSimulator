@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
         private ContentFolderModel() : base()
         { }
 
-        public ContentFolderModel(string name, string path) : base(name)
+        public ContentFolderModel(string name, string path, ContentProfileModel parent) : base(name, parent)
         {
             ContentPath = path;
         }

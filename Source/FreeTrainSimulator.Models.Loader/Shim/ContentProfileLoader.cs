@@ -11,7 +11,7 @@ using FreeTrainSimulator.Models.Independent.Content;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {
-    public class ContentProfileLoader : LoaderBase
+    public class ContentProfileLoader : LoaderBase<ContentProfileModel>
     {
         public static async ValueTask<ContentProfileModel> Load(CancellationToken cancellationToken)
         {
@@ -20,8 +20,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<ContentProfileModel> Load(string profileName, CancellationToken cancellationToken)
         {
-            string fileName = FileResolver.ContentProfileFile(profileName);
-            return await FromFile<ContentProfileModel>(fileName, cancellationToken).ConfigureAwait(false);
+            return await FromFile<ContentProfileModel>(profileName, null, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<FrozenSet<ContentFolderModel>> GetContentFolders(string profileName, IEnumerable<(string, string)> defaultFolders, CancellationToken cancellationToken)
@@ -53,7 +52,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 {
                     foreach ((string name, string path) in defaultFolders)
                     {
-                        contentProfile.Add(new ContentFolderModel(name, path));
+                        contentProfile.Add(new ContentFolderModel(name, path, contentProfile));
 
                         if (cancellationToken.IsCancellationRequested)
                             return FrozenSet<ContentFolderModel>.Empty;

@@ -8,6 +8,11 @@ namespace FreeTrainSimulator.Models.Independent.Content
     [MemoryPackable]
     public sealed partial record ContentRouteModel: ModelBase<ContentRouteModel>
     {
+        static partial void StaticConstructor()
+        {
+            fileExtension = ".contentroute";
+        }
+
         private readonly WorldLocation routeStart;
 
         //public override string FileExtension { get; init; } = ".route";

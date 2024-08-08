@@ -10,13 +10,12 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {
-    public abstract class LoaderBase
+    public abstract class LoaderBase<T> where T : ModelBase<T>
     {
         public const string SaveStateExtension = ".save";
 
-        public static async ValueTask<T> FromFile<T>(string file, CancellationToken cancellationToken) where T : ModelBase<T>
+        public static async ValueTask<T> FromFile(string file, CancellationToken cancellationToken)
         {
-            FileResolver.ModelFileExtension<T>();
             string targetFileName = file + SaveStateExtension;
             T model = null;
             if (File.Exists(targetFileName))
@@ -33,11 +32,30 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return model;
         }
 
-        public static async ValueTask ToFile<T>(string file, T model, CancellationToken cancellationToken) where T : ModelBase<T>
+        public static async ValueTask<T> FromFile<Parent>(string file, Parent parent, CancellationToken cancellationToken) where Parent: ModelBase<Parent>
+        {
+            string targetFileName = ModelFileResolver<T>.FilePath(file, parent) + SaveStateExtension;
+            T model = null;
+            if (File.Exists(targetFileName))
+            {
+                using (FileStream saveFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read))
+                {
+                    model = await MemoryPackSerializer.DeserializeAsync<T>(saveFile, null, cancellationToken).ConfigureAwait(false);
+                }
+                if (model?.Initialize(file) ?? false)
+                {
+                    await ToFile(file, model, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            return model;
+        }
+
+        public static async ValueTask ToFile(string file, T model, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
-            string targetFileName = file + SaveStateExtension;
+            string targetFileName = ModelFileResolver<T>.FilePath(model) + SaveStateExtension;
+
             await model.RefreshModel().ConfigureAwait(false);
 
             try
