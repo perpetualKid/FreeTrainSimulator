@@ -15,7 +15,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
 
         private readonly WorldLocation routeStart;
 
-        //public override string FileExtension { get; init; } = ".route";
         public string RouteId { get; init; }
         public string Description { get; init; }
         public ref readonly WorldLocation RouteStart => ref routeStart;

@@ -35,10 +35,11 @@ namespace FreeTrainSimulator.Models.Independent
             return ValueTask.CompletedTask;
         }
 
-        public virtual bool Initialize(string file)
+        public virtual bool Initialize(string file, IFileResolve parent)
         {
             FileName = Path.GetFileName(file);
             FilePath = Path.GetDirectoryName(file);
+            Parent = parent;
             return VersionInfo.Compare(Version) > 0;
         }
 

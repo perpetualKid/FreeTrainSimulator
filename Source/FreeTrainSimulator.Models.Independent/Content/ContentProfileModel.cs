@@ -22,13 +22,22 @@ namespace FreeTrainSimulator.Models.Independent.Content
             this.contentFolders = contentFolders.ToList();
         }
 
-        public static ContentProfileModel Default { get; } = new ContentProfileModel("default");
+        public static ContentProfileModel Default { get; } = new ContentProfileModel("Default");
 
         [MemoryPackInclude]
         private readonly List<ContentFolderModel> contentFolders = new List<ContentFolderModel>();
 
         public ContentProfileModel(string name) : base(name, null)
         {
+        }
+
+        public override bool Initialize(string file, IFileResolve parent)
+        {
+            foreach (ContentFolderModel folder in contentFolders)
+            { 
+                folder.Initialize(null, this);
+            }
+            return base.Initialize(file, parent);
         }
 
         public bool Equals(ContentProfileModel other)

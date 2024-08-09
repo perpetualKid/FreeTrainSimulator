@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Threading;
 
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent;
 using FreeTrainSimulator.Models.Independent.Content;
 
 using Orts.Formats.Msts;
-
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace FreeTrainSimulator.Models.Loader
 {
@@ -18,11 +17,6 @@ namespace FreeTrainSimulator.Models.Loader
         public static string ContentRoot { get; } = Path.GetFullPath(Path.Combine(RuntimeInfo.UserDataFolder, RootPath));
 
         private static readonly ConcurrentDictionary<string, ContentFolderResolver> contentResolvers = new ConcurrentDictionary<string, ContentFolderResolver>(StringComparer.OrdinalIgnoreCase);
-
-        public static string ContentProfileFile(string contentProfile) => Path.Combine(ContentRoot, $"{contentProfile}{ModelFileResolver<ContentProfileModel>.FileExtension}");
-        public static string ContentFolderFile(string contentProfile, string contentFolder) => Path.Combine(ContentProfileDirectory(contentProfile), $"{contentFolder}{ModelFileResolver<ContentProfileModel>.FileExtension}");
-
-        public static string ContentProfileDirectory(string contentProfile) => Path.Combine(RuntimeInfo.UserDataFolder, RootPath, contentProfile);
 
         public static ContentFolderResolver ContentFolderResolver(ContentFolderModel contentFolder)
         {
@@ -45,47 +39,47 @@ namespace FreeTrainSimulator.Models.Loader
         public ContentFolderResolver(ContentFolderModel contentFolderModel)
         {
             ContentFolder = contentFolderModel;
-            MstsContentFolder = FolderStructure.Content(contentFolderModel.ContentPath);
-            //string test = ModelFileResolver<ContentFolderModel>.Folder(contentFolderModel);
+            MstsContentFolder = FolderStructure.Content(contentFolderModel?.ContentPath);
         }
     }
 
-    public class ModelFileResolver<T> where T : ModelBase<T>
+    public static class ModelFileResolver<T> where T : ModelBase<T>
     {
+        static ModelFileResolver()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(T).TypeHandle);
+        }
+
+#pragma warning disable CA1000 // Do not declare static members on generic types
         private static string FileExtensionCore<U>() where U : IFileResolve => U.DefaultExtension;
         private static string FolderNameCore<U>(U instance) where U : IFileResolve => instance.FolderName;
         private static string FileNameCore<U>(U instance) where U : IFileResolve => instance.FileName;
-
         public static string FileExtension => FileExtensionCore<ModelBase<T>>();
         public static string FolderName<TParent>(ModelBase<TParent> instance) where TParent : ModelBase<TParent> => FolderNameCore(instance);
         public static string FileName<TParent>(ModelBase<TParent> instance) where TParent : ModelBase<TParent> => FileNameCore(instance);
-
+        
         public static string FilePath<TParent>(string name, ModelBase<TParent> parent) where TParent : ModelBase<TParent>
         {
             return Path.Combine(FolderPath(parent), name + FileExtension);
         }
 
-        public static string FilePath(T model)
+        public static string FilePath(T model, IFileResolve parent = null)
         {
-            string path = string.Empty;
-            IFileResolve parent = model.Parent;
-            while (parent != null)
-            {
-                path = Path.Combine((parent).FolderName, path);
-                parent = parent.Parent;
-            }
-            return Path.GetFullPath(Path.Combine(FileResolver.ContentRoot, path, FileName(model) + FileExtension));
+            ArgumentNullException.ThrowIfNull(model, nameof(model));
+
+            return Path.GetFullPath(Path.Combine(FolderPath(model.Parent ?? parent), FileName(model) + FileExtension));
         }
 
         public static string FolderPath<TParent>(ModelBase<TParent> parent) where TParent : ModelBase<TParent>
         {
-            string path = string.Empty;
-            while (parent != null)
-            {
-                path = Path.Combine((parent as IFileResolve).FolderName, path);
-                parent = parent.Parent as TParent;
-            }
-            return Path.GetFullPath(Path.Combine(FileResolver.ContentRoot, path));
+            return FolderPath(parent as IFileResolve);
         }
+
+        public static string FolderPath(IFileResolve parent)
+        {
+            return parent != null ? Path.Combine(FolderPath(parent.Parent), parent.FolderName) : FileResolver.ContentRoot;
+        }
+
+#pragma warning restore CA1000 // Do not declare static members on generic types
     }
 }

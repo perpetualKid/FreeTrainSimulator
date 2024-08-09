@@ -71,7 +71,7 @@ namespace FreeTrainSimulator.Dispatcher
             await loadRoutesSemaphore.WaitAsync().ConfigureAwait(false);
             if (routeFolder != selectedFolder)
             {
-                routeModels = await ContentRouteLoader.GetRoutes(routeFolder.ContentFolder, ctsRouteLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                routeModels = await ContentRouteHandler.GetRoutes(routeFolder.ContentFolder, ctsRouteLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
                 selectedFolder = routeFolder;
             }
             loadRoutesSemaphore.Release();

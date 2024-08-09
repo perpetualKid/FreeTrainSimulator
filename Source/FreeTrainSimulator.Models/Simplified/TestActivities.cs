@@ -61,7 +61,7 @@ namespace FreeTrainSimulator.Models.Simplified
                     {
                         if (FolderStructure.Route(routeFile.routeDirectory).Valid)
                         {
-                            ContentRouteModel routeModel = ContentRouteLoader.LoadRoute(routeFile.routeDirectory, CancellationToken.None).Result;
+                            ContentRouteModel routeModel = ContentRouteHandler.LoadRoute(routeFile.routeDirectory, CancellationToken.None).Result;
                             string activitiesDirectory = FolderStructure.Route(routeModel.Path).ActivitiesFolder;
                             if (Directory.Exists(activitiesDirectory))
                             {

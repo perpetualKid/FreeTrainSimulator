@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Toolbox
             RoadTrackDB roadTrackDB = null;
             SignalConfigurationFile signalConfig = null;
 
-            ContentRouteModel routeModel = await ContentRouteLoader.LoadRoute(routeFolder.CurrentFolder, cancellationToken).ConfigureAwait(false);
+            ContentRouteModel routeModel = await ContentRouteHandler.LoadRoute(routeFolder.CurrentFolder, cancellationToken).ConfigureAwait(false);
 
             loadTasks.Add(Task.Run(() =>
             {

@@ -767,7 +767,7 @@ namespace Orts.Menu
         {
             try
             {
-                contentFolderModels = await ContentProfileLoader.GetContentFolders(null, settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
+                contentFolderModels = await ContentProfileHandler.GetContentFolders(null, settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
             }
             catch (TaskCanceledException)
             {
@@ -822,7 +822,7 @@ namespace Orts.Menu
 
             try
             {                
-                routeModels = await ContentRouteLoader.GetRoutes(SelectedFolder, ctsRouteLoading.Token).ConfigureAwait(true);
+                routeModels = await ContentRouteHandler.GetRoutes(SelectedFolder, ctsRouteLoading.Token).ConfigureAwait(true);
             }
             catch (TaskCanceledException)
             {
@@ -868,7 +868,7 @@ namespace Orts.Menu
             ctsActivityLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsActivityLoading, true).ConfigureAwait(false);
             try
             {
-                activities = (await Activity.GetActivities(FileResolver.ContentFolderResolver(SelectedFolder).MstsContentFolder, FolderStructure.Route(SelectedRoute.Path), ctsActivityLoading.Token).ConfigureAwait(true)).OrderBy(a => a.Name);
+                activities = (await Activity.GetActivities(FileResolver.ContentFolderResolver(SelectedFolder).MstsContentFolder, FolderStructure.Route(SelectedRoute.FilePath), ctsActivityLoading.Token).ConfigureAwait(true)).OrderBy(a => a.Name);
             }
             catch (TaskCanceledException)
             {

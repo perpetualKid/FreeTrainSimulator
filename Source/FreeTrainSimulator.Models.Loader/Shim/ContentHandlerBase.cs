@@ -10,10 +10,11 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {
-    public abstract class LoaderBase<T> where T : ModelBase<T>
+    public abstract class ContentHandlerBase<T> where T : ModelBase<T>
     {
         public const string SaveStateExtension = ".save";
 
+#pragma warning disable CA1000 // Do not declare static members on generic types
         public static async ValueTask<T> FromFile(string file, CancellationToken cancellationToken)
         {
             string targetFileName = file + SaveStateExtension;
@@ -24,7 +25,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 {
                     model = await MemoryPackSerializer.DeserializeAsync<T>(saveFile, null, cancellationToken).ConfigureAwait(false);
                 }
-                if (model?.Initialize(file) ?? false)
+                if (model?.Initialize(file, null) ?? false)
                 {
                     await ToFile(file, model, cancellationToken).ConfigureAwait(false);
                 }
@@ -32,9 +33,12 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return model;
         }
 
-        public static async ValueTask<T> FromFile<Parent>(string file, Parent parent, CancellationToken cancellationToken) where Parent: ModelBase<Parent>
+        public static async ValueTask<T> FromFile<TParent>(string name, TParent parent, CancellationToken cancellationToken, bool resolveName = true) where TParent : ModelBase<TParent>
         {
-            string targetFileName = ModelFileResolver<T>.FilePath(file, parent) + SaveStateExtension;
+            string targetFileName = name;
+            if (resolveName)
+                targetFileName = ModelFileResolver<T>.FilePath(name, parent) + SaveStateExtension;
+
             T model = null;
             if (File.Exists(targetFileName))
             {
@@ -42,9 +46,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 {
                     model = await MemoryPackSerializer.DeserializeAsync<T>(saveFile, null, cancellationToken).ConfigureAwait(false);
                 }
-                if (model?.Initialize(file) ?? false)
+                if (model?.Initialize(targetFileName, parent) ?? false)
                 {
-                    await ToFile(file, model, cancellationToken).ConfigureAwait(false);
+                    await ToFile(model, cancellationToken).ConfigureAwait(false);
                 }
             }
             return model;
@@ -74,5 +78,31 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 throw;
             }
         }
+
+        public static async ValueTask ToFile(T model, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(model, nameof(model));
+
+            string targetFileName = ModelFileResolver<T>.FilePath(model) + SaveStateExtension;
+
+            await model.RefreshModel().ConfigureAwait(false);
+
+            try
+            {
+                _ = Directory.CreateDirectory(Path.GetDirectoryName(targetFileName));
+
+                using (FileStream saveFile = new FileStream(targetFileName, FileMode.Create, FileAccess.Write))
+                {
+                    await MemoryPackSerializer.SerializeAsync(saveFile, model, null, cancellationToken).ConfigureAwait(false);
+                    await saveFile.FlushAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError(ex.Message);
+                throw;
+            }
+        }
+#pragma warning restore CA1000 // Do not declare static members on generic types
     }
 }

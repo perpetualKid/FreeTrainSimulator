@@ -927,7 +927,7 @@ namespace ORTS.TrackViewer
             if (newInstallFolder == null)
                 return false;
 
-            Task<System.Collections.Frozen.FrozenSet<ContentRouteModel>> routeTask = ContentRouteLoader.GetRoutes(newInstallFolder.ContentFolder, CancellationToken.None).AsTask();
+            Task<System.Collections.Frozen.FrozenSet<ContentRouteModel>> routeTask = ContentRouteHandler.GetRoutes(newInstallFolder.ContentFolder, CancellationToken.None).AsTask();
             if (!routeTask.IsCompleted)
                 routeTask.Wait();
             Routes = new Collection<ContentRouteModel>(routeTask.Result.ToList());

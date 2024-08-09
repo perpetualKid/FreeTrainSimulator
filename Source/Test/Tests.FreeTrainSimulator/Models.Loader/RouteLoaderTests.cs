@@ -17,7 +17,7 @@ namespace Tests.FreeTrainSimulator.Models.Loader
         public async Task LoadRouteTest()
         {
             string routeFolder = "C:\\Storage\\OR\\Demo Model 1\\ROUTES\\Monogame";
-            ContentRouteModel route = await ContentRouteLoader.LoadRoute(routeFolder, CancellationToken.None).ConfigureAwait(false);
+            ContentRouteModel route = await ContentRouteHandler.LoadRoute(routeFolder, CancellationToken.None).ConfigureAwait(false);
         }
     }
 }
