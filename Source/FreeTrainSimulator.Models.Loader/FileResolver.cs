@@ -32,10 +32,10 @@ namespace FreeTrainSimulator.Models.Loader
         public static ContentRouteResolver ContentRouteResolver(ContentRouteModel routeModel)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            if (!routeResolvers.TryGetValue($"{(routeModel.Parent as ContentFolderModel)?.Name}{routeModel.Name}" , out ContentRouteResolver resolver))
+            if (!routeResolvers.TryGetValue($"{((routeModel as IFileResolve).Parent as ContentFolderModel)?.Name}{routeModel.Name}" , out ContentRouteResolver resolver))
             {
                 resolver = new ContentRouteResolver(routeModel);
-                _ = routeResolvers.TryAdd($"{(routeModel.Parent as ContentFolderModel)?.Name}{routeModel.Name}", resolver);
+                _ = routeResolvers.TryAdd($"{((routeModel as IFileResolve).Parent as ContentFolderModel)?.Name}{routeModel.Name}", resolver);
             }
             return resolver;
         }
@@ -81,9 +81,9 @@ namespace FreeTrainSimulator.Models.Loader
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
             RouteModel = routeModel;
-            ContentFolderResolver resolver = FileResolver.ContentFolderResolver(routeModel.Parent as ContentFolderModel);
+            ContentFolderResolver resolver = FileResolver.ContentFolderResolver((routeModel as IFileResolve).Parent as ContentFolderModel);
 
-            MstsRouteFolder = resolver.MstsContentFolder.Route(routeModel.RouteId);
+            MstsRouteFolder = resolver.MstsContentFolder.Route(routeModel.Tag);
         }
     }
 
@@ -112,7 +112,7 @@ namespace FreeTrainSimulator.Models.Loader
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
-            return Path.GetFullPath(Path.Combine(FolderPath(model.Parent ?? parent), FileName(model) + FileExtension));
+            return Path.GetFullPath(Path.Combine(FolderPath((model as IFileResolve).Parent ?? parent), FileName(model) + FileExtension));
         }
 
         public static string FolderPath<TParent>(ModelBase<TParent> parent) where TParent : ModelBase<TParent>

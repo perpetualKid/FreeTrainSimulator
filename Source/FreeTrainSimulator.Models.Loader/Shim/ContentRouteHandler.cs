@@ -30,6 +30,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                     Description = routeFile.Route.Description,
                     MetricUnits = routeFile.Route.MilepostUnitsMetric,
                     RouteId = routeFile.Route.RouteID,
+                    Tag = routeFolder.RouteName,
                     EnvironmentConditions = new EnumArray2D<string, SeasonType, WeatherType>(routeFile.Route.Environment.GetEnvironmentFileName)
                 };
                 routeModel.Initialize(ModelFileResolver<ContentRouteModel>.FilePath(routeModel, contentFolder), contentFolder);
