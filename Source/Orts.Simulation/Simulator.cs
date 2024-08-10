@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -30,6 +31,8 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader.Shim;
 
 using GetText;
 
@@ -267,6 +270,21 @@ namespace Orts.Simulation
             Route = new RouteFile(RouteFolder.TrackFileName).Route;
 
             RouteName = Route.Name;
+            Task<FrozenSet<ContentFolderModel>> contentFolderTask = ContentProfileHandler.GetContentFolders(null, null, CancellationToken.None).AsTask();
+            if (!contentFolderTask.IsCompleted)
+                contentFolderTask.Wait();
+            ContentFolderModel folder = contentFolderTask.Result.Where((folder) => string.Equals(folder.Name, Path.GetFileName(RouteFolder.ContentFolder.Folder), StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            Task<ContentRouteModel> routeLoaderTask = ContentRouteHandler.FromFile(RouteName, folder, CancellationToken.None).AsTask();
+            if (!routeLoaderTask.IsCompleted)
+                routeLoaderTask.Wait();
+            ContentRouteModel routeModel = routeLoaderTask.Result;
+            if (null == routeModel)
+            {
+                routeLoaderTask = ContentRouteHandler.Create(RouteFolder.CurrentFolder, folder, CancellationToken.None).AsTask();
+                if (!routeLoaderTask.IsCompleted)
+                    routeLoaderTask.Wait();
+                routeModel = routeLoaderTask.Result;
+            }
             OpenDoorsInAITrains = Route.OpenDoorsInAITrains.GetValueOrDefault(Settings.OpenDoorsInAITrains);
 
             Trace.Write(" TDB");
@@ -288,7 +306,7 @@ namespace Orts.Simulation
             }
 
             MetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? Route.MilepostUnitsMetric : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            RuntimeData.Initialize(Route.RouteData, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
+            RuntimeData.Initialize(routeModel, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
 
             SuperElevation = new SuperElevation(this);
 
