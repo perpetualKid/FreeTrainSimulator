@@ -493,8 +493,8 @@ namespace Orts.Menu
             if (comboBoxTimetableTrain.SelectedItem is TrainInformation selectedTrain)
             {
                 int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
-                SelectedTimetableConsist = Consist.GetConsist(FileResolver.ContentFolderResolver(SelectedFolder).MstsContentFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
-                Path path = Path.GetPath(FolderStructure.Route(SelectedRoute.Path), selectedTrain.Path);
+                SelectedTimetableConsist = Consist.GetConsist(SelectedFolder.MstsContentFolder(), selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
+                Path path = Path.GetPath(SelectedRoute.MstsRouteFolder(), selectedTrain.Path);
                 SelectedTimetablePath = path.PlayerPath ? path : null;
 
                 if (updater == 0)
@@ -714,8 +714,8 @@ namespace Orts.Menu
             }
             settings.Menu_Selection = new[] {
                 // Base items
-                SelectedFolder?.ContentPath ?? string.Empty,
-                SelectedRoute?.Path ?? string.Empty,
+                SelectedFolder?.Name ?? string.Empty,
+                SelectedRoute?.Name ?? string.Empty,
                 // Activity mode items / Explore mode items
                 radioButtonModeActivity.Checked ? SelectedActivity?.FilePath ?? SelectedActivity?.Name ?? string.Empty : SelectedTimetableSet?.FileName ?? string.Empty,
                 radioButtonModeActivity.Checked ?
@@ -808,7 +808,7 @@ namespace Orts.Menu
             {
                 comboBoxFolder.EndUpdate();
             }
-            UpdateFromMenuSelection<Folder>(comboBoxFolder, MenuSelectionIndex.Folder, f => f.Path);
+            UpdateFromMenuSelection<ContentFolderModel>(comboBoxFolder, MenuSelectionIndex.Folder, f => f.Name);
             UpdateEnabled();
         }
         #endregion
@@ -848,7 +848,7 @@ namespace Orts.Menu
             {
                 comboBoxRoute.EndUpdate();
             }
-            UpdateFromMenuSelection<ContentRouteModel>(comboBoxRoute, MenuSelectionIndex.Route, r => r.Path);
+            UpdateFromMenuSelection<ContentRouteModel>(comboBoxRoute, MenuSelectionIndex.Route, r => r.Name);
             if (settings.Menu_Selection.Length > (int)MenuSelectionIndex.Activity)
             {
                 string path = settings.Menu_Selection[(int)MenuSelectionIndex.Activity]; // Activity or Timetable
@@ -868,7 +868,7 @@ namespace Orts.Menu
             ctsActivityLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsActivityLoading, true).ConfigureAwait(false);
             try
             {
-                activities = (await Activity.GetActivities(FileResolver.ContentFolderResolver(SelectedFolder).MstsContentFolder, FolderStructure.Route(SelectedRoute.FilePath), ctsActivityLoading.Token).ConfigureAwait(true)).OrderBy(a => a.Name);
+                activities = (await Activity.GetActivities(SelectedFolder.MstsContentFolder(), SelectedRoute.MstsRouteFolder(), ctsActivityLoading.Token).ConfigureAwait(true)).OrderBy(a => a.Name);
             }
             catch (TaskCanceledException)
             {
@@ -913,7 +913,7 @@ namespace Orts.Menu
 
             try
             {
-                consists = (await Consist.GetConsists(FileResolver.ContentFolderResolver(SelectedFolder).MstsContentFolder, ctsConsistLoading.Token).ConfigureAwait(true)).OrderBy(c => c.Name);
+                consists = (await Consist.GetConsists(SelectedFolder.MstsContentFolder(), ctsConsistLoading.Token).ConfigureAwait(true)).OrderBy(c => c.Name);
             }
             catch (TaskCanceledException)
             {
@@ -995,7 +995,7 @@ namespace Orts.Menu
             ContentRouteModel selectedRoute = SelectedRoute;
             try
             {
-                paths = (await Path.GetPaths(FolderStructure.Route(selectedRoute.Path), false, ctsPathLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
+                paths = (await Path.GetPaths(selectedRoute.MstsRouteFolder(), false, ctsPathLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
             }
             catch (TaskCanceledException)
             {
@@ -1137,8 +1137,8 @@ namespace Orts.Menu
             ContentRouteModel selectedRoute = SelectedRoute;
             try
             {
-                timetableSets = (await TimetableInfo.GetTimetableInfo(FolderStructure.Route(selectedRoute.Path), ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(tt => tt.Description);
-                timetableWeatherFileSet = (await WeatherFileInfo.GetTimetableWeatherFiles(FolderStructure.Route(selectedRoute.Path), ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
+                timetableSets = (await TimetableInfo.GetTimetableInfo(selectedRoute.MstsRouteFolder(), ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(tt => tt.Description);
+                timetableWeatherFileSet = (await WeatherFileInfo.GetTimetableWeatherFiles(selectedRoute.MstsRouteFolder(), ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
             }
             catch (TaskCanceledException)
             {

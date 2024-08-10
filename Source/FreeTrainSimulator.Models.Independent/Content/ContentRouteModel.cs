@@ -23,8 +23,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
 
         [MemoryPackIgnore]
         public string Path { get; set; }
-        [MemoryPackIgnore]
-        public new string FileName => System.IO.Path.GetFileName(Path);
 
         public ContentRouteModel(in WorldLocation routeStart)
         { 

@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Toolbox
 
     public partial class GameWindow : Game
     {
-        private Folder selectedFolder;
+        private ContentFolderModel selectedFolder;
         private ContentRouteModel selectedRoute;
         private FrozenSet<ContentRouteModel> routeModels;
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
@@ -57,21 +57,22 @@ namespace FreeTrainSimulator.Toolbox
         {
             try
             {
-                IOrderedEnumerable<Folder> folders = (await Folder.GetFolders(Settings.UserSettings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
-                mainmenu.PopulateContentFolders(folders);
+                FrozenSet<ContentFolderModel> contentFolders = await ContentProfileHandler.GetContentFolders(null, Settings.UserSettings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
+                mainmenu.PopulateContentFolders(contentFolders);
             }
             catch (TaskCanceledException)
             {
+                mainmenu.PopulateContentFolders(FrozenSet<ContentFolderModel>.Empty);
             }
         }
 
-        internal async Task<FrozenSet<ContentRouteModel>> FindRoutes(Folder routeFolder)
+        internal async Task<FrozenSet<ContentRouteModel>> FindRoutes(ContentFolderModel contentFolder)
         {
             await loadRoutesSemaphore.WaitAsync().ConfigureAwait(false);
-            if (routeFolder != selectedFolder)
+            if (contentFolder != selectedFolder)
             {
-                routeModels = await ContentRouteHandler.GetRoutes(routeFolder.ContentFolder, ctsRouteLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
-                selectedFolder = routeFolder;
+                routeModels = await ContentRouteHandler.GetRoutes(contentFolder, ctsRouteLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                selectedFolder = contentFolder;
             }
             loadRoutesSemaphore.Release();
             return routeModels;
@@ -91,7 +92,7 @@ namespace FreeTrainSimulator.Toolbox
             if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
 
-            await TrackData.LoadTrackData(this, selectedFolder.ContentFolder.Route(route.RouteId), useMetricUnits, token).ConfigureAwait(false);
+            await TrackData.LoadTrackData(this, route, useMetricUnits, token).ConfigureAwait(false);
             if (token.IsCancellationRequested)
                 return;
 
@@ -120,7 +121,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (routeSelection?.Length > 0)
             {
-                Folder folder = mainmenu.SelectContentFolder(routeSelection[0]);
+                ContentFolderModel folder = mainmenu.SelectContentFolder(routeSelection[0]);
 
                 if (routeSelection.Length > 1 && Settings.RestoreLastView)
                 {

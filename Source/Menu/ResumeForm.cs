@@ -170,7 +170,7 @@ namespace Orts.Menu
 
             if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
             {
-                prefix = $"{Path.GetFileName(route.Path)} {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
+                prefix = $"{route.Name} {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
             }
             else if (activity.FilePath != null)
             {
@@ -178,12 +178,12 @@ namespace Orts.Menu
             }
             else if (activity.Name == $"- {catalog.GetString("Explore Route")} -")
             {
-                prefix = Path.GetFileName(route.Path);
+                prefix = route.Name;
             }
             // Explore in activity mode
             else
             {
-                prefix = $"ea${Path.GetFileName(route.Path)}$";
+                prefix = $"ea${route.Name}$";
             }
 
             savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder, prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).OrderByDescending(s => s.RealTime).ToList();

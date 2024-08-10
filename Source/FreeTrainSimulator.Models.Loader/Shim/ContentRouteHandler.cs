@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +15,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public class ContentRouteHandler : ContentHandlerBase<ContentRouteModel>
     {
-        public static async ValueTask<ContentRouteModel> LoadRoute(string routePath, CancellationToken cancellationToken)
+        private static async ValueTask<ContentRouteModel> LoadRoute(string routePath, CancellationToken cancellationToken)
         {
             string routeName = Path.GetFileName(routePath);
 
@@ -67,34 +66,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             }
             return null;
         }
-
-        //public static async ValueTask<ContentRouteModel> LoadRoute(string routeName, ContentFolderModel contentFolder, CancellationToken cancellationToken)
-        //{
-        //    string routeName = Path.GetFileName(routePath);
-
-        //    string routeModelFile = Path.Combine(routePath, routeName + ".route");
-        //    return await FromFile<ContentRouteModel>(routeModelFile, cancellationToken).ConfigureAwait(false);
-
-        //    if (route == null)
-        //    {
-        //        FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(routePath);
-
-        //        if (routeFolder.Valid)
-        //        {
-        //            string trkFilePath = routeFolder.TrackFileName;
-        //            RouteFile routeFile = new RouteFile(trkFilePath);
-        //            route = routeFile.Route.RouteData;
-
-        //            await ToFile(routeModelFile, route, cancellationToken).ConfigureAwait(false);
-        //        }
-        //    }
-        //    if (route != null)
-        //    {
-        //        route.Path = routePath;
-        //    }
-        //    return route;
-
-        //}
 
         public static async ValueTask<FrozenSet<ContentRouteModel>> GetRoutes(FolderStructure.ContentFolder contentFolder, CancellationToken cancellationToken)
         {

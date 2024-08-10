@@ -46,6 +46,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             if (null == folders)
                 return contentProfile;
 
+            ArgumentNullException.ThrowIfNull(contentProfile, nameof(contentProfile));
+
             contentProfile.Clear();
             foreach ((string name, string path) in folders)
             {

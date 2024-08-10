@@ -233,11 +233,11 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             });
         }
 
-        internal void PopulateContentFolders(IEnumerable<Folder> folders)
+        internal void PopulateContentFolders(FrozenSet<ContentFolderModel> folders)
         {
             SuspendLayout();
             menuItemFolder.DropDownItems.Clear();
-            foreach (Folder folder in folders)
+            foreach (ContentFolderModel folder in folders.OrderBy(f => f.Name))
             {
                 ToolStripMenuItem folderItem = new ToolStripMenuItem(folder.Name)
                 {
@@ -265,7 +265,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             if (sender is ToolStripMenuItem folderItem)
             {
                 UncheckOtherMenuItems(folderItem);
-                if (folderItem.Tag is Folder folder)
+                if (folderItem.Tag is ContentFolderModel folder)
                 {
                     parent.UnloadRoute();
                     PopulateRoutes(await parent.FindRoutes(folder).ConfigureAwait(true));
@@ -273,14 +273,14 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             }
         }
 
-        internal Folder SelectContentFolder(string folderName)
+        internal ContentFolderModel SelectContentFolder(string folderName)
         {
             foreach (ToolStripMenuItem item in menuItemFolder.DropDownItems)
             {
                 if (item.Text.Equals(folderName, StringComparison.OrdinalIgnoreCase))
                 {
                     FolderItem_Click(item, EventArgs.Empty);
-                    return item.Tag as Folder;
+                    return item.Tag as ContentFolderModel;
                 }
             }
             return null;

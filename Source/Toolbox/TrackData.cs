@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 
@@ -26,7 +27,7 @@ namespace FreeTrainSimulator.Toolbox
             TrainPaths = trainPaths;
         }
 
-        internal static async ValueTask LoadTrackData(Game game, FolderStructure.ContentFolder.RouteFolder routeFolder, bool? metricUnitPreference, CancellationToken cancellationToken)
+        internal static async ValueTask LoadTrackData(Game game, ContentRouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;
@@ -34,11 +35,11 @@ namespace FreeTrainSimulator.Toolbox
             RoadTrackDB roadTrackDB = null;
             SignalConfigurationFile signalConfig = null;
 
-            ContentRouteModel routeModel = await ContentRouteHandler.LoadRoute(routeFolder.CurrentFolder, cancellationToken).ConfigureAwait(false);
+            FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
 
             loadTasks.Add(Task.Run(() =>
             {
-                string tdbFile = routeFolder.TrackDatabaseFile(routeModel.FileName);
+                string tdbFile = routeFolder.TrackDatabaseFile(routeModel.RouteId);
                 if (!System.IO.File.Exists(tdbFile))
                 {
                     Trace.TraceError($"Track Database File not found in {tdbFile}");
@@ -54,7 +55,7 @@ namespace FreeTrainSimulator.Toolbox
             }, cancellationToken));
             loadTasks.Add(Task.Run(() =>
             {
-                string rdbFile = routeFolder.RoadTrackDatabaseFile(routeModel.FileName);
+                string rdbFile = routeFolder.RoadTrackDatabaseFile(routeModel.RouteId);
                 if (!System.IO.File.Exists(rdbFile))
                 {
                     Trace.TraceWarning($"Road Database File not found in {rdbFile}");

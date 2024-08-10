@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader;
 using FreeTrainSimulator.Models.Loader.Shim;
 
 using Orts.Formats.Msts;
@@ -59,13 +60,13 @@ namespace FreeTrainSimulator.Models.Simplified
                 TransformManyBlock<(Folder, string), (Folder, string, string)> routeBlock = new TransformManyBlock<(Folder folder, string routeDirectory), (Folder, string, string)>
                     (routeFile =>
                     {
-                        if (FolderStructure.Route(routeFile.routeDirectory).Valid)
+                        FolderStructure.ContentFolder.RouteFolder route = FolderStructure.Route(routeFile.routeDirectory);
+                        if (route.Valid)
                         {
-                            ContentRouteModel routeModel = ContentRouteHandler.LoadRoute(routeFile.routeDirectory, CancellationToken.None).Result;
-                            string activitiesDirectory = FolderStructure.Route(routeModel.Path).ActivitiesFolder;
+                            string activitiesDirectory = route.ActivitiesFolder;
                             if (Directory.Exists(activitiesDirectory))
                             {
-                                return Directory.EnumerateFiles(activitiesDirectory, "*.act").Select(a => (routeFile.folder, routeModel.Name, a));
+                                return Directory.EnumerateFiles(activitiesDirectory, "*.act").Select(a => (routeFile.folder, route.RouteName, a));
                             }
                         }
                         return Array.Empty<(Folder, string, string)>();

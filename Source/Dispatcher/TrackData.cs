@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader;
 using FreeTrainSimulator.Models.Simplified;
 
 using Microsoft.Xna.Framework;
@@ -24,7 +25,7 @@ namespace FreeTrainSimulator.Dispatcher
             TrainPaths = trainPaths;
         }
 
-        internal static async Task LoadTrackData(Game game, FolderStructure.ContentFolder.RouteFolder routeFolder, bool? metricUnitPreference, CancellationToken cancellationToken)
+        internal static async Task LoadTrackData(Game game, ContentRouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;
@@ -32,11 +33,11 @@ namespace FreeTrainSimulator.Dispatcher
             RoadTrackDB roadTrackDB = null;
             SignalConfigurationFile signalConfig = null;
 
-            RouteFile routeFile = new RouteFile(routeFolder.TrackFileName);
+            FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
 
             loadTasks.Add(Task.Run(() =>
             {
-                string tdbFile = routeFolder.TrackDatabaseFile(routeFile.Route.FileName);
+                string tdbFile = routeFolder.TrackDatabaseFile(routeModel.RouteId);
                 if (!System.IO.File.Exists(tdbFile))
                 {
                     Trace.TraceError($"Track Database File not found in {tdbFile}");
@@ -52,7 +53,7 @@ namespace FreeTrainSimulator.Dispatcher
             }, cancellationToken));
             loadTasks.Add(Task.Run(() =>
             {
-                string rdbFile = routeFolder.RoadTrackDatabaseFile(routeFile.Route.FileName);
+                string rdbFile = routeFolder.RoadTrackDatabaseFile(routeModel.RouteId);
                 if (!System.IO.File.Exists(rdbFile))
                 {
                     Trace.TraceWarning($"Road Database File not found in {rdbFile}");
@@ -70,7 +71,7 @@ namespace FreeTrainSimulator.Dispatcher
                 return;
 
             game.Services.RemoveService(typeof(RuntimeData));
-            game.Services.AddService(typeof(RuntimeData), new TrackData(routeFile.Route.RouteData, trackSections, trackDB, roadTrackDB, signalConfig, metricUnitPreference.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric), await pathTask.ConfigureAwait(false)));
+            game.Services.AddService(typeof(RuntimeData), new TrackData(routeModel, trackSections, trackDB, roadTrackDB, signalConfig, metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits), await pathTask.ConfigureAwait(false)));
         }
     }
 }
