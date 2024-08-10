@@ -32,6 +32,7 @@ using System.Windows.Forms.Integration;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader;
 using FreeTrainSimulator.Models.Simplified;
 
 using ORTS.TrackViewer.Drawing; // for colors
@@ -641,7 +642,7 @@ namespace ORTS.TrackViewer.UserInterface
 
         private void MenuZoomSave_Click(object sender, RoutedEventArgs e)
         {
-            trackViewer.DrawArea.Save(trackViewer.CurrentRoute.Path);
+            trackViewer.DrawArea.Save(trackViewer.CurrentRoute.MstsRouteFolder().CurrentFolder);
         }
 
         private void MenuZoomRestore_Click(object sender, RoutedEventArgs e)

@@ -15,34 +15,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public class ContentRouteHandler : ContentHandlerBase<ContentRouteModel>
     {
-        private static async ValueTask<ContentRouteModel> LoadRoute(string routePath, CancellationToken cancellationToken)
-        {
-            string routeName = Path.GetFileName(routePath);
-
-            string routeModelFile = Path.Combine(routePath, routeName + ".route");
-            ContentRouteModel route = await FromFile(routeModelFile, cancellationToken).ConfigureAwait(false);
-
-            if (route == null)
-            {
-                FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(routePath);
-
-                if (routeFolder.Valid)
-                {
-                    string trkFilePath = routeFolder.TrackFileName;
-                    RouteFile routeFile = new RouteFile(trkFilePath);
-                    route = routeFile.Route.RouteData;
-
-                    await ToFile(routeModelFile, route, cancellationToken).ConfigureAwait(false);
-                }
-            }
-            if (route != null)
-            {
-                route.Path = routePath;
-            }
-            return route;
-
-        }
-
         public static async ValueTask<ContentRouteModel> Create(string routePath, ContentFolderModel contentFolder, CancellationToken cancellationToken)
         {
             FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(routePath);
@@ -67,21 +39,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return null;
         }
 
-        public static async ValueTask<FrozenSet<ContentRouteModel>> GetRoutes(FolderStructure.ContentFolder contentFolder, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
-
-            ConcurrentBag<ContentRouteModel> results = new ConcurrentBag<ContentRouteModel>();
-            await Parallel.ForEachAsync(Directory.EnumerateDirectories(contentFolder.RoutesFolder), cancellationToken, async (routeDirectory, token) =>
-            {
-                ContentRouteModel route = await LoadRoute(routeDirectory, token).ConfigureAwait(false);
-                if (null != route)
-                    results.Add(route);
-            }).ConfigureAwait(false);
-
-            return results.ToFrozenSet();
-        }
-
         public static async ValueTask<FrozenSet<ContentRouteModel>> GetRoutes(ContentFolderModel contentFolder, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
@@ -91,12 +48,15 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             string pattern = $"*{ModelFileResolver<ContentRouteModel>.FileExtension}.*";
             ConcurrentBag<ContentRouteModel> results = new ConcurrentBag<ContentRouteModel>();
 
-            await Parallel.ForEachAsync(Directory.EnumerateFiles(routesFolder, pattern), cancellationToken, async (file, token) =>
+            if (Directory.Exists(routesFolder))
             {
-                ContentRouteModel route = await FromFile(file, contentFolder, token, false).ConfigureAwait(false);
-                if (null != route)
-                    results.Add(route);
-            }).ConfigureAwait(false);
+                await Parallel.ForEachAsync(Directory.EnumerateFiles(routesFolder, pattern), cancellationToken, async (file, token) =>
+                {
+                    ContentRouteModel route = await FromFile(file, contentFolder, token, false).ConfigureAwait(false);
+                    if (null != route)
+                        results.Add(route);
+                }).ConfigureAwait(false);
+            }
 
             if (results.IsEmpty)
             {

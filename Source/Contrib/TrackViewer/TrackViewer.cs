@@ -29,6 +29,7 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 
@@ -70,7 +71,7 @@ namespace ORTS.TrackViewer
         /// <summary>Path where the content (like .png files) is stored</summary>
         public string ContentPath { get; private set; }
         /// <summary>Folder where MSTS is installed (or at least, where the files needed for tracks, routes and paths are stored)</summary>
-        public Folder InstallFolder { get; private set; }
+        public ContentFolderModel InstallFolder { get; private set; }
         /// <summary>List of available routes (in the install directory)</summary>
         public Collection<ContentRouteModel> Routes { get; private set; } // Collection because of FxCop
         /// <summary>List of available paths in the current route</summary>
@@ -233,7 +234,7 @@ namespace ORTS.TrackViewer
                 catch { }
 #pragma warning restore CA1031 // Do not catch general exception types
             }
-            InstallFolder = new Folder("default", Properties.Settings.Default.installDirectory);
+            InstallFolder = new ContentFolderModel("default", Properties.Settings.Default.installDirectory, ContentProfileModel.Default);
 
             FindRoutes(InstallFolder);
 
@@ -838,7 +839,7 @@ namespace ORTS.TrackViewer
             {
                 //MessageBox.Show(route.Path);
 
-                if (route.Path.Equals(routeFolder, StringComparison.OrdinalIgnoreCase))
+                if (route.MstsRouteFolder().CurrentFolder.Equals(routeFolder, StringComparison.OrdinalIgnoreCase))
                 {
                     SetRoute(route);
 
@@ -874,7 +875,7 @@ namespace ORTS.TrackViewer
             {
                 if (InstallFolder != null)
                 {
-                    folderBrowserDialog.SelectedPath = InstallFolder.Path;
+                    folderBrowserDialog.SelectedPath = InstallFolder.ContentPath;
                 }
                 folderBrowserDialog.ShowNewFolderButton = false;
                 DialogResult dialogResult = folderBrowserDialog.ShowDialog();
@@ -896,7 +897,7 @@ namespace ORTS.TrackViewer
         private bool SetSelectedInstallFolder(string folderPath)
         {
             drawTerrain?.Clear();
-            Folder newInstallFolder = new Folder("installFolder", folderPath);
+            ContentFolderModel newInstallFolder = new ContentFolderModel("installFolder", folderPath, ContentProfileModel.Default);
             bool foundroutes = FindRoutes(newInstallFolder);
             if (!foundroutes)
             {
@@ -922,12 +923,12 @@ namespace ORTS.TrackViewer
         /// Find the available routes, and if possible load the first one.
         /// </summary>
         /// <returns>True if the route loading was successfull</returns>
-        private bool FindRoutes(Folder newInstallFolder)
+        private bool FindRoutes(ContentFolderModel newInstallFolder)
         {
             if (newInstallFolder == null)
                 return false;
 
-            Task<System.Collections.Frozen.FrozenSet<ContentRouteModel>> routeTask = ContentRouteHandler.GetRoutes(newInstallFolder.ContentFolder, CancellationToken.None).AsTask();
+            Task<System.Collections.Frozen.FrozenSet<ContentRouteModel>> routeTask = ContentRouteHandler.GetRoutes(newInstallFolder, CancellationToken.None).AsTask();
             if (!routeTask.IsCompleted)
                 routeTask.Wait();
             Routes = new Collection<ContentRouteModel>(routeTask.Result.ToList());
@@ -963,13 +964,13 @@ namespace ORTS.TrackViewer
 
             try
             {
-                RouteData.Load(newRoute.Path, messageHandler);
+                RouteData.Load(newRoute, messageHandler);
                 DrawTrackDB = new DrawTrackDB(messageHandler);
                 drawLabels = new DrawLabels(TextManager.Instance.DefaultFont.Height);
                 CurrentRoute = newRoute;
 
                 Properties.Settings.Default.defaultRoute = CurrentRoute.Name;
-                if (Properties.Settings.Default.zoomRoutePath != CurrentRoute.Path)
+                if (Properties.Settings.Default.zoomRoutePath != CurrentRoute.MstsRouteFolder().CurrentFolder)
                 {
                     Properties.Settings.Default.zoomScale = -1; // To disable the use of zoom reset
                 }
@@ -1001,8 +1002,8 @@ namespace ORTS.TrackViewer
 
             try
             {
-                drawWorldTiles.SetRoute(CurrentRoute.Path);
-                drawTerrain = new DrawTerrain(CurrentRoute.Path, messageHandler, drawWorldTiles);
+                drawWorldTiles.SetRoute(CurrentRoute.MstsRouteFolder().CurrentFolder);
+                drawTerrain = new DrawTerrain(CurrentRoute.MstsRouteFolder().CurrentFolder, messageHandler, drawWorldTiles);
                 drawTerrain.LoadContent(GraphicsDevice);
                 menuControl.MenuSetShowTerrain(false);
                 menuControl.MenuSetShowDMTerrain(false);
@@ -1036,7 +1037,7 @@ namespace ORTS.TrackViewer
         /// </summary>
         private void FindPaths()
         {
-            Task<IEnumerable<Path>> task = Task.Run(() => Path.GetPaths(FolderStructure.Content(System.IO.Path.GetDirectoryName(CurrentRoute.Path)).Route(CurrentRoute.Name).PathsFolder, true, CancellationToken.None));
+            Task<IEnumerable<Path>> task = Task.Run(() => Path.GetPaths(CurrentRoute.MstsRouteFolder().PathsFolder, true, CancellationToken.None));
             task.Wait();
             List<Path> newPaths = task.Result.OrderBy(r => r.Name).ToList();
             Paths = new Collection<Path>(newPaths);
@@ -1077,7 +1078,7 @@ namespace ORTS.TrackViewer
         {
             if (!CanDiscardModifiedPath())
                 return;
-            string pathsDirectory = System.IO.Path.Combine(CurrentRoute.Path, "PATHS");
+            string pathsDirectory = System.IO.Path.Combine(CurrentRoute.MstsRouteFolder().CurrentFolder, "PATHS");
             PathEditor = new PathEditor(DrawTrackDB, pathsDirectory);
             drawPathChart.SetPathEditor(PathEditor);
             DrawPATfile = null;

@@ -21,9 +21,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public bool MetricUnits { get; init; }
         public EnumArray2D<string, SeasonType, WeatherType> EnvironmentConditions { get; init; }
 
-        [MemoryPackIgnore]
-        public string Path { get; set; }
-
         public ContentRouteModel(in WorldLocation routeStart)
         { 
             this.routeStart = routeStart;

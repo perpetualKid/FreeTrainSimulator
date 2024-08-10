@@ -62,6 +62,7 @@ namespace FreeTrainSimulator.Models.Independent
         {
             Name = name;
             Parent = parent;
+            Initialize(name, parent);
         }
     }
 }
