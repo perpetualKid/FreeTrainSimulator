@@ -29,6 +29,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 
 using GetText;
@@ -118,7 +120,7 @@ namespace Orts.Menu
             }
             UseWaitCursor = true;
             gridTestActivities.SuspendLayout();
-            testBindingSource.DataSource = new SortableBindingList<TestActivity>((await TestActivity.GetTestActivities(settings.FolderSettings.Folders, CancellationToken.None).ConfigureAwait(true)).ToList());
+            testBindingSource.DataSource = new SortableBindingList<TestActivity>((await TestActivity.GetTestActivities(await ContentProfileHandler.GetContentFolders(null, settings.FolderSettings.Folders.Select((kvp) => (kvp.Key, kvp.Value)), CancellationToken.None).ConfigureAwait(true), CancellationToken.None).ConfigureAwait(true)).ToList());
             testBindingSource.Sort = "DefaultSort";
             gridTestActivities.ResumeLayout();
             UseWaitCursor = false;

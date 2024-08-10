@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,6 @@ using System.Threading.Tasks.Dataflow;
 
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader;
-using FreeTrainSimulator.Models.Loader.Shim;
 
 using Orts.Formats.Msts;
 
@@ -27,7 +27,7 @@ namespace FreeTrainSimulator.Models.Simplified
         public string Load { get; set; }
         public string FPS { get; set; }
 
-        private TestActivity(Folder folder, string routeName, Activity activity)
+        private TestActivity(ContentFolderModel folder, string routeName, Activity activity)
         {
             DefaultSort = $"{folder.Name}/{routeName}/{activity.Name}";
             Route = routeName;
@@ -35,29 +35,28 @@ namespace FreeTrainSimulator.Models.Simplified
             ActivityFilePath = activity.FilePath;
         }
 
-        public static async Task<IEnumerable<TestActivity>> GetTestActivities(Dictionary<string, string> folders, CancellationToken token)
+        public static async Task<IEnumerable<TestActivity>> GetTestActivities(FrozenSet<ContentFolderModel> contentFolders, CancellationToken token)
         {
-            ArgumentNullException.ThrowIfNull(folders);
+            ArgumentNullException.ThrowIfNull(contentFolders);
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
                 List<TestActivity> result = new List<TestActivity>();
 
-                TransformManyBlock<KeyValuePair<string, string>, (Folder, string)> inputBlock = new TransformManyBlock<KeyValuePair<string, string>, (Folder, string)>
-                    (folderName =>
+                TransformManyBlock<ContentFolderModel, (ContentFolderModel, string)> inputBlock = new TransformManyBlock<ContentFolderModel, (ContentFolderModel, string)>
+                    (contentFolder =>
                     {
-                        Folder folder = new Folder(folderName.Key, folderName.Value);
-                        string routesDirectory = folder.ContentFolder.RoutesFolder;
+                        string routesDirectory = contentFolder.MstsContentFolder().RoutesFolder;
                         if (Directory.Exists(routesDirectory))
                         {
-                            return Directory.EnumerateDirectories(routesDirectory).Select(r => (folder, r));
+                            return Directory.EnumerateDirectories(routesDirectory).Select(r => (contentFolder, r));
                         }
                         else
-                            return Array.Empty<(Folder, string)>();
+                            return Array.Empty<(ContentFolderModel, string)>();
                     },
-                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
+                    new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
 
-                TransformManyBlock<(Folder, string), (Folder, string, string)> routeBlock = new TransformManyBlock<(Folder folder, string routeDirectory), (Folder, string, string)>
+                TransformManyBlock<(ContentFolderModel, string), (ContentFolderModel, string, string)> routeBlock = new TransformManyBlock<(ContentFolderModel folder, string routeDirectory), (ContentFolderModel, string, string)>
                     (routeFile =>
                     {
                         FolderStructure.ContentFolder.RouteFolder route = FolderStructure.Route(routeFile.routeDirectory);
@@ -66,15 +65,15 @@ namespace FreeTrainSimulator.Models.Simplified
                             string activitiesDirectory = route.ActivitiesFolder;
                             if (Directory.Exists(activitiesDirectory))
                             {
-                                return Directory.EnumerateFiles(activitiesDirectory, "*.act").Select(a => (routeFile.folder, route.RouteName, a));
+                                return Directory.EnumerateFiles(activitiesDirectory, "*.act").Select(a => (routeFile.folder, route.RouteName /*Should be replace with ContentRouteModel.Name since RouteName refers to the directory Name*/, a));
                             }
                         }
-                        return Array.Empty<(Folder, string, string)>();
+                        return Array.Empty<(ContentFolderModel, string, string)>();
 
                     },
                     new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
 
-                TransformBlock<(Folder, string, string), TestActivity> activityBlock = new TransformBlock<(Folder folder, string routeName, string activity), TestActivity>
+                TransformBlock<(ContentFolderModel, string, string), TestActivity> activityBlock = new TransformBlock<(ContentFolderModel folder, string routeName, string activity), TestActivity>
                     (activityInput =>
                     {
                         Activity activity = Simplified.Activity.FromPathShallow(activityInput.activity);
@@ -102,7 +101,7 @@ namespace FreeTrainSimulator.Models.Simplified
                 routeBlock.LinkTo(activityBlock, new DataflowLinkOptions { PropagateCompletion = true });
                 activityBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
 
-                foreach (KeyValuePair<string, string> folder in folders)
+                foreach (ContentFolderModel folder in contentFolders)
                     await inputBlock.SendAsync(folder).ConfigureAwait(false);
 
                 inputBlock.Complete();

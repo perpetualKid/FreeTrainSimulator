@@ -94,7 +94,6 @@ namespace FreeTrainSimulator.Models.Independent
         {
             Name = name;
             this.parent = parent;
-            Initialize(name, parent);
         }
     }
 }
