@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,23 +19,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         {
             ContentProfileModel contentProfile = string.Equals(profileName, ContentProfileModel.Default.Name, StringComparison.OrdinalIgnoreCase) ?
                 ContentProfileModel.Default : new ContentProfileModel(profileName);
-            contentProfile.Initialize(ModelFileResolver<ContentProfileModel>.FilePath(contentProfile), null);
-
-            string directory = ModelFileResolver<ContentProfileModel>.FolderPath(contentProfile);
-            if (!Directory.Exists(directory))
-            {
-                try
-                {
-                    Directory.CreateDirectory(directory);
-                }
-                catch (Exception ex)
-                {
-                    Trace.TraceError(ex.Message);
-                    throw;
-                }
-            }
-
-            await ToFile(contentProfile, cancellationToken).ConfigureAwait(false);
+            await Create(contentProfile, (ContentProfileModel)null, true, true, cancellationToken).ConfigureAwait(false);
             return contentProfile;
         }
 

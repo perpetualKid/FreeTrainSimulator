@@ -4,9 +4,16 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Independent;
+using FreeTrainSimulator.Models.Independent.Content;
 
 using MemoryPack;
+
+using Orts.Formats.Msts.Files;
+
+using Orts.Formats.Msts;
+using static Orts.Formats.Msts.FolderStructure;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {
@@ -101,6 +108,31 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             {
                 Trace.TraceError(ex.Message);
                 throw;
+            }
+        }
+
+        public static async ValueTask Create<TParent>(T model, TParent parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TParent : ModelBase<TParent>
+        {
+            model.Initialize(ModelFileResolver<T>.FilePath(model, parent), parent);
+
+            if (saveModel)
+                await ToFile(model, cancellationToken).ConfigureAwait(false);
+
+            if (createDirectory)
+            {
+                string directory = ModelFileResolver<ContentFolderModel>.FolderPath(model);
+                if (!Directory.Exists(directory))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.TraceError(ex.Message);
+                        throw;
+                    }
+                }
             }
         }
 #pragma warning restore CA1000 // Do not declare static members on generic types

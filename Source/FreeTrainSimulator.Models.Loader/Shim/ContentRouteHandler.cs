@@ -33,8 +33,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                     Tag = routeFolder.RouteName,
                     EnvironmentConditions = new EnumArray2D<string, SeasonType, WeatherType>(routeFile.Route.Environment.GetEnvironmentFileName)
                 };
-                routeModel.Initialize(ModelFileResolver<ContentRouteModel>.FilePath(routeModel, contentFolder), contentFolder);
-                await ToFile(routeModel, cancellationToken).ConfigureAwait(false);
+                await Create(routeModel, contentFolder, true, true, cancellationToken).ConfigureAwait(false);
                 return routeModel;
             }
             return null;
