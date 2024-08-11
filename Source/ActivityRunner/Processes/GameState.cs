@@ -21,12 +21,12 @@ using System;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Models.State;
 
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D;
 using Orts.Formats.Msts;
-using Orts.Models.State;
 
 namespace Orts.ActivityRunner.Processes
 {

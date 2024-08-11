@@ -4,7 +4,7 @@ using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
 
-namespace Orts.Models.State
+namespace FreeTrainSimulator.Models.State
 {
     [MemoryPackable]
     public sealed partial class DieselLocomotiveSaveState : SaveStateBase

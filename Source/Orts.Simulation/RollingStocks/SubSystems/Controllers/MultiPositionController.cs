@@ -21,10 +21,10 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Models.State;
 
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
-using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 {

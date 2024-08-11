@@ -23,10 +23,9 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Models.State;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 {

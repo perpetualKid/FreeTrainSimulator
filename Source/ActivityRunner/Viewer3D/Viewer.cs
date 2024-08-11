@@ -36,6 +36,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.State;
 
 using GetText;
 
@@ -52,7 +53,6 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Models.State;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Activities;

@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 
-namespace Orts.Models.State
+namespace FreeTrainSimulator.Models.State
 {
     [MemoryPackable]
     public sealed partial class FreightAnimationsSetSaveState : SaveStateBase

@@ -5,7 +5,7 @@ using FreeTrainSimulator.Common.Api;
 
 using MemoryPack;
 
-namespace Orts.Models.State
+namespace FreeTrainSimulator.Models.State
 {
 #pragma warning disable CA1815 // Override equals and operator equals on value types
     public readonly struct TrainReservationItemSaveState

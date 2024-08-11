@@ -8,10 +8,9 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.State;
 
 using MemoryPack;
-
-using Orts.Models.State;
 
 namespace FreeTrainSimulator.Models.Simplified
 {

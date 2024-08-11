@@ -23,10 +23,10 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Models.State;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
-using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.PowerSupply;
 using Orts.Simulation.Physics;

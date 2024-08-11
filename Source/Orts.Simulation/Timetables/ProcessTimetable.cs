@@ -31,13 +31,13 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.State;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Parsers;
-using Orts.Models.State;
 using Orts.Simulation.AIs;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;

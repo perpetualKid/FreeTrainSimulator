@@ -5,7 +5,7 @@ using FreeTrainSimulator.Common.Position;
 
 using MemoryPack;
 
-namespace Orts.Models.State
+namespace FreeTrainSimulator.Models.State
 {
     [MemoryPackable]
     public sealed partial class CameraSaveState : SaveStateBase

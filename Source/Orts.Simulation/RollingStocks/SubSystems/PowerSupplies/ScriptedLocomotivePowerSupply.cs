@@ -20,10 +20,10 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Models.State;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
-using Orts.Models.State;
 using Orts.Scripting.Api.PowerSupply;
 using Orts.Simulation.Physics;
 

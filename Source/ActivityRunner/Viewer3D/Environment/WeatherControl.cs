@@ -30,13 +30,13 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Models.State;
 
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Models.State;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;

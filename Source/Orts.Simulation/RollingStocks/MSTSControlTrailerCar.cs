@@ -34,9 +34,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Models.State;
 
 using Orts.Formats.Msts.Parsers;
-using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;

@@ -6,7 +6,7 @@ using MemoryPack;
 
 using Orts.Formats.Msts;
 
-namespace Orts.Models.State
+namespace FreeTrainSimulator.Models.State
 {
     [MemoryPackable]
     public sealed partial class TimetablePoolDetailSaveState : SaveStateBase

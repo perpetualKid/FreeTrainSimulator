@@ -20,14 +20,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Models.State;
 
-using Orts.Models.State;
-using Orts.Simulation.Physics;
 using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Signalling

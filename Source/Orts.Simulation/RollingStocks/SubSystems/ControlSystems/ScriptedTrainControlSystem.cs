@@ -30,11 +30,11 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Native;
+using FreeTrainSimulator.Models.State;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
-using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Scripting.Api.Etcs;
 using Orts.Simulation.Activities;
