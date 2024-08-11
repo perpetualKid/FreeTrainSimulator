@@ -23,8 +23,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Models.State;
+
 using Orts.Formats.OR.Models;
-using Orts.Models.State;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment
 {

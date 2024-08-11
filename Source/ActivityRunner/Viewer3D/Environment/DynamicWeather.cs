@@ -22,11 +22,11 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
+using FreeTrainSimulator.Models.State;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Models;
-using Orts.Models.State;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment

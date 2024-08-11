@@ -27,8 +27,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
-
-using Orts.Models.State;
+using FreeTrainSimulator.Models.State;
 
 namespace Orts.Simulation.Timetables
 {

@@ -31,6 +31,7 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Models.State;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -39,7 +40,6 @@ using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.RollingStock.CabView;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Models.State;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;

@@ -23,12 +23,12 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
+using FreeTrainSimulator.Models.State;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
-using Orts.Models.State;
 using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS

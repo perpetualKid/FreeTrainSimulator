@@ -23,11 +23,11 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
+using FreeTrainSimulator.Models.State;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Parsers;
-using Orts.Models.State;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions

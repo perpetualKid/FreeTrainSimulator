@@ -20,10 +20,10 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
+using FreeTrainSimulator.Models.State;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
-using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {

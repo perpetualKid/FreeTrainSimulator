@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
+using FreeTrainSimulator.Models.State;
 
 using Orts.Formats.Msts;
-using Orts.Models.State;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Timetables;

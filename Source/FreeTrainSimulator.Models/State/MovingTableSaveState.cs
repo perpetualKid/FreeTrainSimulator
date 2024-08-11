@@ -8,7 +8,7 @@ using MemoryPack;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Models.State
+namespace FreeTrainSimulator.Models.State
 {
 #pragma warning disable CA1815 // Override equals and operator equals on value types
     public readonly struct TrainOnTableItem

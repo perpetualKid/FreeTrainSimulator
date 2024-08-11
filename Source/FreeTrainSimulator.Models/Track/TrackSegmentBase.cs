@@ -95,10 +95,10 @@ namespace FreeTrainSimulator.Models.Track
                 double sinArotated = Math.Sin(trackVectorSection.Direction.Y + Angle);
                 double deltaX = sign * trackSection.Radius * (cosA - cosArotated);
                 double deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
-                SetVector(new PointD(location.TileX * WorldLocation.TileSize + location.Location.X - deltaX, location.TileZ * WorldLocation.TileSize + location.Location.Z + deltaZ));
+                SetVector(new PointD((location.TileX * WorldLocation.TileSize) + location.Location.X - deltaX, (location.TileZ * WorldLocation.TileSize) + location.Location.Z + deltaZ));
 
-                centerPoint = Location - new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius;
-                centerToStartDirection = MathHelper.WrapAngle(Direction + sign * MathHelper.PiOver2);
+                centerPoint = Location - (new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius);
+                centerToStartDirection = MathHelper.WrapAngle(Direction + (sign * MathHelper.PiOver2));
                 centerToEndDirection = MathHelper.WrapAngle(centerToStartDirection + Angle);
             }
             else
@@ -107,7 +107,7 @@ namespace FreeTrainSimulator.Models.Track
 
                 // note, angle is 90 degrees off, and different sign. 
                 // So Delta X = cos(90-A)=sin(A); Delta Y,Z = sin(90-A) = cos(A)    
-                SetVector(new PointD(location.TileX * WorldLocation.TileSize + location.Location.X + sinA * Length, location.TileZ * WorldLocation.TileSize + location.Location.Z + cosA * Length));
+                SetVector(new PointD((location.TileX * WorldLocation.TileSize) + location.Location.X + (sinA * Length), (location.TileZ * WorldLocation.TileSize) + location.Location.Z + (cosA * Length)));
             }
         }
 
@@ -193,9 +193,9 @@ namespace FreeTrainSimulator.Models.Track
                 double dx = Vector.X - Location.X;
                 double dy = Vector.Y - Location.Y;
                 double scale = startOffset / source.Length;
-                SetLocation(new PointD(Location.X + dx * scale, Location.Y + dy * scale));
+                SetLocation(new PointD(Location.X + (dx * scale), Location.Y + (dy * scale)));
                 scale = endOffset / source.Length;
-                SetVector(new PointD(Location.X + dx * scale, Location.Y + dy * scale));
+                SetVector(new PointD(Location.X + (dx * scale), Location.Y + (dy * scale)));
             }
         }
 
@@ -232,8 +232,8 @@ namespace FreeTrainSimulator.Models.Track
                 Angle += deltaAngle;
 
                 int sign = -Math.Sign(Angle);
-                centerPoint = Location - new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius;
-                centerToStartDirection = MathHelper.WrapAngle(Direction + sign * MathHelper.PiOver2);
+                centerPoint = Location - (new PointD(Math.Sin(Direction), Math.Cos(Direction)) * -sign * Radius);
+                centerToStartDirection = MathHelper.WrapAngle(Direction + (sign * MathHelper.PiOver2));
                 centerToEndDirection = MathHelper.WrapAngle(centerToStartDirection + Angle);
                 Length = Radius * Math.Abs(Angle);
             }
@@ -292,7 +292,7 @@ namespace FreeTrainSimulator.Models.Track
                 else if (t > 1)
                     return (distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance ? distanceSquared : double.NaN;
                 else
-                    return point.DistanceSquared(Location + (Vector - Location) * t);
+                    return point.DistanceSquared(Location + ((Vector - Location) * t));
                 //return (t < 0 || t > 1 || (distanceSquared = point.DistanceSquared(Location + (Vector - Location) * t)) > ProximityTolerance) ? double.NaN : distanceSquared;
                 //return (t < 0 || t > 1) ? double.NaN : point.DistanceSquared(Location + (Vector - Location) * t);
             }
@@ -342,7 +342,7 @@ namespace FreeTrainSimulator.Models.Track
         /// </summary>
         public float DirectionAt(float distance)
         {
-            return Curved ? Direction + Math.Sign(Angle) * distance / Radius : Direction;
+            return Curved ? Direction + (Math.Sign(Angle) * distance / Radius) : Direction;
         }
 
         public PointD LocationAt(float distance)
@@ -350,14 +350,14 @@ namespace FreeTrainSimulator.Models.Track
             if (Curved)
             {
                 int sign = Math.Sign(Angle);
-                double direction = Direction + sign * distance / Radius;
+                double direction = Direction + (sign * distance / Radius);
                 return centerPoint + new PointD(sign * Math.Sin(direction) * Radius, sign * Math.Cos(direction) * Radius);
             }
             else
             {
                 double dx = Vector.X - Location.X;
                 double dy = Vector.Y - Location.Y;
-                return new PointD(Location.X + dx * distance / Length, Location.Y + dy * distance / Length);
+                return new PointD(Location.X + (dx * distance / Length), Location.Y + (dy * distance / Length));
             }
         }
 
@@ -402,7 +402,7 @@ namespace FreeTrainSimulator.Models.Track
                 double distanceSquared = Length * Length;
                 // Calculate the t that minimizes the distance.
                 double t = (point - Location).DotProduct(Vector - Location) / distanceSquared;
-                return Location + (Vector - Location) * t;
+                return Location + ((Vector - Location) * t);
             }
         }
     }

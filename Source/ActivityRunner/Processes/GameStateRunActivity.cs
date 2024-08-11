@@ -29,6 +29,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Logging;
 using FreeTrainSimulator.Common.Native;
+using FreeTrainSimulator.Models.State;
 
 using MemoryPack;
 
@@ -38,7 +39,6 @@ using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Primitives;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
-using Orts.Models.State;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Activities;

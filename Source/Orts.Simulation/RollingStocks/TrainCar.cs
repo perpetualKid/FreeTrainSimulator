@@ -46,6 +46,7 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Models.State;
 
 using GetText;
 
@@ -53,7 +54,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Models.State;
 using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;

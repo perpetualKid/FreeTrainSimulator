@@ -51,6 +51,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Models.State;
 
 using Microsoft.Xna.Framework;
 
@@ -58,7 +59,6 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
-using Orts.Models.State;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;

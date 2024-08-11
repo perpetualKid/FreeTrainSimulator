@@ -73,13 +73,13 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Models.State;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
-using Orts.Models.State;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;

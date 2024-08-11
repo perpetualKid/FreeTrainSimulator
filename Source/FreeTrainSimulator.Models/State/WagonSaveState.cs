@@ -6,7 +6,7 @@ using MemoryPack;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.Models.State
+namespace FreeTrainSimulator.Models.State
 {
     [MemoryPackable]
     public sealed partial class WagonSaveState : SaveStateBase

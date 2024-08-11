@@ -20,10 +20,9 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
+using FreeTrainSimulator.Models.State;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Models.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {

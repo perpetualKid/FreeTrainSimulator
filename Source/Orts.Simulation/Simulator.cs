@@ -32,6 +32,7 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.State;
 using FreeTrainSimulator.Models.Loader.Shim;
 
 using GetText;
@@ -43,7 +44,6 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
-using Orts.Models.State;
 using Orts.Scripting.Api;
 using Orts.Settings;
 using Orts.Simulation.Activities;

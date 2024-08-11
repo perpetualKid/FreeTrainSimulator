@@ -7,7 +7,7 @@ using MemoryPack;
 
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Models.State
+namespace FreeTrainSimulator.Models.State
 {
     [MemoryPackable]
     public sealed partial class TrackCircuitSectionSaveState : SaveStateBase
