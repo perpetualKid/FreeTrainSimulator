@@ -58,6 +58,8 @@ namespace FreeTrainSimulator.Models.Independent
         string IFileResolve.FilePath => filePath;
         [MemoryPackIgnore]
         IFileResolve IFileResolve.Parent => parent;
+        [MemoryPackIgnore]
+        public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
 
         public virtual ValueTask RefreshModel()
         {
@@ -65,11 +67,10 @@ namespace FreeTrainSimulator.Models.Independent
             return ValueTask.CompletedTask;
         }
 
-        public virtual bool Initialize(string file, IFileResolve parent)
+        public virtual void Initialize(string file, IFileResolve parent)
         {
             filePath = Path.GetDirectoryName(file);
             this.parent = parent;
-            return VersionInfo.Compare(Version) > 0;
         }
         #endregion
 

@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Content;
@@ -13,14 +15,24 @@ namespace Tests.FreeTrainSimulator.Models.Loader
     public class ContentFolderLoaderTests
     {
         [TestMethod]
-        public void LoadContentFolder()
+        public void ResolveContentFolderFile()
         {
             ContentProfileModel profile = new ContentProfileModel("something");
             ContentFolderModel folder = new ContentFolderModel("TestModel",".", profile);
 
             string contentFolderFile = ModelFileResolver<ContentFolderModel>.FilePath("test123", profile);
+            Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\test123.contentfolder", StringComparison.OrdinalIgnoreCase));
 
             contentFolderFile = ModelFileResolver<ContentFolderModel>.FilePath(folder);
+            Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\test123.contentfolder", StringComparison.OrdinalIgnoreCase));
         }
+
+        [TestMethod]
+        public async Task GetContentFolder()
+        {
+            ContentProfileModel defaultModel = ContentProfileModel.Default;
+            ContentFolderModel folderModel = await ContentFolderHandler.Get("Demo", defaultModel, CancellationToken.None).ConfigureAwait(false);
+        }
+
     }
 }

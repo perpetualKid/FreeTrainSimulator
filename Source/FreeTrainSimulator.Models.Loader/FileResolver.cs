@@ -53,7 +53,6 @@ namespace FreeTrainSimulator.Models.Loader
             return resolver.MstsRouteFolder;
         }
         #endregion
-
     }
 
     public sealed class ContentFolderResolver
@@ -81,9 +80,7 @@ namespace FreeTrainSimulator.Models.Loader
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
             RouteModel = routeModel;
-            ContentFolderResolver resolver = FileResolver.ContentFolderResolver((routeModel as IFileResolve).Parent as ContentFolderModel);
-
-            MstsRouteFolder = resolver.MstsContentFolder.Route(routeModel.Tag);
+            MstsRouteFolder = ((routeModel as IFileResolve).Parent as ContentFolderModel).MstsContentFolder().Route(routeModel.Tag);
         }
     }
 

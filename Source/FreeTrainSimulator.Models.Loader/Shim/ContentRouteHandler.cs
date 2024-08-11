@@ -61,7 +61,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             if (results.IsEmpty)
             {
                 ContentFolderResolver resolver = FileResolver.ContentFolderResolver(contentFolder);
-                await Parallel.ForEachAsync(Directory.EnumerateDirectories(resolver.MstsContentFolder.RoutesFolder), cancellationToken, async (routeDirectory, token) =>
+                await Parallel.ForEachAsync(Directory.EnumerateDirectories(contentFolder.MstsContentFolder().RoutesFolder), cancellationToken, async (routeDirectory, token) =>
                 {
                     ContentRouteModel route = await Create(routeDirectory, contentFolder, token).ConfigureAwait(false);
                     if (null != route)
@@ -71,6 +71,5 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             return results.ToFrozenSet();
         }
-
     }
 }

@@ -4,18 +4,35 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Models.Independent;
 using FreeTrainSimulator.Models.Independent.Content;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public sealed class ContentProfileHandler : ContentHandlerBase<ContentProfileModel>
     {
-        public static async ValueTask<ContentProfileModel> Load(string profileName, CancellationToken cancellationToken)
+        public static async ValueTask<ContentProfileModel> Get(string profileName, CancellationToken cancellationToken)
         {
-            return await FromFile<ContentProfileModel>(profileName, null, cancellationToken).ConfigureAwait(false);
+            if (string.IsNullOrEmpty(profileName) || (string.Equals(profileName == ContentProfileModel.Default.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                if (!string.IsNullOrEmpty((ContentProfileModel.Default as IFileResolve).FilePath)) //FilePath is set once loaded from a file
+                    return ContentProfileModel.Default; //already initialized default model, just returning that instance
+
+                // else loading, updating the static default instance (can't replace), and return the default instance
+                profileName = ContentProfileModel.Default.Name;
+                ContentProfileModel result = await FromFile<ContentProfileModel>(profileName, null, cancellationToken).ConfigureAwait(false);
+                ContentProfileModel.Default.Clear();
+                foreach(ContentFolderModel contentFolder in result)
+                    ContentProfileModel.Default.Add(contentFolder);
+                ContentProfileModel.Default.Initialize(ModelFileResolver<ContentProfileModel>.FilePath(profileName, (ContentProfileModel)null) + SaveStateExtension, null);
+                return ContentProfileModel.Default;
+            }
+            else
+                //return the specific profile instance if exists)
+                return await FromFile<ContentProfileModel>(profileName, null, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<ContentProfileModel> Create(string profileName, CancellationToken cancellationToken)
+        public static async ValueTask<ContentProfileModel> Setup(string profileName, CancellationToken cancellationToken)
         {
             ContentProfileModel contentProfile = string.Equals(profileName, ContentProfileModel.Default.Name, StringComparison.OrdinalIgnoreCase) ?
                 ContentProfileModel.Default : new ContentProfileModel(profileName);
@@ -44,14 +61,11 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<FrozenSet<ContentFolderModel>> GetContentFolders(string profileName, IEnumerable<(string, string)> defaultFolders, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(profileName))
-                profileName = ContentProfileModel.Default.Name;
-
-            ContentProfileModel contentProfile = await Load(profileName, cancellationToken).ConfigureAwait(false);
+            ContentProfileModel contentProfile = await Get(profileName, cancellationToken).ConfigureAwait(false);
 
             if (null == contentProfile)
             {
-                contentProfile = await Create(profileName, cancellationToken).ConfigureAwait(false);
+                contentProfile = await Setup(profileName, cancellationToken).ConfigureAwait(false);
 
                 if (contentProfile == ContentProfileModel.Default && contentProfile.Count == 0 && defaultFolders != null)
                 {

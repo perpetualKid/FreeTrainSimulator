@@ -31,13 +31,13 @@ namespace FreeTrainSimulator.Models.Independent.Content
         {
         }
 
-        public override bool Initialize(string file, IFileResolve parent)
+        public override void Initialize(string file, IFileResolve parent)
         {
             foreach (ContentFolderModel folder in contentFolders)
             { 
                 folder.Initialize(null, this);
             }
-            return base.Initialize(file, parent);
+            base.Initialize(file, parent);
         }
 
         public bool Equals(ContentProfileModel other)
