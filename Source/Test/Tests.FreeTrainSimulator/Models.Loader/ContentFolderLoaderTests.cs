@@ -18,7 +18,7 @@ namespace Tests.FreeTrainSimulator.Models.Loader
         public void ResolveContentFolderFile()
         {
             ContentProfileModel profile = new ContentProfileModel("something");
-            ContentFolderModel folder = new ContentFolderModel("TestModel",".", profile);
+            ContentFolderModel folder = new ContentFolderModel("TestModel", ".", profile);
 
             string contentFolderFile = ModelFileResolver<ContentFolderModel>.FilePath("test123", profile);
             Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\test123.contentfolder", StringComparison.OrdinalIgnoreCase));
@@ -30,7 +30,7 @@ namespace Tests.FreeTrainSimulator.Models.Loader
         [TestMethod]
         public async Task GetContentFolder()
         {
-            ContentProfileModel defaultModel = ContentProfileModel.Default;
+            ContentProfileModel defaultModel = await ContentProfileHandler.Get(ContentProfileModel.Default.Name, CancellationToken.None).ConfigureAwait(false);
             ContentFolderModel folderModel = await ContentFolderHandler.Get("Demo", defaultModel, CancellationToken.None).ConfigureAwait(false);
         }
 

@@ -24,7 +24,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             if (string.IsNullOrEmpty((parent as IFileResolve).FilePath))
             {
                 Trace.TraceWarning($"Uninitialized parent {nameof(ContentProfileModel)}[{parent.Name}]");
-                parent = await ContentHandlerBase<ContentProfileModel>.FromFile(parent.Name, (ContentProfileModel)null, cancellationToken).ConfigureAwait(false);
+                parent = await ContentProfileHandler.Get(parent.Name, cancellationToken);
             }
 
             return parent.Where((folder) => string.Equals(folder.Name, folderName)).FirstOrDefault();

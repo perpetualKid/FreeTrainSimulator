@@ -13,7 +13,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
     {
         public static async ValueTask<ContentProfileModel> Get(string profileName, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(profileName) || (string.Equals(profileName == ContentProfileModel.Default.Name, StringComparison.OrdinalIgnoreCase)))
+            if (string.IsNullOrEmpty(profileName) || (string.Equals(profileName, ContentProfileModel.Default.Name, StringComparison.OrdinalIgnoreCase)))
             {
                 if (!string.IsNullOrEmpty((ContentProfileModel.Default as IFileResolve).FilePath)) //FilePath is set once loaded from a file
                     return ContentProfileModel.Default; //already initialized default model, just returning that instance
