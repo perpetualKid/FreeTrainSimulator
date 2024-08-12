@@ -22,8 +22,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
             this.contentFolders = contentFolders.ToList();
         }
 
-        public static ContentProfileModel Default { get; } = new ContentProfileModel("Default");
-
         [MemoryPackInclude]
         private readonly List<ContentFolderModel> contentFolders = new List<ContentFolderModel>();
 

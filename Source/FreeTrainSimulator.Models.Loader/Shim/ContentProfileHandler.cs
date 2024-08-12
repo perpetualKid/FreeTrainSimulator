@@ -10,24 +10,18 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public sealed class ContentProfileHandler : ContentHandlerBase<ContentProfileModel>
     {
+        private const string DefaultProfileName = "Default";
+
+        public static ContentProfileModel DefaultProfile { get; private set; } = new ContentProfileModel(DefaultProfileName);
+
         public static async ValueTask<ContentProfileModel> Get(string profileName, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(profileName) || (string.Equals(profileName, ContentProfileModel.Default.Name, StringComparison.OrdinalIgnoreCase)))
+            if (string.IsNullOrEmpty(profileName) || (string.Equals(profileName, DefaultProfileName, StringComparison.OrdinalIgnoreCase)))
             {
-                if (ContentProfileModel.Default.Initialized) //FilePath is set once loaded from a file
-                    return ContentProfileModel.Default; //already initialized default model, just returning that instance
+                if (DefaultProfile?.Initialized ?? false) //FilePath is set once loaded from a file
+                    return DefaultProfile; //already initialized default model, just returning that instance
 
-                // else loading, updating the static default instance (can't replace), and return the default instance
-                profileName = ContentProfileModel.Default.Name;
-                ContentProfileModel result = await FromFile<ContentProfileModel>(profileName, null, cancellationToken).ConfigureAwait(false);
-                if (result != null)
-                {
-                    ContentProfileModel.Default.Clear();
-                    foreach (ContentFolderModel contentFolder in result)
-                        ContentProfileModel.Default.Add(contentFolder);
-                    ContentProfileModel.Default.Initialize(ModelFileResolver<ContentProfileModel>.FilePath(profileName, (ContentProfileModel)null) + SaveStateExtension, null);
-                }
-                return ContentProfileModel.Default;
+                return DefaultProfile = await FromFile<ContentProfileModel>(DefaultProfileName, null, cancellationToken).ConfigureAwait(false);
             }
             else
                 //return the specific profile instance if exists)
@@ -36,9 +30,16 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<ContentProfileModel> Setup(string profileName, CancellationToken cancellationToken)
         {
-            ContentProfileModel contentProfile = string.Equals(profileName, ContentProfileModel.Default.Name, StringComparison.OrdinalIgnoreCase) ?
-                ContentProfileModel.Default : new ContentProfileModel(profileName);
-            await Create(contentProfile, (ContentProfileModel)null, true, true, cancellationToken).ConfigureAwait(false);
+            // try to load an existing profile with that name
+            ContentProfileModel contentProfile = await Get(profileName, cancellationToken).ConfigureAwait(false);
+
+            if (contentProfile == null)
+            {
+                contentProfile = new ContentProfileModel(string.IsNullOrEmpty(profileName) ? DefaultProfileName : profileName);
+                await Create(contentProfile, (ContentProfileModel)null, true, true, cancellationToken).ConfigureAwait(false);
+                if (contentProfile.Name == DefaultProfileName)
+                    DefaultProfile = contentProfile;
+            }
             return contentProfile;
         }
 
@@ -69,7 +70,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             {
                 contentProfile = await Setup(profileName, cancellationToken).ConfigureAwait(false);
 
-                if (contentProfile == ContentProfileModel.Default && contentProfile.Count == 0 && defaultFolders != null)
+                if (contentProfile == DefaultProfile && contentProfile.Count == 0 && defaultFolders != null)
                 {
                     contentProfile = await UpdateFolders(contentProfile, defaultFolders, cancellationToken).ConfigureAwait(false);
                 }

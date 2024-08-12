@@ -296,7 +296,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             ContentPath = RuntimeInfo.ContentFolder;
             Trace.Write(" ENV");
-            ENVFile = new EnvironmentFile(Path.Combine(Simulator.RouteFolder.EnvironmentFolder, Simulator.Route.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType)));
+            ENVFile = new EnvironmentFile(Path.Combine(Simulator.RouteFolder.EnvironmentFolder, Simulator.RouteModel.EnvironmentConditions[Simulator.Season, Simulator.WeatherType]));
 
             Trace.Write(" TTYPE");
             TrackTypes = new TrackTypesFile(Path.Combine(Simulator.RouteFolder.CurrentFolder, "TTYPE.DAT"));

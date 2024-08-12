@@ -82,6 +82,7 @@ namespace Orts.Menu
 
         private bool initialized;
         private UserSettings settings;
+        private ContentProfileModel contentProfile;
         private FrozenSet<ContentFolderModel> contentFolderModels = FrozenSet<ContentFolderModel>.Empty;
         private FrozenSet<ContentRouteModel> routeModels = FrozenSet<ContentRouteModel>.Empty;
         private IEnumerable<Activity> activities = Array.Empty<Activity>();
@@ -178,6 +179,8 @@ namespace Orts.Menu
             settings = new UserSettings(options);
 
             updateManager = new UpdateManager(settings);
+            
+            contentProfile = await ContentProfileHandler.Get(null, CancellationToken.None).ConfigureAwait(false);
 
             List<Task> initTasks = new List<Task>
             {

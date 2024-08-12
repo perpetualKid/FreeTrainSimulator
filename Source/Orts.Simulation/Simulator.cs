@@ -294,7 +294,7 @@ namespace Orts.Simulation
                 roadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(Route.FileName)).RoadTrackDB;
             }
 
-            MetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? Route.MilepostUnitsMetric : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            MetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             RuntimeData.Initialize(RouteModel, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
 
             SuperElevation = new SuperElevation(this);

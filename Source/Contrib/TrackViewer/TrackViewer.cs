@@ -234,7 +234,7 @@ namespace ORTS.TrackViewer
                 catch { }
 #pragma warning restore CA1031 // Do not catch general exception types
             }
-            InstallFolder = new ContentFolderModel("default", Properties.Settings.Default.installDirectory, ContentProfileModel.Default);
+            InstallFolder = new ContentFolderModel("default", Properties.Settings.Default.installDirectory, new ContentProfileModel("Default"));
 
             FindRoutes(InstallFolder);
 
@@ -897,7 +897,7 @@ namespace ORTS.TrackViewer
         private bool SetSelectedInstallFolder(string folderPath)
         {
             drawTerrain?.Clear();
-            ContentFolderModel newInstallFolder = new ContentFolderModel("installFolder", folderPath, ContentProfileModel.Default);
+            ContentFolderModel newInstallFolder = new ContentFolderModel("installFolder", folderPath, new ContentProfileModel("Default"));
             bool foundroutes = FindRoutes(newInstallFolder);
             if (!foundroutes)
             {
