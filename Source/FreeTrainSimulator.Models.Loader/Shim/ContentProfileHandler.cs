@@ -21,10 +21,13 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 // else loading, updating the static default instance (can't replace), and return the default instance
                 profileName = ContentProfileModel.Default.Name;
                 ContentProfileModel result = await FromFile<ContentProfileModel>(profileName, null, cancellationToken).ConfigureAwait(false);
-                ContentProfileModel.Default.Clear();
-                foreach(ContentFolderModel contentFolder in result)
-                    ContentProfileModel.Default.Add(contentFolder);
-                ContentProfileModel.Default.Initialize(ModelFileResolver<ContentProfileModel>.FilePath(profileName, (ContentProfileModel)null) + SaveStateExtension, null);
+                if (result != null)
+                {
+                    ContentProfileModel.Default.Clear();
+                    foreach (ContentFolderModel contentFolder in result)
+                        ContentProfileModel.Default.Add(contentFolder);
+                    ContentProfileModel.Default.Initialize(ModelFileResolver<ContentProfileModel>.FilePath(profileName, (ContentProfileModel)null) + SaveStateExtension, null);
+                }
                 return ContentProfileModel.Default;
             }
             else
