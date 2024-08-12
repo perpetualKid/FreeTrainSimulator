@@ -67,6 +67,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask Create<TParent>(T model, TParent parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TParent : ModelBase<TParent>
         {
+            ArgumentNullException.ThrowIfNull(model, nameof(model));
+
             model.Initialize(ModelFileResolver<T>.FilePath(model, parent), parent);
 
             if (saveModel)

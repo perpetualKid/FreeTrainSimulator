@@ -21,13 +21,13 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         public static async ValueTask<ContentFolderModel> Get(string folderName, ContentProfileModel parent, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(parent, nameof(parent));
-            if (string.IsNullOrEmpty((parent as IFileResolve).FilePath))
+            if (!parent.Initialized)
             {
                 Trace.TraceWarning($"Uninitialized parent {nameof(ContentProfileModel)}[{parent.Name}]");
-                parent = await ContentProfileHandler.Get(parent.Name, cancellationToken);
+                parent = await ContentProfileHandler.Get(parent.Name, cancellationToken).ConfigureAwait(false);
             }
 
-            return parent.Where((folder) => string.Equals(folder.Name, folderName)).FirstOrDefault();
+            return parent.Where((folder) => string.Equals(folder.Name, folderName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
         }
     }
 }

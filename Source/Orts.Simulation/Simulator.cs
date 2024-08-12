@@ -16,7 +16,6 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -32,8 +31,8 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.State;
 using FreeTrainSimulator.Models.Loader.Shim;
+using FreeTrainSimulator.Models.State;
 
 using GetText;
 
@@ -139,6 +138,7 @@ namespace Orts.Simulation
 
         public bool MetricUnits { get; }
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
+        public ContentRouteModel RouteModel { get; private set; }
 
         // Primary Simulator Data 
         // These items represent the current state of the simulator 
@@ -270,21 +270,10 @@ namespace Orts.Simulation
             Route = new RouteFile(RouteFolder.TrackFileName).Route;
 
             RouteName = Route.Name;
-            Task<FrozenSet<ContentFolderModel>> contentFolderTask = ContentProfileHandler.GetContentFolders(null, null, CancellationToken.None).AsTask();
-            if (!contentFolderTask.IsCompleted)
-                contentFolderTask.Wait();
-            ContentFolderModel folder = contentFolderTask.Result.Where((folder) => string.Equals(folder.Name, Path.GetFileName(RouteFolder.ContentFolder.Folder), StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-            Task<ContentRouteModel> routeLoaderTask = ContentRouteHandler.FromFile(RouteName, folder, CancellationToken.None).AsTask();
-            if (!routeLoaderTask.IsCompleted)
-                routeLoaderTask.Wait();
-            ContentRouteModel routeModel = routeLoaderTask.Result;
-            if (null == routeModel)
-            {
-                routeLoaderTask = ContentRouteHandler.Create(RouteFolder.CurrentFolder, folder, CancellationToken.None).AsTask();
-                if (!routeLoaderTask.IsCompleted)
-                    routeLoaderTask.Wait();
-                routeModel = routeLoaderTask.Result;
-            }
+
+            InitializeAsync(RouteName, RouteFolder.ContentFolder.Folder, CancellationToken.None).Wait();
+            Debug.Assert(RouteModel != null);
+
             OpenDoorsInAITrains = Route.OpenDoorsInAITrains.GetValueOrDefault(Settings.OpenDoorsInAITrains);
 
             Trace.Write(" TDB");
@@ -306,7 +295,7 @@ namespace Orts.Simulation
             }
 
             MetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? Route.MilepostUnitsMetric : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            RuntimeData.Initialize(routeModel, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
+            RuntimeData.Initialize(RouteModel, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
 
             SuperElevation = new SuperElevation(this);
 
@@ -342,6 +331,13 @@ namespace Orts.Simulation
             ScriptManager = new ScriptManager();
             ContainerManager = new ContainerManager(this);
             Log = new CommandLog(this);
+        }
+
+        private async Task InitializeAsync(string routeName, string contentFolderPath, CancellationToken cancellationToken)
+        {
+            ContentProfileModel contentProfile = await ContentProfileHandler.Get(null, cancellationToken).ConfigureAwait(false);
+            ContentFolderModel folder = contentProfile.Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault();
+            RouteModel = await ContentRouteHandler.Get(routeName, folder, cancellationToken).ConfigureAwait(false);
         }
 
         public void SetActivity(string activityPath)

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Independent;
 using FreeTrainSimulator.Models.Independent.Content;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
@@ -15,7 +14,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         {
             if (string.IsNullOrEmpty(profileName) || (string.Equals(profileName, ContentProfileModel.Default.Name, StringComparison.OrdinalIgnoreCase)))
             {
-                if (!string.IsNullOrEmpty((ContentProfileModel.Default as IFileResolve).FilePath)) //FilePath is set once loaded from a file
+                if (ContentProfileModel.Default.Initialized) //FilePath is set once loaded from a file
                     return ContentProfileModel.Default; //already initialized default model, just returning that instance
 
                 // else loading, updating the static default instance (can't replace), and return the default instance

@@ -15,6 +15,11 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public class ContentRouteHandler : ContentHandlerBase<ContentRouteModel>
     {
+        public static async ValueTask<ContentRouteModel> Get(string name, ContentFolderModel contentFolder, CancellationToken cancellationToken)
+        {
+            return await FromFile(name, contentFolder, cancellationToken).ConfigureAwait(false);
+        }
+
         public static async ValueTask<ContentRouteModel> Create(string routePath, ContentFolderModel contentFolder, CancellationToken cancellationToken)
         {
             FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(routePath);
