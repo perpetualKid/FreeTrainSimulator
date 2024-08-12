@@ -84,7 +84,7 @@ namespace FreeTrainSimulator.Toolbox
             windowManager[ToolboxWindowType.StatusWindow].Open();
             UnloadRoute();
 
-            ctsRouteLoading = await ResetCancellationTokenSource(loadRoutesSemaphore, ctsRouteLoading);
+            ctsRouteLoading = await ResetCancellationTokenSource(loadRoutesSemaphore, ctsRouteLoading).ConfigureAwait(false);
 
             CancellationToken token = ctsRouteLoading.Token;
 
