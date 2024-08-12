@@ -18,16 +18,11 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return contentFolder;
         }
 
-        public static async ValueTask<ContentFolderModel> Get(string folderName, ContentProfileModel parent, CancellationToken cancellationToken)
+        public static ValueTask<ContentFolderModel> Get(string folderName, ContentProfileModel parent, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(parent, nameof(parent));
-            if (!parent.Initialized)
-            {
-                Trace.TraceWarning($"Uninitialized parent {nameof(ContentProfileModel)}[{parent.Name}]");
-                parent = await ContentProfileHandler.Get(parent.Name, cancellationToken).ConfigureAwait(false);
-            }
 
-            return parent.Where((folder) => string.Equals(folder.Name, folderName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            return ValueTask.FromResult(parent.Where((folder) => string.Equals(folder.Name, folderName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
         }
     }
 }
