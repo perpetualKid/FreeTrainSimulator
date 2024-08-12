@@ -24,7 +24,7 @@ namespace Tests.FreeTrainSimulator.Models.Loader
             Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\test123.contentfolder", StringComparison.OrdinalIgnoreCase));
 
             contentFolderFile = ModelFileResolver<ContentFolderModel>.FilePath(folder);
-            Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\test123.contentfolder", StringComparison.OrdinalIgnoreCase));
+            Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\TestModel.contentfolder", StringComparison.OrdinalIgnoreCase));
         }
 
         [TestMethod]
