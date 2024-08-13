@@ -45,14 +45,14 @@ namespace Orts.Menu
     {
         private CancellationTokenSource ctsTestActivityLoader;
         private CancellationTokenSource ctsTestActivityRunner;
-        private readonly ContentProfileModel contentProfile;
+        private readonly ProfileModel contentProfile;
         private bool clearedLogs;
         private readonly string runActivity;
         private readonly UserSettings settings;
         private readonly string summaryFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingSummary.csv");
         private readonly string logFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingLog.txt");
 
-        public TestingForm(UserSettings settings, ContentProfileModel profile, string runActivity)
+        public TestingForm(UserSettings settings, ProfileModel profile, string runActivity)
         {
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 

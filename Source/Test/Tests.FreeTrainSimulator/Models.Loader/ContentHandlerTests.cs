@@ -20,31 +20,31 @@ namespace Tests.FreeTrainSimulator.Models.Loader
         [TestMethod]
         public void ResolveContentFolderFile()
         {
-            ContentProfileModel profile = new ContentProfileModel("something");
-            ContentFolderModel folder = new ContentFolderModel("TestModel", ".", profile);
+            ProfileModel profile = new ProfileModel("something");
+            FolderModel folder = new FolderModel("TestModel", ".", profile);
 
-            string contentFolderFile = ModelFileResolver<ContentFolderModel>.FilePath("test123", profile);
+            string contentFolderFile = ModelFileResolver<FolderModel>.FilePath("test123", profile);
             Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\test123.contentfolder", StringComparison.OrdinalIgnoreCase));
 
-            contentFolderFile = ModelFileResolver<ContentFolderModel>.FilePath(folder);
+            contentFolderFile = ModelFileResolver<FolderModel>.FilePath(folder);
             Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\TestModel.contentfolder", StringComparison.OrdinalIgnoreCase));
         }
 
         [TestMethod]
         public async Task GetContentFolder()
         {
-            ContentProfileModel defaultModel = ContentProfileHandler.DefaultProfile;
-            ContentFolderModel folderModel = await ContentFolderHandler.Get("Demo", defaultModel, CancellationToken.None).ConfigureAwait(false);
+            ProfileModel defaultModel = ContentProfileHandler.DefaultProfile;
+            FolderModel folderModel = await ContentFolderHandler.Get("Demo", defaultModel, CancellationToken.None).ConfigureAwait(false);
         }
 
         [TestMethod]
         public async Task ConvertContentProfile()
         {
-            ContentProfileModel defaultModel = await ContentProfileHandler.Convert(null, Enumerable.Empty<(string, string)>(), CancellationToken.None).ConfigureAwait(false);
+            ProfileModel defaultModel = await ContentProfileHandler.Convert(null, Enumerable.Empty<(string, string)>(), CancellationToken.None).ConfigureAwait(false);
 
             Assert.AreEqual(VersionInfo.Version, defaultModel.Version);
 
-            ContentProfileModel otherModel = await ContentProfileHandler.Convert("otherProfile", new List<(string, string)>() { ("First", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData))}, CancellationToken.None).ConfigureAwait(false);
+            ProfileModel otherModel = await ContentProfileHandler.Convert("otherProfile", new List<(string, string)>() { ("First", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData))}, CancellationToken.None).ConfigureAwait(false);
             Assert.AreEqual(VersionInfo.Version, otherModel.Version);
             Assert.AreEqual(1, otherModel.ContentFolders.Count);
         }

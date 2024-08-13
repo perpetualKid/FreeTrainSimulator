@@ -47,7 +47,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="routePath">Path to the route directory</param>
         /// <param name="messageDelegate">The delegate that will deal with the message we want to send to the user</param>
-        public static void Load(ContentRouteModel routeModel, MessageDelegate messageDelegate)
+        public static void Load(RouteModel routeModel, MessageDelegate messageDelegate)
         {
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
             storedRoutePath = routeFolder.CurrentFolder;

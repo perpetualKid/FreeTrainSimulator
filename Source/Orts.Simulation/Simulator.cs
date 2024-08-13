@@ -138,7 +138,7 @@ namespace Orts.Simulation
 
         public bool MetricUnits { get; }
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
-        public ContentRouteModel RouteModel { get; private set; }
+        public RouteModel RouteModel { get; private set; }
 
         // Primary Simulator Data 
         // These items represent the current state of the simulator 
@@ -335,8 +335,8 @@ namespace Orts.Simulation
 
         private async Task InitializeAsync(string routeName, string contentFolderPath, CancellationToken cancellationToken)
         {
-            ContentProfileModel contentProfile = await ContentProfileHandler.Get(null, cancellationToken).ConfigureAwait(false);
-            ContentFolderModel folder = contentProfile.ContentFolders.Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault();
+            ProfileModel contentProfile = await ContentProfileHandler.Get(null, cancellationToken).ConfigureAwait(false);
+            FolderModel folder = contentProfile.ContentFolders.Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault();
             RouteModel = await ContentRouteHandler.Get(routeName, folder, cancellationToken).ConfigureAwait(false);
         }
 

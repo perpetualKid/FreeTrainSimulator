@@ -71,15 +71,15 @@ namespace ORTS.TrackViewer
         /// <summary>Path where the content (like .png files) is stored</summary>
         public string ContentPath { get; private set; }
         /// <summary>Folder where MSTS is installed (or at least, where the files needed for tracks, routes and paths are stored)</summary>
-        public ContentFolderModel InstallFolder { get; private set; }
+        public FolderModel InstallFolder { get; private set; }
         /// <summary>List of available routes (in the install directory)</summary>
-        public Collection<ContentRouteModel> Routes { get; private set; } // Collection because of FxCop
+        public Collection<RouteModel> Routes { get; private set; } // Collection because of FxCop
         /// <summary>List of available paths in the current route</summary>
         public Collection<Path> Paths { get; private set; } // Collection because of FxCop
         /// <summary>Route, ie with a path c:\program files\microsoft games\train simulator\routes\usa1  - may be different on different pc's</summary>
-        public ContentRouteModel CurrentRoute { get; private set; }
+        public RouteModel CurrentRoute { get; private set; }
         /// <summary>Route that was used last time</summary>
-        private ContentRouteModel DefaultRoute;
+        private RouteModel DefaultRoute;
         /// <summary>Width of the drawing screen in pixels</summary>
         public int ScreenW { get; private set; }
         /// <summary>Height of the drawing screen in pixels</summary>
@@ -234,7 +234,7 @@ namespace ORTS.TrackViewer
                 catch { }
 #pragma warning restore CA1031 // Do not catch general exception types
             }
-            InstallFolder = new ContentFolderModel("default", Properties.Settings.Default.installDirectory, new ContentProfileModel("Default"));
+            InstallFolder = new FolderModel("default", Properties.Settings.Default.installDirectory, new ProfileModel("Default"));
 
             FindRoutes(InstallFolder);
 
@@ -835,7 +835,7 @@ namespace ORTS.TrackViewer
                 return;
             }
 
-            foreach (ContentRouteModel route in Routes)
+            foreach (RouteModel route in Routes)
             {
                 //MessageBox.Show(route.Path);
 
@@ -897,7 +897,7 @@ namespace ORTS.TrackViewer
         private bool SetSelectedInstallFolder(string folderPath)
         {
             drawTerrain?.Clear();
-            ContentFolderModel newInstallFolder = new ContentFolderModel("installFolder", folderPath, new ContentProfileModel("Default"));
+            FolderModel newInstallFolder = new FolderModel("installFolder", folderPath, new ProfileModel("Default"));
             bool foundroutes = FindRoutes(newInstallFolder);
             if (!foundroutes)
             {
@@ -923,15 +923,15 @@ namespace ORTS.TrackViewer
         /// Find the available routes, and if possible load the first one.
         /// </summary>
         /// <returns>True if the route loading was successfull</returns>
-        private bool FindRoutes(ContentFolderModel newInstallFolder)
+        private bool FindRoutes(FolderModel newInstallFolder)
         {
             if (newInstallFolder == null)
                 return false;
 
-            Task<System.Collections.Frozen.FrozenSet<ContentRouteModel>> routeTask = ContentRouteHandler.GetRoutes(newInstallFolder, CancellationToken.None).AsTask();
+            Task<System.Collections.Frozen.FrozenSet<RouteModel>> routeTask = ContentRouteHandler.GetRoutes(newInstallFolder, CancellationToken.None).AsTask();
             if (!routeTask.IsCompleted)
                 routeTask.Wait();
-            Routes = new Collection<ContentRouteModel>(routeTask.Result.ToList());
+            Routes = new Collection<RouteModel>(routeTask.Result.ToList());
             // set default route
             DefaultRoute = Routes.Where(r => r.Name == Properties.Settings.Default.defaultRoute).FirstOrDefault() ?? Routes.FirstOrDefault();
                 menuControl.PopulateRoutes();
@@ -950,7 +950,7 @@ namespace ORTS.TrackViewer
         /// Set and load a new route
         /// </summary>
         /// <param name="newRoute">The route to load, containing amongst other the directory name of the route</param>
-        public void SetRoute(ContentRouteModel newRoute)
+        public void SetRoute(RouteModel newRoute)
         {
             if (newRoute == null)
                 return;

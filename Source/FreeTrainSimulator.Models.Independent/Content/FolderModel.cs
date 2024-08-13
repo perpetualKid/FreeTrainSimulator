@@ -1,9 +1,11 @@
-﻿using MemoryPack;
+﻿using FreeTrainSimulator.Models.Independent.Base;
+
+using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Independent.Content
 {
     [MemoryPackable]
-    public partial record ContentFolderModel : ModelBase<ContentFolderModel>
+    public partial record FolderModel : ModelBase<FolderModel>
     {
         public string ContentPath { get; init; }
 
@@ -13,10 +15,10 @@ namespace FreeTrainSimulator.Models.Independent.Content
         }
 
         [MemoryPackConstructor]
-        private ContentFolderModel() : base()
+        private FolderModel() : base()
         { }
 
-        public ContentFolderModel(string name, string path, ContentProfileModel parent) : base(name, parent)
+        public FolderModel(string name, string path, ProfileModel parent) : base(name, parent)
         {
             ContentPath = path;
         }

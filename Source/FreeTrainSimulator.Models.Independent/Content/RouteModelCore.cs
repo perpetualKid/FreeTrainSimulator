@@ -1,14 +1,14 @@
 ﻿using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
-
-using MemoryPack;
+using FreeTrainSimulator.Models.Independent.Base;
 
 namespace FreeTrainSimulator.Models.Independent.Content
 {
-    [MemoryPackable]
-    public sealed partial record ContentRouteModel: ModelBase<ContentRouteModel>
+    public abstract record RouteModelCore: ModelBase<RouteModelCore>
     {
-        static partial void StaticConstructor()
+#pragma warning disable CA1810 // Initialize reference type static fields inline
+        static RouteModelCore()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
         {
             fileExtension = ".contentroute";
         }
@@ -19,16 +19,10 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public string Description { get; init; }
         public ref readonly WorldLocation RouteStart => ref routeStart;
         public bool MetricUnits { get; init; }
-        public EnumArray2D<string, SeasonType, WeatherType> EnvironmentConditions { get; init; }
 
-        public ContentRouteModel(in WorldLocation routeStart)
+        protected RouteModelCore(in WorldLocation routeStart)
         { 
             this.routeStart = routeStart;
-        }
-
-        public override string ToString()
-        {
-            return Name;
         }
     }
 }

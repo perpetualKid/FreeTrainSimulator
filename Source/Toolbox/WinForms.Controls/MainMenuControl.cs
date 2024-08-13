@@ -182,13 +182,13 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
                 parent.InputCaptured = true;
         }
 
-        internal void PopulateRoutes(FrozenSet<ContentRouteModel> routes)
+        internal void PopulateRoutes(FrozenSet<RouteModel> routes)
         {
             Invoke((MethodInvoker)delegate
             {
                 SuspendLayout();
                 menuItemRoutes.DropDownItems.Clear();
-                foreach (ContentRouteModel route in routes.OrderBy(r => r.Name))
+                foreach (RouteModel route in routes.OrderBy(r => r.Name))
                 {
                     ToolStripMenuItem routeItem = new ToolStripMenuItem(route.Name)
                     {
@@ -203,7 +203,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 
         private async void RouteItem_Click(object sender, EventArgs e)
         {
-            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is ContentRouteModel route)
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is RouteModel route)
             {
                 if (menuItem.Checked)
                 {
@@ -233,11 +233,11 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             });
         }
 
-        internal void PopulateContentFolders(FrozenSet<ContentFolderModel> folders)
+        internal void PopulateContentFolders(FrozenSet<FolderModel> folders)
         {
             SuspendLayout();
             menuItemFolder.DropDownItems.Clear();
-            foreach (ContentFolderModel folder in folders.OrderBy(f => f.Name))
+            foreach (FolderModel folder in folders.OrderBy(f => f.Name))
             {
                 ToolStripMenuItem folderItem = new ToolStripMenuItem(folder.Name)
                 {
@@ -265,7 +265,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             if (sender is ToolStripMenuItem folderItem)
             {
                 UncheckOtherMenuItems(folderItem);
-                if (folderItem.Tag is ContentFolderModel folder)
+                if (folderItem.Tag is FolderModel folder)
                 {
                     parent.UnloadRoute();
                     PopulateRoutes(await parent.FindRoutes(folder).ConfigureAwait(true));
@@ -273,14 +273,14 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             }
         }
 
-        internal ContentFolderModel SelectContentFolder(string folderName)
+        internal FolderModel SelectContentFolder(string folderName)
         {
             foreach (ToolStripMenuItem item in menuItemFolder.DropDownItems)
             {
                 if (item.Text.Equals(folderName, StringComparison.OrdinalIgnoreCase))
                 {
                     FolderItem_Click(item, EventArgs.Empty);
-                    return item.Tag as ContentFolderModel;
+                    return item.Tag as FolderModel;
                 }
             }
             return null;

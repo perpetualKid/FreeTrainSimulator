@@ -19,13 +19,13 @@ namespace FreeTrainSimulator.Dispatcher
     {
         public IEnumerable<Path> TrainPaths { get; }
 
-        private TrackData(ContentRouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IEnumerable<Path> trainPaths) :
+        private TrackData(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IEnumerable<Path> trainPaths) :
             base(route, trackSections, trackDb, roadTrackDB, signalConfig, metricUnits, null)
         {
             TrainPaths = trainPaths;
         }
 
-        internal static async Task LoadTrackData(Game game, ContentRouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
+        internal static async Task LoadTrackData(Game game, RouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;

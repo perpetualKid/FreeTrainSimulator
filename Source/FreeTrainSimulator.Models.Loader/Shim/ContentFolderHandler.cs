@@ -7,16 +7,16 @@ using FreeTrainSimulator.Models.Independent.Content;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {
-    public sealed class ContentFolderHandler: ContentHandlerBase<ContentFolderModel>
+    public sealed class ContentFolderHandler: ContentHandlerBase<FolderModel, FolderModel>
     {
-        public static async ValueTask<ContentFolderModel> Create(string folderName, string repositoryPath, ContentProfileModel profile, CancellationToken cancellationToken)
+        public static async ValueTask<FolderModel> Create(string folderName, string repositoryPath, ProfileModel profile, CancellationToken cancellationToken)
         {
-            ContentFolderModel contentFolder = new ContentFolderModel(folderName, repositoryPath, profile);
+            FolderModel contentFolder = new FolderModel(folderName, repositoryPath, profile);
             await Create(contentFolder, profile, false, true, cancellationToken).ConfigureAwait(false);
             return contentFolder;
         }
 
-        public static ValueTask<ContentFolderModel> Get(string folderName, ContentProfileModel parent, CancellationToken cancellationToken)
+        public static ValueTask<FolderModel> Get(string folderName, ProfileModel parent, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(parent, nameof(parent));
 

@@ -4,41 +4,41 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Independent;
+using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 
 using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {
-    public abstract class ContentHandlerBase<T> where T : ModelBase<T>
+    public abstract class ContentHandlerBase<TActual, TBase> where TBase : ModelBase<TBase> where TActual : TBase
     {
         public const string SaveStateExtension = ".save";
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
-        public static async ValueTask<T> FromFile<TParent>(string name, TParent parent, CancellationToken cancellationToken, bool resolveName = true) where TParent : ModelBase<TParent>
+        public static async ValueTask<TActual> FromFile<TParent>(string name, TParent parent, CancellationToken cancellationToken, bool resolveName = true) where TParent : ModelBase<TParent>
         {
             string targetFileName = name;
             if (resolveName)
-                targetFileName = ModelFileResolver<T>.FilePath(name, parent) + SaveStateExtension;
+                targetFileName = ModelFileResolver<TBase>.FilePath(name, parent) + SaveStateExtension;
 
-            T model = null;
+            TActual model = null;
             if (File.Exists(targetFileName))
             {
                 using (FileStream saveFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read))
                 {
-                    model = await MemoryPackSerializer.DeserializeAsync<T>(saveFile, null, cancellationToken).ConfigureAwait(false);
+                    model = await MemoryPackSerializer.DeserializeAsync<TActual>(saveFile, null, cancellationToken).ConfigureAwait(false);
                 }
                 model.Initialize(targetFileName, parent);
             }
             return model;
         }
 
-        public static async ValueTask ToFile(T model, CancellationToken cancellationToken)
+        public static async ValueTask ToFile(TActual model, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
-            string targetFileName = ModelFileResolver<T>.FilePath(model) + SaveStateExtension;
+            string targetFileName = ModelFileResolver<TBase>.FilePath(model) + SaveStateExtension;
 
             model.RefreshModel();
 
@@ -59,18 +59,18 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             }
         }
 
-        public static async ValueTask Create<TParent>(T model, TParent parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TParent : ModelBase<TParent>
+        public static async ValueTask Create<TParent>(TActual model, TParent parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TParent : ModelBase<TParent>
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
-            model.Initialize(ModelFileResolver<T>.FilePath(model, parent), parent);
+            model.Initialize(ModelFileResolver<TBase>.FilePath(model, parent), parent);
 
             if (saveModel)
                 await ToFile(model, cancellationToken).ConfigureAwait(false);
 
             if (createDirectory)
             {
-                string directory = ModelFileResolver<ContentFolderModel>.FolderPath(model);
+                string directory = ModelFileResolver<FolderModel>.FolderPath(model);
                 if (!Directory.Exists(directory))
                 {
                     try

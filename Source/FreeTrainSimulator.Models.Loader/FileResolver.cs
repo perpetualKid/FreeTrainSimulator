@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.IO;
 
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Independent;
+using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 
 using Orts.Formats.Msts;
@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Models.Loader
         private static readonly ConcurrentDictionary<string, ContentFolderResolver> folderResolvers = new ConcurrentDictionary<string, ContentFolderResolver>(StringComparer.OrdinalIgnoreCase);
         private static readonly ConcurrentDictionary<string, ContentRouteResolver> routeResolvers = new ConcurrentDictionary<string, ContentRouteResolver>(StringComparer.OrdinalIgnoreCase);
 
-        public static ContentFolderResolver ContentFolderResolver(ContentFolderModel contentFolder)
+        public static ContentFolderResolver ContentFolderResolver(FolderModel contentFolder)
         {
             ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
             if (!folderResolvers.TryGetValue(contentFolder.Name, out ContentFolderResolver resolver))
@@ -29,25 +29,25 @@ namespace FreeTrainSimulator.Models.Loader
             return resolver;
         }
 
-        public static ContentRouteResolver ContentRouteResolver(ContentRouteModel routeModel)
+        public static ContentRouteResolver ContentRouteResolver(RouteModelCore routeModel)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            if (!routeResolvers.TryGetValue($"{((routeModel as IFileResolve).Parent as ContentFolderModel)?.Name}{routeModel.Name}" , out ContentRouteResolver resolver))
+            if (!routeResolvers.TryGetValue($"{((routeModel as IFileResolve).Parent as FolderModel)?.Name}{routeModel.Name}" , out ContentRouteResolver resolver))
             {
                 resolver = new ContentRouteResolver(routeModel);
-                _ = routeResolvers.TryAdd($"{((routeModel as IFileResolve).Parent as ContentFolderModel)?.Name}{routeModel.Name}", resolver);
+                _ = routeResolvers.TryAdd($"{((routeModel as IFileResolve).Parent as FolderModel)?.Name}{routeModel.Name}", resolver);
             }
             return resolver;
         }
 
         #region model extension for Msts Folder Structure
-        public static FolderStructure.ContentFolder MstsContentFolder(this ContentFolderModel folderModel)
+        public static FolderStructure.ContentFolder MstsContentFolder(this FolderModel folderModel)
         {
             ContentFolderResolver resolver = ContentFolderResolver(folderModel);
             return resolver.MstsContentFolder;
         }
 
-        public static FolderStructure.ContentFolder.RouteFolder MstsRouteFolder(this ContentRouteModel routeModel)
+        public static FolderStructure.ContentFolder.RouteFolder MstsRouteFolder(this RouteModelCore routeModel)
         {
             ContentRouteResolver resolver = ContentRouteResolver(routeModel);
             return resolver.MstsRouteFolder;
@@ -57,11 +57,11 @@ namespace FreeTrainSimulator.Models.Loader
 
     public sealed class ContentFolderResolver
     {
-        public ContentFolderModel ContentFolder { get; }
+        public FolderModel ContentFolder { get; }
 
         public FolderStructure.ContentFolder MstsContentFolder { get; }
 
-        public ContentFolderResolver(ContentFolderModel contentFolderModel)
+        public ContentFolderResolver(FolderModel contentFolderModel)
         {
             ContentFolder = contentFolderModel;
             MstsContentFolder = FolderStructure.Content(contentFolderModel?.ContentPath);
@@ -70,17 +70,17 @@ namespace FreeTrainSimulator.Models.Loader
 
     public sealed class ContentRouteResolver
     {
-        public ContentFolderModel ContentFolder { get; }
-        public ContentRouteModel RouteModel { get; }
+        public FolderModel ContentFolder { get; }
+        public RouteModelCore RouteModel { get; }
 
         public FolderStructure.ContentFolder.RouteFolder MstsRouteFolder { get; }
 
-        public ContentRouteResolver(ContentRouteModel routeModel)
+        public ContentRouteResolver(RouteModelCore routeModel)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
             RouteModel = routeModel;
-            MstsRouteFolder = ((routeModel as IFileResolve).Parent as ContentFolderModel).MstsContentFolder().Route(routeModel.Tag);
+            MstsRouteFolder = ((routeModel as IFileResolve).Parent as FolderModel).MstsContentFolder().Route(routeModel.Tag);
         }
     }
 
@@ -97,7 +97,7 @@ namespace FreeTrainSimulator.Models.Loader
         private static string FolderNameCore<U>(U instance) where U : IFileResolve => instance?.FolderName;
         private static string FileNameCore<U>(U instance) where U : IFileResolve => instance?.FileName;
         public static string FileExtension => FileExtensionCore<ModelBase<T>>();
-        public static string FolderName<TParent>(ModelBase<TParent> instance) where TParent : ModelBase<TParent> => FolderNameCore(instance);
+        public static string FolderName<TContainer>(ModelBase<TContainer> instance) where TContainer : ModelBase<TContainer> => FolderNameCore(instance);
         public static string FileName<TParent>(ModelBase<TParent> instance) where TParent : ModelBase<TParent> => FileNameCore(instance);
         
         public static string FilePath<TParent>(string name, ModelBase<TParent> parent) where TParent : ModelBase<TParent>
@@ -121,6 +121,8 @@ namespace FreeTrainSimulator.Models.Loader
         {
             return parent != null ? Path.Combine(FolderPath(parent.Parent), parent.FolderName) : FileResolver.ContentRoot;
         }
+
+        public static string WildcardPattern => $"*{FileExtension}.*";
 
 #pragma warning restore CA1000 // Do not declare static members on generic types
     }

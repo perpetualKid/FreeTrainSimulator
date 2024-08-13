@@ -353,7 +353,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             menuSelectRoute.Items.Clear();
             if (trackViewer.Routes == null) return;
-            foreach (ContentRouteModel route in trackViewer.Routes.OrderBy(r => r.Name))
+            foreach (RouteModel route in trackViewer.Routes.OrderBy(r => r.Name))
             {
                 MenuItem menuItem = new MenuItem
                 {
@@ -374,7 +374,7 @@ namespace ORTS.TrackViewer.UserInterface
         private void MenuSelectRoute_Click(object sender, RoutedEventArgs e)
         {
             MenuItem selectedMenuItem = sender as MenuItem;
-            foreach (ContentRouteModel route in trackViewer.Routes)
+            foreach (RouteModel route in trackViewer.Routes)
             {
                 if (route.Name == (string)selectedMenuItem.Header)
                 {

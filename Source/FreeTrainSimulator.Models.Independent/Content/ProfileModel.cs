@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Frozen;
-using System.Collections.Generic;
+
+using FreeTrainSimulator.Models.Independent.Base;
 
 using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Independent.Content
 {
     [MemoryPackable]
-    public sealed partial record ContentProfileModel : ModelBase<ContentProfileModel>
+    public sealed partial record ProfileModel : ModelBase<ProfileModel>
     {
         static partial void StaticConstructor()
         {
@@ -16,29 +16,29 @@ namespace FreeTrainSimulator.Models.Independent.Content
         }
 
         [MemoryPackConstructor]
-        public ContentProfileModel(FrozenSet<ContentFolderModel> contentFolders)
+        public ProfileModel(FrozenSet<FolderModel> contentFolders)
         {
             ArgumentNullException.ThrowIfNull(contentFolders, nameof(contentFolders));
             ContentFolders = contentFolders;
         }
 
         [MemoryPackInclude]
-        public FrozenSet<ContentFolderModel> ContentFolders { get; init; } = FrozenSet<ContentFolderModel>.Empty;
+        public FrozenSet<FolderModel> ContentFolders { get; init; } = FrozenSet<FolderModel>.Empty;
 
-        public ContentProfileModel(string name) : base(name, null)
+        public ProfileModel(string name) : base(name, null)
         {
         }
 
         public override void Initialize(string file, IFileResolve parent)
         {
-            foreach (ContentFolderModel folder in ContentFolders)
+            foreach (FolderModel folder in ContentFolders)
             { 
                 folder.Initialize(null, this);
             }
             base.Initialize(file, parent);
         }
 
-        public bool Equals(ContentProfileModel other)
+        public bool Equals(ProfileModel other)
         {
             return other != null && other.Name == Name && other.Version == Version;
         }

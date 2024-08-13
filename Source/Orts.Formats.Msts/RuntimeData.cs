@@ -10,7 +10,7 @@ namespace Orts.Formats.Msts
 {
     public class RuntimeData
     {
-        public ContentRouteModel RouteData { get; }
+        public RouteModel RouteData { get; }
         /// <summary>Track Section Data, public such that other classes have access as well</summary>
         public TrackSectionsFile TSectionDat { get; }
         /// <summary>Track database, public such that other classes have access as well</summary>
@@ -29,12 +29,12 @@ namespace Orts.Formats.Msts
             return game?.Services.GetService<RuntimeData>() ?? Instance;
         }
 
-        public static void Initialize(ContentRouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
+        public static void Initialize(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
             Instance = new RuntimeData(route, trackSections, trackDb, roadTrackDB, signalConfig, metricUnits, runtimeReferenceResolver);
         }
 
-        protected RuntimeData(ContentRouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver)
+        protected RuntimeData(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver)
         {
             RouteData = route;
             TSectionDat = trackSections;
