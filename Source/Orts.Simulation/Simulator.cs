@@ -277,7 +277,7 @@ namespace Orts.Simulation
             OpenDoorsInAITrains = Route.OpenDoorsInAITrains.GetValueOrDefault(Settings.OpenDoorsInAITrains);
 
             Trace.Write(" TDB");
-            TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(Route.FileName)).TrackDB;
+            TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(RouteModel.RouteKey)).TrackDB;
 
             Trace.Write(" SIGCFG");
             SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.ORSignalConfigFile);
@@ -288,10 +288,10 @@ namespace Orts.Simulation
                 tsectionDat.AddRouteTSectionDatFile(RouteFolder.RouteTrackSectionFile);
 
             RoadTrackDB roadDatabase = null;
-            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(Route.FileName)))
+            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(RouteModel.RouteKey)))
             {
                 Trace.Write(" RDB");
-                roadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(Route.FileName)).RoadTrackDB;
+                roadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(RouteModel.RouteKey)).RoadTrackDB;
             }
 
             MetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);

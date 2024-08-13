@@ -1,5 +1,4 @@
-﻿using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Common.Position;
+﻿using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Base;
 
 namespace FreeTrainSimulator.Models.Independent.Content

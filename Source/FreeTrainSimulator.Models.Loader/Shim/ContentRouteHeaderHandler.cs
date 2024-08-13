@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
-using Microsoft.Xna.Framework.Graphics;
-
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {

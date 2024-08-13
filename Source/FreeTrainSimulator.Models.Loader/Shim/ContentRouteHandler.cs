@@ -36,7 +36,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                     MetricUnits = routeFile.Route.MilepostUnitsMetric,
                     RouteId = routeFile.Route.RouteID,
                     Tag = routeFolder.RouteName,    //store the route folder name
-                    EnvironmentConditions = new EnumArray2D<string, SeasonType, WeatherType>(routeFile.Route.Environment.GetEnvironmentFileName)
+                    EnvironmentConditions = new EnumArray2D<string, SeasonType, WeatherType>(routeFile.Route.Environment.GetEnvironmentFileName),
+                    RouteKey = routeFile.Route.FileName,
                 };
                 await Create(routeModel, contentFolder, true, true, cancellationToken).ConfigureAwait(false);
                 return routeModel;

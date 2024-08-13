@@ -834,7 +834,7 @@ namespace Orts.Simulation.Multiplayer
         {
             try
             {
-                string fileName = Simulator.Instance.RouteFolder.TrackDatabaseFile(Simulator.Instance.Route.FileName);
+                string fileName = Simulator.Instance.RouteFolder.TrackDatabaseFile(Simulator.Instance.RouteModel.RouteKey);
                 using (FileStream file = new FileStream(fileName, FileMode.Open))
                 {
                     XxHash64 hashing = new XxHash64();

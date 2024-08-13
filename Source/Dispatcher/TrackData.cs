@@ -37,7 +37,7 @@ namespace FreeTrainSimulator.Dispatcher
 
             loadTasks.Add(Task.Run(() =>
             {
-                string tdbFile = routeFolder.TrackDatabaseFile(routeModel.RouteId);
+                string tdbFile = routeFolder.TrackDatabaseFile(routeModel.RouteKey);
                 if (!System.IO.File.Exists(tdbFile))
                 {
                     Trace.TraceError($"Track Database File not found in {tdbFile}");
@@ -53,7 +53,7 @@ namespace FreeTrainSimulator.Dispatcher
             }, cancellationToken));
             loadTasks.Add(Task.Run(() =>
             {
-                string rdbFile = routeFolder.RoadTrackDatabaseFile(routeModel.RouteId);
+                string rdbFile = routeFolder.RoadTrackDatabaseFile(routeModel.RouteKey);
                 if (!System.IO.File.Exists(rdbFile))
                 {
                     Trace.TraceWarning($"Road Database File not found in {rdbFile}");
