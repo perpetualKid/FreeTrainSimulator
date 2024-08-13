@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Security;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Info;
@@ -65,10 +66,9 @@ namespace FreeTrainSimulator.Models.Independent
         [MemoryPackIgnore]
         public bool Initialized => !string.IsNullOrEmpty(filePath);
 
-        public virtual ValueTask RefreshModel()
+        public void RefreshModel()
         {
             version = VersionInfo.Version;
-            return ValueTask.CompletedTask;
         }
 
         public virtual void Initialize(string file, IFileResolve parent)
@@ -100,5 +100,10 @@ namespace FreeTrainSimulator.Models.Independent
             Name = name;
             this.parent = parent;
         }
+    }
+
+    public static class ContentModelExtensions
+    {
+        public static bool SetupRequired<T>(this ModelBase<T> model) where T : ModelBase<T> => model == null || model.RefreshRequired;
     }
 }

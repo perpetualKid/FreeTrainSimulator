@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -46,13 +45,14 @@ namespace Orts.Menu
     {
         private CancellationTokenSource ctsTestActivityLoader;
         private CancellationTokenSource ctsTestActivityRunner;
+        private readonly ContentProfileModel contentProfile;
         private bool clearedLogs;
         private readonly string runActivity;
         private readonly UserSettings settings;
         private readonly string summaryFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingSummary.csv");
         private readonly string logFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingLog.txt");
 
-        public TestingForm(UserSettings settings, string runActivity)
+        public TestingForm(UserSettings settings, ContentProfileModel profile, string runActivity)
         {
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
@@ -62,6 +62,7 @@ namespace Orts.Menu
 
             this.runActivity = runActivity;
             this.settings = settings;
+            this.contentProfile = profile;
 
             UpdateButtons();
         }
@@ -120,7 +121,7 @@ namespace Orts.Menu
             }
             UseWaitCursor = true;
             gridTestActivities.SuspendLayout();
-            testBindingSource.DataSource = new SortableBindingList<TestActivity>((await TestActivity.GetTestActivities(await ContentProfileHandler.GetContentFolders(null, settings.FolderSettings.Folders.Select((kvp) => (kvp.Key, kvp.Value)), CancellationToken.None).ConfigureAwait(true), CancellationToken.None).ConfigureAwait(true)).ToList());
+            testBindingSource.DataSource = new SortableBindingList<TestActivity>((await TestActivity.GetTestActivities(contentProfile.ContentFolders, ctsTestActivityLoader.Token).ConfigureAwait(true)).ToList());
             testBindingSource.Sort = "DefaultSort";
             gridTestActivities.ResumeLayout();
             UseWaitCursor = false;

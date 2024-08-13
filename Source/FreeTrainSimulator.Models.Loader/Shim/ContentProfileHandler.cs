@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,15 +11,20 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public sealed class ContentProfileHandler : ContentHandlerBase<ContentProfileModel>
     {
-        private const string DefaultProfileName = "Default";
+        public const string DefaultProfileName = "Default";
+
+        private static bool IsDefaultProfile(string profileName) => string.IsNullOrEmpty(profileName) || (string.Equals(profileName, DefaultProfileName, StringComparison.OrdinalIgnoreCase));
+
+        private static bool IsDefaultProfile(ContentProfileModel profileModel) => profileModel == null || IsDefaultProfile(profileModel.Name);
+
 
         public static ContentProfileModel DefaultProfile { get; private set; } = new ContentProfileModel(DefaultProfileName);
 
         public static async ValueTask<ContentProfileModel> Get(string profileName, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(profileName) || (string.Equals(profileName, DefaultProfileName, StringComparison.OrdinalIgnoreCase)))
+            if (IsDefaultProfile(profileName))
             {
-                if (DefaultProfile?.Initialized ?? false) //FilePath is set once loaded from a file
+                if (DefaultProfile?.Initialized ?? false)
                     return DefaultProfile; //already initialized default model, just returning that instance
 
                 return DefaultProfile = await FromFile<ContentProfileModel>(DefaultProfileName, null, cancellationToken).ConfigureAwait(false);
@@ -28,7 +34,25 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 return await FromFile<ContentProfileModel>(profileName, null, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<ContentProfileModel> Setup(string profileName, CancellationToken cancellationToken)
+        public static async ValueTask<ContentProfileModel> Convert(string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
+        {
+            ContentProfileModel contentProfile = await Get(profileName, cancellationToken).ConfigureAwait(false);
+
+            if (contentProfile == null)
+            {
+                contentProfile = await Setup(profileName, cancellationToken).ConfigureAwait(false);
+                contentProfile = await UpdateFolders(contentProfile, folders, cancellationToken).ConfigureAwait(false);
+            }
+            else if (contentProfile.RefreshRequired)
+            {
+                contentProfile = await UpdateFolders(contentProfile, folders, cancellationToken).ConfigureAwait(false);
+            }
+            if (IsDefaultProfile(contentProfile))
+                DefaultProfile = contentProfile;
+            return contentProfile;
+        }
+
+        private static async ValueTask<ContentProfileModel> Setup(string profileName, CancellationToken cancellationToken)
         {
             // try to load an existing profile with that name
             ContentProfileModel contentProfile = await Get(profileName, cancellationToken).ConfigureAwait(false);
@@ -43,39 +67,21 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return contentProfile;
         }
 
-        public static async ValueTask<ContentProfileModel> UpdateFolders(ContentProfileModel contentProfile, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
+        private static async ValueTask<ContentProfileModel> UpdateFolders(ContentProfileModel contentProfile, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
             if (null == folders)
                 return contentProfile;
 
             ArgumentNullException.ThrowIfNull(contentProfile, nameof(contentProfile));
 
-            contentProfile.Clear();
-            foreach ((string name, string path) in folders)
+            contentProfile = new ContentProfileModel((await Task.WhenAll(folders.Select(
+                async (item) => await ContentFolderHandler.Create(item.Item1, item.Item2, contentProfile, cancellationToken).ConfigureAwait(false))).ConfigureAwait(false)).ToFrozenSet())
             {
-                ContentFolderModel contentFolder = await ContentFolderHandler.Create(name, path, contentProfile, cancellationToken).ConfigureAwait(false);
-                contentProfile.Add(contentFolder);
-                if (cancellationToken.IsCancellationRequested)
-                    return null;
-            }
+                Name = contentProfile.Name,
+            };
+            contentProfile.Initialize(ModelFileResolver<ContentProfileModel>.FilePath(contentProfile, null), null);
             await ToFile(contentProfile, cancellationToken).ConfigureAwait(false);
             return contentProfile;
-        }
-
-        public static async ValueTask<FrozenSet<ContentFolderModel>> GetContentFolders(string profileName, IEnumerable<(string, string)> defaultFolders, CancellationToken cancellationToken)
-        {
-            ContentProfileModel contentProfile = await Get(profileName, cancellationToken).ConfigureAwait(false);
-
-            if (null == contentProfile)
-            {
-                contentProfile = await Setup(profileName, cancellationToken).ConfigureAwait(false);
-
-                if (contentProfile == DefaultProfile && contentProfile.Count == 0 && defaultFolders != null)
-                {
-                    contentProfile = await UpdateFolders(contentProfile, defaultFolders, cancellationToken).ConfigureAwait(false);
-                }
-            }
-            return contentProfile?.ToFrozenSet();
         }
     }
 }

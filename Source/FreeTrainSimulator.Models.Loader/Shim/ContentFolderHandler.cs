@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Independent;
 using FreeTrainSimulator.Models.Independent.Content;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
@@ -22,7 +20,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         {
             ArgumentNullException.ThrowIfNull(parent, nameof(parent));
 
-            return ValueTask.FromResult(parent.Where((folder) => string.Equals(folder.Name, folderName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
+            return ValueTask.FromResult(parent.ContentFolders.Where((folder) => string.Equals(folder.Name, folderName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
         }
     }
 }

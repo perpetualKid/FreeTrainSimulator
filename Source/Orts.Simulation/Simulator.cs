@@ -336,7 +336,7 @@ namespace Orts.Simulation
         private async Task InitializeAsync(string routeName, string contentFolderPath, CancellationToken cancellationToken)
         {
             ContentProfileModel contentProfile = await ContentProfileHandler.Get(null, cancellationToken).ConfigureAwait(false);
-            ContentFolderModel folder = contentProfile.Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault();
+            ContentFolderModel folder = contentProfile.ContentFolders.Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault();
             RouteModel = await ContentRouteHandler.Get(routeName, folder, cancellationToken).ConfigureAwait(false);
         }
 

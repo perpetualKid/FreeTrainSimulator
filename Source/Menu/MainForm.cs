@@ -33,6 +33,7 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Independent;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader;
 using FreeTrainSimulator.Models.Loader.Shim;
@@ -43,7 +44,6 @@ using FreeTrainSimulator.Updater;
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Formats.Msts;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.Settings;
@@ -83,7 +83,6 @@ namespace Orts.Menu
         private bool initialized;
         private UserSettings settings;
         private ContentProfileModel contentProfile;
-        private FrozenSet<ContentFolderModel> contentFolderModels = FrozenSet<ContentFolderModel>.Empty;
         private FrozenSet<ContentRouteModel> routeModels = FrozenSet<ContentRouteModel>.Empty;
         private IEnumerable<Activity> activities = Array.Empty<Activity>();
         private IEnumerable<Consist> consists = Array.Empty<Consist>();
@@ -180,7 +179,7 @@ namespace Orts.Menu
 
             updateManager = new UpdateManager(settings);
             
-            contentProfile = await ContentProfileHandler.Get(null, CancellationToken.None).ConfigureAwait(false);
+            contentProfile = await ContentProfileHandler.Get(null, CancellationToken.None).ConfigureAwait(true);
 
             List<Task> initTasks = new List<Task>
             {
@@ -582,7 +581,7 @@ namespace Orts.Menu
 
         private void TestingToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (TestingForm form = new TestingForm(settings, RuntimeInfo.ActivityRunnerExecutable))
+            using (TestingForm form = new TestingForm(settings, contentProfile, RuntimeInfo.ActivityRunnerExecutable))
             {
                 form.ShowDialog(this);
             }
@@ -767,20 +766,16 @@ namespace Orts.Menu
         #region Folder list
         private async Task LoadFolderListAsync()
         {
-            try
+            if (contentProfile.SetupRequired())
             {
-                contentFolderModels = await ContentProfileHandler.GetContentFolders(null, settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
-            }
-            catch (TaskCanceledException)
-            {
-                contentFolderModels = FrozenSet<ContentFolderModel>.Empty;
+                contentProfile = await ContentProfileHandler.Convert(ContentProfileHandler.DefaultProfileName, settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
             }
 
             ShowFolderList();
-            if (contentFolderModels.Count > 0)
+            if (contentProfile.ContentFolders.Count > 0)
                 comboBoxFolder.Focus();
 
-            if (!initialized && contentFolderModels.Count == 0)
+            if (!initialized && contentProfile.ContentFolders.Count == 0)
             {
                 using (OptionsForm form = new OptionsForm(settings, updateManager, true))
                 {
@@ -804,7 +799,7 @@ namespace Orts.Menu
             {
                 comboBoxFolder.BeginUpdate();
                 comboBoxFolder.Items.Clear();
-                comboBoxFolder.Items.AddRange(contentFolderModels.OrderBy(f => f.Name).ToArray());
+                comboBoxFolder.Items.AddRange(contentProfile.ContentFolders.OrderBy(f => f.Name).ToArray());
             }
             finally
             {

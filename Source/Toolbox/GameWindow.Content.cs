@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Independent;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
@@ -28,6 +29,7 @@ namespace FreeTrainSimulator.Toolbox
 
     public partial class GameWindow : Game
     {
+        private ContentProfileModel contentProfile;
         private ContentFolderModel selectedFolder;
         private ContentRouteModel selectedRoute;
         private FrozenSet<ContentRouteModel> routeModels;
@@ -57,8 +59,11 @@ namespace FreeTrainSimulator.Toolbox
         {
             try
             {
-                FrozenSet<ContentFolderModel> contentFolders = await ContentProfileHandler.GetContentFolders(null, Settings.UserSettings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
-                mainmenu.PopulateContentFolders(contentFolders);
+                if (contentProfile.SetupRequired())
+                {
+                    contentProfile = await ContentProfileHandler.Convert(ContentProfileHandler.DefaultProfileName, Settings.UserSettings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
+                }
+                mainmenu.PopulateContentFolders(contentProfile.ContentFolders);
             }
             catch (TaskCanceledException)
             {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,10 +30,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                     model = await MemoryPackSerializer.DeserializeAsync<T>(saveFile, null, cancellationToken).ConfigureAwait(false);
                 }
                 model.Initialize(targetFileName, parent);
-                if (model.RefreshRequired)
-                {
-                    await ToFile(model, cancellationToken).ConfigureAwait(false);
-                }
             }
             return model;
         }
@@ -45,8 +40,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             string targetFileName = ModelFileResolver<T>.FilePath(model) + SaveStateExtension;
 
-            if (model.RefreshRequired)
-                await model.RefreshModel().ConfigureAwait(false);
+            model.RefreshModel();
 
             try
             {

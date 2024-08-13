@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Linq;
 
 using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Independent.Content
 {
     [MemoryPackable]
-    public sealed partial record ContentProfileModel : ModelBase<ContentProfileModel>, ICollection<ContentFolderModel>, IEnumerable<ContentFolderModel>
+    public sealed partial record ContentProfileModel : ModelBase<ContentProfileModel>
     {
         static partial void StaticConstructor()
         {
@@ -16,14 +16,14 @@ namespace FreeTrainSimulator.Models.Independent.Content
         }
 
         [MemoryPackConstructor]
-        public ContentProfileModel(IList<ContentFolderModel> contentFolders)
+        public ContentProfileModel(FrozenSet<ContentFolderModel> contentFolders)
         {
             ArgumentNullException.ThrowIfNull(contentFolders, nameof(contentFolders));
-            this.contentFolders = contentFolders.ToList();
+            ContentFolders = contentFolders;
         }
 
         [MemoryPackInclude]
-        private readonly List<ContentFolderModel> contentFolders = new List<ContentFolderModel>();
+        public FrozenSet<ContentFolderModel> ContentFolders { get; init; } = FrozenSet<ContentFolderModel>.Empty;
 
         public ContentProfileModel(string name) : base(name, null)
         {
@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
 
         public override void Initialize(string file, IFileResolve parent)
         {
-            foreach (ContentFolderModel folder in contentFolders)
+            foreach (ContentFolderModel folder in ContentFolders)
             { 
                 folder.Initialize(null, this);
             }
@@ -47,46 +47,5 @@ namespace FreeTrainSimulator.Models.Independent.Content
         {
             return HashCode.Combine(Name, Version);
         }
-
-        #region ICollection<ContentFolderModel> implementation
-        public int Count => contentFolders.Count;
-
-        public bool IsReadOnly => false;
-
-        public IEnumerator<ContentFolderModel> GetEnumerator()
-        {
-            return contentFolders.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public void Add(ContentFolderModel item)
-        {
-            contentFolders.Add(item);
-        }
-
-        public void Clear()
-        {
-            contentFolders.Clear();
-        }
-
-        public bool Contains(ContentFolderModel item)
-        {
-            return contentFolders.Contains(item);
-        }
-
-        public void CopyTo(ContentFolderModel[] array, int arrayIndex)
-        {
-            contentFolders.CopyTo(array, arrayIndex);
-        }
-
-        public bool Remove(ContentFolderModel item)
-        {
-            return contentFolders.Remove(item);
-        }
-        #endregion
     }
 }
