@@ -6,7 +6,7 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Independent.Content
 {
-    [MemoryPackable]
+    [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public partial record FolderModel : ModelBase<FolderModel>
     {
         public string ContentPath { get; init; }

@@ -7,7 +7,7 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Independent.Content
 {
-    [MemoryPackable]
+    [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record ProfileModel : ModelBase<ProfileModel>
     {
         static partial void StaticConstructor()
