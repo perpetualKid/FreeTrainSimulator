@@ -33,9 +33,9 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader;
+using FreeTrainSimulator.Models.Loader.Handler;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 using FreeTrainSimulator.Online.Client;
@@ -83,7 +83,7 @@ namespace Orts.Menu
         private bool initialized;
         private UserSettings settings;
         private ProfileModel contentProfile;
-        private FrozenSet<RouteModelHeader> routeModels = FrozenSet<RouteModelHeader>.Empty;
+        private FrozenSet<RouteModelCore> routeModels = FrozenSet<RouteModelCore>.Empty;
         private IEnumerable<Activity> activities = Array.Empty<Activity>();
         private IEnumerable<Consist> consists = Array.Empty<Consist>();
         private IEnumerable<Path> paths = Array.Empty<Path>();
@@ -104,7 +104,7 @@ namespace Orts.Menu
         #region current selection to be passed a startup parameters
         // Base items
         internal FolderModel SelectedFolder => (FolderModel)comboBoxFolder.SelectedItem;
-        internal RouteModelHeader SelectedRoute => (RouteModelHeader)comboBoxRoute.SelectedItem;
+        internal RouteModelCore SelectedRoute => (RouteModelCore)comboBoxRoute.SelectedItem;
 
         // Activity mode items
         internal Activity SelectedActivity => (Activity)comboBoxActivity.SelectedItem;
@@ -179,7 +179,7 @@ namespace Orts.Menu
 
             updateManager = new UpdateManager(settings);
             
-            contentProfile = await ContentProfileHandler.Get(null, CancellationToken.None).ConfigureAwait(true);
+            contentProfile = await contentProfile.Get(CancellationToken.None).ConfigureAwait(true);
 
             List<Task> initTasks = new List<Task>
             {
@@ -768,7 +768,7 @@ namespace Orts.Menu
         {
             if (contentProfile.SetupRequired())
             {
-                contentProfile = await ContentProfileHandler.Convert(ContentProfileHandler.DefaultProfileName, settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
+                contentProfile = await contentProfile.Convert(settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
             }
 
             ShowFolderList();
@@ -819,11 +819,11 @@ namespace Orts.Menu
 
             try
             {                
-                routeModels = await ContentRouteHeaderHandler.GetRoutes(SelectedFolder, ctsRouteLoading.Token).ConfigureAwait(true);
+                routeModels = await ContentRouteCoreHandler.GetRoutes(SelectedFolder, ctsRouteLoading.Token).ConfigureAwait(true);
             }
             catch (TaskCanceledException)
             {
-                routeModels = FrozenSet<RouteModelHeader>.Empty;
+                routeModels = FrozenSet<RouteModelCore>.Empty;
             }
             //cleanout existing data
             ShowRouteList();
@@ -845,7 +845,7 @@ namespace Orts.Menu
             {
                 comboBoxRoute.EndUpdate();
             }
-            UpdateFromMenuSelection<RouteModelHeader>(comboBoxRoute, MenuSelectionIndex.Route, r => r.Name);
+            UpdateFromMenuSelection<RouteModelCore>(comboBoxRoute, MenuSelectionIndex.Route, r => r.Name);
             if (settings.Menu_Selection.Length > (int)MenuSelectionIndex.Activity)
             {
                 string path = settings.Menu_Selection[(int)MenuSelectionIndex.Activity]; // Activity or Timetable
@@ -989,7 +989,7 @@ namespace Orts.Menu
             ShowStartAtList();
             ShowHeadToList();
 
-            RouteModelHeader selectedRoute = SelectedRoute;
+            RouteModelCore selectedRoute = SelectedRoute;
             try
             {
                 paths = (await Path.GetPaths(selectedRoute.MstsRouteFolder(), false, ctsPathLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
@@ -1131,7 +1131,7 @@ namespace Orts.Menu
             ShowTimetableSetList();
 
             FolderModel selectedFolder = SelectedFolder;
-            RouteModelHeader selectedRoute = SelectedRoute;
+            RouteModelCore selectedRoute = SelectedRoute;
             try
             {
                 timetableSets = (await TimetableInfo.GetTimetableInfo(selectedRoute.MstsRouteFolder(), ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(tt => tt.Description);

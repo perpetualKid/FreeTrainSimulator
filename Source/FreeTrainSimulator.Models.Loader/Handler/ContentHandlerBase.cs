@@ -9,14 +9,14 @@ using FreeTrainSimulator.Models.Independent.Content;
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Loader.Shim
+namespace FreeTrainSimulator.Models.Loader.Handler
 {
     public abstract class ContentHandlerBase<TActual, TBase> where TBase : ModelBase<TBase> where TActual : TBase
     {
         public const string SaveStateExtension = ".save";
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
-        public static async ValueTask<TActual> FromFile<TParent>(string name, TParent parent, CancellationToken cancellationToken, bool resolveName = true) where TParent : ModelBase<TParent>
+        public static async ValueTask<TActual> FromFile<TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
         {
             string targetFileName = name;
             if (resolveName)
@@ -59,7 +59,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             }
         }
 
-        public static async ValueTask Create<TParent>(TActual model, TParent parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TParent : ModelBase<TParent>
+        public static async ValueTask Create<TContainer>(TActual model, TContainer parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 

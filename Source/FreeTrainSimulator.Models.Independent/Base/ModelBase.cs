@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         [MemoryPackIgnore]
         string IFileResolve.FilePath => filePath;
         [MemoryPackIgnore]
-        IFileResolve IFileResolve.Parent => parent;
+        IFileResolve IFileResolve.Container => parent;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
         [MemoryPackIgnore]
         public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
@@ -72,10 +72,5 @@ namespace FreeTrainSimulator.Models.Independent.Base
             Name = name;
             this.parent = parent;
         }
-    }
-
-    public static class ContentModelExtensions
-    {
-        public static bool SetupRequired<T>(this ModelBase<T> model) where T : ModelBase<T> => model == null || model.RefreshRequired;
     }
 }

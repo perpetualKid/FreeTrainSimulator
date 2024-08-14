@@ -5,6 +5,7 @@ using System.IO;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader.Handler;
 
 using Orts.Formats.Msts;
 
@@ -32,10 +33,10 @@ namespace FreeTrainSimulator.Models.Loader
         public static ContentRouteResolver ContentRouteResolver(RouteModelCore routeModel)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            if (!routeResolvers.TryGetValue($"{((routeModel as IFileResolve).Parent as FolderModel)?.Name}{routeModel.Name}" , out ContentRouteResolver resolver))
+            if (!routeResolvers.TryGetValue($"{((routeModel as IFileResolve).Container as FolderModel)?.Name}{routeModel.Name}", out ContentRouteResolver resolver))
             {
                 resolver = new ContentRouteResolver(routeModel);
-                _ = routeResolvers.TryAdd($"{((routeModel as IFileResolve).Parent as FolderModel)?.Name}{routeModel.Name}", resolver);
+                _ = routeResolvers.TryAdd($"{((routeModel as IFileResolve).Container as FolderModel)?.Name}{routeModel.Name}", resolver);
             }
             return resolver;
         }
@@ -80,7 +81,7 @@ namespace FreeTrainSimulator.Models.Loader
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
             RouteModel = routeModel;
-            MstsRouteFolder = ((routeModel as IFileResolve).Parent as FolderModel).MstsContentFolder().Route(routeModel.Tag);
+            MstsRouteFolder = ((routeModel as IFileResolve).Container as FolderModel).MstsContentFolder().Route(routeModel.Tag);
         }
     }
 
@@ -98,31 +99,32 @@ namespace FreeTrainSimulator.Models.Loader
         private static string FileNameCore<U>(U instance) where U : IFileResolve => instance?.FileName;
         public static string FileExtension => FileExtensionCore<ModelBase<T>>();
         public static string FolderName<TContainer>(ModelBase<TContainer> instance) where TContainer : ModelBase<TContainer> => FolderNameCore(instance);
-        public static string FileName<TParent>(ModelBase<TParent> instance) where TParent : ModelBase<TParent> => FileNameCore(instance);
-        
-        public static string FilePath<TParent>(string name, ModelBase<TParent> parent) where TParent : ModelBase<TParent>
+        public static string FileName<TContainer>(ModelBase<TContainer> instance) where TContainer : ModelBase<TContainer> => FileNameCore(instance);
+
+        public static string FilePath<TContainer>(string name, ModelBase<TContainer> container) where TContainer : ModelBase<TContainer>
         {
-            return Path.Combine(FolderPath(parent), name + FileExtension);
+            return Path.Combine(FolderPath(container), name + FileExtension);
         }
 
-        public static string FilePath(T model, IFileResolve parent = null)
+        public static string FilePath(T model, IFileResolve container = null)
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
-            return Path.GetFullPath(Path.Combine(FolderPath((model as IFileResolve).Parent ?? parent), FileName(model) + FileExtension));
+            return Path.GetFullPath(Path.Combine(FolderPath((model as IFileResolve).Container ?? container), FileName(model) + FileExtension));
         }
 
-        public static string FolderPath<TParent>(ModelBase<TParent> parent) where TParent : ModelBase<TParent>
+        public static string FolderPath<TContainer>(ModelBase<TContainer> container) where TContainer : ModelBase<TContainer>
         {
-            return FolderPath(parent as IFileResolve);
+            return FolderPath(container as IFileResolve);
         }
 
-        public static string FolderPath(IFileResolve parent)
+        public static string FolderPath(IFileResolve container)
         {
-            return parent != null ? Path.Combine(FolderPath(parent.Parent), parent.FolderName) : FileResolver.ContentRoot;
+            return container != null ? Path.Combine(FolderPath(container.Container), container.FolderName) : FileResolver.ContentRoot;
         }
 
         public static string WildcardPattern => $"*{FileExtension}.*";
+        public static string WildcardSavePattern => $"*{FileExtension}{ContentHandlerBase<T, T>.SaveStateExtension}";
 
 #pragma warning restore CA1000 // Do not declare static members on generic types
     }

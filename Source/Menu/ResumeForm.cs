@@ -76,9 +76,9 @@ namespace Orts.Menu
     public partial class ResumeForm : Form
     {
         private readonly UserSettings settings;
-        private readonly RouteModelHeader route;
+        private readonly RouteModelCore route;
         private readonly Activity activity;
-        private readonly FrozenSet<RouteModelHeader> globalRoutes;
+        private readonly FrozenSet<RouteModelCore> globalRoutes;
         private readonly TimetableInfo timeTable;
         private List<SavePoint> savePoints = new List<SavePoint>();
         private CancellationTokenSource ctsLoader;
@@ -89,7 +89,7 @@ namespace Orts.Menu
 
         private readonly Catalog catalog;
 
-        internal ResumeForm(UserSettings settings, RouteModelHeader route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable, FrozenSet<RouteModelHeader> mainRoutes)
+        internal ResumeForm(UserSettings settings, RouteModelCore route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable, FrozenSet<RouteModelCore> mainRoutes)
         {
             catalog = CatalogManager.Catalog;
             globalRoutes = mainRoutes;

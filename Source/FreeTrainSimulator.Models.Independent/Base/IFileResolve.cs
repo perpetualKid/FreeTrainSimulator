@@ -22,8 +22,8 @@
         /// </summary>
         public abstract string FileName { get; }
         /// <summary>
-        /// Reference to the parent <seealso cref="ModelBase{T}"/> instance
+        /// Reference to the parent <seealso cref="ModelBase{T}"/> container instance
         /// </summary>
-        public IFileResolve Parent { get; }
+        public IFileResolve Container { get; }
     }
 }

@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Models.Simplified
         public GameSaveState SaveState { get; private set; }
 
         public static async Task<IEnumerable<SavePoint>> GetSavePoints(string directory, string prefix, string routeName,
-            StringBuilder warnings, bool multiPlayer, FrozenSet<RouteModelHeader> mainRoutes, CancellationToken token)
+            StringBuilder warnings, bool multiPlayer, FrozenSet<RouteModelCore> mainRoutes, CancellationToken token)
         {
             List<SavePoint> result = new List<SavePoint>();
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))

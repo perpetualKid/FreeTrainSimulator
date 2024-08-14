@@ -1,13 +1,15 @@
 ﻿using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Base;
 
+using MemoryPack;
+
 namespace FreeTrainSimulator.Models.Independent.Content
 {
-    public abstract record RouteModelCore: ModelBase<RouteModelCore>
+    [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
+    public partial record RouteModelCore: ModelBase<RouteModelCore>
     {
-#pragma warning disable CA1810 // Initialize reference type static fields inline
-        static RouteModelCore()
-#pragma warning restore CA1810 // Initialize reference type static fields inline
+
+        static partial void StaticConstructor()
         {
             fileExtension = ".contentroute";
         }
@@ -19,9 +21,30 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public ref readonly WorldLocation RouteStart => ref routeStart;
         public bool MetricUnits { get; init; }
 
+        public RouteModelCore()
+        { }
+
+        [MemoryPackConstructor]
         protected RouteModelCore(in WorldLocation routeStart)
         { 
             this.routeStart = routeStart;
         }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
+        //public RouteModelCore(RouteModelCore routeModel)
+        //{
+        //    routeStart = routeModel.routeStart;
+        //    Name = routeModel.Name;
+        //    Version = routeModel.Version;
+        //    Tag = routeModel.Tag;
+        //    RouteId = routeModel.RouteId;
+        //    Description = routeModel.Description;
+        //    MetricUnits = routeModel.MetricUnits;
+        //}
+
     }
 }

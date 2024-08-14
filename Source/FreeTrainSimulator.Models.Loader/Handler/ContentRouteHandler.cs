@@ -11,7 +11,7 @@ using FreeTrainSimulator.Models.Independent.Content;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 
-namespace FreeTrainSimulator.Models.Loader.Shim
+namespace FreeTrainSimulator.Models.Loader.Handler
 {
     public class ContentRouteHandler : ContentHandlerBase<RouteModel, RouteModelCore>
     {
@@ -20,10 +20,13 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return await FromFile(name, contentFolder, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<RouteModel> Create(string routePath, FolderModel contentFolder, CancellationToken cancellationToken)
+        public static async ValueTask<RouteModelCore> GetBase(string name, FolderModel contentFolder, CancellationToken cancellationToken)
         {
-            FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(routePath);
+            return await FromFile(name, contentFolder, cancellationToken).ConfigureAwait(false);
+        }
 
+        public static async ValueTask<RouteModel> Convert(FolderStructure.ContentFolder.RouteFolder routeFolder, FolderModel contentFolder, CancellationToken cancellationToken)
+        {
             if (routeFolder.Valid)
             {
                 string trkFilePath = routeFolder.TrackFileName;
@@ -43,6 +46,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 return routeModel;
             }
             return null;
+
         }
 
         public static async ValueTask<RouteModel> Convert(string routePath, FolderModel contentFolder, CancellationToken cancellationToken)
@@ -61,7 +65,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                     MetricUnits = routeFile.Route.MilepostUnitsMetric,
                     RouteId = routeFile.Route.RouteID,
                     Tag = routeFolder.RouteName,    //store the route folder name
-                    EnvironmentConditions = new EnumArray2D<string, SeasonType, WeatherType>(routeFile.Route.Environment.GetEnvironmentFileName)
+                    EnvironmentConditions = new EnumArray2D<string, SeasonType, WeatherType>(routeFile.Route.Environment.GetEnvironmentFileName),
+                    RouteKey = routeFile.Route.FileName,
                 };
                 await Create(routeModel, contentFolder, true, true, cancellationToken).ConfigureAwait(false);
                 return routeModel;
@@ -93,7 +98,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 ContentFolderResolver resolver = FileResolver.ContentFolderResolver(contentFolder);
                 await Parallel.ForEachAsync(Directory.EnumerateDirectories(contentFolder.MstsContentFolder().RoutesFolder), cancellationToken, async (routeDirectory, token) =>
                 {
-                    RouteModel route = await Create(routeDirectory, contentFolder, token).ConfigureAwait(false);
+                    RouteModel route = await Convert(routeDirectory, contentFolder, token).ConfigureAwait(false);
                     if (null != route)
                         results.Add(route);
                 }).ConfigureAwait(false);

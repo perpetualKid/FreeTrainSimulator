@@ -31,7 +31,7 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Loader.Shim;
+using FreeTrainSimulator.Models.Loader.Handler;
 using FreeTrainSimulator.Models.State;
 
 using GetText;

@@ -7,22 +7,22 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Content;
 
-namespace FreeTrainSimulator.Models.Loader.Shim
+namespace FreeTrainSimulator.Models.Loader.Handler
 {
     public sealed class ContentProfileHandler : ContentHandlerBase<ProfileModel, ProfileModel>
     {
         public const string DefaultProfileName = "Default";
 
-        private static bool IsDefaultProfile(string profileName) => string.IsNullOrEmpty(profileName) || (string.Equals(profileName, DefaultProfileName, StringComparison.OrdinalIgnoreCase));
+        private static bool CheckDefaultProfile(string profileName) => string.IsNullOrEmpty(profileName) || string.Equals(profileName, DefaultProfileName, StringComparison.OrdinalIgnoreCase);
 
-        private static bool IsDefaultProfile(ProfileModel profileModel) => profileModel == null || IsDefaultProfile(profileModel.Name);
+        private static bool CheckDefaultProfile(ProfileModel profileModel) => profileModel == null || CheckDefaultProfile(profileModel.Name);
 
 
         public static ProfileModel DefaultProfile { get; private set; } = new ProfileModel(DefaultProfileName);
 
         public static async ValueTask<ProfileModel> Get(string profileName, CancellationToken cancellationToken)
         {
-            if (IsDefaultProfile(profileName))
+            if (CheckDefaultProfile(profileName))
             {
                 if (DefaultProfile?.Initialized ?? false)
                     return DefaultProfile; //already initialized default model, just returning that instance
@@ -47,23 +47,17 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             {
                 contentProfile = await UpdateFolders(contentProfile, folders, cancellationToken).ConfigureAwait(false);
             }
-            if (IsDefaultProfile(contentProfile))
+            if (CheckDefaultProfile(contentProfile))
                 DefaultProfile = contentProfile;
             return contentProfile;
         }
 
         private static async ValueTask<ProfileModel> Setup(string profileName, CancellationToken cancellationToken)
         {
-            // try to load an existing profile with that name
-            ProfileModel contentProfile = await Get(profileName, cancellationToken).ConfigureAwait(false);
-
-            if (contentProfile == null)
-            {
-                contentProfile = new ProfileModel(string.IsNullOrEmpty(profileName) ? DefaultProfileName : profileName);
-                await Create(contentProfile, (ProfileModel)null, true, true, cancellationToken).ConfigureAwait(false);
-                if (contentProfile.Name == DefaultProfileName)
-                    DefaultProfile = contentProfile;
-            }
+            ProfileModel contentProfile = new ProfileModel(string.IsNullOrEmpty(profileName) ? DefaultProfileName : profileName);
+            await Create(contentProfile, (ProfileModel)null, true, true, cancellationToken).ConfigureAwait(false);
+            if (contentProfile.Name == DefaultProfileName)
+                DefaultProfile = contentProfile;
             return contentProfile;
         }
 
@@ -81,6 +75,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             };
             contentProfile.Initialize(ModelFileResolver<ProfileModel>.FilePath(contentProfile, null), null);
             await ToFile(contentProfile, cancellationToken).ConfigureAwait(false);
+            if (CheckDefaultProfile(contentProfile))
+                DefaultProfile = contentProfile;
             return contentProfile;
         }
     }
