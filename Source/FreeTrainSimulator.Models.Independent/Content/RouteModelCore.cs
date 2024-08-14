@@ -21,30 +21,15 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public ref readonly WorldLocation RouteStart => ref routeStart;
         public bool MetricUnits { get; init; }
 
-        public RouteModelCore()
-        { }
-
         [MemoryPackConstructor]
         protected RouteModelCore(in WorldLocation routeStart)
         { 
             this.routeStart = routeStart;
         }
 
-        public override string ToString()
+        public sealed override string ToString()
         {
             return Name;
         }
-
-        //public RouteModelCore(RouteModelCore routeModel)
-        //{
-        //    routeStart = routeModel.routeStart;
-        //    Name = routeModel.Name;
-        //    Version = routeModel.Version;
-        //    Tag = routeModel.Tag;
-        //    RouteId = routeModel.RouteId;
-        //    Description = routeModel.Description;
-        //    MetricUnits = routeModel.MetricUnits;
-        //}
-
     }
 }

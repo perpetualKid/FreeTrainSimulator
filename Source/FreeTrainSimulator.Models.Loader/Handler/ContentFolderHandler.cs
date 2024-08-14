@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,7 +12,7 @@ using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    public sealed class ContentFolderHandler : ContentHandlerBase<FolderModel, FolderModel>
+    internal sealed class ContentFolderHandler : ContentHandlerBase<FolderModel, FolderModel>
     {
         public static async ValueTask<FolderModel> Create(string folderName, string repositoryPath, ProfileModel profile, CancellationToken cancellationToken)
         {
@@ -29,7 +28,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return ValueTask.FromResult(parent.ContentFolders.Where((folder) => string.Equals(folder.Name, folderName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
         }
 
-        public static async ValueTask<FrozenSet<RouteModelCore>> Convert(FolderModel contentFolder, CancellationToken cancellationToken)
+        public static async ValueTask<FolderModel> Convert(FolderModel contentFolder, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
 
@@ -68,15 +67,15 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             //for any new MSTS folder (remaining in the preploaded dictionary), Create a route model
             await Parallel.ForEachAsync(routeFolders, cancellationToken, async (routeFolder, token) =>
             {
-                RouteModel route = await ContentRouteHandler.Convert(routeFolder.Value, contentFolder, token).ConfigureAwait(false);
+                RouteModelCore route = await ContentRouteHandler.Convert(routeFolder.Value, contentFolder, token).ConfigureAwait(false);
                 if (null != route)
                 {
-                    RouteModelCore routeModel = route with { };
-                    results.Add(routeModel);
+                    results.Add(route);
                 }
             }).ConfigureAwait(false);
 
-            return results.ToFrozenSet();
+            contentFolder.SetRoutes(results);
+            return contentFolder;
         }
     }
 }

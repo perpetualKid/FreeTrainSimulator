@@ -89,6 +89,7 @@ namespace Orts.Menu
         private IEnumerable<Path> paths = Array.Empty<Path>();
         private IEnumerable<TimetableInfo> timetableSets = Array.Empty<TimetableInfo>();
         private IEnumerable<WeatherFileInfo> timetableWeatherFileSet = Array.Empty<WeatherFileInfo>();
+        private CancellationTokenSource ctsProfileLoading;
         private CancellationTokenSource ctsRouteLoading;
         private CancellationTokenSource ctsActivityLoading;
         private CancellationTokenSource ctsConsistLoading;
@@ -178,7 +179,7 @@ namespace Orts.Menu
             settings = new UserSettings(options);
 
             updateManager = new UpdateManager(settings);
-            
+
             contentProfile = await contentProfile.Get(CancellationToken.None).ConfigureAwait(true);
 
             List<Task> initTasks = new List<Task>
@@ -766,9 +767,18 @@ namespace Orts.Menu
         #region Folder list
         private async Task LoadFolderListAsync()
         {
-            if (contentProfile.SetupRequired())
+            ctsProfileLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsProfileLoading, true).ConfigureAwait(false);
+
+            try
             {
-                contentProfile = await contentProfile.Convert(settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
+                if (contentProfile.SetupRequired())
+                {
+                    contentProfile = await contentProfile.Convert(settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), ctsProfileLoading.Token).ConfigureAwait(true);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                contentProfile = contentProfile.Default();
             }
 
             ShowFolderList();
@@ -795,16 +805,8 @@ namespace Orts.Menu
 
         private void ShowFolderList()
         {
-            try
-            {
-                comboBoxFolder.BeginUpdate();
-                comboBoxFolder.Items.Clear();
-                comboBoxFolder.Items.AddRange(contentProfile.ContentFolders.OrderBy(f => f.Name).ToArray());
-            }
-            finally
-            {
-                comboBoxFolder.EndUpdate();
-            }
+            comboBoxFolder.Items.Clear();
+            comboBoxFolder.Items.AddRange(contentProfile.ContentFolders.OrderBy(f => f.Name).ToArray());
             UpdateFromMenuSelection<FolderModel>(comboBoxFolder, MenuSelectionIndex.Folder, f => f.Name);
             UpdateEnabled();
         }
@@ -818,8 +820,9 @@ namespace Orts.Menu
             activities = Array.Empty<Activity>();
 
             try
-            {                
-                routeModels = await ContentRouteCoreHandler.GetRoutes(SelectedFolder, ctsRouteLoading.Token).ConfigureAwait(true);
+            {
+                if (SelectedFolder.SetupRequired())
+                    routeModels = (await SelectedFolder.Convert(ctsRouteLoading.Token).ConfigureAwait(true)).Routes;
             }
             catch (TaskCanceledException)
             {
@@ -1559,19 +1562,22 @@ namespace Orts.Menu
 
         private static async ValueTask<CancellationTokenSource> ResetCancellationTokenSource(SemaphoreSlim semaphore, CancellationTokenSource cts, bool cancel)
         {
-            try
+            if (null != cts)
             {
-                await semaphore.WaitAsync().ConfigureAwait(false);
-                if (cancel && cts != null && !cts.IsCancellationRequested)
-                    await cts.CancelAsync().ConfigureAwait(false);
-                cts?.Dispose();
-                // Create a new cancellation token source so that can cancel all the tokens again 
-                return new CancellationTokenSource();
+                try
+                {
+                    await semaphore.WaitAsync().ConfigureAwait(false);
+                    if (cancel && cts != null && !cts.IsCancellationRequested)
+                        await cts.CancelAsync().ConfigureAwait(false);
+                    cts?.Dispose();
+                }
+                finally
+                {
+                    _ = semaphoreSlim.Release();
+                }
             }
-            finally
-            {
-                _ = semaphoreSlim.Release();
-            }
+            // Create a new cancellation token source so that can cancel all the tokens again 
+            return new CancellationTokenSource();
         }
 
         private void ComboBoxTimetable_EnabledChanged(object sender, EventArgs e)

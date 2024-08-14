@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Generic;
 
 using FreeTrainSimulator.Models.Independent.Base;
 
@@ -10,6 +11,9 @@ namespace FreeTrainSimulator.Models.Independent.Content
     public partial record FolderModel : ModelBase<FolderModel>
     {
         public string ContentPath { get; init; }
+
+        [MemoryPackIgnore]
+        public FrozenSet<RouteModelCore> Routes { get; private set; }
 
         static partial void StaticConstructor()
         {
@@ -29,5 +33,8 @@ namespace FreeTrainSimulator.Models.Independent.Content
         {
             return Name;
         }
+
+        public void SetRoutes(IEnumerable<RouteModelCore> routes) => Routes = routes?.ToFrozenSet();
+
     }
 }

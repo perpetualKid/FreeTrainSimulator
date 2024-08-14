@@ -17,6 +17,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
     public static class ProfileModelExtensions
     {
+        public static ProfileModel Default(this ProfileModel _) => ContentProfileHandler.DefaultProfile;
+
         public static async ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken)
         {
             return await ContentProfileHandler.Get(profileModel?.Name, cancellationToken).ConfigureAwait(true);
@@ -36,9 +38,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return resolver.MstsContentFolder;
         }
 
-        //public static async ValueTask<FolderModel> Convert(this FolderModel folderModel, CancellationToken cancellationToken)
-        //{ 
-        //    return await ContentFolderHandler.Convert(folderModel, cancellationToken).ConfigureAwait(false);
-        //}
+        public static async ValueTask<FolderModel> Convert(this FolderModel folderModel, CancellationToken cancellationToken)
+        {
+            return folderModel != null ? await ContentFolderHandler.Convert(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
+        }
     }
 }

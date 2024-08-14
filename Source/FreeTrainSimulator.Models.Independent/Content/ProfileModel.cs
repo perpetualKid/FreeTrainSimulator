@@ -22,7 +22,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
             ContentFolders = contentFolders;
         }
 
-        [MemoryPackInclude]
         public FrozenSet<FolderModel> ContentFolders { get; init; } = FrozenSet<FolderModel>.Empty;
 
         public ProfileModel(string name) : base(name, null)

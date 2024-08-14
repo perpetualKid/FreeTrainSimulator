@@ -48,8 +48,7 @@ namespace Tests.FreeTrainSimulator.Models.Loader
             {
                 FolderModel folderModel = await ContentFolderHandler.Get("Demo Model 1", defaultModel, CancellationToken.None).ConfigureAwait(false);
 
-                if (null != folderModel)
-                    await ContentFolderHandler.Convert(folderModel, CancellationToken.None).ConfigureAwait(false);
+                folderModel = await ContentFolderHandler.Convert(folderModel, CancellationToken.None).ConfigureAwait(false);
             }
         }
 
