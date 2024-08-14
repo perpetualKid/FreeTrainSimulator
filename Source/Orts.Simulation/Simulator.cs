@@ -32,6 +32,7 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Handler;
+using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.State;
 
 using GetText;
@@ -335,7 +336,8 @@ namespace Orts.Simulation
 
         private async Task InitializeAsync(string routeName, string contentFolderPath, CancellationToken cancellationToken)
         {
-            ProfileModel contentProfile = await ContentProfileHandler.Get(null, cancellationToken).ConfigureAwait(false);
+            ProfileModel contentProfile = null;
+            contentProfile = await contentProfile.Get(cancellationToken).ConfigureAwait(false);
             FolderModel folder = contentProfile.ContentFolders.Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault();
             RouteModel = await ContentRouteHandler.Get(routeName, folder, cancellationToken).ConfigureAwait(false);
         }

@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Dispatcher
                 }
                 pathEditor?.Dispose();
                 ctsRouteLoading?.Dispose();
-                loadRoutesSemaphore.Dispose();
+                loadRouteSemaphore.Dispose();
                 windowManager?.Dispose();
                 spriteBatch?.Dispose();
                 graphicsDeviceManager?.Dispose();

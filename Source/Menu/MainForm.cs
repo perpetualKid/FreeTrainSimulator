@@ -767,7 +767,7 @@ namespace Orts.Menu
         #region Folder list
         private async Task LoadFolderListAsync()
         {
-            ctsProfileLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsProfileLoading, true).ConfigureAwait(false);
+            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
             try
             {
@@ -778,8 +778,9 @@ namespace Orts.Menu
             }
             catch (TaskCanceledException)
             {
-                contentProfile = contentProfile.Default();
             }
+
+            contentProfile ??= contentProfile.Default();
 
             ShowFolderList();
             if (contentProfile.ContentFolders.Count > 0)
@@ -815,19 +816,18 @@ namespace Orts.Menu
         #region Route list
         private async Task LoadRouteListAsync()
         {
-            ctsRouteLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsRouteLoading, true).ConfigureAwait(false);
+            ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
             paths = Array.Empty<Path>();
             activities = Array.Empty<Activity>();
 
             try
             {
-                if (SelectedFolder.SetupRequired())
-                    routeModels = (await SelectedFolder.Convert(ctsRouteLoading.Token).ConfigureAwait(true)).Routes;
+                routeModels = SelectedFolder.SetupRequired() ? (await SelectedFolder.Convert(ctsRouteLoading.Token).ConfigureAwait(true)).Routes : SelectedFolder.Routes;
             }
             catch (TaskCanceledException)
             {
-                routeModels = FrozenSet<RouteModelCore>.Empty;
             }
+            routeModels ??= FrozenSet<RouteModelCore>.Empty;
             //cleanout existing data
             ShowRouteList();
             ShowActivityList();
@@ -865,7 +865,7 @@ namespace Orts.Menu
         #region Activity list
         private async Task LoadActivityListAsync()
         {
-            ctsActivityLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsActivityLoading, true).ConfigureAwait(false);
+            ctsActivityLoading = await ctsActivityLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
             try
             {
                 activities = (await Activity.GetActivities(SelectedFolder.MstsContentFolder(), SelectedRoute.MstsRouteFolder(), ctsActivityLoading.Token).ConfigureAwait(true)).OrderBy(a => a.Name);
@@ -909,7 +909,7 @@ namespace Orts.Menu
         #region Consist lists
         private async Task LoadLocomotiveListAsync()
         {
-            ctsConsistLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsConsistLoading, true).ConfigureAwait(false);
+            ctsConsistLoading = await ctsConsistLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
             try
             {
@@ -987,7 +987,7 @@ namespace Orts.Menu
         #region Path lists
         private async Task LoadStartAtListAsync()
         {
-            ctsPathLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsPathLoading, true).ConfigureAwait(false);
+            ctsPathLoading = await ctsPathLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
             ShowStartAtList();
             ShowHeadToList();
@@ -1130,7 +1130,7 @@ namespace Orts.Menu
         #region Timetable Set list
         private async Task LoadTimetableSetListAsync()
         {
-            ctsTimeTableLoading = await ResetCancellationTokenSource(semaphoreSlim, ctsTimeTableLoading, true).ConfigureAwait(false);
+            ctsTimeTableLoading = await ctsTimeTableLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
             ShowTimetableSetList();
 
             FolderModel selectedFolder = SelectedFolder;
@@ -1559,26 +1559,6 @@ namespace Orts.Menu
             }
         }
         #endregion
-
-        private static async ValueTask<CancellationTokenSource> ResetCancellationTokenSource(SemaphoreSlim semaphore, CancellationTokenSource cts, bool cancel)
-        {
-            if (null != cts)
-            {
-                try
-                {
-                    await semaphore.WaitAsync().ConfigureAwait(false);
-                    if (cancel && cts != null && !cts.IsCancellationRequested)
-                        await cts.CancelAsync().ConfigureAwait(false);
-                    cts?.Dispose();
-                }
-                finally
-                {
-                    _ = semaphoreSlim.Release();
-                }
-            }
-            // Create a new cancellation token source so that can cancel all the tokens again 
-            return new CancellationTokenSource();
-        }
 
         private void ComboBoxTimetable_EnabledChanged(object sender, EventArgs e)
         {

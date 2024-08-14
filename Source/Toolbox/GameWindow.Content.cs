@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Loader.Handler;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 using FreeTrainSimulator.Toolbox.PopupWindows;
@@ -32,9 +30,10 @@ namespace FreeTrainSimulator.Toolbox
     {
         private ProfileModel contentProfile;
         private FolderModel selectedFolder;
-        private RouteModel selectedRoute;
-        private FrozenSet<RouteModel> routeModels;
-        private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
+        private RouteModelCore selectedRoute;
+        private FrozenSet<RouteModelCore> routeModels;
+        private readonly SemaphoreSlim loadRouteSemaphore = new SemaphoreSlim(1);
+        private CancellationTokenSource ctsProfileLoading;
         private CancellationTokenSource ctsRouteLoading;
         private PathEditor pathEditor;
 
@@ -58,13 +57,14 @@ namespace FreeTrainSimulator.Toolbox
 
         internal async Task LoadFolders()
         {
+            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
             try
             {
                 if (contentProfile.SetupRequired())
                 {
-                    contentProfile = await ContentProfileHandler.Convert(ContentProfileHandler.DefaultProfileName, Settings.UserSettings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), CancellationToken.None).ConfigureAwait(true);
+                    contentProfile = await contentProfile.Convert(Settings.UserSettings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), ctsProfileLoading.Token).ConfigureAwait(true);
                 }
-                mainmenu.PopulateContentFolders(contentProfile.ContentFolders);
+                mainmenu.PopulateContentFolders((contentProfile??= contentProfile.Default()).ContentFolders);
             }
             catch (TaskCanceledException)
             {
@@ -72,25 +72,32 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
-        internal async Task<FrozenSet<RouteModel>> FindRoutes(FolderModel contentFolder)
+        internal async Task<FrozenSet<RouteModelCore>> FindRoutes(FolderModel contentFolder)
         {
-            await loadRoutesSemaphore.WaitAsync().ConfigureAwait(false);
+            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
+            await loadRouteSemaphore.WaitAsync().ConfigureAwait(false);
             if (contentFolder != selectedFolder)
             {
-                routeModels = await ContentRouteHandler.GetRoutes(contentFolder, ctsRouteLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                try
+                {
+                    routeModels = contentFolder.SetupRequired() ? (await contentFolder.Convert(ctsProfileLoading.Token).ConfigureAwait(true)).Routes : contentFolder.Routes;
+                }
+                catch (TaskCanceledException)
+                {
+                }
                 selectedFolder = contentFolder;
             }
-            loadRoutesSemaphore.Release();
+            loadRouteSemaphore.Release();
             return routeModels;
         }
 
-        internal async Task LoadRoute(RouteModel route)
+        internal async Task LoadRoute(RouteModelCore route)
         {
             (windowManager[ToolboxWindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
             windowManager[ToolboxWindowType.StatusWindow].Open();
             UnloadRoute();
 
-            ctsRouteLoading = await ResetCancellationTokenSource(loadRoutesSemaphore, ctsRouteLoading).ConfigureAwait(false);
+            ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
 
             CancellationToken token = ctsRouteLoading.Token;
 
@@ -98,7 +105,9 @@ namespace FreeTrainSimulator.Toolbox
             if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
 
-            await TrackData.LoadTrackData(this, route, useMetricUnits, token).ConfigureAwait(false);
+            RouteModel routeModel = await route.Extend(ctsProfileLoading.Token).ConfigureAwait(false);
+
+            await TrackData.LoadTrackData(this, routeModel, useMetricUnits, token).ConfigureAwait(false);
             if (token.IsCancellationRequested)
                 return;
 
@@ -131,7 +140,7 @@ namespace FreeTrainSimulator.Toolbox
 
                 if (routeSelection.Length > 1 && Settings.RestoreLastView)
                 {
-                    RouteModel route = (routeModels ??= await FindRoutes(folder).ConfigureAwait(false))?.Where(r => r.Name.Equals(routeSelection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    RouteModelCore route = (routeModels ??= await FindRoutes(folder).ConfigureAwait(false))?.Where(r => r.Name.Equals(routeSelection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(false);
@@ -163,23 +172,6 @@ namespace FreeTrainSimulator.Toolbox
         internal void UnloadPath()
         {
             PathEditor.InitializePath(null);
-        }
-
-        private static async ValueTask<CancellationTokenSource> ResetCancellationTokenSource(SemaphoreSlim semaphore, CancellationTokenSource cts)
-        {
-            try
-            {
-                await semaphore.WaitAsync().ConfigureAwait(false);
-                if (cts != null && !cts.IsCancellationRequested)
-                    await cts.CancelAsync().ConfigureAwait(false);
-                cts?.Dispose();
-                // Create a new cancellation token source so that can cancel all the tokens again 
-                return new CancellationTokenSource();
-            }
-            finally
-            {
-                _ = semaphore.Release();
-            }
         }
     }
 }

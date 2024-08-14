@@ -9,7 +9,7 @@ using FreeTrainSimulator.Models.Independent.Content;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    public class ContentRouteCoreHandler : ContentHandlerBase<RouteModelCore, RouteModelCore>
+    internal class ContentRouteCoreHandler : ContentHandlerBase<RouteModelCore, RouteModelCore>
     {
         public static async ValueTask<RouteModelCore> Get(string name, FolderModel contentFolder, CancellationToken cancellationToken)
         {

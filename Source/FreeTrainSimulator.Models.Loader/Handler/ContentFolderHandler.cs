@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
@@ -75,6 +76,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             }).ConfigureAwait(false);
 
             contentFolder.SetRoutes(results);
+            IFileResolve parent = (contentFolder as IFileResolve).Container;
+            contentFolder.Initialize(ModelFileResolver<FolderModel>.FilePath(contentFolder, parent), parent);
+            contentFolder.RefreshModel();
             return contentFolder;
         }
     }

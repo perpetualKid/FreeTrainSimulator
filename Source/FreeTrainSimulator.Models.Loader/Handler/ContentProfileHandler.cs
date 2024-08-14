@@ -9,7 +9,7 @@ using FreeTrainSimulator.Models.Independent.Content;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    public sealed class ContentProfileHandler : ContentHandlerBase<ProfileModel, ProfileModel>
+    internal sealed class ContentProfileHandler : ContentHandlerBase<ProfileModel, ProfileModel>
     {
         public const string DefaultProfileName = "Default";
 

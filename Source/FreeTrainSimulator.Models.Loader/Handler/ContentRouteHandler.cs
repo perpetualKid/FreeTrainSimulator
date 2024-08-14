@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
@@ -21,9 +22,10 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return await FromFile(name, contentFolder, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<RouteModelCore> GetBase(string name, FolderModel contentFolder, CancellationToken cancellationToken)
+        public static async ValueTask<RouteModel> Get(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return await FromFile(name, contentFolder, cancellationToken).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+            return await FromFile(routeModel.Name, (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<RouteModel> Convert(FolderStructure.ContentFolder.RouteFolder routeFolder, FolderModel contentFolder, CancellationToken cancellationToken)

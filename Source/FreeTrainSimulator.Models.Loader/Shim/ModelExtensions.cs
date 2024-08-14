@@ -43,4 +43,12 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return folderModel != null ? await ContentFolderHandler.Convert(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
         }
     }
+
+    public static class RouteModelExtensions
+    {
+        public static async ValueTask<RouteModel> Extend(this RouteModelCore routeModel, CancellationToken cancellationToken)
+        {
+            return await ContentRouteHandler.Get(routeModel, cancellationToken).ConfigureAwait(true);
+        }
+    }
 }
