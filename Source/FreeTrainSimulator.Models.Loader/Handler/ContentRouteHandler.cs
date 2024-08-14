@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader.Shim;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;

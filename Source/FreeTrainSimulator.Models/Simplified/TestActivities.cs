@@ -9,6 +9,7 @@ using System.Threading.Tasks.Dataflow;
 
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader;
+using FreeTrainSimulator.Models.Loader.Shim;
 
 using Orts.Formats.Msts;
 

@@ -6,6 +6,7 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Handler;
+using FreeTrainSimulator.Models.Loader.Shim;
 
 using Orts.Formats.Msts;
 
@@ -42,11 +43,6 @@ namespace FreeTrainSimulator.Models.Loader
         }
 
         #region model extension for Msts Folder Structure
-        public static FolderStructure.ContentFolder MstsContentFolder(this FolderModel folderModel)
-        {
-            ContentFolderResolver resolver = ContentFolderResolver(folderModel);
-            return resolver.MstsContentFolder;
-        }
 
         public static FolderStructure.ContentFolder.RouteFolder MstsRouteFolder(this RouteModelCore routeModel)
         {

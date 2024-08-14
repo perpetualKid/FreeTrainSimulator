@@ -6,6 +6,8 @@ using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Handler;
 
+using Orts.Formats.Msts;
+
 namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public static class ContentModelExtensions
@@ -17,12 +19,26 @@ namespace FreeTrainSimulator.Models.Loader.Shim
     {
         public static async ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken)
         {
-            return await ContentProfileHandler.Get(profileModel?.Name, CancellationToken.None).ConfigureAwait(true);
+            return await ContentProfileHandler.Get(profileModel?.Name, cancellationToken).ConfigureAwait(true);
         }
 
         public static async ValueTask<ProfileModel> Convert(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
-            return await ContentProfileHandler.Convert(profileModel?.Name, folders, CancellationToken.None).ConfigureAwait(true);
+            return await ContentProfileHandler.Convert(profileModel?.Name, folders, cancellationToken).ConfigureAwait(true);
         }
+    }
+
+    public static class FolderModelExtensions
+    {
+        public static FolderStructure.ContentFolder MstsContentFolder(this FolderModel folderModel)
+        {
+            ContentFolderResolver resolver = FileResolver.ContentFolderResolver(folderModel);
+            return resolver.MstsContentFolder;
+        }
+
+        //public static async ValueTask<FolderModel> Convert(this FolderModel folderModel, CancellationToken cancellationToken)
+        //{ 
+        //    return await ContentFolderHandler.Convert(folderModel, cancellationToken).ConfigureAwait(false);
+        //}
     }
 }
