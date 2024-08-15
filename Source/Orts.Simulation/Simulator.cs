@@ -2009,7 +2009,7 @@ namespace Orts.Simulation
             const int maxLogFiles = 2;
             StringBuilder logfile = new StringBuilder();
 
-            logfile.Append(Route.Name);
+            logfile.Append(RouteModel.Name);
 
             logfile.Append(string.IsNullOrEmpty(ActivityFileName) ? "_explorer" : "_" + ActivityFileName);
 

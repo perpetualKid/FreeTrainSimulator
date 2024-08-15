@@ -8,7 +8,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public partial record RouteModelCore: ModelBase<RouteModelCore>
     {
-
         static partial void StaticConstructor()
         {
             fileExtension = ".contentroute";

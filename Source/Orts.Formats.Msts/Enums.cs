@@ -5,15 +5,6 @@ namespace Orts.Formats.Msts
 {
 #pragma warning disable CA1707 // Identifiers should not contain underscores
     #region Activity
-    public enum ActivityType
-    {
-        None,
-        Activity,
-        Explorer,
-        ExploreActivity,
-        TimeTable,
-    }
-
     public enum EventType
     {
         AllStops = 0,

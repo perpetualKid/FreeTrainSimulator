@@ -1732,6 +1732,20 @@ namespace FreeTrainSimulator.Common
     }
     #endregion
 
+    #region MSTS
+
+    #region Actities
+    public enum ActivityType
+    {
+        None,
+        Activity,
+        Explorer,
+        ExploreActivity,
+        TimeTable,
+    }
+    #endregion
+
+    #endregion
     // Freight Animation visibility flag
     public enum VisibleFrom
     {

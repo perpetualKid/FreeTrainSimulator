@@ -1112,7 +1112,7 @@ namespace Orts.Simulation.Timetables
                 if (binaryPaths && File.Exists(formedpathFilefullBinary))
                 {
                     var binaryLastWriteTime = File.GetLastWriteTime(formedpathFilefullBinary);
-                    if (binaryLastWriteTime < File.GetLastWriteTime(simulator.RouteFolder.TrackDatabaseFile(simulator.Route.FileName)) ||
+                    if (binaryLastWriteTime < File.GetLastWriteTime(simulator.RouteFolder.TrackDatabaseFile(simulator.RouteModel.RouteKey)) ||
                         File.Exists(formedpathFilefull) && binaryLastWriteTime < File.GetLastWriteTime(formedpathFilefull))
                     {
                         File.Delete(formedpathFilefullBinary);

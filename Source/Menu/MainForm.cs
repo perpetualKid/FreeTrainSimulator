@@ -838,16 +838,8 @@ namespace Orts.Menu
 
         private void ShowRouteList()
         {
-            try
-            {
-                comboBoxRoute.BeginUpdate();
-                comboBoxRoute.Items.Clear();
-                comboBoxRoute.Items.AddRange(routeModels.OrderBy(r => r.Name).ToArray());
-            }
-            finally
-            {
-                comboBoxRoute.EndUpdate();
-            }
+            comboBoxRoute.Items.Clear();
+            comboBoxRoute.Items.AddRange(routeModels.OrderBy(r => r.Name).ToArray());
             UpdateFromMenuSelection<RouteModelCore>(comboBoxRoute, MenuSelectionIndex.Route, r => r.Name);
             if (settings.Menu_Selection.Length > (int)MenuSelectionIndex.Activity)
             {

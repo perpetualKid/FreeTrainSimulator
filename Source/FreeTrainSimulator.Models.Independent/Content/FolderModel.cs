@@ -10,15 +10,15 @@ namespace FreeTrainSimulator.Models.Independent.Content
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public partial record FolderModel : ModelBase<FolderModel>
     {
-        public string ContentPath { get; init; }
-
-        [MemoryPackIgnore]
-        public FrozenSet<RouteModelCore> Routes { get; private set; }
-
         static partial void StaticConstructor()
         {
             fileExtension = ".contentfolder";
         }
+
+        public string ContentPath { get; init; }
+
+        [MemoryPackIgnore]
+        public FrozenSet<RouteModelCore> Routes { get; private set; }
 
         [MemoryPackConstructor]
         private FolderModel() : base()

@@ -347,7 +347,7 @@ namespace Orts.Simulation.Multiplayer
 
         public void Connect()
         {
-            MultiPlayerClient.JoinGame(GetUserName(), Simulator.Instance.Route.Name, Code);
+            MultiPlayerClient.JoinGame(GetUserName(), Simulator.Instance.RouteModel.Name, Code);
         }
 
         public void AddPlayer()

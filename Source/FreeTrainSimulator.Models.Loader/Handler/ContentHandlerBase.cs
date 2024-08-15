@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 
@@ -13,7 +14,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal abstract class ContentHandlerBase<TActual, TBase> where TBase : ModelBase<TBase> where TActual : TBase
     {
-        public const string SaveStateExtension = ".save";
+        public const string SaveStateExtension = FileNameExtensions.SaveFile;
 
         public static async ValueTask<TActual> FromFile<TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
         {
