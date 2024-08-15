@@ -15,7 +15,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
     {
         public const string SaveStateExtension = ".save";
 
-#pragma warning disable CA1000 // Do not declare static members on generic types
         public static async ValueTask<TActual> FromFile<TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
         {
             string targetFileName = name;
@@ -85,6 +84,5 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 }
             }
         }
-#pragma warning restore CA1000 // Do not declare static members on generic types
     }
 }

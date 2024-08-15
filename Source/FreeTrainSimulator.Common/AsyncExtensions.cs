@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeTrainSimulator.Common
@@ -7,14 +8,15 @@ namespace FreeTrainSimulator.Common
     {
         public static async ValueTask<CancellationTokenSource> ResetCancellationTokenSource(this CancellationTokenSource cts, SemaphoreSlim semaphore, bool cancel)
         {
+            ArgumentNullException.ThrowIfNull(semaphore, nameof(semaphore));
             if (null != cts)
             {
                 try
                 {
                     await semaphore.WaitAsync().ConfigureAwait(false);
-                    if (cancel && cts != null && !cts.IsCancellationRequested)
+                    if (cancel && !cts.IsCancellationRequested)
                         await cts.CancelAsync().ConfigureAwait(false);
-                    cts?.Dispose();
+                    cts.Dispose();
                 }
                 finally
                 {
