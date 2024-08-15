@@ -1745,6 +1745,18 @@ namespace FreeTrainSimulator.Common
     }
     #endregion
 
+    #region route model
+    public enum DefaultSoundType
+    {
+        Signal,
+        Crossing,
+        WaterTower,
+        CoalTower,
+        DieselTower,
+        Turntable,
+    }
+    #endregion
+
     #endregion
     // Freight Animation visibility flag
     public enum VisibleFrom

@@ -11933,7 +11933,7 @@ namespace Orts.Simulation.Physics
                     }
                     this["Delay"] = train.Delay?.TotalSeconds > 10 ? $"{FormatStrings.FormatDelayTime(train.Delay.Value)}" : null;
                     //  "Travelled"
-                    this["Travelled"] = FormatStrings.FormatDistanceDisplay(train.DistanceTravelledM, Simulator.Instance.Route.MilepostUnitsMetric);
+                    this["Travelled"] = FormatStrings.FormatDistanceDisplay(train.DistanceTravelledM, Simulator.Instance.RouteModel.MetricUnits);
                     //  "Speed"
                     float trainSpeed = train.TrainType == TrainType.Remote && train.SpeedMpS != 0 ? train.targetSpeedMpS : train.SpeedMpS;
                     this["Speed"] = FormatStrings.FormatSpeedDisplay(trainSpeed, metricData);

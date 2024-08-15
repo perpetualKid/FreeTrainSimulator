@@ -8,6 +8,7 @@ using FreeTrainSimulator.Models.Independent.Content;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
@@ -30,16 +31,22 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             {
                 string trkFilePath = routeFolder.TrackFileName;
                 RouteFile routeFile = new RouteFile(trkFilePath);
+                Route route = routeFile.Route;
 
-                RouteModel routeModel = new RouteModel(routeFile.Route.RouteStart.Location)
+                RouteModel routeModel = new RouteModel(route.RouteStart.Location)
                 {
-                    Name = routeFile.Route.Name,
-                    Description = routeFile.Route.Description,
-                    MetricUnits = routeFile.Route.MilepostUnitsMetric,
-                    RouteId = routeFile.Route.RouteID,
+                    Name = route.Name,
+                    Description = route.Description,
+                    MetricUnits = route.MilepostUnitsMetric,
+                    RouteId = route.RouteID,
                     Tag = routeFolder.RouteName,    //store the route folder name
-                    EnvironmentConditions = new EnumArray2D<string, SeasonType, WeatherType>(routeFile.Route.Environment.GetEnvironmentFileName),
-                    RouteKey = routeFile.Route.FileName,
+                    EnvironmentConditions = new EnumArray2D<string, SeasonType, WeatherType>(route.Environment.GetEnvironmentFileName),
+                    RouteKey = route.FileName,
+                    RouteSounds = new EnumArray<string, DefaultSoundType>(new string[]
+                    {
+                        /// elements need to be in same order as listed in <see cref="DefaultSoundType"/>
+                        route.DefaultSignalSMS, route.DefaultCrossingSMS, route.DefaultWaterTowerSMS, route.DefaultCoalTowerSMS, route.DefaultDieselTowerSMS, route.DefaultTurntableSMS, 
+                    }),
                 };
                 await Create(routeModel, contentFolder, true, true, cancellationToken).ConfigureAwait(false);
                 return routeModel;

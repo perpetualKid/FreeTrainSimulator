@@ -456,12 +456,12 @@ namespace Orts.Simulation.Multiplayer
             }
             if (string.IsNullOrEmpty(metric))
             {
-                metric = Simulator.Instance.Route.MilepostUnitsMetric ? " m" : " yd";
+                metric = Simulator.Instance.RouteModel.MetricUnits ? " m" : " yd";
             }
 
             foreach (KeyValuePair<double, string> pair in users.Take(10))
             {
-                info.Append(CultureInfo.InvariantCulture, $"\train{pair.Value}: distance of {(int)(Simulator.Instance.Route.MilepostUnitsMetric ? pair.Key : Size.Length.ToYd(pair.Key)) + metric}");
+                info.Append(CultureInfo.InvariantCulture, $"\train{pair.Value}: distance of {(int)(Simulator.Instance.RouteModel.MetricUnits ? pair.Key : Size.Length.ToYd(pair.Key)) + metric}");
             }
             if (OnlineTrains.Players.Count > 10)
             {

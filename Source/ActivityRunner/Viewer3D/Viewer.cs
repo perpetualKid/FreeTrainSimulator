@@ -303,7 +303,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             Tiles = new TileManager(Simulator.RouteFolder.TilesFolder, false);
             LoTiles = new TileManager(Simulator.RouteFolder.TilesFolderLow, true);
-            MilepostUnitsMetric = Simulator.Route.MilepostUnitsMetric;
+            MilepostUnitsMetric = Simulator.RouteModel.MetricUnits;
 
             Simulator.AllowedSpeedRaised += (object sender, EventArgs e) =>
             {

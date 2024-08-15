@@ -9,7 +9,9 @@ namespace FreeTrainSimulator.Models.Independent.Content
     public sealed partial record RouteModel : RouteModelCore
     {
         public EnumArray2D<string, SeasonType, WeatherType> EnvironmentConditions { get; init; }
-        public string RouteKey { get; init;}
+        public string RouteKey { get; init; }
+
+        public EnumArray<string, DefaultSoundType> RouteSounds { get; init; }
 
         public RouteModel(in WorldLocation routeStart) : base(routeStart)
         {

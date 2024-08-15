@@ -651,8 +651,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     soundFileName = levelCrossingObject.SoundFileName;
                 else if (!string.IsNullOrEmpty(SharedShape.SoundFileName))
                     soundFileName = SharedShape.SoundFileName;
-                else if (!string.IsNullOrEmpty(viewer.Simulator.Route.DefaultCrossingSMS))
-                    soundFileName = viewer.Simulator.Route.DefaultCrossingSMS;
+                else if (!string.IsNullOrEmpty(viewer.Simulator.RouteModel.RouteSounds[DefaultSoundType.Crossing]))
+                    soundFileName = viewer.Simulator.RouteModel.RouteSounds[DefaultSoundType.Crossing];
                 if (!string.IsNullOrEmpty(soundFileName))
                 {
                     string soundPath = viewer.Simulator.RouteFolder.SoundFile(soundFileName);
@@ -875,15 +875,15 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         protected virtual void Initialize()
         {
             string soundPath;
-            if (Simulator.Instance.Route.DefaultDieselTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelDiesel) // Testing for Diesel PickupType
+            if (Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.DieselTower] != null && fuelPickupItemObject.PickupType == PickupType.FuelDiesel) // Testing for Diesel PickupType
             {
-                soundPath = Simulator.Instance.RouteFolder.SoundFile(Simulator.Instance.Route.DefaultDieselTowerSMS);
+                soundPath = Simulator.Instance.RouteFolder.SoundFile(Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.DieselTower]);
                 if (File.Exists(soundPath))
                 {
                     soundSource = new SoundSource(WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                     viewer.SoundProcess.AddSoundSource(this, soundSource);
                 }
-                else if (File.Exists(soundPath = Simulator.Instance.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.Route.DefaultDieselTowerSMS)))
+                else if (File.Exists(soundPath = Simulator.Instance.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.RouteModel.RouteSounds[DefaultSoundType.DieselTower])))
                 {
                     soundSource = new SoundSource(WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                     viewer.SoundProcess.AddSoundSource(this, soundSource);
@@ -893,15 +893,15 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     Trace.WriteLine($"Diesel pickup soundfile {soundPath} not found");
                 }
             }
-            if (Simulator.Instance.Route.DefaultWaterTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelWater) // Testing for Water PickupType
+            if (Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.WaterTower] != null && fuelPickupItemObject.PickupType == PickupType.FuelWater) // Testing for Water PickupType
             {
-                soundPath = Simulator.Instance.RouteFolder.SoundFile(viewer.Simulator.Route.DefaultWaterTowerSMS);
+                soundPath = Simulator.Instance.RouteFolder.SoundFile(viewer.Simulator.RouteModel.RouteSounds[DefaultSoundType.WaterTower]);
                 if (File.Exists(soundPath))
                 {
                     soundSource = new SoundSource(WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                     viewer.SoundProcess.AddSoundSource(this, soundSource);
                 }
-                else if (File.Exists(soundPath = Simulator.Instance.RouteFolder.ContentFolder.SoundFile(Simulator.Instance.Route.DefaultWaterTowerSMS)))
+                else if (File.Exists(soundPath = Simulator.Instance.RouteFolder.ContentFolder.SoundFile(Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.WaterTower])))
                 {
                     soundSource = new SoundSource(WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                     viewer.SoundProcess.AddSoundSource(this, soundSource);
@@ -913,14 +913,15 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
             if (fuelPickupItemObject.PickupType == PickupType.FuelCoal || fuelPickupItemObject.PickupType == PickupType.FreightCoal)
             {
-                if (Simulator.Instance.Route.DefaultCoalTowerSMS != null && File.Exists(soundPath = Simulator.Instance.RouteFolder.SoundFile(Simulator.Instance.Route.DefaultCoalTowerSMS)))
+                if (Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.CoalTower] != null && 
+                    File.Exists(soundPath = Simulator.Instance.RouteFolder.SoundFile(Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.CoalTower])))
                 {
                     if (File.Exists(soundPath))
                     {
                         soundSource = new SoundSource(WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                         viewer.SoundProcess.AddSoundSource(this, soundSource);
                     }
-                    else if (File.Exists(soundPath = Simulator.Instance.RouteFolder.ContentFolder.SoundFile(Simulator.Instance.Route.DefaultCoalTowerSMS)))
+                    else if (File.Exists(soundPath = Simulator.Instance.RouteFolder.ContentFolder.SoundFile(Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.CoalTower])))
                     {
                         soundSource = new SoundSource(WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                         viewer.SoundProcess.AddSoundSource(this, soundSource);

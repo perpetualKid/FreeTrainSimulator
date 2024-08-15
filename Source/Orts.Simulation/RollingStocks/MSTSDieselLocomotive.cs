@@ -1007,7 +1007,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 data = -Math.Abs(DynamicBrakeForceN);
             }
-            if (simulator.Route.MilepostUnitsMetric)  // return an Ampere value
+            if (simulator.RouteModel.MetricUnits)  // return an Ampere value
             {
                 if (ThrottlePercent >= 0 && DynamicBrakePercent == -1)
                 {
@@ -1075,7 +1075,7 @@ namespace Orts.Simulation.RollingStocks
                 data = -Math.Abs(DynamicBrakeForceN);
             }
             if (loadUnits == CabViewControlUnit.None)
-                loadUnits = simulator.Route.MilepostUnitsMetric ? CabViewControlUnit.Amps : CabViewControlUnit.Kilo_Lbs;
+                loadUnits = simulator.RouteModel.MetricUnits ? CabViewControlUnit.Amps : CabViewControlUnit.Kilo_Lbs;
             switch (loadUnits)
             {
                 case CabViewControlUnit.Amps:
@@ -1478,7 +1478,7 @@ namespace Orts.Simulation.RollingStocks
                     this["Motive Force"] = $"{FormatStrings.FormatForce(locomotive.MotiveForceN, simulator.MetricUnits)}";
                     FormattingOptions["Motive Force"] = locomotive.CouplerOverloaded ? FormatOption.RegularYellow : null;
                     double effort = locomotive.DistributedPowerForceInfo();
-                    this["Tractive Effort"] = $"{effort:F0} {(Simulator.Instance.Route.MilepostUnitsMetric ? "A" : "K")}";
+                    this["Tractive Effort"] = $"{effort:F0} {(Simulator.Instance.RouteModel.MetricUnits ? "A" : "K")}";
                     FormattingOptions["Tractive Effort"] = effort < 0 ? FormatOption.RegularYellow : null;
 
                     DieselEngine engine = locomotive.DieselEngines[0];

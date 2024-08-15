@@ -651,7 +651,7 @@ namespace Orts.Simulation.RollingStocks
                     foreach (BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
                     {
                         if (BrakeSystemPressureUnits[component] == Pressure.Unit.None)
-                            BrakeSystemPressureUnits[component] = (simulator.Route.MilepostUnitsMetric ? Pressure.Unit.Bar : Pressure.Unit.PSI);
+                            BrakeSystemPressureUnits[component] = (simulator.RouteModel.MetricUnits ? Pressure.Unit.Bar : Pressure.Unit.PSI);
                     }
                     break;
 
@@ -2950,7 +2950,7 @@ namespace Orts.Simulation.RollingStocks
                     if (!WaterScoopSlowSpeedFlag)
                     {
                         simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Loco speed must exceed {0} for water to enter tender.",
-                                FormatStrings.FormatSpeedLimit(WaterScoopMinSpeedMpS, simulator.Route.MilepostUnitsMetric)));
+                                FormatStrings.FormatSpeedLimit(WaterScoopMinSpeedMpS, simulator.RouteModel.MetricUnits)));
                         WaterScoopSlowSpeedFlag = true;
                         RefillProcess.OkToRefill = false;
                         RefillProcess.ActivePickupObjectUID = 0;

@@ -119,13 +119,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 if (controls.Where((x) => x.Tag == train).FirstOrDefault() is ControlLayout line)
                 {
                     scrollboxPlayers.Client.Add(line);
-                    (line.Controls[1] as Label).Text = $"{FormatStrings.FormatDistanceDisplay((int)distance, Simulator.Instance.Route.MilepostUnitsMetric)}";
+                    (line.Controls[1] as Label).Text = $"{FormatStrings.FormatDistanceDisplay((int)distance, Simulator.Instance.RouteModel.MetricUnits)}";
                 }
                 else
                 {
                     line = scrollboxPlayers.Client.AddLayoutHorizontalLineOfText();
                     line.Add(new Label(this, columnWidth * 2, line.RemainingHeight, name));
-                    line.Add(new Label(this, columnWidth * 2, line.RemainingHeight, $"{FormatStrings.FormatDistanceDisplay((int)distance, Simulator.Instance.Route.MilepostUnitsMetric)}"));
+                    line.Add(new Label(this, columnWidth * 2, line.RemainingHeight, $"{FormatStrings.FormatDistanceDisplay((int)distance, Simulator.Instance.RouteModel.MetricUnits)}"));
                     line.Tag = train;
                 }
             }

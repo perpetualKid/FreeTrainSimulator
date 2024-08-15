@@ -60,7 +60,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             line.Add(new Label(this, (int)(columnWidth * 2), Owner.TextFontSmall.Height, Catalog.GetString("Limit"), Owner.TextFontSmall));
             line.Add(new Label(this, 0, 0, (int)(columnWidth * 2.5), Owner.TextFontSmall.Height, Catalog.GetString("Distance"), HorizontalAlignment.Right, Owner.TextFontSmall, Color.White));
             layout.AddHorizontalSeparator();
-            layout.Add(trackMonitor = new TrackMonitorControl(this, layout.RemainingWidth, layout.RemainingHeight, Simulator.Instance.Route.MilepostUnitsMetric));
+            layout.Add(trackMonitor = new TrackMonitorControl(this, layout.RemainingWidth, layout.RemainingHeight, Simulator.Instance.RouteModel.MetricUnits));
             return layout;
         }
 

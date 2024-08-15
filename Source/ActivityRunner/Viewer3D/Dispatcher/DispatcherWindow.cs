@@ -212,7 +212,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             Simulator simulator = Simulator.Instance;
             base.LoadContent();
             bool useMetricUnits = settings.MeasurementUnit == MeasurementUnit.Metric || (settings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||
-                (settings.MeasurementUnit == MeasurementUnit.Route && simulator.Route.MilepostUnitsMetric);
+                (settings.MeasurementUnit == MeasurementUnit.Route && simulator.RouteModel.MetricUnits);
 
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Scaled(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
