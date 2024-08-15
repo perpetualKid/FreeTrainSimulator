@@ -268,7 +268,11 @@ namespace Orts.Simulation
             Trace.Write(" TRK");
             Route = new RouteFile(RouteFolder.TrackFileName).Route;
 
-            InitializeAsync(Route.Name, RouteFolder.ContentFolder.Folder, CancellationToken.None).Wait();
+            Task<RouteModel> loadRouteModelTask = RouteFolder.ToRouteModel(CancellationToken.None).AsTask();
+            if (!loadRouteModelTask.IsCompleted)
+                loadRouteModelTask.Wait();
+            RouteModel = loadRouteModelTask.Result;
+
             Debug.Assert(RouteModel != null);
 
             OpenDoorsInAITrains = Route.OpenDoorsInAITrains.GetValueOrDefault(Settings.OpenDoorsInAITrains);
@@ -328,14 +332,6 @@ namespace Orts.Simulation
             ScriptManager = new ScriptManager();
             ContainerManager = new ContainerManager(this);
             Log = new CommandLog(this);
-        }
-
-        private async Task InitializeAsync(string routeName, string contentFolderPath, CancellationToken cancellationToken)
-        {
-            ProfileModel contentProfile = null;
-            contentProfile = await contentProfile.Get(cancellationToken).ConfigureAwait(false);
-            FolderModel folder = contentProfile.ContentFolders.Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault();
-            RouteModel = await folder.RouteModel(routeName, cancellationToken).ConfigureAwait(false);
         }
 
         public void SetActivity(string activityPath)

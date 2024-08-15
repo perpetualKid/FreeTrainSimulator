@@ -446,7 +446,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         // FirstOrDefault() checks for "animations( 0 )" as this is a valid entry in *.s files
                         // and is included by MSTSexporter for Blender 2.8+ Release V4.0 or older
                         IEnumerable<AnimationNode> animNodes = preTestShape.SharedShape.Animations?.FirstOrDefault()?.AnimationNodes ?? Enumerable.Empty<AnimationNode>();
-                        bool isAnimatedClock = animNodes.Any(node => Regex.IsMatch(node.Name, @"^orts_[hmsc]hand_clock", RegexOptions.IgnoreCase));
+                        bool isAnimatedClock = animNodes.Any(node => !string.IsNullOrEmpty(node.Name) && Regex.IsMatch(node.Name, @"^orts_[hmsc]hand_clock", RegexOptions.IgnoreCase));
 
                         if (isAnimatedClock)
                         {

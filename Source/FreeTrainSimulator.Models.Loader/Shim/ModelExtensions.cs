@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -49,7 +52,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<FolderModel> Load(this FolderModel folderModel, CancellationToken cancellationToken)
         {
-            return folderModel != null ? await ContentFolderHandler.Load(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
+            return folderModel != null && folderModel.SetupRequired() ? await ContentFolderHandler.Load(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
         }
 
         public static async ValueTask<FolderModel> Convert(this FolderModel folderModel, CancellationToken cancellationToken)
@@ -70,5 +73,40 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         {
             return routeModel is RouteModel routeModelExtended ? routeModelExtended : await ContentRouteHandler.Get(routeModel, cancellationToken).ConfigureAwait(false);
         }
+
+        public static async ValueTask<RouteModel> Convert(this RouteModel routeModel, CancellationToken cancellationToken)
+        {
+            return routeModel != null ? await ContentRouteHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false) : routeModel;
+        }
+
+        public static async ValueTask<RouteModel> ToRouteModel(this FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken cancellationToken)
+        {
+            string contentFolderPath = routeFolder.ContentFolder.Folder;
+
+            ProfileModel contentProfile = null;
+            contentProfile = await (null as ProfileModel).Get(cancellationToken).ConfigureAwait(false);
+            FolderModel folder = await contentProfile.ContentFolders.
+                Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault().
+                Load(cancellationToken).ConfigureAwait(false);
+
+            Debug.Assert(folder?.Routes != null);
+
+            RouteModelCore routeModelCore = folder.Routes.Where(r => r.MstsRouteFolder() == routeFolder).FirstOrDefault() ?? 
+                throw new FileNotFoundException($"Route not found. Abnormal termination");
+
+            if (routeModelCore is RouteModel fullRouteModel && !fullRouteModel.SetupRequired())
+            {
+                return fullRouteModel;                
+            }
+
+            RouteModel routeModel = await routeModelCore.Extend(cancellationToken).ConfigureAwait(false);
+            if (routeModel.SetupRequired())
+                routeModel = await routeModel.Convert(cancellationToken).ConfigureAwait(false);
+
+            folder.SetRoutes(folder.Routes.Where((r) => r != routeModelCore).Append(routeModel));
+
+            return routeModel;
+        }
+
     }
 }

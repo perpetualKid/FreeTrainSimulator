@@ -45,7 +45,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 return routeModel;
             }
             return null;
-
         }
     }
 }

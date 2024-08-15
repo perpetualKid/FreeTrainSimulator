@@ -638,14 +638,14 @@ namespace Orts.ActivityRunner.Processes
 
             FolderStructure.ContentFolder.RouteFolder route = FolderStructure.RouteFromActivity(data[0]);
 
-            RouteModel routeModel = await InitializeAsync(route, cancellationToken).ConfigureAwait(false);
+            RouteModel routeModel = await route.ToRouteModel(cancellationToken).ConfigureAwait(false);
 
             switch (activityType)
             {
                 case ActivityType.Activity:
                     if (data.Length == 0)
                         throw new InvalidCommandLineException("Mode 'activity' needs 1 argument: activity file.");
-                    Trace.WriteLine($"{"Route",-12}= {GetRouteName(data[0])}");
+                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
                     Trace.WriteLine($"{"Activity",-12}= {GetActivityName(data[0])} ({data[0]})");
                     break;
 
@@ -653,7 +653,7 @@ namespace Orts.ActivityRunner.Processes
                 case ActivityType.ExploreActivity:
                     if (data.Length < 5)
                         throw new InvalidCommandLineException("Mode 'explorer' needs 5 arguments: path file, consist file, time (hh[:mm[:ss]]), season (Spring, Summer, Autumn, Winter), weather (Clear, Rain, Snow).");
-                    Trace.WriteLine($"{"Route",-12}= {GetRouteName(data[0])}");
+                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
                     Trace.WriteLine($"{"Path",-12}= {GetPathName(data[0])} ({data[0]})");
                     Trace.WriteLine($"{"Consist",-12}= {GetConsistName(data[1])} ({data[1]})");
                     Trace.WriteLine($"{"Time",-12}= {(TimeSpan.TryParse(data[2], out startTime) ? startTime.ToString() : "Unknown")} ({data[2]})");
@@ -724,36 +724,6 @@ namespace Orts.ActivityRunner.Processes
             {
                 MultiPlayerManager.Start(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User, "1234");
             }
-        }
-
-        private static async ValueTask<RouteModel> InitializeAsync(FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken cancellationToken)
-        {
-            string contentFolderPath = routeFolder.ContentFolder.Folder;
-
-            ProfileModel contentProfile = null;
-            contentProfile = await contentProfile.Get(cancellationToken).ConfigureAwait(false);
-            FolderModel folder = await contentProfile.ContentFolders.
-                Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault().
-                Load(cancellationToken).ConfigureAwait(false);
-
-            Debug.Assert(folder?.Routes != null);
-
-            RouteModelCore routeModel = folder.Routes.Where(r => r.MstsRouteFolder() == routeFolder).FirstOrDefault();
-            if (routeModel == null)
-            {
-                throw new FileNotFoundException($"Route not found. Abnormal termination");
-            }
-            return await routeModel.Extend(cancellationToken).ConfigureAwait(false);
-        }
-
-        private static string GetRouteName(string path)
-        {
-            try
-            {
-                return new RouteFile(FolderStructure.RouteFromActivity(path).TrackFileName).Route.Name;
-            }
-            catch (Formats.Msts.Parsers.STFException) { }
-            return null;
         }
 
         private static string GetActivityName(string path)
