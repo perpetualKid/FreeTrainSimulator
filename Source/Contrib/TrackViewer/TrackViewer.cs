@@ -29,7 +29,7 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Loader;
+using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Loader.Handler;
 using FreeTrainSimulator.Models.Simplified;
 
@@ -48,6 +48,7 @@ using ORTS.TrackViewer.UserInterface;
 
 using Color = Microsoft.Xna.Framework.Color;
 using MessageBox = System.Windows.Forms.MessageBox;
+using System.Collections.Frozen;
 
 namespace ORTS.TrackViewer
 {
@@ -73,13 +74,13 @@ namespace ORTS.TrackViewer
         /// <summary>Folder where MSTS is installed (or at least, where the files needed for tracks, routes and paths are stored)</summary>
         public FolderModel InstallFolder { get; private set; }
         /// <summary>List of available routes (in the install directory)</summary>
-        public Collection<RouteModel> Routes { get; private set; } // Collection because of FxCop
+        public Collection<RouteModelCore> Routes { get; private set; } // Collection because of FxCop
         /// <summary>List of available paths in the current route</summary>
         public Collection<Path> Paths { get; private set; } // Collection because of FxCop
         /// <summary>Route, ie with a path c:\program files\microsoft games\train simulator\routes\usa1  - may be different on different pc's</summary>
-        public RouteModel CurrentRoute { get; private set; }
+        public RouteModelCore CurrentRoute { get; private set; }
         /// <summary>Route that was used last time</summary>
-        private RouteModel DefaultRoute;
+        private RouteModelCore DefaultRoute;
         /// <summary>Width of the drawing screen in pixels</summary>
         public int ScreenW { get; private set; }
         /// <summary>Height of the drawing screen in pixels</summary>
@@ -835,7 +836,7 @@ namespace ORTS.TrackViewer
                 return;
             }
 
-            foreach (RouteModel route in Routes)
+            foreach (RouteModelCore route in Routes)
             {
                 //MessageBox.Show(route.Path);
 
@@ -928,10 +929,14 @@ namespace ORTS.TrackViewer
             if (newInstallFolder == null)
                 return false;
 
-            Task<System.Collections.Frozen.FrozenSet<RouteModel>> routeTask = ContentRouteHandler.GetRoutes(newInstallFolder, CancellationToken.None).AsTask();
-            if (!routeTask.IsCompleted)
-                routeTask.Wait();
-            Routes = new Collection<RouteModel>(routeTask.Result.ToList());
+            if (newInstallFolder.SetupRequired())
+            {
+                Task<FolderModel> folderLoadTask = newInstallFolder.Convert(CancellationToken.None).AsTask();
+                if (!folderLoadTask.IsCompleted)
+                    folderLoadTask.Wait();
+            }
+            Routes = new Collection<RouteModelCore>((newInstallFolder.Routes ?? FrozenSet<RouteModelCore>.Empty).ToList());
+
             // set default route
             DefaultRoute = Routes.Where(r => r.Name == Properties.Settings.Default.defaultRoute).FirstOrDefault() ?? Routes.FirstOrDefault();
                 menuControl.PopulateRoutes();
@@ -950,7 +955,7 @@ namespace ORTS.TrackViewer
         /// Set and load a new route
         /// </summary>
         /// <param name="newRoute">The route to load, containing amongst other the directory name of the route</param>
-        public void SetRoute(RouteModel newRoute)
+        public void SetRoute(RouteModelCore newRoute)
         {
             if (newRoute == null)
                 return;

@@ -19,10 +19,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Loader;
+using FreeTrainSimulator.Models.Loader.Shim;
 
 using Microsoft.Xna.Framework;
 
@@ -47,7 +48,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="routePath">Path to the route directory</param>
         /// <param name="messageDelegate">The delegate that will deal with the message we want to send to the user</param>
-        public static void Load(RouteModel routeModel, MessageDelegate messageDelegate)
+        public static void Load(RouteModelCore routeModel, MessageDelegate messageDelegate)
         {
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
             storedRoutePath = routeFolder.CurrentFolder;
@@ -95,7 +96,11 @@ namespace ORTS.TrackViewer.Drawing
                 //sigcfgFile = null; // default initialization
             }
 
-            Initialize(routeModel, tsectionDat, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
+            var extendRouteTask = routeModel.Extend(CancellationToken.None).AsTask();
+            if (!extendRouteTask.IsCompleted)
+                extendRouteTask.Wait();
+            RouteModel routeModelExtended = extendRouteTask.Result;
+            Initialize(routeModelExtended, tsectionDat, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
         }
 
         /// <summary>

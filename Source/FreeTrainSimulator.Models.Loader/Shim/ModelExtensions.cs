@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,6 +39,14 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return resolver.MstsContentFolder;
         }
 
+        public static async ValueTask<RouteModel> RouteModel(this FolderModel folderModel, string routeName, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
+            ArgumentException.ThrowIfNullOrEmpty(routeName, nameof(routeName));
+
+            return await ContentRouteHandler.Get(routeName, folderModel, cancellationToken).ConfigureAwait(true);
+        }
+
         public static async ValueTask<FolderModel> Convert(this FolderModel folderModel, CancellationToken cancellationToken)
         {
             return folderModel != null ? await ContentFolderHandler.Convert(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
@@ -46,9 +55,15 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
     public static class RouteModelExtensions
     {
+        public static FolderStructure.ContentFolder.RouteFolder MstsRouteFolder(this RouteModelCore routeModel)
+        {
+            ContentRouteResolver resolver = FileResolver.ContentRouteResolver(routeModel);
+            return resolver.MstsRouteFolder;
+        }
+
         public static async ValueTask<RouteModel> Extend(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return await ContentRouteHandler.Get(routeModel, cancellationToken).ConfigureAwait(true);
+            return await ContentRouteHandler.Get(routeModel, cancellationToken).ConfigureAwait(false);
         }
     }
 }

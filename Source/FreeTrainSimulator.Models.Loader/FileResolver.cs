@@ -41,15 +41,6 @@ namespace FreeTrainSimulator.Models.Loader
             }
             return resolver;
         }
-
-        #region model extension for Msts Folder Structure
-
-        public static FolderStructure.ContentFolder.RouteFolder MstsRouteFolder(this RouteModelCore routeModel)
-        {
-            ContentRouteResolver resolver = ContentRouteResolver(routeModel);
-            return resolver.MstsRouteFolder;
-        }
-        #endregion
     }
 
     public sealed class ContentFolderResolver

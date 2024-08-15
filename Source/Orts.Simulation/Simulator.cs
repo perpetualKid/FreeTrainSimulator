@@ -339,7 +339,7 @@ namespace Orts.Simulation
             ProfileModel contentProfile = null;
             contentProfile = await contentProfile.Get(cancellationToken).ConfigureAwait(false);
             FolderModel folder = contentProfile.ContentFolders.Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault();
-            RouteModel = await ContentRouteHandler.Get(routeName, folder, cancellationToken).ConfigureAwait(false);
+            RouteModel = await folder.RouteModel(routeName, cancellationToken).ConfigureAwait(false);
         }
 
         public void SetActivity(string activityPath)

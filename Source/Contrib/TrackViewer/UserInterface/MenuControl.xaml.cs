@@ -32,7 +32,7 @@ using System.Windows.Forms.Integration;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Loader;
+using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 
 using ORTS.TrackViewer.Drawing; // for colors
@@ -353,7 +353,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             menuSelectRoute.Items.Clear();
             if (trackViewer.Routes == null) return;
-            foreach (RouteModel route in trackViewer.Routes.OrderBy(r => r.Name))
+            foreach (RouteModelCore route in trackViewer.Routes.OrderBy(r => r.Name))
             {
                 MenuItem menuItem = new MenuItem
                 {
@@ -374,7 +374,7 @@ namespace ORTS.TrackViewer.UserInterface
         private void MenuSelectRoute_Click(object sender, RoutedEventArgs e)
         {
             MenuItem selectedMenuItem = sender as MenuItem;
-            foreach (RouteModel route in trackViewer.Routes)
+            foreach (RouteModelCore route in trackViewer.Routes)
             {
                 if (route.Name == (string)selectedMenuItem.Header)
                 {

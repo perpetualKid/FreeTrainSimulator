@@ -11,7 +11,7 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    public abstract class ContentHandlerBase<TActual, TBase> where TBase : ModelBase<TBase> where TActual : TBase
+    internal abstract class ContentHandlerBase<TActual, TBase> where TBase : ModelBase<TBase> where TActual : TBase
     {
         public const string SaveStateExtension = ".save";
 

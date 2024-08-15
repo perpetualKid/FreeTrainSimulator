@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return contentFolder;
         }
 
-        public static ValueTask<FolderModel> Get(string folderName, ProfileModel parent, CancellationToken cancellationToken)
+        public static ValueTask<FolderModel> Get(string folderName, ProfileModel parent, CancellationToken _)
         {
             ArgumentNullException.ThrowIfNull(parent, nameof(parent));
 
