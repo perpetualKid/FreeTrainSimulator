@@ -31,7 +31,6 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Loader.Handler;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.State;
 
@@ -145,7 +144,6 @@ namespace Orts.Simulation
         // These items represent the current state of the simulator 
         // In multiplayer games, these items must be kept in sync across all players
         // These items are what are saved and loaded in a game save.
-        public string RouteName { get; private set; }
         public string ActivityFileName { get; set; }
         public string TimetableFileName { get; set; }
         public bool TimetableMode { get; private set; }
@@ -270,9 +268,7 @@ namespace Orts.Simulation
             Trace.Write(" TRK");
             Route = new RouteFile(RouteFolder.TrackFileName).Route;
 
-            RouteName = Route.Name;
-
-            InitializeAsync(RouteName, RouteFolder.ContentFolder.Folder, CancellationToken.None).Wait();
+            InitializeAsync(Route.Name, RouteFolder.ContentFolder.Folder, CancellationToken.None).Wait();
             Debug.Assert(RouteModel != null);
 
             OpenDoorsInAITrains = Route.OpenDoorsInAITrains.GetValueOrDefault(Settings.OpenDoorsInAITrains);
@@ -2013,7 +2009,7 @@ namespace Orts.Simulation
             const int maxLogFiles = 2;
             StringBuilder logfile = new StringBuilder();
 
-            logfile.Append(RouteName);
+            logfile.Append(Route.Name);
 
             logfile.Append(string.IsNullOrEmpty(ActivityFileName) ? "_explorer" : "_" + ActivityFileName);
 

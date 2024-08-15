@@ -36,7 +36,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
         {
             ArgumentNullException.ThrowIfNull(train, nameof(train));
 
-            Route = Simulator.Instance.RouteName;
+            Route = Simulator.Instance.Route.Name;
             ClockTime = Simulator.Instance.ClockTime;
             Season = Simulator.Instance.Season;
             WeatherType = Simulator.Instance.WeatherType;

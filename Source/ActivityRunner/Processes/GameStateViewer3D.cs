@@ -198,7 +198,7 @@ namespace Orts.ActivityRunner.Processes
             return new GameSaveState()
             {
                 GameVersion = VersionInfo.Version,
-                RouteName = simulator.RouteName,
+                RouteName = simulator.Route.Name,
                 PathName = simulator.PathName,
                 GameTime = simulator.GameTime,
                 RealSaveTime = DateTime.UtcNow,

@@ -50,6 +50,11 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="messageDelegate">The delegate that will deal with the message we want to send to the user</param>
         public static void Load(RouteModelCore routeModel, MessageDelegate messageDelegate)
         {
+            System.Threading.Tasks.Task<RouteModel> extendRouteTask = routeModel.Extend(CancellationToken.None).AsTask();
+            if (!extendRouteTask.IsCompleted)
+                extendRouteTask.Wait();
+            RouteModel routeModelExtended = extendRouteTask.Result;
+
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
             storedRoutePath = routeFolder.CurrentFolder;
             TrackSectionsFile tsectionDat;
@@ -61,45 +66,23 @@ namespace ORTS.TrackViewer.Drawing
             RouteFile TRK = new RouteFile(routeFolder.TrackFileName);
 
             messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading track database .tdb ..."));
-            TDB = new TrackDatabaseFile(storedRoutePath + @"\" + TRK.Route.FileName + ".tdb");
+            TDB = new TrackDatabaseFile(routeFolder.TrackDatabaseFile(routeModelExtended.RouteKey));
 
             messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading tsection.dat ..."));
-            string BasePath = Path.GetDirectoryName(Path.GetDirectoryName(storedRoutePath));
-            if (Directory.Exists(storedRoutePath + @"\Openrails") && File.Exists(storedRoutePath + @"\Openrails\TSECTION.DAT"))
-                tsectionDat = new TrackSectionsFile(storedRoutePath + @"\Openrails\TSECTION.DAT");
-            else if (Directory.Exists(storedRoutePath + @"\GLOBAL") && File.Exists(storedRoutePath + @"\GLOBAL\TSECTION.DAT"))
-                tsectionDat = new TrackSectionsFile(storedRoutePath + @"\GLOBAL\TSECTION.DAT");
-            else
-                tsectionDat = new TrackSectionsFile(BasePath + @"\GLOBAL\TSECTION.DAT");
-            if (File.Exists(storedRoutePath + @"\TSECTION.DAT"))
-                tsectionDat.AddRouteTSectionDatFile(storedRoutePath + @"\TSECTION.DAT");
 
-            string roadTrackFileName = storedRoutePath + @"\" + TRK.Route.FileName + ".rdb";
+            tsectionDat = new TrackSectionsFile(routeFolder.TrackSectionFile);
+            if (File.Exists(routeFolder.RouteTrackSectionFile))
+                tsectionDat.AddRouteTSectionDatFile(routeFolder.RouteTrackSectionFile);
+
+            string roadTrackFileName = routeFolder.RoadTrackDatabaseFile(routeModelExtended.RouteKey);
             if (File.Exists(roadTrackFileName))
             {
                 messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading road track database .rdb ..."));
 
                 RDB = new RoadDatabaseFile(roadTrackFileName);
             }
+            sigcfgFile = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile);
 
-            string ORfilepath = Path.Combine(storedRoutePath, "OpenRails");
-            if (File.Exists(ORfilepath + @"\sigcfg.dat"))
-            {
-                sigcfgFile = new SignalConfigurationFile(ORfilepath + @"\sigcfg.dat", true);
-            }
-            else if (File.Exists(storedRoutePath + @"\sigcfg.dat"))
-            {
-                sigcfgFile = new SignalConfigurationFile(storedRoutePath + @"\sigcfg.dat", false);
-            }
-            else
-            {
-                //sigcfgFile = null; // default initialization
-            }
-
-            var extendRouteTask = routeModel.Extend(CancellationToken.None).AsTask();
-            if (!extendRouteTask.IsCompleted)
-                extendRouteTask.Wait();
-            RouteModel routeModelExtended = extendRouteTask.Result;
             Initialize(routeModelExtended, tsectionDat, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
         }
 
