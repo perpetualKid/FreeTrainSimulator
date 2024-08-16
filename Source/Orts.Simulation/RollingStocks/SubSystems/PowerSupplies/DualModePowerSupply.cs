@@ -41,7 +41,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public bool Activated;
         private DualModePowerSupply Script => abstractScript as DualModePowerSupply;
 
-        public float LineVoltageV => (float)Simulator.Route.MaxLineVoltage;
+        public float LineVoltageV => Simulator.RouteModel.RouteConditions.MaxLineVoltage;
         public float PantographVoltageV { get; set; }
         public float FilterVoltageV { get; set; }
 

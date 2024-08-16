@@ -1,4 +1,5 @@
-﻿using FreeTrainSimulator.Common.Position;
+﻿using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Base;
 
 using MemoryPack;
@@ -19,6 +20,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public string Description { get; init; }
         public ref readonly WorldLocation RouteStart => ref routeStart;
         public bool MetricUnits { get; init; }
+        public EnumArray<string, GraphicType> Graphics { get; init; }
 
         [MemoryPackConstructor]
         protected RouteModelCore(in WorldLocation routeStart)

@@ -45,8 +45,27 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     RouteSounds = new EnumArray<string, DefaultSoundType>(new string[]
                     {
                         /// elements need to be in same order as listed in <see cref="DefaultSoundType"/>
-                        route.DefaultSignalSMS, route.DefaultCrossingSMS, route.DefaultWaterTowerSMS, route.DefaultCoalTowerSMS, route.DefaultDieselTowerSMS, route.DefaultTurntableSMS, 
+                        route.DefaultSignalSMS, route.DefaultCrossingSMS, route.DefaultWaterTowerSMS, route.DefaultCoalTowerSMS, route.DefaultDieselTowerSMS, route.DefaultTurntableSMS,
                     }),
+                    Graphics = new EnumArray<string, GraphicType>(new string[]
+                    {
+                        route.Thumbnail, route.LoadingScreen, route.LoadingScreenWide,
+                    }),
+                    RouteConditions = new RouteConditionModel()
+                    {
+                        Electrified = route.Electrified,
+                        MaxLineVoltage = route.MaxLineVoltage,
+                        OverheadWireHeight = route.OverheadWireHeight,
+                        DoubleWireEnabled = string.Equals(route.DoubleWireEnabled, "On", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(route.DoubleWireEnabled, "Enabled", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(route.DoubleWireEnabled, "Yes", StringComparison.OrdinalIgnoreCase) ||
+                            (bool.TryParse(route.DoubleWireEnabled, out bool doubleWireEnabled) && doubleWireEnabled),
+                        DoubleWireHeight = route.DoubleWireHeight,
+                        TriphaseEnabled = string.Equals(route.TriphaseEnabled, "On", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(route.TriphaseEnabled, "Enabled", StringComparison.OrdinalIgnoreCase) ||
+                            (bool.TryParse(route.TriphaseEnabled, out bool triphaseEnabled) && triphaseEnabled),
+                        TriphaseWidth = route.TriphaseWidth,
+                    }
                 };
                 await Create(routeModel, contentFolder, true, true, cancellationToken).ConfigureAwait(false);
                 return routeModel;

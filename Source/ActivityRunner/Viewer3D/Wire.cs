@@ -67,7 +67,8 @@ namespace Orts.ActivityRunner.Viewer3D
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
             try
             {
-                if (RuntimeData.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex].RoadShape == true) return 1;
+                if (RuntimeData.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex].RoadShape == true)
+                    return 1;
             }
             catch (Exception)
             {
@@ -113,8 +114,10 @@ namespace Orts.ActivityRunner.Viewer3D
                         radius = section.Radius; // meters
 
                         Vector3 left;
-                        if (section.Angle > 0) left = radius * Vector3.Cross(Vector3.Down, heading); // Vector from PC to O
-                        else left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
+                        if (section.Angle > 0)
+                            left = radius * Vector3.Cross(Vector3.Down, heading); // Vector from PC to O
+                        else
+                            left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
                         Matrix rot = Matrix.CreateRotationY(-MathHelper.ToRadians(section.Angle)); // Heading change (rotation about O)
 
                         displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot,
@@ -202,8 +205,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     radius = section.Radius; // meters
 
                     Vector3 left;
-                    if (section.Angle > 0) left = radius * Vector3.Cross(Vector3.Down, heading); // Vector from PC to O
-                    else left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
+                    if (section.Angle > 0)
+                        left = radius * Vector3.Cross(Vector3.Down, heading); // Vector from PC to O
+                    else
+                        left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
                     Matrix rot = Matrix.CreateRotationY(-MathHelper.ToRadians(section.Angle)); // Heading change (rotation about O)
 
                     displacement = InterpolateHelper.MSTSInterpolateAlongCurve(localV, left, rot,
@@ -256,8 +261,9 @@ namespace Orts.ActivityRunner.Viewer3D
             // Iterate through all subsections
             for (int iTkSection = 0; iTkSection < trackObj.TrackSections.Count; iTkSection++)
             {
-                if ((trackObj.TrackSections[iTkSection].Length == 0f && trackObj.TrackSections[iTkSection].Angle == 0f) 
-                    || trackObj.TrackSections[iTkSection].SectionIndex == -1) continue; // Consider zero-length subsections vacuous
+                if ((trackObj.TrackSections[iTkSection].Length == 0f && trackObj.TrackSections[iTkSection].Angle == 0f)
+                    || trackObj.TrackSections[iTkSection].SectionIndex == -1)
+                    continue; // Consider zero-length subsections vacuous
 
                 // Create new DT object copy; has only one meaningful subsection
                 DynamicTrackObject subsection = new DynamicTrackObject(trackObj, iTkSection);
@@ -349,7 +355,7 @@ namespace Orts.ActivityRunner.Viewer3D
             VerticalNumSegments += (uint)count - 1;
         }
     }
-    
+
     // Dynamic Wire profile class
     public class WireProfile : TrProfile
     {
@@ -395,15 +401,13 @@ namespace Orts.ActivityRunner.Viewer3D
             lodItem.MipMapLevelOfDetailBias = 0;
             LODItem.LoadMaterial(viewer, lodItem);
 
-            bool drawTriphaseWire = (viewer.Simulator.Route.TriphaseEnabled == "Off" ? false :
-    viewer.Simulator.Route.TriphaseEnabled == "On");
-            bool drawDoubleWire = (viewer.Simulator.Route.DoubleWireEnabled == "Off" ? false :
-                viewer.Simulator.Route.DoubleWireEnabled == "On" || viewer.Settings.DoubleWire);
-            float topHeight = (float)viewer.Simulator.Route.OverheadWireHeight;
-            float topWireOffset = (viewer.Simulator.Route.DoubleWireHeight > 0 ?
-                viewer.Simulator.Route.DoubleWireHeight : 1.0f);
-            float dist = (viewer.Simulator.Route.TriphaseWidth > 0 ?
-                viewer.Simulator.Route.TriphaseWidth : 1.0f);
+            bool drawTriphaseWire = viewer.Simulator.RouteModel.RouteConditions.TriphaseEnabled;
+            bool drawDoubleWire = viewer.Simulator.RouteModel.RouteConditions.DoubleWireEnabled || viewer.Settings.DoubleWire;
+            float topHeight = viewer.Simulator.RouteModel.RouteConditions.OverheadWireHeight;
+            float topWireOffset = (viewer.Simulator.RouteModel.RouteConditions.DoubleWireHeight > 0 ?
+                viewer.Simulator.RouteModel.RouteConditions.DoubleWireHeight : 1.0f);
+            float dist = (viewer.Simulator.RouteModel.RouteConditions.TriphaseWidth > 0 ?
+                viewer.Simulator.RouteModel.RouteConditions.TriphaseWidth : 1.0f);
 
             if (drawTriphaseWire)
             {
@@ -513,14 +517,11 @@ namespace Orts.ActivityRunner.Viewer3D
             // Initialize a scalar DtrackData object
             DTrackData = new DtrackData(radius >= 0, angle, Math.Max(0, radius));
 
-            if (WireProfile == null)
-            {
-                WireProfile = new WireProfile(viewer);
-            }
+            WireProfile ??= new WireProfile(viewer);
             TrProfile = WireProfile;
 
-            topWireOffset = (viewer.Simulator.Route.DoubleWireHeight > 0 ?
-                viewer.Simulator.Route.DoubleWireHeight : 1.0f);
+            topWireOffset = (viewer.Simulator.RouteModel.RouteConditions.DoubleWireHeight > 0 ?
+                viewer.Simulator.RouteModel.RouteConditions.DoubleWireHeight : 1.0f);
 
             XNAEnd = endPosition.XNAMatrix.Translation;
 
@@ -546,10 +547,12 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
 
-            if (!DTrackData.IsCurved) ObjectRadius = 0.5f * DTrackData.Length; // half-length
-            else ObjectRadius = DTrackData.Radius * (float)Math.Sin(0.5 * Math.Abs(DTrackData.Length)); // half chord length
+            if (!DTrackData.IsCurved)
+                ObjectRadius = 0.5f * DTrackData.Length; // half-length
+            else
+                ObjectRadius = DTrackData.Radius * (float)Math.Sin(0.5 * Math.Abs(DTrackData.Length)); // half chord length
         }
-        
+
         /// <summary>
         /// Builds a Wire LOD to WireProfile specifications as one vertex buffer and one index buffer.
         /// The order in which the buffers are built reflects the nesting in the TrProfile.  The nesting order is:
@@ -561,8 +564,10 @@ namespace Orts.ActivityRunner.Viewer3D
         public ShapePrimitive BuildPrimitive(Viewer viewer, int lodIndex, int lodItemIndex)
         {
             // Call for track section to initialize itself
-            if (!DTrackData.IsCurved) LinearGen();
-            else CircArcGen();
+            if (!DTrackData.IsCurved)
+                LinearGen();
+            else
+                CircArcGen();
 
             // Count vertices and indices
             LODWire lod = (LODWire)TrProfile.LODs[lodIndex];
@@ -601,8 +606,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     uint plv = 0; // Polyline vertex index
                     foreach (Vertex v in pl.Vertices)
                     {
-                        if (!DTrackData.IsCurved) LinearGen(stride, pl); // Generation call
-                        else CircArcGen(stride, pl);
+                        if (!DTrackData.IsCurved)
+                            LinearGen(stride, pl); // Generation call
+                        else
+                            CircArcGen(stride, pl);
 
                         if (plv > 0)
                         {
@@ -729,7 +736,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 NumSections = (int)(DTrackData.Length / WireProfile.expectedSegmentLength);
             }
 
-            if (NumSections < 1) NumSections = 1;
+            if (NumSections < 1)
+                NumSections = 1;
 
             SegmentLength = DTrackData.Length / NumSections; // Length of each mesh segment (meters)
             DDY = new Vector3(); // new Vector3(0, DTrackData.DeltaElevation / NumSections, 0); // Incremental elevation change
@@ -754,11 +762,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     NumSections = (int)(2 * arcLength / WireProfile.expectedSegmentLength);
                 }
-                else NumSections = (int)Math.Abs(MathHelper.ToDegrees(DTrackData.Length / 4));
+                else
+                    NumSections = (int)Math.Abs(MathHelper.ToDegrees(DTrackData.Length / 4));
             }
-            else NumSections = (int)Math.Abs(MathHelper.ToDegrees(DTrackData.Length / 3));
+            else
+                NumSections = (int)Math.Abs(MathHelper.ToDegrees(DTrackData.Length / 3));
 
-            if (NumSections < 1) NumSections = 1; // Very small radius track - zero avoidance
+            if (NumSections < 1)
+                NumSections = 1; // Very small radius track - zero avoidance
             //numSections = 10; //TESTING
             // TODO: Generalize count to profile file specification
 

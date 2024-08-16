@@ -381,7 +381,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                                 break;
                         }
 
-                        if (!simulator.Route.Electrified)
+                        if (!simulator.RouteModel.RouteConditions.Electrified)
                             simulator.Confirmer.Information(Simulator.Catalog.GetString("Pantograph raised even though this route is not electrified"));
                     }
                     break;

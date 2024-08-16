@@ -368,7 +368,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     SceneryObjects.Add(new StaticTrackShape(shapeFilePath, worldMatrix));
                             }
                         }
-                        if (viewer.Simulator.Settings.Wire == true && viewer.Simulator.Route.Electrified == true
+                        if (viewer.Simulator.Settings.Wire == true && viewer.Simulator.RouteModel.RouteConditions.Electrified == true
                             && worldObject.DetailLevel != 2   // Make it compatible with routes that use 'HideWire', a workaround for MSTS that 
                             && worldObject.DetailLevel != 3   // allowed a mix of electrified and non electrified track see http://msts.steam4me.net/tutorials/hidewire.html
                             )
@@ -381,7 +381,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(DynamicTrackObject))
                     {
-                        if (viewer.Simulator.Settings.Wire && viewer.Simulator.Route.Electrified)
+                        if (viewer.Simulator.Settings.Wire && viewer.Simulator.RouteModel.RouteConditions.Electrified)
                             Wire.DecomposeDynamicWire(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix);
                         // Add DyntrackDrawers for individual subsections
                         if (viewer.Settings.UseSuperElevation > 0 && SuperElevationManager.UseSuperElevationDyn(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix))

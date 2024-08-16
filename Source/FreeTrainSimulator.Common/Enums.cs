@@ -1755,6 +1755,13 @@ namespace FreeTrainSimulator.Common
         DieselTower,
         Turntable,
     }
+
+    public enum GraphicType
+    {
+        Thumbnail,
+        Screen,
+        WideScreen,
+    }
     #endregion
 
     #endregion

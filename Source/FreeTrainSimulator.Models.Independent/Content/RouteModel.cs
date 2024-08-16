@@ -13,6 +13,8 @@ namespace FreeTrainSimulator.Models.Independent.Content
 
         public EnumArray<string, DefaultSoundType> RouteSounds { get; init; }
 
+        public RouteConditionModel RouteConditions { get; init; }
+
         public RouteModel(in WorldLocation routeStart) : base(routeStart)
         {
         }
