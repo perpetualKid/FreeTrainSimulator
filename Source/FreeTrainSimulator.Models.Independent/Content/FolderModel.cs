@@ -29,11 +29,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
             ContentPath = path;
         }
 
-        public override string ToString()
-        {
-            return Name;
-        }
-
         public void SetRoutes(IEnumerable<RouteModelCore> routes) => Routes = routes?.ToFrozenSet();
 
     }

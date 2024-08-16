@@ -4,7 +4,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
 {
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial class RouteConditionModel
+    public sealed partial record RouteConditionModel
     {
         public float TrackGauge { get; init; } = 1.435f;
         public bool Electrified { get; init; }

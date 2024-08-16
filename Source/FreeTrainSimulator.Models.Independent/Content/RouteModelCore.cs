@@ -27,10 +27,5 @@ namespace FreeTrainSimulator.Models.Independent.Content
         { 
             this.routeStart = routeStart;
         }
-
-        public sealed override string ToString()
-        {
-            return Name;
-        }
     }
 }
