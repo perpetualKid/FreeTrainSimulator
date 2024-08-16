@@ -273,7 +273,7 @@ namespace Orts.Simulation.Physics
         // Variables used for autopilot mode and played train switching
         public bool IsActualPlayerTrain => this == simulator.PlayerLocomotive?.Train;
 
-        internal float MaxDistanceCheckedAhead => Math.Max((IsActualPlayerTrain ? (float)simulator.Route.SpeedLimit : AllowedMaxSpeedMpS) * MaxTimeS, MinCheckDistanceM);
+        internal float MaxDistanceCheckedAhead => Math.Max((IsActualPlayerTrain ? simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route] : AllowedMaxSpeedMpS) * MaxTimeS, MinCheckDistanceM);
 
         public bool IsPlayerDriven => TrainType == TrainType.Player || TrainType == TrainType.AiPlayerDriven;
 
@@ -456,7 +456,7 @@ namespace Orts.Simulation.Physics
         #region .ctor
         private void Init()
         {
-            allowedAbsoluteMaxSpeedSignalMpS = (float)simulator.Route.SpeedLimit;
+            allowedAbsoluteMaxSpeedSignalMpS = simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route];
             allowedAbsoluteMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
             allowedAbsoluteMaxTempSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
             DispatcherInfo = GetDispatcherInfoProvider();
@@ -1836,6 +1836,7 @@ namespace Orts.Simulation.Physics
                 float? FrontCarLengthOfTunnelAhead = null;
                 float? RearCarLengthOfTunnelBehind = null;
                 int numTunnelPaths = 0;
+                TunnelInfoData tunnelInfo = null;
 
                 while (validSections)
                 {
@@ -1875,8 +1876,7 @@ namespace Orts.Simulation.Physics
                             }
 
                             inTunnel = true;
-
-                            numTunnelPaths = tunnel.NumberPaths;
+                            tunnelInfo = tunnel;
 
                             // get position in tunnel
                             if (tunnelStartOffset < 0)
@@ -1906,7 +1906,7 @@ namespace Orts.Simulation.Physics
                         car.TunnelFrontPositionBeyondStart = FrontCarPositionInTunnel;
                         car.TunnelLengthAheadFront = FrontCarLengthOfTunnelAhead;
                         car.TunnelLengthBehindRear = RearCarLengthOfTunnelBehind;
-                        car.TunnelNumPaths = numTunnelPaths;
+                        car.TunnelInfo = tunnelInfo;
                     }
                     else
                     {
@@ -1926,7 +1926,7 @@ namespace Orts.Simulation.Physics
                             car.TunnelFrontPositionBeyondStart = FrontCarPositionInTunnel;
                             car.TunnelLengthAheadFront = FrontCarLengthOfTunnelAhead;
                             car.TunnelLengthBehindRear = RearCarLengthOfTunnelBehind;
-                            car.TunnelNumPaths = numTunnelPaths;
+                            car.TunnelInfo = tunnelInfo;
                         }
                     }
                 }
@@ -2510,7 +2510,7 @@ namespace Orts.Simulation.Physics
                         float temp1MaxSpeedMpS = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
                         if (firstObject.SignalDetails.SignalType == SignalCategory.Signal)
                         {
-                            allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? (float)simulator.Route.SpeedLimit : temp1MaxSpeedMpS;
+                            allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route] : temp1MaxSpeedMpS;
                         }
                         else if (!firstObject.SpeedInfo.Reset)
                         {
@@ -2992,7 +2992,7 @@ namespace Orts.Simulation.Physics
                 {
                     if (actualSpeedMpS > 998f)
                     {
-                        actualSpeedMpS = (float)simulator.Route.SpeedLimit;
+                        actualSpeedMpS = simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route];
                     }
 
                     if (actualSpeedMpS > 0)
@@ -9602,7 +9602,7 @@ namespace Orts.Simulation.Physics
             AllowedMaxSpeedSignalMpS = allowedAbsoluteMaxSpeedSignalMpS;
             AllowedMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedLimitMpS;
             allowedMaxTempSpeedLimitMpS = allowedAbsoluteMaxTempSpeedLimitMpS;
-            TrainMaxSpeedMpS = Math.Min((float)simulator.Route.SpeedLimit, ((MSTSLocomotive)simulator.PlayerLocomotive).MaxSpeedMpS);
+            TrainMaxSpeedMpS = Math.Min(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], (simulator.PlayerLocomotive).MaxSpeedMpS);
         }
 
         /// <summary>
@@ -9674,7 +9674,7 @@ namespace Orts.Simulation.Physics
         public void UpdatePlayerTrainData(float maxDistanceM)
         {
             // variable used to search for NORMAL signals and speedposts when not in AUTO mode
-            float maxDistanceNormalSignal = ControlMode == TrainControlMode.Explorer ? Math.Max(maxDistanceM, (float)simulator.Route.SpeedLimit * 250.0f) : maxDistanceM;
+            float maxDistanceNormalSignal = ControlMode == TrainControlMode.Explorer ? Math.Max(maxDistanceM, simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route] * 250.0f) : maxDistanceM;
             InitializePlayerTrainData();
             // fill in the lists
             TrainPathItem trainPathItem;

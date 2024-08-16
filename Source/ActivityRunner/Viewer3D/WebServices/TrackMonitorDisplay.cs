@@ -862,7 +862,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             public override ListLabel TransformLabel(ListLabel dataCol)
             {
-                float allowedSpeedMpS = Math.Min(Item.AllowedSpeedMpS, (float)Simulator.Instance.Route.SpeedLimit);
+                float allowedSpeedMpS = Math.Min(Item.AllowedSpeedMpS, Simulator.Instance.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route]);
                 Color color;
                 switch (Item.SpeedObjectType)
                 {

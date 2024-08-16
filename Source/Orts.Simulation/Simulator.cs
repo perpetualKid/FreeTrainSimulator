@@ -102,7 +102,7 @@ namespace Orts.Simulation
     ///     
     /// All keyboard input comes from the viewer class as calls on simulator's methods.
     /// </summary>
-    public sealed class Simulator : IGameTimeSource, 
+    public sealed class Simulator : IGameTimeSource,
         ISaveStateApi<SimulatorSaveState>,
         ISaveStateRestoreApi<TrainSaveState, Train>,
         ISaveStateRestoreApi<TrainSaveState, AITrain>
@@ -150,7 +150,6 @@ namespace Orts.Simulation
         public bool PreUpdate { get; internal set; }
         public ActivityFile ActivityFile { get; private set; }
         public Activity ActivityRun { get; private set; }
-        public Route Route { get; private set; }
         public TrainList Trains { get; private set; }
         public Dictionary<int, Train> TrainDictionary { get; } = new Dictionary<int, Train>();
         public Dictionary<string, Train> NameDictionary { get; } = new Dictionary<string, Train>(StringComparer.OrdinalIgnoreCase);
@@ -224,7 +223,7 @@ namespace Orts.Simulation
         public Train OriginalPlayerTrain { get; private set; } // Used in Activity mode
 
         public bool PlayerIsInCab { get; set; }
-        public bool OpenDoorsInAITrains { get; private set; }
+        public bool OpenDoorsInAITrains { get; init; }
 
         public MovingTable ActiveMovingTable { get; set; }
 
@@ -266,8 +265,6 @@ namespace Orts.Simulation
             Trace.Write("Loading");
 
             Trace.Write(" TRK");
-            Route = new RouteFile(RouteFolder.TrackFileName).Route;
-
             Task<RouteModel> loadRouteModelTask = RouteFolder.ToRouteModel(CancellationToken.None).AsTask();
             if (!loadRouteModelTask.IsCompleted)
                 loadRouteModelTask.Wait();
@@ -275,7 +272,9 @@ namespace Orts.Simulation
 
             Debug.Assert(RouteModel != null);
 
-            OpenDoorsInAITrains = Route.OpenDoorsInAITrains.GetValueOrDefault(Settings.OpenDoorsInAITrains);
+            if (RouteModel.Settings.TryGetValue("OpenComputerTrainDoors", out string trainDoorsSetting) &&
+                bool.TryParse(trainDoorsSetting, out bool openComputerTrainDoors))
+                OpenDoorsInAITrains = openComputerTrainDoors;
 
             Trace.Write(" TDB");
             TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(RouteModel.RouteKey)).TrackDB;
@@ -355,7 +354,7 @@ namespace Orts.Simulation
             WeatherType = ActivityFile.Activity.Header.Weather;
             if (ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
             {
-                ActivityRun.AddRestrictZones(Route, ActivityFile.Activity.ActivityRestrictedSpeedZones);
+                ActivityRun.AddRestrictZones(ActivityFile.Activity.ActivityRestrictedSpeedZones);
             }
             IsAutopilotMode = true;
         }
@@ -1323,8 +1322,8 @@ namespace Orts.Simulation
             PlayerLocomotive = InitialPlayerLocomotive();
             train.TrainMaxSpeedMpS = (conFile.Train.MaxVelocity == null) ||
                 ((conFile.Train.MaxVelocity.A <= 0f) || (conFile.Train.MaxVelocity.A == 40f))
-                ? Math.Min((float)Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS)
-                : Math.Min((float)Route.SpeedLimit, conFile.Train.MaxVelocity.A);
+                ? Math.Min(RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], (PlayerLocomotive).MaxSpeedMpS)
+                : Math.Min(RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], conFile.Train.MaxVelocity.A);
 
             double prevEQres = train.BrakeSystem.EqualReservoirPressurePSIorInHg;
             train.AITrainBrakePercent = 100; //<CSComment> This seems a tricky way for the brake modules to test if it is an AI train or not
@@ -1380,9 +1379,9 @@ namespace Orts.Simulation
 
             PlayerLocomotive = InitialPlayerLocomotive();
             if (train.MaxVelocityA <= 0f || train.MaxVelocityA == 40f)
-                train.TrainMaxSpeedMpS = Math.Min((float)Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
+                train.TrainMaxSpeedMpS = Math.Min(RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], (PlayerLocomotive).MaxSpeedMpS);
             else
-                train.TrainMaxSpeedMpS = Math.Min((float)Route.SpeedLimit, train.MaxVelocityA);
+                train.TrainMaxSpeedMpS = Math.Min(RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], train.MaxVelocityA);
             if (train.InitialSpeed > 0 && train.MovementState != AiMovementState.StationStop)
             {
                 train.InitializeMoving();

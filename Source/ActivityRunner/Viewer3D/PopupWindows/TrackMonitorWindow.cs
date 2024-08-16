@@ -147,7 +147,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 {
                     Color color = item.SpeedObjectType == SpeedItemType.Standard ? (item.IsWarning ? Color.Yellow : Color.White) :
                     (item.SpeedObjectType == SpeedItemType.TemporaryRestrictionStart ? Color.Red : Color.LightGreen);
-                    trackMonitor.AddSpeedpost(direction, (item.DistanceToTrainM, item.AllowedSpeedMpS > 200 ? Simulator.Instance.Route.SpeedLimit : item.AllowedSpeedMpS, color));
+                    trackMonitor.AddSpeedpost(direction, (item.DistanceToTrainM, item.AllowedSpeedMpS > 200 ? Simulator.Instance.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route] : item.AllowedSpeedMpS, color));
                 }
                 else if (item.ItemType == TrainPathItemType.Station)
                 {

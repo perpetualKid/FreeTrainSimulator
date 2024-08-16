@@ -1,4 +1,7 @@
-﻿using FreeTrainSimulator.Common;
+﻿using System.Collections.Frozen;
+
+using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 
 using MemoryPack;
@@ -14,6 +17,12 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public EnumArray<string, DefaultSoundType> RouteSounds { get; init; }
 
         public RouteConditionModel RouteConditions { get; init; }
+
+        public EnumArray<float, SpeedRestrictionType> SpeedRestrictions { get; init; } // global and temporary speed limit m/s
+
+        public FrozenDictionary<string, string> Settings { get; init; } //arbitrary settings which are currently in route model but may not logically belong there
+
+        public Interpolator SuperElevationRadiusSettings { get; init; }
 
         public RouteModel(in WorldLocation routeStart) : base(routeStart)
         {

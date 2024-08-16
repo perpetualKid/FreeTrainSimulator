@@ -2284,7 +2284,7 @@ namespace Orts.Simulation.Timetables
                         }
                         else
                         {
-                            confMaxSpeed = Math.Min((float)simulator.Route.SpeedLimit, conFile.Train.MaxVelocity.A);
+                            confMaxSpeed = Math.Min(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], conFile.Train.MaxVelocity.A);
                         }
                     }
                 }
@@ -2299,7 +2299,7 @@ namespace Orts.Simulation.Timetables
                 TTTrain.CheckFreight();
                 TTTrain.SetDistributedPowerUnitIds();
                 TTTrain.ReinitializeEOT();
-                TTTrain.SpeedSettings[SpeedValueType.RouteSpeed] = simulator.Route.SpeedLimit;
+                TTTrain.SpeedSettings[SpeedValueType.RouteSpeed] = simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route];
 
                 if (!confMaxSpeed.HasValue || confMaxSpeed.Value <= 0f)
                 {

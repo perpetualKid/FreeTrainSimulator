@@ -60,6 +60,8 @@ using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Track;
 
+using static Swan.Terminal;
+
 namespace Orts.ActivityRunner.Viewer3D
 {
 
@@ -86,9 +88,19 @@ namespace Orts.ActivityRunner.Viewer3D
             return value;
         }
 
-        public static void Initialize(int trackTypesNumber, int switchSmsNumber, int curveSmsNumber, int curveSwitchSmsNumber)
+        public static void Initialize(int trackTypesNumber)
         {
-            SwitchSmsNumber = switchSmsNumber;
+            if (Simulator.Instance.RouteModel.Settings.TryGetValue("CurveSound", out string settingValue) &&
+                int.TryParse(settingValue, out int curveSmsNumber))
+                CurveSmsNumber = curveSmsNumber;
+
+            if (Simulator.Instance.RouteModel.Settings.TryGetValue("CurveSwitchSound", out settingValue) &&
+                int.TryParse(settingValue, out int curveSwitchSmsNumber))
+                CurveSwitchSmsNumber = curveSwitchSmsNumber;
+
+            if (Simulator.Instance.RouteModel.Settings.TryGetValue("SwitchSound", out settingValue) &&
+                int.TryParse(settingValue, out int switchSmsNumber))
+                SwitchSmsNumber = switchSmsNumber;
 
             if (SwitchSmsNumber < -1 || SwitchSmsNumber >= trackTypesNumber)
             {
@@ -98,7 +110,6 @@ namespace Orts.ActivityRunner.Viewer3D
             if (SwitchSmsNumber != -1)
                 AutoTrackSound = true;
 
-            CurveSmsNumber = curveSmsNumber;
             if (CurveSmsNumber < -1 || CurveSmsNumber >= trackTypesNumber)
             {
                 CurveSmsNumber = -1;
@@ -107,7 +118,6 @@ namespace Orts.ActivityRunner.Viewer3D
             if (CurveSmsNumber != -1)
                 AutoTrackSound = true;
 
-            CurveSwitchSmsNumber = curveSwitchSmsNumber;
             if (CurveSwitchSmsNumber < -1 || CurveSwitchSmsNumber >= trackTypesNumber)
             {
                 CurveSwitchSmsNumber = CurveSmsNumber;
@@ -115,7 +125,6 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (CurveSwitchSmsNumber != -1)
                 AutoTrackSound = true;
-
         }
     }
 
@@ -585,7 +594,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="viewer"></param>
         /// <param name="car"></param>
         /// <param name="smsFilePath"></param>
-        public SoundSource(MSTSWagon car, TrainCarViewer carViewer, string smsFilePath): 
+        public SoundSource(MSTSWagon car, TrainCarViewer carViewer, string smsFilePath) :
             base(carViewer)
         {
             Car = car;

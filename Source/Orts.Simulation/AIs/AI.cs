@@ -703,7 +703,7 @@ namespace Orts.Simulation.AIs
                 train.IsTilting = true;
 
             // also set Route max speed for speedpost-processing in train.cs
-            train.TrainMaxSpeedMpS = (float)simulator.Route.SpeedLimit;
+            train.TrainMaxSpeedMpS = simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route];
 
             train.InitialSpeed = srvFile.TimeTable.InitialSpeed;
 

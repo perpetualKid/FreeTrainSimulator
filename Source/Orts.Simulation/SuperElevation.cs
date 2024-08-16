@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 
 using Microsoft.Xna.Framework;
@@ -114,7 +115,7 @@ namespace Orts.Simulation
                 return;
             //loop all section to determine the max elevation for the whole track
             double Curvature = sectionData.Angle * SectionList.Count * 33 / Len;//average radius in degree/100feet
-            float Max = (float)(Math.Pow(simulator.Route.SpeedLimit * 2.25, 2) * 0.0007 * Math.Abs(Curvature) - 3); //in inch
+            float Max = (float)(Math.Pow(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route] * 2.25, 2) * 0.0007 * Math.Abs(Curvature) - 3); //in inch
             Max *= 2.5f;//change to cm
             Max = (float)Math.Round(Max * 2, MidpointRounding.AwayFromZero) / 200f;//closest to 5 mm increase;
             if (Max < 0.01f) 

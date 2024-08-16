@@ -1753,7 +1753,7 @@ namespace FreeTrainSimulator.Common
         WaterTower,
         CoalTower,
         DieselTower,
-        Turntable,
+        Turntable,  // default sms file for turntables and transfertables
     }
 
     public enum GraphicType
@@ -1761,6 +1761,12 @@ namespace FreeTrainSimulator.Common
         Thumbnail,
         Screen,
         WideScreen,
+    }
+
+    public enum SpeedRestrictionType
+    {
+        Route,  //global speed limit m/s.
+        Temporary,
     }
     #endregion
 

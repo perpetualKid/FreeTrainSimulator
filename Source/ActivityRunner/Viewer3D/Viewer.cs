@@ -401,7 +401,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Simulator.InitializeAiPlayerHosting();
             }
 
-            SharedSMSFileManager.Initialize(TrackTypes.Count, Simulator.Route.SwitchSMSNumber, Simulator.Route.CurveSMSNumber, Simulator.Route.CurveSwitchSMSNumber);
+            SharedSMSFileManager.Initialize(TrackTypes.Count);
 
             TextureManager = new SharedTextureManager(this, Game.GraphicsDevice);
 

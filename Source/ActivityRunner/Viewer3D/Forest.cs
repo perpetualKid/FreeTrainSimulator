@@ -31,6 +31,7 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -41,15 +42,12 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly Material material;
         private readonly ForestPrimitive primitive;
 
-        private readonly float maximumCenterlineOffset;
-        private readonly bool checkRoads;
-
         public ForestViewer(Viewer viewer, ForestObject forest, in WorldPosition position)
         {
             this.viewer = viewer;
             this.position = position;
-            maximumCenterlineOffset = this.viewer.Simulator.Route.ForestClearDistance;
-            checkRoads = this.viewer.Simulator.Route.RemoveForestTreesFromRoads;
+            _ = float.TryParse(Simulator.Instance.RouteModel.Settings["ForestClearDistance"], out float maximumCenterlineOffset);
+            _ = bool.TryParse(Simulator.Instance.RouteModel.Settings["RemoveForestTreesFromRoads"], out bool checkRoads);
 
             material = viewer.MaterialManager.Load("Forest", Helpers.GetForestTextureFile(forest.TreeTexture));
             primitive = new ForestPrimitive(this.viewer, forest, position, maximumCenterlineOffset, checkRoads);

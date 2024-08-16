@@ -317,10 +317,8 @@ namespace Orts.Formats.Msts.Models
         /// 
         public ref readonly WorldPosition WorldPosition => ref position;
 
-        public TempSpeedPostItem(Route routeFile, in WorldLocation location, bool isStart, in WorldPosition worldPosition, bool isWarning)
+        public TempSpeedPostItem(float speedRestriction, bool metricUnits, in WorldLocation location, bool isStart, in WorldPosition worldPosition, bool isWarning)
         {
-            ArgumentNullException.ThrowIfNull(routeFile);
-
             // TrItemId needs to be set later
             position = worldPosition;
             this.location = location;
@@ -330,15 +328,15 @@ namespace Orts.Formats.Msts.Models
             flags |= 0b0000_0010;              //isLimit
             flags |= 0b1110_0000;           //isFreight, IsPassenger
             IsResume = !isStart;
-            if (routeFile.MilepostUnitsMetric)
+            if (metricUnits)
             {
                 flags &= ~(1u << 8);
-                Distance = (int)(Speed.MeterPerSecond.ToKpH(routeFile.TempRestrictedSpeed) + 0.1f);
+                Distance = (int)(Speed.MeterPerSecond.ToKpH(speedRestriction) + 0.1f);
             }
             else
             {
                 flags |= (1u << 8);
-                Distance = (int)(Speed.MeterPerSecond.ToMpH(routeFile.TempRestrictedSpeed) + 0.1f);
+                Distance = (int)(Speed.MeterPerSecond.ToMpH(speedRestriction) + 0.1f);
             }
 
             Angle = 0;
