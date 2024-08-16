@@ -50,6 +50,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="messageDelegate">The delegate that will deal with the message we want to send to the user</param>
         public static void Load(RouteModelCore routeModel, MessageDelegate messageDelegate)
         {
+            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
             System.Threading.Tasks.Task<RouteModel> extendRouteTask = routeModel.Extend(CancellationToken.None).AsTask();
             if (!extendRouteTask.IsCompleted)
                 extendRouteTask.Wait();
@@ -61,9 +62,6 @@ namespace ORTS.TrackViewer.Drawing
             RoadDatabaseFile RDB = null;
             TrackDatabaseFile TDB = null;
             SignalConfigurationFile sigcfgFile = null;
-
-            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
-            RouteFile TRK = new RouteFile(routeFolder.TrackFileName);
 
             messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading track database .tdb ..."));
             TDB = new TrackDatabaseFile(routeFolder.TrackDatabaseFile(routeModelExtended.RouteKey));
