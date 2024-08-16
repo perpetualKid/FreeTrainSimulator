@@ -14,7 +14,7 @@ using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal class ContentRouteHandler : ContentHandlerBase<RouteModel, RouteModelCore>
+    internal sealed class ContentRouteHandler : ContentHandlerBase<RouteModel, RouteModelCore>
     {
         public static async ValueTask<RouteModel> Get(string name, FolderModel contentFolder, CancellationToken cancellationToken)
         {
@@ -29,10 +29,11 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
         public static async ValueTask<RouteModel> Convert(FolderStructure.ContentFolder.RouteFolder routeFolder, FolderModel contentFolder, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(routeFolder, nameof(routeFolder));
             if (routeFolder.Valid)
             {
-                string trkFilePath = routeFolder.TrackFileName;
-                RouteFile routeFile = new RouteFile(trkFilePath);
+                string routeFileName = routeFolder.TrackFileName;
+                RouteFile routeFile = new RouteFile(routeFileName);
                 Route route = routeFile.Route;
 
                 // these setting should be used as route specific overrides to standard values or user settings
