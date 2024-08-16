@@ -59,6 +59,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Simplified;
@@ -82,6 +83,7 @@ namespace Orts.Menu
         private readonly TimetableInfo timeTable;
         private List<SavePoint> savePoints = new List<SavePoint>();
         private CancellationTokenSource ctsLoader;
+        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
 
         public string SelectedSaveFile { get; private set; }
         public MainForm.UserAction SelectedAction { get; private set; }
@@ -155,15 +157,7 @@ namespace Orts.Menu
 
         private async Task LoadSavePointsAsync()
         {
-            lock (savePoints)
-            {
-                if (ctsLoader != null && !ctsLoader.IsCancellationRequested)
-                {
-                    ctsLoader.Cancel();
-                    ctsLoader.Dispose();
-                }
-                ctsLoader = new CancellationTokenSource();
-            }
+            ctsLoader = await ctsLoader.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
             StringBuilder warnings = new StringBuilder();
             string prefix = string.Empty;

@@ -9,23 +9,22 @@ namespace FreeTrainSimulator.Common
         public static async ValueTask<CancellationTokenSource> ResetCancellationTokenSource(this CancellationTokenSource cts, SemaphoreSlim semaphore, bool cancel)
         {
             ArgumentNullException.ThrowIfNull(semaphore, nameof(semaphore));
-            if (null != cts)
+            try
             {
-                try
+                await semaphore.WaitAsync().ConfigureAwait(false);
+                if (null != cts)
                 {
-                    await semaphore.WaitAsync().ConfigureAwait(false);
                     if (cancel && !cts.IsCancellationRequested)
                         await cts.CancelAsync().ConfigureAwait(false);
                     cts.Dispose();
                 }
-                finally
-                {
-                    _ = semaphore.Release();
-                }
+                // Create a new cancellation token source so that can cancel all the tokens again 
+                return new CancellationTokenSource();
             }
-            // Create a new cancellation token source so that can cancel all the tokens again 
-            return new CancellationTokenSource();
+            finally
+            {
+                _ = semaphore.Release();
+            }
         }
-
     }
 }

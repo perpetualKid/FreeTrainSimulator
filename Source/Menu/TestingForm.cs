@@ -27,6 +27,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Simplified;
@@ -44,6 +45,7 @@ namespace Orts.Menu
     {
         private CancellationTokenSource ctsTestActivityLoader;
         private CancellationTokenSource ctsTestActivityRunner;
+        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         private readonly ProfileModel contentProfile;
         private bool clearedLogs;
         private readonly string runActivity;
@@ -109,15 +111,8 @@ namespace Orts.Menu
 
         private async Task LoadActivitiesAsync()
         {
-            lock (testBindingSource.DataSource)
-            {
-                if (ctsTestActivityLoader != null && !ctsTestActivityLoader.IsCancellationRequested)
-                {
-                    ctsTestActivityLoader.Cancel();
-                    ctsTestActivityLoader.Dispose();
-                }
-                ctsTestActivityLoader = new CancellationTokenSource();
-            }
+            ctsTestActivityLoader = await ctsTestActivityLoader.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
+
             UseWaitCursor = true;
             gridTestActivities.SuspendLayout();
             testBindingSource.DataSource = new SortableBindingList<TestActivity>((await TestActivity.GetTestActivities(contentProfile.ContentFolders, ctsTestActivityLoader.Token).ConfigureAwait(true)).ToList());
@@ -163,15 +158,8 @@ namespace Orts.Menu
 
         private async Task TestMarkedActivitiesAsync(IEnumerable<DataGridViewRow> rows)
         {
-            lock (testBindingSource.DataSource)
-            {
-                if (ctsTestActivityRunner != null && !ctsTestActivityRunner.IsCancellationRequested)
-                {
-                    ctsTestActivityRunner.Cancel();
-                    ctsTestActivityRunner.Dispose();
-                }
-                ctsTestActivityRunner = new CancellationTokenSource();
-            }
+            ctsTestActivityRunner = await ctsTestActivityRunner.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
+
             UpdateButtons();
 
             bool overrideSettings = checkBoxOverride.Checked;

@@ -81,6 +81,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<RouteModel> ToRouteModel(this FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(routeFolder, nameof(routeFolder));
+
             string contentFolderPath = routeFolder.ContentFolder.Folder;
 
             ProfileModel contentProfile = null;
