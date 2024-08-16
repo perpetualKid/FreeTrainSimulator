@@ -44,7 +44,7 @@
 		<EmbeddedResource Include="Resources\PlayerTrain.png" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
+		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.2.1105" />
 		<ProjectReference Include="..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
 		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
 		<ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
