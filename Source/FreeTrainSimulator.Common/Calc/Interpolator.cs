@@ -32,6 +32,9 @@ namespace FreeTrainSimulator.Common.Calc
         [MemoryPackConstructor]
         public Interpolator(double[] xArray, double[] yArray)
         {
+            ArgumentNullException.ThrowIfNull(xArray, nameof(xArray));
+            ArgumentNullException.ThrowIfNull(yArray, nameof(yArray));
+
             this.xArray = xArray;
             this.yArray = yArray;
             size = xArray.Length;
@@ -257,6 +260,9 @@ namespace FreeTrainSimulator.Common.Calc
         [MemoryPackConstructor]
         public Interpolator2D(double[] xArray, Interpolator[] yArray)
         {
+            ArgumentNullException.ThrowIfNull(xArray, nameof(xArray));
+            ArgumentNullException.ThrowIfNull(yArray, nameof(yArray));
+
             this.xArray = xArray;
             this.yArray = yArray;
             size = xArray.Length;
