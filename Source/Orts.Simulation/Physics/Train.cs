@@ -1835,7 +1835,6 @@ namespace Orts.Simulation.Physics
                 float? FrontCarPositionInTunnel = null;
                 float? FrontCarLengthOfTunnelAhead = null;
                 float? RearCarLengthOfTunnelBehind = null;
-                int numTunnelPaths = 0;
                 TunnelInfoData tunnelInfo = null;
 
                 while (validSections)
