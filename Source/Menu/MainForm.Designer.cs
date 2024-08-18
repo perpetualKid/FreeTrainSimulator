@@ -170,29 +170,23 @@ namespace Orts.Menu
             // 
             // comboBoxFolder
             // 
-            comboBoxFolder.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            comboBoxFolder.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             comboBoxFolder.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxFolder.FormattingEnabled = true;
             comboBoxFolder.Location = new System.Drawing.Point(16, 38);
             comboBoxFolder.Margin = new System.Windows.Forms.Padding(4);
             comboBoxFolder.Name = "comboBoxFolder";
             comboBoxFolder.Size = new System.Drawing.Size(373, 23);
             comboBoxFolder.TabIndex = 1;
-            comboBoxFolder.SelectedIndexChanged += ComboBoxFolder_SelectedIndexChanged;
+            comboBoxFolder.SelectionChangeCommitted += ComboBoxFolder_SelectionChangeCommitted;
             // 
             // comboBoxRoute
             // 
-            comboBoxRoute.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            comboBoxRoute.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             comboBoxRoute.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxRoute.FormattingEnabled = true;
             comboBoxRoute.Location = new System.Drawing.Point(16, 95);
             comboBoxRoute.Margin = new System.Windows.Forms.Padding(4);
             comboBoxRoute.Name = "comboBoxRoute";
             comboBoxRoute.Size = new System.Drawing.Size(373, 23);
             comboBoxRoute.TabIndex = 3;
-            comboBoxRoute.SelectedIndexChanged += ComboBoxRoute_SelectedIndexChanged;
+            comboBoxRoute.SelectionChangeCommitted += ComboBoxRoute_SelectionChangeCommitted;
             // 
             // label2
             // 
@@ -434,7 +428,7 @@ namespace Orts.Menu
             comboBoxHeadTo.Name = "comboBoxHeadTo";
             comboBoxHeadTo.Size = new System.Drawing.Size(373, 23);
             comboBoxHeadTo.TabIndex = 9;
-            comboBoxHeadTo.SelectedIndexChanged += ComboBoxHeadTo_SelectedIndexChanged;
+            comboBoxHeadTo.SelectionChangeCommitted += ComboBoxHeadTo_SelectionChangeCommitted;
             // 
             // comboBoxStartAt
             // 
@@ -448,7 +442,7 @@ namespace Orts.Menu
             comboBoxStartAt.Name = "comboBoxStartAt";
             comboBoxStartAt.Size = new System.Drawing.Size(373, 23);
             comboBoxStartAt.TabIndex = 7;
-            comboBoxStartAt.SelectedIndexChanged += ComboBoxStartAt_SelectedIndexChanged;
+            comboBoxStartAt.SelectionChangeCommitted += ComboBoxStartAt_SelectionChangeCommitted;
             // 
             // comboBoxConsist
             // 
@@ -829,7 +823,7 @@ namespace Orts.Menu
             comboBoxTimetable.Name = "comboBoxTimetable";
             comboBoxTimetable.Size = new System.Drawing.Size(256, 23);
             comboBoxTimetable.TabIndex = 3;
-            comboBoxTimetable.SelectedIndexChanged += ComboBoxTimetable_selectedIndexChanged;
+            comboBoxTimetable.SelectedIndexChanged += ComboBoxTimetable_SelectedIndexChanged;
             comboBoxTimetable.EnabledChanged += ComboBoxTimetable_EnabledChanged;
             // 
             // comboBoxTimetableSet

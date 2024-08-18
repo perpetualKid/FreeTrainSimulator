@@ -1779,4 +1779,26 @@ namespace FreeTrainSimulator.Common
         Cab3D,
     }
 
+    #region Menu_Selection enum
+    public enum MenuSelection
+    {
+        // Base items
+        Folder,
+        Route,
+        // Activity mode items
+        Activity,
+        Locomotive,
+        Consist,
+        Path,
+        Time,
+        // Timetable mode items
+        TimetableSet,
+        Timetable,
+        Train,
+        Day,
+        // Shared items
+        Season,
+        Weather,
+    }
+    #endregion
 }

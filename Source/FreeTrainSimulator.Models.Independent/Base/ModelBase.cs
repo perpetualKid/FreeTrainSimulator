@@ -73,11 +73,5 @@ namespace FreeTrainSimulator.Models.Independent.Base
             Name = name;
             this.parent = parent;
         }
-
-        public sealed override string ToString()
-        {
-            return Name;
-        }
-
     }
 }

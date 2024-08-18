@@ -335,10 +335,23 @@ namespace Orts.Settings
         public bool ReplayPauseBeforeEnd { get; set; }
         [Default(true)]
         public bool ShowErrorDialogs { get; set; }
-        [Default(new string[0])]
-#pragma warning disable CA1819 // Properties should not return arrays
-        public string[] Menu_Selection { get; set; }
-#pragma warning restore CA1819 // Properties should not return arrays
+        [Default(new string[]
+        {
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Folder)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Route)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Activity)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Locomotive)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Consist)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Path)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Time)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.TimetableSet)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Timetable)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Train)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Day)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Season)}=\"\"",
+            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Weather)}=\"\"",
+        })]
+        public EnumArray<string, MenuSelection> MenuSelection { get; set; }
         [Default(false)]
         public bool Multiplayer { get; set; }
 
@@ -421,7 +434,6 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.LocationsOverlay)}=\"\"",
             $"{nameof(ViewerWindowType.TrackItemOverlay)}=\"\"",
         })]
-
         public EnumArray<string, ViewerWindowType> PopupSettings { get; set; }
         // Menu-game communication settings:
         [Default(false)]
