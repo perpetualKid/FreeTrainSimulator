@@ -64,8 +64,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             ConcurrentBag<PathModelCore> results = new ConcurrentBag<PathModelCore>();
             // preload existing MSTS files
-            Dictionary<string, string> pathFiles = Directory.EnumerateFiles(routeModel.MstsRouteFolder().PathsFolder, "*.pat").
-                ToDictionary(Path.GetFileNameWithoutExtension, StringComparer.OrdinalIgnoreCase);
+            ConcurrentDictionary<string, string> pathFiles = new ConcurrentDictionary<string, string>(Directory.EnumerateFiles(routeModel.MstsRouteFolder().PathsFolder, "*.pat").
+                ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
 
             //load existing route models, and compare if the corresponding folder still exists.
             if (Directory.Exists(pathsFolder))
@@ -73,7 +73,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 await Parallel.ForEachAsync(Directory.EnumerateFiles(pathsFolder, pattern), cancellationToken, async (file, token) =>
                 {
                     PathModelCore pathModel = await ContentPathCoreHandler.FromFile(file, routeModel, token, false).ConfigureAwait(false);
-                    if (pathModel != null && pathFiles.Remove(pathModel.Name, out string filePath)) //
+                    if (pathModel != null && pathFiles.Remove(pathModel.Tag, out string filePath)) //
                     {
                         if (pathModel.SetupRequired())
                             pathModel = await ContentPathHandler.Convert(filePath, routeModel, token).ConfigureAwait(false);
@@ -82,20 +82,17 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 }).ConfigureAwait(false);
             }
 
-            //for any new MSTS path (remaining in the preploaded dictionary), Create a path model
-            await Parallel.ForEachAsync(pathFiles, cancellationToken, async (routeFolder, token) =>
+            //for any new MSTS path (remaining in the preloaded dictionary), Create a path model
+            await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
             {
-                PathModelCore route = await ContentPathHandler.Convert(routeFolder.Value, routeModel, token).ConfigureAwait(false);
-                if (null != route)
+                PathModelCore pathModel = await ContentPathHandler.Convert(path.Value, routeModel, token).ConfigureAwait(false);
+                if (null != pathModel)
                 {
-                    results.Add(route);
+                    results.Add(pathModel);
                 }
             }).ConfigureAwait(false);
 
             routeModel.SetPaths(results);
-            IFileResolve parent = (routeModel as IFileResolve).Container;
-            routeModel.Initialize(ModelFileResolver<RouteModelCore>.FilePath(routeModel, parent), parent);
-            routeModel.RefreshModel();
             return routeModel;
         }
     }

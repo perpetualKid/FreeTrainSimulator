@@ -82,12 +82,12 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return routeModel is RouteModel routeModelExtended ? routeModelExtended : await ContentRouteHandler.Extend(routeModel, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<RouteModel> Convert(this RouteModel routeModel, CancellationToken cancellationToken)
+        public static async ValueTask<RouteModelCore> Convert(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             if (routeModel != null)
             {
                 routeModel = await ContentRouteHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
-                routeModel = await ContentRouteCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false) as RouteModel;
+                routeModel = await ContentRouteCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
             }
             return routeModel;
         }
@@ -115,7 +115,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             RouteModel routeModel = await routeModelCore.Extend(cancellationToken).ConfigureAwait(false);
             if (routeModel.SetupRequired())
-                routeModel = await routeModel.Convert(cancellationToken).ConfigureAwait(false);
+                routeModel = await routeModel.Convert(cancellationToken).ConfigureAwait(false) as RouteModel;
 
             folder.SetRoutes(folder.Routes.Where((r) => r != routeModelCore).Append(routeModel));
 
@@ -127,8 +127,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return routeModel != null && routeModel.SetupRequired() ? await ContentRouteCoreHandler.Load(routeModel, cancellationToken).ConfigureAwait(false) : routeModel;
         }
 
-
-        public static async ValueTask<PathModel> PathModel(this RouteModel routeModel, string pathName, CancellationToken cancellationToken)
+        public static async ValueTask<PathModel> PathModel(this RouteModelCore routeModel, string pathName, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             ArgumentException.ThrowIfNullOrEmpty(pathName, nameof(pathName));

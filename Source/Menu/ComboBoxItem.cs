@@ -20,11 +20,16 @@ namespace Orts.Menu
 
         public static void SetDataSourceMembers(ComboBox comboBox)
         {
-            comboBox.DisplayMember = nameof(ComboBoxItem<int>.Value);
-            comboBox.ValueMember = nameof(ComboBoxItem<int>.Key);
+            comboBox.DisplayMember = nameof(Value);
+            comboBox.ValueMember = nameof(Key);
         }
 
-        internal ComboBoxItem() { }
+        private ComboBoxItem() { }
+
+        public override string ToString()
+        {
+            return Value;
+        }
     }
 
     public static class ComboBoxExtension

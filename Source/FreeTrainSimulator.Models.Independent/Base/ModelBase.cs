@@ -20,6 +20,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         private protected static string fileExtension;
         private string filePath;
         private IFileResolve parent;
+        private protected bool initializeNonPersistent;
 
         [MemoryPackIgnore]
 #pragma warning disable CA1033 // Interface methods should be callable by child types
@@ -34,7 +35,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         IFileResolve IFileResolve.Container => parent;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
         [MemoryPackIgnore]
-        public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
+        public bool RefreshRequired => VersionInfo.Compare(Version) > 0 || initializeNonPersistent;
         [MemoryPackIgnore]
         public bool Initialized => !string.IsNullOrEmpty(filePath);
 

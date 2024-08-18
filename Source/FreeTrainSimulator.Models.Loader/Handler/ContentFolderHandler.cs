@@ -76,7 +76,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 }).ConfigureAwait(false);
             }
 
-            //for any new MSTS folder (remaining in the preploaded dictionary), Create a route model
+            //for any new MSTS folder (remaining in the preloaded dictionary), Create a route model
             await Parallel.ForEachAsync(routeFolders, cancellationToken, async (routeFolder, token) =>
             {
                 RouteModelCore route = await ContentRouteHandler.Convert(routeFolder.Value, contentFolder, token).ConfigureAwait(false);

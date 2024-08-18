@@ -34,8 +34,6 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Loader;
-using FreeTrainSimulator.Models.Loader.Handler;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 using FreeTrainSimulator.Online.Client;
@@ -49,7 +47,6 @@ using Orts.Formats.OR.Models;
 using Orts.Settings;
 
 using Activity = FreeTrainSimulator.Models.Simplified.Activity;
-using Path = FreeTrainSimulator.Models.Simplified.Path;
 
 namespace Orts.Menu
 {
@@ -84,9 +81,9 @@ namespace Orts.Menu
         private UserSettings settings;
         private ProfileModel contentProfile;
         private FrozenSet<RouteModelCore> routeModels = FrozenSet<RouteModelCore>.Empty;
+        private FrozenSet<PathModelCore> pathModels = FrozenSet<PathModelCore>.Empty;
         private IEnumerable<Activity> activities = Array.Empty<Activity>();
         private IEnumerable<Consist> consists = Array.Empty<Consist>();
-        private IEnumerable<Path> paths = Array.Empty<Path>();
         private IEnumerable<TimetableInfo> timetableSets = Array.Empty<TimetableInfo>();
         private IEnumerable<WeatherFileInfo> timetableWeatherFileSet = Array.Empty<WeatherFileInfo>();
         private CancellationTokenSource ctsProfileLoading;
@@ -110,7 +107,7 @@ namespace Orts.Menu
         // Activity mode items
         internal Activity SelectedActivity => (Activity)comboBoxActivity.SelectedItem;
         internal Consist SelectedConsist => (Consist)comboBoxConsist.SelectedItem;
-        internal Path SelectedPath => (Path)comboBoxHeadTo.SelectedItem;
+        internal PathModelCore SelectedPath => (PathModelCore)(comboBoxHeadTo.SelectedItem as ComboBoxItem<PathModelCore>).Key;
         internal string SelectedStartTime => comboBoxStartTime.Text;
 
         // Timetable mode items
@@ -120,7 +117,7 @@ namespace Orts.Menu
         internal int SelectedTimetableDay => initialized ? (comboBoxTimetableDay.SelectedItem as ComboBoxItem<int>).Key : 0;
         internal WeatherFileInfo SelectedWeatherFile => (WeatherFileInfo)comboBoxTimetableWeatherFile.SelectedItem;
         internal Consist SelectedTimetableConsist { get; private set; }
-        internal Path SelectedTimetablePath { get; private set; }
+        internal PathModelCore SelectedTimetablePath { get; private set; }
 
         // Shared items
         internal SeasonType SelectedStartSeason => initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartSeason.SelectedItem as ComboBoxItem<SeasonType>).Key : (comboBoxTimetableSeason.SelectedItem as ComboBoxItem<SeasonType>).Key) : SeasonType.Spring;
@@ -490,14 +487,15 @@ namespace Orts.Menu
         #endregion
 
         #region Timetable Trains
-        private void ComboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
+        private async void ComboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBoxTimetableTrain.SelectedItem is TrainInformation selectedTrain)
             {
                 int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
                 SelectedTimetableConsist = Consist.GetConsist(SelectedFolder.MstsContentFolder(), selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
-                Path path = Path.GetPath(SelectedRoute.MstsRouteFolder(), selectedTrain.Path);
-                SelectedTimetablePath = path.PlayerPath ? path : null;
+
+                PathModelCore pathModel = string.IsNullOrEmpty(selectedTrain.Path) ? null : await SelectedRoute.PathModel(selectedTrain.Path, CancellationToken.None).ConfigureAwait(false);
+                SelectedTimetablePath = pathModel == null || !pathModel.PlayerPath ? null : pathModel;
 
                 if (updater == 0)
                 {
@@ -727,7 +725,7 @@ namespace Orts.Menu
                     SelectedActivity is ExploreActivity && SelectedConsist != null ? SelectedConsist.FilePath : string.Empty :
                     SelectedTimetableTrain?.Column.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
                 radioButtonModeActivity.Checked ?
-                    SelectedActivity is ExploreActivity && SelectedPath != null ? SelectedPath.FilePath : string.Empty : SelectedTimetableDay.ToString(CultureInfo.InvariantCulture),
+                    SelectedActivity is ExploreActivity && SelectedPath != null ? SelectedPath.Name : string.Empty : SelectedTimetableDay.ToString(CultureInfo.InvariantCulture),
                 radioButtonModeActivity.Checked ?
                     SelectedActivity is ExploreActivity ? SelectedStartTime : string.Empty : string.Empty,
                 // Shared items
@@ -817,7 +815,7 @@ namespace Orts.Menu
         private async Task LoadRouteListAsync()
         {
             ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
-            paths = Array.Empty<Path>();
+            pathModels = FrozenSet<PathModelCore>.Empty;
             activities = Array.Empty<Activity>();
 
             try
@@ -888,7 +886,7 @@ namespace Orts.Menu
         private void UpdateExploreActivity(bool updateDetails)
         {
             int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
-            (SelectedActivity as ExploreActivity)?.UpdateActivity(SelectedStartTime, (SeasonType)SelectedStartSeason, (WeatherType)SelectedStartWeather, SelectedConsist, SelectedPath);
+            (SelectedActivity as ExploreActivity)?.UpdateActivity(SelectedStartTime, SelectedStartSeason, SelectedStartWeather, SelectedConsist, null);// SelectedPath);
             if (updater == 0)
             {
                 if (updateDetails)
@@ -981,18 +979,18 @@ namespace Orts.Menu
         {
             ctsPathLoading = await ctsPathLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
-            ShowStartAtList();
-            ShowHeadToList();
+            //ShowStartAtList();
+            //ShowHeadToList();
 
-            RouteModelCore selectedRoute = SelectedRoute;
             try
             {
-                paths = (await Path.GetPaths(selectedRoute.MstsRouteFolder(), false, ctsPathLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
+                pathModels = SelectedRoute.SetupRequired() ? (await SelectedRoute.Convert(ctsRouteLoading.Token).ConfigureAwait(true)).TrainPaths : SelectedRoute.TrainPaths;
             }
             catch (TaskCanceledException)
             {
-                paths = Array.Empty<Path>();
             }
+            pathModels ??= FrozenSet<PathModelCore>.Empty;
+
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowStartAtList();
         }
@@ -1005,7 +1003,7 @@ namespace Orts.Menu
                 {
                     comboBoxStartAt.BeginUpdate();
                     comboBoxStartAt.Items.Clear();
-                    comboBoxStartAt.Items.AddRange(paths.Select(p => p.Start).Distinct().OrderBy(s => s.ToString()).ToArray());
+                    comboBoxStartAt.Items.AddRange(pathModels.Select(p => p.Start).Distinct().OrderBy(s => s.ToString()).ToArray());
                 }
                 finally
                 {
@@ -1014,8 +1012,8 @@ namespace Orts.Menu
                 // Because this list is unique names, we have to do some extra work to select it.
                 if (settings.Menu_Selection.Length >= (int)MenuSelectionIndex.Path)
                 {
-                    string pathFilePath = settings.Menu_Selection[(int)MenuSelectionIndex.Path];
-                    Path path = paths.FirstOrDefault(p => p.FilePath == pathFilePath);
+                    string pathName = settings.Menu_Selection[(int)MenuSelectionIndex.Path];
+                    PathModelCore path = pathModels.FirstOrDefault(p => p.Name == pathName);
                     if (path != null)
                         SetComboBoxItem<string>(comboBoxStartAt, s => s == path.Start);
                     else if (comboBoxStartAt.Items.Count > 0)
@@ -1028,11 +1026,11 @@ namespace Orts.Menu
                 {
                     comboBoxStartAt.BeginUpdate();
                     comboBoxHeadTo.BeginUpdate();
-                    Path path = SelectedActivity.Path;
-                    comboBoxStartAt.Items.Clear();
-                    comboBoxStartAt.Items.Add(path.Start);
-                    comboBoxHeadTo.Items.Clear();
-                    comboBoxHeadTo.Items.Add(path);
+                    //PathModelCore path =  SelectedActivity.Path;
+                    //comboBoxStartAt.Items.Clear();
+                    //comboBoxStartAt.Items.Add(path.Start);
+                    //comboBoxHeadTo.Items.Clear();
+                    //comboBoxHeadTo.Items.Add(path);
                 }
                 finally
                 {
@@ -1049,17 +1047,9 @@ namespace Orts.Menu
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
             {
-                try
-                {
-                    comboBoxHeadTo.BeginUpdate();
-                    comboBoxHeadTo.Items.Clear();
-                    comboBoxHeadTo.Items.AddRange(paths.Where(p => p.Start == (string)comboBoxStartAt.SelectedItem).ToArray());
-                }
-                finally
-                {
-                    comboBoxHeadTo.EndUpdate();
-                }
-                UpdateFromMenuSelection<Path>(comboBoxHeadTo, MenuSelectionIndex.Path, c => c.FilePath);
+                comboBoxHeadTo.Items.Clear();
+                comboBoxHeadTo.Items.AddRange(pathModels.Where(p => p.Start == (string)comboBoxStartAt.SelectedItem).Select(p => new ComboBoxItem<PathModelCore>(p, p.End)).ToArray());
+                UpdateFromMenuSelection<PathModelCore>(comboBoxHeadTo, MenuSelectionIndex.Path, p => p.Name);
             }
             UpdateEnabled();
         }
@@ -1298,7 +1288,7 @@ namespace Orts.Menu
                     }
                     if (SelectedTimetablePath != null)
                     {
-                        AddDetailToShow(catalog.GetString("Path: {0}", SelectedTimetablePath.Name), SelectedTimetablePath.ToInfo());
+                        AddDetailToShow(catalog.GetString("Path: {0}", SelectedTimetablePath.Name), string.Join("\n", catalog.GetString($"Start at: {SelectedTimetablePath.Start}"), catalog.GetString($"Heading to: {SelectedTimetablePath.End}")));
                     }
                 }
             }

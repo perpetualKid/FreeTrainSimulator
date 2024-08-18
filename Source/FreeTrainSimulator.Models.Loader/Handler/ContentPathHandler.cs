@@ -33,6 +33,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     PlayerPath = patFile.PlayerPath,
                     Start = patFile.Start,
                     End = patFile.End,
+                    Tag = Path.GetFileNameWithoutExtension(filePath),
                 };
                 await Create(pathModel, routeModel, true, false, cancellationToken).ConfigureAwait(false);
                 return pathModel;

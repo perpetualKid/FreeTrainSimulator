@@ -135,7 +135,7 @@ namespace FreeTrainSimulator.Models.Simplified
                     inputBlock.Complete();
                     await actionBlock.Completion.ConfigureAwait(false);
                 }
-                return result.Where(p => (p != null && p.PlayerPath) || includeNonPlayerPaths);
+                return result.Where(p => (p != null && (p.PlayerPath || includeNonPlayerPaths)));
             }
         }
 

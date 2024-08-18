@@ -32,6 +32,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
         protected RouteModelCore(in WorldLocation routeStart)
         { 
             this.routeStart = routeStart;
+            initializeNonPersistent = true;
         }
 
         public void SetPaths(IEnumerable<PathModelCore> paths) => TrainPaths = paths?.ToFrozenSet();
