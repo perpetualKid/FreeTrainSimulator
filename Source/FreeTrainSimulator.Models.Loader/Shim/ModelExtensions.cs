@@ -28,6 +28,14 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return await ContentProfileHandler.Get(profileModel?.Name, cancellationToken).ConfigureAwait(true);
         }
 
+        public static async ValueTask<FolderModel> FolderModel(this ProfileModel profileModel, string folderName, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+            ArgumentException.ThrowIfNullOrEmpty(folderName, nameof(folderName));
+
+            return await ContentFolderHandler.Get(folderName, profileModel, cancellationToken).ConfigureAwait(true);
+        }
+
         public static async ValueTask<ProfileModel> Convert(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
             return await ContentProfileHandler.Convert(profileModel?.Name, folders, cancellationToken).ConfigureAwait(true);
@@ -71,12 +79,17 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<RouteModel> Extend(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return routeModel is RouteModel routeModelExtended ? routeModelExtended : await ContentRouteHandler.Get(routeModel, cancellationToken).ConfigureAwait(false);
+            return routeModel is RouteModel routeModelExtended ? routeModelExtended : await ContentRouteHandler.Extend(routeModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<RouteModel> Convert(this RouteModel routeModel, CancellationToken cancellationToken)
         {
-            return routeModel != null ? await ContentRouteHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false) : routeModel;
+            if (routeModel != null)
+            {
+                routeModel = await ContentRouteHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
+                routeModel = await ContentRouteCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false) as RouteModel;
+            }
+            return routeModel;
         }
 
         public static async ValueTask<RouteModel> ToRouteModel(this FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken cancellationToken)
@@ -85,8 +98,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             string contentFolderPath = routeFolder.ContentFolder.Folder;
 
-            ProfileModel contentProfile = null;
-            contentProfile = await (null as ProfileModel).Get(cancellationToken).ConfigureAwait(false);
+            ProfileModel contentProfile = await ContentProfileHandler.DefaultProfile.Get(cancellationToken).ConfigureAwait(false);
             FolderModel folder = await contentProfile.ContentFolders.
                 Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault().
                 Load(cancellationToken).ConfigureAwait(false);
@@ -110,5 +122,26 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return routeModel;
         }
 
+        public static async ValueTask<RouteModelCore> Load(this RouteModelCore routeModel, CancellationToken cancellationToken)
+        {
+            return routeModel != null && routeModel.SetupRequired() ? await ContentRouteCoreHandler.Load(routeModel, cancellationToken).ConfigureAwait(false) : routeModel;
+        }
+
+
+        public static async ValueTask<PathModel> PathModel(this RouteModel routeModel, string pathName, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+            ArgumentException.ThrowIfNullOrEmpty(pathName, nameof(pathName));
+
+            return await ContentPathHandler.Get(pathName, routeModel, cancellationToken).ConfigureAwait(true);
+        }
+    }
+
+    public static class PathModelExtensions
+    {
+        public static async ValueTask<PathModel> Convert(this PathModel pathModel, CancellationToken cancellationToken)
+        {
+            return pathModel != null ? await ContentPathHandler.Convert(pathModel.Name, (pathModel as IFileResolve).Container as RouteModel, cancellationToken).ConfigureAwait(false) : pathModel;
+        }
     }
 }

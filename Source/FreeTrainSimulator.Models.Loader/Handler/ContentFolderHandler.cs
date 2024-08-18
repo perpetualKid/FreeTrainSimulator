@@ -33,25 +33,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
 
-            string routesFolder = ModelFileResolver<FolderModel>.FolderPath(contentFolder);
-            string pattern = ModelFileResolver<RouteModelCore>.WildcardPattern;
-
-            ConcurrentBag<RouteModelCore> routes = new ConcurrentBag<RouteModelCore>();
-
-            //load existing route models, and compare if the corresponding folder still exists.
-            if (Directory.Exists(routesFolder))
-            {
-                await Parallel.ForEachAsync(Directory.EnumerateFiles(routesFolder, pattern), cancellationToken, async (file, token) =>
-                {
-                    RouteModelCore route = await ContentRouteCoreHandler.FromFile(file, contentFolder, token, false).ConfigureAwait(false);
-                    if (route != null) //
-                    {
-                        routes.Add(route);
-                    }
-                }).ConfigureAwait(false);
-            }
-
-            contentFolder.SetRoutes(routes);
+            contentFolder.SetRoutes(await ContentRouteCoreHandler.GetRoutes(contentFolder, cancellationToken).ConfigureAwait(false));
             IFileResolve parent = (contentFolder as IFileResolve).Container;
             contentFolder.Initialize(ModelFileResolver<FolderModel>.FilePath(contentFolder, parent), parent);
             contentFolder.RefreshModel();

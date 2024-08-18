@@ -21,10 +21,14 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return await FromFile(name, contentFolder, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<RouteModel> Get(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async ValueTask<RouteModel> Extend(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            return await FromFile(routeModel.Name, (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
+            RouteModel result = await FromFile(routeModel.Name, (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
+            //copy NonPersistent properties
+            result.SetPaths(routeModel.TrainPaths);
+
+            return result;
         }
 
         public static async ValueTask<RouteModel> Convert(FolderStructure.ContentFolder.RouteFolder routeFolder, FolderModel contentFolder, CancellationToken cancellationToken)

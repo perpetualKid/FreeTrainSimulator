@@ -1,4 +1,7 @@
-﻿using FreeTrainSimulator.Common;
+﻿using System.Collections.Frozen;
+using System.Collections.Generic;
+
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Base;
 
@@ -22,10 +25,16 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public bool MetricUnits { get; init; }
         public EnumArray<string, GraphicType> Graphics { get; init; }
 
+        [MemoryPackIgnore]
+        public FrozenSet<PathModelCore> TrainPaths { get; private set; }
+
         [MemoryPackConstructor]
         protected RouteModelCore(in WorldLocation routeStart)
         { 
             this.routeStart = routeStart;
         }
+
+        public void SetPaths(IEnumerable<PathModelCore> paths) => TrainPaths = paths?.ToFrozenSet();
+        public void SetPaths(FrozenSet<PathModelCore> paths) => TrainPaths = paths;
     }
 }

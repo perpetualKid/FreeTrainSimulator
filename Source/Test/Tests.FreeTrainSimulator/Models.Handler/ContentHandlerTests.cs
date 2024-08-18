@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,5 +63,14 @@ namespace Tests.FreeTrainSimulator.Models.Loader
             Assert.AreEqual(1, otherModel.ContentFolders.Count);
         }
 
+        [TestMethod]
+        public async Task ConvertContentPathTest()
+        {
+            ProfileModel defaultModel = await ContentProfileHandler.Convert(null, Enumerable.Empty<(string, string)>(), CancellationToken.None).ConfigureAwait(false);
+            FolderModel folderModel = null != defaultModel ? await defaultModel.FolderModel("Demo Model 1", CancellationToken.None).ConfigureAwait(false) : null;
+            RouteModel routeModel = null != folderModel ? await folderModel.RouteModel("Monogame", CancellationToken.None).ConfigureAwait(false) : null;
+            await routeModel.Convert(CancellationToken.None);
+//            PathModel pathModel = null != routeModel ? await routeModel.PathModel("", CancellationToken.None).ConfigureAwait(false) : null;
+        }
     }
 }
