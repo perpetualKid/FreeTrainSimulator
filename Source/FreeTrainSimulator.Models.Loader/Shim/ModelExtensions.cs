@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Handler;
 
 using Orts.Formats.Msts;
@@ -25,7 +26,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken)
         {
-            return await ContentProfileHandler.Get(profileModel?.Name, cancellationToken).ConfigureAwait(true);
+            return await ContentProfileHandler.Get(profileModel?.Name, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<FolderModel> FolderModel(this ProfileModel profileModel, string folderName, CancellationToken cancellationToken)
@@ -33,12 +34,34 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             ArgumentException.ThrowIfNullOrEmpty(folderName, nameof(folderName));
 
-            return await ContentFolderHandler.Get(folderName, profileModel, cancellationToken).ConfigureAwait(true);
+            return await ContentFolderHandler.Get(folderName, profileModel, cancellationToken).ConfigureAwait(false);
         }
+
+        public static async ValueTask<ProfileSelectionsModel> SelectionsModel(this ProfileModel profileModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+
+            ProfileSelectionsModel selectionsModel = await ContentHandlerBase<ProfileSelectionsModel, ProfileSelectionsModel>.FromFile(profileModel.Name, profileModel, cancellationToken);
+            if (selectionsModel == null)
+            {
+                selectionsModel = new ProfileSelectionsModel() { Name = profileModel.Name };
+                selectionsModel.Initialize(ModelFileResolver<ProfileSelectionsModel>.FilePath(selectionsModel, profileModel), profileModel);
+            }
+            return selectionsModel;
+        }
+
+        public static async ValueTask<ProfileSelectionsModel> UpdateSelectionsModel(this ProfileModel profileModel, ProfileSelectionsModel selectionsModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+            ArgumentNullException.ThrowIfNull(selectionsModel, nameof(selectionsModel));
+
+            return await ContentHandlerBase<ProfileSelectionsModel, ProfileSelectionsModel>.ToFile(selectionsModel, cancellationToken);
+        }
+
 
         public static async ValueTask<ProfileModel> Convert(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
-            return await ContentProfileHandler.Convert(profileModel?.Name, folders, cancellationToken).ConfigureAwait(true);
+            return await ContentProfileHandler.Convert(profileModel?.Name, folders, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -55,7 +78,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
             ArgumentException.ThrowIfNullOrEmpty(routeName, nameof(routeName));
 
-            return await ContentRouteHandler.Get(routeName, folderModel, cancellationToken).ConfigureAwait(true);
+            return await ContentRouteHandler.Get(routeName, folderModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<FolderModel> Load(this FolderModel folderModel, CancellationToken cancellationToken)
@@ -105,12 +128,12 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             Debug.Assert(folder?.Routes != null);
 
-            RouteModelCore routeModelCore = folder.Routes.Where(r => r.MstsRouteFolder() == routeFolder).FirstOrDefault() ?? 
+            RouteModelCore routeModelCore = folder.Routes.Where(r => r.MstsRouteFolder() == routeFolder).FirstOrDefault() ??
                 throw new FileNotFoundException($"Route not found. Abnormal termination");
 
             if (routeModelCore is RouteModel fullRouteModel && !fullRouteModel.SetupRequired())
             {
-                return fullRouteModel;                
+                return fullRouteModel;
             }
 
             RouteModel routeModel = await routeModelCore.Extend(cancellationToken).ConfigureAwait(false);
@@ -132,7 +155,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             ArgumentException.ThrowIfNullOrEmpty(pathName, nameof(pathName));
 
-            return await ContentPathHandler.Get(pathName, routeModel, cancellationToken).ConfigureAwait(true);
+            return await ContentPathHandler.Get(pathName, routeModel, cancellationToken).ConfigureAwait(false);
         }
     }
 

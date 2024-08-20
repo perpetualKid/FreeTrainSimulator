@@ -17,7 +17,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
         private static bool CheckDefaultProfile(ProfileModel profileModel) => profileModel == null || CheckDefaultProfile(profileModel.Name);
 
-
         public static ProfileModel DefaultProfile { get; private set; } = new ProfileModel(DefaultProfileName);
 
         public static async ValueTask<ProfileModel> Get(string profileName, CancellationToken cancellationToken)
@@ -74,7 +73,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 Name = contentProfile.Name,
             };
             contentProfile.Initialize(ModelFileResolver<ProfileModel>.FilePath(contentProfile, null), null);
-            await ToFile(contentProfile, cancellationToken).ConfigureAwait(false);
+            contentProfile = await ToFile(contentProfile, cancellationToken).ConfigureAwait(false);
             if (CheckDefaultProfile(contentProfile))
                 DefaultProfile = contentProfile;
             return contentProfile;

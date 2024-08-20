@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return model;
         }
 
-        public static async ValueTask ToFile(TActual model, CancellationToken cancellationToken)
+        public static async ValueTask<TActual> ToFile(TActual model, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
@@ -57,6 +57,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 Trace.TraceError(ex.Message);
                 throw;
             }
+            return model;
         }
 
         public static async ValueTask Create<TContainer>(TActual model, TContainer parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
@@ -66,7 +67,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             model.Initialize(ModelFileResolver<TBase>.FilePath(model, parent), parent);
 
             if (saveModel)
-                await ToFile(model, cancellationToken).ConfigureAwait(false);
+                model = await ToFile(model, cancellationToken).ConfigureAwait(false);
 
             if (createDirectory)
             {
