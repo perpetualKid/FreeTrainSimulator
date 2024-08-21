@@ -48,7 +48,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            routeModel.SetPaths(await ContentPathCoreHandler.GetPaths(routeModel, cancellationToken).ConfigureAwait(false));
+            routeModel.InitializeWith(await ContentPathCoreHandler.GetPaths(routeModel, cancellationToken).ConfigureAwait(false));
             IFileResolve parent = (routeModel as IFileResolve).Container;
             routeModel.Initialize(ModelFileResolver<RouteModelCore>.FilePath(routeModel, parent), parent);
             routeModel.RefreshModel();
@@ -92,7 +92,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 }
             }).ConfigureAwait(false);
 
-            routeModel.SetPaths(results);
+            routeModel.InitializeWith(results.ToFrozenSet());
             return routeModel;
         }
     }

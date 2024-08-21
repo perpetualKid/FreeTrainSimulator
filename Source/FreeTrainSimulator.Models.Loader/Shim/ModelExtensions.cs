@@ -115,6 +115,15 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return routeModel;
         }
 
+        public static async ValueTask<RouteModelCore> Expand(this RouteModelCore routeModel, CancellationToken cancellationToken)
+        {
+            if (routeModel.SetupRequired())
+                routeModel = await ContentRouteHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
+            routeModel = await ContentRouteCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
+            return routeModel;
+
+        }
+
         public static async ValueTask<RouteModel> ToRouteModel(this FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeFolder, nameof(routeFolder));
@@ -140,7 +149,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             if (routeModel.SetupRequired())
                 routeModel = await routeModel.Convert(cancellationToken).ConfigureAwait(false) as RouteModel;
 
-            folder.SetRoutes(folder.Routes.Where((r) => r != routeModelCore).Append(routeModel));
+            folder.SetRoutes(folder.Routes.Where((r) => r != routeModelCore).Append(routeModel)); //Replacing the existing route model in the parent folder, with this new instance
 
             return routeModel;
         }

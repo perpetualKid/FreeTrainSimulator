@@ -35,7 +35,16 @@ namespace FreeTrainSimulator.Models.Independent.Content
             initializationRequired = true;
         }
 
-        public void SetPaths(IEnumerable<PathModelCore> paths) => TrainPaths = paths?.ToFrozenSet();
-        public void SetPaths(FrozenSet<PathModelCore> paths) => TrainPaths = paths;
+        public void InitializeWith(FrozenSet<PathModelCore> paths)
+        {
+            TrainPaths = paths;
+            childsInitialized = true;
+        }
+
+        public void InitializeWith(RouteModelCore routeModelCore)
+        {
+            TrainPaths = routeModelCore.TrainPaths;
+            childsInitialized = routeModelCore.childsInitialized;
+        }
     }
 }

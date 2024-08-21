@@ -26,8 +26,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             RouteModel result = await FromFile(routeModel.Name, (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
             //copy NonPersistent properties
-            result.SetPaths(routeModel.TrainPaths);
-
+            result.InitializeWith(routeModel);
             return result;
         }
 

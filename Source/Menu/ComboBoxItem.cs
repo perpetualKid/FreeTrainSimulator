@@ -87,21 +87,43 @@ namespace Orts.Menu
         /// </summary>
         private static List<ComboBoxItem<T>> FromList<T>(IEnumerable<T> source, Func<T, string> textLookup)
         {
-            try
-            {
-                return source.Select(item => new ComboBoxItem<T>(textLookup(item), item)).ToList();
-            }
-            catch (ArgumentException)
-            {
-                return new List<ComboBoxItem<T>>();
-            }
+            return source.Select(item => new ComboBoxItem<T>(textLookup(item), item)).ToList();
         }
 
         public static void EnableComboBoxItemDataSourceMembers(this ComboBox comboBox)
         {
-            comboBox.DisplayMember = "Text";
-            comboBox.ValueMember = "Value";
+            comboBox.DisplayMember = nameof(ComboBoxItem<object>.Text);
+            comboBox.ValueMember = nameof(ComboBoxItem<object>.Value);
         }
 
+        private delegate bool SetComboBoxItemDelegate<T>(ComboBox comboBox, Func<T, bool> predicate);
+
+        public static T SynchronizedValue<T>(this ComboBox comboBox) where T : class
+        {
+            return comboBox.InvokeRequired ? comboBox.Invoke(SynchronizedValue<T>, comboBox) as T : comboBox.SelectedValue as T;
+        }
+
+
+        public static bool SetComboBoxItem<T>(this ComboBox comboBox, Func<T, bool> predicate)
+        {
+            if (comboBox.InvokeRequired)
+            {
+                SetComboBoxItemDelegate<T> setComboBoxItemDelegate = new SetComboBoxItemDelegate<T>(SetComboBoxItem);
+                return (bool)comboBox.Invoke(setComboBoxItemDelegate, comboBox, predicate);
+            }
+            if (comboBox.Items.Count == 0)
+                return false;
+
+            for (int i = 0; i < comboBox.Items.Count; i++)
+            {
+                if (comboBox.Items[i] is T t && predicate(t))
+                {
+                    comboBox.SelectedIndex = i;
+                    return true;
+                }
+            }
+            comboBox.SelectedIndex = 0;
+            return false;
+        }
     }
 }

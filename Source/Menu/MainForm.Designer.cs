@@ -56,15 +56,11 @@ namespace Orts.Menu
             label5 = new System.Windows.Forms.Label();
             label6 = new System.Windows.Forms.Label();
             label7 = new System.Windows.Forms.Label();
-            label11 = new System.Windows.Forms.Label();
             label9 = new System.Windows.Forms.Label();
             comboBoxStartTime = new System.Windows.Forms.ComboBox();
-            comboBoxDuration = new System.Windows.Forms.ComboBox();
             comboBoxStartWeather = new System.Windows.Forms.ComboBox();
             label12 = new System.Windows.Forms.Label();
             comboBoxStartSeason = new System.Windows.Forms.ComboBox();
-            label10 = new System.Windows.Forms.Label();
-            comboBoxDifficulty = new System.Windows.Forms.ComboBox();
             label8 = new System.Windows.Forms.Label();
             panelModeTimetable = new System.Windows.Forms.Panel();
             labelTimetableWeatherFile = new System.Windows.Forms.Label();
@@ -400,15 +396,11 @@ namespace Orts.Menu
             panelModeActivity.Controls.Add(label5);
             panelModeActivity.Controls.Add(label6);
             panelModeActivity.Controls.Add(label7);
-            panelModeActivity.Controls.Add(label11);
             panelModeActivity.Controls.Add(label9);
             panelModeActivity.Controls.Add(comboBoxStartTime);
-            panelModeActivity.Controls.Add(comboBoxDuration);
             panelModeActivity.Controls.Add(comboBoxStartWeather);
             panelModeActivity.Controls.Add(label12);
             panelModeActivity.Controls.Add(comboBoxStartSeason);
-            panelModeActivity.Controls.Add(label10);
-            panelModeActivity.Controls.Add(comboBoxDifficulty);
             panelModeActivity.Controls.Add(label8);
             panelModeActivity.Location = new System.Drawing.Point(12, 180);
             panelModeActivity.Margin = new System.Windows.Forms.Padding(0);
@@ -483,7 +475,7 @@ namespace Orts.Menu
             comboBoxActivity.Name = "comboBoxActivity";
             comboBoxActivity.Size = new System.Drawing.Size(373, 23);
             comboBoxActivity.TabIndex = 1;
-            comboBoxActivity.SelectedIndexChanged += ComboBoxActivity_SelectedIndexChanged;
+            comboBoxActivity.SelectionChangeCommitted += ComboBoxActivity_SelectionChangeCommitted;
             // 
             // label3
             // 
@@ -540,17 +532,6 @@ namespace Orts.Menu
             label7.Text = "Heading to:";
             label7.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // label11
-            // 
-            label11.AutoSize = true;
-            label11.Location = new System.Drawing.Point(191, 288);
-            label11.Margin = new System.Windows.Forms.Padding(2);
-            label11.Name = "label11";
-            label11.Size = new System.Drawing.Size(56, 15);
-            label11.TabIndex = 16;
-            label11.Text = "Duration:";
-            label11.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // label9
             // 
             label9.AutoSize = true;
@@ -564,11 +545,7 @@ namespace Orts.Menu
             // 
             // comboBoxStartTime
             // 
-            comboBoxStartTime.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            comboBoxStartTime.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            comboBoxStartTime.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             comboBoxStartTime.Enabled = false;
-            comboBoxStartTime.FormattingEnabled = true;
             comboBoxStartTime.Location = new System.Drawing.Point(81, 284);
             comboBoxStartTime.Margin = new System.Windows.Forms.Padding(4);
             comboBoxStartTime.Name = "comboBoxStartTime";
@@ -576,32 +553,16 @@ namespace Orts.Menu
             comboBoxStartTime.TabIndex = 11;
             comboBoxStartTime.TextChanged += ComboBoxStartTime_TextChanged;
             // 
-            // comboBoxDuration
-            // 
-            comboBoxDuration.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            comboBoxDuration.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            comboBoxDuration.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxDuration.Enabled = false;
-            comboBoxDuration.FormattingEnabled = true;
-            comboBoxDuration.Location = new System.Drawing.Point(281, 284);
-            comboBoxDuration.Margin = new System.Windows.Forms.Padding(4);
-            comboBoxDuration.Name = "comboBoxDuration";
-            comboBoxDuration.Size = new System.Drawing.Size(96, 23);
-            comboBoxDuration.TabIndex = 17;
-            // 
             // comboBoxStartWeather
             // 
-            comboBoxStartWeather.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            comboBoxStartWeather.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             comboBoxStartWeather.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             comboBoxStartWeather.Enabled = false;
-            comboBoxStartWeather.FormattingEnabled = true;
             comboBoxStartWeather.Location = new System.Drawing.Point(81, 352);
             comboBoxStartWeather.Margin = new System.Windows.Forms.Padding(4);
             comboBoxStartWeather.Name = "comboBoxStartWeather";
             comboBoxStartWeather.Size = new System.Drawing.Size(96, 23);
             comboBoxStartWeather.TabIndex = 15;
-            comboBoxStartWeather.SelectedIndexChanged += ComboBoxStartWeather_SelectedIndexChanged;
+            comboBoxStartWeather.SelectionChangeCommitted += ComboBoxStartWeather_SelectionChangeCommitted;
             // 
             // label12
             // 
@@ -616,41 +577,14 @@ namespace Orts.Menu
             // 
             // comboBoxStartSeason
             // 
-            comboBoxStartSeason.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            comboBoxStartSeason.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             comboBoxStartSeason.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             comboBoxStartSeason.Enabled = false;
-            comboBoxStartSeason.FormattingEnabled = true;
             comboBoxStartSeason.Location = new System.Drawing.Point(81, 319);
             comboBoxStartSeason.Margin = new System.Windows.Forms.Padding(4);
             comboBoxStartSeason.Name = "comboBoxStartSeason";
             comboBoxStartSeason.Size = new System.Drawing.Size(96, 23);
             comboBoxStartSeason.TabIndex = 13;
-            comboBoxStartSeason.SelectedIndexChanged += ComboBoxStartSeason_SelectedIndexChanged;
-            // 
-            // label10
-            // 
-            label10.AutoSize = true;
-            label10.Location = new System.Drawing.Point(191, 322);
-            label10.Margin = new System.Windows.Forms.Padding(2);
-            label10.Name = "label10";
-            label10.Size = new System.Drawing.Size(58, 15);
-            label10.TabIndex = 18;
-            label10.Text = "Difficulty:";
-            label10.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // comboBoxDifficulty
-            // 
-            comboBoxDifficulty.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            comboBoxDifficulty.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            comboBoxDifficulty.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxDifficulty.Enabled = false;
-            comboBoxDifficulty.FormattingEnabled = true;
-            comboBoxDifficulty.Location = new System.Drawing.Point(281, 319);
-            comboBoxDifficulty.Margin = new System.Windows.Forms.Padding(4);
-            comboBoxDifficulty.Name = "comboBoxDifficulty";
-            comboBoxDifficulty.Size = new System.Drawing.Size(96, 23);
-            comboBoxDifficulty.TabIndex = 19;
+            comboBoxStartSeason.SelectionChangeCommitted += ComboBoxStartSeason_SelectionChangeCommitted;
             // 
             // label8
             // 
@@ -966,15 +900,11 @@ namespace Orts.Menu
         private System.Windows.Forms.ComboBox comboBoxStartAt;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.ComboBox comboBoxHeadTo;
-        private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.ComboBox comboBoxStartTime;
-        private System.Windows.Forms.ComboBox comboBoxDuration;
         private System.Windows.Forms.ComboBox comboBoxStartWeather;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.ComboBox comboBoxStartSeason;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.ComboBox comboBoxDifficulty;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Panel panelModeTimetable;
         private System.Windows.Forms.Label label24;
