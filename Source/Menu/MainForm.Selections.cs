@@ -22,8 +22,6 @@ namespace Orts.Menu
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
             SelectedProfile = await SelectedProfile.Get(ctsProfileLoading.Token).ConfigureAwait(false);
-            currentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
-            SetupActivitySelections();
             try
             {
                 if (SelectedProfile.SetupRequired())
@@ -36,6 +34,8 @@ namespace Orts.Menu
             }
             SelectedProfile ??= SelectedProfile.Default();
 
+            currentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
+            SetupActivitySelections();
             radioButtonModeActivity.Checked = !(radioButtonModeTimetable.Checked = currentSelections.ActivityType == ActivityType.TimeTable);
 
             //Initial setup if necessary
@@ -60,13 +60,10 @@ namespace Orts.Menu
         {
             if (SelectedFolder == contentFolder)
                 return;
+
+            contentFolder = comboBoxFolder.SetComboBoxItem((FolderModel folderItem) => string.Equals(folderItem.Name, currentSelections.FolderName, StringComparison.OrdinalIgnoreCase));
             currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with { FolderName = contentFolder?.Name };
             SelectedFolder = contentFolder;
-
-            if (!comboBoxFolder.SetComboBoxItem((ComboBoxItem<FolderModel> cbi) => string.Equals(cbi.Value.Name, currentSelections.FolderName, StringComparison.OrdinalIgnoreCase)))
-            {
-
-            }
 
             ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
             FrozenSet<RouteModelCore> routeModels = null;
@@ -89,24 +86,22 @@ namespace Orts.Menu
         {
             SetupRoutesDropdown(routeModels);
             RouteModelCore routeModel = routeModels.Where(r => r.Name == currentSelections?.RouteName).FirstOrDefault();
-            await RouteChanged(routeModel).ConfigureAwait(false);
+            RouteModelCore result = await RouteChanged(routeModel).ConfigureAwait(false);
+            if (routeModel != result)
+            {
+
+            }
         }
 
-        private async ValueTask RouteChanged(RouteModelCore routeModel)
+        private async ValueTask<RouteModelCore> RouteChanged(RouteModelCore routeModel)
         {
             if (SelectedRoute == routeModel)
-                return;
+                return routeModel;
+
+            routeModel = comboBoxRoute.SetComboBoxItem((RouteModelCore routeModelItem) => string.Equals(routeModelItem.Name, routeModel?.Name, StringComparison.OrdinalIgnoreCase));
 
             currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with { RouteName = routeModel?.Name };
             SelectedRoute = routeModel;
-
-            if (!comboBoxRoute.SetComboBoxItem((ComboBoxItem<RouteModelCore> cbi) => string.Equals(cbi.Value.Name, currentSelections.RouteName, StringComparison.OrdinalIgnoreCase)))
-            {
-                routeModel = comboBoxRoute.SynchronizedValue<RouteModelCore>();
-                if (routeModel != null)
-                    await RouteChanged(routeModel).ConfigureAwait(false);
-                return;
-            }
 
             // Activities
             ctsActivityLoading = await ctsActivityLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
@@ -143,6 +138,7 @@ namespace Orts.Menu
 
             //TODO load Timetablesets
             SelectedRoute = routeModel;
+            return routeModel;
         }
 
         private async ValueTask ActivitiesChanged(IEnumerable<Activity> activities)
@@ -156,22 +152,18 @@ namespace Orts.Menu
         {
             if (SelectedActivity == activity)
                 return;
-            currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with 
-            { 
-                ActivityName = activity?.Name, 
-                ActivityType = activity switch { DefaultExploreActivity => ActivityType.Explorer, ExploreThroughActivity => ActivityType.ExploreActivity, _ => ActivityType.Activity} 
+
+            activity = comboBoxActivity.SetComboBoxItem((Activity activityItem) => string.Equals(activityItem.Name, activity?.Name, StringComparison.OrdinalIgnoreCase));
+            
+            currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with
+            {
+                ActivityName = activity?.Name,
+                ActivityType = activity switch { DefaultExploreActivity => ActivityType.Explorer, ExploreThroughActivity => ActivityType.ExploreActivity, _ => ActivityType.Activity }
             };
             SelectedActivity = activity;
 
-            if (!comboBoxActivity.SetComboBoxItem((ComboBoxItem<Activity> cbi) => string.Equals(cbi.Value.Name, currentSelections.ActivityName, StringComparison.OrdinalIgnoreCase)))
-            {
-                activity = comboBoxActivity.SynchronizedValue<Activity>();
-                if (activity != null)
-                    await ActivityChanged(activity).ConfigureAwait(false);
-                return;
-            }
             SetupActivityStartDetails((activity.Season, activity.Weather, TimeOnly.FromTimeSpan(activity.StartTime)));
-            PathModelCore pathModel = SelectedRoute.TrainPaths?.Where(p => p.Name == activity?.Path.Name).FirstOrDefault();
+            PathModelCore pathModel = SelectedRoute.TrainPaths?.Where(p => p.Name == activity?.Path?.Name).FirstOrDefault();
             await PathChanged(pathModel).ConfigureAwait(false);
             ShowDetails();
         }
@@ -183,21 +175,20 @@ namespace Orts.Menu
             await PathChanged(pathModel).ConfigureAwait(false);
         }
 
-        private async ValueTask PathChanged(PathModelCore pathModel)
+        private ValueTask PathChanged(PathModelCore pathModel)
         {
             if (pathModel == SelectedPath)
-                return;
+                return ValueTask.CompletedTask;
+
+            pathModel = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => p.Name == pathModel?.Name).Any()).Where(p => p.Name == pathModel?.Name).FirstOrDefault();
+
             currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with { PathName = pathModel?.Name };
             SelectedPath = pathModel;
-            if (!comboBoxStartAt.SetComboBoxItem((ComboBoxItem<IGrouping<string, PathModelCore>> cbi) => cbi.Value.Where(p => p.Name == currentSelections.PathName).Any()))
-            {
-                pathModel = comboBoxStartAt.SynchronizedValue<IGrouping<string, PathModelCore>>().FirstOrDefault();
-                if (pathModel != null)
-                    await PathChanged(pathModel).ConfigureAwait(false);
-            }
+
             SetupPathEndDropdown();
-            comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(currentSelections.PathName, cbi.Value.Name, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(currentSelections.PathName, cbi.Value.Name, StringComparison.OrdinalIgnoreCase));
             UpdateEnabled();
+            return ValueTask.CompletedTask;
         }
     }
 }

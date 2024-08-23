@@ -96,34 +96,48 @@ namespace Orts.Menu
             comboBox.ValueMember = nameof(ComboBoxItem<object>.Value);
         }
 
-        private delegate bool SetComboBoxItemDelegate<T>(ComboBox comboBox, Func<T, bool> predicate);
+        private delegate T SetGetComboBoxItemDelegate<T>(ComboBox comboBox, Func<T, bool> predicate);
 
-        public static T SynchronizedValue<T>(this ComboBox comboBox) where T : class
-        {
-            return comboBox.InvokeRequired ? comboBox.Invoke(SynchronizedValue<T>, comboBox) as T : comboBox.SelectedValue as T;
-        }
-
-
-        public static bool SetComboBoxItem<T>(this ComboBox comboBox, Func<T, bool> predicate)
+        public static T SetComboBoxItem<T>(this ComboBox comboBox, Func<T, bool> predicate)
         {
             if (comboBox.InvokeRequired)
             {
-                SetComboBoxItemDelegate<T> setComboBoxItemDelegate = new SetComboBoxItemDelegate<T>(SetComboBoxItem);
-                return (bool)comboBox.Invoke(setComboBoxItemDelegate, comboBox, predicate);
+                return (comboBox.Invoke(new SetGetComboBoxItemDelegate<T>(SetComboBoxItem), comboBox, predicate)) is T result ? result : default;
             }
             if (comboBox.Items.Count == 0)
-                return false;
+                return default;
 
-            for (int i = 0; i < comboBox.Items.Count; i++)
+            bool found = false;
+            if (comboBox.Items[0] is ComboBoxItem<T>)
             {
-                if (comboBox.Items[i] is T t && predicate(t))
+                for (int i = 0; i < comboBox.Items.Count; i++)
                 {
-                    comboBox.SelectedIndex = i;
-                    return true;
+                    if (comboBox.Items[i] is ComboBoxItem<T> cbi && predicate(cbi.Value))
+                    {
+                        comboBox.SelectedIndex = i;
+                        found = true;
+                        break;
+                    }
                 }
+                if (!found)
+                    comboBox.SelectedIndex = 0;
+                return comboBox.SelectedValue is T result ? result : default;
             }
-            comboBox.SelectedIndex = 0;
-            return false;
+            else
+            {
+                for (int i = 0; i < comboBox.Items.Count; i++)
+                {
+                    if (comboBox.Items[i] is T t && predicate(t))
+                    {
+                        comboBox.SelectedIndex = i;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                    comboBox.SelectedIndex = 0;
+                return comboBox.SelectedValue is T result ? result : default;
+            }
         }
     }
 }

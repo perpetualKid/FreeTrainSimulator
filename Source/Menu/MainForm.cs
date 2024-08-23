@@ -82,8 +82,6 @@ namespace Orts.Menu
 
         private bool initialized;
         private UserSettings settings;
-        private FrozenSet<RouteModelCore> routeModels = FrozenSet<RouteModelCore>.Empty;
-        private FrozenSet<PathModelCore> pathModels = FrozenSet<PathModelCore>.Empty;
         private IEnumerable<Activity> activities = Array.Empty<Activity>();
         private IEnumerable<Consist> consists = Array.Empty<Consist>();
         private IEnumerable<TimetableInfo> timetableSets = Array.Empty<TimetableInfo>();
@@ -359,7 +357,7 @@ namespace Orts.Menu
 
         private async void ComboBoxRoute_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            await RouteChanged(comboBoxRoute.SelectedValue as RouteModelCore).ConfigureAwait(true);
+            comboBoxRoute.SelectedValue = await RouteChanged(comboBoxRoute.SelectedValue as RouteModelCore).ConfigureAwait(true);
         }
 
         #region Mode
@@ -639,7 +637,7 @@ namespace Orts.Menu
                 return;
             }
 
-            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, routeModels))
+            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, SelectedFolder.Routes))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
