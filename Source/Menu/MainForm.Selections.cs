@@ -61,7 +61,7 @@ namespace Orts.Menu
             if (SelectedFolder == contentFolder)
                 return;
 
-            contentFolder = comboBoxFolder.SetComboBoxItem((FolderModel folderItem) => string.Equals(folderItem.Name, currentSelections.FolderName, StringComparison.OrdinalIgnoreCase));
+            contentFolder = comboBoxFolder.SetComboBoxItem((FolderModel folderItem) => string.Equals(folderItem.Name, contentFolder?.Name, StringComparison.OrdinalIgnoreCase));
             currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with { FolderName = contentFolder?.Name };
             SelectedFolder = contentFolder;
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -110,7 +111,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             if (routeModel != null)
             {
                 routeModel = await RouteModelHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
-                routeModel = await RouteModelCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
+                FrozenSet<PathModelCore> pathModels = await RouteModelCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
+                routeModel = routeModel with { TrainPaths = pathModels };
             }
             return routeModel;
         }
@@ -121,7 +123,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             if (routeModel.SetupRequired())
                 routeModel = await RouteModelHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
-            routeModel = await RouteModelCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
+            FrozenSet<PathModelCore> pathModels = await RouteModelCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
+            routeModel = routeModel with { TrainPaths = pathModels };
             return routeModel;
 
         }

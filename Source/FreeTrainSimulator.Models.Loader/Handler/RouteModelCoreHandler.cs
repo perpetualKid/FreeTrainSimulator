@@ -48,14 +48,18 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            routeModel.InitializeWith(await PathModelCoreHandler.GetPaths(routeModel, cancellationToken).ConfigureAwait(false));
+            routeModel = routeModel with
+            {
+                TrainPaths = await PathModelCoreHandler.GetPaths(routeModel, cancellationToken).ConfigureAwait(false),
+                RouteActivities = await ActivityModelCoreHandler.GetActivities(routeModel, cancellationToken).ConfigureAwait(false)
+            };
             IFileResolve parent = (routeModel as IFileResolve).Container;
             routeModel.Initialize(ModelFileResolver<RouteModelCore>.FilePath(routeModel, parent), parent);
             routeModel.RefreshModel();
             return routeModel;
         }
 
-        public static async ValueTask<RouteModelCore> ConvertPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async ValueTask<FrozenSet<PathModelCore>> ConvertPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
@@ -92,8 +96,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 }
             }).ConfigureAwait(false);
 
-            routeModel.InitializeWith(results.ToFrozenSet());
-            return routeModel;
+            return results.ToFrozenSet();
         }
     }
 }

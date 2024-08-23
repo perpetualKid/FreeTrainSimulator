@@ -25,9 +25,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             RouteModel result = await FromFile(routeModel.Name, (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
-            //copy NonPersistent properties
-            result.InitializeWith(routeModel);
-            return result;
+            return result with { TrainPaths = routeModel.TrainPaths, RouteActivities = routeModel.RouteActivities };
         }
 
         public static async ValueTask<RouteModel> Convert(FolderStructure.ContentFolder.RouteFolder routeFolder, FolderModel contentFolder, CancellationToken cancellationToken)

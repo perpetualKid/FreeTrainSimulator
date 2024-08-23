@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,7 +20,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             ConcurrentBag<PathModelCore> results = new ConcurrentBag<PathModelCore>();
 
-            //load existing route models, and compare if the corresponding folder still exists.
+            //load existing path models, and compare if the corresponding folder still exists.
             if (Directory.Exists(pathsFolder))
             {
                 await Parallel.ForEachAsync(Directory.EnumerateFiles(pathsFolder, pattern), cancellationToken, async (file, token) =>

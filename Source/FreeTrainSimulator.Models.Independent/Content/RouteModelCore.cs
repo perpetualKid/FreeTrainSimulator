@@ -30,26 +30,14 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public EnumArray<string, GraphicType> Graphics { get; init; }
 
         [MemoryPackIgnore]
-        public FrozenSet<PathModelCore> TrainPaths { get; private set; }
+        public FrozenSet<PathModelCore> TrainPaths { get; init; }
+        [MemoryPackIgnore]
+        public FrozenSet<ActivityModelCore> RouteActivities { get; init; }
 
         [MemoryPackConstructor]
         protected RouteModelCore(in WorldLocation routeStart)
         { 
             this.routeStart = routeStart;
-        }
-
-        public void InitializeWith(FrozenSet<PathModelCore> paths)
-        {
-            TrainPaths = paths;
-            _childsInitialized = true;
-        }
-
-        public void InitializeWith(RouteModelCore routeModelCore)
-        {
-            ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));
-
-            TrainPaths = routeModelCore.TrainPaths;
-            _childsInitialized = routeModelCore._childsInitialized;
         }
     }
 }
