@@ -30,7 +30,7 @@ namespace Orts.Menu
         /// </summary>
         public static void DataSourceFromList<T>(this ComboBox comboBox, IEnumerable<T> source, Func<T, string> lookup)
         {
-            ArgumentNullException.ThrowIfNull(comboBox);
+            ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
 
             comboBox.DataSource = FromList(source, lookup);
             comboBox.EnableComboBoxItemDataSourceMembers();
@@ -43,7 +43,7 @@ namespace Orts.Menu
         /// </summary>
         public static void DataSourceFromEnum<T>(this ComboBox comboBox) where T : Enum
         {
-            ArgumentNullException.ThrowIfNull(comboBox);
+            ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
 
             comboBox.DataSource = FromEnum<T>();
             comboBox.EnableComboBoxItemDataSourceMembers();
@@ -56,7 +56,7 @@ namespace Orts.Menu
         /// </summary>
         public static void DataSourceFromEnumIndex<T>(this ComboBox comboBox) where T : Enum
         {
-            ArgumentNullException.ThrowIfNull(comboBox);
+            ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
 
             comboBox.DataSource = FromEnumValue<T>();
             comboBox.EnableComboBoxItemDataSourceMembers();
@@ -92,6 +92,8 @@ namespace Orts.Menu
 
         public static void EnableComboBoxItemDataSourceMembers(this ComboBox comboBox)
         {
+            ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
+
             comboBox.DisplayMember = nameof(ComboBoxItem<object>.Text);
             comboBox.ValueMember = nameof(ComboBoxItem<object>.Value);
         }
@@ -100,6 +102,9 @@ namespace Orts.Menu
 
         public static T SetComboBoxItem<T>(this ComboBox comboBox, Func<T, bool> predicate)
         {
+            ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
+            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
+
             if (comboBox.InvokeRequired)
             {
                 return (comboBox.Invoke(new SetGetComboBoxItemDelegate<T>(SetComboBoxItem), comboBox, predicate)) is T result ? result : default;

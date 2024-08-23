@@ -1,4 +1,5 @@
-﻿using System.Collections.Frozen;
+﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
@@ -35,19 +36,21 @@ namespace FreeTrainSimulator.Models.Independent.Content
         protected RouteModelCore(in WorldLocation routeStart)
         { 
             this.routeStart = routeStart;
-            initializationRequired = true;
+            _initializationRequired = true;
         }
 
         public void InitializeWith(FrozenSet<PathModelCore> paths)
         {
             TrainPaths = paths;
-            childsInitialized = true;
+            _childsInitialized = true;
         }
 
         public void InitializeWith(RouteModelCore routeModelCore)
         {
+            ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));
+
             TrainPaths = routeModelCore.TrainPaths;
-            childsInitialized = routeModelCore.childsInitialized;
+            _childsInitialized = routeModelCore._childsInitialized;
         }
     }
 }

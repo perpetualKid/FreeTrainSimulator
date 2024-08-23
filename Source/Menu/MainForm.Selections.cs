@@ -41,7 +41,7 @@ namespace Orts.Menu
             //Initial setup if necessary
             if (SelectedProfile.ContentFolders.Count == 0)
             {
-                await ShowOptionsForm(true);
+                await ShowOptionsForm(true).ConfigureAwait(false);
             }
             else
             {

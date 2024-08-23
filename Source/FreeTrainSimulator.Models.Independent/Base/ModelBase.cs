@@ -20,8 +20,8 @@ namespace FreeTrainSimulator.Models.Independent.Base
         private protected static string fileExtension;
         private string directoryPath;
         private IFileResolve parent;
-        private protected bool initializationRequired;
-        private protected bool childsInitialized;
+        private protected bool _initializationRequired;
+        private protected bool _childsInitialized;
 
         private protected virtual string DirectoryName => Name;
         private protected virtual string FileName => Name;
@@ -29,6 +29,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
 
         #region IFileResolve implementation
         [MemoryPackIgnore]
+#pragma warning disable CA1033 // Interface methods should be callable by child types
         static string IFileResolve.DefaultExtension => fileExtension;
         [MemoryPackIgnore]
         string IFileResolve.DirectoryName => DirectoryName;
@@ -38,13 +39,14 @@ namespace FreeTrainSimulator.Models.Independent.Base
         string IFileResolve.DirectoryPath => DirectoryPath;
         [MemoryPackIgnore]
         IFileResolve IFileResolve.Container => parent;
+#pragma warning restore CA1033 // Interface methods should be callable by child types
         #endregion
         [MemoryPackIgnore]
         public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
         [MemoryPackIgnore]
-        public bool InitializationRequired => initializationRequired;
+        public bool InitializationRequired => _initializationRequired;
         [MemoryPackIgnore]
-        public bool ChildsInitialized => childsInitialized;
+        public bool ChildsInitialized => _childsInitialized;
 
         [MemoryPackIgnore]
         public bool Initialized => !string.IsNullOrEmpty(directoryPath);
@@ -60,7 +62,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
             this.parent = parent;
         }
 
-        public virtual void Reset() => initializationRequired = true;
+        public virtual void Reset() => _initializationRequired = true;
         #endregion
 
         /// <summary>

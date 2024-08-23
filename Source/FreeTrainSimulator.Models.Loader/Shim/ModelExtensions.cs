@@ -41,7 +41,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
-            ProfileSelectionsModel selectionsModel = await ContentHandlerBase<ProfileSelectionsModel, ProfileSelectionsModel>.FromFile(profileModel.Name, profileModel, cancellationToken);
+            ProfileSelectionsModel selectionsModel = await ContentHandlerBase<ProfileSelectionsModel, ProfileSelectionsModel>.FromFile(profileModel.Name, profileModel, cancellationToken).ConfigureAwait(false);
             if (selectionsModel == null)
             {
                 selectionsModel = new ProfileSelectionsModel() { Name = profileModel.Name };
@@ -55,7 +55,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             ArgumentNullException.ThrowIfNull(selectionsModel, nameof(selectionsModel));
 
-            return await ContentHandlerBase<ProfileSelectionsModel, ProfileSelectionsModel>.ToFile(selectionsModel, cancellationToken);
+            return await ContentHandlerBase<ProfileSelectionsModel, ProfileSelectionsModel>.ToFile(selectionsModel, cancellationToken).ConfigureAwait(false);
         }
 
 
@@ -117,6 +117,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<RouteModelCore> Expand(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+
             if (routeModel.SetupRequired())
                 routeModel = await ContentRouteHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
             routeModel = await ContentRouteCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
