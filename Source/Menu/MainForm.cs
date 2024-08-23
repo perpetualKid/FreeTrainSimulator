@@ -577,7 +577,7 @@ namespace Orts.Menu
                 switch (form.ShowDialog(this))
                 {
                     case DialogResult.OK:
-                        SelectedProfile.Reset();
+                        await SelectedProfile.Convert(settings.FolderSettings.Folders.Select(folder => (folder.Key, folder.Value)), CancellationToken.None).ConfigureAwait(true);
                         await ProfileChanged().ConfigureAwait(true);
                         break;
                     case DialogResult.Retry: //Language has changed

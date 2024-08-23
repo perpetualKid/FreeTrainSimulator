@@ -12,7 +12,7 @@ using FreeTrainSimulator.Models.Independent.Content;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class ContentPathCoreHandler : ContentHandlerBase<PathModelCore, PathModelCore>
+    internal sealed class PathModelCoreHandler : ContentHandlerBase<PathModelCore, PathModelCore>
     {
         public static async ValueTask<FrozenSet<PathModelCore>> GetPaths(RouteModelCore routeModel, CancellationToken cancellationToken)
         {

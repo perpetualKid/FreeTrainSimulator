@@ -14,7 +14,7 @@ using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class ContentRouteHandler : ContentHandlerBase<RouteModel, RouteModelCore>
+    internal sealed class RouteModelHandler : ContentHandlerBase<RouteModel, RouteModelCore>
     {
         public static async ValueTask<RouteModel> Get(string name, FolderModel contentFolder, CancellationToken cancellationToken)
         {

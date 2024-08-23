@@ -13,7 +13,7 @@ using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class ContentFolderHandler : ContentHandlerBase<FolderModel, FolderModel>
+    internal sealed class FolderModelHandler : ContentHandlerBase<FolderModel, FolderModel>
     {
         public static async ValueTask<FolderModel> Create(string folderName, string repositoryPath, ProfileModel profile, CancellationToken cancellationToken)
         {
@@ -33,7 +33,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
 
-            contentFolder.SetRoutes(await ContentRouteCoreHandler.GetRoutes(contentFolder, cancellationToken).ConfigureAwait(false));
+            contentFolder.SetRoutes(await RouteModelCoreHandler.GetRoutes(contentFolder, cancellationToken).ConfigureAwait(false));
             IFileResolve parent = (contentFolder as IFileResolve).Container;
             contentFolder.Initialize(ModelFileResolver<FolderModel>.FilePath(contentFolder, parent), parent);
             contentFolder.RefreshModel();
@@ -66,11 +66,11 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             {
                 await Parallel.ForEachAsync(Directory.EnumerateFiles(routesFolder, pattern), cancellationToken, async (file, token) =>
                 {
-                    RouteModelCore route = await ContentRouteCoreHandler.FromFile(file, contentFolder, token, false).ConfigureAwait(false);
+                    RouteModelCore route = await RouteModelCoreHandler.FromFile(file, contentFolder, token, false).ConfigureAwait(false);
                     if (route != null && routeFolders.TryRemove(route.Tag, out FolderStructure.ContentFolder.RouteFolder routeFolder)) //
                     {
                         if (route.SetupRequired())
-                            route = await ContentRouteHandler.Convert(routeFolder, contentFolder, token).ConfigureAwait(false);
+                            route = await RouteModelHandler.Convert(routeFolder, contentFolder, token).ConfigureAwait(false);
                         routes.Add(route);
                     }
                 }).ConfigureAwait(false);
@@ -79,7 +79,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             //for any new MSTS folder (remaining in the preloaded dictionary), Create a route model
             await Parallel.ForEachAsync(routeFolders, cancellationToken, async (routeFolder, token) =>
             {
-                RouteModelCore route = await ContentRouteHandler.Convert(routeFolder.Value, contentFolder, token).ConfigureAwait(false);
+                RouteModelCore route = await RouteModelHandler.Convert(routeFolder.Value, contentFolder, token).ConfigureAwait(false);
                 if (null != route)
                 {
                     routes.Add(route);

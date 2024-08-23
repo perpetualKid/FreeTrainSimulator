@@ -9,7 +9,7 @@ using FreeTrainSimulator.Models.Independent.Content;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class ContentProfileHandler : ContentHandlerBase<ProfileModel, ProfileModel>
+    internal sealed class ProfileModelHandler : ContentHandlerBase<ProfileModel, ProfileModel>
     {
         public const string DefaultProfileName = "Default";
 
@@ -68,7 +68,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentNullException.ThrowIfNull(contentProfile, nameof(contentProfile));
 
             contentProfile = new ProfileModel((await Task.WhenAll(folders.Select(
-                async (item) => await ContentFolderHandler.Create(item.Item1, item.Item2, contentProfile, cancellationToken).ConfigureAwait(false))).ConfigureAwait(false)).ToFrozenSet())
+                async (item) => await FolderModelHandler.Create(item.Item1, item.Item2, contentProfile, cancellationToken).ConfigureAwait(false))).ConfigureAwait(false)).ToFrozenSet())
             {
                 Name = contentProfile.Name,
             };

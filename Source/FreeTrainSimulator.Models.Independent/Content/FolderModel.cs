@@ -12,7 +12,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
     {
         static partial void StaticConstructor()
         {
-            fileExtension = ".contentfolder";
+            fileExtension = ".folder";
         }
 
         public string ContentPath { get; init; }

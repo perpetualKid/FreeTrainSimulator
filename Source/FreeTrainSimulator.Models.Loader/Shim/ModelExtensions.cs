@@ -22,11 +22,11 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
     public static class ProfileModelExtensions
     {
-        public static ProfileModel Default(this ProfileModel _) => ContentProfileHandler.DefaultProfile;
+        public static ProfileModel Default(this ProfileModel _) => ProfileModelHandler.DefaultProfile;
 
         public static async ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken)
         {
-            return await ContentProfileHandler.Get(profileModel?.Name, cancellationToken).ConfigureAwait(false);
+            return await ProfileModelHandler.Get(profileModel?.Name, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<FolderModel> FolderModel(this ProfileModel profileModel, string folderName, CancellationToken cancellationToken)
@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             ArgumentException.ThrowIfNullOrEmpty(folderName, nameof(folderName));
 
-            return await ContentFolderHandler.Get(folderName, profileModel, cancellationToken).ConfigureAwait(false);
+            return await FolderModelHandler.Get(folderName, profileModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<ProfileSelectionsModel> SelectionsModel(this ProfileModel profileModel, CancellationToken cancellationToken)
@@ -61,7 +61,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<ProfileModel> Convert(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
-            return await ContentProfileHandler.Convert(profileModel?.Name, folders, cancellationToken).ConfigureAwait(false);
+            return await ProfileModelHandler.Convert(profileModel?.Name, folders, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -78,17 +78,17 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
             ArgumentException.ThrowIfNullOrEmpty(routeName, nameof(routeName));
 
-            return await ContentRouteHandler.Get(routeName, folderModel, cancellationToken).ConfigureAwait(false);
+            return await RouteModelHandler.Get(routeName, folderModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<FolderModel> Load(this FolderModel folderModel, CancellationToken cancellationToken)
         {
-            return folderModel != null && folderModel.SetupRequired() ? await ContentFolderHandler.Load(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
+            return folderModel != null && folderModel.SetupRequired() ? await FolderModelHandler.Load(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
         }
 
         public static async ValueTask<FolderModel> Convert(this FolderModel folderModel, CancellationToken cancellationToken)
         {
-            return folderModel != null ? await ContentFolderHandler.Convert(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
+            return folderModel != null ? await FolderModelHandler.Convert(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
         }
     }
 
@@ -102,15 +102,15 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<RouteModel> Extend(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return routeModel is RouteModel routeModelExtended ? routeModelExtended : await ContentRouteHandler.Extend(routeModel, cancellationToken).ConfigureAwait(false);
+            return routeModel is RouteModel routeModelExtended ? routeModelExtended : await RouteModelHandler.Extend(routeModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<RouteModelCore> Convert(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             if (routeModel != null)
             {
-                routeModel = await ContentRouteHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
-                routeModel = await ContentRouteCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
+                routeModel = await RouteModelHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
+                routeModel = await RouteModelCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
             }
             return routeModel;
         }
@@ -120,8 +120,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
             if (routeModel.SetupRequired())
-                routeModel = await ContentRouteHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
-            routeModel = await ContentRouteCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
+                routeModel = await RouteModelHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
+            routeModel = await RouteModelCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
             return routeModel;
 
         }
@@ -132,7 +132,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             string contentFolderPath = routeFolder.ContentFolder.Folder;
 
-            ProfileModel contentProfile = await ContentProfileHandler.DefaultProfile.Get(cancellationToken).ConfigureAwait(false);
+            ProfileModel contentProfile = await ProfileModelHandler.DefaultProfile.Get(cancellationToken).ConfigureAwait(false);
             FolderModel folder = await contentProfile.ContentFolders.
                 Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault().
                 Load(cancellationToken).ConfigureAwait(false);
@@ -158,7 +158,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<RouteModelCore> Load(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return routeModel != null && routeModel.SetupRequired() ? await ContentRouteCoreHandler.Load(routeModel, cancellationToken).ConfigureAwait(false) : routeModel;
+            return routeModel != null && routeModel.SetupRequired() ? await RouteModelCoreHandler.Load(routeModel, cancellationToken).ConfigureAwait(false) : routeModel;
         }
 
         public static async ValueTask<PathModel> PathModel(this RouteModelCore routeModel, string pathName, CancellationToken cancellationToken)
@@ -166,7 +166,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             ArgumentException.ThrowIfNullOrEmpty(pathName, nameof(pathName));
 
-            return await ContentPathHandler.Get(pathName, routeModel, cancellationToken).ConfigureAwait(false);
+            return await PathModelHandler.Get(pathName, routeModel, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -174,7 +174,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
     {
         public static async ValueTask<PathModel> Convert(this PathModel pathModel, CancellationToken cancellationToken)
         {
-            return pathModel != null ? await ContentPathHandler.Convert(pathModel.Name, (pathModel as IFileResolve).Container as RouteModel, cancellationToken).ConfigureAwait(false) : pathModel;
+            return pathModel != null ? await PathModelHandler.Convert(pathModel.Name, (pathModel as IFileResolve).Container as RouteModel, cancellationToken).ConfigureAwait(false) : pathModel;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
     {
         static partial void StaticConstructor()
         {
-            fileExtension = ".contentroute";
+            fileExtension = ".route";
         }
 
         private protected override string FileName => RouteId;
@@ -36,7 +36,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
         protected RouteModelCore(in WorldLocation routeStart)
         { 
             this.routeStart = routeStart;
-            _initializationRequired = true;
         }
 
         public void InitializeWith(FrozenSet<PathModelCore> paths)

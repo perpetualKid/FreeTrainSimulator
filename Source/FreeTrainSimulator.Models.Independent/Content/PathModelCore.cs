@@ -9,7 +9,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
     {
         static partial void StaticConstructor()
         {
-            fileExtension = ".contentpath";
+            fileExtension = ".path";
         }
 
         private protected override string FileName => PathId;

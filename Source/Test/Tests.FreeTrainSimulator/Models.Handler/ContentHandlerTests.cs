@@ -33,8 +33,8 @@ namespace Tests.FreeTrainSimulator.Models.Loader
         [TestMethod]
         public async Task GetContentFolderTest()
         {
-            ProfileModel defaultModel = ContentProfileHandler.DefaultProfile;
-            FolderModel folderModel = await ContentFolderHandler.Get("Demo", defaultModel, CancellationToken.None).ConfigureAwait(false);
+            ProfileModel defaultModel = ProfileModelHandler.DefaultProfile;
+            FolderModel folderModel = await FolderModelHandler.Get("Demo", defaultModel, CancellationToken.None).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -45,20 +45,20 @@ namespace Tests.FreeTrainSimulator.Models.Loader
             defaultModel = await defaultModel.Get(CancellationToken.None).ConfigureAwait(false);
             if (null != defaultModel)
             {
-                FolderModel folderModel = await ContentFolderHandler.Get("Demo Model 1", defaultModel, CancellationToken.None).ConfigureAwait(false);
+                FolderModel folderModel = await FolderModelHandler.Get("Demo Model 1", defaultModel, CancellationToken.None).ConfigureAwait(false);
 
-                folderModel = await ContentFolderHandler.Convert(folderModel, CancellationToken.None).ConfigureAwait(false);
+                folderModel = await FolderModelHandler.Convert(folderModel, CancellationToken.None).ConfigureAwait(false);
             }
         }
 
         [TestMethod]
         public async Task ConvertContentProfileTest()
         {
-            ProfileModel defaultModel = await ContentProfileHandler.Convert(null, Enumerable.Empty<(string, string)>(), CancellationToken.None).ConfigureAwait(false);
+            ProfileModel defaultModel = await ProfileModelHandler.Convert(null, Enumerable.Empty<(string, string)>(), CancellationToken.None).ConfigureAwait(false);
 
             Assert.AreEqual(VersionInfo.Version, defaultModel.Version);
 
-            ProfileModel otherModel = await ContentProfileHandler.Convert("otherProfile", new List<(string, string)>() { ("First", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)) }, CancellationToken.None).ConfigureAwait(false);
+            ProfileModel otherModel = await ProfileModelHandler.Convert("otherProfile", new List<(string, string)>() { ("First", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)) }, CancellationToken.None).ConfigureAwait(false);
             Assert.AreEqual(VersionInfo.Version, otherModel.Version);
             Assert.AreEqual(1, otherModel.ContentFolders.Count);
         }
@@ -66,7 +66,7 @@ namespace Tests.FreeTrainSimulator.Models.Loader
         [TestMethod]
         public async Task ConvertContentPathTest()
         {
-            ProfileModel defaultModel = await ContentProfileHandler.Convert(null, Enumerable.Empty<(string, string)>(), CancellationToken.None).ConfigureAwait(false);
+            ProfileModel defaultModel = await ProfileModelHandler.Convert(null, Enumerable.Empty<(string, string)>(), CancellationToken.None).ConfigureAwait(false);
             FolderModel folderModel = null != defaultModel ? await defaultModel.FolderModel("Demo Model 1", CancellationToken.None).ConfigureAwait(false) : null;
             RouteModel routeModel = null != folderModel ? await folderModel.RouteModel("Monogame", CancellationToken.None).ConfigureAwait(false) : null;
             await routeModel.Convert(CancellationToken.None);

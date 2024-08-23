@@ -15,7 +15,7 @@ using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class ContentRouteCoreHandler : ContentHandlerBase<RouteModelCore, RouteModelCore>
+    internal sealed class RouteModelCoreHandler : ContentHandlerBase<RouteModelCore, RouteModelCore>
     {
         public static async ValueTask<RouteModelCore> Get(string name, FolderModel contentFolder, CancellationToken cancellationToken)
         {
@@ -48,7 +48,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            routeModel.InitializeWith(await ContentPathCoreHandler.GetPaths(routeModel, cancellationToken).ConfigureAwait(false));
+            routeModel.InitializeWith(await PathModelCoreHandler.GetPaths(routeModel, cancellationToken).ConfigureAwait(false));
             IFileResolve parent = (routeModel as IFileResolve).Container;
             routeModel.Initialize(ModelFileResolver<RouteModelCore>.FilePath(routeModel, parent), parent);
             routeModel.RefreshModel();
@@ -72,11 +72,11 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             {
                 await Parallel.ForEachAsync(Directory.EnumerateFiles(pathsFolder, pattern), cancellationToken, async (file, token) =>
                 {
-                    PathModelCore pathModel = await ContentPathCoreHandler.FromFile(file, routeModel, token, false).ConfigureAwait(false);
+                    PathModelCore pathModel = await PathModelCoreHandler.FromFile(file, routeModel, token, false).ConfigureAwait(false);
                     if (pathModel != null && pathFiles.Remove(pathModel.Tag, out string filePath)) //
                     {
                         if (pathModel.SetupRequired())
-                            pathModel = await ContentPathHandler.Convert(filePath, routeModel, token).ConfigureAwait(false);
+                            pathModel = await PathModelHandler.Convert(filePath, routeModel, token).ConfigureAwait(false);
                         results.Add(pathModel);
                     }
                 }).ConfigureAwait(false);
@@ -85,7 +85,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             //for any new MSTS path (remaining in the preloaded dictionary), Create a path model
             await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
             {
-                PathModelCore pathModel = await ContentPathHandler.Convert(path.Value, routeModel, token).ConfigureAwait(false);
+                PathModelCore pathModel = await PathModelHandler.Convert(path.Value, routeModel, token).ConfigureAwait(false);
                 if (null != pathModel)
                 {
                     results.Add(pathModel);
