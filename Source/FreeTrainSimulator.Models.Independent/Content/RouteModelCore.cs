@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
         }
 
         private protected override string FileName => RouteId;
-        private protected override string FolderName => RouteId;
+        private protected override string DirectoryName => RouteId;
 
         private readonly WorldLocation routeStart;
 

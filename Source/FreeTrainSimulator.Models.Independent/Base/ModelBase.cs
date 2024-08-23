@@ -18,28 +18,26 @@ namespace FreeTrainSimulator.Models.Independent.Base
 
         #region internal handling
         private protected static string fileExtension;
-        private string filePath;
+        private string directoryPath;
         private IFileResolve parent;
         private protected bool initializationRequired;
         private protected bool childsInitialized;
 
-        private protected virtual string FolderName => Name;
+        private protected virtual string DirectoryName => Name;
         private protected virtual string FileName => Name;
-        private protected virtual string FilePath => filePath;
+        private protected virtual string DirectoryPath => directoryPath;
 
         #region IFileResolve implementation
         [MemoryPackIgnore]
-#pragma warning disable CA1033 // Interface methods should be callable by child types
         static string IFileResolve.DefaultExtension => fileExtension;
         [MemoryPackIgnore]
-        string IFileResolve.FolderName => FolderName;
+        string IFileResolve.DirectoryName => DirectoryName;
         [MemoryPackIgnore]
         string IFileResolve.FileName => FileName;
         [MemoryPackIgnore]
-        string IFileResolve.FilePath => FilePath;
+        string IFileResolve.DirectoryPath => DirectoryPath;
         [MemoryPackIgnore]
         IFileResolve IFileResolve.Container => parent;
-#pragma warning restore CA1033 // Interface methods should be callable by child types
         #endregion
         [MemoryPackIgnore]
         public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
@@ -49,7 +47,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         public bool ChildsInitialized => childsInitialized;
 
         [MemoryPackIgnore]
-        public bool Initialized => !string.IsNullOrEmpty(filePath);
+        public bool Initialized => !string.IsNullOrEmpty(directoryPath);
 
         public void RefreshModel()
         {
@@ -58,7 +56,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
 
         public virtual void Initialize(string file, IFileResolve parent)
         {
-            filePath = Path.GetDirectoryName(file);
+            directoryPath = Path.GetDirectoryName(file);
             this.parent = parent;
         }
 

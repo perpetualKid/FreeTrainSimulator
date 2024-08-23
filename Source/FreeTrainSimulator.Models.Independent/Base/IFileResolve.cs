@@ -12,13 +12,13 @@
         /// <summary>
         /// Full Directory Path where the file instance of this <seealso cref="ModelBase{T}"/> instance is stored
         /// </summary>
-        public abstract string FilePath { get; }
+        public abstract string DirectoryPath { get; }
         /// <summary>
-        /// Name of the Folder where the <see cref="FileName"/> file instance of this <seealso cref="ModelBase{T}"/> instance is stored
+        /// Name of the Directory where the <see cref="FileName"/> file instance of this <seealso cref="ModelBase{T}"/> instance is stored
         /// </summary>
-        public abstract string FolderName { get; }
+        public abstract string DirectoryName { get; }
         /// <summary>
-        /// Name of the File in the <see cref="FolderName"/> folder where the file instance of this <seealso cref="ModelBase{T}"/> instance is stored
+        /// Name of the File in the <see cref="DirectoryName"/> folder where the file instance of this <seealso cref="ModelBase{T}"/> instance is stored
         /// </summary>
         public abstract string FileName { get; }
         /// <summary>

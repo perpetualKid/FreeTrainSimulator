@@ -82,10 +82,10 @@ namespace FreeTrainSimulator.Models.Loader
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
         private static string FileExtensionCore<U>() where U : IFileResolve => U.DefaultExtension;
-        private static string FolderNameCore<U>(U instance) where U : IFileResolve => instance?.FolderName;
+        private static string DirectoryNameCore<U>(U instance) where U : IFileResolve => instance?.DirectoryName;
         private static string FileNameCore<U>(U instance) where U : IFileResolve => instance?.FileName;
         public static string FileExtension => FileExtensionCore<ModelBase<T>>();
-        public static string FolderName<TContainer>(ModelBase<TContainer> instance) where TContainer : ModelBase<TContainer> => FolderNameCore(instance);
+        public static string DirectoryName<TContainer>(ModelBase<TContainer> instance) where TContainer : ModelBase<TContainer> => DirectoryNameCore(instance);
         public static string FileName<TContainer>(ModelBase<TContainer> instance) where TContainer : ModelBase<TContainer> => FileNameCore(instance);
 
         public static string FilePath<TContainer>(string name, ModelBase<TContainer> container) where TContainer : ModelBase<TContainer>
@@ -107,7 +107,7 @@ namespace FreeTrainSimulator.Models.Loader
 
         public static string FolderPath(IFileResolve container)
         {
-            return container != null ? Path.Combine(FolderPath(container.Container), container.FolderName) : FileResolver.ContentRoot;
+            return container != null ? Path.Combine(FolderPath(container.Container), container.DirectoryName) : FileResolver.ContentRoot;
         }
 
         public static string WildcardPattern => $"*{FileExtension}.*";
