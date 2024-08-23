@@ -17,6 +17,9 @@ namespace FreeTrainSimulator.Models.Independent.Content
             fileExtension = ".contentroute";
         }
 
+        private protected override string FileName => RouteId;
+        private protected override string FolderName => RouteId;
+
         private readonly WorldLocation routeStart;
 
         public string RouteId { get; init; }

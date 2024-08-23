@@ -12,6 +12,8 @@ namespace FreeTrainSimulator.Models.Independent.Content
             fileExtension = ".contentpath";
         }
 
+        private protected override string FileName => PathId;
+
         public string PathId { get; init; }
         /// <summary>Start location of the path</summary>
         public string Start { get; init; }

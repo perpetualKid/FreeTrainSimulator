@@ -23,18 +23,24 @@ namespace FreeTrainSimulator.Models.Independent.Base
         private protected bool initializationRequired;
         private protected bool childsInitialized;
 
+        private protected virtual string FolderName => Name;
+        private protected virtual string FileName => Name;
+        private protected virtual string FilePath => filePath;
+
+        #region IFileResolve implementation
         [MemoryPackIgnore]
 #pragma warning disable CA1033 // Interface methods should be callable by child types
         static string IFileResolve.DefaultExtension => fileExtension;
         [MemoryPackIgnore]
-        string IFileResolve.FolderName => Name;
+        string IFileResolve.FolderName => FolderName;
         [MemoryPackIgnore]
-        string IFileResolve.FileName => Name;
+        string IFileResolve.FileName => FileName;
         [MemoryPackIgnore]
-        string IFileResolve.FilePath => filePath;
+        string IFileResolve.FilePath => FilePath;
         [MemoryPackIgnore]
         IFileResolve IFileResolve.Container => parent;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
+        #endregion
         [MemoryPackIgnore]
         public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
         [MemoryPackIgnore]
