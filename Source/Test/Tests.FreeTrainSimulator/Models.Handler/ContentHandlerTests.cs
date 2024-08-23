@@ -24,10 +24,10 @@ namespace Tests.FreeTrainSimulator.Models.Loader
             FolderModel folder = new FolderModel("TestModel", ".", profile);
 
             string contentFolderFile = ModelFileResolver<FolderModel>.FilePath("test123", profile);
-            Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\test123.contentfolder", StringComparison.OrdinalIgnoreCase));
+            Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\test123.folder", StringComparison.OrdinalIgnoreCase));
 
             contentFolderFile = ModelFileResolver<FolderModel>.FilePath(folder);
-            Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\TestModel.contentfolder", StringComparison.OrdinalIgnoreCase));
+            Assert.IsTrue(contentFolderFile.EndsWith("Content\\something\\TestModel.folder", StringComparison.OrdinalIgnoreCase));
         }
 
         [TestMethod]
