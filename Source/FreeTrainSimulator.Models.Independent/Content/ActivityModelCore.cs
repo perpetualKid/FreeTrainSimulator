@@ -22,5 +22,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public WeatherType Weather { get; init; }
         public Difficulty Difficulty { get; init; }
         public TimeSpan Duration { get; init; }
+        public ActivityType ActivityType { get; init; }
     }
 }

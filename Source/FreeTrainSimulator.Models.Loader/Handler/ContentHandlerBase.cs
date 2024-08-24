@@ -10,6 +10,8 @@ using FreeTrainSimulator.Models.Independent.Content;
 
 using MemoryPack;
 
+using Microsoft.Xna.Framework.Graphics;
+
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal abstract class ContentHandlerBase<TActual, TBase> where TBase : ModelBase<TBase> where TActual : TBase
@@ -58,6 +60,11 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 throw;
             }
             return model;
+        }
+
+        public static async ValueTask Create<TContainer>(TActual model, TContainer parent, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
+        { 
+            await Create(model, parent, true, false, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask Create<TContainer>(TActual model, TContainer parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>

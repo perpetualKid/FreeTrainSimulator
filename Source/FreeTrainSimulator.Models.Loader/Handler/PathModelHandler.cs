@@ -43,14 +43,14 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
                 PathModel pathModel = new PathModel()
                 {
-                    Name = string.IsNullOrEmpty(patFile.Name) ? $"unnamed ({Path.GetFileNameWithoutExtension(filePath)})" : patFile.Name,
+                    Name = string.IsNullOrEmpty(patFile.Name) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.Name,
                     PathId = patFile.PathID,
                     PlayerPath = patFile.PlayerPath,
-                    Start = string.IsNullOrEmpty(patFile.Start) ? $"unnamed from {Path.GetFileNameWithoutExtension(filePath)})" : patFile.Start,
-                    End = string.IsNullOrEmpty(patFile.End) ? $"unnamed (from {Path.GetFileNameWithoutExtension(filePath)})" : patFile.End,
+                    Start = string.IsNullOrEmpty(patFile.Start) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.Start,
+                    End = string.IsNullOrEmpty(patFile.End) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.End,
                     Tag = Path.GetFileNameWithoutExtension(filePath),
                 };
-                await Create(pathModel, routeModel, true, false, cancellationToken).ConfigureAwait(false);
+                await Create(pathModel, routeModel, cancellationToken).ConfigureAwait(false);
                 return pathModel;
             }
             return null;
