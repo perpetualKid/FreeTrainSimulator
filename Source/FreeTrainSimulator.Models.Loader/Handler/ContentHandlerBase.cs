@@ -10,8 +10,6 @@ using FreeTrainSimulator.Models.Independent.Content;
 
 using MemoryPack;
 
-using Microsoft.Xna.Framework.Graphics;
-
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal abstract class ContentHandlerBase<TActual, TBase> where TBase : ModelBase<TBase> where TActual : TBase
@@ -32,7 +30,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     model = await MemoryPackSerializer.DeserializeAsync<TActual>(saveFile, null, cancellationToken).ConfigureAwait(false);
                 }
                 model.Initialize(targetFileName, parent);
-            }
+            }            
             return model;
         }
 

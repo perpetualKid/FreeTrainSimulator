@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         private protected static string fileExtension;
         private string directoryPath;
         private IFileResolve parent;
-        private protected bool _childsInitialized;
+        private protected bool childsSet;
 
         private protected virtual string DirectoryName => Name;
         private protected virtual string FileName => Name;
@@ -43,7 +43,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         [MemoryPackIgnore]
         public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
         [MemoryPackIgnore]
-        public bool ChildsInitialized => _childsInitialized;
+        public bool ChildsInitialized => childsSet;
 
         [MemoryPackIgnore]
         public bool Initialized => !string.IsNullOrEmpty(directoryPath);

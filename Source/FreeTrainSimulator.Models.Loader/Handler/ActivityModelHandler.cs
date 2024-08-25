@@ -50,7 +50,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     Difficulty = activityFile.Activity.Header.Difficulty,
                     Duration = activityFile.Activity.Header.Duration,
                     ActivityType = ActivityType.Activity,
-                    Tag = filePath,
+                    Tag = Path.GetFileNameWithoutExtension(filePath),
                 };
 
                 await Create(activityModel, routeModel, cancellationToken).ConfigureAwait(false);

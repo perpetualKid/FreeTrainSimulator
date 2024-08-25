@@ -11,8 +11,6 @@ using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
-using Orts.Formats.Msts;
-
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class RouteModelCoreHandler : ContentHandlerBase<RouteModelCore, RouteModelCore>
@@ -97,6 +95,46 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             }).ConfigureAwait(false);
 
             return results.ToFrozenSet();
+        }
+
+        public static async ValueTask<FrozenSet<ActivityModelCore>> ConvertActivityModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+
+            string activitiesFolder = ModelFileResolver<ActivityModelCore>.FolderPath(routeModel);
+            string pattern = ModelFileResolver<ActivityModelCore>.WildcardPattern;
+
+            ConcurrentBag<ActivityModelCore> results = new ConcurrentBag<ActivityModelCore>();
+            // preload existing MSTS files
+            ConcurrentDictionary<string, string> activityFiles = new ConcurrentDictionary<string, string>(Directory.EnumerateFiles(routeModel.MstsRouteFolder().ActivitiesFolder, "*.act").
+                ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
+
+            //load existing route models, and compare if the corresponding folder still exists.
+            if (Directory.Exists(activitiesFolder))
+            {
+                await Parallel.ForEachAsync(Directory.EnumerateFiles(activitiesFolder, pattern), cancellationToken, async (file, token) =>
+                {
+                    ActivityModelCore activityModel = await ActivityModelCoreHandler.FromFile(file, routeModel, token, false).ConfigureAwait(false);
+                    if (activityModel != null && activityFiles.Remove(activityModel.Tag, out string filePath)) //
+                    {
+                        if (activityModel.SetupRequired())
+                            activityModel = await ActivityModelHandler.Convert(filePath, routeModel, token).ConfigureAwait(false);
+                        results.Add(activityModel);
+                    }
+                }).ConfigureAwait(false);
+            }
+
+            //for any new MSTS path (remaining in the preloaded dictionary), Create a path model
+            await Parallel.ForEachAsync(activityFiles, cancellationToken, async (activity, token) =>
+            {
+                ActivityModelCore activityModel = await ActivityModelHandler.Convert(activity.Value, routeModel, token).ConfigureAwait(false);
+                if (null != activityModel)
+                {
+                    results.Add(activityModel);
+                }
+            }).ConfigureAwait(false);
+
+            return results.Concat( new ActivityModelCore[] { ActivityModelHandler.Explorer, ActivityModelHandler.ExploreActivity }).ToFrozenSet();
         }
     }
 }

@@ -6,8 +6,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Handler;
 
 using Orts.Formats.Msts;
@@ -33,21 +35,18 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             {
                 routeModel = await RouteModelHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
                 FrozenSet<PathModelCore> pathModels = await RouteModelCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
-                routeModel = routeModel with { TrainPaths = pathModels };
+                FrozenSet<ActivityModelCore> activityModels = await RouteModelCoreHandler.ConvertActivityModels(routeModel, cancellationToken).ConfigureAwait(false);
+                routeModel = routeModel with { TrainPaths = pathModels, RouteActivities = activityModels };
             }
             return routeModel;
         }
 
-        public static async ValueTask<RouteModelCore> Expand(this RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async ValueTask Expand(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            if (routeModel.SetupRequired())
-                routeModel = await RouteModelHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
-            FrozenSet<PathModelCore> pathModels = await RouteModelCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
-            routeModel = routeModel with { TrainPaths = pathModels };
-            return routeModel;
-
+            routeModel.ResetChildModels(await RouteModelCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false),
+                await RouteModelCoreHandler.ConvertActivityModels(routeModel, cancellationToken).ConfigureAwait(false));
         }
 
         public static async ValueTask<RouteModel> ToRouteModel(this FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken cancellationToken)
@@ -100,5 +99,30 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             return await ActivityModelHandler.Get(activityName, routeModel, cancellationToken).ConfigureAwait(false);
         }
+
+        public static async ValueTask<ActivityModelCore> ActivityModelFromSettings(this RouteModelCore routeModel, ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+
+            return profileSelections.ActivityType switch
+            {
+                ActivityType.Activity => await ActivityModelHandler.Get(profileSelections.ActivityName, routeModel, cancellationToken).ConfigureAwait(false),
+                ActivityType.Explorer => ActivityModelHandler.ExploreActivity with
+                {
+                    Season = profileSelections.SeasonType,
+                    Weather = profileSelections.WeatherType,
+                    StartTime = profileSelections.StartTime
+                },
+                ActivityType.ExploreActivity => ActivityModelHandler.ExploreActivity with
+                {
+                    Season = profileSelections.SeasonType,
+                    Weather = profileSelections.WeatherType,
+                    StartTime = profileSelections.StartTime
+                },
+                _ => null,
+            };
+        }
+
     }
 }

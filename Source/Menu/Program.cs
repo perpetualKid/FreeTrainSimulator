@@ -91,31 +91,31 @@ namespace Orts.Menu
                     {
                         case MainForm.UserAction.SingleplayerNewGame:
                         case MainForm.UserAction.MultiplayerClient:
-                            if (MainForm.SelectedActivity is DefaultExploreActivity)
-                            {
-                                DefaultExploreActivity exploreActivity = MainForm.SelectedActivity as DefaultExploreActivity;
-                                parameters.Add("-explorer");
-                                parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
-                                parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");
-                                parameters.Add($"{exploreActivity.StartTime}");
-                                parameters.Add($"{exploreActivity.Season}");
-                                parameters.Add($"{exploreActivity.Weather}");
-                            }
-                            else if (MainForm.SelectedActivity is ExploreThroughActivity)
-                            {
-                                ExploreThroughActivity exploreActivity = MainForm.SelectedActivity as ExploreThroughActivity;
-                                parameters.Add("-exploreactivity");
-                                parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
-                                parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");
-                                parameters.Add($"{exploreActivity.StartTime}");
-                                parameters.Add($"{exploreActivity.Season}");
-                                parameters.Add($"{exploreActivity.Weather}");
-                            }
-                            else
-                            {
-                                parameters.Add("-activity");
-                                parameters.Add($"\"{MainForm.SelectedActivity.FilePath}\"");
-                            }
+                            //if (MainForm.SelectedActivity is DefaultExploreActivity)
+                            //{
+                            //    DefaultExploreActivity exploreActivity = MainForm.SelectedActivity as DefaultExploreActivity;
+                            //    parameters.Add("-explorer");
+                            //    parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
+                            //    parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");
+                            //    parameters.Add($"{exploreActivity.StartTime}");
+                            //    parameters.Add($"{exploreActivity.Season}");
+                            //    parameters.Add($"{exploreActivity.Weather}");
+                            //}
+                            //else if (MainForm.SelectedActivity is ExploreThroughActivity)
+                            //{
+                            //    ExploreThroughActivity exploreActivity = MainForm.SelectedActivity as ExploreThroughActivity;
+                            //    parameters.Add("-exploreactivity");
+                            //    parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
+                            //    parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");
+                            //    parameters.Add($"{exploreActivity.StartTime}");
+                            //    parameters.Add($"{exploreActivity.Season}");
+                            //    parameters.Add($"{exploreActivity.Weather}");
+                            //}
+                            //else
+                            //{
+                            //    parameters.Add("-activity");
+                            //    parameters.Add($"\"{MainForm.SelectedActivity.FilePath}\"");
+                            //}
                             break;
                         case MainForm.UserAction.SingleplayerResumeSave:
                         case MainForm.UserAction.SingleplayerReplaySave:

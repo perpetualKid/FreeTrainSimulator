@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Frozen;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +8,6 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Shim;
-using FreeTrainSimulator.Models.Simplified;
 
 namespace Orts.Menu
 {
@@ -35,7 +33,7 @@ namespace Orts.Menu
             SelectedProfile ??= SelectedProfile.Default();
 
             currentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
-            SetupActivitySelections();
+
             radioButtonModeActivity.Checked = !(radioButtonModeTimetable.Checked = currentSelections.ActivityType == ActivityType.TimeTable);
 
             //Initial setup if necessary
@@ -86,92 +84,76 @@ namespace Orts.Menu
         {
             SetupRoutesDropdown(routeModels);
             RouteModelCore routeModel = routeModels.Where(r => r.Name == currentSelections?.RouteName).FirstOrDefault();
-            RouteModelCore result = await RouteChanged(routeModel).ConfigureAwait(false);
-            if (routeModel != result)
-            {
-
-            }
+            await RouteChanged(routeModel).ConfigureAwait(false);
         }
 
-        private async ValueTask<RouteModelCore> RouteChanged(RouteModelCore routeModel)
+        private async ValueTask RouteChanged(RouteModelCore routeModel)
         {
             if (SelectedRoute == routeModel)
-                return routeModel;
+                return;
 
             routeModel = comboBoxRoute.SetComboBoxItem((RouteModelCore routeModelItem) => string.Equals(routeModelItem.Name, routeModel?.Name, StringComparison.OrdinalIgnoreCase));
 
             currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with { RouteName = routeModel?.Name };
             SelectedRoute = routeModel;
 
-            // Activities
-            ctsActivityLoading = await ctsActivityLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
-            try
-            {
-                activities = (await Activity.GetActivities(SelectedFolder.MstsContentFolder(), SelectedRoute.MstsRouteFolder(), ctsActivityLoading.Token).ConfigureAwait(true)).OrderBy(a => a.Name);
-            }
-            catch (TaskCanceledException)
-            {
-                activities = Array.Empty<Activity>();
-            }
-            await ActivitiesChanged(activities).ConfigureAwait(false);
-
-            // Paths
-            ctsPathLoading = await ctsPathLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
-            FrozenSet<PathModelCore> pathModels = null;
             if (routeModel != null)
             {
-                if (routeModel.SetupRequired())
-                    routeModel = await (routeModel.Convert(ctsRouteLoading.Token)).ConfigureAwait(false);
-
+                ctsPathLoading = await ctsPathLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
                 try
                 {
-                    pathModels = routeModel.ChildsInitialized ? routeModel.TrainPaths :
-                        (routeModel = await routeModel.Expand(ctsRouteLoading.Token).ConfigureAwait(false)).TrainPaths;
+                    if (!routeModel.ChildsInitialized)
+                        await routeModel.Expand(ctsRouteLoading.Token).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException)
                 {
                 }
             }
-            pathModels ??= FrozenSet<PathModelCore>.Empty;
 
-            await PathsChanged(pathModels).ConfigureAwait(false);
+            ActivityModelCore activityModel = await routeModel.ActivityModelFromSettings(currentSelections, ctsPathLoading.Token).ConfigureAwait(false);
+            // Activities
+            // Paths
+            await ActivitiesChanged(routeModel.RouteActivities ?? FrozenSet<ActivityModelCore>.Empty).ConfigureAwait(false);
+            await PathsChanged(routeModel.TrainPaths ?? FrozenSet<PathModelCore>.Empty).ConfigureAwait(false);
 
             //TODO load Timetablesets
             SelectedRoute = routeModel;
-            return routeModel;
         }
 
-        private async ValueTask ActivitiesChanged(IEnumerable<Activity> activities)
+        private async ValueTask ActivitiesChanged(FrozenSet<ActivityModelCore> activities)
         {
             SetupActivitiesDropdown(activities);
-            Activity activity = activities.Where(a => a.Name == currentSelections?.ActivityName).FirstOrDefault();
+            ActivityModelCore activity = activities.Where(a => a.Name == currentSelections?.ActivityName).FirstOrDefault();
             await ActivityChanged(activity).ConfigureAwait(false);
         }
 
-        private async ValueTask ActivityChanged(Activity activity)
+        private ValueTask ActivityChanged(ActivityModelCore activity)
         {
             if (SelectedActivity == activity)
-                return;
+                return ValueTask.CompletedTask;
 
-            activity = comboBoxActivity.SetComboBoxItem((Activity activityItem) => string.Equals(activityItem.Name, activity?.Name, StringComparison.OrdinalIgnoreCase));
-            
+            activity = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Name, activity?.Name, StringComparison.OrdinalIgnoreCase));
+
             currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with
             {
                 ActivityName = activity?.Name,
-                ActivityType = activity switch { DefaultExploreActivity => ActivityType.Explorer, ExploreThroughActivity => ActivityType.ExploreActivity, _ => ActivityType.Activity }
+                ActivityType = activity.ActivityType,
             };
             SelectedActivity = activity;
 
-            SetupActivityStartDetails((activity.Season, activity.Weather, TimeOnly.FromTimeSpan(activity.StartTime)));
-            PathModelCore pathModel = SelectedRoute.TrainPaths?.Where(p => p.Name == activity?.Path?.Name).FirstOrDefault();
-            await PathChanged(pathModel).ConfigureAwait(false);
+            SetupActivityStartDetailsFromActivity(activity);
+            //PathModelCore pathModel = SelectedRoute.TrainPaths?.Where(p => p.Name == activity?..Path?.Name).FirstOrDefault();
+            //await PathChanged(pathModel).ConfigureAwait(false);
+            UpdateEnabled();
             ShowDetails();
+            return ValueTask.CompletedTask;
         }
 
         private async ValueTask PathsChanged(FrozenSet<PathModelCore> pathModels)
         {
             SetupPathStartDropdown(pathModels);
             PathModelCore pathModel = pathModels.Where(p => p.Name == currentSelections?.PathName).FirstOrDefault();
+
             await PathChanged(pathModel).ConfigureAwait(false);
         }
 
