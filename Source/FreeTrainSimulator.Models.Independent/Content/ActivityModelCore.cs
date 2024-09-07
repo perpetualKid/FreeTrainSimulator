@@ -23,5 +23,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public Difficulty Difficulty { get; init; }
         public TimeSpan Duration { get; init; }
         public ActivityType ActivityType { get; init; }
+        public string PathId { get; init; }
     }
 }

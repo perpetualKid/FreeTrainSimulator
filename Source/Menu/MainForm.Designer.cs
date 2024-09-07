@@ -551,7 +551,8 @@ namespace Orts.Menu
             comboBoxStartTime.Name = "comboBoxStartTime";
             comboBoxStartTime.Size = new System.Drawing.Size(96, 23);
             comboBoxStartTime.TabIndex = 11;
-            comboBoxStartTime.TextChanged += ComboBoxStartTime_TextChanged;
+            comboBoxStartTime.TextUpdate += ComboBoxStartTime_TextUpdated;
+            comboBoxStartTime.SelectionChangeCommitted += ComboBoxStartTime_SelectionChangeCommitted;
             // 
             // comboBoxStartWeather
             // 

@@ -39,6 +39,23 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return selectionsModel;
         }
 
+        public static async ValueTask<ProfileSelectionsModel> SelectionFromActivity(this ProfileModel profileModel, ProfileSelectionsModel selectionsModel, RouteModelCore routeModel, ActivityModelCore activityModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+            ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
+
+            return (selectionsModel ?? await profileModel.SelectionsModel(cancellationToken).ConfigureAwait(false) with 
+            {
+                ActivityType = Common.ActivityType.Activity,
+                ActivityName = activityModel.Name,
+                Season = activityModel.Season,
+                Weather = activityModel.Weather,
+                StartTime = activityModel.StartTime,
+                PathName = activityModel.PathId,
+            });
+        }
+
         public static async ValueTask<ProfileSelectionsModel> UpdateSelectionsModel(this ProfileModel profileModel, ProfileSelectionsModel selectionsModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));

@@ -2,6 +2,7 @@
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Independent.Base;
+using FreeTrainSimulator.Models.Independent.Content;
 
 using MemoryPack;
 
@@ -12,7 +13,7 @@ namespace FreeTrainSimulator.Models.Independent.Settings
     {
         static partial void StaticConstructor()
         {
-            fileExtension = ".contentprofileselections";
+            fileExtension = ".profileselections";
         }
 
         // Base selections
@@ -31,9 +32,12 @@ namespace FreeTrainSimulator.Models.Independent.Settings
         public string TimetableTrain { get; init; }
         public int TimetableDay { get; init; }
         // Shared selections
-        public SeasonType SeasonType { get; init; }
-        public WeatherType WeatherType { get; init; }
+        public SeasonType Season { get; init; }
+        public WeatherType Weather { get; init; }
         // Other selections
         public string LoggingEnabled { get; init; }
+
+        [MemoryPackIgnore]
+        public ProfileModel Profile => (this as IFileResolve)?.Container as ProfileModel;
     }
 }

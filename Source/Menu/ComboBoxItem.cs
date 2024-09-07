@@ -5,6 +5,8 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 
+using static System.Net.Mime.MediaTypeNames;
+
 namespace Orts.Menu
 {
     internal sealed class ComboBoxItem<T>
@@ -32,8 +34,7 @@ namespace Orts.Menu
         {
             ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
 
-            comboBox.DataSource = FromList(source, lookup);
-            comboBox.EnableComboBoxItemDataSourceMembers();
+            comboBox.EnableComboBoxItemDataSource(FromList(source, lookup));
         }
 
         /// <summary>
@@ -45,8 +46,7 @@ namespace Orts.Menu
         {
             ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
 
-            comboBox.DataSource = FromEnum<T>();
-            comboBox.EnableComboBoxItemDataSourceMembers();
+            comboBox.EnableComboBoxItemDataSource(FromEnum<T>());
         }
 
         /// <summary>
@@ -58,8 +58,7 @@ namespace Orts.Menu
         {
             ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
 
-            comboBox.DataSource = FromEnumValue<T>();
-            comboBox.EnableComboBoxItemDataSourceMembers();
+            comboBox.EnableComboBoxItemDataSource(FromEnumValue<T>());
         }
 
         private static List<ComboBoxItem<T>> FromEnum<T>() where T : Enum
@@ -90,12 +89,14 @@ namespace Orts.Menu
             return source.Select(item => new ComboBoxItem<T>(textLookup(item), item)).ToList();
         }
 
-        public static void EnableComboBoxItemDataSourceMembers(this ComboBox comboBox)
+        internal static void EnableComboBoxItemDataSource<T>(this ComboBox comboBox, IEnumerable<ComboBoxItem<T>> datasource)
         {
             ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
 
-            comboBox.DisplayMember = nameof(ComboBoxItem<object>.Text);
-            comboBox.ValueMember = nameof(ComboBoxItem<object>.Value);
+            comboBox.DataSource = datasource?.ToList();
+
+            comboBox.DisplayMember = nameof(ComboBoxItem<T>.Text);
+            comboBox.ValueMember = nameof(ComboBoxItem<T>.Value);
         }
 
         private delegate T SetGetComboBoxItemDelegate<T>(ComboBox comboBox, Func<T, bool> predicate);

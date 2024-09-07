@@ -26,15 +26,11 @@ namespace Orts.Menu
                 {
                     SelectedProfile = await SelectedProfile.Convert(settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), ctsProfileLoading.Token).ConfigureAwait(false);
                 }
-            }
-            catch (TaskCanceledException)
-            {
-            }
+            } catch (TaskCanceledException) { }
+
             SelectedProfile ??= SelectedProfile.Default();
 
             currentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
-
-            radioButtonModeActivity.Checked = !(radioButtonModeTimetable.Checked = currentSelections.ActivityType == ActivityType.TimeTable);
 
             //Initial setup if necessary
             if (SelectedProfile.ContentFolders.Count == 0)
@@ -45,6 +41,7 @@ namespace Orts.Menu
             {
                 await FoldersChanged(SelectedProfile.ContentFolders).ConfigureAwait(false);
             }
+            SetupActivityFromSelection(currentSelections);
         }
 
         private async ValueTask FoldersChanged(FrozenSet<FolderModel> contentFolders)
@@ -113,24 +110,24 @@ namespace Orts.Menu
             ActivityModelCore activityModel = await routeModel.ActivityModelFromSettings(currentSelections, ctsPathLoading.Token).ConfigureAwait(false);
             // Activities
             // Paths
-            await ActivitiesChanged(routeModel.RouteActivities ?? FrozenSet<ActivityModelCore>.Empty).ConfigureAwait(false);
+            ActivitiesChanged(routeModel.RouteActivities ?? FrozenSet<ActivityModelCore>.Empty);
             await PathsChanged(routeModel.TrainPaths ?? FrozenSet<PathModelCore>.Empty).ConfigureAwait(false);
 
             //TODO load Timetablesets
             SelectedRoute = routeModel;
         }
 
-        private async ValueTask ActivitiesChanged(FrozenSet<ActivityModelCore> activities)
+        private void ActivitiesChanged(FrozenSet<ActivityModelCore> activities)
         {
             SetupActivitiesDropdown(activities);
             ActivityModelCore activity = activities.Where(a => a.Name == currentSelections?.ActivityName).FirstOrDefault();
-            await ActivityChanged(activity).ConfigureAwait(false);
+//            ActivityChanged(activity);
         }
 
-        private ValueTask ActivityChanged(ActivityModelCore activity)
+        private void ActivityChanged(ActivityModelCore activity)
         {
             if (SelectedActivity == activity)
-                return ValueTask.CompletedTask;
+                return;
 
             activity = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Name, activity?.Name, StringComparison.OrdinalIgnoreCase));
 
@@ -138,15 +135,14 @@ namespace Orts.Menu
             {
                 ActivityName = activity?.Name,
                 ActivityType = activity.ActivityType,
+                StartTime = activity.StartTime,
+                Season = activity.Season,
+                Weather = activity.Weather,
+                PathName = activity.PathId,
             };
             SelectedActivity = activity;
 
-            SetupActivityStartDetailsFromActivity(activity);
-            //PathModelCore pathModel = SelectedRoute.TrainPaths?.Where(p => p.Name == activity?..Path?.Name).FirstOrDefault();
-            //await PathChanged(pathModel).ConfigureAwait(false);
-            UpdateEnabled();
-            ShowDetails();
-            return ValueTask.CompletedTask;
+            SetupActivityFromSelection(currentSelections);
         }
 
         private async ValueTask PathsChanged(FrozenSet<PathModelCore> pathModels)

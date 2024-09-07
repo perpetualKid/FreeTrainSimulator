@@ -110,14 +110,14 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 ActivityType.Activity => await ActivityModelHandler.Get(profileSelections.ActivityName, routeModel, cancellationToken).ConfigureAwait(false),
                 ActivityType.Explorer => ActivityModelHandler.ExploreActivity with
                 {
-                    Season = profileSelections.SeasonType,
-                    Weather = profileSelections.WeatherType,
+                    Season = profileSelections.Season,
+                    Weather = profileSelections.Weather,
                     StartTime = profileSelections.StartTime
                 },
                 ActivityType.ExploreActivity => ActivityModelHandler.ExploreActivity with
                 {
-                    Season = profileSelections.SeasonType,
-                    Weather = profileSelections.WeatherType,
+                    Season = profileSelections.Season,
+                    Weather = profileSelections.Weather,
                     StartTime = profileSelections.StartTime
                 },
                 _ => null,
