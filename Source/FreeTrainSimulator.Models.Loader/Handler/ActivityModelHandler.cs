@@ -15,12 +15,19 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         public static ActivityModelCore Explorer { get; private set; } = new ActivityModelCore()
         {
             ActivityType = ActivityType.Explorer,
-            Name = "- Explore Route -"
+            Name = "- Explore Route -",
+            StartTime = TimeOnly.FromTimeSpan(TimeSpan.FromHours(12)),
+            Season = SeasonType.Summer,
+            Weather = WeatherType.Clear,
         };
+
         public static ActivityModelCore ExploreActivity { get; private set; } = new ActivityModelCore()
         {
             ActivityType = ActivityType.ExploreActivity,
-            Name = "+ Explore in Activity Mode +"
+            Name = "+ Explore in Activity Mode +",
+            StartTime = TimeOnly.FromTimeSpan(TimeSpan.FromHours(12)),
+            Season = SeasonType.Summer,
+            Weather = WeatherType.Clear,
         };
 
         public static async ValueTask<ActivityModel> Get(string name, RouteModelCore routeModel, CancellationToken cancellationToken)
@@ -49,6 +56,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     Difficulty = activityFile.Activity.Header.Difficulty,
                     Duration = activityFile.Activity.Header.Duration,
                     ActivityType = ActivityType.Activity,
+                    PathId = activityFile.Activity.Header.PathID,
                     Tag = Path.GetFileNameWithoutExtension(filePath),
                 };
 

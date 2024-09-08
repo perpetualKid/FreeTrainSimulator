@@ -26,20 +26,20 @@ namespace Orts.Menu
                 {
                     SelectedProfile = await SelectedProfile.Convert(settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), ctsProfileLoading.Token).ConfigureAwait(false);
                 }
-            } catch (TaskCanceledException) { }
+            } catch (TaskCanceledException) { return; }
 
             SelectedProfile ??= SelectedProfile.Default();
 
             currentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
 
             //Initial setup if necessary
-            if (SelectedProfile.ContentFolders.Count == 0)
+            if ((SelectedProfile.ContentFolders.Count == 0))
             {
-                await ShowOptionsForm(true).ConfigureAwait(false);
+                await (ShowOptionsForm(true)).ConfigureAwait(false);
             }
             else
             {
-                await FoldersChanged(SelectedProfile.ContentFolders).ConfigureAwait(false);
+                await (FoldersChanged(SelectedProfile.ContentFolders)).ConfigureAwait(false);
             }
             SetupActivityFromSelection(currentSelections);
         }
@@ -47,7 +47,7 @@ namespace Orts.Menu
         private async ValueTask FoldersChanged(FrozenSet<FolderModel> contentFolders)
         {
             SetupFoldersDropdown(contentFolders);
-            FolderModel folderModel = contentFolders.Where(f => f.Name == currentSelections?.FolderName).FirstOrDefault();
+            FolderModel folderModel = contentFolders.Where(f => f.Name == currentSelections?.FolderName)?.FirstOrDefault() ?? contentFolders.OrderBy(f => f.Name).FirstOrDefault();
             await FolderChanged(folderModel).ConfigureAwait(false);
         }
 
@@ -61,6 +61,7 @@ namespace Orts.Menu
             SelectedFolder = contentFolder;
 
             ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
+
             FrozenSet<RouteModelCore> routeModels = null;
             if (contentFolder != null)
             {
@@ -68,9 +69,7 @@ namespace Orts.Menu
                 {
                     routeModels = contentFolder.SetupRequired() ? (await contentFolder.Convert(ctsRouteLoading.Token).ConfigureAwait(false)).Routes : contentFolder.Routes;
                 }
-                catch (TaskCanceledException)
-                {
-                }
+                catch (TaskCanceledException) { return; }
             }
             routeModels ??= FrozenSet<RouteModelCore>.Empty;
             //TODO load Trains
@@ -102,26 +101,18 @@ namespace Orts.Menu
                     if (!routeModel.ChildsInitialized)
                         await routeModel.Expand(ctsRouteLoading.Token).ConfigureAwait(false);
                 }
-                catch (TaskCanceledException)
-                {
-                }
+                catch (TaskCanceledException) { }
             }
 
             ActivityModelCore activityModel = await routeModel.ActivityModelFromSettings(currentSelections, ctsPathLoading.Token).ConfigureAwait(false);
             // Activities
             // Paths
-            ActivitiesChanged(routeModel.RouteActivities ?? FrozenSet<ActivityModelCore>.Empty);
-            await PathsChanged(routeModel.TrainPaths ?? FrozenSet<PathModelCore>.Empty).ConfigureAwait(false);
+
+            SetupActivitiesDropdown(routeModel.RouteActivities ?? FrozenSet<ActivityModelCore>.Empty);
+            SetupPathStartDropdown(routeModel.TrainPaths ?? FrozenSet<PathModelCore>.Empty);
 
             //TODO load Timetablesets
             SelectedRoute = routeModel;
-        }
-
-        private void ActivitiesChanged(FrozenSet<ActivityModelCore> activities)
-        {
-            SetupActivitiesDropdown(activities);
-            ActivityModelCore activity = activities.Where(a => a.Name == currentSelections?.ActivityName).FirstOrDefault();
-//            ActivityChanged(activity);
         }
 
         private void ActivityChanged(ActivityModelCore activity)
@@ -135,28 +126,20 @@ namespace Orts.Menu
             {
                 ActivityName = activity?.Name,
                 ActivityType = activity.ActivityType,
-                StartTime = activity.StartTime,
-                Season = activity.Season,
-                Weather = activity.Weather,
-                PathName = activity.PathId,
+                StartTime = activity.ActivityType == ActivityType.Activity ? activity.StartTime : comboBoxStartTime.Tag != null ? (TimeOnly)comboBoxStartTime.Tag : activity.StartTime,
+                Season = activity.ActivityType == ActivityType.Activity ? activity.Season : (SeasonType)comboBoxStartSeason.SelectedValue,
+                Weather = activity.ActivityType == ActivityType.Activity ? activity.Weather : (WeatherType)comboBoxStartWeather.SelectedValue,
+                PathName = activity.ActivityType == ActivityType.Activity ? activity.PathId : (comboBoxHeadTo.SelectedValue as PathModelCore)?.PathId,
             };
             SelectedActivity = activity;
 
             SetupActivityFromSelection(currentSelections);
         }
 
-        private async ValueTask PathsChanged(FrozenSet<PathModelCore> pathModels)
-        {
-            SetupPathStartDropdown(pathModels);
-            PathModelCore pathModel = pathModels.Where(p => p.Name == currentSelections?.PathName).FirstOrDefault();
-
-            await PathChanged(pathModel).ConfigureAwait(false);
-        }
-
-        private ValueTask PathChanged(PathModelCore pathModel)
+        private void PathChanged(PathModelCore pathModel)
         {
             if (pathModel == SelectedPath)
-                return ValueTask.CompletedTask;
+                return;
 
             pathModel = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => p.Name == pathModel?.Name).Any()).Where(p => p.Name == pathModel?.Name).FirstOrDefault();
 
@@ -166,7 +149,7 @@ namespace Orts.Menu
             SetupPathEndDropdown();
             _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(currentSelections.PathName, cbi.Value.Name, StringComparison.OrdinalIgnoreCase));
             UpdateEnabled();
-            return ValueTask.CompletedTask;
+            return;
         }
     }
 }

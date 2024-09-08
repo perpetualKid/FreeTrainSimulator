@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,7 +34,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ProfileSelectionsModel selectionsModel = await ContentHandlerBase<ProfileSelectionsModel, ProfileSelectionsModel>.FromFile(profileModel.Name, profileModel, cancellationToken).ConfigureAwait(false);
             if (selectionsModel == null)
             {
-                selectionsModel = new ProfileSelectionsModel() { Name = profileModel.Name };
+                selectionsModel = new ProfileSelectionsModel() { Name = profileModel.Name, ActivityType = Common.ActivityType.Activity };
                 selectionsModel.Initialize(ModelFileResolver<ProfileSelectionsModel>.FilePath(selectionsModel, profileModel), profileModel);
             }
             return selectionsModel;
@@ -63,7 +64,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             return await ContentHandlerBase<ProfileSelectionsModel, ProfileSelectionsModel>.ToFile(selectionsModel, cancellationToken).ConfigureAwait(false);
         }
-
 
         public static async ValueTask<ProfileModel> Convert(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {

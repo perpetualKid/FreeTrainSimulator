@@ -195,7 +195,6 @@ namespace Orts.Menu
                 comboBoxTimetableDay.DataSourceFromList(Enumerable.Range(0, 7), (day) => CultureInfo.CurrentUICulture.DateTimeFormat.DayNames[day]);
             }
 
-            //ShowEnvironment();
             ShowTimetableEnvironment();
 
             await profileTask.ConfigureAwait(true);
@@ -390,19 +389,19 @@ namespace Orts.Menu
         #region Consists
         private void ComboBoxConsist_SelectedIndexChanged(object sender, EventArgs e)
         {
-            UpdateExploreActivity(true);
+            //UpdateExploreActivity(true);
         }
         #endregion
 
-        private async void ComboBoxStartAt_SelectionChangeCommitted(object sender, EventArgs e)
+        private void ComboBoxStartAt_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            await PathChanged((comboBoxStartAt.SelectedItem as ComboBoxItem<IGrouping<string, PathModelCore>>)?.Value.FirstOrDefault()).ConfigureAwait(true);
+            PathChanged((comboBoxStartAt.SelectedItem as ComboBoxItem<IGrouping<string, PathModelCore>>)?.Value.FirstOrDefault());
         }
 
-        private async void ComboBoxHeadTo_SelectionChangeCommitted(object sender, EventArgs e)
+        private void ComboBoxHeadTo_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            await PathChanged((comboBoxHeadTo.SelectedItem as ComboBoxItem<PathModelCore>)?.Value).ConfigureAwait(true);
-            UpdateExploreActivity(true);
+            PathChanged((comboBoxHeadTo.SelectedItem as ComboBoxItem<PathModelCore>)?.Value);
+            //UpdateExploreActivity(true);
         }
         #endregion
 
@@ -410,34 +409,34 @@ namespace Orts.Menu
         private void ComboBoxStartTime_TextUpdated(object sender, EventArgs e)
         {
             if (TimeOnly.TryParse(comboBoxStartTime.Text, out TimeOnly startTime))
+            {
                 currentSelections = currentSelections with
                 {
                     StartTime = startTime,
                 };
-            UpdateExploreActivity(false);
+            }
         }
 
-        private void ComboBoxStartTime_SelectionChangeCommitted(object sender, System.EventArgs e)
+        private void ComboBoxStartTime_SelectionChangeCommitted(object sender, EventArgs e)
         {
             if (TimeOnly.TryParse(comboBoxStartTime.Text, out TimeOnly startTime))
+            {
                 currentSelections = currentSelections with
                 {
                     StartTime = startTime,
                 };
-            UpdateExploreActivity(false);
+            }
         }
 
 
         private void ComboBoxStartSeason_SelectionChangeCommitted(object sender, EventArgs e)
         {
             currentSelections = currentSelections with { Season = ((SeasonType)comboBoxStartSeason.SelectedValue) };
-            UpdateExploreActivity(false);
         }
 
         private void ComboBoxStartWeather_SelectionChangeCommitted(object sender, EventArgs e)
         {
             currentSelections = currentSelections with { Weather = ((WeatherType)comboBoxStartWeather.SelectedValue) };
-            UpdateExploreActivity(false);
         }
         #endregion
 
@@ -752,24 +751,6 @@ namespace Orts.Menu
         }
         #endregion
 
-        #region Activity list
-        private void UpdateExploreActivity(bool updateDetails)
-        {
-            if (currentSelections?.ActivityType is ActivityType.Explorer or ActivityType.ExploreActivity)
-            {
-                //SelectedActivity = SelectedActivity with { ActivityType = currentSelections.ActivityType };
-            }
-            //int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
-            //(SelectedActivity as ExploreActivity)?.UpdateActivity(comboBoxStartTime.Text, currentSelections.SeasonType, currentSelections.WeatherType, SelectedConsist, null);// SelectedPath);
-            //if (updater == 0)
-            //{
-            //    if (updateDetails)
-            //        ShowDetails();
-            //    detailUpdater = 0;
-            //}
-        }
-        #endregion
-
         #region Consist lists
         private async Task LoadLocomotiveListAsync()
         {
@@ -888,7 +869,7 @@ namespace Orts.Menu
         {
             if (InvokeRequired)
             {
-                Invoke(SetupPathStartDropdown, pathModels);
+                _ = Invoke(SetupPathStartDropdown, pathModels);
                 return;
             }
 
@@ -927,14 +908,20 @@ namespace Orts.Menu
             _ = comboBoxStartWeather.SetComboBoxItem((ComboBoxItem<WeatherType> cbi) => cbi.Value == profileSelections.Weather);
 
             comboBoxStartTime.Text = $"{profileSelections.StartTime:HH\\:mm\\:ss}";
+            comboBoxStartTime.Tag = profileSelections.StartTime;
 
             if (activity)
-                _ = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Name, currentSelections.ActivityName, StringComparison.OrdinalIgnoreCase));
+            {
+                _ = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Name, profileSelections.ActivityName, StringComparison.OrdinalIgnoreCase));
+            }
             else if (exploreActivity)
-                _ = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => activityItem.ActivityType == currentSelections.ActivityType);
-            _ = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => p.Name == profileSelections.PathName).Any())?.Where(p => p.Name == profileSelections.PathName).FirstOrDefault();
+            {
+                _ = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => activityItem.ActivityType == profileSelections.ActivityType);
+            }
+
+            PathModelCore pathStart = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => p.Name == profileSelections.PathName).Any()).FirstOrDefault();
             SetupPathEndDropdown();
-            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(profileSelections.PathName, cbi.Value.Name, StringComparison.OrdinalIgnoreCase));
+            PathModelCore pathEnd = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(profileSelections.PathName, cbi.Value.Name, StringComparison.OrdinalIgnoreCase))?.Value;
 
             //enabled
             comboBoxStartAt.Enabled = comboBoxHeadTo.Enabled = exploreActivity;
@@ -1079,6 +1066,7 @@ namespace Orts.Menu
                 Invoke(ShowDetails);
                 return;
             }
+
             ClearDetails();
             if (!string.IsNullOrEmpty(SelectedRoute?.Description))
                 AddDetailToShow(catalog.GetString("Route: {0}", SelectedRoute.Name), SelectedRoute.Description);
