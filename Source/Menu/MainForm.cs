@@ -919,9 +919,9 @@ namespace Orts.Menu
                 _ = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => activityItem.ActivityType == profileSelections.ActivityType);
             }
 
-            PathModelCore pathStart = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => p.Name == profileSelections.PathName).Any()).FirstOrDefault();
+            _ = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => p.Name == profileSelections.PathName).Any());
             SetupPathEndDropdown();
-            PathModelCore pathEnd = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(profileSelections.PathName, cbi.Value.Name, StringComparison.OrdinalIgnoreCase))?.Value;
+            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(profileSelections.PathName, cbi.Value.Name, StringComparison.OrdinalIgnoreCase));
 
             //enabled
             comboBoxStartAt.Enabled = comboBoxHeadTo.Enabled = exploreActivity;
@@ -1068,8 +1068,8 @@ namespace Orts.Menu
             }
 
             ClearDetails();
-            if (!string.IsNullOrEmpty(SelectedRoute?.Description))
-                AddDetailToShow(catalog.GetString("Route: {0}", SelectedRoute.Name), SelectedRoute.Description);
+            if (comboBoxRoute.SelectedValue is RouteModelCore routeModel)
+                AddDetailToShow(catalog.GetString("Route: {0}", routeModel.Name), routeModel.Description);
 
             if (currentSelections.ActivityType != ActivityType.TimeTable)
             {
@@ -1077,18 +1077,18 @@ namespace Orts.Menu
                 {
                     AddDetailToShow(catalog.GetString("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description);
                 }
-                if (SelectedActivity?.Description != null)
+                if ((comboBoxActivity.SelectedValue is ActivityModelCore activityModel))
                 {
-                    AddDetailToShow(catalog.GetString($"Activity: {SelectedActivity.Name}"), SelectedActivity.Description);
-                    AddDetailToShow(catalog.GetString("Duration:"), $"{SelectedActivity.Duration}");
-                    AddDetailToShow(catalog.GetString("Difficulty:"), $"{SelectedActivity.Difficulty}");
-                    AddDetailToShow(catalog.GetString("Activity Briefing"), SelectedActivity.Briefing);
+                    AddDetailToShow(catalog.GetString($"Activity: {activityModel.Name}"), activityModel.Description);
+                    AddDetailToShow(catalog.GetString("Duration:"), $"{activityModel.Duration}");
+                    AddDetailToShow(catalog.GetString("Difficulty:"), $"{activityModel.Difficulty}");
+                    AddDetailToShow(catalog.GetString("Activity Briefing"), activityModel.Briefing);
                 }
-                else if (SelectedPath != null)
+                else if ((comboBoxHeadTo.SelectedValue is PathModelCore pathModel))
                 {
-                    AddDetailToShow(catalog.GetString("Path: {0}", SelectedPath.Name),
-                        string.Join("\n", catalog.GetString("Starting at: {0}", SelectedPath.Start),
-                    catalog.GetString("Heading to: {0}", SelectedPath.End)));
+                    AddDetailToShow(catalog.GetString("Path: {0}", pathModel.Name),
+                        string.Join("\n", catalog.GetString("Starting at: {0}", pathModel.Start),
+                    catalog.GetString("Heading to: {0}", pathModel.End)));
                 }
             }
             if (radioButtonModeTimetable.Checked)

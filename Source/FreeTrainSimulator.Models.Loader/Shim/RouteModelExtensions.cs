@@ -99,30 +99,5 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             return await ActivityModelHandler.Get(activityName, routeModel, cancellationToken).ConfigureAwait(false);
         }
-
-        public static async ValueTask<ActivityModelCore> ActivityModelFromSettings(this RouteModelCore routeModel, ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
-            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-
-            return profileSelections.ActivityType switch
-            {
-                ActivityType.Activity => await ActivityModelHandler.Get(profileSelections.ActivityName, routeModel, cancellationToken).ConfigureAwait(false),
-                ActivityType.Explorer => ActivityModelHandler.ExploreActivity with
-                {
-                    Season = profileSelections.Season,
-                    Weather = profileSelections.Weather,
-                    StartTime = profileSelections.StartTime
-                },
-                ActivityType.ExploreActivity => ActivityModelHandler.ExploreActivity with
-                {
-                    Season = profileSelections.Season,
-                    Weather = profileSelections.Weather,
-                    StartTime = profileSelections.StartTime
-                },
-                _ => null,
-            };
-        }
-
     }
 }

@@ -104,12 +104,12 @@ namespace Orts.Menu
                 catch (TaskCanceledException) { }
             }
 
-            ActivityModelCore activityModel = await routeModel.ActivityModelFromSettings(currentSelections, ctsPathLoading.Token).ConfigureAwait(false);
             // Activities
             // Paths
 
             SetupActivitiesDropdown(routeModel.RouteActivities ?? FrozenSet<ActivityModelCore>.Empty);
             SetupPathStartDropdown(routeModel.TrainPaths ?? FrozenSet<PathModelCore>.Empty);
+            SetupPathEndDropdown();
 
             //TODO load Timetablesets
             SelectedRoute = routeModel;
