@@ -34,8 +34,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             if (routeModel != null)
             {
                 routeModel = await RouteModelHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
-                FrozenSet<PathModelCore> pathModels = await RouteModelCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
-                FrozenSet<ActivityModelCore> activityModels = await RouteModelCoreHandler.ConvertActivityModels(routeModel, cancellationToken).ConfigureAwait(false);
+                FrozenSet<PathModelCore> pathModels = await PathModelHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
+                FrozenSet<ActivityModelCore> activityModels = await ActivityModelHandler.ConvertActivityModels(routeModel, cancellationToken).ConfigureAwait(false);
                 routeModel = routeModel with { TrainPaths = pathModels, RouteActivities = activityModels };
             }
             return routeModel;
@@ -45,8 +45,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            routeModel.ResetChildModels(await RouteModelCoreHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false),
-                await RouteModelCoreHandler.ConvertActivityModels(routeModel, cancellationToken).ConfigureAwait(false));
+            routeModel.ResetChildModels(await PathModelHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false),
+                await ActivityModelHandler.ConvertActivityModels(routeModel, cancellationToken).ConfigureAwait(false));
         }
 
         public static async ValueTask<RouteModel> ToRouteModel(this FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken cancellationToken)

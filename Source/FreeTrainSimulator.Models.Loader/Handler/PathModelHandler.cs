@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader.Shim;
 
 using Orts.Formats.Msts.Files;
 
@@ -54,6 +59,46 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 return pathModel;
             }
             return null;
+        }
+
+        public static async ValueTask<FrozenSet<PathModelCore>> ConvertPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+
+            string pathsFolder = ModelFileResolver<PathModelCore>.FolderPath(routeModel);
+            string pattern = ModelFileResolver<PathModelCore>.WildcardPattern;
+
+            ConcurrentBag<PathModelCore> results = new ConcurrentBag<PathModelCore>();
+            // preload existing MSTS files
+            ConcurrentDictionary<string, string> pathFiles = new ConcurrentDictionary<string, string>(Directory.EnumerateFiles(routeModel.MstsRouteFolder().PathsFolder, "*.pat").
+                ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
+
+            //load existing path models, and compare if the corresponding folder still exists.
+            if (Directory.Exists(pathsFolder))
+            {
+                await Parallel.ForEachAsync(Directory.EnumerateFiles(pathsFolder, pattern), cancellationToken, async (file, token) =>
+                {
+                    PathModelCore pathModel = await PathModelCoreHandler.FromFile(file, routeModel, token, false).ConfigureAwait(false);
+                    if (pathModel != null && pathFiles.Remove(pathModel.Tag, out string filePath)) //
+                    {
+                        if (pathModel.SetupRequired())
+                            pathModel = await Convert(filePath, routeModel, token).ConfigureAwait(false);
+                        results.Add(pathModel);
+                    }
+                }).ConfigureAwait(false);
+            }
+
+            //for any new MSTS path (remaining in the preloaded dictionary), Create a path model
+            await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
+            {
+                PathModelCore pathModel = await Convert(path.Value, routeModel, token).ConfigureAwait(false);
+                if (null != pathModel)
+                {
+                    results.Add(pathModel);
+                }
+            }).ConfigureAwait(false);
+
+            return results.ToFrozenSet();
         }
     }
 }

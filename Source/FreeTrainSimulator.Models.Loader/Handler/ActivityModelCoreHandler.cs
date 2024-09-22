@@ -32,6 +32,5 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             }
             return results.ToFrozenSet();
         }
-
     }
 }
