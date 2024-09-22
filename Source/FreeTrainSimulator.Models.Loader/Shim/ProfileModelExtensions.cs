@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ProfileSelectionsModel selectionsModel = await ContentHandlerBase<ProfileSelectionsModel, ProfileSelectionsModel>.FromFile(profileModel.Name, profileModel, cancellationToken).ConfigureAwait(false);
             if (selectionsModel == null)
             {
-                selectionsModel = new ProfileSelectionsModel() { Name = profileModel.Name, ActivityType = Common.ActivityType.Activity };
+                selectionsModel = new ProfileSelectionsModel() { Id = profileModel.Name, Name = profileModel.Name, ActivityType = Common.ActivityType.Activity };
                 selectionsModel.Initialize(ModelFileResolver<ProfileSelectionsModel>.FilePath(selectionsModel, profileModel), profileModel);
             }
             return selectionsModel;

@@ -48,13 +48,18 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
                 PathModel pathModel = new PathModel()
                 {
-                    Name = string.IsNullOrEmpty(patFile.Name) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.Name,
-                    Id = patFile.PathID,
+                    Name = string.IsNullOrEmpty(patFile.Name) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.Name.Trim(),
+                    Id = patFile.PathID.Trim(),
                     PlayerPath = patFile.PlayerPath,
-                    Start = string.IsNullOrEmpty(patFile.Start) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.Start,
-                    End = string.IsNullOrEmpty(patFile.End) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.End,
+                    Start = string.IsNullOrEmpty(patFile.Start) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.Start.Trim(),
+                    End = string.IsNullOrEmpty(patFile.End) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.End.Trim(),
                     Tag = Path.GetFileNameWithoutExtension(filePath),
                 };
+                //this is the case where a file may have been renamed but not the path id, ie. in case of copy cloning
+                if (string.IsNullOrEmpty(pathModel.Id) || (pathModel.Tag.Length > pathModel.Id.Length && pathModel.Tag.Contains(pathModel.Id)))
+                {
+                    pathModel = pathModel with { Id = pathModel.Tag };
+                }
                 await Create(pathModel, routeModel, cancellationToken).ConfigureAwait(false);
                 return pathModel;
             }
