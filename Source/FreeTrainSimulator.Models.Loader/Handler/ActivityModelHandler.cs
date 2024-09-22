@@ -46,6 +46,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
                 ActivityModel activityModel = new ActivityModel()
                 {
+                    Id = Path.GetFileNameWithoutExtension(filePath),
                     Name = string.IsNullOrEmpty(activityFile.Activity.Header.Name) ?
                         $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : activityFile.Activity.Header.Name,
                     Description = activityFile.Activity.Header.Description,
@@ -57,7 +58,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     Duration = activityFile.Activity.Header.Duration,
                     ActivityType = ActivityType.Activity,
                     PathId = activityFile.Activity.Header.PathID,
-                    Tag = Path.GetFileNameWithoutExtension(filePath),
                 };
 
                 await Create(activityModel, routeModel, cancellationToken).ConfigureAwait(false);

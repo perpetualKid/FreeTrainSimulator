@@ -67,11 +67,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             ArgumentNullException.ThrowIfNull(contentProfile, nameof(contentProfile));
 
-            contentProfile = new ProfileModel((await Task.WhenAll(folders.Select(
-                async (item) => await FolderModelHandler.Create(item.Item1, item.Item2, contentProfile, cancellationToken).ConfigureAwait(false))).ConfigureAwait(false)).ToFrozenSet())
-            {
-                Name = contentProfile.Name,
-            };
+            contentProfile = new ProfileModel(contentProfile.Name, (await Task.WhenAll(folders.Select(
+                async (item) => await FolderModelHandler.Create(item.Item1, item.Item2, contentProfile, cancellationToken).ConfigureAwait(false))).ConfigureAwait(false)).ToFrozenSet());
             contentProfile.Initialize(ModelFileResolver<ProfileModel>.FilePath(contentProfile, null), null);
             contentProfile = await ToFile(contentProfile, cancellationToken).ConfigureAwait(false);
             if (CheckDefaultProfile(contentProfile))

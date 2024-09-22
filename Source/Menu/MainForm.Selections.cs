@@ -129,7 +129,7 @@ namespace Orts.Menu
                 StartTime = activity.ActivityType == ActivityType.Activity ? activity.StartTime : comboBoxStartTime.Tag != null ? (TimeOnly)comboBoxStartTime.Tag : activity.StartTime,
                 Season = activity.ActivityType == ActivityType.Activity ? activity.Season : (SeasonType)comboBoxStartSeason.SelectedValue,
                 Weather = activity.ActivityType == ActivityType.Activity ? activity.Weather : (WeatherType)comboBoxStartWeather.SelectedValue,
-                PathName = activity.ActivityType == ActivityType.Activity ? activity.PathId : (comboBoxHeadTo.SelectedValue as PathModelCore)?.PathId,
+                PathName = activity.ActivityType == ActivityType.Activity ? activity.PathId : (comboBoxHeadTo.SelectedValue as PathModelCore)?.Id,
             };
             SelectedActivity = activity;
 

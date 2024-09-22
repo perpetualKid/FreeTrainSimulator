@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
         }
 
         [MemoryPackConstructor]
-        public ProfileModel(FrozenSet<FolderModel> contentFolders)
+        public ProfileModel(string name, FrozenSet<FolderModel> contentFolders): base(name, null)
         {
             ArgumentNullException.ThrowIfNull(contentFolders, nameof(contentFolders));
             ContentFolders = contentFolders;

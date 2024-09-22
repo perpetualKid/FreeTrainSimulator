@@ -22,8 +22,9 @@ namespace FreeTrainSimulator.Models.Independent.Base
         private IFileResolve parent;
         private protected bool childsSet;
 
-        private protected virtual string DirectoryName => Name;
-        private protected virtual string FileName => Name;
+        //does allow to override default target files
+        private protected virtual string DirectoryName => Id;
+        private protected virtual string FileName => Id;
         private protected virtual string DirectoryPath => directoryPath;
 
         #region IFileResolve implementation
@@ -61,7 +62,11 @@ namespace FreeTrainSimulator.Models.Independent.Base
         #endregion
 
         /// <summary>
-        /// Unique Name of this instance within the parent entity
+        /// Unique Id of this instance within the parent entity, also need to be file-system compatible
+        /// </summary>
+        public string Id {  get; init; }
+        /// <summary>
+        /// Name of this instance within the parent entity, may not be unique nor file-system compatible
         /// </summary>
         public string Name { get; init; }
         /// <summary>
@@ -79,6 +84,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
 
         protected ModelBase(string name, IFileResolve parent)
         {
+            Id = name;
             Name = name;
             this.parent = parent;
         }

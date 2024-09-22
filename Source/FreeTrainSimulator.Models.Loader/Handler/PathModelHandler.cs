@@ -44,7 +44,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 PathModel pathModel = new PathModel()
                 {
                     Name = string.IsNullOrEmpty(patFile.Name) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.Name,
-                    PathId = patFile.PathID,
+                    Id = patFile.PathID,
                     PlayerPath = patFile.PlayerPath,
                     Start = string.IsNullOrEmpty(patFile.Start) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.Start,
                     End = string.IsNullOrEmpty(patFile.End) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.End,

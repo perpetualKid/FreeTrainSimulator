@@ -75,7 +75,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 await Parallel.ForEachAsync(Directory.EnumerateFiles(pathsFolder, pattern), cancellationToken, async (file, token) =>
                 {
                     PathModelCore pathModel = await PathModelCoreHandler.FromFile(file, routeModel, token, false).ConfigureAwait(false);
-                    if (pathModel != null && pathFiles.Remove(pathModel.Tag, out string filePath)) //
+                    if (pathModel != null && pathFiles.Remove(pathModel.Id, out string filePath)) //
                     {
                         if (pathModel.SetupRequired())
                             pathModel = await PathModelHandler.Convert(filePath, routeModel, token).ConfigureAwait(false);
@@ -115,7 +115,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 await Parallel.ForEachAsync(Directory.EnumerateFiles(activitiesFolder, pattern), cancellationToken, async (file, token) =>
                 {
                     ActivityModelCore activityModel = await ActivityModelCoreHandler.FromFile(file, routeModel, token, false).ConfigureAwait(false);
-                    if (activityModel != null && activityFiles.Remove(activityModel.Tag, out string filePath)) //
+                    if (activityModel != null && activityFiles.Remove(activityModel.Id, out string filePath)) //
                     {
                         if (activityModel.SetupRequired())
                             activityModel = await ActivityModelHandler.Convert(filePath, routeModel, token).ConfigureAwait(false);

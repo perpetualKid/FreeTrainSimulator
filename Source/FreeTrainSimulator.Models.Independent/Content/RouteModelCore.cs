@@ -16,14 +16,10 @@ namespace FreeTrainSimulator.Models.Independent.Content
             fileExtension = ".route";
         }
 
-        private protected override string FileName => RouteId;
-        private protected override string DirectoryName => RouteId;
-
         private readonly WorldLocation routeStart;
         private FrozenSet<PathModelCore> pathModels;
         private FrozenSet<ActivityModelCore> activityModels;
 
-        public string RouteId { get; init; }
         public string Description { get; init; }
         public ref readonly WorldLocation RouteStart => ref routeStart;
         public bool MetricUnits { get; init; }
