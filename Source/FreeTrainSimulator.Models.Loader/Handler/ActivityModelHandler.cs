@@ -21,6 +21,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ActivityType = ActivityType.Explorer,
             Name = "- Explore Route -",
+            Id = "- Explore Route -",
             StartTime = TimeOnly.FromTimeSpan(TimeSpan.FromHours(12)),
             Season = SeasonType.Summer,
             Weather = WeatherType.Clear,
@@ -30,6 +31,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ActivityType = ActivityType.ExploreActivity,
             Name = "+ Explore in Activity Mode +",
+            Id = "+ Explore in Activity Mode +",
             StartTime = TimeOnly.FromTimeSpan(TimeSpan.FromHours(12)),
             Season = SeasonType.Summer,
             Weather = WeatherType.Clear,

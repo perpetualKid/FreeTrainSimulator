@@ -57,7 +57,7 @@ namespace Orts.Menu
                 return;
 
             contentFolder = comboBoxFolder.SetComboBoxItem((FolderModel folderItem) => string.Equals(folderItem.Name, contentFolder?.Name, StringComparison.OrdinalIgnoreCase));
-            currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with { FolderName = contentFolder?.Name };
+            currentSelections = currentSelections with { FolderName = contentFolder?.Name };
             SelectedFolder = contentFolder;
 
             ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
@@ -90,7 +90,7 @@ namespace Orts.Menu
 
             routeModel = comboBoxRoute.SetComboBoxItem((RouteModelCore routeModelItem) => string.Equals(routeModelItem.Name, routeModel?.Name, StringComparison.OrdinalIgnoreCase));
 
-            currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with { RouteName = routeModel?.Name };
+            currentSelections = currentSelections with { RouteName = routeModel?.Name };
             SelectedRoute = routeModel;
 
             if (routeModel != null)
@@ -122,7 +122,7 @@ namespace Orts.Menu
 
             activity = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Name, activity?.Name, StringComparison.OrdinalIgnoreCase));
 
-            currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with
+            currentSelections = currentSelections with
             {
                 ActivityName = activity?.Name,
                 ActivityType = activity.ActivityType,
@@ -143,7 +143,7 @@ namespace Orts.Menu
 
             pathModel = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => p.Name == pathModel?.Name).Any()).Where(p => p.Name == pathModel?.Name).FirstOrDefault();
 
-            currentSelections = (currentSelections ?? new ProfileSelectionsModel()) with { PathName = pathModel?.Name };
+            currentSelections = currentSelections with { PathName = pathModel?.Name };
             SelectedPath = pathModel;
 
             SetupPathEndDropdown();

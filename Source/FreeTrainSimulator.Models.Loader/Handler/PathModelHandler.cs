@@ -55,7 +55,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     End = string.IsNullOrEmpty(patFile.End) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.End.Trim(),
                     Tag = Path.GetFileNameWithoutExtension(filePath),
                 };
-                //this is the case where a file may have been renamed but not the path id, ie. in case of copy cloning
+                //this is the case where a file may have been renamed but not the path id, ie. in case of copy cloning, so adopting the filename as path id
                 if (string.IsNullOrEmpty(pathModel.Id) || (pathModel.Tag.Length > pathModel.Id.Length && pathModel.Tag.Contains(pathModel.Id)))
                 {
                     pathModel = pathModel with { Id = pathModel.Tag };
