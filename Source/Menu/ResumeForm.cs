@@ -78,7 +78,7 @@ namespace Orts.Menu
     {
         private readonly UserSettings settings;
         private readonly RouteModelCore route;
-        private readonly Activity activity;
+        private readonly ActivityModelCore activity;
         private readonly FrozenSet<RouteModelCore> globalRoutes;
         private readonly TimetableInfo timeTable;
         private List<SavePoint> savePoints = new List<SavePoint>();
@@ -91,7 +91,7 @@ namespace Orts.Menu
 
         private readonly Catalog catalog;
 
-        internal ResumeForm(UserSettings settings, RouteModelCore route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable, FrozenSet<RouteModelCore> mainRoutes)
+        internal ResumeForm(UserSettings settings, RouteModelCore route, MainForm.UserAction mainFormAction, ActivityModelCore activity, TimetableInfo timeTable, FrozenSet<RouteModelCore> mainRoutes)
         {
             catalog = CatalogManager.Catalog;
             globalRoutes = mainRoutes;
@@ -111,16 +111,16 @@ namespace Orts.Menu
 
             GridSaves_SelectionChanged(null, null);
 
-            if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
+            Text += activity.ActivityType switch
             {
-                Text += $" - {route.Name} - {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
-                pathNameDataGridViewTextBoxColumn.Visible = true;
-            }
-            else
-            {
-                Text += $" - {route.Name} - {(activity.GetType() == typeof(Activity) ? activity.Name : activity is ExploreThroughActivity ? catalog.GetString("Explore in Activity Mode") : catalog.GetString("Explore Route"))}";
-                pathNameDataGridViewTextBoxColumn.Visible = activity.FilePath == null;
-            }
+                ActivityType.Explorer => $" - {route.Name} - {catalog.GetString("Explore Route")}",
+                ActivityType.ExploreActivity => $" - {route.Name} - {catalog.GetString("Explore in Activity Mode")}",
+                ActivityType.Activity => $" - {route.Name} - {activity.Name}",
+                ActivityType.TimeTable => $" - {route.Name} - {Path.GetFileNameWithoutExtension(timeTable.FileName)}",
+                _ => throw new NotImplementedException(),
+            };
+
+            pathNameDataGridViewTextBoxColumn.Visible = activity.ActivityType is ActivityType.TimeTable or ActivityType.Activity;
 
             if (multiplayer)
                 Text += $" - {catalog.GetString("Multiplayer")} ";
@@ -162,24 +162,14 @@ namespace Orts.Menu
             StringBuilder warnings = new StringBuilder();
             string prefix = string.Empty;
 
-            if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
+            prefix = activity.ActivityType switch
             {
-                prefix = $"{route.Name} {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
-            }
-            else if (activity.FilePath != null)
-            {
-                prefix = Path.GetFileNameWithoutExtension(activity.FilePath);
-            }
-            else if (activity.Name == $"- {catalog.GetString("Explore Route")} -")
-            {
-                prefix = route.Name;
-            }
-            // Explore in activity mode
-            else
-            {
-                prefix = $"ea${route.Name}$";
-            }
-
+                ActivityType.Explorer => route.Name,
+                ActivityType.ExploreActivity => $"ea${route.Name}$",
+                ActivityType.Activity => activity.Tag,
+                ActivityType.TimeTable => $"{route.Name} {Path.GetFileNameWithoutExtension(timeTable.FileName)}",
+                _ => throw new NotImplementedException(),
+            };
             savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder, prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).OrderByDescending(s => s.RealTime).ToList();
             saveBindingSource.DataSource = savePoints;
 
@@ -366,7 +356,7 @@ namespace Orts.Menu
         private void InitiateReplay(bool fromStart)
         {
             SavePoint save = saveBindingSource.Current as SavePoint;
-//            if (Found(save))
+            //            if (Found(save))
             {
                 if (fromStart && (save.Valid == null))
                     if (!AcceptUseOfNonvalidSave(save))

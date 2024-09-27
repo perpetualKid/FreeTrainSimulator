@@ -641,16 +641,16 @@ namespace Orts.Menu
                 return;
             }
 
-            //using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, SelectedFolder.Routes))
-            //{
-            //    if (form.ShowDialog(this) == DialogResult.OK)
-            //    {
-            //        SaveOptions();
-            //        SelectedSaveFile = form.SelectedSaveFile;
-            //        SelectedAction = form.SelectedAction;
-            //        DialogResult = DialogResult.OK;
-            //    }
-            //}
+            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, SelectedFolder.Routes))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    SaveOptions();
+                    SelectedSaveFile = form.SelectedSaveFile;
+                    SelectedAction = form.SelectedAction;
+                    DialogResult = DialogResult.OK;
+                }
+            }
         }
 
         private void ButtonStartMP_Click(object sender, EventArgs e)
@@ -769,7 +769,7 @@ namespace Orts.Menu
 
         private void ShowLocomotiveList()
         {
-            if (SelectedActivity == null || SelectedActivity is ExploreActivity)
+            if (SelectedActivity == null || SelectedActivity.ActivityType is ActivityType.Explorer or ActivityType.ExploreActivity)
             {
                 try
                 {
@@ -811,7 +811,7 @@ namespace Orts.Menu
 
         private void ShowConsistList()
         {
-            if (SelectedActivity == null || SelectedActivity is ExploreActivity)
+            if (SelectedActivity == null || SelectedActivity.ActivityType is ActivityType.Explorer or ActivityType.ExploreActivity)
             {
                 try
                 {

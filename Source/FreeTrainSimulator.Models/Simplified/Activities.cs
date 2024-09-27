@@ -14,9 +14,6 @@ namespace FreeTrainSimulator.Models.Simplified
 {
     public class Activity : ContentBase
     {
-        private static readonly DefaultExploreActivity DefaultExploreActivity = new DefaultExploreActivity();
-        private static readonly ExploreThroughActivity ExploreThroughActivity = new ExploreThroughActivity();
-
         public string Name { get; private set; }
         public string ActivityID { get; private set; }
         public string Description { get; private set; }
@@ -32,15 +29,16 @@ namespace FreeTrainSimulator.Models.Simplified
 
         protected Activity(string name, string filePath, ActivityFile activityFile, Consist consist, Path path)
         {
-            if (filePath == null && this is DefaultExploreActivity)
-            {
-                Name = catalog.GetString("- Explore Route -");
-            }
-            else if (filePath == null && this is ExploreThroughActivity)
-            {
-                Name = catalog.GetString("+ Explore in Activity Mode +");
-            }
-            else if (null != activityFile)
+            //if (filePath == null && this is DefaultExploreActivity)
+            //{
+            //    Name = catalog.GetString("- Explore Route -");
+            //}
+            //else if (filePath == null && this is ExploreThroughActivity)
+            //{
+            //    Name = catalog.GetString("+ Explore in Activity Mode +");
+            //}
+            //else 
+            if (null != activityFile)
             {
                 // ITR activities are excluded.
                 Name = activityFile.Activity.Header.Name;
@@ -131,8 +129,6 @@ namespace FreeTrainSimulator.Models.Simplified
             {
                 List<Activity> result = new List<Activity>();
                 string activitiesDirectory = routeFolder.ActivitiesFolder;
-                result.Add(DefaultExploreActivity);
-                result.Add(ExploreThroughActivity);
 
                 if (Directory.Exists(activitiesDirectory))
                 {
@@ -172,29 +168,4 @@ namespace FreeTrainSimulator.Models.Simplified
             }
         }
     }
-
-    public abstract class ExploreActivity : Activity
-    {
-        internal ExploreActivity()
-            : base(null, null, null, null, null)
-        {
-        }
-
-        public void UpdateActivity(string startTime, SeasonType season, WeatherType weather, Consist consist, Path path)
-        {
-            if (!TimeSpan.TryParse(startTime, out TimeSpan result))
-                result = new TimeSpan(12, 0, 0);
-            StartTime = result;
-            Season = season;
-            Weather = weather;
-            Consist = consist;
-            Path = path;
-        }
-    }
-
-    public class DefaultExploreActivity : ExploreActivity
-    { }
-
-    public class ExploreThroughActivity : ExploreActivity
-    { }
 }
