@@ -63,7 +63,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             Debug.Assert(folder?.Routes != null);
 
             RouteModelCore routeModelCore = folder.Routes.Where(r => r.MstsRouteFolder() == routeFolder).FirstOrDefault() ??
-                throw new FileNotFoundException($"Route not found. Abnormal termination");
+                throw new FileNotFoundException($"Route not found. Abnormal termination.");
 
             if (routeModelCore is RouteModel fullRouteModel && !fullRouteModel.SetupRequired())
             {

@@ -17,7 +17,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
         private static bool CheckDefaultProfile(ProfileModel profileModel) => profileModel == null || CheckDefaultProfile(profileModel.Name);
 
-        public static ProfileModel DefaultProfile { get; private set; } = new ProfileModel(DefaultProfileName);
+        public static ProfileModel DefaultProfile { get; private set; }
 
         public static async ValueTask<ProfileModel> Get(string profileName, CancellationToken cancellationToken)
         {

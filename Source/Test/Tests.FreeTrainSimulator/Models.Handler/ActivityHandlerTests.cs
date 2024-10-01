@@ -18,10 +18,14 @@ namespace Tests.FreeTrainSimulator.Models.Loader
     public class ActivityHandlerTests
     {
         [TestMethod]
-        public async Task GetContentFolderTest()
+        public async Task GetTestActivitiesTest()
         {
-            ProfileModel defaultModel = ProfileModelExtensions.Default(null);
-            FrozenSet<FolderModel> folders = defaultModel.ContentFolders;
+            ProfileModel defaultProfile = await ProfileModelExtensions.Get(null, CancellationToken.None).ConfigureAwait(false);
+
+            if (null == defaultProfile)
+                Assert.Inconclusive();
+
+            FrozenSet<TestActivityModel> result = await defaultProfile.LoadTestActivities(CancellationToken.None).ConfigureAwait(false);
         }
 
         [TestMethod]

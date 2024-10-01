@@ -14,6 +14,8 @@ namespace FreeTrainSimulator.Models.Independent.Content
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record TestActivityModel: ActivityModelCore
     {
+
+        [MemoryPackIgnore]
         public string DefaultSort { get; init; }
         public string Route { get; init; }
         public string Activity { get; init; }

@@ -28,8 +28,6 @@ namespace Orts.Menu
                 }
             } catch (TaskCanceledException) { return; }
 
-            SelectedProfile ??= SelectedProfile.Default();
-
             currentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
 
             //Initial setup if necessary
