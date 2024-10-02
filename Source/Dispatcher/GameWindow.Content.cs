@@ -64,7 +64,7 @@ namespace FreeTrainSimulator.Dispatcher
                 {
                     contentProfile = await contentProfile.Convert(Settings.UserSettings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), ctsProfileLoading.Token).ConfigureAwait(true);
                 }
-                mainmenu.PopulateContentFolders((contentProfile ??= contentProfile.Default()).ContentFolders);
+                mainmenu.PopulateContentFolders(contentProfile.ContentFolders);
             }
             catch (TaskCanceledException)
             {

@@ -55,7 +55,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             string contentFolderPath = routeFolder.ContentFolder.Folder;
 
-            ProfileModel contentProfile = await ProfileModelHandler.DefaultProfile.Get(cancellationToken).ConfigureAwait(false);
+            ProfileModel contentProfile = await ProfileModel.Null.Get(cancellationToken).ConfigureAwait(false);
             FolderModel folder = await contentProfile.ContentFolders.
                 Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault().
                 Load(cancellationToken).ConfigureAwait(false);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,28 +14,33 @@ namespace FreeTrainSimulator.Models.Loader.Handler
     {
         public const string DefaultProfileName = "Default";
 
+        private static readonly ConcurrentDictionary<string, Task<ProfileModel>> modelCache = new ConcurrentDictionary<string, Task<ProfileModel>>(StringComparer.OrdinalIgnoreCase);
+
         private static bool CheckDefaultProfile(string profileName) => string.IsNullOrEmpty(profileName) || string.Equals(profileName, DefaultProfileName, StringComparison.OrdinalIgnoreCase);
 
         private static bool CheckDefaultProfile(ProfileModel profileModel) => profileModel == null || CheckDefaultProfile(profileModel.Name);
 
-        public static ProfileModel DefaultProfile { get; private set; }
-
         public static async ValueTask<ProfileModel> Get(string profileName, CancellationToken cancellationToken)
         {
             if (CheckDefaultProfile(profileName))
-            {
-                if (DefaultProfile?.Initialized ?? false)
-                    return DefaultProfile; //already initialized default model, just returning that instance
+                profileName = DefaultProfileName;
 
-                return DefaultProfile = await FromFile<ProfileModel>(DefaultProfileName, null, cancellationToken).ConfigureAwait(false);
+
+            if (!modelCache.TryGetValue(profileName, out Task<ProfileModel> profileModelTask))
+            {
+                _ = modelCache.TryAdd(profileName, profileModelTask = FromFile<ProfileModel>(profileName, null, cancellationToken));
             }
-            else
-                //return the specific profile instance if exists)
-                return await FromFile<ProfileModel>(profileName, null, cancellationToken).ConfigureAwait(false);
+            if (profileModelTask.IsFaulted)
+                modelCache[profileName] = profileModelTask = FromFile<ProfileModel>(profileName, null, cancellationToken);
+
+            return await profileModelTask.ConfigureAwait(false);
         }
 
         public static async ValueTask<ProfileModel> Convert(string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
+            if (CheckDefaultProfile(profileName))
+                profileName = DefaultProfileName;
+
             ProfileModel contentProfile = await Get(profileName, cancellationToken).ConfigureAwait(false);
 
             if (contentProfile == null)
@@ -46,17 +52,18 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             {
                 contentProfile = await UpdateFolders(contentProfile, folders, cancellationToken).ConfigureAwait(false);
             }
-            if (CheckDefaultProfile(contentProfile))
-                DefaultProfile = contentProfile;
+            modelCache[profileName] = Task.FromResult(contentProfile);
             return contentProfile;
         }
 
         private static async ValueTask<ProfileModel> Setup(string profileName, CancellationToken cancellationToken)
         {
-            ProfileModel contentProfile = new ProfileModel(string.IsNullOrEmpty(profileName) ? DefaultProfileName : profileName);
+            if (CheckDefaultProfile(profileName))
+                profileName = DefaultProfileName;
+
+            ProfileModel contentProfile = new ProfileModel(profileName);
             await Create(contentProfile, (ProfileModel)null, true, true, cancellationToken).ConfigureAwait(false);
-            if (contentProfile.Name == DefaultProfileName)
-                DefaultProfile = contentProfile;
+            modelCache[profileName] = Task.FromResult(contentProfile);
             return contentProfile;
         }
 
@@ -71,8 +78,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 async (item) => await FolderModelHandler.Create(item.Item1, item.Item2, contentProfile, cancellationToken).ConfigureAwait(false))).ConfigureAwait(false)).ToFrozenSet());
             contentProfile.Initialize(ModelFileResolver<ProfileModel>.FilePath(contentProfile, null), null);
             contentProfile = await ToFile(contentProfile, cancellationToken).ConfigureAwait(false);
-            if (CheckDefaultProfile(contentProfile))
-                DefaultProfile = contentProfile;
+            modelCache[contentProfile.Name] = Task.FromResult(contentProfile);
             return contentProfile;
         }
     }

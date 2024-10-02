@@ -62,6 +62,10 @@ namespace FreeTrainSimulator.Models.Independent.Base
         #endregion
 
         /// <summary>
+        /// None-Instance (null) of the current model
+        /// </summary>
+        public static T Null => default (T);
+        /// <summary>
         /// Unique Id of this instance within the parent entity, also need to be file-system compatible
         /// </summary>
         public string Id {  get; init; }

@@ -33,7 +33,7 @@ namespace Tests.FreeTrainSimulator.Models.Loader
         [TestMethod]
         public async Task GetContentFolderTest()
         {
-            ProfileModel defaultModel = ProfileModelHandler.DefaultProfile;
+            ProfileModel defaultModel = await ProfileModel.Null.Get(CancellationToken.None);
             FolderModel folderModel = await FolderModelHandler.Get("Demo", defaultModel, CancellationToken.None).ConfigureAwait(false);
         }
 

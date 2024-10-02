@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
     {
         public const string SaveStateExtension = FileNameExtensions.SaveFile;
 
-        public static async ValueTask<TActual> FromFile<TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
+        public static async Task<TActual> FromFile<TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
         {
             string targetFileName = name;
             if (resolveName)
@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return model;
         }
 
-        public static async ValueTask<TActual> ToFile(TActual model, CancellationToken cancellationToken)
+        public static async Task<TActual> ToFile(TActual model, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
@@ -60,12 +60,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return model;
         }
 
-        public static async ValueTask Create<TContainer>(TActual model, TContainer parent, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
+        public static async Task Create<TContainer>(TActual model, TContainer parent, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
         { 
             await Create(model, parent, true, false, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask Create<TContainer>(TActual model, TContainer parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
+        public static async Task Create<TContainer>(TActual model, TContainer parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 

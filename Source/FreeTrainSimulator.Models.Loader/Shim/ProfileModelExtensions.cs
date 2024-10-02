@@ -11,8 +11,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public static class ProfileModelExtensions
     {
-        public static ProfileModel Default(this ProfileModel _) => ProfileModelHandler.DefaultProfile;
-
         public static async ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken)
         {
             return await ProfileModelHandler.Get(profileModel?.Name, cancellationToken).ConfigureAwait(false);
