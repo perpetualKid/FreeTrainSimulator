@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Frozen;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Handler;
 
 using Orts.Formats.Msts;
@@ -59,8 +56,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             FolderModel folder = await contentProfile.ContentFolders.
                 Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault().
                 Load(cancellationToken).ConfigureAwait(false);
-
-            Debug.Assert(folder?.Routes != null);
 
             RouteModelCore routeModelCore = folder.Routes.Where(r => r.MstsRouteFolder() == routeFolder).FirstOrDefault() ??
                 throw new FileNotFoundException($"Route not found. Abnormal termination.");

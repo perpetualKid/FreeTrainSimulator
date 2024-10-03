@@ -77,6 +77,7 @@ namespace FreeTrainSimulator.Models.Loader
     {
         static ModelFileResolver()
         {
+            // ensure the static constructor has been executed
             System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(T).TypeHandle);
         }
 

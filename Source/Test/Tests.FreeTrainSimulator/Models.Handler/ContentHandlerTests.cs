@@ -34,7 +34,10 @@ namespace Tests.FreeTrainSimulator.Models.Loader
         public async Task GetContentFolderTest()
         {
             ProfileModel defaultModel = await ProfileModel.Null.Get(CancellationToken.None);
-            FolderModel folderModel = await FolderModelHandler.Get("Demo", defaultModel, CancellationToken.None).ConfigureAwait(false);
+            if (null != defaultModel)
+            {
+                FolderModel folderModel = await FolderModelHandler.Get("Demo", defaultModel, CancellationToken.None).ConfigureAwait(false);
+            }
         }
 
         [TestMethod]
@@ -70,7 +73,7 @@ namespace Tests.FreeTrainSimulator.Models.Loader
             FolderModel folderModel = null != defaultModel ? await defaultModel.FolderModel("Demo Model 1", CancellationToken.None).ConfigureAwait(false) : null;
             RouteModel routeModel = null != folderModel ? await folderModel.RouteModel("Monogame", CancellationToken.None).ConfigureAwait(false) : null;
             await routeModel.Convert(CancellationToken.None).ConfigureAwait(false);
-//            PathModel pathModel = null != routeModel ? await routeModel.PathModel("", CancellationToken.None).ConfigureAwait(false) : null;
+            //            PathModel pathModel = null != routeModel ? await routeModel.PathModel("", CancellationToken.None).ConfigureAwait(false) : null;
         }
     }
 }

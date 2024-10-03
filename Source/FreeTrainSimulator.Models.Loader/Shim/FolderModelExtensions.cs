@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +16,17 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         {
             ContentFolderResolver resolver = FileResolver.ContentFolderResolver(folderModel);
             return resolver.MstsContentFolder;
+        }
+
+        public static async ValueTask<FrozenSet<RouteModelCore>> Routes(this FolderModel folderModel, CancellationToken cancellationToken)
+        {
+            //return (folderModel.SetupRequired() ? await FolderModelHandler.Converted(folderModel, cancellationToken) : folderModel).Routes;
+            return await RouteModelCoreHandler.GetRoutes(folderModel, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async ValueTask<FolderModel> Get(this FolderModel folderModel, CancellationToken cancellationToken)
+        { 
+            return await FolderModelHandler.Get(folderModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<RouteModel> RouteModel(this FolderModel folderModel, string routeName, CancellationToken cancellationToken)

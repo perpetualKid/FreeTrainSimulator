@@ -31,6 +31,5 @@ namespace FreeTrainSimulator.Models.Independent.Content
 
         public void SetRoutes(IEnumerable<RouteModelCore> routes) => Routes = routes?.ToFrozenSet();
         public void SetRoutes(FrozenSet<RouteModelCore> routes) => Routes = routes;
-
     }
 }

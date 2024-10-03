@@ -41,6 +41,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         IFileResolve IFileResolve.Container => parent;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
         #endregion
+
         [MemoryPackIgnore]
         public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
         [MemoryPackIgnore]

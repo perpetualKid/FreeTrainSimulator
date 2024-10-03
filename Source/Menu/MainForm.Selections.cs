@@ -2,6 +2,7 @@
 using System.Collections.Frozen;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
@@ -54,18 +55,22 @@ namespace Orts.Menu
             if (SelectedFolder == contentFolder)
                 return;
 
+            FrozenSet<RouteModelCore> routeModels = null;
+
+            contentFolder = await contentFolder.Get(CancellationToken.None).ConfigureAwait(false);
+
             contentFolder = comboBoxFolder.SetComboBoxItem((FolderModel folderItem) => string.Equals(folderItem.Name, contentFolder?.Name, StringComparison.OrdinalIgnoreCase));
             currentSelections = currentSelections with { FolderName = contentFolder?.Name };
             SelectedFolder = contentFolder;
 
             ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
-            FrozenSet<RouteModelCore> routeModels = null;
             if (contentFolder != null)
             {
                 try
                 {
-                    routeModels = contentFolder.SetupRequired() ? (await contentFolder.Convert(ctsRouteLoading.Token).ConfigureAwait(false)).Routes : contentFolder.Routes;
+                    routeModels = await contentFolder.Routes(CancellationToken.None).ConfigureAwait(false);
+//                    routeModels = contentFolder.SetupRequired() ? (await contentFolder.Convert(ctsRouteLoading.Token).ConfigureAwait(false)).Routes : contentFolder.Routes;
                 }
                 catch (TaskCanceledException) { return; }
             }
