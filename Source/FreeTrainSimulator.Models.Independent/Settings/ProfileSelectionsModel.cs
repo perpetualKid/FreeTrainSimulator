@@ -16,6 +16,7 @@ namespace FreeTrainSimulator.Models.Independent.Settings
             fileExtension = ".profileselections";
         }
 
+        public override ProfileModel Parent => parent as ProfileModel;
         // Base selections
         public string FolderName { get; set; }
         public string RouteName { get; init; }

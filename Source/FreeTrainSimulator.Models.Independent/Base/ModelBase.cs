@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         #region internal handling
         private protected static string fileExtension;
         private string directoryPath;
-        private IFileResolve parent;
+        private protected IFileResolve parent;
         private protected bool childsSet;
 
         //does allow to override default target files
@@ -62,6 +62,11 @@ namespace FreeTrainSimulator.Models.Independent.Base
         }
         #endregion
 
+        /// <summary>
+        /// strongly typed reference to <seealso cref="IFileResolve.Container" of this instance/>
+        /// </summary>
+        [MemoryPackIgnore]
+        public abstract IFileResolve Parent { get; }
         /// <summary>
         /// None-Instance (null) of the current model
         /// </summary>

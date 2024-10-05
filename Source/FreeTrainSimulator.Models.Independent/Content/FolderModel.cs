@@ -15,6 +15,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
             fileExtension = ".folder";
         }
 
+        public override ProfileModel Parent => parent as ProfileModel;
         public string ContentPath { get; init; }
 
         [MemoryPackIgnore]

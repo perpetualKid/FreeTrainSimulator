@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -9,9 +8,8 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
-using MemoryPack;
 
-using static Orts.Formats.Msts.FolderStructure;
+using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {

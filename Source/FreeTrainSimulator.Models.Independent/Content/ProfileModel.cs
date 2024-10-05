@@ -15,6 +15,8 @@ namespace FreeTrainSimulator.Models.Independent.Content
             fileExtension = ".profile";
         }
 
+        public override IFileResolve Parent => null; // Profile is root and does not implement a parent
+
         [MemoryPackConstructor]
         public ProfileModel(string name, FrozenSet<FolderModel> contentFolders): base(name, null)
         {

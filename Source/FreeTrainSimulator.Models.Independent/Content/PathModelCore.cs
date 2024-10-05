@@ -12,6 +12,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
             fileExtension = ".path";
         }
 
+        public override RouteModel Parent => parent as RouteModel;
         /// <summary>Start location of the path</summary>
         public string Start { get; init; }
         /// <summary>Destination location of the path</summary>

@@ -15,6 +15,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
             fileExtension = ".activity";
         }
 
+        public override RouteModel Parent => parent as RouteModel;
         public string Description { get; init; }
         public string Briefing { get; init; }
         public TimeOnly StartTime { get; init; }
