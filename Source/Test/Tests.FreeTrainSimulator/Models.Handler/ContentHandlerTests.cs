@@ -43,9 +43,7 @@ namespace Tests.FreeTrainSimulator.Models.Loader
         [TestMethod]
         public async Task ConvertContentFolderTest()
         {
-            ProfileModel defaultModel = null;
-
-            defaultModel = await defaultModel.Get(CancellationToken.None).ConfigureAwait(false);
+            ProfileModel defaultModel = await ProfileModel.Null.Get(CancellationToken.None);
             if (null != defaultModel)
             {
                 FolderModel folderModel = await FolderModelHandler.Get("Demo Model 1", defaultModel, CancellationToken.None).ConfigureAwait(false);
