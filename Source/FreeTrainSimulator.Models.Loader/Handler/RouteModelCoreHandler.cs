@@ -13,17 +13,30 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class RouteModelCoreHandler : ContentHandlerBase<RouteModelCore, RouteModelCore>
     {
-        private static ConcurrentDictionary<string, Task<RouteModelCore>> modelCache = new ConcurrentDictionary<string, Task<RouteModelCore>>(StringComparer.OrdinalIgnoreCase);
+        private static ConcurrentDictionary<string, (Task<RouteModelCore>, Lazy<Task<RouteModelCore>>)> modelLazyCache =
+            new ConcurrentDictionary<string, (Task<RouteModelCore>, Lazy<Task<RouteModelCore>>)>(StringComparer.OrdinalIgnoreCase);
+
         private static ConcurrentDictionary<string, Task<FrozenSet<RouteModelCore>>> modelSetCache = new ConcurrentDictionary<string, Task<FrozenSet<RouteModelCore>>>(StringComparer.OrdinalIgnoreCase);
 
         public static async ValueTask<RouteModelCore> Get(string fileName, FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
-            string key = folderModel.Hierarchy(Path.GetFileNameWithoutExtension(fileName));
+            string key = folderModel.Hierarchy(Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(fileName)));
 
-            Task<RouteModelCore> fromCache = GetCachedTask(modelCache, key, () => FromFile(fileName, folderModel, cancellationToken, false));
+            if (!modelLazyCache.TryGetValue(key, out (Task<RouteModelCore> SimpleTask, Lazy<Task<RouteModelCore>> LazyTask) cachedTask))
+            {
+                _ = modelLazyCache.TryAdd(key, cachedTask = (FromFile(fileName, folderModel, cancellationToken, false), null));
+            }
+            if (cachedTask.SimpleTask.IsFaulted)
+                modelLazyCache[key] = cachedTask = (FromFile(fileName, folderModel, cancellationToken, false), null);
 
-            return await fromCache.ConfigureAwait(false);
+            RouteModelCore routeModel = await cachedTask.SimpleTask.ConfigureAwait(false);
+
+            if (routeModel.SetupRequired())
+            {
+                modelLazyCache[key] = cachedTask = (FromFile(fileName, folderModel, cancellationToken, false), new Lazy<Task<RouteModelCore>>(() => RouteModelHandler.Cast(RouteModelHandler.Convert(routeModel, cancellationToken))));
+            }
+            return routeModel;
         }
 
         public static async ValueTask<FrozenSet<RouteModelCore>> GetRoutes(FolderModel contentFolder, CancellationToken cancellationToken)
@@ -39,6 +52,26 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 modelSetCache[key] = routeModelSetTask = GetRoutesInternal(contentFolder, cancellationToken);
 
             return await routeModelSetTask.ConfigureAwait(false);
+        }
+
+        internal static async ValueTask<RouteModelCore> Get(RouteModelCore routeModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+            string key = routeModel.Hierarchy();
+
+            // if there is a lazy task for the given routeModel
+            //      
+            //      return that result
+            // else return the cached task
+
+            if (!modelLazyCache.TryGetValue(key, out (Task<RouteModelCore> SimpleTask, Lazy<Task<RouteModelCore>> LazyTask) cachedTask))
+            {
+                return null;
+            }
+            else
+            {
+                return await (cachedTask.LazyTask?.Value ?? cachedTask.SimpleTask).ConfigureAwait(false);
+            }
         }
 
         private static async Task<FrozenSet<RouteModelCore>> GetRoutesInternal(FolderModel contentFolder, CancellationToken cancellationToken)
