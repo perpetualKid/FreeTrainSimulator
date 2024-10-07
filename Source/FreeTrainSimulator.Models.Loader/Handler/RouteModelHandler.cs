@@ -29,6 +29,11 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return result with { TrainPaths = routeModel.TrainPaths, RouteActivities = routeModel.RouteActivities };
         }
 
+        public static async Task<RouteModel> Convert(RouteModelCore routeModel, CancellationToken cancellationToken)
+        {
+            return null;
+        }
+
         public static async ValueTask<RouteModel> Convert(FolderStructure.ContentFolder.RouteFolder routeFolder, FolderModel contentFolder, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeFolder, nameof(routeFolder));
