@@ -107,21 +107,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return cachedTask;
         }
 
+        /// <summary>
+        /// Cast a Full Model task to Base Model task to mimic task covariance
+        /// </summary>
         protected static async Task<TBase> Cast(Task<TActual> t) => await t;
-
-        protected static Task<TActual> LazyConvertInitializer(ConcurrentDictionary<string, Task<TActual>> cache, string key, Func<Task<TActual>> taskCreator, Func<Task<TActual>> taskConvertor)
-        {
-            if (!cache.TryGetValue(key, out Task<TActual> cachedTask))
-            {
-                _ = cache.TryAdd(key, cachedTask = taskCreator.Invoke());
-            }
-            if (cachedTask.IsFaulted)
-            {
-                Trace.TraceError(cachedTask.Exception?.ToString());
-                cache[key] = cachedTask = taskCreator.Invoke();
-            }
-            return cachedTask;
-        }
-
     }
 }

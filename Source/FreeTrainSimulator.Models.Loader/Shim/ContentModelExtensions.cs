@@ -41,7 +41,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 BuildHiearchy(fileResolve, builder);
                 builder.Append(separatorChar);
             }
-            builder.Append((model as IFileResolve).FileName);
+            builder.Append(model.FileName);
         }
 
     }

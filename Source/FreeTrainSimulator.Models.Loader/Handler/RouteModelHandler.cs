@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader.Shim;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -17,21 +17,47 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class RouteModelHandler : ContentHandlerBase<RouteModel, RouteModelCore>
     {
-        public static async ValueTask<RouteModel> Get(string name, FolderModel contentFolder, CancellationToken cancellationToken)
-        {
-            return await FromFile(name, contentFolder, cancellationToken).ConfigureAwait(false);
-        }
+        private static readonly ConcurrentDictionary<string, Lazy<Task<RouteModel>>> taskLazyCache = new ConcurrentDictionary<string, Lazy<Task<RouteModel>>>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<string, Task<FrozenSet<RouteModel>>> taskSetCache = new ConcurrentDictionary<string, Task<FrozenSet<RouteModel>>>(StringComparer.OrdinalIgnoreCase);
 
-        public static async ValueTask<RouteModel> Extend(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async ValueTask<RouteModel> Get(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            RouteModel result = await FromFile(routeModel.Name, (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
-            return result with { TrainPaths = routeModel.TrainPaths, RouteActivities = routeModel.RouteActivities };
+            return await Get(routeModel.Id, routeModel.Parent, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async ValueTask<RouteModel> Get(string routeId, FolderModel folderModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
+            string key = folderModel.Hierarchy(routeId);
+            bool renewed = false;
+
+            if (!taskLazyCache.TryGetValue(key, out Lazy<Task<RouteModel>> cachedTask) || (cachedTask.IsValueCreated && cachedTask.Value.IsFaulted))
+            {
+                taskLazyCache[key] = cachedTask = new Lazy<Task<RouteModel>>(FromFile(routeId, folderModel, cancellationToken));
+                renewed = true;
+            }
+
+            RouteModel routeModel = await cachedTask.Value.ConfigureAwait(false);
+
+            if (routeModel.SetupRequired())
+            {
+                taskLazyCache[key] = new Lazy<Task<RouteModel>>(() => Convert(routeModel, cancellationToken));
+                renewed = true;
+            }
+
+            if (renewed)
+            {
+                key = folderModel.Hierarchy();
+                _ = taskSetCache.TryRemove(key, out _);
+            }
+
+            return routeModel;
         }
 
         public static async Task<RouteModel> Convert(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return null;
+            return await Convert(routeModel.MstsRouteFolder(), routeModel.Parent, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<RouteModel> Convert(FolderStructure.ContentFolder.RouteFolder routeFolder, FolderModel contentFolder, CancellationToken cancellationToken)

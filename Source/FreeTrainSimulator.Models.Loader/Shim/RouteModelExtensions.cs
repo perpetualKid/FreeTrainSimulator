@@ -23,7 +23,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<RouteModel> Extend(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return routeModel is RouteModel routeModelExtended ? routeModelExtended : await RouteModelHandler.Extend(routeModel, cancellationToken).ConfigureAwait(false);
+            return routeModel is RouteModel routeModelExtended ? routeModelExtended : await RouteModelHandler.Get(routeModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<RouteModelCore> Convert(this RouteModelCore routeModel, CancellationToken cancellationToken)
