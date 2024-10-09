@@ -41,6 +41,10 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             return await FromFile(name, routeModel, cancellationToken).ConfigureAwait(false);
         }
+        public static async Task<ActivityModel> Convert(ActivityModelCore activityModel, CancellationToken cancellationToken)
+        {
+            return await Convert(activityModel.Id, activityModel.Parent, cancellationToken).ConfigureAwait(false);
+        }
 
         public static async ValueTask<ActivityModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)
         {

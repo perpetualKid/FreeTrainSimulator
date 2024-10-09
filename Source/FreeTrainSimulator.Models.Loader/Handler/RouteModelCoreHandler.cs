@@ -5,7 +5,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
@@ -13,8 +12,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class RouteModelCoreHandler : ContentHandlerBase<RouteModelCore, RouteModelCore>
     {
-        private static readonly string fileExtension = ModelFileResolver<RouteModelCore>.FileExtension;
-
         public static async ValueTask<RouteModelCore> Get(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));

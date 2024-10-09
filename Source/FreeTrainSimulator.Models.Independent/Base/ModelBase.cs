@@ -20,7 +20,6 @@ namespace FreeTrainSimulator.Models.Independent.Base
         private protected static string fileExtension;
         private string directoryPath;
         private protected IFileResolve parent;
-        private protected bool childsSet;
 
         //does allow to override default target files
         private protected virtual string DirectoryName => Id;
@@ -44,8 +43,6 @@ namespace FreeTrainSimulator.Models.Independent.Base
 
         [MemoryPackIgnore]
         public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
-        [MemoryPackIgnore]
-        public bool ChildsInitialized => childsSet;
 
         [MemoryPackIgnore]
         public bool Initialized => !string.IsNullOrEmpty(directoryPath);

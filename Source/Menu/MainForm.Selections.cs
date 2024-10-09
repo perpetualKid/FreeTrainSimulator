@@ -27,7 +27,8 @@ namespace Orts.Menu
                 {
                     SelectedProfile = await SelectedProfile.Convert(settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), ctsProfileLoading.Token).ConfigureAwait(false);
                 }
-            } catch (TaskCanceledException) { return; }
+            }
+            catch (TaskCanceledException) { return; }
 
             currentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
 
@@ -95,6 +96,7 @@ namespace Orts.Menu
             SelectedRoute = routeModel;
 
             FrozenSet<PathModelCore> pathModels = null;
+            FrozenSet<ActivityModelCore> activityModels = null;
 
             if (routeModel != null)
             {
@@ -102,11 +104,12 @@ namespace Orts.Menu
                 try
                 {
                     pathModels = await routeModel.Paths(ctsPathLoading.Token);
+                    activityModels = await routeModel.Activities(ctsPathLoading.Token);
                 }
                 catch (TaskCanceledException) { }
             }
 
-            SetupActivitiesDropdown(routeModel.RouteActivities ?? FrozenSet<ActivityModelCore>.Empty);
+            SetupActivitiesDropdown(activityModels ?? FrozenSet<ActivityModelCore>.Empty);
             SetupPathStartDropdown(pathModels ?? FrozenSet<PathModelCore>.Empty);
             SetupPathEndDropdown();
 

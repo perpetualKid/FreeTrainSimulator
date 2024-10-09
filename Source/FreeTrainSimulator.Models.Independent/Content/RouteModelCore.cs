@@ -26,10 +26,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public bool MetricUnits { get; init; }
         public EnumArray<string, GraphicType> Graphics { get; init; }
 
-        [MemoryPackIgnore]
-        public FrozenSet<PathModelCore> TrainPaths { get => pathModels; init { pathModels = value; childsSet = true; } }
-        [MemoryPackIgnore]
-        public FrozenSet<ActivityModelCore> RouteActivities { get => activityModels; init { activityModels = value; childsSet = true; } }
         [MemoryPackConstructor]
         protected RouteModelCore(in WorldLocation routeStart)
         {
@@ -40,7 +36,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
         {
             pathModels = trainPaths;
             activityModels = routeActivities;
-            childsSet = true;
         }
     }
 }

@@ -31,9 +31,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             if (routeModel != null)
             {
                 routeModel = await RouteModelHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
-                FrozenSet<PathModelCore> pathModels = await PathModelHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false);
-                FrozenSet<ActivityModelCore> activityModels = await ActivityModelHandler.ConvertActivityModels(routeModel, cancellationToken).ConfigureAwait(false);
-                routeModel = routeModel with { TrainPaths = pathModels, RouteActivities = activityModels };
             }
             return routeModel;
         }
@@ -79,20 +76,17 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return await PathModelCoreHandler.GetPaths(routeModel, cancellationToken).ConfigureAwait(false);
         }
 
+        public static async ValueTask<FrozenSet<ActivityModelCore>> Activities(this RouteModelCore routeModel, CancellationToken cancellationToken)
+        {
+            return await ActivityModelCoreHandler.GetActivities(routeModel, cancellationToken).ConfigureAwait(false);
+        }
+
         public static async ValueTask<PathModel> PathModel(this RouteModelCore routeModel, string pathName, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             ArgumentException.ThrowIfNullOrEmpty(pathName, nameof(pathName));
 
             return await PathModelHandler.Get(pathName, routeModel, cancellationToken).ConfigureAwait(false);
-        }
-
-        public static async ValueTask<ActivityModel> ActivityModel(this RouteModelCore routeModel, string activityName, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            ArgumentException.ThrowIfNullOrEmpty(activityName, nameof(activityName));
-
-            return await ActivityModelHandler.Get(activityName, routeModel, cancellationToken).ConfigureAwait(false);
         }
     }
 }

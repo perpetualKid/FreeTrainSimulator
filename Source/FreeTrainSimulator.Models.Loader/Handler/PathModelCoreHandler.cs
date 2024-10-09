@@ -12,8 +12,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class PathModelCoreHandler : ContentHandlerBase<PathModelCore, PathModelCore>
     {
-        private static readonly string fileExtension = ModelFileResolver<PathModelCore>.FileExtension;
-
         public static async ValueTask<PathModelCore> Get(PathModelCore pathModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
@@ -34,7 +32,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             PathModelCore pathModel = await modelTask.Value.ConfigureAwait(false);
 
-            if (routeModel.SetupRequired())
+            if (pathModel.SetupRequired())
             {
                 taskLazyCache[key] = new Lazy<Task<PathModelCore>>(() => PathModelHandler.Cast(PathModelHandler.Convert(pathModel, cancellationToken)));
                 renewed = true;
