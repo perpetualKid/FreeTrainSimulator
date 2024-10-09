@@ -20,7 +20,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<FrozenSet<RouteModelCore>> Routes(this FolderModel folderModel, CancellationToken cancellationToken)
         {
-            //return (folderModel.SetupRequired() ? await FolderModelHandler.Converted(folderModel, cancellationToken) : folderModel).Routes;
             return await RouteModelCoreHandler.GetRoutes(folderModel, cancellationToken).ConfigureAwait(false);
         }
 

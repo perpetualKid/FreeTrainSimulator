@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -16,6 +17,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
     internal abstract class ContentHandlerBase<TActual, TBase> where TBase : ModelBase<TBase> where TActual : TBase
     {
         public const string SaveStateExtension = FileNameExtensions.SaveFile;
+
+        private protected static readonly ConcurrentDictionary<string, Lazy<Task<TActual>>> taskLazyCache = new ConcurrentDictionary<string, Lazy<Task<TActual>>>(StringComparer.OrdinalIgnoreCase);
+        private protected static readonly ConcurrentDictionary<string, Task<FrozenSet<TActual>>> taskSetCache = new ConcurrentDictionary<string, Task<FrozenSet<TActual>>>(StringComparer.OrdinalIgnoreCase);
 
         public static async Task<TActual> FromFile<TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
         {

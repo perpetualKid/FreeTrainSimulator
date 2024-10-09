@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Frozen;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,18 +20,23 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 throw new InvalidOperationException("Profile Folders not initialized. Abnormal termination.");
             }
 
-            foreach (FolderModel folderModel in profileModel.ContentFolders)
+            if (null != profileModel)
             {
-
-                _ = await folderModel.Load(CancellationToken.None).ConfigureAwait(false);
-                foreach (RouteModelCore routeModel in folderModel.Routes)
+                FolderModel folderModel = await FolderModelHandler.Get("Demo Model 1", profileModel, CancellationToken.None).ConfigureAwait(false);
+                if (folderModel != null)
                 {
-                    _ = routeModel.Load(CancellationToken.None).ConfigureAwait(false);
-                    foreach (ActivityModelCore activityModel in routeModel.RouteActivities)
-                        Console.WriteLine(activityModel.Name);
+                    FrozenSet<RouteModelCore> routes = await RouteModelCoreHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
+
+                    RouteModelCore routeModel = routes.FirstOrDefault();
+                    if (null != routeModel)
+                    {
+                        routeModel = await RouteModelCoreHandler.Get(routeModel, CancellationToken.None).ConfigureAwait(false);
+                        routeModel = await RouteModelCoreHandler.Get(routeModel, CancellationToken.None).ConfigureAwait(false);
+                    }
+
+                    routes = await RouteModelCoreHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
                 }
             }
-
             return FrozenSet<TestActivityModel>.Empty;
         }
     }

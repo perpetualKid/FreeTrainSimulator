@@ -17,9 +17,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class RouteModelHandler : ContentHandlerBase<RouteModel, RouteModelCore>
     {
-        private static readonly ConcurrentDictionary<string, Lazy<Task<RouteModel>>> taskLazyCache = new ConcurrentDictionary<string, Lazy<Task<RouteModel>>>(StringComparer.OrdinalIgnoreCase);
-        private static readonly ConcurrentDictionary<string, Task<FrozenSet<RouteModel>>> taskSetCache = new ConcurrentDictionary<string, Task<FrozenSet<RouteModel>>>(StringComparer.OrdinalIgnoreCase);
-
         public static async ValueTask<RouteModel> Get(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));

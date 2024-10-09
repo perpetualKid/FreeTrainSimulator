@@ -69,12 +69,10 @@ namespace Orts.Menu
             {
                 try
                 {
-                    routeModels = await contentFolder.Routes(CancellationToken.None).ConfigureAwait(false);
-//                    routeModels = contentFolder.SetupRequired() ? (await contentFolder.Convert(ctsRouteLoading.Token).ConfigureAwait(false)).Routes : contentFolder.Routes;
+                    routeModels = await contentFolder.Routes(ctsRouteLoading.Token).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException) { return; }
             }
-            routeModels ??= FrozenSet<RouteModelCore>.Empty;
             //TODO load Trains
             await RoutesChanged(routeModels).ConfigureAwait(false);
         }
@@ -96,22 +94,20 @@ namespace Orts.Menu
             currentSelections = currentSelections with { RouteName = routeModel?.Name };
             SelectedRoute = routeModel;
 
+            FrozenSet<PathModelCore> pathModels = null;
+
             if (routeModel != null)
             {
                 ctsPathLoading = await ctsPathLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
                 try
                 {
-                    if (!routeModel.ChildsInitialized)
-                        await routeModel.Expand(ctsRouteLoading.Token).ConfigureAwait(false);
+                    pathModels = await routeModel.Paths(ctsPathLoading.Token);
                 }
                 catch (TaskCanceledException) { }
             }
 
-            // Activities
-            // Paths
-
             SetupActivitiesDropdown(routeModel.RouteActivities ?? FrozenSet<ActivityModelCore>.Empty);
-            SetupPathStartDropdown(routeModel.TrainPaths ?? FrozenSet<PathModelCore>.Empty);
+            SetupPathStartDropdown(pathModels ?? FrozenSet<PathModelCore>.Empty);
             SetupPathEndDropdown();
 
             //TODO load Timetablesets

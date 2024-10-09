@@ -74,9 +74,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return routeModel;
         }
 
-        public static async ValueTask<RouteModelCore> Load(this RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async ValueTask<FrozenSet<PathModelCore>> Paths(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return routeModel != null && routeModel.SetupRequired() ? await RouteModelCoreHandler.Load(routeModel, cancellationToken).ConfigureAwait(false) : routeModel;
+            return await PathModelCoreHandler.GetPaths(routeModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<PathModel> PathModel(this RouteModelCore routeModel, string pathName, CancellationToken cancellationToken)
