@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
@@ -51,13 +52,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
-
-            if (!taskSetCache.TryGetValue(key, out Task<FrozenSet<PathModelCore>> modelSetTask) || modelSetTask.IsFaulted)
+            if (!taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
             {
-                modelSetTask = LoadRefresh(routeModel, cancellationToken);
+                modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(() => LoadRefresh(routeModel, cancellationToken));
             }
 
-            FrozenSet<PathModelCore> result = await modelSetTask.ConfigureAwait(false);
+            FrozenSet<PathModelCore> result = await modelSetTask.Value.ConfigureAwait(false);
             taskSetCache[key] = modelSetTask;
             return result;
         }

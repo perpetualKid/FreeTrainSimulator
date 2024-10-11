@@ -53,12 +53,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
 
-            if (!taskSetCache.TryGetValue(key, out Task<FrozenSet<ActivityModelCore>> modelSetTask) || modelSetTask.IsFaulted)
+            if (!taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<ActivityModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
             {
-                modelSetTask = LoadRefresh(routeModel, cancellationToken);
+                modelSetTask = new Lazy<Task<FrozenSet<ActivityModelCore>>>(() => LoadRefresh(routeModel, cancellationToken));
             }
 
-            FrozenSet<ActivityModelCore> result = await modelSetTask.ConfigureAwait(false);
+            FrozenSet<ActivityModelCore> result = await modelSetTask.Value.ConfigureAwait(false);
             taskSetCache[key] = modelSetTask;
             return result;
         }

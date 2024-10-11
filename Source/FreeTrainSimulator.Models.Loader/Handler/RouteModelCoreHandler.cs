@@ -35,6 +35,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (routeModel.SetupRequired())
             {
                 taskLazyCache[key] = new Lazy<Task<RouteModelCore>>(() => RouteModelHandler.Cast(RouteModelHandler.Convert(routeModel, cancellationToken)));
+                // now also need to expand (renew) the child entities
+
                 renewed = true;
             }
 
@@ -52,12 +54,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
             string key = folderModel.Hierarchy();
 
-            if (!taskSetCache.TryGetValue(key, out Task<FrozenSet<RouteModelCore>> modelSetTask) || modelSetTask.IsFaulted)
+            if (!taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<RouteModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
             {
-                modelSetTask = LoadRefresh(folderModel, cancellationToken);
+                modelSetTask = new Lazy<Task<FrozenSet<RouteModelCore>>>(() => LoadRefresh(folderModel, cancellationToken));
             }
 
-            FrozenSet<RouteModelCore> result = await modelSetTask.ConfigureAwait(false);
+            FrozenSet<RouteModelCore> result = await modelSetTask.Value.ConfigureAwait(false);
             taskSetCache[key] = modelSetTask;
             return result;
         }
