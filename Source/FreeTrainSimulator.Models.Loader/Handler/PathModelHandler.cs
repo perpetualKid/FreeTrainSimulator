@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
+using GetText.Plural.Ast;
+
 using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
@@ -69,6 +71,45 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 return pathModel;
             }
             return null;
+        }
+
+        public static async Task ExpandPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+
+            string pathsFolder = ModelFileResolver<PathModelCore>.FolderPath(routeModel);
+            string pattern = ModelFileResolver<PathModelCore>.WildcardPattern;
+
+            ConcurrentBag<PathModelCore> results = new ConcurrentBag<PathModelCore>();
+
+            // load existing MSTS files
+            ConcurrentDictionary<string, string> pathFiles = new ConcurrentDictionary<string, string>(Directory.EnumerateFiles(routeModel.MstsRouteFolder().PathsFolder, "*.pat").
+                ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
+
+            //load existing path models, and compare if the corresponding path file folder still exists.
+            if (Directory.Exists(pathsFolder))
+            {
+                FrozenSet<PathModelCore> existingPaths = await PathModelCoreHandler.GetPaths(routeModel, cancellationToken).ConfigureAwait (false);
+                foreach(PathModelCore pathModel in existingPaths)
+                {
+                    if (pathFiles.Remove(pathModel?.Tag, out string filePath)) //
+                    {
+                        results.Add(pathModel);
+                    }
+                }
+            }
+
+            //for any new MSTS path (remaining in the preloaded dictionary), Create a path model
+            await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
+            {
+                PathModelCore pathModel = await Convert(path.Value, routeModel, token).ConfigureAwait(false);
+                if (null != pathModel)
+                {
+                    results.Add(pathModel);
+                }
+            }).ConfigureAwait(false);
+
+            //return results.ToFrozenSet();
         }
 
         public static async Task<FrozenSet<PathModelCore>> ConvertPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)

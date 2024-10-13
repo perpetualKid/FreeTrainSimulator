@@ -33,6 +33,8 @@ namespace Tests.FreeTrainSimulator.Models.Handler
                     }
 
                     routes = await RouteModelCoreHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
+
+                    await PathModelHandler.ExpandPathModels(routeModel, CancellationToken.None).ConfigureAwait(false);
                 }
             }
         }
