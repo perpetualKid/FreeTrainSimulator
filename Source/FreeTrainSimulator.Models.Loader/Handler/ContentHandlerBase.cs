@@ -41,6 +41,24 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return model;
         }
 
+        public static async Task<TInherited> FromFile<TInherited, TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TInherited : TBase where TContainer : ModelBase<TContainer>
+        {
+            string targetFileName = name;
+            if (resolveName)
+                targetFileName = ModelFileResolver<TBase>.FilePath(name, parent) + SaveStateExtension;
+
+            TInherited model = null;
+            if (File.Exists(targetFileName))
+            {
+                using (FileStream saveFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read))
+                {
+                    model = await MemoryPackSerializer.DeserializeAsync<TInherited>(saveFile, null, cancellationToken).ConfigureAwait(false);
+                }
+                model.Initialize(targetFileName, parent);
+            }
+            return model;
+        }
+
         public static async Task<TActual> ToFile(TActual model, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
@@ -117,5 +135,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         /// Cast a Full Model task to Base Model task to mimic task covariance
         /// </summary>
         protected static async Task<TBase> Cast(Task<TActual> t) => await t;
+
+        protected static async Task<TBase> Cast<TInherited>(Task<TInherited> t) where TInherited : TBase => await t;
     }
 }

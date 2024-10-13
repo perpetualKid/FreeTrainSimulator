@@ -39,8 +39,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            routeModel.ResetChildModels(await PathModelHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false),
-                await ActivityModelHandler.ConvertActivityModels(routeModel, cancellationToken).ConfigureAwait(false));
+            //routeModel.ResetChildModels(await PathModelHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false),
+            //    await ActivityModelHandler.ConvertActivityModels(routeModel, cancellationToken).ConfigureAwait(false));
         }
 
         public static async ValueTask<RouteModel> ToRouteModel(this FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken cancellationToken)
@@ -81,12 +81,12 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return await ActivityModelCoreHandler.GetActivities(routeModel, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<PathModel> PathModel(this RouteModelCore routeModel, string pathName, CancellationToken cancellationToken)
+        public static async ValueTask<PathModelCore> PathModel(this RouteModelCore routeModel, string pathName, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             ArgumentException.ThrowIfNullOrEmpty(pathName, nameof(pathName));
 
-            return await PathModelHandler.Get(pathName, routeModel, cancellationToken).ConfigureAwait(false);
+            return await PathModelCoreHandler.Get(pathName, routeModel, cancellationToken).ConfigureAwait(false);
         }
     }
 }
