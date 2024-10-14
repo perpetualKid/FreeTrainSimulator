@@ -18,13 +18,13 @@ namespace FreeTrainSimulator.Models.Independent.Base
 
         #region internal handling
         private protected static string fileExtension;
-        private string directoryPath;
-        private protected IFileResolve parent;
+        private string _directoryPath;
+        private protected IFileResolve _parent;
 
         //does allow to override default target files
         private protected virtual string DirectoryName => Id;
         private protected virtual string FileName => Id;
-        private protected virtual string DirectoryPath => directoryPath;
+        private protected virtual string DirectoryPath => _directoryPath;
 
         #region IFileResolve implementation
         [MemoryPackIgnore]
@@ -37,7 +37,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         [MemoryPackIgnore]
         string IFileResolve.DirectoryPath => DirectoryPath;
         [MemoryPackIgnore]
-        IFileResolve IFileResolve.Container => parent;
+        IFileResolve IFileResolve.Container => _parent;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
         #endregion
 
@@ -45,7 +45,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
 
         [MemoryPackIgnore]
-        public bool Initialized => !string.IsNullOrEmpty(directoryPath);
+        public bool Initialized => !string.IsNullOrEmpty(_directoryPath);
 
         public void RefreshModel()
         {
@@ -54,8 +54,8 @@ namespace FreeTrainSimulator.Models.Independent.Base
 
         public virtual void Initialize(string file, IFileResolve parent)
         {
-            directoryPath = Path.GetDirectoryName(file);
-            this.parent = parent;
+            _directoryPath = Path.GetDirectoryName(file);
+            this._parent = parent;
         }
         #endregion
 
@@ -67,7 +67,9 @@ namespace FreeTrainSimulator.Models.Independent.Base
         /// <summary>
         /// None-Instance (null) of the current model
         /// </summary>
+#pragma warning disable CA1000 // Do not declare static members on generic types
         public static T None => default (T);
+#pragma warning restore CA1000 // Do not declare static members on generic types
         /// <summary>
         /// Unique Id of this instance within the parent entity, also need to be file-system compatible
         /// </summary>
@@ -93,7 +95,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         {
             Id = name;
             Name = name;
-            this.parent = parent;
+            this._parent = parent;
         }
     }
 }

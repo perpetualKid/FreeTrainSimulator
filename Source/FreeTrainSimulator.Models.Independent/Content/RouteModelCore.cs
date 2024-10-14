@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
         private FrozenSet<PathModelCore> pathModels;
         private FrozenSet<ActivityModelCore> activityModels;
 
-        public override FolderModel Parent => parent as FolderModel;
+        public override FolderModel Parent => _parent as FolderModel;
         public string Description { get; init; }
         public ref readonly WorldLocation RouteStart => ref routeStart;
         public bool MetricUnits { get; init; }

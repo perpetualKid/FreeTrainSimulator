@@ -17,8 +17,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class PathModelHandler : ContentHandlerBase<PathModelCore, PathModelCore>
     {
-        private static bool collectionContentUpdated = true;
-
         // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
         // MSTS checks for "broken path" before running the simulator and doesn't offer them in the list.
         // I.e. the first activity in Marias Pass is "Explore Longhale" which leads to a "Broken Path" message.
@@ -161,7 +159,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 {
                     string pathId = Path.GetFileNameWithoutExtension(file);
 
-                    if (pathId.EndsWith(fileExtension))
+                    if (pathId.EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
                         pathId = pathId[..^fileExtension.Length];
 
                     PathModelCore path = await GetCore(pathId, routeModel, token).ConfigureAwait(false);
@@ -196,7 +194,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     Tag = Path.GetFileNameWithoutExtension(filePath),
                 };
                 //this is the case where a file may have been renamed but not the path id, ie. in case of copy cloning, so adopting the filename as path id
-                if (string.IsNullOrEmpty(pathModel.Id) || (pathModel.Tag.Length > pathModel.Id.Length && pathModel.Tag.Contains(pathModel.Id)))
+                if (string.IsNullOrEmpty(pathModel.Id) || (pathModel.Tag.Length > pathModel.Id.Length && pathModel.Tag.Contains(pathModel.Id, StringComparison.OrdinalIgnoreCase)))
                 {
                     pathModel = pathModel with { Id = pathModel.Tag };
                 }

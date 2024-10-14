@@ -19,6 +19,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         public const string SaveStateExtension = FileNameExtensions.SaveFile;
 
         private protected static readonly string fileExtension = ModelFileResolver<TBase>.FileExtension;
+        private protected static bool collectionContentUpdated = true;
 
         private protected static readonly ConcurrentDictionary<string, Lazy<Task<TActual>>> taskLazyCache = new ConcurrentDictionary<string, Lazy<Task<TActual>>>(StringComparer.OrdinalIgnoreCase);
         private protected static readonly ConcurrentDictionary<string, Lazy<Task<FrozenSet<TActual>>>> taskSetCache = new ConcurrentDictionary<string, Lazy<Task<FrozenSet<TActual>>>>(StringComparer.OrdinalIgnoreCase);
@@ -134,8 +135,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         /// <summary>
         /// Cast a Full Model task to Base Model task to mimic task covariance
         /// </summary>
-        protected static async Task<TBase> Cast(Task<TActual> t) => await t;
+        protected static async Task<TBase> Cast(Task<TActual> t) => await t.ConfigureAwait(false);
 
-        protected static async Task<TBase> Cast<TInherited>(Task<TInherited> t) where TInherited : TBase => await t;
+        protected static async Task<TBase> Cast<TInherited>(Task<TInherited> t) where TInherited : TBase => await t.ConfigureAwait(false);
     }
 }
