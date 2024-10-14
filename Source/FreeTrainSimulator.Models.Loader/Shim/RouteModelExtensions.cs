@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Handler;
 
@@ -21,26 +20,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return resolver.MstsRouteFolder;
         }
 
-        public static async ValueTask<RouteModel> Extend(this RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static ValueTask<RouteModel> Extend(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return routeModel is RouteModel routeModelExtended ? routeModelExtended : await RouteModelHandler.Get(routeModel, cancellationToken).ConfigureAwait(false);
-        }
-
-        public static async ValueTask<RouteModelCore> Convert(this RouteModelCore routeModel, CancellationToken cancellationToken)
-        {
-            if (routeModel != null)
-            {
-                routeModel = await RouteModelHandler.Convert(routeModel.MstsRouteFolder(), (routeModel as IFileResolve).Container as FolderModel, cancellationToken).ConfigureAwait(false);
-            }
-            return routeModel;
-        }
-
-        public static async ValueTask Expand(this RouteModelCore routeModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-
-            //routeModel.ResetChildModels(await PathModelHandler.ConvertPathModels(routeModel, cancellationToken).ConfigureAwait(false),
-            //    await ActivityModelHandler.ConvertActivityModels(routeModel, cancellationToken).ConfigureAwait(false));
+            return RouteModelCoreHandler.GetExtended(routeModel, cancellationToken);
         }
 
         public static async ValueTask<RouteModel> ToRouteModel(this FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken cancellationToken)
@@ -57,28 +39,17 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             RouteModelCore routeModelCore = folder.Routes.Where(r => r.MstsRouteFolder() == routeFolder).FirstOrDefault() ??
                 throw new FileNotFoundException($"Route not found. Abnormal termination.");
 
-            if (routeModelCore is RouteModel fullRouteModel && !fullRouteModel.SetupRequired())
-            {
-                return fullRouteModel;
-            }
-
-            RouteModel routeModel = await routeModelCore.Extend(cancellationToken).ConfigureAwait(false);
-            if (routeModel.SetupRequired())
-                routeModel = await routeModel.Convert(cancellationToken).ConfigureAwait(false) as RouteModel;
-
-            folder.SetRoutes(folder.Routes.Where((r) => r != routeModelCore).Append(routeModel)); //Replacing the existing route model in the parent folder, with this new instance
-
-            return routeModel;
+            return await RouteModelCoreHandler.GetExtended(routeModelCore, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<FrozenSet<PathModelCore>> Paths(this RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static ValueTask<FrozenSet<PathModelCore>> Paths(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return await PathModelHandler.GetPaths(routeModel, cancellationToken).ConfigureAwait(false);
+            return routeModel.GetRoutePaths(cancellationToken);
         }
 
-        public static async ValueTask<FrozenSet<ActivityModelCore>> Activities(this RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static ValueTask<FrozenSet<ActivityModelCore>> Activities(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return await ActivityModelHandler.GetActivities(routeModel, cancellationToken).ConfigureAwait(false);
+            return routeModel.GetRouteActivities(cancellationToken);
         }
 
         public static async ValueTask<PathModelCore> PathModel(this RouteModelCore routeModel, string pathName, CancellationToken cancellationToken)

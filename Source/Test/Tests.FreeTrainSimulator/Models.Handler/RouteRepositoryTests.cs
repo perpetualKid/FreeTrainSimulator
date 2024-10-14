@@ -28,8 +28,8 @@ namespace Tests.FreeTrainSimulator.Models.Handler
                     RouteModelCore routeModel = routes.FirstOrDefault();
                     if (null != routeModel)
                     {
-                        routeModel = await RouteModelCoreHandler.Get(routeModel, CancellationToken.None).ConfigureAwait(false);
-                        routeModel = await RouteModelCoreHandler.Get(routeModel, CancellationToken.None).ConfigureAwait(false);
+                        routeModel = await RouteModelCoreHandler.GetCore(routeModel, CancellationToken.None).ConfigureAwait(false);
+                        routeModel = await RouteModelCoreHandler.GetCore(routeModel, CancellationToken.None).ConfigureAwait(false);
 
                         //FrozenSet<PathModelCore> paths = await PathModelHandler.ExpandPathModels(routeModel, CancellationToken.None).ConfigureAwait(false);
 

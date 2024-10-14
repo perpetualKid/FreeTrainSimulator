@@ -33,7 +33,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
             ArgumentException.ThrowIfNullOrEmpty(routeName, nameof(routeName));
 
-            return await RouteModelHandler.Get(routeName, folderModel, cancellationToken).ConfigureAwait(false);
+            return await RouteModelCoreHandler.GetExtended(routeName, folderModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<FolderModel> Load(this FolderModel folderModel, CancellationToken cancellationToken)

@@ -30,8 +30,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     RouteModelCore routeModel = routes.FirstOrDefault();
                     if (null != routeModel)
                     {
-                        routeModel = await RouteModelCoreHandler.Get(routeModel, CancellationToken.None).ConfigureAwait(false);
-                        routeModel = await RouteModelCoreHandler.Get(routeModel, CancellationToken.None).ConfigureAwait(false);
+                        routeModel = await RouteModelCoreHandler.GetCore(routeModel, CancellationToken.None).ConfigureAwait(false);
+                        routeModel = await RouteModelCoreHandler.GetCore(routeModel, CancellationToken.None).ConfigureAwait(false);
                     }
 
                     routes = await RouteModelCoreHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);

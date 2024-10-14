@@ -72,7 +72,7 @@ namespace Tests.FreeTrainSimulator.Models.Loader
             ProfileModel defaultModel = await ProfileModelHandler.Convert(null, Enumerable.Empty<(string, string)>(), CancellationToken.None).ConfigureAwait(false);
             FolderModel folderModel = null != defaultModel ? await defaultModel.FolderModel("Demo Model 1", CancellationToken.None).ConfigureAwait(false) : null;
             RouteModel routeModel = null != folderModel ? await folderModel.RouteModel("Monogame", CancellationToken.None).ConfigureAwait(false) : null;
-            await routeModel.Convert(CancellationToken.None).ConfigureAwait(false);
+            //await routeModel.Convert(CancellationToken.None).ConfigureAwait(false);
             //            PathModel pathModel = null != routeModel ? await routeModel.PathModel("", CancellationToken.None).ConfigureAwait(false) : null;
         }
     }
