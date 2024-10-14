@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -14,7 +15,7 @@ using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class PathModelCoreHandler : ContentHandlerBase<PathModelCore, PathModelCore>
+    internal sealed class PathModelHandler : ContentHandlerBase<PathModelCore, PathModelCore>
     {
         // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
         // MSTS checks for "broken path" before running the simulator and doesn't offer them in the list.
@@ -32,10 +33,10 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         //    @"ROUTES\USA2\PATHS\long-haul west (blizzard).pat",
         //};
 
-        public static async ValueTask<PathModelCore> Get(PathModelCore pathModel, CancellationToken cancellationToken)
+        public static ValueTask<PathModelCore> Get(PathModelCore pathModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
-            return await Get(pathModel.Id, pathModel.Parent, cancellationToken).ConfigureAwait(false);
+            return Get(pathModel.Id, pathModel.Parent, cancellationToken);
         }
 
         public static async ValueTask<PathModelCore> Get(string pathId, RouteModelCore routeModel, CancellationToken cancellationToken)
@@ -67,17 +68,17 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return pathModel;
         }
 
-        public static async ValueTask<PathModelCore> Extend(PathModelCore pathModel, CancellationToken cancellationToken)
+        public static ValueTask<PathModel> Extend(PathModelCore pathModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
 
-            return pathModel is PathModel ? pathModel : await GetExtended(pathModel, cancellationToken).ConfigureAwait(false);
+            return pathModel is PathModel pathModelExtended ? ValueTask.FromResult(pathModelExtended) : GetExtended(pathModel, cancellationToken);
         }
 
-        public static async ValueTask<PathModelCore> GetExtended(PathModelCore pathModel, CancellationToken cancellationToken)
+        public static ValueTask<PathModel> GetExtended(PathModelCore pathModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
-            return await GetExtended(pathModel.Id, pathModel.Parent, cancellationToken).ConfigureAwait(false);
+            return GetExtended(pathModel.Id, pathModel.Parent, cancellationToken);
         }
 
         public static async ValueTask<PathModel> GetExtended(string pathId, RouteModelCore routeModel, CancellationToken cancellationToken)
@@ -186,9 +187,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return results.ToFrozenSet();
         }
 
-        private static async Task<PathModel> Convert(PathModelCore pathModel, CancellationToken cancellationToken)
+        private static Task<PathModel> Convert(PathModelCore pathModel, CancellationToken cancellationToken)
         {
-            return await Convert(pathModel.Id, pathModel.Parent, cancellationToken).ConfigureAwait(false);
+            return Convert(pathModel.Id, pathModel.Parent, cancellationToken);
         }
 
         private static async Task<PathModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)
@@ -217,7 +218,11 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 await Create(pathModel, routeModel, cancellationToken).ConfigureAwait(false);
                 return pathModel;
             }
-            return null;
+            else
+            {
+                Trace.TraceWarning($"Path file {filePath} refers to non-existing file.");
+                return null;
+            }
         }
     }
 }

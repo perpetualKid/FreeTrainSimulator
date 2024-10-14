@@ -34,14 +34,14 @@ namespace Tests.FreeTrainSimulator.Models.Handler
 
                     //routes = await RouteModelCoreHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
 
-                    await PathModelCoreHandler.ExpandPathModels(routeModel, CancellationToken.None).ConfigureAwait(false);
+                    await PathModelHandler.ExpandPathModels(routeModel, CancellationToken.None).ConfigureAwait(false);
 
-                    FrozenSet<PathModelCore> paths = await PathModelCoreHandler.GetPaths(routeModel, CancellationToken.None);
+                    FrozenSet<PathModelCore> paths = await PathModelHandler.GetPaths(routeModel, CancellationToken.None);
                     PathModelCore pathModel = paths.FirstOrDefault();
 
                     if (null != pathModel)
                     {
-                        pathModel = await PathModelCoreHandler.GetExtended(pathModel.Id, pathModel.Parent, CancellationToken.None);
+                        pathModel = await PathModelHandler.GetExtended(pathModel.Id, pathModel.Parent, CancellationToken.None);
                     }
                 }
             }
