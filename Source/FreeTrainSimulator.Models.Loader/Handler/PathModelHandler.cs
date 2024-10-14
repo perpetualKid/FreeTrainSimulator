@@ -99,8 +99,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 collectionContentUpdated = false;
             }
 
-            FrozenSet<PathModelCore> result = await modelSetTask.Value.ConfigureAwait(false);
-            return result;
+            return await modelSetTask.Value.ConfigureAwait(false);
         }
 
         public static async Task<FrozenSet<PathModelCore>> ExpandPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
