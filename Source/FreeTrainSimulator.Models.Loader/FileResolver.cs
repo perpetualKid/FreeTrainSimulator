@@ -112,7 +112,7 @@ namespace FreeTrainSimulator.Models.Loader
         }
 
         public static string WildcardPattern => $"*{FileExtension}.*";
-        public static string WildcardSavePattern => $"*{FileExtension}{ContentHandlerBase<T, T>.SaveStateExtension}";
+        public static string WildcardSavePattern => $"*{FileExtension}{ContentHandlerBase<T>.SaveStateExtension}";
 
 #pragma warning restore CA1000 // Do not declare static members on generic types
     }

@@ -13,7 +13,7 @@ using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class FolderModelHandler : ContentHandlerBase<FolderModel, FolderModel>
+    internal sealed class FolderModelHandler : ContentHandlerBase<FolderModel>
     {
         private static readonly ConcurrentDictionary<string, Task<FolderModel>> modelCache = new ConcurrentDictionary<string, Task<FolderModel>>(StringComparer.OrdinalIgnoreCase);
         private static readonly ConcurrentDictionary<string, Lazy<Task<FolderModel>>> modelConvertCache = new ConcurrentDictionary<string, Lazy<Task<FolderModel>>>(StringComparer.OrdinalIgnoreCase);

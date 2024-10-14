@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
-            ProfileSelectionsModel selectionsModel = await ContentHandlerBase<ProfileSelectionsModel, ProfileSelectionsModel>.FromFile(profileModel.Name, profileModel, cancellationToken).ConfigureAwait(false);
+            ProfileSelectionsModel selectionsModel = await ContentHandlerBase<ProfileSelectionsModel>.FromFile(profileModel.Name, profileModel, cancellationToken).ConfigureAwait(false);
             if (selectionsModel == null)
             {
                 selectionsModel = new ProfileSelectionsModel() { Id = profileModel.Name, Name = profileModel.Name, ActivityType = Common.ActivityType.Activity };
@@ -59,7 +59,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             ArgumentNullException.ThrowIfNull(selectionsModel, nameof(selectionsModel));
 
-            return await ContentHandlerBase<ProfileSelectionsModel, ProfileSelectionsModel>.ToFile(selectionsModel, cancellationToken).ConfigureAwait(false);
+            return await ContentHandlerBase<ProfileSelectionsModel>.ToFile(selectionsModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<ProfileModel> Convert(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)

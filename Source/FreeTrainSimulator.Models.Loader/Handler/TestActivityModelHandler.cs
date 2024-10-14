@@ -9,7 +9,7 @@ using FreeTrainSimulator.Models.Loader.Shim;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class TestActivityModelHandler : ContentHandlerBase<TestActivityModel, ActivityModelCore>
+    internal sealed class TestActivityModelHandler : ContentHandlerBase<ActivityModelCore>
     {
         public static async ValueTask<FrozenSet<TestActivityModel>> GetTestActivities(ProfileModel profileModel, CancellationToken cancellationToken)
         {

@@ -15,7 +15,7 @@ using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class PathModelHandler : ContentHandlerBase<PathModelCore, PathModelCore>
+    internal sealed class PathModelHandler : ContentHandlerBase<PathModelCore>
     {
         // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
         // MSTS checks for "broken path" before running the simulator and doesn't offer them in the list.

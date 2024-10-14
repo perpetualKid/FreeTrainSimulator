@@ -14,57 +14,57 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal abstract class ContentHandlerBase<TActual, TBase> where TBase : ModelBase<TBase> where TActual : TBase
+    internal abstract class ContentHandlerBase<TModel> where TModel : ModelBase<TModel>
     {
         public const string SaveStateExtension = FileNameExtensions.SaveFile;
 
-        private protected static readonly string fileExtension = ModelFileResolver<TBase>.FileExtension;
+        private protected static readonly string fileExtension = ModelFileResolver<TModel>.FileExtension;
         private protected static bool collectionContentUpdated = true;
 
-        private protected static readonly ConcurrentDictionary<string, Lazy<Task<TActual>>> taskLazyCache = new ConcurrentDictionary<string, Lazy<Task<TActual>>>(StringComparer.OrdinalIgnoreCase);
-        private protected static readonly ConcurrentDictionary<string, Lazy<Task<FrozenSet<TActual>>>> taskSetCache = new ConcurrentDictionary<string, Lazy<Task<FrozenSet<TActual>>>>(StringComparer.OrdinalIgnoreCase);
+        private protected static readonly ConcurrentDictionary<string, Lazy<Task<TModel>>> taskLazyCache = new ConcurrentDictionary<string, Lazy<Task<TModel>>>(StringComparer.OrdinalIgnoreCase);
+        private protected static readonly ConcurrentDictionary<string, Lazy<Task<FrozenSet<TModel>>>> taskSetCache = new ConcurrentDictionary<string, Lazy<Task<FrozenSet<TModel>>>>(StringComparer.OrdinalIgnoreCase);
 
-        public static async Task<TActual> FromFile<TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
+        public static async Task<TModel> FromFile<TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
         {
             string targetFileName = name;
             if (resolveName)
-                targetFileName = ModelFileResolver<TBase>.FilePath(name, parent) + SaveStateExtension;
+                targetFileName = ModelFileResolver<TModel>.FilePath(name, parent) + SaveStateExtension;
 
-            TActual model = null;
+            TModel model = null;
             if (File.Exists(targetFileName))
             {
                 using (FileStream saveFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read))
                 {
-                    model = await MemoryPackSerializer.DeserializeAsync<TActual>(saveFile, null, cancellationToken).ConfigureAwait(false);
+                    model = await MemoryPackSerializer.DeserializeAsync<TModel>(saveFile, null, cancellationToken).ConfigureAwait(false);
                 }
                 model.Initialize(targetFileName, parent);
             }            
             return model;
         }
 
-        public static async Task<TInherited> FromFile<TInherited, TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TInherited : TBase where TContainer : ModelBase<TContainer>
+        public static async Task<TExtendedModel> FromFile<TExtendedModel, TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TExtendedModel : TModel where TContainer : ModelBase<TContainer>
         {
             string targetFileName = name;
             if (resolveName)
-                targetFileName = ModelFileResolver<TBase>.FilePath(name, parent) + SaveStateExtension;
+                targetFileName = ModelFileResolver<TModel>.FilePath(name, parent) + SaveStateExtension;
 
-            TInherited model = null;
+            TExtendedModel model = null;
             if (File.Exists(targetFileName))
             {
                 using (FileStream saveFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read))
                 {
-                    model = await MemoryPackSerializer.DeserializeAsync<TInherited>(saveFile, null, cancellationToken).ConfigureAwait(false);
+                    model = await MemoryPackSerializer.DeserializeAsync<TExtendedModel>(saveFile, null, cancellationToken).ConfigureAwait(false);
                 }
                 model.Initialize(targetFileName, parent);
             }
             return model;
         }
 
-        public static async Task<TActual> ToFile(TActual model, CancellationToken cancellationToken)
+        public static async Task<TModel> ToFile(TModel model, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
-            string targetFileName = ModelFileResolver<TBase>.FilePath(model) + SaveStateExtension;
+            string targetFileName = ModelFileResolver<TModel>.FilePath(model) + SaveStateExtension;
 
             model.RefreshModel();
 
@@ -86,16 +86,16 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return model;
         }
 
-        public static async Task Create<TContainer>(TActual model, TContainer parent, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
+        public static async Task Create<TContainer>(TModel model, TContainer parent, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
         { 
             await Create(model, parent, true, false, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task Create<TContainer>(TActual model, TContainer parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
+        public static async Task Create<TContainer>(TModel model, TContainer parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
-            model.Initialize(ModelFileResolver<TBase>.FilePath(model, parent), parent);
+            model.Initialize(ModelFileResolver<TModel>.FilePath(model, parent), parent);
 
             if (saveModel)
                 model = await ToFile(model, cancellationToken).ConfigureAwait(false);
@@ -118,9 +118,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             }
         }
 
-        protected static Task<TActual> GetCachedTask(ConcurrentDictionary<string, Task<TActual>> cache, string key, Func<Task<TActual>> taskCreator)
+        protected static Task<TModel> GetCachedTask(ConcurrentDictionary<string, Task<TModel>> cache, string key, Func<Task<TModel>> taskCreator)
         {
-            if (!cache.TryGetValue(key, out Task<TActual> cachedTask))
+            if (!cache.TryGetValue(key, out Task<TModel> cachedTask))
             {
                 _ = cache.TryAdd(key, cachedTask = taskCreator.Invoke());
             }
@@ -135,8 +135,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         /// <summary>
         /// Cast a Full Model task to Base Model task to mimic task covariance
         /// </summary>
-        protected static async Task<TBase> Cast(Task<TActual> t) => await t.ConfigureAwait(false);
-
-        protected static async Task<TBase> Cast<TInherited>(Task<TInherited> t) where TInherited : TBase => await t.ConfigureAwait(false);
+        protected static async Task<TModel> Cast<TExtendedModel>(Task<TExtendedModel> t) where TExtendedModel : TModel => await t.ConfigureAwait(false);
     }
 }

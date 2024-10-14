@@ -16,7 +16,7 @@ using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class ActivityModelHandler : ContentHandlerBase<ActivityModelCore, ActivityModelCore>
+    internal sealed class ActivityModelHandler : ContentHandlerBase<ActivityModelCore>
     {
         public static ActivityModelCore Explorer { get; private set; } = new ActivityModelCore()
         {
