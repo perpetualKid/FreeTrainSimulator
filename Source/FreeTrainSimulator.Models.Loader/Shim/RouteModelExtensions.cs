@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static ValueTask<RouteModel> Extend(this RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            return RouteModelCoreHandler.GetExtended(routeModel, cancellationToken);
+            return RouteModelHandler.GetExtended(routeModel, cancellationToken);
         }
 
         public static async ValueTask<RouteModel> ToRouteModel(this FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken cancellationToken)
@@ -39,7 +39,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             RouteModelCore routeModelCore = folder.Routes.Where(r => r.MstsRouteFolder() == routeFolder).FirstOrDefault() ??
                 throw new FileNotFoundException($"Route not found. Abnormal termination.");
 
-            return await RouteModelCoreHandler.GetExtended(routeModelCore, cancellationToken).ConfigureAwait(false);
+            return await RouteModelHandler.GetExtended(routeModelCore, cancellationToken).ConfigureAwait(false);
         }
 
         public static ValueTask<FrozenSet<PathModelCore>> Paths(this RouteModelCore routeModel, CancellationToken cancellationToken)

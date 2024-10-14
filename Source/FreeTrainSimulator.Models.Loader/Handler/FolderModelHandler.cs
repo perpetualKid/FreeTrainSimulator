@@ -62,7 +62,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
 
-            contentFolder.SetRoutes(await RouteModelCoreHandler.GetRoutes(contentFolder, cancellationToken).ConfigureAwait(false));
+            contentFolder.SetRoutes(await RouteModelHandler.GetRoutes(contentFolder, cancellationToken).ConfigureAwait(false));
             IFileResolve parent = (contentFolder as IFileResolve).Container;
             contentFolder.Initialize(ModelFileResolver<FolderModel>.FilePath(contentFolder, parent), parent);
             contentFolder.RefreshModel();
@@ -106,7 +106,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             {
                 await Parallel.ForEachAsync(Directory.EnumerateFiles(routesFolder, pattern), cancellationToken, async (file, token) =>
                 {
-                    RouteModelCore route = await RouteModelCoreHandler.FromFile(file, contentFolder, token, false).ConfigureAwait(false);
+                    RouteModelCore route = await RouteModelHandler.FromFile(file, contentFolder, token, false).ConfigureAwait(false);
                     if (route != null && routeFolders.TryRemove(route.Tag, out FolderStructure.ContentFolder.RouteFolder routeFolder)) //
                     {
                         //if (route.SetupRequired())
@@ -155,7 +155,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             {
                 await Parallel.ForEachAsync(Directory.EnumerateFiles(routesFolder, pattern), cancellationToken, async (file, token) =>
                 {
-                    RouteModelCore route = await RouteModelCoreHandler.FromFile(file, contentFolder, token, false).ConfigureAwait(false);
+                    RouteModelCore route = await RouteModelHandler.FromFile(file, contentFolder, token, false).ConfigureAwait(false);
                     if (route != null && routeFolders.TryRemove(route.Tag, out FolderStructure.ContentFolder.RouteFolder routeFolder)) //
                     {
                         //if (route.SetupRequired())

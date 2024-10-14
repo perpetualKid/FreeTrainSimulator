@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<FrozenSet<RouteModelCore>> Routes(this FolderModel folderModel, CancellationToken cancellationToken)
         {
-            return await RouteModelCoreHandler.GetRoutes(folderModel, cancellationToken).ConfigureAwait(false);
+            return await RouteModelHandler.GetRoutes(folderModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<FolderModel> Get(this FolderModel folderModel, CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
             ArgumentException.ThrowIfNullOrEmpty(routeName, nameof(routeName));
 
-            return await RouteModelCoreHandler.GetExtended(routeName, folderModel, cancellationToken).ConfigureAwait(false);
+            return await RouteModelHandler.GetExtended(routeName, folderModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<FolderModel> Load(this FolderModel folderModel, CancellationToken cancellationToken)

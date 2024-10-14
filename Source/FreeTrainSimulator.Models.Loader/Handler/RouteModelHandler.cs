@@ -18,7 +18,7 @@ using System.Diagnostics;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class RouteModelCoreHandler : ContentHandlerBase<RouteModelCore, RouteModelCore>
+    internal sealed class RouteModelHandler : ContentHandlerBase<RouteModelCore, RouteModelCore>
     {
         public static ValueTask<RouteModelCore> GetCore(RouteModelCore routeModel, CancellationToken cancellationToken)
         {

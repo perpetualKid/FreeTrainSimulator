@@ -25,16 +25,16 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 FolderModel folderModel = await FolderModelHandler.Get("Demo Model 1", profileModel, CancellationToken.None).ConfigureAwait(false);
                 if (folderModel != null)
                 {
-                    FrozenSet<RouteModelCore> routes = await RouteModelCoreHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
+                    FrozenSet<RouteModelCore> routes = await RouteModelHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
 
                     RouteModelCore routeModel = routes.FirstOrDefault();
                     if (null != routeModel)
                     {
-                        routeModel = await RouteModelCoreHandler.GetCore(routeModel, CancellationToken.None).ConfigureAwait(false);
-                        routeModel = await RouteModelCoreHandler.GetCore(routeModel, CancellationToken.None).ConfigureAwait(false);
+                        routeModel = await RouteModelHandler.GetCore(routeModel, CancellationToken.None).ConfigureAwait(false);
+                        routeModel = await RouteModelHandler.GetCore(routeModel, CancellationToken.None).ConfigureAwait(false);
                     }
 
-                    routes = await RouteModelCoreHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
+                    routes = await RouteModelHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
                 }
             }
             return FrozenSet<TestActivityModel>.Empty;
