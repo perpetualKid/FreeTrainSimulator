@@ -17,12 +17,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class PathModelHandler : ContentHandlerBase<PathModelCore, PathModelCore>
     {
+        private static bool collectionContentUpdated = true;
+
         // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
         // MSTS checks for "broken path" before running the simulator and doesn't offer them in the list.
-        // ORTS checks for "broken path" when the simulator runs and does offer them in the list.
-        // The first activity in Marias Pass is "Explore Longhale" which leads to a "Broken Path" message.
-        // The message then confuses users new to ORTS who have just installed it along with MSTS,
-        // see https://bugs.launchpad.net/or/+bug/1345172 and https://bugs.launchpad.net/or/+bug/128547
+        // I.e. the first activity in Marias Pass is "Explore Longhale" which leads to a "Broken Path" message.
+        // The message then confuses new users who have just started to play activities from MSTS,
         //private static readonly string[] brokenPaths = {
         //    @"ROUTES\USA1\PATHS\aftstrm(traffic03).pat",
         //    @"ROUTES\USA1\PATHS\aftstrmtraffic01.pat",
@@ -33,22 +33,21 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         //    @"ROUTES\USA2\PATHS\long-haul west (blizzard).pat",
         //};
 
-        public static ValueTask<PathModelCore> Get(PathModelCore pathModel, CancellationToken cancellationToken)
+        public static ValueTask<PathModelCore> GetCore(PathModelCore pathModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
-            return Get(pathModel.Id, pathModel.Parent, cancellationToken);
+            return GetCore(pathModel.Id, pathModel.Parent, cancellationToken);
         }
 
-        public static async ValueTask<PathModelCore> Get(string pathId, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async ValueTask<PathModelCore> GetCore(string pathId, RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(pathId);
-            bool renewed = false;
 
             if (!taskLazyCache.TryGetValue(key, out Lazy<Task<PathModelCore>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
             {
                 taskLazyCache[key] = modelTask = new Lazy<Task<PathModelCore>>(FromFile(pathId, routeModel, cancellationToken));
-                renewed = true;
+                collectionContentUpdated = true;
             }
 
             PathModelCore pathModel = await modelTask.Value.ConfigureAwait(false);
@@ -56,41 +55,28 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (pathModel.SetupRequired())
             {
                 taskLazyCache[key] = new Lazy<Task<PathModelCore>>(() => Cast(Convert(pathModel, cancellationToken)));
-                renewed = true;
-            }
-
-            if (renewed)
-            {
-                key = routeModel.Hierarchy();
-                _ = taskSetCache.TryRemove(key, out _);
+                collectionContentUpdated = true;
             }
 
             return pathModel;
         }
 
-        public static ValueTask<PathModel> Extend(PathModelCore pathModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
-
-            return pathModel is PathModel pathModelExtended ? ValueTask.FromResult(pathModelExtended) : GetExtended(pathModel, cancellationToken);
-        }
-
         public static ValueTask<PathModel> GetExtended(PathModelCore pathModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
-            return GetExtended(pathModel.Id, pathModel.Parent, cancellationToken);
+            return pathModel is PathModel pathModelExtended ? ValueTask.FromResult(pathModelExtended) : GetExtended(pathModel.Id, pathModel.Parent, cancellationToken);
         }
 
         public static async ValueTask<PathModel> GetExtended(string pathId, RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(pathId);
-            bool renewed = false;
 
-            if (!taskLazyCache.TryGetValue(key, out Lazy<Task<PathModelCore>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted) || (await (modelTask.Value.ConfigureAwait(false)) is not PathModel))
+            if (!taskLazyCache.TryGetValue(key, out Lazy<Task<PathModelCore>> modelTask) || !modelTask.IsValueCreated || 
+                (modelTask.IsValueCreated && (modelTask.Value.IsFaulted || (await modelTask.Value.ConfigureAwait(false) is not PathModel))))
             {
                 taskLazyCache[key] = modelTask = new Lazy<Task<PathModelCore>>(Cast(FromFile<PathModel, RouteModelCore>(pathId, routeModel, cancellationToken)));
-                renewed = true;
+                collectionContentUpdated = true;
             }
 
             PathModel pathModel = await modelTask.Value.ConfigureAwait(false) as PathModel;
@@ -98,13 +84,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (pathModel.SetupRequired())
             {
                 taskLazyCache[key] = new Lazy<Task<PathModelCore>>(() => Cast(Convert(pathModel, cancellationToken)));
-                renewed = true;
-            }
-
-            if (renewed)
-            {
-                key = routeModel.Hierarchy();
-                _ = taskSetCache.TryRemove(key, out _);
+                collectionContentUpdated = true;
             }
 
             return pathModel;
@@ -114,17 +94,18 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
-            if (!taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+
+            if (collectionContentUpdated || !taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
             {
-                modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(() => LoadRefresh(routeModel, cancellationToken));
+                taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(() => LoadPaths(routeModel, cancellationToken));
+                collectionContentUpdated = false;
             }
 
             FrozenSet<PathModelCore> result = await modelSetTask.Value.ConfigureAwait(false);
-            taskSetCache[key] = modelSetTask;
             return result;
         }
 
-        public static async Task ExpandPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async Task<FrozenSet<PathModelCore>> ExpandPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
@@ -159,10 +140,14 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 taskLazyCache[key] = pathModelTask;
             }).ConfigureAwait(false);
 
-            //return results.ToFrozenSet();
+            FrozenSet<PathModelCore> result = results.ToFrozenSet();
+            string key = routeModel.Hierarchy();
+            Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask;
+            taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(Task.FromResult(result));
+            return result;
         }
 
-        private static async Task<FrozenSet<PathModelCore>> LoadRefresh(RouteModelCore routeModel, CancellationToken cancellationToken)
+        private static async Task<FrozenSet<PathModelCore>> LoadPaths(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             string pathsFolder = ModelFileResolver<RouteModelCore>.FolderPath(routeModel);
             string pattern = ModelFileResolver<PathModelCore>.WildcardSavePattern;
@@ -179,7 +164,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     if (pathId.EndsWith(fileExtension))
                         pathId = pathId[..^fileExtension.Length];
 
-                    PathModelCore path = await Get(pathId, routeModel, token).ConfigureAwait(false);
+                    PathModelCore path = await GetCore(pathId, routeModel, token).ConfigureAwait(false);
                     if (null != path)
                         results.Add(path);
                 }).ConfigureAwait(false);

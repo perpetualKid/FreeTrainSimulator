@@ -17,7 +17,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         [TestMethod]
         public async ValueTask LoadRoutes()
         {
-            ProfileModel defaultModel = await ProfileModel.Null.Get(CancellationToken.None);
+            ProfileModel defaultModel = await ProfileModel.None.Get(CancellationToken.None);
             if (null != defaultModel)
             {
                  FolderModel folderModel = await FolderModelHandler.Get("Demo Model 1", defaultModel, CancellationToken.None).ConfigureAwait(false);
@@ -26,23 +26,23 @@ namespace Tests.FreeTrainSimulator.Models.Handler
                     FrozenSet<RouteModelCore> routes = await RouteModelCoreHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
 
                     RouteModelCore routeModel = routes.FirstOrDefault();
-                    //if (null != routeModel)
-                    //{
-                    //    routeModel = await RouteModelCoreHandler.Get(routeModel, CancellationToken.None).ConfigureAwait(false);
-                    //    routeModel = await RouteModelCoreHandler.Get(routeModel, CancellationToken.None).ConfigureAwait(false);
-                    //}
+                    if (null != routeModel)
+                    {
+                        routeModel = await RouteModelCoreHandler.Get(routeModel, CancellationToken.None).ConfigureAwait(false);
+                        routeModel = await RouteModelCoreHandler.Get(routeModel, CancellationToken.None).ConfigureAwait(false);
+
+                        //FrozenSet<PathModelCore> paths = await PathModelHandler.ExpandPathModels(routeModel, CancellationToken.None).ConfigureAwait(false);
+
+                        FrozenSet<PathModelCore> paths = await routeModel.GetRoutePaths(CancellationToken.None).ConfigureAwait(false);
+                        PathModelCore pathModel = paths.FirstOrDefault();
+
+                        if (null != pathModel)
+                        {
+                            pathModel = await PathModelHandler.GetExtended(pathModel.Id, pathModel.Parent, CancellationToken.None);
+                        }
+                    }
 
                     //routes = await RouteModelCoreHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
-
-                    await PathModelHandler.ExpandPathModels(routeModel, CancellationToken.None).ConfigureAwait(false);
-
-                    FrozenSet<PathModelCore> paths = await PathModelHandler.GetPaths(routeModel, CancellationToken.None);
-                    PathModelCore pathModel = paths.FirstOrDefault();
-
-                    if (null != pathModel)
-                    {
-                        pathModel = await PathModelHandler.GetExtended(pathModel.Id, pathModel.Parent, CancellationToken.None);
-                    }
                 }
             }
         }

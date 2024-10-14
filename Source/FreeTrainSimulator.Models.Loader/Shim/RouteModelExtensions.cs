@@ -49,7 +49,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             string contentFolderPath = routeFolder.ContentFolder.Folder;
 
-            ProfileModel contentProfile = await ProfileModel.Null.Get(cancellationToken).ConfigureAwait(false);
+            ProfileModel contentProfile = await ProfileModel.None.Get(cancellationToken).ConfigureAwait(false);
             FolderModel folder = await contentProfile.ContentFolders.
                 Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault().
                 Load(cancellationToken).ConfigureAwait(false);
@@ -86,7 +86,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             ArgumentException.ThrowIfNullOrEmpty(pathName, nameof(pathName));
 
-            return await PathModelHandler.Get(pathName, routeModel, cancellationToken).ConfigureAwait(false);
+            return await PathModelHandler.GetCore(pathName, routeModel, cancellationToken).ConfigureAwait(false);
         }
     }
 }
