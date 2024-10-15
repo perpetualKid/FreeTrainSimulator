@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             if (null != profileModel)
             {
-                FolderModel folderModel = await FolderModelHandler.Get("Demo Model 1", profileModel, CancellationToken.None).ConfigureAwait(false);
+                FolderModel folderModel = await FolderModelHandler.GetCore("Demo Model 1", profileModel, CancellationToken.None).ConfigureAwait(false);
                 if (folderModel != null)
                 {
                     FrozenSet<RouteModelCore> routes = await RouteModelHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);

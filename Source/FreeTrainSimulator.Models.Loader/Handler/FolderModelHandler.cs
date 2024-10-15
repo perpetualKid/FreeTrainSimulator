@@ -1,184 +1,93 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
-using Orts.Formats.Msts;
+using SharpDX;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class FolderModelHandler : ContentHandlerBase<FolderModel>
     {
-        private static readonly ConcurrentDictionary<string, Task<FolderModel>> modelCache = new ConcurrentDictionary<string, Task<FolderModel>>(StringComparer.OrdinalIgnoreCase);
-        private static readonly ConcurrentDictionary<string, Lazy<Task<FolderModel>>> modelConvertCache = new ConcurrentDictionary<string, Lazy<Task<FolderModel>>>(StringComparer.OrdinalIgnoreCase);
+        public static ValueTask<FolderModel> GetCore(FolderModel folderModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
+            return GetCore(folderModel.Id, folderModel.Parent, cancellationToken);
+        }
 
-        public static async ValueTask<FolderModel> Create(string folderName, string repositoryPath, ProfileModel profile, CancellationToken cancellationToken)
+        public static async ValueTask<FolderModel> GetCore(string folderId, ProfileModel profileModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+            string key = profileModel.Hierarchy(folderId);
+
+            if (!taskLazyCache.TryGetValue(key, out Lazy<Task<FolderModel>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
+            {
+                taskLazyCache[key] = modelTask = new Lazy<Task<FolderModel>>(Task.FromResult(profileModel.ContentFolders.Where((folder) => string.Equals(folder.Id, folderId, StringComparison.OrdinalIgnoreCase)).FirstOrDefault()));
+                collectionUpdateRequired = true;
+            }
+
+            FolderModel folderModel = await modelTask.Value.ConfigureAwait(false);
+
+            if (folderModel.SetupRequired())
+            {
+                taskLazyCache[key] = new Lazy<Task<FolderModel>>(() => Cast(Convert(folderModel, cancellationToken)));
+                collectionUpdateRequired = true;
+            }
+
+            return folderModel;
+        }
+
+        public static async ValueTask<FrozenSet<FolderModel>> GetFolders(ProfileModel profileModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+            string key = profileModel.Hierarchy();
+
+            if (collectionUpdateRequired || !taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<FolderModel>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            {
+                taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<FolderModel>>>(() => LoadFolders(profileModel, cancellationToken));
+                collectionUpdateRequired = false;
+            }
+
+            return await modelSetTask.Value.ConfigureAwait(false);
+        }
+
+        private static async Task<FrozenSet<FolderModel>> LoadFolders(ProfileModel profileModel, CancellationToken cancellationToken)
+        {
+            ConcurrentBag<FolderModel> results = new ConcurrentBag<FolderModel>();
+
+            await Parallel.ForEachAsync(profileModel.ContentFolders, cancellationToken, async (folder, token) =>
+            {
+                folder = await GetCore(folder, token).ConfigureAwait(false);
+                if (null != folder)
+                    results.Add(folder);
+            }).ConfigureAwait(false);
+
+            return results.ToFrozenSet();
+        }
+
+        private static async Task<FolderModel> Convert(FolderModel folderModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
+
+            folderModel.RefreshModel();
+            //_ = RouteModelHandler.ExpandRouteModels(folderModel, cancellationToken);
+            //return Task.FromResult(folderModel);
+            _ = await RouteModelHandler.ExpandRouteModels(folderModel, cancellationToken).ConfigureAwait(false);
+            return folderModel;
+        }
+
+        public static async Task<FolderModel> Create(string folderName, string repositoryPath, ProfileModel profile, CancellationToken cancellationToken)
         {
             FolderModel contentFolder = new FolderModel(folderName, repositoryPath, profile);
             await Create(contentFolder, profile, false, true, cancellationToken).ConfigureAwait(false);
-            return contentFolder;
-        }
-
-        public static ValueTask<FolderModel> Get(string folderName, ProfileModel profileModel, CancellationToken _)
-        {
-            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
-
-            return ValueTask.FromResult(profileModel.ContentFolders.Where((folder) => string.Equals(folder.Name, folderName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
-        }
-
-        public static async ValueTask<FolderModel> Get(FolderModel folderModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
-
-            string key = folderModel.Hierarchy();
-            Task<FolderModel> fromCache = GetCachedTask(modelCache, key, () => LoadInternal(folderModel, cancellationToken));
-
-            return await fromCache.ConfigureAwait(false);
-        }
-
-        public static async ValueTask<FolderModel> Converted(FolderModel folderModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
-
-            string key = folderModel.Hierarchy();
-
-            if (!modelConvertCache.TryGetValue(key, out Lazy<Task<FolderModel>> folderModelTask))
-            {
-                _ = modelConvertCache.TryAdd(key, folderModelTask = new Lazy<Task<FolderModel>>(() => LoadInternal(folderModel, cancellationToken)));
-            }
-            if (folderModelTask.Value.IsFaulted)
-                modelConvertCache[key] = folderModelTask = new Lazy<Task<FolderModel>>(() => LoadInternal(folderModel, cancellationToken));
-
-            return await folderModelTask.Value.ConfigureAwait(false);
-        }
-
-        public static async ValueTask<FolderModel> Load(FolderModel contentFolder, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
-
-            contentFolder.SetRoutes(await RouteModelHandler.GetRoutes(contentFolder, cancellationToken).ConfigureAwait(false));
-            IFileResolve parent = (contentFolder as IFileResolve).Container;
-            contentFolder.Initialize(ModelFileResolver<FolderModel>.FilePath(contentFolder, parent), parent);
-            contentFolder.RefreshModel();
-            return contentFolder;
-        }
-
-        private static Task<FolderModel> LoadInternal(FolderModel contentFolder, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
-
-            IFileResolve parent = (contentFolder as IFileResolve).Container;
-            contentFolder.Initialize(ModelFileResolver<FolderModel>.FilePath(contentFolder, parent), parent);
-            contentFolder.RefreshModel();
-            modelConvertCache.TryAdd(ModelFileResolver<FolderModel>.FilePath(contentFolder), new Lazy<Task<FolderModel>>(() => ConvertInternal(contentFolder, cancellationToken)));
-            return Task.FromResult(contentFolder);
-        }
-
-        private static async Task<FolderModel> ConvertInternal(FolderModel contentFolder, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
-
-            string routesFolder = ModelFileResolver<FolderModel>.FolderPath(contentFolder);
-            string pattern = ModelFileResolver<RouteModelCore>.WildcardPattern;
-
-            ConcurrentBag<RouteModelCore> routes = new ConcurrentBag<RouteModelCore>();
-            ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder> routeFolders = new ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder>(StringComparer.OrdinalIgnoreCase);
-
-            // preload existing MSTS folders
-            await Parallel.ForEachAsync(Directory.EnumerateDirectories(contentFolder.MstsContentFolder().RoutesFolder), cancellationToken, (routeFolder, token) =>
-            {
-                FolderStructure.ContentFolder.RouteFolder folder = FolderStructure.Route(routeFolder);
-                if (folder.Valid)
-                {
-                    _ = routeFolders.TryAdd(folder.RouteName, folder);
-                }
-                return ValueTask.CompletedTask;
-            }).ConfigureAwait(false);
-
-            //load existing route models, and compare if the corresponding folder still exists.
-            if (Directory.Exists(routesFolder))
-            {
-                await Parallel.ForEachAsync(Directory.EnumerateFiles(routesFolder, pattern), cancellationToken, async (file, token) =>
-                {
-                    RouteModelCore route = await RouteModelHandler.FromFile(file, contentFolder, token, false).ConfigureAwait(false);
-                    if (route != null && routeFolders.TryRemove(route.Tag, out FolderStructure.ContentFolder.RouteFolder routeFolder)) //
-                    {
-                        //if (route.SetupRequired())
-                        //    route = await RouteModelHandler.Convert(routeFolder, contentFolder, token).ConfigureAwait(false);
-                        routes.Add(route);
-                    }
-                }).ConfigureAwait(false);
-            }
-
-            //for any new MSTS folder (remaining in the preloaded dictionary), Create a route model
-            await Parallel.ForEachAsync(routeFolders, cancellationToken, async (routeFolder, token) =>
-            {
-                //RouteModelCore route = await RouteModelHandler.Convert(routeFolder.Value, contentFolder, token).ConfigureAwait(false);
-                //if (null != route)
-                //{
-                //    routes.Add(route);
-                //}
-            }).ConfigureAwait(false);
-
-            return contentFolder;
-        }
-
-        public static async Task<FolderModel> Convert(FolderModel contentFolder, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(contentFolder, nameof(contentFolder));
-
-            string routesFolder = ModelFileResolver<FolderModel>.FolderPath(contentFolder);
-            string pattern = ModelFileResolver<RouteModelCore>.WildcardPattern;
-
-            ConcurrentBag<RouteModelCore> routes = new ConcurrentBag<RouteModelCore>();
-            ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder> routeFolders = new ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder>(StringComparer.OrdinalIgnoreCase);
-
-            // preload existing MSTS folders
-            await Parallel.ForEachAsync(Directory.EnumerateDirectories(contentFolder.MstsContentFolder().RoutesFolder), cancellationToken, (routeFolder, token) =>
-            {
-                FolderStructure.ContentFolder.RouteFolder folder = FolderStructure.Route(routeFolder);
-                if (folder.Valid)
-                {
-                    _ = routeFolders.TryAdd(folder.RouteName, folder);
-                }
-                return ValueTask.CompletedTask;
-            }).ConfigureAwait(false);
-
-            //load existing route models, and compare if the corresponding folder still exists.
-            if (Directory.Exists(routesFolder))
-            {
-                await Parallel.ForEachAsync(Directory.EnumerateFiles(routesFolder, pattern), cancellationToken, async (file, token) =>
-                {
-                    RouteModelCore route = await RouteModelHandler.FromFile(file, contentFolder, token, false).ConfigureAwait(false);
-                    if (route != null && routeFolders.TryRemove(route.Tag, out FolderStructure.ContentFolder.RouteFolder routeFolder)) //
-                    {
-                        //if (route.SetupRequired())
-                        //    route = await RouteModelHandler.Convert(routeFolder, contentFolder, token).ConfigureAwait(false);
-                        routes.Add(route);
-                    }
-                }).ConfigureAwait(false);
-            }
-
-            //for any new MSTS folder (remaining in the preloaded dictionary), Create a route model
-            await Parallel.ForEachAsync(routeFolders, cancellationToken, async (routeFolder, token) =>
-            {
-                //RouteModelCore route = await RouteModelHandler.Convert(routeFolder.Value, contentFolder, token).ConfigureAwait(false);
-                //if (null != route)
-                //{
-                //    routes.Add(route);
-                //}
-            }).ConfigureAwait(false);
-
-            contentFolder.SetRoutes(routes);
-            IFileResolve parent = (contentFolder as IFileResolve).Container;
-            contentFolder.Initialize(ModelFileResolver<FolderModel>.FilePath(contentFolder, parent), parent);
-            contentFolder.RefreshModel();
             return contentFolder;
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Frozen;
+using System.Diagnostics;
 
 using FreeTrainSimulator.Models.Independent.Base;
 
@@ -44,6 +45,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
             return other != null && other.Name == Name && other.Version == Version;
         }
 
+        [DebuggerStepThrough]
         public override int GetHashCode()
         {
             return HashCode.Combine(Name, Version);

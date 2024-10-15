@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Independent.Content;
 
 using MemoryPack;
 
@@ -14,7 +16,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
     /// <typeparam name="T"></typeparam>
     public abstract record ModelBase<T> : IFileResolve where T : ModelBase<T>
     {
-        private string version;
+        private string _version;
 
         #region internal handling
         private protected static string fileExtension;
@@ -49,7 +51,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
 
         public void RefreshModel()
         {
-            version = VersionInfo.Version;
+            _version = VersionInfo.Version;
         }
 
         public virtual void Initialize(string file, IFileResolve parent)
@@ -81,7 +83,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         /// <summary>
         /// Application Version when this instance was last time updated
         /// </summary>
-        public string Version { get => version; init { version = value; } }
+        public string Version { get => _version; init { _version = value; } }
         /// <summary>
         /// Tag property to persist arbitrary additional information
         /// </summary>

@@ -21,9 +21,11 @@ namespace Tests.FreeTrainSimulator.Models.Handler
             ProfileModel defaultModel = await ProfileModel.None.Get(CancellationToken.None);
             if (null != defaultModel)
             {
-                FolderModel folderModel = await FolderModelHandler.Get("Demo Model 1", defaultModel, CancellationToken.None).ConfigureAwait(false);
+                FrozenSet<FolderModel> folders = await FolderModelHandler.GetFolders(defaultModel, CancellationToken.None).ConfigureAwait(false);
+                FolderModel folderModel = folders?.Where(f => f.Name == "Demo Model 1").FirstOrDefault();
                 if (folderModel != null)
                 {
+                    folderModel = await FolderModelHandler.GetCore(folderModel, CancellationToken.None).ConfigureAwait(false);
                     FrozenSet<RouteModelCore> routes = await RouteModelHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
 
                     RouteModelCore routeModel = routes.FirstOrDefault();

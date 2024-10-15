@@ -121,7 +121,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 FrozenSet<PathModelCore> existingPaths = await GetPaths(routeModel, cancellationToken).ConfigureAwait(false);
                 foreach (PathModelCore pathModel in existingPaths)
                 {
-                    if (pathFiles.Remove(pathModel?.Tag, out string filePath)) //
+                    if (pathFiles.TryRemove(pathModel?.Tag, out string filePath)) //
                     {
                         results.Add(pathModel);
                     }
@@ -131,10 +131,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             //for any new MSTS path (remaining in the preloaded dictionary), Create a path model
             await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
             {
-                Lazy<Task<PathModelCore>> pathModelTask = new Lazy<Task<PathModelCore>>(Cast(Convert(path.Value, routeModel, cancellationToken)));
+                Lazy<Task<PathModelCore>> modelTask = new Lazy<Task<PathModelCore>>(Cast(Convert(path.Value, routeModel, cancellationToken)));
 
-                string key = (await pathModelTask.Value.ConfigureAwait(false)).Hierarchy();
-                taskLazyCache[key] = pathModelTask;
+                PathModelCore pathModel = await modelTask.Value.ConfigureAwait(false);
+                string key = pathModel.Hierarchy();
+                results.Add(pathModel);
+                taskLazyCache[key] = modelTask;
             }).ConfigureAwait(false);
 
             FrozenSet<PathModelCore> result = results.ToFrozenSet();
@@ -172,6 +174,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
         private static Task<PathModel> Convert(PathModelCore pathModel, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
             return Convert(pathModel.Id, pathModel.Parent, cancellationToken);
         }
 

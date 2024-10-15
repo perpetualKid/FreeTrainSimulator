@@ -25,7 +25,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<FolderModel> Get(this FolderModel folderModel, CancellationToken cancellationToken)
         { 
-            return await FolderModelHandler.Get(folderModel, cancellationToken).ConfigureAwait(false);
+            return await FolderModelHandler.GetCore(folderModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<RouteModel> RouteModel(this FolderModel folderModel, string routeName, CancellationToken cancellationToken)
@@ -36,14 +36,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return await RouteModelHandler.GetExtended(routeName, folderModel, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<FolderModel> Load(this FolderModel folderModel, CancellationToken cancellationToken)
-        {
-            return folderModel != null && folderModel.SetupRequired() ? await FolderModelHandler.Load(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
-        }
-
         public static async ValueTask<FolderModel> Convert(this FolderModel folderModel, CancellationToken cancellationToken)
         {
-            return folderModel != null ? await FolderModelHandler.Convert(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
+            return folderModel != null ? await FolderModelHandler.GetCore(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
         }
     }
 }

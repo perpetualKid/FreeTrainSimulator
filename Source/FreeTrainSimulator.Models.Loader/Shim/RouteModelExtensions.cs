@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ProfileModel contentProfile = await ProfileModel.None.Get(cancellationToken).ConfigureAwait(false);
             FolderModel folder = await contentProfile.ContentFolders.
                 Where((folder) => Path.GetRelativePath(folder.ContentPath, contentFolderPath) == ".").FirstOrDefault().
-                Load(cancellationToken).ConfigureAwait(false);
+                Get(cancellationToken).ConfigureAwait(false);
 
             RouteModelCore routeModelCore = folder.Routes.Where(r => r.MstsRouteFolder() == routeFolder).FirstOrDefault() ??
                 throw new FileNotFoundException($"Route not found. Abnormal termination.");

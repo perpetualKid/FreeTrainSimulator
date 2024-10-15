@@ -139,8 +139,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             await Parallel.ForEachAsync(activityFiles, cancellationToken, async (path, token) =>
             {
                 Lazy<Task<ActivityModelCore>> modelTask = new Lazy<Task<ActivityModelCore>>(Cast(Convert(path.Value, routeModel, cancellationToken)));
-
-                string key = (await modelTask.Value.ConfigureAwait(false)).Hierarchy();
+                ActivityModelCore activityModel = await modelTask.Value.ConfigureAwait(false);
+                string key = activityModel.Hierarchy();
+                results.Add(activityModel);
                 taskLazyCache[key] = modelTask;
             }).ConfigureAwait(false);
 
@@ -178,6 +179,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
         private static Task<ActivityModel> Convert(ActivityModelCore activityModel, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
             return Convert(activityModel.Id, activityModel.Parent, cancellationToken);
         }
 

@@ -21,7 +21,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             ArgumentException.ThrowIfNullOrEmpty(folderName, nameof(folderName));
 
-            return await FolderModelHandler.Get(folderName, profileModel, cancellationToken).ConfigureAwait(false);
+            return await FolderModelHandler.GetCore(folderName, profileModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<ProfileSelectionsModel> SelectionsModel(this ProfileModel profileModel, CancellationToken cancellationToken)

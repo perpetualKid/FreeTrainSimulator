@@ -1,5 +1,4 @@
 ﻿using System.Collections.Frozen;
-using System.Collections.Generic;
 
 using FreeTrainSimulator.Models.Independent.Base;
 
@@ -29,8 +28,5 @@ namespace FreeTrainSimulator.Models.Independent.Content
         {
             ContentPath = path;
         }
-
-        public void SetRoutes(IEnumerable<RouteModelCore> routes) => Routes = routes?.ToFrozenSet();
-        public void SetRoutes(FrozenSet<RouteModelCore> routes) => Routes = routes;
     }
 }

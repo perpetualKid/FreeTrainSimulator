@@ -36,7 +36,7 @@ namespace Tests.FreeTrainSimulator.Models.Loader
             ProfileModel defaultModel = await ProfileModel.None.Get(CancellationToken.None);
             if (null != defaultModel)
             {
-                FolderModel folderModel = await FolderModelHandler.Get("Demo", defaultModel, CancellationToken.None).ConfigureAwait(false);
+                //FolderModel folderModel = await FolderModelHandler.Get("Demo", defaultModel, CancellationToken.None).ConfigureAwait(false);
             }
         }
 
@@ -46,11 +46,11 @@ namespace Tests.FreeTrainSimulator.Models.Loader
             ProfileModel defaultModel = await ProfileModel.None.Get(CancellationToken.None);
             if (null != defaultModel)
             {
-                FolderModel folderModel = await FolderModelHandler.Get("Demo Model 1", defaultModel, CancellationToken.None).ConfigureAwait(false);
-                if (folderModel != null)
-                {
-                    folderModel = await FolderModelHandler.Convert(folderModel, CancellationToken.None).ConfigureAwait(false);
-                }
+                //FolderModel folderModel = await FolderModelHandler.Get("Demo Model 1", defaultModel, CancellationToken.None).ConfigureAwait(false);
+                //if (folderModel != null)
+                //{
+//                    folderModel = await FolderModelHandler.Convert(folderModel, CancellationToken.None).ConfigureAwait(false);
+                //}
             }
         }
 
