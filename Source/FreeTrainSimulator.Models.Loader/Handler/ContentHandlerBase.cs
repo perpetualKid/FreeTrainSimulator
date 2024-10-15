@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         public const string SaveStateExtension = FileNameExtensions.SaveFile;
 
         private protected static readonly string fileExtension = ModelFileResolver<TModel>.FileExtension;
-        private protected static bool collectionContentUpdated = true;
+        private protected static bool collectionUpdateRequired = true;
 
         private protected static readonly ConcurrentDictionary<string, Lazy<Task<TModel>>> taskLazyCache = new ConcurrentDictionary<string, Lazy<Task<TModel>>>(StringComparer.OrdinalIgnoreCase);
         private protected static readonly ConcurrentDictionary<string, Lazy<Task<FrozenSet<TModel>>>> taskSetCache = new ConcurrentDictionary<string, Lazy<Task<FrozenSet<TModel>>>>(StringComparer.OrdinalIgnoreCase);

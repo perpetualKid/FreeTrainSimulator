@@ -45,7 +45,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (!taskLazyCache.TryGetValue(key, out Lazy<Task<PathModelCore>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
             {
                 taskLazyCache[key] = modelTask = new Lazy<Task<PathModelCore>>(FromFile(pathId, routeModel, cancellationToken));
-                collectionContentUpdated = true;
+                collectionUpdateRequired = true;
             }
 
             PathModelCore pathModel = await modelTask.Value.ConfigureAwait(false);
@@ -53,7 +53,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (pathModel.SetupRequired())
             {
                 taskLazyCache[key] = new Lazy<Task<PathModelCore>>(() => Cast(Convert(pathModel, cancellationToken)));
-                collectionContentUpdated = true;
+                collectionUpdateRequired = true;
             }
 
             return pathModel;
@@ -74,7 +74,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 (modelTask.IsValueCreated && (modelTask.Value.IsFaulted || (await modelTask.Value.ConfigureAwait(false) is not PathModel))))
             {
                 taskLazyCache[key] = modelTask = new Lazy<Task<PathModelCore>>(Cast(FromFile<PathModel, RouteModelCore>(pathId, routeModel, cancellationToken)));
-                collectionContentUpdated = true;
+                collectionUpdateRequired = true;
             }
 
             PathModel pathModel = await modelTask.Value.ConfigureAwait(false) as PathModel;
@@ -82,7 +82,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (pathModel.SetupRequired())
             {
                 taskLazyCache[key] = new Lazy<Task<PathModelCore>>(() => Cast(Convert(pathModel, cancellationToken)));
-                collectionContentUpdated = true;
+                collectionUpdateRequired = true;
             }
 
             return pathModel;
@@ -93,10 +93,10 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
 
-            if (collectionContentUpdated || !taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (collectionUpdateRequired || !taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
             {
                 taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(() => LoadPaths(routeModel, cancellationToken));
-                collectionContentUpdated = false;
+                collectionUpdateRequired = false;
             }
 
             return await modelSetTask.Value.ConfigureAwait(false);
@@ -141,6 +141,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             string key = routeModel.Hierarchy();
             Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask;
             taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(Task.FromResult(result));
+            collectionUpdateRequired = false;
             return result;
         }
 

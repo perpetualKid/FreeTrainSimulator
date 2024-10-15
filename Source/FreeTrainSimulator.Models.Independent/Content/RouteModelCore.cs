@@ -17,8 +17,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
         }
 
         private readonly WorldLocation routeStart;
-        private FrozenSet<PathModelCore> pathModels;
-        private FrozenSet<ActivityModelCore> activityModels;
 
         public override FolderModel Parent => _parent as FolderModel;
         public string Description { get; init; }
@@ -30,12 +28,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
         protected RouteModelCore(in WorldLocation routeStart)
         {
             this.routeStart = routeStart;
-        }
-
-        public void ResetChildModels(FrozenSet<PathModelCore> trainPaths, FrozenSet<ActivityModelCore> routeActivities)
-        {
-            pathModels = trainPaths;
-            activityModels = routeActivities;
         }
     }
 }
