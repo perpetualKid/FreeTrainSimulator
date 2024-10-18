@@ -78,9 +78,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
 
             folderModel.RefreshModel();
-            //_ = RouteModelHandler.ExpandRouteModels(folderModel, cancellationToken);
-            //return Task.FromResult(folderModel);
-            _ = await RouteModelHandler.ExpandRouteModels(folderModel, cancellationToken).ConfigureAwait(false);
+
+            await RouteModelHandler.ExpandRouteModels(folderModel, cancellationToken).ConfigureAwait(false);
+
             return folderModel;
         }
 
