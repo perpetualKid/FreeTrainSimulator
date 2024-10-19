@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -195,15 +196,15 @@ namespace Orts.Menu
             }
             checkDataLogStationStops.Checked = this.settings.EvaluationStationStops;
 
-            // Content tab
-            bindingSourceContent.DataSource = (from folder in this.settings.FolderSettings.Folders
-                                               orderby folder.Key
-                                               select new ContentFolder() { Name = folder.Key, Path = folder.Value }).ToList();
+            bindingSourceContent.DataSource = this.settings.FolderSettings.Folders.Count == 0 ?
+                new List<ContentFolder>() { new ContentFolder() { Name = "Train Simulator", Path = FolderStructure.MstsFolder } } : 
+                this.settings.FolderSettings.Folders.OrderBy(f => f.Key).
+                Select(folder => new ContentFolder() { Name = folder.Key, Path = folder.Value }).ToList();
+
             if (initialContentSetup)
             {
                 tabOptions.SelectedTab = tabPageContent;
                 buttonContentBrowse.Enabled = false; // Initial state because browsing a null path leads to an exception
-                bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = FolderStructure.MstsFolder });
             }
 
             // Updater tab

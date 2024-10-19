@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,30 +15,21 @@ namespace Orts.Menu
     {
         private ProfileSelectionsModel currentSelections;
 
-        private async ValueTask ProfileChanged()
+        private async Task ProfileChanged()
         {
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
             SelectedProfile = await SelectedProfile.Get(ctsProfileLoading.Token).ConfigureAwait(false);
-            try
-            {
-//                if (SelectedProfile.SetupRequired())
-                {
-                    SelectedProfile = await SelectedProfile.Convert(settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), ctsProfileLoading.Token).ConfigureAwait(false);
-                }
-            }
-            catch (TaskCanceledException) { return; }
-
             currentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
 
             //Initial setup if necessary
-            if ((SelectedProfile.ContentFolders.Count == 0))
+            if (SelectedProfile.ContentFolders.Count == 0)
             {
                 await (ShowOptionsForm(true)).ConfigureAwait(false);
             }
             else
             {
-                await (FoldersChanged(SelectedProfile.ContentFolders)).ConfigureAwait(false);
+                await FoldersChanged(SelectedProfile.ContentFolders).ConfigureAwait(false);
             }
             SetupActivityFromSelection(currentSelections);
         }

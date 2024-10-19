@@ -149,7 +149,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 }).ConfigureAwait(false);
             }
 
-            FrozenSet<ActivityModelCore> result = results.ToFrozenSet();
+            FrozenSet<ActivityModelCore> result = results.Concat(new ActivityModelCore[] { Explorer, ExploreActivity }).ToFrozenSet();
             string key = routeModel.Hierarchy();
             Lazy<Task<FrozenSet<ActivityModelCore>>> modelSetTask;
             taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<ActivityModelCore>>>(Task.FromResult(result));

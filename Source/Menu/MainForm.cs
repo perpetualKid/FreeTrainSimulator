@@ -175,7 +175,7 @@ namespace Orts.Menu
 
             updateManager = new UpdateManager(settings);
 
-            ValueTask profileTask = ProfileChanged();
+            Task profileTask = ProfileChanged();
 
             linkLabelUpdate.Visible = false;
             LoadLanguage();
@@ -575,12 +575,17 @@ namespace Orts.Menu
 
         private async ValueTask ShowOptionsForm(bool initialSetup)
         {
+            if (InvokeRequired)
+            {
+                Invoke(ShowOptionsForm, initialSetup);
+                return;
+            }
             using (OptionsForm form = new OptionsForm(settings, updateManager, initialSetup))
             {
                 switch (form.ShowDialog(this))
                 {
                     case DialogResult.OK:
-                        await SelectedProfile.Convert(settings.FolderSettings.Folders.Select(folder => (folder.Key, folder.Value)), CancellationToken.None).ConfigureAwait(true);
+                        await SelectedProfile.Setup(settings.FolderSettings.Folders.Select(folder => (folder.Key, folder.Value)), CancellationToken.None).ConfigureAwait(true);
                         await ProfileChanged().ConfigureAwait(true);
                         break;
                     case DialogResult.Retry: //Language has changed

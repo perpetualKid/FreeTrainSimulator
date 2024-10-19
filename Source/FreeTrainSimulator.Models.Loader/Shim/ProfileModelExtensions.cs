@@ -11,17 +11,14 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public static class ProfileModelExtensions
     {
-        public static async ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken)
+        public static ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken)
         {
-            return await ProfileModelHandler.GetCore(profileModel?.Name, cancellationToken).ConfigureAwait(false);
+            return ProfileModelHandler.GetCore(profileModel?.Name, cancellationToken);
         }
 
-        public static async ValueTask<FolderModel> FolderModel(this ProfileModel profileModel, string folderName, CancellationToken cancellationToken)
+        public static Task<ProfileModel> Setup(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
-            ArgumentException.ThrowIfNullOrEmpty(folderName, nameof(folderName));
-
-            return await FolderModelHandler.GetCore(folderName, profileModel, cancellationToken).ConfigureAwait(false);
+            return ProfileModelHandler.Setup(profileModel?.Name, folders, cancellationToken);
         }
 
         public static async ValueTask<ProfileSelectionsModel> SelectionsModel(this ProfileModel profileModel, CancellationToken cancellationToken)
@@ -62,9 +59,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return await ContentHandlerBase<ProfileSelectionsModel>.ToFile(selectionsModel, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<ProfileModel> Convert(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
+        public static Task<ProfileModel> Convert(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
-            return await ProfileModelHandler.Setup(profileModel?.Name, folders, cancellationToken).ConfigureAwait(false);
+            return ProfileModelHandler.Setup(profileModel?.Name, folders, cancellationToken);
         }
     }
 }

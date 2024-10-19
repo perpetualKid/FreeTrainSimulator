@@ -19,13 +19,16 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         [TestMethod]
         public async ValueTask LoadRoutes()
         {
-            FrozenSet<ProfileModel> profiles = await ProfileModelHandler.GetProfiles(CancellationToken.None).ConfigureAwait(false);
-            ProfileModel profile = profiles.GetByName("Another Profile");
+            //FrozenSet<ProfileModel> profiles = await ProfileModelHandler.GetProfiles(CancellationToken.None).ConfigureAwait(false);
+            //ProfileModel profile = profiles.GetByName(ProfileModelHandler.DefaultProfileName);
+            ProfileModel profile = await ProfileModel.None.Get(CancellationToken.None).ConfigureAwait(false);
+
+            //ProfileModel profile = profiles.GetByName("Another Profile");
             //ProfileModel profile = await ProfileModelHandler.Setup("Another Profile", null, CancellationToken.None).ConfigureAwait(false);
-            profile = await ProfileModelHandler.Setup("Another Profile", new List<(string, string)>() 
-            { 
-                ("Demo A", "C:\\Storage\\OR\\Demo Model 1")
-            }, CancellationToken.None).ConfigureAwait(false);
+            //profile = await ProfileModelHandler.Setup("Another Profile", new List<(string, string)>() 
+            //{ 
+            //    ("Demo A", "C:\\Storage\\OR\\Demo Model 1")
+            //}, CancellationToken.None).ConfigureAwait(false);
             return;
             ProfileModel defaultModel = await ProfileModel.None.Get(CancellationToken.None);
             if (null != defaultModel)

@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
-using Microsoft.VisualBasic;
-
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class ProfileModelHandler : ContentHandlerBase<ProfileModel>
@@ -39,7 +37,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 collectionUpdateRequired = true;
             }
 
-            ProfileModel profileModel = await modelTask.Value.ConfigureAwait(false);
+            ProfileModel profileModel = await modelTask.Value.ConfigureAwait(false) ?? new ProfileModel(profileName);
 
             if (profileModel.SetupRequired())
             {
@@ -105,7 +103,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return results.ToFrozenSet();
         }
 
-        public static async ValueTask<ProfileModel> Setup(string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
+        public static async Task<ProfileModel> Setup(string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(profileName, nameof(profileName));
             ProfileModel profileModel = await GetCore(profileName, cancellationToken).ConfigureAwait(false);
