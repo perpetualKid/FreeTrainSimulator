@@ -102,7 +102,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             if (createDirectory)
             {
-                string directory = ModelFileResolver<FolderModel>.FolderPath(model);
+                string directory = ModelFileResolver<TModel>.FolderPath(model);
                 if (!Directory.Exists(directory))
                 {
                     try

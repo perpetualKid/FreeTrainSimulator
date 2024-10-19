@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,13 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         [TestMethod]
         public async ValueTask LoadRoutes()
         {
+            FrozenSet<ProfileModel> profiles = await ProfileModelHandler.GetProfiles(CancellationToken.None).ConfigureAwait(false);
+            ProfileModel profile = await ProfileModelHandler.Setup("Another Profile", null, CancellationToken.None).ConfigureAwait(false);
+            profile = await ProfileModelHandler.Setup(profile.Name, new List<(string, string)>() 
+            { 
+                ("Demo A", "C:\\Storage\\OR\\Demo Model 1")
+            }, CancellationToken.None).ConfigureAwait(false);
+            return;
             ProfileModel defaultModel = await ProfileModel.None.Get(CancellationToken.None);
             if (null != defaultModel)
             {

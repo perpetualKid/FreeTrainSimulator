@@ -13,7 +13,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
     {
         public static async ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken)
         {
-            return await ProfileModelHandler.Get(profileModel?.Name, cancellationToken).ConfigureAwait(false);
+            return await ProfileModelHandler.GetCore(profileModel?.Name, cancellationToken).ConfigureAwait(false);
         }
 
         public static async ValueTask<FolderModel> FolderModel(this ProfileModel profileModel, string folderName, CancellationToken cancellationToken)
@@ -64,7 +64,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<ProfileModel> Convert(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
-            return await ProfileModelHandler.Convert(profileModel?.Name, folders, cancellationToken).ConfigureAwait(false);
+            return await ProfileModelHandler.Setup(profileModel?.Name, folders, cancellationToken).ConfigureAwait(false);
         }
     }
 }

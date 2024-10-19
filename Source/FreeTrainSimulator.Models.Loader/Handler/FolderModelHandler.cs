@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Independent.Base;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
@@ -59,6 +58,37 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return await modelSetTask.Value.ConfigureAwait(false);
         }
 
+        public static Task<FrozenSet<FolderModel>> ExpandFolderModels(ProfileModel profileModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+
+            ConcurrentBag<FolderModel> results = new ConcurrentBag<FolderModel>();
+
+            _ = Parallel.ForEach(profileModel.ContentFolders, (folder, token) =>
+            {
+                if (Directory.Exists(folder.ContentPath))
+                    results.Add(folder);
+            });
+
+            FrozenSet<FolderModel> result = results.ToFrozenSet();
+            string key = profileModel.Hierarchy();
+            Lazy<Task<FrozenSet<FolderModel>>> modelSetTask;
+            taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<FolderModel>>>(Task.FromResult(result));
+            return Task.FromResult(result);
+        }
+
+        public static async Task<FrozenSet<FolderModel>> SetupFolderModels(ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+
+            FrozenSet<FolderModel> result = (await Task.WhenAll(folders.Select(
+                async (item) => await Convert(new FolderModel(item.Item1, item.Item2, profileModel), cancellationToken).ConfigureAwait(false))).ConfigureAwait(false)).ToFrozenSet();
+            string key = profileModel.Hierarchy();
+            Lazy<Task<FrozenSet<FolderModel>>> modelSetTask;
+            taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<FolderModel>>>(Task.FromResult(result));
+            return result;
+        }
+
         private static async Task<FrozenSet<FolderModel>> LoadFolders(ProfileModel profileModel, CancellationToken cancellationToken)
         {
             ConcurrentBag<FolderModel> results = new ConcurrentBag<FolderModel>();
@@ -79,16 +109,10 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             folderModel.RefreshModel();
 
+            await Create(folderModel, folderModel.Parent, false, true, cancellationToken).ConfigureAwait(false);
             await RouteModelHandler.ExpandRouteModels(folderModel, cancellationToken).ConfigureAwait(false);
 
             return folderModel;
-        }
-
-        public static async Task<FolderModel> Create(string folderName, string repositoryPath, ProfileModel profile, CancellationToken cancellationToken)
-        {
-            FolderModel contentFolder = new FolderModel(folderName, repositoryPath, profile);
-            await Create(contentFolder, profile, false, true, cancellationToken).ConfigureAwait(false);
-            return contentFolder;
         }
     }
 }
