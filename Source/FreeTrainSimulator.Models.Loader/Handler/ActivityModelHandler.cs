@@ -113,37 +113,41 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            string activiesFolder = ModelFileResolver<RouteModelCore>.FolderPath(routeModel);
+            string activitiesFolder = ModelFileResolver<RouteModelCore>.FolderPath(routeModel);
             string pattern = ModelFileResolver<ActivityModelCore>.WildcardSavePattern;
 
             ConcurrentBag<ActivityModelCore> results = new ConcurrentBag<ActivityModelCore>();
 
-            // load existing MSTS files
-            ConcurrentDictionary<string, string> activityFiles = new ConcurrentDictionary<string, string>(Directory.EnumerateFiles(routeModel.MstsRouteFolder().ActivitiesFolder, "*.act").
-                ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
-
-            //load existing activity models, and compare if the corresponding path file folder still exists.
-            if (Directory.Exists(activiesFolder))
+            string sourceFolder = routeModel.MstsRouteFolder().ActivitiesFolder;
+            if (Directory.Exists(sourceFolder))
             {
-                FrozenSet<ActivityModelCore> existingPaths = await GetActivities(routeModel, cancellationToken).ConfigureAwait(false);
-                foreach (ActivityModelCore activityModel in existingPaths)
+                // load existing MSTS files
+                ConcurrentDictionary<string, string> activityFiles = new ConcurrentDictionary<string, string>(Directory.EnumerateFiles(sourceFolder, "*.act").
+                    ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
+
+                //load existing activity models, and compare if the corresponding path file folder still exists.
+                if (Directory.Exists(activitiesFolder))
                 {
-                    if (activityFiles.Remove(activityModel?.Id, out string filePath)) //
+                    FrozenSet<ActivityModelCore> existingPaths = await GetActivities(routeModel, cancellationToken).ConfigureAwait(false);
+                    foreach (ActivityModelCore activityModel in existingPaths)
                     {
-                        results.Add(activityModel);
+                        if (activityFiles.Remove(activityModel?.Id, out string filePath)) //
+                        {
+                            results.Add(activityModel);
+                        }
                     }
                 }
-            }
 
-            //for any new MSTS path (remaining in the preloaded dictionary), Create a path model
-            await Parallel.ForEachAsync(activityFiles, cancellationToken, async (path, token) =>
-            {
-                Lazy<Task<ActivityModelCore>> modelTask = new Lazy<Task<ActivityModelCore>>(Cast(Convert(path.Value, routeModel, cancellationToken)));
-                ActivityModelCore activityModel = await modelTask.Value.ConfigureAwait(false);
-                string key = activityModel.Hierarchy();
-                results.Add(activityModel);
-                taskLazyCache[key] = modelTask;
-            }).ConfigureAwait(false);
+                //for any new MSTS path (remaining in the preloaded dictionary), Create a path model
+                await Parallel.ForEachAsync(activityFiles, cancellationToken, async (path, token) =>
+                {
+                    Lazy<Task<ActivityModelCore>> modelTask = new Lazy<Task<ActivityModelCore>>(Cast(Convert(path.Value, routeModel, cancellationToken)));
+                    ActivityModelCore activityModel = await modelTask.Value.ConfigureAwait(false);
+                    string key = activityModel.Hierarchy();
+                    results.Add(activityModel);
+                    taskLazyCache[key] = modelTask;
+                }).ConfigureAwait(false);
+            }
 
             FrozenSet<ActivityModelCore> result = results.ToFrozenSet();
             string key = routeModel.Hierarchy();

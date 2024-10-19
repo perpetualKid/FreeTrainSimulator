@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Frozen;
+using System.Linq;
 using System.Text;
 
 using FreeTrainSimulator.Models.Independent.Base;
@@ -44,5 +46,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             builder.Append(model.FileName);
         }
 
+        public static T GetByName<T>(this FrozenSet<T> models, string name) where T : ModelBase<T>
+        {
+            return models.Where(m => m.Name == name).FirstOrDefault();
+        }
     }
 }

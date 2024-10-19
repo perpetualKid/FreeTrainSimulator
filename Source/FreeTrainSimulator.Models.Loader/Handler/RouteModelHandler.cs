@@ -101,36 +101,41 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ConcurrentBag<RouteModelCore> results = new ConcurrentBag<RouteModelCore>();
             ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder> routeFolders = new ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder>(StringComparer.OrdinalIgnoreCase);
 
-            // preload existing MSTS folders
-            _ = Parallel.ForEach(Directory.EnumerateDirectories(folderModel.MstsContentFolder().RoutesFolder), (routeFolder, token) =>
-            {
-                FolderStructure.ContentFolder.RouteFolder folder = FolderStructure.Route(routeFolder);
-                if (folder.Valid)
-                    _ = routeFolders.TryAdd(folder.RouteName, folder);
-            });
+            string sourceFolder = folderModel.MstsContentFolder().RoutesFolder;
 
-            //load existing route models, and compare if the corresponding folder still exists.
-            if (Directory.Exists(routesFolder))
+            if (Directory.Exists(sourceFolder))
             {
-                FrozenSet<RouteModelCore> existingRoutes = await GetRoutes(folderModel, cancellationToken).ConfigureAwait(false);
-                foreach (RouteModelCore route in existingRoutes)
+                // preload existing MSTS folders
+                _ = Parallel.ForEach(Directory.EnumerateDirectories(sourceFolder), (routeFolder, token) =>
                 {
-                    if (routeFolders.TryRemove(route.Tag, out FolderStructure.ContentFolder.RouteFolder routeFolder))
+                    FolderStructure.ContentFolder.RouteFolder folder = FolderStructure.Route(routeFolder);
+                    if (folder.Valid)
+                        _ = routeFolders.TryAdd(folder.RouteName, folder);
+                });
+
+                //load existing route models, and compare if the corresponding folder still exists.
+                if (Directory.Exists(routesFolder))
+                {
+                    FrozenSet<RouteModelCore> existingRoutes = await GetRoutes(folderModel, cancellationToken).ConfigureAwait(false);
+                    foreach (RouteModelCore route in existingRoutes)
                     {
-                        results.Add(route);
+                        if (routeFolders.TryRemove(route.Tag, out FolderStructure.ContentFolder.RouteFolder routeFolder))
+                        {
+                            results.Add(route);
+                        }
                     }
                 }
-            }
 
-            //for any new MSTS folder (remaining in the preloaded dictionary), Create a route model
-            await Parallel.ForEachAsync(routeFolders, cancellationToken, async (routeFolder, token) =>
-            {
-                Lazy<Task<RouteModelCore>> modelTask = new Lazy<Task<RouteModelCore>>(Cast(Convert(routeFolder.Value, folderModel, cancellationToken)));
-                RouteModelCore routeModel = await modelTask.Value.ConfigureAwait(false);
-                string key = routeModel.Hierarchy();
-                results.Add(routeModel);
-                taskLazyCache[key] = modelTask;
-            }).ConfigureAwait(false);
+                //for any new MSTS folder (remaining in the preloaded dictionary), Create a route model
+                await Parallel.ForEachAsync(routeFolders, cancellationToken, async (routeFolder, token) =>
+                {
+                    Lazy<Task<RouteModelCore>> modelTask = new Lazy<Task<RouteModelCore>>(Cast(Convert(routeFolder.Value, folderModel, cancellationToken)));
+                    RouteModelCore routeModel = await modelTask.Value.ConfigureAwait(false);
+                    string key = routeModel.Hierarchy();
+                    results.Add(routeModel);
+                    taskLazyCache[key] = modelTask;
+                }).ConfigureAwait(false);
+            }
 
             FrozenSet<RouteModelCore> result = results.ToFrozenSet();
             string key = folderModel.Hierarchy();

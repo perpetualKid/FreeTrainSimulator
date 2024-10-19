@@ -110,34 +110,37 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             ConcurrentBag<PathModelCore> results = new ConcurrentBag<PathModelCore>();
 
-            // load existing MSTS files
-            ConcurrentDictionary<string, string> pathFiles = new ConcurrentDictionary<string, string>(Directory.EnumerateFiles(routeModel.MstsRouteFolder().PathsFolder, "*.pat").
-                ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
-
-            //load existing path models, and compare if the corresponding path file folder still exists.
-            if (Directory.Exists(pathsFolder))
+            string sourceFolder = routeModel.MstsRouteFolder().PathsFolder;
+            if (Directory.Exists(sourceFolder))
             {
-                FrozenSet<PathModelCore> existingPaths = await GetPaths(routeModel, cancellationToken).ConfigureAwait(false);
-                foreach (PathModelCore pathModel in existingPaths)
+                // load existing MSTS files
+                ConcurrentDictionary<string, string> pathFiles = new ConcurrentDictionary<string, string>(Directory.EnumerateFiles(sourceFolder, "*.pat").
+                    ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
+
+                //load existing path models, and compare if the corresponding path file folder still exists.
+                if (Directory.Exists(pathsFolder))
                 {
-                    if (pathFiles.TryRemove(pathModel?.Tag, out string filePath)) //
+                    FrozenSet<PathModelCore> existingPaths = await GetPaths(routeModel, cancellationToken).ConfigureAwait(false);
+                    foreach (PathModelCore pathModel in existingPaths)
                     {
-                        results.Add(pathModel);
+                        if (pathFiles.TryRemove(pathModel?.Tag, out string filePath)) //
+                        {
+                            results.Add(pathModel);
+                        }
                     }
                 }
+
+                //for any new MSTS path (remaining in the preloaded dictionary), Create a path model
+                await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
+                {
+                    Lazy<Task<PathModelCore>> modelTask = new Lazy<Task<PathModelCore>>(Cast(Convert(path.Value, routeModel, cancellationToken)));
+
+                    PathModelCore pathModel = await modelTask.Value.ConfigureAwait(false);
+                    string key = pathModel.Hierarchy();
+                    results.Add(pathModel);
+                    taskLazyCache[key] = modelTask;
+                }).ConfigureAwait(false);
             }
-
-            //for any new MSTS path (remaining in the preloaded dictionary), Create a path model
-            await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
-            {
-                Lazy<Task<PathModelCore>> modelTask = new Lazy<Task<PathModelCore>>(Cast(Convert(path.Value, routeModel, cancellationToken)));
-
-                PathModelCore pathModel = await modelTask.Value.ConfigureAwait(false);
-                string key = pathModel.Hierarchy();
-                results.Add(pathModel);
-                taskLazyCache[key] = modelTask;
-            }).ConfigureAwait(false);
-
             FrozenSet<PathModelCore> result = results.ToFrozenSet();
             string key = routeModel.Hierarchy();
             Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask;

@@ -23,7 +23,7 @@ namespace Orts.Menu
             SelectedProfile = await SelectedProfile.Get(ctsProfileLoading.Token).ConfigureAwait(false);
             try
             {
-                if (SelectedProfile.SetupRequired())
+//                if (SelectedProfile.SetupRequired())
                 {
                     SelectedProfile = await SelectedProfile.Convert(settings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), ctsProfileLoading.Token).ConfigureAwait(false);
                 }
