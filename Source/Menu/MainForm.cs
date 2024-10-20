@@ -561,7 +561,7 @@ namespace Orts.Menu
 
         private void TestingToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (TestingForm form = new TestingForm(settings, SelectedProfile, RuntimeInfo.ActivityRunnerExecutable))
+            using (TestingForm form = new TestingForm(SelectedProfile, RuntimeInfo.ActivityRunnerExecutable))
             {
                 _ = form.ShowDialog(this);
             }
