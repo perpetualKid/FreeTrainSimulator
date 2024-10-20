@@ -31,14 +31,11 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
-using FreeTrainSimulator.Models.Simplified;
 
 using GetText;
 using GetText.WindowsForms;
 
 using Orts.Settings;
-
-using Path = System.IO.Path;
 
 namespace Orts.Menu
 {
@@ -50,7 +47,6 @@ namespace Orts.Menu
         private readonly ProfileModel contentProfile;
         private bool clearedLogs;
         private readonly string runActivity;
-        private readonly UserSettings settings;
         private readonly string summaryFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingSummary.csv");
         private readonly string logFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingLog.txt");
 
@@ -63,7 +59,6 @@ namespace Orts.Menu
             Localizer.Localize(this, CatalogManager.Catalog);
 
             this.runActivity = runActivity;
-            this.settings = settings;
             this.contentProfile = profile;
 
             UpdateButtons();
@@ -125,15 +120,12 @@ namespace Orts.Menu
 
         private async void ButtonTestAll_Click(object sender, EventArgs e)
         {
-            await TestMarkedActivitiesAsync(from DataGridViewRow r in gridTestActivities.Rows
-                                            select r).ConfigureAwait(false);
+            await TestMarkedActivitiesAsync(gridTestActivities.Rows.Cast<DataGridViewRow>()).ConfigureAwait(false);
         }
 
         private async void ButtonTest_Click(object sender, EventArgs e)
         {
-            await TestMarkedActivitiesAsync(from DataGridViewRow r in gridTestActivities.Rows
-                                            where r.Selected
-                                            select r).ConfigureAwait(false);
+            await TestMarkedActivitiesAsync(gridTestActivities.Rows.Cast<DataGridViewRow>().Where(r => r.Selected)).ConfigureAwait(false);
         }
 
         private void ButtonCancel_Click(object sender, EventArgs e)
@@ -165,15 +157,14 @@ namespace Orts.Menu
 
             bool overrideSettings = checkBoxOverride.Checked;
 
-            IEnumerable<Tuple<int, TestActivity>> items = from r in rows
-                                                          select new Tuple<int, TestActivity>(r.Index, (TestActivity)r.DataBoundItem);
+            IEnumerable<(int, TestActivityModel)> items = rows.Select(r => (r.Index, (TestActivityModel)r.DataBoundItem));
 
             try
             {
-                foreach (Tuple<int, TestActivity> item in items)
+                foreach ((int, TestActivityModel) item in items)
                 {
-                    await Task.Run(() => RunTestTask(item.Item2, overrideSettings, ctsTestActivityRunner.Token), ctsTestActivityRunner.Token).ConfigureAwait(true);
-                    ShowGridRow(gridTestActivities, item.Item1);
+                    TestActivityModel result = await Task.Run(() => RunTestTask(item.Item2, overrideSettings, ctsTestActivityRunner.Token), ctsTestActivityRunner.Token).ConfigureAwait(true);
+                    ShowGridRow(gridTestActivities, item.Item1, result);
                     if (ctsTestActivityRunner.IsCancellationRequested)
                         break;
                 }
@@ -186,7 +177,7 @@ namespace Orts.Menu
             UpdateButtons();
         }
 
-        private async Task RunTestTask(TestActivity activity, bool overrideSettings, CancellationToken token)
+        private async Task<TestActivityModel> RunTestTask(TestActivityModel activity, bool overrideSettings, CancellationToken token)
         {
             string parameters = $"/Test /Logging /LoggingFilename=\"{Path.GetFileName(logFilePath)}\" /LoggingPath=\"{Path.GetDirectoryName(logFilePath)}\" " +
                 $"/Profiling /ProfilingTime=10 /ShowErrorDialogs=False";
@@ -214,8 +205,10 @@ namespace Orts.Menu
                 summaryFilePosition = reader.BaseStream.Length;
 
             processStartInfo.Arguments = $"{parameters} \"{activity.ActivityFilePath}\"";
-            activity.Passed = await RunProcess(processStartInfo, token).ConfigureAwait(false) == 0;
-            activity.Tested = true;
+            bool passed = await RunProcessAsync(processStartInfo, token).ConfigureAwait(false);
+            string errors = string.Empty;
+            string load = string.Empty;
+            string fps = string.Empty;
 
             using (StreamReader reader = File.OpenText(summaryFilePath))
             {
@@ -224,58 +217,64 @@ namespace Orts.Menu
                 if (!string.IsNullOrEmpty(line) && reader.EndOfStream)
                 {
                     string[] csv = line.Split(',');
-                    activity.Errors = $"{int.Parse(csv[3], CultureInfo.InvariantCulture)}/{int.Parse(csv[4], CultureInfo.InvariantCulture)}/{int.Parse(csv[5], CultureInfo.InvariantCulture)}";
-                    activity.Load = $"{float.Parse(csv[6], CultureInfo.InvariantCulture),6:F1}s";
-                    activity.FPS = $"{float.Parse(csv[7], CultureInfo.InvariantCulture),6:F1}";
+                    errors = $"{int.Parse(csv[3], CultureInfo.InvariantCulture)}/{int.Parse(csv[4], CultureInfo.InvariantCulture)}/{int.Parse(csv[5], CultureInfo.InvariantCulture)}";
+                    load = $"{float.Parse(csv[6], CultureInfo.InvariantCulture),6:F1}s";
+                    fps = $"{float.Parse(csv[7], CultureInfo.InvariantCulture),6:F1}";
                 }
                 else
                 {
                     await reader.ReadToEndAsync(token).ConfigureAwait(false);
-                    activity.Passed = false;
+                    passed = false;
                 }
                 summaryFilePosition = reader.BaseStream.Position;
             }
+
+            return activity with
+            {
+                Passed = passed,
+                Tested = true,
+                Errors = errors,
+                Load = load,
+                FPS = fps,
+            };
         }
 
-        public static Task<int> RunProcess(ProcessStartInfo processStartInfo, CancellationToken token)
+        public static async Task<bool> RunProcessAsync(ProcessStartInfo processStartInfo, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(processStartInfo);
 
-            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
             processStartInfo.RedirectStandardError = true;
             processStartInfo.UseShellExecute = false;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
             Process process = new Process
             {
                 EnableRaisingEvents = true,
                 StartInfo = processStartInfo
             };
-#pragma warning restore CA2000 // Dispose objects before losing scope
 
-            process.Exited += (sender, args) =>
+            try
             {
+                _ = process.Start();
+                await process.WaitForExitAsync(cancellationToken);
+
                 if (process.ExitCode != 0)
                 {
                     string errorMessage = process.StandardError.ReadToEnd();
-                    tcs.TrySetException(new InvalidOperationException("The process did not exit correctly. " +
-                        "The corresponding error message was: " + errorMessage));
                 }
-                tcs.TrySetResult(process.ExitCode);
-                process.Dispose();
-            };
-            process.Start();
-            token.Register(() =>
-            {
+
                 if (!process.HasExited)
-                    process.CloseMainWindow();
-                tcs.TrySetCanceled();
-            });
-            return tcs.Task;
+                    _ = process.CloseMainWindow();
+                return process.ExitCode == 0;
+            }
+            finally
+            {
+                process.Dispose();
+            }
         }
 
-        private static void ShowGridRow(DataGridView grid, int rowIndex)
+        private static void ShowGridRow(DataGridView grid, int rowIndex, TestActivityModel activityModel)
         {
+            (grid.DataSource as BindingSource)[rowIndex] = activityModel;
             int displayedRowCount = grid.DisplayedRowCount(false);
             if (grid.FirstDisplayedScrollingRowIndex > rowIndex)
                 grid.FirstDisplayedScrollingRowIndex = rowIndex;

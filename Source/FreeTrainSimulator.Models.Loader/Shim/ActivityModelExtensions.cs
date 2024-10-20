@@ -15,11 +15,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         public static ValueTask<ActivityModel> GetExtended(this ActivityModelCore activityModel, CancellationToken cancellationToken) => ActivityModelHandler.GetExtended(activityModel, cancellationToken);
         public static ValueTask<FrozenSet<ActivityModelCore>> GetRouteActivities(this RouteModelCore routeModel, CancellationToken cancellationToken) => ActivityModelHandler.GetActivities(routeModel, cancellationToken);
 
-        public static async ValueTask<FrozenSet<TestActivityModel>> LoadTestActivities(this ProfileModel profileModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
-
-            return await TestActivityModelHandler.GetTestActivities(profileModel, cancellationToken).ConfigureAwait(false);
-        }
+        public static ValueTask<FrozenSet<TestActivityModel>> LoadTestActivities(this ProfileModel profileModel, CancellationToken cancellationToken) => TestActivityModelHandler.GetTestActivities(profileModel, cancellationToken);
     }
 }

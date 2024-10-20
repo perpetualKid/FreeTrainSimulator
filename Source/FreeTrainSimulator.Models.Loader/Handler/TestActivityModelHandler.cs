@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Linq;
 using System.Threading;
@@ -15,29 +16,25 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
-            if (profileModel.SetupRequired())
-            {
-                throw new InvalidOperationException("Profile Folders not initialized. Abnormal termination.");
-            }
+            FrozenSet<FolderModel> folders = profileModel.ContentFolders;
+            ConcurrentBag<TestActivityModel> result = new ConcurrentBag<TestActivityModel>();
 
-            if (null != profileModel)
+            foreach(FolderModel folder in folders)
             {
-                FolderModel folderModel = await FolderModelHandler.GetCore("Demo Model 1", profileModel, CancellationToken.None).ConfigureAwait(false);
-                if (folderModel != null)
+                FrozenSet<RouteModelCore> routes = await folder.Routes(cancellationToken).ConfigureAwait(false);
+                foreach (RouteModelCore route in routes)
                 {
-                    FrozenSet<RouteModelCore> routes = await RouteModelHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
+                    FrozenSet<ActivityModelCore> activities = await route.GetRouteActivities(cancellationToken).ConfigureAwait(false);
 
-                    RouteModelCore routeModel = routes.FirstOrDefault();
-                    if (null != routeModel)
+                    foreach (ActivityModelCore activity in activities)
                     {
-                        routeModel = await RouteModelHandler.GetCore(routeModel, CancellationToken.None).ConfigureAwait(false);
-                        routeModel = await RouteModelHandler.GetCore(routeModel, CancellationToken.None).ConfigureAwait(false);
+                        if (activity != ActivityModelHandler.ExploreActivityMode && activity != ActivityModelHandler.ExploreMode)
+                        result.Add(new TestActivityModel(activity));
                     }
-
-                    routes = await RouteModelHandler.GetRoutes(folderModel, CancellationToken.None).ConfigureAwait(false);
+                    
                 }
             }
-            return FrozenSet<TestActivityModel>.Empty;
+            return result.ToFrozenSet();
         }
     }
 }

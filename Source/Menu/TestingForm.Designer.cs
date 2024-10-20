@@ -1,4 +1,5 @@
-﻿using FreeTrainSimulator.Models.Simplified;
+﻿using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Simplified;
 
 namespace Orts.Menu
 {
@@ -257,7 +258,7 @@ namespace Orts.Menu
             // 
             // testBindingSource
             // 
-            this.testBindingSource.DataSource = typeof(TestActivity);
+            this.testBindingSource.DataSource = typeof(TestActivityModel);
             // 
             // buttonDetails
             // 

@@ -32,13 +32,15 @@ namespace FreeTrainSimulator.Models.Independent.Content
         {
         }
 
-        public TestActivityModel(ActivityModelCore activityModel)
+        public TestActivityModel(ActivityModelCore activityModel): base(activityModel)
         {
             ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
 
-            RouteModelCore routeModel = (activityModel as IFileResolve).Container as RouteModelCore;
-            FolderModel folderModel = (routeModel as IFileResolve).Container as FolderModel;
+            RouteModelCore routeModel = activityModel.Parent;
+            FolderModel folderModel = routeModel.Parent;
             DefaultSort = $"{folderModel.Name}/{routeModel.Name}/{activityModel.Name}";
+            Route = routeModel.Name;
+            Activity = activityModel.Name;
         }
     }
 }

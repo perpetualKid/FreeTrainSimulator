@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class ActivityModelHandler : ContentHandlerBase<ActivityModelCore>
     {
-        public static ActivityModelCore Explorer { get; private set; } = new ActivityModelCore()
+        public static ActivityModelCore ExploreMode { get; private set; } = new ActivityModelCore()
         {
             ActivityType = ActivityType.Explorer,
             Name = "- Explore Route -",
@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             Weather = WeatherType.Clear,
         };
 
-        public static ActivityModelCore ExploreActivity { get; private set; } = new ActivityModelCore()
+        public static ActivityModelCore ExploreActivityMode { get; private set; } = new ActivityModelCore()
         {
             ActivityType = ActivityType.ExploreActivity,
             Name = "+ Explore in Activity Mode +",
@@ -149,7 +149,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 }).ConfigureAwait(false);
             }
 
-            FrozenSet<ActivityModelCore> result = results.Concat(new ActivityModelCore[] { Explorer, ExploreActivity }).ToFrozenSet();
+            FrozenSet<ActivityModelCore> result = results.Concat(new ActivityModelCore[] { ExploreMode, ExploreActivityMode }).ToFrozenSet();
             string key = routeModel.Hierarchy();
             Lazy<Task<FrozenSet<ActivityModelCore>>> modelSetTask;
             taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<ActivityModelCore>>>(Task.FromResult(result));
@@ -178,7 +178,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                         results.Add(path);
                 }).ConfigureAwait(false);
             }
-            return results.Concat(new ActivityModelCore[] { Explorer, ExploreActivity }).ToFrozenSet();
+            return results.Concat(new ActivityModelCore[] { ExploreMode, ExploreActivityMode }).ToFrozenSet();
         }
 
         private static Task<ActivityModel> Convert(ActivityModelCore activityModel, CancellationToken cancellationToken)
