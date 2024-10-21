@@ -31,8 +31,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             StringBuilder builder = new StringBuilder();
 
             BuildHiearchy(parent, builder);
-            builder.Append(separatorChar);
-            builder.Append(modelName);
+            _ = builder.Append(separatorChar);
+            _ = builder.Append(modelName);
             return builder.ToString();
         }
 
@@ -41,9 +41,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             if (model.Container is IFileResolve fileResolve)
             {
                 BuildHiearchy(fileResolve, builder);
-                builder.Append(separatorChar);
+                _ = builder.Append(separatorChar);
             }
-            builder.Append(model.FileName);
+            _ = builder.Append(model.FileName);
         }
 
         public static T GetByName<T>(this FrozenSet<T> models, string name) where T : ModelBase<T>

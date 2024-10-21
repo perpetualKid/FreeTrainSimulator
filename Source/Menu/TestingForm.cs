@@ -92,7 +92,7 @@ namespace Orts.Menu
 
             UseWaitCursor = true;
             gridTestActivities.SuspendLayout();
-            testBindingSource.DataSource = new SortableBindingList<TestActivityModel>((await contentProfile.LoadTestActivities(ctsTestActivityLoader.Token).ConfigureAwait(true)).ToList());
+            testBindingSource.DataSource = new SortableBindingList<TestActivityModel>((await contentProfile.LoadTestActivities(ctsTestActivityLoader.Token).ConfigureAwait(true)).Cast<TestActivityModel>().ToList());
             testBindingSource.Sort = "DefaultSort";
             gridTestActivities.ResumeLayout();
             UseWaitCursor = false;
@@ -158,7 +158,7 @@ namespace Orts.Menu
             UpdateButtons();
         }
 
-        private async Task<TestActivityModel> RunTestTask(TestActivityModel activity, bool overrideSettings, CancellationToken token)
+        private async Task<TestActivityModel> RunTestTask(TestActivityModel activity, bool overrideSettings, CancellationToken cancellationToken)
         {
             string parameters = $"/Test /Logging /LoggingFilename=\"{Path.GetFileName(logFilePath)}\" /LoggingPath=\"{Path.GetDirectoryName(logFilePath)}\" " +
                 $"/Profiling /ProfilingTime=10 /ShowErrorDialogs=False";
@@ -177,7 +177,7 @@ namespace Orts.Menu
                 using (StreamWriter writer = File.CreateText(summaryFilePath))
                     await writer.WriteLineAsync("Route, Activity, Passed, Errors, Warnings, Infos, Load Time, FPS").ConfigureAwait(false);
                 using (StreamWriter writer = File.CreateText(logFilePath))
-                    await writer.FlushAsync(token).ConfigureAwait(false);
+                    await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
                 clearedLogs = true;
             }
 
@@ -186,7 +186,7 @@ namespace Orts.Menu
                 summaryFilePosition = reader.BaseStream.Length;
 
             processStartInfo.Arguments = $"{parameters} \"{activity.ActivityFilePath}\"";
-            bool passed = await RunProcessAsync(processStartInfo, token).ConfigureAwait(false);
+            bool passed = await RunProcessAsync(processStartInfo, cancellationToken).ConfigureAwait(false);
             string errors = string.Empty;
             string load = string.Empty;
             string fps = string.Empty;
@@ -194,7 +194,7 @@ namespace Orts.Menu
             using (StreamReader reader = File.OpenText(summaryFilePath))
             {
                 reader.BaseStream.Seek(summaryFilePosition, SeekOrigin.Begin);
-                string line = await reader.ReadLineAsync(token).ConfigureAwait(false);
+                string line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
                 if (!string.IsNullOrEmpty(line) && reader.EndOfStream)
                 {
                     string[] csv = line.Split(',');
@@ -204,7 +204,7 @@ namespace Orts.Menu
                 }
                 else
                 {
-                    await reader.ReadToEndAsync(token).ConfigureAwait(false);
+                    await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
                     passed = false;
                 }
                 summaryFilePosition = reader.BaseStream.Position;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,14 +11,27 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class TestActivityModelHandler : ContentHandlerBase<ActivityModelCore>
     {
-        public static async ValueTask<FrozenSet<TestActivityModel>> GetTestActivities(ProfileModel profileModel, CancellationToken cancellationToken)
+        public static async ValueTask<FrozenSet<ActivityModelCore>> GetTestActivities(ProfileModel profileModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
-            FrozenSet<FolderModel> folders = profileModel.ContentFolders;
-            ConcurrentBag<TestActivityModel> result = new ConcurrentBag<TestActivityModel>();
+            string key = profileModel.Hierarchy();
 
-            foreach(FolderModel folder in folders)
+            if (collectionUpdateRequired || !taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<ActivityModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            {
+                taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<ActivityModelCore>>>(() => LoadActivities(profileModel, cancellationToken));
+                collectionUpdateRequired = false;
+            }
+
+            return await modelSetTask.Value.ConfigureAwait(false);
+        }
+
+        private static async Task<FrozenSet<ActivityModelCore>> LoadActivities(ProfileModel profileModel, CancellationToken cancellationToken)
+        {
+            FrozenSet<FolderModel> folders = profileModel.ContentFolders;
+            ConcurrentBag<ActivityModelCore> result = new ConcurrentBag<ActivityModelCore>();
+
+            foreach (FolderModel folder in folders)
             {
                 FrozenSet<RouteModelCore> routes = await folder.Routes(cancellationToken).ConfigureAwait(false);
                 foreach (RouteModelCore route in routes)
@@ -29,9 +41,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     foreach (ActivityModelCore activity in activities)
                     {
                         if (activity != ActivityModelHandler.ExploreActivityMode && activity != ActivityModelHandler.ExploreMode)
-                        result.Add(new TestActivityModel(activity));
+                            result.Add(new TestActivityModel(activity));
                     }
-                    
                 }
             }
             return result.ToFrozenSet();

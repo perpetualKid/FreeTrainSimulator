@@ -98,7 +98,7 @@ namespace FreeTrainSimulator.Common.Logging
                     Trace.WriteLine($"{"Logfile",-12}= {logFileName.Replace(Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
                 Trace.WriteLine($"{"Executable",-12}= {Path.GetFileName(Assembly.GetEntryAssembly().Location)}");
                 foreach (string arg in Environment.GetCommandLineArgs())
-                    Trace.WriteLine($"{"Argument",-12}= {arg}");
+                    Trace.WriteLine($"{"Argument",-12}= {arg.Replace(Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
                 Trace.WriteLine(SeparatorLine);
             }
         }

@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using FreeTrainSimulator.Models.Independent.Base;
 
 using MemoryPack;
 
@@ -17,10 +10,10 @@ namespace FreeTrainSimulator.Models.Independent.Content
 
         [MemoryPackIgnore]
         public string DefaultSort { get; init; }
+        public string Folder {  get; init; }
         public string Route { get; init; }
         public string Activity { get; init; }
         public string ActivityFilePath { get; init; }
-        public bool ToTest { get; init; }
         public bool Tested { get; init; }
         public bool Passed { get; init; }
         public string Errors { get; init; }
@@ -38,7 +31,8 @@ namespace FreeTrainSimulator.Models.Independent.Content
 
             RouteModelCore routeModel = activityModel.Parent;
             FolderModel folderModel = routeModel.Parent;
-            DefaultSort = $"{folderModel.Name}/{routeModel.Name}/{activityModel.Name}";
+            DefaultSort = $"{folderModel.Name} | {routeModel.Name} | {activityModel.Name}";
+            Folder = folderModel.Name;
             Route = routeModel.Name;
             Activity = activityModel.Name;
         }

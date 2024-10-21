@@ -37,8 +37,5 @@ namespace FreeTrainSimulator.Models.Independent.Settings
         public WeatherType Weather { get; init; }
         // Other selections
         public string LoggingEnabled { get; init; }
-
-        [MemoryPackIgnore]
-        public ProfileModel Profile => (this as IFileResolve)?.Container as ProfileModel;
     }
 }
