@@ -34,10 +34,12 @@ namespace FreeTrainSimulator.Models.Loader
         public static ContentRouteResolver ContentRouteResolver(RouteModelCore routeModel)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            if (!routeResolvers.TryGetValue($"{((routeModel as IFileResolve).Container as FolderModel)?.Name}{routeModel.Name}", out ContentRouteResolver resolver))
+            string key = routeModel.Hierarchy();
+
+            if (!routeResolvers.TryGetValue(key, out ContentRouteResolver resolver))
             {
                 resolver = new ContentRouteResolver(routeModel);
-                _ = routeResolvers.TryAdd($"{((routeModel as IFileResolve).Container as FolderModel)?.Name}{routeModel.Name}", resolver);
+                _ = routeResolvers.TryAdd(key, resolver);
             }
             return resolver;
         }
@@ -68,7 +70,7 @@ namespace FreeTrainSimulator.Models.Loader
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
             RouteModel = routeModel;
-            MstsRouteFolder = ((routeModel as IFileResolve).Container as FolderModel).MstsContentFolder().Route(routeModel.Tag);
+            MstsRouteFolder = routeModel.Parent.MstsContentFolder().Route(routeModel.Tag);
         }
     }
 
@@ -98,7 +100,7 @@ namespace FreeTrainSimulator.Models.Loader
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
-            return Path.GetFullPath(Path.Combine(FolderPath((model as IFileResolve).Container ?? container), FileName(model) + FileExtension));
+            return Path.GetFullPath(Path.Combine(FolderPath(model.Parent ?? container), FileName(model) + FileExtension));
         }
 
         public static string FolderPath<TContainer>(ModelBase<TContainer> container) where TContainer : ModelBase<TContainer>

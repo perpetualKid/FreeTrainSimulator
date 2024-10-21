@@ -23,13 +23,13 @@ namespace Orts.Menu
             currentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
 
             //Initial setup if necessary
-            if (SelectedProfile.ContentFolders.Count == 0)
+            if (SelectedProfile.SetupRequired() || SelectedProfile.ContentFolders.Count == 0)
             {
                 await (ShowOptionsForm(true)).ConfigureAwait(false);
             }
             else
             {
-                await FoldersChanged(SelectedProfile.ContentFolders).ConfigureAwait(false);
+                await FoldersChanged(await SelectedProfile.GetFolders(ctsProfileLoading.Token).ConfigureAwait(false)).ConfigureAwait(false);
             }
             SetupActivityFromSelection(currentSelections);
         }
@@ -37,7 +37,7 @@ namespace Orts.Menu
         private async ValueTask FoldersChanged(FrozenSet<FolderModel> contentFolders)
         {
             SetupFoldersDropdown(contentFolders);
-            FolderModel folderModel = contentFolders.Where(f => f.Name == currentSelections?.FolderName)?.FirstOrDefault() ?? contentFolders.OrderBy(f => f.Name).FirstOrDefault();
+            FolderModel folderModel = contentFolders.GetByNameOrFirstByName(currentSelections?.FolderName);
             await FolderChanged(folderModel).ConfigureAwait(false);
         }
 
@@ -60,7 +60,7 @@ namespace Orts.Menu
             {
                 try
                 {
-                    routeModels = await contentFolder.Routes(ctsRouteLoading.Token).ConfigureAwait(false);
+                    routeModels = await contentFolder.GetRoutes(ctsRouteLoading.Token).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException) { return; }
             }
@@ -93,8 +93,8 @@ namespace Orts.Menu
                 ctsPathLoading = await ctsPathLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
                 try
                 {
-                    pathModels = await routeModel.Paths(ctsPathLoading.Token);
-                    activityModels = await routeModel.Activities(ctsPathLoading.Token);
+                    pathModels = await routeModel.GetPaths(ctsPathLoading.Token);
+                    activityModels = await routeModel.GetActivities(ctsPathLoading.Token);
                 }
                 catch (TaskCanceledException) { }
             }

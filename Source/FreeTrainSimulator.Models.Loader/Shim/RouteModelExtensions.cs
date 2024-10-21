@@ -14,16 +14,11 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public static class RouteModelExtensions
     {
-        public static FolderStructure.ContentFolder.RouteFolder MstsRouteFolder(this RouteModelCore routeModel)
-        {
-            ContentRouteResolver resolver = FileResolver.ContentRouteResolver(routeModel);
-            return resolver.MstsRouteFolder;
-        }
+        public static FolderStructure.ContentFolder.RouteFolder MstsRouteFolder(this RouteModelCore routeModel) => FileResolver.ContentRouteResolver(routeModel).MstsRouteFolder;
 
-        public static ValueTask<RouteModel> Extend(this RouteModelCore routeModel, CancellationToken cancellationToken)
-        {
-            return RouteModelHandler.GetExtended(routeModel, cancellationToken);
-        }
+        public static ValueTask<RouteModel> Extend(this RouteModelCore routeModel, CancellationToken cancellationToken) => RouteModelHandler.GetExtended(routeModel, cancellationToken);
+        public static ValueTask<FrozenSet<PathModelCore>> GetPaths(this RouteModelCore routeModel, CancellationToken cancellationToken) => routeModel.GetRoutePaths(cancellationToken);
+        public static ValueTask<FrozenSet<ActivityModelCore>> GetActivities(this RouteModelCore routeModel, CancellationToken cancellationToken) => routeModel.GetRouteActivities(cancellationToken);
 
         public static async ValueTask<RouteModel> ToRouteModel(this FolderStructure.ContentFolder.RouteFolder routeFolder, CancellationToken cancellationToken)
         {
@@ -40,16 +35,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 throw new FileNotFoundException($"Route not found. Abnormal termination.");
 
             return await RouteModelHandler.GetExtended(routeModelCore, cancellationToken).ConfigureAwait(false);
-        }
-
-        public static ValueTask<FrozenSet<PathModelCore>> Paths(this RouteModelCore routeModel, CancellationToken cancellationToken)
-        {
-            return routeModel.GetRoutePaths(cancellationToken);
-        }
-
-        public static ValueTask<FrozenSet<ActivityModelCore>> Activities(this RouteModelCore routeModel, CancellationToken cancellationToken)
-        {
-            return routeModel.GetRouteActivities(cancellationToken);
         }
 
         public static async ValueTask<PathModelCore> PathModel(this RouteModelCore routeModel, string pathName, CancellationToken cancellationToken)

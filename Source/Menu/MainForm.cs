@@ -646,7 +646,7 @@ namespace Orts.Menu
                 return;
             }
 
-            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, SelectedFolder.Routes(CancellationToken.None).Result))
+            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, SelectedFolder.GetRoutes(CancellationToken.None).Result))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {

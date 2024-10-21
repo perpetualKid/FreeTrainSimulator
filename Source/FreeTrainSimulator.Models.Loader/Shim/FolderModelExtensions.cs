@@ -12,21 +12,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public static class FolderModelExtensions
     {
-        public static FolderStructure.ContentFolder MstsContentFolder(this FolderModel folderModel)
-        {
-            ContentFolderResolver resolver = FileResolver.ContentFolderResolver(folderModel);
-            return resolver.MstsContentFolder;
-        }
-
-        public static async ValueTask<FrozenSet<RouteModelCore>> Routes(this FolderModel folderModel, CancellationToken cancellationToken)
-        {
-            return await RouteModelHandler.GetRoutes(folderModel, cancellationToken).ConfigureAwait(false);
-        }
-
-        public static async ValueTask<FolderModel> Get(this FolderModel folderModel, CancellationToken cancellationToken)
-        { 
-            return await FolderModelHandler.GetCore(folderModel, cancellationToken).ConfigureAwait(false);
-        }
+        public static FolderStructure.ContentFolder MstsContentFolder(this FolderModel folderModel) => FileResolver.ContentFolderResolver(folderModel).MstsContentFolder;
+        public static ValueTask<FrozenSet<RouteModelCore>> GetRoutes(this FolderModel folderModel, CancellationToken cancellationToken) => RouteModelHandler.GetRoutes(folderModel, cancellationToken);
+        public static ValueTask<FolderModel> Get(this FolderModel folderModel, CancellationToken cancellationToken) => FolderModelHandler.GetCore(folderModel, cancellationToken);
 
         public static async ValueTask<RouteModel> RouteModel(this FolderModel folderModel, string routeName, CancellationToken cancellationToken)
         {

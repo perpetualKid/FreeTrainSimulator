@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,15 +12,9 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public static class ProfileModelExtensions
     {
-        public static ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken)
-        {
-            return ProfileModelHandler.GetCore(profileModel?.Name, cancellationToken);
-        }
-
-        public static Task<ProfileModel> Setup(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
-        {
-            return ProfileModelHandler.Setup(profileModel?.Name, folders, cancellationToken);
-        }
+        public static ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken) => ProfileModelHandler.GetCore(profileModel?.Name, cancellationToken);
+        public static Task<ProfileModel> Setup(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) => ProfileModelHandler.Setup(profileModel?.Name, folders, cancellationToken);
+        public static ValueTask<FrozenSet<FolderModel>> GetFolders(this ProfileModel profileModel, CancellationToken cancellationToken) => FolderModelHandler.GetFolders(profileModel, cancellationToken);
 
         public static async ValueTask<ProfileSelectionsModel> SelectionsModel(this ProfileModel profileModel, CancellationToken cancellationToken)
         {
