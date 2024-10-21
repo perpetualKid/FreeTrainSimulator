@@ -46,9 +46,6 @@ namespace FreeTrainSimulator.Models.Independent.Base
         [MemoryPackIgnore]
         public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
 
-        [MemoryPackIgnore]
-        public bool Initialized => !string.IsNullOrEmpty(_directoryPath);
-
         public void RefreshModel()
         {
             _version = VersionInfo.Version;
