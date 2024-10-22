@@ -17,10 +17,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             string key = profileModel.Hierarchy();
 
-            if (collectionUpdateRequired || !taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<ActivityModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (!taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<ActivityModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
             {
-                taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<ActivityModelCore>>>(() => LoadActivities(profileModel, cancellationToken));
-                collectionUpdateRequired = false;
+                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<ActivityModelCore>>>(() => LoadActivities(profileModel, cancellationToken));
             }
 
             return await modelSetTask.Value.ConfigureAwait(false);
@@ -33,7 +32,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             foreach (FolderModel folder in folders)
             {
-                FrozenSet<RouteModelCore> routes = await folder.GetRoutes(cancellationToken).ConfigureAwait(false);
+                FolderModel folderInstance = await folder.Get(cancellationToken).ConfigureAwait(false);
+                FrozenSet<RouteModelCore> routes = await folderInstance.GetRoutes(cancellationToken).ConfigureAwait(false);
                 foreach (RouteModelCore route in routes)
                 {
                     FrozenSet<ActivityModelCore> activities = await route.GetRouteActivities(cancellationToken).ConfigureAwait(false);

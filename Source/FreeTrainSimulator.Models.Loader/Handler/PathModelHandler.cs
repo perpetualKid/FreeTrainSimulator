@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class PathModelHandler : ContentHandlerBase<PathModelCore>
     {
+        internal const string SourceNameKey = "MstsSourcePath";
+
         // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
         // MSTS checks for "broken path" before running the simulator and doesn't offer them in the list.
         // I.e. the first activity in Marias Pass is "Explore Longhale" which leads to a "Broken Path" message.
@@ -44,7 +47,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (!taskLazyCache.TryGetValue(key, out Lazy<Task<PathModelCore>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
             {
                 taskLazyCache[key] = modelTask = new Lazy<Task<PathModelCore>>(FromFile(pathId, routeModel, cancellationToken));
-                collectionUpdateRequired = true;
+                collectionUpdateRequired[routeModel.Hierarchy()] = true;
             }
 
             PathModelCore pathModel = await modelTask.Value.ConfigureAwait(false);
@@ -52,7 +55,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (pathModel.SetupRequired())
             {
                 taskLazyCache[key] = new Lazy<Task<PathModelCore>>(() => Cast(Convert(pathModel, cancellationToken)));
-                collectionUpdateRequired = true;
+                collectionUpdateRequired[routeModel.Hierarchy()] = true;
             }
 
             return pathModel;
@@ -73,7 +76,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 (modelTask.IsValueCreated && (modelTask.Value.IsFaulted || (await modelTask.Value.ConfigureAwait(false) is not PathModel))))
             {
                 taskLazyCache[key] = modelTask = new Lazy<Task<PathModelCore>>(Cast(FromFile<PathModel, RouteModelCore>(pathId, routeModel, cancellationToken)));
-                collectionUpdateRequired = true;
+                collectionUpdateRequired[routeModel.Hierarchy()] = true;
             }
 
             PathModel pathModel = await modelTask.Value.ConfigureAwait(false) as PathModel;
@@ -81,7 +84,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (pathModel.SetupRequired())
             {
                 taskLazyCache[key] = new Lazy<Task<PathModelCore>>(() => Cast(Convert(pathModel, cancellationToken)));
-                collectionUpdateRequired = true;
+                collectionUpdateRequired[routeModel.Hierarchy()] = true;
             }
 
             return pathModel;
@@ -92,10 +95,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
 
-            if (collectionUpdateRequired || !taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (collectionUpdateRequired.TryRemove(key, out _) || !taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
             {
-                taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(() => LoadPaths(routeModel, cancellationToken));
-                collectionUpdateRequired = false;
+                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(() => LoadPaths(routeModel, cancellationToken));
             }
 
             return await modelSetTask.Value.ConfigureAwait(false);
@@ -123,7 +125,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     FrozenSet<PathModelCore> existingPaths = await GetPaths(routeModel, cancellationToken).ConfigureAwait(false);
                     foreach (PathModelCore pathModel in existingPaths)
                     {
-                        if (pathFiles.TryRemove(pathModel?.Tag, out string filePath)) //
+                        if (pathFiles.TryRemove(pathModel?.Tags[SourceNameKey], out string filePath)) //
                         {
                             results.Add(pathModel);
                         }
@@ -144,8 +146,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             FrozenSet<PathModelCore> result = results.ToFrozenSet();
             string key = routeModel.Hierarchy();
             Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask;
-            taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(Task.FromResult(result));
-            collectionUpdateRequired = false;
+            taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(Task.FromResult(result));
+            collectionUpdateRequired.TryRemove(key, out _);
             return result;
         }
 
@@ -177,7 +179,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         private static Task<PathModel> Convert(PathModelCore pathModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
-            return Convert(pathModel.Id, pathModel.Parent, cancellationToken);
+
+            return Convert(pathModel.Parent.MstsRouteFolder().PathFile(pathModel.Tags[SourceNameKey]), pathModel.Parent, cancellationToken);
         }
 
         private static async Task<PathModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)
@@ -196,12 +199,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     PlayerPath = patFile.PlayerPath,
                     Start = string.IsNullOrEmpty(patFile.Start) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.Start.Trim(),
                     End = string.IsNullOrEmpty(patFile.End) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.End.Trim(),
-                    Tag = Path.GetFileNameWithoutExtension(filePath),
+                    Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
                 };
                 //this is the case where a file may have been renamed but not the path id, ie. in case of copy cloning, so adopting the filename as path id
-                if (string.IsNullOrEmpty(pathModel.Id) || (pathModel.Tag.Length > pathModel.Id.Length && pathModel.Tag.Contains(pathModel.Id, StringComparison.OrdinalIgnoreCase)))
+                if (string.IsNullOrEmpty(pathModel.Id) || (pathModel.Tags[SourceNameKey].Length > pathModel.Id.Length && pathModel.Tags[SourceNameKey].Contains(pathModel.Id, StringComparison.OrdinalIgnoreCase)))
                 {
-                    pathModel = pathModel with { Id = pathModel.Tag };
+                    pathModel = pathModel with { Id = pathModel.Tags[SourceNameKey] };
                 }
                 await Create(pathModel, routeModel, cancellationToken).ConfigureAwait(false);
                 return pathModel;

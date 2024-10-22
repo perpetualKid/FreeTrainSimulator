@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -18,10 +19,10 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         public const string SaveStateExtension = FileNameExtensions.SaveFile;
 
         private protected static readonly string fileExtension = ModelFileResolver<TModel>.FileExtension;
-        private protected static bool collectionUpdateRequired = true;
+        private protected static readonly ConcurrentDictionary<string, bool> collectionUpdateRequired = new ConcurrentDictionary<string, bool>();
 
         private protected static readonly ConcurrentDictionary<string, Lazy<Task<TModel>>> taskLazyCache = new ConcurrentDictionary<string, Lazy<Task<TModel>>>(StringComparer.OrdinalIgnoreCase);
-        private protected static readonly ConcurrentDictionary<string, Lazy<Task<FrozenSet<TModel>>>> taskSetCache = new ConcurrentDictionary<string, Lazy<Task<FrozenSet<TModel>>>>(StringComparer.OrdinalIgnoreCase);
+        private protected static readonly ConcurrentDictionary<string, Lazy<Task<FrozenSet<TModel>>>> taskLazyCollectionCache = new ConcurrentDictionary<string, Lazy<Task<FrozenSet<TModel>>>>(StringComparer.OrdinalIgnoreCase);
 
         public static async Task<TModel> FromFile<TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
         {

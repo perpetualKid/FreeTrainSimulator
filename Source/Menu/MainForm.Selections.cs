@@ -71,7 +71,7 @@ namespace Orts.Menu
         private async ValueTask RoutesChanged(FrozenSet<RouteModelCore> routeModels)
         {
             SetupRoutesDropdown(routeModels);
-            RouteModelCore routeModel = routeModels.Where(r => r.Name == currentSelections?.RouteName).FirstOrDefault();
+            RouteModelCore routeModel = routeModels.GetByName(currentSelections?.RouteName);
             await RouteChanged(routeModel).ConfigureAwait(false);
         }
 

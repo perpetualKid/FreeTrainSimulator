@@ -70,7 +70,7 @@ namespace FreeTrainSimulator.Models.Loader
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
             RouteModel = routeModel;
-            MstsRouteFolder = routeModel.Parent.MstsContentFolder().Route(routeModel.Tag);
+            MstsRouteFolder = routeModel.Parent.MstsContentFolder().Route(routeModel.Tags[RouteModelHandler.SourceNameKey]);
         }
     }
 

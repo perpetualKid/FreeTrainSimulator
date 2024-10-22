@@ -32,7 +32,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (!taskLazyCache.TryGetValue(key, out Lazy<Task<FolderModel>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
             {
                 taskLazyCache[key] = modelTask = new Lazy<Task<FolderModel>>(Task.FromResult(profileModel.ContentFolders.Where((folder) => string.Equals(folder.Id, folderId, StringComparison.OrdinalIgnoreCase)).FirstOrDefault()));
-                collectionUpdateRequired = true;
+                collectionUpdateRequired[profileModel.Hierarchy()] = true;
             }
 
             FolderModel folderModel = await modelTask.Value.ConfigureAwait(false);
@@ -40,7 +40,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (folderModel.SetupRequired())
             {
                 taskLazyCache[key] = new Lazy<Task<FolderModel>>(() => Cast(Convert(folderModel, cancellationToken)));
-                collectionUpdateRequired = true;
+                collectionUpdateRequired[profileModel.Hierarchy()] = true;
             }
 
             return folderModel;
@@ -51,10 +51,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             string key = profileModel.Hierarchy();
 
-            if (collectionUpdateRequired || !taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<FolderModel>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (collectionUpdateRequired.TryRemove(key, out _) || !taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<FolderModel>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
             {
-                taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<FolderModel>>>(() => LoadFolders(profileModel, cancellationToken));
-                collectionUpdateRequired = false;
+                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<FolderModel>>>(() => LoadFolders(profileModel, cancellationToken));
             }
 
             return await modelSetTask.Value.ConfigureAwait(false);
@@ -90,7 +89,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             FrozenSet<FolderModel> result = results.ToFrozenSet();
             string key = profileModel.Hierarchy();
             Lazy<Task<FrozenSet<FolderModel>>> modelSetTask;
-            taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<FolderModel>>>(Task.FromResult(result));
+            taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<FolderModel>>>(Task.FromResult(result));
             return result;
         }
 
@@ -111,7 +110,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             FrozenSet<FolderModel> result = results.ToFrozenSet();
             string key = profileModel.Hierarchy();
             Lazy<Task<FrozenSet<FolderModel>>> modelSetTask;
-            taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<FolderModel>>>(Task.FromResult(result));
+            taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<FolderModel>>>(Task.FromResult(result));
             return result;
         }
 

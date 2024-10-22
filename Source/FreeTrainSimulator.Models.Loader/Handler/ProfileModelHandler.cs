@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (!taskLazyCache.TryGetValue(key, out Lazy<Task<ProfileModel>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
             {
                 taskLazyCache[key] = modelTask = new Lazy<Task<ProfileModel>>(FromFile<ProfileModel>(profileName, null, cancellationToken));
-                collectionUpdateRequired = true;
+                collectionUpdateRequired[root] = true;
             }
 
             ProfileModel profileModel = await modelTask.Value.ConfigureAwait(false) ?? new ProfileModel(profileName);
@@ -42,7 +42,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (profileModel.SetupRequired())
             {
                 taskLazyCache[key] = new Lazy<Task<ProfileModel>>(() => Cast(Convert(profileModel, cancellationToken)));
-                collectionUpdateRequired = true;
+                collectionUpdateRequired[root] = true;
             }
 
             return profileModel;
@@ -52,10 +52,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             string key = root;
 
-            if (collectionUpdateRequired || !taskSetCache.TryGetValue(key, out Lazy<Task<FrozenSet<ProfileModel>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (collectionUpdateRequired.TryRemove(key, out _) || !taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<ProfileModel>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
             {
-                taskSetCache[key] = modelSetTask = new Lazy<Task<FrozenSet<ProfileModel>>>(() => LoadProfiles(cancellationToken));
-                collectionUpdateRequired = false;
+                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<ProfileModel>>>(() => LoadProfiles(cancellationToken));
             }
 
             return await modelSetTask.Value.ConfigureAwait(false);
@@ -116,7 +115,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             string key = profileName;
             taskLazyCache[key] = new Lazy<Task<ProfileModel>>(Task.FromResult(profileModel));
-            collectionUpdateRequired = true;
+            collectionUpdateRequired[root] = true;
 
             return profileModel;
         }

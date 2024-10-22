@@ -105,6 +105,11 @@ namespace Orts.Formats.Msts
                     return Path.Combine(PathsFolder, pathName + ".pat");
                 }
 
+                public string ActivityFile(string activityName)
+                {
+                    return Path.Combine(ActivitiesFolder, activityName + ".act");
+                }
+
                 public string TrafficFile(string trafficName)
                 {
                     return Path.Combine(TrafficFolder, trafficName + ".trf");

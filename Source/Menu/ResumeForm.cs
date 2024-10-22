@@ -166,7 +166,7 @@ namespace Orts.Menu
             {
                 ActivityType.Explorer => route.Name,
                 ActivityType.ExploreActivity => $"ea${route.Name}$",
-                ActivityType.Activity => activity.Tag,
+                ActivityType.Activity => activity.Tags[""],
                 ActivityType.TimeTable => $"{route.Name} {Path.GetFileNameWithoutExtension(timeTable.FileName)}",
                 _ => throw new NotImplementedException(),
             };
