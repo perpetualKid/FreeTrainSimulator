@@ -185,7 +185,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         private static Task<ActivityModel> Convert(ActivityModelCore activityModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
-            return Convert(activityModel.Parent.MstsRouteFolder().PathFile(activityModel.Tags[SourceNameKey]), activityModel.Parent, cancellationToken);
+            return Convert(activityModel.Parent.MstsRouteFolder().ActivityFile(activityModel.Tags[SourceNameKey]), activityModel.Parent, cancellationToken);
         }
 
         public static async Task<ActivityModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)
