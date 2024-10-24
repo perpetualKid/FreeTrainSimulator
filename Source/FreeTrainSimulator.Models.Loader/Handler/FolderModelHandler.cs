@@ -2,17 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
-
-using SharpDX;
-
-using static Orts.Formats.Msts.FolderStructure.ContentFolder;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {

@@ -107,12 +107,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (Directory.Exists(sourceFolder))
             {
                 // preload existing MSTS folders
-                _ = Parallel.ForEach(Directory.EnumerateDirectories(sourceFolder), (routeFolder, token) =>
+                foreach(string routeFolder in Directory.EnumerateDirectories(sourceFolder))
                 {
                     FolderStructure.ContentFolder.RouteFolder folder = FolderStructure.Route(routeFolder);
                     if (folder.Valid)
                         _ = routeFolders.TryAdd(folder.RouteName, folder);
-                });
+                }
 
                 //load existing route models, and compare if the corresponding folder still exists.
                 if (Directory.Exists(routesFolder))

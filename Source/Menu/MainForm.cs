@@ -197,8 +197,7 @@ namespace Orts.Menu
 
             ShowTimetableEnvironment();
 
-            await profileTask.ConfigureAwait(true);
-            await updateTask.ConfigureAwait(true);
+            await Task.WhenAll(profileTask, updateTask).ConfigureAwait(true);
             initialized = true;
 
             UpdateEnabled();
@@ -845,7 +844,10 @@ namespace Orts.Menu
             comboBoxFolder.EnableComboBoxItemDataSource(contentFolders.OrderBy(f => f.Name).Select(f => new ComboBoxItem<FolderModel>(f.Name, f)));
 
             if (SelectedProfile.ContentFolders.Count > 0)
+            {
+                UpdateEnabled();
                 _ = comboBoxFolder.Focus();
+            }
         }
 
         private void SetupRoutesDropdown(FrozenSet<RouteModelCore> routeModels)
@@ -857,6 +859,7 @@ namespace Orts.Menu
             }
 
             comboBoxRoute.EnableComboBoxItemDataSource(routeModels.OrderBy(r => r.Name).Select(r => new ComboBoxItem<RouteModelCore>(r.Name, r)));
+            UpdateEnabled();
         }
 
         private void SetupActivitiesDropdown(FrozenSet<ActivityModelCore> activities)
@@ -868,6 +871,7 @@ namespace Orts.Menu
             }
 
             comboBoxActivity.EnableComboBoxItemDataSource(activities.OrderBy(a => a.Name).Select(a => new ComboBoxItem<ActivityModelCore>(a.Name, a)));
+            UpdateEnabled();
         }
 
         private void SetupPathStartDropdown(FrozenSet<PathModelCore> pathModels)
