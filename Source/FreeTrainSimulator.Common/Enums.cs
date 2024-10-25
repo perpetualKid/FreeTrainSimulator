@@ -1200,6 +1200,29 @@ namespace FreeTrainSimulator.Common
     }
 
     /// <summary>
+    /// Defines different wagon types such as used in consist definition
+    /// </summary>
+    public enum TrainCarType
+    {
+        /// <summary>
+        /// Any wagon which is not otherwise specified
+        /// </summary>
+        Wagon,
+        /// <summary>
+        /// Locomotives
+        /// </summary>
+        Engine,
+        /// <summary>
+        /// Locomotive Tender
+        /// </summary>
+        Tender,
+        /// <summary>
+        /// End-Of-Train devices
+        /// </summary>
+        Eot,
+    }
+
+    /// <summary>
     /// Defines the position of a load (e.g. a container) on a wagon
     /// </summary>
     public enum LoadPosition
