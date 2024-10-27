@@ -15,12 +15,11 @@ namespace FreeTrainSimulator.Models.Independent.Content
             subFolder = ".TrainSets";
         }
 
+        public override FolderModel Parent => _parent as FolderModel;
+
         //Speed and an acceleration factor.
         //First number is the actual max speed (in meters per second) based on TE/tonnage;
         //Second number is some kind of multiplier that determines what speed the AI train will slow to on grades and curves.
-
-        public override FolderModel Parent => _parent as FolderModel;
-
         public float MaximumSpeed { get; init; }
         public float AccelerationFactor { get; init; }
         public float Durability { get; init; }
