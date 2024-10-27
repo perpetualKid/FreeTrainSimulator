@@ -40,6 +40,7 @@ namespace Orts.Formats.Msts.Models
 
     public class TrainSet
     {
+        public string Id { get; private set; }
         public string Name { get; private set; } = "Loose consist.";
         public int Serial { get; private set; } = 1;
         public MaxVelocity MaxVelocity { get; private set; }
@@ -62,7 +63,7 @@ namespace Orts.Formats.Msts.Models
         private void ParseTrainConfig(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            Name = stf.ReadString();
+            Id = Name = stf.ReadString();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("serial", ()=>{ Serial = stf.ReadIntBlock(null); }),
@@ -101,7 +102,6 @@ namespace Orts.Formats.Msts.Models
                     stf.MustMatch("(");
                     LoadDataList ??= new List<LoadData>();
                     LoadDataList.Add(new LoadData(stf));
-                    stf.MustMatch(")");
                 }),
             });
         }
