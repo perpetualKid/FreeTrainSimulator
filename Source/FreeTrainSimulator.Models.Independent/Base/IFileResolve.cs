@@ -10,6 +10,10 @@
         /// </summary>
         public static abstract string DefaultExtension { get; }
         /// <summary>
+        /// Common subfolder for this file type
+        /// </summary>
+        public static abstract string SubFolder { get; }
+        /// <summary>
         /// Full Directory Path where the file instance of this <seealso cref="ModelBase{T}"/> instance is stored
         /// </summary>
         public abstract string DirectoryPath { get; }

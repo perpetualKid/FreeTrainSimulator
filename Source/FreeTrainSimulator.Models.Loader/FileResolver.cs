@@ -85,9 +85,11 @@ namespace FreeTrainSimulator.Models.Loader
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
         private static string FileExtensionCore<U>() where U : IFileResolve => U.DefaultExtension;
+        private static string SubFolderCore<U>() where U : IFileResolve => U.SubFolder;
         private static string DirectoryNameCore<U>(U instance) where U : IFileResolve => instance?.DirectoryName;
         private static string FileNameCore<U>(U instance) where U : IFileResolve => instance?.FileName;
         public static string FileExtension => FileExtensionCore<ModelBase<T>>();
+        public static string SubFolder => SubFolderCore<ModelBase<T>>() ?? string.Empty;
         public static string DirectoryName<TContainer>(ModelBase<TContainer> instance) where TContainer : ModelBase<TContainer> => DirectoryNameCore(instance);
         public static string FileName<TContainer>(ModelBase<TContainer> instance) where TContainer : ModelBase<TContainer> => FileNameCore(instance);
 
@@ -100,15 +102,15 @@ namespace FreeTrainSimulator.Models.Loader
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
-            return Path.GetFullPath(Path.Combine(FolderPath(model.Parent ?? container), FileName(model) + FileExtension));
+            return Path.GetFullPath(Path.Combine(FolderPath(model.Parent ?? container), SubFolder, FileName(model) + FileExtension));
         }
 
         public static string FolderPath<TContainer>(ModelBase<TContainer> container) where TContainer : ModelBase<TContainer>
         {
-            return FolderPath(container as IFileResolve);
+            return Path.Combine(FolderPath(container as IFileResolve), SubFolder);
         }
 
-        public static string FolderPath(IFileResolve container)
+        private static string FolderPath(IFileResolve container)
         {
             return container != null ? Path.Combine(FolderPath(container.Container), container.DirectoryName) : FileResolver.ContentRoot;
         }

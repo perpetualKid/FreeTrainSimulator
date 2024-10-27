@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Independent.Content;
 
 using MemoryPack;
 
@@ -21,6 +19,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
 
         #region internal handling
         private protected static string fileExtension;
+        private protected static string subFolder;
         private string _directoryPath;
         private protected IFileResolve _parent;
 
@@ -33,6 +32,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         [MemoryPackIgnore]
 #pragma warning disable CA1033 // Interface methods should be callable by child types
         static string IFileResolve.DefaultExtension => fileExtension;
+        static string IFileResolve.SubFolder => subFolder;
         [MemoryPackIgnore]
         string IFileResolve.DirectoryName => DirectoryName;
         [MemoryPackIgnore]

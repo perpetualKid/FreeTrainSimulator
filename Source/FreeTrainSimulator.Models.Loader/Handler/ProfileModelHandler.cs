@@ -79,7 +79,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
         private static async Task<FrozenSet<ProfileModel>> LoadProfiles(CancellationToken cancellationToken)
         {
-            string profilesFolder = ModelFileResolver<ProfileModel>.FolderPath(null);
+            string profilesFolder = ModelFileResolver<ProfileModel>.FolderPath(ProfileModel.None);
             string pattern = ModelFileResolver<ProfileModel>.WildcardSavePattern;
 
             ConcurrentBag<ProfileModel> results = new ConcurrentBag<ProfileModel>();
