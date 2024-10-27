@@ -10,14 +10,14 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal class WagonModelHandler: ContentHandlerBase<WagonModelCore>
     {
-        private static async Task<WagonModelCore> Convert(string filePath, WagonSetModel traincarSet, CancellationToken cancellationToken)
+        private static Task<WagonModelCore> Convert(string filePath, WagonSetModel traincarSet, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(filePath, nameof(filePath));
             ArgumentNullException.ThrowIfNull(traincarSet, nameof(traincarSet));
 
             if (File.Exists(filePath))
             {
-                return new WagonModelCore();
+                return Task.FromResult(new WagonModelCore());
             }
             else
             {
