@@ -7,7 +7,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Independent.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public partial record FolderModel : ModelBase<FolderModel>
+    public sealed partial record FolderModel : ModelBase<FolderModel>
     {
         static partial void StaticConstructor()
         {

@@ -15,7 +15,7 @@ using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
-    internal sealed class WagonSetModelHandler: ContentHandlerBase<WagonSetModel>
+    internal sealed class WagonSetModelHandler : ContentHandlerBase<WagonSetModel>
     {
         internal const string SourceNameKey = "MstsSourceConsist";
 
@@ -156,8 +156,16 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     Name = consistFile.Train.Name.Trim(),
                     MaximumSpeed = consistFile.Train.MaxVelocity.A,
                     AccelerationFactor = consistFile.Train.MaxVelocity.B,
-                    Durability = consistFile.Train.Durability,                    
+                    Durability = consistFile.Train.Durability,
                     Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
+                    TrainCars = consistFile.Train.Wagons.OrderBy(w => w.UiD).Select((w, index) => new WagonReferenceModel()
+                    {
+                        TrainCarType = w.IsEOT ? Common.TrainCarType.Eot : w.IsEngine ? Common.TrainCarType.Engine : Common.TrainCarType.Wagon,
+                        Uid = index,//w.UiD,
+                        Reverse = w.Flip,
+                        Name = w.Name,
+                        Reference = w.Folder,
+                    }).ToFrozenSet()
                 };
                 //this is the case where a file may have been renamed but not the consist id, ie. in case of copy cloning, so adopting the filename as id
                 if (string.IsNullOrEmpty(wagonSetModel.Id) || (!string.Equals(wagonSetModel.Tags[SourceNameKey], wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)))
@@ -174,7 +182,5 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 return null;
             }
         }
-
-
     }
 }
