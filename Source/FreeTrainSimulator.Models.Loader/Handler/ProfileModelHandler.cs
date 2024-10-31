@@ -37,9 +37,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 collectionUpdateRequired[root] = true;
             }
 
-            ProfileModel profileModel = await modelTask.Value.ConfigureAwait(false) ?? new ProfileModel(profileName);
+            ProfileModel profileModel = await modelTask.Value.ConfigureAwait(false);
 
-            if (profileModel.SetupRequired())
+            if (profileModel?.RefreshRequired ?? false)
             {
                 taskLazyCache[key] = new Lazy<Task<ProfileModel>>(() => Cast(Convert(profileModel, cancellationToken)));
                 collectionUpdateRequired[root] = true;
@@ -71,8 +71,11 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         private static async Task<ProfileModel> Convert(ProfileModel profileModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
-             
-            profileModel = profileModel with { ContentFolders = await FolderModelHandler.ExpandFolderModels(profileModel, cancellationToken).ConfigureAwait(false) };
+
+            profileModel = profileModel with
+            {
+                ContentFolders = await FolderModelHandler.ExpandFolderModels(profileModel, cancellationToken).ConfigureAwait(false)
+            };
             await Create<ProfileModel>(profileModel, null, cancellationToken).ConfigureAwait(false);
             return profileModel;
         }
@@ -107,9 +110,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentException.ThrowIfNullOrEmpty(profileName, nameof(profileName));
             ProfileModel profileModel = await GetCore(profileName, cancellationToken).ConfigureAwait(false);
 
-            profileModel = (profileModel ?? new ProfileModel(profileName)) with 
-            { 
-                ContentFolders = folders != null ? await FolderModelHandler.SetupFolderModels(profileModel, folders, cancellationToken).ConfigureAwait(false) : FrozenSet<FolderModel>.Empty 
+            profileModel = (profileModel ??= new ProfileModel(profileName)) with
+            {
+                ContentFolders = folders != null ? await FolderModelHandler.SetupFolderModels(profileModel, folders, cancellationToken).ConfigureAwait(false) : FrozenSet<FolderModel>.Empty
             };
             profileModel = await Convert(profileModel, cancellationToken).ConfigureAwait(false);
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Frozen;
+﻿using System.Collections.Frozen;
 using System.Threading;
 using System.Threading.Tasks;
 

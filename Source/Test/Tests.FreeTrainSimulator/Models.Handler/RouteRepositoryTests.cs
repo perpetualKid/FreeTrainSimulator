@@ -21,7 +21,15 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         {
             //FrozenSet<ProfileModel> profiles = await ProfileModelHandler.GetProfiles(CancellationToken.None).ConfigureAwait(false);
             //ProfileModel profile = profiles.GetByName(ProfileModelHandler.DefaultProfileName);
-            ProfileModel profile = await ProfileModel.None.Get(CancellationToken.None).ConfigureAwait(false);
+            FrozenSet<ProfileModel> profiles = await ProfileModel.None.GetProfiles(CancellationToken.None).ConfigureAwait(false);
+            ProfileModel profile = await ProfileModel.None.Setup("TestProfile", Enumerable.Empty<(string, string)>(), CancellationToken.None).ConfigureAwait(false);
+            profile = await profiles.GetOrCreate("TestProfile", CancellationToken.None).ConfigureAwait(false);
+//            ProfileModel profile = profiles.GetByName("Test");
+            //            ProfileModel profile = await ProfileModel.None.Get(CancellationToken.None).ConfigureAwait(false);
+
+
+            profile = await profile.Convert(true, CancellationToken.None).ConfigureAwait(false);
+
 
             FolderModel folderModel = profile.ContentFolders.GetByName("Demo Model 1");
             if (null != folderModel)

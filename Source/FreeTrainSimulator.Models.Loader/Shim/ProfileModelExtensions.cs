@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,9 +13,25 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public static class ProfileModelExtensions
     {
-        public static ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken) => ProfileModelHandler.GetCore(profileModel?.Name, cancellationToken);
-        public static Task<ProfileModel> Setup(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) => ProfileModelHandler.Setup(profileModel?.Name, folders, cancellationToken);
-        public static ValueTask<FrozenSet<FolderModel>> GetFolders(this ProfileModel profileModel, CancellationToken cancellationToken) => FolderModelHandler.GetFolders(profileModel, cancellationToken);
+        public static ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken) => 
+            ProfileModelHandler.GetCore(profileModel?.Name, cancellationToken);
+        public static Task<ProfileModel> Setup(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) => 
+            ProfileModelHandler.Setup(profileModel?.Name, folders, cancellationToken);
+        public static Task<ProfileModel> Setup(this ProfileModel _, string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) =>
+            ProfileModelHandler.Setup(profileName, folders, cancellationToken);
+        public static ValueTask<FrozenSet<ProfileModel>> GetProfiles(this ProfileModel _, CancellationToken cancellationToken) =>
+            ProfileModelHandler.GetProfiles(cancellationToken);
+        public static ValueTask<FrozenSet<FolderModel>> GetFolders(this ProfileModel profileModel, CancellationToken cancellationToken) => 
+            FolderModelHandler.GetFolders(profileModel, cancellationToken);
+        public static Task<ProfileModel> GetOrCreate(this FrozenSet<ProfileModel> profiles, string profileName, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profiles, nameof(profiles));
+            ProfileModel profileModel = profiles.GetByName(profileName);
+            return null != profileModel
+                ? Task.FromResult(profileModel)
+                : Setup(null, profileName, Enumerable.Empty<(string, string)>(), cancellationToken);
+        }
+
 
         public static async ValueTask<ProfileSelectionsModel> SelectionsModel(this ProfileModel profileModel, CancellationToken cancellationToken)
         {
@@ -58,5 +75,11 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         {
             return ProfileModelHandler.Setup(profileModel?.Name, folders, cancellationToken);
         }
+
+        public static Task<ProfileModel> Convert(this ProfileModel profileModel, bool force, CancellationToken cancellationToken)
+        {
+            return ContentModelConverter.Convert(profileModel, force, cancellationToken);
+        }
+
     }
 }

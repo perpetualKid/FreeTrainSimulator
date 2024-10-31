@@ -130,8 +130,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             folderModel.RefreshModel();
 
             await Create(folderModel, folderModel.Parent, false, true, cancellationToken).ConfigureAwait(false);
-            await RouteModelHandler.ExpandRouteModels(folderModel, cancellationToken).ConfigureAwait(false);
-
             return folderModel;
         }
     }
