@@ -27,6 +27,12 @@ namespace FreeTrainSimulator.Models.Loader
 
                     await Task.WhenAll(wagonSetsTask, routesTask).ConfigureAwait(false);
 
+                    await Parallel.ForEachAsync(routesTask.Result, async (routeModel, cancellationToken) =>
+                    {
+                        await Task.WhenAll(
+                            PathModelHandler.ExpandPathModels(routeModel, cancellationToken),
+                            ActivityModelHandler.ExpandActivityModels(routeModel, cancellationToken)).ConfigureAwait(false);
+                    });
                 });
             }
             return profileModel;

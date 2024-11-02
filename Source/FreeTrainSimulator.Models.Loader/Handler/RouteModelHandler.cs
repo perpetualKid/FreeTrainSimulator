@@ -244,12 +244,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     Settings = settings.ToFrozenDictionary(),
                     SuperElevationRadiusSettings = route.SuperElevationHgtpRadiusM,
                 };
-
-                await Task.WhenAll(
-                    Create(routeModel, contentFolder, true, true, cancellationToken), 
-                    PathModelHandler.ExpandPathModels(routeModel, cancellationToken),
-                    ActivityModelHandler.ExpandActivityModels(routeModel, cancellationToken)).ConfigureAwait(false);
-
+                await Create(routeModel, contentFolder, true, true, cancellationToken).ConfigureAwait(false);
                 return routeModel;
             }
             else
