@@ -41,7 +41,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             RouteModelCore routeModel = await modelTask.Value.ConfigureAwait(false);
 
-            if (routeModel.SetupRequired())
+            if (routeModel?.RefreshRequired ?? false)
             {
                 taskLazyCache[key] = new Lazy<Task<RouteModelCore>>(() => Cast(Convert(routeModel, cancellationToken)));
                 collectionUpdateRequired[folderModel.Hierarchy()] = true;
@@ -70,7 +70,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             RouteModel routeModel = await modelTask.Value.ConfigureAwait(false) as RouteModel;
 
-            if (routeModel.SetupRequired())
+            if (routeModel?.RefreshRequired ?? false)
             {
                 taskLazyCache[key] = new Lazy<Task<RouteModelCore>>(() => Cast(Convert(routeModel, cancellationToken)));
                 collectionUpdateRequired[folderModel.Hierarchy()] = true;

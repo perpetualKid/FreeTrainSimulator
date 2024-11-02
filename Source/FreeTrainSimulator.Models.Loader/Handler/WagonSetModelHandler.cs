@@ -38,7 +38,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             WagonSetModel wagonSetModel = await modelTask.Value.ConfigureAwait(false);
 
-            if (wagonSetModel.SetupRequired())
+            if (wagonSetModel?.RefreshRequired ?? false)
             {
                 taskLazyCache[key] = new Lazy<Task<WagonSetModel>>(() => Cast(Convert(wagonSetModel, cancellationToken)));
                 collectionUpdateRequired[folderModel.Hierarchy()] = true;

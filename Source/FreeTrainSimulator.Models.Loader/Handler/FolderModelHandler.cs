@@ -32,7 +32,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             FolderModel folderModel = await modelTask.Value.ConfigureAwait(false);
 
-            if (folderModel.SetupRequired())
+            if (folderModel?.RefreshRequired ?? false)
             {
                 taskLazyCache[key] = new Lazy<Task<FolderModel>>(() => Cast(Convert(folderModel, cancellationToken)));
                 collectionUpdateRequired[profileModel.Hierarchy()] = true;

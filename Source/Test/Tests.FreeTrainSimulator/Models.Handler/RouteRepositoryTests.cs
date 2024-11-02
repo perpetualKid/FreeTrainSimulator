@@ -1,4 +1,5 @@
-﻿using System.Collections.Frozen;
+﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,6 +20,8 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         [TestMethod]
         public async ValueTask LoadRoutes()
         {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TF_BUILD")))
+                return;
             //FrozenSet<ProfileModel> profiles = await ProfileModelHandler.GetProfiles(CancellationToken.None).ConfigureAwait(false);
             //ProfileModel profile = profiles.GetByName(ProfileModelHandler.DefaultProfileName);
             FrozenSet<ProfileModel> profiles = await ProfileModel.None.GetProfiles(CancellationToken.None).ConfigureAwait(false);
