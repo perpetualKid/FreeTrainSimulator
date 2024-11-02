@@ -13,8 +13,10 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public static class ProfileModelExtensions
     {
-        public static ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken) => 
+        public static ValueTask<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken) =>
             ProfileModelHandler.GetCore(profileModel?.Name, cancellationToken);
+        public static ValueTask<ProfileModel> Get(this ProfileModel _, string profileName, CancellationToken cancellationToken) =>
+            ProfileModelHandler.GetCore(profileName, cancellationToken);
         public static Task<ProfileModel> Setup(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) => 
             ProfileModelHandler.Setup(profileModel?.Name, folders, cancellationToken);
         public static Task<ProfileModel> Setup(this ProfileModel _, string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) =>

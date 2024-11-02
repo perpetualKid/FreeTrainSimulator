@@ -28,16 +28,18 @@ namespace Tests.FreeTrainSimulator.Models.Handler
             //            ProfileModel profile = await ProfileModel.None.Get(CancellationToken.None).ConfigureAwait(false);
 
 
+            //profile = await profile.Convert(true, CancellationToken.None).ConfigureAwait(false);
+
+            profile = await ProfileModel.None.Get(null, CancellationToken.None).ConfigureAwait(false);
             profile = await profile.Convert(true, CancellationToken.None).ConfigureAwait(false);
 
+            //FolderModel folderModel = profile.ContentFolders.GetByName("Demo Model 1");
+            //if (null != folderModel)
+            //{
+            //    folderModel = await folderModel.Get(CancellationToken.None).ConfigureAwait(false);
 
-            FolderModel folderModel = profile.ContentFolders.GetByName("Demo Model 1");
-            if (null != folderModel)
-            {
-                folderModel = await folderModel.Get(CancellationToken.None).ConfigureAwait(false);
-
-                FrozenSet<WagonSetModel> wagonSets = await WagonSetModelHandler.ExpandWagonSetModels(folderModel, CancellationToken.None).ConfigureAwait(false);
-            }
+            //    FrozenSet<WagonSetModel> wagonSets = await WagonSetModelHandler.ExpandWagonSetModels(folderModel, CancellationToken.None).ConfigureAwait(false);
+            //}
             //ProfileModel profile = profiles.GetByName("Another Profile");
             //ProfileModel profile = await ProfileModelHandler.Setup("Another Profile", null, CancellationToken.None).ConfigureAwait(false);
             //profile = await ProfileModelHandler.Setup("Another Profile", new List<(string, string)>() 

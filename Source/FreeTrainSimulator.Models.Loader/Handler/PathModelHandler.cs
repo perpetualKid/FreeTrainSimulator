@@ -202,7 +202,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
                 };
                 //this is the case where a file may have been renamed but not the path id, ie. in case of copy cloning, so adopting the filename as path id
-                if (string.IsNullOrEmpty(pathModel.Id) || (!string.Equals(pathModel.Tags[SourceNameKey], pathModel.Id, StringComparison.OrdinalIgnoreCase)))
+                if (string.IsNullOrEmpty(pathModel.Id) || (!string.Equals(pathModel.Tags[SourceNameKey].Trim(), pathModel.Id, StringComparison.OrdinalIgnoreCase)))
                 {
                     Trace.TraceWarning($"Path file {filePath} refers to path Id {pathModel.Id}. Renaming to {pathModel.Tags[SourceNameKey]}");
                     pathModel = pathModel with { Id = pathModel.Tags[SourceNameKey] };

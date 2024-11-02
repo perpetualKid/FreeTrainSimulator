@@ -168,7 +168,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     }).ToFrozenSet()
                 };
                 //this is the case where a file may have been renamed but not the consist id, ie. in case of copy cloning, so adopting the filename as id
-                if (string.IsNullOrEmpty(wagonSetModel.Id) || (!string.Equals(wagonSetModel.Tags[SourceNameKey], wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)))
+                if (string.IsNullOrEmpty(wagonSetModel.Id) || (!string.Equals(wagonSetModel.Tags[SourceNameKey].Trim(), wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)))
                 {
                     Trace.TraceWarning($"Consist file {filePath} refers to consist Id {wagonSetModel.Id}. Renaming to {wagonSetModel.Tags[SourceNameKey]}");
                     wagonSetModel = wagonSetModel with { Id = wagonSetModel.Tags[SourceNameKey] };
