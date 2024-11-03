@@ -11,16 +11,15 @@ namespace FreeTrainSimulator.Models.Loader
 {
     public static class ContentModelConverter
     {
-        public static async Task<ProfileModel> Convert(ProfileModel profileModel, bool force, CancellationToken cancellationToken)
+        public static async Task<ProfileModel> ConvertContent(ProfileModel profileModel, bool refresh, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
-            if (profileModel.RefreshRequired || force)
+            if (profileModel.RefreshRequired || refresh)
             {
-                profileModel = await profileModel.Get(cancellationToken).ConfigureAwait(false);
+                profileModel = await ProfileModelHandler.Expand(profileModel, cancellationToken).ConfigureAwait(false);
 
-                FrozenSet<FolderModel> folders = await FolderModelHandler.ExpandFolderModels(profileModel, cancellationToken).ConfigureAwait(false);
-                await Parallel.ForEachAsync(folders, async (folderModel, cancellationToken) =>
+                await Parallel.ForEachAsync(profileModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {
                     Task<FrozenSet<RouteModelCore>> routesTask = RouteModelHandler.ExpandRouteModels(folderModel, cancellationToken);
                     Task<FrozenSet<WagonSetModel>> wagonSetsTask = WagonSetModelHandler.ExpandWagonSetModels(folderModel, cancellationToken);

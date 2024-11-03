@@ -26,7 +26,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             if (!taskLazyCache.TryGetValue(key, out Lazy<Task<FolderModel>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
             {
-                taskLazyCache[key] = modelTask = new Lazy<Task<FolderModel>>(Task.FromResult(profileModel.ContentFolders.Where((folder) => string.Equals(folder.Id, folderId, StringComparison.OrdinalIgnoreCase)).FirstOrDefault()));
+                taskLazyCache[key] = modelTask = new Lazy<Task<FolderModel>>(Task.FromResult(profileModel.ContentFolders.GetByName(folderId)));
                 collectionUpdateRequired[profileModel.Hierarchy()] = true;
             }
 
@@ -54,22 +54,25 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return await modelSetTask.Value.ConfigureAwait(false);
         }
 
-        public static async Task<FrozenSet<FolderModel>> ExpandFolderModels(ProfileModel profileModel, CancellationToken cancellationToken)
+        public static async Task<FrozenSet<FolderModel>> ExpandFolderModels(ProfileModel profileModel, bool refresh, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
             ConcurrentBag<FolderModel> results = new ConcurrentBag<FolderModel>();
 
-            FrozenSet<FolderModel> existingFolders = await GetFolders(profileModel, cancellationToken).ConfigureAwait(false);
             Dictionary<string, FolderModel> configuredFolders = new Dictionary<string, FolderModel>(profileModel.ContentFolders.ToDictionary(f => f.Id), StringComparer.OrdinalIgnoreCase);
 
-            foreach (FolderModel folderModel in existingFolders)
+            if (!refresh)
             {
-                if (configuredFolders.Remove(folderModel.Id))
+                FrozenSet<FolderModel> existingFolders = await GetFolders(profileModel, cancellationToken).ConfigureAwait(false);
+                foreach (FolderModel folderModel in existingFolders)
                 {
-                    results.Add(folderModel);
-                }
-            };
+                    if (configuredFolders.Remove(folderModel.Id))
+                    {
+                        results.Add(folderModel);
+                    }
+                };
+            }
 
             //for any new MSTS folder (remaining in the preloaded dictionary), Create a new model
             await Parallel.ForEachAsync(configuredFolders, cancellationToken, async (folderModelHolder, token) =>
@@ -83,29 +86,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             FrozenSet<FolderModel> result = results.ToFrozenSet();
             string key = profileModel.Hierarchy();
-            Lazy<Task<FrozenSet<FolderModel>>> modelSetTask;
-            taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<FolderModel>>>(Task.FromResult(result));
-            return result;
-        }
-
-        public static async Task<FrozenSet<FolderModel>> SetupFolderModels(ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
-            ConcurrentBag<FolderModel> results = new ConcurrentBag<FolderModel>();
-
-            await Parallel.ForEachAsync(folders, cancellationToken, async (folderModelHolder, token) =>
-            {
-                Lazy<Task<FolderModel>> modelTask = new Lazy<Task<FolderModel>>(Convert(new FolderModel(folderModelHolder.Item1, folderModelHolder.Item2, profileModel), cancellationToken));
-                FolderModel folderModel = await modelTask.Value.ConfigureAwait(false);
-                string key = folderModel.Hierarchy();
-                results.Add(folderModel);
-                taskLazyCache[key] = modelTask;
-            }).ConfigureAwait(false);
-
-            FrozenSet<FolderModel> result = results.ToFrozenSet();
-            string key = profileModel.Hierarchy();
-            Lazy<Task<FrozenSet<FolderModel>>> modelSetTask;
-            taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<FolderModel>>>(Task.FromResult(result));
+            taskLazyCollectionCache[key] = new Lazy<Task<FrozenSet<FolderModel>>>(Task.FromResult(result));
             return result;
         }
 

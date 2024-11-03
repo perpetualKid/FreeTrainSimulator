@@ -80,7 +80,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static Task<ProfileModel> Convert(this ProfileModel profileModel, bool force, CancellationToken cancellationToken)
         {
-            return ContentModelConverter.Convert(profileModel, force, cancellationToken);
+            return ContentModelConverter.ConvertContent(profileModel, force, cancellationToken);
         }
 
     }

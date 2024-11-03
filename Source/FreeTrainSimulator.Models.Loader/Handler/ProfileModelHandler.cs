@@ -3,11 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Loader.Shim;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
@@ -60,12 +60,34 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return await modelSetTask.Value.ConfigureAwait(false);
         }
 
-        private static Task<ProfileModel> Convert(string profileName, CancellationToken cancellationToken)
+        public static async Task<ProfileModel> Expand(ProfileModel profileModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+            string key = profileModel.Name;
+
+            Task<ProfileModel> modelTask = Convert(profileModel, cancellationToken);
+            taskLazyCache[key] = new Lazy<Task<ProfileModel>>(modelTask);
+            collectionUpdateRequired[root] = true;
+
+            return await modelTask.ConfigureAwait(false);
+        }
+
+        public static async Task<ProfileModel> Setup(string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(profileName, nameof(profileName));
+            ProfileModel profileModel = await GetCore(profileName, cancellationToken).ConfigureAwait(false);
 
-            ProfileModel profileModel = new ProfileModel(profileName);
-            return Convert(profileModel, cancellationToken);
+            profileModel = (profileModel ??= new ProfileModel(profileName)) with
+            {
+                ContentFolders = folders != null ? folders.Select(folderModelHolder => new FolderModel(folderModelHolder.Item1, folderModelHolder.Item2, profileModel)).ToFrozenSet() : FrozenSet<FolderModel>.Empty
+            };
+            profileModel = await Convert(profileModel, cancellationToken).ConfigureAwait(false);
+
+            string key = profileName;
+            taskLazyCache[key] = new Lazy<Task<ProfileModel>>(Task.FromResult(profileModel));
+            collectionUpdateRequired[root] = true;
+
+            return profileModel;
         }
 
         private static async Task<ProfileModel> Convert(ProfileModel profileModel, CancellationToken cancellationToken)
@@ -74,7 +96,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             profileModel = profileModel with
             {
-                ContentFolders = await FolderModelHandler.ExpandFolderModels(profileModel, cancellationToken).ConfigureAwait(false)
+                ContentFolders = await FolderModelHandler.ExpandFolderModels(profileModel, true, cancellationToken).ConfigureAwait(false)
             };
             await Create<ProfileModel>(profileModel, null, cancellationToken).ConfigureAwait(false);
             return profileModel;
@@ -103,24 +125,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 }).ConfigureAwait(false);
             }
             return results.ToFrozenSet();
-        }
-
-        public static async Task<ProfileModel> Setup(string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
-        {
-            ArgumentException.ThrowIfNullOrEmpty(profileName, nameof(profileName));
-            ProfileModel profileModel = await GetCore(profileName, cancellationToken).ConfigureAwait(false);
-
-            profileModel = (profileModel ??= new ProfileModel(profileName)) with
-            {
-                ContentFolders = folders != null ? await FolderModelHandler.SetupFolderModels(profileModel, folders, cancellationToken).ConfigureAwait(false) : FrozenSet<FolderModel>.Empty
-            };
-            profileModel = await Convert(profileModel, cancellationToken).ConfigureAwait(false);
-
-            string key = profileName;
-            taskLazyCache[key] = new Lazy<Task<ProfileModel>>(Task.FromResult(profileModel));
-            collectionUpdateRequired[root] = true;
-
-            return profileModel;
         }
     }
 }
