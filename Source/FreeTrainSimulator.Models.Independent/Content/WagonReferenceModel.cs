@@ -11,6 +11,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
         static partial void StaticConstructor()
         {
             fileExtension = ".wagon";
+            subFolder = ".Wagons";
         }
 
         public override WagonSetModel Parent => _parent as WagonSetModel;

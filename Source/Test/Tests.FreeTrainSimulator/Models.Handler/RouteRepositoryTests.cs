@@ -36,6 +36,8 @@ namespace Tests.FreeTrainSimulator.Models.Handler
             profile = await ProfileModel.None.Get(null, CancellationToken.None).ConfigureAwait(false);
             profile = await profile.Convert(true, CancellationToken.None).ConfigureAwait(false);
 
+            FolderModel folder = profile.ContentFolders.GetByNameOrFirstByName("Demo Model 1");
+            await WagonReferenceHandler.ExpandWagonModels(folder, CancellationToken.None).ConfigureAwait(false);
             //FolderModel folderModel = profile.ContentFolders.GetByName("Demo Model 1");
             //if (null != folderModel)
             //{
