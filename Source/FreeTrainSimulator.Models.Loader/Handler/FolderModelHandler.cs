@@ -54,7 +54,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return await modelSetTask.Value.ConfigureAwait(false);
         }
 
-        public static async Task<FrozenSet<FolderModel>> ExpandFolderModels(ProfileModel profileModel, bool refresh, CancellationToken cancellationToken)
+        public static async Task<FrozenSet<FolderModel>> ExpandFolderModels(ProfileModel profileModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
@@ -62,19 +62,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             Dictionary<string, FolderModel> configuredFolders = new Dictionary<string, FolderModel>(profileModel.ContentFolders.ToDictionary(f => f.Id), StringComparer.OrdinalIgnoreCase);
 
-            if (!refresh)
-            {
-                FrozenSet<FolderModel> existingFolders = await GetFolders(profileModel, cancellationToken).ConfigureAwait(false);
-                foreach (FolderModel folderModel in existingFolders)
-                {
-                    if (configuredFolders.Remove(folderModel.Id))
-                    {
-                        results.Add(folderModel);
-                    }
-                };
-            }
-
-            //for any new MSTS folder (remaining in the preloaded dictionary), Create a new model
             await Parallel.ForEachAsync(configuredFolders, cancellationToken, async (folderModelHolder, token) =>
             {
                 Lazy<Task<FolderModel>> modelTask = new Lazy<Task<FolderModel>>(Convert(folderModelHolder.Value, cancellationToken));

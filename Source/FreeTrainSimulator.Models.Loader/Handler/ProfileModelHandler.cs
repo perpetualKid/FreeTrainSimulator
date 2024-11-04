@@ -96,7 +96,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             profileModel = profileModel with
             {
-                ContentFolders = await FolderModelHandler.ExpandFolderModels(profileModel, true, cancellationToken).ConfigureAwait(false)
+                ContentFolders = await FolderModelHandler.ExpandFolderModels(profileModel, cancellationToken).ConfigureAwait(false)
             };
             await Create<ProfileModel>(profileModel, null, cancellationToken).ConfigureAwait(false);
             return profileModel;

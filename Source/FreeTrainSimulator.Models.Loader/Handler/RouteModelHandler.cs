@@ -114,20 +114,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                         _ = routeFolders.TryAdd(folder.RouteName, folder);
                 }
 
-                //load existing route models, and compare if the corresponding folder still exists.
-                if (Directory.Exists(routesFolder))
-                {
-                    FrozenSet<RouteModelCore> existingRoutes = await GetRoutes(folderModel, cancellationToken).ConfigureAwait(false);
-                    foreach (RouteModelCore route in existingRoutes)
-                    {
-                        if (routeFolders.TryRemove(route.Tags[SourceNameKey], out FolderStructure.ContentFolder.RouteFolder routeFolder))
-                        {
-                            results.Add(route);
-                        }
-                    }
-                }
-
-                //for any new MSTS folder (remaining in the preloaded dictionary), Create a route model
                 await Parallel.ForEachAsync(routeFolders, cancellationToken, async (routeFolder, token) =>
                 {
                     Lazy<Task<RouteModelCore>> modelTask = new Lazy<Task<RouteModelCore>>(Cast(Convert(routeFolder.Value, folderModel, cancellationToken)));

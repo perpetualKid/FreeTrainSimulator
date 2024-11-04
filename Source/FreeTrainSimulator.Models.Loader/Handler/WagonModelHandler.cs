@@ -39,19 +39,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                         })).
                     ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
 
-                //load existing path models, and compare if the corresponding path file folder still exists.
-                if (Directory.Exists(wagonsFolder))
-                {
-                    //FrozenSet<WagonSetModel> existingWagonSets = await GetWagonSets(folderModel, cancellationToken).ConfigureAwait(false);
-                    //foreach (WagonSetModel pathModel in existingWagonSets)
-                    //{
-                    //    if (consistFiles.TryRemove(pathModel?.Tags[SourceNameKey], out string filePath)) //
-                    //    {
-                    //        results.Add(pathModel);
-                    //    }
-                    //}
-                }
-
                 //    //for any new MSTS consist (remaining in the preloaded dictionary), create a WagonSet model
                 //    await Parallel.ForEachAsync(consistFiles, cancellationToken, async (path, token) =>
                 //    {

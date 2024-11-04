@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Handler;
-using FreeTrainSimulator.Models.Loader.Shim;
 
 namespace FreeTrainSimulator.Models.Loader
 {

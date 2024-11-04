@@ -119,20 +119,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 ConcurrentDictionary<string, string> pathFiles = new ConcurrentDictionary<string, string>(Directory.EnumerateFiles(sourceFolder, "*.pat").
                     ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
 
-                //load existing path models, and compare if the corresponding path file folder still exists.
-                if (Directory.Exists(pathsFolder))
-                {
-                    FrozenSet<PathModelCore> existingPaths = await GetPaths(routeModel, cancellationToken).ConfigureAwait(false);
-                    foreach (PathModelCore pathModel in existingPaths)
-                    {
-                        if (pathFiles.TryRemove(pathModel?.Tags[SourceNameKey], out string filePath)) //
-                        {
-                            results.Add(pathModel);
-                        }
-                    }
-                }
-
-                //for any new MSTS path (remaining in the preloaded dictionary), Create a path model
                 await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
                 {
                     Lazy<Task<PathModelCore>> modelTask = new Lazy<Task<PathModelCore>>(Cast(Convert(path.Value, routeModel, cancellationToken)));
