@@ -15,6 +15,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         public static FolderStructure.ContentFolder MstsContentFolder(this FolderModel folderModel) => FileResolver.ContentFolderResolver(folderModel).MstsContentFolder;
         public static ValueTask<FrozenSet<RouteModelCore>> GetRoutes(this FolderModel folderModel, CancellationToken cancellationToken) => RouteModelHandler.GetRoutes(folderModel, cancellationToken);
         public static ValueTask<FolderModel> Get(this FolderModel folderModel, CancellationToken cancellationToken) => FolderModelHandler.GetCore(folderModel, cancellationToken);
+        public static ValueTask<FrozenSet<WagonSetModel>> GetWagonSets(this FolderModel folderModel, CancellationToken cancellationToken) => WagonSetModelHandler.GetWagonSets(folderModel, cancellationToken);
 
         public static async ValueTask<RouteModel> RouteModel(this FolderModel folderModel, string routeName, CancellationToken cancellationToken)
         {

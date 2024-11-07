@@ -25,7 +25,7 @@ namespace FreeTrainSimulator.Models.Independent.Settings
         public string PathName { get; init; }
         public string ActivityName { get; init; }
         public string LocomotiveName { get; init; }
-        public string ConsistName { get; init; }
+        public string WagonSetName { get; init; }
         public TimeOnly StartTime { get; init; }
         // Timetable mode selections
         public string TimetableSet { get; init; }

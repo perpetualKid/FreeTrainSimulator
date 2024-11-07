@@ -29,24 +29,20 @@ namespace Orts.Menu
             }
             else
             {
-                await FoldersChanged(await SelectedProfile.GetFolders(ctsProfileLoading.Token).ConfigureAwait(false)).ConfigureAwait(false);
+                FrozenSet<FolderModel> contentFolders = await SelectedProfile.GetFolders(ctsProfileLoading.Token).ConfigureAwait(false);
+                SetupFoldersDropdown(contentFolders);
+                await FolderChanged(contentFolders.GetByNameOrFirstByName(currentSelections?.FolderName)).ConfigureAwait(false);
             }
             SetupActivityFromSelection(currentSelections);
         }
 
-        private async ValueTask FoldersChanged(FrozenSet<FolderModel> contentFolders)
-        {
-            SetupFoldersDropdown(contentFolders);
-            FolderModel folderModel = contentFolders.GetByNameOrFirstByName(currentSelections?.FolderName);
-            await FolderChanged(folderModel).ConfigureAwait(false);
-        }
-
-        private async ValueTask FolderChanged(FolderModel contentFolder)
+        private async Task FolderChanged(FolderModel contentFolder)
         {
             if (SelectedFolder == contentFolder)
                 return;
 
             FrozenSet<RouteModelCore> routeModels = null;
+            FrozenSet<WagonSetModel> consistModels = null;
 
             contentFolder = await contentFolder.Get(CancellationToken.None).ConfigureAwait(false);
 
@@ -61,16 +57,13 @@ namespace Orts.Menu
                 try
                 {
                     routeModels = await contentFolder.GetRoutes(ctsRouteLoading.Token).ConfigureAwait(false);
+                    consistModels = await contentFolder.GetWagonSets(ctsRouteLoading.Token).ConfigureAwait (false);
                 }
                 catch (TaskCanceledException) { return; }
             }
-            //TODO load Trains
-            await RoutesChanged(routeModels).ConfigureAwait(false);
-        }
 
-        private async ValueTask RoutesChanged(FrozenSet<RouteModelCore> routeModels)
-        {
             SetupRoutesDropdown(routeModels);
+            SetupConsistsDropdown(consistModels);
             RouteModelCore routeModel = routeModels.GetByName(currentSelections?.RouteName);
             await RouteChanged(routeModel).ConfigureAwait(false);
         }
@@ -93,8 +86,8 @@ namespace Orts.Menu
                 ctsPathLoading = await ctsPathLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
                 try
                 {
-                    pathModels = await routeModel.GetPaths(ctsPathLoading.Token);
-                    activityModels = await routeModel.GetActivities(ctsPathLoading.Token);
+                    pathModels = await routeModel.GetPaths(ctsPathLoading.Token).ConfigureAwait(false);
+                    activityModels = await routeModel.GetActivities(ctsPathLoading.Token).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException) { }
             }
@@ -122,6 +115,7 @@ namespace Orts.Menu
                 Season = activity.ActivityType == ActivityType.Activity ? activity.Season : (SeasonType)comboBoxStartSeason.SelectedValue,
                 Weather = activity.ActivityType == ActivityType.Activity ? activity.Weather : (WeatherType)comboBoxStartWeather.SelectedValue,
                 PathName = activity.ActivityType == ActivityType.Activity ? activity.PathId : (comboBoxHeadTo.SelectedValue as PathModelCore)?.Id,
+                WagonSetName = activity.ActivityType == ActivityType.Activity ? activity.ConsistId : (comboBoxConsist.SelectedValue as WagonSetModel)?.Id,
             };
             SelectedActivity = activity;
 

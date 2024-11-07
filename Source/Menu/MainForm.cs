@@ -105,7 +105,7 @@ namespace Orts.Menu
 
         // Activity mode items
         internal ActivityModelCore SelectedActivity { get; private set; }
-        internal Consist SelectedConsist => (Consist)comboBoxConsist.SelectedItem;
+        internal WagonSetModel SelectedConsist { get; private set; }
         internal PathModelCore SelectedPath { get; private set; }
 
         // Timetable mode items
@@ -874,6 +874,17 @@ namespace Orts.Menu
             UpdateEnabled();
         }
 
+        private void SetupConsistsDropdown(FrozenSet<WagonSetModel> consists)
+        {
+            if (InvokeRequired)
+            {
+                _ = Invoke(SetupConsistsDropdown, consists);
+                return;
+            }
+            comboBoxConsist.EnableComboBoxItemDataSource(consists.OrderBy(c => c.Name).Select(c => new ComboBoxItem<WagonSetModel>(c.Name, c)));
+            UpdateEnabled();
+        }
+
         private void SetupPathStartDropdown(FrozenSet<PathModelCore> pathModels)
         {
             if (InvokeRequired)
@@ -928,13 +939,14 @@ namespace Orts.Menu
                 _ = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => activityItem.ActivityType == profileSelections.ActivityType);
             }
 
+            _ = comboBoxConsist.SetComboBoxItem((WagonSetModel wagonSetItem) => string.Equals(wagonSetItem.Id, profileSelections.WagonSetName, StringComparison.OrdinalIgnoreCase));
+
             _ = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => p.Name == profileSelections.PathName).Any());
             SetupPathEndDropdown();
             _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(profileSelections.PathName, cbi.Value.Name, StringComparison.OrdinalIgnoreCase));
 
             //enabled
-            comboBoxStartAt.Enabled = comboBoxHeadTo.Enabled = exploreActivity;
-            comboBoxStartSeason.Enabled = comboBoxStartWeather.Enabled = comboBoxStartTime.Enabled = exploreActivity;
+            UpdateEnabled();
 
             ShowDetails();
 
@@ -1082,10 +1094,10 @@ namespace Orts.Menu
 
             if (currentSelections.ActivityType != ActivityType.TimeTable)
             {
-                if (SelectedConsist?.Locomotive?.Description != null)
-                {
-                    AddDetailToShow(catalog.GetString("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description);
-                }
+                //if (SelectedConsist?.Locomotive?.Description != null)
+                //{
+                //    AddDetailToShow(catalog.GetString("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description);
+                //}
                 if ((comboBoxActivity.SelectedValue is ActivityModelCore activityModel))
                 {
                     AddDetailToShow(catalog.GetString($"Activity: {activityModel.Name}"), activityModel.Description);

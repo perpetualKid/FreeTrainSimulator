@@ -19,6 +19,13 @@ namespace FreeTrainSimulator.Models.Loader.Handler
     {
         internal const string SourceNameKey = "MstsSourceConsist";
 
+        public static WagonSetModel Missing = new WagonSetModel()
+        {
+            Id = "<unknown>",
+            Name = "Missing",
+            TrainCars = FrozenSet<WagonReferenceModel>.Empty
+        };
+
         public static ValueTask<WagonSetModel> GetCore(WagonSetModel wagonSetModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(wagonSetModel, nameof(wagonSetModel));

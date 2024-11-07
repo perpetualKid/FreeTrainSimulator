@@ -62,15 +62,16 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 Weather = activityModel.Weather,
                 StartTime = activityModel.StartTime,
                 PathName = activityModel.PathId,
+                WagonSetName = activityModel.ConsistId,
             });
         }
 
-        public static async ValueTask<ProfileSelectionsModel> UpdateSelectionsModel(this ProfileModel profileModel, ProfileSelectionsModel selectionsModel, CancellationToken cancellationToken)
+        public static Task<ProfileSelectionsModel> UpdateSelectionsModel(this ProfileModel profileModel, ProfileSelectionsModel selectionsModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             ArgumentNullException.ThrowIfNull(selectionsModel, nameof(selectionsModel));
 
-            return await ContentHandlerBase<ProfileSelectionsModel>.ToFile(selectionsModel, cancellationToken).ConfigureAwait(false);
+            return ContentHandlerBase<ProfileSelectionsModel>.ToFile(selectionsModel, cancellationToken);
         }
 
         public static Task<ProfileModel> Convert(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)

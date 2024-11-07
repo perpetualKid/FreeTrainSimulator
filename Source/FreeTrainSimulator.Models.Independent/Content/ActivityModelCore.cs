@@ -26,5 +26,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public TimeSpan Duration { get; init; }
         public ActivityType ActivityType { get; init; }
         public string PathId { get; init; }
+        public string ConsistId { get; init; }
     }
 }

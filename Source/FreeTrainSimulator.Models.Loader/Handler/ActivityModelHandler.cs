@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
     {
         internal const string SourceNameKey = "MstsSourceActivity";
 
-        public static ActivityModelCore ExploreMode { get; private set; } = new ActivityModelCore()
+        public static readonly ActivityModelCore ExploreMode = new ActivityModelCore()
         {
             ActivityType = ActivityType.Explorer,
             Name = "- Explore Route -",
@@ -30,7 +30,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             Weather = WeatherType.Clear,
         };
 
-        public static ActivityModelCore ExploreActivityMode { get; private set; } = new ActivityModelCore()
+        public static readonly ActivityModelCore ExploreActivityMode = new ActivityModelCore()
         {
             ActivityType = ActivityType.ExploreActivity,
             Name = "+ Explore in Activity Mode +",
@@ -183,6 +183,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             {
                 ActivityFile activityFile = new ActivityFile(filePath);
 
+                ServiceFile srvFile = new ServiceFile(routeModel.MstsRouteFolder().ServiceFile(activityFile.Activity.PlayerServices.Name));
+
                 ActivityModel activityModel = new ActivityModel()
                 {
                     Id = Path.GetFileNameWithoutExtension(filePath),
@@ -197,6 +199,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     Duration = activityFile.Activity.Header.Duration,
                     ActivityType = ActivityType.Activity,
                     PathId = activityFile.Activity.Header.PathID,
+                    ConsistId = srvFile?.TrainConfig,
                     Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
                 };
 
