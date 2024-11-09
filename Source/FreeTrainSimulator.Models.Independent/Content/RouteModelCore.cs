@@ -1,6 +1,4 @@
-﻿using System.Collections.Frozen;
-
-using FreeTrainSimulator.Common;
+﻿using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Base;
 

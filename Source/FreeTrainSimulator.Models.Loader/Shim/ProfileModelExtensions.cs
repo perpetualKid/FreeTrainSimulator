@@ -28,6 +28,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         public static Task<ProfileModel> GetOrCreate(this FrozenSet<ProfileModel> profiles, string profileName, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profiles, nameof(profiles));
+            profileName = ProfileModelHandler.CheckDefaultProfile(profileName);
             ProfileModel profileModel = profiles.GetByName(profileName);
             return null != profileModel
                 ? Task.FromResult(profileModel)

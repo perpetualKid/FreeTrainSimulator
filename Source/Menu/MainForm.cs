@@ -381,7 +381,7 @@ namespace Orts.Menu
         #region Locomotives
         private void ComboBoxLocomotive_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ShowConsistList();
+//            ShowConsistList();
         }
         #endregion
 
@@ -756,21 +756,6 @@ namespace Orts.Menu
         #endregion
 
         #region Consist lists
-        private async Task LoadLocomotiveListAsync()
-        {
-            ctsConsistLoading = await ctsConsistLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
-
-            try
-            {
-                consists = (await Consist.GetConsists(SelectedFolder.MstsContentFolder(), ctsConsistLoading.Token).ConfigureAwait(true)).OrderBy(c => c.Name);
-            }
-            catch (TaskCanceledException)
-            {
-                consists = Array.Empty<Consist>();
-            }
-            ShowLocomotiveList();
-        }
-
         private void ShowLocomotiveList()
         {
             if (SelectedActivity == null || SelectedActivity.ActivityType is ActivityType.Explorer or ActivityType.ExploreActivity)
@@ -882,6 +867,17 @@ namespace Orts.Menu
                 return;
             }
             comboBoxConsist.EnableComboBoxItemDataSource(consists.OrderBy(c => c.Name).Select(c => new ComboBoxItem<WagonSetModel>(c.Name, c)));
+            UpdateEnabled();
+        }
+
+        private void SetupLocomotivesDropdown(FrozenSet<WagonReferenceModel> locomotives)
+        {
+            if (InvokeRequired)
+            {
+                _ = Invoke(SetupLocomotivesDropdown, locomotives);
+                return;
+            }
+            comboBoxLocomotive.EnableComboBoxItemDataSource(locomotives.OrderBy(l => l.Name).Select(l => new ComboBoxItem<WagonReferenceModel>(l.Name, l)));
             UpdateEnabled();
         }
 

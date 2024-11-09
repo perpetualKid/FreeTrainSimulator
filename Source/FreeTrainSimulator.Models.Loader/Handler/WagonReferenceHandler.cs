@@ -20,6 +20,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         internal const string SourceNameKey = "MstsSourceTrainCar";
         private static readonly string[] sourceFileExtensions = new[] { "*.wag", "*.eng" };
 
+        public static WagonReferenceModel Missing = new WagonReferenceModel()
+        {
+            Id = "<unknown>",
+            Name = "Missing",
+        };
+
         public static async Task<FrozenSet<WagonReferenceModel>> ExpandWagonModels(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
@@ -63,7 +69,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(wagonModel, nameof(wagonModel));
 
-            return Convert(Path.Combine(wagonModel.Parent.Parent.MstsContentFolder().TrainSetsFolder, wagonModel.Tags[SourceNameKey]), wagonModel.Parent.Parent, cancellationToken);
+            return Convert(Path.Combine(wagonModel.Parent.MstsContentFolder().TrainSetsFolder, wagonModel.Tags[SourceNameKey]), wagonModel.Parent, cancellationToken);
         }
 
         private static async Task<WagonReferenceModel> Convert(string filePath, FolderModel folderModel, CancellationToken cancellationToken)

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Frozen;
-using System.Linq;
 
 using FreeTrainSimulator.Models.Independent.Base;
 
@@ -25,13 +24,12 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public float AccelerationFactor { get; init; }
         public float Durability { get; init; }
 
-        public FrozenSet<WagonReferenceModel> TrainCars {  get; init; } = FrozenSet<WagonReferenceModel>.Empty;
-
-        public WagonReferenceModel Locomotive => TrainCars.FirstOrDefault(c => c.TrainCarType == Common.TrainCarType.Engine);
+        public FrozenSet<WagonReferenceModel> TrainCars { get; init; } = FrozenSet<WagonReferenceModel>.Empty;
+        public WagonReferenceModel Locomotive { get; init; }
 
         public override void Initialize(string file, IFileResolve parent)
         {
-            foreach(WagonReferenceModel wagonReference in TrainCars)
+            foreach (WagonReferenceModel wagonReference in TrainCars)
             {
                 wagonReference.Initialize(null, this);
             }

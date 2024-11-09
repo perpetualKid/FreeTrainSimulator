@@ -43,6 +43,7 @@ namespace Orts.Menu
 
             FrozenSet<RouteModelCore> routeModels = null;
             FrozenSet<WagonSetModel> consistModels = null;
+            FrozenSet<WagonReferenceModel> locomotives = null;
 
             contentFolder = await contentFolder.Get(CancellationToken.None).ConfigureAwait(false);
 
@@ -57,13 +58,15 @@ namespace Orts.Menu
                 try
                 {
                     routeModels = await contentFolder.GetRoutes(ctsRouteLoading.Token).ConfigureAwait(false);
-                    consistModels = await contentFolder.GetWagonSets(ctsRouteLoading.Token).ConfigureAwait (false);
+                    consistModels = await contentFolder.GetWagonSets(ctsRouteLoading.Token).ConfigureAwait(false);
+                    locomotives = await contentFolder.GetLocomotives(ctsRouteLoading.Token).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException) { return; }
             }
 
             SetupRoutesDropdown(routeModels);
             SetupConsistsDropdown(consistModels);
+            SetupLocomotivesDropdown(locomotives);
             RouteModelCore routeModel = routeModels.GetByName(currentSelections?.RouteName);
             await RouteChanged(routeModel).ConfigureAwait(false);
         }

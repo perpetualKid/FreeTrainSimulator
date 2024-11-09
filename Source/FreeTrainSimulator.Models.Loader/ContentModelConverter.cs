@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Handler;
+using FreeTrainSimulator.Models.Loader.Shim;
 
 namespace FreeTrainSimulator.Models.Loader
 {
@@ -30,8 +31,8 @@ namespace FreeTrainSimulator.Models.Loader
                         await Task.WhenAll(
                             PathModelHandler.ExpandPathModels(routeModel, cancellationToken),
                             ActivityModelHandler.ExpandActivityModels(routeModel, cancellationToken)).ConfigureAwait(false);
-                    });
-                });
+                    }).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             }
             return profileModel;
         }

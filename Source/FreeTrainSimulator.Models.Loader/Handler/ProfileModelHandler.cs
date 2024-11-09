@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         private const string root = "root";
         public const string DefaultProfileName = "Default";
 
-        private static bool CheckDefaultProfile(string profileName) => string.IsNullOrEmpty(profileName) || string.Equals(profileName, DefaultProfileName, StringComparison.OrdinalIgnoreCase);
+        public static string CheckDefaultProfile(string profileName) => (string.IsNullOrEmpty(profileName) || string.Equals(profileName, DefaultProfileName, StringComparison.OrdinalIgnoreCase)) ? DefaultProfileName : profileName;
 
         public static ValueTask<ProfileModel> GetCore(ProfileModel profileModel, CancellationToken cancellationToken)
         {
@@ -26,8 +26,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
         public static async ValueTask<ProfileModel> GetCore(string profileName, CancellationToken cancellationToken)
         {
-            if (CheckDefaultProfile(profileName))
-                profileName = DefaultProfileName;
+            profileName = CheckDefaultProfile(profileName);
 
             string key = profileName;
 

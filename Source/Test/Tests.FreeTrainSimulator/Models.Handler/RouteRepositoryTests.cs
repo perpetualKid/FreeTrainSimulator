@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Frozen;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Content;
-
-using FreeTrainSimulator.Models.Loader.Handler;
 using FreeTrainSimulator.Models.Loader.Shim;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -33,11 +30,12 @@ namespace Tests.FreeTrainSimulator.Models.Handler
 
             //profile = await profile.Convert(true, CancellationToken.None).ConfigureAwait(false);
 
-            profile = await ProfileModel.None.Get(null, CancellationToken.None).ConfigureAwait(false);
+//            profile = await ProfileModel.None.Get(null, CancellationToken.None).ConfigureAwait(false);
+            profile = await profiles.GetOrCreate(null, CancellationToken.None).ConfigureAwait(false);
             profile = await profile.Convert(true, CancellationToken.None).ConfigureAwait(false);
 
-            FolderModel folder = profile.ContentFolders.GetByNameOrFirstByName("Demo Model 1");
-            await WagonReferenceHandler.ExpandWagonModels(folder, CancellationToken.None).ConfigureAwait(false);
+//            FolderModel folder = profile.ContentFolders.GetByNameOrFirstByName("Demo Model 1");
+//            await WagonReferenceHandler.ExpandWagonModels(folder, CancellationToken.None).ConfigureAwait(false);
             //FolderModel folderModel = profile.ContentFolders.GetByName("Demo Model 1");
             //if (null != folderModel)
             //{

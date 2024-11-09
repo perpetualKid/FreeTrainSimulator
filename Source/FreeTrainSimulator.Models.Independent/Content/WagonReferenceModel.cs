@@ -14,9 +14,10 @@ namespace FreeTrainSimulator.Models.Independent.Content
             subFolder = ".Wagons";
         }
 
-        public override WagonSetModel Parent => _parent as WagonSetModel;
+        public override FolderModel Parent => _parent as FolderModel;
 
         public TrainCarType TrainCarType { get; init; } 
+        public string Description { get; init; }
         // Unique Id within the current trainset
         public int Uid { get; init; }
         public  bool Reverse { get; init; }

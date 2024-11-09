@@ -67,6 +67,21 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return await modelSetTask.Value.ConfigureAwait(false);
         }
 
+        public static async ValueTask<FrozenSet<WagonReferenceModel>> GetLocomotives(FolderModel folderModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
+            string key = folderModel.Hierarchy();
+
+            if (collectionUpdateRequired.TryRemove(key, out _) || !taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<WagonSetModel>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            {
+                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<WagonSetModel>>>(() => LoadWagonSets(folderModel, cancellationToken));
+            }
+
+            FrozenSet<WagonSetModel> wagonSets = await modelSetTask.Value.ConfigureAwait(false);
+
+            return wagonSets.Select(w => w.Locomotive).Where(l => l != null).ToFrozenSet();
+        }
+
         public static async Task<FrozenSet<WagonSetModel>> ExpandWagonSetModels(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
@@ -81,12 +96,11 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (Directory.Exists(sourceFolder))
             {
                 // load existing MSTS files
-                ConcurrentDictionary<string, string> consistFiles = new ConcurrentDictionary<string, string>(Directory.EnumerateFiles(sourceFolder, "*.con").
-                    ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
+                ConcurrentBag<string> consistFiles = new ConcurrentBag<string>(Directory.EnumerateFiles(sourceFolder, "*.con"));
 
-                await Parallel.ForEachAsync(consistFiles, cancellationToken, async (path, token) =>
+                await Parallel.ForEachAsync(consistFiles, cancellationToken, async (consistFile, token) =>
                 {
-                    Lazy<Task<WagonSetModel>> modelTask = new Lazy<Task<WagonSetModel>>(Cast(Convert(path.Value, folderModel, cancellationToken)));
+                    Lazy<Task<WagonSetModel>> modelTask = new Lazy<Task<WagonSetModel>>(Convert(consistFile, folderModel, cancellationToken));
 
                     WagonSetModel wagonSetModel = await modelTask.Value.ConfigureAwait(false);
                     string key = wagonSetModel.Hierarchy();
@@ -96,9 +110,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             }
             FrozenSet<WagonSetModel> result = results.ToFrozenSet();
             string key = folderModel.Hierarchy();
-            Lazy<Task<FrozenSet<WagonSetModel>>> modelSetTask;
-            taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<WagonSetModel>>>(Task.FromResult(result));
-            collectionUpdateRequired.TryRemove(key, out _);
+            taskLazyCollectionCache[key] = new Lazy<Task<FrozenSet<WagonSetModel>>>(Task.FromResult(result));
+            _ = collectionUpdateRequired.TryRemove(key, out _);
             return result;
         }
 
@@ -119,9 +132,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     if (consistId.EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
                         consistId = consistId[..^fileExtension.Length];
 
-                    WagonSetModel path = await GetCore(consistId, folderModel, token).ConfigureAwait(false);
-                    if (null != path)
-                        results.Add(path);
+                    WagonSetModel wagonSet = await GetCore(consistId, folderModel, token).ConfigureAwait(false);
+                    if (null != wagonSet)
+                        results.Add(wagonSet);
                 }).ConfigureAwait(false);
             }
             return results.ToFrozenSet();
@@ -143,6 +156,41 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             {
                 ConsistFile consistFile = new ConsistFile(filePath);
 
+                List<WagonReferenceModel> trainCars = consistFile.Train.Wagons.OrderBy(w => w.UiD).Select((w, index) => new WagonReferenceModel()
+                {
+                    TrainCarType = w.IsEOT ? Common.TrainCarType.Eot : w.IsEngine ? Common.TrainCarType.Engine : Common.TrainCarType.Wagon,
+                    Uid = index,//w.UiD,
+                    Reverse = w.Flip,
+                    Name = w.Name,
+                    Reference = w.Folder,
+                }).ToList();
+
+                WagonReferenceModel locomotive = null;
+                for (int i = 0; i < trainCars.Count; i++)
+                {
+                    if (trainCars[i].TrainCarType == Common.TrainCarType.Engine)
+                    {
+                        locomotive = trainCars[i];
+                        string engineFileName = folderModel.MstsContentFolder().EngineFile(locomotive.Reference, locomotive.Name);
+
+                        if (File.Exists(engineFileName))
+                        {
+                            EngineFile engFile = new EngineFile(engineFileName);
+                            locomotive = locomotive with
+                            {
+                                Name = engFile.Name?.Trim(),
+                                Description = engFile.Description?.Trim(),
+                            };
+//                            trainCars[i] = locomotive;
+                        }
+                        else
+                        {
+                            locomotive = WagonReferenceHandler.Missing;
+                        }
+                        break;
+                    }
+                }
+
                 WagonSetModel wagonSetModel = new WagonSetModel()
                 {
                     Id = consistFile.Train.Id.Trim(),
@@ -151,14 +199,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     AccelerationFactor = consistFile.Train.MaxVelocity.B,
                     Durability = consistFile.Train.Durability,
                     Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
-                    TrainCars = consistFile.Train.Wagons.OrderBy(w => w.UiD).Select((w, index) => new WagonReferenceModel()
-                    {
-                        TrainCarType = w.IsEOT ? Common.TrainCarType.Eot : w.IsEngine ? Common.TrainCarType.Engine : Common.TrainCarType.Wagon,
-                        Uid = index,//w.UiD,
-                        Reverse = w.Flip,
-                        Name = w.Name,
-                        Reference = w.Folder,
-                    }).ToFrozenSet()
+                    TrainCars = trainCars.ToFrozenSet(),
+                    Locomotive = locomotive,
                 };
                 //this is the case where a file may have been renamed but not the consist id, ie. in case of copy cloning, so adopting the filename as id
                 if (string.IsNullOrEmpty(wagonSetModel.Id) || (!string.Equals(wagonSetModel.Tags[SourceNameKey].Trim(), wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)))
