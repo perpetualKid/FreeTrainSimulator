@@ -116,12 +116,11 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (Directory.Exists(sourceFolder))
             {
                 // load existing MSTS files
-                ConcurrentDictionary<string, string> pathFiles = new ConcurrentDictionary<string, string>(Directory.EnumerateFiles(sourceFolder, "*.pat").
-                    ToDictionary(Path.GetFileNameWithoutExtension), StringComparer.OrdinalIgnoreCase);
+                ConcurrentBag<string> pathFiles = new ConcurrentBag<string>(Directory.EnumerateFiles(sourceFolder, "*.pat"));
 
                 await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
                 {
-                    Lazy<Task<PathModelCore>> modelTask = new Lazy<Task<PathModelCore>>(Cast(Convert(path.Value, routeModel, cancellationToken)));
+                    Lazy<Task<PathModelCore>> modelTask = new Lazy<Task<PathModelCore>>(Cast(Convert(path, routeModel, cancellationToken)));
 
                     PathModelCore pathModel = await modelTask.Value.ConfigureAwait(false);
                     string key = pathModel.Hierarchy();
@@ -131,9 +130,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             }
             FrozenSet<PathModelCore> result = results.ToFrozenSet();
             string key = routeModel.Hierarchy();
-            Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask;
-            taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(Task.FromResult(result));
-            collectionUpdateRequired.TryRemove(key, out _);
+            taskLazyCollectionCache[key] = new Lazy<Task<FrozenSet<PathModelCore>>>(Task.FromResult(result));
+            _ = collectionUpdateRequired.TryRemove(key, out _);
             return result;
         }
 
