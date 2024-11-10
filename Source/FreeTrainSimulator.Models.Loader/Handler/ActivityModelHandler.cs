@@ -130,9 +130,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 {
                     Lazy<Task<ActivityModelCore>> modelTask = new Lazy<Task<ActivityModelCore>>(Cast(Convert(path.Value, routeModel, cancellationToken)));
                     ActivityModelCore activityModel = await modelTask.Value.ConfigureAwait(false);
-                    string key = activityModel.Hierarchy();
-                    results.Add(activityModel);
-                    taskLazyCache[key] = modelTask;
+                    if (null != activityModel)
+                    {
+                        string key = activityModel.Hierarchy();
+                        results.Add(activityModel);
+                        taskLazyCache[key] = modelTask;
+                    }
                 }).ConfigureAwait(false);
             }
 
@@ -181,9 +184,28 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             if (File.Exists(filePath))
             {
-                ActivityFile activityFile = new ActivityFile(filePath);
+                ActivityFile activityFile = null;
+                ServiceFile srvFile = null;
 
-                ServiceFile srvFile = new ServiceFile(routeModel.MstsRouteFolder().ServiceFile(activityFile.Activity.PlayerServices.Name));
+                try
+                {
+                    activityFile = new ActivityFile(filePath);
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError($"Could not read activity file {filePath} with reason {ex.Message}.");
+                    return null;
+                }
+
+                try
+                {
+                    srvFile = new ServiceFile(routeModel.MstsRouteFolder().ServiceFile(activityFile.Activity.PlayerServices.Name));
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError($"Could not read service file {filePath}  for activity {activityFile.Activity.Header.Name} with reason {ex.Message}.");
+                    return null;
+                }
 
                 ActivityModel activityModel = new ActivityModel()
                 {
