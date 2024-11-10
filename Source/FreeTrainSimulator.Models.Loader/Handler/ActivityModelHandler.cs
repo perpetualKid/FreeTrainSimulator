@@ -184,24 +184,23 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             if (File.Exists(filePath))
             {
-                ActivityFile activityFile = null;
-                ServiceFile srvFile = null;
-
+                ActivityFile activityFile;
                 try
                 {
                     activityFile = new ActivityFile(filePath);
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is SystemException)
                 {
                     Trace.TraceError($"Could not read activity file {filePath} with reason {ex.Message}.");
                     return null;
                 }
 
+                ServiceFile srvFile;
                 try
                 {
                     srvFile = new ServiceFile(routeModel.MstsRouteFolder().ServiceFile(activityFile.Activity.PlayerServices.Name));
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is SystemException)
                 {
                     Trace.TraceError($"Could not read service file {filePath}  for activity {activityFile.Activity.Header.Name} with reason {ex.Message}.");
                     return null;
@@ -221,7 +220,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     Duration = activityFile.Activity.Header.Duration,
                     ActivityType = ActivityType.Activity,
                     PathId = activityFile.Activity.Header.PathID,
-                    ConsistId = srvFile?.TrainConfig,
+                    ConsistId = srvFile.TrainConfig,
                     Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
                 };
 

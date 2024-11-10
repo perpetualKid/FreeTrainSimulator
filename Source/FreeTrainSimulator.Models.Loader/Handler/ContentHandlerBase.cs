@@ -106,7 +106,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 {
                     try
                     {
-                        Directory.CreateDirectory(directory);
+                        _ = Directory.CreateDirectory(directory);
                     }
                     catch (Exception ex)
                     {

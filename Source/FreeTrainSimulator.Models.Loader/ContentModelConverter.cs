@@ -25,7 +25,9 @@ namespace FreeTrainSimulator.Models.Loader
 
                     await Task.WhenAll(wagonSetsTask, routesTask).ConfigureAwait(false);
 
+#pragma warning disable CA1849 // Call async methods when in an async method
                     await Parallel.ForEachAsync(routesTask.Result, async (routeModel, cancellationToken) =>
+#pragma warning restore CA1849 // Call async methods when in an async method
                     {
                         await Task.WhenAll(
                             PathModelHandler.ExpandPathModels(routeModel, cancellationToken),

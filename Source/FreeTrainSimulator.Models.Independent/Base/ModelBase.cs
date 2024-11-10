@@ -85,7 +85,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         /// <summary>
         /// Tag property to persist arbitrary additional information
         /// </summary>
-        public Dictionary<string, string> Tags { get; set; }
+        public Dictionary<string, string> Tags { get; init; }
 
         protected ModelBase()
         {

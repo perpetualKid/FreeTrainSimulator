@@ -87,9 +87,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             {
                 WagonReferenceModel wagonReferenceModel = null;
 
-                switch (Path.GetExtension(filePath).ToLowerInvariant())
+                switch (Path.GetExtension(filePath).ToUpperInvariant())
                 {
-                    case ".wag":
+                    case ".WAG":
                         WagonFile wagon = new WagonFile(filePath);
 
                         wagonReferenceModel = new WagonReferenceModel()
@@ -100,7 +100,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                             Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
                         };
                         break;
-                    case ".eng":
+                    case ".ENG":
                         EngineFile engine = new EngineFile(filePath);
 
                         wagonReferenceModel = new WagonReferenceModel()
