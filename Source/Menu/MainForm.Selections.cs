@@ -17,10 +17,10 @@ namespace Orts.Menu
 
         private async Task ProfileChanged()
         {
-            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
+            ctsModelLoading = await ctsModelLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
-            SelectedProfile = await SelectedProfile.Get(ctsProfileLoading.Token).ConfigureAwait(false);
-            currentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
+            SelectedProfile = await SelectedProfile.Get(ctsModelLoading.Token).ConfigureAwait(false);
+            currentSelections = await SelectedProfile.SelectionsModel(ctsModelLoading.Token).ConfigureAwait(false);
 
             //Initial setup if necessary
             if (SelectedProfile.SetupRequired() || SelectedProfile.ContentFolders.Count == 0)
@@ -29,7 +29,7 @@ namespace Orts.Menu
             }
             else
             {
-                FrozenSet<FolderModel> contentFolders = await SelectedProfile.GetFolders(ctsProfileLoading.Token).ConfigureAwait(false);
+                FrozenSet<FolderModel> contentFolders = await SelectedProfile.GetFolders(ctsModelLoading.Token).ConfigureAwait(false);
                 SetupFoldersDropdown(contentFolders);
                 await FolderChanged(contentFolders.GetByNameOrFirstByName(currentSelections?.FolderName)).ConfigureAwait(false);
             }
@@ -51,15 +51,15 @@ namespace Orts.Menu
             currentSelections = currentSelections with { FolderName = contentFolder?.Name };
             SelectedFolder = contentFolder;
 
-            ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
+            ctsModelLoading = await ctsModelLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
             if (contentFolder != null)
             {
                 try
                 {
-                    routeModels = await contentFolder.GetRoutes(ctsRouteLoading.Token).ConfigureAwait(false);
-                    consistModels = await contentFolder.GetWagonSets(ctsRouteLoading.Token).ConfigureAwait(false);
-                    locomotives = await contentFolder.GetLocomotives(ctsRouteLoading.Token).ConfigureAwait(false);
+                    routeModels = await contentFolder.GetRoutes(ctsModelLoading.Token).ConfigureAwait(false);
+                    consistModels = await contentFolder.GetWagonSets(ctsModelLoading.Token).ConfigureAwait(false);
+                    locomotives = await contentFolder.GetLocomotives(ctsModelLoading.Token).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException) { return; }
             }
@@ -86,11 +86,11 @@ namespace Orts.Menu
 
             if (routeModel != null)
             {
-                ctsPathLoading = await ctsPathLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
+                ctsModelLoading = await ctsModelLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
                 try
                 {
-                    pathModels = await routeModel.GetPaths(ctsPathLoading.Token).ConfigureAwait(false);
-                    activityModels = await routeModel.GetActivities(ctsPathLoading.Token).ConfigureAwait(false);
+                    pathModels = await routeModel.GetPaths(ctsModelLoading.Token).ConfigureAwait(false);
+                    activityModels = await routeModel.GetActivities(ctsModelLoading.Token).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException) { }
             }
@@ -123,6 +123,11 @@ namespace Orts.Menu
             SelectedActivity = activity;
 
             SetupActivityFromSelection(currentSelections);
+        }
+
+        private void ConsistChanged(WagonSetModel wagonSetModel)
+        {
+
         }
 
         private void PathChanged(PathModelCore pathModel)

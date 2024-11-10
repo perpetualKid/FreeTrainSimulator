@@ -448,7 +448,7 @@ namespace Orts.Menu
             comboBoxConsist.Name = "comboBoxConsist";
             comboBoxConsist.Size = new System.Drawing.Size(373, 23);
             comboBoxConsist.TabIndex = 5;
-            comboBoxConsist.SelectedIndexChanged += ComboBoxConsist_SelectedIndexChanged;
+            comboBoxConsist.SelectionChangeCommitted += ComboBoxConsist_SelectionChangeCommitted;
             // 
             // comboBoxLocomotive
             // 
@@ -462,7 +462,7 @@ namespace Orts.Menu
             comboBoxLocomotive.Name = "comboBoxLocomotive";
             comboBoxLocomotive.Size = new System.Drawing.Size(373, 23);
             comboBoxLocomotive.TabIndex = 3;
-            comboBoxLocomotive.SelectedIndexChanged += ComboBoxLocomotive_SelectedIndexChanged;
+            comboBoxLocomotive.SelectionChangeCommitted += ComboBoxLocomotive_SelectionChangeCommitted;
             // 
             // comboBoxActivity
             // 
@@ -538,7 +538,7 @@ namespace Orts.Menu
             label9.Location = new System.Drawing.Point(5, 288);
             label9.Margin = new System.Windows.Forms.Padding(2);
             label9.Name = "label9";
-            label9.Size = new System.Drawing.Size(36, 15);
+            label9.Size = new System.Drawing.Size(37, 15);
             label9.TabIndex = 10;
             label9.Text = "Time:";
             label9.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -551,8 +551,8 @@ namespace Orts.Menu
             comboBoxStartTime.Name = "comboBoxStartTime";
             comboBoxStartTime.Size = new System.Drawing.Size(96, 23);
             comboBoxStartTime.TabIndex = 11;
-            comboBoxStartTime.TextUpdate += ComboBoxStartTime_TextUpdated;
             comboBoxStartTime.SelectionChangeCommitted += ComboBoxStartTime_SelectionChangeCommitted;
+            comboBoxStartTime.TextUpdate += ComboBoxStartTime_TextUpdated;
             // 
             // comboBoxStartWeather
             // 
@@ -649,7 +649,7 @@ namespace Orts.Menu
             label24.Location = new System.Drawing.Point(4, 98);
             label24.Margin = new System.Windows.Forms.Padding(4);
             label24.Name = "label24";
-            label24.Size = new System.Drawing.Size(35, 15);
+            label24.Size = new System.Drawing.Size(36, 15);
             label24.TabIndex = 4;
             label24.Text = "Train:";
             label24.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -671,7 +671,7 @@ namespace Orts.Menu
             label23.Location = new System.Drawing.Point(4, 64);
             label23.Margin = new System.Windows.Forms.Padding(4);
             label23.Name = "label23";
-            label23.Size = new System.Drawing.Size(62, 15);
+            label23.Size = new System.Drawing.Size(63, 15);
             label23.TabIndex = 2;
             label23.Text = "Timetable:";
             label23.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -778,7 +778,7 @@ namespace Orts.Menu
             label15.Location = new System.Drawing.Point(4, 4);
             label15.Margin = new System.Windows.Forms.Padding(4);
             label15.Name = "label15";
-            label15.Size = new System.Drawing.Size(80, 15);
+            label15.Size = new System.Drawing.Size(81, 15);
             label15.TabIndex = 0;
             label15.Text = "Timetable set:";
             label15.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -791,7 +791,7 @@ namespace Orts.Menu
             linkLabelUpdate.Location = new System.Drawing.Point(984, 12);
             linkLabelUpdate.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             linkLabelUpdate.Name = "linkLabelUpdate";
-            linkLabelUpdate.Size = new System.Drawing.Size(110, 15);
+            linkLabelUpdate.Size = new System.Drawing.Size(109, 15);
             linkLabelUpdate.TabIndex = 37;
             linkLabelUpdate.TabStop = true;
             linkLabelUpdate.Text = "Link to next Update";
@@ -803,7 +803,7 @@ namespace Orts.Menu
             // testingToolStripMenuItem
             // 
             testingToolStripMenuItem.Name = "testingToolStripMenuItem";
-            testingToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
+            testingToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
             testingToolStripMenuItem.Text = "Testing";
             testingToolStripMenuItem.Click += TestingToolStripMenuItem_Click;
             // 
@@ -812,7 +812,7 @@ namespace Orts.Menu
             contextMenuStripTools.ImageScalingSize = new System.Drawing.Size(20, 20);
             contextMenuStripTools.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { testingToolStripMenuItem });
             contextMenuStripTools.Name = "contextMenuStrip1";
-            contextMenuStripTools.Size = new System.Drawing.Size(112, 26);
+            contextMenuStripTools.Size = new System.Drawing.Size(113, 26);
             // 
             // contextMenuStripDocuments
             // 

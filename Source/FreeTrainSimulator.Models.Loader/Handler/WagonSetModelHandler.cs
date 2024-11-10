@@ -79,7 +79,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             FrozenSet<WagonSetModel> wagonSets = await modelSetTask.Value.ConfigureAwait(false);
 
-            return wagonSets.Select(w => w.Locomotive).Where(l => l != null).ToFrozenSet();
+            return wagonSets.Select(w => w.Locomotive).Where(l => l != null).Append(WagonReferenceHandler.LocomotiveAny).ToFrozenSet();
         }
 
         public static async Task<FrozenSet<WagonSetModel>> ExpandWagonSetModels(FolderModel folderModel, CancellationToken cancellationToken)

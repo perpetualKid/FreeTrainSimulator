@@ -81,14 +81,9 @@ namespace Orts.Menu
 
         private bool initialized;
         private UserSettings settings;
-        private IEnumerable<Consist> consists = Array.Empty<Consist>();
         private IEnumerable<TimetableInfo> timetableSets = Array.Empty<TimetableInfo>();
         private IEnumerable<WeatherFileInfo> timetableWeatherFileSet = Array.Empty<WeatherFileInfo>();
-        private CancellationTokenSource ctsProfileLoading;
-        private CancellationTokenSource ctsRouteLoading;
-        private CancellationTokenSource ctsActivityLoading;
-        private CancellationTokenSource ctsConsistLoading;
-        private CancellationTokenSource ctsPathLoading;
+        private CancellationTokenSource ctsModelLoading;
         private CancellationTokenSource ctsTimeTableLoading;
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
@@ -151,14 +146,8 @@ namespace Orts.Menu
             if (disposing)
             {
                 components?.Dispose();
-                ctsRouteLoading?.Cancel();
-                ctsRouteLoading?.Dispose();
-                ctsActivityLoading?.Cancel();
-                ctsActivityLoading?.Dispose();
-                ctsConsistLoading?.Cancel();
-                ctsConsistLoading?.Dispose();
-                ctsPathLoading?.Cancel();
-                ctsPathLoading?.Dispose();
+                ctsModelLoading?.Cancel();
+                ctsModelLoading?.Dispose();
                 ctsTimeTableLoading?.Cancel();
                 ctsTimeTableLoading?.Dispose();
                 elevationIcon?.Dispose();
@@ -240,9 +229,8 @@ namespace Orts.Menu
 
         private static IEnumerable<ToolStripItem> LoadDocuments()
         {
-            if (Directory.Exists(RuntimeInfo.DocumentationFolder))
-            {
-                return Directory.EnumerateFiles(RuntimeInfo.DocumentationFolder).
+            return Directory.Exists(RuntimeInfo.DocumentationFolder)
+                ? Directory.EnumerateFiles(RuntimeInfo.DocumentationFolder).
                     Union(Directory.Exists(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.Name)) ?
                         Directory.EnumerateFiles(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.Name)) : Array.Empty<string>()).
                     Union(Directory.Exists(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)) ?
@@ -256,10 +244,8 @@ namespace Orts.Menu
                             Process.Start(new ProcessStartInfo { FileName = docPath, UseShellExecute = true });
                         })
                         { Tag = fileName };
-                    }).Where(d => d != null);
-            }
-            else
-                return Enumerable.Empty<ToolStripItem>();
+                    }).Where(d => d != null)
+                : Enumerable.Empty<ToolStripItem>();
         }
 
         private void LoadToolsAndDocuments()
@@ -276,16 +262,8 @@ namespace Orts.Menu
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             SaveOptions();
-            if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
-                ctsRouteLoading.Cancel();
-            if (null != ctsActivityLoading && !ctsActivityLoading.IsCancellationRequested)
-                ctsActivityLoading.Cancel();
-            if (null != ctsConsistLoading && !ctsConsistLoading.IsCancellationRequested)
-                ctsConsistLoading.Cancel();
-            if (null != ctsPathLoading && !ctsPathLoading.IsCancellationRequested)
-                ctsPathLoading.Cancel();
-            if (null != ctsTimeTableLoading && !ctsPathLoading.IsCancellationRequested)
-                ctsTimeTableLoading.Cancel();
+            if (null != ctsModelLoading && !ctsModelLoading.IsCancellationRequested)
+                ctsModelLoading.Cancel();
 
             // Remove any deleted saves
             if (Directory.Exists(UserSettings.DeletedSaveFolder))
@@ -376,17 +354,18 @@ namespace Orts.Menu
         {
             ActivityChanged(comboBoxActivity.SelectedValue as ActivityModelCore);
         }
+
         #endregion
 
         #region Locomotives
-        private void ComboBoxLocomotive_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxLocomotive_SelectionChangeCommitted(object sender, EventArgs e)
         {
-//            ShowConsistList();
+
         }
         #endregion
 
         #region Consists
-        private void ComboBoxConsist_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxConsist_SelectionChangeCommitted(object sender, EventArgs e)
         {
             //UpdateExploreActivity(true);
         }
@@ -755,69 +734,6 @@ namespace Orts.Menu
         }
         #endregion
 
-        #region Consist lists
-        private void ShowLocomotiveList()
-        {
-            if (SelectedActivity == null || SelectedActivity.ActivityType is ActivityType.Explorer or ActivityType.ExploreActivity)
-            {
-                try
-                {
-                    comboBoxLocomotive.BeginUpdate();
-                    comboBoxLocomotive.Items.Clear();
-                    comboBoxLocomotive.Items.Add(Locomotive.Any);
-                    comboBoxLocomotive.Items.AddRange(consists.Where(c => c.Locomotive != null).Select(c => c.Locomotive).Distinct().OrderBy(l => l.Name).ToArray());
-                    if (comboBoxLocomotive.Items.Count == 1)
-                        comboBoxLocomotive.Items.Clear();
-                }
-                finally
-                {
-                    comboBoxLocomotive.EndUpdate();
-                }
-                UpdateFromMenuSelection(comboBoxLocomotive, MenuSelection.Locomotive, (Locomotive l) => l.FilePath);
-            }
-            else
-            {
-                try
-                {
-                    comboBoxLocomotive.BeginUpdate();
-                    comboBoxConsist.BeginUpdate();
-                    Consist consist = null; //SelectedActivity.Consist;
-                    comboBoxLocomotive.Items.Clear();
-                    comboBoxLocomotive.Items.Add(consist.Locomotive);
-                    comboBoxLocomotive.SelectedIndex = 0;
-                    comboBoxConsist.Items.Clear();
-                    comboBoxConsist.Items.Add(consist);
-                    comboBoxConsist.SelectedIndex = 0;
-                }
-                finally
-                {
-                    comboBoxLocomotive.EndUpdate();
-                    comboBoxConsist.EndUpdate();
-                }
-            }
-            UpdateEnabled();
-        }
-
-        private void ShowConsistList()
-        {
-            if (SelectedActivity == null || SelectedActivity.ActivityType is ActivityType.Explorer or ActivityType.ExploreActivity)
-            {
-                try
-                {
-                    comboBoxConsist.BeginUpdate();
-                    comboBoxConsist.Items.Clear();
-                    comboBoxConsist.Items.AddRange(consists.Where(c => comboBoxLocomotive.SelectedItem.Equals(c.Locomotive)).OrderBy(c => c.Name).ToArray());
-                }
-                finally
-                {
-                    comboBoxConsist.EndUpdate();
-                }
-                UpdateFromMenuSelection(comboBoxConsist, MenuSelection.Consist, (Consist c) => c.FilePath);
-            }
-            UpdateEnabled();
-        }
-        #endregion
-
         #region populate dropdown boxes
         private void SetupFoldersDropdown(FrozenSet<FolderModel> contentFolders)
         {
@@ -889,10 +805,7 @@ namespace Orts.Menu
                 return;
             }
 
-            comboBoxStartAt.EnableComboBoxItemDataSource(pathModels.
-                Where(p => p.PlayerPath).
-                GroupBy(p => p.Start).
-                OrderBy(g => g.Key).
+            comboBoxStartAt.EnableComboBoxItemDataSource(pathModels.Where(p => p.PlayerPath).GroupBy(p => p.Start).OrderBy(g => g.Key).
                 Select(g => new ComboBoxItem<IGrouping<string, PathModelCore>>($"{g.Key} [{g.Count()} " + catalog.GetPluralString("train path", "train paths", g.Count()) + "]", g)));
         }
 
@@ -1401,6 +1314,5 @@ namespace Orts.Menu
             }
             //TO DO: Debrief Eval TTActivity
         }
-
     }
 }

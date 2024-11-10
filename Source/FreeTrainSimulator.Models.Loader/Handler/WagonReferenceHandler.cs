@@ -26,6 +26,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             Name = "Missing",
         };
 
+        public static WagonReferenceModel LocomotiveAny = new WagonReferenceModel()
+        {
+            Id = "<Any>",
+            Name = "- Any Locomotive -",
+        };
+
         public static async Task<FrozenSet<WagonReferenceModel>> ExpandWagonModels(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
