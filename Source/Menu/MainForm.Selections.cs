@@ -23,7 +23,7 @@ namespace Orts.Menu
             currentSelections = await SelectedProfile.SelectionsModel(ctsModelLoading.Token).ConfigureAwait(false);
 
             //Initial setup if necessary
-            if (SelectedProfile.SetupRequired() || SelectedProfile.ContentFolders.Count == 0)
+            if (SelectedProfile.ContentFolders.Count == 0)
             {
                 await (ShowOptionsForm(true)).ConfigureAwait(false);
             }
@@ -127,7 +127,16 @@ namespace Orts.Menu
 
         private void ConsistChanged(WagonSetModel wagonSetModel)
         {
+            if (wagonSetModel == SelectedConsist)
+                return;
 
+            wagonSetModel = comboBoxConsist.SetComboBoxItem((WagonSetModel wagonSetItem) => string.Equals(wagonSetItem.Name, wagonSetModel?.Name, StringComparison.OrdinalIgnoreCase));
+            currentSelections = currentSelections with
+            {
+                WagonSetName = wagonSetModel?.Name,
+                LocomotiveName = wagonSetModel?.Locomotive?.Name,
+            };
+            SelectedConsist = wagonSetModel;
         }
 
         private void PathChanged(PathModelCore pathModel)
