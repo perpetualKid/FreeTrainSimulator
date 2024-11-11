@@ -65,8 +65,7 @@ namespace Orts.Menu
             }
 
             SetupRoutesDropdown(routeModels);
-            SetupConsistsDropdown(consistModels);
-            SetupLocomotivesDropdown(locomotives);
+            SetupLocomotivesDropdown(consistModels);
             RouteModelCore routeModel = routeModels.GetByName(currentSelections?.RouteName);
             await RouteChanged(routeModel).ConfigureAwait(false);
         }
@@ -108,7 +107,7 @@ namespace Orts.Menu
             if (SelectedActivity == activity)
                 return;
 
-            activity = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Name, activity?.Name, StringComparison.OrdinalIgnoreCase));
+            activity = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Id, activity?.Id, StringComparison.OrdinalIgnoreCase));
 
             currentSelections = currentSelections with
             {
@@ -125,18 +124,19 @@ namespace Orts.Menu
             SetupActivityFromSelection(currentSelections);
         }
 
-        private void ConsistChanged(WagonSetModel wagonSetModel)
+        private void LocomotiveChanged(WagonSetModel wagonSetModel)
         {
             if (wagonSetModel == SelectedConsist)
                 return;
 
-            wagonSetModel = comboBoxConsist.SetComboBoxItem((WagonSetModel wagonSetItem) => string.Equals(wagonSetItem.Name, wagonSetModel?.Name, StringComparison.OrdinalIgnoreCase));
+            wagonSetModel = comboBoxConsist.SetComboBoxItem((WagonSetModel wagonSetItem) => string.Equals(wagonSetItem.Id, wagonSetModel?.Id, StringComparison.OrdinalIgnoreCase));
             currentSelections = currentSelections with
             {
-                WagonSetName = wagonSetModel?.Name,
-                LocomotiveName = wagonSetModel?.Locomotive?.Name,
+                WagonSetName = wagonSetModel?.Id,
             };
             SelectedConsist = wagonSetModel;
+            SetupConsistsDropdown();
+            _ = comboBoxConsist.SetComboBoxItem((ComboBoxItem<WagonSetModel> cbi) => string.Equals(cbi.Value.Id, currentSelections.WagonSetName, StringComparison.OrdinalIgnoreCase));
         }
 
         private void PathChanged(PathModelCore pathModel)
@@ -144,15 +144,13 @@ namespace Orts.Menu
             if (pathModel == SelectedPath)
                 return;
 
-            pathModel = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => p.Name == pathModel?.Name).Any()).Where(p => p.Name == pathModel?.Name).FirstOrDefault();
+            pathModel = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Any(p => p.Id == pathModel?.Id)).FirstOrDefault(p => p.Id == pathModel?.Id);
 
-            currentSelections = currentSelections with { PathName = pathModel?.Name };
+            currentSelections = currentSelections with { PathName = pathModel?.Id };
             SelectedPath = pathModel;
 
             SetupPathEndDropdown();
-            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(currentSelections.PathName, cbi.Value.Name, StringComparison.OrdinalIgnoreCase));
-            UpdateEnabled();
-            return;
+            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(currentSelections.PathName, cbi.Value.Id, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

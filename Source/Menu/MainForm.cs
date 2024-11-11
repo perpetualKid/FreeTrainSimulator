@@ -335,7 +335,6 @@ namespace Orts.Menu
             await RouteChanged(comboBoxRoute.SelectedValue as RouteModelCore).ConfigureAwait(true);
         }
 
-        #region Mode
         private void RadioButtonMode_CheckedChanged(object sender, EventArgs e)
         {
             ActivityType FromSelection() => radioButtonModeTimetable.Checked
@@ -347,29 +346,21 @@ namespace Orts.Menu
             UpdateEnabled();
             ShowDetails();
         }
-        #endregion
 
-        #region Activities
         private void ComboBoxActivity_SelectionChangeCommitted(object sender, EventArgs e)
         {
             ActivityChanged(comboBoxActivity.SelectedValue as ActivityModelCore);
         }
 
-        #endregion
-
-        #region Locomotives
         private void ComboBoxLocomotive_SelectionChangeCommitted(object sender, EventArgs e)
         {
-
+            LocomotiveChanged((comboBoxLocomotive.SelectedItem as ComboBoxItem<IGrouping<string, WagonSetModel>>)?.Value.FirstOrDefault());
         }
-        #endregion
 
-        #region Consists
         private void ComboBoxConsist_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            //UpdateExploreActivity(true);
+            LocomotiveChanged((comboBoxConsist.SelectedItem as ComboBoxItem<WagonSetModel>)?.Value);
         }
-        #endregion
 
         private void ComboBoxStartAt_SelectionChangeCommitted(object sender, EventArgs e)
         {
@@ -379,7 +370,6 @@ namespace Orts.Menu
         private void ComboBoxHeadTo_SelectionChangeCommitted(object sender, EventArgs e)
         {
             PathChanged((comboBoxHeadTo.SelectedItem as ComboBoxItem<PathModelCore>)?.Value);
-            //UpdateExploreActivity(true);
         }
         #endregion
 
@@ -775,26 +765,26 @@ namespace Orts.Menu
             UpdateEnabled();
         }
 
-        private void SetupConsistsDropdown(FrozenSet<WagonSetModel> consists)
+        private void SetupLocomotivesDropdown(FrozenSet<WagonSetModel> consists)
         {
             if (InvokeRequired)
             {
-                _ = Invoke(SetupConsistsDropdown, consists);
+                _ = Invoke(SetupLocomotivesDropdown, consists);
                 return;
             }
-            comboBoxConsist.EnableComboBoxItemDataSource(consists.OrderBy(c => c.Name).Select(c => new ComboBoxItem<WagonSetModel>(c.Name, c)));
-            UpdateEnabled();
+
+            comboBoxLocomotive.EnableComboBoxItemDataSource(consists.Where(c => c.Locomotive != null).GroupBy(c => c.Locomotive.Name).OrderBy(g => g.Key).
+                Select(g => new ComboBoxItem<IGrouping<string, WagonSetModel>>($"{g.Key} ({g.Count()} " + catalog.GetPluralString("train set", "train sets", g.Count()) + ")", g)));
         }
 
-        private void SetupLocomotivesDropdown(FrozenSet<WagonReferenceModel> locomotives)
+        private void SetupConsistsDropdown()
         {
             if (InvokeRequired)
             {
-                _ = Invoke(SetupLocomotivesDropdown, locomotives);
+                Invoke(SetupConsistsDropdown);
                 return;
             }
-            comboBoxLocomotive.EnableComboBoxItemDataSource(locomotives.OrderBy(l => l.Name).Select(l => new ComboBoxItem<WagonReferenceModel>(l.Name, l)));
-            UpdateEnabled();
+            comboBoxConsist.EnableComboBoxItemDataSource((comboBoxLocomotive.SelectedValue as IGrouping<string, WagonSetModel>)?.OrderBy(w => w.Name).Select(w => new ComboBoxItem<WagonSetModel>(w.Name, w)));
         }
 
         private void SetupPathStartDropdown(FrozenSet<PathModelCore> pathModels)
@@ -806,7 +796,7 @@ namespace Orts.Menu
             }
 
             comboBoxStartAt.EnableComboBoxItemDataSource(pathModels.Where(p => p.PlayerPath).GroupBy(p => p.Start).OrderBy(g => g.Key).
-                Select(g => new ComboBoxItem<IGrouping<string, PathModelCore>>($"{g.Key} [{g.Count()} " + catalog.GetPluralString("train path", "train paths", g.Count()) + "]", g)));
+                Select(g => new ComboBoxItem<IGrouping<string, PathModelCore>>($"{g.Key} {g.Count()} " + catalog.GetPluralString("train path", "train paths", g.Count()) + ")", g)));
         }
 
         private void SetupPathEndDropdown()
@@ -848,11 +838,13 @@ namespace Orts.Menu
                 _ = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => activityItem.ActivityType == profileSelections.ActivityType);
             }
 
-            _ = comboBoxConsist.SetComboBoxItem((WagonSetModel wagonSetItem) => string.Equals(wagonSetItem.Id, profileSelections.WagonSetName, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Any(w => string.Equals(w.Id, profileSelections.WagonSetName, StringComparison.OrdinalIgnoreCase)));
+            SetupConsistsDropdown();
+            _ = comboBoxConsist.SetComboBoxItem((ComboBoxItem<WagonSetModel> cbi) => string.Equals(cbi.Value.Id, profileSelections.WagonSetName, StringComparison.OrdinalIgnoreCase));
 
-            _ = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => p.Name == profileSelections.PathName).Any());
+            _ = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => p.Id == profileSelections.PathName).Any());
             SetupPathEndDropdown();
-            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(profileSelections.PathName, cbi.Value.Name, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(profileSelections.PathName, cbi.Value.Id, StringComparison.OrdinalIgnoreCase));
 
             //enabled
             UpdateEnabled();
