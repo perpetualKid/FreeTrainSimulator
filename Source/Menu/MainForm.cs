@@ -773,7 +773,9 @@ namespace Orts.Menu
                 return;
             }
 
-            comboBoxLocomotive.EnableComboBoxItemDataSource(consists.Where(c => c.Locomotive != null).GroupBy(c => c.Locomotive.Name).OrderBy(g => g.Key).
+            comboBoxLocomotive.EnableComboBoxItemDataSource(consists.Where(c => c.Locomotive != null).GroupBy(c => c.Locomotive.Name).
+                Concat(consists.Where(c => c.Locomotive != null).GroupBy(c => consists.Any().Name)).
+                OrderBy(g => g.Key).
                 Select(g => new ComboBoxItem<IGrouping<string, WagonSetModel>>($"{g.Key} ({g.Count()} " + catalog.GetPluralString("train set", "train sets", g.Count()) + ")", g)));
         }
 
