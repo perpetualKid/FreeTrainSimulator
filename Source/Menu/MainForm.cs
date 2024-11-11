@@ -711,7 +711,7 @@ namespace Orts.Menu
             comboBoxConsist.Enabled = comboBoxConsist.Items.Count > 0 && explorerActivity;
             comboBoxStartAt.Enabled = comboBoxStartAt.Items.Count > 0 && explorerActivity;
             comboBoxHeadTo.Enabled = comboBoxHeadTo.Items.Count > 0 && explorerActivity;
-            //comboBoxStartTime.Enabled = comboBoxStartSeason.Enabled = comboBoxStartWeather.Enabled = explorerActivity;
+            comboBoxStartTime.Enabled = comboBoxStartSeason.Enabled = comboBoxStartWeather.Enabled = explorerActivity;
             comboBoxTimetable.Enabled = comboBoxTimetableSet.Items.Count > 0;
             comboBoxTimetableTrain.Enabled = comboBoxTimetable.Items.Count > 0;
             comboBoxTimetableWeatherFile.Enabled = comboBoxTimetableWeatherFile.Items.Count > 0;
@@ -995,10 +995,10 @@ namespace Orts.Menu
 
             if (currentSelections.ActivityType != ActivityType.TimeTable)
             {
-                //if (SelectedConsist?.Locomotive?.Description != null)
-                //{
-                //    AddDetailToShow(catalog.GetString("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description);
-                //}
+                if (comboBoxConsist.SelectedValue is WagonSetModel wagonSetModel && wagonSetModel.Locomotive != null)
+                {
+                    AddDetailToShow(catalog.GetString("Locomotive: {0}", wagonSetModel.Locomotive.Name), wagonSetModel.Locomotive.Description);
+                }
                 if ((comboBoxActivity.SelectedValue is ActivityModelCore activityModel))
                 {
                     AddDetailToShow(catalog.GetString($"Activity: {activityModel.Name}"), activityModel.Description);
