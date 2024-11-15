@@ -24,7 +24,7 @@ namespace FreeTrainSimulator.Common.Info
                     using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher($"Select DeviceID, Description, AdapterRAM, AdapterDACType from Win32_VideoController where description=\"{adapterName}\""))
                         foreach (ManagementBaseObject display in objectSearcher.Get())
                         {
-                            GraphicAdapterMemoryInformation = $"{(uint)display["AdapterRAM"] / 1024f / 1024:F0} MB {display["AdapterDACType"]} RAM";
+                            GraphicAdapterMemoryInformation = $"{((uint?)display["AdapterRAM"] / 1024f / 1024 ?? double.NaN):F0} MB {display["AdapterDACType"]} RAM";
                             break;
                         }
                 }
@@ -70,7 +70,7 @@ namespace FreeTrainSimulator.Common.Info
                 using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher("Select DeviceID, Name, NumberOfLogicalProcessors, NumberOfCores, MaxClockSpeed, L2CacheSize, L3CacheSize from Win32_Processor"))
                     foreach (ManagementBaseObject processor in objectSearcher.Get())
                     {
-                        CpuInformation = $"{"Processor",-12}= {processor["Name"]} ({(uint)processor["NumberOfLogicalProcessors"]} threads, {processor["NumberOfCores"]} cores, {(uint)processor["MaxClockSpeed"] / 1000f:F1} GHz, L2 Cache {processor["L2CacheSize"]:F0} KB, L3 Cache {processor["L3CacheSize"]:F0} KB)";
+                        CpuInformation = $"{"Processor",-12}= {processor["Name"]} ({(uint?)processor["NumberOfLogicalProcessors"]} threads, {processor["NumberOfCores"]} cores, {(uint?)processor["MaxClockSpeed"] / 1000f:F1} GHz, L2 Cache {processor["L2CacheSize"]:F0} KB, L3 Cache {processor["L3CacheSize"]:F0} KB)";
                         output.AppendLine(CpuInformation);
                     }
             }
@@ -83,7 +83,7 @@ namespace FreeTrainSimulator.Common.Info
             {
                 using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher("Select DeviceID, Description, AdapterRAM, AdapterDACType from Win32_VideoController"))
                     foreach (ManagementBaseObject display in objectSearcher.Get())
-                        output.AppendLine(CultureInfo.InvariantCulture, $"{"Video",-12}= {display["Description"]} ({(uint)display["AdapterRAM"] / 1024f / 1024 / 1024:F1} GB {display["AdapterDACType"]} RAM){GetPnPDeviceDrivers(display as ManagementObject)}");
+                        output.AppendLine(CultureInfo.InvariantCulture, $"{"Video",-12}= {display["Description"]} ({((uint?)display["AdapterRAM"] / 1024f / 1024 / 1024 ?? double.NaN):F1} GB {display["AdapterDACType"]} RAM){GetPnPDeviceDrivers(display as ManagementObject)}");
             }
             catch (ManagementException error)
             {
