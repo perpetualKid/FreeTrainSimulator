@@ -176,12 +176,14 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                         if (File.Exists(engineFileName))
                         {
                             EngineFile engFile = new EngineFile(engineFileName);
-                            locomotive = locomotive with
-                            {
-                                Name = engFile.Name?.Trim(),
-                                Description = engFile.Description?.Trim(),
-                            };
-//                            trainCars[i] = locomotive;
+                            locomotive = !string.IsNullOrEmpty(engFile.CabViewFile)
+                                ? (locomotive with
+                                {
+                                    Name = engFile.Name?.Trim(),
+                                    Description = engFile.Description?.Trim(),
+                                })
+                                : null;
+                            //                            trainCars[i] = locomotive;
                         }
                         else
                         {
