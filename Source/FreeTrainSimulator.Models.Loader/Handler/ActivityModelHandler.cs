@@ -33,8 +33,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         public static readonly ActivityModelCore ExploreActivityMode = new ActivityModelCore()
         {
             ActivityType = ActivityType.ExploreActivity,
-            Name = "+ Explore in Activity Mode +",
-            Id = "+ Explore in Activity Mode +",
+            Name = "- Explore Route in Activity Mode -",
+            Id = "- Explore Route in Activity Mode -",
             StartTime = TimeOnly.FromTimeSpan(TimeSpan.FromHours(12)),
             Season = SeasonType.Summer,
             Weather = WeatherType.Clear,

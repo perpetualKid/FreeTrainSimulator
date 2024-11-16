@@ -62,7 +62,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 if (contentProfile.SetupRequired())
                 {
-                    contentProfile = await contentProfile.Convert(Settings.UserSettings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), ctsProfileLoading.Token).ConfigureAwait(true);
+                    contentProfile = await contentProfile.Setup(Settings.UserSettings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), ctsProfileLoading.Token).ConfigureAwait(true);
                 }
                 mainmenu.PopulateContentFolders(contentProfile.ContentFolders);
             }

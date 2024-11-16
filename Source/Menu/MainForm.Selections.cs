@@ -15,11 +15,14 @@ namespace Orts.Menu
     {
         private ProfileSelectionsModel currentSelections;
 
-        private async Task ProfileChanged()
+        private async Task ProfileChanged(ProfileModel profileModel)
         {
+            if (profileModel != null && SelectedProfile == profileModel)
+                return;
+
             ctsModelLoading = await ctsModelLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
-            SelectedProfile = await SelectedProfile.Get(ctsModelLoading.Token).ConfigureAwait(false);
+            SelectedProfile = await (profileModel ?? ProfileModel.None).Get(ctsModelLoading.Token).ConfigureAwait(false);
             currentSelections = await SelectedProfile.SelectionsModel(ctsModelLoading.Token).ConfigureAwait(false);
 
             //Initial setup if necessary
