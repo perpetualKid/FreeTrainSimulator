@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Loader
 
                 await Parallel.ForEachAsync(profileModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {
-                    await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
+                    await ConvertContent(folderModel, profileModel.RefreshRequired || refresh, cancellationToken).ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
             return profileModel;
