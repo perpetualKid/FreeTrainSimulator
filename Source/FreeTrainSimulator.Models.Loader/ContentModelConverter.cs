@@ -14,13 +14,13 @@ namespace FreeTrainSimulator.Models.Loader
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
-            if (profileModel.RefreshRequired || refresh)
+            if (refresh = (profileModel.RefreshRequired || refresh))
             {
                 profileModel = await ProfileModelHandler.Expand(profileModel, cancellationToken).ConfigureAwait(false);
 
                 await Parallel.ForEachAsync(profileModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {
-                    await ConvertContent(folderModel, profileModel.RefreshRequired || refresh, cancellationToken).ConfigureAwait(false);
+                    await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
             return profileModel;
