@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Frozen;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
@@ -19,6 +21,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         {
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TF_BUILD")))
                 return;
+            Trace.WriteLine(VersionInfo.FullVersion);
             //FrozenSet<ProfileModel> profiles = await ProfileModelHandler.GetProfiles(CancellationToken.None).ConfigureAwait(false);
             //ProfileModel profile = profiles.GetByName(ProfileModelHandler.DefaultProfileName);
             FrozenSet<ProfileModel> profiles = await ProfileModel.None.GetProfiles(CancellationToken.None).ConfigureAwait(false);
@@ -32,7 +35,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
 
 //            profile = await ProfileModel.None.Get(null, CancellationToken.None).ConfigureAwait(false);
             profile = await profiles.GetOrCreate(null, CancellationToken.None).ConfigureAwait(false);
-            profile = await profile.Convert(true, CancellationToken.None).ConfigureAwait(false);
+            profile = await profile.Convert(false, CancellationToken.None).ConfigureAwait(false);
 
 //            FolderModel folder = profile.ContentFolders.GetByNameOrFirstByName("Demo Model 1");
 //            await WagonReferenceHandler.ExpandWagonModels(folder, CancellationToken.None).ConfigureAwait(false);
