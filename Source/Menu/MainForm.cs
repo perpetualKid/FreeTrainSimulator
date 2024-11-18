@@ -672,10 +672,6 @@ namespace Orts.Menu
             {
                 settings.Multiplayer_Port = (int)settings.GetDefaultValue("Multiplayer_Port");
             }
-            // Activity mode items / Explore mode items
-            //settings.MenuSelection[MenuSelection.Activity] = SelectedActivity?.FilePath ?? SelectedActivity?.Name ?? string.Empty;
-            //settings.MenuSelection[MenuSelection.Locomotive] = SelectedActivity is ExploreActivity && (comboBoxLocomotive.SelectedItem as Locomotive)?.FilePath != null ? (comboBoxLocomotive.SelectedItem as Locomotive).FilePath : string.Empty;
-            //settings.MenuSelection[MenuSelection.Consist] = SelectedActivity is ExploreActivity && SelectedConsist != null ? SelectedConsist.FilePath : string.Empty;
             // Timetable mode
             settings.MenuSelection[MenuSelection.TimetableSet] = SelectedTimetableSet?.FileName ?? string.Empty;
             settings.MenuSelection[MenuSelection.Timetable] = SelectedTimetable?.Description ?? string.Empty;

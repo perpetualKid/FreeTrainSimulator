@@ -45,6 +45,8 @@ namespace FreeTrainSimulator.Models.Loader
 
         public static async Task<FolderModel> ConvertContent(FolderModel folderModel, bool refresh, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
+
             if (folderModel.RefreshRequired || refresh)
             {
                 Task<FrozenSet<RouteModelCore>> routesTask = RouteModelHandler.ExpandRouteModels(folderModel, cancellationToken);
@@ -64,6 +66,8 @@ namespace FreeTrainSimulator.Models.Loader
 
         public static async Task<RouteModelCore> ConvertContent(RouteModelCore routeModel, bool refresh, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+
             if (routeModel.RefreshRequired || refresh)
             {
                 await Task.WhenAll(

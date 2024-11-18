@@ -161,7 +161,7 @@ namespace Orts.Menu
                 WagonSetName = wagonSetModel?.Id,
             };
             SelectedConsist = wagonSetModel;
-            _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => !grouping.Key.Contains("Any") && string.Equals(w.Id, wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)).Any());
+            _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => string.Equals(w.Id, wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)).Any());
         }
 
         private void PathChanged(PathModelCore pathModel)
