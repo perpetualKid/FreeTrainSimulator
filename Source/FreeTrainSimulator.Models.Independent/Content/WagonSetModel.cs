@@ -12,7 +12,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
         static partial void StaticConstructor()
         {
             fileExtension = ".wagonset";
-            subFolder = ".TrainSets";
+            subFolder = "TrainSets";
         }
 
         public override FolderModel Parent => _parent as FolderModel;

@@ -85,12 +85,38 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return model;
         }
 
-        public static async Task Create<TContainer>(TModel model, TContainer parent, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
+        public static async Task<TActual> ToFile<TActual>(TActual model, CancellationToken cancellationToken) where TActual : TModel
+        {
+            ArgumentNullException.ThrowIfNull(model, nameof(model));
+
+            string targetFileName = ModelFileResolver<TModel>.FilePath(model) + SaveStateExtension;
+
+            model.RefreshModel();
+
+            try
+            {
+                _ = Directory.CreateDirectory(Path.GetDirectoryName(targetFileName));
+
+                using (FileStream saveFile = new FileStream(targetFileName, FileMode.Create, FileAccess.Write))
+                {
+                    await MemoryPackSerializer.SerializeAsync(saveFile, model, null, cancellationToken).ConfigureAwait(false);
+                    await saveFile.FlushAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError(ex.Message);
+                throw;
+            }
+            return model;
+        }
+
+        public static async Task Create<TActual, TContainer>(TActual model, TContainer parent, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer> where TActual: TModel
         { 
             await Create(model, parent, true, false, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task Create<TContainer>(TModel model, TContainer parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer>
+        public static async Task Create<TActual, TContainer>(TActual model, TContainer parent, bool saveModel, bool createDirectory, CancellationToken cancellationToken) where TContainer : ModelBase<TContainer> where TActual : TModel
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 

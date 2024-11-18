@@ -72,7 +72,9 @@ namespace FreeTrainSimulator.Models.Loader
             {
                 await Task.WhenAll(
                     PathModelHandler.ExpandPathModels(routeModel, cancellationToken),
-                    ActivityModelHandler.ExpandActivityModels(routeModel, cancellationToken)).ConfigureAwait(false);
+                    ActivityModelHandler.ExpandActivityModels(routeModel, cancellationToken),
+                    WeatherModelHandler.ExpandPathModels(routeModel, cancellationToken)
+                    ).ConfigureAwait(false);
             }
 
             return routeModel;

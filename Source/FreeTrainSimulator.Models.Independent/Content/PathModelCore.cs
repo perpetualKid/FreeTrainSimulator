@@ -10,7 +10,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
         static partial void StaticConstructor()
         {
             fileExtension = ".path";
-            subFolder = ".TrainPaths";
+            subFolder = "TrainPaths";
         }
 
         public override RouteModelCore Parent => _parent as RouteModelCore;

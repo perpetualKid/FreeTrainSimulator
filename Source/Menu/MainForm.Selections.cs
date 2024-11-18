@@ -87,6 +87,7 @@ namespace Orts.Menu
 
             FrozenSet<PathModelCore> pathModels = null;
             FrozenSet<ActivityModelCore> activityModels = null;
+            FrozenSet<string> timetableWeatherFile = null;
 
             if (routeModel != null)
             {

@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Independent.Content
 
         public EnumArray<float, SpeedRestrictionType> SpeedRestrictions { get; init; } // global and temporary speed limit m/s
 
-        public FrozenDictionary<string, string> Settings { get; init; } //arbitrary settings which are currently in route model but may not logically belong there
+        public FrozenDictionary<string, string> Settings { get; init; } = FrozenDictionary<string, string>.Empty; //arbitrary settings which are currently in route model but may not logically belong there
 
         public Interpolator SuperElevationRadiusSettings { get; init; }
 

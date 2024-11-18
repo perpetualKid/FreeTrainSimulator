@@ -17,6 +17,7 @@
 		<PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.2-preview" />
 	</ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FreeTrainSimulator.Models.Loader\FreeTrainSimulator.Models.Loader.csproj" />
     <ProjectReference Include="..\FreeTrainSimulator.Online\FreeTrainSimulator.Online.csproj" />
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />

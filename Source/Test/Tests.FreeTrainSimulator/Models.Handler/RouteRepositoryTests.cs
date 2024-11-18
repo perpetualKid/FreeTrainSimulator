@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader.Handler;
 using FreeTrainSimulator.Models.Loader.Shim;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -35,7 +36,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
 
 //            profile = await ProfileModel.None.Get(null, CancellationToken.None).ConfigureAwait(false);
             profile = await profiles.GetOrCreate(null, CancellationToken.None).ConfigureAwait(false);
-            profile = await profile.Convert(false, CancellationToken.None).ConfigureAwait(false);
+            profile = await profile.Convert(true, CancellationToken.None).ConfigureAwait(false);
 
 //            FolderModel folder = profile.ContentFolders.GetByNameOrFirstByName("Demo Model 1");
 //            await WagonReferenceHandler.ExpandWagonModels(folder, CancellationToken.None).ConfigureAwait(false);
@@ -85,5 +86,21 @@ namespace Tests.FreeTrainSimulator.Models.Handler
                 //}
             //}
         }
+
+        [TestMethod]
+        public async ValueTask SaveRoute()
+        {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TF_BUILD")))
+                return;
+            Trace.WriteLine(VersionInfo.FullVersion);
+
+            ProfileModel profileModel = await ProfileModel.None.Get(CancellationToken.None).ConfigureAwait(false);
+            FolderModel folder = (await profileModel.GetFolders(CancellationToken.None).ConfigureAwait(false)).GetByName("Demo Model 1");
+//            RouteModelCore route = (await folder.GetRoutes(CancellationToken.None).ConfigureAwait(false)).GetByName("SCE");
+
+            FrozenSet<RouteModelCore> routes = await RouteModelHandler.ExpandRouteModels(folder, CancellationToken.None).ConfigureAwait(false);
+
+        }
+
     }
 }

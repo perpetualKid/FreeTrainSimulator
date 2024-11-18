@@ -20,7 +20,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 
 [assembly: CLSCompliant(false)]
@@ -91,31 +94,29 @@ namespace Orts.Menu
                     {
                         case MainForm.UserAction.SingleplayerNewGame:
                         case MainForm.UserAction.MultiplayerClient:
-                            //if (MainForm.SelectedActivity is DefaultExploreActivity)
-                            //{
-                            //    DefaultExploreActivity exploreActivity = MainForm.SelectedActivity as DefaultExploreActivity;
-                            //    parameters.Add("-explorer");
-                            //    parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
-                            //    parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");
-                            //    parameters.Add($"{exploreActivity.StartTime}");
-                            //    parameters.Add($"{exploreActivity.Season}");
-                            //    parameters.Add($"{exploreActivity.Weather}");
-                            //}
-                            //else if (MainForm.SelectedActivity is ExploreThroughActivity)
-                            //{
-                            //    ExploreThroughActivity exploreActivity = MainForm.SelectedActivity as ExploreThroughActivity;
-                            //    parameters.Add("-exploreactivity");
-                            //    parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
-                            //    parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");
-                            //    parameters.Add($"{exploreActivity.StartTime}");
-                            //    parameters.Add($"{exploreActivity.Season}");
-                            //    parameters.Add($"{exploreActivity.Weather}");
-                            //}
-                            //else
-                            //{
-                            //    parameters.Add("-activity");
-                            //    parameters.Add($"\"{MainForm.SelectedActivity.FilePath}\"");
-                            //}
+                            if (MainForm.SelectedActivity.ActivityType == ActivityType.Explorer)
+                            {
+                                parameters.Add("-explorer");
+                                parameters.Add($"\"{MainForm.SelectedActivity.MstsSourceFile()}\"");
+                                parameters.Add($"\"{MainForm.SelectedConsist.MstsSourceFile()}\"");
+                                parameters.Add($"{MainForm.SelectedActivity.StartTime}");
+                                parameters.Add($"{MainForm.SelectedActivity.Season}");
+                                parameters.Add($"{MainForm.SelectedActivity.Weather}");
+                            }
+                            else if (MainForm.SelectedActivity.ActivityType == ActivityType.ExploreActivity)
+                            {
+                                parameters.Add("-exploreactivity");
+                                parameters.Add($"\"{MainForm.SelectedActivity.MstsSourceFile()}\"");
+                                parameters.Add($"\"{MainForm.SelectedConsist.MstsSourceFile()}\"");
+                                parameters.Add($"{MainForm.SelectedActivity.StartTime}");
+                                parameters.Add($"{MainForm.SelectedActivity.Season}");
+                                parameters.Add($"{MainForm.SelectedActivity.Weather}");
+                            }
+                            else
+                            {
+                                parameters.Add("-activity");
+                                parameters.Add($"\"{MainForm.SelectedActivity.MstsSourceFile()}\"");
+                            }
                             break;
                         case MainForm.UserAction.SingleplayerResumeSave:
                         case MainForm.UserAction.SingleplayerReplaySave:

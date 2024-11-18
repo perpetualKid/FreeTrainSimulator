@@ -66,6 +66,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
+		<ProjectReference Include="..\FreeTrainSimulator.Models.Loader\FreeTrainSimulator.Models.Loader.csproj" />
 		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
 		<ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
 		<ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />

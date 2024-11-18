@@ -12,8 +12,4 @@
 		<ProjectReference Include="..\FreeTrainSimulator.Models.Independent\FreeTrainSimulator.Models.Independent.csproj" />
 		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="TrainSimulator\" />
-	  <Folder Include="OpenRails\" />
-	</ItemGroup>
 </Project>
