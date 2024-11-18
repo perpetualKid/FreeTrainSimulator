@@ -10,6 +10,23 @@ namespace FreeTrainSimulator.Models.Loader
 {
     public static class ContentModelConverter
     {
+
+        public static async Task<ProfileModel> SetupContent(ProfileModel profileModel, bool refresh, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+
+            if (refresh = (profileModel.RefreshRequired || refresh))
+            {
+                profileModel = await ProfileModelHandler.Expand(profileModel, cancellationToken).ConfigureAwait(false);
+
+                await Parallel.ForEachAsync(profileModel.ContentFolders, async (folderModel, cancellationToken) =>
+                {
+                    await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
+                }).ConfigureAwait(false);
+            }
+            return profileModel;
+        }
+
         public static async Task<ProfileModel> ConvertContent(ProfileModel profileModel, bool refresh, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));

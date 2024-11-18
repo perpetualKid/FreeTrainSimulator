@@ -354,12 +354,12 @@ namespace Orts.Menu
 
         private void ComboBoxLocomotive_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            LocomotiveChanged((comboBoxLocomotive.SelectedItem as ComboBoxItem<IGrouping<string, WagonSetModel>>)?.Value.FirstOrDefault());
+            LocomotiveChanged((comboBoxLocomotive.SelectedItem as ComboBoxItem<IGrouping<string, WagonSetModel>>)?.Value.FirstOrDefault(), comboBoxLocomotive.SelectedIndex == 0);
         }
 
         private void ComboBoxConsist_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            LocomotiveChanged((comboBoxConsist.SelectedItem as ComboBoxItem<WagonSetModel>)?.Value);
+            ConsistChanged((comboBoxConsist.SelectedItem as ComboBoxItem<WagonSetModel>)?.Value);
         }
 
         private void ComboBoxStartAt_SelectionChangeCommitted(object sender, EventArgs e)
@@ -773,7 +773,7 @@ namespace Orts.Menu
                 return;
             }
 
-            comboBoxLocomotive.EnableComboBoxItemDataSource(consists.Where(c => c.Locomotive != null).GroupBy(c => c.Locomotive.Name).
+            comboBoxLocomotive.EnableComboBoxItemDataSource(consists.Where(c => c.Locomotive != null).OrderBy(c => c.Name).GroupBy(c => c.Locomotive.Name).
                 Concat(consists.Where(c => c.Locomotive != null).GroupBy(c => consists.Any().Name)).
                 OrderBy(g => g.Key).
                 Select(g => new ComboBoxItem<IGrouping<string, WagonSetModel>>($"{g.Key} ({g.Count()} " + catalog.GetPluralString("train set", "train sets", g.Count()) + ")", g)));
@@ -840,7 +840,7 @@ namespace Orts.Menu
                 _ = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => activityItem.ActivityType == profileSelections.ActivityType);
             }
 
-            _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Any(w => string.Equals(w.Id, profileSelections.WagonSetName, StringComparison.OrdinalIgnoreCase)));
+            _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => string.Equals(w.Id, profileSelections.WagonSetName, StringComparison.OrdinalIgnoreCase)).Any());
             SetupConsistsDropdown();
             _ = comboBoxConsist.SetComboBoxItem((ComboBoxItem<WagonSetModel> cbi) => string.Equals(cbi.Value.Id, profileSelections.WagonSetName, StringComparison.OrdinalIgnoreCase));
 

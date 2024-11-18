@@ -117,20 +117,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             }
         }
 
-        protected static Task<TModel> GetCachedTask(ConcurrentDictionary<string, Task<TModel>> cache, string key, Func<Task<TModel>> taskCreator)
-        {
-            if (!cache.TryGetValue(key, out Task<TModel> cachedTask))
-            {
-                _ = cache.TryAdd(key, cachedTask = taskCreator.Invoke());
-            }
-            if (cachedTask.IsFaulted)
-            {
-                Trace.TraceError(cachedTask.Exception?.ToString());
-                cache[key] = cachedTask = taskCreator.Invoke();
-            }
-            return cachedTask;
-        }
-
         /// <summary>
         /// Cast a Full Model task to Base Model task to mimic task covariance
         /// </summary>

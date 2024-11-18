@@ -14,6 +14,7 @@ namespace Orts.Menu
     public partial class MainForm
     {
         private ProfileSelectionsModel currentSelections;
+        private static WagonReferenceModel anyConsist;
 
         private async Task ProfileChanged(ProfileModel profileModel)
         {
@@ -47,6 +48,7 @@ namespace Orts.Menu
             FrozenSet<RouteModelCore> routeModels = null;
             FrozenSet<WagonSetModel> consistModels = null;
             FrozenSet<WagonReferenceModel> locomotives = null;
+            anyConsist = consistModels.Any();
 
             contentFolder = await contentFolder.Get(CancellationToken.None).ConfigureAwait(false);
 
@@ -105,41 +107,61 @@ namespace Orts.Menu
             SelectedRoute = routeModel;
         }
 
-        private void ActivityChanged(ActivityModelCore activity)
+        private void ActivityChanged(ActivityModelCore activityModel)
         {
-            if (SelectedActivity == activity)
+            if (SelectedActivity == activityModel)
                 return;
 
-            activity = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Id, activity?.Id, StringComparison.OrdinalIgnoreCase));
+            activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Id, activityModel?.Id, StringComparison.OrdinalIgnoreCase));
 
             currentSelections = currentSelections with
             {
-                ActivityName = activity?.Name,
-                ActivityType = activity.ActivityType,
-                StartTime = activity.ActivityType == ActivityType.Activity ? activity.StartTime : comboBoxStartTime.Tag != null ? (TimeOnly)comboBoxStartTime.Tag : activity.StartTime,
-                Season = activity.ActivityType == ActivityType.Activity ? activity.Season : (SeasonType)comboBoxStartSeason.SelectedValue,
-                Weather = activity.ActivityType == ActivityType.Activity ? activity.Weather : (WeatherType)comboBoxStartWeather.SelectedValue,
-                PathName = activity.ActivityType == ActivityType.Activity ? activity.PathId : (comboBoxHeadTo.SelectedValue as PathModelCore)?.Id,
-                WagonSetName = activity.ActivityType == ActivityType.Activity ? activity.ConsistId : (comboBoxConsist.SelectedValue as WagonSetModel)?.Id,
+                ActivityName = activityModel?.Name,
+                ActivityType = activityModel.ActivityType,
+                StartTime = activityModel.ActivityType == ActivityType.Activity ? activityModel.StartTime : comboBoxStartTime.Tag != null ? (TimeOnly)comboBoxStartTime.Tag : activityModel.StartTime,
+                Season = activityModel.ActivityType == ActivityType.Activity ? activityModel.Season : (SeasonType)comboBoxStartSeason.SelectedValue,
+                Weather = activityModel.ActivityType == ActivityType.Activity ? activityModel.Weather : (WeatherType)comboBoxStartWeather.SelectedValue,
+                PathName = activityModel.ActivityType == ActivityType.Activity ? activityModel.PathId : (comboBoxHeadTo.SelectedValue as PathModelCore)?.Id,
+                WagonSetName = activityModel.ActivityType == ActivityType.Activity ? activityModel.ConsistId : (comboBoxConsist.SelectedValue as WagonSetModel)?.Id,
             };
-            SelectedActivity = activity;
+            SelectedActivity = activityModel;
 
             SetupActivityFromSelection(currentSelections);
         }
 
-        private void LocomotiveChanged(WagonSetModel wagonSetModel)
+        private void LocomotiveChanged(WagonSetModel wagonSetModel, bool any)
+        {
+            if (!any && wagonSetModel == SelectedConsist)
+                return;
+
+            if (any)
+            {
+            }
+            else
+            {
+                _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => string.Equals(w.Id, wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)).Any());
+                currentSelections = currentSelections with
+                {
+                    WagonSetName = wagonSetModel?.Id,
+                };
+                SelectedConsist = wagonSetModel;
+            }
+            SetupConsistsDropdown();
+            _ = comboBoxConsist.SetComboBoxItem((WagonSetModel wagonSetItem) => string.Equals(wagonSetItem.Id, currentSelections.WagonSetName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void ConsistChanged(WagonSetModel wagonSetModel)
         {
             if (wagonSetModel == SelectedConsist)
                 return;
 
-            wagonSetModel = comboBoxConsist.SetComboBoxItem((WagonSetModel wagonSetItem) => string.Equals(wagonSetItem.Id, wagonSetModel?.Id, StringComparison.OrdinalIgnoreCase));
+            wagonSetModel = comboBoxConsist.SetComboBoxItem((WagonSetModel wagonSetItem) => string.Equals(wagonSetItem.Id, wagonSetModel.Id, StringComparison.OrdinalIgnoreCase));
             currentSelections = currentSelections with
             {
                 WagonSetName = wagonSetModel?.Id,
             };
             SelectedConsist = wagonSetModel;
-            SetupConsistsDropdown();
-            _ = comboBoxConsist.SetComboBoxItem((ComboBoxItem<WagonSetModel> cbi) => string.Equals(cbi.Value.Id, currentSelections.WagonSetName, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => !grouping.Key.Contains("Any") && string.Equals(w.Id, wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)).Any());
         }
 
         private void PathChanged(PathModelCore pathModel)
