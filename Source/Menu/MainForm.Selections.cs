@@ -137,10 +137,7 @@ namespace Orts.Menu
             if (!any && wagonSetModel == SelectedConsist)
                 return;
 
-            if (any)
-            {
-            }
-            else
+            if (!any)
             {
                 _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => string.Equals(w.Id, wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)).Any());
                 currentSelections = currentSelections with
@@ -179,6 +176,20 @@ namespace Orts.Menu
 
             SetupPathEndDropdown();
             _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(currentSelections.PathName, cbi.Value.Id, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void TimetableWeatherChanged(WeatherModelCore weatherModel)
+        {
+            if (weatherModel == SelectedWeatherFile)
+                return;
+
+            weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, weatherModel?.Id, StringComparison.OrdinalIgnoreCase));
+
+            currentSelections = currentSelections with
+            {
+                TimetableWeather = weatherModel?.Id,
+            };
+            SelectedWeatherFile = weatherModel;
         }
     }
 }

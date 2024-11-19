@@ -79,7 +79,6 @@ namespace Orts.Menu
             ".pdf", ".doc", ".docx", ".pptx", ".txt"
         };
 
-        private bool initialized;
         private UserSettings settings;
         private IEnumerable<TimetableInfo> timetableSets = Array.Empty<TimetableInfo>();
         private CancellationTokenSource ctsModelLoading;
@@ -106,8 +105,7 @@ namespace Orts.Menu
         internal TimetableInfo SelectedTimetableSet => (TimetableInfo)comboBoxTimetableSet.SelectedItem;
         internal TimetableFile SelectedTimetable => (TimetableFile)comboBoxTimetable.SelectedItem;
         internal TrainInformation SelectedTimetableTrain => (TrainInformation)comboBoxTimetableTrain.SelectedItem;
-        internal int SelectedTimetableDay => initialized ? (comboBoxTimetableDay.SelectedItem as ComboBoxItem<int>).Value : 0;
-        internal WeatherFileInfo SelectedWeatherFile { get; private set; }
+        internal WeatherModelCore SelectedWeatherFile { get; private set; }
         internal Consist SelectedTimetableConsist { get; private set; }
         internal PathModelCore SelectedTimetablePath { get; private set; }
 
@@ -170,23 +168,15 @@ namespace Orts.Menu
             LoadOptions();
             Task updateTask = Task.CompletedTask;
 
-            if (!initialized)
-            {
-                updateTask = CheckForUpdateAsync();
-                LoadToolsAndDocuments();
+            updateTask = CheckForUpdateAsync();
+            LoadToolsAndDocuments();
 
-                comboBoxStartTime.DataSourceFromList(Enumerable.Range(0, 24), (hour) => $"{hour:00}:00:00");
-                comboBoxStartSeason.DataSourceFromEnum<SeasonType>();
-                comboBoxStartWeather.DataSourceFromEnum<WeatherType>();
-                comboBoxTimetableSeason.DataSourceFromEnum<SeasonType>();
-                comboBoxTimetableWeather.DataSourceFromEnum<WeatherType>();
-                comboBoxTimetableDay.DataSourceFromList(Enumerable.Range(0, 7), (day) => CultureInfo.CurrentUICulture.DateTimeFormat.DayNames[day]);
-            }
-
-            ShowTimetableEnvironment();
+            comboBoxStartTime.DataSourceFromList(Enumerable.Range(0, 24), (hour) => $"{hour:00}:00:00");
+            comboBoxStartSeason.DataSourceFromEnum<SeasonType>();
+            comboBoxStartWeather.DataSourceFromEnum<WeatherType>();
+            comboBoxTimetableDay.DataSourceFromList(Enumerable.Range(0, 7), (day) => CultureInfo.CurrentUICulture.DateTimeFormat.DayNames[day]);
 
             await Task.WhenAll(profileTask, updateTask).ConfigureAwait(true);
-            initialized = true;
 
             UpdateEnabled();
         }
@@ -341,7 +331,18 @@ namespace Orts.Menu
                     : radioButtonModeActivity.Checked ? ActivityType.Activity : ActivityType.None;
 
             currentSelections = currentSelections with { ActivityType = FromSelection() };
-            panelModeActivity.Visible = !(panelModeTimetable.Visible = currentSelections.ActivityType == ActivityType.TimeTable);
+
+            if (currentSelections.ActivityType == ActivityType.TimeTable)
+            {
+                panelModeActivity.Visible = !(panelModeTimetable.Visible = true);
+                SetupTimetableFromSelection(currentSelections);
+            }
+            else
+            {
+                panelModeActivity.Visible = !(panelModeTimetable.Visible = false);
+                SetupActivityFromSelection(currentSelections);
+            }
+
             UpdateEnabled();
             ShowDetails();
         }
@@ -400,7 +401,6 @@ namespace Orts.Menu
             }
         }
 
-
         private void ComboBoxStartSeason_SelectionChangeCommitted(object sender, EventArgs e)
         {
             currentSelections = currentSelections with { Season = ((SeasonType)comboBoxStartSeason.SelectedValue) };
@@ -412,11 +412,21 @@ namespace Orts.Menu
         }
         #endregion
 
-        #region Timetable Sets
+        #region Timetable environment
+        private void ComboBoxTimetableDay_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            currentSelections = currentSelections with { TimetableDay = (DayOfWeek)comboBoxTimetableDay.SelectedIndex };
+        }
+
+        private void ComboBoxTimetableWeatherFile_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            TimetableWeatherChanged((comboBoxTimetableWeatherFile.SelectedItem as ComboBoxItem<WeatherModelCore>)?.Value);
+        }
+
         private void ComboBoxTimetableSet_SelectedIndexChanged(object sender, EventArgs e)
         {
             int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
-            UpdateTimetableSet();
+            //UpdateTimetableSet();
             ShowTimetableList();
             if (updater == 0)
             {
@@ -456,28 +466,6 @@ namespace Orts.Menu
                     detailUpdater = 0;
                 }
             }
-        }
-        #endregion
-
-        #region Timetable environment
-        private void ComboBoxTimetableDay_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            UpdateTimetableSet();
-        }
-
-        private void ComboBoxTimetableSeason_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            UpdateTimetableSet();
-        }
-
-        private void ComboBoxTimetableWeather_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            UpdateTimetableSet();
-        }
-
-        private void ComboBoxTimetableWeatherFile_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            //UpdateTimetableWeatherSet();
         }
         #endregion
 
@@ -680,14 +668,13 @@ namespace Orts.Menu
             settings.MenuSelection[MenuSelection.TimetableSet] = SelectedTimetableSet?.FileName ?? string.Empty;
             settings.MenuSelection[MenuSelection.Timetable] = SelectedTimetable?.Description ?? string.Empty;
             settings.MenuSelection[MenuSelection.Train] = SelectedTimetableTrain?.Column.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
-            settings.MenuSelection[MenuSelection.Day] = SelectedTimetableDay.ToString(CultureInfo.InvariantCulture);
 
             settings.Save();
 
             _ = UpdateSelections();
         }
 
-        private async ValueTask UpdateSelections()
+        private async Task UpdateSelections()
         {
             currentSelections = await SelectedProfile.UpdateSelectionsModel(currentSelections, CancellationToken.None).ConfigureAwait(false);
         }
@@ -724,7 +711,7 @@ namespace Orts.Menu
         }
         #endregion
 
-        #region populate dropdown boxes
+        #region Activity dropdown selections
         private void SetupFoldersDropdown(FrozenSet<FolderModel> contentFolders)
         {
             if (InvokeRequired)
@@ -852,12 +839,11 @@ namespace Orts.Menu
             UpdateEnabled();
 
             ShowDetails();
-
         }
 
         #endregion
 
-        #region Timetable Set list
+        #region Timetable dropwon selections
         private async Task LoadTimetableSetListAsync()
         {
             ctsTimeTableLoading = await ctsTimeTableLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
@@ -892,16 +878,6 @@ namespace Orts.Menu
             UpdateEnabled();
         }
 
-        private void UpdateTimetableSet()
-        {
-            if (SelectedTimetableSet != null)
-            {
-                SelectedTimetableSet.Day = SelectedTimetableDay;
-                SelectedTimetableSet.Season = currentSelections.Season;
-                SelectedTimetableSet.Weather = currentSelections.Weather;
-            }
-        }
-
         private void SetupTimetableWeatherDropdown(FrozenSet<WeatherModelCore> weatherModels)
         {
             if (InvokeRequired)
@@ -913,11 +889,18 @@ namespace Orts.Menu
             comboBoxTimetableWeatherFile.EnableComboBoxItemDataSource(weatherModels.OrderBy(w => w.Name).Select(w => new ComboBoxItem<WeatherModelCore>(w.Name, w)));
         }
 
-        private void UpdateTimetableWeatherSet()
+        private void SetupTimetableFromSelection(ProfileSelectionsModel profileSelections)
         {
-            SelectedTimetableSet.WeatherFile = SelectedWeatherFile.FullName;
-        }
+            if (InvokeRequired)
+            {
+                _ = Invoke(SetupTimetableFromSelection, profileSelections);
+                return;
+            }
 
+            _ = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, profileSelections.TimetableWeather, StringComparison.OrdinalIgnoreCase));
+            comboBoxTimetableDay.SelectedIndex = (int)profileSelections.TimetableDay;
+
+        }
         #endregion
 
         #region Timetable list
@@ -968,15 +951,6 @@ namespace Orts.Menu
                 comboBoxTimetableTrain.Items.Clear();
 
             UpdateEnabled();
-        }
-        #endregion
-
-        #region Timetable environment
-        private void ShowTimetableEnvironment()
-        {
-            UpdateFromMenuSelectionComboBoxItem(comboBoxTimetableDay, FreeTrainSimulator.Common.MenuSelection.Day, 0);
-            UpdateFromMenuSelectionComboBoxItem(comboBoxTimetableSeason, FreeTrainSimulator.Common.MenuSelection.Season, 1);
-            UpdateFromMenuSelectionComboBoxItem(comboBoxTimetableWeather, FreeTrainSimulator.Common.MenuSelection.Weather, 0);
         }
         #endregion
 

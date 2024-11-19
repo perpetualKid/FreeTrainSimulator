@@ -39,6 +39,17 @@ namespace Orts.Menu
             groupBox3 = new System.Windows.Forms.GroupBox();
             label1 = new System.Windows.Forms.Label();
             panelDetails = new System.Windows.Forms.Panel();
+            panelModeTimetable = new System.Windows.Forms.Panel();
+            labelTimetableWeatherFile = new System.Windows.Forms.Label();
+            comboBoxTimetableWeatherFile = new System.Windows.Forms.ComboBox();
+            label24 = new System.Windows.Forms.Label();
+            comboBoxTimetableTrain = new System.Windows.Forms.ComboBox();
+            label23 = new System.Windows.Forms.Label();
+            comboBoxTimetableDay = new System.Windows.Forms.ComboBox();
+            label22 = new System.Windows.Forms.Label();
+            comboBoxTimetable = new System.Windows.Forms.ComboBox();
+            comboBoxTimetableSet = new System.Windows.Forms.ComboBox();
+            label15 = new System.Windows.Forms.Label();
             pictureBoxLogo = new System.Windows.Forms.PictureBox();
             panel1 = new System.Windows.Forms.Panel();
             buttonDocuments = new System.Windows.Forms.Button();
@@ -58,35 +69,20 @@ namespace Orts.Menu
             label7 = new System.Windows.Forms.Label();
             label9 = new System.Windows.Forms.Label();
             comboBoxStartTime = new System.Windows.Forms.ComboBox();
-            comboBoxStartWeather = new System.Windows.Forms.ComboBox();
-            label12 = new System.Windows.Forms.Label();
-            comboBoxStartSeason = new System.Windows.Forms.ComboBox();
-            label8 = new System.Windows.Forms.Label();
-            panelModeTimetable = new System.Windows.Forms.Panel();
-            labelTimetableWeatherFile = new System.Windows.Forms.Label();
-            comboBoxTimetableWeatherFile = new System.Windows.Forms.ComboBox();
-            label24 = new System.Windows.Forms.Label();
-            comboBoxTimetableTrain = new System.Windows.Forms.ComboBox();
-            label23 = new System.Windows.Forms.Label();
-            comboBoxTimetableDay = new System.Windows.Forms.ComboBox();
-            label22 = new System.Windows.Forms.Label();
-            comboBoxTimetableWeather = new System.Windows.Forms.ComboBox();
-            label20 = new System.Windows.Forms.Label();
-            comboBoxTimetableSeason = new System.Windows.Forms.ComboBox();
-            label21 = new System.Windows.Forms.Label();
-            comboBoxTimetable = new System.Windows.Forms.ComboBox();
-            comboBoxTimetableSet = new System.Windows.Forms.ComboBox();
-            label15 = new System.Windows.Forms.Label();
             linkLabelUpdate = new System.Windows.Forms.LinkLabel();
             testingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             contextMenuStripTools = new System.Windows.Forms.ContextMenuStrip(components);
             contextMenuStripDocuments = new System.Windows.Forms.ContextMenuStrip(components);
+            comboBoxStartWeather = new System.Windows.Forms.ComboBox();
+            label12 = new System.Windows.Forms.Label();
+            comboBoxStartSeason = new System.Windows.Forms.ComboBox();
+            label8 = new System.Windows.Forms.Label();
             groupBox1.SuspendLayout();
             groupBox3.SuspendLayout();
+            panelModeTimetable.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBoxLogo).BeginInit();
             panel1.SuspendLayout();
             panelModeActivity.SuspendLayout();
-            panelModeTimetable.SuspendLayout();
             contextMenuStripTools.SuspendLayout();
             SuspendLayout();
             // 
@@ -313,6 +309,136 @@ namespace Orts.Menu
             panelDetails.Size = new System.Drawing.Size(723, 466);
             panelDetails.TabIndex = 20;
             // 
+            // panelModeTimetable
+            // 
+            panelModeTimetable.Controls.Add(labelTimetableWeatherFile);
+            panelModeTimetable.Controls.Add(comboBoxTimetableWeatherFile);
+            panelModeTimetable.Controls.Add(label24);
+            panelModeTimetable.Controls.Add(comboBoxTimetableTrain);
+            panelModeTimetable.Controls.Add(label23);
+            panelModeTimetable.Controls.Add(comboBoxTimetableDay);
+            panelModeTimetable.Controls.Add(label22);
+            panelModeTimetable.Controls.Add(comboBoxTimetable);
+            panelModeTimetable.Controls.Add(comboBoxTimetableSet);
+            panelModeTimetable.Controls.Add(label15);
+            panelModeTimetable.Location = new System.Drawing.Point(393, 152);
+            panelModeTimetable.Margin = new System.Windows.Forms.Padding(0);
+            panelModeTimetable.Name = "panelModeTimetable";
+            panelModeTimetable.Size = new System.Drawing.Size(382, 311);
+            panelModeTimetable.TabIndex = 10;
+            panelModeTimetable.Visible = false;
+            // 
+            // labelTimetableWeatherFile
+            // 
+            labelTimetableWeatherFile.AutoSize = true;
+            labelTimetableWeatherFile.Location = new System.Drawing.Point(4, 169);
+            labelTimetableWeatherFile.Margin = new System.Windows.Forms.Padding(4);
+            labelTimetableWeatherFile.Name = "labelTimetableWeatherFile";
+            labelTimetableWeatherFile.Size = new System.Drawing.Size(75, 15);
+            labelTimetableWeatherFile.TabIndex = 14;
+            labelTimetableWeatherFile.Text = "Weather File:";
+            labelTimetableWeatherFile.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // comboBoxTimetableWeatherFile
+            // 
+            comboBoxTimetableWeatherFile.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetableWeatherFile.FormattingEnabled = true;
+            comboBoxTimetableWeatherFile.Location = new System.Drawing.Point(4, 194);
+            comboBoxTimetableWeatherFile.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetableWeatherFile.Name = "comboBoxTimetableWeatherFile";
+            comboBoxTimetableWeatherFile.Size = new System.Drawing.Size(373, 23);
+            comboBoxTimetableWeatherFile.TabIndex = 13;
+            comboBoxTimetableWeatherFile.SelectionChangeCommitted += ComboBoxTimetableWeatherFile_SelectionChangeCommitted;
+            // 
+            // label24
+            // 
+            label24.AutoSize = true;
+            label24.Location = new System.Drawing.Point(4, 112);
+            label24.Margin = new System.Windows.Forms.Padding(4);
+            label24.Name = "label24";
+            label24.Size = new System.Drawing.Size(36, 15);
+            label24.TabIndex = 4;
+            label24.Text = "Train:";
+            label24.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // comboBoxTimetableTrain
+            // 
+            comboBoxTimetableTrain.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetableTrain.FormattingEnabled = true;
+            comboBoxTimetableTrain.Location = new System.Drawing.Point(4, 138);
+            comboBoxTimetableTrain.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetableTrain.Name = "comboBoxTimetableTrain";
+            comboBoxTimetableTrain.Size = new System.Drawing.Size(373, 23);
+            comboBoxTimetableTrain.TabIndex = 5;
+            comboBoxTimetableTrain.SelectedIndexChanged += ComboBoxTimetableTrain_SelectedIndexChanged;
+            // 
+            // label23
+            // 
+            label23.AutoSize = true;
+            label23.Location = new System.Drawing.Point(4, 59);
+            label23.Margin = new System.Windows.Forms.Padding(4);
+            label23.Name = "label23";
+            label23.Size = new System.Drawing.Size(63, 15);
+            label23.TabIndex = 2;
+            label23.Text = "Timetable:";
+            label23.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // comboBoxTimetableDay
+            // 
+            comboBoxTimetableDay.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetableDay.FormattingEnabled = true;
+            comboBoxTimetableDay.Location = new System.Drawing.Point(81, 284);
+            comboBoxTimetableDay.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetableDay.Name = "comboBoxTimetableDay";
+            comboBoxTimetableDay.Size = new System.Drawing.Size(144, 23);
+            comboBoxTimetableDay.TabIndex = 8;
+            comboBoxTimetableDay.SelectionChangeCommitted += ComboBoxTimetableDay_SelectionChangeCommitted;
+            // 
+            // label22
+            // 
+            label22.AutoSize = true;
+            label22.Location = new System.Drawing.Point(5, 288);
+            label22.Margin = new System.Windows.Forms.Padding(4);
+            label22.Name = "label22";
+            label22.Size = new System.Drawing.Size(30, 15);
+            label22.TabIndex = 7;
+            label22.Text = "Day:";
+            label22.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // comboBoxTimetable
+            // 
+            comboBoxTimetable.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetable.FormattingEnabled = true;
+            comboBoxTimetable.Location = new System.Drawing.Point(4, 84);
+            comboBoxTimetable.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetable.Name = "comboBoxTimetable";
+            comboBoxTimetable.Size = new System.Drawing.Size(373, 23);
+            comboBoxTimetable.TabIndex = 3;
+            comboBoxTimetable.SelectedIndexChanged += ComboBoxTimetable_SelectedIndexChanged;
+            comboBoxTimetable.EnabledChanged += ComboBoxTimetable_EnabledChanged;
+            // 
+            // comboBoxTimetableSet
+            // 
+            comboBoxTimetableSet.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxTimetableSet.FormattingEnabled = true;
+            comboBoxTimetableSet.Location = new System.Drawing.Point(4, 28);
+            comboBoxTimetableSet.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxTimetableSet.Name = "comboBoxTimetableSet";
+            comboBoxTimetableSet.Size = new System.Drawing.Size(373, 23);
+            comboBoxTimetableSet.TabIndex = 1;
+            comboBoxTimetableSet.SelectedIndexChanged += ComboBoxTimetableSet_SelectedIndexChanged;
+            // 
+            // label15
+            // 
+            label15.AutoSize = true;
+            label15.Location = new System.Drawing.Point(4, 4);
+            label15.Margin = new System.Windows.Forms.Padding(4);
+            label15.Name = "label15";
+            label15.Size = new System.Drawing.Size(81, 15);
+            label15.TabIndex = 0;
+            label15.Text = "Timetable set:";
+            label15.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // pictureBoxLogo
             // 
             pictureBoxLogo.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
@@ -398,14 +524,10 @@ namespace Orts.Menu
             panelModeActivity.Controls.Add(label7);
             panelModeActivity.Controls.Add(label9);
             panelModeActivity.Controls.Add(comboBoxStartTime);
-            panelModeActivity.Controls.Add(comboBoxStartWeather);
-            panelModeActivity.Controls.Add(label12);
-            panelModeActivity.Controls.Add(comboBoxStartSeason);
-            panelModeActivity.Controls.Add(label8);
             panelModeActivity.Location = new System.Drawing.Point(12, 180);
             panelModeActivity.Margin = new System.Windows.Forms.Padding(0);
             panelModeActivity.Name = "panelModeActivity";
-            panelModeActivity.Size = new System.Drawing.Size(382, 382);
+            panelModeActivity.Size = new System.Drawing.Size(382, 313);
             panelModeActivity.TabIndex = 9;
             // 
             // comboBoxHeadTo
@@ -549,236 +671,10 @@ namespace Orts.Menu
             comboBoxStartTime.Location = new System.Drawing.Point(81, 284);
             comboBoxStartTime.Margin = new System.Windows.Forms.Padding(4);
             comboBoxStartTime.Name = "comboBoxStartTime";
-            comboBoxStartTime.Size = new System.Drawing.Size(96, 23);
+            comboBoxStartTime.Size = new System.Drawing.Size(144, 23);
             comboBoxStartTime.TabIndex = 11;
             comboBoxStartTime.SelectionChangeCommitted += ComboBoxStartTime_SelectionChangeCommitted;
             comboBoxStartTime.TextUpdate += ComboBoxStartTime_TextUpdated;
-            // 
-            // comboBoxStartWeather
-            // 
-            comboBoxStartWeather.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxStartWeather.Enabled = false;
-            comboBoxStartWeather.Location = new System.Drawing.Point(81, 352);
-            comboBoxStartWeather.Margin = new System.Windows.Forms.Padding(4);
-            comboBoxStartWeather.Name = "comboBoxStartWeather";
-            comboBoxStartWeather.Size = new System.Drawing.Size(96, 23);
-            comboBoxStartWeather.TabIndex = 15;
-            comboBoxStartWeather.SelectionChangeCommitted += ComboBoxStartWeather_SelectionChangeCommitted;
-            // 
-            // label12
-            // 
-            label12.AutoSize = true;
-            label12.Location = new System.Drawing.Point(5, 356);
-            label12.Margin = new System.Windows.Forms.Padding(2);
-            label12.Name = "label12";
-            label12.Size = new System.Drawing.Size(54, 15);
-            label12.TabIndex = 14;
-            label12.Text = "Weather:";
-            label12.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // comboBoxStartSeason
-            // 
-            comboBoxStartSeason.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxStartSeason.Enabled = false;
-            comboBoxStartSeason.Location = new System.Drawing.Point(81, 319);
-            comboBoxStartSeason.Margin = new System.Windows.Forms.Padding(4);
-            comboBoxStartSeason.Name = "comboBoxStartSeason";
-            comboBoxStartSeason.Size = new System.Drawing.Size(96, 23);
-            comboBoxStartSeason.TabIndex = 13;
-            comboBoxStartSeason.SelectionChangeCommitted += ComboBoxStartSeason_SelectionChangeCommitted;
-            // 
-            // label8
-            // 
-            label8.AutoSize = true;
-            label8.Location = new System.Drawing.Point(5, 322);
-            label8.Margin = new System.Windows.Forms.Padding(2);
-            label8.Name = "label8";
-            label8.Size = new System.Drawing.Size(47, 15);
-            label8.TabIndex = 12;
-            label8.Text = "Season:";
-            label8.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // panelModeTimetable
-            // 
-            panelModeTimetable.Controls.Add(labelTimetableWeatherFile);
-            panelModeTimetable.Controls.Add(comboBoxTimetableWeatherFile);
-            panelModeTimetable.Controls.Add(label24);
-            panelModeTimetable.Controls.Add(comboBoxTimetableTrain);
-            panelModeTimetable.Controls.Add(label23);
-            panelModeTimetable.Controls.Add(comboBoxTimetableDay);
-            panelModeTimetable.Controls.Add(label22);
-            panelModeTimetable.Controls.Add(comboBoxTimetableWeather);
-            panelModeTimetable.Controls.Add(label20);
-            panelModeTimetable.Controls.Add(comboBoxTimetableSeason);
-            panelModeTimetable.Controls.Add(label21);
-            panelModeTimetable.Controls.Add(comboBoxTimetable);
-            panelModeTimetable.Controls.Add(comboBoxTimetableSet);
-            panelModeTimetable.Controls.Add(label15);
-            panelModeTimetable.Location = new System.Drawing.Point(399, 146);
-            panelModeTimetable.Margin = new System.Windows.Forms.Padding(0);
-            panelModeTimetable.Name = "panelModeTimetable";
-            panelModeTimetable.Size = new System.Drawing.Size(382, 358);
-            panelModeTimetable.TabIndex = 10;
-            panelModeTimetable.Visible = false;
-            // 
-            // labelTimetableWeatherFile
-            // 
-            labelTimetableWeatherFile.AutoSize = true;
-            labelTimetableWeatherFile.Location = new System.Drawing.Point(8, 261);
-            labelTimetableWeatherFile.Margin = new System.Windows.Forms.Padding(4);
-            labelTimetableWeatherFile.Name = "labelTimetableWeatherFile";
-            labelTimetableWeatherFile.Size = new System.Drawing.Size(75, 15);
-            labelTimetableWeatherFile.TabIndex = 14;
-            labelTimetableWeatherFile.Text = "Weather File:";
-            labelTimetableWeatherFile.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // comboBoxTimetableWeatherFile
-            // 
-            comboBoxTimetableWeatherFile.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxTimetableWeatherFile.FormattingEnabled = true;
-            comboBoxTimetableWeatherFile.Location = new System.Drawing.Point(121, 258);
-            comboBoxTimetableWeatherFile.Margin = new System.Windows.Forms.Padding(4);
-            comboBoxTimetableWeatherFile.Name = "comboBoxTimetableWeatherFile";
-            comboBoxTimetableWeatherFile.Size = new System.Drawing.Size(256, 23);
-            comboBoxTimetableWeatherFile.TabIndex = 13;
-            comboBoxTimetableWeatherFile.SelectedIndexChanged += ComboBoxTimetableWeatherFile_SelectedIndexChanged;
-            // 
-            // label24
-            // 
-            label24.AutoSize = true;
-            label24.Location = new System.Drawing.Point(4, 98);
-            label24.Margin = new System.Windows.Forms.Padding(4);
-            label24.Name = "label24";
-            label24.Size = new System.Drawing.Size(36, 15);
-            label24.TabIndex = 4;
-            label24.Text = "Train:";
-            label24.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // comboBoxTimetableTrain
-            // 
-            comboBoxTimetableTrain.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxTimetableTrain.FormattingEnabled = true;
-            comboBoxTimetableTrain.Location = new System.Drawing.Point(121, 94);
-            comboBoxTimetableTrain.Margin = new System.Windows.Forms.Padding(4);
-            comboBoxTimetableTrain.Name = "comboBoxTimetableTrain";
-            comboBoxTimetableTrain.Size = new System.Drawing.Size(256, 23);
-            comboBoxTimetableTrain.TabIndex = 5;
-            comboBoxTimetableTrain.SelectedIndexChanged += ComboBoxTimetableTrain_SelectedIndexChanged;
-            // 
-            // label23
-            // 
-            label23.AutoSize = true;
-            label23.Location = new System.Drawing.Point(4, 64);
-            label23.Margin = new System.Windows.Forms.Padding(4);
-            label23.Name = "label23";
-            label23.Size = new System.Drawing.Size(63, 15);
-            label23.TabIndex = 2;
-            label23.Text = "Timetable:";
-            label23.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // comboBoxTimetableDay
-            // 
-            comboBoxTimetableDay.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxTimetableDay.FormattingEnabled = true;
-            comboBoxTimetableDay.Location = new System.Drawing.Point(121, 149);
-            comboBoxTimetableDay.Margin = new System.Windows.Forms.Padding(4);
-            comboBoxTimetableDay.Name = "comboBoxTimetableDay";
-            comboBoxTimetableDay.Size = new System.Drawing.Size(96, 23);
-            comboBoxTimetableDay.TabIndex = 8;
-            comboBoxTimetableDay.SelectedIndexChanged += ComboBoxTimetableDay_SelectedIndexChanged;
-            // 
-            // label22
-            // 
-            label22.AutoSize = true;
-            label22.Location = new System.Drawing.Point(8, 152);
-            label22.Margin = new System.Windows.Forms.Padding(4);
-            label22.Name = "label22";
-            label22.Size = new System.Drawing.Size(30, 15);
-            label22.TabIndex = 7;
-            label22.Text = "Day:";
-            label22.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // comboBoxTimetableWeather
-            // 
-            comboBoxTimetableWeather.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            comboBoxTimetableWeather.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            comboBoxTimetableWeather.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxTimetableWeather.FormattingEnabled = true;
-            comboBoxTimetableWeather.Location = new System.Drawing.Point(121, 218);
-            comboBoxTimetableWeather.Margin = new System.Windows.Forms.Padding(4);
-            comboBoxTimetableWeather.Name = "comboBoxTimetableWeather";
-            comboBoxTimetableWeather.Size = new System.Drawing.Size(96, 23);
-            comboBoxTimetableWeather.TabIndex = 12;
-            comboBoxTimetableWeather.SelectedIndexChanged += ComboBoxTimetableWeather_SelectedIndexChanged;
-            // 
-            // label20
-            // 
-            label20.AutoSize = true;
-            label20.Location = new System.Drawing.Point(8, 220);
-            label20.Margin = new System.Windows.Forms.Padding(4);
-            label20.Name = "label20";
-            label20.Size = new System.Drawing.Size(54, 15);
-            label20.TabIndex = 11;
-            label20.Text = "Weather:";
-            label20.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // comboBoxTimetableSeason
-            // 
-            comboBoxTimetableSeason.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            comboBoxTimetableSeason.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            comboBoxTimetableSeason.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxTimetableSeason.FormattingEnabled = true;
-            comboBoxTimetableSeason.Location = new System.Drawing.Point(121, 182);
-            comboBoxTimetableSeason.Margin = new System.Windows.Forms.Padding(4);
-            comboBoxTimetableSeason.Name = "comboBoxTimetableSeason";
-            comboBoxTimetableSeason.Size = new System.Drawing.Size(96, 23);
-            comboBoxTimetableSeason.TabIndex = 10;
-            comboBoxTimetableSeason.SelectedIndexChanged += ComboBoxTimetableSeason_SelectedIndexChanged;
-            // 
-            // label21
-            // 
-            label21.AutoSize = true;
-            label21.Location = new System.Drawing.Point(8, 188);
-            label21.Margin = new System.Windows.Forms.Padding(4);
-            label21.Name = "label21";
-            label21.Size = new System.Drawing.Size(47, 15);
-            label21.TabIndex = 9;
-            label21.Text = "Season:";
-            label21.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // comboBoxTimetable
-            // 
-            comboBoxTimetable.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxTimetable.FormattingEnabled = true;
-            comboBoxTimetable.Location = new System.Drawing.Point(121, 60);
-            comboBoxTimetable.Margin = new System.Windows.Forms.Padding(4);
-            comboBoxTimetable.Name = "comboBoxTimetable";
-            comboBoxTimetable.Size = new System.Drawing.Size(256, 23);
-            comboBoxTimetable.TabIndex = 3;
-            comboBoxTimetable.SelectedIndexChanged += ComboBoxTimetable_SelectedIndexChanged;
-            comboBoxTimetable.EnabledChanged += ComboBoxTimetable_EnabledChanged;
-            // 
-            // comboBoxTimetableSet
-            // 
-            comboBoxTimetableSet.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxTimetableSet.FormattingEnabled = true;
-            comboBoxTimetableSet.Location = new System.Drawing.Point(4, 28);
-            comboBoxTimetableSet.Margin = new System.Windows.Forms.Padding(4);
-            comboBoxTimetableSet.Name = "comboBoxTimetableSet";
-            comboBoxTimetableSet.Size = new System.Drawing.Size(373, 23);
-            comboBoxTimetableSet.TabIndex = 1;
-            comboBoxTimetableSet.SelectedIndexChanged += ComboBoxTimetableSet_SelectedIndexChanged;
-            // 
-            // label15
-            // 
-            label15.AutoSize = true;
-            label15.Location = new System.Drawing.Point(4, 4);
-            label15.Margin = new System.Windows.Forms.Padding(4);
-            label15.Name = "label15";
-            label15.Size = new System.Drawing.Size(81, 15);
-            label15.TabIndex = 0;
-            label15.Text = "Timetable set:";
-            label15.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // linkLabelUpdate
             // 
@@ -817,11 +713,59 @@ namespace Orts.Menu
             contextMenuStripDocuments.Name = "contextMenuStripDocuments";
             contextMenuStripDocuments.Size = new System.Drawing.Size(61, 4);
             // 
+            // comboBoxStartWeather
+            // 
+            comboBoxStartWeather.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxStartWeather.Enabled = false;
+            comboBoxStartWeather.Location = new System.Drawing.Point(93, 530);
+            comboBoxStartWeather.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxStartWeather.Name = "comboBoxStartWeather";
+            comboBoxStartWeather.Size = new System.Drawing.Size(144, 23);
+            comboBoxStartWeather.TabIndex = 41;
+            comboBoxStartWeather.SelectionChangeCommitted += ComboBoxStartWeather_SelectionChangeCommitted;
+            // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new System.Drawing.Point(17, 534);
+            label12.Margin = new System.Windows.Forms.Padding(2);
+            label12.Name = "label12";
+            label12.Size = new System.Drawing.Size(54, 15);
+            label12.TabIndex = 40;
+            label12.Text = "Weather:";
+            label12.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // comboBoxStartSeason
+            // 
+            comboBoxStartSeason.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxStartSeason.Enabled = false;
+            comboBoxStartSeason.Location = new System.Drawing.Point(93, 497);
+            comboBoxStartSeason.Margin = new System.Windows.Forms.Padding(4);
+            comboBoxStartSeason.Name = "comboBoxStartSeason";
+            comboBoxStartSeason.Size = new System.Drawing.Size(144, 23);
+            comboBoxStartSeason.TabIndex = 39;
+            comboBoxStartSeason.SelectionChangeCommitted += ComboBoxStartSeason_SelectionChangeCommitted;
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new System.Drawing.Point(17, 500);
+            label8.Margin = new System.Windows.Forms.Padding(2);
+            label8.Name = "label8";
+            label8.Size = new System.Drawing.Size(47, 15);
+            label8.TabIndex = 38;
+            label8.Text = "Season:";
+            label8.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(1139, 674);
+            Controls.Add(comboBoxStartWeather);
+            Controls.Add(label12);
+            Controls.Add(comboBoxStartSeason);
+            Controls.Add(label8);
             Controls.Add(panelModeTimetable);
             Controls.Add(panelModeActivity);
             Controls.Add(radioButtonModeTimetable);
@@ -851,13 +795,13 @@ namespace Orts.Menu
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
             groupBox3.ResumeLayout(false);
+            panelModeTimetable.ResumeLayout(false);
+            panelModeTimetable.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBoxLogo).EndInit();
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             panelModeActivity.ResumeLayout(false);
             panelModeActivity.PerformLayout();
-            panelModeTimetable.ResumeLayout(false);
-            panelModeTimetable.PerformLayout();
             contextMenuStripTools.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
@@ -900,20 +844,12 @@ namespace Orts.Menu
         private System.Windows.Forms.ComboBox comboBoxHeadTo;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.ComboBox comboBoxStartTime;
-        private System.Windows.Forms.ComboBox comboBoxStartWeather;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.ComboBox comboBoxStartSeason;
-        private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Panel panelModeTimetable;
         private System.Windows.Forms.Label label24;
         private System.Windows.Forms.ComboBox comboBoxTimetableTrain;
         private System.Windows.Forms.Label label23;
         private System.Windows.Forms.ComboBox comboBoxTimetableDay;
         private System.Windows.Forms.Label label22;
-        private System.Windows.Forms.ComboBox comboBoxTimetableWeather;
-        private System.Windows.Forms.Label label20;
-        private System.Windows.Forms.ComboBox comboBoxTimetableSeason;
-        private System.Windows.Forms.Label label21;
         private System.Windows.Forms.ComboBox comboBoxTimetable;
         private System.Windows.Forms.ComboBox comboBoxTimetableSet;
         private System.Windows.Forms.Label label15;
@@ -926,5 +862,9 @@ namespace Orts.Menu
         private System.Windows.Forms.Label labelTimetableWeatherFile;
         private System.Windows.Forms.ComboBox comboBoxTimetableWeatherFile;
         private System.Windows.Forms.Button buttonConnectivityTest;
+        private System.Windows.Forms.ComboBox comboBoxStartWeather;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.ComboBox comboBoxStartSeason;
+        private System.Windows.Forms.Label label8;
     }
 }

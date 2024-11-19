@@ -31,7 +31,8 @@ namespace FreeTrainSimulator.Models.Independent.Settings
         public string TimetableSet { get; init; }
         public string TimetableName { get; init; }
         public string TimetableTrain { get; init; }
-        public int TimetableDay { get; init; }
+        public DayOfWeek TimetableDay { get; init; }
+        public string TimetableWeather { get; init; }
         // Shared selections
         public SeasonType Season { get; init; }
         public WeatherType Weather { get; init; }
