@@ -82,7 +82,6 @@ namespace Orts.Menu
         private bool initialized;
         private UserSettings settings;
         private IEnumerable<TimetableInfo> timetableSets = Array.Empty<TimetableInfo>();
-        private IEnumerable<WeatherFileInfo> timetableWeatherFileSet = Array.Empty<WeatherFileInfo>();
         private CancellationTokenSource ctsModelLoading;
         private CancellationTokenSource ctsTimeTableLoading;
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
@@ -108,7 +107,7 @@ namespace Orts.Menu
         internal TimetableFile SelectedTimetable => (TimetableFile)comboBoxTimetable.SelectedItem;
         internal TrainInformation SelectedTimetableTrain => (TrainInformation)comboBoxTimetableTrain.SelectedItem;
         internal int SelectedTimetableDay => initialized ? (comboBoxTimetableDay.SelectedItem as ComboBoxItem<int>).Value : 0;
-        internal WeatherFileInfo SelectedWeatherFile => (WeatherFileInfo)comboBoxTimetableWeatherFile.SelectedItem;
+        internal WeatherFileInfo SelectedWeatherFile { get; private set; }
         internal Consist SelectedTimetableConsist { get; private set; }
         internal PathModelCore SelectedTimetablePath { get; private set; }
 
@@ -350,26 +349,31 @@ namespace Orts.Menu
         private void ComboBoxActivity_SelectionChangeCommitted(object sender, EventArgs e)
         {
             ActivityChanged(comboBoxActivity.SelectedValue as ActivityModelCore);
+            ShowDetails();
         }
 
         private void ComboBoxLocomotive_SelectionChangeCommitted(object sender, EventArgs e)
         {
             LocomotiveChanged((comboBoxLocomotive.SelectedItem as ComboBoxItem<IGrouping<string, WagonSetModel>>)?.Value.FirstOrDefault(), comboBoxLocomotive.SelectedIndex == 0);
+            ShowDetails();
         }
 
         private void ComboBoxConsist_SelectionChangeCommitted(object sender, EventArgs e)
         {
             ConsistChanged((comboBoxConsist.SelectedItem as ComboBoxItem<WagonSetModel>)?.Value);
+            ShowDetails();
         }
 
         private void ComboBoxStartAt_SelectionChangeCommitted(object sender, EventArgs e)
         {
             PathChanged((comboBoxStartAt.SelectedItem as ComboBoxItem<IGrouping<string, PathModelCore>>)?.Value.FirstOrDefault());
+            ShowDetails();
         }
 
         private void ComboBoxHeadTo_SelectionChangeCommitted(object sender, EventArgs e)
         {
             PathChanged((comboBoxHeadTo.SelectedItem as ComboBoxItem<PathModelCore>)?.Value);
+            ShowDetails();
         }
         #endregion
 
@@ -473,7 +477,7 @@ namespace Orts.Menu
 
         private void ComboBoxTimetableWeatherFile_SelectedIndexChanged(object sender, EventArgs e)
         {
-            UpdateTimetableWeatherSet();
+            //UpdateTimetableWeatherSet();
         }
         #endregion
 
@@ -794,7 +798,7 @@ namespace Orts.Menu
             }
 
             comboBoxStartAt.EnableComboBoxItemDataSource(pathModels.Where(p => p.PlayerPath).GroupBy(p => p.Start).OrderBy(g => g.Key).
-                Select(g => new ComboBoxItem<IGrouping<string, PathModelCore>>($"{g.Key} {g.Count()} " + catalog.GetPluralString("train path", "train paths", g.Count()) + ")", g)));
+                Select(g => new ComboBoxItem<IGrouping<string, PathModelCore>>($"{g.Key} ({g.Count()} " + catalog.GetPluralString("train path", "train paths", g.Count()) + ")", g)));
         }
 
         private void SetupPathEndDropdown()
@@ -864,15 +868,12 @@ namespace Orts.Menu
             try
             {
                 timetableSets = (await TimetableInfo.GetTimetableInfo(selectedRoute.MstsRouteFolder(), ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(tt => tt.Description);
-                timetableWeatherFileSet = (await WeatherFileInfo.GetTimetableWeatherFiles(selectedRoute.MstsRouteFolder(), ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
             }
             catch (TaskCanceledException)
             {
                 timetableSets = Array.Empty<TimetableInfo>();
-                timetableWeatherFileSet = Array.Empty<WeatherFileInfo>();
             }
             ShowTimetableSetList();
-            ShowTimetableWeatherSet();
         }
 
         private void ShowTimetableSetList()
@@ -887,7 +888,7 @@ namespace Orts.Menu
             {
                 comboBoxTimetableSet.EndUpdate();
             }
-            UpdateFromMenuSelection(comboBoxTimetableSet, FreeTrainSimulator.Common.MenuSelection.TimetableSet, (TimetableInfo t) => t.FileName);
+            UpdateFromMenuSelection(comboBoxTimetableSet, MenuSelection.TimetableSet, (TimetableInfo t) => t.FileName);
             UpdateEnabled();
         }
 
@@ -901,14 +902,15 @@ namespace Orts.Menu
             }
         }
 
-        private void ShowTimetableWeatherSet()
+        private void SetupTimetableWeatherDropdown(FrozenSet<WeatherModelCore> weatherModels)
         {
-            comboBoxTimetableWeatherFile.Items.Clear();
-            foreach (WeatherFileInfo weatherFile in timetableWeatherFileSet)
+            if (InvokeRequired)
             {
-                comboBoxTimetableWeatherFile.Items.Add(weatherFile);
-                UpdateEnabled();
+                Invoke(SetupTimetableWeatherDropdown, weatherModels);
+                return;
             }
+
+            comboBoxTimetableWeatherFile.EnableComboBoxItemDataSource(weatherModels.OrderBy(w => w.Name).Select(w => new ComboBoxItem<WeatherModelCore>(w.Name, w)));
         }
 
         private void UpdateTimetableWeatherSet()
@@ -997,7 +999,7 @@ namespace Orts.Menu
                 {
                     AddDetailToShow(catalog.GetString("Locomotive: {0}", wagonSetModel.Locomotive.Name), wagonSetModel.Locomotive.Description);
                 }
-                if ((comboBoxActivity.SelectedValue is ActivityModelCore activityModel))
+                if ((comboBoxActivity.SelectedValue is ActivityModelCore activityModel && activityModel.ActivityType == ActivityType.Activity))
                 {
                     AddDetailToShow(catalog.GetString($"Activity: {activityModel.Name}"), activityModel.Description);
                     AddDetailToShow(catalog.GetString("Duration:"), $"{activityModel.Duration}");

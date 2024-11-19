@@ -13,6 +13,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
             subFolder = "Weather";
         }
 
-        public override RouteModel Parent => _parent as RouteModel;
+        public override RouteModelCore Parent => _parent as RouteModelCore;
     }
 }

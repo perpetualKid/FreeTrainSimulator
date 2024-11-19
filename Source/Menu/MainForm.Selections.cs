@@ -87,7 +87,7 @@ namespace Orts.Menu
 
             FrozenSet<PathModelCore> pathModels = null;
             FrozenSet<ActivityModelCore> activityModels = null;
-            FrozenSet<string> timetableWeatherFile = null;
+            FrozenSet<WeatherModelCore> timetableWeatherFiles = null;
 
             if (routeModel != null)
             {
@@ -96,6 +96,7 @@ namespace Orts.Menu
                 {
                     pathModels = await routeModel.GetPaths(ctsModelLoading.Token).ConfigureAwait(false);
                     activityModels = await routeModel.GetActivities(ctsModelLoading.Token).ConfigureAwait(false);
+                    timetableWeatherFiles = await routeModel.GetWeatherFiles(ctsModelLoading.Token).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException) { }
             }
@@ -105,6 +106,7 @@ namespace Orts.Menu
             SetupPathEndDropdown();
 
             //TODO load Timetablesets
+            SetupTimetableWeatherDropdown(timetableWeatherFiles);
             SelectedRoute = routeModel;
         }
 

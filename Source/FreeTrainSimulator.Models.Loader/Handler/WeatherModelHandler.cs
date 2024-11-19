@@ -5,16 +5,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
-
-using Orts.Formats.Msts.Files;
-
-using static System.Net.Mime.MediaTypeNames;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
@@ -50,7 +45,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return weatherModel;
         }
 
-        public static async ValueTask<FrozenSet<WeatherModelCore>> GetPaths(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async ValueTask<FrozenSet<WeatherModelCore>> GetWeatherFiles(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
@@ -135,7 +130,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (File.Exists(filePath))
             {
                 string id = Path.GetFileNameWithoutExtension(filePath);
-                id = new string(id.SelectMany((c, i) => i != 0 && char.IsUpper(c) && !char.IsUpper(id[i - 1]) ? new char[] { ' ', c } : new char[] { c }).ToArray());
+                id = new string(id.Replace('_', ' ').Replace('-', ' ').SelectMany((c, i) => i != 0 && char.IsUpper(c) && !char.IsUpper(id[i - 1]) ? new char[] { ' ', c } : new char[] { c }).ToArray());
                 WeatherModelCore weatherModel = new WeatherModelCore()
                 {
                     Name = id,

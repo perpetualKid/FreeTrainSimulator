@@ -679,14 +679,12 @@ namespace Orts.Menu
             // comboBoxTimetableDay
             // 
             comboBoxTimetableDay.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            comboBoxTimetableDay.Enabled = false;
             comboBoxTimetableDay.FormattingEnabled = true;
             comboBoxTimetableDay.Location = new System.Drawing.Point(121, 149);
             comboBoxTimetableDay.Margin = new System.Windows.Forms.Padding(4);
             comboBoxTimetableDay.Name = "comboBoxTimetableDay";
             comboBoxTimetableDay.Size = new System.Drawing.Size(96, 23);
             comboBoxTimetableDay.TabIndex = 8;
-            comboBoxTimetableDay.Visible = false;
             comboBoxTimetableDay.SelectedIndexChanged += ComboBoxTimetableDay_SelectedIndexChanged;
             // 
             // label22
@@ -699,7 +697,6 @@ namespace Orts.Menu
             label22.TabIndex = 7;
             label22.Text = "Day:";
             label22.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            label22.Visible = false;
             // 
             // comboBoxTimetableWeather
             // 
