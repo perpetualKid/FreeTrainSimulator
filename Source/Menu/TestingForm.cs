@@ -236,11 +236,12 @@ namespace Orts.Menu
             try
             {
                 _ = process.Start();
-                await process.WaitForExitAsync(cancellationToken);
+                await process.WaitForExitAsync(cancellationToken).ConfigureAwait(true);
 
                 if (process.ExitCode != 0)
                 {
-                    string errorMessage = process.StandardError.ReadToEnd();
+                    string errorMessage = await process.StandardError.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+                    Trace.TraceWarning(errorMessage);
                 }
 
                 if (!process.HasExited)
