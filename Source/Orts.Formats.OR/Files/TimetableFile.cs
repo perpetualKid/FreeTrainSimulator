@@ -138,8 +138,8 @@ namespace Orts.Formats.OR.Files
                     {
                         foreach (TrainInformation train in Trains)
                             train.Path = parts[train.Column];
+                        pathFound = true;
                     }
-                    pathFound = true;
                 }
                 if (!consistFound)
                 {

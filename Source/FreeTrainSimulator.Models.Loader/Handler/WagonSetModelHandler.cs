@@ -182,14 +182,9 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                                     Name = engFile.Name?.Trim(),
                                     Description = engFile.Description?.Trim(),
                                 })
-                                : null;
-                            //                            trainCars[i] = locomotive;
+                                : locomotive;
+                            trainCars[i] = locomotive;
                         }
-                        else
-                        {
-                            locomotive = WagonReferenceHandler.Missing;
-                        }
-                        break;
                     }
                 }
 
@@ -202,7 +197,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     Durability = consistFile.Train.Durability,
                     Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
                     TrainCars = trainCars.ToFrozenSet(),
-                    Locomotive = locomotive,
                 };
                 //this is the case where a file may have been renamed but not the consist id, ie. in case of copy cloning, so adopting the filename as id
                 if (string.IsNullOrEmpty(wagonSetModel.Id) || (!string.Equals(wagonSetModel.Tags[SourceNameKey].Trim(), wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)))

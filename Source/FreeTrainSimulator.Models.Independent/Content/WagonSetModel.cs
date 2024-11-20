@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Linq;
 
 using FreeTrainSimulator.Models.Independent.Base;
 
@@ -25,7 +26,9 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public float Durability { get; init; }
 
         public FrozenSet<WagonReferenceModel> TrainCars { get; init; } = FrozenSet<WagonReferenceModel>.Empty;
-        public WagonReferenceModel Locomotive { get; init; }
+        public WagonReferenceModel Locomotive => Reverse ? TrainCars.Where(c => c.TrainCarType == Common.TrainCarType.Engine).LastOrDefault() : TrainCars.Where(c => c.TrainCarType == Common.TrainCarType.Engine).FirstOrDefault();
+        [MemoryPackIgnore]
+        public bool Reverse { get; init; }
 
         public override void Initialize(string file, IFileResolve parent)
         {
