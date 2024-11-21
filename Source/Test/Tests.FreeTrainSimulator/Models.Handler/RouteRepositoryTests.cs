@@ -102,5 +102,23 @@ namespace Tests.FreeTrainSimulator.Models.Handler
 
         }
 
+        [TestMethod]
+        public async ValueTask ExpandRoute()
+        {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TF_BUILD")))
+                return;
+            Trace.WriteLine(VersionInfo.FullVersion);
+
+            ProfileModel profileModel = await ProfileModel.None.Get(CancellationToken.None).ConfigureAwait(false);
+            FolderModel folder = (await profileModel.GetFolders(CancellationToken.None).ConfigureAwait(false)).GetByName("OR Linia 202");
+            //            RouteModelCore route = (await folder.GetRoutes(CancellationToken.None).ConfigureAwait(false)).GetByName("SCE");
+
+            FrozenSet<RouteModelCore> routes = await RouteModelHandler.GetRoutes(folder, CancellationToken.None).ConfigureAwait(false);
+            RouteModelCore route = routes.GetByName("Linia202_80s");
+
+            FrozenSet<TimetableModel> timetables = await TimetableModelHandler.ExpandTimetableModels(route, CancellationToken.None).ConfigureAwait(false);
+
+        }
+
     }
 }

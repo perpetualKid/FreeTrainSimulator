@@ -102,8 +102,8 @@ namespace Orts.Menu
         internal PathModelCore SelectedPath { get; private set; }
 
         // Timetable mode items
-        internal TimetableInfo SelectedTimetableSet => (TimetableInfo)comboBoxTimetableSet.SelectedItem;
-        internal TimetableFile SelectedTimetable => (TimetableFile)comboBoxTimetable.SelectedItem;
+        internal TimetableInfo SelectedTimetableSet => null;//(TimetableInfo)comboBoxTimetableSet.SelectedItem;
+        internal TimetableFile SelectedTimetable => null;// (TimetableFile)comboBoxTimetable.SelectedItem;
         internal TrainInformation SelectedTimetableTrain => (TrainInformation)comboBoxTimetableTrain.SelectedItem;
         internal WeatherModelCore SelectedWeatherFile { get; private set; }
         internal Consist SelectedTimetableConsist { get; private set; }
@@ -421,31 +421,6 @@ namespace Orts.Menu
         private void ComboBoxTimetableWeatherFile_SelectionChangeCommitted(object sender, EventArgs e)
         {
             TimetableWeatherChanged((comboBoxTimetableWeatherFile.SelectedItem as ComboBoxItem<WeatherModelCore>)?.Value);
-        }
-
-        private void ComboBoxTimetableSet_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
-            //UpdateTimetableSet();
-            ShowTimetableList();
-            if (updater == 0)
-            {
-                ShowDetails();
-                detailUpdater = 0;
-            }
-        }
-        #endregion
-
-        #region Timetables
-        private void ComboBoxTimetable_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
-            ShowTimetableTrainList();
-            if (updater == 0)
-            {
-                ShowDetails();
-                detailUpdater = 0;
-            }
         }
         #endregion
 
@@ -878,6 +853,18 @@ namespace Orts.Menu
             UpdateEnabled();
         }
 
+        private void SetupTimetableDropdowns(FrozenSet<TimetableModel> timetables)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(SetupTimetableDropdowns, timetables);
+                return;
+            }
+
+            comboBoxTimetableSet.EnableComboBoxItemDataSource(timetables.GroupBy(t => t.Name).OrderBy(t => t.Key).
+                Select(t => new ComboBoxItem<IGrouping<string, TimetableModel>>($"{t.Key}", t)));
+        }
+
         private void SetupTimetableWeatherDropdown(FrozenSet<WeatherModelCore> weatherModels)
         {
             if (InvokeRequired)
@@ -897,7 +884,7 @@ namespace Orts.Menu
                 return;
             }
 
-            _ = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, profileSelections.TimetableWeather, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, profileSelections.WeatherChanges, StringComparison.OrdinalIgnoreCase));
             comboBoxTimetableDay.SelectedIndex = (int)profileSelections.TimetableDay;
 
         }

@@ -77,7 +77,7 @@ namespace Orts.Formats.OR.Files
             return Description;
         }
 
-        public void PreliminaryRead(string fileName, StreamReader scrStream, string separator)
+        private void PreliminaryRead(string fileName, StreamReader scrStream, string separator)
         {
             string readLine;
             string restLine;
@@ -178,7 +178,7 @@ namespace Orts.Formats.OR.Files
             }
         }
 
-        private string ExtractConsist(string consistDef, out bool reverse)
+        private static string ExtractConsist(string consistDef, out bool reverse)
         {
             reverse = false;
             string reqString = consistDef;

@@ -414,7 +414,6 @@ namespace Orts.Menu
             comboBoxTimetable.Name = "comboBoxTimetable";
             comboBoxTimetable.Size = new System.Drawing.Size(373, 23);
             comboBoxTimetable.TabIndex = 3;
-            comboBoxTimetable.SelectedIndexChanged += ComboBoxTimetable_SelectedIndexChanged;
             comboBoxTimetable.EnabledChanged += ComboBoxTimetable_EnabledChanged;
             // 
             // comboBoxTimetableSet
@@ -426,7 +425,6 @@ namespace Orts.Menu
             comboBoxTimetableSet.Name = "comboBoxTimetableSet";
             comboBoxTimetableSet.Size = new System.Drawing.Size(373, 23);
             comboBoxTimetableSet.TabIndex = 1;
-            comboBoxTimetableSet.SelectedIndexChanged += ComboBoxTimetableSet_SelectedIndexChanged;
             // 
             // label15
             // 

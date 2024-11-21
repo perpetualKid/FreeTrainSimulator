@@ -11,5 +11,6 @@
 		<ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
 		<ProjectReference Include="..\FreeTrainSimulator.Models.Independent\FreeTrainSimulator.Models.Independent.csproj" />
 		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
+		<ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
 	</ItemGroup>
 </Project>

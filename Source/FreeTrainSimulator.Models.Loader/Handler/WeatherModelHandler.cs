@@ -130,7 +130,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (File.Exists(filePath))
             {
                 string id = Path.GetFileNameWithoutExtension(filePath);
-                id = new string(id.Replace('_', ' ').Replace('-', ' ').SelectMany((c, i) => i != 0 && char.IsUpper(c) && !char.IsUpper(id[i - 1]) ? new char[] { ' ', c } : new char[] { c }).ToArray());
+                //inelegant but works - split into separate words, bound by _ and - separators as well uppercase char inside as in camelCase, and convert all words to Title Case
+                id = System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(new string(id.Replace('_', ' ').Replace('-', ' ').SelectMany((c, i) => i != 0 && char.IsUpper(c) && !char.IsUpper(id[i - 1]) ? new char[] { ' ', c } : new char[] { c }).ToArray()));
                 WeatherModelCore weatherModel = new WeatherModelCore()
                 {
                     Name = id,
