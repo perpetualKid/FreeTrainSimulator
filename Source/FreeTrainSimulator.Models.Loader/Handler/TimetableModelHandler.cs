@@ -151,7 +151,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             {
                 TimetableModel timetableModel;
 
-                if (Path.GetExtension(filePath).StartsWith("timetablelist", StringComparison.OrdinalIgnoreCase))
+                if (Path.GetExtension(filePath).StartsWith(".timetablelist", StringComparison.OrdinalIgnoreCase))
                 {
                     TimetableGroupFile groupFile = new TimetableGroupFile(filePath);
                     timetableModel = new TimetableModel()

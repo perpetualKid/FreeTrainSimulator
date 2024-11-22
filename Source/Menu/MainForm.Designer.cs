@@ -54,8 +54,6 @@ namespace Orts.Menu
             panel1 = new System.Windows.Forms.Panel();
             buttonDocuments = new System.Windows.Forms.Button();
             label25 = new System.Windows.Forms.Label();
-            radioButtonModeActivity = new System.Windows.Forms.RadioButton();
-            radioButtonModeTimetable = new System.Windows.Forms.RadioButton();
             panelModeActivity = new System.Windows.Forms.Panel();
             comboBoxHeadTo = new System.Windows.Forms.ComboBox();
             comboBoxStartAt = new System.Windows.Forms.ComboBox();
@@ -77,6 +75,9 @@ namespace Orts.Menu
             label12 = new System.Windows.Forms.Label();
             comboBoxStartSeason = new System.Windows.Forms.ComboBox();
             label8 = new System.Windows.Forms.Label();
+            panelActivityTypeSelections = new System.Windows.Forms.Panel();
+            radioButtonModeTimetable = new System.Windows.Forms.RadioButton();
+            radioButtonModeActivity = new System.Windows.Forms.RadioButton();
             groupBox1.SuspendLayout();
             groupBox3.SuspendLayout();
             panelModeTimetable.SuspendLayout();
@@ -84,6 +85,7 @@ namespace Orts.Menu
             panel1.SuspendLayout();
             panelModeActivity.SuspendLayout();
             contextMenuStripTools.SuspendLayout();
+            panelActivityTypeSelections.SuspendLayout();
             SuspendLayout();
             // 
             // buttonStart
@@ -370,7 +372,7 @@ namespace Orts.Menu
             comboBoxTimetableTrain.Name = "comboBoxTimetableTrain";
             comboBoxTimetableTrain.Size = new System.Drawing.Size(373, 23);
             comboBoxTimetableTrain.TabIndex = 5;
-            comboBoxTimetableTrain.SelectedIndexChanged += ComboBoxTimetableTrain_SelectedIndexChanged;
+            comboBoxTimetableTrain.SelectionChangeCommitted += ComboBoxTimetableTrain_SelectionChangeCommitted;
             // 
             // label23
             // 
@@ -414,7 +416,7 @@ namespace Orts.Menu
             comboBoxTimetable.Name = "comboBoxTimetable";
             comboBoxTimetable.Size = new System.Drawing.Size(373, 23);
             comboBoxTimetable.TabIndex = 3;
-            comboBoxTimetable.EnabledChanged += ComboBoxTimetable_EnabledChanged;
+            comboBoxTimetable.SelectionChangeCommitted += ComboBoxTimetable_SelectionChangeCommitted;
             // 
             // comboBoxTimetableSet
             // 
@@ -425,6 +427,7 @@ namespace Orts.Menu
             comboBoxTimetableSet.Name = "comboBoxTimetableSet";
             comboBoxTimetableSet.Size = new System.Drawing.Size(373, 23);
             comboBoxTimetableSet.TabIndex = 1;
+            comboBoxTimetableSet.SelectionChangeCommitted += ComboBoxTimetableSet_SelectionChangeCommitted;
             // 
             // label15
             // 
@@ -483,30 +486,6 @@ namespace Orts.Menu
             label25.TabIndex = 4;
             label25.Text = "Mode:";
             label25.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // radioButtonModeActivity
-            // 
-            radioButtonModeActivity.Checked = true;
-            radioButtonModeActivity.Location = new System.Drawing.Point(16, 152);
-            radioButtonModeActivity.Margin = new System.Windows.Forms.Padding(4);
-            radioButtonModeActivity.Name = "radioButtonModeActivity";
-            radioButtonModeActivity.Size = new System.Drawing.Size(172, 25);
-            radioButtonModeActivity.TabIndex = 6;
-            radioButtonModeActivity.TabStop = true;
-            radioButtonModeActivity.Text = "Activity";
-            radioButtonModeActivity.UseVisualStyleBackColor = true;
-            radioButtonModeActivity.CheckedChanged += RadioButtonMode_CheckedChanged;
-            // 
-            // radioButtonModeTimetable
-            // 
-            radioButtonModeTimetable.Location = new System.Drawing.Point(218, 151);
-            radioButtonModeTimetable.Margin = new System.Windows.Forms.Padding(4);
-            radioButtonModeTimetable.Name = "radioButtonModeTimetable";
-            radioButtonModeTimetable.Size = new System.Drawing.Size(172, 25);
-            radioButtonModeTimetable.TabIndex = 7;
-            radioButtonModeTimetable.Text = "Timetable";
-            radioButtonModeTimetable.UseVisualStyleBackColor = true;
-            radioButtonModeTimetable.CheckedChanged += RadioButtonMode_CheckedChanged;
             // 
             // panelModeActivity
             // 
@@ -755,19 +734,53 @@ namespace Orts.Menu
             label8.Text = "Season:";
             label8.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // panelActivityTypeSelections
+            // 
+            panelActivityTypeSelections.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            panelActivityTypeSelections.Controls.Add(radioButtonModeTimetable);
+            panelActivityTypeSelections.Controls.Add(radioButtonModeActivity);
+            panelActivityTypeSelections.Location = new System.Drawing.Point(13, 147);
+            panelActivityTypeSelections.Margin = new System.Windows.Forms.Padding(4);
+            panelActivityTypeSelections.Name = "panelActivityTypeSelections";
+            panelActivityTypeSelections.Size = new System.Drawing.Size(377, 29);
+            panelActivityTypeSelections.TabIndex = 23;
+            // 
+            // radioButtonModeTimetable
+            // 
+            radioButtonModeTimetable.Location = new System.Drawing.Point(200, 3);
+            radioButtonModeTimetable.Margin = new System.Windows.Forms.Padding(4);
+            radioButtonModeTimetable.Name = "radioButtonModeTimetable";
+            radioButtonModeTimetable.Size = new System.Drawing.Size(172, 25);
+            radioButtonModeTimetable.TabIndex = 9;
+            radioButtonModeTimetable.Text = "Timetable";
+            radioButtonModeTimetable.UseVisualStyleBackColor = true;
+            radioButtonModeTimetable.CheckedChanged += RadioButtonMode_CheckedChanged;
+            // 
+            // radioButtonModeActivity
+            // 
+            radioButtonModeActivity.Checked = true;
+            radioButtonModeActivity.Location = new System.Drawing.Point(7, 3);
+            radioButtonModeActivity.Margin = new System.Windows.Forms.Padding(4);
+            radioButtonModeActivity.Name = "radioButtonModeActivity";
+            radioButtonModeActivity.Size = new System.Drawing.Size(172, 25);
+            radioButtonModeActivity.TabIndex = 8;
+            radioButtonModeActivity.TabStop = true;
+            radioButtonModeActivity.Text = "Activity";
+            radioButtonModeActivity.UseVisualStyleBackColor = true;
+            radioButtonModeActivity.CheckedChanged += RadioButtonMode_CheckedChanged;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(1139, 674);
+            Controls.Add(panelActivityTypeSelections);
             Controls.Add(comboBoxStartWeather);
             Controls.Add(label12);
             Controls.Add(comboBoxStartSeason);
             Controls.Add(label8);
             Controls.Add(panelModeTimetable);
             Controls.Add(panelModeActivity);
-            Controls.Add(radioButtonModeTimetable);
-            Controls.Add(radioButtonModeActivity);
             Controls.Add(label25);
             Controls.Add(panel1);
             Controls.Add(panelDetails);
@@ -801,6 +814,7 @@ namespace Orts.Menu
             panelModeActivity.ResumeLayout(false);
             panelModeActivity.PerformLayout();
             contextMenuStripTools.ResumeLayout(false);
+            panelActivityTypeSelections.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -827,8 +841,6 @@ namespace Orts.Menu
         private System.Windows.Forms.Panel panelDetails;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label label25;
-        private System.Windows.Forms.RadioButton radioButtonModeActivity;
-        private System.Windows.Forms.RadioButton radioButtonModeTimetable;
         private System.Windows.Forms.Panel panelModeActivity;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ComboBox comboBoxActivity;
@@ -864,5 +876,8 @@ namespace Orts.Menu
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.ComboBox comboBoxStartSeason;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Panel panelActivityTypeSelections;
+        private System.Windows.Forms.RadioButton radioButtonModeTimetable;
+        private System.Windows.Forms.RadioButton radioButtonModeActivity;
     }
 }

@@ -9,6 +9,8 @@ using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Shim;
 
+using SharpDX.XAudio2;
+
 namespace Orts.Menu
 {
     public partial class MainForm
@@ -107,7 +109,7 @@ namespace Orts.Menu
             SetupPathStartDropdown(pathModels ?? FrozenSet<PathModelCore>.Empty);
             SetupPathEndDropdown();
 
-            SetupTimetableDropdowns(timetableModels ?? FrozenSet<TimetableModel>.Empty);
+            SetupTimetableSetDropdown(timetableModels ?? FrozenSet<TimetableModel>.Empty);
             SetupTimetableWeatherDropdown(timetableWeatherFiles ?? FrozenSet<WeatherModelCore>.Empty);
             SelectedRoute = routeModel;
         }
@@ -177,7 +179,56 @@ namespace Orts.Menu
             SelectedPath = pathModel;
 
             SetupPathEndDropdown();
-            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(currentSelections.PathName, cbi.Value.Id, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxHeadTo.SetComboBoxItem((PathModelCore pathModelItem) => string.Equals(currentSelections.PathName, pathModelItem.Id, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void TimetableSetChanged(TimetableModel timetableModel)
+        {
+            if (timetableModel == SelectedTimetable)
+                return;
+
+            timetableModel = comboBoxTimetableSet.SetComboBoxItem((TimetableModel timetableItem) => string.Equals(timetableModel?.Id, timetableItem.Id, StringComparison.OrdinalIgnoreCase));
+
+            SetupTimetableDropdown();
+            IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, currentSelections.TimetableName, StringComparison.OrdinalIgnoreCase));
+
+            TimetableChanged(timetable);
+
+            currentSelections = currentSelections with
+            {
+                TimetableSet = timetableModel?.Id,
+            };
+            SelectedTimetable = timetableModel;
+        }
+
+        private void TimetableChanged(IGrouping<string, TimetableTrainModel> timetableTrainModels)
+        {
+            if (timetableTrainModels.Key == SelectedTimetableGroup)
+                return;
+
+            IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, timetableTrainModels.Key, StringComparison.OrdinalIgnoreCase));
+
+            currentSelections = currentSelections with
+            {
+                TimetableName = timetableTrainModels.Key,
+            };
+            SelectedTimetableGroup = timetableTrainModels.Key;
+
+            SetupTimetableTrainsDropdown();
+        }
+
+        private void TimetableTrainChanged(TimetableTrainModel timetableTrainModel)
+        {
+            if (timetableTrainModel == SelectedTimetableTrain)
+                return;
+
+            timetableTrainModel = comboBoxTimetableTrain.SetComboBoxItem((TimetableTrainModel timetableTrainItem) => string.Equals(timetableTrainModel?.Id, timetableTrainItem.Id, StringComparison.OrdinalIgnoreCase));
+
+            currentSelections = currentSelections with 
+            { 
+                TimetableTrain = timetableTrainModel.Id 
+            };
+            SelectedTimetableTrain = timetableTrainModel;
         }
 
         private void TimetableWeatherChanged(WeatherModelCore weatherModel)

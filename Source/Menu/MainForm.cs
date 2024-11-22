@@ -43,7 +43,6 @@ using FreeTrainSimulator.Updater;
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.Settings;
 
@@ -80,15 +79,12 @@ namespace Orts.Menu
         };
 
         private UserSettings settings;
-        private IEnumerable<TimetableInfo> timetableSets = Array.Empty<TimetableInfo>();
         private CancellationTokenSource ctsModelLoading;
-        private CancellationTokenSource ctsTimeTableLoading;
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         private readonly ResourceManager resources = new ResourceManager("Orts.Menu.Properties.Resources", typeof(MainForm).Assembly);
         private UpdateManager updateManager;
         private readonly Image elevationIcon;
-        private int detailUpdater;
 
         #region current selection to be passed a startup parameters
         internal ProfileModel SelectedProfile { get; private set; }
@@ -102,9 +98,10 @@ namespace Orts.Menu
         internal PathModelCore SelectedPath { get; private set; }
 
         // Timetable mode items
-        internal TimetableInfo SelectedTimetableSet => null;//(TimetableInfo)comboBoxTimetableSet.SelectedItem;
-        internal TimetableFile SelectedTimetable => null;// (TimetableFile)comboBoxTimetable.SelectedItem;
-        internal TrainInformation SelectedTimetableTrain => (TrainInformation)comboBoxTimetableTrain.SelectedItem;
+        internal TimetableInfo SelectedTimetableSet { get; private set; }
+        internal TimetableModel SelectedTimetable { get; private set; }
+        internal string SelectedTimetableGroup { get; private set; }
+        internal TimetableTrainModel SelectedTimetableTrain { get; private set; }
         internal WeatherModelCore SelectedWeatherFile { get; private set; }
         internal Consist SelectedTimetableConsist { get; private set; }
         internal PathModelCore SelectedTimetablePath { get; private set; }
@@ -145,8 +142,6 @@ namespace Orts.Menu
                 components?.Dispose();
                 ctsModelLoading?.Cancel();
                 ctsModelLoading?.Dispose();
-                ctsTimeTableLoading?.Cancel();
-                ctsTimeTableLoading?.Dispose();
                 elevationIcon?.Dispose();
                 updateManager?.Dispose();
             }
@@ -328,7 +323,7 @@ namespace Orts.Menu
         {
             ActivityType FromSelection() => radioButtonModeTimetable.Checked
                     ? ActivityType.TimeTable
-                    : radioButtonModeActivity.Checked ? ActivityType.Activity : ActivityType.None;
+                    : (comboBoxActivity.SelectedValue as ActivityModelCore)?.ActivityType ?? ActivityType.Activity;
 
             currentSelections = currentSelections with { ActivityType = FromSelection() };
 
@@ -422,26 +417,25 @@ namespace Orts.Menu
         {
             TimetableWeatherChanged((comboBoxTimetableWeatherFile.SelectedItem as ComboBoxItem<WeatherModelCore>)?.Value);
         }
-        #endregion
 
-        #region Timetable Trains
-        private async void ComboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxTimetableSet_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            if (comboBoxTimetableTrain.SelectedItem is TrainInformation selectedTrain)
-            {
-                int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
-                SelectedTimetableConsist = Consist.GetConsist(SelectedFolder.MstsContentFolder(), selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
-
-                PathModelCore pathModel = string.IsNullOrEmpty(selectedTrain.Path) ? null : await SelectedRoute.PathModel(selectedTrain.Path, CancellationToken.None).ConfigureAwait(false);
-                SelectedTimetablePath = pathModel == null || !pathModel.PlayerPath ? null : pathModel;
-
-                if (updater == 0)
-                {
-                    ShowDetails();
-                    detailUpdater = 0;
-                }
-            }
+            TimetableSetChanged((comboBoxTimetableSet.SelectedItem as ComboBoxItem<TimetableModel>)?.Value);
+            ShowDetails();
         }
+
+        private void ComboBoxTimetable_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            TimetableChanged((comboBoxTimetable.SelectedValue as IGrouping<string, TimetableTrainModel>));
+            ShowDetails();
+        }
+
+        private void ComboBoxTimetableTrain_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            TimetableTrainChanged((comboBoxTimetableTrain.SelectedValue as TimetableTrainModel));
+            ShowDetails();
+        }
+
         #endregion
 
         #region Multiplayer
@@ -639,11 +633,6 @@ namespace Orts.Menu
             {
                 settings.Multiplayer_Port = (int)settings.GetDefaultValue("Multiplayer_Port");
             }
-            // Timetable mode
-            settings.MenuSelection[MenuSelection.TimetableSet] = SelectedTimetableSet?.FileName ?? string.Empty;
-            settings.MenuSelection[MenuSelection.Timetable] = SelectedTimetable?.Description ?? string.Empty;
-            settings.MenuSelection[MenuSelection.Train] = SelectedTimetableTrain?.Column.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
-
             settings.Save();
 
             _ = UpdateSelections();
@@ -673,7 +662,7 @@ namespace Orts.Menu
             comboBoxConsist.Enabled = comboBoxConsist.Items.Count > 0 && explorerActivity;
             comboBoxStartAt.Enabled = comboBoxStartAt.Items.Count > 0 && explorerActivity;
             comboBoxHeadTo.Enabled = comboBoxHeadTo.Items.Count > 0 && explorerActivity;
-            comboBoxStartTime.Enabled = comboBoxStartSeason.Enabled = comboBoxStartWeather.Enabled = explorerActivity;
+            comboBoxStartTime.Enabled = comboBoxStartSeason.Enabled = comboBoxStartWeather.Enabled = explorerActivity || currentSelections?.ActivityType == ActivityType.TimeTable;
             comboBoxTimetable.Enabled = comboBoxTimetableSet.Items.Count > 0;
             comboBoxTimetableTrain.Enabled = comboBoxTimetable.Items.Count > 0;
             comboBoxTimetableWeatherFile.Enabled = comboBoxTimetableWeatherFile.Items.Count > 0;
@@ -819,50 +808,40 @@ namespace Orts.Menu
         #endregion
 
         #region Timetable dropwon selections
-        private async Task LoadTimetableSetListAsync()
-        {
-            ctsTimeTableLoading = await ctsTimeTableLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
-            ShowTimetableSetList();
-
-            FolderModel selectedFolder = SelectedFolder;
-            RouteModelCore selectedRoute = SelectedRoute;
-            try
-            {
-                timetableSets = (await TimetableInfo.GetTimetableInfo(selectedRoute.MstsRouteFolder(), ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(tt => tt.Description);
-            }
-            catch (TaskCanceledException)
-            {
-                timetableSets = Array.Empty<TimetableInfo>();
-            }
-            ShowTimetableSetList();
-        }
-
-        private void ShowTimetableSetList()
-        {
-            try
-            {
-                comboBoxTimetableSet.BeginUpdate();
-                comboBoxTimetableSet.Items.Clear();
-                comboBoxTimetableSet.Items.AddRange(timetableSets.ToArray());
-            }
-            finally
-            {
-                comboBoxTimetableSet.EndUpdate();
-            }
-            UpdateFromMenuSelection(comboBoxTimetableSet, MenuSelection.TimetableSet, (TimetableInfo t) => t.FileName);
-            UpdateEnabled();
-        }
-
-        private void SetupTimetableDropdowns(FrozenSet<TimetableModel> timetables)
+        private void SetupTimetableSetDropdown(FrozenSet<TimetableModel> timetables)
         {
             if (InvokeRequired)
             {
-                Invoke(SetupTimetableDropdowns, timetables);
+                Invoke(SetupTimetableSetDropdown, timetables);
                 return;
             }
 
-            comboBoxTimetableSet.EnableComboBoxItemDataSource(timetables.GroupBy(t => t.Name).OrderBy(t => t.Key).
-                Select(t => new ComboBoxItem<IGrouping<string, TimetableModel>>($"{t.Key}", t)));
+            comboBoxTimetableSet.EnableComboBoxItemDataSource(timetables.OrderBy(t => t.Name).Select(t => new ComboBoxItem<TimetableModel>($"{t.Name}", t)));
+        }
+
+        private void SetupTimetableDropdown()
+        {
+            if (InvokeRequired)
+            {
+                Invoke(SetupTimetableDropdown);
+                return;
+            }
+
+            comboBoxTimetable.EnableComboBoxItemDataSource((comboBoxTimetableSet.SelectedValue as TimetableModel)?.TimetableTrains.GroupBy(t => t.Group)?.OrderBy(g => g.Key).
+                Select(g => new ComboBoxItem<IGrouping<string, TimetableTrainModel>>($"{g.Key} ({g.Count()} train services)", g)));
+        }
+
+        private void SetupTimetableTrainsDropdown()
+        {
+            if (InvokeRequired)
+            {
+                Invoke(SetupTimetableTrainsDropdown);
+                return;
+            }
+
+            comboBoxTimetableTrain.EnableComboBoxItemDataSource((comboBoxTimetable.SelectedValue as IGrouping<string, TimetableTrainModel>)?.OrderBy(t => t.StartTime).ThenBy(t => t.Name).
+                Select(t => new ComboBoxItem<TimetableTrainModel>($"{t.StartTime} {t.Name}", t)));
+            UpdateEnabled();
         }
 
         private void SetupTimetableWeatherDropdown(FrozenSet<WeatherModelCore> weatherModels)
@@ -884,60 +863,21 @@ namespace Orts.Menu
                 return;
             }
 
+            // values
+            _ = comboBoxStartSeason.SetComboBoxItem((ComboBoxItem<SeasonType> cbi) => cbi.Value == profileSelections.Season);
+            _ = comboBoxStartWeather.SetComboBoxItem((ComboBoxItem<WeatherType> cbi) => cbi.Value == profileSelections.Weather);
+
+            _ = comboBoxTimetableSet.SetComboBoxItem((TimetableModel timetableItem) => string.Equals(timetableItem.Id, profileSelections.TimetableSet, StringComparison.OrdinalIgnoreCase));
+            SetupTimetableDropdown();
+            _ = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, profileSelections.TimetableName, StringComparison.OrdinalIgnoreCase));
+            SetupTimetableTrainsDropdown();
+            _ = comboBoxTimetableTrain.SetComboBoxItem((TimetableTrainModel timetableTrainItem) => string.Equals(timetableTrainItem.Id, profileSelections.TimetableTrain, StringComparison.OrdinalIgnoreCase));
+
             _ = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, profileSelections.WeatherChanges, StringComparison.OrdinalIgnoreCase));
             comboBoxTimetableDay.SelectedIndex = (int)profileSelections.TimetableDay;
 
-        }
-        #endregion
-
-        #region Timetable list
-        private void ShowTimetableList()
-        {
-            if (null != SelectedTimetableSet)
-            {
-                try
-                {
-                    comboBoxTimetable.BeginUpdate();
-                    comboBoxTimetable.Items.Clear();
-                    comboBoxTimetable.Items.AddRange(SelectedTimetableSet.TimeTables.ToArray());
-                }
-                finally
-                {
-                    comboBoxTimetable.EndUpdate();
-                }
-                UpdateFromMenuSelection(comboBoxTimetable, FreeTrainSimulator.Common.MenuSelection.Timetable, (TimetableFile t) => t.Description);
-            }
-            else
-                comboBoxTimetable.Items.Clear();
-
             UpdateEnabled();
-        }
-        #endregion
-
-        #region Timetable Train list
-        private void ShowTimetableTrainList()
-        {
-            if (null != SelectedTimetableSet)
-            {
-                try
-                {
-                    comboBoxTimetableTrain.BeginUpdate();
-                    comboBoxTimetableTrain.Items.Clear();
-
-                    List<TrainInformation> trains = SelectedTimetableSet.TimeTables[comboBoxTimetable.SelectedIndex].Trains;
-                    trains.Sort();
-                    comboBoxTimetableTrain.Items.AddRange(trains.ToArray());
-                }
-                finally
-                {
-                    comboBoxTimetableTrain.EndUpdate();
-                }
-                UpdateFromMenuSelection(comboBoxTimetableTrain, FreeTrainSimulator.Common.MenuSelection.Train, (TrainInformation t) => t.Column.ToString(CultureInfo.InvariantCulture));
-            }
-            else
-                comboBoxTimetableTrain.Items.Clear();
-
-            UpdateEnabled();
+            ShowDetails();
         }
         #endregion
 
@@ -974,24 +914,19 @@ namespace Orts.Menu
                     catalog.GetString("Heading to: {0}", pathModel.End)));
                 }
             }
-            if (radioButtonModeTimetable.Checked)
+            else
             {
-                if (SelectedTimetableSet != null)
-                {
-                    AddDetailToShow(catalog.GetString("Timetable set: {0}", SelectedTimetableSet), string.Empty);
-                    // Description not shown as no description is available for a timetable set.
-                }
-
                 if (SelectedTimetable != null)
                 {
-                    AddDetailToShow(catalog.GetString("Timetable: {0}", SelectedTimetable), SelectedTimetable.Briefing);
+                    if (!string.IsNullOrEmpty(SelectedTimetableGroup))
+                        AddDetailToShow(catalog.GetString($"Timetable: {SelectedTimetableGroup}"), SelectedTimetable.Name);
                 }
                 if (SelectedTimetableTrain != null)
                 {
                     if (string.IsNullOrEmpty(SelectedTimetableTrain.Briefing))
-                        AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTimeCleaned));
+                        AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain.Name), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTime));
                     else
-                        AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTimeCleaned) + $"\n{SelectedTimetableTrain.Briefing}");
+                        AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain.Name), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTime) + $"\n{SelectedTimetableTrain.Briefing}");
 
                     if (SelectedTimetableConsist != null)
                     {
@@ -1011,6 +946,7 @@ namespace Orts.Menu
             FlowDetails();
         }
 
+        #region Details Panel
         private readonly List<Detail> details = new List<Detail>();
 
         private sealed class Detail
@@ -1167,36 +1103,6 @@ namespace Orts.Menu
         }
         #endregion
 
-        #region Utility functions
-        private void UpdateFromMenuSelection<T>(ComboBox comboBox, MenuSelection menuSelection, Func<T, string> map)
-        {
-            UpdateFromMenuSelection(comboBox, menuSelection, map, default);
-        }
-
-        private void UpdateFromMenuSelectionComboBoxItem<T>(ComboBox comboBox, MenuSelection menuSelection, T defaultValue)
-        {
-            UpdateFromMenuSelection(comboBox, menuSelection, (item => item.Value.ToString()), new ComboBoxItem<T>(string.Empty, defaultValue));
-        }
-
-        private void UpdateFromMenuSelection<T>(ComboBox comboBox, MenuSelection menuSelection, Func<T, string> map, T defaultValue)
-        {
-            if (!string.IsNullOrEmpty(settings.MenuSelection[menuSelection]))
-            {
-                if (comboBox.DropDownStyle == ComboBoxStyle.DropDown)
-                    comboBox.Text = settings.MenuSelection[menuSelection];
-                else
-                    comboBox.SetComboBoxItem((T item) => string.Equals(map(item), settings.MenuSelection[menuSelection], StringComparison.OrdinalIgnoreCase));
-            }
-            else
-            {
-                if (comboBox.DropDownStyle == ComboBoxStyle.DropDown)
-                    comboBox.Text = map(defaultValue);
-                else if (defaultValue != null)
-                    comboBox.SetComboBoxItem((T item) => map(item) == map(defaultValue));
-                else if (comboBox.Items.Count > 0)
-                    comboBox.SelectedIndex = 0;
-            }
-        }
         #endregion
 
         #region Executable utils
@@ -1251,21 +1157,5 @@ namespace Orts.Menu
             }
         }
         #endregion
-
-        private void ComboBoxTimetable_EnabledChanged(object sender, EventArgs e)
-        {
-            //Debrief Eval TTActivity.
-            if (!comboBoxTimetable.Enabled)
-            {
-                //comboBoxTimetable.Enabled == false then we erase comboBoxTimetable and comboBoxTimetableTrain data.
-                if (comboBoxTimetable.Items.Count > 0)
-                {
-                    comboBoxTimetable.Items.Clear();
-                    comboBoxTimetableTrain.Items.Clear();
-                    buttonStart.Enabled = false;
-                }
-            }
-            //TO DO: Debrief Eval TTActivity
-        }
     }
 }
