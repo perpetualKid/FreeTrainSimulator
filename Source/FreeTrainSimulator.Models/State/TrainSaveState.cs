@@ -10,6 +10,7 @@ using MemoryPack;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Formats.OR.Models;
 
 namespace FreeTrainSimulator.Models.State
 {

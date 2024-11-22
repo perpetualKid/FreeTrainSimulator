@@ -37,6 +37,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
+using Orts.Formats.OR.Models;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.RollingStocks;
@@ -1961,7 +1962,7 @@ namespace Orts.Simulation.Timetables
             /// <param name="commandQualifiers"></param>
             /// <param name="delayType"></param>
             /// <returns></returns>
-            private static FreeTrainSimulator.Models.Simplified.DelayedStart ProcessRestartDelayValues(string trainName, List<TTTrainCommands.TTTrainComQualifiers> commandQualifiers, string delayType)
+            private static DelayedStart ProcessRestartDelayValues(string trainName, List<TTTrainCommands.TTTrainComQualifiers> commandQualifiers, string delayType)
             {
                 int fixedPart = 0;
                 int randomPart = 0;
@@ -2000,7 +2001,7 @@ namespace Orts.Simulation.Timetables
                             break;
                     }
                 }
-                return new FreeTrainSimulator.Models.Simplified.DelayedStart(fixedPart, randomPart);
+                return new DelayedStart(fixedPart, randomPart);
             }
 
             //================================================================================================//

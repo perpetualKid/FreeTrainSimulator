@@ -56,5 +56,10 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return models.GetByName(name) ?? models.OrderBy(m => m.Name).FirstOrDefault();
         }
 
+        public static T GetById<T>(this FrozenSet<T> models, string id) where T : ModelBase<T>
+        {
+            return models.Where(m => string.Equals(m.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+        }
+
     }
 }

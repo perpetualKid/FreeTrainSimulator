@@ -9,13 +9,11 @@ using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Shim;
 
-using SharpDX.XAudio2;
-
 namespace Orts.Menu
 {
     public partial class MainForm
     {
-        private ProfileSelectionsModel currentSelections;
+        internal ProfileSelectionsModel CurrentSelections { get; private set; }
         private static WagonReferenceModel anyConsist;
 
         private async Task ProfileChanged(ProfileModel profileModel)
@@ -26,7 +24,7 @@ namespace Orts.Menu
             ctsModelLoading = await ctsModelLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
             SelectedProfile = await (profileModel ?? ProfileModel.None).Get(ctsModelLoading.Token).ConfigureAwait(false);
-            currentSelections = await SelectedProfile.SelectionsModel(ctsModelLoading.Token).ConfigureAwait(false);
+            CurrentSelections = await SelectedProfile.SelectionsModel(ctsModelLoading.Token).ConfigureAwait(false);
 
             //Initial setup if necessary
             if (SelectedProfile.ContentFolders.Count == 0)
@@ -37,9 +35,9 @@ namespace Orts.Menu
             {
                 FrozenSet<FolderModel> contentFolders = await SelectedProfile.GetFolders(ctsModelLoading.Token).ConfigureAwait(false);
                 SetupFoldersDropdown(contentFolders);
-                await FolderChanged(contentFolders.GetByNameOrFirstByName(currentSelections?.FolderName)).ConfigureAwait(false);
+                await FolderChanged(contentFolders.GetByNameOrFirstByName(CurrentSelections?.FolderName)).ConfigureAwait(false);
             }
-            SetupActivityFromSelection(currentSelections);
+            SetupActivityFromSelection(CurrentSelections);
         }
 
         private async Task FolderChanged(FolderModel contentFolder)
@@ -55,7 +53,7 @@ namespace Orts.Menu
             contentFolder = await contentFolder.Get(CancellationToken.None).ConfigureAwait(false);
 
             contentFolder = comboBoxFolder.SetComboBoxItem((FolderModel folderItem) => string.Equals(folderItem.Name, contentFolder?.Name, StringComparison.OrdinalIgnoreCase));
-            currentSelections = currentSelections with { FolderName = contentFolder?.Name };
+            CurrentSelections = CurrentSelections with { FolderName = contentFolder?.Name };
             SelectedFolder = contentFolder;
 
             ctsModelLoading = await ctsModelLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
@@ -73,7 +71,7 @@ namespace Orts.Menu
 
             SetupRoutesDropdown(routeModels);
             SetupLocomotivesDropdown(consistModels);
-            RouteModelCore routeModel = routeModels.GetByName(currentSelections?.RouteName);
+            RouteModelCore routeModel = routeModels.GetByName(CurrentSelections?.RouteName);
             await RouteChanged(routeModel).ConfigureAwait(false);
         }
 
@@ -84,7 +82,7 @@ namespace Orts.Menu
 
             routeModel = comboBoxRoute.SetComboBoxItem((RouteModelCore routeModelItem) => string.Equals(routeModelItem.Name, routeModel?.Name, StringComparison.OrdinalIgnoreCase));
 
-            currentSelections = currentSelections with { RouteName = routeModel?.Name };
+            CurrentSelections = CurrentSelections with { RouteName = routeModel?.Name };
             SelectedRoute = routeModel;
 
             FrozenSet<PathModelCore> pathModels = null;
@@ -121,7 +119,7 @@ namespace Orts.Menu
 
             activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Id, activityModel?.Id, StringComparison.OrdinalIgnoreCase));
 
-            currentSelections = currentSelections with
+            CurrentSelections = CurrentSelections with
             {
                 ActivityName = activityModel?.Name,
                 ActivityType = activityModel.ActivityType,
@@ -133,7 +131,7 @@ namespace Orts.Menu
             };
             SelectedActivity = activityModel;
 
-            SetupActivityFromSelection(currentSelections);
+            SetupActivityFromSelection(CurrentSelections);
         }
 
         private void LocomotiveChanged(WagonSetModel wagonSetModel, bool any)
@@ -144,14 +142,14 @@ namespace Orts.Menu
             if (!any)
             {
                 _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => string.Equals(w.Id, wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)).Any());
-                currentSelections = currentSelections with
+                CurrentSelections = CurrentSelections with
                 {
                     WagonSetName = wagonSetModel?.Id,
                 };
                 SelectedConsist = wagonSetModel;
             }
             SetupConsistsDropdown();
-            _ = comboBoxConsist.SetComboBoxItem((WagonSetModel wagonSetItem) => string.Equals(wagonSetItem.Id, currentSelections.WagonSetName, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxConsist.SetComboBoxItem((WagonSetModel wagonSetItem) => string.Equals(wagonSetItem.Id, CurrentSelections.WagonSetName, StringComparison.OrdinalIgnoreCase));
         }
 
         private void ConsistChanged(WagonSetModel wagonSetModel)
@@ -160,7 +158,7 @@ namespace Orts.Menu
                 return;
 
             wagonSetModel = comboBoxConsist.SetComboBoxItem((WagonSetModel wagonSetItem) => string.Equals(wagonSetItem.Id, wagonSetModel.Id, StringComparison.OrdinalIgnoreCase));
-            currentSelections = currentSelections with
+            CurrentSelections = CurrentSelections with
             {
                 WagonSetName = wagonSetModel?.Id,
             };
@@ -175,11 +173,11 @@ namespace Orts.Menu
 
             pathModel = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Any(p => p.Id == pathModel?.Id)).FirstOrDefault(p => p.Id == pathModel?.Id);
 
-            currentSelections = currentSelections with { PathName = pathModel?.Id };
+            CurrentSelections = CurrentSelections with { PathName = pathModel?.Id };
             SelectedPath = pathModel;
 
             SetupPathEndDropdown();
-            _ = comboBoxHeadTo.SetComboBoxItem((PathModelCore pathModelItem) => string.Equals(currentSelections.PathName, pathModelItem.Id, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxHeadTo.SetComboBoxItem((PathModelCore pathModelItem) => string.Equals(CurrentSelections.PathName, pathModelItem.Id, StringComparison.OrdinalIgnoreCase));
         }
 
         private void TimetableSetChanged(TimetableModel timetableModel)
@@ -190,11 +188,11 @@ namespace Orts.Menu
             timetableModel = comboBoxTimetableSet.SetComboBoxItem((TimetableModel timetableItem) => string.Equals(timetableModel?.Id, timetableItem.Id, StringComparison.OrdinalIgnoreCase));
 
             SetupTimetableDropdown();
-            IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, currentSelections.TimetableName, StringComparison.OrdinalIgnoreCase));
+            IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, CurrentSelections.TimetableName, StringComparison.OrdinalIgnoreCase));
 
             TimetableChanged(timetable);
 
-            currentSelections = currentSelections with
+            CurrentSelections = CurrentSelections with
             {
                 TimetableSet = timetableModel?.Id,
             };
@@ -208,7 +206,7 @@ namespace Orts.Menu
 
             IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, timetableTrainModels.Key, StringComparison.OrdinalIgnoreCase));
 
-            currentSelections = currentSelections with
+            CurrentSelections = CurrentSelections with
             {
                 TimetableName = timetableTrainModels.Key,
             };
@@ -224,7 +222,7 @@ namespace Orts.Menu
 
             timetableTrainModel = comboBoxTimetableTrain.SetComboBoxItem((TimetableTrainModel timetableTrainItem) => string.Equals(timetableTrainModel?.Id, timetableTrainItem.Id, StringComparison.OrdinalIgnoreCase));
 
-            currentSelections = currentSelections with 
+            CurrentSelections = CurrentSelections with 
             { 
                 TimetableTrain = timetableTrainModel.Id 
             };
@@ -238,7 +236,7 @@ namespace Orts.Menu
 
             weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, weatherModel?.Id, StringComparison.OrdinalIgnoreCase));
 
-            currentSelections = currentSelections with
+            CurrentSelections = CurrentSelections with
             {
                 WeatherChanges = weatherModel?.Id,
             };

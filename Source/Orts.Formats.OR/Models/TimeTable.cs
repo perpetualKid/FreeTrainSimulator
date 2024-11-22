@@ -1,7 +1,29 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common.Calc;
+
 namespace Orts.Formats.OR.Models
 {
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+    public readonly struct DelayedStart
+#pragma warning restore CA1815 // Override equals and operator equals on value types
+    {
+        public readonly int FixedPart;                                        // fixed part for restart delay
+        public readonly int RandomPart;                                       // random part for restart delay
+
+        public DelayedStart(int fixedPart, int randomPart)
+        {
+            FixedPart = fixedPart;
+            RandomPart = randomPart;
+        }
+
+        public float RemainingDelay()
+        {
+            float randDelay = StaticRandom.Next(RandomPart * 10);
+            return FixedPart + (randDelay / 10f);
+        }
+    }
+
     public class TrainInformation : IComparable<TrainInformation>
     {
         public int Column { get; private set; }     // column index

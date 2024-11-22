@@ -80,7 +80,7 @@ namespace Orts.Menu
         private readonly RouteModelCore route;
         private readonly ActivityModelCore activity;
         private readonly FrozenSet<RouteModelCore> globalRoutes;
-        private readonly TimetableInfo timeTable;
+        private readonly TimetableModel timeTable;
         private List<SavePoint> savePoints = new List<SavePoint>();
         private CancellationTokenSource ctsLoader;
         private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
@@ -91,7 +91,7 @@ namespace Orts.Menu
 
         private readonly Catalog catalog;
 
-        internal ResumeForm(UserSettings settings, RouteModelCore route, MainForm.UserAction mainFormAction, ActivityModelCore activity, TimetableInfo timeTable, FrozenSet<RouteModelCore> mainRoutes)
+        internal ResumeForm(UserSettings settings, RouteModelCore route, MainForm.UserAction mainFormAction, ActivityModelCore activity, TimetableModel timeTable, FrozenSet<RouteModelCore> mainRoutes)
         {
             catalog = CatalogManager.Catalog;
             globalRoutes = mainRoutes;
@@ -116,7 +116,7 @@ namespace Orts.Menu
                 ActivityType.Explorer => $" - {route.Name} - {catalog.GetString("Explore Route")}",
                 ActivityType.ExploreActivity => $" - {route.Name} - {catalog.GetString("Explore in Activity Mode")}",
                 ActivityType.Activity => $" - {route.Name} - {activity.Name}",
-                ActivityType.TimeTable => $" - {route.Name} - {Path.GetFileNameWithoutExtension(timeTable.FileName)}",
+                ActivityType.TimeTable => $" - {route.Name} - {timeTable.Name}",
                 _ => throw new NotImplementedException(),
             };
 
@@ -167,7 +167,7 @@ namespace Orts.Menu
                 ActivityType.Explorer => route.Name,
                 ActivityType.ExploreActivity => $"ea${route.Name}$",
                 ActivityType.Activity => activity.Tags[""],
-                ActivityType.TimeTable => $"{route.Name} {Path.GetFileNameWithoutExtension(timeTable.FileName)}",
+                ActivityType.TimeTable => $"{route.Name} {timeTable.Name}",
                 _ => throw new NotImplementedException(),
             };
             savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder, prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).OrderByDescending(s => s.RealTime).ToList();

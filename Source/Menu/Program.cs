@@ -126,14 +126,14 @@ namespace Orts.Menu
                             break;
                         case MainForm.UserAction.SinglePlayerTimetableGame:
                             parameters.Add("-timetable");
-                            parameters.Add($"\"{MainForm.SelectedTimetableSet.FileName}\"");
-                            parameters.Add($"\"{MainForm.SelectedTimetable}:{MainForm.SelectedTimetableTrain}\"");
-                            parameters.Add($"{MainForm.SelectedTimetableSet.Day}");
-                            parameters.Add($"{MainForm.SelectedTimetableSet.Season}");
-                            parameters.Add($"{ MainForm.SelectedTimetableSet.Weather}");
-                            if (!string.IsNullOrEmpty(MainForm.SelectedTimetableSet.WeatherFile))
+                            parameters.Add($"\"{MainForm.SelectedTimetable.Name}\"");
+                            parameters.Add($"\"{MainForm.SelectedTimetable.Name}:{MainForm.SelectedTimetableTrain.Name}\"");
+                            parameters.Add($"{MainForm.CurrentSelections.TimetableDay}");
+                            parameters.Add($"{MainForm.CurrentSelections.Season}");
+                            parameters.Add($"{ MainForm.CurrentSelections.Weather}");
+                            if (!string.IsNullOrEmpty(MainForm.CurrentSelections.WeatherChanges))
                             {
-                                parameters.Add($"\"{MainForm.SelectedTimetableSet.WeatherFile}\"");
+                                parameters.Add($"\"{MainForm.CurrentSelections.WeatherChanges}\"");
                             }
                             break;
                         case MainForm.UserAction.SinglePlayerResumeTimetableGame:
