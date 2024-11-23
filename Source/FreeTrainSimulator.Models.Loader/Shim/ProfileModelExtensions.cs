@@ -58,12 +58,12 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return (selectionsModel ?? await profileModel.SelectionsModel(cancellationToken).ConfigureAwait(false) with
             {
                 ActivityType = Common.ActivityType.Activity,
-                ActivityName = activityModel.Name,
+                ActivityId = activityModel.Name,
                 Season = activityModel.Season,
                 Weather = activityModel.Weather,
                 StartTime = activityModel.StartTime,
-                PathName = activityModel.PathId,
-                WagonSetName = activityModel.ConsistId,
+                PathId = activityModel.PathId,
+                WagonSetId = activityModel.ConsistId,
             });
         }
 

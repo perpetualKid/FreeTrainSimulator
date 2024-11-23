@@ -19,13 +19,13 @@ namespace FreeTrainSimulator.Models.Independent.Settings
         public override ProfileModel Parent => _parent as ProfileModel;
         // Base selections
         public string FolderName { get; set; }
-        public string RouteName { get; init; }
+        public string RouteId { get; init; }
         public ActivityType ActivityType { get; init; }
         // Activity mode / Explore mode selections
-        public string PathName { get; init; }
-        public string ActivityName { get; init; }
-        public string LocomotiveName { get; init; }
-        public string WagonSetName { get; init; }
+        public string PathId { get; init; }
+        public string ActivityId { get; init; }
+        public string LocomotiveId { get; init; }
+        public string WagonSetId { get; init; }
         public TimeOnly StartTime { get; init; }
         // Timetable mode selections
         public string TimetableSet { get; init; }
@@ -38,5 +38,6 @@ namespace FreeTrainSimulator.Models.Independent.Settings
         public WeatherType Weather { get; init; }
         // Other selections
         public string LoggingEnabled { get; init; }
+        public GamePlayAction GamePlayAction { get; init; }
     }
 }

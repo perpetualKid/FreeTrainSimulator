@@ -1803,25 +1803,17 @@ namespace FreeTrainSimulator.Common
     }
 
     #region Menu_Selection enum
-    public enum MenuSelection
+    public enum GamePlayAction
     {
-        // Base items
-        Folder,
-        Route,
-        // Activity mode items
-        Activity,
-        Locomotive,
-        Consist,
-        Path,
-        Time,
-        // Timetable mode items
-        TimetableSet,
-        Timetable,
-        Train,
-        Day,
-        // Shared items
-        Season,
-        Weather,
+        SingleplayerNewGame,
+        SingleplayerResumeSave,
+        SingleplayerReplaySave,
+        SingleplayerReplaySaveFromSave,
+        MultiplayerClient,
+        SinglePlayerTimetableGame,
+        SinglePlayerResumeTimetableGame,
+        MultiplayerServerResumeSave,
+        MultiplayerClientResumeSave
     }
     #endregion
 }

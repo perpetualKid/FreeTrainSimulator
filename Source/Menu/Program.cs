@@ -18,13 +18,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Shim;
-using FreeTrainSimulator.Models.Simplified;
 
 [assembly: CLSCompliant(false)]
 
@@ -62,86 +64,9 @@ namespace Orts.Menu
             {
                 while (MainForm.ShowDialog() == DialogResult.OK)
                 {
-                    List<string> parameters = new List<string>();
-                    switch (MainForm.SelectedAction)
-                    {
-                        case MainForm.UserAction.SingleplayerNewGame:
-                            parameters.Add("-start");
-                            break;
-                        case MainForm.UserAction.SingleplayerResumeSave:
-                            parameters.Add("-resume");
-                            break;
-                        case MainForm.UserAction.SingleplayerReplaySave:
-                            parameters.Add("-replay");
-                            break;
-                        case MainForm.UserAction.SingleplayerReplaySaveFromSave:
-                            parameters.Add("-replayfromsave");
-                            break;
-                        case MainForm.UserAction.MultiplayerClient:
-                            parameters.Add("-multiplayerclient");
-                            break;
-                        case MainForm.UserAction.SinglePlayerTimetableGame:
-                            parameters.Add("-start");
-                            break;
-                        case MainForm.UserAction.SinglePlayerResumeTimetableGame:
-                            parameters.Add("-resume");
-                            break;
-                        case MainForm.UserAction.MultiplayerClientResumeSave:
-                            parameters.Add("-multiplayerclient");
-                            break;
-                    }
-                    switch (MainForm.SelectedAction)
-                    {
-                        case MainForm.UserAction.SingleplayerNewGame:
-                        case MainForm.UserAction.MultiplayerClient:
-                            if (MainForm.SelectedActivity.ActivityType == ActivityType.Explorer)
-                            {
-                                parameters.Add("-explorer");
-                                parameters.Add($"\"{MainForm.SelectedActivity.MstsSourceFile()}\"");
-                                parameters.Add($"\"{MainForm.SelectedConsist.MstsSourceFile()}\"");
-                                parameters.Add($"{MainForm.SelectedActivity.StartTime}");
-                                parameters.Add($"{MainForm.SelectedActivity.Season}");
-                                parameters.Add($"{MainForm.SelectedActivity.Weather}");
-                            }
-                            else if (MainForm.SelectedActivity.ActivityType == ActivityType.ExploreActivity)
-                            {
-                                parameters.Add("-exploreactivity");
-                                parameters.Add($"\"{MainForm.SelectedActivity.MstsSourceFile()}\"");
-                                parameters.Add($"\"{MainForm.SelectedConsist.MstsSourceFile()}\"");
-                                parameters.Add($"{MainForm.SelectedActivity.StartTime}");
-                                parameters.Add($"{MainForm.SelectedActivity.Season}");
-                                parameters.Add($"{MainForm.SelectedActivity.Weather}");
-                            }
-                            else
-                            {
-                                parameters.Add("-activity");
-                                parameters.Add($"\"{MainForm.SelectedActivity.MstsSourceFile()}\"");
-                            }
-                            break;
-                        case MainForm.UserAction.SingleplayerResumeSave:
-                        case MainForm.UserAction.SingleplayerReplaySave:
-                        case MainForm.UserAction.SingleplayerReplaySaveFromSave:
-                        case MainForm.UserAction.MultiplayerClientResumeSave:
-                            parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
-                            break;
-                        case MainForm.UserAction.SinglePlayerTimetableGame:
-                            parameters.Add("-timetable");
-                            parameters.Add($"\"{MainForm.SelectedTimetable.Name}\"");
-                            parameters.Add($"\"{MainForm.SelectedTimetable.Name}:{MainForm.SelectedTimetableTrain.Name}\"");
-                            parameters.Add($"{MainForm.CurrentSelections.TimetableDay}");
-                            parameters.Add($"{MainForm.CurrentSelections.Season}");
-                            parameters.Add($"{ MainForm.CurrentSelections.Weather}");
-                            if (!string.IsNullOrEmpty(MainForm.CurrentSelections.WeatherChanges))
-                            {
-                                parameters.Add($"\"{MainForm.CurrentSelections.WeatherChanges}\"");
-                            }
-                            break;
-                        case MainForm.UserAction.SinglePlayerResumeTimetableGame:
-                            parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
-                            break;
-                    }
 
-                    string joinedParameters = string.Join(" ", parameters);
+                    string joinedParameters = Task.Run(async () => { return await ResolveParameters(MainForm.CurrentSelections, MainForm).ConfigureAwait(true); }).Result;
+
                     if ((Control.ModifierKeys & Keys.Alt) == Keys.Alt)
                     {
                         Clipboard.SetText(joinedParameters);
@@ -155,7 +80,7 @@ namespace Orts.Menu
                         ProcessStartInfo processStartInfo = new ProcessStartInfo
                         {
                             FileName = RuntimeInfo.ActivityRunnerExecutable,
-                            Arguments = string.Join(" ", parameters),
+                            Arguments = joinedParameters,
                             WindowStyle = ProcessWindowStyle.Normal,
                             WorkingDirectory = Application.StartupPath
                         };
@@ -164,6 +89,92 @@ namespace Orts.Menu
                     }
                 }
             }
+        }
+
+        private static async Task<string> ResolveParameters(ProfileSelectionsModel profileSelections, MainForm MainForm)
+        {
+            List<string> parameters = new List<string>();
+
+            switch (profileSelections.GamePlayAction)
+            {
+                case GamePlayAction.SingleplayerNewGame:
+                    parameters.Add("-start");
+                    break;
+                case GamePlayAction.SingleplayerResumeSave:
+                    parameters.Add("-resume");
+                    break;
+                case GamePlayAction.SingleplayerReplaySave:
+                    parameters.Add("-replay");
+                    break;
+                case GamePlayAction.SingleplayerReplaySaveFromSave:
+                    parameters.Add("-replayfromsave");
+                    break;
+                case GamePlayAction.MultiplayerClient:
+                    parameters.Add("-multiplayerclient");
+                    break;
+                case GamePlayAction.SinglePlayerTimetableGame:
+                    parameters.Add("-start");
+                    break;
+                case GamePlayAction.SinglePlayerResumeTimetableGame:
+                    parameters.Add("-resume");
+                    break;
+                case GamePlayAction.MultiplayerClientResumeSave:
+                    parameters.Add("-multiplayerclient");
+                    break;
+            }
+
+            switch (profileSelections.GamePlayAction)
+            {
+                case GamePlayAction.SingleplayerNewGame:
+                case GamePlayAction.MultiplayerClient:
+                    if (profileSelections.ActivityType == ActivityType.Explorer)
+                    {
+                        parameters.Add("-explorer");
+                        parameters.Add($"\"{(await profileSelections.SelectedPath(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                        parameters.Add($"\"{(await profileSelections.SelectedWagonSet(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                        parameters.Add($"{profileSelections.StartTime}");
+                        parameters.Add($"{profileSelections.Season}");
+                        parameters.Add($"{profileSelections.Weather}");
+                    }
+                    else if (MainForm.SelectedActivity.ActivityType == ActivityType.ExploreActivity)
+                    {
+                        parameters.Add("-exploreactivity");
+                        parameters.Add($"\"{(await profileSelections.SelectedPath(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                        parameters.Add($"\"{(await profileSelections.SelectedWagonSet(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                        parameters.Add($"{profileSelections.StartTime}");
+                        parameters.Add($"{profileSelections.Season}");
+                        parameters.Add($"{profileSelections.Weather}");
+                    }
+                    else
+                    {
+                        parameters.Add("-activity");
+                        parameters.Add($"\"{(await profileSelections.SelectedActivity(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                    }
+                    break;
+                case GamePlayAction.SingleplayerResumeSave:
+                case GamePlayAction.SingleplayerReplaySave:
+                case GamePlayAction.SingleplayerReplaySaveFromSave:
+                case GamePlayAction.MultiplayerClientResumeSave:
+                    parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
+                    break;
+                case GamePlayAction.SinglePlayerTimetableGame:
+                    parameters.Add("-timetable");
+                    parameters.Add($"\"{MainForm.SelectedTimetable.Name}\"");
+                    parameters.Add($"\"{MainForm.SelectedTimetable.Name}:{MainForm.SelectedTimetableTrain.Name}\"");
+                    parameters.Add($"{profileSelections.TimetableDay}");
+                    parameters.Add($"{profileSelections.Season}");
+                    parameters.Add($"{profileSelections.Weather}");
+                    if (!string.IsNullOrEmpty(profileSelections.WeatherChanges))
+                    {
+                        parameters.Add($"\"{(await profileSelections.WeatherChangesModel(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                    }
+                    break;
+                case GamePlayAction.SinglePlayerResumeTimetableGame:
+                    parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
+                    break;
+            }
+
+            return string.Join(" ", parameters);
         }
     }
 }

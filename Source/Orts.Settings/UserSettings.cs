@@ -335,23 +335,6 @@ namespace Orts.Settings
         public bool ReplayPauseBeforeEnd { get; set; }
         [Default(true)]
         public bool ShowErrorDialogs { get; set; }
-        [Default(new string[]
-        {
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Folder)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Route)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Activity)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Locomotive)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Consist)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Path)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Time)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.TimetableSet)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Timetable)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Train)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Day)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Season)}=\"\"",
-            $"{nameof(FreeTrainSimulator.Common.MenuSelection.Weather)}=\"\"",
-        })]
-        public EnumArray<string, MenuSelection> MenuSelection { get; set; }
         [Default(false)]
         public bool Multiplayer { get; set; }
 

@@ -13,5 +13,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         public static ValueTask<PathModel> GetExtended(this RouteModelCore routeModel, string pathId, CancellationToken cancellationToken) => PathModelHandler.GetExtended(pathId, routeModel, cancellationToken);
         public static ValueTask<PathModel> GetExtended(this PathModelCore pathModel, CancellationToken cancellationToken) => PathModelHandler.GetExtended(pathModel, cancellationToken);
         public static ValueTask<FrozenSet<PathModelCore>> GetRoutePaths(this RouteModelCore routeModel, CancellationToken cancellationToken) => PathModelHandler.GetPaths(routeModel, cancellationToken);
+        public static string SourceFile(this PathModelCore pathModel) => pathModel?.Parent.MstsRouteFolder().PathFile(pathModel.Tags[PathModelHandler.SourceNameKey]);
     }
 }

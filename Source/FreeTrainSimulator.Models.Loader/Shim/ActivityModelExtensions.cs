@@ -14,6 +14,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         public static ValueTask<ActivityModel> GetExtended(this ActivityModelCore activityModel, CancellationToken cancellationToken) => ActivityModelHandler.GetExtended(activityModel, cancellationToken);
         public static ValueTask<FrozenSet<ActivityModelCore>> GetRouteActivities(this RouteModelCore routeModel, CancellationToken cancellationToken) => ActivityModelHandler.GetActivities(routeModel, cancellationToken);
         public static ValueTask<FrozenSet<ActivityModelCore>> LoadTestActivities(this ProfileModel profileModel, CancellationToken cancellationToken) => TestActivityModelHandler.GetTestActivities(profileModel, cancellationToken);
-        public static string MstsSourceFile(this ActivityModelCore activityModel) => activityModel?.Parent.MstsRouteFolder().ActivityFile(activityModel.Tags[ActivityModelHandler.SourceNameKey]);
+        public static string SourceFile(this ActivityModelCore activityModel) => activityModel?.Parent.MstsRouteFolder().ActivityFile(activityModel.Tags[ActivityModelHandler.SourceNameKey]);
     }
 }

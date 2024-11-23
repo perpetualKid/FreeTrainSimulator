@@ -86,17 +86,17 @@ namespace Orts.Menu
         private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
 
         public string SelectedSaveFile { get; private set; }
-        public MainForm.UserAction SelectedAction { get; private set; }
+        public GamePlayAction SelectedAction { get; private set; }
         private readonly bool multiplayer;
 
         private readonly Catalog catalog;
 
-        internal ResumeForm(UserSettings settings, RouteModelCore route, MainForm.UserAction mainFormAction, ActivityModelCore activity, TimetableModel timeTable, FrozenSet<RouteModelCore> mainRoutes)
+        internal ResumeForm(UserSettings settings, RouteModelCore route, GamePlayAction mainFormAction, ActivityModelCore activity, TimetableModel timeTable, FrozenSet<RouteModelCore> mainRoutes)
         {
             catalog = CatalogManager.Catalog;
             globalRoutes = mainRoutes;
             SelectedAction = mainFormAction;
-            multiplayer = SelectedAction == MainForm.UserAction.MultiplayerClient;
+            multiplayer = SelectedAction == GamePlayAction.MultiplayerClient;
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
             Localizer.Localize(this, catalog);
@@ -201,17 +201,17 @@ namespace Orts.Menu
                             return;
 
                     SelectedSaveFile = save.File;
-                    MainForm.UserAction selectedAction = SelectedAction;
+                    GamePlayAction selectedAction = SelectedAction;
                     switch (SelectedAction)
                     {
-                        case MainForm.UserAction.SinglePlayerTimetableGame:
-                            selectedAction = MainForm.UserAction.SinglePlayerResumeTimetableGame;
+                        case GamePlayAction.SinglePlayerTimetableGame:
+                            selectedAction = GamePlayAction.SinglePlayerResumeTimetableGame;
                             break;
-                        case MainForm.UserAction.SingleplayerNewGame:
-                            selectedAction = MainForm.UserAction.SingleplayerResumeSave;
+                        case GamePlayAction.SingleplayerNewGame:
+                            selectedAction = GamePlayAction.SingleplayerResumeSave;
                             break;
-                        case MainForm.UserAction.MultiplayerClient:
-                            selectedAction = MainForm.UserAction.MultiplayerClientResumeSave;
+                        case GamePlayAction.MultiplayerClient:
+                            selectedAction = GamePlayAction.MultiplayerClientResumeSave;
                             break;
                     }
                     SelectedAction = selectedAction;
@@ -343,13 +343,13 @@ namespace Orts.Menu
 
         private void ButtonReplayFromStart_Click(object sender, EventArgs e)
         {
-            SelectedAction = MainForm.UserAction.SingleplayerReplaySave;
+            SelectedAction = GamePlayAction.SingleplayerReplaySave;
             InitiateReplay(true);
         }
 
         private void ButtonReplayFromPreviousSave_Click(object sender, EventArgs e)
         {
-            SelectedAction = MainForm.UserAction.SingleplayerReplaySaveFromSave;
+            SelectedAction = GamePlayAction.SingleplayerReplaySaveFromSave;
             InitiateReplay(false);
         }
 
@@ -391,7 +391,7 @@ namespace Orts.Menu
         // TODO 20240502 Refactor for new savestate format
         private bool Found(SavePoint save)
         {
-            if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
+            if (SelectedAction == GamePlayAction.SinglePlayerTimetableGame)
             {
                 return true; // no additional actions required for timetable resume
             }
