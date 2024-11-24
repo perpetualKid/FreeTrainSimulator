@@ -549,7 +549,7 @@ namespace Orts.Menu
             }
 
             // if timetable mode but no timetable selected - no action
-            if (CurrentSelections.GamePlayAction == GamePlayAction.SinglePlayerTimetableGame && (SelectedTimetable == null || multiplayer))
+            if (CurrentSelections.GamePlayAction == GamePlayAction.SinglePlayerTimetableGame && (CurrentSelections.TimetableTrain == null || multiplayer))
             {
                 return;
             }
@@ -649,7 +649,7 @@ namespace Orts.Menu
             buttonResume.Enabled = buttonStart.Enabled = radioButtonModeActivity.Checked &&
                 comboBoxActivity.Text.Length > 0 && comboBoxActivity.Text[0] != '<' && comboBoxLocomotive.Text.Length > 0 && comboBoxLocomotive.Text[0] != '<' ?
                 SelectedActivity != null && (!(explorerActivity) || (comboBoxConsist.Items.Count > 0 && comboBoxHeadTo.Items.Count > 0)) :
-                SelectedTimetableTrain != null;
+                CurrentSelections?.TimetableTrain != null;
             buttonConnectivityTest.Enabled = buttonStartMP.Enabled = buttonStart.Enabled && !string.IsNullOrEmpty(textBoxMPUser.Text) && !string.IsNullOrEmpty(textBoxMPHost.Text);
         }
         #endregion
@@ -846,14 +846,22 @@ namespace Orts.Menu
             _ = comboBoxStartSeason.SetComboBoxItem((ComboBoxItem<SeasonType> cbi) => cbi.Value == profileSelections.Season);
             _ = comboBoxStartWeather.SetComboBoxItem((ComboBoxItem<WeatherType> cbi) => cbi.Value == profileSelections.Weather);
 
-            _ = comboBoxTimetableSet.SetComboBoxItem((TimetableModel timetableItem) => string.Equals(timetableItem.Id, profileSelections.TimetableSet, StringComparison.OrdinalIgnoreCase));
+            TimetableModel timetableModel = comboBoxTimetableSet.SetComboBoxItem((TimetableModel timetableItem) => string.Equals(timetableItem.Id, profileSelections.TimetableSet, StringComparison.OrdinalIgnoreCase));
             SetupTimetableDropdown();
-            _ = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, profileSelections.TimetableName, StringComparison.OrdinalIgnoreCase));
+            IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, profileSelections.TimetableName, StringComparison.OrdinalIgnoreCase));
             SetupTimetableTrainsDropdown();
-            _ = comboBoxTimetableTrain.SetComboBoxItem((TimetableTrainModel timetableTrainItem) => string.Equals(timetableTrainItem.Id, profileSelections.TimetableTrain, StringComparison.OrdinalIgnoreCase));
+            TimetableTrainModel timetableTrainModel = comboBoxTimetableTrain.SetComboBoxItem((TimetableTrainModel timetableTrainItem) => string.Equals(timetableTrainItem.Id, profileSelections.TimetableTrain, StringComparison.OrdinalIgnoreCase));
 
-            _ = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, profileSelections.WeatherChanges, StringComparison.OrdinalIgnoreCase));
+            WeatherModelCore weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, profileSelections.WeatherChanges, StringComparison.OrdinalIgnoreCase));
             comboBoxTimetableDay.SelectedIndex = (int)profileSelections.TimetableDay;
+
+            CurrentSelections = CurrentSelections with
+            {
+                TimetableSet = timetableModel?.Id,
+                TimetableName = timetable?.Key,
+                TimetableTrain = timetableTrainModel?.Id,
+                WeatherChanges = weatherModel?.Id,
+            };
 
             UpdateEnabled();
             ShowDetails();
@@ -910,16 +918,18 @@ namespace Orts.Menu
                         else
                             AddDetailToShow(catalog.GetString("Train: {0}", timetableTrainModel.Name), catalog.GetString("Start time: {0}", timetableTrainModel.StartTime) + $"\n{timetableTrainModel.Briefing}");
 
-                        WagonSetModel wagonSetModel = routeModel.Parent.GetWagonSets(CancellationToken.None).Result.GetById(timetableTrainModel.WagonSet);
+                        WagonSetModel wagonSetModel = routeModel.Parent.GetWagonSets().GetById(timetableTrainModel.WagonSet);
                         if (null != wagonSetModel)
                         {
+                            if (timetableTrainModel.WagonSetReverse)
+                                wagonSetModel = wagonSetModel with { Reverse = true };
                             AddDetailToShow(catalog.GetString("Consist: {0}", wagonSetModel.Name), string.Empty);
                             if (wagonSetModel.Locomotive != null && wagonSetModel.Locomotive.Description != null)
                             {
                                 AddDetailToShow(catalog.GetString("Locomotive: {0}", wagonSetModel.Locomotive.Name), wagonSetModel.Locomotive.Description);
                             }
                         }
-                        PathModelCore pathModel = routeModel.GetPaths(CancellationToken.None).Result.GetById(timetableTrainModel.Path);
+                        PathModelCore pathModel = routeModel.GetPaths().GetById(timetableTrainModel.Path);
                         if (pathModel != null)
                         {
                             AddDetailToShow(catalog.GetString("Path: {0}", pathModel.Name), string.Join("\n", catalog.GetString($"Start at: {pathModel.Start}"), catalog.GetString($"Heading to: {pathModel.End}")));

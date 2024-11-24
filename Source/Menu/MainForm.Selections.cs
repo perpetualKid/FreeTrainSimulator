@@ -37,8 +37,6 @@ namespace Orts.Menu
                 SetupFoldersDropdown(contentFolders);
                 await FolderChanged(contentFolders.GetByNameOrFirstByName(CurrentSelections?.FolderName)).ConfigureAwait(false);
             }
-            SetupActivityFromSelection(CurrentSelections);
-            SetupTimetableFromSelection(CurrentSelections);
         }
 
         private async Task FolderChanged(FolderModel contentFolder)
@@ -111,6 +109,9 @@ namespace Orts.Menu
             SetupTimetableSetDropdown(timetableModels ?? FrozenSet<TimetableModel>.Empty);
             SetupTimetableWeatherDropdown(timetableWeatherFiles ?? FrozenSet<WeatherModelCore>.Empty);
             SelectedRoute = routeModel;
+
+            SetupActivityFromSelection(CurrentSelections);
+            SetupTimetableFromSelection(CurrentSelections);
         }
 
         private void ActivityChanged(ActivityModelCore activityModel)

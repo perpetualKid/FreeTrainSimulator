@@ -30,5 +30,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         {
             return folderModel != null ? await FolderModelHandler.GetCore(folderModel, cancellationToken).ConfigureAwait(false) : folderModel;
         }
+
+        public static FrozenSet<WagonSetModel> GetWagonSets(this FolderModel folderModel) => Task.Run(async() => await folderModel.GetWagonSets(CancellationToken.None).ConfigureAwait(false)).Result;
+
     }
 }

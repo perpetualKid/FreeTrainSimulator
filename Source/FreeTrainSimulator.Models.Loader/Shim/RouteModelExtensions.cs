@@ -46,5 +46,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
             return await PathModelHandler.GetCore(pathName, routeModel, cancellationToken).ConfigureAwait(false);
         }
+
+        public static FrozenSet<PathModelCore> GetPaths(this RouteModelCore routeModel) => Task.Run(async() => await routeModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).Result;
+
     }
 }
