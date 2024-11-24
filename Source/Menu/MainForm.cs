@@ -518,7 +518,7 @@ namespace Orts.Menu
             else
             {
                 CurrentSelections = CurrentSelections with { GamePlayAction = GamePlayAction.SinglePlayerTimetableGame };
-                if (SelectedTimetableTrain != null)
+                if (CurrentSelections.ActivityType == ActivityType.TimeTable)
                     DialogResult = DialogResult.OK;
             }
         }
@@ -896,20 +896,21 @@ namespace Orts.Menu
                 }
                 else
                 {
-                    if (CurrentSelections.TimetableSet != null)
+                    TimetableModel timetableModel;
+                    TimetableTrainModel timetableTrainModel;
+                    if ((timetableModel = CurrentSelections.SelectedTimetable()) != null)
                     {
-                        TimetableModel timetableModel = CurrentSelections.SelectedTimetable(CancellationToken.None).Result;
                         if (!string.IsNullOrEmpty(CurrentSelections.TimetableName))
                             AddDetailToShow(catalog.GetString($"Timetable: {CurrentSelections.TimetableName}"), timetableModel.Name);
                     }
-                    if (SelectedTimetableTrain != null)
+                    if ((timetableTrainModel = CurrentSelections.SelectedTimetableTrain()) != null)
                     {
-                        if (string.IsNullOrEmpty(SelectedTimetableTrain.Briefing))
-                            AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain.Name), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTime));
+                        if (string.IsNullOrEmpty(timetableTrainModel.Briefing))
+                            AddDetailToShow(catalog.GetString("Train: {0}", timetableTrainModel.Name), catalog.GetString("Start time: {0}", timetableTrainModel.StartTime));
                         else
-                            AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain.Name), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTime) + $"\n{SelectedTimetableTrain.Briefing}");
+                            AddDetailToShow(catalog.GetString("Train: {0}", timetableTrainModel.Name), catalog.GetString("Start time: {0}", timetableTrainModel.StartTime) + $"\n{timetableTrainModel.Briefing}");
 
-                        WagonSetModel wagonSetModel = routeModel.Parent.GetWagonSets(CancellationToken.None).Result.GetById(SelectedTimetableTrain.WagonSet);
+                        WagonSetModel wagonSetModel = routeModel.Parent.GetWagonSets(CancellationToken.None).Result.GetById(timetableTrainModel.WagonSet);
                         if (null != wagonSetModel)
                         {
                             AddDetailToShow(catalog.GetString("Consist: {0}", wagonSetModel.Name), string.Empty);
@@ -918,7 +919,7 @@ namespace Orts.Menu
                                 AddDetailToShow(catalog.GetString("Locomotive: {0}", wagonSetModel.Locomotive.Name), wagonSetModel.Locomotive.Description);
                             }
                         }
-                        PathModelCore pathModel = routeModel.GetPaths(CancellationToken.None).Result.GetById(SelectedTimetableTrain.Path);
+                        PathModelCore pathModel = routeModel.GetPaths(CancellationToken.None).Result.GetById(timetableTrainModel.Path);
                         if (pathModel != null)
                         {
                             AddDetailToShow(catalog.GetString("Path: {0}", pathModel.Name), string.Join("\n", catalog.GetString($"Start at: {pathModel.Start}"), catalog.GetString($"Heading to: {pathModel.End}")));

@@ -38,6 +38,7 @@ namespace Orts.Menu
                 await FolderChanged(contentFolders.GetByNameOrFirstByName(CurrentSelections?.FolderName)).ConfigureAwait(false);
             }
             SetupActivityFromSelection(CurrentSelections);
+            SetupTimetableFromSelection(CurrentSelections);
         }
 
         private async Task FolderChanged(FolderModel contentFolder)
@@ -185,7 +186,7 @@ namespace Orts.Menu
             if (timetableModel.Id == CurrentSelections.TimetableSet)
                 return;
 
-            //timetableModel = comboBoxTimetableSet.SetComboBoxItem((TimetableModel timetableItem) => string.Equals(timetableModel?.Id, timetableItem.Id, StringComparison.OrdinalIgnoreCase));
+            timetableModel = comboBoxTimetableSet.SetComboBoxItem((TimetableModel timetableItem) => string.Equals(timetableModel?.Id, timetableItem.Id, StringComparison.OrdinalIgnoreCase));
 
             SetupTimetableDropdown();
             IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, CurrentSelections.TimetableName, StringComparison.OrdinalIgnoreCase));
@@ -196,6 +197,7 @@ namespace Orts.Menu
             {
                 TimetableSet = timetableModel?.Id,
             };
+            SetupTimetableFromSelection(CurrentSelections);
         }
 
         private void TimetableChanged(IGrouping<string, TimetableTrainModel> timetableTrainModels)
@@ -203,7 +205,7 @@ namespace Orts.Menu
             if (timetableTrainModels.Key == CurrentSelections.TimetableName)
                 return;
 
-            //IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, timetableTrainModels.Key, StringComparison.OrdinalIgnoreCase));
+            IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, timetableTrainModels.Key, StringComparison.OrdinalIgnoreCase));
 
             CurrentSelections = CurrentSelections with
             {
@@ -218,7 +220,7 @@ namespace Orts.Menu
             if (timetableTrainModel.Id == CurrentSelections.TimetableTrain)
                 return;
 
-            //timetableTrainModel = comboBoxTimetableTrain.SetComboBoxItem((TimetableTrainModel timetableTrainItem) => string.Equals(timetableTrainModel?.Id, timetableTrainItem.Id, StringComparison.OrdinalIgnoreCase));
+            timetableTrainModel = comboBoxTimetableTrain.SetComboBoxItem((TimetableTrainModel timetableTrainItem) => string.Equals(timetableTrainModel?.Id, timetableTrainItem.Id, StringComparison.OrdinalIgnoreCase));
 
             CurrentSelections = CurrentSelections with 
             { 
@@ -231,7 +233,7 @@ namespace Orts.Menu
             if (weatherModel.Id == CurrentSelections.WeatherChanges)
                 return;
 
-            //weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, weatherModel?.Id, StringComparison.OrdinalIgnoreCase));
+            weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, weatherModel?.Id, StringComparison.OrdinalIgnoreCase));
 
             CurrentSelections = CurrentSelections with
             {

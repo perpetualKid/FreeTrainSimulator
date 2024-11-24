@@ -134,16 +134,21 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             static IEnumerable<TimetableTrainModel> BuildTrains(IEnumerable<TrainInformation> trains, string group)
             {
-                return trains.Select(t => new TimetableTrainModel()
+                return trains.Select(t =>
                 {
-                    Id = t.Train,
-                    Name = t.Train,
-                    Briefing = t.Briefing,
-                    Group = group,
-                    Path = t.Path,
-                    WagonSet = t.LeadingConsist,
-                    WagonSetReverse = t.ReverseConsist,
-                    StartTime = TimeOnly.Parse(t.StartTime.Max(5)),
+                    if (!TimeOnly.TryParse(t.StartTime.Max(5), out TimeOnly startTime))
+                        startTime = TimeOnly.FromTimeSpan(TimeSpan.FromHours(12));
+                    return new TimetableTrainModel()
+                    {
+                        Id = t.Train,
+                        Name = t.Train,
+                        Briefing = t.Briefing,
+                        Group = group,
+                        Path = t.Path,
+                        WagonSet = t.LeadingConsist,
+                        WagonSetReverse = t.ReverseConsist,
+                        StartTime = startTime,
+                    };
                 });
             }
 
@@ -159,7 +164,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                         Id = Path.GetFileNameWithoutExtension(filePath),
                         Name = groupFile.Description,
                         TimetableTrains = groupFile.TimeTables.SelectMany(timetable => BuildTrains(timetable.Trains, timetable.Description))?.ToFrozenSet() ?? FrozenSet<TimetableTrainModel>.Empty,
-                        Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
+                        Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileName(filePath) } },
                     };
                 }
                 else
@@ -171,7 +176,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                         Id = Path.GetFileNameWithoutExtension(filePath),
                         Name = timetableFile.Description,
                         TimetableTrains = BuildTrains(timetableFile.Trains, timetableFile.Description)?.ToFrozenSet() ?? FrozenSet<TimetableTrainModel>.Empty,
-                        Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
+                        Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileName(filePath) } },
                     };
                 }
 
@@ -180,7 +185,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             }
             else
             {
-                Trace.TraceWarning($"Consist file {filePath} refers to non-existing file.");
+                Trace.TraceWarning($"Timetable file {filePath} refers to non-existing file.");
                 return null;
             }
         }

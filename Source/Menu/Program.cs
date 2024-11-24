@@ -65,7 +65,7 @@ namespace Orts.Menu
                 while (MainForm.ShowDialog() == DialogResult.OK)
                 {
 
-                    string joinedParameters = Task.Run(async () => { return await ResolveParameters(MainForm.CurrentSelections, MainForm).ConfigureAwait(true); }).Result;
+                    string joinedParameters = ResolveParameters(MainForm.CurrentSelections, MainForm);
 
                     if ((Control.ModifierKeys & Keys.Alt) == Keys.Alt)
                     {
@@ -91,7 +91,7 @@ namespace Orts.Menu
             }
         }
 
-        private static async Task<string> ResolveParameters(ProfileSelectionsModel profileSelections, MainForm MainForm)
+        private static string ResolveParameters(ProfileSelectionsModel profileSelections, MainForm MainForm)
         {
             List<string> parameters = new List<string>();
 
@@ -130,8 +130,8 @@ namespace Orts.Menu
                     if (profileSelections.ActivityType == ActivityType.Explorer)
                     {
                         parameters.Add("-explorer");
-                        parameters.Add($"\"{(await profileSelections.SelectedPath(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
-                        parameters.Add($"\"{(await profileSelections.SelectedWagonSet(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                        parameters.Add($"\"{profileSelections.SelectedPath().SourceFile()}\"");
+                        parameters.Add($"\"{profileSelections.SelectedWagonSet().SourceFile()}\"");
                         parameters.Add($"{profileSelections.StartTime}");
                         parameters.Add($"{profileSelections.Season}");
                         parameters.Add($"{profileSelections.Weather}");
@@ -139,8 +139,8 @@ namespace Orts.Menu
                     else if (MainForm.SelectedActivity.ActivityType == ActivityType.ExploreActivity)
                     {
                         parameters.Add("-exploreactivity");
-                        parameters.Add($"\"{(await profileSelections.SelectedPath(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
-                        parameters.Add($"\"{(await profileSelections.SelectedWagonSet(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                        parameters.Add($"\"{profileSelections.SelectedPath().SourceFile()}\"");
+                        parameters.Add($"\"{profileSelections.SelectedWagonSet().SourceFile()}\"");
                         parameters.Add($"{profileSelections.StartTime}");
                         parameters.Add($"{profileSelections.Season}");
                         parameters.Add($"{profileSelections.Weather}");
@@ -148,7 +148,7 @@ namespace Orts.Menu
                     else
                     {
                         parameters.Add("-activity");
-                        parameters.Add($"\"{(await profileSelections.SelectedActivity(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                        parameters.Add($"\"{profileSelections.SelectedActivity().SourceFile()}\"");
                     }
                     break;
                 case GamePlayAction.SingleplayerResumeSave:
@@ -160,14 +160,14 @@ namespace Orts.Menu
                 case GamePlayAction.SinglePlayerTimetableGame:
 
                     parameters.Add("-timetable");
-                    parameters.Add($"\"{(await profileSelections.SelectedTimetable(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                    parameters.Add($"\"{profileSelections.SelectedTimetable().SourceFile()}\"");
                     parameters.Add($"\"{profileSelections.TimetableName}:{profileSelections.TimetableTrain}\"");
                     parameters.Add($"{profileSelections.TimetableDay}");
                     parameters.Add($"{profileSelections.Season}");
                     parameters.Add($"{profileSelections.Weather}");
                     if (!string.IsNullOrEmpty(profileSelections.WeatherChanges))
                     {
-                        parameters.Add($"\"{(await profileSelections.SelectedWeatherChangesModel(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                        parameters.Add($"\"{profileSelections.SelectedWeatherChangesModel().SourceFile()}\"");
                     }
                     break;
                 case GamePlayAction.SinglePlayerResumeTimetableGame:
