@@ -83,10 +83,8 @@ namespace Orts.Menu
         internal PathModelCore SelectedPath { get; private set; }
 
         // Timetable mode items
-        internal TimetableModel SelectedTimetable { get; private set; }
-        internal string SelectedTimetableGroup { get; private set; }
-        internal TimetableTrainModel SelectedTimetableTrain { get; private set; }
-        internal WeatherModelCore SelectedWeatherFile { get; private set; }
+        private TimetableModel SelectedTimetable;
+        private TimetableTrainModel SelectedTimetableTrain;
 
         internal string SelectedSaveFile { get; private set; }
         #endregion
@@ -644,7 +642,7 @@ namespace Orts.Menu
             comboBoxStartAt.Enabled = comboBoxStartAt.Items.Count > 0 && explorerActivity;
             comboBoxHeadTo.Enabled = comboBoxHeadTo.Items.Count > 0 && explorerActivity;
             comboBoxStartTime.Enabled = comboBoxStartSeason.Enabled = comboBoxStartWeather.Enabled = explorerActivity || CurrentSelections?.ActivityType == ActivityType.TimeTable;
-            comboBoxTimetable.Enabled = comboBoxTimetableSet.Items.Count > 0;
+            comboBoxTimetableSet.Enabled = comboBoxTimetable.Enabled = comboBoxTimetableSet.Items.Count > 0;
             comboBoxTimetableTrain.Enabled = comboBoxTimetable.Items.Count > 0;
             comboBoxTimetableWeatherFile.Enabled = comboBoxTimetableWeatherFile.Items.Count > 0;
             //Avoid to Start with a non valid Activity/Locomotive/Consist.
@@ -898,10 +896,11 @@ namespace Orts.Menu
                 }
                 else
                 {
-                    if (SelectedTimetable != null)
+                    if (CurrentSelections.TimetableSet != null)
                     {
-                        if (!string.IsNullOrEmpty(SelectedTimetableGroup))
-                            AddDetailToShow(catalog.GetString($"Timetable: {SelectedTimetableGroup}"), SelectedTimetable.Name);
+                        TimetableModel timetableModel = CurrentSelections.SelectedTimetable(CancellationToken.None).Result;
+                        if (!string.IsNullOrEmpty(CurrentSelections.TimetableName))
+                            AddDetailToShow(catalog.GetString($"Timetable: {CurrentSelections.TimetableName}"), timetableModel.Name);
                     }
                     if (SelectedTimetableTrain != null)
                     {

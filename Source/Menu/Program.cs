@@ -158,15 +158,16 @@ namespace Orts.Menu
                     parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
                     break;
                 case GamePlayAction.SinglePlayerTimetableGame:
+
                     parameters.Add("-timetable");
-                    parameters.Add($"\"{MainForm.SelectedTimetable.Name}\"");
-                    parameters.Add($"\"{MainForm.SelectedTimetable.Name}:{MainForm.SelectedTimetableTrain.Name}\"");
+                    parameters.Add($"\"{(await profileSelections.SelectedTimetable(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                    parameters.Add($"\"{profileSelections.TimetableName}:{profileSelections.TimetableTrain}\"");
                     parameters.Add($"{profileSelections.TimetableDay}");
                     parameters.Add($"{profileSelections.Season}");
                     parameters.Add($"{profileSelections.Weather}");
                     if (!string.IsNullOrEmpty(profileSelections.WeatherChanges))
                     {
-                        parameters.Add($"\"{(await profileSelections.WeatherChangesModel(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
+                        parameters.Add($"\"{(await profileSelections.SelectedWeatherChangesModel(CancellationToken.None).ConfigureAwait(false)).SourceFile()}\"");
                     }
                     break;
                 case GamePlayAction.SinglePlayerResumeTimetableGame:

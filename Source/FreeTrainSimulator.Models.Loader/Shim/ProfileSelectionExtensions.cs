@@ -65,7 +65,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
                 : (await contentFolder.GetWagonSets(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.WagonSetId);
         }
 
-        public static async Task<WeatherModelCore> WeatherChangesModel(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
+        public static async ValueTask<WeatherModelCore> SelectedWeatherChangesModel(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
 
@@ -73,6 +73,14 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             return null == routeModel
                 ? null
                 : (await routeModel.GetWeatherFiles(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.WeatherChanges);
+        }
+
+        public static async ValueTask<TimetableModel> SelectedTimetable(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
+        {
+            RouteModelCore routeModel = (await profileSelections.SelectedRoute(cancellationToken).ConfigureAwait(false));
+            return null == routeModel
+                ? null
+                : (await routeModel.GetTimetables(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.TimetableSet);
         }
     }
 }
