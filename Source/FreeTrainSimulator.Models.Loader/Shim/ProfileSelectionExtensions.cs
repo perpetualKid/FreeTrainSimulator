@@ -102,6 +102,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<TimetableModel> SelectedTimetable(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
+
             RouteModelCore routeModel = (await profileSelections.SelectedRoute(cancellationToken).ConfigureAwait(false));
             return null == routeModel
                 ? null
@@ -115,6 +117,8 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 
         public static async ValueTask<TimetableTrainModel> SelectedTimetableTrain(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
+
             TimetableModel timetableModel = (await profileSelections.SelectedTimetable(cancellationToken).ConfigureAwait(false));
             return timetableModel?.TimetableTrains.GetById(profileSelections.TimetableTrain);
         }
