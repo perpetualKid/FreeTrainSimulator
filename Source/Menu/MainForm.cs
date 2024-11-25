@@ -317,12 +317,12 @@ namespace Orts.Menu
             if (CurrentSelections.ActivityType == ActivityType.TimeTable)
             {
                 panelModeActivity.Visible = !(panelModeTimetable.Visible = true);
-                SetupTimetableFromSelection(CurrentSelections);
+                SetupTimetableFromSelection();
             }
             else
             {
                 panelModeActivity.Visible = !(panelModeTimetable.Visible = false);
-                SetupActivityFromSelection(CurrentSelections);
+                SetupActivityFromSelection();
             }
 
             UpdateEnabled();

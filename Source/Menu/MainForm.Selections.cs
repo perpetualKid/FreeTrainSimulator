@@ -34,7 +34,7 @@ namespace Orts.Menu
             {
                 FrozenSet<FolderModel> contentFolders = await SelectedProfile.GetFolders(ctsProfileLoading.Token).ConfigureAwait(false);
                 SetupFoldersDropdown(contentFolders);
-                await SetupFolderFromSelection(CurrentSelections).ConfigureAwait(false);
+                await SetupFolderFromSelection().ConfigureAwait(false);
             }
         }
 
@@ -46,7 +46,7 @@ namespace Orts.Menu
             contentFolder = comboBoxFolder.SetComboBoxItem((FolderModel folderItem) => string.Equals(folderItem.Name, contentFolder?.Name, StringComparison.OrdinalIgnoreCase));
             CurrentSelections = CurrentSelections with { FolderName = contentFolder?.Name };
 
-            await SetupFolderFromSelection(CurrentSelections).ConfigureAwait(false);
+            await SetupFolderFromSelection().ConfigureAwait(false);
         }
 
         private async ValueTask RouteChanged(RouteModelCore routeModel)
@@ -57,7 +57,7 @@ namespace Orts.Menu
             routeModel = comboBoxRoute.SetComboBoxItem((RouteModelCore routeModelItem) => string.Equals(routeModelItem.Name, routeModel?.Name, StringComparison.OrdinalIgnoreCase));
 
             CurrentSelections = CurrentSelections with { RouteId = routeModel?.Id };
-            await SetupRouteFromSelection(CurrentSelections).ConfigureAwait(false);
+            await SetupRouteFromSelection().ConfigureAwait(false);
         }
 
         private void ActivityChanged(ActivityModelCore activityModel)
@@ -78,7 +78,7 @@ namespace Orts.Menu
                 WagonSetId = activityModel.ActivityType == ActivityType.Activity ? activityModel.ConsistId : (comboBoxConsist.SelectedValue as WagonSetModel)?.Id,
             };
 
-            SetupActivityFromSelection(CurrentSelections);
+            SetupActivityFromSelection();
         }
 
         private void LocomotiveChanged(WagonSetModel wagonSetModel, bool any)
@@ -134,7 +134,7 @@ namespace Orts.Menu
             {
                 TimetableSet = timetableModel?.Id,
             };
-            SetupTimetableFromSelection(CurrentSelections);
+            SetupTimetableFromSelection();
         }
 
         private void TimetableChanged(IGrouping<string, TimetableTrainModel> timetableTrainModels)
@@ -179,15 +179,15 @@ namespace Orts.Menu
         }
 
         #region setup from selections
-        private async Task SetupFolderFromSelection(ProfileSelectionsModel profileSelections)
+        private async Task SetupFolderFromSelection()
         {
             if (InvokeRequired)
             {
-                _ = Invoke(SetupFolderFromSelection, profileSelections);
+                await Invoke(SetupFolderFromSelection).ConfigureAwait(false);
                 return;
             }
 
-            FolderModel contentFolder = comboBoxFolder.SetComboBoxItem((FolderModel folderItem) => string.Equals(folderItem.Name, profileSelections?.FolderName, StringComparison.OrdinalIgnoreCase));
+            FolderModel contentFolder = comboBoxFolder.SetComboBoxItem((FolderModel folderItem) => string.Equals(folderItem.Name, CurrentSelections?.FolderName, StringComparison.OrdinalIgnoreCase));
 
             FrozenSet<RouteModelCore> routeModels = null;
             FrozenSet<WagonSetModel> consistModels = null;
@@ -208,18 +208,18 @@ namespace Orts.Menu
 
             SetupRoutesDropdown(routeModels);
             SetupLocomotivesDropdown(consistModels);
-            await SetupRouteFromSelection(CurrentSelections).ConfigureAwait(false);
+            await SetupRouteFromSelection().ConfigureAwait(false);
         }
 
-        private async Task SetupRouteFromSelection(ProfileSelectionsModel profileSelections) 
+        private async Task SetupRouteFromSelection() 
         {
             if (InvokeRequired)
             {
-                _ = Invoke(SetupRouteFromSelection, profileSelections);
+                await Invoke(SetupRouteFromSelection).ConfigureAwait(false);
                 return;
             }
 
-            RouteModelCore routeModel = comboBoxRoute.SetComboBoxItem((RouteModelCore routeModelItem) => string.Equals(routeModelItem.Id, profileSelections?.RouteId, StringComparison.OrdinalIgnoreCase));
+            RouteModelCore routeModel = comboBoxRoute.SetComboBoxItem((RouteModelCore routeModelItem) => string.Equals(routeModelItem.Id, CurrentSelections?.RouteId, StringComparison.OrdinalIgnoreCase));
 
             CurrentSelections = CurrentSelections with { RouteId = routeModel?.Id };
 
@@ -248,47 +248,47 @@ namespace Orts.Menu
             SetupTimetableSetDropdown(timetableModels ?? FrozenSet<TimetableModel>.Empty);
             SetupTimetableWeatherDropdown(timetableWeatherFiles ?? FrozenSet<WeatherModelCore>.Empty);
 
-            SetupActivityFromSelection(CurrentSelections);
-            SetupTimetableFromSelection(CurrentSelections);
+            SetupActivityFromSelection();
+            SetupTimetableFromSelection();
         }
 
-        private void SetupActivityFromSelection(ProfileSelectionsModel profileSelections)
+        private void SetupActivityFromSelection()
         {
             if (InvokeRequired)
             {
-                _ = Invoke(SetupActivityFromSelection, profileSelections);
+                Invoke(SetupActivityFromSelection);
                 return;
             }
 
-            bool exploreActivity = profileSelections != null && (profileSelections.ActivityType is ActivityType.ExploreActivity or ActivityType.Explorer);
-            bool activity = exploreActivity || (profileSelections?.ActivityType is ActivityType.Activity);
+            bool exploreActivity = CurrentSelections != null && (CurrentSelections.ActivityType is ActivityType.ExploreActivity or ActivityType.Explorer);
+            bool activity = exploreActivity || (CurrentSelections?.ActivityType is ActivityType.Activity);
             radioButtonModeTimetable.Checked = !(radioButtonModeActivity.Checked = activity);
 
             // values
-            _ = comboBoxStartSeason.SetComboBoxItem((ComboBoxItem<SeasonType> cbi) => cbi.Value == profileSelections.Season);
-            _ = comboBoxStartWeather.SetComboBoxItem((ComboBoxItem<WeatherType> cbi) => cbi.Value == profileSelections.Weather);
+            _ = comboBoxStartSeason.SetComboBoxItem((ComboBoxItem<SeasonType> cbi) => cbi.Value == CurrentSelections.Season);
+            _ = comboBoxStartWeather.SetComboBoxItem((ComboBoxItem<WeatherType> cbi) => cbi.Value == CurrentSelections.Weather);
 
-            comboBoxStartTime.Text = $"{profileSelections.StartTime:HH\\:mm\\:ss}";
-            comboBoxStartTime.Tag = profileSelections.StartTime;
+            comboBoxStartTime.Text = $"{CurrentSelections.StartTime:HH\\:mm\\:ss}";
+            comboBoxStartTime.Tag = CurrentSelections.StartTime;
 
             ActivityModelCore activityModel = null;
 
             if (activity)
             {
-                activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Id, profileSelections.ActivityId, StringComparison.OrdinalIgnoreCase));
+                activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Id, CurrentSelections.ActivityId, StringComparison.OrdinalIgnoreCase));
             }
             else if (exploreActivity)
             {
-                activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => activityItem.ActivityType == profileSelections.ActivityType);
+                activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => activityItem.ActivityType == CurrentSelections.ActivityType);
             }
 
-            _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => string.Equals(w.Id, profileSelections.WagonSetId, StringComparison.OrdinalIgnoreCase)).Any());
+            _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => string.Equals(w.Id, CurrentSelections.WagonSetId, StringComparison.OrdinalIgnoreCase)).Any());
             SetupConsistsDropdown();
-            _ = comboBoxConsist.SetComboBoxItem((ComboBoxItem<WagonSetModel> cbi) => string.Equals(cbi.Value.Id, profileSelections.WagonSetId, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxConsist.SetComboBoxItem((ComboBoxItem<WagonSetModel> cbi) => string.Equals(cbi.Value.Id, CurrentSelections.WagonSetId, StringComparison.OrdinalIgnoreCase));
 
-            _ = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => string.Equals(p.Id, profileSelections.PathId, StringComparison.OrdinalIgnoreCase)).Any());
+            _ = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => string.Equals(p.Id, CurrentSelections.PathId, StringComparison.OrdinalIgnoreCase)).Any());
             SetupPathEndDropdown();
-            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(profileSelections.PathId, cbi.Value.Id, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(CurrentSelections.PathId, cbi.Value.Id, StringComparison.OrdinalIgnoreCase));
 
             if (radioButtonModeActivity.Checked)
             {
@@ -309,26 +309,26 @@ namespace Orts.Menu
             ShowDetails();
         }
 
-        private void SetupTimetableFromSelection(ProfileSelectionsModel profileSelections)
+        private void SetupTimetableFromSelection()
         {
             if (InvokeRequired)
             {
-                _ = Invoke(SetupTimetableFromSelection, profileSelections);
+                Invoke(SetupTimetableFromSelection);
                 return;
             }
 
             // values
-            _ = comboBoxStartSeason.SetComboBoxItem((ComboBoxItem<SeasonType> cbi) => cbi.Value == profileSelections.Season);
-            _ = comboBoxStartWeather.SetComboBoxItem((ComboBoxItem<WeatherType> cbi) => cbi.Value == profileSelections.Weather);
+            _ = comboBoxStartSeason.SetComboBoxItem((ComboBoxItem<SeasonType> cbi) => cbi.Value == CurrentSelections.Season);
+            _ = comboBoxStartWeather.SetComboBoxItem((ComboBoxItem<WeatherType> cbi) => cbi.Value == CurrentSelections.Weather);
 
-            TimetableModel timetableModel = comboBoxTimetableSet.SetComboBoxItem((TimetableModel timetableItem) => string.Equals(timetableItem.Id, profileSelections.TimetableSet, StringComparison.OrdinalIgnoreCase));
+            TimetableModel timetableModel = comboBoxTimetableSet.SetComboBoxItem((TimetableModel timetableItem) => string.Equals(timetableItem.Id, CurrentSelections.TimetableSet, StringComparison.OrdinalIgnoreCase));
             SetupTimetableDropdown();
-            IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, profileSelections.TimetableName, StringComparison.OrdinalIgnoreCase));
+            IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, CurrentSelections.TimetableName, StringComparison.OrdinalIgnoreCase));
             SetupTimetableTrainsDropdown();
-            TimetableTrainModel timetableTrainModel = comboBoxTimetableTrain.SetComboBoxItem((TimetableTrainModel timetableTrainItem) => string.Equals(timetableTrainItem.Id, profileSelections.TimetableTrain, StringComparison.OrdinalIgnoreCase));
+            TimetableTrainModel timetableTrainModel = comboBoxTimetableTrain.SetComboBoxItem((TimetableTrainModel timetableTrainItem) => string.Equals(timetableTrainItem.Id, CurrentSelections.TimetableTrain, StringComparison.OrdinalIgnoreCase));
 
-            WeatherModelCore weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, profileSelections.WeatherChanges, StringComparison.OrdinalIgnoreCase));
-            comboBoxTimetableDay.SelectedIndex = (int)profileSelections.TimetableDay;
+            WeatherModelCore weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, CurrentSelections.WeatherChanges, StringComparison.OrdinalIgnoreCase));
+            comboBoxTimetableDay.SelectedIndex = (int)CurrentSelections.TimetableDay;
 
             if (radioButtonModeTimetable.Checked)
             {
