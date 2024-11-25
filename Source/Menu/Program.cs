@@ -79,7 +79,6 @@ namespace Orts.Menu
                     }
                     else
                     {
-                        continue;
                         ProcessStartInfo processStartInfo = new ProcessStartInfo
                         {
                             FileName = RuntimeInfo.ActivityRunnerExecutable,

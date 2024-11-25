@@ -250,12 +250,6 @@ namespace Orts.Menu
 
             SetupActivityFromSelection(CurrentSelections);
             SetupTimetableFromSelection(CurrentSelections);
-            //if (CurrentSelections.ActivityType == ActivityType.TimeTable)
-            //{
-            //}
-            //else if (CurrentSelections.ActivityType is ActivityType.Activity or ActivityType.Explorer or ActivityType.ExploreActivity)
-            //{
-            //}
         }
 
         private void SetupActivityFromSelection(ProfileSelectionsModel profileSelections)
@@ -296,16 +290,19 @@ namespace Orts.Menu
             SetupPathEndDropdown();
             _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(profileSelections.PathId, cbi.Value.Id, StringComparison.OrdinalIgnoreCase));
 
-            CurrentSelections = CurrentSelections with
+            if (radioButtonModeActivity.Checked)
             {
-                ActivityId = activityModel?.Id,
-                ActivityType = activityModel?.ActivityType ?? ActivityType.None,
-                StartTime = activityModel?.ActivityType == ActivityType.Activity ? activityModel.StartTime : comboBoxStartTime.Tag != null ? (TimeOnly)comboBoxStartTime.Tag : activityModel.StartTime,
-                Season = activityModel?.ActivityType == ActivityType.Activity ? activityModel.Season : (SeasonType)comboBoxStartSeason.SelectedValue,
-                Weather = activityModel?.ActivityType == ActivityType.Activity ? activityModel.Weather : (WeatherType)comboBoxStartWeather.SelectedValue,
-                PathId = activityModel?.ActivityType == ActivityType.Activity ? activityModel.PathId : (comboBoxHeadTo.SelectedValue as PathModelCore)?.Id,
-                WagonSetId = activityModel?.ActivityType == ActivityType.Activity ? activityModel.ConsistId : (comboBoxConsist.SelectedValue as WagonSetModel)?.Id,
-            };
+                CurrentSelections = CurrentSelections with
+                {
+                    ActivityId = activityModel?.Id,
+                    ActivityType = activityModel?.ActivityType ?? ActivityType.None,
+                    StartTime = activityModel?.ActivityType == ActivityType.Activity ? activityModel.StartTime : comboBoxStartTime.Tag != null ? (TimeOnly)comboBoxStartTime.Tag : activityModel.StartTime,
+                    Season = activityModel?.ActivityType == ActivityType.Activity ? activityModel.Season : (SeasonType)comboBoxStartSeason.SelectedValue,
+                    Weather = activityModel?.ActivityType == ActivityType.Activity ? activityModel.Weather : (WeatherType)comboBoxStartWeather.SelectedValue,
+                    PathId = activityModel?.ActivityType == ActivityType.Activity ? activityModel.PathId : (comboBoxHeadTo.SelectedValue as PathModelCore)?.Id,
+                    WagonSetId = activityModel?.ActivityType == ActivityType.Activity ? activityModel.ConsistId : (comboBoxConsist.SelectedValue as WagonSetModel)?.Id,
+                };
+            }
 
             //enabled
             UpdateEnabled();
@@ -333,14 +330,17 @@ namespace Orts.Menu
             WeatherModelCore weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, profileSelections.WeatherChanges, StringComparison.OrdinalIgnoreCase));
             comboBoxTimetableDay.SelectedIndex = (int)profileSelections.TimetableDay;
 
-            CurrentSelections = CurrentSelections with
+            if (radioButtonModeTimetable.Checked)
             {
-//                ActivityType = timetableTrainModel != null ? ActivityType.TimeTable : ActivityType.None,
-                TimetableSet = timetableModel?.Id,
-                TimetableName = timetable?.Key,
-                TimetableTrain = timetableTrainModel?.Id,
-                WeatherChanges = weatherModel?.Id,
-            };
+                CurrentSelections = CurrentSelections with
+                {
+                    ActivityType = timetableTrainModel != null ? ActivityType.TimeTable : ActivityType.None,
+                    TimetableSet = timetableModel?.Id,
+                    TimetableName = timetable?.Key,
+                    TimetableTrain = timetableTrainModel?.Id,
+                    WeatherChanges = weatherModel?.Id,
+                };
+            }
 
             UpdateEnabled();
             ShowDetails();
