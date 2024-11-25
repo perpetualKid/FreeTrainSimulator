@@ -34,7 +34,6 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Online.Client;
 using FreeTrainSimulator.Updater;
@@ -64,7 +63,9 @@ namespace Orts.Menu
         };
 
         private UserSettings settings;
-        private CancellationTokenSource ctsModelLoading;
+        private CancellationTokenSource ctsProfileLoading;
+        private CancellationTokenSource ctsFolderLoading;
+        private CancellationTokenSource ctsRouteLoading;
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         private readonly ResourceManager resources = new ResourceManager("Orts.Menu.Properties.Resources", typeof(MainForm).Assembly);
@@ -76,15 +77,11 @@ namespace Orts.Menu
         // Base items
         internal FolderModel SelectedFolder { get; private set; }
         internal RouteModelCore SelectedRoute { get; private set; }
-
         // Activity mode items
         internal ActivityModelCore SelectedActivity { get; private set; }
-        internal WagonSetModel SelectedConsist { get; private set; }
-        internal PathModelCore SelectedPath { get; private set; }
 
         // Timetable mode items
         private TimetableModel SelectedTimetable;
-        private TimetableTrainModel SelectedTimetableTrain;
 
         internal string SelectedSaveFile { get; private set; }
         #endregion
@@ -119,8 +116,12 @@ namespace Orts.Menu
             if (disposing)
             {
                 components?.Dispose();
-                ctsModelLoading?.Cancel();
-                ctsModelLoading?.Dispose();
+                ctsProfileLoading?.Cancel();
+                ctsProfileLoading?.Dispose();
+                ctsFolderLoading?.Cancel();
+                ctsFolderLoading?.Dispose();
+                ctsRouteLoading?.Cancel();
+                ctsRouteLoading?.Dispose();
                 elevationIcon?.Dispose();
                 updateManager?.Dispose();
             }
@@ -222,11 +223,15 @@ namespace Orts.Menu
             buttonDocuments.Enabled = contextMenuStripDocuments.Items.Count > 0;
         }
 
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        private async void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            SaveOptions();
-            if (null != ctsModelLoading && !ctsModelLoading.IsCancellationRequested)
-                ctsModelLoading.Cancel();
+            await SaveOptions().ConfigureAwait(false);
+            if (null != ctsProfileLoading && !ctsProfileLoading.IsCancellationRequested)
+                await ctsProfileLoading.CancelAsync().ConfigureAwait(false);
+            if (null != ctsFolderLoading && !ctsFolderLoading.IsCancellationRequested)
+                await ctsFolderLoading.CancelAsync().ConfigureAwait(false);
+            if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
+                await ctsRouteLoading.CancelAsync().ConfigureAwait(false);
 
             // Remove any deleted saves
             if (Directory.Exists(UserSettings.DeletedSaveFolder))
@@ -300,6 +305,9 @@ namespace Orts.Menu
 
         private void RadioButtonMode_CheckedChanged(object sender, EventArgs e)
         {
+            if (!(sender as RadioButton).Checked)
+                return;
+
             ActivityType FromSelection() => radioButtonModeTimetable.Checked
                     ? ActivityType.TimeTable
                     : (comboBoxActivity.SelectedValue as ActivityModelCore)?.ActivityType ?? ActivityType.Activity;
@@ -477,7 +485,7 @@ namespace Orts.Menu
 
         private async void ButtonOptions_Click(object sender, EventArgs e)
         {
-            SaveOptions();
+            await SaveOptions().ConfigureAwait(false);
             await ShowOptionsForm(false).ConfigureAwait(true);
         }
 
@@ -502,38 +510,37 @@ namespace Orts.Menu
                         break;
                 }
             }
-
         }
 
-        private void ButtonStart_Click(object sender, EventArgs e)
+        private async void ButtonStart_Click(object sender, EventArgs e)
         {
-            SaveOptions();
-
             if (radioButtonModeActivity.Checked)
             {
                 CurrentSelections = CurrentSelections with { GamePlayAction = GamePlayAction.SingleplayerNewGame };
-                if (SelectedActivity != null)
+                await SaveOptions().ConfigureAwait(false);
+                if (CurrentSelections.ActivityType is ActivityType.Activity or ActivityType.Explorer or ActivityType.ExploreActivity)
                     DialogResult = DialogResult.OK;
             }
-            else
+            else if (radioButtonModeTimetable.Checked)
             {
                 CurrentSelections = CurrentSelections with { GamePlayAction = GamePlayAction.SinglePlayerTimetableGame };
+                await SaveOptions().ConfigureAwait(false);
                 if (CurrentSelections.ActivityType == ActivityType.TimeTable)
                     DialogResult = DialogResult.OK;
             }
         }
 
-        private void ButtonResume_Click(object sender, EventArgs e)
+        private async void ButtonResume_Click(object sender, EventArgs e)
         {
-            OpenResumeForm(false);
+            await OpenResumeForm(false).ConfigureAwait(false);
         }
 
-        private void ButtonResumeMP_Click(object sender, EventArgs e)
+        private async void ButtonResumeMP_Click(object sender, EventArgs e)
         {
-            OpenResumeForm(true);
+            await OpenResumeForm(true).ConfigureAwait(false);
         }
 
-        private void OpenResumeForm(bool multiplayer)
+        private async Task OpenResumeForm(bool multiplayer)
         {
             if (radioButtonModeTimetable.Checked)
             {
@@ -558,20 +565,20 @@ namespace Orts.Menu
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
-                    SaveOptions();
-                    SelectedSaveFile = form.SelectedSaveFile;
                     CurrentSelections = CurrentSelections with { GamePlayAction = form.SelectedAction };
+                    await SaveOptions().ConfigureAwait(true);
+                    SelectedSaveFile = form.SelectedSaveFile;
                     DialogResult = DialogResult.OK;
                 }
             }
         }
 
-        private void ButtonStartMP_Click(object sender, EventArgs e)
+        private async void ButtonStartMP_Click(object sender, EventArgs e)
         {
             if (!CheckUserName(textBoxMPUser.Text))
                 return;
-            SaveOptions();
             CurrentSelections = CurrentSelections with { GamePlayAction = GamePlayAction.MultiplayerClient };
+            await SaveOptions().ConfigureAwait(true);
             DialogResult = DialogResult.OK;
         }
 
@@ -597,7 +604,7 @@ namespace Orts.Menu
             textBoxMPHost.Text = settings.Multiplayer_Host + ":" + settings.Multiplayer_Port;
         }
 
-        private void SaveOptions()
+        private async Task SaveOptions()
         {
             settings.Logging = checkBoxWarnings.Checked;
             settings.Multiplayer_User = textBoxMPUser.Text;
@@ -614,11 +621,6 @@ namespace Orts.Menu
             }
             settings.Save();
 
-            _ = UpdateSelections();
-        }
-
-        private async Task UpdateSelections()
-        {
             CurrentSelections = await SelectedProfile.UpdateSelectionsModel(CurrentSelections, CancellationToken.None).ConfigureAwait(false);
         }
         #endregion
@@ -648,7 +650,7 @@ namespace Orts.Menu
             //Avoid to Start with a non valid Activity/Locomotive/Consist.
             buttonResume.Enabled = buttonStart.Enabled = radioButtonModeActivity.Checked &&
                 comboBoxActivity.Text.Length > 0 && comboBoxActivity.Text[0] != '<' && comboBoxLocomotive.Text.Length > 0 && comboBoxLocomotive.Text[0] != '<' ?
-                SelectedActivity != null && (!(explorerActivity) || (comboBoxConsist.Items.Count > 0 && comboBoxHeadTo.Items.Count > 0)) :
+                CurrentSelections?.ActivityType is ActivityType.Activity or ActivityType.Explorer or ActivityType.ExploreActivity :
                 CurrentSelections?.TimetableTrain != null;
             buttonConnectivityTest.Enabled = buttonStartMP.Enabled = buttonStart.Enabled && !string.IsNullOrEmpty(textBoxMPUser.Text) && !string.IsNullOrEmpty(textBoxMPHost.Text);
         }
@@ -666,7 +668,6 @@ namespace Orts.Menu
 
             if (SelectedProfile.ContentFolders.Count > 0)
             {
-                UpdateEnabled();
                 _ = comboBoxFolder.Focus();
             }
         }
@@ -680,7 +681,6 @@ namespace Orts.Menu
             }
 
             comboBoxRoute.EnableComboBoxItemDataSource(routeModels.OrderBy(r => r.Name).Select(r => new ComboBoxItem<RouteModelCore>(r.Name, r)));
-            UpdateEnabled();
         }
 
         private void SetupActivitiesDropdown(FrozenSet<ActivityModelCore> activities)
@@ -692,7 +692,6 @@ namespace Orts.Menu
             }
 
             comboBoxActivity.EnableComboBoxItemDataSource(activities.OrderBy(a => a.Name).Select(a => new ComboBoxItem<ActivityModelCore>(a.Name, a)));
-            UpdateEnabled();
         }
 
         private void SetupLocomotivesDropdown(FrozenSet<WagonSetModel> consists)
@@ -742,48 +741,6 @@ namespace Orts.Menu
             comboBoxHeadTo.EnableComboBoxItemDataSource((comboBoxStartAt.SelectedValue as IGrouping<string, PathModelCore>)?.OrderBy(p => p.Name).Select(p => new ComboBoxItem<PathModelCore>($"{p.End} ({p.Name})", p)));
         }
 
-        private void SetupActivityFromSelection(ProfileSelectionsModel profileSelections)
-        {
-            if (InvokeRequired)
-            {
-                _ = Invoke(SetupActivityFromSelection, profileSelections);
-                return;
-            }
-
-            bool exploreActivity = profileSelections != null && (profileSelections.ActivityType is ActivityType.ExploreActivity or ActivityType.Explorer);
-            bool activity = exploreActivity || (profileSelections?.ActivityType is ActivityType.Activity);
-            radioButtonModeTimetable.Checked = !(radioButtonModeActivity.Checked = activity);
-
-            // values
-            _ = comboBoxStartSeason.SetComboBoxItem((ComboBoxItem<SeasonType> cbi) => cbi.Value == profileSelections.Season);
-            _ = comboBoxStartWeather.SetComboBoxItem((ComboBoxItem<WeatherType> cbi) => cbi.Value == profileSelections.Weather);
-
-            comboBoxStartTime.Text = $"{profileSelections.StartTime:HH\\:mm\\:ss}";
-            comboBoxStartTime.Tag = profileSelections.StartTime;
-
-            if (activity)
-            {
-                _ = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Id, profileSelections.ActivityId, StringComparison.OrdinalIgnoreCase));
-            }
-            else if (exploreActivity)
-            {
-                _ = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => activityItem.ActivityType == profileSelections.ActivityType);
-            }
-
-            _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => string.Equals(w.Id, profileSelections.WagonSetId, StringComparison.OrdinalIgnoreCase)).Any());
-            SetupConsistsDropdown();
-            _ = comboBoxConsist.SetComboBoxItem((ComboBoxItem<WagonSetModel> cbi) => string.Equals(cbi.Value.Id, profileSelections.WagonSetId, StringComparison.OrdinalIgnoreCase));
-
-            _ = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => string.Equals(p.Id, profileSelections.PathId, StringComparison.OrdinalIgnoreCase)).Any());
-            SetupPathEndDropdown();
-            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(profileSelections.PathId, cbi.Value.Id, StringComparison.OrdinalIgnoreCase));
-
-            //enabled
-            UpdateEnabled();
-
-            ShowDetails();
-        }
-
         #endregion
 
         #region Timetable dropwon selections
@@ -820,7 +777,6 @@ namespace Orts.Menu
 
             comboBoxTimetableTrain.EnableComboBoxItemDataSource((comboBoxTimetable.SelectedValue as IGrouping<string, TimetableTrainModel>)?.OrderBy(t => t.StartTime).ThenBy(t => t.Name).
                 Select(t => new ComboBoxItem<TimetableTrainModel>($"{t.StartTime} {t.Name}", t)));
-            UpdateEnabled();
         }
 
         private void SetupTimetableWeatherDropdown(FrozenSet<WeatherModelCore> weatherModels)
@@ -832,39 +788,6 @@ namespace Orts.Menu
             }
 
             comboBoxTimetableWeatherFile.EnableComboBoxItemDataSource(weatherModels.OrderBy(w => w.Name).Select(w => new ComboBoxItem<WeatherModelCore>(w.Name, w)));
-        }
-
-        private void SetupTimetableFromSelection(ProfileSelectionsModel profileSelections)
-        {
-            if (InvokeRequired)
-            {
-                _ = Invoke(SetupTimetableFromSelection, profileSelections);
-                return;
-            }
-
-            // values
-            _ = comboBoxStartSeason.SetComboBoxItem((ComboBoxItem<SeasonType> cbi) => cbi.Value == profileSelections.Season);
-            _ = comboBoxStartWeather.SetComboBoxItem((ComboBoxItem<WeatherType> cbi) => cbi.Value == profileSelections.Weather);
-
-            TimetableModel timetableModel = comboBoxTimetableSet.SetComboBoxItem((TimetableModel timetableItem) => string.Equals(timetableItem.Id, profileSelections.TimetableSet, StringComparison.OrdinalIgnoreCase));
-            SetupTimetableDropdown();
-            IGrouping<string, TimetableTrainModel> timetable = comboBoxTimetable.SetComboBoxItem((IGrouping<string, TimetableTrainModel> grouping) => string.Equals(grouping.Key, profileSelections.TimetableName, StringComparison.OrdinalIgnoreCase));
-            SetupTimetableTrainsDropdown();
-            TimetableTrainModel timetableTrainModel = comboBoxTimetableTrain.SetComboBoxItem((TimetableTrainModel timetableTrainItem) => string.Equals(timetableTrainItem.Id, profileSelections.TimetableTrain, StringComparison.OrdinalIgnoreCase));
-
-            WeatherModelCore weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, profileSelections.WeatherChanges, StringComparison.OrdinalIgnoreCase));
-            comboBoxTimetableDay.SelectedIndex = (int)profileSelections.TimetableDay;
-
-            CurrentSelections = CurrentSelections with
-            {
-                TimetableSet = timetableModel?.Id,
-                TimetableName = timetable?.Key,
-                TimetableTrain = timetableTrainModel?.Id,
-                WeatherChanges = weatherModel?.Id,
-            };
-
-            UpdateEnabled();
-            ShowDetails();
         }
         #endregion
 

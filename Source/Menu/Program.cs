@@ -67,6 +67,8 @@ namespace Orts.Menu
 
                     string joinedParameters = ResolveParameters(MainForm.CurrentSelections, MainForm);
 
+                    Debug.WriteLine(joinedParameters);
+
                     if ((Control.ModifierKeys & Keys.Alt) == Keys.Alt)
                     {
                         Clipboard.SetText(joinedParameters);
@@ -77,6 +79,7 @@ namespace Orts.Menu
                     }
                     else
                     {
+                        continue;
                         ProcessStartInfo processStartInfo = new ProcessStartInfo
                         {
                             FileName = RuntimeInfo.ActivityRunnerExecutable,
@@ -136,7 +139,7 @@ namespace Orts.Menu
                         parameters.Add($"{profileSelections.Season}");
                         parameters.Add($"{profileSelections.Weather}");
                     }
-                    else if (MainForm.SelectedActivity.ActivityType == ActivityType.ExploreActivity)
+                    else if (profileSelections.ActivityType == ActivityType.ExploreActivity)
                     {
                         parameters.Add("-exploreactivity");
                         parameters.Add($"\"{profileSelections.SelectedPath().SourceFile()}\"");
