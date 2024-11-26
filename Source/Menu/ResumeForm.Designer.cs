@@ -1,4 +1,5 @@
-﻿using FreeTrainSimulator.Models.Simplified;
+﻿using FreeTrainSimulator.Models.Independent.Settings;
+using FreeTrainSimulator.Models.Simplified;
 
 namespace Orts.Menu
 {
@@ -108,7 +109,7 @@ namespace Orts.Menu
             // 
             // saveBindingSource
             // 
-            saveBindingSource.DataSource = typeof(SavePoint);
+            saveBindingSource.DataSource = typeof(SavePointModel);
             // 
             // buttonResume
             // 

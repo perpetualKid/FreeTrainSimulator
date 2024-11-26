@@ -357,7 +357,7 @@ namespace Orts.Menu
             {
                 if (savePoint.ValidState == false)
                 {
-                    //                    DeleteSavePoint(savePoint);
+                    DeleteSavePoint(savePoint);
                     deleted++;
                 }
             }
