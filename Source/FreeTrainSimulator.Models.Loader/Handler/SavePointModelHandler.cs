@@ -86,9 +86,13 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     Lazy<Task<SavePointModel>> modelTask = new Lazy<Task<SavePointModel>>(Cast(Convert(savePoint, routeModel, cancellationToken)));
 
                     SavePointModel savePointModel = await modelTask.Value.ConfigureAwait(false);
-                    string key = savePointModel.Hierarchy();
-                    results.Add(savePointModel);
-                    taskLazyCache[key] = modelTask;
+
+                    if (null != savePointModel)
+                    {
+                        string key = savePointModel.Hierarchy();
+                        results.Add(savePointModel);
+                        taskLazyCache[key] = modelTask;
+                    }
                 }).ConfigureAwait(false);
             }
 
@@ -117,6 +121,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     GameSaveState saveState = await Common.Api.SaveStateBase.FromFile<GameSaveState>(filePath, cancellationToken).ConfigureAwait(false);
                     SavePointModel result = new SavePointModel()
                     {
+                        Name = Path.GetFileNameWithoutExtension(filePath),
                         Version = saveState.GameVersion,
                         ValidState = saveState.Valid,
                         RouteName = saveState.RouteName,
@@ -128,7 +133,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                         MultiplayerGame = saveState.MultiplayerGame,
                         //Debrief Eval
                         DebriefEvaluation = saveState.ActivityEvaluationState != null,
-                        Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileName(filePath) } },
+                        Tags = new Dictionary<string, string> { { SourceNameKey, filePath } },
                     };
                     return result;
                 }
@@ -139,6 +144,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
                     return new SavePointModel()
                     {
+                        Name = Path.GetFileNameWithoutExtension(filePath),
                         Version = "n/a",
                         ValidState = false,
                         RouteName = routeModel.Name,
@@ -150,7 +156,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                         MultiplayerGame = false,
                         //Debrief Eval
                         DebriefEvaluation = false,
-                        Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
+                        Tags = new Dictionary<string, string> { { SourceNameKey, filePath } },
                     };
                 }
             }

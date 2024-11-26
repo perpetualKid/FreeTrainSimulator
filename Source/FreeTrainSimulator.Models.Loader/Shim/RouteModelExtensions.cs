@@ -5,7 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Handler;
 
 using Orts.Formats.Msts;
@@ -21,6 +23,10 @@ namespace FreeTrainSimulator.Models.Loader.Shim
         public static ValueTask<FrozenSet<ActivityModelCore>> GetActivities(this RouteModelCore routeModel, CancellationToken cancellationToken) => routeModel.GetRouteActivities(cancellationToken);
         public static ValueTask<FrozenSet<TimetableModel>> GetTimetables(this RouteModelCore routeModel, CancellationToken cancellationToken) => TimetableModelHandler.GetTimetables(routeModel, cancellationToken);
         public static ValueTask<FrozenSet<WeatherModelCore>> GetWeatherFiles(this RouteModelCore routeModel, CancellationToken cancellationToken) => WeatherModelHandler.GetWeatherFiles(routeModel, cancellationToken);
+        public static ValueTask<FrozenSet<SavePointModel>> GetSavePoints(this RouteModelCore routeModel, string activityPrefix, CancellationToken cancellationToken) => SavePointModelHandler.GetSavePoints(routeModel, activityPrefix, cancellationToken);
+        public static Task<FrozenSet<SavePointModel>> RefreshSavePoints(this RouteModelCore routeModel, string activityPrefix, CancellationToken cancellationToken) => SavePointModelHandler.ExpandSavePointModels(routeModel, activityPrefix, cancellationToken);
+
+        public static string SourceFile(this SavePointModel savePointModel) => savePointModel?.Tags[SavePointModelHandler.SourceNameKey];
         public static string SourceFile(this RouteModelCore routeModel) => Path.Combine(routeModel?.MstsRouteFolder().CurrentFolder, routeModel.MstsRouteFolder().TrackFileName);
         public static string SourceFolder(this RouteModelCore routeModel) => routeModel?.MstsRouteFolder().CurrentFolder;
 

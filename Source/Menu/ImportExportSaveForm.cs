@@ -22,6 +22,7 @@ using System.IO.Compression;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Simplified;
 
 using GetText;
@@ -39,6 +40,10 @@ namespace Orts.Menu
         private const string SavePackFileExtension = "ORSavePack";  // Includes "OR" in the extension as this may be emailed, downloaded and mixed in with non-OR files.
 
         private readonly ICatalog catalog;
+
+        internal ImportExportSaveForm(SavePointModel savePoint, ICatalog catalog)
+        {
+        }
 
         internal ImportExportSaveForm(SavePoint save, ICatalog catalog)
         {
