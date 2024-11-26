@@ -36,9 +36,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
 
-            string wagonsFolder = ModelFileResolver<WagonReferenceModel>.FolderPath(folderModel);
-            string pattern = ModelFileResolver<WagonReferenceModel>.WildcardPattern;
-
             ConcurrentBag<WagonReferenceModel> results = new ConcurrentBag<WagonReferenceModel>();
 
             string sourceFolder = folderModel.MstsContentFolder().TrainSetsFolder;

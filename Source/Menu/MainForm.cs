@@ -74,14 +74,6 @@ namespace Orts.Menu
 
         #region current selection to be passed a startup parameters
         internal ProfileModel SelectedProfile { get; private set; }
-        // Base items
-        internal FolderModel SelectedFolder { get; private set; }
-        internal RouteModelCore SelectedRoute { get; private set; }
-        // Activity mode items
-        internal ActivityModelCore SelectedActivity { get; private set; }
-
-        // Timetable mode items
-        private TimetableModel SelectedTimetable;
 
         internal string SelectedSaveFile { get; private set; }
         #endregion
@@ -431,12 +423,12 @@ namespace Orts.Menu
             UpdateEnabled();
         }
 
-        private bool CheckUserName(string text)
+        private static bool CheckUserName(string text)
         {
             Match match = RegexUserName().Match(text);
             if (!match.Success)
             {
-                MessageBox.Show(catalog.GetString("User name must be 4-10 characters (chars, digits, _) long, cannot contain space, ', \" or - and must not start with a digit."), RuntimeInfo.ProductName);
+                MessageBox.Show(CatalogManager.Catalog.GetString("User name must be 4-10 characters (chars, digits, _) long, cannot contain space, ', \" or - and must not start with a digit."), RuntimeInfo.ProductName);
                 return false;
             }
             return true;
@@ -561,7 +553,7 @@ namespace Orts.Menu
                 return;
             }
 
-            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, CurrentSelections.GamePlayAction, SelectedActivity, SelectedTimetable, SelectedFolder.GetRoutes(CancellationToken.None).Result))
+            using (ResumeForm form = new ResumeForm(settings, CurrentSelections))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {

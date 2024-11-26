@@ -62,9 +62,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            string weatherFolder = ModelFileResolver<WeatherModelCore>.FolderPath(routeModel);
-            string pattern = ModelFileResolver<WeatherModelCore>.WildcardPattern;
-
             ConcurrentBag<WeatherModelCore> results = new ConcurrentBag<WeatherModelCore>();
 
             string sourceFolder = routeModel.MstsRouteFolder().WeatherFolder;

@@ -114,9 +114,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            string activitiesFolder = ModelFileResolver<ActivityModelCore>.FolderPath(routeModel);
-            string pattern = ModelFileResolver<ActivityModelCore>.WildcardSavePattern;
-
             ConcurrentBag<ActivityModelCore> results = new ConcurrentBag<ActivityModelCore>();
 
             string sourceFolder = routeModel.MstsRouteFolder().ActivitiesFolder;

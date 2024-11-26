@@ -66,9 +66,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            string timetablesFolder = ModelFileResolver<TimetableModel>.FolderPath(routeModel);
-            string pattern = ModelFileResolver<TimetableModel>.WildcardPattern;
-
             ConcurrentBag<TimetableModel> results = new ConcurrentBag<TimetableModel>();
 
             string sourceFolder = routeModel.MstsRouteFolder().OpenRailsActivitiesFolder;

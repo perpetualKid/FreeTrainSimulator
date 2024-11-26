@@ -62,6 +62,8 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Independent.Settings;
+using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 
 using GetText;
@@ -77,6 +79,7 @@ namespace Orts.Menu
     public partial class ResumeForm : Form
     {
         private readonly UserSettings settings;
+        private readonly ProfileSelectionsModel profileSelectionsModel;
         private readonly RouteModelCore route;
         private readonly ActivityModelCore activity;
         private readonly FrozenSet<RouteModelCore> globalRoutes;
@@ -91,27 +94,24 @@ namespace Orts.Menu
 
         private readonly Catalog catalog;
 
-        internal ResumeForm(UserSettings settings, RouteModelCore route, GamePlayAction mainFormAction, ActivityModelCore activity, TimetableModel timeTable, FrozenSet<RouteModelCore> mainRoutes)
+        internal ResumeForm(UserSettings settings, ProfileSelectionsModel profileSelections)
         {
             catalog = CatalogManager.Catalog;
-            globalRoutes = mainRoutes;
-            SelectedAction = mainFormAction;
-            multiplayer = SelectedAction == GamePlayAction.MultiplayerClient;
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
-
             Localizer.Localize(this, catalog);
 
             this.settings = settings;
-            this.route = route;
-            this.activity = activity;
-            this.timeTable = timeTable;
+            this.profileSelectionsModel = profileSelections;
+            this.route = profileSelections.SelectedRoute();
+            this.activity = profileSelections.SelectedActivity();
+            this.timeTable = profileSelections.SelectedTimetable();
 
             checkBoxReplayPauseBeforeEnd.Checked = settings.ReplayPauseBeforeEnd;
             numericReplayPauseBeforeEnd.Value = settings.ReplayPauseBeforeEndS;
 
             GridSaves_SelectionChanged(null, null);
 
-            Text += activity.ActivityType switch
+            Text += profileSelections.ActivityType switch
             {
                 ActivityType.Explorer => $" - {route.Name} - {catalog.GetString("Explore Route")}",
                 ActivityType.ExploreActivity => $" - {route.Name} - {catalog.GetString("Explore in Activity Mode")}",
@@ -120,8 +120,9 @@ namespace Orts.Menu
                 _ => throw new NotImplementedException(),
             };
 
-            pathNameDataGridViewTextBoxColumn.Visible = activity.ActivityType is ActivityType.TimeTable or ActivityType.Activity;
+            pathNameDataGridViewTextBoxColumn.Visible = profileSelections.ActivityType is ActivityType.TimeTable or ActivityType.Activity;
 
+            multiplayer = profileSelections.GamePlayAction == GamePlayAction.MultiplayerClient;
             if (multiplayer)
                 Text += $" - {catalog.GetString("Multiplayer")} ";
         }
@@ -162,12 +163,12 @@ namespace Orts.Menu
             StringBuilder warnings = new StringBuilder();
             string prefix = string.Empty;
 
-            prefix = activity.ActivityType switch
+            prefix = profileSelectionsModel.ActivityType switch
             {
-                ActivityType.Explorer => route.Name,
-                ActivityType.ExploreActivity => $"ea${route.Name}$",
-                ActivityType.Activity => activity.Tags[""],
-                ActivityType.TimeTable => $"{route.Name} {timeTable.Name}",
+                ActivityType.Explorer => Path.GetFileName(route.SourceFolder()),
+                ActivityType.ExploreActivity => $"ea${Path.GetFileName(route.SourceFolder())}$",
+                ActivityType.Activity => Path.GetFileNameWithoutExtension(activity.SourceFile()),
+                ActivityType.TimeTable => $"{Path.GetFileName(route.SourceFolder())} {Path.GetFileName(timeTable.SourceFile())}",
                 _ => throw new NotImplementedException(),
             };
             savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder, prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).OrderByDescending(s => s.RealTime).ToList();

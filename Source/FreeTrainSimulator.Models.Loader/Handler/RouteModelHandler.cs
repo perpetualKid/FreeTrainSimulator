@@ -96,9 +96,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
 
-            string routesFolder = ModelFileResolver<FolderModel>.FolderPath(folderModel);
-            string pattern = ModelFileResolver<RouteModelCore>.WildcardPattern;
-
             ConcurrentBag<RouteModelCore> results = new ConcurrentBag<RouteModelCore>();
             ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder> routeFolders = new ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder>(StringComparer.OrdinalIgnoreCase);
 
@@ -126,8 +123,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
             FrozenSet<RouteModelCore> result = results.ToFrozenSet();
             string key = folderModel.Hierarchy();
-            Lazy<Task<FrozenSet<RouteModelCore>>> modelSetTask;
-            taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<RouteModelCore>>>(Task.FromResult(result));
+            taskLazyCollectionCache[key] = new Lazy<Task<FrozenSet<RouteModelCore>>>(Task.FromResult(result));
             return result;
         }
 
