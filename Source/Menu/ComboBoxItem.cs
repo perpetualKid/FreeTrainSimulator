@@ -5,8 +5,6 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 
-using static System.Net.Mime.MediaTypeNames;
-
 namespace Orts.Menu
 {
     internal sealed class ComboBoxItem<T>

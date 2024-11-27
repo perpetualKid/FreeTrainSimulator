@@ -13,7 +13,4 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 	</PropertyGroup>
-	<ItemGroup>
-		<PackageReference Remove="Microsoft.CodeAnalysis.CSharp" Version="4.7.0" PrivateAssets="all" />
-	</ItemGroup>
 </Project>
