@@ -2,6 +2,8 @@
 
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Simplified;
 using FreeTrainSimulator.Models.Track;
 
@@ -23,11 +25,11 @@ namespace FreeTrainSimulator.Toolbox
 
     internal sealed class PathEditor : PathEditorBase
     {
-        private Path path;
+        private PathModelCore path;
         private long lastPathClickTick;
         private bool validPointAdded;
 
-        public string FilePath => path?.FilePath;
+        public string FilePath => path?.SourceFile();
 
         internal event EventHandler<PathEditorChangedEventArgs> OnPathChanged;
 
@@ -35,15 +37,15 @@ namespace FreeTrainSimulator.Toolbox
 
         public PathEditor(ContentArea contentArea) : base(contentArea) { }
 
-        public bool InitializePath(Path path)
+        public bool InitializePath(PathModelCore path)
         {
             try
             {
                 if (path != null)
                 {
                     this.path = path;
-                    PathFile patFile = new PathFile(path.FilePath);
-                    InitializePath(patFile, path.FilePath);
+                    PathFile patFile = new PathFile(path.SourceFile());
+                    InitializePath(patFile, path.SourceFile());
                 }
                 else
                 {

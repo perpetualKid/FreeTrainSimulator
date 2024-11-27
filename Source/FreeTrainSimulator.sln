@@ -36,7 +36,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ActivityRunner", "ActivityRunner\ActivityRunner.csproj", "{9BE44F64-417D-4AA6-AF4D-2A6A0CBC814D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{B574F717-4792-4748-BC26-BEF32E874489} = {B574F717-4792-4748-BC26-BEF32E874489}
-		{FDCA8E40-B981-41EB-A292-EC0E26F9D50F} = {FDCA8E40-B981-41EB-A292-EC0E26F9D50F}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContentChecker", "Contrib\ContentChecker\ContentChecker.csproj", "{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}"
@@ -69,8 +68,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Common", "FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj", "{AFD0548E-86FA-4586-A7DC-F19A8C48450B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.FreeTrainSimulator", "Test\Tests.FreeTrainSimulator\Tests.FreeTrainSimulator.csproj", "{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dispatcher", "Dispatcher\Dispatcher.csproj", "{FDCA8E40-B981-41EB-A292-EC0E26F9D50F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Models.Independent", "FreeTrainSimulator.Models.Independent\FreeTrainSimulator.Models.Independent.csproj", "{78F6C725-1D6C-49A6-A5A5-68889882D740}"
 EndProject
@@ -233,12 +230,6 @@ Global
 		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FDCA8E40-B981-41EB-A292-EC0E26F9D50F}.CodeAnalysis|Any CPU.ActiveCfg = CodeAnalysis|Any CPU
-		{FDCA8E40-B981-41EB-A292-EC0E26F9D50F}.CodeAnalysis|Any CPU.Build.0 = CodeAnalysis|Any CPU
-		{FDCA8E40-B981-41EB-A292-EC0E26F9D50F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FDCA8E40-B981-41EB-A292-EC0E26F9D50F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FDCA8E40-B981-41EB-A292-EC0E26F9D50F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FDCA8E40-B981-41EB-A292-EC0E26F9D50F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{78F6C725-1D6C-49A6-A5A5-68889882D740}.CodeAnalysis|Any CPU.ActiveCfg = CodeAnalysis|Any CPU
 		{78F6C725-1D6C-49A6-A5A5-68889882D740}.CodeAnalysis|Any CPU.Build.0 = CodeAnalysis|Any CPU
 		{78F6C725-1D6C-49A6-A5A5-68889882D740}.Debug|Any CPU.ActiveCfg = Debug|Any CPU

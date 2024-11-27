@@ -58,12 +58,13 @@ namespace FreeTrainSimulator.Toolbox
         internal async Task LoadFolders()
         {
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
+
             try
             {
-                if (contentProfile.SetupRequired())
-                {
-                    contentProfile = await contentProfile.Setup(Settings.UserSettings.FolderSettings.Folders.Select(item => (item.Key, item.Value)), ctsProfileLoading.Token).ConfigureAwait(true);
-                }
+                contentProfile = await ProfileModel.None.Get(ctsProfileLoading.Token).ConfigureAwait(false) ??
+                    await contentProfile.Setup(null, ctsProfileLoading.Token).ConfigureAwait(false);
+
+                FrozenSet<FolderModel> contentFolders = await contentProfile.GetFolders(ctsProfileLoading.Token).ConfigureAwait(false);
                 mainmenu.PopulateContentFolders(contentProfile.ContentFolders);
             }
             catch (TaskCanceledException)
@@ -80,11 +81,9 @@ namespace FreeTrainSimulator.Toolbox
             {
                 try
                 {
-                    routeModels = contentFolder.SetupRequired() ? (await contentFolder.Convert(ctsProfileLoading.Token).ConfigureAwait(true)).Routes : contentFolder.Routes;
+                    routeModels = await contentFolder.GetRoutes(ctsProfileLoading.Token).ConfigureAwait(false);
                 }
-                catch (TaskCanceledException)
-                {
-                }
+                catch (TaskCanceledException) { }
                 selectedFolder = contentFolder;
             }
             loadRouteSemaphore.Release();
@@ -99,16 +98,14 @@ namespace FreeTrainSimulator.Toolbox
 
             ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
 
-            CancellationToken token = ctsRouteLoading.Token;
-
             bool? useMetricUnits = Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || (Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
 
             RouteModel routeModel = await route.Extend(ctsProfileLoading.Token).ConfigureAwait(false);
 
-            await TrackData.LoadTrackData(this, routeModel, useMetricUnits, token).ConfigureAwait(false);
-            if (token.IsCancellationRequested)
+            await TrackData.LoadTrackData(this, routeModel, useMetricUnits, ctsProfileLoading.Token).ConfigureAwait(false);
+            if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
             ToolboxContent content = new ToolboxContent(this);
@@ -122,7 +119,7 @@ namespace FreeTrainSimulator.Toolbox
             selectedRoute = route;
         }
 
-        internal bool LoadPath(Path path)
+        internal bool LoadPath(PathModelCore path)
         {
             return PathEditor.InitializePath(path);
         }
@@ -148,11 +145,11 @@ namespace FreeTrainSimulator.Toolbox
                         if (pathSelection.Length > 0)
                         {
                             // only restore first path for now
-                            Path path = (Orts.Formats.Msts.RuntimeData.GameInstance(this) as TrackData).TrainPaths?.Where(p => p.FilePath.Equals(pathSelection[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                            PathModelCore path = (Orts.Formats.Msts.RuntimeData.GameInstance(this) as TrackData).TrainPaths?.Where(p => p.SourceFile().Equals(pathSelection[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                             if (null != path)
                             {
                                 if (LoadPath(path))
-                                    mainmenu.PreSelectPath(path.FilePath);
+                                    mainmenu.PreSelectPath(path.SourceFile());
                             }
                         }
                     }
