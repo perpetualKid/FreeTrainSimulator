@@ -20,8 +20,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         private protected static readonly string fileExtension = ModelFileResolver<TModel>.FileExtension;
         private protected static readonly ConcurrentDictionary<string, bool> collectionUpdateRequired = new ConcurrentDictionary<string, bool>();
 
-        private protected static readonly ConcurrentDictionary<string, Lazy<Task<TModel>>> taskLazyCache = new ConcurrentDictionary<string, Lazy<Task<TModel>>>(StringComparer.OrdinalIgnoreCase);
-        private protected static readonly ConcurrentDictionary<string, Lazy<Task<FrozenSet<TModel>>>> taskLazyCollectionCache = new ConcurrentDictionary<string, Lazy<Task<FrozenSet<TModel>>>>(StringComparer.OrdinalIgnoreCase);
+        private protected static readonly ConcurrentDictionary<string, Task<TModel>> modelTaskCache = new ConcurrentDictionary<string, Task<TModel>>(StringComparer.OrdinalIgnoreCase);
+        private protected static readonly ConcurrentDictionary<string, Task<FrozenSet<TModel>>> modelSetTaskCache = new ConcurrentDictionary<string, Task<FrozenSet<TModel>>>(StringComparer.OrdinalIgnoreCase);
 
         public static async Task<TModel> FromFile<TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
         {

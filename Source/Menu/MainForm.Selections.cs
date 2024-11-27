@@ -22,7 +22,8 @@ namespace FreeTrainSimulator.Menu
 
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
-            SelectedProfile = await (profileModel ?? ProfileModel.None).Get(ctsProfileLoading.Token).ConfigureAwait(false);
+            SelectedProfile = await profileModel.Get(ctsProfileLoading.Token).ConfigureAwait(false) ??
+                await profileModel.Setup(null, ctsProfileLoading.Token).ConfigureAwait(false);
             CurrentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
 
             //Initial setup if necessary

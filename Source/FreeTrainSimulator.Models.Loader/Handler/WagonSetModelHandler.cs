@@ -26,45 +26,37 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             TrainCars = FrozenSet<WagonReferenceModel>.Empty
         };
 
-        public static ValueTask<WagonSetModel> GetCore(WagonSetModel wagonSetModel, CancellationToken cancellationToken)
+        public static Task<WagonSetModel> GetCore(WagonSetModel wagonSetModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(wagonSetModel, nameof(wagonSetModel));
             return GetCore(wagonSetModel.Id, wagonSetModel.Parent, cancellationToken);
         }
 
-        public static async ValueTask<WagonSetModel> GetCore(string consistId, FolderModel folderModel, CancellationToken cancellationToken)
+        public static Task<WagonSetModel> GetCore(string consistId, FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
             string key = folderModel.Hierarchy(consistId);
 
-            if (!taskLazyCache.TryGetValue(key, out Lazy<Task<WagonSetModel>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
+            if (!modelTaskCache.TryGetValue(key, out Task<WagonSetModel> modelTask) || modelTask.IsFaulted)
             {
-                taskLazyCache[key] = modelTask = new Lazy<Task<WagonSetModel>>(FromFile(consistId, folderModel, cancellationToken));
+                modelTaskCache[key] = modelTask = FromFile(consistId, folderModel, cancellationToken);
                 collectionUpdateRequired[folderModel.Hierarchy()] = true;
             }
 
-            WagonSetModel wagonSetModel = await modelTask.Value.ConfigureAwait(false);
-
-            if (wagonSetModel?.RefreshRequired ?? false)
-            {
-                taskLazyCache[key] = new Lazy<Task<WagonSetModel>>(() => Cast(Convert(wagonSetModel, cancellationToken)));
-                collectionUpdateRequired[folderModel.Hierarchy()] = true;
-            }
-
-            return wagonSetModel;
+            return modelTask;
         }
 
-        public static async ValueTask<FrozenSet<WagonSetModel>> GetWagonSets(FolderModel folderModel, CancellationToken cancellationToken)
+        public static Task<FrozenSet<WagonSetModel>> GetWagonSets(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
             string key = folderModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<WagonSetModel>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<WagonSetModel>> modelSetTask) || modelSetTask.IsFaulted)
             {
-                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<WagonSetModel>>>(() => LoadWagonSets(folderModel, cancellationToken));
+                modelSetTaskCache[key] = modelSetTask = LoadWagonSets(folderModel, cancellationToken);
             }
 
-            return await modelSetTask.Value.ConfigureAwait(false);
+            return modelSetTask;
         }
 
         public static async ValueTask<FrozenSet<WagonReferenceModel>> GetLocomotives(FolderModel folderModel, CancellationToken cancellationToken)
@@ -72,12 +64,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
             string key = folderModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<WagonSetModel>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<WagonSetModel>> modelSetTask) || modelSetTask.IsFaulted)
             {
-                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<WagonSetModel>>>(() => LoadWagonSets(folderModel, cancellationToken));
+                modelSetTaskCache[key] = modelSetTask = LoadWagonSets(folderModel, cancellationToken);
             }
 
-            FrozenSet<WagonSetModel> wagonSets = await modelSetTask.Value.ConfigureAwait(false);
+            FrozenSet<WagonSetModel> wagonSets = await modelSetTask.ConfigureAwait(false);
 
             return wagonSets.Select(w => w.Locomotive).Where(l => l != null).Append(WagonReferenceHandler.LocomotiveAny).ToFrozenSet();
         }
@@ -97,17 +89,17 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
                 await Parallel.ForEachAsync(consistFiles, cancellationToken, async (consistFile, token) =>
                 {
-                    Lazy<Task<WagonSetModel>> modelTask = new Lazy<Task<WagonSetModel>>(Convert(consistFile, folderModel, cancellationToken));
+                    Task<WagonSetModel> modelTask = Convert(consistFile, folderModel, cancellationToken);
 
-                    WagonSetModel wagonSetModel = await modelTask.Value.ConfigureAwait(false);
+                    WagonSetModel wagonSetModel = await modelTask.ConfigureAwait(false);
                     string key = wagonSetModel.Hierarchy();
                     results.Add(wagonSetModel);
-                    taskLazyCache[key] = modelTask;
+                    modelTaskCache[key] = modelTask;
                 }).ConfigureAwait(false);
             }
             FrozenSet<WagonSetModel> result = results.ToFrozenSet();
             string key = folderModel.Hierarchy();
-            taskLazyCollectionCache[key] = new Lazy<Task<FrozenSet<WagonSetModel>>>(Task.FromResult(result));
+            modelSetTaskCache[key] = Task.FromResult(result);
             _ = collectionUpdateRequired.TryRemove(key, out _);
             return result;
         }
@@ -135,13 +127,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 }).ConfigureAwait(false);
             }
             return results.ToFrozenSet();
-        }
-
-        private static Task<WagonSetModel> Convert(WagonSetModel wagonSetModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(wagonSetModel, nameof(wagonSetModel));
-
-            return Convert(wagonSetModel.Parent.MstsContentFolder().ConsistFile(wagonSetModel.Tags[SourceNameKey]), wagonSetModel.Parent, cancellationToken);
         }
 
         private static async Task<WagonSetModel> Convert(string filePath, FolderModel folderModel, CancellationToken cancellationToken)

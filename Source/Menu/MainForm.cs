@@ -150,8 +150,8 @@ namespace FreeTrainSimulator.Menu
 
         private IEnumerable<ToolStripItem> LoadTools()
         {
-            return Directory.EnumerateFiles(System.IO.Path.GetDirectoryName(RuntimeInfo.ApplicationFolder), "*.exe").
-                Where(fileName => (!coreExecutables.Contains(System.IO.Path.GetFileName(fileName), StringComparer.InvariantCultureIgnoreCase))).
+            return Directory.EnumerateFiles(Path.GetDirectoryName(RuntimeInfo.ApplicationFolder), "*.exe").
+                Where(fileName => (!coreExecutables.Contains(Path.GetFileName(fileName), StringComparer.InvariantCultureIgnoreCase))).
                 Select(fileName =>
                 {
                     FileVersionInfo toolInfo = FileVersionInfo.GetVersionInfo(fileName);
@@ -187,14 +187,14 @@ namespace FreeTrainSimulator.Menu
         {
             return Directory.Exists(RuntimeInfo.DocumentationFolder)
                 ? Directory.EnumerateFiles(RuntimeInfo.DocumentationFolder).
-                    Union(Directory.Exists(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.Name)) ?
-                        Directory.EnumerateFiles(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.Name)) : Array.Empty<string>()).
-                    Union(Directory.Exists(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)) ?
-                        Directory.EnumerateFiles(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)) : Array.Empty<string>()).
-                    Where(fileName => documentFiles.Contains(System.IO.Path.GetExtension(fileName), StringComparer.InvariantCultureIgnoreCase)).
+                    Union(Directory.Exists(Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.Name)) ?
+                        Directory.EnumerateFiles(Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.Name)) : Array.Empty<string>()).
+                    Union(Directory.Exists(Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)) ?
+                        Directory.EnumerateFiles(Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)) : Array.Empty<string>()).
+                    Where(fileName => documentFiles.Contains(Path.GetExtension(fileName), StringComparer.InvariantCultureIgnoreCase)).
                     Select(fileName =>
                     {
-                        return new ToolStripMenuItem(System.IO.Path.GetFileName(fileName), null, (object sender2, EventArgs e2) =>
+                        return new ToolStripMenuItem(Path.GetFileName(fileName), null, (object sender2, EventArgs e2) =>
                         {
                             string docPath = (sender2 as ToolStripItem).Tag as string;
                             Process.Start(new ProcessStartInfo { FileName = docPath, UseShellExecute = true });
@@ -494,6 +494,7 @@ namespace FreeTrainSimulator.Menu
                 {
                     case DialogResult.OK:
                         ProfileModel profileModel = await SelectedProfile.Setup(settings.FolderSettings.Folders.Select(folder => (folder.Key, folder.Value)), CancellationToken.None).ConfigureAwait(true);
+                        SelectedProfile = null; 
                         await ProfileChanged(profileModel).ConfigureAwait(true);
                         break;
                     case DialogResult.Retry: //Language has changed

@@ -18,9 +18,6 @@ using FreeTrainSimulator.Models.State;
 
 using MemoryPack;
 
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
-
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
     // Savepoints models are transient, not persisted
@@ -28,45 +25,37 @@ namespace FreeTrainSimulator.Models.Loader.Handler
     {
         internal const string SourceNameKey = "MstsSourceRoute";
 
-        public static ValueTask<SavePointModel> GetCore(SavePointModel savePointModel, CancellationToken cancellationToken)
+        public static Task<SavePointModel> GetCore(SavePointModel savePointModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(savePointModel, nameof(savePointModel));
             return GetCore(savePointModel.Id, savePointModel.Parent, cancellationToken);
         }
 
-        public static async ValueTask<SavePointModel> GetCore(string savepointId, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<SavePointModel> GetCore(string savepointId, RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(savepointId);
 
-            if (!taskLazyCache.TryGetValue(key, out Lazy<Task<SavePointModel>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
+            if (!modelTaskCache.TryGetValue(key, out Task<SavePointModel> modelTask) || modelTask.IsFaulted)
             {
-                taskLazyCache[key] = modelTask = new Lazy<Task<SavePointModel>>(FromFile(savepointId, routeModel, cancellationToken));
+                modelTaskCache[key] = modelTask = FromFile(savepointId, routeModel, cancellationToken);
                 collectionUpdateRequired[routeModel.Hierarchy()] = true;
             }
 
-            SavePointModel savePointModel = await modelTask.Value.ConfigureAwait(false);
-
-            if (savePointModel?.RefreshRequired ?? false)
-            {
-                taskLazyCache[key] = new Lazy<Task<SavePointModel>>(() => Cast(Convert(savePointModel, cancellationToken)));
-                collectionUpdateRequired[routeModel.Hierarchy()] = true;
-            }
-
-            return savePointModel;
+            return modelTask;
         }
 
-        public static async ValueTask<FrozenSet<SavePointModel>> GetSavePoints(RouteModelCore routeModel, string activityPrefix, CancellationToken cancellationToken)
+        public static Task<FrozenSet<SavePointModel>> GetSavePoints(RouteModelCore routeModel, string activityPrefix, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(activityPrefix);
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<SavePointModel>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<SavePointModel>> modelSetTask) || modelSetTask.IsFaulted)
             {
-                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<SavePointModel>>>(() => ExpandSavePointModels(routeModel, activityPrefix, cancellationToken));
+                modelSetTaskCache[key] = modelSetTask = ExpandSavePointModels(routeModel, activityPrefix, cancellationToken);
             }
 
-            return await modelSetTask.Value.ConfigureAwait(false);
+            return modelSetTask;
         }
 
         public static async Task<FrozenSet<SavePointModel>> ExpandSavePointModels(RouteModelCore routeModel, string activityPrefix, CancellationToken cancellationToken)
@@ -84,31 +73,31 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
                 await Parallel.ForEachAsync(savepointFiles, cancellationToken, async (savePoint, token) =>
                 {
-                    Lazy<Task<SavePointModel>> modelTask = new Lazy<Task<SavePointModel>>(Cast(Convert(savePoint, routeModel, cancellationToken)));
+                    Task<SavePointModel> modelTask = Cast(Convert(savePoint, routeModel, cancellationToken));
 
-                    SavePointModel savePointModel = await modelTask.Value.ConfigureAwait(false);
+                    SavePointModel savePointModel = await modelTask.ConfigureAwait(false);
 
                     if (null != savePointModel)
                     {
                         string key = savePointModel.Hierarchy();
                         results.Add(savePointModel);
-                        taskLazyCache[key] = modelTask;
+                        modelTaskCache[key] = modelTask;
                     }
                 }).ConfigureAwait(false);
             }
 
             FrozenSet<SavePointModel> result = results.ToFrozenSet();
             string key = routeModel.Hierarchy();
-            taskLazyCollectionCache[key] = new Lazy<Task<FrozenSet<SavePointModel>>>(Task.FromResult(result));
+            modelSetTaskCache[key] = Task.FromResult(result);
             return result;
         }
 
-        private static Task<SavePointModel> Convert(SavePointModel savePointModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(savePointModel, nameof(savePointModel));
+        //private static Task<SavePointModel> Convert(SavePointModel savePointModel, CancellationToken cancellationToken)
+        //{
+        //    ArgumentNullException.ThrowIfNull(savePointModel, nameof(savePointModel));
 
-            return Convert(Path.Combine(RuntimeInfo.UserDataFolder, savePointModel.Tags[SourceNameKey]), savePointModel.Parent, cancellationToken);
-        }
+        //    return Convert(Path.Combine(RuntimeInfo.UserDataFolder, savePointModel.Tags[SourceNameKey]), savePointModel.Parent, cancellationToken);
+        //}
 
         private static async Task<SavePointModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)
         {

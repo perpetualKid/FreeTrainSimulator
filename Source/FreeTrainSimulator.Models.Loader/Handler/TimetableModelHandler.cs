@@ -21,45 +21,37 @@ namespace FreeTrainSimulator.Models.Loader.Handler
     {
         internal const string SourceNameKey = "OrSourceRoute";
 
-        public static ValueTask<TimetableModel> GetCore(TimetableModel timetableModel, CancellationToken cancellationToken)
+        public static Task<TimetableModel> GetCore(TimetableModel timetableModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(timetableModel, nameof(timetableModel));
             return GetCore(timetableModel.Id, timetableModel.Parent, cancellationToken);
         }
 
-        public static async ValueTask<TimetableModel> GetCore(string timetableId, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<TimetableModel> GetCore(string timetableId, RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(timetableId);
 
-            if (!taskLazyCache.TryGetValue(key, out Lazy<Task<TimetableModel>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
+            if (!modelTaskCache.TryGetValue(key, out Task<TimetableModel> modelTask) || modelTask.IsFaulted)
             {
-                taskLazyCache[key] = modelTask = new Lazy<Task<TimetableModel>>(FromFile(timetableId, routeModel, cancellationToken));
+                modelTaskCache[key] = modelTask = FromFile(timetableId, routeModel, cancellationToken);
                 collectionUpdateRequired[routeModel.Hierarchy()] = true;
             }
 
-            TimetableModel timetableModel = await modelTask.Value.ConfigureAwait(false);
-
-            if (timetableModel?.RefreshRequired ?? false)
-            {
-                taskLazyCache[key] = new Lazy<Task<TimetableModel>>(() => Cast(Convert(timetableModel, cancellationToken)));
-                collectionUpdateRequired[routeModel.Hierarchy()] = true;
-            }
-
-            return timetableModel;
+            return modelTask;
         }
 
-        public static async ValueTask<FrozenSet<TimetableModel>> GetTimetables(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<FrozenSet<TimetableModel>> GetTimetables(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<TimetableModel>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<TimetableModel>> modelSetTask) || modelSetTask.IsFaulted)
             {
-                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<TimetableModel>>>(() => LoadTimetables(routeModel, cancellationToken));
+                modelSetTaskCache[key] = modelSetTask = LoadTimetables(routeModel, cancellationToken);
             }
 
-            return await modelSetTask.Value.ConfigureAwait(false);
+            return modelSetTask;
         }
 
         public static async Task<FrozenSet<TimetableModel>> ExpandTimetableModels(RouteModelCore routeModel, CancellationToken cancellationToken)
@@ -77,17 +69,17 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
                 await Parallel.ForEachAsync(consistFiles, cancellationToken, async (consistFile, token) =>
                 {
-                    Lazy<Task<TimetableModel>> modelTask = new Lazy<Task<TimetableModel>>(Convert(consistFile, routeModel, cancellationToken));
+                    Task<TimetableModel> modelTask = Convert(consistFile, routeModel, cancellationToken);
 
-                    TimetableModel timetableModel = await modelTask.Value.ConfigureAwait(false);
+                    TimetableModel timetableModel = await modelTask.ConfigureAwait(false);
                     string key = timetableModel.Hierarchy();
                     results.Add(timetableModel);
-                    taskLazyCache[key] = modelTask;
+                    modelTaskCache[key] = modelTask;
                 }).ConfigureAwait(false);
             }
             FrozenSet<TimetableModel> result = results.ToFrozenSet();
             string key = routeModel.Hierarchy();
-            taskLazyCollectionCache[key] = new Lazy<Task<FrozenSet<TimetableModel>>>(Task.FromResult(result));
+            modelSetTaskCache[key] = Task.FromResult(result);
             _ = collectionUpdateRequired.TryRemove(key, out _);
             return result;
         }
@@ -117,12 +109,12 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return results.ToFrozenSet();
         }
 
-        private static Task<TimetableModel> Convert(TimetableModel timetableModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(timetableModel, nameof(timetableModel));
+        //private static Task<TimetableModel> Convert(TimetableModel timetableModel, CancellationToken cancellationToken)
+        //{
+        //    ArgumentNullException.ThrowIfNull(timetableModel, nameof(timetableModel));
 
-            return Convert(Path.Combine(timetableModel.Parent.MstsRouteFolder().OpenRailsActivitiesFolder, timetableModel.Tags[SourceNameKey]), timetableModel.Parent, cancellationToken);
-        }
+        //    return Convert(Path.Combine(timetableModel.Parent.MstsRouteFolder().OpenRailsActivitiesFolder, timetableModel.Tags[SourceNameKey]), timetableModel.Parent, cancellationToken);
+        //}
 
         private static async Task<TimetableModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)
         {

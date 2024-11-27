@@ -17,45 +17,37 @@ namespace FreeTrainSimulator.Models.Loader.Handler
     {
         internal const string SourceNameKey = "ORSourceWeather";
 
-        public static ValueTask<WeatherModelCore> GetCore(WeatherModelCore weatherModel, CancellationToken cancellationToken)
+        public static Task<WeatherModelCore> GetCore(WeatherModelCore weatherModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(weatherModel, nameof(weatherModel));
             return GetCore(weatherModel.Id, weatherModel.Parent, cancellationToken);
         }
 
-        public static async ValueTask<WeatherModelCore> GetCore(string weatherId, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<WeatherModelCore> GetCore(string weatherId, RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(weatherId);
 
-            if (!taskLazyCache.TryGetValue(key, out Lazy<Task<WeatherModelCore>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
+            if (!modelTaskCache.TryGetValue(key, out Task<WeatherModelCore> modelTask) || modelTask.IsFaulted)
             {
-                taskLazyCache[key] = modelTask = new Lazy<Task<WeatherModelCore>>(FromFile(weatherId, routeModel, cancellationToken));
+                modelTaskCache[key] = modelTask = FromFile(weatherId, routeModel, cancellationToken);
                 collectionUpdateRequired[routeModel.Hierarchy()] = true;
             }
 
-            WeatherModelCore weatherModel = await modelTask.Value.ConfigureAwait(false);
-
-            if (weatherModel?.RefreshRequired ?? false)
-            {
-                taskLazyCache[key] = new Lazy<Task<WeatherModelCore>>(() => Cast(Convert(weatherModel, cancellationToken)));
-                collectionUpdateRequired[routeModel.Hierarchy()] = true;
-            }
-
-            return weatherModel;
+            return modelTask;
         }
 
-        public static async ValueTask<FrozenSet<WeatherModelCore>> GetWeatherFiles(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<FrozenSet<WeatherModelCore>> GetWeatherFiles(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<WeatherModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<WeatherModelCore>> modelSetTask) || modelSetTask.IsFaulted)
             {
-                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<WeatherModelCore>>>(() => LoadWeatherModels(routeModel, cancellationToken));
+                modelSetTaskCache[key] = modelSetTask = LoadWeatherModels(routeModel, cancellationToken);
             }
 
-            return await modelSetTask.Value.ConfigureAwait(false);
+            return modelSetTask;
         }
 
         public static async Task<FrozenSet<WeatherModelCore>> ExpandPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
@@ -72,17 +64,17 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
                 await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
                 {
-                    Lazy<Task<WeatherModelCore>> modelTask = new Lazy<Task<WeatherModelCore>>(Cast(Convert(path, routeModel, cancellationToken)));
+                    Task<WeatherModelCore> modelTask = Cast(Convert(path, routeModel, cancellationToken));
 
-                    WeatherModelCore weatherModel = await modelTask.Value.ConfigureAwait(false);
+                    WeatherModelCore weatherModel = await modelTask.ConfigureAwait(false);
                     string key = weatherModel.Hierarchy();
                     results.Add(weatherModel);
-                    taskLazyCache[key] = modelTask;
+                    modelTaskCache[key] = modelTask;
                 }).ConfigureAwait(false);
             }
             FrozenSet<WeatherModelCore> result = results.ToFrozenSet();
             string key = routeModel.Hierarchy();
-            taskLazyCollectionCache[key] = new Lazy<Task<FrozenSet<WeatherModelCore>>>(Task.FromResult(result));
+            modelSetTaskCache[key] = Task.FromResult(result);
             _ = collectionUpdateRequired.TryRemove(key, out _);
             return result;
         }
@@ -110,13 +102,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 }).ConfigureAwait(false);
             }
             return results.ToFrozenSet();
-        }
-
-        private static Task<WeatherModelCore> Convert(WeatherModelCore weatherModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(weatherModel, nameof(weatherModel));
-
-            return Convert(Path.Combine(weatherModel.Parent.MstsRouteFolder().WeatherFolder, weatherModel.Tags[SourceNameKey]), weatherModel.Parent, cancellationToken);
         }
 
         private static async Task<WeatherModelCore> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)

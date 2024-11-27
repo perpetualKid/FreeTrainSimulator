@@ -18,62 +18,54 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
         public static string CheckDefaultProfile(string profileName) => (string.IsNullOrEmpty(profileName) || string.Equals(profileName, DefaultProfileName, StringComparison.OrdinalIgnoreCase)) ? DefaultProfileName : profileName;
 
-        public static ValueTask<ProfileModel> GetCore(ProfileModel profileModel, CancellationToken cancellationToken)
+        public static Task<ProfileModel> GetCore(ProfileModel profileModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             return GetCore(profileModel.Name, cancellationToken);
         }
 
-        public static async ValueTask<ProfileModel> GetCore(string profileName, CancellationToken cancellationToken)
+        public static Task<ProfileModel> GetCore(string profileName, CancellationToken cancellationToken)
         {
             profileName = CheckDefaultProfile(profileName);
 
             string key = profileName;
 
-            if (!taskLazyCache.TryGetValue(key, out Lazy<Task<ProfileModel>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
+            if (!modelTaskCache.TryGetValue(key, out Task<ProfileModel> modelTask) || modelTask.IsFaulted)
             {
-                taskLazyCache[key] = modelTask = new Lazy<Task<ProfileModel>>(FromFile<ProfileModel>(profileName, null, cancellationToken));
+                modelTaskCache[key] = modelTask = FromFile<ProfileModel>(profileName, null, cancellationToken);
                 collectionUpdateRequired[root] = true;
             }
 
-            ProfileModel profileModel = await modelTask.Value.ConfigureAwait(false);
-
-            if (profileModel?.RefreshRequired ?? false)
-            {
-                taskLazyCache[key] = new Lazy<Task<ProfileModel>>(() => Cast(Convert(profileModel, cancellationToken)));
-                collectionUpdateRequired[root] = true;
-            }
-
-            return profileModel;
+            return modelTask;
         }
 
-        public static async ValueTask<FrozenSet<ProfileModel>> GetProfiles(CancellationToken cancellationToken)
+        public static Task<FrozenSet<ProfileModel>> GetProfiles(CancellationToken cancellationToken)
         {
             string key = root;
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<ProfileModel>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<ProfileModel>> modelSetTask) || modelSetTask.IsFaulted)
             {
-                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<ProfileModel>>>(() => LoadProfiles(cancellationToken));
+                modelSetTaskCache[key] = modelSetTask = LoadProfiles(cancellationToken);
             }
 
-            return await modelSetTask.Value.ConfigureAwait(false);
+            return modelSetTask;
         }
 
-        public static async Task<ProfileModel> Expand(ProfileModel profileModel, CancellationToken cancellationToken)
+        public static Task<ProfileModel> Expand(ProfileModel profileModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             string key = profileModel.Name;
 
             Task<ProfileModel> modelTask = Convert(profileModel, cancellationToken);
-            taskLazyCache[key] = new Lazy<Task<ProfileModel>>(modelTask);
+            modelTaskCache[key] = modelTask;
             collectionUpdateRequired[root] = true;
 
-            return await modelTask.ConfigureAwait(false);
+            return modelTask;
         }
 
         public static async Task<ProfileModel> Setup(string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
-            ArgumentException.ThrowIfNullOrEmpty(profileName, nameof(profileName));
+            profileName = CheckDefaultProfile(profileName);
             ProfileModel profileModel = await GetCore(profileName, cancellationToken).ConfigureAwait(false);
 
             profileModel = (profileModel ??= new ProfileModel(profileName)) with
@@ -83,7 +75,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             profileModel = await Convert(profileModel, cancellationToken).ConfigureAwait(false);
 
             string key = profileName;
-            taskLazyCache[key] = new Lazy<Task<ProfileModel>>(Task.FromResult(profileModel));
+            modelTaskCache[key] = Task.FromResult(profileModel);
             collectionUpdateRequired[root] = true;
 
             return profileModel;

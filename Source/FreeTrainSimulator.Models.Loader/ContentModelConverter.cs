@@ -10,7 +10,6 @@ namespace FreeTrainSimulator.Models.Loader
 {
     public static class ContentModelConverter
     {
-
         public static async Task<ProfileModel> SetupContent(ProfileModel profileModel, bool refresh, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));

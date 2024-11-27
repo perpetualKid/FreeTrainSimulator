@@ -4,7 +4,6 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,32 +32,24 @@ namespace FreeTrainSimulator.Models.Loader.Handler
         //    @"ROUTES\USA2\PATHS\long-haul west (blizzard).pat",
         //};
 
-        public static ValueTask<PathModelCore> GetCore(PathModelCore pathModel, CancellationToken cancellationToken)
+        public static Task<PathModelCore> GetCore(PathModelCore pathModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
             return GetCore(pathModel.Id, pathModel.Parent, cancellationToken);
         }
 
-        public static async ValueTask<PathModelCore> GetCore(string pathId, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<PathModelCore> GetCore(string pathId, RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(pathId);
 
-            if (!taskLazyCache.TryGetValue(key, out Lazy<Task<PathModelCore>> modelTask) || (modelTask.IsValueCreated && modelTask.Value.IsFaulted))
+            if (!modelTaskCache.TryGetValue(key, out Task<PathModelCore> modelTask) || modelTask.IsFaulted)
             {
-                taskLazyCache[key] = modelTask = new Lazy<Task<PathModelCore>>(FromFile(pathId, routeModel, cancellationToken));
+                modelTaskCache[key] = modelTask = FromFile(pathId, routeModel, cancellationToken);
                 collectionUpdateRequired[routeModel.Hierarchy()] = true;
             }
 
-            PathModelCore pathModel = await modelTask.Value.ConfigureAwait(false);
-
-            if (pathModel?.RefreshRequired ?? false)
-            {
-                taskLazyCache[key] = new Lazy<Task<PathModelCore>>(() => Cast(Convert(pathModel, cancellationToken)));
-                collectionUpdateRequired[routeModel.Hierarchy()] = true;
-            }
-
-            return pathModel;
+            return modelTask;
         }
 
         public static ValueTask<PathModel> GetExtended(PathModelCore pathModel, CancellationToken cancellationToken)
@@ -72,35 +63,27 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(pathId);
 
-            if (!taskLazyCache.TryGetValue(key, out Lazy<Task<PathModelCore>> modelTask) || !modelTask.IsValueCreated || 
-                (modelTask.IsValueCreated && (modelTask.Value.IsFaulted || (await modelTask.Value.ConfigureAwait(false) is not PathModel))))
+            if (!modelTaskCache.TryGetValue(key, out Task<PathModelCore> modelTask) || modelTask.IsFaulted || 
+                (await modelTask.ConfigureAwait(false) is not PathModel))
             {
-                taskLazyCache[key] = modelTask = new Lazy<Task<PathModelCore>>(Cast(FromFile<PathModel, RouteModelCore>(pathId, routeModel, cancellationToken)));
+                modelTaskCache[key] = modelTask = Cast(FromFile<PathModel, RouteModelCore>(pathId, routeModel, cancellationToken));
                 collectionUpdateRequired[routeModel.Hierarchy()] = true;
             }
 
-            PathModel pathModel = await modelTask.Value.ConfigureAwait(false) as PathModel;
-
-            if (pathModel?.RefreshRequired ?? false)
-            {
-                taskLazyCache[key] = new Lazy<Task<PathModelCore>>(() => Cast(Convert(pathModel, cancellationToken)));
-                collectionUpdateRequired[routeModel.Hierarchy()] = true;
-            }
-
-            return pathModel;
+            return await modelTask.ConfigureAwait(false) as PathModel;
         }
 
-        public static async ValueTask<FrozenSet<PathModelCore>> GetPaths(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<FrozenSet<PathModelCore>> GetPaths(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<PathModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<PathModelCore>> modelSetTask) || modelSetTask.IsFaulted)
             {
-                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<PathModelCore>>>(() => LoadPaths(routeModel, cancellationToken));
+                modelSetTaskCache[key] = modelSetTask = LoadPaths(routeModel, cancellationToken);
             }
 
-            return await modelSetTask.Value.ConfigureAwait(false);
+            return modelSetTask;
         }
 
         public static async Task<FrozenSet<PathModelCore>> ExpandPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
@@ -117,17 +100,17 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 
                 await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
                 {
-                    Lazy<Task<PathModelCore>> modelTask = new Lazy<Task<PathModelCore>>(Cast(Convert(path, routeModel, cancellationToken)));
+                    Task<PathModelCore> modelTask = Cast(Convert(path, routeModel, cancellationToken));
 
-                    PathModelCore pathModel = await modelTask.Value.ConfigureAwait(false);
+                    PathModelCore pathModel = await modelTask.ConfigureAwait(false);
                     string key = pathModel.Hierarchy();
                     results.Add(pathModel);
-                    taskLazyCache[key] = modelTask;
+                    modelTaskCache[key] = modelTask;
                 }).ConfigureAwait(false);
             }
             FrozenSet<PathModelCore> result = results.ToFrozenSet();
             string key = routeModel.Hierarchy();
-            taskLazyCollectionCache[key] = new Lazy<Task<FrozenSet<PathModelCore>>>(Task.FromResult(result));
+            modelSetTaskCache[key] = Task.FromResult(result);
             _ = collectionUpdateRequired.TryRemove(key, out _);
             return result;
         }
@@ -155,13 +138,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                 }).ConfigureAwait(false);
             }
             return results.ToFrozenSet();
-        }
-
-        private static Task<PathModel> Convert(PathModelCore pathModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
-
-            return Convert(pathModel.Parent.MstsRouteFolder().PathFile(pathModel.Tags[SourceNameKey]), pathModel.Parent, cancellationToken);
         }
 
         private static async Task<PathModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)

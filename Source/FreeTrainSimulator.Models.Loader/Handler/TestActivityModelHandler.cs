@@ -11,18 +11,18 @@ namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class TestActivityModelHandler : ContentHandlerBase<ActivityModelCore>
     {
-        public static async ValueTask<FrozenSet<ActivityModelCore>> GetTestActivities(ProfileModel profileModel, CancellationToken cancellationToken)
+        public static Task<FrozenSet<ActivityModelCore>> GetTestActivities(ProfileModel profileModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
             string key = profileModel.Hierarchy();
 
-            if (!taskLazyCollectionCache.TryGetValue(key, out Lazy<Task<FrozenSet<ActivityModelCore>>> modelSetTask) || (modelSetTask.IsValueCreated && modelSetTask.Value.IsFaulted))
+            if (!modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<ActivityModelCore>> modelSetTask) || modelSetTask.IsFaulted)
             {
-                taskLazyCollectionCache[key] = modelSetTask = new Lazy<Task<FrozenSet<ActivityModelCore>>>(() => LoadActivities(profileModel, cancellationToken));
+                modelSetTaskCache[key] = modelSetTask = LoadActivities(profileModel, cancellationToken);
             }
 
-            return await modelSetTask.Value.ConfigureAwait(false);
+            return modelSetTask;
         }
 
         private static async Task<FrozenSet<ActivityModelCore>> LoadActivities(ProfileModel profileModel, CancellationToken cancellationToken)
