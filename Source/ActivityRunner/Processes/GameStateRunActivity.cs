@@ -680,9 +680,9 @@ namespace Orts.ActivityRunner.Processes
             {
                 Trace.WriteLine("Multiplayer Client");
 
-                Trace.WriteLine($"{"User",-12}= {settings.Multiplayer_User}");
-                Trace.WriteLine($"{"Host",-12}= {settings.Multiplayer_Host}");
-                Trace.WriteLine($"{"Port",-12}= {settings.Multiplayer_Port}");
+                Trace.WriteLine($"{"User",-12}= {settings.MultiplayerUser}");
+                Trace.WriteLine($"{"Host",-12}= {settings.MultiplayerHost}");
+                Trace.WriteLine($"{"Port",-12}= {settings.MultiplayerPort}");
                 Trace.WriteLine(separatorLine);
             }
 
@@ -722,7 +722,7 @@ namespace Orts.ActivityRunner.Processes
 
             if (settings.MultiplayerClient)
             {
-                MultiPlayerManager.Start(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User, "1234");
+                MultiPlayerManager.Start(settings.MultiplayerHost, settings.MultiplayerPort, settings.MultiplayerUser, "1234");
             }
         }
 

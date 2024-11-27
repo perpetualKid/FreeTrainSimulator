@@ -781,9 +781,7 @@ namespace FreeTrainSimulator.Menu
         {
             if (sender is PictureBox pictureBox)
             {
-#pragma warning disable CA2234 // Pass system uri objects instead of strings
                 SystemInfo.OpenBrowser(baseUrl + pictureBox.Tag);
-#pragma warning restore CA2234 // Pass system uri objects instead of strings
             }
         }
 

@@ -21,7 +21,7 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             Setup(null, profileModel?.Name, folders, cancellationToken);
         public static async Task<ProfileModel> Setup(this ProfileModel _, string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
-            ProfileModel profileModel = await ProfileModelHandler.Setup(profileName, folders, cancellationToken);
+            ProfileModel profileModel = await ProfileModelHandler.Setup(profileName, folders, cancellationToken).ConfigureAwait(false);
             return await ContentModelConverter.SetupContent(profileModel, true, cancellationToken).ConfigureAwait(false);
         }
         public static Task<FrozenSet<ProfileModel>> GetProfiles(this ProfileModel _, CancellationToken cancellationToken) =>

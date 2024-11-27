@@ -82,11 +82,11 @@ namespace Orts.Settings
         [Default(false)]
         public bool LogSaveData { get; set; }
         [Default("")]
-        public string Multiplayer_User { get; set; }
+        public string MultiplayerUser { get; set; }
         [Default("127.0.0.1")]
-        public string Multiplayer_Host { get; set; }
+        public string MultiplayerHost { get; set; }
         [Default(30000)]
-        public int Multiplayer_Port { get; set; }
+        public int MultiplayerPort { get; set; }
 
         // General settings:
 

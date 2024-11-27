@@ -171,7 +171,7 @@ namespace FreeTrainSimulator.Menu
                         if (toolIsConsole)
                         {
                             if (toolName.Equals("MultiPlayer Hub", StringComparison.OrdinalIgnoreCase))
-                                Process.Start("cmd", $"/k \"{toolPath}\" {settings.Multiplayer_Port}");
+                                Process.Start("cmd", $"/k \"{toolPath}\" {settings.MultiplayerPort}");
                             else
                                 Process.Start("cmd", $"/k \"{toolPath}\"");
                         }
@@ -578,10 +578,10 @@ namespace FreeTrainSimulator.Menu
         private async void ButtonConnectivityTest_Click(object sender, EventArgs e)
         {
             string[] mpHost = textBoxMPHost.Text.Split(':');
-            settings.Multiplayer_Host = mpHost[0];
-            settings.Multiplayer_Port = mpHost.Length > 1 && int.TryParse(mpHost[1], out int port) ? port : (int)settings.GetDefaultValue("Multiplayer_Port");
+            settings.MultiplayerHost = mpHost[0];
+            settings.MultiplayerPort = mpHost.Length > 1 && int.TryParse(mpHost[1], out int port) ? port : (int)settings.GetDefaultValue("Multiplayer_Port");
 
-            ConnectivityClient client = new ConnectivityClient(settings.Multiplayer_Host, settings.Multiplayer_Port, CancellationToken.None, true);
+            ConnectivityClient client = new ConnectivityClient(settings.MultiplayerHost, settings.MultiplayerPort, CancellationToken.None, true);
             bool result = await client.Ping().ConfigureAwait(true);
             MessageBox.Show($"Connectivity test {(result ? "succeeded" : "failed")}!", "Multiplayer Connection", MessageBoxButtons.OK, result ? MessageBoxIcon.Information : MessageBoxIcon.Exclamation);
         }
@@ -593,24 +593,24 @@ namespace FreeTrainSimulator.Menu
         {
             checkBoxWarnings.Checked = settings.Logging;
 
-            textBoxMPUser.Text = settings.Multiplayer_User;
-            textBoxMPHost.Text = settings.Multiplayer_Host + ":" + settings.Multiplayer_Port;
+            textBoxMPUser.Text = settings.MultiplayerUser;
+            textBoxMPHost.Text = settings.MultiplayerHost + ":" + settings.MultiplayerPort;
         }
 
         private async Task SaveOptions()
         {
             settings.Logging = checkBoxWarnings.Checked;
-            settings.Multiplayer_User = textBoxMPUser.Text;
+            settings.MultiplayerUser = textBoxMPUser.Text;
 
             string[] mpHost = textBoxMPHost.Text.Split(':');
-            settings.Multiplayer_Host = mpHost[0];
+            settings.MultiplayerHost = mpHost[0];
             if (mpHost.Length > 1 && int.TryParse(mpHost[1], out int port))
             {
-                settings.Multiplayer_Port = port;
+                settings.MultiplayerPort = port;
             }
             else
             {
-                settings.Multiplayer_Port = (int)settings.GetDefaultValue("Multiplayer_Port");
+                settings.MultiplayerPort = (int)settings.GetDefaultValue("Multiplayer_Port");
             }
             settings.Save();
 
