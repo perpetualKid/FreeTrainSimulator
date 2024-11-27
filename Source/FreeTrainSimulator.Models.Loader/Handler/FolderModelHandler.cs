@@ -9,10 +9,14 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
+using Orts.Formats.Msts;
+
 namespace FreeTrainSimulator.Models.Loader.Handler
 {
     internal sealed class FolderModelHandler : ContentHandlerBase<FolderModel>
     {
+        public static readonly FolderModel MstsFolder = new FolderModel("Train Simulator", FolderStructure.MstsFolder, null);
+
         public static Task<FolderModel> GetCore(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));

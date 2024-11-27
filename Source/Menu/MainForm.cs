@@ -488,7 +488,7 @@ namespace FreeTrainSimulator.Menu
                 Invoke(ShowOptionsForm, initialSetup);
                 return;
             }
-            using (OptionsForm form = new OptionsForm(settings, updateManager, initialSetup))
+            using (OptionsForm form = new OptionsForm(settings, updateManager, initialSetup, CurrentSelections))
             {
                 switch (form.ShowDialog(this))
                 {

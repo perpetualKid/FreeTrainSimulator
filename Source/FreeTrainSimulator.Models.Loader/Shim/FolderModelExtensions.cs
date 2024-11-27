@@ -12,6 +12,12 @@ namespace FreeTrainSimulator.Models.Loader.Shim
 {
     public static class FolderModelExtensions
     {
+        public static FolderModel TrainSimulatorFolder(this ProfileModel profileModel)
+        {
+            FolderModel mstsFolder = FolderModelHandler.MstsFolder;
+            mstsFolder.Initialize(null, profileModel);
+            return mstsFolder;
+        }
         public static FolderStructure.ContentFolder MstsContentFolder(this FolderModel folderModel) => FileResolver.ContentFolderResolver(folderModel).MstsContentFolder;
         public static Task<FrozenSet<RouteModelCore>> GetRoutes(this FolderModel folderModel, CancellationToken cancellationToken) => RouteModelHandler.GetRoutes(folderModel, cancellationToken);
         public static Task<FolderModel> Get(this FolderModel folderModel, CancellationToken cancellationToken) => FolderModelHandler.GetCore(folderModel, cancellationToken);

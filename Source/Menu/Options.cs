@@ -26,12 +26,14 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Independent.Settings;
+using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Updater;
 
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Formats.Msts;
 using Orts.Settings;
 
 namespace FreeTrainSimulator.Menu
@@ -43,19 +45,21 @@ namespace FreeTrainSimulator.Menu
 
         private readonly UserSettings settings;
         private readonly UpdateManager updateManager;
+        private readonly ProfileSelectionsModel profileSelectionsModel;
 
         private readonly Catalog catalog;
         private readonly Dictionary<Control, HelpIconHover> helpIconMap = new Dictionary<Control, HelpIconHover>();
 
         private const string baseUrl = "https://open-rails.readthedocs.io/en/latest";
 
-        public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup)
+        public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup, ProfileSelectionsModel profileSelections)
         {
             InitializeComponent();
             catalog = CatalogManager.Catalog;
             Localizer.Localize(this, catalog);
 
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.profileSelectionsModel = profileSelections ?? throw new ArgumentNullException(nameof(settings));
             this.updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
 
             InitializeHelpIcons();
@@ -195,10 +199,14 @@ namespace FreeTrainSimulator.Menu
             }
             checkDataLogStationStops.Checked = this.settings.EvaluationStationStops;
 
-            bindingSourceContent.DataSource = this.settings.FolderSettings.Folders.Count == 0 ?
-                new List<ContentFolder>() { new ContentFolder() { Name = "Train Simulator", Path = FolderStructure.MstsFolder } } : 
-                this.settings.FolderSettings.Folders.OrderBy(f => f.Key).
-                Select(folder => new ContentFolder() { Name = folder.Key, Path = folder.Value }).ToList();
+            bindingSourceContent.DataSource = profileSelections.Parent.ContentFolders.Count == 0 ?
+                new List<FolderModel>() { profileSelections.Parent.TrainSimulatorFolder() } :
+                profileSelections.Parent.ContentFolders.OrderBy(f => f.Name).ToList();
+
+            //bindingSourceContent.DataSource = this.settings.FolderSettings.Folders.Count == 0 ?
+            //    new List<ContentFolder>() { new ContentFolder() { Name = "Train Simulator", Path = FolderStructure.MstsFolder } } : 
+            //    this.settings.FolderSettings.Folders.OrderBy(f => f.Key).
+            //    Select(folder => new ContentFolder() { Name = folder.Key, Path = folder.Value }).ToList();
 
             if (initialContentSetup)
             {
@@ -358,8 +366,8 @@ namespace FreeTrainSimulator.Menu
 
             // Content tab
             settings.FolderSettings.Folders.Clear();
-            foreach (ContentFolder folder in bindingSourceContent.DataSource as List<ContentFolder>)
-                settings.FolderSettings.Folders.Add(folder.Name, folder.Path);
+            foreach (FolderModel folder in bindingSourceContent.DataSource as List<FolderModel>)
+                settings.FolderSettings.Folders.Add(folder.Name, folder.ContentPath);
 
             // Updater tab
 
@@ -478,7 +486,7 @@ namespace FreeTrainSimulator.Menu
 
         private void DataGridViewContent_SelectionChanged(object sender, EventArgs e)
         {
-            ContentFolder current = bindingSourceContent.Current as ContentFolder;
+            FolderModel current = bindingSourceContent.Current as FolderModel;
             textBoxContentName.Enabled = buttonContentBrowse.Enabled = current != null;
             if (current == null)
             {
@@ -487,7 +495,7 @@ namespace FreeTrainSimulator.Menu
             else
             {
                 textBoxContentName.Text = current.Name;
-                textBoxContentPath.Text = current.Path;
+                textBoxContentPath.Text = current.ContentPath;
             }
         }
 
@@ -518,9 +526,19 @@ namespace FreeTrainSimulator.Menu
                 folderBrowser.ShowNewFolderButton = false;
                 if (folderBrowser.ShowDialog(this) == DialogResult.OK)
                 {
-                    ContentFolder current = bindingSourceContent.Current as ContentFolder;
+                    FolderModel current = bindingSourceContent.Current as FolderModel;
                     System.Diagnostics.Debug.Assert(current != null, "List should not be empty");
-                    textBoxContentPath.Text = current.Path = folderBrowser.SelectedPath;
+                    textBoxContentPath.Text = folderBrowser.SelectedPath;
+                    int index = (bindingSourceContent.DataSource as List<FolderModel>).LastIndexOf(current);
+                    if (index > -1)
+                    {
+                        (bindingSourceContent.DataSource as List<FolderModel>)[index] = current = current with
+                        {
+                            Name = null,
+                            ContentPath = folderBrowser.SelectedPath,
+                        };
+                    }
+
                     if (string.IsNullOrEmpty(current.Name))
                         // Don't need to set current.Name here as next statement triggers event textBoxContentName_TextChanged()
                         // which does that and also checks for duplicate names 
@@ -539,9 +557,9 @@ namespace FreeTrainSimulator.Menu
         /// <param name="e"></param>
         private void TextBoxContentName_TextChanged(object sender, EventArgs e)
         {
-            if (bindingSourceContent.Current is ContentFolder current && current.Name != textBoxContentName.Text)
+            if (bindingSourceContent.Current is FolderModel current && current.Name != textBoxContentName.Text)
             {
-                if (!Path.GetRelativePath(RuntimeInfo.ProgramRoot, current.Path).StartsWith("..", StringComparison.OrdinalIgnoreCase))
+                if (!Path.GetRelativePath(RuntimeInfo.ProgramRoot, current.ContentPath).StartsWith("..", StringComparison.OrdinalIgnoreCase))
                 {
                     // Block added because a succesful Update operation will empty the Open Rails folder and lose any content stored within it.
                     MessageBox.Show(catalog.GetString
@@ -554,19 +572,27 @@ namespace FreeTrainSimulator.Menu
                 }
                 // Duplicate names lead to an exception, so append " copy" if not unique
                 string suffix = "";
-                bool isNameUnique = true;
-                while (isNameUnique)
+                bool uniqueName = true;
+                while (uniqueName)
                 {
-                    isNameUnique = false; // to exit after a single pass
+                    uniqueName = false; // to exit after a single pass
                     foreach (object item in bindingSourceContent)
-                        if (((ContentFolder)item).Name == textBoxContentName.Text + suffix)
+                        if (((FolderModel)item).Name == textBoxContentName.Text + suffix)
                         {
                             suffix += " copy"; // To ensure uniqueness
-                            isNameUnique = true; // to force another pass
+                            uniqueName = true; // to force another pass
                             break;
                         }
                 }
-                current.Name = textBoxContentName.Text + suffix;
+
+                int index = (bindingSourceContent.DataSource as List<FolderModel>).IndexOf(current);
+                if (index > -1)
+                {
+                    (bindingSourceContent.DataSource as List<FolderModel>)[index] = current with
+                    {
+                        Name = textBoxContentName.Text + suffix,
+                    };
+                }
                 bindingSourceContent.ResetCurrentItem();
             }
         }
@@ -779,18 +805,9 @@ namespace FreeTrainSimulator.Menu
         }
         #endregion
 
-    }
-
-    public class ContentFolder
-    {
-        public string Name { get; set; }
-        public string Path { get; set; }
-
-        public ContentFolder()
+        private void BindingSourceContent_AddingNew(object sender, System.ComponentModel.AddingNewEventArgs e)
         {
-            Name = "";
-            Path = "";
+            e.NewObject = (bindingSourceContent.DataSource as List<FolderModel>).LastOrDefault() ?? profileSelectionsModel.Parent.TrainSimulatorFolder();
         }
     }
-
 }

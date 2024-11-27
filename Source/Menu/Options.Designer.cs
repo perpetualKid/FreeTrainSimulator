@@ -160,6 +160,8 @@ namespace FreeTrainSimulator.Menu
             buttonContentAdd = new System.Windows.Forms.Button();
             panelContent = new System.Windows.Forms.Panel();
             dataGridViewContent = new System.Windows.Forms.DataGridView();
+            NameColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            PathColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             bindingSourceContent = new System.Windows.Forms.BindingSource(components);
             tabPageUpdater = new System.Windows.Forms.TabPage();
             buttonUpdaterExecute = new System.Windows.Forms.Button();
@@ -217,8 +219,6 @@ namespace FreeTrainSimulator.Menu
             ElevationText = new System.Windows.Forms.Label();
             label5 = new System.Windows.Forms.Label();
             toolTip1 = new System.Windows.Forms.ToolTip(components);
-            nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            pathDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)numericBrakePipeChargingRate).BeginInit();
             tabOptions.SuspendLayout();
             tabPageGeneral.SuspendLayout();
@@ -606,7 +606,7 @@ namespace FreeTrainSimulator.Menu
             checkEnableTCSScripts.AutoSize = true;
             checkEnableTCSScripts.Location = new System.Drawing.Point(31, 274);
             checkEnableTCSScripts.Name = "checkEnableTCSScripts";
-            checkEnableTCSScripts.Size = new System.Drawing.Size(120, 19);
+            checkEnableTCSScripts.Size = new System.Drawing.Size(121, 19);
             checkEnableTCSScripts.TabIndex = 13;
             checkEnableTCSScripts.Text = "Enable TCS scripts";
             checkEnableTCSScripts.UseVisualStyleBackColor = true;
@@ -674,7 +674,7 @@ namespace FreeTrainSimulator.Menu
             checkAlerterExternal.Location = new System.Drawing.Point(53, 29);
             checkAlerterExternal.Margin = new System.Windows.Forms.Padding(25, 3, 3, 3);
             checkAlerterExternal.Name = "checkAlerterExternal";
-            checkAlerterExternal.Size = new System.Drawing.Size(139, 19);
+            checkAlerterExternal.Size = new System.Drawing.Size(138, 19);
             checkAlerterExternal.TabIndex = 1;
             checkAlerterExternal.Text = "Also in external views";
             checkAlerterExternal.UseVisualStyleBackColor = true;
@@ -765,7 +765,7 @@ namespace FreeTrainSimulator.Menu
             labelExternalSound.Location = new System.Drawing.Point(95, 62);
             labelExternalSound.Margin = new System.Windows.Forms.Padding(3);
             labelExternalSound.Name = "labelExternalSound";
-            labelExternalSound.Size = new System.Drawing.Size(183, 15);
+            labelExternalSound.Size = new System.Drawing.Size(182, 15);
             labelExternalSound.TabIndex = 6;
             labelExternalSound.Text = "% external sound heard internally";
             labelExternalSound.MouseEnter += HelpIcon_MouseEnter;
@@ -863,7 +863,7 @@ namespace FreeTrainSimulator.Menu
             checkLODViewingExtension.AutoSize = true;
             checkLODViewingExtension.Location = new System.Drawing.Point(6, 141);
             checkLODViewingExtension.Name = "checkLODViewingExtension";
-            checkLODViewingExtension.Size = new System.Drawing.Size(304, 19);
+            checkLODViewingExtension.Size = new System.Drawing.Size(302, 19);
             checkLODViewingExtension.TabIndex = 25;
             checkLODViewingExtension.Text = "Extend object maximum viewing distance to horizon";
             checkLODViewingExtension.UseVisualStyleBackColor = true;
@@ -1535,7 +1535,7 @@ namespace FreeTrainSimulator.Menu
             checkFullRangeThrottle.Font = new System.Drawing.Font("Segoe UI", 9F);
             checkFullRangeThrottle.Location = new System.Drawing.Point(7, 119);
             checkFullRangeThrottle.Name = "checkFullRangeThrottle";
-            checkFullRangeThrottle.Size = new System.Drawing.Size(125, 19);
+            checkFullRangeThrottle.Size = new System.Drawing.Size(126, 19);
             checkFullRangeThrottle.TabIndex = 4;
             checkFullRangeThrottle.Text = "Full Range Throttle";
             toolTip1.SetToolTip(checkFullRangeThrottle, "Use the full range of the Throttle Lever. There will be no Auto Brake!");
@@ -1569,7 +1569,7 @@ namespace FreeTrainSimulator.Menu
             checkReverseThrottle.Font = new System.Drawing.Font("Segoe UI", 9F);
             checkReverseThrottle.Location = new System.Drawing.Point(7, 42);
             checkReverseThrottle.Name = "checkReverseThrottle";
-            checkReverseThrottle.Size = new System.Drawing.Size(161, 19);
+            checkReverseThrottle.Size = new System.Drawing.Size(162, 19);
             checkReverseThrottle.TabIndex = 1;
             checkReverseThrottle.Text = "Reverse Throttle Direction";
             checkReverseThrottle.UseVisualStyleBackColor = true;
@@ -1816,7 +1816,7 @@ namespace FreeTrainSimulator.Menu
             labelContent.Margin = new System.Windows.Forms.Padding(3);
             labelContent.MaximumSize = new System.Drawing.Size(630, 0);
             labelContent.Name = "labelContent";
-            labelContent.Size = new System.Drawing.Size(610, 15);
+            labelContent.Size = new System.Drawing.Size(611, 15);
             labelContent.TabIndex = 3;
             labelContent.Text = "Installation profiles tell Open Rails where to look for game content. Add each full and mini-route MSTS installation.";
             // 
@@ -1935,7 +1935,7 @@ namespace FreeTrainSimulator.Menu
             dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dataGridViewContent.ColumnHeadersHeight = 29;
             dataGridViewContent.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            dataGridViewContent.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { nameDataGridViewTextBoxColumn, pathDataGridViewTextBoxColumn });
+            dataGridViewContent.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { NameColumn, PathColumn });
             dataGridViewContent.DataSource = bindingSourceContent;
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
@@ -1958,9 +1958,27 @@ namespace FreeTrainSimulator.Menu
             dataGridViewContent.TabIndex = 0;
             dataGridViewContent.SelectionChanged += DataGridViewContent_SelectionChanged;
             // 
+            // NameColumn
+            // 
+            NameColumn.DataPropertyName = "Name";
+            NameColumn.FillWeight = 25F;
+            NameColumn.HeaderText = "Name";
+            NameColumn.Name = "NameColumn";
+            NameColumn.ReadOnly = true;
+            // 
+            // PathColumn
+            // 
+            PathColumn.DataPropertyName = "ContentPath";
+            PathColumn.FillWeight = 75F;
+            PathColumn.HeaderText = "Directory";
+            PathColumn.Name = "PathColumn";
+            PathColumn.ReadOnly = true;
+            // 
             // bindingSourceContent
             // 
-            bindingSourceContent.DataSource = typeof(ContentFolder);
+            bindingSourceContent.AllowNew = true;
+            bindingSourceContent.DataSource = typeof(Models.Independent.Content.FolderModel);
+            bindingSourceContent.AddingNew += BindingSourceContent_AddingNew;
             // 
             // tabPageUpdater
             // 
@@ -2070,7 +2088,7 @@ namespace FreeTrainSimulator.Menu
             rbDeveloperPrereleases.Location = new System.Drawing.Point(5, 150);
             rbDeveloperPrereleases.Margin = new System.Windows.Forms.Padding(2);
             rbDeveloperPrereleases.Name = "rbDeveloperPrereleases";
-            rbDeveloperPrereleases.Size = new System.Drawing.Size(145, 19);
+            rbDeveloperPrereleases.Size = new System.Drawing.Size(146, 19);
             rbDeveloperPrereleases.TabIndex = 2;
             rbDeveloperPrereleases.Text = "Developer Test releases";
             rbDeveloperPrereleases.UseVisualStyleBackColor = true;
@@ -2270,7 +2288,7 @@ namespace FreeTrainSimulator.Menu
             label25.Location = new System.Drawing.Point(74, 358);
             label25.Margin = new System.Windows.Forms.Padding(3);
             label25.Name = "label25";
-            label25.Size = new System.Drawing.Size(156, 15);
+            label25.Size = new System.Drawing.Size(155, 15);
             label25.TabIndex = 42;
             label25.Text = "Precipitation box length (m)";
             // 
@@ -2291,7 +2309,7 @@ namespace FreeTrainSimulator.Menu
             label24.Location = new System.Drawing.Point(74, 332);
             label24.Margin = new System.Windows.Forms.Padding(3);
             label24.Name = "label24";
-            label24.Size = new System.Drawing.Size(152, 15);
+            label24.Size = new System.Drawing.Size(151, 15);
             label24.TabIndex = 40;
             label24.Text = "Precipitation box width (m)";
             // 
@@ -2312,7 +2330,7 @@ namespace FreeTrainSimulator.Menu
             label23.Location = new System.Drawing.Point(74, 306);
             label23.Margin = new System.Windows.Forms.Padding(3);
             label23.Name = "label23";
-            label23.Size = new System.Drawing.Size(156, 15);
+            label23.Size = new System.Drawing.Size(155, 15);
             label23.TabIndex = 38;
             label23.Text = "Precipitation box height (m)";
             // 
@@ -2472,7 +2490,7 @@ namespace FreeTrainSimulator.Menu
             checkUseMSTSEnv.AutoSize = true;
             checkUseMSTSEnv.Location = new System.Drawing.Point(324, 209);
             checkUseMSTSEnv.Name = "checkUseMSTSEnv";
-            checkUseMSTSEnv.Size = new System.Drawing.Size(131, 19);
+            checkUseMSTSEnv.Size = new System.Drawing.Size(132, 19);
             checkUseMSTSEnv.TabIndex = 25;
             checkUseMSTSEnv.Text = "MSTS environments";
             checkUseMSTSEnv.UseVisualStyleBackColor = true;
@@ -2483,7 +2501,7 @@ namespace FreeTrainSimulator.Menu
             labelPerformanceTunerTarget.Location = new System.Drawing.Point(92, 142);
             labelPerformanceTunerTarget.Margin = new System.Windows.Forms.Padding(3);
             labelPerformanceTunerTarget.Name = "labelPerformanceTunerTarget";
-            labelPerformanceTunerTarget.Size = new System.Drawing.Size(96, 15);
+            labelPerformanceTunerTarget.Size = new System.Drawing.Size(97, 15);
             labelPerformanceTunerTarget.TabIndex = 10;
             labelPerformanceTunerTarget.Text = "Target frame rate";
             // 
@@ -2594,26 +2612,9 @@ namespace FreeTrainSimulator.Menu
             label5.Margin = new System.Windows.Forms.Padding(3);
             label5.MaximumSize = new System.Drawing.Size(630, 0);
             label5.Name = "label5";
-            label5.Size = new System.Drawing.Size(398, 15);
+            label5.Size = new System.Drawing.Size(397, 15);
             label5.TabIndex = 0;
             label5.Text = "Experimental features that may slow down the game, use at your own risk.";
-            // 
-            // nameDataGridViewTextBoxColumn
-            // 
-            nameDataGridViewTextBoxColumn.DataPropertyName = "Name";
-            nameDataGridViewTextBoxColumn.FillWeight = 40F;
-            nameDataGridViewTextBoxColumn.HeaderText = "Name";
-            nameDataGridViewTextBoxColumn.MinimumWidth = 100;
-            nameDataGridViewTextBoxColumn.Name = "nameDataGridViewTextBoxColumn";
-            nameDataGridViewTextBoxColumn.ReadOnly = true;
-            // 
-            // pathDataGridViewTextBoxColumn
-            // 
-            pathDataGridViewTextBoxColumn.DataPropertyName = "Path";
-            pathDataGridViewTextBoxColumn.HeaderText = "Path";
-            pathDataGridViewTextBoxColumn.MinimumWidth = 200;
-            pathDataGridViewTextBoxColumn.Name = "pathDataGridViewTextBoxColumn";
-            pathDataGridViewTextBoxColumn.ReadOnly = true;
             // 
             // OptionsForm
             // 
@@ -2823,7 +2824,6 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.TabPage tabPageContent;
         private System.Windows.Forms.Panel panelContent;
         private System.Windows.Forms.DataGridView dataGridViewContent;
-        private System.Windows.Forms.BindingSource bindingSourceContent;
         private System.Windows.Forms.GroupBox groupBoxContent;
         private System.Windows.Forms.TextBox textBoxContentPath;
         private System.Windows.Forms.Label label20;
@@ -2916,7 +2916,8 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.PictureBox pbSoundVolumePercent;
         private System.Windows.Forms.PictureBox pbExternalSoundPassThruPercent;
         private System.Windows.Forms.PictureBox pbSoundDetailLevel;
-        private System.Windows.Forms.DataGridViewTextBoxColumn nameDataGridViewTextBoxColumn;
-        private System.Windows.Forms.DataGridViewTextBoxColumn pathDataGridViewTextBoxColumn;
+        private System.Windows.Forms.BindingSource bindingSourceContent;
+        private System.Windows.Forms.DataGridViewTextBoxColumn NameColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn PathColumn;
     }
 }
