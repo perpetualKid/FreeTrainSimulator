@@ -7,8 +7,6 @@ using MemoryPack;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts;
-
 namespace FreeTrainSimulator.Models.State
 {
     [MemoryPackable]

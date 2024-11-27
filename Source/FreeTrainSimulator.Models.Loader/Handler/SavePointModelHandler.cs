@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -142,6 +143,18 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                     //not a valid savepoint
                     Trace.TraceWarning($"Savepoint file {filePath} is not a valid save point file.");
 
+                    DateTime createdTime = DateTime.MinValue;
+                    string[] nameParts = Path.GetFileNameWithoutExtension(filePath).Split(' ');
+                    if (nameParts.Length > 2 && char.IsAsciiDigit(nameParts[^2][0]) && char.IsAsciiDigit(nameParts[^2][0]))
+                    {
+                        _ = DateTime.TryParse(string.Concat(nameParts[^2], ' ', nameParts[^1]), new DateTimeFormatInfo()
+                        {
+                            TimeSeparator = ".",
+                            DateSeparator = "-",
+                        },
+                        out createdTime);
+                    }
+
                     return new SavePointModel()
                     {
                         Name = Path.GetFileNameWithoutExtension(filePath),
@@ -149,8 +162,8 @@ namespace FreeTrainSimulator.Models.Loader.Handler
                         ValidState = false,
                         RouteName = routeModel.Name,
                         PathName = "<Invalid Savepoint>",
-                        GameTime = TimeSpan.MinValue,
-                        RealTime = DateTime.MinValue.ToLocalTime(),
+                        GameTime = TimeSpan.Zero,
+                        RealTime = createdTime,
                         CurrentTile = Tile.Zero,
                         DistanceTravelled = 0,
                         MultiplayerGame = false,

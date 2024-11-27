@@ -70,6 +70,7 @@ namespace Orts.Menu
         {
             if (disposing)
             {
+                semaphoreSlim?.Dispose();
                 components?.Dispose();
                 ctsTestActivityLoader?.Dispose();
                 ctsTestActivityRunner?.Dispose();

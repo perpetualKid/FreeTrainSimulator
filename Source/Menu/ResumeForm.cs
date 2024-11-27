@@ -145,6 +145,7 @@ namespace Orts.Menu
         {
             if (disposing)
             {
+                semaphoreSlim?.Dispose();
                 components?.Dispose();
                 ctsLoader?.Dispose();
             }
@@ -175,11 +176,11 @@ namespace Orts.Menu
                 // SavePacks are all in the same folder and activities may have the same name 
                 // (e.g. Short Passenger Run shrtpass.act) but belong to a different route,
                 // so pick only the activities for the current route.
-                Where(s => string.Equals(s.RouteName, route.Name)).
+                Where(s => string.Equals(s.RouteName, route.Name, StringComparison.OrdinalIgnoreCase)).
                 // In case you receive a SavePack where the activity is recognised but the route has been renamed.
                 // Checks the route is not in your list of routes.
                 // If so, add it with a warning.
-                Where(s => globalRoutes.Any(route => route.Name == s.RouteName)).
+                Where(s => globalRoutes.Any(route => string.Equals(route.Name, s.RouteName, StringComparison.OrdinalIgnoreCase))).
                 OrderByDescending(s => s.RealTime).
                 ToFrozenSet();
             saveBindingSource.DataSource = savePoints;

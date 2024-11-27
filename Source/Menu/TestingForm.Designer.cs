@@ -334,7 +334,6 @@ namespace Orts.Menu
         private System.Windows.Forms.CheckBox checkBoxOverride;
         private System.Windows.Forms.Button buttonNoSort;
         private System.Windows.Forms.Panel panelTests;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn toTestDataGridViewCheckBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn activityFilePathDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn defaultSortDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn Folder;
