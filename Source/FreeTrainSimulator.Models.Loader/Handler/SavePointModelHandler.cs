@@ -92,13 +92,6 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             return result;
         }
 
-        //private static Task<SavePointModel> Convert(SavePointModel savePointModel, CancellationToken cancellationToken)
-        //{
-        //    ArgumentNullException.ThrowIfNull(savePointModel, nameof(savePointModel));
-
-        //    return Convert(Path.Combine(RuntimeInfo.UserDataFolder, savePointModel.Tags[SourceNameKey]), savePointModel.Parent, cancellationToken);
-        //}
-
         private static async Task<SavePointModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(filePath, nameof(filePath));
