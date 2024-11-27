@@ -20,7 +20,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     public class SortableBindingList<T> : BindingList<T>
     {

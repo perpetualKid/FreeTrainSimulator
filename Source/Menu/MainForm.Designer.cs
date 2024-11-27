@@ -1,6 +1,6 @@
 // #define INCLUDE_TIMETABLE_INPUT
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     partial class MainForm
     {

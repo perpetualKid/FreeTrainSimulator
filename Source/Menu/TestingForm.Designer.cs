@@ -1,7 +1,6 @@
 ﻿using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Simplified;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     partial class TestingForm {
         /// <summary>

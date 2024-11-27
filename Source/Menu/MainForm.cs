@@ -43,7 +43,7 @@ using GetText.WindowsForms;
 
 using Orts.Settings;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     public partial class MainForm : Form
     {
@@ -68,7 +68,7 @@ namespace Orts.Menu
         private CancellationTokenSource ctsRouteLoading;
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
-        private readonly ResourceManager resources = new ResourceManager("Orts.Menu.Properties.Resources", typeof(MainForm).Assembly);
+        private readonly ResourceManager resources = new ResourceManager("FreeTrainSimulator.Menu.Properties.Resources", typeof(MainForm).Assembly);
         private UpdateManager updateManager;
         private readonly Image elevationIcon;
 

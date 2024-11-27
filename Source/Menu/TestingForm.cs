@@ -18,7 +18,7 @@ using FreeTrainSimulator.Models.Loader.Shim;
 using GetText;
 using GetText.WindowsForms;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     public partial class TestingForm : Form
     {

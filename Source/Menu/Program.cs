@@ -18,19 +18,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Shim;
 
 [assembly: CLSCompliant(false)]
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     internal static class Program
     {

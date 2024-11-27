@@ -26,7 +26,7 @@ using static FreeTrainSimulator.Common.Native.NativeMethods;
 
 using Xna = Microsoft.Xna.Framework.Input;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     /// <summary>
     /// A form used to edit keyboard input settings, in combination with <see cref="KeyInputControl"/>.

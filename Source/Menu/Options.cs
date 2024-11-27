@@ -34,7 +34,7 @@ using GetText.WindowsForms;
 using Orts.Formats.Msts;
 using Orts.Settings;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     public partial class OptionsForm : Form
     {

@@ -9,7 +9,7 @@ using FreeTrainSimulator.Common.Input;
 
 using Orts.Settings;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     public partial class OptionsForm : Form
     {

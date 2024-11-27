@@ -7,7 +7,7 @@
     <AssemblyTitle>Free Train Simulator Menu</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
     <ApplicationIcon>..\FTS.ico</ApplicationIcon>
-    <RootNamespace>Orts.Menu</RootNamespace>
+    <RootNamespace>FreeTrainSimulator.Menu</RootNamespace>
     <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>

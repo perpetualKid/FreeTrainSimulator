@@ -8,7 +8,7 @@ using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Shim;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     public partial class MainForm
     {

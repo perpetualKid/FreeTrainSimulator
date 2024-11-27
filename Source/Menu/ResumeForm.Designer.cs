@@ -1,7 +1,6 @@
 ﻿using FreeTrainSimulator.Models.Independent.Settings;
-using FreeTrainSimulator.Models.Simplified;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     partial class ResumeForm {
         /// <summary>

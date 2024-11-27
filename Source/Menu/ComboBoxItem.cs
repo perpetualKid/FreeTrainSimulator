@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     internal sealed class ComboBoxItem<T>
     {

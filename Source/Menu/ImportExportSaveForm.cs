@@ -32,7 +32,7 @@ using Orts.Settings;
 
 using Path = System.IO.Path;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     public partial class ImportExportSaveForm : Form
     {

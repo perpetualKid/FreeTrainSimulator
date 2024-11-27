@@ -69,9 +69,7 @@ using GetText.WindowsForms;
 
 using Orts.Settings;
 
-using Path = System.IO.Path;
-
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     public partial class ResumeForm : Form
     {
