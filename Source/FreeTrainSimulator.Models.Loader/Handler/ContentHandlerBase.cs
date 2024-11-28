@@ -32,11 +32,15 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             TModel model = null;
             if (File.Exists(targetFileName))
             {
-                using (FileStream saveFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read))
+                try
                 {
-                    model = await MemoryPackSerializer.DeserializeAsync<TModel>(saveFile, null, cancellationToken).ConfigureAwait(false);
+                    using (FileStream saveFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read))
+                    {
+                        model = await MemoryPackSerializer.DeserializeAsync<TModel>(saveFile, null, cancellationToken).ConfigureAwait(false);
+                    }
+                    model.Initialize(targetFileName, parent);
                 }
-                model.Initialize(targetFileName, parent);
+                catch (MemoryPackSerializationException) { }
             }            
             return model;
         }
