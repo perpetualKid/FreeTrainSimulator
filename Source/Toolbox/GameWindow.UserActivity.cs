@@ -60,6 +60,7 @@ namespace FreeTrainSimulator.Toolbox
             if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
                 ctsRouteLoading.Cancel();
             SaveSettings();
+            waitOnExit = false;
             Exit();
         }
 

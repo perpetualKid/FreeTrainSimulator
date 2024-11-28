@@ -50,6 +50,7 @@ namespace FreeTrainSimulator.Toolbox
         private WindowManager<ToolboxWindowType> windowManager;
         private ContentArea contentArea;
         private int suppressCount;
+        private bool waitOnExit;
 
         internal ContentArea ContentArea
         {
@@ -147,15 +148,21 @@ namespace FreeTrainSimulator.Toolbox
             onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), Window, m);
 
             windowForm.FormClosing += WindowForm_FormClosing;
+            Exiting += GameWindow_Exiting;
             LoadLanguage();
             SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
             debugInfo = new CommonDebugInfo(this);
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
         }
 
+        private void GameWindow_Exiting(object sender, ExitingEventArgs e)
+        {
+            e.Cancel = waitOnExit;
+        }
+
         private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
         {
-            e.Cancel = true;
+            waitOnExit = true;
             PrepareExitApplication();
         }
 
