@@ -47,10 +47,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{59642BC3-3967-44D1-B9B8-410958453CED}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		..\CONTRIBUTING.md = ..\CONTRIBUTING.md
 		Directory.Build.props = Directory.Build.props
 		.config\dotnet-tools.json = .config\dotnet-tools.json
 		global.json = global.json
+		..\README.md = ..\README.md
+		..\SUPPORT.md = ..\SUPPORT.md
 		version.json = version.json
+		..\WHATSNEW.md = ..\WHATSNEW.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Graphics", "FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj", "{BE492FD3-1029-4B15-9EEF-756CAFBBEBEB}"
