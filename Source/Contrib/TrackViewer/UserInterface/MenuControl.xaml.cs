@@ -33,7 +33,6 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
-using FreeTrainSimulator.Models.Simplified;
 
 using ORTS.TrackViewer.Drawing; // for colors
 
@@ -403,7 +402,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             if (trackViewer.Paths == null) return;
             List<string> paths = new List<string>();
-            foreach (Path path in trackViewer.Paths)
+            foreach (PathModelCore path in trackViewer.Paths)
             {
                 paths.Add(MakePathMenyEntryName(path));
             }
@@ -510,7 +509,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             string selectedPath = menuSelectPathCombobox.SelectedItem as string;
             if (selectedPath == null) return;
-            foreach (Path path in trackViewer.Paths)
+            foreach (PathModelCore path in trackViewer.Paths)
             {
                 if (MakePathMenyEntryName(path) == selectedPath)
                 {
@@ -532,9 +531,9 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         private void MenuExtendPathCombobox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string selectedPath = menuExtendPathCombobox.SelectedItem as string;
-            if (selectedPath == null) return;
-            foreach (Path path in trackViewer.Paths)
+            if (menuExtendPathCombobox.SelectedItem is not string selectedPath)
+                return;
+            foreach (PathModelCore path in trackViewer.Paths)
             {
                 if (MakePathMenyEntryName(path) == selectedPath)
                 {
@@ -552,11 +551,9 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         /// <param name="path">The path containing name and filepath</param>
         /// <returns>string that can be used to defined menu header</returns>
-        internal static string MakePathMenyEntryName(Path path)
+        internal static string MakePathMenyEntryName(PathModelCore path)
         {
-            string[] pathArr = path.FilePath.Split('\\');
-            string fileName = pathArr.Last();
-            return path.Name + " ( " + fileName + " )";
+            return $"{path.Name} ({System.IO.Path.GetFileName(path.SourceFile())})";
         }
 
         private void MenuShortcuts_Click(object sender, RoutedEventArgs e)

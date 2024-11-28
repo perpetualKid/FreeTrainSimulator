@@ -17,9 +17,6 @@ namespace FreeTrainSimulator.Models.Independent.Content
         public override ProfileModel Parent => _parent as ProfileModel;
         public string ContentPath { get; init; }
 
-        [MemoryPackIgnore]
-        public FrozenSet<RouteModelCore> Routes { get; private set; }
-
         [MemoryPackConstructor]
         private FolderModel() : base()
         { }

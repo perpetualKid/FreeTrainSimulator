@@ -34,7 +34,6 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
-using FreeTrainSimulator.Models.Simplified;
 using FreeTrainSimulator.Models.State;
 
 using Microsoft.Xna.Framework;

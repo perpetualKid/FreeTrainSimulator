@@ -4,7 +4,6 @@ using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
-using FreeTrainSimulator.Models.Simplified;
 using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;

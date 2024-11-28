@@ -11,8 +11,6 @@ namespace FreeTrainSimulator.Models.Loader.Shim
     {
         private const char separatorChar = '/';
 
-        public static bool SetupRequired<T>(this ModelBase<T> model) where T : ModelBase<T> => model == null || model.RefreshRequired;
-
         public static string Hierarchy<T>(this ModelBase<T> model) where T : ModelBase<T>
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));

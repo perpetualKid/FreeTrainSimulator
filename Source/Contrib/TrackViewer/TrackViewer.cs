@@ -17,7 +17,7 @@
 //
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Frozen;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
@@ -30,8 +30,6 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
-using FreeTrainSimulator.Models.Loader.Handler;
-using FreeTrainSimulator.Models.Simplified;
 
 using GetText;
 
@@ -48,7 +46,6 @@ using ORTS.TrackViewer.UserInterface;
 
 using Color = Microsoft.Xna.Framework.Color;
 using MessageBox = System.Windows.Forms.MessageBox;
-using System.Collections.Frozen;
 
 namespace ORTS.TrackViewer
 {
@@ -76,7 +73,7 @@ namespace ORTS.TrackViewer
         /// <summary>List of available routes (in the install directory)</summary>
         public Collection<RouteModelCore> Routes { get; private set; } // Collection because of FxCop
         /// <summary>List of available paths in the current route</summary>
-        public Collection<Path> Paths { get; private set; } // Collection because of FxCop
+        public Collection<PathModelCore> Paths { get; private set; } // Collection because of FxCop
         /// <summary>Route, ie with a path c:\program files\microsoft games\train simulator\routes\usa1  - may be different on different pc's</summary>
         public RouteModelCore CurrentRoute { get; private set; }
         /// <summary>Route that was used last time</summary>
@@ -235,7 +232,9 @@ namespace ORTS.TrackViewer
                 catch { }
 #pragma warning restore CA1031 // Do not catch general exception types
             }
-            InstallFolder = new FolderModel("default", Properties.Settings.Default.installDirectory, new ProfileModel("Default"));
+
+            ProfileModel profile = Task.Run(async() => await ProfileModel.None.Get(CancellationToken.None).ConfigureAwait(false)).Result;
+            InstallFolder = profile.ContentFolders.Where(f => System.IO.Path.GetRelativePath(f.ContentPath, Properties.Settings.Default.installDirectory) == ".").FirstOrDefault(); 
 
             FindRoutes(InstallFolder);
 
@@ -846,9 +845,9 @@ namespace ORTS.TrackViewer
 
                     if (!givenFileIsPat)
                     { return; }
-                    foreach (Path availablePath in Paths)
+                    foreach (PathModelCore availablePath in Paths)
                     {
-                        if (availablePath.FilePath.ToUpperInvariant() == givenPathOrFile.ToUpperInvariant())
+                        if (System.IO.Path.GetRelativePath(availablePath.SourceFile(), givenPathOrFile.ToUpperInvariant()) == ".")
                         {
                             SetPath(availablePath);
                             menuControl.InitUserSettings();
@@ -898,11 +897,13 @@ namespace ORTS.TrackViewer
         private bool SetSelectedInstallFolder(string folderPath)
         {
             drawTerrain?.Clear();
-            FolderModel newInstallFolder = new FolderModel("installFolder", folderPath, new ProfileModel("Default"));
+            ProfileModel profile = Task.Run(async () => await ProfileModel.None.Get(CancellationToken.None).ConfigureAwait(false)).Result;
+            FolderModel newInstallFolder = profile.ContentFolders.Where(f => System.IO.Path.GetRelativePath(f.ContentPath, folderPath) == ".").FirstOrDefault();
+
             bool foundroutes = FindRoutes(newInstallFolder);
             if (!foundroutes)
             {
-                MessageBox.Show(folderPath + ": " + catalog.GetString("Directory is not a valid install directory.\nThe install directory needs to contain ROUTES, GLOBAL, ..."));
+                MessageBox.Show(catalog.GetString($"Directory \"{folderPath}\" " + " is not a valid install directory.\nPlease make sure the install directory is available through the Menu application!)"));
                 return false;
             }
 
@@ -929,13 +930,7 @@ namespace ORTS.TrackViewer
             if (newInstallFolder == null)
                 return false;
 
-            if (newInstallFolder.SetupRequired())
-            {
-                Task<FolderModel> folderLoadTask = newInstallFolder.Convert(CancellationToken.None).AsTask();
-                if (!folderLoadTask.IsCompleted)
-                    folderLoadTask.Wait();
-            }
-            Routes = new Collection<RouteModelCore>((newInstallFolder.Routes ?? FrozenSet<RouteModelCore>.Empty).ToList());
+            Routes = new Collection<RouteModelCore>(Task.Run(async() => await newInstallFolder.GetRoutes(CancellationToken.None).ConfigureAwait(false)).Result.ToList());
 
             // set default route
             DefaultRoute = Routes.Where(r => r.Name == Properties.Settings.Default.defaultRoute).FirstOrDefault() ?? Routes.FirstOrDefault();
@@ -1042,10 +1037,8 @@ namespace ORTS.TrackViewer
         /// </summary>
         private void FindPaths()
         {
-            Task<IEnumerable<Path>> task = Task.Run(() => Path.GetPaths(CurrentRoute.MstsRouteFolder().PathsFolder, true, CancellationToken.None));
-            task.Wait();
-            List<Path> newPaths = task.Result.OrderBy(r => r.Name).ToList();
-            Paths = new Collection<Path>(newPaths);
+            FrozenSet<PathModelCore> routePaths = Task.Run(async() => await CurrentRoute.GetRoutePaths(CancellationToken.None).ConfigureAwait(false)).Result;
+            Paths = new Collection<PathModelCore>(routePaths.OrderBy(r => r.Name).ToList());
             menuControl.PopulatePaths();
             SetPath(null);
             DrawMultiplePaths = new DrawMultiplePaths(Paths);
@@ -1055,7 +1048,7 @@ namespace ORTS.TrackViewer
         /// Once a path has been selected, do the necessary loading.
         /// </summary>
         /// <param name="path">Path (with FilePath) that has to be loaded</param>
-        internal void SetPath(Path path)
+        internal void SetPath(PathModelCore path)
         {
             if (!CanDiscardModifiedPath())
                 return;
@@ -1200,7 +1193,7 @@ namespace ORTS.TrackViewer
             DrawMultiplePaths?.ClearAll();
 
             AutoFixAllPaths fixer = new AutoFixAllPaths(DrawTrackDB);
-            TrackViewer.Localize(fixer);
+            Localize(fixer);
             fixer.FixallAndShowResults(Paths, (message) => DrawLoadingMessage(message));
         }
         #endregion
