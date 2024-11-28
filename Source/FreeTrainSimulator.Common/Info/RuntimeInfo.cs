@@ -19,6 +19,7 @@ namespace FreeTrainSimulator.Common.Info
         public static readonly string ProductName = VersionInfo.ProductName();
 
         public const string WikiLink = "https://github.com/perpetualKid/FreeTrainSimulator/wiki";
+        public const string WhatsNewLinkTemplate = "https://github.com/perpetualKid/FreeTrainSimulator/blob/gitcodeversion/WHATSNEW.md";
 
         public static string ApplicationName => FileVersionInfo.GetVersionInfo(Assembly.GetCallingAssembly().Location).FileDescription;
 

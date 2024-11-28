@@ -1,7 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Xml.XPath;
+﻿using System.Collections.Generic;
 
 using FreeTrainSimulator.Common.Position;
 

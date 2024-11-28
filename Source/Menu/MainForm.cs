@@ -128,6 +128,7 @@ namespace FreeTrainSimulator.Menu
 
             updateManager = new UpdateManager(settings);
 
+            linkLabelWhatsNew.Tag = RuntimeInfo.WhatsNewLinkTemplate.Replace("gitcodeversion", VersionInfo.CodeVersion, StringComparison.OrdinalIgnoreCase);
             Task profileTask = ProfileChanged(ProfileModel.None);
 
             linkLabelUpdate.Visible = false;
@@ -494,7 +495,7 @@ namespace FreeTrainSimulator.Menu
                 {
                     case DialogResult.OK:
                         ProfileModel profileModel = await SelectedProfile.Setup(settings.FolderSettings.Folders.Select(folder => (folder.Key, folder.Value)), CancellationToken.None).ConfigureAwait(true);
-                        SelectedProfile = null; 
+                        SelectedProfile = null;
                         await ProfileChanged(profileModel).ConfigureAwait(true);
                         break;
                     case DialogResult.Retry: //Language has changed
@@ -1068,5 +1069,10 @@ namespace FreeTrainSimulator.Menu
             }
         }
         #endregion
+
+        private void LinkLabelWhatsNew_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            SystemInfo.OpenBrowser(linkLabelWhatsNew.Tag as string);
+        }
     }
 }

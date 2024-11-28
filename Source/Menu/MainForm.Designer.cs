@@ -78,6 +78,7 @@ namespace FreeTrainSimulator.Menu
             panelActivityTypeSelections = new System.Windows.Forms.Panel();
             radioButtonModeTimetable = new System.Windows.Forms.RadioButton();
             radioButtonModeActivity = new System.Windows.Forms.RadioButton();
+            linkLabelWhatsNew = new System.Windows.Forms.LinkLabel();
             groupBox1.SuspendLayout();
             groupBox3.SuspendLayout();
             panelModeTimetable.SuspendLayout();
@@ -769,11 +770,23 @@ namespace FreeTrainSimulator.Menu
             radioButtonModeActivity.UseVisualStyleBackColor = true;
             radioButtonModeActivity.CheckedChanged += RadioButtonMode_CheckedChanged;
             // 
+            // linkLabelWhatsNew
+            // 
+            linkLabelWhatsNew.AutoSize = true;
+            linkLabelWhatsNew.Location = new System.Drawing.Point(400, 12);
+            linkLabelWhatsNew.Name = "linkLabelWhatsNew";
+            linkLabelWhatsNew.Size = new System.Drawing.Size(73, 15);
+            linkLabelWhatsNew.TabIndex = 42;
+            linkLabelWhatsNew.TabStop = true;
+            linkLabelWhatsNew.Text = "What's new?";
+            linkLabelWhatsNew.LinkClicked += LinkLabelWhatsNew_LinkClicked;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(1139, 674);
+            Controls.Add(linkLabelWhatsNew);
             Controls.Add(panelActivityTypeSelections);
             Controls.Add(comboBoxStartWeather);
             Controls.Add(label12);
@@ -879,5 +892,6 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.Panel panelActivityTypeSelections;
         private System.Windows.Forms.RadioButton radioButtonModeTimetable;
         private System.Windows.Forms.RadioButton radioButtonModeActivity;
+        private System.Windows.Forms.LinkLabel linkLabelWhatsNew;
     }
 }
