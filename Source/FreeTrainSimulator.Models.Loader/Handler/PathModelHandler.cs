@@ -4,6 +4,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -63,7 +64,7 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(pathId);
 
-            if (!modelTaskCache.TryGetValue(key, out Task<PathModelCore> modelTask) || modelTask.IsFaulted || 
+            if (!modelTaskCache.TryGetValue(key, out Task<PathModelCore> modelTask) || modelTask.IsFaulted ||
                 (await modelTask.ConfigureAwait(false) is not PathModel))
             {
                 modelTaskCache[key] = modelTask = Cast(FromFile<PathModel, RouteModelCore>(pathId, routeModel, cancellationToken));
@@ -96,7 +97,18 @@ namespace FreeTrainSimulator.Models.Loader.Handler
             if (Directory.Exists(sourceFolder))
             {
                 // load existing MSTS files
-                ConcurrentBag<string> pathFiles = new ConcurrentBag<string>(Directory.EnumerateFiles(sourceFolder, "*.pat"));
+                List<string> pathFiles = new List<string>(Directory.EnumerateFiles(sourceFolder, "*.pat"));
+
+                foreach (IGrouping<string, string> item in pathFiles.GroupBy(f => Path.GetFileNameWithoutExtension(f).Trim(), StringComparer.OrdinalIgnoreCase).Where(g => g.Count() > 1))
+                {
+                    foreach (string file in item.OrderBy(i => i.Length))
+                    {
+                        if (string.Equals(Path.GetFileNameWithoutExtension(file), item.Key, StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        Trace.TraceWarning($"Found duplicate file \"{file}\" for same base file name ({item.Key}) differ by whitespace only. Ignoring this file.");
+                        pathFiles.Remove(file);
+                    }
+                }
 
                 await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
                 {

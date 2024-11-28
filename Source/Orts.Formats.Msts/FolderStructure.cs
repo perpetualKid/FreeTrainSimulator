@@ -234,6 +234,7 @@ namespace Orts.Formats.Msts
                 if (!routeFolders.TryGetValue(route, out RouteFolder result))
                 {
                     routeFolders.TryAdd(route, new RouteFolder(route, this));
+                    Debug.Assert(Directory.Exists(routeFolders[route].CurrentFolder));
                     result = routeFolders[route];
                 }
                 return result;
