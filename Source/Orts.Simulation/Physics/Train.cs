@@ -84,7 +84,6 @@ namespace Orts.Simulation.Physics
         ISaveStateRestoreApi<TrainCarSaveState, TrainCar>
     {
         #region const
-        private const int TileSize = 2048;
         protected const float InitialThrottlepercent = 25; // initial value of throttle when train starts activity at speed > 0
 
         internal const float ShortClearingDistanceM = 15.0f;     // clearing distance for short trains in activities

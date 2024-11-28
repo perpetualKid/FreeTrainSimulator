@@ -144,7 +144,7 @@ namespace Orts.Simulation.Track
 
             if (saveState.RouteElements != null)
             {
-                await list.RestoreCollectionCreateNewItems(saveState.RouteElements);
+                await list.RestoreCollectionCreateNewItems(saveState.RouteElements).ConfigureAwait(false);
             }
         }
 
