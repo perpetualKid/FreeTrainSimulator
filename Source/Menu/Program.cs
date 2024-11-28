@@ -61,7 +61,6 @@ namespace FreeTrainSimulator.Menu
             {
                 while (MainForm.ShowDialog() == DialogResult.OK)
                 {
-
                     string joinedParameters = ResolveParameters(MainForm.CurrentSelections, MainForm);
 
                     Debug.WriteLine(joinedParameters);

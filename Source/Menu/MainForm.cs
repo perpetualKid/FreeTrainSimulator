@@ -33,6 +33,7 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Logging;
 using FreeTrainSimulator.Models.Independent.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Online.Client;
@@ -40,6 +41,8 @@ using FreeTrainSimulator.Updater;
 
 using GetText;
 using GetText.WindowsForms;
+
+using NuGet.Configuration;
 
 using Orts.Settings;
 
@@ -125,6 +128,14 @@ namespace FreeTrainSimulator.Menu
             ImmutableArray<string> options = Environment.GetCommandLineArgs().
                 Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
             settings = new UserSettings(options);
+
+            if (settings.Logging)
+            {
+                string logFileName = RuntimeInfo.LogFile(settings.LoggingPath, $"{ Path.GetFileNameWithoutExtension(settings.LoggingFilename)} - Menu{Path.GetExtension(settings.LoggingFilename)}");
+                LoggingUtil.InitLogging(logFileName, settings.LogErrorsOnly, false);
+                settings.Log();
+                Trace.WriteLine(LoggingUtil.SeparatorLine);
+            }
 
             updateManager = new UpdateManager(settings);
 
@@ -494,9 +505,8 @@ namespace FreeTrainSimulator.Menu
                 switch (form.ShowDialog(this))
                 {
                     case DialogResult.OK:
-                        ProfileModel profileModel = await SelectedProfile.Setup(settings.FolderSettings.Folders.Select(folder => (folder.Key, folder.Value)), CancellationToken.None).ConfigureAwait(true);
                         SelectedProfile = null;
-                        await ProfileChanged(profileModel).ConfigureAwait(true);
+                        await ProfileChanged(form.ProfileModel).ConfigureAwait(true);
                         break;
                     case DialogResult.Retry: //Language has changed
                         LoadLanguage();

@@ -296,7 +296,7 @@ namespace Orts.Settings
         // Hidden settings:
         [Default(0)]
         public int CarVibratingLevel { get; set; }
-        [Default("OpenRailsLog.txt")]
+        [Default("FreeTrainSimulator Log.txt")]
         public string LoggingFilename { get; set; }
         [Default("Evaluation.txt")]
         public string DebriefEvalFilename { get; set; }//

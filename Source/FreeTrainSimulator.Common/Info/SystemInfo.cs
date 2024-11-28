@@ -92,7 +92,7 @@ namespace FreeTrainSimulator.Common.Info
 
             foreach (GraphicsAdapter adapter in GraphicsAdapter.Adapters)
             {
-                output.AppendLine(CultureInfo.InvariantCulture, $"{"Display",-12}= {adapter.DeviceName} (resolution {adapter.CurrentDisplayMode.Width} x {adapter.CurrentDisplayMode.Height}, {(adapter.IsDefaultAdapter ? ", primary" : "")} on {adapter.Description})");
+                output.AppendLine(CultureInfo.InvariantCulture, $"{"Display",-12}= {adapter.DeviceName} (resolution {adapter.CurrentDisplayMode.Width} x {adapter.CurrentDisplayMode.Height}{(adapter.IsDefaultAdapter ? ", primary" : "")} on {adapter.Description})");
                 GraphicsAdapter.UseDebugLayers = true;
             }
 

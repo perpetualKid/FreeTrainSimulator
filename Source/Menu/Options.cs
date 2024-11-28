@@ -16,12 +16,14 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
@@ -45,12 +47,12 @@ namespace FreeTrainSimulator.Menu
 
         private readonly UserSettings settings;
         private readonly UpdateManager updateManager;
-        private readonly ProfileSelectionsModel profileSelectionsModel;
 
         private readonly Catalog catalog;
         private readonly Dictionary<Control, HelpIconHover> helpIconMap = new Dictionary<Control, HelpIconHover>();
 
         private const string baseUrl = "https://open-rails.readthedocs.io/en/latest";
+        internal ProfileModel ProfileModel { get; private set; }
 
         public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup, ProfileSelectionsModel profileSelections)
         {
@@ -59,7 +61,7 @@ namespace FreeTrainSimulator.Menu
             Localizer.Localize(this, catalog);
 
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            this.profileSelectionsModel = profileSelections ?? throw new ArgumentNullException(nameof(settings));
+            this.ProfileModel = profileSelections?.Parent ?? throw new ArgumentNullException(nameof(settings));
             this.updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
 
             InitializeHelpIcons();
@@ -199,14 +201,10 @@ namespace FreeTrainSimulator.Menu
             }
             checkDataLogStationStops.Checked = this.settings.EvaluationStationStops;
 
-            bindingSourceContent.DataSource = profileSelections.Parent.ContentFolders.Count == 0 ?
-                new List<FolderModel>() { profileSelections.Parent.TrainSimulatorFolder() } :
-                profileSelections.Parent.ContentFolders.OrderBy(f => f.Name).ToList();
-
-            //bindingSourceContent.DataSource = this.settings.FolderSettings.Folders.Count == 0 ?
-            //    new List<ContentFolder>() { new ContentFolder() { Name = "Train Simulator", Path = FolderStructure.MstsFolder } } : 
-            //    this.settings.FolderSettings.Folders.OrderBy(f => f.Key).
-            //    Select(folder => new ContentFolder() { Name = folder.Key, Path = folder.Value }).ToList();
+            bindingSourceContent.DataSource = initialContentSetup ?
+                this.settings.FolderSettings.Folders.Select(f => new FolderModel(f.Key, f.Value, ProfileModel)).ToList() :
+                ProfileModel.ContentFolders.Count == 0 ? new List<FolderModel>() { ProfileModel.TrainSimulatorFolder() } :
+                ProfileModel.ContentFolders.OrderBy(f => f.Name).ToList();
 
             if (initialContentSetup)
             {
@@ -271,7 +269,7 @@ namespace FreeTrainSimulator.Menu
             base.Dispose(disposing);
         }
 
-        private void ButtonOK_Click(object sender, EventArgs e)
+        private async void ButtonOK_Click(object sender, EventArgs e)
         {
             string result = settings.Input.CheckForErrors();
             if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, RuntimeInfo.ProductName, MessageBoxButtons.YesNo))
@@ -365,9 +363,11 @@ namespace FreeTrainSimulator.Menu
             settings.EvaluationStationStops = checkDataLogStationStops.Checked;
 
             // Content tab
-            settings.FolderSettings.Folders.Clear();
-            foreach (FolderModel folder in bindingSourceContent.DataSource as List<FolderModel>)
-                settings.FolderSettings.Folders.Add(folder.Name, folder.ContentPath);
+            ProfileModel = ProfileModel with
+            {
+                ContentFolders = (bindingSourceContent.DataSource as List<FolderModel>).ToFrozenSet(),
+            };
+            ProfileModel = await ProfileModel.Setup(CancellationToken.None).ConfigureAwait(false);
 
             // Updater tab
 
@@ -805,7 +805,7 @@ namespace FreeTrainSimulator.Menu
 
         private void BindingSourceContent_AddingNew(object sender, System.ComponentModel.AddingNewEventArgs e)
         {
-            e.NewObject = (bindingSourceContent.DataSource as List<FolderModel>).LastOrDefault() ?? profileSelectionsModel.Parent.TrainSimulatorFolder();
+            e.NewObject = (bindingSourceContent.DataSource as List<FolderModel>).LastOrDefault() ?? ProfileModel.TrainSimulatorFolder();
         }
     }
 }
