@@ -61,7 +61,7 @@ namespace FreeTrainSimulator.Toolbox
             try
             {
                 contentProfile = await ProfileModel.None.Get(ctsProfileLoading.Token).ConfigureAwait(false) ??
-                    await contentProfile.Setup(null, ctsProfileLoading.Token).ConfigureAwait(false);
+                    await contentProfile.Empty(ctsProfileLoading.Token).ConfigureAwait(false);
 
                 FrozenSet<FolderModel> contentFolders = await contentProfile.GetFolders(ctsProfileLoading.Token).ConfigureAwait(false);
                 mainmenu.PopulateContentFolders(contentProfile.ContentFolders);

@@ -42,8 +42,6 @@ using FreeTrainSimulator.Updater;
 using GetText;
 using GetText.WindowsForms;
 
-using NuGet.Configuration;
-
 using Orts.Settings;
 
 namespace FreeTrainSimulator.Menu
@@ -504,14 +502,26 @@ namespace FreeTrainSimulator.Menu
                 {
                     case DialogResult.OK:
                         SelectedProfile = null;
+                        ModelConverterProgress progressForm = null;
                         try
                         {
-                            Enabled = false;
-                            await ProfileChanged(await form.ProfileModel.Setup(CancellationToken.None).ConfigureAwait(false)).ConfigureAwait(false);
+                            progressForm = new ModelConverterProgress();
+                            {
+                                progressForm.Show(this);
+                                Enabled = false;
+                                await ProfileChanged(await form.ProfileModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(false)).ConfigureAwait(false);
+                                await Task.Delay(1000).ConfigureAwait(false);
+                            }
                         }
                         finally
                         {
-                            Invoke(() => Enabled = true);
+                            Invoke(() =>
+                            {
+                                progressForm.Close();
+                                progressForm?.Dispose();
+                                Enabled = true;
+                                BringToFront();
+                            });
                         }
                         break;
                     case DialogResult.Retry: //Language has changed

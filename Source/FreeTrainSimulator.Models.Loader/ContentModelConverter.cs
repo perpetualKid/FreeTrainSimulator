@@ -10,7 +10,7 @@ namespace FreeTrainSimulator.Models.Loader
 {
     public static class ContentModelConverter
     {
-        public static async Task<ProfileModel> SetupContent(ProfileModel profileModel, bool refresh, CancellationToken cancellationToken)
+        public static async Task<ProfileModel> SetupContent(ProfileModel profileModel, bool refresh, IProgress<int> progressClient, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
@@ -18,9 +18,13 @@ namespace FreeTrainSimulator.Models.Loader
             {
                 profileModel = await ProfileModelHandler.Expand(profileModel, cancellationToken).ConfigureAwait(false);
 
+                int folderCount = profileModel.ContentFolders.Count;
+                int completedCount = 0;
                 await Parallel.ForEachAsync(profileModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {
                     await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
+                    Interlocked.Increment(ref completedCount);
+                    progressClient?.Report(completedCount * 100 / folderCount);
                 }).ConfigureAwait(false);
             }
             return profileModel;

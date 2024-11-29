@@ -17,16 +17,22 @@ namespace FreeTrainSimulator.Models.Loader.Shim
             Get(null, profileModel?.Name, cancellationToken);
         public static Task<ProfileModel> Get(this ProfileModel _, string profileName, CancellationToken cancellationToken) =>
             ProfileModelHandler.GetCore(profileName, cancellationToken);
+        public static Task<ProfileModel> Empty(this ProfileModel profileModel, CancellationToken cancellationToken) =>
+            Setup(null, profileModel?.Name, null, cancellationToken);
         public static Task<ProfileModel> Setup(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) =>
             Setup(null, profileModel?.Name, folders, cancellationToken);
         public static async Task<ProfileModel> Setup(this ProfileModel _, string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
         {
             ProfileModel profileModel = await ProfileModelHandler.Setup(profileName, folders, cancellationToken).ConfigureAwait(false);
-            return await ContentModelConverter.SetupContent(profileModel, true, cancellationToken).ConfigureAwait(false);
+            return await ContentModelConverter.SetupContent(profileModel, true, null, cancellationToken).ConfigureAwait(false);
         }
         public static async Task<ProfileModel> Setup(this ProfileModel profileModel, CancellationToken cancellationToken)
         {
-            return await ContentModelConverter.SetupContent(profileModel, true, cancellationToken).ConfigureAwait(false);
+            return await ContentModelConverter.SetupContent(profileModel, true, null, cancellationToken).ConfigureAwait(false);
+        }
+        public static async Task<ProfileModel> Setup(this ProfileModel profileModel, IProgress<int> progressClient, CancellationToken cancellationToken)
+        {
+            return await ContentModelConverter.SetupContent(profileModel, true, progressClient, cancellationToken).ConfigureAwait(false);
         }
 
         public static Task<FrozenSet<ProfileModel>> GetProfiles(this ProfileModel _, CancellationToken cancellationToken) =>
