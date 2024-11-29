@@ -189,7 +189,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                 if (EnumExtension.GetValue(sUnits, out CabViewControlUnit loadUnits))
                     LoadUnits = loadUnits;
             }
-            DPITable = new DPITable(FullTable, LoadUnits, fullScreen:true, dpi:dpi);
+            DPITable = new DPITable(FullTable, LoadUnits, fullScreen: true, dpi: dpi);
             AddToLayout(DPITable, new Point(0, 0));
         }
     }
@@ -412,7 +412,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
         public readonly string[] FirstColumn = { "ID", "Throttle", "Load", "BP", "Flow", "Remote", "ER", "BC", "MR" };
 
-        public DPITable(bool fullTable, CabViewControlUnit loadUnits, bool fullScreen, DistributedPowerInterface dpi) : base(dpi, 640,  fullTable? 230 : 162)
+        public DPITable(bool fullTable, CabViewControlUnit loadUnits, bool fullScreen, DistributedPowerInterface dpi) : base(dpi, 640, fullTable ? 230 : 162)
         {
             DPI = dpi;
             FullScreen = fullScreen;
@@ -434,7 +434,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
         public override void ScaleChanged()
         {
-//            base.ScaleChanged();
+            //            base.ScaleChanged();
             SetFont();
         }
         void SetFont()
@@ -528,7 +528,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                             TableText[i, j + 1].Text = (colorFirstColEndsWith == Color.White) ? text : text.Substring(0, text.Length - 3);
                             ;
                             TableText[i, j + 1].Color = colorFirstColEndsWith;
-                            TableSymbol[i, j + 1].Font = TableSymbolFont; 
+                            TableSymbol[i, j + 1].Font = TableSymbolFont;
                             TableSymbol[i, j + 1].Text = (tempStatus[j, i] != null && tempStatus[j, i].Contains('|')) ? Fence : " ";
                         }
                         TableText[i, 0].Font = TableTextFont;
@@ -603,53 +603,55 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
     //    public class ThreeDimCabDPI : ThreeDimCabDigit
     public class ThreeDimCabDPI
     {
-        const int MaxDigits = 7;
-        const int HeaderMaxDigits = 8;
-        const int NumColumns = 6;
-        PoseableShape TrainCarShape;
-        VertexPositionNormalTexture[] VertexList;
-        int NumVertices;
-        int NumIndices;
-        public short[] TriangleListIndices;// Array of indices to vertices for triangles
-        Matrix XNAMatrix;
-        Viewer Viewer;
-        MutableShapePrimitive shapePrimitive;
-        public DistributedPowerInterfaceRenderer CVFR;
-        public DPITable DPITable;
-        public DPIStatus DPIStatus;
-        Material Material;
-        Material AlertMaterial;
-        float Size;
-        string AceFile;
+        private const int MaxDigits = 7;
+        private const int HeaderMaxDigits = 8;
+        private const int NumColumns = 6;
+        private readonly PoseableShape trainCarShape;
+        private readonly VertexPositionNormalTexture[] vertexList;
+        private readonly int numVertices;
+        private readonly int numIndices;
+        private readonly short[] triangleListIndices;// Array of indices to vertices for triangles
+        private Matrix xnaMatrix;
+        private readonly Viewer viewer;
+        private readonly MutableShapePrimitive shapePrimitive;
+        public DistributedPowerInterfaceRenderer CVFR { get; }
+        private DPITable dpiTable;
+        private DPIStatus dpiStatus;
+        private readonly Material material;
+        private Material alertMaterial;
+        private readonly float size;
+        private readonly string aceFile;
         public ThreeDimCabDPI(Viewer viewer, int iMatrix, string size, string aceFile, PoseableShape trainCarShape, CabViewControlRenderer c)
         //           : base(viewer, iMatrix, size, aceFile, trainCarShape, c)
         {
-            Size = int.Parse(size) * 0.001f;//input size is in mm
+            this.size = int.TryParse(size, out int intSize) ? intSize * 0.001f : this.size;//input size is in mm
             if (!string.IsNullOrEmpty(aceFile))
             {
-                AceFile = aceFile.ToUpper();
-                if (!AceFile.EndsWith(".ACE")) AceFile = AceFile + ".ACE"; //need to add ace into it
+                if (".ace".Equals(Path.GetExtension(aceFile), StringComparison.OrdinalIgnoreCase))
+                    aceFile = Path.ChangeExtension(aceFile, ".ace");
+                this.aceFile = aceFile.ToUpperInvariant();
             }
-            else { AceFile = ""; }
+            else
+            { this.aceFile = ""; }
 
             CVFR = (DistributedPowerInterfaceRenderer)c;
-            DPITable = CVFR.DistributedPowerInterface.DPDefaultWindow.DPITable;
-            DPIStatus = CVFR.DistributedPowerInterface.DPIStatus;
-            Viewer = viewer;
-            TrainCarShape = trainCarShape;
-            XNAMatrix = TrainCarShape.SharedShape.Matrices[iMatrix];
+            dpiTable = CVFR.DistributedPowerInterface.DPDefaultWindow.DPITable;
+            dpiStatus = CVFR.DistributedPowerInterface.DPIStatus;
+            this.viewer = viewer;
+            this.trainCarShape = trainCarShape;
+            xnaMatrix = this.trainCarShape.SharedShape.Matrices[iMatrix];
             // 9 rows, 5 columns plus first one; first one has a couple of triangles for the whole string,
             // the other ones have a couple of triangles for each char, and there are max 7 chars per string;
             // this leads to 1944 vertices
             var maxVertex = 2048;
 
             //Material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, texture), (int)(SceneryMaterialOptions.None | SceneryMaterialOptions.AlphaBlendingBlend), 0);
-            Material = FindMaterial(false);//determine normal material
+            material = FindMaterial(false);//determine normal material
                                            // Create and populate a new ShapePrimitive
-            NumVertices = NumIndices = 0;
+            numVertices = numIndices = 0;
 
-            VertexList = new VertexPositionNormalTexture[maxVertex];
-            TriangleListIndices = new short[maxVertex / 2 * 3]; // as is NumIndices
+            vertexList = new VertexPositionNormalTexture[maxVertex];
+            triangleListIndices = new short[maxVertex / 2 * 3]; // as is NumIndices
 
             //start position is the center of the text
             var start = new Vector3(0, 0, 0);
@@ -659,7 +661,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
             offset.X = 0;
 
-            offset.Y = -Size;
+            offset.Y = -this.size;
             var param = new string(' ', MaxDigits);
             var color = DistributedPowerInterface.ColorYellow;
             var headerIndex = 0;
@@ -671,35 +673,50 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                 tY = 0.125f;
                 //the left-bottom vertex
                 Vector3 v = new Vector3(offset.X, offset.Y, 0.01f);
-                v += start; Vertex v1 = new Vertex(v.X, v.Y, v.Z, 0, 0, -1, tX, tY);
+                v += start;
+                Vertex v1 = new Vertex(v.X, v.Y, v.Z, 0, 0, -1, tX, tY);
 
                 //the right-bottom vertex
-                v.X = offset.X + Size * 7 * 0.5f; v.Y = offset.Y;
-                v += start; Vertex v2 = new Vertex(v.X, v.Y, v.Z, 0, 0, -1, tX + 0.125f, tY);
+                v.X = offset.X + this.size * 7 * 0.5f;
+                v.Y = offset.Y;
+                v += start;
+                Vertex v2 = new Vertex(v.X, v.Y, v.Z, 0, 0, -1, tX + 0.125f, tY);
 
                 //the right-top vertex
-                v.X = offset.X + Size * 7 * 0.5f; v.Y = offset.Y + Size;
-                v += start; Vertex v3 = new Vertex(v.X, v.Y, v.Z, 0, 0, -1, tX + 0.125f, tY - 0.0625f);
+                v.X = offset.X + this.size * 7 * 0.5f;
+                v.Y = offset.Y + this.size;
+                v += start;
+                Vertex v3 = new Vertex(v.X, v.Y, v.Z, 0, 0, -1, tX + 0.125f, tY - 0.0625f);
 
                 //the left-top vertex
-                v.X = offset.X; v.Y = offset.Y + Size;
-                v += start; Vertex v4 = new Vertex(v.X, v.Y, v.Z, 0, 0, -1, tX, tY - 0.0625f);
+                v.X = offset.X;
+                v.Y = offset.Y + this.size;
+                v += start;
+                Vertex v4 = new Vertex(v.X, v.Y, v.Z, 0, 0, -1, tX, tY - 0.0625f);
 
                 //create first triangle
-                TriangleListIndices[NumIndices++] = (short)NumVertices;
-                TriangleListIndices[NumIndices++] = (short)(NumVertices + 2);
-                TriangleListIndices[NumIndices++] = (short)(NumVertices + 1);
+                triangleListIndices[numIndices++] = (short)numVertices;
+                triangleListIndices[numIndices++] = (short)(numVertices + 2);
+                triangleListIndices[numIndices++] = (short)(numVertices + 1);
                 // Second triangle:
-                TriangleListIndices[NumIndices++] = (short)NumVertices;
-                TriangleListIndices[NumIndices++] = (short)(NumVertices + 3);
-                TriangleListIndices[NumIndices++] = (short)(NumVertices + 2);
+                triangleListIndices[numIndices++] = (short)numVertices;
+                triangleListIndices[numIndices++] = (short)(numVertices + 3);
+                triangleListIndices[numIndices++] = (short)(numVertices + 2);
 
                 //create vertex
-                VertexList[NumVertices].Position = v1.Position; VertexList[NumVertices].Normal = v1.Normal; VertexList[NumVertices].TextureCoordinate = v1.TexCoord;
-                VertexList[NumVertices + 1].Position = v2.Position; VertexList[NumVertices + 1].Normal = v2.Normal; VertexList[NumVertices + 1].TextureCoordinate = v2.TexCoord;
-                VertexList[NumVertices + 2].Position = v3.Position; VertexList[NumVertices + 2].Normal = v3.Normal; VertexList[NumVertices + 2].TextureCoordinate = v3.TexCoord;
-                VertexList[NumVertices + 3].Position = v4.Position; VertexList[NumVertices + 3].Normal = v4.Normal; VertexList[NumVertices + 3].TextureCoordinate = v4.TexCoord;
-                NumVertices += 4;
+                vertexList[numVertices].Position = v1.Position;
+                vertexList[numVertices].Normal = v1.Normal;
+                vertexList[numVertices].TextureCoordinate = v1.TexCoord;
+                vertexList[numVertices + 1].Position = v2.Position;
+                vertexList[numVertices + 1].Normal = v2.Normal;
+                vertexList[numVertices + 1].TextureCoordinate = v2.TexCoord;
+                vertexList[numVertices + 2].Position = v3.Position;
+                vertexList[numVertices + 2].Normal = v3.Normal;
+                vertexList[numVertices + 2].TextureCoordinate = v3.TexCoord;
+                vertexList[numVertices + 3].Position = v4.Position;
+                vertexList[numVertices + 3].Normal = v4.Normal;
+                vertexList[numVertices + 3].TextureCoordinate = v4.TexCoord;
+                numVertices += 4;
                 headerIndex++;
                 offset.X = 0;
 
@@ -709,60 +726,76 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                     {
                         tX = GetTextureCoordX(param, iChar);
                         tY = GetTextureCoordY(param, iChar, color);
-                        var offX = offset.X + Size * (1 + HeaderMaxDigits + (MaxDigits) * (iCol - 1)) * 0.5f;
+                        var offX = offset.X + this.size * (1 + HeaderMaxDigits + (MaxDigits) * (iCol - 1)) * 0.5f;
                         //the left-bottom vertex
                         Vector3 va = new Vector3(offX, offset.Y, 0.01f);
-                        va += start; Vertex v5 = new Vertex(va.X, va.Y, va.Z, 0, 0, -1, tX, tY);
+                        va += start;
+                        Vertex v5 = new Vertex(va.X, va.Y, va.Z, 0, 0, -1, tX, tY);
 
                         //the right-bottom vertex
-                        va.X = offX + Size * 0.5f; va.Y = offset.Y;
-                        va += start; Vertex v6 = new Vertex(va.X, va.Y, va.Z, 0, 0, -1, tX + 0.125f, tY);
+                        va.X = offX + this.size * 0.5f;
+                        va.Y = offset.Y;
+                        va += start;
+                        Vertex v6 = new Vertex(va.X, va.Y, va.Z, 0, 0, -1, tX + 0.125f, tY);
 
                         //the right-top vertex
-                        va.X = offX + Size * 0.5f; va.Y = offset.Y + Size;
-                        va += start; Vertex v7 = new Vertex(va.X, va.Y, va.Z, 0, 0, -1, tX + 0.125f, tY - 0.0625f);
+                        va.X = offX + this.size * 0.5f;
+                        va.Y = offset.Y + this.size;
+                        va += start;
+                        Vertex v7 = new Vertex(va.X, va.Y, va.Z, 0, 0, -1, tX + 0.125f, tY - 0.0625f);
 
                         //the left-top vertex
-                        va.X = offX; va.Y = offset.Y + Size;
-                        va += start; Vertex v8 = new Vertex(va.X, va.Y, va.Z, 0, 0, -1, tX, tY - 0.0625f);
+                        va.X = offX;
+                        va.Y = offset.Y + this.size;
+                        va += start;
+                        Vertex v8 = new Vertex(va.X, va.Y, va.Z, 0, 0, -1, tX, tY - 0.0625f);
 
                         //create first triangle
-                        TriangleListIndices[NumIndices++] = (short)NumVertices;
-                        TriangleListIndices[NumIndices++] = (short)(NumVertices + 2);
-                        TriangleListIndices[NumIndices++] = (short)(NumVertices + 1);
+                        triangleListIndices[numIndices++] = (short)numVertices;
+                        triangleListIndices[numIndices++] = (short)(numVertices + 2);
+                        triangleListIndices[numIndices++] = (short)(numVertices + 1);
                         // Second triangle:
-                        TriangleListIndices[NumIndices++] = (short)NumVertices;
-                        TriangleListIndices[NumIndices++] = (short)(NumVertices + 3);
-                        TriangleListIndices[NumIndices++] = (short)(NumVertices + 2);
+                        triangleListIndices[numIndices++] = (short)numVertices;
+                        triangleListIndices[numIndices++] = (short)(numVertices + 3);
+                        triangleListIndices[numIndices++] = (short)(numVertices + 2);
 
                         //create vertex
-                        VertexList[NumVertices].Position = v5.Position; VertexList[NumVertices].Normal = v5.Normal; VertexList[NumVertices].TextureCoordinate = v5.TexCoord;
-                        VertexList[NumVertices + 1].Position = v6.Position; VertexList[NumVertices + 1].Normal = v6.Normal; VertexList[NumVertices + 1].TextureCoordinate = v6.TexCoord;
-                        VertexList[NumVertices + 2].Position = v7.Position; VertexList[NumVertices + 2].Normal = v7.Normal; VertexList[NumVertices + 2].TextureCoordinate = v7.TexCoord;
-                        VertexList[NumVertices + 3].Position = v8.Position; VertexList[NumVertices + 3].Normal = v8.Normal; VertexList[NumVertices + 3].TextureCoordinate = v8.TexCoord;
-                        NumVertices += 4;
-                        offset.X += Size * 0.5f; offset.Y += 0; //move to next digit
+                        vertexList[numVertices].Position = v5.Position;
+                        vertexList[numVertices].Normal = v5.Normal;
+                        vertexList[numVertices].TextureCoordinate = v5.TexCoord;
+                        vertexList[numVertices + 1].Position = v6.Position;
+                        vertexList[numVertices + 1].Normal = v6.Normal;
+                        vertexList[numVertices + 1].TextureCoordinate = v6.TexCoord;
+                        vertexList[numVertices + 2].Position = v7.Position;
+                        vertexList[numVertices + 2].Normal = v7.Normal;
+                        vertexList[numVertices + 2].TextureCoordinate = v7.TexCoord;
+                        vertexList[numVertices + 3].Position = v8.Position;
+                        vertexList[numVertices + 3].Normal = v8.Normal;
+                        vertexList[numVertices + 3].TextureCoordinate = v8.TexCoord;
+                        numVertices += 4;
+                        offset.X += this.size * 0.5f;
+                        offset.Y += 0; //move to next digit
                     }
                     offset.X = 0;
                 }
-                offset.Y -= Size; //move to next digit
+                offset.Y -= this.size; //move to next digit
             }
 
             //create the shape primitive
-            shapePrimitive = new MutableShapePrimitive(viewer.Game.GraphicsDevice, Material, NumVertices, NumIndices, new[] { -1 }, 0);
-            UpdateShapePrimitive(Material);
+            shapePrimitive = new MutableShapePrimitive(viewer.Game.GraphicsDevice, material, numVertices, numIndices, new[] { -1 }, 0);
+            UpdateShapePrimitive(material);
 
         }
         Material FindMaterial(bool Alert)
         {
             string imageName = "";
-            string globalText = Viewer.Simulator.RouteFolder.ContentFolder.TexturesFolder;
+            string globalText = viewer.Simulator.RouteFolder.ContentFolder.TexturesFolder;
             CabViewControlType controltype = CVFR.GetControlType();
             Material material = null;
 
-            if (!string.IsNullOrEmpty(AceFile))
+            if (!string.IsNullOrEmpty(aceFile))
             {
-                imageName = AceFile;
+                imageName = aceFile;
             }
             else
             {
@@ -771,24 +804,25 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
             SceneryMaterialOptions options = SceneryMaterialOptions.ShaderFullBright | SceneryMaterialOptions.AlphaBlendingAdd | SceneryMaterialOptions.UndergroundTexture;
 
-            if (String.IsNullOrEmpty(TrainCarShape.SharedShape.ReferencePath))
+            if (String.IsNullOrEmpty(trainCarShape.SharedShape.ReferencePath))
             {
                 if (!File.Exists(globalText + imageName))
                 {
                     Trace.TraceInformation("Ignored missing " + imageName + " using default. You can copy and unpack the " + imageName + " from OR\'s Documentation\\SampleFiles\\Manual folder to " + globalText +
-                        ", or place it under " + TrainCarShape.SharedShape.ReferencePath);
+                        ", or place it under " + trainCarShape.SharedShape.ReferencePath);
                 }
-                material = Viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Helpers.TextureFlags.None, globalText, imageName), (int)(options), 0);
+                material = viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Helpers.TextureFlags.None, globalText, imageName), (int)(options), 0);
             }
             else
             {
-                if (!File.Exists(TrainCarShape.SharedShape.ReferencePath + @"\" + imageName))
+                if (!File.Exists(trainCarShape.SharedShape.ReferencePath + @"\" + imageName))
                 {
                     Trace.TraceInformation("Ignored missing " + imageName + " using default. You can copy and unpack the " + imageName + " from OR\'s Documentation\\SampleFiles\\Manual folder to " + globalText +
-                        ", or place it under " + TrainCarShape.SharedShape.ReferencePath);
-                    material = Viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Helpers.TextureFlags.None, globalText, imageName), (int)(options), 0);
+                        ", or place it under " + trainCarShape.SharedShape.ReferencePath);
+                    material = viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Helpers.TextureFlags.None, globalText, imageName), (int)(options), 0);
                 }
-                else material = Viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Helpers.TextureFlags.None, TrainCarShape.SharedShape.ReferencePath + @"\", imageName), (int)(options), 0);
+                else
+                    material = viewer.MaterialManager.Load("Scenery", Helpers.GetTextureFile(Helpers.TextureFlags.None, trainCarShape.SharedShape.ReferencePath + @"\", imageName), (int)(options), 0);
             }
 
             return material;
@@ -798,19 +832,20 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public void Update3DDPITable()
         {
 
-            Material UsedMaterial = Material; //use default material
+            Material UsedMaterial = material; //use default material
 
             //update text string
             bool Alert = false;
             //            string speed = CVFR.Get3DDigits(out Alert);
-            DPITable.PrepareFrame(DPIStatus);
+            dpiTable.PrepareFrame(dpiStatus);
 
             //           NumVertices = NumIndices = 0;
 
             if (Alert)//alert use alert meterial
             {
-                if (AlertMaterial == null) AlertMaterial = FindMaterial(true);
-                UsedMaterial = AlertMaterial;
+                if (alertMaterial == null)
+                    alertMaterial = FindMaterial(true);
+                UsedMaterial = alertMaterial;
             }
             //update vertex texture coordinate
             var numVertices = 0;
@@ -823,28 +858,32 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             {
                 numIndices = 6 * iRow * (1 + (NumColumns - 1) * MaxDigits);
                 numVertices = 4 * iRow * (1 + (NumColumns - 1) * MaxDigits);
-                if (string.IsNullOrEmpty(DPITable.TableText[iRow, 0].Text) || headerIndex >= DPITable.FirstColumn.Length) 
+                if (string.IsNullOrEmpty(dpiTable.TableText[iRow, 0].Text) || headerIndex >= dpiTable.FirstColumn.Length)
                     break;
                 // manage row title here
-                while (DPITable.TableText[iRow, 0].Text != DPITable.FirstColumn[headerIndex] && headerIndex < DPITable.FirstColumn.Length - 1)
+                while (dpiTable.TableText[iRow, 0].Text != dpiTable.FirstColumn[headerIndex] && headerIndex < dpiTable.FirstColumn.Length - 1)
                     headerIndex++;
                 tX = 0;
                 tY = (headerIndex + 8) * 0.0625f;
 
                 //create first triangle
-                TriangleListIndices[numIndices++] = (short)numVertices;
-                TriangleListIndices[numIndices++] = (short)(numVertices + 2);
-                TriangleListIndices[numIndices++] = (short)(numVertices + 1);
+                triangleListIndices[numIndices++] = (short)numVertices;
+                triangleListIndices[numIndices++] = (short)(numVertices + 2);
+                triangleListIndices[numIndices++] = (short)(numVertices + 1);
                 // Second triangle:
-                TriangleListIndices[numIndices++] = (short)numVertices;
-                TriangleListIndices[numIndices++] = (short)(numVertices + 3);
-                TriangleListIndices[numIndices++] = (short)(numVertices + 2);
+                triangleListIndices[numIndices++] = (short)numVertices;
+                triangleListIndices[numIndices++] = (short)(numVertices + 3);
+                triangleListIndices[numIndices++] = (short)(numVertices + 2);
 
                 //create vertex
-                VertexList[numVertices].TextureCoordinate.X = tX; VertexList[numVertices].TextureCoordinate.Y = tY;
-                VertexList[numVertices + 1].TextureCoordinate.X = tX + 0.875f; VertexList[numVertices + 1].TextureCoordinate.Y = tY;
-                VertexList[numVertices + 2].TextureCoordinate.X = tX + 0.875f; VertexList[numVertices + 2].TextureCoordinate.Y = tY - 0.0625f;
-                VertexList[numVertices + 3].TextureCoordinate.X = tX; VertexList[numVertices + 3].TextureCoordinate.Y = tY - 0.0625f;
+                vertexList[numVertices].TextureCoordinate.X = tX;
+                vertexList[numVertices].TextureCoordinate.Y = tY;
+                vertexList[numVertices + 1].TextureCoordinate.X = tX + 0.875f;
+                vertexList[numVertices + 1].TextureCoordinate.Y = tY;
+                vertexList[numVertices + 2].TextureCoordinate.X = tX + 0.875f;
+                vertexList[numVertices + 2].TextureCoordinate.Y = tY - 0.0625f;
+                vertexList[numVertices + 3].TextureCoordinate.X = tX;
+                vertexList[numVertices + 3].TextureCoordinate.Y = tY - 0.0625f;
                 numVertices += 4;
                 headerIndex++;
 
@@ -853,30 +892,31 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                     numIndices = 6 * (1 + iRow * (1 + (NumColumns - 1) * MaxDigits) + ((iCol - 1) * MaxDigits));
                     numVertices = 4 * (1 + iRow * (1 + (NumColumns - 1) * MaxDigits) + ((iCol - 1) * MaxDigits));
                     param = "";
-                    if (DPITable.TableText[iRow, iCol].Text.Length >= 2) param = DPITable.TableText[iRow, iCol].Text.Substring(2);
+                    if (dpiTable.TableText[iRow, iCol].Text.Length >= 2)
+                        param = dpiTable.TableText[iRow, iCol].Text.Substring(2);
                     Debug.Assert(param.Length - 1 <= MaxDigits);
-                    color = DPITable.TableText[iRow, iCol].Color;
+                    color = dpiTable.TableText[iRow, iCol].Color;
                     var leadingSpaces = 0;
                     for (int iChar = 0; iChar < MaxDigits; iChar++)
                     {
                         if (iChar == 0 && param.Length != 0)
                         {
-                            tX = GetTextureCoordX(DPITable.TableSymbol[iRow, iCol].Text, 0);
-                            tY = GetTextureCoordY(DPITable.TableSymbol[iRow, iCol].Text, 0, Color.White);
+                            tX = GetTextureCoordX(dpiTable.TableSymbol[iRow, iCol].Text, 0);
+                            tY = GetTextureCoordY(dpiTable.TableSymbol[iRow, iCol].Text, 0, Color.White);
                         }
                         else if (iChar == 1 && param.Length < 5)
                         {
                             // Add a leading space
                             tX = 0.875f;
                             tY = 0.125f;
-                            leadingSpaces++ ;
+                            leadingSpaces++;
                         }
                         else if (iChar == 2 && param.Length < 3)
                         {
                             // Add a further leading space
                             tX = 0.875f;
                             tY = 0.125f;
-                            leadingSpaces++ ;
+                            leadingSpaces++;
                         }
                         else if (iChar < param.Length + 1 + leadingSpaces && param.Length != 0)
                         {
@@ -889,18 +929,22 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                             tY = 0.125f;
                         }
                         //create first triangle
-                        TriangleListIndices[numIndices++] = (short)numVertices;
-                        TriangleListIndices[numIndices++] = (short)(numVertices + 2);
-                        TriangleListIndices[numIndices++] = (short)(numVertices + 1);
+                        triangleListIndices[numIndices++] = (short)numVertices;
+                        triangleListIndices[numIndices++] = (short)(numVertices + 2);
+                        triangleListIndices[numIndices++] = (short)(numVertices + 1);
                         // Second triangle:
-                        TriangleListIndices[numIndices++] = (short)numVertices;
-                        TriangleListIndices[numIndices++] = (short)(numVertices + 3);
-                        TriangleListIndices[numIndices++] = (short)(numVertices + 2);
+                        triangleListIndices[numIndices++] = (short)numVertices;
+                        triangleListIndices[numIndices++] = (short)(numVertices + 3);
+                        triangleListIndices[numIndices++] = (short)(numVertices + 2);
 
-                        VertexList[numVertices].TextureCoordinate.X = tX; VertexList[numVertices].TextureCoordinate.Y = tY;
-                        VertexList[numVertices + 1].TextureCoordinate.X = tX + 0.125f; VertexList[numVertices + 1].TextureCoordinate.Y = tY;
-                        VertexList[numVertices + 2].TextureCoordinate.X = tX + 0.125f; VertexList[numVertices + 2].TextureCoordinate.Y = tY - 0.0625f;
-                        VertexList[numVertices + 3].TextureCoordinate.X = tX; VertexList[numVertices + 3].TextureCoordinate.Y = tY - 0.0625f;
+                        vertexList[numVertices].TextureCoordinate.X = tX;
+                        vertexList[numVertices].TextureCoordinate.Y = tY;
+                        vertexList[numVertices + 1].TextureCoordinate.X = tX + 0.125f;
+                        vertexList[numVertices + 1].TextureCoordinate.Y = tY;
+                        vertexList[numVertices + 2].TextureCoordinate.X = tX + 0.125f;
+                        vertexList[numVertices + 2].TextureCoordinate.Y = tY - 0.0625f;
+                        vertexList[numVertices + 3].TextureCoordinate.X = tX;
+                        vertexList[numVertices + 3].TextureCoordinate.Y = tY - 0.0625f;
                         numVertices += 4;
                     }
                 }
@@ -912,13 +956,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
         private void UpdateShapePrimitive(Material material)
         {
-            var indexData = new short[NumIndices];
-            Array.Copy(TriangleListIndices, indexData, NumIndices);
+            var indexData = new short[numIndices];
+            Array.Copy(triangleListIndices, indexData, numIndices);
             shapePrimitive.SetIndexData(indexData);
 
-            var vertexData = new VertexPositionNormalTexture[NumVertices];
-            Array.Copy(VertexList, vertexData, NumVertices);
-            shapePrimitive.SetVertexData(vertexData, 0, NumVertices, NumIndices / 3);
+            var vertexData = new VertexPositionNormalTexture[numVertices];
+            Array.Copy(vertexList, vertexData, numVertices);
+            shapePrimitive.SetVertexData(vertexData, 0, numVertices, numIndices / 3);
 
             shapePrimitive.SetMaterial(material);
         }
@@ -959,21 +1003,35 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                     switch (c)
                     {
                         case 'N':
-                        case 'B': x = 0.25f; break;
-                        case ':': x = 0.375f; break;
-                        case '.': x = 0.5f; break;
+                        case 'B':
+                            x = 0.25f;
+                            break;
+                        case ':':
+                            x = 0.375f;
+                            break;
+                        case '.':
+                            x = 0.5f;
+                            break;
                         case '—':
-                        case '-': x = 0.625f; break;
-                        case ' ': x = 0.875f; break;
-                        case '\u2590': x = 0.75f; break;
+                        case '-':
+                            x = 0.625f;
+                            break;
+                        case ' ':
+                            x = 0.875f;
+                            break;
+                        case '\u2590':
+                            x = 0.75f;
+                            break;
                         default:
                             x = (c - '0') % 8 * 0.125f;
                             break;
                     }
                     break;
             }
-            if (x < 0) x = 0;
-            if (x > 1) x = 1;
+            if (x < 0)
+                x = 0;
+            if (x > 1)
+                x = 1;
             return x;
         }
 
@@ -982,14 +1040,20 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             float y = 0f;
             switch (param)
             {
-                case "Idle": return 0.3125f;
-                case "Sync": return 0.375f;
-                case "Async": return 0.4375f;
+                case "Idle":
+                    return 0.3125f;
+                case "Sync":
+                    return 0.375f;
+                case "Async":
+                    return 0.4375f;
                 default:
                     var c = param[iChar];
-                    if (c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7') y = 0.0625f;
-                    if (c == '8' || c == '9' || c == 'B' || c == ':' || c == '.' || c == '-' || c == 'N' || c == ' ' || c == '—' || c == '\u2590') y = 0.125f;
-                    if (color == Color.Yellow) y += 0.125f;
+                    if (c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7')
+                        y = 0.0625f;
+                    if (c == '8' || c == '9' || c == 'B' || c == ':' || c == '.' || c == '-' || c == 'N' || c == ' ' || c == '—' || c == '\u2590')
+                        y = 0.125f;
+                    if (color == Color.Yellow)
+                        y += 0.125f;
                     return y;
             }
         }
@@ -1000,11 +1064,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                 return;
 
             Update3DDPITable();
-            Matrix mx = TrainCarShape.WorldPosition.XNAMatrix;
-            Vector3 delta = (TrainCarShape.WorldPosition.Tile - Viewer.Camera.Tile).TileVector().XnaVector();
+            Matrix mx = trainCarShape.WorldPosition.XNAMatrix;
+            Vector3 delta = (trainCarShape.WorldPosition.Tile - viewer.Camera.Tile).TileVector().XnaVector();
             mx.M41 += delta.X;
             mx.M43 += delta.Z;
-            Matrix m = XNAMatrix * mx;
+            Matrix m = xnaMatrix * mx;
 
             // TODO: Make this use AddAutoPrimitive instead.
             frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);

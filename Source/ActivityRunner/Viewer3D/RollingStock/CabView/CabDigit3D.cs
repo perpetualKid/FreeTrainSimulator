@@ -55,7 +55,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
         public CabDigit3D(Viewer viewer, int iMatrix, string size, string aceFile, PoseableShape trainCarShape, CabViewControlRenderer c, MSTSLocomotive locomotive)
         {
 
-            this.size = int.Parse(size) * 0.001f;//input size is in mm
+            this.size = int.TryParse(size, out int intSize) ? intSize * 0.001f : this.size;//input size is in mm
             if (!string.IsNullOrEmpty(aceFile))
             {
                 if (".ace".Equals(Path.GetExtension(aceFile), StringComparison.OrdinalIgnoreCase))

@@ -2048,12 +2048,12 @@ namespace Orts.Simulation.Physics
                 bool moveForward = (Math.Sign(SpeedMpS) >= 0);
                 if ((evaluationContent & EvaluationLogContents.Speed) == EvaluationLogContents.Speed)
                 {
-                    builder.Append($"{Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), RuntimeData.Instance.MetricUnits):0000.0}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), RuntimeData.Instance.MetricUnits):0000.0}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.MaxSpeed) == EvaluationLogContents.MaxSpeed)
                 {
-                    builder.Append($"{Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, RuntimeData.Instance.MetricUnits):0000.0}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, RuntimeData.Instance.MetricUnits):0000.0}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.SignalAspect) == EvaluationLogContents.SignalAspect)
@@ -2071,7 +2071,7 @@ namespace Orts.Simulation.Physics
 
                 if ((evaluationContent & EvaluationLogContents.Elevation) == EvaluationLogContents.Elevation)
                 {
-                    builder.Append($"{(simulator.PlayerLocomotive.CurrentElevationPercent):00.0}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{(simulator.PlayerLocomotive.CurrentElevationPercent):00.0}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Direction) == EvaluationLogContents.Direction)
@@ -2088,27 +2088,27 @@ namespace Orts.Simulation.Physics
 
                 if ((evaluationContent & EvaluationLogContents.Distance) == EvaluationLogContents.Distance)
                 {
-                    builder.Append($"{PresentPosition[Direction.Forward].DistanceTravelled:0.00}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{PresentPosition[Direction.Forward].DistanceTravelled:0.00}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Throttle) == EvaluationLogContents.Throttle)
                 {
-                    builder.Append($"{MUThrottlePercent:000}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{MUThrottlePercent:000}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Brake) == EvaluationLogContents.Brake)
                 {
-                    builder.Append($"{simulator.PlayerLocomotive.BrakeSystem.GetCylPressurePSI():000}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{simulator.PlayerLocomotive.BrakeSystem.GetCylPressurePSI():000}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.DynBrake) == EvaluationLogContents.DynBrake)
                 {
-                    builder.Append($"{MUDynamicBrakePercent:000}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{MUDynamicBrakePercent:000}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Gear) == EvaluationLogContents.Gear)
                 {
-                    builder.Append($"{MUGearboxGearIndex:0}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{MUGearboxGearIndex:0}{Separator}"));
                 }
 
                 builder.Append('\n');
@@ -12002,7 +12002,7 @@ namespace Orts.Simulation.Physics
                         // station stops
                         circuitString.Append(train.StationStops?.Count > 0 ? $"[{train.StationStops.Count}] " : "[ ] ");
                         // route
-                        circuitString.Append($"{train.TCRoute?.ActiveSubPath.ToString(CultureInfo.InvariantCulture) ?? "?"}?={{");
+                        circuitString.Append(FormattableString.Invariant($"{train.TCRoute?.ActiveSubPath.ToString(CultureInfo.InvariantCulture) ?? "?"}?={{"));
 
                         int startIndex = train.PresentPosition[Direction.Forward].RouteListIndex;
                         if (startIndex < 0)
@@ -12020,7 +12020,7 @@ namespace Orts.Simulation.Physics
                         circuitString.Append('}');
                         if (train.TCRoute?.ActiveSubPath < train.TCRoute.TCRouteSubpaths.Count - 1)
                         {
-                            circuitString.Append($"x{train.TCRoute.ActiveSubPath + 1}");
+                            circuitString.Append(FormattableString.Invariant($"x{train.TCRoute.ActiveSubPath + 1}"));
                         }
                         if (train.TCRoute != null && train.TCRoute.OriginalSubpath != -1)
                             circuitString.Append("???");
@@ -12048,7 +12048,7 @@ namespace Orts.Simulation.Physics
                         circuitString.Append(backstring);
 
                         // train indication and direction
-                        circuitString.Append($"={{{(train.MUDirection == MidpointDirection.Reverse ? '<' : '>')}}}=");
+                        circuitString.Append(FormattableString.Invariant($"={{{(train.MUDirection == MidpointDirection.Reverse ? '<' : '>')}}}="));
 
                         // forward path
                         StringBuilder forwardstring = new StringBuilder();
@@ -12140,12 +12140,12 @@ namespace Orts.Simulation.Physics
 
                 if (section.CircuitState.TrainReserved != null)
                 {
-                    builder.Append($"({section.CircuitState.TrainReserved.Train.Number})");
+                    builder.Append(FormattableString.Invariant($"({section.CircuitState.TrainReserved.Train.Number})"));
                 }
 
                 if (section.CircuitState.SignalReserved >= 0)
                 {
-                    builder.Append($"(S{section.CircuitState.SignalReserved})");
+                    builder.Append(FormattableString.Invariant($"(S{section.CircuitState.SignalReserved})"));
                 }
 
                 if (section.CircuitState.TrainClaimed.Count > 0)

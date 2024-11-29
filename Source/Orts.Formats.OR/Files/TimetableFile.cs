@@ -235,7 +235,7 @@ namespace Orts.Formats.OR.Files
             {
                 reverse = consistProc.Substring(1, 7).Equals("reverse", StringComparison.OrdinalIgnoreCase);
             }
-            return (reverse && reqString.EndsWith("$reverse") ? reqString[..^8] : reqString).Trim();
+            return (reverse && reqString.EndsWith("$reverse", StringComparison.OrdinalIgnoreCase) ? reqString[..^8] : reqString).Trim();
         }
     }
 }

@@ -66,7 +66,7 @@ namespace Orts.Simulation.World
             stf.ParseBlock(new[] {
                 new STFReader.TokenProcessor("wfile", ()=>{
                     WFile = stf.ReadStringBlock(null);
-                    position = new WorldPosition(new Tile(int.Parse(WFile.AsSpan(1, 7), CultureInfo.InvariantCulture), int.Parse(WFile.AsSpan(8, 7), CultureInfo.InvariantCulture)), location);
+                    position = new WorldPosition(TileHelper.FromWorldFileName(WFile), location);
                 }),
                 new STFReader.TokenProcessor("uid", ()=>{ UID = stf.ReadIntBlock(-1); }),
                 new STFReader.TokenProcessor("animation", ()=>{ animation = stf.ReadStringBlock(null);

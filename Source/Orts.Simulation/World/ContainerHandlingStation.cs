@@ -205,7 +205,7 @@ namespace Orts.Simulation.World
             // Search if ContainerStation present in file
             foreach (ContainerStationPopulation loadStationPopulation in containerManager.LoadStationsPopulationFile.LoadStationsPopulation)
             {
-                Tile tile = new Tile (int.Parse(loadStationPopulation.LoadStationId.WorldFile.Substring(1, 7)), int.Parse(loadStationPopulation.LoadStationId.WorldFile.Substring(8, 7)));
+                Tile tile = TileHelper.FromWorldFileName(loadStationPopulation.LoadStationId.WorldFile);
                 if (tile == Location.Tile && loadStationPopulation.LoadStationId.UiD == pickupObject.UiD)
                 {
                     string trainSetFolder = Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder;

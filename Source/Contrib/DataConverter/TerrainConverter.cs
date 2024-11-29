@@ -64,19 +64,8 @@ namespace Orts.DataConverter
 
             if (Path.GetExtension(conversion.Input) == ".w")
             {
-                // Convert from world file to tile file, by parsing the X, Z coordinates from filename.
-                string filename = Path.GetFileNameWithoutExtension(conversion.Input);
-                if (filename.Length != 15 ||
-                    filename[0] != 'w' ||
-                    (filename[1] != '+' && filename[1] != '-') ||
-                    (filename[8] != '+' && filename[8] != '-') ||
-                    !int.TryParse(filename.AsSpan(1, 7), out int tileX) ||
-                    !int.TryParse(filename.AsSpan(8, 7), out int tileZ))
-                {
-                    throw new InvalidCommandLineException("Unable to parse tile coordinates from world filename: " + filename);
-                }
                 string tilesDirectory = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(conversion.Input)), "Tiles");
-                string tileName = TileHelper.TileFileName(new Tile(tileX, tileZ), TileHelper.TileZoom.Small);
+                string tileName = TileHelper.TileFileName(TileHelper.FromWorldFileName(conversion.Input), TileHelper.TileZoom.Small);
                 conversion.SetInput(Path.Combine(tilesDirectory, tileName + ".t"));
             }
 

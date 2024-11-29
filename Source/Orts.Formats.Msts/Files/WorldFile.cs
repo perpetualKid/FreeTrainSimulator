@@ -42,11 +42,7 @@ namespace Orts.Formats.Msts.Files
             {
                 if (string.IsNullOrEmpty(fileName))
                     throw new InvalidDataException($"Empty filename could not be parsed for for X and Z tile information.");
-                // Parse the tile location out of the filename.
-                int p = fileName.LastIndexOf("\\WORLD\\W", StringComparison.OrdinalIgnoreCase);
-                if (!int.TryParse(fileName.AsSpan(p + 8, 7), out int tileX) || !int.TryParse(fileName.AsSpan(p + 15, 7), out int tileZ))
-                    throw new InvalidDataException($"Could not parse filename {fileName} for X and Z tile information.");
-                Tile = new Tile(tileX, tileZ);
+                Tile = TileHelper.FromWorldFileName(fileName);
 
                 using (SBR sbr = SBR.Open(fileName))
                 {

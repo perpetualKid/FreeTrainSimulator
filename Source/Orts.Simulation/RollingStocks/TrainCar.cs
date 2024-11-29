@@ -3053,7 +3053,7 @@ namespace Orts.Simulation.RollingStocks
                     {
                         if (builder.Length > 0)
                             builder.Append('-');
-                        builder.Append($"{count}");
+                        builder.Append(FormattableString.Invariant($"{count}"));
                     }
                     count = 0;
                 }
@@ -3063,7 +3063,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (builder.Length > 0)
                     builder.Append('-');
-                builder.Append($"{count}");
+                builder.Append(FormattableString.Invariant($"{count}"));
             }
             return builder.ToString();
         }
