@@ -50,7 +50,7 @@ namespace FreeTrainSimulator.Common.Logging
             return invalidCharReplacement.Replace(result, "_");
         }
 
-        public static void InitLogging(string logFileName, bool errorsOnly, bool appendLog)
+        public static void InitLogging(string logFileName, bool errorsOnly, bool appendLog, bool logDetails = true)
         {
             if (string.IsNullOrEmpty(logFileName))
                 return;
@@ -74,7 +74,7 @@ namespace FreeTrainSimulator.Common.Logging
                 // Captures Trace.Trace* calls and others and formats.
                 LoggingTraceListener traceListener = new LoggingTraceListener(writer, errorsOnly)
                 {
-                    TraceOutputOptions = TraceOptions.Callstack
+                    TraceOutputOptions = logDetails ? TraceOptions.Callstack : TraceOptions.None
                 };
                 Trace.Listeners.Add(traceListener);
             }
@@ -90,8 +90,11 @@ namespace FreeTrainSimulator.Common.Logging
             }
             else
             {
-                SystemInfo.WriteSystemDetails();
-                Trace.WriteLine(SeparatorLine);
+                if (logDetails)
+                {
+                    SystemInfo.WriteSystemDetails();
+                    Trace.WriteLine(SeparatorLine);
+                }
                 Trace.WriteLine($"{"Version",-12}= {VersionInfo.Version}");
                 Trace.WriteLine($"{"Code Version",-12}= {VersionInfo.CodeVersion}");
                 if (logFileName.Length > 0)

@@ -62,7 +62,6 @@ namespace FreeTrainSimulator.Common.Logging
             if (!lastWrittenFormatted)
             {
                 output.AppendLine();
-                output.AppendLine();
             }
             output.Append(eventType);
             output.Append(": ");
@@ -88,12 +87,14 @@ namespace FreeTrainSimulator.Common.Logging
                     output.AppendLine(string.Join(Environment.NewLine, catchStack, catchIndex + 1, catchStack.Length - catchIndex - 1));
             }
             else
-
+            {
                 // Only log a stack trace for critical and error levels.
                 if (eventType < TraceEventType.Warning && (TraceOutputOptions & TraceOptions.Callstack) != 0)
-            {
-                output.AppendLine();
-                output.AppendLine(new StackTrace(true).ToString());
+                {
+                    output.AppendLine();
+                    //output.AppendLine(new StackTrace(true).ToString());
+                    output.AppendLine(eventCache.Callstack.ToString());
+                }
             }
 
             output.AppendLine();

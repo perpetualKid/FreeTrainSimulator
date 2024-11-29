@@ -234,7 +234,6 @@ namespace Orts.Formats.Msts
                 if (!routeFolders.TryGetValue(route, out RouteFolder result))
                 {
                     routeFolders.TryAdd(route, new RouteFolder(route, this));
-                    Debug.Assert(Directory.Exists(routeFolders[route].CurrentFolder));
                     result = routeFolders[route];
                 }
                 return result;
@@ -244,17 +243,6 @@ namespace Orts.Formats.Msts
         private static readonly string mstsLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
             "Microsoft Games", "Train Simulator");   // MSTS default path.
         private static readonly ConcurrentDictionary<string, ContentFolder> contentFolders = new ConcurrentDictionary<string, ContentFolder>(StringComparer.OrdinalIgnoreCase);
-        private static ContentFolder current;
-
-        public static ContentFolder Current
-        {
-            get
-            {
-                if (null == current)
-                    current = Content(MstsFolder);
-                return current;
-            }
-        }
 
         public static string MstsFolder
         {
@@ -286,8 +274,7 @@ namespace Orts.Formats.Msts
         {
             string routeName = Path.GetFileName(routePath);
             string contentFolder = Path.GetFullPath(Path.Combine(routePath, "..\\.."));
-            current = Content(contentFolder);
-            return current.Route(routeName);
+            return Content(contentFolder).Route(routeName);
         }
 
         public static ContentFolder.RouteFolder RouteFromActivity(string activityPath)
@@ -298,8 +285,7 @@ namespace Orts.Formats.Msts
             string routePath = Path.GetFullPath(Path.Combine(activityPath, traversal));
             string routeName = Path.GetFileName(routePath);
             string contentFolder = Path.GetFullPath(Path.Combine(routePath, "..\\.."));
-            current = Content(contentFolder);
-            return current.Route(routeName);
+            return Content(contentFolder).Route(routeName);
         }
 
         //public static string TrackItemTable => Path.Combine(RouteFolder, RouteName + ".TIT");

@@ -269,7 +269,7 @@ namespace FreeTrainSimulator.Menu
             base.Dispose(disposing);
         }
 
-        private async void ButtonOK_Click(object sender, EventArgs e)
+        private void ButtonOK_Click(object sender, EventArgs e)
         {
             string result = settings.Input.CheckForErrors();
             if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, RuntimeInfo.ProductName, MessageBoxButtons.YesNo))
@@ -367,7 +367,6 @@ namespace FreeTrainSimulator.Menu
             {
                 ContentFolders = (bindingSourceContent.DataSource as List<FolderModel>).ToFrozenSet(),
             };
-            ProfileModel = await ProfileModel.Setup(CancellationToken.None).ConfigureAwait(false);
 
             // Updater tab
 

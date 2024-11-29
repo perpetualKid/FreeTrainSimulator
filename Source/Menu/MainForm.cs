@@ -132,9 +132,7 @@ namespace FreeTrainSimulator.Menu
             if (settings.Logging)
             {
                 string logFileName = RuntimeInfo.LogFile(settings.LoggingPath, $"{ Path.GetFileNameWithoutExtension(settings.LoggingFilename)} - Menu{Path.GetExtension(settings.LoggingFilename)}");
-                LoggingUtil.InitLogging(logFileName, settings.LogErrorsOnly, false);
-                settings.Log();
-                Trace.WriteLine(LoggingUtil.SeparatorLine);
+                LoggingUtil.InitLogging(logFileName, settings.LogErrorsOnly, false, false);
             }
 
             updateManager = new UpdateManager(settings);
@@ -506,7 +504,15 @@ namespace FreeTrainSimulator.Menu
                 {
                     case DialogResult.OK:
                         SelectedProfile = null;
-                        await ProfileChanged(form.ProfileModel).ConfigureAwait(true);
+                        try
+                        {
+                            Enabled = false;
+                            await ProfileChanged(await form.ProfileModel.Setup(CancellationToken.None).ConfigureAwait(false)).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            Invoke(() => Enabled = true);
+                        }
                         break;
                     case DialogResult.Retry: //Language has changed
                         LoadLanguage();

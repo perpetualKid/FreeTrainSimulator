@@ -266,7 +266,7 @@ namespace FreeTrainSimulator.Menu
 
             bool exploreActivity = CurrentSelections != null && (CurrentSelections.ActivityType is ActivityType.ExploreActivity or ActivityType.Explorer);
             bool activity = exploreActivity || (CurrentSelections?.ActivityType is ActivityType.Activity);
-            radioButtonModeTimetable.Checked = !(radioButtonModeActivity.Checked = CurrentSelections.ActivityType == ActivityType.TimeTable);
+            radioButtonModeActivity.Checked = !(radioButtonModeTimetable.Checked = CurrentSelections.ActivityType == ActivityType.TimeTable);
 
             // values
             _ = comboBoxStartSeason.SetComboBoxItem((ComboBoxItem<SeasonType> cbi) => cbi.Value == CurrentSelections.Season);
