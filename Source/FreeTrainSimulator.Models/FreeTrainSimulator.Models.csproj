@@ -3,8 +3,8 @@
 		<Description>Free Train Simulator Entity Models Library</Description>
 		<AssemblyTitle>Free Train Simulator Entity Models Library</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
-		<AssemblyName>FreeTrainSimulator.Models.Independent</AssemblyName>
-		<RootNamespace>FreeTrainSimulator.Models.Independent</RootNamespace>
+		<AssemblyName>FreeTrainSimulator.Models</AssemblyName>
+		<RootNamespace>FreeTrainSimulator.Models</RootNamespace>
 		<Configurations>Debug;Release;CodeAnalysis</Configurations>
 	</PropertyGroup>
 	<ItemGroup>

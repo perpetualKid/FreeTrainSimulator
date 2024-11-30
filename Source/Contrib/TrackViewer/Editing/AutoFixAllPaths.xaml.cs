@@ -21,7 +21,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 
-using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
 using ORTS.TrackViewer.Drawing;

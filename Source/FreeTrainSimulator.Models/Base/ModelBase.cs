@@ -5,7 +5,7 @@ using FreeTrainSimulator.Common.Info;
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Independent.Base
+namespace FreeTrainSimulator.Models.Base
 {
 
     /// <summary>
@@ -55,7 +55,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         public virtual void Initialize(string file, IFileResolve parent)
         {
             _directoryPath = Path.GetDirectoryName(file);
-            this._parent = parent;
+            _parent = parent;
         }
         #endregion
 
@@ -68,12 +68,12 @@ namespace FreeTrainSimulator.Models.Independent.Base
         /// None-Instance (null) of the current model
         /// </summary>
 #pragma warning disable CA1000 // Do not declare static members on generic types
-        public static T None => default (T);
+        public static T None => default(T);
 #pragma warning restore CA1000 // Do not declare static members on generic types
         /// <summary>
         /// Unique Id of this instance within the parent entity, also need to be file-system compatible
         /// </summary>
-        public string Id {  get; init; }
+        public string Id { get; init; }
         /// <summary>
         /// Name of this instance within the parent entity, may not be unique nor file-system compatible
         /// </summary>
@@ -95,7 +95,7 @@ namespace FreeTrainSimulator.Models.Independent.Base
         {
             Id = name;
             Name = name;
-            this._parent = parent;
+            _parent = parent;
         }
     }
 }

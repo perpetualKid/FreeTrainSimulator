@@ -2,19 +2,18 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
-using Orts.Formats.Msts.Files;
-
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using System.Diagnostics;
 
 namespace FreeTrainSimulator.Models.Loader.Handler
 {

@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Independent.Base;
+using FreeTrainSimulator.Models.Base;
 
 using MemoryPack;
 

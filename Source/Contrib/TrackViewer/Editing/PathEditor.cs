@@ -22,7 +22,7 @@ using System.Windows;
 using System.Windows.Controls;
 
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
 using Orts.Formats.Msts;

@@ -31,7 +31,7 @@ using System.Windows.Forms.Integration;
 
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
 using ORTS.TrackViewer.Drawing; // for colors

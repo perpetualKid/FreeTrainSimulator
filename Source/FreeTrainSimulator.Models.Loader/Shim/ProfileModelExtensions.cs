@@ -5,9 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Independent.Settings;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Loader.Handler;
+using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {

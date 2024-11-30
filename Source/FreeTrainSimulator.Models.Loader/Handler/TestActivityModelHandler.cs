@@ -4,7 +4,7 @@ using System.Collections.Frozen;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
 namespace FreeTrainSimulator.Models.Loader.Handler

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Independent.Content;
-using FreeTrainSimulator.Models.Independent.Settings;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
+using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Menu
 {

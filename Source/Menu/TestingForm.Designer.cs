@@ -1,4 +1,4 @@
-﻿using FreeTrainSimulator.Models.Independent.Content;
+﻿using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Menu
 {

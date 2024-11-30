@@ -1,11 +1,11 @@
 ﻿using System;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Independent.Base;
+using FreeTrainSimulator.Models.Base;
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Independent.Content
+namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public partial record ActivityModelCore : ModelBase<ActivityModelCore>

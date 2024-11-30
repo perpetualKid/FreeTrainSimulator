@@ -1,5 +1,5 @@
 ﻿using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Content;
 
 using Microsoft.Xna.Framework;
 

@@ -22,8 +22,8 @@ using System.IO.Compression;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Independent.Settings;
 using FreeTrainSimulator.Models.Loader.Shim;
+using FreeTrainSimulator.Models.Settings;
 
 using GetText;
 using GetText.WindowsForms;

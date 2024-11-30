@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 

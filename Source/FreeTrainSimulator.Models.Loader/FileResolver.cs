@@ -3,8 +3,8 @@ using System.Collections.Concurrent;
 using System.IO;
 
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Independent.Base;
-using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Base;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Loader.Handler;
 using FreeTrainSimulator.Models.Loader.Shim;
 

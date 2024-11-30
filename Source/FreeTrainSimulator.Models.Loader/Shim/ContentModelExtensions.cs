@@ -3,7 +3,7 @@ using System.Collections.Frozen;
 using System.Linq;
 using System.Text;
 
-using FreeTrainSimulator.Models.Independent.Base;
+using FreeTrainSimulator.Models.Base;
 
 namespace FreeTrainSimulator.Models.Loader.Shim
 {

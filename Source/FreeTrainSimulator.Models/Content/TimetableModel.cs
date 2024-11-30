@@ -1,10 +1,10 @@
 ﻿using System.Collections.Frozen;
 
-using FreeTrainSimulator.Models.Independent.Base;
+using FreeTrainSimulator.Models.Base;
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Independent.Content
+namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record TimetableModel : ModelBase<TimetableModel>

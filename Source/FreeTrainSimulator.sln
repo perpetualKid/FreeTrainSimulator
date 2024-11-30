@@ -71,11 +71,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Common",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.FreeTrainSimulator", "Test\Tests.FreeTrainSimulator\Tests.FreeTrainSimulator.csproj", "{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Models.Independent", "FreeTrainSimulator.Models.Independent\FreeTrainSimulator.Models.Independent.csproj", "{78F6C725-1D6C-49A6-A5A5-68889882D740}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Models.Loader", "FreeTrainSimulator.Models.Loader\FreeTrainSimulator.Models.Loader.csproj", "{D85CE181-5BED-4E86-AA31-9801E7F174A9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeTrainSimulator.Models.Imported", "FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj", "{7B80F2A2-5B70-4047-B05E-DD42C8F06ABD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeTrainSimulator.Models", "FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj", "{6F352DD6-0EEB-4EAF-A285-7015DB238352}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -228,12 +228,6 @@ Global
 		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{78F6C725-1D6C-49A6-A5A5-68889882D740}.CodeAnalysis|Any CPU.ActiveCfg = CodeAnalysis|Any CPU
-		{78F6C725-1D6C-49A6-A5A5-68889882D740}.CodeAnalysis|Any CPU.Build.0 = CodeAnalysis|Any CPU
-		{78F6C725-1D6C-49A6-A5A5-68889882D740}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{78F6C725-1D6C-49A6-A5A5-68889882D740}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{78F6C725-1D6C-49A6-A5A5-68889882D740}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{78F6C725-1D6C-49A6-A5A5-68889882D740}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D85CE181-5BED-4E86-AA31-9801E7F174A9}.CodeAnalysis|Any CPU.ActiveCfg = CodeAnalysis|Any CPU
 		{D85CE181-5BED-4E86-AA31-9801E7F174A9}.CodeAnalysis|Any CPU.Build.0 = CodeAnalysis|Any CPU
 		{D85CE181-5BED-4E86-AA31-9801E7F174A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -246,6 +240,12 @@ Global
 		{7B80F2A2-5B70-4047-B05E-DD42C8F06ABD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B80F2A2-5B70-4047-B05E-DD42C8F06ABD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B80F2A2-5B70-4047-B05E-DD42C8F06ABD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F352DD6-0EEB-4EAF-A285-7015DB238352}.CodeAnalysis|Any CPU.ActiveCfg = CodeAnalysis|Any CPU
+		{6F352DD6-0EEB-4EAF-A285-7015DB238352}.CodeAnalysis|Any CPU.Build.0 = CodeAnalysis|Any CPU
+		{6F352DD6-0EEB-4EAF-A285-7015DB238352}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F352DD6-0EEB-4EAF-A285-7015DB238352}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F352DD6-0EEB-4EAF-A285-7015DB238352}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F352DD6-0EEB-4EAF-A285-7015DB238352}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

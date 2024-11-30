@@ -1,12 +1,12 @@
 ﻿using System;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Independent.Base;
-using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Base;
+using FreeTrainSimulator.Models.Content;
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Independent.Settings
+namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record ProfileSelectionsModel: ModelBase<ProfileSelectionsModel>

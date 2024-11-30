@@ -1,3 +1,5 @@
+using FreeTrainSimulator.Models.Content;
+
 namespace FreeTrainSimulator.Menu
 {
     partial class OptionsForm
@@ -1977,7 +1979,7 @@ namespace FreeTrainSimulator.Menu
             // bindingSourceContent
             // 
             bindingSourceContent.AllowNew = true;
-            bindingSourceContent.DataSource = typeof(Models.Independent.Content.FolderModel);
+            bindingSourceContent.DataSource = typeof(FolderModel);
             bindingSourceContent.AddingNew += BindingSourceContent_AddingNew;
             // 
             // tabPageUpdater

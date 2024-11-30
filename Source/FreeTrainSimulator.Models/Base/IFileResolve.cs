@@ -1,4 +1,4 @@
-﻿namespace FreeTrainSimulator.Models.Independent.Base
+﻿namespace FreeTrainSimulator.Models.Base
 {
     /// <summary>
     /// Interface implemented by all <seealso cref="ModelBase{T}"/> instances to support additional file system lookup scenarios

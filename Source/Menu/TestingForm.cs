@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Independent.Content;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Loader.Shim;
 
 using GetText;
