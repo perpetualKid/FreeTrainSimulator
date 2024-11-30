@@ -61,8 +61,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Graphics
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox", "Toolbox\Toolbox.csproj", "{B574F717-4792-4748-BC26-BEF32E874489}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Models", "FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj", "{A17D2401-1B35-46E8-91FF-E1E917091D64}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulatorTester", "Contrib\SimulatorTester\SimulatorTester.csproj", "{FDF85DD6-8414-42B7-A510-20EF87035307}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Multiplayer.Hub", "Multiplayer.Hub\Multiplayer.Hub.csproj", "{EB6913FF-6EEA-432E-9F6D-8FAF023FE1B8}"
@@ -76,6 +74,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Models.Independent", "FreeTrainSimulator.Models.Independent\FreeTrainSimulator.Models.Independent.csproj", "{78F6C725-1D6C-49A6-A5A5-68889882D740}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeTrainSimulator.Models.Loader", "FreeTrainSimulator.Models.Loader\FreeTrainSimulator.Models.Loader.csproj", "{D85CE181-5BED-4E86-AA31-9801E7F174A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeTrainSimulator.Models.Imported", "FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj", "{7B80F2A2-5B70-4047-B05E-DD42C8F06ABD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -198,12 +198,6 @@ Global
 		{B574F717-4792-4748-BC26-BEF32E874489}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B574F717-4792-4748-BC26-BEF32E874489}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B574F717-4792-4748-BC26-BEF32E874489}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A17D2401-1B35-46E8-91FF-E1E917091D64}.CodeAnalysis|Any CPU.ActiveCfg = CodeAnalysis|Any CPU
-		{A17D2401-1B35-46E8-91FF-E1E917091D64}.CodeAnalysis|Any CPU.Build.0 = CodeAnalysis|Any CPU
-		{A17D2401-1B35-46E8-91FF-E1E917091D64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A17D2401-1B35-46E8-91FF-E1E917091D64}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A17D2401-1B35-46E8-91FF-E1E917091D64}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A17D2401-1B35-46E8-91FF-E1E917091D64}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FDF85DD6-8414-42B7-A510-20EF87035307}.CodeAnalysis|Any CPU.ActiveCfg = CodeAnalysis|Any CPU
 		{FDF85DD6-8414-42B7-A510-20EF87035307}.CodeAnalysis|Any CPU.Build.0 = CodeAnalysis|Any CPU
 		{FDF85DD6-8414-42B7-A510-20EF87035307}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -246,6 +240,12 @@ Global
 		{D85CE181-5BED-4E86-AA31-9801E7F174A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D85CE181-5BED-4E86-AA31-9801E7F174A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D85CE181-5BED-4E86-AA31-9801E7F174A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B80F2A2-5B70-4047-B05E-DD42C8F06ABD}.CodeAnalysis|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B80F2A2-5B70-4047-B05E-DD42C8F06ABD}.CodeAnalysis|Any CPU.Build.0 = Debug|Any CPU
+		{7B80F2A2-5B70-4047-B05E-DD42C8F06ABD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B80F2A2-5B70-4047-B05E-DD42C8F06ABD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B80F2A2-5B70-4047-B05E-DD42C8F06ABD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B80F2A2-5B70-4047-B05E-DD42C8F06ABD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

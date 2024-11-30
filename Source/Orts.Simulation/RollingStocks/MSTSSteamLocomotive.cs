@@ -73,7 +73,7 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Xna;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
 

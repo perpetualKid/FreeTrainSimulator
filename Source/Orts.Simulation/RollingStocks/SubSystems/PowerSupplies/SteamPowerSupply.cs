@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Orts.Formats.Msts.Parsers;
 

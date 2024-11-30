@@ -23,7 +23,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Orts.Formats.OR.Models;
 

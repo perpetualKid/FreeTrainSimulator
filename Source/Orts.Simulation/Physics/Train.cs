@@ -58,7 +58,7 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using GetText;
 

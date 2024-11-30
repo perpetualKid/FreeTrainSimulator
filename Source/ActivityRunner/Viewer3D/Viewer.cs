@@ -36,7 +36,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using GetText;
 

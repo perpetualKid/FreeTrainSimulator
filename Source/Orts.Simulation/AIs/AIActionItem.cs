@@ -25,7 +25,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;

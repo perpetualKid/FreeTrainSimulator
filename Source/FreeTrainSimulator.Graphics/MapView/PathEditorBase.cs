@@ -2,7 +2,7 @@
 
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
-using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Models.Imported.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;

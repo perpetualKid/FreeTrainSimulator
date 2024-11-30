@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>Free Train Simulator Imported Models Library</Description>
+		<AssemblyTitle>Free Train Simulator Imported Models Library</AssemblyTitle>
+		<OutputPath>..\..\Program</OutputPath>
+		<AssemblyName>FreeTrainSimulator.Models.Imported</AssemblyName>
+		<RootNamespace>FreeTrainSimulator.Models.Imported</RootNamespace>
+		<Configurations>Debug;Release;CodeAnalysis</Configurations>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
+		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
+		<ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
+	</ItemGroup>
+</Project>
