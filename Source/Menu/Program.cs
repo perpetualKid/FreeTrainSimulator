@@ -22,8 +22,9 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Loader.Shim;
 using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Models.Imported.Shim;
 
 [assembly: CLSCompliant(false)]
 

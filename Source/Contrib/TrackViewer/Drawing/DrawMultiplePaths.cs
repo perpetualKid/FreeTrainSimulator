@@ -19,7 +19,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Loader.Shim;
+using FreeTrainSimulator.Models.Imported.Shim;
 
 using Microsoft.Xna.Framework;
 

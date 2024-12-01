@@ -17,7 +17,8 @@
     <PackageReference Include="NuGet.Versioning" Version="6.12.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\FreeTrainSimulator.Models.Loader\FreeTrainSimulator.Models.Loader.csproj" />
+    <ProjectReference Include="..\..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
+    <ProjectReference Include="..\..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
     <ProjectReference Include="..\..\FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj" />
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\..\Orts.Formats.OR\Orts.Formats.OR.csproj" />

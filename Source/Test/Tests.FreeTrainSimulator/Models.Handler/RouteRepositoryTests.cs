@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Loader.Handler;
-using FreeTrainSimulator.Models.Loader.Shim;
+using FreeTrainSimulator.Models.Imported.ImportHandler.OpenRails;
+using FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator;
+using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Shim;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -96,7 +98,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
 
             ProfileModel profileModel = await ProfileModel.None.Get(CancellationToken.None).ConfigureAwait(false);
             FolderModel folder = (await profileModel.GetFolders(CancellationToken.None).ConfigureAwait(false)).GetByName("Demo Model 1");
-//            RouteModelCore route = (await folder.GetRoutes(CancellationToken.None).ConfigureAwait(false)).GetByName("SCE");
+            //            RouteModelCore route = (await folder.GetRoutes(CancellationToken.None).ConfigureAwait(false)).GetByName("SCE");
 
             FrozenSet<RouteModelCore> routes = await RouteModelHandler.ExpandRouteModels(folder, CancellationToken.None).ConfigureAwait(false);
 
@@ -113,7 +115,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
             FolderModel folder = (await profileModel.GetFolders(CancellationToken.None).ConfigureAwait(false)).GetByName("OR Linia 202");
             //            RouteModelCore route = (await folder.GetRoutes(CancellationToken.None).ConfigureAwait(false)).GetByName("SCE");
 
-            FrozenSet<RouteModelCore> routes = await RouteModelHandler.GetRoutes(folder, CancellationToken.None).ConfigureAwait(false);
+            FrozenSet<RouteModelCore> routes = await folder.GetRoutes(CancellationToken.None).ConfigureAwait(false);
             RouteModelCore route = routes.GetByName("Linia202_80s");
 
             FrozenSet<TimetableModel> timetables = await TimetableModelHandler.ExpandTimetableModels(route, CancellationToken.None).ConfigureAwait(false);

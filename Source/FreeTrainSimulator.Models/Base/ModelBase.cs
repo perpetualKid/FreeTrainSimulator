@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 using FreeTrainSimulator.Common.Info;
 
@@ -15,6 +17,8 @@ namespace FreeTrainSimulator.Models.Base
     /// <typeparam name="T"></typeparam>
     public abstract record ModelBase<T> : IFileResolve where T : ModelBase<T>
     {
+        private const char hierarchySeparatorChar = '/';
+        private string hierarchy;
         private string _version;
 
         #region internal handling
@@ -43,9 +47,6 @@ namespace FreeTrainSimulator.Models.Base
         IFileResolve IFileResolve.Container => _parent;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
         #endregion
-
-        [MemoryPackIgnore]
-        public bool RefreshRequired => VersionInfo.Compare(Version) > 0;
 
         public void RefreshModel()
         {
@@ -97,5 +98,34 @@ namespace FreeTrainSimulator.Models.Base
             Name = name;
             _parent = parent;
         }
+
+        #region Hierarchy
+        public string Hierarchy()
+        {
+            if (string.IsNullOrEmpty(hierarchy))
+            {
+                StringBuilder builder = new StringBuilder();
+                BuildHiearchy(this, builder);
+                hierarchy = builder.ToString();
+            }
+            return hierarchy;
+        }
+
+        public string Hierarchy(string modelName)
+        {
+            return string.Concat(Hierarchy(), hierarchySeparatorChar, modelName);
+        }
+
+        private static void BuildHiearchy(IFileResolve model, StringBuilder builder)
+        {
+            if (model.Container is IFileResolve fileResolve)
+            {
+                BuildHiearchy(fileResolve, builder);
+                _ = builder.Append(hierarchySeparatorChar);
+            }
+            _ = builder.Append(model.FileName);
+        }
+
+        #endregion
     }
 }

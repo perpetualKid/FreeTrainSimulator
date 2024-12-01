@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
 
-namespace Orts.ActivityRunner.Viewer3D.PopupWindows
+namespace Orts.ActivityRunner.Viewer3D.Common
 {
     internal sealed class GraphicInformation : DetailInfoBase
     {

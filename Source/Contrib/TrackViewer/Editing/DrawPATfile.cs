@@ -18,7 +18,7 @@ using System;
 
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Loader.Shim;
+using FreeTrainSimulator.Models.Imported.Shim;
 
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;

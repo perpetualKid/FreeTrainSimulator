@@ -31,8 +31,8 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Logging;
 using FreeTrainSimulator.Common.Native;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Imported.State;
-using FreeTrainSimulator.Models.Loader.Shim;
 
 using MemoryPack;
 

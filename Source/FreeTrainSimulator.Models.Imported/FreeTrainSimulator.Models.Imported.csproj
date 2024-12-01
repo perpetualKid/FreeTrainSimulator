@@ -9,6 +9,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
+		<ProjectReference Include="..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
 		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
 		<ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
 	</ItemGroup>

@@ -8,7 +8,8 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Loader.Shim;
+using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Microsoft.Xna.Framework;

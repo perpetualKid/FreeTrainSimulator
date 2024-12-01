@@ -22,7 +22,7 @@ using System.Windows;
 using System.Windows.Controls;
 
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Loader.Shim;
+using FreeTrainSimulator.Models.Imported.Shim;
 
 using ORTS.TrackViewer.Drawing;
 

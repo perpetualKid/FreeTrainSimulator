@@ -92,7 +92,6 @@
     <PackageReference Include="GetText.NET.WindowsForms" Version="1.9.14" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\FreeTrainSimulator.Models.Loader\FreeTrainSimulator.Models.Loader.csproj" />
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
   </ItemGroup>

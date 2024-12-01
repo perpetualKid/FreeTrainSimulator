@@ -11,7 +11,8 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Loader.Shim;
+using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Shim;
 
 namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 {
