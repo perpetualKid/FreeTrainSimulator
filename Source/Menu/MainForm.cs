@@ -129,7 +129,7 @@ namespace FreeTrainSimulator.Menu
 
             if (settings.Logging)
             {
-                string logFileName = RuntimeInfo.LogFile(settings.LoggingPath, $"{ Path.GetFileNameWithoutExtension(settings.LoggingFilename)} - Menu{Path.GetExtension(settings.LoggingFilename)}");
+                string logFileName = RuntimeInfo.LogFile(settings.LoggingPath, $"{Path.GetFileNameWithoutExtension(settings.LoggingFilename)} - Menu{Path.GetExtension(settings.LoggingFilename)}");
                 LoggingUtil.InitLogging(logFileName, settings.LogErrorsOnly, false, false);
             }
 
@@ -509,19 +509,16 @@ namespace FreeTrainSimulator.Menu
                             {
                                 progressForm.Show(this);
                                 Enabled = false;
-                                await ProfileChanged(await form.ProfileModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(false)).ConfigureAwait(false);
-                                await Task.Delay(1000).ConfigureAwait(false);
+                                await ProfileChanged(await form.ProfileModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(true)).ConfigureAwait(true);
+                                await Task.Delay(1200).ConfigureAwait(true);
+                                progressForm.Close();
                             }
                         }
                         finally
                         {
-                            Invoke(() =>
-                            {
-                                progressForm.Close();
-                                progressForm?.Dispose();
-                                Enabled = true;
-                                BringToFront();
-                            });
+                            progressForm?.Dispose();
+                            Enabled = true;
+                            BringToFront();
                         }
                         break;
                     case DialogResult.Retry: //Language has changed
