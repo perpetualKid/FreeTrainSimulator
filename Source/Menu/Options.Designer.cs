@@ -1818,9 +1818,9 @@ namespace FreeTrainSimulator.Menu
             labelContent.Margin = new System.Windows.Forms.Padding(3);
             labelContent.MaximumSize = new System.Drawing.Size(630, 0);
             labelContent.Name = "labelContent";
-            labelContent.Size = new System.Drawing.Size(611, 15);
+            labelContent.Size = new System.Drawing.Size(485, 15);
             labelContent.TabIndex = 3;
-            labelContent.Text = "Installation profiles tell Open Rails where to look for game content. Add each full and mini-route MSTS installation.";
+            labelContent.Text = "Content folders contain the game content. Add each full and mini-route MSTS installation.";
             // 
             // buttonContentDelete
             // 

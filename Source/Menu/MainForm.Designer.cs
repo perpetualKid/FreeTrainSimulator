@@ -294,9 +294,9 @@ namespace FreeTrainSimulator.Menu
             label1.Location = new System.Drawing.Point(16, 12);
             label1.Margin = new System.Windows.Forms.Padding(4);
             label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(105, 15);
+            label1.Size = new System.Drawing.Size(89, 15);
             label1.TabIndex = 0;
-            label1.Text = "Installation profile:";
+            label1.Text = "Content Folder:";
             label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // panelDetails
@@ -324,7 +324,7 @@ namespace FreeTrainSimulator.Menu
             panelModeTimetable.Controls.Add(comboBoxTimetable);
             panelModeTimetable.Controls.Add(comboBoxTimetableSet);
             panelModeTimetable.Controls.Add(label15);
-            panelModeTimetable.Location = new System.Drawing.Point(393, 152);
+            panelModeTimetable.Location = new System.Drawing.Point(394, 182);
             panelModeTimetable.Margin = new System.Windows.Forms.Padding(0);
             panelModeTimetable.Name = "panelModeTimetable";
             panelModeTimetable.Size = new System.Drawing.Size(382, 311);
