@@ -13,7 +13,7 @@ namespace FreeTrainSimulator.Models.Content
             subFolder = "TrainPaths";
         }
 
-        public override RouteModelCore Parent => _parent as RouteModelCore;
+        public override RouteModelCore Parent => (this as IFileResolve).Container as RouteModelCore;
         /// <summary>Start location of the path</summary>
         public string Start { get; init; }
         /// <summary>Destination location of the path</summary>

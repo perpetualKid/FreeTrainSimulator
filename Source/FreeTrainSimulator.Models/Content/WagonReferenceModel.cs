@@ -14,7 +14,7 @@ namespace FreeTrainSimulator.Models.Content
             subFolder = "Wagons";
         }
 
-        public override FolderModel Parent => _parent as FolderModel;
+        public override FolderModel Parent => (this as IFileResolve).Container as FolderModel;
 
         public TrainCarType TrainCarType { get; init; } 
         public string Description { get; init; }

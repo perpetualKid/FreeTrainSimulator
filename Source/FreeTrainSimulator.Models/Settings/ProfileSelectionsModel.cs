@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Settings
             fileExtension = ".profileselections";
         }
 
-        public override ProfileModel Parent => _parent as ProfileModel;
+        public override ProfileModel Parent => (this as IFileResolve).Container as ProfileModel;
         // Base selections
         public string FolderName { get; set; }
         public string RouteId { get; init; }

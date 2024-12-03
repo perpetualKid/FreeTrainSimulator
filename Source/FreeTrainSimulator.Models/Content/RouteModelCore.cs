@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Content
 
         private readonly WorldLocation routeStart;
 
-        public override FolderModel Parent => _parent as FolderModel;
+        public override FolderModel Parent => (this as IFileResolve).Container as FolderModel;
         public string Description { get; init; }
         public ref readonly WorldLocation RouteStart => ref routeStart;
         public bool MetricUnits { get; init; }

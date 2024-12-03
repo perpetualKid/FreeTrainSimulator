@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Content
             subFolder = "Activities";
         }
 
-        public override RouteModelCore Parent => _parent as RouteModelCore;
+        public override RouteModelCore Parent => (this as IFileResolve).Container as RouteModelCore;
         public string Description { get; init; }
         public string Briefing { get; init; }
         public TimeOnly StartTime { get; init; }

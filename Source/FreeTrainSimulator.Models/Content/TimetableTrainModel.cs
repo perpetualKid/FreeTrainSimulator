@@ -14,7 +14,7 @@ namespace FreeTrainSimulator.Models.Content
             fileExtension = ".timetabletrain";
         }
 
-        public override TimetableModel Parent => _parent as TimetableModel;
+        public override TimetableModel Parent => (this as IFileResolve).Container as TimetableModel;
         public string Group {  get; init; }
         public string Briefing { get; init; }
         public string WagonSet { get; init; }

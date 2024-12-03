@@ -15,7 +15,7 @@ namespace FreeTrainSimulator.Models.Content
             subFolder = "Timetables";
         }
 
-        public override RouteModelCore Parent => _parent as RouteModelCore;
+        public override RouteModelCore Parent => (this as IFileResolve).Container as RouteModelCore;
 
         public FrozenSet<TimetableTrainModel> TimetableTrains { get; init; } = FrozenSet<TimetableTrainModel>.Empty;
 

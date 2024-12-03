@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -17,20 +16,24 @@ namespace FreeTrainSimulator.Models.Base
     /// <typeparam name="T"></typeparam>
     public abstract record ModelBase<T> : IFileResolve where T : ModelBase<T>
     {
-        private const char hierarchySeparatorChar = '/';
-        private string hierarchy;
+        private const char HierarchySeparator = '/';
+        private string _hierarchy;
         private string _version;
+        private IFileResolve _parent;
+        private string _directoryPath;
 
         #region internal handling
-        private protected static string fileExtension;
-        private protected static string subFolder;
-        private string _directoryPath;
-        private protected IFileResolve _parent;
+#pragma warning disable CA2211 // Non-constant fields should not be visible
+        [MemoryPackIgnore]
+        protected static string fileExtension;
+        [MemoryPackIgnore]
+        protected static string subFolder;
+#pragma warning restore CA2211 // Non-constant fields should not be visible
 
         //does allow to override default target files
-        private protected virtual string DirectoryName => Id;
-        private protected virtual string FileName => Id;
-        private protected virtual string DirectoryPath => _directoryPath;
+        protected virtual string DirectoryName => Id;
+        protected virtual string FileName => Id;
+        protected virtual string DirectoryPath => _directoryPath;
 
         #region IFileResolve implementation
         [MemoryPackIgnore]
@@ -102,18 +105,18 @@ namespace FreeTrainSimulator.Models.Base
         #region Hierarchy
         public string Hierarchy()
         {
-            if (string.IsNullOrEmpty(hierarchy))
+            if (string.IsNullOrEmpty(_hierarchy))
             {
                 StringBuilder builder = new StringBuilder();
                 BuildHiearchy(this, builder);
-                hierarchy = builder.ToString();
+                _hierarchy = builder.ToString();
             }
-            return hierarchy;
+            return _hierarchy;
         }
 
         public string Hierarchy(string modelName)
         {
-            return string.Concat(Hierarchy(), hierarchySeparatorChar, modelName);
+            return string.Concat(Hierarchy(), HierarchySeparator, modelName);
         }
 
         private static void BuildHiearchy(IFileResolve model, StringBuilder builder)
@@ -121,7 +124,7 @@ namespace FreeTrainSimulator.Models.Base
             if (model.Container is IFileResolve fileResolve)
             {
                 BuildHiearchy(fileResolve, builder);
-                _ = builder.Append(hierarchySeparatorChar);
+                _ = builder.Append(HierarchySeparator);
             }
             _ = builder.Append(model.FileName);
         }

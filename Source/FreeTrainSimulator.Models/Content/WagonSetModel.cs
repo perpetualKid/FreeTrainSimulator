@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Content
             subFolder = "TrainSets";
         }
 
-        public override FolderModel Parent => _parent as FolderModel;
+        public override FolderModel Parent => (this as IFileResolve).Container as FolderModel;
 
         //Speed and an acceleration factor.
         //First number is the actual max speed (in meters per second) based on TE/tonnage;

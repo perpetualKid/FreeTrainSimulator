@@ -11,7 +11,7 @@ namespace FreeTrainSimulator.Models.Settings
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record SavePointModel : ModelBase<SavePointModel>
     {
-        public override RouteModelCore Parent => _parent as RouteModelCore;
+        public override RouteModelCore Parent => (this as IFileResolve).Container as RouteModelCore;
 
         public string RouteName { get; init; }
         public string PathName { get; init; }

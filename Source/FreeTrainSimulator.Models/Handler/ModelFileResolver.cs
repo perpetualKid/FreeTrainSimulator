@@ -9,7 +9,7 @@ namespace FreeTrainSimulator.Models.Handler
     public static class ModelFileResolver<TModel> where TModel : ModelBase<TModel>
     {
         private const string RootPath = "Content";
-        public static string ContentRoot { get; } = Path.GetFullPath(Path.Combine(RuntimeInfo.UserDataFolder, RootPath));
+        private static readonly string contentRoot = Path.GetFullPath(Path.Combine(RuntimeInfo.UserDataFolder, RootPath));
         
         static ModelFileResolver()
         {
@@ -46,7 +46,7 @@ namespace FreeTrainSimulator.Models.Handler
 
         private static string FolderPath(IFileResolve TOther)
         {
-            return TOther != null ? Path.Combine(FolderPath(TOther.Container), TOther.DirectoryName) : ContentRoot;
+            return TOther != null ? Path.Combine(FolderPath(TOther.Container), TOther.DirectoryName) : contentRoot;
         }
 
         public static string WildcardPattern => $"*{FileExtension}.*";
