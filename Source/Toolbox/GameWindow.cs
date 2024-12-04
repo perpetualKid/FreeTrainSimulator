@@ -357,7 +357,6 @@ namespace FreeTrainSimulator.Toolbox
         protected override async void Initialize()
         {
             Task loadFolders = LoadFolders();
-            InputSettings.Initialize();
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
