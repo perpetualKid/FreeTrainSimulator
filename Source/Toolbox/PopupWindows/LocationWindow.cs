@@ -28,9 +28,9 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private bool updateRequired;
 
         private readonly UserCommandController<UserCommand> userCommandController;
-        private readonly ToolboxSettings toolboxSettings;
+        private readonly ProfileToolboxSettingsModel toolboxSettings;
 
-        public LocationWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+        public LocationWindow(WindowManager owner, ProfileToolboxSettingsModel settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("World Coordinates"), relativeLocation, new Point(200, 48), catalog)
         {
             this.contentArea = contentArea;

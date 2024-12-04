@@ -28,23 +28,23 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             MainMenuStrip.MenuDeactivate += MainMenuStrip_MenuDeactivate;
             menuItemFolder.DropDown.Closing += FolderDropDown_Closing;
 
-            restoreLastViewMenuItem.Checked = game.Settings.RestoreLastView;
-            SetupColorComboBoxMenuItem(backgroundColorComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.Background], ColorSetting.Background);
-            SetupColorComboBoxMenuItem(railTrackColorComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RailTrack], ColorSetting.RailTrack);
-            SetupColorComboBoxMenuItem(railEndColorComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RailTrackEnd], ColorSetting.RailTrackEnd);
-            SetupColorComboBoxMenuItem(railJunctionColorComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RailTrackJunction], ColorSetting.RailTrackJunction);
-            SetupColorComboBoxMenuItem(railCrossingColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RailTrackCrossing], ColorSetting.RailTrackCrossing);
-            SetupColorComboBoxMenuItem(railLevelCrossingColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RoadLevelCrossing], ColorSetting.RailLevelCrossing);
+            restoreLastViewMenuItem.Checked = game.ToolboxSettings.RestoreLastView;
+            SetupColorComboBoxMenuItem(backgroundColorComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.Background], ColorSetting.Background);
+            SetupColorComboBoxMenuItem(railTrackColorComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.RailTrack], ColorSetting.RailTrack);
+            SetupColorComboBoxMenuItem(railEndColorComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.RailTrackEnd], ColorSetting.RailTrackEnd);
+            SetupColorComboBoxMenuItem(railJunctionColorComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.RailTrackJunction], ColorSetting.RailTrackJunction);
+            SetupColorComboBoxMenuItem(railCrossingColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.RailTrackCrossing], ColorSetting.RailTrackCrossing);
+            SetupColorComboBoxMenuItem(railLevelCrossingColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.RoadLevelCrossing], ColorSetting.RailLevelCrossing);
 
-            SetupColorComboBoxMenuItem(roadTrackColorComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RoadTrack], ColorSetting.RoadTrack);
-            SetupColorComboBoxMenuItem(roadTrackEndColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RoadTrackEnd], ColorSetting.RoadTrackEnd);
+            SetupColorComboBoxMenuItem(roadTrackColorComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.RoadTrack], ColorSetting.RoadTrack);
+            SetupColorComboBoxMenuItem(roadTrackEndColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.RoadTrackEnd], ColorSetting.RoadTrackEnd);
 
-            SetupColorComboBoxMenuItem(pathTrackColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.PathTrack], ColorSetting.PathTrack);
+            SetupColorComboBoxMenuItem(pathTrackColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.PathTrack], ColorSetting.PathTrack);
 
-            SetupColorComboBoxMenuItem(stationColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.StationItem], ColorSetting.StationItem);
-            SetupColorComboBoxMenuItem(platformColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.PlatformItem], ColorSetting.PlatformItem);
-            SetupColorComboBoxMenuItem(sidingColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SidingItem], ColorSetting.SidingItem);
-            SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SpeedPostItem], ColorSetting.SpeedPostItem);
+            SetupColorComboBoxMenuItem(stationColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.StationItem], ColorSetting.StationItem);
+            SetupColorComboBoxMenuItem(platformColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.PlatformItem], ColorSetting.PlatformItem);
+            SetupColorComboBoxMenuItem(sidingColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.SidingItem], ColorSetting.SidingItem);
+            SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.SpeedPostItem], ColorSetting.SpeedPostItem);
 
             SetupVisibilityMenuItem(trackSegmentsVisibleToolStripMenuItem, MapContentType.Tracks);
             SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, MapContentType.EndNodes);
@@ -87,7 +87,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
         private void SetupVisibilityMenuItem(ToolStripMenuItem menuItem, MapContentType setting)
         {
             menuItem.Tag = setting;
-            menuItem.Checked = parent.Settings.ViewSettings[setting];
+            menuItem.Checked = parent.ToolboxSettings.ViewSettings[setting];
             menuItem.Click += VisibilitySettingToolStripMenuItem_Click;
             if (menuItem.OwnerItem is ToolStripMenuItem parentItem)
                 SetupVisibilityParentMenuItem(parentItem);
@@ -150,7 +150,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             //combobox.Items.AddRange(languageCodes.ToArray());
             combobox.BindingContext = BindingContext;
             combobox.DataSourceFromList(languageCodes, (language) => string.IsNullOrEmpty(language) ? "System" : CultureInfo.GetCultureInfo(language).NativeName);
-            combobox.SelectedValue = parent.Settings.UserSettings.Language;
+            combobox.SelectedValue = parent.UserSettings.Language;
             if (combobox.SelectedValue == null)
                 combobox.SelectedIndex = 0;
         }
@@ -315,7 +315,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 
         private void LoadAtStartupMenuItem_Click(object sender, EventArgs e)
         {
-            parent.Settings.RestoreLastView = restoreLastViewMenuItem.Checked;
+            parent.ToolboxSettings.RestoreLastView = restoreLastViewMenuItem.Checked;
         }
 
         private void VisibilitySettingParentToolStripMenuItem_Click(object sender, EventArgs e)
@@ -412,9 +412,9 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             }
         }
 
-        internal void PreSelectPath(string pathFile)
+        internal void PreSelectPath(PathModelCore path)
         {
-            if (string.IsNullOrEmpty(pathFile))
+            if (path == null)
             {
                 foreach (ToolStripMenuItem dropdownItem in loadPathToolStripMenuItem.DropDownItems)
                 {
@@ -425,7 +425,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             {
                 foreach (object dropdownItem in loadPathToolStripMenuItem.DropDownItems)
                 {
-                    if (dropdownItem is ToolStripMenuItem menuItem && (menuItem.Tag as PathModelCore)?.SourceFile() == pathFile)
+                    if (dropdownItem is ToolStripMenuItem menuItem && string.Equals((menuItem.Tag as PathModelCore)?.Id, path.Id, StringComparison.OrdinalIgnoreCase))
                     {
                         UncheckOtherMenuItems(menuItem);
                         break;

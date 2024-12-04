@@ -81,7 +81,7 @@ namespace FreeTrainSimulator.Common.Position
 
             if (sortedIndexes.Length > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[^1]))
             {
-                sortedIndexes.Remove(Tile.Zero);
+                sortedIndexes = sortedIndexes.Remove(Tile.Zero);
                 tiles.Remove(Tile.Zero);
             }
             ItemCount = data.Count();

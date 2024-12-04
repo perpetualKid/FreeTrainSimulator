@@ -639,7 +639,7 @@ namespace FreeTrainSimulator.Menu
             }
             settings.Save();
 
-            CurrentSelections = await SelectedProfile.UpdateSelectionsModel(CurrentSelections, CancellationToken.None).ConfigureAwait(false);
+            CurrentSelections = await SelectedProfile.UpdateSettingsModel(CurrentSelections, CancellationToken.None).ConfigureAwait(false);
         }
         #endregion
 

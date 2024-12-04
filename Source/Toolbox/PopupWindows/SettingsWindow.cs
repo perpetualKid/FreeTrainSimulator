@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     internal sealed class SettingsWindow : WindowBase
     {
-        private readonly ToolboxSettings toolboxSettings;
+        private readonly ProfileToolboxSettingsModel toolboxSettings;
         private ContentArea contentArea;
 
         private enum TabSettings
@@ -37,7 +37,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly UserCommandController<UserCommand> userCommandController;
 
-        public SettingsWindow(WindowManager owner, ToolboxSettings settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+        public SettingsWindow(WindowManager owner, ProfileToolboxSettingsModel settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Settings"), relativeLocation, new Point(360, 200), catalog)
         {
             toolboxSettings = settings;
@@ -56,8 +56,8 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 int width = (int)(line.RemainingWidth * 0.8);
                 line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Enable Logging")));
                 Checkbox chkLoggingEnabled = new Checkbox(this);
-                chkLoggingEnabled.OnClick += (object sender, MouseClickEventArgs e) => toolboxSettings.UserSettings.Logging = (sender as Checkbox).State.Value;
-                chkLoggingEnabled.State = toolboxSettings.UserSettings.Logging;
+                //chkLoggingEnabled.OnClick += (object sender, MouseClickEventArgs e) => toolboxSettings.UserSettings.Logging = (sender as Checkbox).State.Value;
+                //chkLoggingEnabled.State = toolboxSettings.UserSettings.Logging;
                 line.Add(chkLoggingEnabled);
 
                 line = layoutContainer.AddLayoutHorizontalLineOfText();
@@ -72,12 +72,12 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 Checkbox chkOutlineFont = new Checkbox(this);
                 chkOutlineFont.OnClick += (object sender, MouseClickEventArgs e) =>
                 {
-                    toolboxSettings.OutlineFont = (sender as Checkbox).State.Value;
+                    toolboxSettings.FontOutline = (sender as Checkbox).State.Value;
                     if (null != contentArea)
                         contentArea.FontOutlineOptions = (sender as Checkbox).State.Value ? OutlineRenderOptions.Default : null;
                     ((Owner as WindowManager<ToolboxWindowType>)[ToolboxWindowType.DebugScreen] as DebugScreen).UpdateBackgroundColor(ColorExtension.FromName(toolboxSettings.ColorSettings[ColorSetting.Background]));
                 };
-                chkOutlineFont.State = toolboxSettings.OutlineFont;
+                chkOutlineFont.State = toolboxSettings.FontOutline;
                 line.Add(chkOutlineFont);
             };
             layout.Add(tabControl);

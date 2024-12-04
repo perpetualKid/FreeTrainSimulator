@@ -52,7 +52,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
         {
-            mainmenu.PreSelectPath(e.Path?.FilePath);
+//            mainmenu.PreSelectPath(e.Path?.FilePath);
         }
 
         internal async Task LoadFolders()
@@ -98,8 +98,8 @@ namespace FreeTrainSimulator.Toolbox
 
             ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
 
-            bool? useMetricUnits = Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || (Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
+            bool? useMetricUnits = UserSettings.MeasurementUnit == MeasurementUnit.Metric || (UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            if (UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
 
             RouteModel routeModel = await route.Extend(ctsProfileLoading.Token).ConfigureAwait(false);
@@ -110,9 +110,9 @@ namespace FreeTrainSimulator.Toolbox
 
             ToolboxContent content = new ToolboxContent(this);
             await content.Initialize().ConfigureAwait(false);
-            content.InitializeItemVisiblity(Settings.ViewSettings);
-            content.UpdateWidgetColorSettings(Settings.ColorSettings);
-            content.ContentArea.FontOutlineOptions = Settings.OutlineFont ? OutlineRenderOptions.Default : null;
+            content.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
+            content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings);
+            content.ContentArea.FontOutlineOptions = ToolboxSettings.FontOutline ? OutlineRenderOptions.Default : null;
             ContentArea = content.ContentArea;
             mainmenu.PopulatePaths((Orts.Formats.Msts.RuntimeData.GameInstance(this) as TrackData).TrainPaths);
             windowManager[ToolboxWindowType.StatusWindow].Close();
@@ -129,27 +129,27 @@ namespace FreeTrainSimulator.Toolbox
             PathEditor.InitializeNewPath();
         }
 
-        internal async Task PreSelectRoute(string[] routeSelection, string[] pathSelection)
+        internal async Task PreSelectRoute(string folderName, string routeId, string pathId)
         {
-            if (routeSelection?.Length > 0)
+            if (!string.IsNullOrEmpty(folderName))
             {
-                FolderModel folder = mainmenu.SelectContentFolder(routeSelection[0]);
+                FolderModel folder = mainmenu.SelectContentFolder(folderName);
 
-                if (routeSelection.Length > 1 && Settings.RestoreLastView)
+                if (!string.IsNullOrEmpty(routeId) && ToolboxSettings.RestoreLastView)
                 {
-                    RouteModelCore route = (routeModels ??= await FindRoutes(folder).ConfigureAwait(false))?.Where(r => r.Name.Equals(routeSelection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    RouteModelCore route = (routeModels ??= await FindRoutes(folder).ConfigureAwait(false))?.GetById(routeId);
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(false);
                         mainmenu.PreSelectRoute(route.Name);
-                        if (pathSelection.Length > 0)
+                        if (!string.IsNullOrEmpty(pathId))
                         {
                             // only restore first path for now
-                            PathModelCore path = (Orts.Formats.Msts.RuntimeData.GameInstance(this) as TrackData).TrainPaths?.Where(p => p.SourceFile().Equals(pathSelection[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                            PathModelCore path = (await route.GetRoutePaths(CancellationToken.None).ConfigureAwait(false)).GetById(pathId);
                             if (null != path)
                             {
                                 if (LoadPath(path))
-                                    mainmenu.PreSelectPath(path.SourceFile());
+                                    mainmenu.PreSelectPath(path);
                             }
                         }
                     }

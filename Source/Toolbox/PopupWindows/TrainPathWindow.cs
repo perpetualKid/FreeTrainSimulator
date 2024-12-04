@@ -66,11 +66,11 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private TabControl<TabSettings> tabControl;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private NameValueTextGrid metadataGrid;
-        private readonly ToolboxSettings toolboxSettings;
+        private readonly ProfileToolboxSettingsModel toolboxSettings;
         private readonly TrainPathMetadataInformation metadataInformationProvider = new TrainPathMetadataInformation();
         private PathEditor pathEditor;
 
-        public TrainPathWindow(WindowManager owner, ToolboxSettings settings, Point relativeLocation, Catalog catalog = null) :
+        public TrainPathWindow(WindowManager owner, ProfileToolboxSettingsModel settings, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Path Details"), relativeLocation, new Point(360, 300), catalog)
         {
             toolboxSettings = settings;

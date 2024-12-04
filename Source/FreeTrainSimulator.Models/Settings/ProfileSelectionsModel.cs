@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Models.Settings
 
         public override ProfileModel Parent => (this as IFileResolve).Container as ProfileModel;
         // Base selections
-        public string FolderName { get; set; }
+        public string FolderName { get; init; }
         public string RouteId { get; init; }
         public ActivityType ActivityType { get; init; }
         // Activity mode / Explore mode selections

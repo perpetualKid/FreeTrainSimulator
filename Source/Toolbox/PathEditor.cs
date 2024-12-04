@@ -3,9 +3,8 @@
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Imported.Track;
 using FreeTrainSimulator.Models.Imported.Shim;
-using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Models.Imported.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -29,7 +28,7 @@ namespace FreeTrainSimulator.Toolbox
         private long lastPathClickTick;
         private bool validPointAdded;
 
-        public string FilePath => path?.SourceFile();
+        public string PathId => path?.Id;
 
         internal event EventHandler<PathEditorChangedEventArgs> OnPathChanged;
 

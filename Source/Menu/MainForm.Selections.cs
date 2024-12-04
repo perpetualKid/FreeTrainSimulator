@@ -27,7 +27,7 @@ namespace FreeTrainSimulator.Menu
             {
                 SelectedProfile = await profileModel.Empty(ctsProfileLoading.Token).ConfigureAwait(false);
             }
-            CurrentSelections = await SelectedProfile.SelectionsModel(ctsProfileLoading.Token).ConfigureAwait(false);
+            CurrentSelections = await SelectedProfile.LoadSettingsModel<ProfileSelectionsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
 
             //Initial setup if necessary
             if (SelectedProfile.ContentFolders.Count == 0)
@@ -299,7 +299,7 @@ namespace FreeTrainSimulator.Menu
                 CurrentSelections = CurrentSelections with
                 {
                     ActivityId = activityModel?.Id,
-                    ActivityType = activityModel?.ActivityType ?? ActivityType.None,
+                    ActivityType = activityModel?.ActivityType ?? ActivityType.Explorer,
                     StartTime = activityModel?.ActivityType == ActivityType.Activity ? activityModel.StartTime : comboBoxStartTime.Tag != null ? (TimeOnly)comboBoxStartTime.Tag : activityModel.StartTime,
                     Season = activityModel?.ActivityType == ActivityType.Activity ? activityModel.Season : (SeasonType)comboBoxStartSeason.SelectedValue,
                     Weather = activityModel?.ActivityType == ActivityType.Activity ? activityModel.Weather : (WeatherType)comboBoxStartWeather.SelectedValue,
@@ -338,7 +338,7 @@ namespace FreeTrainSimulator.Menu
             {
                 CurrentSelections = CurrentSelections with
                 {
-                    ActivityType = timetableTrainModel != null ? ActivityType.TimeTable : ActivityType.None,
+                    ActivityType = timetableTrainModel != null ? ActivityType.TimeTable : ActivityType.Explorer,
                     TimetableSet = timetableModel?.Id,
                     TimetableName = timetable?.Key,
                     TimetableTrain = timetableTrainModel?.Id,
