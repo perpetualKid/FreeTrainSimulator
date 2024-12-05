@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -95,13 +96,16 @@ namespace FreeTrainSimulator.Common.Logging
                     SystemInfo.WriteSystemDetails();
                     Trace.WriteLine(SeparatorLine);
                 }
+                Trace.WriteLine($"{"Date/Time",-12}= {DateTime.Now} ({DateTime.UtcNow:u})");
                 Trace.WriteLine($"{"Version",-12}= {VersionInfo.Version}");
                 Trace.WriteLine($"{"Code Version",-12}= {VersionInfo.CodeVersion}");
+                Trace.WriteLine($"{"OS",-12}= {RuntimeInformation.OSDescription} {RuntimeInformation.RuntimeIdentifier}");
+                Trace.WriteLine($"{"Runtime",-12}= {RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
                 if (logFileName.Length > 0)
                     Trace.WriteLine($"{"Logfile",-12}= {logFileName.Replace(Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
-                Trace.WriteLine($"{"Executable",-12}= {Path.GetFileName(Assembly.GetEntryAssembly().Location)}");
                 foreach (string arg in Environment.GetCommandLineArgs())
                     Trace.WriteLine($"{"Argument",-12}= {arg.Replace(Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
+
                 Trace.WriteLine(SeparatorLine);
             }
         }

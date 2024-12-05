@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 using MemoryPack;
 
@@ -108,6 +109,35 @@ namespace FreeTrainSimulator.Common
             if (values.Length != array.Length)
                 throw new ArgumentOutOfRangeException($"Source array needs to be same size as number of enum values of {typeof(TEnum)}");
             Array.Copy(values, array, values.Length);
+        }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (TEnum item in EnumExtension.GetValues<TEnum>())
+            {
+                builder.Append(item);
+                builder.Append('=');
+                if (typeof(T).IsArray)
+                {
+                    if (this[item] != null)
+                    {
+                        foreach (dynamic arrayItem in (Array)(dynamic)this[item])
+                        {
+                            builder.Append(arrayItem);
+                        builder.Append(',');
+                        }
+                        if (builder[^1] == ',')
+                            builder.Length--;
+                    }
+                }
+                else
+                    builder.Append(this[item]);
+                builder.Append(';');
+            }
+            if (builder.Length > 0 && builder[^1] == ';')
+                builder.Length--;
+            return builder.ToString();
         }
     }
 

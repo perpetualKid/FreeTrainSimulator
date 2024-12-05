@@ -105,8 +105,9 @@ namespace FreeTrainSimulator.Toolbox
             if (UserSettings.Logging)
             {
                 LogFileName = RuntimeInfo.LogFile(UserSettings.LoggingPath, ToolboxSettings.LogFilename);
-                LoggingUtil.InitLogging(LogFileName, UserSettings.LogErrorsOnly, false);
+                LoggingUtil.InitLogging(LogFileName, UserSettings.LogErrorsOnly, false, false);
                 UserSettings.Log();
+                ToolboxSettings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
 
