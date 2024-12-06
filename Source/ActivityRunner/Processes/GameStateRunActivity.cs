@@ -162,7 +162,7 @@ namespace Orts.ActivityRunner.Processes
                     case ActionType.Start:
                         InitLogging();
                         await InitLoading().ConfigureAwait(false);
-                        await Start(settings);
+                        await Start(settings).ConfigureAwait(false);
                         break;
                     case ActionType.Resume:
                         InitLogging();
@@ -275,7 +275,7 @@ namespace Orts.ActivityRunner.Processes
                 MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
-                System.Threading.Thread.Sleep(5000);
+                await Task.Delay(5000).ConfigureAwait(false);
                 if (simulator.Trains[0].RequestJump)
                 {
                     simulator.Trains[0].UpdateRemoteTrainPos(0);
