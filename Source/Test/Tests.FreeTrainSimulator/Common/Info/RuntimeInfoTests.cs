@@ -11,7 +11,7 @@ namespace Tests.FreeTrainSimulator.Common.Info
         public void ApplicationNameTest()
         {
             string expected = RuntimeInfo.ApplicationName;
-            Assert.AreEqual("Free Train Simulator Unit Tests", expected);
+            Assert.AreEqual("testhost", expected);
         }
 
         [TestMethod]
