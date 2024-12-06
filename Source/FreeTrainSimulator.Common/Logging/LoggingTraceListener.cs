@@ -91,12 +91,11 @@ namespace FreeTrainSimulator.Common.Logging
                 output.AppendFormat(CultureInfo.InvariantCulture, format, args);
 
             // Log exception details if it is an exception.
-            if (eventCache.LogicalOperationStack.Contains(LogicalOperationWriteException))
+            if (eventCache.LogicalOperationStack.Contains(LogicalOperationWriteException) && args?[0] is Exception error)
             {
                 // Attempt to clean up the stacks; the problem is that the exception stack only goes as far back as the call made inside the try block. We also have access to the
                 // full stack to this trace call, which goes via the catch block at the same level as the try block. We'd prefer to have the whole stack, so we need to find the
                 // join and stitch the stacks together.
-                Exception error = args[0] as Exception;
 
                 string[] errorStack = error.ToString().Split('\n', '\n', StringSplitOptions.RemoveEmptyEntries);
                 string[] catchStack = new StackTrace(true).ToString().Split('\n', '\n', StringSplitOptions.RemoveEmptyEntries);
