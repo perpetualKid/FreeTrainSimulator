@@ -18,7 +18,6 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeTrainSimulator.Common.Logging
@@ -28,7 +27,6 @@ namespace FreeTrainSimulator.Common.Logging
         private const int cacheSize = 2048 * 1024;  // 2 Megs
         private readonly string filePath;
         private readonly StringBuilder cache = new StringBuilder(cacheSize);
-        private readonly SemaphoreSlim fileAccess = new SemaphoreSlim(1);
 
         public SeparatorChar Separator { get; private set; } = SeparatorChar.Comma;
 
@@ -81,7 +79,6 @@ namespace FreeTrainSimulator.Common.Logging
             if (!disposedValue)
             {
                 if (disposing)
-                    fileAccess.Dispose();
                 disposedValue = true;
             }
         }

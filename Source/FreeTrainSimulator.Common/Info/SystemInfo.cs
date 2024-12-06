@@ -46,7 +46,7 @@ namespace FreeTrainSimulator.Common.Info
             {
                 builder.Append("Hardware information not available on this platform.");
             }
-            Trace.Write(builder.ToString());
+            Trace.WriteLine(builder.ToString());
         }
 
         private static void WriteEnvironment(StringBuilder output)

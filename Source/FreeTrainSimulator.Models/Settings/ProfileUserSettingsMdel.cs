@@ -1,4 +1,7 @@
-﻿using FreeTrainSimulator.Models.Base;
+﻿using System;
+
+using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
 
 using MemoryPack;
@@ -9,5 +12,9 @@ namespace FreeTrainSimulator.Models.Settings
     public sealed partial record ProfileUserSettingsMdel : ModelBase<ProfileUserSettingsMdel>
     {
         public override ProfileModel Parent => (this as IFileResolve).Container as ProfileModel;
+
+        public TraceSettings LogLevel { get; set; } = TraceSettings.Errors;
+        public string LogFileName { get; set; } = "{Product} {Application} Log.txt";
+        public string LogFilePath { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
     }
 }

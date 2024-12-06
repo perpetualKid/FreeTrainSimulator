@@ -26,7 +26,7 @@ namespace FreeTrainSimulator.Models.Shim
             return models.Where(m => string.Equals(m.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
         }
 
-        public static void Log<T>(this T model) where T : ModelBase<T> 
+        public static void Log<T>(this T model) where T : ModelBase<T>
         {
             if (model == null)
             {
@@ -39,23 +39,20 @@ namespace FreeTrainSimulator.Models.Shim
                 if (string.Equals(property.Name, "Parent", StringComparison.OrdinalIgnoreCase))
                     continue;
                 dynamic value = property.GetValue(model, null);
-//                if (value != null)
-                {
 
-                    if (property.PropertyType == typeof(int[]))  //int array
-                    {
-                        value = string.Join(", ", (int[])value);
-                    }
-                    else if (property.PropertyType == typeof(string[]))  //string array
-                    {
-                        value = string.Join(", ", (string[])value);
-                    }
-                    else if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
-                    {
-                        value = value.ToString();
-                    }
-                    Trace.WriteLine($"{property.Name[..Math.Min(30, property.Name.Length)],-30} = {value?.ToString().Replace(Environment.UserName, "********") ?? "<null>"}");
+                if (property.PropertyType == typeof(int[]))  //int array
+                {
+                    value = string.Join(", ", (int[])value);
                 }
+                else if (property.PropertyType == typeof(string[]))  //string array
+                {
+                    value = string.Join(", ", (string[])value);
+                }
+                else if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
+                {
+                    value = value.ToString();
+                }
+                Trace.WriteLine($"{property.Name[..Math.Min(30, property.Name.Length)],-30} = {value?.ToString().Replace(Environment.UserName, "********") ?? "<null>"}");
             }
         }
     }

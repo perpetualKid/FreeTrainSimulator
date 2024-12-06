@@ -87,7 +87,6 @@ namespace FreeTrainSimulator.Toolbox.Settings
         public EnumArray<string, ToolboxWindowType> PopupSettings { get; private set; } = new EnumArray<string, ToolboxWindowType>();
         public bool RestoreLastView { get; set; } = true;
         public bool FontOutline { get; set; } = true;
-        public string LogFilename { get; set; } = "{Application} Log.txt";
         // Route selections
         public string Folder { get; set; }
         public string RouteId { get; set; }

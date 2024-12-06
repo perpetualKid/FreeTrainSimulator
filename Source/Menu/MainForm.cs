@@ -131,7 +131,7 @@ namespace FreeTrainSimulator.Menu
             if (settings.Logging)
             {
                 string logFileName = RuntimeInfo.LogFile(settings.LoggingPath, $"{Path.GetFileNameWithoutExtension(settings.LoggingFilename)} - Menu{Path.GetExtension(settings.LoggingFilename)}");
-                LoggingUtil.InitLogging(logFileName, settings.LogErrorsOnly, false, false);
+                LoggingUtil.InitLogging(logFileName, TraceSettings.Errors | TraceSettings.Trace, false);
             }
 
             updateManager = new UpdateManager(settings);

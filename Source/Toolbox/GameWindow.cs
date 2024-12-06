@@ -20,6 +20,7 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 using FreeTrainSimulator.Toolbox.Settings;
@@ -86,6 +87,8 @@ namespace FreeTrainSimulator.Toolbox
         private ProfileModel currentProfile;
 
         internal ProfileToolboxSettingsModel ToolboxSettings { get; private set; }
+        internal ProfileUserSettingsMdel ToolboxUserSettings { get; private set;}
+
         internal string LogFileName { get; }
 
         private Color backgroundColor;
@@ -102,11 +105,10 @@ namespace FreeTrainSimulator.Toolbox
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
 
             Task.Run(LoadSettings).Wait();
-            if (UserSettings.Logging)
+            if (ToolboxUserSettings.LogLevel != TraceSettings.None)
             {
-                LogFileName = RuntimeInfo.LogFile(UserSettings.LoggingPath, ToolboxSettings.LogFilename);
-                LoggingUtil.InitLogging(LogFileName, UserSettings.LogErrorsOnly, false, false);
-                UserSettings.Log();
+                LogFileName = RuntimeInfo.LogFile(ToolboxUserSettings.LogFilePath, ToolboxUserSettings.LogFileName);
+                LoggingUtil.InitLogging(LogFileName, TraceSettings.Errors | TraceSettings.ErrorStack | TraceSettings.Trace, false);
                 ToolboxSettings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
@@ -228,6 +230,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 currentProfile = await currentProfile.Empty(ctsProfileLoading.Token).ConfigureAwait(false);
             }
+            ToolboxUserSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsMdel>(ctsProfileLoading.Token).ConfigureAwait(false);
             ToolboxSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
         }
 

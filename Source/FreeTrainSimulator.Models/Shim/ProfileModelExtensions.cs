@@ -22,20 +22,8 @@ namespace FreeTrainSimulator.Models.Shim
         public static Task<ProfileModel> Empty(this ProfileModel profileModel, CancellationToken cancellationToken) => Setup(null, profileModel?.Name, null, cancellationToken);
         public static Task<ProfileModel> Setup(this ProfileModel profileModel, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) => Setup(null, profileModel?.Name, folders, cancellationToken);
         public static Task<ProfileModel> Setup(this ProfileModel _, string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) => ProfileModelHandler.Setup(profileName, folders, cancellationToken);
-        
-        public static async ValueTask<ProfileSelectionsModel> SelectionsModel(this ProfileModel profileModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
-            ProfileSelectionsModel selectionsModel = await ContentHandlerBase<ProfileSelectionsModel>.FromFile(profileModel.Name, profileModel, cancellationToken).ConfigureAwait(false);
-            if (selectionsModel == null)
-            {
-                selectionsModel = new ProfileSelectionsModel() { Id = profileModel.Name, Name = profileModel.Name, ActivityType = Common.ActivityType.Activity };
-                selectionsModel.Initialize(ModelFileResolver<ProfileSelectionsModel>.FilePath(selectionsModel, profileModel), profileModel);
-            }
-            return selectionsModel;
-        }
-
+        #region settings
         public static async ValueTask<T> LoadSettingsModel<T>(this ProfileModel profileModel, CancellationToken cancellationToken) where T: ModelBase<T>, new()
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
@@ -61,6 +49,6 @@ namespace FreeTrainSimulator.Models.Shim
                 ? throw new InvalidCastException($"{nameof(settingsModel)} needs to be a ProfileModel child.")
                 : ContentHandlerBase<T>.ToFile(settingsModel, cancellationToken);
         }
-
+        #endregion
     }
 }

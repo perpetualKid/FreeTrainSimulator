@@ -21,9 +21,20 @@ namespace FreeTrainSimulator.Common.Info
         public const string WikiLink = "https://github.com/perpetualKid/FreeTrainSimulator/wiki";
         public const string WhatsNewLinkTemplate = "https://github.com/perpetualKid/FreeTrainSimulator/blob/gitcodeversion/WHATSNEW.md";
 
-        public static string ApplicationName => FileVersionInfo.GetVersionInfo(Assembly.GetCallingAssembly().Location).FileDescription;
+        /// <summary>
+        /// returns the Application as part of the product family, like (Family), like "Free Train Simulator"
+        /// </summary>
+        public static string ApplicationName { get; } = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileDescription;
 
-        public static string ApplicationFile => Path.GetFileName(Assembly.GetCallingAssembly().Location);
+        /// <summary>
+        /// returns the Product Name (Family), like "Free Train Simulator Toolbox" return "Toolbox" for "Free Train Simulator" product name
+        /// </summary>
+        public static string ProductApplication { get; } = ApplicationName.Replace(ProductName, string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+
+        /// <summary>
+        /// returns the application entry file, i.e. Contrib.ContentManager
+        /// </summary>
+        public static string ApplicationFile { get; } = Path.GetFileName(Assembly.GetEntryAssembly().Location);
         /// <summary>
         /// returns the current application base directory, i.e. Program\netcoreapp3.1
         /// </summary>
