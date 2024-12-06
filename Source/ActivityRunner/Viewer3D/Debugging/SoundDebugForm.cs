@@ -18,6 +18,7 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System;
+using System.Globalization;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Position;
@@ -72,6 +73,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// </summary>
         private void UpdateContent()
         {
+#pragma warning disable CA1303 // Do not pass literals as localized parameters
             var soundSources = Viewer.SoundProcess.SoundSources;
 
             activeSoundList.BeginUpdate();
@@ -139,7 +141,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     if (selectedSoundSource.WorldLocation != WorldLocation.None && selectedSoundSource.SoundStreams.Count > 0)
                     {
                         //Source distance:
-                        distance.Text = Math.Sqrt(selectedSoundSource.DistanceSquared).ToString("F1");
+                        distance.Text = $"{Math.Sqrt(selectedSoundSource.DistanceSquared):F1}";
 
                         //Stream distance:
                         //float[] pos = new float[3];
@@ -161,7 +163,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                     if (selectedSoundSource.Car != null)
                     {
-                        speed.Text = Math.Abs(selectedSoundSource.Car.SpeedMpS).ToString("F1");
+                        speed.Text = $"{Math.Abs(selectedSoundSource.Car.SpeedMpS):F1}";
                         Vector3 debugValues = selectedSoundSource.Car.SoundValues;
                         if (selectedSoundSource.Car is MSTSSteamLocomotive)
                         {
@@ -173,9 +175,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                             debugValues.Z *= 100;
                         }
 
-                        variable1.Text = debugValues.X.ToString("0.#%");
-                        variable2.Text = debugValues.Y.ToString("0.#%");
-                        variable3.Text = debugValues.Z.ToString("0.#%");
+                        variable1.Text = $"{debugValues.X:0.#%}";
+                        variable2.Text = $"{debugValues.Y:0.#%}";
+                        variable3.Text = $"{debugValues.Z:0.#%}";
                     }
                     else
                     {
@@ -186,7 +188,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     }
 
                     OpenAL.GetSourcef(soundSourceID, OpenAL.AL_GAIN, out float gain);
-                    smsVolume.Text = gain.ToString("0.#%");
+                    smsVolume.Text = $"{gain:0.#%}";
                 }
                 else
                 {
@@ -200,18 +202,18 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     inactiveSoundList.SelectedNode = null;
                 }
 
-                waves.Text = SoundItem.AllPieces.Count.ToString();
-                alSources.Text = ALSoundSource.ActiveCount.ToString();
+                waves.Text = $"{SoundItem.AllPieces.Count}";
+                alSources.Text = $"{ALSoundSource.ActiveCount}";
 
             }
-
+#pragma warning restore CA1303 // Do not pass literals as localized parameters
         }
 
         private void AddToForm(SoundSource ss)
         {
 
             var nodeString = ss.Car!= null ? $"{ss.Car.UiD}: {ss.SMSFileName} " : $"-: {ss.SMSFileName} ";
-            var nodeKey = nodeString + ss.GetHashCode().ToString();
+            var nodeKey = nodeString + ss.GetHashCode().ToString(CultureInfo.InvariantCulture);
 
             if (ss.Active)
             {
@@ -250,7 +252,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         }
 
-        private void CleanUp(TreeNodeCollection nodes)
+        private static void CleanUp(TreeNodeCollection nodes)
         {
             for (int i = 0; i < nodes.Count; i++)
             {

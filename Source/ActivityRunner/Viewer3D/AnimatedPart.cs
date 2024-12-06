@@ -23,6 +23,7 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts.Models;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Common;
+using System.Collections.Immutable;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -35,13 +36,13 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly PoseableShape PoseableShape;
 
         // Number of animation key-frames that are used by this part. This is calculated from the matrices provided.
-        public int FrameCount;
+        public int FrameCount { get; private set; }
 
         // Current frame of the animation.
         private float AnimationKey;
 
         // List of the matrices we're animating for this part.
-        public List<int> MatrixIndexes = new List<int>();
+        public ImmutableArray<int> MatrixIndexes { get; private set; } = ImmutableArray<int>.Empty;
 
         /// <summary>
         /// Construct with a link to the shape that contains the animated parts 
@@ -56,8 +57,9 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public void AddMatrix(int matrix)
         {
-            if (matrix < 0) return;
-            MatrixIndexes.Add(matrix);
+            if (matrix < 0)
+                return;
+            MatrixIndexes = MatrixIndexes.Add(matrix);
             UpdateFrameCount(matrix);
         }
 
@@ -85,7 +87,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public bool Empty()
         {
-            return MatrixIndexes.Count == 0;
+            return MatrixIndexes.Length == 0;
         }
 
         private void SetFrame(double frame)
@@ -120,7 +122,8 @@ namespace Orts.ActivityRunner.Viewer3D
             // Wrap the frame around 0-FrameCount without hanging when FrameCount=0.
             while (FrameCount > 0 && frame < 0)
                 frame += FrameCount;
-            if (frame < 0) frame = 0;
+            if (frame < 0)
+                frame = 0;
             frame %= FrameCount;
             SetFrame(frame);
         }

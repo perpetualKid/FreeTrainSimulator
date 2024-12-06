@@ -48,7 +48,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public void Update(MSTSLocomotiveViewer locoViewer, in ElapsedTime elapsedTime)
         {
-            if (MatrixIndexes.Count == 0 || !locoViewer.Has3DCabRenderer)
+            if (MatrixIndexes.Length == 0 || !locoViewer.Has3DCabRenderer)
                 return;
 
             if (locoViewer.CabRenderer3D.ControlMap.TryGetValue(Key, out CabViewControlRenderer cvfr))
