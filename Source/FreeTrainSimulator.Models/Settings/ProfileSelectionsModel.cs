@@ -13,7 +13,7 @@ namespace FreeTrainSimulator.Models.Settings
     {
         static partial void StaticConstructor()
         {
-            fileExtension = ".profileselections";
+            fileExtension = ".selections";
         }
 
         public override ProfileModel Parent => (this as IFileResolve).Container as ProfileModel;

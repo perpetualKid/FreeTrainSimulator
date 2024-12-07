@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
-using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Models.Shim
 {
@@ -28,16 +27,12 @@ namespace FreeTrainSimulator.Models.Shim
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
-            T settingsModel = await ContentHandlerBase<T>.FromFile(profileModel.Name, profileModel, cancellationToken).ConfigureAwait(false);
-            if (settingsModel == null)
-            {
-                settingsModel = new T() { Id = profileModel.Name, Name = profileModel.Name };
-                settingsModel.Initialize(ModelFileResolver<T>.FilePath(settingsModel, profileModel), profileModel);
+            T settingsModel = new T() { Id = profileModel.Name, Name = profileModel.Name };
+            settingsModel.Initialize(ModelFileResolver<T>.FilePath(settingsModel, profileModel), profileModel);
 
-                if (settingsModel.Parent is not ProfileModel _)
-                    throw new InvalidCastException($"{nameof(T)} needs to be a ProfileModel child.");
-            }
-            return settingsModel;
+            return settingsModel.Parent is not ProfileModel
+                ? throw new InvalidCastException($"{nameof(T)} needs to be a ProfileModel child.")
+                : await ContentHandlerBase<T>.FromFile(profileModel.Name, settingsModel, profileModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static Task<T> UpdateSettingsModel<T>(this ProfileModel profileModel, T settingsModel, CancellationToken cancellationToken) where T : ModelBase<T>
@@ -45,7 +40,7 @@ namespace FreeTrainSimulator.Models.Shim
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             ArgumentNullException.ThrowIfNull(settingsModel, nameof(settingsModel));
 
-            return settingsModel.Parent is not ProfileModel _
+            return settingsModel.Parent is not ProfileModel
                 ? throw new InvalidCastException($"{nameof(settingsModel)} needs to be a ProfileModel child.")
                 : ContentHandlerBase<T>.ToFile(settingsModel, cancellationToken);
         }

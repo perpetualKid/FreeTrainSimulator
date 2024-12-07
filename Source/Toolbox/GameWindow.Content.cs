@@ -41,7 +41,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             get
             {
-                if (null == pathEditor)
+                if (null == pathEditor && contentArea != null)
                 {
                     pathEditor = new PathEditor(contentArea);
                     pathEditor.OnPathChanged += PathEditor_OnEditorPathChanged;

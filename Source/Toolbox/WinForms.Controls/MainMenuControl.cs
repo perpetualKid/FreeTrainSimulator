@@ -132,25 +132,28 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             // localisation files, but always include English (base language).
             List<string> languageCodes = new List<string> { "en" };
             if (Directory.Exists(RuntimeInfo.LocalesFolder))
+            {
                 foreach (string path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
+                {
                     if (Directory.EnumerateFiles(path, "Toolbox.mo").Any())
                     {
                         try
                         {
-                            string languageCode = System.IO.Path.GetFileName(path);
+                            string languageCode = Path.GetFileName(path);
                             CultureInfo.GetCultureInfo(languageCode);
                             languageCodes.Add(languageCode);
                         }
                         catch (CultureNotFoundException) { }
                     }
+                }
+            }
             // Turn the list of codes in to a list of code + name pairs for
             // displaying in the dropdown list.
             languageCodes.Add(string.Empty);
             languageCodes.Sort();
-            //combobox.Items.AddRange(languageCodes.ToArray());
             combobox.BindingContext = BindingContext;
             combobox.DataSourceFromList(languageCodes, (language) => string.IsNullOrEmpty(language) ? "System" : CultureInfo.GetCultureInfo(language).NativeName);
-            combobox.SelectedValue = parent.UserSettings.Language;
+            combobox.SelectedValue = parent.ToolboxUserSettings.Language ?? string.Empty;
             if (combobox.SelectedValue == null)
                 combobox.SelectedIndex = 0;
         }

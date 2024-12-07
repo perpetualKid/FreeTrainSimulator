@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Diagnostics;
@@ -7,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Base;
 
 using MemoryPack;
@@ -44,6 +44,42 @@ namespace FreeTrainSimulator.Models.Handler
                 catch (MemoryPackSerializationException) { }
             }
             return model;
+        }
+
+        internal protected static async Task<TModel> FromFile<TContainer>(string name, TModel instance, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
+        {
+            string targetFileName = name;
+            if (resolveName)
+                targetFileName = ModelFileResolver<TModel>.FilePath(instance) + SaveStateExtension;
+
+            if (File.Exists(targetFileName))
+            {                
+                try
+                {
+                    using (FileStream saveFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read))
+                    {
+                        int bufferSize = 65536;
+                        if (saveFile.Length > 0 && saveFile.Length < short.MaxValue)
+                        {
+                            bufferSize = (int)saveFile.Length;
+                        }
+
+                        byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+                        try
+                        {
+                            _ = await saveFile.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken).ConfigureAwait(false);
+                            MemoryPackSerializer.Deserialize<TModel>(buffer, ref instance, null);
+                        }
+                        finally
+                        {
+                            ArrayPool<byte>.Shared.Return(buffer);
+                        }
+                    }
+                    instance.Initialize(targetFileName, parent);
+                }
+                catch (MemoryPackSerializationException) { }
+            }
+            return instance;
         }
 
         internal protected static async Task<TExtendedModel> FromFile<TExtendedModel, TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TExtendedModel : TModel where TContainer : ModelBase<TContainer>

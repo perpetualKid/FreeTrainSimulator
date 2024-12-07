@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Toolbox.Settings
     {
         static partial void StaticConstructor()
         {
-            fileExtension = ".profiletoolboxsettings";
+            fileExtension = ".toolboxsettings";
         }
 
         public override ProfileModel Parent => (this as IFileResolve).Container as ProfileModel;

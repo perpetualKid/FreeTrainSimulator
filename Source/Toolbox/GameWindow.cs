@@ -218,7 +218,7 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void UpdateLanguagePreference(string language)
         {
-            UserSettings.Language = language;
+            ToolboxUserSettings.Language = language;
             LoadLanguage();
         }
 
@@ -281,6 +281,7 @@ namespace FreeTrainSimulator.Toolbox
 
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
             await currentProfile.UpdateSettingsModel(ToolboxSettings, ctsProfileLoading.Token).ConfigureAwait(false);
+            await currentProfile.UpdateSettingsModel(ToolboxUserSettings, ctsProfileLoading.Token).ConfigureAwait(false);
 
             UserSettings.Save();
         }
@@ -290,11 +291,11 @@ namespace FreeTrainSimulator.Toolbox
             Localizer.Revert(windowForm, store);
             CatalogManager.Reset();
 
-            if (!string.IsNullOrEmpty(UserSettings.Language))
+            if (!string.IsNullOrEmpty(ToolboxUserSettings.Language))
             {
                 try
                 {
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(UserSettings.Language);
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(ToolboxUserSettings.Language);
                 }
                 catch (CultureNotFoundException exception)
                 {
