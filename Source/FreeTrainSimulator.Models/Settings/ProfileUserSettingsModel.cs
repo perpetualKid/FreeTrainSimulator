@@ -9,7 +9,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record ProfileUserSettingsMdel : ModelBase<ProfileUserSettingsMdel>
+    public sealed partial record ProfileUserSettingsModel : ModelBase<ProfileUserSettingsModel>
     {
         static partial void StaticConstructor()
         {
@@ -23,6 +23,8 @@ namespace FreeTrainSimulator.Models.Settings
         public string LogFilePath { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
 
         public string Language { get; set; }
+
+        public MeasurementUnit MeasurementUnit { get; set; } = MeasurementUnit.Route;
 
         public int MultiSamplingCount { get; set; } = 4;
     }

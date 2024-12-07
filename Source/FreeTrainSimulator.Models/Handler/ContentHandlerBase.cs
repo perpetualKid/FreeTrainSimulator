@@ -46,14 +46,12 @@ namespace FreeTrainSimulator.Models.Handler
             return model;
         }
 
-        internal protected static async Task<TModel> FromFile<TContainer>(string name, TModel instance, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase<TContainer>
+        internal protected static async Task<TModel> FromFile<TContainer>(TModel instance, CancellationToken cancellationToken)
         {
-            string targetFileName = name;
-            if (resolveName)
-                targetFileName = ModelFileResolver<TModel>.FilePath(instance) + SaveStateExtension;
+            string targetFileName = ModelFileResolver<TModel>.FilePath(instance) + SaveStateExtension;
 
             if (File.Exists(targetFileName))
-            {                
+            {
                 try
                 {
                     using (FileStream saveFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read))
@@ -75,7 +73,6 @@ namespace FreeTrainSimulator.Models.Handler
                             ArrayPool<byte>.Shared.Return(buffer);
                         }
                     }
-                    instance.Initialize(targetFileName, parent);
                 }
                 catch (MemoryPackSerializationException) { }
             }

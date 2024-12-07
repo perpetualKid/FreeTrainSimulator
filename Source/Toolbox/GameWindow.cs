@@ -83,11 +83,10 @@ namespace FreeTrainSimulator.Toolbox
 
         internal event EventHandler<ContentAreaChangedEventArgs> OnContentAreaChanged;
 
-        internal Orts.Settings.UserSettings UserSettings { get; }
         private ProfileModel currentProfile;
 
         internal ProfileToolboxSettingsModel ToolboxSettings { get; private set; }
-        internal ProfileUserSettingsMdel ToolboxUserSettings { get; private set;}
+        internal ProfileUserSettingsModel ToolboxUserSettings { get; private set;}
 
         internal string LogFileName { get; }
 
@@ -100,7 +99,6 @@ namespace FreeTrainSimulator.Toolbox
         public GameWindow()
         {
             ImmutableArray<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
-            UserSettings = UserSettings = new Orts.Settings.UserSettings(options);
 
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
 
@@ -123,7 +121,7 @@ namespace FreeTrainSimulator.Toolbox
             InitializeComponent();
             graphicsDeviceManager = new GraphicsDeviceManager(this);
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
-            graphicsDeviceManager.PreferMultiSampling = UserSettings.MultisamplingCount > 0;
+            graphicsDeviceManager.PreferMultiSampling = ToolboxUserSettings.MultiSamplingCount > 0;
             IsMouseVisible = true;
 
             // Set title to show revision or build info.
@@ -230,7 +228,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 currentProfile = await currentProfile.Empty(ctsProfileLoading.Token).ConfigureAwait(false);
             }
-            ToolboxUserSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsMdel>(ctsProfileLoading.Token).ConfigureAwait(false);
+            ToolboxUserSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
             ToolboxSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
         }
 
@@ -282,8 +280,6 @@ namespace FreeTrainSimulator.Toolbox
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
             await currentProfile.UpdateSettingsModel(ToolboxSettings, ctsProfileLoading.Token).ConfigureAwait(false);
             await currentProfile.UpdateSettingsModel(ToolboxUserSettings, ctsProfileLoading.Token).ConfigureAwait(false);
-
-            UserSettings.Save();
         }
 
         private void LoadLanguage()
@@ -315,7 +311,7 @@ namespace FreeTrainSimulator.Toolbox
             e.GraphicsDeviceInformation.GraphicsProfile = GraphicsProfile.HiDef;
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
-            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = UserSettings.MultisamplingCount;
+            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = ToolboxUserSettings.MultiSamplingCount;
         }
 
         private void SetScreenMode(ScreenMode targetMode)
@@ -481,7 +477,7 @@ namespace FreeTrainSimulator.Toolbox
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.SettingsWindow, new Lazy<FormBase>(() =>
             {
-                SettingsWindow settingsWindow = new SettingsWindow(windowManager, ToolboxSettings, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.SettingsWindow]);
+                SettingsWindow settingsWindow = new SettingsWindow(windowManager, ToolboxSettings, ToolboxUserSettings, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.SettingsWindow]);
                 OnContentAreaChanged += settingsWindow.GameWindow_OnContentAreaChanged;
                 return settingsWindow;
             }));

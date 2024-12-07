@@ -32,7 +32,7 @@ namespace FreeTrainSimulator.Models.Shim
 
             return settingsModel.Parent is not ProfileModel
                 ? throw new InvalidCastException($"{nameof(T)} needs to be a ProfileModel child.")
-                : await ContentHandlerBase<T>.FromFile(profileModel.Name, settingsModel, profileModel, cancellationToken).ConfigureAwait(false);
+                : await ContentHandlerBase<T>.FromFile<T>(settingsModel, cancellationToken).ConfigureAwait(false);
         }
 
         public static Task<T> UpdateSettingsModel<T>(this ProfileModel profileModel, T settingsModel, CancellationToken cancellationToken) where T : ModelBase<T>

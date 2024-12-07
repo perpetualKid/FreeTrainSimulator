@@ -98,8 +98,8 @@ namespace FreeTrainSimulator.Toolbox
 
             ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
 
-            bool? useMetricUnits = UserSettings.MeasurementUnit == MeasurementUnit.Metric || (UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            if (UserSettings.MeasurementUnit == MeasurementUnit.Route)
+            bool? useMetricUnits = ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            if (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
 
             RouteModel routeModel = await route.Extend(ctsProfileLoading.Token).ConfigureAwait(false);

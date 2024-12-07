@@ -9,6 +9,7 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox.Settings;
 
 using GetText;
@@ -20,6 +21,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
     internal sealed class SettingsWindow : WindowBase
     {
         private readonly ProfileToolboxSettingsModel toolboxSettings;
+        private readonly ProfileUserSettingsModel userSettings;
         private ContentArea contentArea;
 
         private enum TabSettings
@@ -37,10 +39,11 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly UserCommandController<UserCommand> userCommandController;
 
-        public SettingsWindow(WindowManager owner, ProfileToolboxSettingsModel settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+        public SettingsWindow(WindowManager owner, ProfileToolboxSettingsModel settings, ProfileUserSettingsModel userSettings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Settings"), relativeLocation, new Point(360, 200), catalog)
         {
             toolboxSettings = settings;
+            this.userSettings = userSettings;
             this.contentArea = contentArea;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
         }
@@ -56,8 +59,8 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 int width = (int)(line.RemainingWidth * 0.8);
                 line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Enable Logging")));
                 Checkbox chkLoggingEnabled = new Checkbox(this);
-                //chkLoggingEnabled.OnClick += (object sender, MouseClickEventArgs e) => toolboxSettings.UserSettings.Logging = (sender as Checkbox).State.Value;
-                //chkLoggingEnabled.State = toolboxSettings.UserSettings.Logging;
+                chkLoggingEnabled.OnClick += (object sender, MouseClickEventArgs e) => userSettings.LogLevel = (sender as Checkbox).State.Value ? TraceSettings.All : TraceSettings.None;
+                chkLoggingEnabled.State = userSettings.LogLevel != TraceSettings.None;
                 line.Add(chkLoggingEnabled);
 
                 line = layoutContainer.AddLayoutHorizontalLineOfText();
