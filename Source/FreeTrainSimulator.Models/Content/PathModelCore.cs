@@ -7,8 +7,10 @@ namespace FreeTrainSimulator.Models.Content
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public partial record PathModelCore : ModelBase, IFileResolve
     {
+#pragma warning disable CA1033 // Interface methods should be callable by child types
         static string IFileResolve.SubFolder => "TrainPaths";
         static string IFileResolve.DefaultExtension => ".path";
+#pragma warning restore CA1033 // Interface methods should be callable by child types
 
         public override RouteModelCore Parent => _parent as RouteModelCore;
         /// <summary>Start location of the path</summary>

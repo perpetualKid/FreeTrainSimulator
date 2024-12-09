@@ -9,8 +9,10 @@ namespace FreeTrainSimulator.Models.Content
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public partial record RouteModelCore : ModelBase, IFileResolve
     {
+#pragma warning disable CA1033 // Interface methods should be callable by child types
         static string IFileResolve.SubFolder => string.Empty;
         static string IFileResolve.DefaultExtension => ".route";
+#pragma warning restore CA1033 // Interface methods should be callable by child types
 
         private readonly WorldLocation routeStart;
 

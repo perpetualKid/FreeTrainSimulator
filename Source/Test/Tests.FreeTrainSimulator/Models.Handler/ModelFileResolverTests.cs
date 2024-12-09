@@ -52,7 +52,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         {
             ProfileModel profile = new ProfileModel("Default", FrozenSet<FolderModel>.Empty);
             FolderModel folder = new FolderModel("RouteTestFolder", "C:\\", profile);
-            RouteModelCore routeModel = new RouteModel(WorldLocation.None)
+            RouteModel routeModel = new RouteModel(WorldLocation.None)
             {
                 Id = "RouteFilePathTest",
             };
@@ -66,7 +66,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         {
             ProfileModel profile = new ProfileModel("Default", FrozenSet<FolderModel>.Empty);
             FolderModel folder = new FolderModel("RouteTestFolder", "C:\\", profile);
-            RouteModelCore routeModel = new RouteModel(WorldLocation.None)
+            RouteModel routeModel = new RouteModel(WorldLocation.None)
             {
                 Id = "RouteFilePathTest",
             };
@@ -85,7 +85,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         {
             ProfileModel profile = new ProfileModel("Default", FrozenSet<FolderModel>.Empty);
             FolderModel folder = new FolderModel("RouteTestFolder", "C:\\", profile);
-            RouteModelCore routeModel = new RouteModel(WorldLocation.None)
+            RouteModel routeModel = new RouteModel(WorldLocation.None)
             {
                 Id = "RouteFilePathTest",
             };

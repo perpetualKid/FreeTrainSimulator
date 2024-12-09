@@ -15,7 +15,7 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Handler
 {
-    public class ProfileSettingModelHandler<TSettingsModel> where TSettingsModel : ProfileSettingsModelBase, IFileResolve
+    public sealed class ProfileSettingModelHandler<TSettingsModel> where TSettingsModel : ProfileSettingsModelBase, IFileResolve
     {
         public const string SaveStateExtension = FileNameExtensions.SaveFile;
 
@@ -25,7 +25,7 @@ namespace FreeTrainSimulator.Models.Handler
             properties.Where(p => p.Name == propertyName).FirstOrDefault()?.SetValue(instance, value);
         }
 
-        internal protected static async Task<TSettingsModel> FromFile(TSettingsModel instance, CancellationToken cancellationToken)
+        internal static async Task<TSettingsModel> FromFile(TSettingsModel instance, CancellationToken cancellationToken)
         {
             string targetFileName = ModelFileResolver<TSettingsModel>.FilePath(instance) + SaveStateExtension;
 
@@ -58,7 +58,7 @@ namespace FreeTrainSimulator.Models.Handler
             return instance;
         }
 
-        internal protected static async Task<TSettingsModel> ToFile(TSettingsModel model, CancellationToken cancellationToken)
+        internal static async Task<TSettingsModel> ToFile(TSettingsModel model, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 

@@ -10,8 +10,10 @@ namespace FreeTrainSimulator.Models.Content
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public partial record WagonSetModel : ModelBase, IFileResolve
     {
+#pragma warning disable CA1033 // Interface methods should be callable by child types
         static string IFileResolve.SubFolder => "TrainSets";
         static string IFileResolve.DefaultExtension => ".wagonset";
+#pragma warning restore CA1033 // Interface methods should be callable by child types
 
         public override FolderModel Parent => _parent as FolderModel;
 
