@@ -2,13 +2,35 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Models.Shim
 {
-    public static class ProfileSelectionExtensions
+    public static class ProfileSettingsExtensions
     {
+        #region settings
+        public static async ValueTask<T> LoadSettingsModel<T>(this ProfileModel profileModel, CancellationToken cancellationToken) where T : ProfileSettingsModelBase, IFileResolve, new()
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+
+            T settingsModel = new T() { Id = profileModel.Name, Name = profileModel.Name };
+            settingsModel.Initialize(profileModel);
+
+            return await ProfileSettingModelHandler<T>.FromFile(settingsModel, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<T> UpdateSettingsModel<T>(this ProfileModel profileModel, T settingsModel, CancellationToken cancellationToken) where T : ProfileSettingsModelBase, IFileResolve
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+            ArgumentNullException.ThrowIfNull(settingsModel, nameof(settingsModel));
+
+            return ProfileSettingModelHandler<T>.ToFile(settingsModel, cancellationToken);
+        }
+        #endregion
+
         public static async ValueTask<FolderModel> SelectedFolder(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));

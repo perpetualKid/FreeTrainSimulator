@@ -18,12 +18,6 @@ namespace FreeTrainSimulator.Models.Handler
     public class ProfileSettingModelHandler<TSettingsModel> where TSettingsModel : ProfileSettingsModelBase, IFileResolve
     {
         public const string SaveStateExtension = FileNameExtensions.SaveFile;
-        //private static readonly Dictionary<string, PropertyInfo> properties = typeof(TModel).GetProperties(BindingFlags.Public | BindingFlags.Instance).Distinct(p => p.n).ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
-
-        //public static object GetValueByName(string propertyName)
-        //{
-        //    //return properties[propertyName];
-        //}
 
         public static void SetValueByName(TSettingsModel instance, string propertyName, object value)
         {
