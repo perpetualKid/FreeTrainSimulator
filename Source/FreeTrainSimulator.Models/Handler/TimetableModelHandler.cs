@@ -46,7 +46,7 @@ namespace FreeTrainSimulator.Models.Handler
 
         private static async Task<FrozenSet<TimetableModel>> LoadTimetables(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            string timetablesFolder = ModelFileResolver<TimetableModel>.FolderPath(routeModel);
+            string timetablesFolder = ModelFileResolver<TimetableModel>.FolderPath<RouteModelCore>(routeModel);
             string pattern = ModelFileResolver<TimetableModel>.WildcardSavePattern;
 
             ConcurrentBag<TimetableModel> results = new ConcurrentBag<TimetableModel>();

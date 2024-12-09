@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 using FreeTrainSimulator.Common.Info;
@@ -11,54 +10,22 @@ namespace FreeTrainSimulator.Models.Base
 
     /// <summary>
     /// Abstract base class for all content models
-    /// Implements basic file handling through <seealso cref="IFileResolve"/> interface
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public abstract record ModelBase<T> : IFileResolve where T : ModelBase<T>
+    public abstract record ModelBase
     {
         private const char HierarchySeparator = '/';
         private string _hierarchy;
         private string _version;
-        private IFileResolve _parent;
-        private string _directoryPath;
+        private protected ModelBase _parent;
 
         #region internal handling
-#pragma warning disable CA2211 // Non-constant fields should not be visible
-        [MemoryPackIgnore]
-        protected static string fileExtension;
-        [MemoryPackIgnore]
-        protected static string subFolder;
-#pragma warning restore CA2211 // Non-constant fields should not be visible
-
-        //does allow to override default target files
-        protected virtual string DirectoryName => Id;
-        protected virtual string FileName => Id;
-        protected virtual string DirectoryPath => _directoryPath;
-
-        #region IFileResolve implementation
-        [MemoryPackIgnore]
-#pragma warning disable CA1033 // Interface methods should be callable by child types
-        static string IFileResolve.DefaultExtension => fileExtension;
-        static string IFileResolve.SubFolder => subFolder;
-        [MemoryPackIgnore]
-        string IFileResolve.DirectoryName => DirectoryName;
-        [MemoryPackIgnore]
-        string IFileResolve.FileName => FileName;
-        [MemoryPackIgnore]
-        string IFileResolve.DirectoryPath => DirectoryPath;
-        [MemoryPackIgnore]
-        IFileResolve IFileResolve.Container => _parent;
-#pragma warning restore CA1033 // Interface methods should be callable by child types
-        #endregion
-
         public void RefreshModel()
         {
             _version = VersionInfo.Version;
         }
 
-        public virtual void Initialize(string file, IFileResolve parent)
+        public virtual void Initialize(ModelBase parent)
         {
-            _directoryPath = Path.GetDirectoryName(file);
             _parent = parent;
         }
         #endregion
@@ -67,13 +34,7 @@ namespace FreeTrainSimulator.Models.Base
         /// strongly typed reference to <seealso cref="IFileResolve.Container" of this instance/>
         /// </summary>
         [MemoryPackIgnore]
-        public abstract IFileResolve Parent { get; }
-        /// <summary>
-        /// None-Instance (null) of the current model
-        /// </summary>
-#pragma warning disable CA1000 // Do not declare static members on generic types
-        public static T None => default(T);
-#pragma warning restore CA1000 // Do not declare static members on generic types
+        public abstract ModelBase Parent { get; }
         /// <summary>
         /// Unique Id of this instance within the parent entity, also need to be file-system compatible
         /// </summary>
@@ -95,7 +56,7 @@ namespace FreeTrainSimulator.Models.Base
         {
         }
 
-        protected ModelBase(string name, IFileResolve parent)
+        protected ModelBase(string name, ModelBase parent)
         {
             Id = name;
             Name = name;
@@ -119,16 +80,15 @@ namespace FreeTrainSimulator.Models.Base
             return string.Concat(Hierarchy(), HierarchySeparator, modelName);
         }
 
-        private static void BuildHiearchy(IFileResolve model, StringBuilder builder)
+        private static void BuildHiearchy(ModelBase model, StringBuilder builder)
         {
-            if (model.Container is IFileResolve fileResolve)
+            if (model.Parent is ModelBase parent)
             {
-                BuildHiearchy(fileResolve, builder);
+                BuildHiearchy(parent, builder);
                 _ = builder.Append(HierarchySeparator);
             }
-            _ = builder.Append(model.FileName);
+            _ = builder.Append(model.Id);
         }
-
         #endregion
     }
 }

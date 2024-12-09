@@ -69,7 +69,7 @@ namespace FreeTrainSimulator.Models.Handler
 
         private static async Task<FrozenSet<WagonSetModel>> LoadWagonSets(FolderModel folderModel, CancellationToken cancellationToken)
         {
-            string wagonsFolder = ModelFileResolver<WagonSetModel>.FolderPath(folderModel);
+            string wagonsFolder = ModelFileResolver<WagonSetModel>.FolderPath<FolderModel>(folderModel);
             string pattern = ModelFileResolver<WagonSetModel>.WildcardSavePattern;
 
             ConcurrentBag<WagonSetModel> results = new ConcurrentBag<WagonSetModel>();

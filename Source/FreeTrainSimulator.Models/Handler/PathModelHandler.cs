@@ -67,7 +67,7 @@ namespace FreeTrainSimulator.Models.Handler
 
         private static async Task<FrozenSet<PathModelCore>> LoadPaths(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            string pathsFolder = ModelFileResolver<PathModelCore>.FolderPath(routeModel);
+            string pathsFolder = ModelFileResolver<PathModelCore>.FolderPath<RouteModelCore>(routeModel);
             string pattern = ModelFileResolver<PathModelCore>.WildcardSavePattern;
 
             ConcurrentBag<PathModelCore> results = new ConcurrentBag<PathModelCore>();

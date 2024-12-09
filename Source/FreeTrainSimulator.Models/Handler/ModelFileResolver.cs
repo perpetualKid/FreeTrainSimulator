@@ -6,7 +6,7 @@ using FreeTrainSimulator.Models.Base;
 
 namespace FreeTrainSimulator.Models.Handler
 {
-    public static class ModelFileResolver<TModel> where TModel : ModelBase<TModel>
+    public static class ModelFileResolver<TModel> where TModel : ModelBase, IFileResolve
     {
         private const string RootPath = "Content";
         private static readonly string contentRoot = Path.GetFullPath(Path.Combine(RuntimeInfo.UserDataFolder, RootPath));
@@ -18,35 +18,30 @@ namespace FreeTrainSimulator.Models.Handler
         }
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
-        private static string FileExtensionCore<TOther>() where TOther : IFileResolve => TOther.DefaultExtension;
-        private static string SubFolderCore<TOther>() where TOther : IFileResolve => TOther.SubFolder;
-        private static string DirectoryNameCore<TOther>(TOther instance) where TOther : IFileResolve => instance?.DirectoryName;
-        private static string FileNameCore<TOther>(TOther instance) where TOther : IFileResolve => instance?.FileName;
-        public static string FileExtension => FileExtensionCore<ModelBase<TModel>>();
-        public static string SubFolder => SubFolderCore<ModelBase<TModel>>() ?? string.Empty;
-        public static string DirectoryName<TOther>(ModelBase<TOther> instance) where TOther : ModelBase<TOther> => DirectoryNameCore(instance);
-        public static string FileName<TOther>(ModelBase<TOther> instance) where TOther : ModelBase<TOther> => FileNameCore(instance);
+        public static string FileExtension => TModel.DefaultExtension;
+        public static string SubFolder => TModel.SubFolder ?? string.Empty;
+        public static string FileName(ModelBase instance) => instance?.Id;
 
-        public static string FilePath<TOther>(string name, ModelBase<TOther> parent) where TOther : ModelBase<TOther>
+        public static string FilePath<TOther>(string modelId, ModelBase parent) where TOther : ModelBase
         {
-            return Path.Combine(FolderPath(parent), name + FileExtension);
+            return Path.GetFullPath(Path.Combine(FolderPath(parent), SubFolder, modelId + FileExtension));
         }
 
-        public static string FilePath(TModel model, IFileResolve parent = null)
+        public static string FilePath(TModel model)
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
-            return Path.GetFullPath(Path.Combine(FolderPath(model.Parent ?? parent), SubFolder, FileName(model) + FileExtension));
+            return Path.GetFullPath(Path.Combine(FolderPath(model.Parent), SubFolder, FileName(model) + FileExtension));
         }
 
-        public static string FolderPath<TOther>(ModelBase<TOther> parent) where TOther : ModelBase<TOther>
+        public static string FolderPath<TOther>(ModelBase parent) where TOther : ModelBase
         {
-            return Path.Combine(FolderPath(parent as IFileResolve), SubFolder);
+            return Path.Combine(FolderPath(parent), SubFolder);
         }
 
-        private static string FolderPath(IFileResolve TOther)
+        private static string FolderPath(ModelBase parent)
         {
-            return TOther != null ? Path.Combine(FolderPath(TOther.Container), TOther.DirectoryName) : contentRoot;
+            return parent != null ? Path.Combine(FolderPath(parent.Parent), parent.Id) : contentRoot;
         }
 
         public static string WildcardPattern => $"*{FileExtension}.*";

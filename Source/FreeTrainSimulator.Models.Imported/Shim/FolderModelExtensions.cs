@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Imported.Shim
         public static FolderModel TrainSimulatorFolder(this ProfileModel profileModel)
         {
             FolderModel mstsFolder = MstsFolder;
-            mstsFolder.Initialize(null, profileModel);
+            mstsFolder.Initialize(profileModel);
             return mstsFolder;
         }
         public static FolderStructure.ContentFolder MstsContentFolder(this FolderModel folderModel) => FileResolver.ContentFolderResolver(folderModel).MstsContentFolder;

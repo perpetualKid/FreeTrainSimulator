@@ -9,14 +9,16 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record ProfileModel : ModelBase<ProfileModel>
+    public sealed partial record ProfileModel : ModelBase, IFileResolve
     {
-        static partial void StaticConstructor()
-        {
-            fileExtension = ".profile";
-        }
+        static string IFileResolve.DefaultExtension => ".profile";
 
-        public override IFileResolve Parent => null; // Profile is root and does not implement a parent
+        static string IFileResolve.SubFolder => string.Empty;
+
+        public override ProfileModel Parent => null; // Profile is root and does not implement a parent
+        
+        [MemoryPackIgnore]
+        public static ProfileModel None { get; } = default(ProfileModel);
 
         [MemoryPackConstructor]
         public ProfileModel(string name, FrozenSet<FolderModel> contentFolders): base(name, null)
@@ -31,13 +33,13 @@ namespace FreeTrainSimulator.Models.Content
         {
         }
 
-        public override void Initialize(string file, IFileResolve parent)
+        public override void Initialize(ModelBase parent)
         {
             foreach (FolderModel folder in ContentFolders)
             { 
-                folder.Initialize(null, this);
+                folder.Initialize(this);
             }
-            base.Initialize(file, parent);
+            base.Initialize(parent);
         }
 
         public bool Equals(ProfileModel other)

@@ -20,6 +20,7 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
@@ -277,9 +278,12 @@ namespace FreeTrainSimulator.Toolbox
             ToolboxSettings.RouteId = selectedRoute?.Id;
             ToolboxSettings.PathId = PathEditor?.PathId;
 
+            ProfileSettingModelHandler<ProfileUserSettingsModel>.SetValueByName(ToolboxUserSettings, "MultiSamplingCount", 8);
+
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
             await currentProfile.UpdateSettingsModel(ToolboxSettings, ctsProfileLoading.Token).ConfigureAwait(false);
             await currentProfile.UpdateSettingsModel(ToolboxUserSettings, ctsProfileLoading.Token).ConfigureAwait(false);
+
         }
 
         private void LoadLanguage()

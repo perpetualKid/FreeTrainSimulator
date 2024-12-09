@@ -7,14 +7,12 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record TimetableTrainModel : ModelBase<TimetableTrainModel>
+    public sealed partial record TimetableTrainModel : ModelBase, IFileResolve
     {
-        static partial void StaticConstructor()
-        {
-            fileExtension = ".timetabletrain";
-        }
+        static string IFileResolve.SubFolder => string.Empty;
+        static string IFileResolve.DefaultExtension => ".timetabletrain";
 
-        public override TimetableModel Parent => (this as IFileResolve).Container as TimetableModel;
+        public override TimetableModel Parent => _parent as TimetableModel;
         public string Group {  get; init; }
         public string Briefing { get; init; }
         public string WagonSet { get; init; }

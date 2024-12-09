@@ -5,14 +5,12 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record FolderModel : ModelBase<FolderModel>
+    public sealed partial record FolderModel : ModelBase, IFileResolve
     {
-        static partial void StaticConstructor()
-        {
-            fileExtension = ".folder";
-        }
+        static string IFileResolve.SubFolder => string.Empty;
+        static string IFileResolve.DefaultExtension => ".folder";
 
-        public override ProfileModel Parent => (this as IFileResolve).Container as ProfileModel;
+        public override ProfileModel Parent => _parent as ProfileModel;
         public string ContentPath { get; init; }
 
         [MemoryPackConstructor]

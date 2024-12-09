@@ -313,7 +313,7 @@ namespace FreeTrainSimulator.Menu
                     ? ActivityType.TimeTable
                     : (comboBoxActivity.SelectedValue as ActivityModelCore)?.ActivityType ?? ActivityType.Activity;
 
-            CurrentSelections = CurrentSelections with { ActivityType = FromSelection() };
+            CurrentSelections.ActivityType = FromSelection();
 
             if (CurrentSelections.ActivityType == ActivityType.TimeTable)
             {
@@ -366,10 +366,7 @@ namespace FreeTrainSimulator.Menu
         {
             if (TimeOnly.TryParse(comboBoxStartTime.Text, out TimeOnly startTime))
             {
-                CurrentSelections = CurrentSelections with
-                {
-                    StartTime = startTime,
-                };
+                CurrentSelections.StartTime = startTime;
             }
         }
 
@@ -377,28 +374,25 @@ namespace FreeTrainSimulator.Menu
         {
             if (TimeOnly.TryParse(comboBoxStartTime.Text, out TimeOnly startTime))
             {
-                CurrentSelections = CurrentSelections with
-                {
-                    StartTime = startTime,
-                };
+                CurrentSelections.StartTime = startTime;
             }
         }
 
         private void ComboBoxStartSeason_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            CurrentSelections = CurrentSelections with { Season = ((SeasonType)comboBoxStartSeason.SelectedValue) };
+            CurrentSelections.Season = (SeasonType)comboBoxStartSeason.SelectedValue;
         }
 
         private void ComboBoxStartWeather_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            CurrentSelections = CurrentSelections with { Weather = ((WeatherType)comboBoxStartWeather.SelectedValue) };
+            CurrentSelections.Weather = (WeatherType)comboBoxStartWeather.SelectedValue;
         }
         #endregion
 
         #region Timetable environment
         private void ComboBoxTimetableDay_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            CurrentSelections = CurrentSelections with { TimetableDay = (DayOfWeek)comboBoxTimetableDay.SelectedIndex };
+            CurrentSelections.TimetableDay = (DayOfWeek)comboBoxTimetableDay.SelectedIndex;
         }
 
         private void ComboBoxTimetableWeatherFile_SelectionChangeCommitted(object sender, EventArgs e)
@@ -534,14 +528,14 @@ namespace FreeTrainSimulator.Menu
         {
             if (radioButtonModeActivity.Checked)
             {
-                CurrentSelections = CurrentSelections with { GamePlayAction = GamePlayAction.SingleplayerNewGame };
+                CurrentSelections.GamePlayAction = GamePlayAction.SingleplayerNewGame;
                 await SaveOptions().ConfigureAwait(false);
                 if (CurrentSelections.ActivityType is ActivityType.Activity or ActivityType.Explorer or ActivityType.ExploreActivity)
                     DialogResult = DialogResult.OK;
             }
             else if (radioButtonModeTimetable.Checked)
             {
-                CurrentSelections = CurrentSelections with { GamePlayAction = GamePlayAction.SinglePlayerTimetableGame };
+                CurrentSelections.GamePlayAction = GamePlayAction.SinglePlayerTimetableGame;
                 await SaveOptions().ConfigureAwait(false);
                 if (CurrentSelections.ActivityType == ActivityType.TimeTable)
                     DialogResult = DialogResult.OK;
@@ -562,15 +556,15 @@ namespace FreeTrainSimulator.Menu
         {
             if (radioButtonModeTimetable.Checked)
             {
-                CurrentSelections = CurrentSelections with { GamePlayAction = GamePlayAction.SinglePlayerTimetableGame };
+                CurrentSelections.GamePlayAction = GamePlayAction.SinglePlayerTimetableGame;
             }
             else if (!multiplayer)
             {
-                CurrentSelections = CurrentSelections with { GamePlayAction = GamePlayAction.SingleplayerNewGame };
+                CurrentSelections.GamePlayAction = GamePlayAction.SingleplayerNewGame;
             }
             else
             {
-                CurrentSelections = CurrentSelections with { GamePlayAction = GamePlayAction.MultiplayerClient };
+                CurrentSelections.GamePlayAction = GamePlayAction.MultiplayerClient;
             }
 
             // if timetable mode but no timetable selected - no action
@@ -583,7 +577,7 @@ namespace FreeTrainSimulator.Menu
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
-                    CurrentSelections = CurrentSelections with { GamePlayAction = form.SelectedAction };
+                    CurrentSelections.GamePlayAction = form.SelectedAction;
                     await SaveOptions().ConfigureAwait(true);
                     SelectedSaveFile = form.SelectedSaveFile;
                     DialogResult = DialogResult.OK;
@@ -595,7 +589,7 @@ namespace FreeTrainSimulator.Menu
         {
             if (!CheckUserName(textBoxMPUser.Text))
                 return;
-            CurrentSelections = CurrentSelections with { GamePlayAction = GamePlayAction.MultiplayerClient };
+            CurrentSelections.GamePlayAction = GamePlayAction.MultiplayerClient;
             await SaveOptions().ConfigureAwait(true);
             DialogResult = DialogResult.OK;
         }

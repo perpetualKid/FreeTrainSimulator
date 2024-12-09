@@ -9,14 +9,11 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record ProfileUserSettingsModel : ModelBase<ProfileUserSettingsModel>
+    public sealed partial record ProfileUserSettingsModel : ProfileSettingsModelBase, IFileResolve
     {
-        static partial void StaticConstructor()
-        {
-            fileExtension = ".usersettings";
-        }
+        static string IFileResolve.DefaultExtension => ".usersettings";
 
-        public override ProfileModel Parent => (this as IFileResolve).Container as ProfileModel;
+        static string IFileResolve.SubFolder => string.Empty;
 
         public TraceSettings LogLevel { get; set; } = TraceSettings.Errors;
         public string LogFileName { get; set; } = "{Product} {Application} Log.txt";

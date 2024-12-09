@@ -8,15 +8,12 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public partial record ActivityModelCore : ModelBase<ActivityModelCore>
+    public partial record ActivityModelCore : ModelBase, IFileResolve
     {
-        static partial void StaticConstructor()
-        {
-            fileExtension = ".activity";
-            subFolder = "Activities";
-        }
+        static string IFileResolve.SubFolder => "Activities";
+        static string IFileResolve.DefaultExtension => ".activity";
 
-        public override RouteModelCore Parent => (this as IFileResolve).Container as RouteModelCore;
+        public override RouteModelCore Parent => _parent as RouteModelCore;
         public string Description { get; init; }
         public string Briefing { get; init; }
         public TimeOnly StartTime { get; init; }

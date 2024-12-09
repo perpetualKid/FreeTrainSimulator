@@ -2,42 +2,39 @@
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Base;
-using FreeTrainSimulator.Models.Content;
 
 using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record ProfileSelectionsModel: ModelBase<ProfileSelectionsModel>
+    public sealed partial record ProfileSelectionsModel: ProfileSettingsModelBase, IFileResolve
     {
-        static partial void StaticConstructor()
-        {
-            fileExtension = ".selections";
-        }
+        static string IFileResolve.DefaultExtension => ".selections";
 
-        public override ProfileModel Parent => (this as IFileResolve).Container as ProfileModel;
+        static string IFileResolve.SubFolder => string.Empty;
+
         // Base selections
-        public string FolderName { get; init; }
-        public string RouteId { get; init; }
-        public ActivityType ActivityType { get; init; }
+        public string FolderName { get; set; }
+        public string RouteId { get; set; }
+        public ActivityType ActivityType { get; set; }
         // Activity mode / Explore mode selections
-        public string PathId { get; init; }
-        public string ActivityId { get; init; }
-        public string LocomotiveId { get; init; }
-        public string WagonSetId { get; init; }
-        public TimeOnly StartTime { get; init; }
+        public string PathId { get; set; }
+        public string ActivityId { get; set; }
+        public string LocomotiveId { get; set; }
+        public string WagonSetId { get; set; }
+        public TimeOnly StartTime { get; set; }
         // Timetable mode selections
-        public string TimetableSet { get; init; }
-        public string TimetableName { get; init; }
-        public string TimetableTrain { get; init; }
-        public DayOfWeek TimetableDay { get; init; }
-        public string WeatherChanges { get; init; }
+        public string TimetableSet { get; set; }
+        public string TimetableName { get; set; }
+        public string TimetableTrain { get; set; }
+        public DayOfWeek TimetableDay { get; set; }
+        public string WeatherChanges { get; set; }
         // Shared selections
-        public SeasonType Season { get; init; }
-        public WeatherType Weather { get; init; }
+        public SeasonType Season { get; set; }
+        public WeatherType Weather { get; set; }
         // Other selections
-        public string LoggingEnabled { get; init; }
-        public GamePlayAction GamePlayAction { get; init; }
+        public string LoggingEnabled { get; set; }
+        public GamePlayAction GamePlayAction { get; set; }
     }
 }

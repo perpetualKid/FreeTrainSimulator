@@ -6,15 +6,12 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record WagonReferenceModel: ModelBase<WagonReferenceModel>
+    public sealed partial record WagonReferenceModel: ModelBase, IFileResolve
     {
-        static partial void StaticConstructor()
-        {
-            fileExtension = ".wagon";
-            subFolder = "Wagons";
-        }
+        static string IFileResolve.SubFolder => "Wagons";
+        static string IFileResolve.DefaultExtension => ".wagon";
 
-        public override FolderModel Parent => (this as IFileResolve).Container as FolderModel;
+        public override FolderModel Parent => _parent as FolderModel;
 
         public TrainCarType TrainCarType { get; init; } 
         public string Description { get; init; }

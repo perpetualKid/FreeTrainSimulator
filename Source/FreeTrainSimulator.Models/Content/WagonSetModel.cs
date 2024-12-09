@@ -8,15 +8,12 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public partial record WagonSetModel : ModelBase<WagonSetModel>
+    public partial record WagonSetModel : ModelBase, IFileResolve
     {
-        static partial void StaticConstructor()
-        {
-            fileExtension = ".wagonset";
-            subFolder = "TrainSets";
-        }
+        static string IFileResolve.SubFolder => "TrainSets";
+        static string IFileResolve.DefaultExtension => ".wagonset";
 
-        public override FolderModel Parent => (this as IFileResolve).Container as FolderModel;
+        public override FolderModel Parent => _parent as FolderModel;
 
         //Speed and an acceleration factor.
         //First number is the actual max speed (in meters per second) based on TE/tonnage;
@@ -30,13 +27,13 @@ namespace FreeTrainSimulator.Models.Content
         [MemoryPackIgnore]
         public bool Reverse { get; init; }
 
-        public override void Initialize(string file, IFileResolve parent)
+        public override void Initialize(ModelBase parent)
         {
             foreach (WagonReferenceModel wagonReference in TrainCars)
             {
-                wagonReference.Initialize(null, this);
+                wagonReference.Initialize(this);
             }
-            base.Initialize(file, parent);
+            base.Initialize(parent);
         }
     }
 }

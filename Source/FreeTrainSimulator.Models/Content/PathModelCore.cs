@@ -5,15 +5,12 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public partial record PathModelCore : ModelBase<PathModelCore>
+    public partial record PathModelCore : ModelBase, IFileResolve
     {
-        static partial void StaticConstructor()
-        {
-            fileExtension = ".path";
-            subFolder = "TrainPaths";
-        }
+        static string IFileResolve.SubFolder => "TrainPaths";
+        static string IFileResolve.DefaultExtension => ".path";
 
-        public override RouteModelCore Parent => (this as IFileResolve).Container as RouteModelCore;
+        public override RouteModelCore Parent => _parent as RouteModelCore;
         /// <summary>Start location of the path</summary>
         public string Start { get; init; }
         /// <summary>Destination location of the path</summary>

@@ -2,7 +2,6 @@
 using System.Collections.Frozen;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Handler;
 
 namespace FreeTrainSimulator.Models.Content
 {

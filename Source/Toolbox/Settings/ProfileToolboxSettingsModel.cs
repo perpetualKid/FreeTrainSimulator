@@ -3,6 +3,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using MemoryPack;
@@ -12,14 +13,11 @@ using Microsoft.Xna.Framework;
 namespace FreeTrainSimulator.Toolbox.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record ProfileToolboxSettingsModel : ModelBase<ProfileToolboxSettingsModel>
+    public sealed partial record ProfileToolboxSettingsModel : ProfileSettingsModelBase, IFileResolve
     {
-        static partial void StaticConstructor()
-        {
-            fileExtension = ".toolboxsettings";
-        }
+        static string IFileResolve.DefaultExtension => ".toolboxsettings";
 
-        public override ProfileModel Parent => (this as IFileResolve).Container as ProfileModel;
+        static string IFileResolve.SubFolder => string.Empty;
 
         public EnumArray<Point, WindowSetting> WindowSettings { get; set; } = new EnumArray<Point, WindowSetting>(new Point[]
         {
@@ -91,5 +89,6 @@ namespace FreeTrainSimulator.Toolbox.Settings
         public string Folder { get; set; }
         public string RouteId { get; set; }
         public string PathId { get; set; }
+
     }
 }

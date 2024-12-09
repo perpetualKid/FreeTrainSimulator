@@ -9,9 +9,13 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record SavePointModel : ModelBase<SavePointModel>
+    public sealed partial record SavePointModel : ModelBase, IFileResolve
     {
-        public override RouteModelCore Parent => (this as IFileResolve).Container as RouteModelCore;
+        static string IFileResolve.DefaultExtension => ".save";
+
+        static string IFileResolve.SubFolder => string.Empty;
+
+        public override RouteModelCore Parent => _parent as RouteModelCore;
 
         public string RouteName { get; init; }
         public string PathName { get; init; }

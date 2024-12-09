@@ -89,13 +89,13 @@ namespace FreeTrainSimulator.Models.Handler
             {
                 ContentFolders = await FolderModelHandler.ExpandFolderModels(profileModel, cancellationToken).ConfigureAwait(false)
             };
-            await Create(profileModel, ProfileModel.None, cancellationToken).ConfigureAwait(false);
+            await Create(profileModel, (ProfileModel)null, cancellationToken).ConfigureAwait(false);
             return profileModel;
         }
 
         private static async Task<FrozenSet<ProfileModel>> LoadProfiles(CancellationToken cancellationToken)
         {
-            string profilesFolder = ModelFileResolver<ProfileModel>.FolderPath(ProfileModel.None);
+            string profilesFolder = ModelFileResolver<ProfileModel>.FolderPath<ProfileModel>((ProfileModel)null);
             string pattern = ModelFileResolver<ProfileModel>.WildcardSavePattern;
 
             ConcurrentBag<ProfileModel> results = new ConcurrentBag<ProfileModel>();
