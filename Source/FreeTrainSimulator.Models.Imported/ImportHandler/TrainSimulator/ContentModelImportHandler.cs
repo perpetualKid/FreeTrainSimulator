@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
-using FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator;
 
-namespace FreeTrainSimulator.Models.Imported.ImportHandler
+namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
     internal sealed class ContentModelImportHandler : ContentHandlerBase<ContentModel>
     {

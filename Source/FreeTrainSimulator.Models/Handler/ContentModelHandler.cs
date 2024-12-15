@@ -14,11 +14,6 @@ namespace FreeTrainSimulator.Models.Handler
     {
         private const string keyName = "content";
 
-        public static Task<ContentModel> GetCore(ContentModel _, CancellationToken cancellationToken)
-        {
-            return GetCore(cancellationToken);
-        }
-
         public static Task<ContentModel> GetCore(CancellationToken cancellationToken)
         {
             if (!modelTaskCache.TryGetValue(keyName, out Task<ContentModel> modelTask) || modelTask.IsFaulted)

@@ -19,16 +19,15 @@ namespace FreeTrainSimulator.Models.Handler
 
         private static class ModelTypeCache
         {
-            private static readonly ModelResolverAttribute resolverAttribute;
+            private static readonly ModelResolverAttribute resolverAttribute = ResolveAttribute();
+            private static ModelResolverAttribute ResolveAttribute()
+            {
+                Type modelType = typeof(TModel);
+                return ModelResolverCache.ModelResolvers[modelType] = modelType.GetCustomAttributes(typeof(ModelResolverAttribute), false).Cast<ModelResolverAttribute>().FirstOrDefault() ?? new ModelResolverAttribute(string.Empty, $".{modelType.Name}.invalid");
+            }
 
             internal static string FileExtension => resolverAttribute?.FileExtension;
             internal static string SubFolder => resolverAttribute?.Folder ?? string.Empty;
-
-            static ModelTypeCache()
-            {
-                Type modelType = typeof(TModel);
-                resolverAttribute = ModelResolverCache.ModelResolvers[modelType] = modelType.GetCustomAttributes(typeof(ModelResolverAttribute), false).Cast<ModelResolverAttribute>().FirstOrDefault() ?? new ModelResolverAttribute(string.Empty, $".{modelType.Name}.invalid");
-            }
 
             public static string ParentFolder(ModelBase instance)
             {

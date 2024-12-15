@@ -14,7 +14,7 @@ namespace FreeTrainSimulator.Models.Shim
     public static class ContentModelExtensions
     {
         #region Content Model
-        public static async Task<ContentModel> Get(this ContentModel _, CancellationToken cancellationToken) => await ContentModelHandler.GetCore(cancellationToken) ?? await Setup(_, null, cancellationToken);
+        public static async Task<ContentModel> Get(this ContentModel _, CancellationToken cancellationToken) => await ContentModelHandler.GetCore(cancellationToken).ConfigureAwait(false) ?? await Setup(_, null, cancellationToken).ConfigureAwait(false);
         public static Task<ContentModel> Setup(this ContentModel _, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) => ContentModelHandler.Setup(folders, cancellationToken);
         #endregion
 

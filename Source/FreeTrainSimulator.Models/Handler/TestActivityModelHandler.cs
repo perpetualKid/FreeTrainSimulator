@@ -32,8 +32,7 @@ namespace FreeTrainSimulator.Models.Handler
 
             foreach (FolderModel folder in folders)
             {
-                FolderModel folderInstance = await folder.Get(cancellationToken).ConfigureAwait(false);
-                FrozenSet<RouteModelCore> routes = await folderInstance.GetRoutes(cancellationToken).ConfigureAwait(false);
+                FrozenSet<RouteModelCore> routes = await folder.GetRoutes(cancellationToken).ConfigureAwait(false);
                 foreach (RouteModelCore route in routes)
                 {
                     FrozenSet<ActivityModelCore> activities = await route.GetRouteActivities(cancellationToken).ConfigureAwait(false);

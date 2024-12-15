@@ -15,7 +15,7 @@ namespace FreeTrainSimulator.Models.Settings
         [MemoryPackIgnore]
         public override ProfileSettingsModelBase Parent => _parent as ProfileSettingsModelBase;
 
-        public ProfileSettingsModelBase() : base()
+        protected ProfileSettingsModelBase() : base()
         { }
 
         protected ProfileSettingsModelBase(string name, ProfileSettingsModelBase parent) : base(name, parent)

@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Handler
 
         public static async Task<ProfileModel> Current(CancellationToken cancellationToken)
         {
-            CurrentProfileSettingsModel currentProfileSettingsModel = await ProfileSettingModelHandler<CurrentProfileSettingsModel>.FromFile(null, cancellationToken);
+            CurrentProfileSettingsModel currentProfileSettingsModel = await ProfileSettingModelHandler<CurrentProfileSettingsModel>.FromFile(null, cancellationToken).ConfigureAwait(false);
             string profileName = currentProfileSettingsModel?.Profile;
             return (await GetProfiles(cancellationToken).ConfigureAwait(false)).GetByNameOrFirstByName(profileName) ?? new ProfileModel(DefaultProfileName);
         }

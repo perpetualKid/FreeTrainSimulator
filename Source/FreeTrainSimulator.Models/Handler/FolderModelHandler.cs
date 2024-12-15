@@ -7,45 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Shim;
 
 namespace FreeTrainSimulator.Models.Handler
 {
     internal sealed class FolderModelHandler : ContentHandlerBase<FolderModel>
     {
-        public static Task<FolderModel> GetCore(FolderModel folderModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
-            return GetCore(folderModel.Id, folderModel.Parent, cancellationToken);
-        }
-
-        public static Task<FolderModel> GetCore(string folderId, ContentModel contentModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
-            string key = contentModel.Hierarchy(folderId);
-
-            if (!modelTaskCache.TryGetValue(key, out Task<FolderModel> modelTask) || modelTask.IsFaulted)
-            {
-                modelTaskCache[key] = modelTask = Task.FromResult(contentModel.ContentFolders.GetByName(folderId));
-                collectionUpdateRequired[contentModel.Hierarchy()] = true;
-            }
-
-            return modelTask;
-        }
-
-        public static async ValueTask<FrozenSet<FolderModel>> GetFolders(ContentModel contentModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
-            string key = contentModel.Hierarchy();
-
-            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<FolderModel>> modelSetTask) || modelSetTask.IsFaulted)
-            {
-                modelSetTaskCache[key] = modelSetTask = LoadFolders(contentModel, cancellationToken);
-            }
-
-            return await modelSetTask.ConfigureAwait(false);
-        }
-
         public static async Task<FrozenSet<FolderModel>> ExpandFolderModels(ContentModel contentModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
@@ -67,20 +33,6 @@ namespace FreeTrainSimulator.Models.Handler
             string key = contentModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             return result;
-        }
-
-        private static async Task<FrozenSet<FolderModel>> LoadFolders(ContentModel contentModel, CancellationToken cancellationToken)
-        {
-            ConcurrentBag<FolderModel> results = new ConcurrentBag<FolderModel>();
-
-            await Parallel.ForEachAsync(contentModel.ContentFolders, cancellationToken, async (folder, token) =>
-            {
-                folder = await GetCore(folder, token).ConfigureAwait(false);
-                if (null != folder)
-                    results.Add(folder);
-            }).ConfigureAwait(false);
-
-            return results.ToFrozenSet();
         }
 
         private static async Task<FolderModel> Convert(FolderModel folderModel, CancellationToken cancellationToken)
