@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,7 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
     {
         // Variables used for auto weather control
         // settings
-        private readonly List<WeatherConditionBase> weatherDetails = new List<WeatherConditionBase>();
+        private readonly Collection<WeatherConditionBase> weatherDetails = new Collection<WeatherConditionBase>();
 
         // running values
         // general

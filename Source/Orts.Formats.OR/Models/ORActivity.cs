@@ -60,6 +60,7 @@ namespace Orts.Formats.OR.Models
              
         public ORActivity(STFReader stf)
         {
+            ArgumentNullException.ThrowIfNull(stf, nameof(stf));
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 // General TAB

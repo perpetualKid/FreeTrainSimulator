@@ -313,7 +313,7 @@ namespace Orts.Simulation
             {
                 Trace.Write(" EXTCARSPAWN");
                 ORCarSpawnerFile acsf = new ORCarSpawnerFile(carSpawnFile, RouteFolder.ShapesFolder);
-                (CarSpawnerLists as List<CarSpawners>).AddRange(acsf.CarSpawners);
+                CarSpawnerLists.AddRange(acsf.CarSpawners);
             }
 
             //Load OR-Clock if external file "openrails\clock.dat" exists --------------------------------------------------------

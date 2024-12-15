@@ -30,7 +30,7 @@
 //
 
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 
@@ -46,7 +46,7 @@ namespace Orts.Formats.OR.Files
 
     public class TimetableFile
     {
-        public List<TrainInformation> Trains { get; } = new List<TrainInformation>();
+        public Collection<TrainInformation> Trains { get; } = new Collection<TrainInformation>();
         public string Description { get; private set; }
         public string Briefing { get; private set; }
 
@@ -65,7 +65,7 @@ namespace Orts.Formats.OR.Files
                     PreliminaryRead(fileName, scrStream, separator);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is Exception)
             {
                 Trace.TraceInformation("Load error for timetable {0} : {1}", Path.GetFileNameWithoutExtension(fileName), ex.ToString());
                 Description = $"<load error: {Path.GetFileNameWithoutExtension(fileName)}>";

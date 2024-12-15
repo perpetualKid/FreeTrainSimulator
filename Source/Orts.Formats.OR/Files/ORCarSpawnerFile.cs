@@ -15,16 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
 using Orts.Formats.Msts.Models;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.OR.Files
 {
     public class ORCarSpawnerFile
     {
-        public List<CarSpawners> CarSpawners { get; private set; } = new List<CarSpawners>();
+        public Collection<CarSpawners> CarSpawners { get; private set; } = new Collection<CarSpawners>();
 
         public ORCarSpawnerFile(string fileName, string shapePath)
         {

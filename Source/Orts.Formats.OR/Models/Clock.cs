@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 using FreeTrainSimulator.Common;
@@ -11,6 +12,7 @@ namespace Orts.Formats.OR.Models
     {
         public ClockList(STFReader stf, string shapePath)
         {
+            ArgumentNullException.ThrowIfNull(stf, nameof(stf));
             var count = stf.ReadInt(null);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("clockitem", ()=>{
@@ -39,6 +41,7 @@ namespace Orts.Formats.OR.Models
         //Type of OR-Clock -> analog, digital
         public Clock(STFReader stf, string shapePath)
         {
+            ArgumentNullException.ThrowIfNull(stf, nameof(stf));
             stf.MustMatch("(");
             Name = Path.Combine(shapePath, stf.ReadString());
             if (EnumExtension.GetValue(stf.ReadString(), out ClockType type))

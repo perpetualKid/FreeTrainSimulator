@@ -652,7 +652,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="fileStrings"></param>
         /// <param name="iColumn"></param>
         /// <param name="addColumns"></param>
-        private void ConcatTrainStrings(List<string[]> fileStrings, int iColumn, List<int> addColumns)
+        private void ConcatTrainStrings(Collection<string[]> fileStrings, int iColumn, List<int> addColumns)
         {
             for (int iRow = 1; iRow < fileStrings.Count - 1; iRow++)
             {
@@ -1261,7 +1261,7 @@ namespace Orts.Simulation.Timetables
             /// <param name="description"></param>
             /// <param name="stationNames"></param>
             /// <param name="ttInfo"></param>
-            public bool BuildTrain(List<string[]> fileStrings, RowType[] RowInfo, int pathRow, int consistRow, int startRow, int disposeRow, int briefingRow, string description,
+            public bool BuildTrain(Collection<string[]> fileStrings, RowType[] RowInfo, int pathRow, int consistRow, int startRow, int disposeRow, int briefingRow, string description,
                 Dictionary<int, StationInfo> stationNames, float actSpeedConv, TimetableInfo ttInfo)
             {
                 TTDescription = description;

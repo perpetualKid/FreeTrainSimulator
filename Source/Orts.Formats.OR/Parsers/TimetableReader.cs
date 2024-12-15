@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 
@@ -28,7 +28,7 @@ namespace Orts.Formats.OR.Parsers
     {
         private const string validSeparators = ";,\t";
 
-        public List<string[]> Strings { get; } = new List<string[]>();
+        public Collection<string[]> Strings { get; } = new Collection<string[]>();
         public string FilePath { get; private set; }
 
         public TimetableReader(string filePath)

@@ -165,6 +165,7 @@ namespace Orts.Formats.OR.Parsers
                     case JsonToken.Integer:
                     case JsonToken.Null:
                     case JsonToken.String:
+                        ArgumentNullException.ThrowIfNull(tryParse, nameof(tryParse));
                         paths.Push(path.ToString()[basePosition..]);
                         if (!tryParse(this))
                             TraceInformation($"Skipped unknown {reader.TokenType} \"{reader.Value}\" in {Path}");
@@ -177,7 +178,8 @@ namespace Orts.Formats.OR.Parsers
 
         public bool TryRead<T>(Func<JsonReader, T> read, out T output)
         {
-            var warnings = countWarnings;
+            ArgumentNullException.ThrowIfNull(read, nameof(read));
+            int warnings = countWarnings;
             output = read(this);
             return warnings == countWarnings;
         }

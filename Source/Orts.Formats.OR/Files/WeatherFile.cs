@@ -15,8 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
-using System.IO;
+using System;
+using System.Collections.ObjectModel;
+
 using Orts.Formats.OR.Models;
 using Orts.Formats.OR.Parsers;
 
@@ -29,7 +30,7 @@ namespace Orts.Formats.OR.Files
 
     public class WeatherFile
     {
-        public List<WeatherConditionBase> Changes { get; } = new List<WeatherConditionBase>();
+        public Collection<WeatherConditionBase> Changes { get; } = new Collection<WeatherConditionBase>();
         public float TimeVariance { get; private set; }     // allowed max variation using random time setting
         public bool RandomSequence { get; private set; }    // set random sequence
 
@@ -38,8 +39,9 @@ namespace Orts.Formats.OR.Files
             JsonReader.ReadFile(fileName, TryParse);
         }
 
-        protected virtual bool TryParse(JsonReader reader)
+        private bool TryParse(JsonReader reader)
         {
+            ArgumentNullException.ThrowIfNull(reader, nameof(reader));
             switch (reader.Path)
             {
                 case "":

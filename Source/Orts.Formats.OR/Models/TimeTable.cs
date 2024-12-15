@@ -24,7 +24,9 @@ namespace Orts.Formats.OR.Models
         }
     }
 
+#pragma warning disable CA1036 // Override methods on comparable types
     public class TrainInformation : IComparable<TrainInformation>
+#pragma warning restore CA1036 // Override methods on comparable types
     {
         public int Column { get; private set; }     // column index
         public string Train { get; private set; }              // train definition

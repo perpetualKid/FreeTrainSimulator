@@ -24,6 +24,7 @@ namespace Orts.Formats.OR.Models
 
         internal protected override bool TryParse(JsonReader reader)
         {
+            ArgumentNullException.ThrowIfNull(reader, nameof(reader));
             if (base.TryParse(reader)) 
                 return true;
             switch (reader.Path)

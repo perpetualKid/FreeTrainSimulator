@@ -30,7 +30,6 @@ namespace FreeTrainSimulator.Toolbox
     public partial class GameWindow : Game
     {
         private ContentModel contentModel;
-        private ProfileModel contentProfile;
         private FolderModel selectedFolder;
         private RouteModelCore selectedRoute;
         private FrozenSet<RouteModelCore> routeModels;
