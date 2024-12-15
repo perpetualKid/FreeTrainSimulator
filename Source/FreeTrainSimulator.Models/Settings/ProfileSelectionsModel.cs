@@ -8,12 +8,9 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record ProfileSelectionsModel: ProfileSettingsModelBase, IFileResolve
+    [ModelResolver("", ".selections")]
+    public sealed partial record ProfileSelectionsModel: ProfileSettingsModelBase
     {
-        static string IFileResolve.DefaultExtension => ".selections";
-
-        static string IFileResolve.SubFolder => string.Empty;
-
         // Base selections
         public string FolderName { get; set; }
         public string RouteId { get; set; }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Diagnostics;
@@ -14,7 +13,7 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Handler
 {
-    public abstract class ContentHandlerBase<TModel> where TModel : ModelBase, IFileResolve
+    public abstract class ContentHandlerBase<TModel> where TModel : ModelBase
     {
         public const string SaveStateExtension = FileNameExtensions.SaveFile;
 
@@ -28,7 +27,7 @@ namespace FreeTrainSimulator.Models.Handler
         {
             string targetFileName = name;
             if (resolveName)
-                targetFileName = ModelFileResolver<TModel>.FilePath<TContainer>(name, parent) + SaveStateExtension;
+                targetFileName = ModelFileResolver<TModel>.FilePath(name, parent) + SaveStateExtension;
 
             TModel model = null;
             if (File.Exists(targetFileName))
@@ -106,7 +105,7 @@ namespace FreeTrainSimulator.Models.Handler
 
             if (createDirectory)
             {
-                string directory = ModelFileResolver<TModel>.FolderPath<TContainer>(model);
+                string directory = ModelFileResolver<TModel>.FolderPath(model);
                 if (!Directory.Exists(directory))
                 {
                     try

@@ -16,7 +16,7 @@ using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
-    internal sealed class PathModelHandler : ContentHandlerBase<PathModelCore>
+    internal sealed class PathModelImportHandler : ContentHandlerBase<PathModelCore>
     {
         internal const string SourceNameKey = "MstsSourcePath";
 

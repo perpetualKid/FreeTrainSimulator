@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Settings;
@@ -12,7 +11,7 @@ namespace FreeTrainSimulator.Models.Shim
     public static class ProfileSettingsExtensions
     {
         #region settings
-        public static async ValueTask<T> LoadSettingsModel<T>(this ProfileModel profileModel, CancellationToken cancellationToken) where T : ProfileSettingsModelBase, IFileResolve, new()
+        public static async ValueTask<T> LoadSettingsModel<T>(this ProfileModel profileModel, CancellationToken cancellationToken) where T : ProfileSettingsModelBase, new()
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
@@ -22,8 +21,7 @@ namespace FreeTrainSimulator.Models.Shim
             return await ProfileSettingModelHandler<T>.FromFile(settingsModel, cancellationToken).ConfigureAwait(false);
         }
 
-        public static Task<T> UpdateSettingsModel<T>(this ProfileModel profileModel, T settingsModel, CancellationToken cancellationToken) where T : ProfileSettingsModelBase, IFileResolve
-        {
+        public static Task<T> UpdateSettingsModel<T>(this ProfileModel profileModel, T settingsModel, CancellationToken cancellationToken) where T : ProfileSettingsModelBase        {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             ArgumentNullException.ThrowIfNull(settingsModel, nameof(settingsModel));
 
@@ -34,8 +32,8 @@ namespace FreeTrainSimulator.Models.Shim
         public static async ValueTask<FolderModel> SelectedFolder(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
-
-            return (await profileSelections.Parent.GetFolders(cancellationToken).ConfigureAwait(false)).GetByName(profileSelections.FolderName);
+            ContentModel content = await ContentModelExtensions.Get(null, cancellationToken).ConfigureAwait(false);
+            return content.ContentFolders.GetByName(profileSelections.FolderName);
         }
 
         public static async ValueTask<RouteModelCore> SelectedRoute(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)

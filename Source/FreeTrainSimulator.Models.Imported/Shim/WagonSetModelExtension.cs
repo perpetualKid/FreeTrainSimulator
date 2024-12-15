@@ -7,6 +7,6 @@ namespace FreeTrainSimulator.Models.Imported.Shim
 {
     public static class WagonSetModelExtension
     {
-        public static string SourceFile(this WagonSetModel wagonSetModel) => wagonSetModel?.Parent.MstsContentFolder().ConsistFile(wagonSetModel.Tags[WagonSetModelHandler.SourceNameKey]);
+        public static string SourceFile(this WagonSetModel wagonSetModel) => wagonSetModel?.Parent.MstsContentFolder().ConsistFile(wagonSetModel.Tags[WagonSetModelImportHandler.SourceNameKey]);
     }
 }

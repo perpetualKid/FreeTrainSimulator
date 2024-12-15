@@ -2,7 +2,6 @@
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Models.Base;
-using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
@@ -13,12 +12,9 @@ using Microsoft.Xna.Framework;
 namespace FreeTrainSimulator.Toolbox.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record ProfileToolboxSettingsModel : ProfileSettingsModelBase, IFileResolve
+    [ModelResolver("", ".toolboxsettings")]
+    public sealed partial record ProfileToolboxSettingsModel : ProfileSettingsModelBase
     {
-        static string IFileResolve.DefaultExtension => ".toolboxsettings";
-
-        static string IFileResolve.SubFolder => string.Empty;
-
         public EnumArray<Point, WindowSetting> WindowSettings { get; set; } = new EnumArray<Point, WindowSetting>(new Point[]
         {
             new Point(50, 50), // % of the windows Screen

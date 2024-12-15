@@ -16,7 +16,7 @@ using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
-    internal sealed class WagonSetModelHandler : ContentHandlerBase<WagonSetModel>
+    internal sealed class WagonSetModelImportHandler : ContentHandlerBase<WagonSetModel>
     {
         internal const string SourceNameKey = "MstsSourceConsist";
 

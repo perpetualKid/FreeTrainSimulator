@@ -46,7 +46,7 @@ namespace FreeTrainSimulator.Models.Handler
 
         private static async Task<FrozenSet<WeatherModelCore>> LoadWeatherModels(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
-            string weatherFolder = ModelFileResolver<WeatherModelCore>.FolderPath<RouteModelCore>(routeModel);
+            string weatherFolder = ModelFileResolver<WeatherModelCore>.FolderPath(routeModel);
             string pattern = ModelFileResolver<WeatherModelCore>.WildcardSavePattern;
 
             ConcurrentBag<WeatherModelCore> results = new ConcurrentBag<WeatherModelCore>();

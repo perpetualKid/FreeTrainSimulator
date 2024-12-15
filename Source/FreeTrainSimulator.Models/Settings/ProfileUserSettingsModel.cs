@@ -2,18 +2,16 @@
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Base;
-using FreeTrainSimulator.Models.Content;
 
 using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record ProfileUserSettingsModel : ProfileSettingsModelBase, IFileResolve
+    [ModelResolver("", ".usersettings")]
+    public sealed partial record ProfileUserSettingsModel : ProfileSettingsModelBase
     {
-        static string IFileResolve.DefaultExtension => ".usersettings";
-
-        static string IFileResolve.SubFolder => string.Empty;
+        public override ProfileModel Parent => base.Parent as ProfileModel;
 
         public TraceSettings LogLevel { get; set; } = TraceSettings.Errors;
         public string LogFileName { get; set; } = "{Product} {Application} Log.txt";

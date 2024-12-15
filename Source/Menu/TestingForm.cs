@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 
 using GetText;
@@ -25,13 +26,14 @@ namespace FreeTrainSimulator.Menu
         private CancellationTokenSource ctsTestActivityLoader;
         private CancellationTokenSource ctsTestActivityRunner;
         private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
-        private readonly ProfileModel contentProfile;
+        private readonly ContentModel contentModel;
         private bool clearedLogs;
         private readonly string runActivity;
         private readonly string summaryFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingSummary.csv");
         private readonly string logFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingLog.txt");
 
-        public TestingForm(ProfileModel profile, string runActivity)
+        public TestingForm(ContentModel contentModel
+            , string runActivity)
         {
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
@@ -40,7 +42,7 @@ namespace FreeTrainSimulator.Menu
             Localizer.Localize(this, CatalogManager.Catalog);
 
             this.runActivity = runActivity;
-            this.contentProfile = profile;
+            this.contentModel = contentModel;
 
             UpdateButtons();
         }
@@ -93,7 +95,7 @@ namespace FreeTrainSimulator.Menu
 
             UseWaitCursor = true;
             gridTestActivities.SuspendLayout();
-            testBindingSource.DataSource = new SortableBindingList<TestActivityModel>((await contentProfile.LoadTestActivities(ctsTestActivityLoader.Token).ConfigureAwait(true)).Cast<TestActivityModel>().ToList());
+            testBindingSource.DataSource = new SortableBindingList<TestActivityModel>((await contentModel.LoadTestActivities(ctsTestActivityLoader.Token).ConfigureAwait(true)).Cast<TestActivityModel>().ToList());
             testBindingSource.Sort = "DefaultSort";
             gridTestActivities.ResumeLayout();
             UseWaitCursor = false;

@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Models.Base
         #endregion
 
         /// <summary>
-        /// strongly typed reference to <seealso cref="IFileResolve.Container" of this instance/>
+        /// strongly typed reference to parent model
         /// </summary>
         [MemoryPackIgnore]
         public abstract ModelBase Parent { get; }

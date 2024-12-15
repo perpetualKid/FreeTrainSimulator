@@ -13,6 +13,7 @@ using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Microsoft.Xna.Framework;
+using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Toolbox
 {
@@ -28,6 +29,7 @@ namespace FreeTrainSimulator.Toolbox
 
     public partial class GameWindow : Game
     {
+        private ContentModel contentModel;
         private ProfileModel contentProfile;
         private FolderModel selectedFolder;
         private RouteModelCore selectedRoute;
@@ -61,11 +63,8 @@ namespace FreeTrainSimulator.Toolbox
 
             try
             {
-                contentProfile = await ProfileModel.None.Get(ctsProfileLoading.Token).ConfigureAwait(false) ??
-                    await contentProfile.Empty(ctsProfileLoading.Token).ConfigureAwait(false);
-
-                FrozenSet<FolderModel> contentFolders = await contentProfile.GetFolders(ctsProfileLoading.Token).ConfigureAwait(false);
-                mainmenu.PopulateContentFolders(contentProfile.ContentFolders);
+                contentModel = await contentModel.Get(ctsProfileLoading.Token).ConfigureAwait(false);
+                mainmenu.PopulateContentFolders(contentModel.ContentFolders);
             }
             catch (TaskCanceledException)
             {

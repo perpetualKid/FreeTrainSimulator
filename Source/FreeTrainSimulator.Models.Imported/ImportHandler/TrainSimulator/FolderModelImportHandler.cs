@@ -13,17 +13,17 @@ using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
-    internal sealed class FolderModelHandler : ContentHandlerBase<FolderModel>
+    internal sealed class FolderModelImportHandler : ContentHandlerBase<FolderModel>
     {
         public static readonly FolderModel MstsFolder = new FolderModel("Train Simulator", FolderStructure.MstsFolder, null);
 
-        public static async Task<FrozenSet<FolderModel>> ExpandFolderModels(ProfileModel profileModel, CancellationToken cancellationToken)
+        public static async Task<FrozenSet<FolderModel>> ExpandFolderModels(ContentModel contentModel, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+            ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
 
             ConcurrentBag<FolderModel> results = new ConcurrentBag<FolderModel>();
 
-            Dictionary<string, FolderModel> configuredFolders = new Dictionary<string, FolderModel>(profileModel.ContentFolders.ToDictionary(f => f.Id), StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, FolderModel> configuredFolders = new Dictionary<string, FolderModel>(contentModel.ContentFolders.ToDictionary(f => f.Id), StringComparer.OrdinalIgnoreCase);
 
             await Parallel.ForEachAsync(configuredFolders, cancellationToken, async (folderModelHolder, token) =>
             {
@@ -35,7 +35,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             }).ConfigureAwait(false);
 
             FrozenSet<FolderModel> result = results.ToFrozenSet();
-            string key = profileModel.Hierarchy();
+            string key = contentModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             return result;
         }

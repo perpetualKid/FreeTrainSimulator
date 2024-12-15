@@ -12,40 +12,40 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 {
     public static class ContentModelConverter
     {
-        public static async Task<ProfileModel> SetupContent(ProfileModel profileModel, bool refresh, IProgress<int> progressClient, CancellationToken cancellationToken)
+        public static async Task<ContentModel> SetupContent(ContentModel contentModel, bool refresh, IProgress<int> progressClient, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+            ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
 
-            if (refresh = VersionInfo.Compare(profileModel.Version) > 0 || refresh)
+            if (refresh = VersionInfo.Compare(contentModel.Version) > 0 || refresh)
             {
-                profileModel = await ProfileModelHandler.Expand(profileModel, cancellationToken).ConfigureAwait(false);
+                contentModel = await ContentModelImportHandler.Expand(contentModel, cancellationToken).ConfigureAwait(false);
 
-                int folderCount = profileModel.ContentFolders.Count;
+                int folderCount = contentModel.ContentFolders.Count;
                 int completedCount = 0;
-                await Parallel.ForEachAsync(profileModel.ContentFolders, async (folderModel, cancellationToken) =>
+                await Parallel.ForEachAsync(contentModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {
                     await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
                     Interlocked.Increment(ref completedCount);
                     progressClient?.Report(completedCount * 100 / folderCount);
                 }).ConfigureAwait(false);
             }
-            return profileModel;
+            return contentModel;
         }
 
-        public static async Task<ProfileModel> ConvertContent(ProfileModel profileModel, bool refresh, CancellationToken cancellationToken)
+        public static async Task<ContentModel> ConvertContent(ContentModel contentModel, bool refresh, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+            ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
 
-            if (refresh = VersionInfo.Compare(profileModel.Version) > 0 || refresh)
+            if (refresh = VersionInfo.Compare(contentModel.Version) > 0 || refresh)
             {
-                profileModel = await ProfileModelHandler.Expand(profileModel, cancellationToken).ConfigureAwait(false);
+                contentModel = await ContentModelImportHandler.Expand(contentModel, cancellationToken).ConfigureAwait(false);
 
-                await Parallel.ForEachAsync(profileModel.ContentFolders, async (folderModel, cancellationToken) =>
+                await Parallel.ForEachAsync(contentModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {
                     await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
-            return profileModel;
+            return contentModel;
         }
 
         public static async Task<FolderModel> ConvertContent(FolderModel folderModel, bool refresh, CancellationToken cancellationToken)
@@ -54,8 +54,8 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 
             if (VersionInfo.Compare(folderModel.Version) > 0 || refresh)
             {
-                Task<FrozenSet<RouteModelCore>> routesTask = RouteModelHandler.ExpandRouteModels(folderModel, cancellationToken);
-                Task<FrozenSet<WagonSetModel>> wagonSetsTask = WagonSetModelHandler.ExpandWagonSetModels(folderModel, cancellationToken);
+                Task<FrozenSet<RouteModelCore>> routesTask = RouteModelImportHandler.ExpandRouteModels(folderModel, cancellationToken);
+                Task<FrozenSet<WagonSetModel>> wagonSetsTask = WagonSetModelImportHandler.ExpandWagonSetModels(folderModel, cancellationToken);
 
                 await Task.WhenAll(wagonSetsTask, routesTask).ConfigureAwait(false);
 
@@ -76,8 +76,8 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             if (VersionInfo.Compare(routeModel.Version) > 0 || refresh)
             {
                 await Task.WhenAll(
-                    PathModelHandler.ExpandPathModels(routeModel, cancellationToken),
-                    ActivityModelHandler.ExpandActivityModels(routeModel, cancellationToken),
+                    PathModelImportHandler.ExpandPathModels(routeModel, cancellationToken),
+                    ActivityModelImportHandler.ExpandActivityModels(routeModel, cancellationToken),
                     TimetableModelHandler.ExpandTimetableModels(routeModel, cancellationToken),
                     WeatherModelHandler.ExpandPathModels(routeModel, cancellationToken)
                     ).ConfigureAwait(false);

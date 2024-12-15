@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Base;
+using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 
 namespace FreeTrainSimulator.Models.Handler
 {
@@ -17,6 +17,22 @@ namespace FreeTrainSimulator.Models.Handler
         public const string DefaultProfileName = "Default";
 
         private static string CheckDefaultProfile(string profileName) => string.IsNullOrEmpty(profileName) || string.Equals(profileName, DefaultProfileName, StringComparison.OrdinalIgnoreCase) ? DefaultProfileName : profileName;
+
+        public static async Task<ProfileModel> Current(CancellationToken cancellationToken)
+        {
+            CurrentProfileSettingsModel currentProfileSettingsModel = await ProfileSettingModelHandler<CurrentProfileSettingsModel>.FromFile(null, cancellationToken);
+            string profileName = currentProfileSettingsModel?.Profile;
+            return (await GetProfiles(cancellationToken).ConfigureAwait(false)).GetByNameOrFirstByName(profileName) ?? new ProfileModel(DefaultProfileName);
+        }
+
+        public static async Task UpdateCurrent(ProfileModel profileModel, CancellationToken cancellationToken)
+        {
+            CurrentProfileSettingsModel currentProfileSettingsModel = new CurrentProfileSettingsModel()
+            {
+                Profile = profileModel?.Name,
+            };
+            await ContentHandlerBase<CurrentProfileSettingsModel>.ToFile(currentProfileSettingsModel, cancellationToken).ConfigureAwait(false);
+        }
 
         public static Task<ProfileModel> GetCore(ProfileModel profileModel, CancellationToken cancellationToken)
         {
@@ -51,51 +67,51 @@ namespace FreeTrainSimulator.Models.Handler
             return modelSetTask;
         }
 
-        public static Task<ProfileModel> Expand(ProfileModel profileModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
-            string key = profileModel.Name;
+        //public static Task<ProfileModel> Expand(ProfileModel profileModel, CancellationToken cancellationToken)
+        //{
+        //    ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+        //    string key = profileModel.Name;
 
-            Task<ProfileModel> modelTask = Convert(profileModel, cancellationToken);
-            modelTaskCache[key] = modelTask;
-            collectionUpdateRequired[root] = true;
+        //    Task<ProfileModel> modelTask = Convert(profileModel, cancellationToken);
+        //    modelTaskCache[key] = modelTask;
+        //    collectionUpdateRequired[root] = true;
 
-            return modelTask;
-        }
+        //    return modelTask;
+        //}
 
-        public static async Task<ProfileModel> Setup(string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
-        {
-            profileName = CheckDefaultProfile(profileName);
-            ProfileModel profileModel = await GetCore(profileName, cancellationToken).ConfigureAwait(false);
+        //public static async Task<ProfileModel> Setup(string profileName, IEnumerable<(string, string)> folders, CancellationToken cancellationToken)
+        //{
+        //    profileName = CheckDefaultProfile(profileName);
+        //    ProfileModel profileModel = await GetCore(profileName, cancellationToken).ConfigureAwait(false);
 
-            profileModel = (profileModel ??= new ProfileModel(profileName)) with
-            {
-                ContentFolders = folders != null ? folders.Select(folderModelHolder => new FolderModel(folderModelHolder.Item1, folderModelHolder.Item2, profileModel)).ToFrozenSet() : FrozenSet<FolderModel>.Empty
-            };
-            profileModel = await Convert(profileModel, cancellationToken).ConfigureAwait(false);
+        //    profileModel = (profileModel ??= new ProfileModel(profileName)) with
+        //    {
+        //        ContentFolders = folders != null ? folders.Select(folderModelHolder => new FolderModel(folderModelHolder.Item1, folderModelHolder.Item2, profileModel)).ToFrozenSet() : FrozenSet<FolderModel>.Empty
+        //    };
+        //    profileModel = await Convert(profileModel, cancellationToken).ConfigureAwait(false);
 
-            string key = profileName;
-            modelTaskCache[key] = Task.FromResult(profileModel);
-            collectionUpdateRequired[root] = true;
+        //    string key = profileName;
+        //    modelTaskCache[key] = Task.FromResult(profileModel);
+        //    collectionUpdateRequired[root] = true;
 
-            return profileModel;
-        }
+        //    return profileModel;
+        //}
 
-        private static async Task<ProfileModel> Convert(ProfileModel profileModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+        //private static async Task<ProfileModel> Convert(ProfileModel profileModel, CancellationToken cancellationToken)
+        //{
+        //    ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
-            profileModel = profileModel with
-            {
-                ContentFolders = await FolderModelHandler.ExpandFolderModels(profileModel, cancellationToken).ConfigureAwait(false)
-            };
-            await Create(profileModel, (ProfileModel)null, cancellationToken).ConfigureAwait(false);
-            return profileModel;
-        }
+        //    profileModel = profileModel with
+        //    {
+        //        ContentFolders = await FolderModelHandler.ExpandFolderModels(profileModel, cancellationToken).ConfigureAwait(false)
+        //    };
+        //    await Create(profileModel, (ProfileModel)null, cancellationToken).ConfigureAwait(false);
+        //    return profileModel;
+        //}
 
         private static async Task<FrozenSet<ProfileModel>> LoadProfiles(CancellationToken cancellationToken)
         {
-            string profilesFolder = ModelFileResolver<ProfileModel>.FolderPath<ProfileModel>((ProfileModel)null);
+            string profilesFolder = ModelFileResolver<ProfileModel>.FolderPath((ModelBase)null);
             string pattern = ModelFileResolver<ProfileModel>.WildcardSavePattern;
 
             ConcurrentBag<ProfileModel> results = new ConcurrentBag<ProfileModel>();

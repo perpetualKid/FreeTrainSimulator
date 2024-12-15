@@ -224,11 +224,7 @@ namespace FreeTrainSimulator.Toolbox
         private async Task LoadSettings()
         {
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
-            currentProfile = await currentProfile.Get(ctsProfileLoading.Token).ConfigureAwait(false);
-            if (currentProfile == null)
-            {
-                currentProfile = await currentProfile.Empty(ctsProfileLoading.Token).ConfigureAwait(false);
-            }
+            currentProfile = await currentProfile.Current(ctsProfileLoading.Token).ConfigureAwait(false);
             ToolboxUserSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
             ToolboxSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
         }
@@ -278,7 +274,7 @@ namespace FreeTrainSimulator.Toolbox
             ToolboxSettings.RouteId = selectedRoute?.Id;
             ToolboxSettings.PathId = PathEditor?.PathId;
 
-            ProfileSettingModelHandler<ProfileUserSettingsModel>.SetValueByName(ToolboxUserSettings, "MultiSamplingCount", 8);
+//            ProfileSettingModelHandler<ProfileUserSettingsModel>.SetValueByName(ToolboxUserSettings, "MultiSamplingCount", 8);
 
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
             await currentProfile.UpdateSettingsModel(ToolboxSettings, ctsProfileLoading.Token).ConfigureAwait(false);

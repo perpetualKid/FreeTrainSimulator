@@ -22,22 +22,17 @@ namespace FreeTrainSimulator.Menu
 
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
-            SelectedProfile = await profileModel.Get(ctsProfileLoading.Token).ConfigureAwait(false);
-            if (SelectedProfile == null)
-            {
-                SelectedProfile = await profileModel.Empty(ctsProfileLoading.Token).ConfigureAwait(false);
-            }
+            ContentModel = await ContentModel.Get(ctsProfileLoading.Token).ConfigureAwait(false);
             CurrentSelections = await SelectedProfile.LoadSettingsModel<ProfileSelectionsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
 
             //Initial setup if necessary
-            if (SelectedProfile.ContentFolders.Count == 0)
+            if (ContentModel.ContentFolders.Count == 0)
             {
                 await ShowOptionsForm(true).ConfigureAwait(false);
             }
             else
             {
-                FrozenSet<FolderModel> contentFolders = await SelectedProfile.GetFolders(ctsProfileLoading.Token).ConfigureAwait(false);
-                SetupFoldersDropdown(contentFolders);
+                SetupFoldersDropdown(ContentModel.ContentFolders);
                 await SetupFolderFromSelection().ConfigureAwait(false);
             }
         }

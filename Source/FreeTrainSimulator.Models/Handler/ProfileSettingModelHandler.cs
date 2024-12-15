@@ -2,28 +2,25 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Settings;
 
 using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Handler
 {
-    public sealed class ProfileSettingModelHandler<TSettingsModel> where TSettingsModel : ProfileSettingsModelBase, IFileResolve
+    internal sealed class ProfileSettingModelHandler<TSettingsModel> where TSettingsModel : ProfileSettingsModelBase
     {
         public const string SaveStateExtension = FileNameExtensions.SaveFile;
 
-        public static void SetValueByName(TSettingsModel instance, string propertyName, object value)
-        {
-            IOrderedEnumerable<PropertyInfo> properties = typeof(TSettingsModel).GetProperties(BindingFlags.Public | BindingFlags.Instance).OrderBy(p => p.Name);
-            properties.Where(p => p.Name == propertyName).FirstOrDefault()?.SetValue(instance, value);
-        }
+        //public static void SetValueByName(TSettingsModel instance, string propertyName, object value)
+        //{
+        //    IOrderedEnumerable<PropertyInfo> properties = typeof(TSettingsModel).GetProperties(BindingFlags.Public | BindingFlags.Instance).OrderBy(p => p.Name);
+        //    properties.Where(p => p.Name == propertyName).FirstOrDefault()?.SetValue(instance, value);
+        //}
 
         internal static async Task<TSettingsModel> FromFile(TSettingsModel instance, CancellationToken cancellationToken)
         {

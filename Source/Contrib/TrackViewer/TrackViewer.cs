@@ -30,6 +30,7 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 
 using GetText;
@@ -234,8 +235,8 @@ namespace ORTS.TrackViewer
 #pragma warning restore CA1031 // Do not catch general exception types
             }
 
-            ProfileModel profile = Task.Run(async() => await ProfileModel.None.Get(CancellationToken.None).ConfigureAwait(false)).Result;
-            InstallFolder = profile.ContentFolders.Where(f => System.IO.Path.GetRelativePath(f.ContentPath, Properties.Settings.Default.installDirectory) == ".").FirstOrDefault(); 
+            ContentModel contentModel = Task.Run(async() => await ContentModel.None.Get(CancellationToken.None).ConfigureAwait(false)).Result;
+            InstallFolder = contentModel.ContentFolders.Where(f => System.IO.Path.GetRelativePath(f.ContentPath, Properties.Settings.Default.installDirectory) == ".").FirstOrDefault(); 
 
             FindRoutes(InstallFolder);
 
@@ -898,8 +899,8 @@ namespace ORTS.TrackViewer
         private bool SetSelectedInstallFolder(string folderPath)
         {
             drawTerrain?.Clear();
-            ProfileModel profile = Task.Run(async () => await ProfileModel.None.Get(CancellationToken.None).ConfigureAwait(false)).Result;
-            FolderModel newInstallFolder = profile.ContentFolders.Where(f => System.IO.Path.GetRelativePath(f.ContentPath, folderPath) == ".").FirstOrDefault();
+            ContentModel contentModel = Task.Run(async () => await ContentModel.None.Get(CancellationToken.None).ConfigureAwait(false)).Result;
+            FolderModel newInstallFolder = contentModel.ContentFolders.Where(f => System.IO.Path.GetRelativePath(f.ContentPath, folderPath) == ".").FirstOrDefault();
 
             bool foundroutes = FindRoutes(newInstallFolder);
             if (!foundroutes)

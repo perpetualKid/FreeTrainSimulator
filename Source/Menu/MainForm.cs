@@ -44,6 +44,7 @@ using GetText;
 using GetText.WindowsForms;
 
 using Orts.Settings;
+using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Menu
 {
@@ -76,7 +77,7 @@ namespace FreeTrainSimulator.Menu
 
         #region current selection to be passed a startup parameters
         internal ProfileModel SelectedProfile { get; private set; }
-
+        internal ContentModel ContentModel { get; private set; }
         internal string SelectedSaveFile { get; private set; }
         #endregion
 
@@ -126,6 +127,8 @@ namespace FreeTrainSimulator.Menu
         {
             ImmutableArray<string> options = Environment.GetCommandLineArgs().
                 Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
+
+            await LoadSettings().ConfigureAwait(true);
             settings = new UserSettings(options);
 
             if (settings.Logging)
@@ -156,6 +159,13 @@ namespace FreeTrainSimulator.Menu
 
             UpdateEnabled();
         }
+
+        private async Task LoadSettings()
+        {
+            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
+            SelectedProfile = await SelectedProfile.Current(ctsProfileLoading.Token).ConfigureAwait(false);
+        }
+
 
         private IEnumerable<ToolStripItem> LoadTools()
         {
@@ -472,7 +482,7 @@ namespace FreeTrainSimulator.Menu
 
         private void TestingToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (TestingForm form = new TestingForm(SelectedProfile, RuntimeInfo.ActivityRunnerExecutable))
+            using (TestingForm form = new TestingForm(ContentModel, RuntimeInfo.ActivityRunnerExecutable))
             {
                 _ = form.ShowDialog(this);
             }
@@ -491,7 +501,7 @@ namespace FreeTrainSimulator.Menu
                 Invoke(ShowOptionsForm, initialSetup);
                 return;
             }
-            using (OptionsForm form = new OptionsForm(settings, updateManager, initialSetup, CurrentSelections))
+            using (OptionsForm form = new OptionsForm(settings, updateManager, initialSetup, CurrentSelections, ContentModel))
             {
                 switch (form.ShowDialog(this))
                 {
@@ -504,7 +514,8 @@ namespace FreeTrainSimulator.Menu
                             {
                                 progressForm.Show(this);
                                 Enabled = false;
-                                await ProfileChanged(await form.ProfileModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(true)).ConfigureAwait(true);
+                                await form.ContentModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(true);
+                                await ProfileChanged(SelectedProfile).ConfigureAwait(true);
                                 await Task.Delay(1200).ConfigureAwait(true);
                                 progressForm.Close();
                             }
@@ -634,6 +645,7 @@ namespace FreeTrainSimulator.Menu
             settings.Save();
 
             CurrentSelections = await SelectedProfile.UpdateSettingsModel(CurrentSelections, CancellationToken.None).ConfigureAwait(false);
+            await SelectedProfile.UpdateCurrent(CancellationToken.None).ConfigureAwait(!false);
         }
         #endregion
 
@@ -678,7 +690,7 @@ namespace FreeTrainSimulator.Menu
             }
             comboBoxFolder.EnableComboBoxItemDataSource(contentFolders.OrderBy(f => f.Name).Select(f => new ComboBoxItem<FolderModel>(f.Name, f)));
 
-            if (SelectedProfile.ContentFolders.Count > 0)
+            if (ContentModel.ContentFolders.Count > 0)
             {
                 _ = comboBoxFolder.Focus();
             }

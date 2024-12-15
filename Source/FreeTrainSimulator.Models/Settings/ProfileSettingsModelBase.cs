@@ -1,17 +1,25 @@
-﻿using FreeTrainSimulator.Common;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Base;
-using FreeTrainSimulator.Models.Content;
+
+using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Settings
 {
     public abstract record ProfileSettingsModelBase : ModelBase
     {
-        public override ProfileModel Parent => _parent as ProfileModel;
+        [MemoryPackIgnore]
+        public override ProfileSettingsModelBase Parent => _parent as ProfileSettingsModelBase;
+
+        public ProfileSettingsModelBase() : base()
+        { }
+
+        protected ProfileSettingsModelBase(string name, ProfileSettingsModelBase parent) : base(name, parent)
+        { }
 
         public void Log()
         {

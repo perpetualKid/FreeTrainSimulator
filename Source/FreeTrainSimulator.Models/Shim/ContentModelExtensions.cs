@@ -1,13 +1,24 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
 
 using FreeTrainSimulator.Models.Base;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Handler;
+using System.Collections.Generic;
 
 namespace FreeTrainSimulator.Models.Shim
 {
     public static class ContentModelExtensions
     {
+        #region Content Model
+        public static async Task<ContentModel> Get(this ContentModel _, CancellationToken cancellationToken) => await ContentModelHandler.GetCore(cancellationToken) ?? await Setup(_, null, cancellationToken);
+        public static Task<ContentModel> Setup(this ContentModel _, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) => ContentModelHandler.Setup(folders, cancellationToken);
+        #endregion
+
+        #region common extensions
         public static T GetByName<T>(this FrozenSet<T> models, string name) where T : ModelBase
         {
             return models.Where(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
@@ -22,5 +33,6 @@ namespace FreeTrainSimulator.Models.Shim
         {
             return models.Where(m => string.Equals(m.Id, id, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
         }
+        #endregion
     }
 }

@@ -52,16 +52,16 @@ namespace FreeTrainSimulator.Menu
         private readonly Dictionary<Control, HelpIconHover> helpIconMap = new Dictionary<Control, HelpIconHover>();
 
         private const string baseUrl = "https://open-rails.readthedocs.io/en/latest";
-        internal ProfileModel ProfileModel { get; private set; }
+        internal ContentModel ContentModel { get; private set; }
 
-        public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup, ProfileSelectionsModel profileSelections)
+        public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup, ProfileSelectionsModel profileSelections, ContentModel contentModel)
         {
             InitializeComponent();
             catalog = CatalogManager.Catalog;
             Localizer.Localize(this, catalog);
 
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            this.ProfileModel = profileSelections?.Parent ?? throw new ArgumentNullException(nameof(settings));
+            this.ContentModel = contentModel ?? throw new ArgumentNullException(nameof(contentModel));
             this.updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
 
             InitializeHelpIcons();
@@ -202,9 +202,9 @@ namespace FreeTrainSimulator.Menu
             checkDataLogStationStops.Checked = this.settings.EvaluationStationStops;
 
             bindingSourceContent.DataSource = initialContentSetup ?
-                this.settings.FolderSettings.Folders.Select(f => new FolderModel(f.Key, f.Value, ProfileModel)).ToList() :
-                ProfileModel.ContentFolders.Count == 0 ? new List<FolderModel>() { ProfileModel.TrainSimulatorFolder() } :
-                ProfileModel.ContentFolders.OrderBy(f => f.Name).ToList();
+                this.settings.FolderSettings.Folders.Select(f => new FolderModel(f.Key, f.Value, ContentModel)).ToList() :
+                ContentModel.ContentFolders.Count == 0 ? new List<FolderModel>() { ContentModel.TrainSimulatorFolder() } :
+                ContentModel.ContentFolders.OrderBy(f => f.Name).ToList();
 
             if (initialContentSetup)
             {
@@ -363,7 +363,7 @@ namespace FreeTrainSimulator.Menu
             settings.EvaluationStationStops = checkDataLogStationStops.Checked;
 
             // Content tab
-            ProfileModel = ProfileModel with
+            ContentModel = ContentModel with
             {
                 ContentFolders = (bindingSourceContent.DataSource as List<FolderModel>).ToFrozenSet(),
             };
@@ -804,7 +804,7 @@ namespace FreeTrainSimulator.Menu
 
         private void BindingSourceContent_AddingNew(object sender, System.ComponentModel.AddingNewEventArgs e)
         {
-            e.NewObject = (bindingSourceContent.DataSource as List<FolderModel>).LastOrDefault() ?? ProfileModel.TrainSimulatorFolder();
+            e.NewObject = (bindingSourceContent.DataSource as List<FolderModel>).LastOrDefault() ?? ContentModel.TrainSimulatorFolder();
         }
     }
 }
