@@ -128,7 +128,7 @@ namespace FreeTrainSimulator.Menu
             ImmutableArray<string> options = Environment.GetCommandLineArgs().
                 Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
 
-            await LoadSettings().ConfigureAwait(true);
+            ProfileModel currentProfile = await LoadSettings().ConfigureAwait(true);
             settings = new UserSettings(options);
 
             if (settings.Logging)
@@ -140,7 +140,7 @@ namespace FreeTrainSimulator.Menu
             updateManager = new UpdateManager(settings);
 
             linkLabelWhatsNew.Tag = RuntimeInfo.WhatsNewLinkTemplate.Replace("gitcodeversion", VersionInfo.CodeVersion, StringComparison.OrdinalIgnoreCase);
-            Task profileTask = ProfileChanged(ProfileModel.None);
+            Task profileTask = ProfileChanged(currentProfile);
 
             linkLabelUpdate.Visible = false;
             LoadLanguage();
@@ -160,10 +160,10 @@ namespace FreeTrainSimulator.Menu
             UpdateEnabled();
         }
 
-        private async Task LoadSettings()
+        private async Task<ProfileModel> LoadSettings()
         {
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
-            SelectedProfile = await SelectedProfile.Current(ctsProfileLoading.Token).ConfigureAwait(false);
+            return await SelectedProfile.Current(ctsProfileLoading.Token).ConfigureAwait(false);
         }
 
 
@@ -506,16 +506,17 @@ namespace FreeTrainSimulator.Menu
                 switch (form.ShowDialog(this))
                 {
                     case DialogResult.OK:
-                        SelectedProfile = null;
                         ModelConverterProgress progressForm = null;
                         try
                         {
+                            ProfileModel currentProfile = SelectedProfile;
+                            SelectedProfile = null;
                             progressForm = new ModelConverterProgress();
                             {
                                 progressForm.Show(this);
                                 Enabled = false;
-                                await form.ContentModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(true);
-                                await ProfileChanged(SelectedProfile).ConfigureAwait(true);
+                                ContentModel = await form.ContentModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(true);
+                                await ProfileChanged(currentProfile).ConfigureAwait(true);
                                 await Task.Delay(1200).ConfigureAwait(true);
                                 progressForm.Close();
                             }

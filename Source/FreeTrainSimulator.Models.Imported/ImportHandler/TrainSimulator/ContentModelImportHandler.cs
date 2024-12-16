@@ -11,14 +11,14 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
     internal sealed class ContentModelImportHandler : ContentHandlerBase<ContentModel>
     {
         private const string root = "root";
+        private const string keyName = "content";
 
         public static Task<ContentModel> Expand(ContentModel contentModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
-            string key = contentModel.Name;
 
             Task<ContentModel> modelTask = Convert(contentModel, cancellationToken);
-            modelTaskCache[key] = modelTask;
+            modelTaskCache[keyName] = modelTask;
             collectionUpdateRequired[root] = true;
 
             return modelTask;
