@@ -140,12 +140,6 @@ namespace FreeTrainSimulator.Menu
 
             settings = new UserSettings(options);
 
-            if (settings.Logging)
-            {
-                string logFileName = RuntimeInfo.LogFile(settings.LoggingPath, $"{Path.GetFileNameWithoutExtension(settings.LoggingFilename)} - Menu{Path.GetExtension(settings.LoggingFilename)}");
-                LoggingUtil.InitLogging(logFileName, TraceSettings.Errors | TraceSettings.Trace, false);
-            }
-
             updateManager = new UpdateManager(settings);
 
             linkLabelWhatsNew.Tag = RuntimeInfo.WhatsNewLinkTemplate.Replace("gitcodeversion", VersionInfo.CodeVersion, StringComparison.OrdinalIgnoreCase);
