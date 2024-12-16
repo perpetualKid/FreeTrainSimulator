@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Logging;
 using FreeTrainSimulator.Models.Base;
 
 using MemoryPack;
@@ -45,6 +46,7 @@ namespace FreeTrainSimulator.Models.Settings
                 }
                 Trace.WriteLine($"{property.Name[..Math.Min(30, property.Name.Length)],-30} = {value?.ToString().Replace(Environment.UserName, "********") ?? "<null>"}");
             }
+            Trace.WriteLine(LoggingUtil.SeparatorLine);
         }
     }
 }

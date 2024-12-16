@@ -109,7 +109,6 @@ namespace FreeTrainSimulator.Toolbox
                 LogFileName = RuntimeInfo.LogFile(ToolboxUserSettings.LogFilePath, ToolboxUserSettings.LogFileName);
                 LoggingUtil.InitLogging(LogFileName, TraceSettings.Errors | TraceSettings.ErrorStack | TraceSettings.Trace, false);
                 ToolboxSettings.Log();
-                Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
 
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);

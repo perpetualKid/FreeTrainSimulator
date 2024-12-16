@@ -77,6 +77,7 @@ namespace FreeTrainSimulator.Menu
 
         #region current selection to be passed a startup parameters
         internal ProfileModel SelectedProfile { get; private set; }
+        internal ProfileUserSettingsModel ProfileUserSettings { get; private set; }
         internal ContentModel ContentModel { get; private set; }
         internal string SelectedSaveFile { get; private set; }
         #endregion
@@ -129,6 +130,14 @@ namespace FreeTrainSimulator.Menu
                 Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
 
             ProfileModel currentProfile = await LoadSettings().ConfigureAwait(true);
+
+            if (ProfileUserSettings.LogLevel != TraceSettings.None)
+            {
+                string logFileName = RuntimeInfo.LogFile(ProfileUserSettings.LogFilePath, ProfileUserSettings.LogFileName);
+                LoggingUtil.InitLogging(logFileName, TraceSettings.Errors | TraceSettings.ErrorStack | TraceSettings.Trace, false);
+                ProfileUserSettings.Log();
+            }
+
             settings = new UserSettings(options);
 
             if (settings.Logging)
@@ -163,7 +172,10 @@ namespace FreeTrainSimulator.Menu
         private async Task<ProfileModel> LoadSettings()
         {
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
-            return await SelectedProfile.Current(ctsProfileLoading.Token).ConfigureAwait(false);
+
+            ProfileModel currentProfile = await SelectedProfile.Current(ctsProfileLoading.Token).ConfigureAwait(false);
+            ProfileUserSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
+            return currentProfile;
         }
 
 
