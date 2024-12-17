@@ -109,29 +109,26 @@ namespace FreeTrainSimulator.Models.Handler
         //    return profileModel;
         //}
 
-        private static async Task<FrozenSet<ProfileModel>> LoadProfiles(CancellationToken cancellationToken)
+        private static Task<FrozenSet<ProfileModel>> LoadProfiles(CancellationToken cancellationToken)
         {
             string profilesFolder = ModelFileResolver<ProfileModel>.FolderPath((ModelBase)null);
-            string pattern = ModelFileResolver<ProfileModel>.WildcardSavePattern;
 
             ConcurrentBag<ProfileModel> results = new ConcurrentBag<ProfileModel>();
 
             //load existing profile models, and compare if the corresponding folder still exists.
             if (Directory.Exists(profilesFolder))
             {
-                await Parallel.ForEachAsync(Directory.EnumerateFiles(profilesFolder, pattern), cancellationToken, async (file, token) =>
+                Parallel.ForEach(Directory.EnumerateDirectories(profilesFolder), (directory) =>
                 {
-                    string profileId = Path.GetFileNameWithoutExtension(file);
+                    string profileId = Path.GetFileNameWithoutExtension(directory);
 
                     if (profileId.EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
                         profileId = profileId[..^fileExtension.Length];
 
-                    ProfileModel profile = await GetCore(profileId, token).ConfigureAwait(false);
-                    if (null != profile)
-                        results.Add(profile);
-                }).ConfigureAwait(false);
+                    results.Add(new ProfileModel(profileId));
+                });
             }
-            return results.ToFrozenSet();
+            return Task.FromResult(results.ToFrozenSet());
         }
     }
 }
