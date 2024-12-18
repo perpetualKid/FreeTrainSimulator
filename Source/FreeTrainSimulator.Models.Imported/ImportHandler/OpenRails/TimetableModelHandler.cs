@@ -13,8 +13,8 @@ using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.Shim;
 
-using Orts.Formats.OR.Files;
-using Orts.Formats.OR.Models;
+using Orts.Formats.OpenRails.Files;
+using Orts.Formats.OpenRails.Models;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.OpenRails
 {

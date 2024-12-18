@@ -20,8 +20,6 @@
     <ProjectReference Include="..\..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
     <ProjectReference Include="..\..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
     <ProjectReference Include="..\..\FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj" />
-    <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
-    <ProjectReference Include="..\..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
     <ProjectReference Include="..\..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
     <ProjectReference Include="..\..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />

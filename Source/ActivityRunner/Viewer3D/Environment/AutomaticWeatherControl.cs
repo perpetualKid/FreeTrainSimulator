@@ -18,7 +18,6 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -30,8 +29,8 @@ using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.OR.Files;
-using Orts.Formats.OR.Models;
+using Orts.Formats.OpenRails.Files;
+using Orts.Formats.OpenRails.Models;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment
 {

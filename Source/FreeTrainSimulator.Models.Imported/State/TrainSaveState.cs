@@ -9,7 +9,7 @@ using MemoryPack;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Formats.OR.Models;
+using Orts.Formats.OpenRails.Models;
 
 namespace FreeTrainSimulator.Models.Imported.State
 {

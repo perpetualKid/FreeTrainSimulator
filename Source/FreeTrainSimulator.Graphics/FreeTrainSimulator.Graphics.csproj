@@ -46,8 +46,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
-		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
-		<ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
 		<PackageReference Include="System.Resources.Extensions" Version="9.0.0" />
 	</ItemGroup>
 	<ItemGroup>

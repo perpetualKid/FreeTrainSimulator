@@ -18,8 +18,8 @@
 using System;
 using System.IO;
 
-using Orts.Formats.OR.Files;
-using Orts.Formats.OR.Parsers;
+using Orts.Formats.OpenRails.Files;
+using Orts.Formats.OpenRails.Parsers;
 
 namespace Orts.ContentChecker
 {

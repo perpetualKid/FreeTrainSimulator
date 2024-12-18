@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Imported.State;
 
-using Orts.Formats.OR.Models;
+using Orts.Formats.OpenRails.Models;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment
 {

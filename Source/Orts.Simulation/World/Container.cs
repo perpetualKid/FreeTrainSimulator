@@ -33,8 +33,8 @@ using FreeTrainSimulator.Models.Imported.State;
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Models;
-using Orts.Formats.OR.Files;
-using Orts.Formats.OR.Models;
+using Orts.Formats.OpenRails.Files;
+using Orts.Formats.OpenRails.Models;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 
