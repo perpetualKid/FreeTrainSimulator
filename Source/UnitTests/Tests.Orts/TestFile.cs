@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Tests.Orts.Shared
+namespace Tests.Orts
 {
     public class TestFile : IDisposable
     {

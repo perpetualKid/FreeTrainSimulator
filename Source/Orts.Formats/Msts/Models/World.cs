@@ -68,21 +68,21 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        private protected WorldPosition worldPosition;
+        private protected WorldPosition _worldPosition;
         public string FileName { get; protected set; }
         public uint UiD { get; protected set; }
         public int DetailLevel { get; protected set; }
         public uint StaticFlags { get; protected set; }
 
-        public ref readonly WorldPosition WorldPosition => ref worldPosition;
+        public ref readonly WorldPosition WorldPosition => ref _worldPosition;
 
         internal void AddOrModifyObj(SBR subBlock)
         {
-            PositionHolder holder = new PositionHolder(worldPosition.Tile);
+            PositionHolder holder = new PositionHolder(_worldPosition.Tile);
             AddOrModifyObj(subBlock, holder);
 
             if (holder.LocationSet && (holder.PositionSet || holder.DirectionSet))
-                worldPosition = PositionHolder.WorldPositionFromMSTSLocation(holder, UiD);
+                _worldPosition = PositionHolder.WorldPositionFromMSTSLocation(holder, UiD);
         }
 
         private protected virtual void AddOrModifyObj(SBR subBlock, PositionHolder holder)
@@ -133,7 +133,7 @@ namespace Orts.Formats.Msts.Models
                     }
                 }
             }
-            worldPosition = PositionHolder.WorldPositionFromMSTSLocation(holder, UiD);
+            _worldPosition = PositionHolder.WorldPositionFromMSTSLocation(holder, UiD);
             if (this is HazardObject hazard)  //remember the Quaternation component
             {
                 hazard.Direction = holder.Direction;
@@ -725,7 +725,7 @@ namespace Orts.Formats.Msts.Models
             FileName = source.FileName;
             DetailLevel = source.DetailLevel;
             UiD = source.UiD;
-            worldPosition = source.WorldPosition;
+            _worldPosition = source.WorldPosition;
             TrackSections = new List<TrackSection>() { source.TrackSections[trackSetionIndex] };
         }
 
@@ -1023,7 +1023,7 @@ namespace Orts.Formats.Msts.Models
 
         public void UpdatePosition(float distance)
         {
-            worldPosition = WorldPosition.ChangeTranslation(euler.X * distance, euler.Y * distance, euler.Z * distance);
+            _worldPosition = WorldPosition.ChangeTranslation(euler.X * distance, euler.Y * distance, euler.Z * distance);
         }
     }
 

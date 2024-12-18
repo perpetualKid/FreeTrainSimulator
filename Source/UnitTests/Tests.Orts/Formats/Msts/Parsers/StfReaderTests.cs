@@ -10,8 +10,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Parsers;
 
-using Tests.Orts.Shared;
-
 namespace Tests.Orts.Formats.Msts.Parsers
 {
     // General note on 'using new STFreader'

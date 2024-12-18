@@ -6,8 +6,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.OpenRails.Parsers;
 
-using Tests.Orts.Shared;
-
 namespace Tests.Orts.Formats.OpenRails.Parsers
 {
     [TestClass]

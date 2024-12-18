@@ -22,14 +22,14 @@ namespace Orts.Formats.Msts.Models
         //there exist two Parameter to locate a TrackItem, which define the same point
         //TrItemSData() is the distance in meters from the starting point of a track part
         //TrItemRData() is a three-dimensional coordinate in space, for the same object
-        private protected WorldLocation location;
+        private protected WorldLocation _location;
 
         /// <summary>
         /// The name of the item (used for the label shown by F6)
         /// </summary>
         public string ItemName { get; protected set; }
 
-        public ref readonly WorldLocation Location => ref location;
+        public ref readonly WorldLocation Location => ref _location;
 
         /// <summary>Id if track item</summary>
         public int TrackItemId { get; internal protected set; }
@@ -68,7 +68,7 @@ namespace Orts.Formats.Msts.Models
             float x = stf.ReadFloat(null);
             float y = stf.ReadFloat(null);
             float z = stf.ReadFloat(null);
-            location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), x, y, z);
+            _location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), x, y, z);
             stf.SkipRestOfBlock();
         }
 
@@ -321,7 +321,7 @@ namespace Orts.Formats.Msts.Models
         {
             // TrItemId needs to be set later
             position = worldPosition;
-            this.location = location;
+            this._location = location;
 
             IsMilePost = false;
             flags = isWarning ? flags & 1u : flags & ~1u;   //isWarning
@@ -344,7 +344,7 @@ namespace Orts.Formats.Msts.Models
 
         public void Update(float y, float angle, in WorldPosition position)
         {
-            location = location.SetElevation(y);
+            _location = _location.SetElevation(y);
             Angle = angle;
             this.position = position;
         }
