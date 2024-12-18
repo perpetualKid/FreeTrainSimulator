@@ -2000,11 +2000,11 @@ namespace ORTS.TrackViewer.Editing
         protected override void ExecuteAction()
         {
             int NumberOfActiveNode = Trainpath.GetNodeNumber(ActiveNode);
-            IEnumerable<int> brokenNodeNumbers = (from node in Trainpath.GetBrokenNodes() select Trainpath.GetNodeNumber(node));
-            IEnumerable<int> brokenNodeNumbersAfterActive = (from i in brokenNodeNumbers where i > NumberOfActiveNode select i);
+            List<int> brokenNodeNumbers = Trainpath.GetBrokenNodes().Select(Trainpath.GetNodeNumber).ToList();
+            List<int> brokenNodeNumbersAfterActive = brokenNodeNumbers.Where(i => i > NumberOfActiveNode).ToList();
 
             int newNumberToDraw;
-            if (brokenNodeNumbersAfterActive.Any())
+            if (brokenNodeNumbersAfterActive.Count != 0)
             {   // take the first node after this node
                 newNumberToDraw = brokenNodeNumbersAfterActive.Min();
             }

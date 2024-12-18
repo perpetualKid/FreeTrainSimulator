@@ -90,8 +90,8 @@ namespace Orts.Formats.Msts.Models
     #region CabViewControl
     public abstract class CabViewControl
     {
-        private protected Rectangle bounds;
-        public ref readonly Rectangle Bounds => ref bounds;
+        private protected Rectangle _bounds;
+        public ref readonly Rectangle Bounds => ref _bounds;
 
         public float ScaleRangeMin { get; protected set; }
         public float ScaleRangeMax { get; protected set; } = 1.0f;
@@ -132,14 +132,14 @@ namespace Orts.Formats.Msts.Models
         private protected void ParsePosition(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            bounds = new Rectangle(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null));
+            _bounds = new Rectangle(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null));
 
             // skipping additional values in between
             while (!stf.EndOfBlock())
             {
                 STFException.TraceWarning(stf, "Ignored additional positional parameters");
-                bounds.Width = bounds.Height;
-                bounds.Height = stf.ReadInt(null);
+                _bounds.Width = _bounds.Height;
+                _bounds.Height = stf.ReadInt(null);
             }
         }
 
@@ -347,9 +347,9 @@ namespace Orts.Formats.Msts.Models
     #region Gauges
     public class CabViewGaugeControl : CabViewControl
     {
-        private protected Rectangle area;
+        private protected Rectangle _area;
 
-        public ref readonly Rectangle Area => ref area;
+        public ref readonly Rectangle Area => ref _area;
         public int ZeroPos { get; private set; }
         public int Orientation { get; protected set; }
         public int Direction { get; protected set; }
@@ -384,7 +384,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("dirincrease", ()=>{ Direction = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("area", ()=>{
                     stf.MustMatchBlockStart();
-                    area = new Rectangle(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null));
+                    _area = new Rectangle(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null));
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("positivecolour", ()=>{
@@ -436,8 +436,8 @@ namespace Orts.Formats.Msts.Models
             ScaleRangeMax = 1;
             ScaleRangeMin = 0;
             ControlStyle = CabViewControlStyle.Pointer;
-            area = new Rectangle(Point.Zero, Bounds.Size);
-            bounds.Y += Bounds.Height / 2;
+            _area = new Rectangle(Point.Zero, Bounds.Size);
+            _bounds.Y += Bounds.Height / 2;
         }
     }
     #endregion

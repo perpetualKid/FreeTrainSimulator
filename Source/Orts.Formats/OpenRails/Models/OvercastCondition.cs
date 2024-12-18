@@ -21,6 +21,7 @@ namespace Orts.Formats.OpenRails.Models
 
         internal protected override bool TryParse(JsonReader reader)
         {
+            ArgumentNullException.ThrowIfNull(reader, nameof(reader));
             // get values
             if (base.TryParse(reader))
                 return true;

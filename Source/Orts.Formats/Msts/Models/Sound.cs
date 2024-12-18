@@ -218,7 +218,9 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public class SmsStream
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
     {
         public int Priority { get; private set; }
         public Triggers Triggers { get; private set; }

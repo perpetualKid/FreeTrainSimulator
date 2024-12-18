@@ -21,7 +21,7 @@ using System.Text.RegularExpressions;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Tests.Orts.Shared
+namespace Tests.Orts
 {
     public delegate void RunCode();
 
