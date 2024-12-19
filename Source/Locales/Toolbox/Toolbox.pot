@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Toolbox\n"
-"POT-Creation-Date: 2023-02-08 11:32:35+0100\n"
-"PO-Revision-Date: 2023-02-08 11:32:35+0100\n"
+"POT-Creation-Date: 2024-12-19 22:04:44+0100\n"
+"PO-Revision-Date: 2024-12-19 22:04:44+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
-#: ..\..\..\Toolbox\GameWindow.cs:72
+#: ..\..\..\Toolbox\GameWindow.cs:78
 #, csharp-format
 msgid " Route: {0}"
 msgstr ""
@@ -20,12 +20,12 @@ msgstr ""
 msgid "{0} {1}"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\AboutWindow.cs:19
+#: ..\..\..\Toolbox\PopupWindows\AboutWindow.cs:20
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:721
 msgid "About"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:128
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:130
 msgid "Available Train Paths"
 msgstr ""
 
@@ -38,19 +38,35 @@ msgstr ""
 msgid "Cancel ({0})"
 msgstr ""
 
+#: ..\..\..\Toolbox\UserCommand.cs:7
+msgid "Cancel or Close"
+msgstr ""
+
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:285
 msgid "Car Spawners"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:43
+#: ..\..\..\Toolbox\UserCommand.cs:9
+msgid "Change Screen Mode"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:44
 msgid "Command"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:29
+msgid "Common"
 msgstr ""
 
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:237
 msgid "Crossver Nodes"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:328
+#: ..\..\..\Toolbox\UserCommand.cs:19
+msgid "Debug Information (Tab)"
+msgstr ""
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:343
 msgid "Do you want to visit the website now?"
 msgstr ""
 
@@ -58,12 +74,12 @@ msgstr ""
 msgid "Documentation"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:325
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:340
 #, csharp-format
 msgid "Documentation for {0} is available online at:"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:57
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:60
 msgid "Enable Logging"
 msgstr ""
 
@@ -80,28 +96,36 @@ msgstr ""
 msgid "File"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrackItemInfoWindow.cs:47
+#: ..\..\..\Toolbox\PopupWindows\TrackItemInfoWindow.cs:46
 msgid "Find Track Item by Index"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:58
+#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:59
 msgid "Find Track Node by Index"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:33
+msgid "Graphics"
 msgstr ""
 
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:376
 msgid "Hazards"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:32
+#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:33
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:708
 msgid "Help"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:101
+#: ..\..\..\Toolbox\UserCommand.cs:21
+msgid "Help Window (Tab)"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:103
 msgid "Idx"
 msgstr ""
 
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:177
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:179
 msgid "Image files (*.png)"
 msgstr ""
 
@@ -113,7 +137,7 @@ msgstr ""
 msgid "Junction Nodes"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:46
+#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:47
 msgid "Key"
 msgstr ""
 
@@ -126,13 +150,21 @@ msgstr ""
 msgid "Load Path"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\StatusTextWindow.cs:24
+#: ..\..\..\Toolbox\PopupWindows\StatusTextWindow.cs:21
 msgid "Loading Route"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:113
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:112
 #, csharp-format
 msgid "Location (x, z) {0,4:00.##} {1,4:00.##}"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:20
+msgid "Location Window (Tab)"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:25
+msgid "Log Window (Tab)"
 msgstr ""
 
 #: ..\..\..\Toolbox\PopupWindows\LoggingWindow.cs:19
@@ -151,6 +183,22 @@ msgstr ""
 msgid "Mileposts"
 msgstr ""
 
+#: ..\..\..\Toolbox\UserCommand.cs:14
+msgid "Move Down (South)"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:11
+msgid "Move Left (East)"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:12
+msgid "Move Right (West)"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:13
+msgid "Move Up (North)"
+msgstr ""
+
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:698
 msgid "New Path"
 msgstr ""
@@ -163,10 +211,19 @@ msgstr ""
 msgid "Path Color"
 msgstr ""
 
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:31
+msgid "Path Data"
+msgstr ""
+
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:680
 msgid "Path Editor"
 msgstr ""
 
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:29
+msgid "Path Nodes"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:33
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:411
 msgid "Paths"
 msgstr ""
@@ -191,6 +248,10 @@ msgstr ""
 msgid "Preferences"
 msgstr ""
 
+#: ..\..\..\Toolbox\UserCommand.cs:10
+msgid "Quit"
+msgstr ""
+
 #: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:44
 #, csharp-format
 msgid "Quit ({0})"
@@ -200,11 +261,15 @@ msgstr ""
 msgid "Quit (Q)"
 msgstr ""
 
+#: ..\..\..\Toolbox\UserCommand.cs:17
+msgid "Reset Zoom and Center Location"
+msgstr ""
+
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:450
 msgid "Restore last view on Start"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:64
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:67
 msgid "Restore Last View on Start"
 msgstr ""
 
@@ -228,8 +293,12 @@ msgstr ""
 msgid "Road Segments"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:56
+#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:57
 msgid "Roads"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:18
+msgid "Screenshot"
 msgstr ""
 
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:459
@@ -244,12 +313,16 @@ msgstr ""
 msgid "Select Route Folder"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:114
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:116
 msgid "Setting"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:41
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:43
 msgid "Settings"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:24
+msgid "Settings Window (Tab)"
 msgstr ""
 
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:419
@@ -270,6 +343,10 @@ msgstr ""
 
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:390
 msgid "Sound Regions"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:8
+msgid "Span another instance"
 msgstr ""
 
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:362
@@ -301,11 +378,11 @@ msgstr ""
 msgid "Take Screenshot (PrtScr)"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:329
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:344
 msgid "This will open the page in standard web browser."
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:112
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:111
 #, csharp-format
 msgid "Tile (X:Z) {0}:{1}"
 msgstr ""
@@ -318,6 +395,10 @@ msgstr ""
 msgid "Tile Grid"
 msgstr ""
 
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:31
+msgid "Toolbox"
+msgstr ""
+
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:493
 msgid "Track Color"
 msgstr ""
@@ -328,6 +409,10 @@ msgstr ""
 
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:508
 msgid "Track End Node Color"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:23
+msgid "Track Item Info Window (Tab)"
 msgstr ""
 
 #: ..\..\..\Toolbox\PopupWindows\TrackItemInfoWindow.cs:28
@@ -346,7 +431,11 @@ msgstr ""
 msgid "Track Level Crossing Color"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:35
+#: ..\..\..\Toolbox\UserCommand.cs:22
+msgid "Track Node Info Window (Tab)"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:36
 msgid "Track Node Information"
 msgstr ""
 
@@ -354,27 +443,31 @@ msgstr ""
 msgid "Track Segments"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:54
+#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:55
 msgid "Tracks"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:72
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:74
 msgid "Train Path Details"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:102
+#: ..\..\..\Toolbox\UserCommand.cs:26
+msgid "Train Path Window (Tab)"
+msgstr ""
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:104
 msgid "Type"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:71
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:74
 msgid "Use Font Outline"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:103
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:105
 msgid "Valid"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:115
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:117
 msgid "Value"
 msgstr ""
 
@@ -385,5 +478,13 @@ msgstr ""
 #: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:34
 #: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:78
 msgid "World Coordinates"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:15
+msgid "Zoom In"
+msgstr ""
+
+#: ..\..\..\Toolbox\UserCommand.cs:16
+msgid "Zoom Out"
 msgstr ""
 

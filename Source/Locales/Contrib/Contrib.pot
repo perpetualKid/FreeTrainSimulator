@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Contrib\n"
-"POT-Creation-Date: 2023-02-08 11:32:21+0100\n"
-"PO-Revision-Date: 2023-02-08 11:32:21+0100\n"
+"POT-Creation-Date: 2024-12-19 22:04:28+0100\n"
+"PO-Revision-Date: 2024-12-19 22:04:28+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -23,19 +23,19 @@ msgstr ""
 msgid "* The path has a stored and not-yet reconnected tail"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:407
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:409
 msgid "<Select path>"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:436
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:438
 msgid "<Select platform>"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:449
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:451
 msgid "<Select siding>"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:423
+#: ..\..\..\Contrib\TrackViewer\UserInterface\MenuControl.xaml.cs:425
 msgid "<Select station>"
 msgstr ""
 
@@ -63,7 +63,7 @@ msgstr ""
 msgid "99"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:755
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:756
 msgid "Add passing path"
 msgstr ""
 
@@ -72,7 +72,7 @@ msgid ""
 "alt-?\t\tVarious keys to open submenus\n"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1010
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1011
 msgid "Auto-fix broken points"
 msgstr ""
 
@@ -81,15 +81,15 @@ msgid ""
 "C\t\tShift to center of current path node\n"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:268
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:269
 msgid "Change start direction"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:244
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:245
 msgid "Clear path (keep tail)"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:270
+#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:269
 msgid "Closest junction is too far away"
 msgstr ""
 
@@ -113,30 +113,32 @@ msgid ""
 "ctrl-Z\t\tUndo in path editor\n"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:953
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:954
 msgid "Cut path here and store its tail"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:272
+#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:271
 msgid "Dangling siding node"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:924
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:925
 msgid "Delete rest of path"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:841
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:908
+#, csharp-format
 msgid ""
-"Directory is not a valid install directory.\n"
-"The install directory needs to contain ROUTES, GLOBAL, ..."
+"Directory \"{0}\"  is not a valid install directory.\n"
+"Please make sure the install directory is available through the Menu "
+"application!)"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:636
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:698
 msgid "Do you really want to Quit?"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1046
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1127
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1101
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1185
 #: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:99
 msgid "Do you want to continue?"
 msgstr ""
@@ -158,11 +160,11 @@ msgid ""
 "down arrow\tShift down\n"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1954
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1955
 msgid "Draw path until here"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1985
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1986
 msgid "Draw path until next broken point"
 msgstr ""
 
@@ -171,7 +173,7 @@ msgid ""
 "E\t\tPlace end-point\n"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:481
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:482
 msgid "Edit wait point"
 msgstr ""
 
@@ -210,11 +212,11 @@ msgid ""
 "F9\tShow sidings\n"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:260
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:251
 msgid "Finding the angles to draw signals, endnodes, ..."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:900
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:901
 msgid "Fix invalid point"
 msgstr ""
 
@@ -241,36 +243,36 @@ msgid ""
 "left arrow\tShift left\n"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1014
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1066
 msgid "Loading .pat file ..."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:75
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:79
 msgid "Loading road track database .rdb ..."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:910
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:962
 msgid "Loading route..."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTerrain.cs:651
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTerrain.cs:652
 #, csharp-format
 msgid "Loading terrain ace-files {0}-{1} (scaled down with a factor {2})"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:58
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:67
 msgid "Loading track database .tdb ..."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:55
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:54
 msgid "Loading trackfile .trk ..."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:61
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTrackDB.cs:70
 msgid "Loading tsection.dat ..."
 msgstr ""
 
-#: ..\..\..\Contrib\ContentManager\ContentManagerGUI.cs:99
+#: ..\..\..\Contrib\ContentManager\ContentManagerGUI.cs:101
 msgid "Loading..."
 msgstr ""
 
@@ -283,7 +285,7 @@ msgstr ""
 msgid "None of the labels could be read properly"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:271
+#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:270
 msgid "Not able to place node on track"
 msgstr ""
 
@@ -301,7 +303,7 @@ msgid ""
 "Saving is not possible."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1045
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1100
 msgid "Path has been modified. Loading a new path will discard changes."
 msgstr ""
 
@@ -315,19 +317,19 @@ msgid ""
 "PgUp\t\tShow more of the path\n"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:297
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:298
 msgid "Place end point"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:362
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:363
 msgid "Place reversal point"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:182
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:183
 msgid "Place start point"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:453
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:454
 msgid "Place wait point"
 msgstr ""
 
@@ -335,15 +337,15 @@ msgstr ""
 msgid "Please restart TrackViewer in order to load the new language."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1125
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1183
 msgid "Potentially it will therefore change all .pat files on disc."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\AutoFixAllPaths.xaml.cs:76
+#: ..\..\..\Contrib\TrackViewer\Editing\AutoFixAllPaths.xaml.cs:77
 msgid "Processing .pat file "
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1017
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1069
 msgid "Processing .pat file ..."
 msgstr ""
 
@@ -357,31 +359,31 @@ msgid ""
 "R\tZoom reset\n"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1180
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1181
 msgid "Reconnect passing path"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1118
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1119
 msgid "Reconnect to tail"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:336
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:337
 msgid "Remove end point"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:860
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:861
 msgid "Remove passing path"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:399
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:400
 msgid "Remove reversal point"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:217
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:218
 msgid "Remove start point"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:505
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:506
 msgid "Remove wait point"
 msgstr ""
 
@@ -389,19 +391,19 @@ msgstr ""
 msgid "Reopening it in TrackViewer, however, is likely to work."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTerrain.cs:677
+#: ..\..\..\Contrib\TrackViewer\Drawing\DrawTerrain.cs:678
 msgid "Rescaling previously loaded ace-files"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:868
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:869
 msgid "Reversing a path without end node is not supported"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:863
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:864
 msgid "Reversing a path without start node is not supported"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:858
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:859
 msgid "Reversing broken paths is not supported"
 msgstr ""
 
@@ -414,32 +416,32 @@ msgstr ""
 msgid "Right column → Open Rails Trackviewer"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:937
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:989
 msgid "Route cannot be loaded. Sorry"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:766
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:829
 #, csharp-format
 msgid ""
 "Route cannot be loaded.\n"
 "{0} does not exist"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:798
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:862
 #, csharp-format
 msgid ""
 "Route cannot be loaded.\n"
 "{0} somehow could not be translated into a loadable route"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:759
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:822
 #, csharp-format
 msgid ""
 "Route cannot be loaded.\n"
 "Extension {0} is not supported"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:773
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:836
 #, csharp-format
 msgid ""
 "Route cannot be loaded.\n"
@@ -535,7 +537,7 @@ msgstr ""
 msgid "Select text color"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:269
+#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:268
 msgid "Set as invalid in .pat file"
 msgstr ""
 
@@ -602,12 +604,12 @@ msgstr ""
 msgid "Some labels could not be read properly."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:795
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:796
 msgid "Start passing path"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:708
-#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1283
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:709
+#: ..\..\..\Contrib\TrackViewer\Editing\EditorActions.cs:1284
 msgid "Take other exit"
 msgstr ""
 
@@ -623,22 +625,22 @@ msgstr ""
 msgid "The MSTS format for defining broken paths is not understood very well."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:634
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:696
 msgid ""
 "The path you are working on has un-saved changes.\n"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:769
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:770
 msgid ""
 "The selected path contains no or only 1 node. The current path was not "
 "extended."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:812
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:813
 msgid "The selected path has been added as tail and then reconnected."
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:816
+#: ..\..\..\Contrib\TrackViewer\Editing\PathEditor.cs:817
 msgid ""
 "The selected path has been added as tail. It was not possible to reconnect "
 "automatically."
@@ -648,7 +650,7 @@ msgstr ""
 msgid "There were no labels read"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1126
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1184
 msgid ""
 "This can be useful when a route has been changed and you want all paths to be "
 "corrected."
@@ -658,20 +660,20 @@ msgstr ""
 msgid "This is ORTS TrackViewer, version "
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1124
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1182
 msgid ""
 "This will open every single .pat file for this route, (try to) fix all broken "
 "nodes, and save the modified path. "
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1047
-#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1128
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1102
+#: ..\..\..\Contrib\TrackViewer\TrackViewer.cs:1186
 #: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:85
 #: ..\..\..\Contrib\TrackViewer\Editing\SavePatFile.cs:102
 msgid "Trackviewer Path Editor"
 msgstr ""
 
-#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:273
+#: ..\..\..\Contrib\TrackViewer\Editing\TrainpathNode.cs:272
 msgid "Unknown"
 msgstr ""
 

@@ -21,6 +21,6 @@
     <ProjectReference Include="..\FreeTrainSimulator.Online\FreeTrainSimulator.Online.csproj" />
     <ProjectReference Include="..\Orts.Scripting.Api\Orts.Scripting.Api.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
-    <PackageReference Include="GetText.NET" Version="1.9.14" />
+    <PackageReference Include="GetText.NET" Version="8.0.5" />
   </ItemGroup>
 </Project>

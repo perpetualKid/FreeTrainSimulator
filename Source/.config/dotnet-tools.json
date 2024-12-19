@@ -9,13 +9,13 @@
       ]
     },
     "nbgv": {
-      "version": "3.6.146",
+      "version": "3.7.112",
       "commands": [
         "nbgv"
       ]
     },
     "gettext.net.extractor": {
-      "version": "1.9.14",
+      "version": "8.0.5",
       "commands": [
         "gettext.extractor"
       ]
