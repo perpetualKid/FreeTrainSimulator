@@ -31,7 +31,6 @@ namespace FreeTrainSimulator.Models.Settings
         public SeasonType Season { get; set; }
         public WeatherType Weather { get; set; }
         // Other selections
-        public string LoggingEnabled { get; set; }
         public GamePlayAction GamePlayAction { get; set; }
     }
 }
