@@ -42,7 +42,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             if (multiPlayerManager.IsDispatcher) //server got this message from Client
             {
                 //if a normal user, and the dispatcher does not want hand throw, just ignore it
-                if (ManuallySet && !multiPlayerManager.AllowedManualSwitch && !multiPlayerManager.aiderList.Contains(User))
+                if (ManuallySet && !multiPlayerManager.AllowedManualSwitch && !multiPlayerManager.AiderList.Contains(User))
                 {
                     MultiPlayerManager.Broadcast(new ControlMessage(User, ControlMessageType.SwitchWarning, "Server does not allow hand thrown of switch"));
                     return;

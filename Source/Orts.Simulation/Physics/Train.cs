@@ -974,7 +974,7 @@ namespace Orts.Simulation.Physics
                 return false;
             else
             {
-                string username = MultiPlayerManager.GetUserName();
+                string username = MultiPlayerManager.UserName1;
                 foreach (OnlinePlayer onlinePlayer in MultiPlayerManager.OnlineTrains.Players.Values)
                 {
                     // don't consider the present user

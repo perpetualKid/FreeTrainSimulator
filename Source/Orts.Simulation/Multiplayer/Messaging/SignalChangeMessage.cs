@@ -26,7 +26,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         public override void HandleMessage()
         {
-            if (multiPlayerManager.IsDispatcher && !multiPlayerManager.aiderList.Contains(User))
+            if (multiPlayerManager.IsDispatcher && !multiPlayerManager.AiderList.Contains(User))
                 return; //client will ignore it, also if not an aider, will ignore it
 
             Signal signal = Simulator.Instance.SignalEnvironment.Signals[SignalIndex];

@@ -1035,7 +1035,7 @@ namespace Orts.Simulation
                     if (train != drivenTrain && train.TrainType != TrainType.AiIncorporated)
                     {
                         //avoid coupling of player train with other players train
-                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(this, drivenTrain, train))
+                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(drivenTrain, train))
                             continue;
 
                         float d1 = drivenTrain.RearTDBTraveller.OverlapDistanceM(train.FrontTDBTraveller, true);
@@ -1105,7 +1105,7 @@ namespace Orts.Simulation
                     if (train != drivenTrain && train.TrainType != TrainType.AiIncorporated)
                     {
                         //avoid coupling of player train with other players train if it is too short alived (e.g, when a train is just spawned, it may overlap with another train)
-                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(this, drivenTrain, train))
+                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(drivenTrain, train))
                             continue;
                         //	{
                         //		if ((MPManager.Instance().FindPlayerTrain(train) && drivenTrain == PlayerLocomotive.Train) || (MPManager.Instance().FindPlayerTrain(drivenTrain) && train == PlayerLocomotive.Train)) continue;
@@ -1270,7 +1270,7 @@ namespace Orts.Simulation
                     car.Flipped = wagon.Flip;
                     car.UiD = wagon.UiD;
                     if (MultiPlayerManager.IsMultiPlayer())
-                        car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
+                        car.CarID = MultiPlayerManager.UserName1 + " - " + car.UiD; //player's train is always named train 0.
                     else
                         car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
                     if (car is EndOfTrainDevice endOfTrain)

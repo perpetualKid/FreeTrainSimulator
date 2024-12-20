@@ -755,7 +755,7 @@ namespace Orts.Simulation.AIs
                     {
                         simulator.PathName = aiPath.PathName;
                         if (MultiPlayerManager.IsMultiPlayer())
-                            car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
+                            car.CarID = MultiPlayerManager.UserName1 + " - " + car.UiD; //player's train is always named train 0.
                         else
                             car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
 
