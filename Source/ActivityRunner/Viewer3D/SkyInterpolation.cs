@@ -18,7 +18,7 @@
 // This file is the responsibility of the 3D & Environment Team.
 using Microsoft.Xna.Framework;
 
-namespace Orts.Viewer3D
+namespace Orts.ActivityRunner.Viewer3D
 {
     public class SkyInterpolation
     {
@@ -37,7 +37,7 @@ namespace Orts.Viewer3D
             // The arrays have intervals of 1200 secs or 20 mins.
             // Using the Lerp() function, so need to calculate the in-between differential
             // The rest of this increments/decrements the array indices and checks for overshoot/undershoot.
-            while (clockTime >= (OldClockTime - DaylightOffsetS + 1200))
+            while (clockTime >= OldClockTime - DaylightOffsetS + 1200)
             {
                 // Plus key to skip time forwards
                 OldClockTime += 1200;
@@ -54,7 +54,7 @@ namespace Orts.Viewer3D
                 }
             }
 
-            if (clockTime <= (OldClockTime - DaylightOffsetS))
+            if (clockTime <= OldClockTime - DaylightOffsetS)
             {
                 // Minus key to skip time backwards
                 OldClockTime -= 1200;
@@ -72,7 +72,7 @@ namespace Orts.Viewer3D
             }
 
             float diff = CelestialDiff(clockTime);
-            Vector3 solarDirection = new Vector3(MathHelper.Lerp(solarPosArray[Step1].X, solarPosArray[Step2].X, diff), 
+            Vector3 solarDirection = new Vector3(MathHelper.Lerp(solarPosArray[Step1].X, solarPosArray[Step2].X, diff),
                 MathHelper.Lerp(solarPosArray[Step1].Y, solarPosArray[Step2].Y, diff),
                 MathHelper.Lerp(solarPosArray[Step1].Z, solarPosArray[Step2].Z, diff));
             Vector3 lunarDirection = new Vector3(MathHelper.Lerp(lunarPosArray[Step1].X, lunarPosArray[Step2].X, diff),

@@ -18,19 +18,19 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.OR.Files;
-using Orts.Formats.OR.Models;
+using Orts.Formats.OpenRails.Files;
+using Orts.Formats.OpenRails.Models;
 
 namespace Orts.ActivityRunner.Viewer3D.Environment
 {
@@ -39,7 +39,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
     {
         // Variables used for auto weather control
         // settings
-        private readonly List<WeatherConditionBase> weatherDetails = new List<WeatherConditionBase>();
+        private readonly Collection<WeatherConditionBase> weatherDetails = new Collection<WeatherConditionBase>();
 
         // running values
         // general

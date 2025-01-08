@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Updater\n"
-"POT-Creation-Date: 2023-02-08 11:32:36+0100\n"
-"PO-Revision-Date: 2023-02-08 11:32:37+0100\n"
+"POT-Creation-Date: 2024-12-19 22:04:46+0100\n"
+"PO-Revision-Date: 2024-12-19 22:04:46+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -10,13 +10,13 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
-#: ..\..\..\Updater\UpdaterProgress.cs:146
-#: ..\..\..\Updater\UpdaterProgress.cs:173
+#: ..\..\..\Updater\UpdaterProgress.cs:130
+#: ..\..\..\Updater\UpdaterProgress.cs:157
 #, csharp-format
 msgid "Error: {0} {1}"
 msgstr ""
 
 #: ..\..\..\Updater\UpdaterProgress.Designer.cs:58
-msgid "Open Rails Updater"
+msgid "Free Train Simulator Updater"
 msgstr ""
 

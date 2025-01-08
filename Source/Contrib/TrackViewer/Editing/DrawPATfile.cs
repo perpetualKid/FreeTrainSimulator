@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 using System;
-using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.Shim;
 
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -58,10 +58,10 @@ namespace ORTS.TrackViewer.Editing
         /// Constructor
         /// </summary>
         /// <param name="path">Contains the information (mainly filepath) needed for loading the .pat file</param>
-        public DrawPATfile (Path path)
+        public DrawPATfile (PathModelCore path)
         {
-            FileName = path.FilePath.Split('\\').Last();
-            patFile = new PathFile(path.FilePath);
+            FileName = System.IO.Path.GetFileName(path.SourceFile());
+            patFile = new PathFile(path.SourceFile());
         }
 
         /// <summary>

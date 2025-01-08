@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-	<Description>Open Rails Transport Simulator</Description>
+	<Description>Open Rails Simulator Tester (Contributed)</Description>
 	<RootNamespace>Orts.SimulatorTester</RootNamespace>
     <AssemblyTitle>Open Rails Simulator Tester (Contributed)</AssemblyTitle>
 	<OutputPath>..\..\..\Program</OutputPath>
 	<RootNamespace>Orts.SimulatorTester</RootNamespace>
 	<AssemblyName>Contrib.SimulatorTester</AssemblyName>
 	<ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
+	<Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />

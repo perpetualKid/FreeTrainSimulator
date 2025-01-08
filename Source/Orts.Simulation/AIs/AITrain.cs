@@ -31,7 +31,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.DebugInfo;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
 
@@ -233,7 +233,7 @@ namespace Orts.Simulation.AIs
             simulator.ActivityRun?.AssociateEvents(this);
             LastSpeedMpS = SpeedMpS;
 
-            if ( aiTrainSaveState.PlayerLocomotiveIndex >= 0)
+            if (aiTrainSaveState.PlayerLocomotiveIndex >= 0)
                 simulator.PlayerLocomotive = Cars[aiTrainSaveState.PlayerLocomotiveIndex] as MSTSLocomotive ?? throw new InvalidCastException(nameof(simulator.PlayerLocomotive));
         }
 
@@ -336,7 +336,7 @@ namespace Orts.Simulation.AIs
                         if (simulator.Settings.ActRandomizationLevel > 0)
                             RandomizeEfficiency(ref sectionEfficiency);
                         if (sectionEfficiency > 0)
-                            TrainMaxSpeedMpS = Math.Min((float)simulator.Route.SpeedLimit, MaxVelocityA * sectionEfficiency);
+                            TrainMaxSpeedMpS = Math.Min(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], MaxVelocityA * sectionEfficiency);
                     }
                 }
 
@@ -1477,13 +1477,13 @@ namespace Orts.Simulation.AIs
                         RandomizeEfficiency(ref sectionEfficiency);
                     if (sectionEfficiency > 0)
                     {
-                        TrainMaxSpeedMpS = Math.Min((float)simulator.Route.SpeedLimit, MaxVelocityA * sectionEfficiency);
+                        TrainMaxSpeedMpS = Math.Min(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], MaxVelocityA * sectionEfficiency);
                         RecalculateAllowedMaxSpeed();
                     }
                 }
                 else if (MaxVelocityA > 0 && Efficiency > 0)
                 {
-                    TrainMaxSpeedMpS = Math.Min((float)simulator.Route.SpeedLimit, MaxVelocityA * Efficiency);
+                    TrainMaxSpeedMpS = Math.Min(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], MaxVelocityA * Efficiency);
                     RecalculateAllowedMaxSpeed();
                 }
             }

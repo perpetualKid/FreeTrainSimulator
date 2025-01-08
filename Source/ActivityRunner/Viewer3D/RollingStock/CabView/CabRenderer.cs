@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

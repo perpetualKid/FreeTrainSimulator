@@ -39,6 +39,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 if (disposing && (components != null))
                 {
                     components.Dispose();
+                    UITimer?.Dispose();
                 }
                 base.Dispose(disposing);
             }

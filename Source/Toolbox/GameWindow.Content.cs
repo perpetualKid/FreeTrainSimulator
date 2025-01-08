@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Frozen;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,11 +7,13 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Simplified;
-using FreeTrainSimulator.Toolbox;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Microsoft.Xna.Framework;
+using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Toolbox
 {
@@ -27,10 +29,12 @@ namespace FreeTrainSimulator.Toolbox
 
     public partial class GameWindow : Game
     {
-        private Folder selectedFolder;
-        private Route selectedRoute;
-        private IEnumerable<Route> routes;
-        private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
+        private ContentModel contentModel;
+        private FolderModel selectedFolder;
+        private RouteModelCore selectedRoute;
+        private FrozenSet<RouteModelCore> routeModels;
+        private readonly SemaphoreSlim loadRouteSemaphore = new SemaphoreSlim(1);
+        private CancellationTokenSource ctsProfileLoading;
         private CancellationTokenSource ctsRouteLoading;
         private PathEditor pathEditor;
 
@@ -38,7 +42,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             get
             {
-                if (null == pathEditor)
+                if (null == pathEditor && contentArea != null)
                 {
                     pathEditor = new PathEditor(contentArea);
                     pathEditor.OnPathChanged += PathEditor_OnEditorPathChanged;
@@ -49,68 +53,71 @@ namespace FreeTrainSimulator.Toolbox
 
         private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
         {
-            mainmenu.PreSelectPath(e.Path?.FilePath);
+//            mainmenu.PreSelectPath(e.Path?.FilePath);
         }
 
         internal async Task LoadFolders()
         {
+            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
+
             try
             {
-                IOrderedEnumerable<Folder> folders = (await Folder.GetFolders(Settings.UserSettings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
-                mainmenu.PopulateContentFolders(folders);
+                contentModel = await contentModel.Get(ctsProfileLoading.Token).ConfigureAwait(false);
+                mainmenu.PopulateContentFolders(contentModel.ContentFolders);
             }
             catch (TaskCanceledException)
             {
+                mainmenu.PopulateContentFolders(FrozenSet<FolderModel>.Empty);
             }
         }
 
-        internal async Task<IEnumerable<Route>> FindRoutes(Folder routeFolder)
+        internal async Task<FrozenSet<RouteModelCore>> FindRoutes(FolderModel contentFolder)
         {
-            await loadRoutesSemaphore.WaitAsync().ConfigureAwait(false);
-            if (routeFolder != selectedFolder)
+            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
+            await loadRouteSemaphore.WaitAsync().ConfigureAwait(false);
+            if (contentFolder != selectedFolder)
             {
-                routes = null;
-                routes = (await Task.Run(() => Route.GetRoutes(routeFolder, CancellationToken.None)).ConfigureAwait(false)).OrderBy(r => r.ToString());
-                selectedFolder = routeFolder;
+                try
+                {
+                    routeModels = await contentFolder.GetRoutes(ctsProfileLoading.Token).ConfigureAwait(false);
+                }
+                catch (TaskCanceledException) { }
+                selectedFolder = contentFolder;
             }
-            loadRoutesSemaphore.Release();
-            return routes;
+            loadRouteSemaphore.Release();
+            return routeModels;
         }
 
-        internal async Task LoadRoute(Route route)
+        internal async Task LoadRoute(RouteModelCore route)
         {
             (windowManager[ToolboxWindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
             windowManager[ToolboxWindowType.StatusWindow].Open();
             UnloadRoute();
 
-            lock (routes)
-            {
-                if (ctsRouteLoading != null && !ctsRouteLoading.IsCancellationRequested)
-                    ctsRouteLoading.Cancel();
-                ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
-            }
+            ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
 
-            CancellationToken token = ctsRouteLoading.Token;
-
-            bool? useMetricUnits = Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || (Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
+            bool? useMetricUnits = ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            if (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
-            await TrackData.LoadTrackData(this, route, useMetricUnits, token).ConfigureAwait(false);
-            if (token.IsCancellationRequested)
+
+            RouteModel routeModel = await route.Extend(ctsProfileLoading.Token).ConfigureAwait(false);
+
+            await TrackData.LoadTrackData(this, routeModel, useMetricUnits, ctsProfileLoading.Token).ConfigureAwait(false);
+            if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
             ToolboxContent content = new ToolboxContent(this);
             await content.Initialize().ConfigureAwait(false);
-            content.InitializeItemVisiblity(Settings.ViewSettings);
-            content.UpdateWidgetColorSettings(Settings.ColorSettings);
-            content.ContentArea.FontOutlineOptions = Settings.OutlineFont ? OutlineRenderOptions.Default : null;
+            content.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
+            content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings);
+            content.ContentArea.FontOutlineOptions = ToolboxSettings.FontOutline ? OutlineRenderOptions.Default : null;
             ContentArea = content.ContentArea;
-            mainmenu.PopulatePaths((TrackData.GameInstance(this) as TrackData).TrainPaths);
+            mainmenu.PopulatePaths((Orts.Formats.Msts.RuntimeData.GameInstance(this) as TrackData).TrainPaths);
             windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
         }
 
-        internal bool LoadPath(Path path)
+        internal bool LoadPath(PathModelCore path)
         {
             return PathEditor.InitializePath(path);
         }
@@ -120,28 +127,27 @@ namespace FreeTrainSimulator.Toolbox
             PathEditor.InitializeNewPath();
         }
 
-        internal async Task PreSelectRoute(string[] routeSelection, string[] pathSelection)
+        internal async Task PreSelectRoute(string folderName, string routeId, string pathId)
         {
-            if (routeSelection?.Length > 0)
+            if (!string.IsNullOrEmpty(folderName))
             {
-                Folder folder = mainmenu.SelectContentFolder(routeSelection[0]);
-                await FindRoutes(folder).ConfigureAwait(false);
+                FolderModel folder = mainmenu.SelectContentFolder(folderName);
 
-                if (routeSelection.Length > 1 && Settings.RestoreLastView)
+                if (!string.IsNullOrEmpty(routeId) && ToolboxSettings.RestoreLastView)
                 {
-                    Route route = routes?.Where(r => r.Name.Equals(routeSelection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    RouteModelCore route = (routeModels ??= await FindRoutes(folder).ConfigureAwait(false))?.GetById(routeId);
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(false);
                         mainmenu.PreSelectRoute(route.Name);
-                        if (pathSelection.Length > 0)
+                        if (!string.IsNullOrEmpty(pathId))
                         {
                             // only restore first path for now
-                            Path path = (TrackData.GameInstance(this) as TrackData).TrainPaths?.Where(p => p.FilePath.Equals(pathSelection[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                            PathModelCore path = (await route.GetRoutePaths(CancellationToken.None).ConfigureAwait(false)).GetById(pathId);
                             if (null != path)
                             {
                                 if (LoadPath(path))
-                                    mainmenu.PreSelectPath(path.FilePath);
+                                    mainmenu.PreSelectPath(path);
                             }
                         }
                     }
@@ -162,16 +168,5 @@ namespace FreeTrainSimulator.Toolbox
         {
             PathEditor.InitializePath(null);
         }
-
-        private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)
-        {
-            if (cts != null)
-            {
-                cts.Dispose();
-            }
-            // Create a new cancellation token source so that can cancel all the tokens again 
-            return new CancellationTokenSource();
-        }
-
     }
 }

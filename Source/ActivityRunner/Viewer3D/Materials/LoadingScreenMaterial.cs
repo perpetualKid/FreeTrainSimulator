@@ -1,5 +1,7 @@
 ﻿using System.IO;
 
+using FreeTrainSimulator.Common;
+
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
@@ -16,8 +18,8 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
 
         private static string LoadingTexturePath(Game game)
         {
-            string texturePath = (game.GraphicsDevice.Adapter.IsWideScreen && !string.IsNullOrEmpty(Simulator.Instance.Route.LoadingScreenWide)) ?
-                Simulator.Instance.Route.LoadingScreenWide : Simulator.Instance.Route.LoadingScreen;
+            string texturePath = (game.GraphicsDevice.Adapter.IsWideScreen && !string.IsNullOrEmpty(Simulator.Instance.RouteModel.Graphics[GraphicType.WideScreen])) ?
+                Simulator.Instance.RouteModel.Graphics[GraphicType.WideScreen] : Simulator.Instance.RouteModel.Graphics[GraphicType.Screen];
             if (string.IsNullOrEmpty(texturePath) || !File.Exists(texturePath = Path.Combine(Simulator.Instance.RouteFolder.CurrentFolder,texturePath)))
             {
 //                if (string.IsNullOrEmpty(texturePath = Simulator.Instance.Route.Thumbnail) || !File.Exists(texturePath = Path.Combine(Simulator.Instance.RouteFolder.CurrentFolder, texturePath)))

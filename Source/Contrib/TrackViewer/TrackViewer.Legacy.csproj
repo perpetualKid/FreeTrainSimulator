@@ -9,6 +9,7 @@
     <RootNamespace>ORTS.TrackViewer</RootNamespace>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
     <AssemblyName>Contrib.TrackViewer</AssemblyName>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Editing\EditorContextMenu.cs" />
@@ -87,11 +88,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.2.1105" />
-    <PackageReference Include="GetText.NET" Version="1.9.14" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="1.9.14" />
+    <PackageReference Include="GetText.NET" Version="8.0.5" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="8.0.5" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
   </ItemGroup>
   <ItemGroup>

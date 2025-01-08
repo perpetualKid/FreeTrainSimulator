@@ -21,7 +21,8 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 
-using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.Shim;
 
 using ORTS.TrackViewer.Drawing;
 
@@ -57,7 +58,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="paths">The list of paths that are availabel and that need to be checked and possibly fixed</param>
         /// <param name="callback">Callback that will be called showing the current processing that is being done</param>
-        public void FixallAndShowResults(Collection<Path> paths, Action<string> callback )
+        public void FixallAndShowResults(Collection<PathModelCore> paths, Action<string> callback )
         {
             if (paths == null || callback == null)
                 return;
@@ -66,14 +67,14 @@ namespace ORTS.TrackViewer.Editing
             ShowResults();
         }
 
-        private void Fixall(Collection<Path> Paths, Action<string> callback)
+        private void Fixall(Collection<PathModelCore> Paths, Action<string> callback)
         {
             modifiedPaths = new List<PathEditor>();
 
             // Loop through all available paths and fix each of them
-            foreach (Path path in Paths)
+            foreach (PathModelCore path in Paths)
             {
-                callback(TrackViewer.catalog.GetString("Processing .pat file ") + path.FilePath);
+                callback(TrackViewer.catalog.GetString("Processing .pat file ") + path.SourceFile());
                 string pathName = UserInterface.MenuControl.MakePathMenyEntryName(path);
                 PathEditor pathFixer = new PathEditor(drawTrackDB, path);
                 _ = pathFixer.AutoFixAllBrokenNodes();

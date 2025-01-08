@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
@@ -40,7 +40,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public bool Activated;
         private ElectricPowerSupply Script => abstractScript as ElectricPowerSupply;
 
-        public float LineVoltageV => (float)Simulator.Route.MaxLineVoltage;
+        public float LineVoltageV => Simulator.RouteModel.RouteConditions.MaxLineVoltage;
         public float PantographVoltageV { get; set; }
         public float FilterVoltageV { get; set; }
 

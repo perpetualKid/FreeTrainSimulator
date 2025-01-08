@@ -1,6 +1,6 @@
-﻿using FreeTrainSimulator.Models.Simplified;
+﻿using FreeTrainSimulator.Models.Settings;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     partial class ResumeForm {
         /// <summary>
@@ -18,11 +18,10 @@ namespace Orts.Menu
         {
             components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ResumeForm));
             gridSaves = new System.Windows.Forms.DataGridView();
             saveBindingSource = new System.Windows.Forms.BindingSource(components);
@@ -44,15 +43,12 @@ namespace Orts.Menu
             panelScreenshot = new System.Windows.Forms.Panel();
             pictureBoxScreenshot = new System.Windows.Forms.PictureBox();
             openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            fileDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             realTimeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             pathNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             gameTimeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            distanceDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             currentTileDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             validDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             DebriefEvaluation = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            Blank = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)gridSaves).BeginInit();
             ((System.ComponentModel.ISupportInitialize)saveBindingSource).BeginInit();
             groupBoxInvalid.SuspendLayout();
@@ -83,16 +79,16 @@ namespace Orts.Menu
             gridSaves.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             gridSaves.ColumnHeadersHeight = 29;
             gridSaves.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            gridSaves.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { fileDataGridViewTextBoxColumn, realTimeDataGridViewTextBoxColumn, pathNameDataGridViewTextBoxColumn, gameTimeDataGridViewTextBoxColumn, distanceDataGridViewTextBoxColumn, currentTileDataGridViewTextBoxColumn, validDataGridViewCheckBoxColumn, DebriefEvaluation, Blank });
+            gridSaves.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { realTimeDataGridViewTextBoxColumn, pathNameDataGridViewTextBoxColumn, gameTimeDataGridViewTextBoxColumn, currentTileDataGridViewTextBoxColumn, validDataGridViewCheckBoxColumn, DebriefEvaluation });
             gridSaves.DataSource = saveBindingSource;
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            gridSaves.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            gridSaves.DefaultCellStyle = dataGridViewCellStyle5;
             gridSaves.Dock = System.Windows.Forms.DockStyle.Fill;
             gridSaves.Location = new System.Drawing.Point(0, 0);
             gridSaves.Margin = new System.Windows.Forms.Padding(4);
@@ -110,7 +106,7 @@ namespace Orts.Menu
             // 
             // saveBindingSource
             // 
-            saveBindingSource.DataSource = typeof(SavePoint);
+            saveBindingSource.DataSource = typeof(SavePointModel);
             // 
             // buttonResume
             // 
@@ -333,16 +329,6 @@ namespace Orts.Menu
             // 
             openFileDialog1.FileName = "openFileDialog1";
             // 
-            // fileDataGridViewTextBoxColumn
-            // 
-            fileDataGridViewTextBoxColumn.DataPropertyName = "File";
-            fileDataGridViewTextBoxColumn.HeaderText = "File";
-            fileDataGridViewTextBoxColumn.MinimumWidth = 6;
-            fileDataGridViewTextBoxColumn.Name = "fileDataGridViewTextBoxColumn";
-            fileDataGridViewTextBoxColumn.ReadOnly = true;
-            fileDataGridViewTextBoxColumn.Visible = false;
-            fileDataGridViewTextBoxColumn.Width = 59;
-            // 
             // realTimeDataGridViewTextBoxColumn
             // 
             realTimeDataGridViewTextBoxColumn.DataPropertyName = "RealTime";
@@ -363,7 +349,7 @@ namespace Orts.Menu
             pathNameDataGridViewTextBoxColumn.MinimumWidth = 6;
             pathNameDataGridViewTextBoxColumn.Name = "pathNameDataGridViewTextBoxColumn";
             pathNameDataGridViewTextBoxColumn.ReadOnly = true;
-            pathNameDataGridViewTextBoxColumn.Width = 66;
+            pathNameDataGridViewTextBoxColumn.Width = 116;
             // 
             // gameTimeDataGridViewTextBoxColumn
             // 
@@ -378,22 +364,11 @@ namespace Orts.Menu
             gameTimeDataGridViewTextBoxColumn.ReadOnly = true;
             gameTimeDataGridViewTextBoxColumn.Width = 78;
             // 
-            // distanceDataGridViewTextBoxColumn
-            // 
-            distanceDataGridViewTextBoxColumn.DataPropertyName = "Distance";
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopRight;
-            distanceDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle4;
-            distanceDataGridViewTextBoxColumn.HeaderText = "Distance";
-            distanceDataGridViewTextBoxColumn.MinimumWidth = 6;
-            distanceDataGridViewTextBoxColumn.Name = "distanceDataGridViewTextBoxColumn";
-            distanceDataGridViewTextBoxColumn.ReadOnly = true;
-            distanceDataGridViewTextBoxColumn.Width = 78;
-            // 
             // currentTileDataGridViewTextBoxColumn
             // 
             currentTileDataGridViewTextBoxColumn.DataPropertyName = "CurrentTile";
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopRight;
-            currentTileDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopRight;
+            currentTileDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle4;
             currentTileDataGridViewTextBoxColumn.HeaderText = "Tile";
             currentTileDataGridViewTextBoxColumn.MinimumWidth = 6;
             currentTileDataGridViewTextBoxColumn.Name = "currentTileDataGridViewTextBoxColumn";
@@ -402,7 +377,7 @@ namespace Orts.Menu
             // 
             // validDataGridViewCheckBoxColumn
             // 
-            validDataGridViewCheckBoxColumn.DataPropertyName = "Valid";
+            validDataGridViewCheckBoxColumn.DataPropertyName = "ValidState";
             validDataGridViewCheckBoxColumn.HeaderText = "Valid";
             validDataGridViewCheckBoxColumn.MinimumWidth = 6;
             validDataGridViewCheckBoxColumn.Name = "validDataGridViewCheckBoxColumn";
@@ -418,15 +393,6 @@ namespace Orts.Menu
             DebriefEvaluation.Name = "DebriefEvaluation";
             DebriefEvaluation.ReadOnly = true;
             DebriefEvaluation.Width = 48;
-            // 
-            // Blank
-            // 
-            Blank.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            Blank.HeaderText = "";
-            Blank.MinimumWidth = 6;
-            Blank.Name = "Blank";
-            Blank.ReadOnly = true;
-            Blank.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             // 
             // ResumeForm
             // 
@@ -478,14 +444,11 @@ namespace Orts.Menu
         private System.Windows.Forms.Panel panelSaves;
         private System.Windows.Forms.Panel panelScreenshot;
         private System.Windows.Forms.CheckBox checkBoxReplayPauseBeforeEnd;
-        private System.Windows.Forms.DataGridViewTextBoxColumn fileDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn realTimeDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn pathNameDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn gameTimeDataGridViewTextBoxColumn;
-        private System.Windows.Forms.DataGridViewTextBoxColumn distanceDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn currentTileDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewCheckBoxColumn validDataGridViewCheckBoxColumn;
         private System.Windows.Forms.DataGridViewCheckBoxColumn DebriefEvaluation;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Blank;
     }
 }

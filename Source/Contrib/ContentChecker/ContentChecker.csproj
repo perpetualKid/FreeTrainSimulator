@@ -9,6 +9,7 @@
     <RootNamespace>Orts.ContentChecker</RootNamespace>
     <AssemblyName>Contrib.ContentChecker</AssemblyName>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.2.1105" />
@@ -16,7 +17,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\ActivityRunner\ActivityRunner.csproj" />
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />
-    <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
-    <ProjectReference Include="..\..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
   </ItemGroup>
 </Project>

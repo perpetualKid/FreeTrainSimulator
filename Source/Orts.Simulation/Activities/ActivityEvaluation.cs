@@ -10,7 +10,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Logging;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -212,7 +212,7 @@ namespace Orts.Simulation.Activities
 
             builder.AppendLine("0-Information:");
             //Activity
-            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Route",-26}= {simulator.RouteName}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Route",-26}= {simulator.RouteModel.Name}");
             builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Activity",-26}= {simulator.ActivityFile.Activity.Header.Name}");
             builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Difficulty",-26}= {simulator.ActivityFile.Activity.Header.Difficulty}");
             builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Start Time",-26}= {simulator.ActivityFile.Activity.Header.StartTime}");

@@ -18,13 +18,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
 
@@ -35,9 +34,8 @@ using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-using Orts.Simulation.World;
 
-namespace Orts.Simulation
+namespace Orts.Simulation.World
 {
     /// <summary>
     /// Reads file ORTSTurntables.dat and creates the instances of the turntables
@@ -69,7 +67,7 @@ namespace Orts.Simulation
             stf.ParseBlock(new[] {
                 new STFReader.TokenProcessor("wfile", () => {
                     WFile = stf.ReadStringBlock(null);
-                    position = new WorldPosition(new Tile(int.Parse(WFile.Substring(1, 7), CultureInfo.InvariantCulture), int.Parse(WFile.Substring(8, 7), CultureInfo.InvariantCulture)), location);
+                    position = new WorldPosition(TileHelper.FromWorldFileName(WFile), location);
                 }),
                 new STFReader.TokenProcessor("uid", ()=>{ UID = stf.ReadIntBlock(-1); }),
                 new STFReader.TokenProcessor("animation", ()=>{ animation = stf.ReadStringBlock(null);
@@ -128,7 +126,7 @@ namespace Orts.Simulation
             {
                 if (tvn.TrackVectorSections != null)
                 {
-                    int trackVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection => (trVectorSection.Location.Tile == WorldPosition.Tile && trVectorSection.WorldFileUiD == UID));
+                    int trackVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection => trVectorSection.Location.Tile == WorldPosition.Tile && trVectorSection.WorldFileUiD == UID);
                     if (trackVectorSection >= 0)
                     {
                         if (tvn.TrackVectorSections.Length > (int)nSections)
@@ -249,9 +247,9 @@ namespace Orts.Simulation
             {
                 // Preparing for rotation
                 Train train = TrainsOnMovingTable[0].Train;
-                if (Math.Abs(train.SpeedMpS) > 0.1 || (train.LeadLocomotiveIndex != -1 && (train.LeadLocomotive.ThrottlePercent >= 1 || train.TrainType != TrainType.Remote && !(train.LeadLocomotive.Direction == MidpointDirection.N
-                 || Math.Abs(train.MUReverserPercent) <= 1))) || (train.ControlMode != TrainControlMode.Manual && train.ControlMode != TrainControlMode.TurnTable &&
-                 train.ControlMode != TrainControlMode.Explorer && train.ControlMode != TrainControlMode.Undefined))
+                if (Math.Abs(train.SpeedMpS) > 0.1 || train.LeadLocomotiveIndex != -1 && (train.LeadLocomotive.ThrottlePercent >= 1 || train.TrainType != TrainType.Remote && !(train.LeadLocomotive.Direction == MidpointDirection.N
+                 || Math.Abs(train.MUReverserPercent) <= 1)) || train.ControlMode != TrainControlMode.Manual && train.ControlMode != TrainControlMode.TurnTable &&
+                 train.ControlMode != TrainControlMode.Explorer && train.ControlMode != TrainControlMode.Undefined)
                 {
                     if (SendNotifications)
                         Simulator.Instance.Confirmer.Warning(Simulator.Catalog.GetString("Rotation can't start: check throttle, speed, direction and control mode"));
@@ -273,7 +271,7 @@ namespace Orts.Simulation
 
         public override void GeneralStartContinuous(bool clockwise)
         {
-            if (TrainsOnMovingTable.Count > 1 || (TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard ^ TrainsOnMovingTable[0].BackOnBoard))
+            if (TrainsOnMovingTable.Count > 1 || TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard ^ TrainsOnMovingTable[0].BackOnBoard)
             {
                 MotionDirection = MidpointDirection.N;
                 ContinuousMotion = false;

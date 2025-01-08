@@ -29,6 +29,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -38,7 +39,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
 
@@ -1007,7 +1008,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 data = -Math.Abs(DynamicBrakeForceN);
             }
-            if (simulator.Route.MilepostUnitsMetric)  // return an Ampere value
+            if (simulator.RouteModel.MetricUnits)  // return an Ampere value
             {
                 if (ThrottlePercent >= 0 && DynamicBrakePercent == -1)
                 {
@@ -1048,7 +1049,7 @@ namespace Orts.Simulation.RollingStocks
                     //               if (DynamicBrakeController.NotchCount() > 3)
                     //                   throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((DynamicBrakeController.GetNearestNotch(DynamicBrakePercent / 100f)), 1, 8);
                     //               else
-                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.GetNotch(DynamicBrakePercent / 100f), 1, 8);
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp(Train.LeadLocomotive.DistributedPowerDynamicBrakeController.GetNotch(DynamicBrakePercent / 100f), 1, 8);
                 }
             }
             else if (DynamicBrakePercent == 0 && !DynamicBrake)
@@ -1060,9 +1061,9 @@ namespace Orts.Simulation.RollingStocks
 
             var status = new StringBuilder();
             // ID
-            status.Append($"{CarID.Replace(" ", "")}({DistributedPowerUnitId})\t");
+            status.Append(FormattableString.Invariant($"{CarID.Replace(" ", "", StringComparison.OrdinalIgnoreCase)}({DistributedPowerUnitId})\t"));
             // Throttle
-            status.Append($"{throttle}\t");
+            status.Append(FormattableString.Invariant($"{throttle}\t"));
 
             // Load
             float data;
@@ -1075,7 +1076,7 @@ namespace Orts.Simulation.RollingStocks
                 data = -Math.Abs(DynamicBrakeForceN);
             }
             if (loadUnits == CabViewControlUnit.None)
-                loadUnits = simulator.Route.MilepostUnitsMetric ? CabViewControlUnit.Amps : CabViewControlUnit.Kilo_Lbs;
+                loadUnits = simulator.RouteModel.MetricUnits ? CabViewControlUnit.Amps : CabViewControlUnit.Kilo_Lbs;
             switch (loadUnits)
             {
                 case CabViewControlUnit.Amps:
@@ -1087,27 +1088,27 @@ namespace Orts.Simulation.RollingStocks
                     {
                         data = (data / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
                     }
-                    status.Append($"{data:F0} A");
+                    status.Append(FormattableString.Invariant($"{data:F0} A"));
                     break;
 
                 case CabViewControlUnit.Newtons:
-                    status.Append($"{data:F0} N");
+                    status.Append(FormattableString.Invariant($"{data:F0} N"));
                     break;
 
                 case CabViewControlUnit.Kilo_Newtons:
                     data /= 1000.0f;
-                    status.Append($"{data:F0} kN");
+                    status.Append(FormattableString.Invariant($"{data:F0} kN"));
                     break;
 
                 case CabViewControlUnit.Lbs:
                     data = (float)Dynamics.Force.ToLbf(data);
-                    status.Append($"{data:F0} l");
+                    status.Append(FormattableString.Invariant($"{data:F0} l"));
                     break;
 
                 case CabViewControlUnit.Kilo_Lbs:
                 default:
                     data = (float)Dynamics.Force.ToLbf(data) * 0.001f;
-                    status.Append($"{data:F0} K");
+                    status.Append(FormattableString.Invariant($"{data:F0} K"));
                     break;
             }
 
@@ -1115,7 +1116,7 @@ namespace Orts.Simulation.RollingStocks
 
             // BP
             var brakeInfoValue = BrakeValue(Simulator.Catalog.GetString("BP"), Simulator.Catalog.GetString("EOT"));
-            status.Append($"{brakeInfoValue:F0}\t");
+            status.Append(FormattableString.Invariant($"{brakeInfoValue:F0}\t"));
 
             // Flow.
             // TODO:The BP air flow that feeds the brake tube is not yet modeled in Open Rails.
@@ -1123,28 +1124,26 @@ namespace Orts.Simulation.RollingStocks
             // Remote
             if (dataDpu)
             {
-                status.Append($"{(IsLeadLocomotive() || RemoteControlGroup < 0 ? "———" : RemoteControlGroup == 0 ? Simulator.Catalog.GetString("Sync") : Simulator.Catalog.GetString("Async"))}\t");
+                status.Append(FormattableString.Invariant($"{(IsLeadLocomotive() || RemoteControlGroup < 0 ? "———" : RemoteControlGroup == 0 ? Simulator.Catalog.GetString("Sync") : Simulator.Catalog.GetString("Async"))}\t"));
             }
             else
             {
-                status.Append($"{(IsLeadLocomotive() || RemoteControlGroup < 0 ? "———" : RemoteControlGroup == 0 ? Simulator.Catalog.GetString("Sync") : Simulator.Catalog.GetString("Async"))}");
+                status.Append(FormattableString.Invariant($"{(IsLeadLocomotive() || RemoteControlGroup < 0 ? "———" : RemoteControlGroup == 0 ? Simulator.Catalog.GetString("Sync") : Simulator.Catalog.GetString("Async"))}"));
             }
 
             if (dataDpu)
             {   // ER
                 brakeInfoValue = BrakeValue(Simulator.Catalog.GetString("EQ"), Simulator.Catalog.GetString("BC"));
-                status.Append($"{brakeInfoValue:F0}\t");
+                status.Append(FormattableString.Invariant($"{brakeInfoValue:F0}\t"));
 
                 // BC
-                brakeInfoValue = Math.Round(BrakeSystem.GetCylPressurePSI()).ToString() + " psi";
-                status.Append($"{brakeInfoValue:F0}\t");
+                status.Append(FormattableString.Invariant($"{Math.Round(BrakeSystem.GetCylPressurePSI()):F0} psi\t"));
 
                 // MR
-                status.Append($"{(FormatStrings.FormatPressure((Simulator.Instance.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI, Pressure.Unit.PSI, (Simulator.Instance.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true)):F0}");
+                status.Append(FormattableString.Invariant($"{FormatStrings.FormatPressure(Simulator.Instance.PlayerLocomotive.MainResPressurePSI, Pressure.Unit.PSI, Simulator.Instance.PlayerLocomotive.BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true):F0}"));
             }
             return status.ToString();
         }
-
 
         //TODO 20220901 this should be refactored
         private static string BrakeValue(string tokenIni, string tokenEnd) // used by GetDpuStatus(bool dataHud)
@@ -1195,24 +1194,25 @@ namespace Orts.Simulation.RollingStocks
         private static void SetDPULabels(bool dpuFull, int numberOfEngines)
         {
             MaxNumberOfEngines = numberOfEngines;
-            var labels = new StringBuilder();
-            labels.Append($"{Simulator.Catalog.GetString("ID")}\t");
-            labels.Append($"{Simulator.Catalog.GetString("Throttle")}\t");
-            labels.Append($"{Simulator.Catalog.GetString("Load")}\t");
-            labels.Append($"{Simulator.Catalog.GetString("BP")}\t");
-            if (!dpuFull)
+            List<string> labels = new List<string>
             {
-                labels.Append($"{Simulator.Catalog.GetString("Remote")}");
-                DpuLabels = labels.ToString().Split('\t');
-            }
+                Simulator.Catalog.GetString("ID"),
+                Simulator.Catalog.GetString("Throttle"),
+                Simulator.Catalog.GetString("Load"),
+                Simulator.Catalog.GetString("BP")
+            };
             if (dpuFull)
             {
-                labels.Append($"{Simulator.Catalog.GetString("Remote")}\t");
-                labels.Append($"{Simulator.Catalog.GetString("ER")}\t");
-                labels.Append($"{Simulator.Catalog.GetString("BC")}\t");
-                labels.Append($"{Simulator.Catalog.GetString("MR")}");
-                DPULabels = labels.ToString().Split('\t');
+                labels.Add(Simulator.Catalog.GetString("Remote"));
+                labels.Add(Simulator.Catalog.GetString("ER"));
+                labels.Add(Simulator.Catalog.GetString("BC"));
+                labels.Add(Simulator.Catalog.GetString("MR"));
             }
+            else
+            {
+                labels.Add(Simulator.Catalog.GetString("Remote"));
+            }
+            DPULabels = labels.ToArray();
         }
 
         public static string GetDpuHeader(bool dpuVerticalFull, int locomotivesInTrain, int dpuMaxNumberOfEngines)
@@ -1478,7 +1478,7 @@ namespace Orts.Simulation.RollingStocks
                     this["Motive Force"] = $"{FormatStrings.FormatForce(locomotive.MotiveForceN, simulator.MetricUnits)}";
                     FormattingOptions["Motive Force"] = locomotive.CouplerOverloaded ? FormatOption.RegularYellow : null;
                     double effort = locomotive.DistributedPowerForceInfo();
-                    this["Tractive Effort"] = $"{effort:F0} {(Simulator.Instance.Route.MilepostUnitsMetric ? "A" : "K")}";
+                    this["Tractive Effort"] = $"{effort:F0} {(Simulator.Instance.RouteModel.MetricUnits ? "A" : "K")}";
                     FormattingOptions["Tractive Effort"] = effort < 0 ? FormatOption.RegularYellow : null;
 
                     DieselEngine engine = locomotive.DieselEngines[0];

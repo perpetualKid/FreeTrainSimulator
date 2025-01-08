@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
 
@@ -198,7 +198,7 @@ namespace Orts.ActivityRunner.Processes
             return new GameSaveState()
             {
                 GameVersion = VersionInfo.Version,
-                RouteName = simulator.RouteName,
+                RouteName = simulator.RouteModel.Name,
                 PathName = simulator.PathName,
                 GameTime = simulator.GameTime,
                 RealSaveTime = DateTime.UtcNow,

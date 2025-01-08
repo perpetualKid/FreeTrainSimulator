@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;
@@ -144,7 +144,7 @@ namespace Orts.Simulation.Track
 
             if (saveState.RouteElements != null)
             {
-                await list.RestoreCollectionCreateNewItems(saveState.RouteElements);
+                await list.RestoreCollectionCreateNewItems(saveState.RouteElements).ConfigureAwait(false);
             }
         }
 

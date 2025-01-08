@@ -3,6 +3,7 @@
     <Description>Free Train Simulator Simulation Library</Description>
     <AssemblyTitle>Free Train Simulator Simulation Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Common\**" />
@@ -16,12 +17,10 @@
 		<PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.2-preview" />
 	</ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
     <ProjectReference Include="..\FreeTrainSimulator.Online\FreeTrainSimulator.Online.csproj" />
-    <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
-    <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
-    <ProjectReference Include="..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
     <ProjectReference Include="..\Orts.Scripting.Api\Orts.Scripting.Api.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
-    <PackageReference Include="GetText.NET" Version="1.9.14" />
+    <PackageReference Include="GetText.NET" Version="8.0.5" />
   </ItemGroup>
 </Project>

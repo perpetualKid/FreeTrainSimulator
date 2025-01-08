@@ -12,16 +12,12 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 
-using Newtonsoft.Json;
-
 using NuGet.Common;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
-
-using Orts.Settings;
 
 using VersionInfo = FreeTrainSimulator.Common.Info.VersionInfo;
 
@@ -32,39 +28,42 @@ namespace FreeTrainSimulator.Updater
         [GeneratedRegex(".(g[a-z0-9]{8}$)", RegexOptions.Compiled)]
         private static partial Regex removeCommitDataRegex();
 
-        private const string versionFile = "updates.json";
         private static readonly Regex removeCommitData = removeCommitDataRegex();
 
-        private const string developerBuildsUrl = "https://orts.blob.core.windows.net/builds/index.json"; //TODO 20210418 this may be somewhere in configuration instead hard coded
+        private const string updatesUrl = "https://orts.blob.core.windows.net/";
+        private const string developerBuildsFolder = "builds/index.json";
+        private const string releaseBuildsFolder = "releases/index.json";
 
         public const string VersionCommandLine = "/VERSION=";
         public const string WaitProcessIdCommandLine = "/WAITPID=";
         public const string RelaunchCommandLine = "/RELAUNCH=";
         public const string ElevationCommandLine = "/ELEVATE=";
+        public const string LanguageCommandLine = "/LANGUAGE=";
+        public const string UpdateModeCommandLine = "/MODE=";
 
         public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
 
-        private static string PathUpdateTest => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateTest");
+        private static Task<IEnumerable<NuGetVersion>> availableVersions;
 
-        private static string PathUpdateDirty => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateDirty");
+        private static string PathUpdateTest => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateTest");
         private static string PathUpdateStage => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateStage");
-        private static string PathDocumentation => Path.Combine(RuntimeInfo.ApplicationFolder, "Documentation");
-        private static string PathUpdateDocumentation => Path.Combine(PathUpdateStage, "Documentation");
-        private static string FileSettings => Path.Combine(RuntimeInfo.ApplicationFolder, "OpenRails.ini");
+
+        //private static string PathUpdateDirty => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateDirty");
+        //private static string PathDocumentation => Path.Combine(RuntimeInfo.ApplicationFolder, "Documentation");
+        //private static string PathUpdateDocumentation => Path.Combine(PathUpdateStage, "Documentation");
         private static string FileUpdater => Path.Combine(RuntimeInfo.ApplicationFolder, "Updater.exe");
 
-        public string ChannelName { get; private set; }
         public Exception LastCheckError { get; private set; }
         public bool UpdaterNeedsElevation { get; private set; }
 
-        private readonly UserSettings settings;
         private readonly SemaphoreSlim updateVersions = new SemaphoreSlim(1);
         private bool disposedValue;
 
-        public UpdateManager(UserSettings settings)
-        {
-            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        public UpdateMode UpdateMode { get; private set; }
 
+        public UpdateManager(UpdateMode updateMode)
+        {
+            UpdateMode = updateMode;
             // Check for elevation to update; elevation is needed if the update writes failed and the user is NOT an
             // Administrator. Weird cases (like no permissions on the directory for anyone) are not handled.
             if (!CheckUpdateWrites())
@@ -75,12 +74,10 @@ namespace FreeTrainSimulator.Updater
             }
         }
 
-        public static string VersionFile { get; } = Path.Combine(RuntimeInfo.ConfigFolder, versionFile);
-
-        public async Task<IEnumerable<NuGetVersion>> RefreshUpdateInfo(UpdateCheckFrequency frequency)
+        public async Task<IEnumerable<NuGetVersion>> RefreshUpdateInfo()
         {
-            if (!CheckUpdateNeeded(frequency))
-                return CachedUpdateVersions();
+            if (null != availableVersions && !availableVersions.IsFaulted)
+                return await availableVersions.ConfigureAwait(false);
 
             await updateVersions.WaitAsync().ConfigureAwait(false);
             LastCheckError = null;
@@ -95,20 +92,16 @@ namespace FreeTrainSimulator.Updater
             {
                 try
                 {
-                    SourceRepository repository = Repository.Factory.GetCoreV3(settings.UpdateSource);
+                    SourceRepository repository = Repository.Factory.GetCoreV3(UpdateUrl);
                     FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>().ConfigureAwait(false);
-                    IEnumerable<NuGetVersion> result = await resource.GetAllVersionsAsync(VersionInfo.PackageId, cache, logger, cancellationToken).ConfigureAwait(false);
-                    string versions = result.ToJson(Formatting.Indented);
-                    await File.WriteAllTextAsync(VersionFile, versions).ConfigureAwait(false);
-                    return result;
+                    availableVersions = resource.GetAllVersionsAsync(VersionInfo.PackageId, cache, logger, cancellationToken);
+                    return await availableVersions.ConfigureAwait(false);
                 }
                 catch (NuGetProtocolException exception)
                 {
                     Trace.WriteLine(exception);
                     LastCheckError = exception;
                 }
-                catch (IOException)
-                { }
                 finally
                 {
                     updateVersions.Release();
@@ -117,71 +110,17 @@ namespace FreeTrainSimulator.Updater
             return Enumerable.Empty<NuGetVersion>();
         }
 
-        public static IEnumerable<NuGetVersion> CachedUpdateVersions()
+        public void SetUpdateMode(UpdateMode updateMode)
         {
-            try
-            {
-                if (File.Exists(VersionFile))
-                {
-                    using (StreamReader reader = File.OpenText(VersionFile))
-                    {
-                        return reader.ReadToEnd().FromJson<IEnumerable<NuGetVersion>>();
-                    }
-                }
-            }
-            catch (JsonSerializationException)
-            {
-                try
-                {
-                    File.Delete(VersionFile);
-                }
-                catch (IOException) { }
-            }
-            catch (IOException) { }
-            return Enumerable.Empty<NuGetVersion>();
+            UpdateMode = updateMode;
+            availableVersions = null;
         }
 
-        public void SetUpdateChannel(bool prereleases, bool developerBuilds)
-        {
-            if (developerBuilds)
-            {
-                settings.UpdateSource = developerBuildsUrl;
-                settings.Save(nameof(settings.UpdateSource));
-                settings.UpdatePreReleases = true;
-                settings.Save(nameof(settings.UpdatePreReleases));
-            }
-            else
-            {
-                settings.UpdateSource = (string)settings.GetDefaultValue(nameof(settings.UpdateSource));
-                settings.Save(nameof(settings.UpdateSource));
-                settings.UpdatePreReleases = prereleases;
-                settings.Save(nameof(settings.UpdatePreReleases));
-            }
-        }
+        private string UpdateUrl => updatesUrl + (UpdateMode == UpdateMode.Developer ? developerBuildsFolder : releaseBuildsFolder);
 
-        public static bool CheckUpdateNeeded(UpdateCheckFrequency target)
+        public async Task<string> GetBestAvailableVersionString()
         {
-            //we just check the update file's timestamp against the target
-            switch (target)
-            {
-                case UpdateCheckFrequency.Never:
-                    return false;
-                case UpdateCheckFrequency.Daily:
-                    return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(1) < DateTime.Now;
-                case UpdateCheckFrequency.Weekly:
-                    return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(7) < DateTime.Now;
-                case UpdateCheckFrequency.Biweekly:
-                    return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(14) < DateTime.Now;
-                case UpdateCheckFrequency.Monthly:
-                    return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddMonths(1) < DateTime.Now;
-                default:
-                    return true; //Always
-            }
-        }
-
-        public async Task<string> GetBestAvailableVersionString(bool refresh)
-        {
-            return (await GetBestAvailableVersion(refresh).ConfigureAwait(false))?.ToString();
+            return (await GetBestAvailableVersion().ConfigureAwait(false))?.ToString();
         }
 
         public static string NormalizedPackageVersion(string packageVersion)
@@ -189,17 +128,21 @@ namespace FreeTrainSimulator.Updater
             return packageVersion == null ? packageVersion : removeCommitData.Replace(packageVersion, string.Empty);
         }
 
-        public async Task<NuGetVersion> GetBestAvailableVersion(bool refresh)
+        public async Task<NuGetVersion> GetBestAvailableVersion()
         {
-            IEnumerable<NuGetVersion> availableVersions = await RefreshUpdateInfo(refresh ? UpdateCheckFrequency.Always : (UpdateCheckFrequency)settings.UpdateCheckFrequency).ConfigureAwait(false);
-
-            return VersionInfo.GetBestAvailableVersion(availableVersions, settings.UpdatePreReleases);
+            IEnumerable<NuGetVersion> availableVersions = await RefreshUpdateInfo().ConfigureAwait(false);
+            return VersionInfo.GetBestAvailableVersion(availableVersions, UpdateMode);
         }
 
         public Task RunUpdateProcess(string targetVersion)
         {
-            Task updateTask = RunProcess(new ProcessStartInfo(FileUpdater, $"{VersionCommandLine}\"{targetVersion}\" " +
-                $"{WaitProcessIdCommandLine}{Environment.ProcessId} {RelaunchCommandLine}1 {ElevationCommandLine}{(UpdaterNeedsElevation ? "1" : "0")}"));
+            Task updateTask = RunProcess(new ProcessStartInfo(FileUpdater,
+                $"{VersionCommandLine}{targetVersion} " +
+                $"{WaitProcessIdCommandLine}{Environment.ProcessId} " +
+                $"{RelaunchCommandLine}1 " +
+                $"{ElevationCommandLine}{(UpdaterNeedsElevation ? "1" : "0")} " +
+                $"{LanguageCommandLine}{"en"} " +
+                $"{UpdateModeCommandLine}{UpdateMode}"));
             Environment.Exit(0);
             return updateTask;
         }
@@ -208,31 +151,35 @@ namespace FreeTrainSimulator.Updater
         {
             NuGetVersion targetVersion;
             if (string.IsNullOrEmpty(targetVersionString))
-                targetVersion = await GetBestAvailableVersion(true).ConfigureAwait(false);
+                targetVersion = await GetBestAvailableVersion().ConfigureAwait(false);
             else
                 _ = NuGetVersion.TryParse(targetVersionString, out targetVersion);
 
             if (null == targetVersion)
                 throw new InvalidOperationException("No suitable update version found nor given in commandline." + Environment.NewLine + Environment.NewLine +
-                    "This may be caused by missing connectivity to check with the online update repository.");
+                    "This may be caused by missing connectivity to check the online update repository. Updater can not proceed.");
 
             TriggerApplyProgressChanged(6);
-            CheckUpdateWrites();
+            if (!CheckUpdateWrites())
+                throw new UnauthorizedAccessException("Unable to write to application folder." + Environment.NewLine + Environment.NewLine +
+                    "This may be caused by insufficient permissions, low storage space or similar conditions. Updater can not proceed.");
             TriggerApplyProgressChanged(7);
 
             await CleanDirectoriesAsync(token).ConfigureAwait(false);
             TriggerApplyProgressChanged(9);
 
             await DownloadAndExpandUpdateAsync(targetVersion, token).ConfigureAwait(false);
-            TriggerApplyProgressChanged(90);
+            TriggerApplyProgressChanged(80);
 
             if (await UpdateIsReadyAync($"{VersionInfo.PackageId}.{targetVersion}").ConfigureAwait(false))
             {
                 await CopyUpdateFileAsync().ConfigureAwait(false);
-                TriggerApplyProgressChanged(98);
+                TriggerApplyProgressChanged(96);
 
                 await CleanDirectoriesAsync(token).ConfigureAwait(false);
                 TriggerApplyProgressChanged(100);
+
+                await Task.Delay(1200, token).ConfigureAwait(false);
             }
             else
                 throw new InvalidOperationException("The update package is in an unexpected state.");
@@ -315,11 +262,11 @@ namespace FreeTrainSimulator.Updater
         private async Task DownloadAndExpandUpdateAsync(NuGetVersion targetVersion, CancellationToken token)
         {
             int progressMin = 10;
-            int progressLength = 60;
+            int progressLength = 50;
             DirectoryInfo stagingDirectory = Directory.CreateDirectory(PathUpdateStage);
             stagingDirectory.Attributes |= FileAttributes.Hidden;
 
-            SourceRepository repository = Repository.Factory.GetCoreV3(settings.UpdateSource);
+            SourceRepository repository = Repository.Factory.GetCoreV3(UpdateUrl);
             FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>(token).ConfigureAwait(false);
             using (SourceCacheContext cacheContext = new SourceCacheContext { DirectDownload = true, NoCache = true })
             {
@@ -335,11 +282,11 @@ namespace FreeTrainSimulator.Updater
                     {
                         TriggerApplyProgressChanged(progressMin + progressLength);
                         packageStream.Position = 0;
-                        progressMin = 70;
+                        progressMin = 60;
                         progressLength = 20;
                         PackagePathResolver packagePathResolver = new PackagePathResolver(Path.GetFullPath(PathUpdateStage));
                         PackageExtractionContext extractionContext = new PackageExtractionContext(PackageSaveMode.Files, XmlDocFileSaveMode.Skip, null, NullLogger.Instance);
-                        IEnumerable<string> files = await PackageExtractor.ExtractPackageAsync(settings.UpdateSource, packageStream, packagePathResolver, extractionContext, token).ConfigureAwait(false);
+                        IEnumerable<string> files = await PackageExtractor.ExtractPackageAsync(UpdateUrl, packageStream, packagePathResolver, extractionContext, token).ConfigureAwait(false);
                     }
                 }
             }
@@ -354,11 +301,11 @@ namespace FreeTrainSimulator.Updater
                 Directory.Delete(Path.Combine(PathUpdateStage, versionFolder), true);
             }
 
-            // The staging directory must exist, contain OpenRails.exe (be ready).
-            return await Task.FromResult(Directory.Exists(PathUpdateStage) && File.Exists(Path.Combine(PathUpdateStage, RuntimeInfo.LauncherExecutable))).ConfigureAwait(false);
+            // The staging directory must exist, contain FreeTrainSimulator.exe (be ready).
+            return Directory.Exists(PathUpdateStage) && File.Exists(Path.Combine(PathUpdateStage, RuntimeInfo.LauncherExecutable));
         }
 
-        private static async Task CopyUpdateFileAsync()
+        private async Task CopyUpdateFileAsync()
         {
             //temporarily suspended due to dual framework targeting
             //List<string> excludeDirs = new List<string>()
@@ -380,16 +327,17 @@ namespace FreeTrainSimulator.Updater
             {
                 List<string> excludeDirs = new List<string>()
                 {
-                    Path.Combine(targetFolder, ".config"),
                     Path.Combine(targetFolder, "UpdateDirty"),
                     Path.Combine(targetFolder, "UpdateStage"),
                 };
                 if (Directory.Exists(Path.Combine(targetFolder, "Documentation")))
                     excludeDirs.Add(Path.Combine(targetFolder, "Documentation"));
-                moveFileTasks.Add(MoveDirectoryFiles(targetFolder, Path.Combine(targetFolder, "UpdateDirty"), true, excludeDirs, new string[] { FileSettings }));
+                moveFileTasks.Add(MoveDirectoryFiles(targetFolder, Path.Combine(targetFolder, "UpdateDirty"), true, excludeDirs, null));
             }
+            TriggerApplyProgressChanged(88);
             await Task.WhenAll(moveFileTasks).ConfigureAwait(false);
 
+            TriggerApplyProgressChanged(92);
             foreach (string targetFolder in targets)
             {
                 new DirectoryInfo(Path.Combine(targetFolder, "UpdateDirty")).Attributes |= FileAttributes.Hidden;

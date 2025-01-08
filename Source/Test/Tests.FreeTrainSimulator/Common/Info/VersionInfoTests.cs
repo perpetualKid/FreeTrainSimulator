@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -55,7 +56,7 @@ namespace Tests.FreeTrainSimulator.Common.Info
                 ThisAssembly.IsPublicRelease ? VersionInfo.CurrentVersion.ReleaseLabels :
 #pragma warning restore CS0436 // Type conflicts with imported type
                 VersionInfo.CurrentVersion.ReleaseLabels.Concat(new string[] { "g" + VersionInfo.CurrentVersion.Metadata }), string.Empty);
-            Assert.IsNull(VersionInfo.GetBestAvailableVersion(new NuGetVersion[] { currentVersion }, true));
+            Assert.IsNull(VersionInfo.GetBestAvailableVersion(new NuGetVersion[] { currentVersion }, UpdateMode.PreRelease));
         }
 
         [TestMethod()]
@@ -70,7 +71,7 @@ namespace Tests.FreeTrainSimulator.Common.Info
                 ThisAssembly.IsPublicRelease ? VersionInfo.CurrentVersion.ReleaseLabels :
 #pragma warning restore CS0436 // Type conflicts with imported type
                 VersionInfo.CurrentVersion.ReleaseLabels.Concat(new string[] { "g" + VersionInfo.CurrentVersion.Metadata }), string.Empty);
-            NuGetVersion available = VersionInfo.GetBestAvailableVersion(new NuGetVersion[] { currentVersion }, true);
+            NuGetVersion available = VersionInfo.GetBestAvailableVersion(new NuGetVersion[] { currentVersion }, UpdateMode.PreRelease);
             Assert.IsNotNull(available);
             Assert.AreEqual(-1, VersionInfo.Compare(available.ToFullString()));
         }

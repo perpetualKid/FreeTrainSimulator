@@ -30,7 +30,9 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Imported.State;
 
 using GetText;
 
@@ -39,8 +41,8 @@ using Microsoft.Xna.Framework;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Formats.OR.Files;
-using Orts.Formats.OR.Models;
+using Orts.Formats.OpenRails.Files;
+using Orts.Formats.OpenRails.Models;
 using Orts.Scripting.Api;
 using Orts.Settings;
 using Orts.Simulation.Activities;
@@ -100,7 +102,7 @@ namespace Orts.Simulation
     ///     
     /// All keyboard input comes from the viewer class as calls on simulator's methods.
     /// </summary>
-    public sealed class Simulator : IGameTimeSource, 
+    public sealed class Simulator : IGameTimeSource,
         ISaveStateApi<SimulatorSaveState>,
         ISaveStateRestoreApi<TrainSaveState, Train>,
         ISaveStateRestoreApi<TrainSaveState, AITrain>
@@ -136,19 +138,18 @@ namespace Orts.Simulation
 
         public bool MetricUnits { get; }
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
+        public RouteModel RouteModel { get; private set; }
 
         // Primary Simulator Data 
         // These items represent the current state of the simulator 
         // In multiplayer games, these items must be kept in sync across all players
         // These items are what are saved and loaded in a game save.
-        public string RouteName { get; private set; }
         public string ActivityFileName { get; set; }
         public string TimetableFileName { get; set; }
         public bool TimetableMode { get; private set; }
         public bool PreUpdate { get; internal set; }
         public ActivityFile ActivityFile { get; private set; }
         public Activity ActivityRun { get; private set; }
-        public Route Route { get; private set; }
         public TrainList Trains { get; private set; }
         public Dictionary<int, Train> TrainDictionary { get; } = new Dictionary<int, Train>();
         public Dictionary<string, Train> NameDictionary { get; } = new Dictionary<string, Train>(StringComparer.OrdinalIgnoreCase);
@@ -222,7 +223,7 @@ namespace Orts.Simulation
         public Train OriginalPlayerTrain { get; private set; } // Used in Activity mode
 
         public bool PlayerIsInCab { get; set; }
-        public bool OpenDoorsInAITrains { get; private set; }
+        public bool OpenDoorsInAITrains { get; init; }
 
         public MovingTable ActiveMovingTable { get; set; }
 
@@ -264,13 +265,19 @@ namespace Orts.Simulation
             Trace.Write("Loading");
 
             Trace.Write(" TRK");
-            Route = new RouteFile(RouteFolder.TrackFileName).Route;
+            Task<RouteModel> loadRouteModelTask = RouteFolder.ToRouteModel(CancellationToken.None).AsTask();
+            if (!loadRouteModelTask.IsCompleted)
+                loadRouteModelTask.Wait();
+            RouteModel = loadRouteModelTask.Result;
 
-            RouteName = Route.Name;
-            OpenDoorsInAITrains = Route.OpenDoorsInAITrains.GetValueOrDefault(Settings.OpenDoorsInAITrains);
+            Debug.Assert(RouteModel != null);
+
+            if (RouteModel.Settings.TryGetValue("OpenComputerTrainDoors", out string trainDoorsSetting) &&
+                bool.TryParse(trainDoorsSetting, out bool openComputerTrainDoors))
+                OpenDoorsInAITrains = openComputerTrainDoors;
 
             Trace.Write(" TDB");
-            TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(Route.FileName)).TrackDB;
+            TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(RouteModel.RouteKey)).TrackDB;
 
             Trace.Write(" SIGCFG");
             SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.ORSignalConfigFile);
@@ -281,14 +288,14 @@ namespace Orts.Simulation
                 tsectionDat.AddRouteTSectionDatFile(RouteFolder.RouteTrackSectionFile);
 
             RoadTrackDB roadDatabase = null;
-            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(Route.FileName)))
+            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(RouteModel.RouteKey)))
             {
                 Trace.Write(" RDB");
-                roadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(Route.FileName)).RoadTrackDB;
+                roadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(RouteModel.RouteKey)).RoadTrackDB;
             }
 
-            MetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? Route.MilepostUnitsMetric : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            RuntimeData.Initialize(Route.Name, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
+            MetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            RuntimeData.Initialize(RouteModel, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
 
             SuperElevation = new SuperElevation(this);
 
@@ -306,7 +313,7 @@ namespace Orts.Simulation
             {
                 Trace.Write(" EXTCARSPAWN");
                 ORCarSpawnerFile acsf = new ORCarSpawnerFile(carSpawnFile, RouteFolder.ShapesFolder);
-                (CarSpawnerLists as List<CarSpawners>).AddRange(acsf.CarSpawners);
+                CarSpawnerLists.AddRange(acsf.CarSpawners);
             }
 
             //Load OR-Clock if external file "openrails\clock.dat" exists --------------------------------------------------------
@@ -347,7 +354,7 @@ namespace Orts.Simulation
             WeatherType = ActivityFile.Activity.Header.Weather;
             if (ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
             {
-                ActivityRun.AddRestrictZones(Route, ActivityFile.Activity.ActivityRestrictedSpeedZones);
+                ActivityRun.AddRestrictZones(ActivityFile.Activity.ActivityRestrictedSpeedZones);
             }
             IsAutopilotMode = true;
         }
@@ -1028,7 +1035,7 @@ namespace Orts.Simulation
                     if (train != drivenTrain && train.TrainType != TrainType.AiIncorporated)
                     {
                         //avoid coupling of player train with other players train
-                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(this, drivenTrain, train))
+                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(drivenTrain, train))
                             continue;
 
                         float d1 = drivenTrain.RearTDBTraveller.OverlapDistanceM(train.FrontTDBTraveller, true);
@@ -1098,7 +1105,7 @@ namespace Orts.Simulation
                     if (train != drivenTrain && train.TrainType != TrainType.AiIncorporated)
                     {
                         //avoid coupling of player train with other players train if it is too short alived (e.g, when a train is just spawned, it may overlap with another train)
-                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(this, drivenTrain, train))
+                        if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(drivenTrain, train))
                             continue;
                         //	{
                         //		if ((MPManager.Instance().FindPlayerTrain(train) && drivenTrain == PlayerLocomotive.Train) || (MPManager.Instance().FindPlayerTrain(drivenTrain) && train == PlayerLocomotive.Train)) continue;
@@ -1263,7 +1270,7 @@ namespace Orts.Simulation
                     car.Flipped = wagon.Flip;
                     car.UiD = wagon.UiD;
                     if (MultiPlayerManager.IsMultiPlayer())
-                        car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
+                        car.CarID = MultiPlayerManager.UserName1 + " - " + car.UiD; //player's train is always named train 0.
                     else
                         car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
                     if (car is EndOfTrainDevice endOfTrain)
@@ -1315,8 +1322,8 @@ namespace Orts.Simulation
             PlayerLocomotive = InitialPlayerLocomotive();
             train.TrainMaxSpeedMpS = (conFile.Train.MaxVelocity == null) ||
                 ((conFile.Train.MaxVelocity.A <= 0f) || (conFile.Train.MaxVelocity.A == 40f))
-                ? Math.Min((float)Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS)
-                : Math.Min((float)Route.SpeedLimit, conFile.Train.MaxVelocity.A);
+                ? Math.Min(RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], (PlayerLocomotive).MaxSpeedMpS)
+                : Math.Min(RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], conFile.Train.MaxVelocity.A);
 
             double prevEQres = train.BrakeSystem.EqualReservoirPressurePSIorInHg;
             train.AITrainBrakePercent = 100; //<CSComment> This seems a tricky way for the brake modules to test if it is an AI train or not
@@ -1372,9 +1379,9 @@ namespace Orts.Simulation
 
             PlayerLocomotive = InitialPlayerLocomotive();
             if (train.MaxVelocityA <= 0f || train.MaxVelocityA == 40f)
-                train.TrainMaxSpeedMpS = Math.Min((float)Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
+                train.TrainMaxSpeedMpS = Math.Min(RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], (PlayerLocomotive).MaxSpeedMpS);
             else
-                train.TrainMaxSpeedMpS = Math.Min((float)Route.SpeedLimit, train.MaxVelocityA);
+                train.TrainMaxSpeedMpS = Math.Min(RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], train.MaxVelocityA);
             if (train.InitialSpeed > 0 && train.MovementState != AiMovementState.StationStop)
             {
                 train.InitializeMoving();
@@ -1997,7 +2004,7 @@ namespace Orts.Simulation
             const int maxLogFiles = 2;
             StringBuilder logfile = new StringBuilder();
 
-            logfile.Append(RouteName);
+            logfile.Append(RouteModel.Name);
 
             logfile.Append(string.IsNullOrEmpty(ActivityFileName) ? "_explorer" : "_" + ActivityFileName);
 

@@ -17,6 +17,9 @@
 
 // This module covers all classes and code for signal, speed post, track occupation and track reservation control
 
+using System;
+using System.Collections.Frozen;
+
 using FreeTrainSimulator.Common;
 
 namespace Orts.Simulation.Signalling
@@ -56,11 +59,111 @@ namespace Orts.Simulation.Signalling
         }
     }
 
-    internal class TunnelInfoData: SectionInfoBase
+    internal class TunnelInfoData : SectionInfoBase
     {
-        public int NumberPaths { get; }                                                                 // number of paths through this item
+        private static readonly float singleTunnelArea;
+        private static readonly float singleTunnelPerimeter;
+        private static readonly float doubleTunnelArea;
+        private static readonly float doubleTunnelPerimeter;
 
-        public TunnelInfoData(int numberPaths, float tunnelStart, float tunnelEnd, float lengthInSection, float length,  float trackcircuitSectionLength, float startOffset): 
+        static TunnelInfoData()
+        {
+            FrozenDictionary<string, string> settings = Simulator.Instance?.RouteModel?.Settings;
+            ArgumentNullException.ThrowIfNull(settings, nameof(settings));
+
+            if (settings.TryGetValue("SingleTunnelArea", out string settingValue))
+                _ = float.TryParse(settingValue, out singleTunnelArea);
+            if (settings.TryGetValue("SingleTunnelPerimeter", out settingValue))
+                _ = float.TryParse(settingValue, out singleTunnelPerimeter);
+            if (settings.TryGetValue("DoubleTunnelArea", out settingValue))
+                _ = float.TryParse(settingValue, out doubleTunnelArea);
+            if (settings.TryGetValue("DoubleTunnelPerimeter", out settingValue))
+                _ = float.TryParse(settingValue, out doubleTunnelPerimeter);
+
+            float speedLimit = Simulator.Instance.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route];
+            // if no values are in TRK file, calculate default values.
+            // Single track Tunnels
+
+            if (singleTunnelArea == 0)
+            {
+
+                if (speedLimit >= 97.22) // if route speed greater then 350km/h
+                {
+                    singleTunnelArea = 70.0f;
+                    singleTunnelPerimeter = 32.0f;
+                }
+                else if (speedLimit >= 69.4 && speedLimit < 97.22) // Route speed greater then 250km/h and less then 350km/h
+                {
+                    singleTunnelArea = 70.0f;
+                    singleTunnelPerimeter = 32.0f;
+                }
+                else if (speedLimit >= 55.5 && speedLimit < 69.4) // Route speed greater then 200km/h and less then 250km/h
+                {
+                    singleTunnelArea = 58.0f;
+                    singleTunnelPerimeter = 28.0f;
+                }
+                else if (speedLimit >= 44.4 && speedLimit < 55.5) // Route speed greater then 160km/h and less then 200km/h
+                {
+                    singleTunnelArea = 50.0f;
+                    singleTunnelPerimeter = 25.5f;
+                }
+                else if (speedLimit >= 33.3 && speedLimit < 44.4) // Route speed greater then 120km/h and less then 160km/h
+                {
+                    singleTunnelArea = 42.0f;
+                    singleTunnelPerimeter = 22.5f;
+                }
+                else       // Route speed less then 120km/h
+                {
+                    singleTunnelArea = 21.0f;  // Typically older slower speed designed tunnels
+                    singleTunnelPerimeter = 17.8f;
+                }
+            }
+
+            // Double track Tunnels
+
+            if (doubleTunnelArea == 0)
+            {
+
+                if (speedLimit >= 97.22) // if route speed greater then 350km/h
+                {
+                    doubleTunnelArea = 100.0f;
+                    doubleTunnelPerimeter = 37.5f;
+                }
+                else if (speedLimit >= 69.4 && speedLimit < 97.22) // Route speed greater then 250km/h and less then 350km/h
+                {
+                    doubleTunnelArea = 100.0f;
+                    doubleTunnelPerimeter = 37.5f;
+                }
+                else if (speedLimit >= 55.5 && speedLimit < 69.4) // Route speed greater then 200km/h and less then 250km/h
+                {
+                    doubleTunnelArea = 90.0f;
+                    doubleTunnelPerimeter = 35.0f;
+                }
+                else if (speedLimit >= 44.4 && speedLimit < 55.5) // Route speed greater then 160km/h and less then 200km/h
+                {
+                    doubleTunnelArea = 80.0f;
+                    doubleTunnelPerimeter = 34.5f;
+                }
+                else if (speedLimit >= 33.3 && speedLimit < 44.4) // Route speed greater then 120km/h and less then 160km/h
+                {
+                    doubleTunnelArea = 76.0f;
+                    doubleTunnelPerimeter = 31.0f;
+                }
+                else       // Route speed less then 120km/h
+                {
+                    doubleTunnelArea = 41.8f;  // Typically older slower speed designed tunnels
+                    doubleTunnelPerimeter = 25.01f;
+                }
+            }
+        }
+
+        public int NumberPaths { get; } // number of paths through this item
+
+        public float CrossSectionArea => NumberPaths > 1 ? doubleTunnelArea : singleTunnelArea;
+        public float Perimeter => NumberPaths > 1 ? doubleTunnelPerimeter : singleTunnelPerimeter;
+
+
+        public TunnelInfoData(int numberPaths, float tunnelStart, float tunnelEnd, float lengthInSection, float length, float trackcircuitSectionLength, float startOffset) :
             base(tunnelStart, tunnelEnd, lengthInSection, length, trackcircuitSectionLength, startOffset)
         {
             NumberPaths = numberPaths;

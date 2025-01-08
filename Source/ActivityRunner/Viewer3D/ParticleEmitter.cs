@@ -243,11 +243,6 @@ namespace Orts.ActivityRunner.Viewer3D
             };
         }
 
-        private void VertexBuffer_ContentLost()
-        {
-            VertexBuffer.SetData(0, Vertices, 0, Vertices.Length, ParticleVertex.VertexStride, SetDataOptions.NoOverwrite);
-        }
-
         private static IndexBuffer InitIndexBuffer(GraphicsDevice graphicsDevice, int numIndicies)
         {
             var indices = new ushort[numIndicies];
@@ -417,9 +412,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Draw()
         {
-            if (VertexBuffer.IsContentLost)
-                VertexBuffer_ContentLost();
-
             if (FirstNewParticle != FirstFreeParticle)
                 AddNewParticlesToVertexBuffer();
 

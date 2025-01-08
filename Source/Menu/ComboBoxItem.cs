@@ -5,26 +5,20 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     internal sealed class ComboBoxItem<T>
     {
-        public T Key { get; }
-        public string Value { get; }
+        public T Value { get; }
+        public string Text { get; }
 
-        public ComboBoxItem(T key, string value)
+        public ComboBoxItem(string text, T value)
         {
-            Key = key;
             Value = value;
+            Text = text;
         }
 
-        public static void SetDataSourceMembers(ComboBox comboBox)
-        {
-            comboBox.DisplayMember = nameof(ComboBoxItem<int>.Value);
-            comboBox.ValueMember = nameof(ComboBoxItem<int>.Key);
-        }
-
-        internal ComboBoxItem() { }
+        private ComboBoxItem() { }
     }
 
     public static class ComboBoxExtension
@@ -36,10 +30,9 @@ namespace Orts.Menu
         /// </summary>
         public static void DataSourceFromList<T>(this ComboBox comboBox, IEnumerable<T> source, Func<T, string> lookup)
         {
-            ArgumentNullException.ThrowIfNull(comboBox);
+            ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
 
-            comboBox.DataSource = FromList(source, lookup);
-            ComboBoxItem<T>.SetDataSourceMembers(comboBox);
+            comboBox.EnableComboBoxItemDataSource(FromList(source, lookup));
         }
 
         /// <summary>
@@ -49,10 +42,9 @@ namespace Orts.Menu
         /// </summary>
         public static void DataSourceFromEnum<T>(this ComboBox comboBox) where T : Enum
         {
-            ArgumentNullException.ThrowIfNull(comboBox);
+            ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
 
-            comboBox.DataSource = FromEnum<T>();
-            ComboBoxItem<T>.SetDataSourceMembers(comboBox);
+            comboBox.EnableComboBoxItemDataSource(FromEnum<T>());
         }
 
         /// <summary>
@@ -62,47 +54,94 @@ namespace Orts.Menu
         /// </summary>
         public static void DataSourceFromEnumIndex<T>(this ComboBox comboBox) where T : Enum
         {
-            ArgumentNullException.ThrowIfNull(comboBox);
+            ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
 
-            comboBox.DataSource = FromEnumValue<T>();
-            ComboBoxItem<T>.SetDataSourceMembers(comboBox);
-
+            comboBox.EnableComboBoxItemDataSource(FromEnumValue<T>());
         }
 
         private static List<ComboBoxItem<T>> FromEnum<T>() where T : Enum
         {
-            return EnumExtension.GetValues<T>().Select(data => new ComboBoxItem<T>(data, data.GetLocalizedDescription())).ToList();
+            return EnumExtension.GetValues<T>().Select(data => new ComboBoxItem<T>(data.GetLocalizedDescription(), data)).ToList();
         }
 
         private static List<ComboBoxItem<int>> FromEnumValue<T>() where T : Enum
         {
-            return EnumExtension.GetValues<T>().Select(data => new ComboBoxItem<int>(Convert.ToInt32(data, System.Globalization.CultureInfo.InvariantCulture),data.GetLocalizedDescription())).ToList();
+            return EnumExtension.GetValues<T>().Select(data => new ComboBoxItem<int>(data.GetLocalizedDescription(), Convert.ToInt32(data, System.Globalization.CultureInfo.InvariantCulture))).ToList();
         }
 
         /// <summary>
         /// Returns a new List<ComboBoxItem<T>> created from source enum.
-        /// Keys and values are mapped from enum values, typically keys are enum values or enum value names
+        /// Text and values are mapped from enum values, typically text are enum values or enum value names
         /// </summary>
-        private static List<ComboBoxItem<T>> FromEnumCustomLookup<E, T>(Func<E, T> keyLookup, Func<E, string> valueLookup) where E : Enum
+        private static List<ComboBoxItem<T>> FromEnumCustomLookup<E, T>(Func<E, T> valueLookup2, Func<E, string> textLookup) where E : Enum
         {
-            return EnumExtension.GetValues<E>().Select(data => new ComboBoxItem<T>(keyLookup(data), valueLookup(data))).ToList();
+            return EnumExtension.GetValues<E>().Select(data => new ComboBoxItem<T>(textLookup(data), valueLookup2(data))).ToList();
         }
 
         /// <summary>
         /// Returns a new List<ComboBoxItem<T>> created from source list.
         /// Keys are mapped from list items, display values are mapped through lookup function
         /// </summary>
-        private static List<ComboBoxItem<T>> FromList<T>(IEnumerable<T> source, Func<T, string> lookup)
+        private static List<ComboBoxItem<T>> FromList<T>(IEnumerable<T> source, Func<T, string> textLookup)
         {
-            try
-            {
-                return source.Select(item => new ComboBoxItem<T>(item, lookup(item))).ToList();
-            }
-            catch (ArgumentException)
-            {
-                return new List<ComboBoxItem<T>>();
-            }
+            return source.Select(item => new ComboBoxItem<T>(textLookup(item), item)).ToList();
         }
 
+        internal static void EnableComboBoxItemDataSource<T>(this ComboBox comboBox, IEnumerable<ComboBoxItem<T>> datasource)
+        {
+            ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
+
+            comboBox.DataSource = datasource?.ToList();
+
+            comboBox.DisplayMember = nameof(ComboBoxItem<T>.Text);
+            comboBox.ValueMember = nameof(ComboBoxItem<T>.Value);
+        }
+
+        private delegate T SetGetComboBoxItemDelegate<T>(ComboBox comboBox, Func<T, bool> predicate);
+
+        public static T SetComboBoxItem<T>(this ComboBox comboBox, Func<T, bool> predicate)
+        {
+            ArgumentNullException.ThrowIfNull(comboBox, nameof(comboBox));
+            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
+
+            if (comboBox.InvokeRequired)
+            {
+                return (comboBox.Invoke(new SetGetComboBoxItemDelegate<T>(SetComboBoxItem), comboBox, predicate)) is T result ? result : default;
+            }
+            if (comboBox.Items.Count == 0)
+                return default;
+
+            bool found = false;
+            if (comboBox.Items[0] is ComboBoxItem<T>)
+            {
+                for (int i = 0; i < comboBox.Items.Count; i++)
+                {
+                    if (comboBox.Items[i] is ComboBoxItem<T> cbi && predicate(cbi.Value))
+                    {
+                        comboBox.SelectedIndex = i;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                    comboBox.SelectedIndex = 0;
+                return comboBox.SelectedValue is T result ? result : default;
+            }
+            else
+            {
+                for (int i = 0; i < comboBox.Items.Count; i++)
+                {
+                    if (comboBox.Items[i] is T t && predicate(t))
+                    {
+                        comboBox.SelectedIndex = i;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                    comboBox.SelectedIndex = 0;
+                return comboBox.SelectedValue is T result ? result : default;
+            }
+        }
     }
 }

@@ -1,25 +1,7 @@
-﻿// COPYRIGHT 2012, 2013 by the Open Rails project.
-// 
-// This file is part of Open Rails.
-// 
-// Open Rails is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// Open Rails is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -28,29 +10,30 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Settings;
-
-using Path = System.IO.Path;
-
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     public partial class TestingForm : Form
     {
         private CancellationTokenSource ctsTestActivityLoader;
         private CancellationTokenSource ctsTestActivityRunner;
+        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        private readonly ContentModel contentModel;
         private bool clearedLogs;
         private readonly string runActivity;
-        private readonly UserSettings settings;
         private readonly string summaryFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingSummary.csv");
         private readonly string logFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingLog.txt");
 
-        public TestingForm(UserSettings settings, string runActivity)
+        public TestingForm(ContentModel contentModel
+            , string runActivity)
         {
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
@@ -59,7 +42,7 @@ namespace Orts.Menu
             Localizer.Localize(this, CatalogManager.Catalog);
 
             this.runActivity = runActivity;
-            this.settings = settings;
+            this.contentModel = contentModel;
 
             UpdateButtons();
         }
@@ -89,6 +72,7 @@ namespace Orts.Menu
         {
             if (disposing)
             {
+                semaphoreSlim?.Dispose();
                 components?.Dispose();
                 ctsTestActivityLoader?.Dispose();
                 ctsTestActivityRunner?.Dispose();
@@ -107,18 +91,11 @@ namespace Orts.Menu
 
         private async Task LoadActivitiesAsync()
         {
-            lock (testBindingSource.DataSource)
-            {
-                if (ctsTestActivityLoader != null && !ctsTestActivityLoader.IsCancellationRequested)
-                {
-                    ctsTestActivityLoader.Cancel();
-                    ctsTestActivityLoader.Dispose();
-                }
-                ctsTestActivityLoader = new CancellationTokenSource();
-            }
+            ctsTestActivityLoader = await ctsTestActivityLoader.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
+
             UseWaitCursor = true;
             gridTestActivities.SuspendLayout();
-            testBindingSource.DataSource = new SortableBindingList<TestActivity>((await TestActivity.GetTestActivities(settings.FolderSettings.Folders, CancellationToken.None).ConfigureAwait(true)).ToList());
+            testBindingSource.DataSource = new SortableBindingList<TestActivityModel>((await contentModel.LoadTestActivities(ctsTestActivityLoader.Token).ConfigureAwait(true)).Cast<TestActivityModel>().ToList());
             testBindingSource.Sort = "DefaultSort";
             gridTestActivities.ResumeLayout();
             UseWaitCursor = false;
@@ -127,15 +104,12 @@ namespace Orts.Menu
 
         private async void ButtonTestAll_Click(object sender, EventArgs e)
         {
-            await TestMarkedActivitiesAsync(from DataGridViewRow r in gridTestActivities.Rows
-                                            select r).ConfigureAwait(false);
+            await TestMarkedActivitiesAsync(gridTestActivities.Rows.Cast<DataGridViewRow>()).ConfigureAwait(false);
         }
 
         private async void ButtonTest_Click(object sender, EventArgs e)
         {
-            await TestMarkedActivitiesAsync(from DataGridViewRow r in gridTestActivities.Rows
-                                            where r.Selected
-                                            select r).ConfigureAwait(false);
+            await TestMarkedActivitiesAsync(gridTestActivities.Rows.Cast<DataGridViewRow>().Where(r => r.Selected)).ConfigureAwait(false);
         }
 
         private void ButtonCancel_Click(object sender, EventArgs e)
@@ -161,28 +135,20 @@ namespace Orts.Menu
 
         private async Task TestMarkedActivitiesAsync(IEnumerable<DataGridViewRow> rows)
         {
-            lock (testBindingSource.DataSource)
-            {
-                if (ctsTestActivityRunner != null && !ctsTestActivityRunner.IsCancellationRequested)
-                {
-                    ctsTestActivityRunner.Cancel();
-                    ctsTestActivityRunner.Dispose();
-                }
-                ctsTestActivityRunner = new CancellationTokenSource();
-            }
+            ctsTestActivityRunner = await ctsTestActivityRunner.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
+
             UpdateButtons();
 
             bool overrideSettings = checkBoxOverride.Checked;
 
-            IEnumerable<Tuple<int, TestActivity>> items = from r in rows
-                                                          select new Tuple<int, TestActivity>(r.Index, (TestActivity)r.DataBoundItem);
+            IEnumerable<(int, TestActivityModel)> items = rows.Select(r => (r.Index, (TestActivityModel)r.DataBoundItem));
 
             try
             {
-                foreach (Tuple<int, TestActivity> item in items)
+                foreach ((int, TestActivityModel) item in items)
                 {
-                    await Task.Run(() => RunTestTask(item.Item2, overrideSettings, ctsTestActivityRunner.Token), ctsTestActivityRunner.Token).ConfigureAwait(true);
-                    ShowGridRow(gridTestActivities, item.Item1);
+                    TestActivityModel result = await Task.Run(() => RunTestTask(item.Item2, overrideSettings, ctsTestActivityRunner.Token), ctsTestActivityRunner.Token).ConfigureAwait(true);
+                    ShowGridRow(gridTestActivities, item.Item1, result);
                     if (ctsTestActivityRunner.IsCancellationRequested)
                         break;
                 }
@@ -195,7 +161,7 @@ namespace Orts.Menu
             UpdateButtons();
         }
 
-        private async Task RunTestTask(TestActivity activity, bool overrideSettings, CancellationToken token)
+        private async Task<TestActivityModel> RunTestTask(TestActivityModel activity, bool overrideSettings, CancellationToken cancellationToken)
         {
             string parameters = $"/Test /Logging /LoggingFilename=\"{Path.GetFileName(logFilePath)}\" /LoggingPath=\"{Path.GetDirectoryName(logFilePath)}\" " +
                 $"/Profiling /ProfilingTime=10 /ShowErrorDialogs=False";
@@ -214,7 +180,7 @@ namespace Orts.Menu
                 using (StreamWriter writer = File.CreateText(summaryFilePath))
                     await writer.WriteLineAsync("Route, Activity, Passed, Errors, Warnings, Infos, Load Time, FPS").ConfigureAwait(false);
                 using (StreamWriter writer = File.CreateText(logFilePath))
-                    await writer.FlushAsync(token).ConfigureAwait(false);
+                    await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
                 clearedLogs = true;
             }
 
@@ -223,68 +189,77 @@ namespace Orts.Menu
                 summaryFilePosition = reader.BaseStream.Length;
 
             processStartInfo.Arguments = $"{parameters} \"{activity.ActivityFilePath}\"";
-            activity.Passed = await RunProcess(processStartInfo, token).ConfigureAwait(false) == 0;
-            activity.Tested = true;
+            bool passed = await RunProcessAsync(processStartInfo, cancellationToken).ConfigureAwait(false);
+            string errors = string.Empty;
+            string load = string.Empty;
+            string fps = string.Empty;
 
             using (StreamReader reader = File.OpenText(summaryFilePath))
             {
                 reader.BaseStream.Seek(summaryFilePosition, SeekOrigin.Begin);
-                string line = await reader.ReadLineAsync(token).ConfigureAwait(false);
+                string line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
                 if (!string.IsNullOrEmpty(line) && reader.EndOfStream)
                 {
                     string[] csv = line.Split(',');
-                    activity.Errors = $"{int.Parse(csv[3], CultureInfo.InvariantCulture)}/{int.Parse(csv[4], CultureInfo.InvariantCulture)}/{int.Parse(csv[5], CultureInfo.InvariantCulture)}";
-                    activity.Load = $"{float.Parse(csv[6], CultureInfo.InvariantCulture),6:F1}s";
-                    activity.FPS = $"{float.Parse(csv[7], CultureInfo.InvariantCulture),6:F1}";
+                    errors = $"{int.Parse(csv[3], CultureInfo.InvariantCulture)}/{int.Parse(csv[4], CultureInfo.InvariantCulture)}/{int.Parse(csv[5], CultureInfo.InvariantCulture)}";
+                    load = $"{float.Parse(csv[6], CultureInfo.InvariantCulture),6:F1}s";
+                    fps = $"{float.Parse(csv[7], CultureInfo.InvariantCulture),6:F1}";
                 }
                 else
                 {
-                    await reader.ReadToEndAsync(token).ConfigureAwait(false);
-                    activity.Passed = false;
+                    await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+                    passed = false;
                 }
                 summaryFilePosition = reader.BaseStream.Position;
             }
+
+            return activity with
+            {
+                Passed = passed,
+                Tested = true,
+                Errors = errors,
+                Load = load,
+                FPS = fps,
+            };
         }
 
-        public static Task<int> RunProcess(ProcessStartInfo processStartInfo, CancellationToken token)
+        public static async Task<bool> RunProcessAsync(ProcessStartInfo processStartInfo, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(processStartInfo);
 
-            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
             processStartInfo.RedirectStandardError = true;
             processStartInfo.UseShellExecute = false;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
             Process process = new Process
             {
                 EnableRaisingEvents = true,
                 StartInfo = processStartInfo
             };
-#pragma warning restore CA2000 // Dispose objects before losing scope
 
-            process.Exited += (sender, args) =>
+            try
             {
+                _ = process.Start();
+                await process.WaitForExitAsync(cancellationToken).ConfigureAwait(true);
+
                 if (process.ExitCode != 0)
                 {
-                    string errorMessage = process.StandardError.ReadToEnd();
-                    tcs.TrySetException(new InvalidOperationException("The process did not exit correctly. " +
-                        "The corresponding error message was: " + errorMessage));
+                    string errorMessage = await process.StandardError.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+                    Trace.TraceWarning(errorMessage);
                 }
-                tcs.TrySetResult(process.ExitCode);
-                process.Dispose();
-            };
-            process.Start();
-            token.Register(() =>
-            {
+
                 if (!process.HasExited)
-                    process.CloseMainWindow();
-                tcs.TrySetCanceled();
-            });
-            return tcs.Task;
+                    _ = process.CloseMainWindow();
+                return process.ExitCode == 0;
+            }
+            finally
+            {
+                process.Dispose();
+            }
         }
 
-        private static void ShowGridRow(DataGridView grid, int rowIndex)
+        private static void ShowGridRow(DataGridView grid, int rowIndex, TestActivityModel activityModel)
         {
+            (grid.DataSource as BindingSource)[rowIndex] = activityModel;
             int displayedRowCount = grid.DisplayedRowCount(false);
             if (grid.FirstDisplayedScrollingRowIndex > rowIndex)
                 grid.FirstDisplayedScrollingRowIndex = rowIndex;

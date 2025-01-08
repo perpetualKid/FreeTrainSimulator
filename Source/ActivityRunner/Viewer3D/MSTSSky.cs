@@ -35,7 +35,6 @@ using Orts.Simulation;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;
 using Orts.Simulation.World;
-using Orts.Viewer3D;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

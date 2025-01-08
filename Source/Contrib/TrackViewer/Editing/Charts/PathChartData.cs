@@ -183,7 +183,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="thisNode">The node to start with</param>
         /// <remarks>The assumption is that the two trainpath nodes only have a single tracknode connecting them</remarks>
         /// <returns>At least one new chart point</returns>
-        private IEnumerable<PathChartPoint> DetermineChartPoints(TrainpathNode thisNode)
+        private List<PathChartPoint> DetermineChartPoints(TrainpathNode thisNode)
         {
             // The track consists of a number of sections. These sections might be along the direction we are going in (isForward) or not
             // The first point (belonging to currentNode) is the first we return, and possibly the only one.

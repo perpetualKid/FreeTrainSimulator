@@ -18,7 +18,7 @@
 using System.IO;
 
 using Orts.Formats.Msts.Files;
-using Orts.Formats.OR.Files;
+using Orts.Formats.OpenRails.Files;
 
 namespace Orts.ContentChecker
 {

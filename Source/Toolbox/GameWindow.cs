@@ -13,12 +13,14 @@ using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Logging;
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Toolbox;
+using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 using FreeTrainSimulator.Toolbox.Settings;
 
@@ -51,6 +53,7 @@ namespace FreeTrainSimulator.Toolbox
         private WindowManager<ToolboxWindowType> windowManager;
         private ContentArea contentArea;
         private int suppressCount;
+        private bool waitOnExit;
 
         internal ContentArea ContentArea
         {
@@ -79,13 +82,14 @@ namespace FreeTrainSimulator.Toolbox
 
         internal event EventHandler<ContentAreaChangedEventArgs> OnContentAreaChanged;
 
-        internal string StatusMessage { get; set; }
+        private ProfileModel currentProfile;
 
-        internal ToolboxSettings Settings { get; }
+        internal ProfileToolboxSettingsModel ToolboxSettings { get; private set; }
+        internal ProfileUserSettingsModel ToolboxUserSettings { get; private set;}
 
         internal string LogFileName { get; }
 
-        private Color BackgroundColor;
+        private Color backgroundColor;
 
         internal Catalog Catalog { get; private set; }
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
@@ -94,30 +98,28 @@ namespace FreeTrainSimulator.Toolbox
         public GameWindow()
         {
             ImmutableArray<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
-            Settings = new ToolboxSettings(options);
 
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
 
-            if (Settings.UserSettings.Logging)
+            Task.Run(LoadSettings).Wait();
+            if (ToolboxUserSettings.LogLevel != TraceSettings.None)
             {
-                LogFileName = RuntimeInfo.LogFile(Settings.UserSettings.LoggingPath, Settings.LogFilename);
-                LoggingUtil.InitLogging(LogFileName, Settings.UserSettings.LogErrorsOnly, false);
-                Settings.Log();
-                Trace.WriteLine(LoggingUtil.SeparatorLine);
+                LogFileName = RuntimeInfo.LogFile(ToolboxUserSettings.LogFilePath, ToolboxUserSettings.LogFileName);
+                LoggingUtil.InitLogging(LogFileName, TraceSettings.Errors | TraceSettings.ErrorStack | TraceSettings.Trace, false);
+                ToolboxSettings.Log();
             }
 
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
-            currentScreen = Settings.WindowScreen < System.Windows.Forms.Screen.AllScreens.Length
-                ? System.Windows.Forms.Screen.AllScreens[Settings.WindowScreen]
+            currentScreen = ToolboxSettings.WindowScreen < System.Windows.Forms.Screen.AllScreens.Length
+                ? System.Windows.Forms.Screen.AllScreens[ToolboxSettings.WindowScreen]
                 : System.Windows.Forms.Screen.PrimaryScreen;
             FontManager.ScalingFactor = (float)WindowManager.DisplayScalingFactor(currentScreen);
 
-            LoadSettings();
-
+            ApplySettings();
             InitializeComponent();
             graphicsDeviceManager = new GraphicsDeviceManager(this);
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
-            graphicsDeviceManager.PreferMultiSampling = Settings.UserSettings.MultisamplingCount > 0;
+            graphicsDeviceManager.PreferMultiSampling = ToolboxUserSettings.MultiSamplingCount > 0;
             IsMouseVisible = true;
 
             // Set title to show revision or build info.
@@ -148,15 +150,21 @@ namespace FreeTrainSimulator.Toolbox
             onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), Window, m);
 
             windowForm.FormClosing += WindowForm_FormClosing;
+            Exiting += GameWindow_Exiting;
             LoadLanguage();
             SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
             debugInfo = new CommonDebugInfo(this);
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
         }
 
+        private void GameWindow_Exiting(object sender, ExitingEventArgs e)
+        {
+            e.Cancel = waitOnExit;
+        }
+
         private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
         {
-            e.Cancel = true;
+            waitOnExit = true;
             PrepareExitApplication();
         }
 
@@ -190,32 +198,41 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void UpdateColorPreference(ColorSetting setting, string colorName)
         {
-            Settings.ColorSettings[setting] = colorName;
+            ToolboxSettings.ColorSettings[setting] = colorName;
             contentArea?.UpdateColor(setting, ColorExtension.FromName(colorName));
             if (setting == ColorSetting.Background)
             {
-                BackgroundColor = ColorExtension.FromName(colorName);
-                (windowManager[ToolboxWindowType.DebugScreen] as DebugScreen)?.UpdateBackgroundColor(BackgroundColor);
+                backgroundColor = ColorExtension.FromName(colorName);
+                (windowManager[ToolboxWindowType.DebugScreen] as DebugScreen)?.UpdateBackgroundColor(backgroundColor);
             }
         }
 
         internal void UpdateItemVisibilityPreference(MapContentType setting, bool enabled)
         {
-            Settings.ViewSettings[setting] = enabled;
+            ToolboxSettings.ViewSettings[setting] = enabled;
         }
 
         internal void UpdateLanguagePreference(string language)
         {
-            Settings.UserSettings.Language = language;
+            ToolboxUserSettings.Language = language;
             LoadLanguage();
         }
 
-        private void LoadSettings()
+        private async Task LoadSettings()
         {
-            windowSize.Width = (int)(currentScreen.WorkingArea.Size.Width * Math.Abs(Settings.WindowSettings[WindowSetting.Size][0]) / 100.0);
-            windowSize.Height = (int)(currentScreen.WorkingArea.Size.Height * Math.Abs(Settings.WindowSettings[WindowSetting.Size][1]) / 100.0);
+            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
+            currentProfile = await currentProfile.Current(ctsProfileLoading.Token).ConfigureAwait(false);
+            ToolboxUserSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
+            ToolboxSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
+        }
 
-            windowPosition = PointExtension.ToPoint(Settings.WindowSettings[WindowSetting.Location]);
+        private void ApplySettings()
+        {
+            windowSize = new System.Drawing.Size(
+                (int)(currentScreen.WorkingArea.Size.Width * Math.Abs(ToolboxSettings.WindowSettings[WindowSetting.Size].X) / 100.0),
+                (int)(currentScreen.WorkingArea.Size.Height * Math.Abs(ToolboxSettings.WindowSettings[WindowSetting.Size].Y) / 100.0));
+
+            windowPosition = ToolboxSettings.WindowSettings[WindowSetting.Location];
             windowPosition = windowPosition != PointExtension.EmptyPoint
                 ? new Point(
                     currentScreen.WorkingArea.Left + (windowPosition.X * (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 100),
@@ -224,47 +241,42 @@ namespace FreeTrainSimulator.Toolbox
                     currentScreen.WorkingArea.Left + ((currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2),
                     currentScreen.WorkingArea.Top + ((currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2));
 
-            BackgroundColor = ColorExtension.FromName(Settings.ColorSettings[ColorSetting.Background]);
+            backgroundColor = ColorExtension.FromName(ToolboxSettings.ColorSettings[ColorSetting.Background]);
         }
 
-        private void SaveSettings()
+        private async Task SaveSettings()
         {
-            Settings.WindowSettings[WindowSetting.Size][0] = (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width);
-            Settings.WindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height);
+            ToolboxSettings.WindowSettings[WindowSetting.Size] = new Point(
+                (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width), (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height));
 
-            Settings.WindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
-            Settings.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
-            Settings.WindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
+            ToolboxSettings.WindowSettings[WindowSetting.Location] = new Point(
+                (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width))),
+                (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height))));
 
             foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
             {
                 if (windowManager.WindowInitialized(windowType))
                 {
-                    Settings.PopupLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+                    ToolboxSettings.PopupLocations[windowType] = windowManager[windowType].RelativeLocation;
                 }
                 if (windowType != ToolboxWindowType.QuitWindow)
-                    Settings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
+                    ToolboxSettings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
             }
 
-            if (null != contentArea)
-            {
-                string[] location = new string[] { $"{contentArea.CenterX}", $"{contentArea.CenterY}", $"{contentArea.Scale}" };
-                Settings.LastLocation = location;
-            }
-            string[] routeSelection = null;
-            string[] pathSelection = null;
-            if (selectedFolder != null)
-            {
-                routeSelection = selectedRoute != null ?
-                    (new string[] { selectedFolder.Name, selectedRoute.Name }) :
-                    (new string[] { selectedFolder.Name });
+            ToolboxSettings.WindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
+            ToolboxSettings.ContentPosition = contentArea?.CenterPoint ?? PointD.None;
+            ToolboxSettings.ContentScale = contentArea?.Scale ?? 1;
 
-                pathSelection = new string[] { string.IsNullOrEmpty(PathEditor?.FilePath) ? string.Empty : PathEditor.FilePath };
-            }
-            Settings.RouteSelection = routeSelection;
-            Settings.PathSelection = pathSelection;
-            Settings.Save();
-            Settings.UserSettings.Save();
+            ToolboxSettings.Folder = selectedFolder?.Id;
+            ToolboxSettings.RouteId = selectedRoute?.Id;
+            ToolboxSettings.PathId = PathEditor?.PathId;
+
+//            ProfileSettingModelHandler<ProfileUserSettingsModel>.SetValueByName(ToolboxUserSettings, "MultiSamplingCount", 8);
+
+            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
+            await currentProfile.UpdateSettingsModel(ToolboxSettings, ctsProfileLoading.Token).ConfigureAwait(false);
+            await currentProfile.UpdateSettingsModel(ToolboxUserSettings, ctsProfileLoading.Token).ConfigureAwait(false);
+
         }
 
         private void LoadLanguage()
@@ -272,11 +284,11 @@ namespace FreeTrainSimulator.Toolbox
             Localizer.Revert(windowForm, store);
             CatalogManager.Reset();
 
-            if (!string.IsNullOrEmpty(Settings.UserSettings.Language))
+            if (!string.IsNullOrEmpty(ToolboxUserSettings.Language))
             {
                 try
                 {
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(Settings.UserSettings.Language);
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(ToolboxUserSettings.Language);
                 }
                 catch (CultureNotFoundException exception)
                 {
@@ -296,7 +308,7 @@ namespace FreeTrainSimulator.Toolbox
             e.GraphicsDeviceInformation.GraphicsProfile = GraphicsProfile.HiDef;
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
-            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = Settings.UserSettings.MultisamplingCount;
+            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = ToolboxUserSettings.MultiSamplingCount;
         }
 
         private void SetScreenMode(ScreenMode targetMode)
@@ -343,7 +355,6 @@ namespace FreeTrainSimulator.Toolbox
         protected override async void Initialize()
         {
             Task loadFolders = LoadFolders();
-            InputSettings.Initialize();
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -418,11 +429,11 @@ namespace FreeTrainSimulator.Toolbox
 
             #region popup windows
             windowManager = WindowManager.Initialize<UserCommand, ToolboxWindowType>(this, userCommandController.AddTopLayerController());
-            windowManager[ToolboxWindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.StatusWindow].ToPoint());
-            windowManager[ToolboxWindowType.AboutWindow] = new AboutWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.AboutWindow].ToPoint());
+            windowManager[ToolboxWindowType.StatusWindow] = new StatusTextWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.StatusWindow]);
+            windowManager[ToolboxWindowType.AboutWindow] = new AboutWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.AboutWindow]);
             windowManager.SetLazyWindows(ToolboxWindowType.QuitWindow, new Lazy<FormBase>(() =>
             {
-                QuitWindow quitWindow = new QuitWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.QuitWindow].ToPoint());
+                QuitWindow quitWindow = new QuitWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.QuitWindow]);
                 quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
                 quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
                 quitWindow.OnPrintScreen += QuitWindow_OnPrintScreen;
@@ -431,7 +442,7 @@ namespace FreeTrainSimulator.Toolbox
 
             windowManager.SetLazyWindows(ToolboxWindowType.DebugScreen, new Lazy<FormBase>(() =>
             {
-                DebugScreen debugWindow = new DebugScreen(windowManager, Settings, BackgroundColor);
+                DebugScreen debugWindow = new DebugScreen(windowManager, ToolboxSettings, backgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Graphics, graphicsDebugInfo);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Route, ContentArea?.Content);
@@ -441,39 +452,39 @@ namespace FreeTrainSimulator.Toolbox
 
             windowManager.SetLazyWindows(ToolboxWindowType.LocationWindow, new Lazy<FormBase>(() =>
             {
-                LocationWindow locationWindow = new LocationWindow(windowManager, Settings, contentArea, Settings.PopupLocations[ToolboxWindowType.LocationWindow].ToPoint());
+                LocationWindow locationWindow = new LocationWindow(windowManager, ToolboxSettings, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.LocationWindow]);
                 OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
                 return locationWindow;
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
-                return new HelpWindow(windowManager, Settings.PopupLocations[ToolboxWindowType.HelpWindow].ToPoint());
+                return new HelpWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.HelpWindow]);
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrackNodeInfoWindow, new Lazy<FormBase>(() =>
             {
-                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, Settings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow].ToPoint());
+                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow]);
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrackItemInfoWindow, new Lazy<FormBase>(() =>
             {
-                TrackItemInfoWindow trackInfoWindow = new TrackItemInfoWindow(windowManager, contentArea, Settings.PopupLocations[ToolboxWindowType.TrackItemInfoWindow].ToPoint());
+                TrackItemInfoWindow trackInfoWindow = new TrackItemInfoWindow(windowManager, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackItemInfoWindow]);
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.SettingsWindow, new Lazy<FormBase>(() =>
             {
-                SettingsWindow settingsWindow = new SettingsWindow(windowManager, Settings, contentArea, Settings.PopupLocations[ToolboxWindowType.SettingsWindow].ToPoint());
+                SettingsWindow settingsWindow = new SettingsWindow(windowManager, ToolboxSettings, ToolboxUserSettings, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.SettingsWindow]);
                 OnContentAreaChanged += settingsWindow.GameWindow_OnContentAreaChanged;
                 return settingsWindow;
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.LogWindow, new Lazy<FormBase>(() =>
             {
-                return new LoggingWindow(windowManager, LogFileName, Settings.PopupLocations[ToolboxWindowType.LogWindow].ToPoint());
+                return new LoggingWindow(windowManager, LogFileName, ToolboxSettings.PopupLocations[ToolboxWindowType.LogWindow]);
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
             {
-                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, Settings, Settings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
+                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, ToolboxSettings, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathWindow]);
                 OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
                 return trainPathDetailWindow;
             }));
@@ -484,13 +495,13 @@ namespace FreeTrainSimulator.Toolbox
             base.Initialize();
 
             await loadFolders.ConfigureAwait(false);
-            await PreSelectRoute(Settings.RouteSelection, Settings.PathSelection).ConfigureAwait(false);
-            ContentArea?.PresetPosition(Settings.LastLocation);
-            if (Settings.RestoreLastView)
+            await PreSelectRoute(ToolboxSettings.Folder, ToolboxSettings.RouteId, ToolboxSettings.PathId).ConfigureAwait(false);
+            ContentArea?.PresetPosition(ToolboxSettings.ContentPosition, ToolboxSettings.ContentScale);
+            if (ToolboxSettings.RestoreLastView)
             {
                 foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
                 {
-                    if (Settings.PopupStatus[windowType])
+                    if (ToolboxSettings.PopupStatus[windowType])
                         windowManager[windowType].Open();
                 }
             }
@@ -518,7 +529,7 @@ namespace FreeTrainSimulator.Toolbox
             //Components.Add(clock);
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Scaled(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
-            Components.Add(new InsetComponent(this, BackgroundColor, new Vector2(-10, 30)));
+            Components.Add(new InsetComponent(this, backgroundColor, new Vector2(-10, 30)));
             //Components.Add(new WorldCoordinatesComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[20], Color.Blue, new Vector2(40, 40)));
         }
 
@@ -540,7 +551,7 @@ namespace FreeTrainSimulator.Toolbox
         protected override void Draw(GameTime gameTime)
         {
             debugInfo.Update(gameTime);
-            GraphicsDevice.Clear(BackgroundColor);
+            GraphicsDevice.Clear(backgroundColor);
             base.Draw(gameTime);
 
             graphicsDebugInfo.CurrentMetrics = GraphicsDevice.Metrics;

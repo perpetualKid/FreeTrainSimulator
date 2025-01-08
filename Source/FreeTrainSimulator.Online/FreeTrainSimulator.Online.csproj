@@ -3,6 +3,7 @@
 		<Description>Free Train Simulator Online Player Library</Description>
 		<AssemblyTitle>Free Train Simulator Online Player Library</AssemblyTitle>
 		<OutputPath>..\..\Program</OutputPath>
+		<Configurations>Debug;Release;CodeAnalysis</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
 	  <PackageReference Include="MagicOnion.Abstractions" Version="6.1.6" />

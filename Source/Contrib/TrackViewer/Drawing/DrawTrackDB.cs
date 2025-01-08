@@ -19,8 +19,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Models.Imported.Shim;
 
 using Microsoft.Xna.Framework;
 
@@ -45,54 +49,40 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="routePath">Path to the route directory</param>
         /// <param name="messageDelegate">The delegate that will deal with the message we want to send to the user</param>
-        public static void Load(string routePath, MessageDelegate messageDelegate)
+        public static void Load(RouteModelCore routeModel, MessageDelegate messageDelegate)
         {
-            storedRoutePath = routePath;
+            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
+            System.Threading.Tasks.Task<RouteModel> extendRouteTask = routeModel.Extend(CancellationToken.None).AsTask();
+            if (!extendRouteTask.IsCompleted)
+                extendRouteTask.Wait();
+            RouteModel routeModelExtended = extendRouteTask.Result;
+
+            FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
+            storedRoutePath = routeFolder.CurrentFolder;
             TrackSectionsFile tsectionDat;
             RoadDatabaseFile RDB = null;
             TrackDatabaseFile TDB = null;
             SignalConfigurationFile sigcfgFile = null;
 
-            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
-            RouteFile TRK = new RouteFile(FolderStructure.Route(routePath).TrackFileName);
-
             messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading track database .tdb ..."));
-            TDB = new TrackDatabaseFile(routePath + @"\" + TRK.Route.FileName + ".tdb");
+            TDB = new TrackDatabaseFile(routeFolder.TrackDatabaseFile(routeModelExtended.RouteKey));
 
             messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading tsection.dat ..."));
-            string BasePath = Path.GetDirectoryName(Path.GetDirectoryName(routePath));
-            if (Directory.Exists(routePath + @"\Openrails") && File.Exists(routePath + @"\Openrails\TSECTION.DAT"))
-                tsectionDat = new TrackSectionsFile(routePath + @"\Openrails\TSECTION.DAT");
-            else if (Directory.Exists(routePath + @"\GLOBAL") && File.Exists(routePath + @"\GLOBAL\TSECTION.DAT"))
-                tsectionDat = new TrackSectionsFile(routePath + @"\GLOBAL\TSECTION.DAT");
-            else
-                tsectionDat = new TrackSectionsFile(BasePath + @"\GLOBAL\TSECTION.DAT");
-            if (File.Exists(routePath + @"\TSECTION.DAT"))
-                tsectionDat.AddRouteTSectionDatFile(routePath + @"\TSECTION.DAT");
 
-            string roadTrackFileName = routePath + @"\" + TRK.Route.FileName + ".rdb";
+            tsectionDat = new TrackSectionsFile(routeFolder.TrackSectionFile);
+            if (File.Exists(routeFolder.RouteTrackSectionFile))
+                tsectionDat.AddRouteTSectionDatFile(routeFolder.RouteTrackSectionFile);
+
+            string roadTrackFileName = routeFolder.RoadTrackDatabaseFile(routeModelExtended.RouteKey);
             if (File.Exists(roadTrackFileName))
             {
                 messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading road track database .rdb ..."));
 
                 RDB = new RoadDatabaseFile(roadTrackFileName);
             }
+            sigcfgFile = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile);
 
-            string ORfilepath = Path.Combine(routePath, "OpenRails");
-            if (File.Exists(ORfilepath + @"\sigcfg.dat"))
-            {
-                sigcfgFile = new SignalConfigurationFile(ORfilepath + @"\sigcfg.dat", true);
-            }
-            else if (File.Exists(routePath + @"\sigcfg.dat"))
-            {
-                sigcfgFile = new SignalConfigurationFile(routePath + @"\sigcfg.dat", false);
-            }
-            else
-            {
-                //sigcfgFile = null; // default initialization
-            }
-
-            Initialize(TRK.Route.Name, tsectionDat, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
+            Initialize(routeModelExtended, tsectionDat, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
         }
 
         /// <summary>

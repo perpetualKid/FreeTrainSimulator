@@ -301,6 +301,29 @@ namespace FreeTrainSimulator.Common
         Freight,
     }
 
+    /// <summary>
+    /// Supply types for freight wagons and locos
+    /// </summary>
+    public enum PickupType
+    {
+        [Description("none")] None = 0,
+        [Description("freight-grain")] FreightGrain = 1,
+        [Description("freight-coal")] FreightCoal = 2,
+        [Description("freight-gravel")] FreightGravel = 3,
+        [Description("freight-sand")] FreightSand = 4,
+        [Description("water")] FuelWater = 5,
+        [Description("coal")] FuelCoal = 6,
+        [Description("diesel oil")] FuelDiesel = 7,
+        [Description("wood")] FuelWood = 8,    // Think this is new to OR and not recognised by MSTS
+        [Description("sand")] FuelSand = 9,  // New to OR
+        [Description("freight-general")] FreightGeneral = 10, // New to OR
+        [Description("freight-livestock")] FreightLivestock = 11,  // New to OR
+        [Description("freight-fuel")] FreightFuel = 12,  // New to OR
+        [Description("freight-milk")] FreightMilk = 13,   // New to OR
+        [Description("mail")] SpecialMail = 14,  // New to OR
+        [Description("container")] Container = 15,  // New to OR
+    }
+
     public enum TrainEvent
     {
         None,
@@ -1011,14 +1034,11 @@ namespace FreeTrainSimulator.Common
         Intervention,
     }
 
-    public enum UpdateCheckFrequency
+    public enum UpdateMode
     {
-        [Description("Manually check for updates")] Never = -1,
-        [Description("Check for updates on each start")] Always = 0,
-        [Description("Check for updates once a day")] Daily,
-        [Description("Check for updates once a week")] Weekly,
-        [Description("Check for updates every other week")] Biweekly,
-        [Description("Check for updates every month")] Monthly,
+        [Description("Stable Release")] Release,
+        [Description("Pre-Release")] PreRelease,
+        [Description("Developer Builds")] Developer,
     }
 
     public enum ActivityMode
@@ -1197,6 +1217,29 @@ namespace FreeTrainSimulator.Common
         /// A long-long-short-long pattern used in the United States and Canada.
         /// </summary>
         US,
+    }
+
+    /// <summary>
+    /// Defines different wagon types such as used in consist definition
+    /// </summary>
+    public enum TrainCarType
+    {
+        /// <summary>
+        /// Any wagon which is not otherwise specified
+        /// </summary>
+        Wagon,
+        /// <summary>
+        /// Locomotives
+        /// </summary>
+        Engine,
+        /// <summary>
+        /// Locomotive Tender
+        /// </summary>
+        Tender,
+        /// <summary>
+        /// End-Of-Train devices
+        /// </summary>
+        Eot,
     }
 
     /// <summary>
@@ -1732,6 +1775,45 @@ namespace FreeTrainSimulator.Common
     }
     #endregion
 
+    #region MSTS
+
+    #region Actities
+    public enum ActivityType
+    {
+        None,
+        Activity,
+        Explorer,
+        ExploreActivity,
+        TimeTable,
+    }
+    #endregion
+
+    #region route model
+    public enum DefaultSoundType
+    {
+        Signal,
+        Crossing,
+        WaterTower,
+        CoalTower,
+        DieselTower,
+        Turntable,  // default sms file for turntables and transfertables
+    }
+
+    public enum GraphicType
+    {
+        Thumbnail,
+        Screen,
+        WideScreen,
+    }
+
+    public enum SpeedRestrictionType
+    {
+        Route,  //global speed limit m/s.
+        Temporary,
+    }
+    #endregion
+
+    #endregion
     // Freight Animation visibility flag
     public enum VisibleFrom
     {
@@ -1740,4 +1822,30 @@ namespace FreeTrainSimulator.Common
         Cab3D,
     }
 
+    #region Menu_Selection enum
+    public enum GamePlayAction
+    {
+        SingleplayerNewGame,
+        SingleplayerResumeSave,
+        SingleplayerReplaySave,
+        SingleplayerReplaySaveFromSave,
+        MultiplayerClient,
+        SinglePlayerTimetableGame,
+        SinglePlayerResumeTimetableGame,
+        MultiplayerServerResumeSave,
+        MultiplayerClientResumeSave
+    }
+    #endregion
+
+    [Flags]
+    public enum TraceSettings
+    {
+        None = 0x00,
+        Errors = 0x01,
+        ErrorStack = 0x02,
+        Trace = 0x04,
+        SystemDetails = 0x08,
+        ContentErrors = 0x10,
+        All = Errors | ErrorStack | Trace | SystemDetails | ContentErrors,
+    }
 }

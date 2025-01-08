@@ -18,12 +18,12 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.Shim;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -183,11 +183,11 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="routeData">The route information that contains track data base and track section data</param>
         /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>
         /// <param name="path">Path to the .pat file</param>
-        public PathEditor(DrawTrackDB drawTrackDB, Path path)
+        public PathEditor(DrawTrackDB drawTrackDB, PathModelCore path)
             :this(drawTrackDB)
         {
-            FileName = path.FilePath.Split('\\').Last();
-            CurrentTrainPath = new Trainpath(trackDB, tsectionDat, path.FilePath);
+            FileName = System.IO.Path.GetFileName(path.SourceFile());
+            CurrentTrainPath = new Trainpath(trackDB, tsectionDat, path.SourceFile());
             EditingIsActive = false;
             OnPathChanged();
         }
@@ -753,15 +753,15 @@ namespace ORTS.TrackViewer.Editing
         /// Then try to reconnect the tail. This will then extend the current path with the loaded path
         /// </summary>
         /// <param name="path">The path that needs to be loaded to act as an extension</param>
-        public void ExtendWithPath(Path path)
+        public void ExtendWithPath(PathModelCore path)
         {
             //If everything works as expected, up to three steps are taken that can all be 'Undo'ne:
             // * Remove End
             // * Add tail
             // * Reconnect tail
 
-            FileName = path.FilePath.Split('\\').Last();
-            Trainpath newPath = new Trainpath(trackDB, tsectionDat, path.FilePath);
+            FileName = System.IO.Path.GetFileName(path.SourceFile());
+            Trainpath newPath = new Trainpath(trackDB, tsectionDat, path.SourceFile());
 
             // We have a current path and a new path.
             // First check if the new path is usable

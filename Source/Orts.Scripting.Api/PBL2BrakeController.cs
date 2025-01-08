@@ -19,9 +19,7 @@ using System;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Scripting.Api;
-
-namespace Orts.Scripting.Script
+namespace Orts.Scripting.Api
 {
     public class PBL2BrakeController : BrakeController
     {

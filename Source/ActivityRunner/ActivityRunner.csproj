@@ -8,6 +8,7 @@
 		<OutputPath>..\..\Program</OutputPath>
 		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
 		<RootNamespace>Orts.ActivityRunner</RootNamespace>
+		<Configurations>Debug;Release;CodeAnalysis</Configurations>
 	</PropertyGroup>
 	<PropertyGroup>
 		<ServerGarbageCollection>true</ServerGarbageCollection>
@@ -16,6 +17,10 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DefineConstants>TRACE;DEBUG;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
 		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CodeAnalysis|AnyCPU'">
+	  <DefineConstants>TRACE;DEBUG;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
+	  <PlatformTarget>AnyCPU</PlatformTarget>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<DefineConstants>TRACE;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
@@ -52,8 +57,8 @@
 	<ItemGroup>
 		<PackageReference Include="EmbedIO" Version="3.5.2" />
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.2.1105" />
-		<PackageReference Include="GetText.NET" Version="1.9.14" />
-		<PackageReference Include="GetText.NET.WindowsForms" Version="1.9.14" />
+		<PackageReference Include="GetText.NET" Version="8.0.5" />
+		<PackageReference Include="GetText.NET.WindowsForms" Version="8.0.5" />
 		<PackageReference Include="OpenAL-Soft" Version="1.16.0">
 			<GeneratePathProperty>True</GeneratePathProperty>
 		</PackageReference>
@@ -61,8 +66,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
-		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
-		<ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
 		<ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
 		<ProjectReference Include="..\Orts.Simulation\Orts.Simulation.csproj" />
 		<ProjectReference Include="..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />

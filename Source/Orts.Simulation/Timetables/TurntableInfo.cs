@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 
-using Orts.Formats.OR.Parsers;
+using Orts.Formats.OpenRails.Parsers;
 
 namespace Orts.Simulation.Timetables
 {

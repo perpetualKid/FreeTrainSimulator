@@ -36,7 +36,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
         {
             ArgumentNullException.ThrowIfNull(train, nameof(train));
 
-            Route = Simulator.Instance.RouteName;
+            Route = Simulator.Instance.RouteModel.Name;
             ClockTime = Simulator.Instance.ClockTime;
             Season = Simulator.Instance.Season;
             WeatherType = Simulator.Instance.WeatherType;
@@ -100,7 +100,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 if (MultiPlayerManager.FindPlayerTrain(User) != null)
                     return; //already added the player, ignore
                 //if the client comes back after disconnected within 10 minutes
-                if (multiPlayerManager.IsDispatcher && multiPlayerManager.lostPlayer != null && multiPlayerManager.lostPlayer.TryGetValue(User, out OnlinePlayer onlinePlayer))
+                if (multiPlayerManager.IsDispatcher && multiPlayerManager.LostPlayer != null && multiPlayerManager.LostPlayer.TryGetValue(User, out OnlinePlayer onlinePlayer))
                 {
                     Train p1Train = onlinePlayer.Train;
 
@@ -114,11 +114,11 @@ namespace Orts.Simulation.Multiplayer.Messaging
                         multiPlayerManager.AddOrRemoveTrain(p1Train, true);
                         if (multiPlayerManager.IsDispatcher)
                             multiPlayerManager.AddOrRemoveLocomotives(User, p1Train, true);
-                        multiPlayerManager.lostPlayer.Remove(User);
+                        multiPlayerManager.LostPlayer.Remove(User);
                     }
                     else//if the player uses different train cars
                     {
-                        multiPlayerManager.lostPlayer.Remove(User);
+                        multiPlayerManager.LostPlayer.Remove(User);
                     }
                 }
                 MultiPlayerManager.OnlineTrains.AddPlayers(this);

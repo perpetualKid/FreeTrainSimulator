@@ -9,8 +9,10 @@
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
     <UserSecretsId>c0363cc3-5713-4c49-b730-bac0eddcf103</UserSecretsId>
     <NoWin32Manifest>true</NoWin32Manifest>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
+    <ProjectReference Include="..\..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
+    <ProjectReference Include="..\..\Orts.Formats\Orts.Formats.csproj" />
   </ItemGroup>
 </Project>

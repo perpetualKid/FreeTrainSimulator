@@ -26,6 +26,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -76,23 +77,23 @@ namespace Orts.Simulation.Multiplayer
 
         public bool Connected { get => MultiPlayerClient?.Connected ?? false; set => MultiPlayerClient.Connected = value; }
         public bool IsDispatcher { get; set; }
+        public bool PlayerAdded { get; set; }
 
-        public static OnlineTrains OnlineTrains = new OnlineTrains();
-        public double lastSwitchTime;
-        public double lastSyncTime;
-        public List<Train> removedTrains;
-        public List<OnlineLocomotive> removedLocomotives;
+        public static OnlineTrains OnlineTrains { get; } = new OnlineTrains();
+        private double lastSwitchTime;
+        private double lastSyncTime;
+        private readonly List<Train> removedTrains;
+        private readonly List<OnlineLocomotive> removedLocomotives;
 
         public double ServerTimeDifference { get; internal set; }
 
-        private double lastPlayerAddedTime;
-        public bool AllowedManualSwitch = true;
-        public bool TrySwitch = true;
-        public bool AmAider; //am I aiding the dispatcher?
-        public List<string> aiderList;
-        public Dictionary<string, OnlinePlayer> lostPlayer = new Dictionary<string, OnlinePlayer>();
-        public bool CheckSpad = true;
-        public bool PreferGreen = true;
+        public bool AllowedManualSwitch { get; private set; } = true;
+        public bool TrySwitch { get; set; } = true;
+        public bool AmAider { get; set; } //am I aiding the dispatcher?
+        public Collection<string> AiderList { get; } = new Collection<string>();
+        public Dictionary<string, OnlinePlayer> LostPlayer { get; } = new Dictionary<string, OnlinePlayer>();
+        public bool CheckSpad { get; set; } = true;
+        public bool PreferGreen { get; set; } = true;
         public string RouteTdbHash { get; } = HashRouteFile();
 
         public string UserName { get; private set; } = string.Empty;
@@ -123,7 +124,6 @@ namespace Orts.Simulation.Multiplayer
             removedTrains = new List<Train>();
             addedLocomotives = new List<OnlineLocomotive>();
             removedLocomotives = new List<OnlineLocomotive>();
-            aiderList = new List<string>();
             users = new SortedList<double, string>();
         }
 
@@ -183,7 +183,7 @@ namespace Orts.Simulation.Multiplayer
                     if (IsDispatcher)
                     {
                         // Dispatcher also broadcasts all non-user trains
-                        foreach(MoveMessage moveMessage in OnlineTrains.MoveTrains())
+                        foreach (MoveMessage moveMessage in OnlineTrains.MoveTrains())
                         {
                             Broadcast(moveMessage);
                         }
@@ -252,10 +252,7 @@ namespace Orts.Simulation.Multiplayer
         }
 
         //user name
-        public static string GetUserName()
-        {
-            return localUser?.UserName ?? string.Empty;
-        }
+        public static string UserName1 => localUser?.UserName ?? string.Empty;
 
         //check if it is in the multiplayer session
         public static bool IsMultiPlayer()
@@ -321,22 +318,21 @@ namespace Orts.Simulation.Multiplayer
                     string p1 = p + " ";
                     foreach (var car in t.Cars)
                     {
-                        if (car.CarID.Contains(p1))
+                        if (car.CarID.Contains(p1, StringComparison.OrdinalIgnoreCase))
                             count++;
                     }
                 }
                 if (count >= 2)
                 {
                     if (confirmer != null)
-                        confirmer.Information(MultiPlayerManager.Catalog.GetPluralString("Cannot decouple: train has {0} player, need to completely stop.", "Cannot decouple: train has {0} players, need to completely stop.", count));
+                        confirmer.Information(Catalog.GetPluralString("Cannot decouple: train has {0} player, need to completely stop.", "Cannot decouple: train has {0} players, need to completely stop.", count));
                     return false;
                 }
             }
-            catch { return false; }
+            catch (Exception ex) when (ex is Exception)
+            { return false; }
             return true;
         }
-
-        public bool PlayerAdded;
 
         public async ValueTask SendMessage(string text)
         {
@@ -347,7 +343,7 @@ namespace Orts.Simulation.Multiplayer
 
         public void Connect()
         {
-            MultiPlayerClient.JoinGame(GetUserName(), Simulator.Instance.Route.Name, Code);
+            MultiPlayerClient.JoinGame(UserName1, Simulator.Instance.RouteModel.Name, Code);
         }
 
         public void AddPlayer()
@@ -357,7 +353,6 @@ namespace Orts.Simulation.Multiplayer
             if (PlayerAdded == true)
             {
                 PlayerAdded = false;
-                Instance().lastPlayerAddedTime = Simulator.Instance.GameTime;
                 Instance().lastSwitchTime = Simulator.Instance.GameTime;
 
                 Broadcast(new PlayerStateMessage(Simulator.Instance.PlayerLocomotive.Train));
@@ -386,8 +381,11 @@ namespace Orts.Simulation.Multiplayer
         }
 
         //this will be used in the server, in Simulator.cs
-        public static bool TrainOK2Couple(Simulator simulator, Train t1, Train t2)
+        public static bool TrainOK2Couple(Train t1, Train t2)
         {
+            ArgumentNullException.ThrowIfNull(t1, nameof(t1));
+            ArgumentNullException.ThrowIfNull(t2, nameof(t2));
+
             //if (Math.Abs(t1.SpeedMpS) > 10 || Math.Abs(t2.SpeedMpS) > 10) return false; //we do not like high speed punch in MP, will mess up a lot.
 
             if (t1.TrainType != TrainType.Remote && t2.TrainType != TrainType.Remote)
@@ -398,13 +396,13 @@ namespace Orts.Simulation.Multiplayer
             {
                 foreach (var p in OnlineTrains.Players)
                 {
-                    if (p.Value.Train == t1 && simulator.GameTime - p.Value.CreatedTime < 120)
+                    if (p.Value.Train == t1 && Simulator.Instance.GameTime - p.Value.CreatedTime < 120)
                     { result = false; break; }
-                    if (p.Value.Train == t2 && simulator.GameTime - p.Value.CreatedTime < 120)
+                    if (p.Value.Train == t2 && Simulator.Instance.GameTime - p.Value.CreatedTime < 120)
                     { result = false; break; }
                 }
             }
-            catch (Exception)
+            catch (Exception ex) when(ex is Exception)
             {
             }
             return result;
@@ -451,17 +449,17 @@ namespace Orts.Simulation.Multiplayer
                     users.Add(Math.Sqrt(d) + StaticRandom.NextDouble(), p.Username);
                 }
             }
-            catch (Exception)
+            catch (Exception ex) when (ex is Exception)
             {
             }
             if (string.IsNullOrEmpty(metric))
             {
-                metric = Simulator.Instance.Route.MilepostUnitsMetric ? " m" : " yd";
+                metric = Simulator.Instance.RouteModel.MetricUnits ? " m" : " yd";
             }
 
             foreach (KeyValuePair<double, string> pair in users.Take(10))
             {
-                info.Append(CultureInfo.InvariantCulture, $"\train{pair.Value}: distance of {(int)(Simulator.Instance.Route.MilepostUnitsMetric ? pair.Key : Size.Length.ToYd(pair.Key)) + metric}");
+                info.Append(CultureInfo.InvariantCulture, $"\train{pair.Value}: distance of {(int)(Simulator.Instance.RouteModel.MetricUnits ? pair.Key : Size.Length.ToYd(pair.Key)) + metric}");
             }
             if (OnlineTrains.Players.Count > 10)
             {
@@ -484,10 +482,10 @@ namespace Orts.Simulation.Multiplayer
         private void CleanLostPlayers()
         {
             //check if any of the lost player list has been lost for more than 600 seconds. If so, remove it and will not worry about it anymore
-            if (lostPlayer.Count > 0)
+            if (LostPlayer.Count > 0)
             {
                 List<string> removeLost = null;
-                foreach (var x in lostPlayer)
+                foreach (var x in LostPlayer)
                 {
                     if (Simulator.Instance.GameTime - x.Value.QuitTime > 600) //within 10 minutes it will be held
                     {
@@ -500,7 +498,7 @@ namespace Orts.Simulation.Multiplayer
                 {
                     foreach (var name in removeLost)
                     {
-                        lostPlayer.Remove(name);
+                        LostPlayer.Remove(name);
                     }
                 }
             }
@@ -552,27 +550,28 @@ namespace Orts.Simulation.Multiplayer
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex) when (ex is Exception)
             {
-                Trace.WriteLine(e + e.StackTrace);
+                Trace.WriteLine(ex.Message + ex.StackTrace);
                 return;
             }
             playersRemoved.Clear();
 
         }
 
-        public bool AddOrRemoveTrain(Train t, bool add)
+        public bool AddOrRemoveTrain(Train train, bool add)
         {
+            ArgumentNullException.ThrowIfNull(train, nameof(train));
             if (add)
             {
                 lock (addedTrains)
                 {
                     foreach (var t1 in addedTrains)
                     {
-                        if (t1.Number == t.Number)
+                        if (t1.Number == train.Number)
                             return false;
                     }
-                    addedTrains.Add(t);
+                    addedTrains.Add(train);
                     return true;
                 }
             }
@@ -580,7 +579,7 @@ namespace Orts.Simulation.Multiplayer
             {
                 lock (removedTrains)
                 {
-                    removedTrains.Add(t);
+                    removedTrains.Add(train);
                     return true;
                 }
             }
@@ -619,13 +618,15 @@ namespace Orts.Simulation.Multiplayer
             }
         }
 
-        public bool AddOrRemoveLocomotives(string userName, Train t, bool add)
+        public bool AddOrRemoveLocomotives(string userName, Train train, bool add)
         {
-            for (int iCar = 0; iCar < t.Cars.Count; iCar++)
+            ArgumentNullException.ThrowIfNull(train, nameof(train));
+
+            for (int iCar = 0; iCar < train.Cars.Count; iCar++)
             {
-                if (t.Cars[iCar] is MSTSLocomotive)
+                if (train.Cars[iCar] is MSTSLocomotive)
                 {
-                    AddOrRemoveLocomotive(userName, t.Number, iCar, add);
+                    AddOrRemoveLocomotive(userName, train.Number, iCar, add);
                 }
 
             }
@@ -653,7 +654,7 @@ namespace Orts.Simulation.Multiplayer
                     }
                     addedTrains.Clear();
                 }
-                catch (Exception) { }
+                catch (Exception ex) when (ex is Exception) { }
             }
             if (removedTrains.Count != 0)
             {
@@ -667,7 +668,7 @@ namespace Orts.Simulation.Multiplayer
                     }
                     removedTrains.Clear();
                 }
-                catch (Exception) { }
+                catch (Exception ex) when (ex is Exception) { }
             }
         }
 
@@ -693,7 +694,7 @@ namespace Orts.Simulation.Multiplayer
                     }
                     removedLocomotives.Clear();
                 }
-                catch (Exception) { }
+                catch (Exception ex) when (ex is Exception) { }
             }
             if (addedLocomotives.Count != 0)
             {
@@ -713,7 +714,7 @@ namespace Orts.Simulation.Multiplayer
                     }
                     addedLocomotives.Clear();
                 }
-                catch (Exception) { }
+                catch (Exception ex) when (ex is Exception) { }
             }
         }
 
@@ -738,7 +739,7 @@ namespace Orts.Simulation.Multiplayer
             try
             {
                 char type = 'w';
-                if (wagonFilePath.Contains(".eng", StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrEmpty(wagonFilePath) && wagonFilePath.Contains(".eng", StringComparison.OrdinalIgnoreCase))
                     type = 'e';
                 string newWagonFilePath = SubMissingCar(length, type);
                 TrainCar car = RollingStock.Load(train, newWagonFilePath);
@@ -747,7 +748,7 @@ namespace Orts.Simulation.Multiplayer
                 Simulator.Instance.Confirmer?.Information(Catalog.GetString("Missing car, have substituted with other one."));
                 return car;
             }
-            catch (Exception error)
+            catch (Exception error) when (error is Exception)
             {
                 Trace.WriteLine(error.Message + "Substitution failed, will ignore it\n.");
                 return null;
@@ -766,13 +767,13 @@ namespace Orts.Simulation.Multiplayer
             if (type == 'w')
             {
                 if (coachList == null)
-                    coachList = GetList(Simulator.Instance, type);
+                    coachList = GetList(type);
                 copyList = coachList;
             }
             else
             {
                 if (engList == null)
-                    engList = GetList(Simulator.Instance, type);
+                    engList = GetList(type);
                 copyList = engList;
             }
             string bestName = "Default\\default.wag";
@@ -788,20 +789,20 @@ namespace Orts.Simulation.Multiplayer
 
         }
 
-        private static SortedList<double, string> GetList(Simulator simulator, char type)
+        private static SortedList<double, string> GetList(char type)
         {
             string ending = "*.eng";
             if (type == 'w')
                 ending = "*.wag";
-            string[] filePaths = Directory.GetFiles(simulator.RouteFolder.ContentFolder.TrainSetsFolder, ending, SearchOption.AllDirectories);
+            string[] filePaths = Directory.GetFiles(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, ending, SearchOption.AllDirectories);
             string temp;
             List<string> allEngines = new List<string>();
             SortedList<double, string> carList = new SortedList<double, string>();
             for (var i = 0; i < filePaths.Length; i++)
             {
-                int index = filePaths[i].LastIndexOf("\\trains\\trainset\\");
+                int index = filePaths[i].LastIndexOf("\\trains\\trainset\\", StringComparison.OrdinalIgnoreCase);
                 temp = filePaths[i].Substring(index + 17);
-                if (!temp.Contains('\\'))
+                if (!temp.Contains('\\', StringComparison.OrdinalIgnoreCase))
                     continue;
                 allEngines.Add(temp);
             }
@@ -812,7 +813,7 @@ namespace Orts.Simulation.Multiplayer
 
                 try
                 {
-                    using (var stf = new STFReader(Path.Combine(simulator.RouteFolder.ContentFolder.TrainSetsFolder, name), false))
+                    using (var stf = new STFReader(Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, name), false))
                         stf.ParseFile(new STFReader.TokenProcessor[] {
                             new STFReader.TokenProcessor("wagon", ()=>{
                                 stf.ReadString();
@@ -825,7 +826,7 @@ namespace Orts.Simulation.Multiplayer
                     len = def.Z;
                     carList.Add(len + StaticRandom.NextDouble() / 10.0, name);
                 }
-                catch { }
+                catch (Exception ex) when (ex is Exception) { }
             }
             return carList;
         }
@@ -834,7 +835,7 @@ namespace Orts.Simulation.Multiplayer
         {
             try
             {
-                string fileName = Simulator.Instance.RouteFolder.TrackDatabaseFile(Simulator.Instance.Route.FileName);
+                string fileName = Simulator.Instance.RouteFolder.TrackDatabaseFile(Simulator.Instance.RouteModel.RouteKey);
                 using (FileStream file = new FileStream(fileName, FileMode.Open))
                 {
                     XxHash64 hashing = new XxHash64();

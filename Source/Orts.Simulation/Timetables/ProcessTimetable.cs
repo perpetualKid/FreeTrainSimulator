@@ -31,13 +31,14 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Formats.OR.Files;
-using Orts.Formats.OR.Parsers;
+using Orts.Formats.OpenRails.Files;
+using Orts.Formats.OpenRails.Models;
+using Orts.Formats.OpenRails.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
@@ -651,7 +652,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="fileStrings"></param>
         /// <param name="iColumn"></param>
         /// <param name="addColumns"></param>
-        private void ConcatTrainStrings(List<string[]> fileStrings, int iColumn, List<int> addColumns)
+        private void ConcatTrainStrings(Collection<string[]> fileStrings, int iColumn, List<int> addColumns)
         {
             for (int iRow = 1; iRow < fileStrings.Count - 1; iRow++)
             {
@@ -1112,7 +1113,7 @@ namespace Orts.Simulation.Timetables
                 if (binaryPaths && File.Exists(formedpathFilefullBinary))
                 {
                     var binaryLastWriteTime = File.GetLastWriteTime(formedpathFilefullBinary);
-                    if (binaryLastWriteTime < File.GetLastWriteTime(simulator.RouteFolder.TrackDatabaseFile(simulator.Route.FileName)) ||
+                    if (binaryLastWriteTime < File.GetLastWriteTime(simulator.RouteFolder.TrackDatabaseFile(simulator.RouteModel.RouteKey)) ||
                         File.Exists(formedpathFilefull) && binaryLastWriteTime < File.GetLastWriteTime(formedpathFilefull))
                     {
                         File.Delete(formedpathFilefullBinary);
@@ -1260,7 +1261,7 @@ namespace Orts.Simulation.Timetables
             /// <param name="description"></param>
             /// <param name="stationNames"></param>
             /// <param name="ttInfo"></param>
-            public bool BuildTrain(List<string[]> fileStrings, RowType[] RowInfo, int pathRow, int consistRow, int startRow, int disposeRow, int briefingRow, string description,
+            public bool BuildTrain(Collection<string[]> fileStrings, RowType[] RowInfo, int pathRow, int consistRow, int startRow, int disposeRow, int briefingRow, string description,
                 Dictionary<int, StationInfo> stationNames, float actSpeedConv, TimetableInfo ttInfo)
             {
                 TTDescription = description;
@@ -1961,7 +1962,7 @@ namespace Orts.Simulation.Timetables
             /// <param name="commandQualifiers"></param>
             /// <param name="delayType"></param>
             /// <returns></returns>
-            private static FreeTrainSimulator.Models.Simplified.DelayedStart ProcessRestartDelayValues(string trainName, List<TTTrainCommands.TTTrainComQualifiers> commandQualifiers, string delayType)
+            private static DelayedStart ProcessRestartDelayValues(string trainName, List<TTTrainCommands.TTTrainComQualifiers> commandQualifiers, string delayType)
             {
                 int fixedPart = 0;
                 int randomPart = 0;
@@ -2000,7 +2001,7 @@ namespace Orts.Simulation.Timetables
                             break;
                     }
                 }
-                return new FreeTrainSimulator.Models.Simplified.DelayedStart(fixedPart, randomPart);
+                return new DelayedStart(fixedPart, randomPart);
             }
 
             //================================================================================================//
@@ -2284,7 +2285,7 @@ namespace Orts.Simulation.Timetables
                         }
                         else
                         {
-                            confMaxSpeed = Math.Min((float)simulator.Route.SpeedLimit, conFile.Train.MaxVelocity.A);
+                            confMaxSpeed = Math.Min(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], conFile.Train.MaxVelocity.A);
                         }
                     }
                 }
@@ -2299,7 +2300,7 @@ namespace Orts.Simulation.Timetables
                 TTTrain.CheckFreight();
                 TTTrain.SetDistributedPowerUnitIds();
                 TTTrain.ReinitializeEOT();
-                TTTrain.SpeedSettings[SpeedValueType.RouteSpeed] = simulator.Route.SpeedLimit;
+                TTTrain.SpeedSettings[SpeedValueType.RouteSpeed] = simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route];
 
                 if (!confMaxSpeed.HasValue || confMaxSpeed.Value <= 0f)
                 {

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 using MemoryPack;
 
@@ -11,7 +12,7 @@ namespace FreeTrainSimulator.Common
     /// <typeparam name="T">Type stored in array</typeparam>
     /// <typeparam name="TEnum">Indexer Enum type</typeparam>
 #pragma warning disable CA1710 // Identifiers should have correct suffix
-    [MemoryPackable]    
+    [MemoryPackable]
     public partial class EnumArray<T, TEnum> : IEnumerable, IEnumerable<T> where TEnum : Enum
 #pragma warning restore CA1710 // Identifiers should have correct suffix
     {
@@ -22,7 +23,7 @@ namespace FreeTrainSimulator.Common
 
         [MemoryPackConstructor]
         private EnumArray(T[] array, int lowBound)
-        { 
+        {
             this.array = array;
             this.lowBound = lowBound;
         }
@@ -53,6 +54,16 @@ namespace FreeTrainSimulator.Common
 
             for (int i = 0; i < array.Length; i++)
                 array[i] = initializer.Invoke();
+        }
+
+        public EnumArray(Func<TEnum, T> initializer) : this()
+        {
+            ArgumentNullException.ThrowIfNull(initializer);
+
+            foreach (TEnum dimension in EnumExtension.GetValues<TEnum>())
+            {
+                this[dimension] = initializer.Invoke(dimension);
+            }
         }
 
         public EnumArray(T[] source) : this()
@@ -98,6 +109,35 @@ namespace FreeTrainSimulator.Common
             if (values.Length != array.Length)
                 throw new ArgumentOutOfRangeException($"Source array needs to be same size as number of enum values of {typeof(TEnum)}");
             Array.Copy(values, array, values.Length);
+        }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (TEnum item in EnumExtension.GetValues<TEnum>())
+            {
+                builder.Append(item);
+                builder.Append('=');
+                if (typeof(T).IsArray)
+                {
+                    if (this[item] != null)
+                    {
+                        foreach (dynamic arrayItem in (Array)(dynamic)this[item])
+                        {
+                            builder.Append(arrayItem);
+                        builder.Append(',');
+                        }
+                        if (builder[^1] == ',')
+                            builder.Length--;
+                    }
+                }
+                else
+                    builder.Append(this[item]);
+                builder.Append(';');
+            }
+            if (builder.Length > 0 && builder[^1] == ';')
+                builder.Length--;
+            return builder.ToString();
         }
     }
 
@@ -159,6 +199,19 @@ namespace FreeTrainSimulator.Common
                     array[col, row] = initializer.Invoke();
         }
 
+        public EnumArray2D(Func<TDimension1, TDimension2, T> initializer) : this()
+        {
+            ArgumentNullException.ThrowIfNull(initializer);
+
+            foreach (TDimension1 dimension1 in EnumExtension.GetValues<TDimension1>())
+            {
+                foreach (TDimension2 dimension2 in EnumExtension.GetValues<TDimension2>())
+                {
+                    this[dimension1, dimension2] = initializer.Invoke(dimension1, dimension2);
+                }
+            }
+        }
+
         public EnumArray2D(IList<T> source) : this()
         {
             ArgumentNullException.ThrowIfNull(source);
@@ -178,10 +231,10 @@ namespace FreeTrainSimulator.Common
             FromArray(source);
         }
 
-        public T this[TDimension1 x, TDimension2 y]
+        public T this[TDimension1 dimension1, TDimension2 dimension2]
         {
-            get => array[Unsafe.As<TDimension1, int>(ref x) - lowBoundX, Unsafe.As<TDimension2, int>(ref y) - lowBoundY];
-            set => array[Unsafe.As<TDimension1, int>(ref x) - lowBoundX, Unsafe.As<TDimension2, int>(ref y) - lowBoundY] = value;
+            get => array[Unsafe.As<TDimension1, int>(ref dimension1) - lowBoundX, Unsafe.As<TDimension2, int>(ref dimension2) - lowBoundY];
+            set => array[Unsafe.As<TDimension1, int>(ref dimension1) - lowBoundX, Unsafe.As<TDimension2, int>(ref dimension2) - lowBoundY] = value;
         }
 
         public T[,] ToArray()

@@ -30,7 +30,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Native;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -315,7 +315,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.AccelerationMpSS = () => Locomotive.AccelerationMpSS;
                 script.AltitudeM = () => Locomotive.WorldPosition.Location.Y;
                 script.CurrentGradientPercent = () => Locomotive.CurrentElevationPercent;
-                script.LineSpeedMpS = () => (float)Simulator.Route.SpeedLimit;
+                script.LineSpeedMpS = () => Simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route];
                 script.SignedDistanceM = () => Locomotive.Train.DistanceTravelledM;
                 script.DoesStartFromTerminalStation = DoesStartFromTerminalStation;
                 script.IsColdStart = () => Locomotive.Train.ColdStart;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -38,7 +39,6 @@ namespace FreeTrainSimulator.Common.Info
         public static void WriteSystemDetails()
         {
             StringBuilder builder = new StringBuilder();
-            builder.AppendLine(CultureInfo.InvariantCulture, $"{"Date/Time",-12}= {DateTime.Now} ({DateTime.UtcNow:u})");
             try
             {
                 WriteEnvironment(builder);
@@ -47,8 +47,7 @@ namespace FreeTrainSimulator.Common.Info
             {
                 builder.Append("Hardware information not available on this platform.");
             }
-            builder.AppendLine(CultureInfo.InvariantCulture, $"{"Runtime",-12}= {RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
-            Trace.Write(builder.ToString());
+            Trace.WriteLine(builder.ToString());
         }
 
         private static void WriteEnvironment(StringBuilder output)
@@ -92,7 +91,7 @@ namespace FreeTrainSimulator.Common.Info
 
             foreach (GraphicsAdapter adapter in GraphicsAdapter.Adapters)
             {
-                output.AppendLine(CultureInfo.InvariantCulture, $"{"Display",-12}= {adapter.DeviceName} (resolution {adapter.CurrentDisplayMode.Width} x {adapter.CurrentDisplayMode.Height}, {(adapter.IsDefaultAdapter ? ", primary" : "")} on {adapter.Description})");
+                output.AppendLine(CultureInfo.InvariantCulture, $"{"Display",-12}= {adapter.DeviceName} (resolution {adapter.CurrentDisplayMode.Width} x {adapter.CurrentDisplayMode.Height}{(adapter.IsDefaultAdapter ? ", primary" : "")} on {adapter.Description})");
                 GraphicsAdapter.UseDebugLayers = true;
             }
 
@@ -140,28 +139,34 @@ namespace FreeTrainSimulator.Common.Info
             return output.ToString();
         }
 
+        public static void OpenFolder(string path)
+        {
+            if (Directory.Exists(path))
+                Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true, Verb = "explore" });
+        }
+
+        public static void OpenApplication(string path)
+        {
+            if (File.Exists(path))
+                _ = Process.Start(path);
+        }
+
         public static void OpenFile(string fileName)
         {
             //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                Process.Start(new ProcessStartInfo { FileName = fileName, UseShellExecute = true });
+                Process.Start(new ProcessStartInfo { FileName = fileName, UseShellExecute = true, Verb = "open" });
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                Process.Start("xdg-open", fileName);
+                Process.Start(new ProcessStartInfo { FileName = fileName, Verb = "xdg-open" });
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                Process.Start("open", fileName);
+                Process.Start(new ProcessStartInfo { FileName = fileName, Verb = "open" });
         }
 
 #pragma warning disable CA1054 // URI-like parameters should not be strings
         public static void OpenBrowser(string url)
 #pragma warning restore CA1054 // URI-like parameters should not be strings
         {
-            //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                Process.Start("xdg-open", url);
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                Process.Start("open", url);
+            OpenFile(url);
         }
     }
 }

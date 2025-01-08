@@ -8,18 +8,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Settings;
-
 namespace FreeTrainSimulator.Updater
 {
     public partial class UpdaterProgress : Form
     {
-        private readonly UserSettings settings;
         private readonly Catalog catalog;
 
         public UpdaterProgress()
@@ -29,18 +27,20 @@ namespace FreeTrainSimulator.Updater
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
             catalog = CatalogManager.Catalog;
 
-            settings = new UserSettings();
             LoadLanguage();
             BringToFront();
         }
 
         private void LoadLanguage()
         {
-            if (settings.Language.Length > 0)
+            string language = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.LanguageCommandLine, StringComparison.OrdinalIgnoreCase));
+            language = language?[UpdateManager.LanguageCommandLine.Length..];
+
+            if (!string.IsNullOrEmpty(language))
             {
                 try
                 {
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(settings.Language);
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(language);
                 }
                 catch (ArgumentException) { }
             }
@@ -99,7 +99,13 @@ namespace FreeTrainSimulator.Updater
             await Task.WhenAll(waitList).ConfigureAwait(false);
 
             // Update manager is needed early to apply any updates before we show UI.
-            UpdateManager updateManager = new UpdateManager(settings);
+            string updateModeText = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.UpdateModeCommandLine, StringComparison.OrdinalIgnoreCase));
+            updateModeText = updateModeText?[UpdateManager.UpdateModeCommandLine.Length..];
+            UpdateMode updateMode;
+            if (!Enum.TryParse(updateModeText, out updateMode))
+                updateMode = UpdateMode.Release;
+
+            UpdateManager updateManager = new UpdateManager(updateMode);
             updateManager.ProgressChanged += (object sender, ProgressChangedEventArgs e) =>
             {
                 Invoke(() =>
@@ -111,7 +117,7 @@ namespace FreeTrainSimulator.Updater
             try
             {
                 string targetVersion = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.VersionCommandLine, StringComparison.OrdinalIgnoreCase));
-                targetVersion = targetVersion?[UpdateManager.VersionCommandLine.Length..];
+                targetVersion = targetVersion?[UpdateManager.VersionCommandLine.Length..]?.Trim('\"');
 
                 Invoke(() =>
                 {
@@ -142,11 +148,11 @@ namespace FreeTrainSimulator.Updater
             }
         }
 
-        private async void UpdaterProgress_FormClosed(object sender, FormClosedEventArgs e)
+        private void UpdaterProgress_FormClosed(object sender, FormClosedEventArgs e)
         {
             try
             {
-                await RelaunchApplicationAsync().ConfigureAwait(false);
+                RelaunchApplication();
             }
             catch (Exception exception)
             {
@@ -164,13 +170,13 @@ namespace FreeTrainSimulator.Updater
             }
         }
 
-        private static async Task RelaunchApplicationAsync()
+        private static void RelaunchApplication()
         {
             // If /RELAUNCH=1 is set, we're expected to re-launch the main application when we're done.
             bool relaunchApplication = Environment.GetCommandLineArgs().Any(a => string.Equals(a, $"{UpdateManager.RelaunchCommandLine}1", StringComparison.OrdinalIgnoreCase));
             if (relaunchApplication)
             {
-                await UpdateManager.RunProcess(new ProcessStartInfo(RuntimeInfo.LauncherPath)).ConfigureAwait(true);
+                SystemInfo.OpenApplication(RuntimeInfo.LauncherPath);
             }
         }
     }

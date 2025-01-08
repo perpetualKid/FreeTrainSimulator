@@ -240,7 +240,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                 currentStationArriveActual.Text = null;
                             }
                             currentStationDepartScheduled.Text = TimeSpan.FromSeconds(timetableTrain.StationStops[0].DepartTime).ToString("c");
-                            currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(timetableTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
+                            currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(timetableTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.RouteModel.MetricUnits);
                             message.Text = timetableTrain.DisplayMessage;
                             message.TextColor = timetableTrain.DisplayColor;
 
@@ -412,7 +412,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                 currentStationArriveActual.Text = null;
                             }
                             currentStationDepartScheduled.Text = TimeSpan.FromSeconds(playerTrain.StationStops[0].DepartTime).ToString("c");
-                            currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
+                            currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.RouteModel.MetricUnits);
                             message.Text = playerTrain.DisplayMessage;
                             message.TextColor = playerTrain.DisplayColor;
 
@@ -440,14 +440,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     if (playerTrain.StationStops.Count > 0 && string.Equals(playerTrain.StationStops[0].PlatformItem?.Name, previousStationName.Text, StringComparison.OrdinalIgnoreCase) &&
                         playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM < float.MaxValue)
                     {
-                        previousStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
+                        previousStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.RouteModel.MetricUnits);
                     }
 
                     UpdateCurrentStop(currentStop);
                     if (playerTrain.StationStops.Count > 0 && string.Equals(playerTrain.StationStops[0].PlatformItem?.Name, currentStop.PlatformEnd1.Station, StringComparison.OrdinalIgnoreCase) &&
                         playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM < float.MaxValue)
                     {
-                        currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
+                        currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.RouteModel.MetricUnits);
                     }
                     else
                         currentStationDistance.Text = null;
@@ -457,7 +457,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     if (playerTrain.StationStops.Count > 0 && string.Equals(playerTrain.StationStops[0].PlatformItem?.Name, nextStationName.Text, StringComparison.OrdinalIgnoreCase) &&
                         playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM < float.MaxValue)
                     {
-                        nextStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.Route.MilepostUnitsMetric);
+                        nextStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.RouteModel.MetricUnits);
                     }
 
                     if (Simulator.Instance.ActivityRun.Completed)

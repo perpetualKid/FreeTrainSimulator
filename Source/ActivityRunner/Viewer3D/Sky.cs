@@ -31,7 +31,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Simulation;
-using Orts.Viewer3D;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

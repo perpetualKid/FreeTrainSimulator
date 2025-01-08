@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
@@ -209,7 +210,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             var len = degree * 0.0174 * radius;
             double Curvature = degree * 33 / len;//average radius in degree/100feet
-            var Max = (float)(Math.Pow(Simulator.Instance.Route.SpeedLimit * 2.25, 2) * 0.0007 * Math.Abs(Curvature) - 3); //in inch
+            var Max = (float)(Math.Pow(Simulator.Instance.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route] * 2.25, 2) * 0.0007 * Math.Abs(Curvature) - 3); //in inch
             Max = Max * 2.5f;//change to cm
             Max = (float)Math.Round(Max * 2, MidpointRounding.AwayFromZero) / 200f;//closest to 5 mm increase;
             if (Max < 0.01f) return 0f;

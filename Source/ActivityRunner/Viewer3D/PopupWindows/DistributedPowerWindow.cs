@@ -263,11 +263,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
                 if (groupDetails[GroupDetail.Load]?.Controls[i] is Label loadLabel)
                 {
-                    loadLabel.Text = $"{groupLead.DistributedPowerForceInfo():F0}{(windowMode is WindowMode.Normal or WindowMode.Short ? $" {(Simulator.Instance.Route.MilepostUnitsMetric ? " A" : " K")}" : "")}";
+                    loadLabel.Text = $"{groupLead.DistributedPowerForceInfo():F0}{(windowMode is WindowMode.Normal or WindowMode.Short ? $" {(Simulator.Instance.RouteModel.MetricUnits ? " A" : " K")}" : "")}";
                 }
                 if (groupDetails[GroupDetail.Remote]?.Controls[i] is Label remoteLabel)
                 {
-                    remoteLabel.Text = $"{(groupLead.IsLeadLocomotive()  ? RemoteControlGroup.Unconnected.GetLocalizedDescription() : groupLead.RemoteControlGroup.GetLocalizedDescription())}";
+                    remoteLabel.Text = $"{(groupLead.IsLeadLocomotive() ? RemoteControlGroup.Unconnected.GetLocalizedDescription() : groupLead.RemoteControlGroup.GetLocalizedDescription())}";
                 }
                 if (windowMode is WindowMode.Normal or WindowMode.NormalMono)
                 {

@@ -59,7 +59,7 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Formats.OR.Models;
+using Orts.Formats.OpenRails.Models;
 using Orts.Simulation;
 using Orts.Simulation.World;
 
@@ -368,7 +368,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     SceneryObjects.Add(new StaticTrackShape(shapeFilePath, worldMatrix));
                             }
                         }
-                        if (viewer.Simulator.Settings.Wire == true && viewer.Simulator.Route.Electrified == true
+                        if (viewer.Simulator.Settings.Wire == true && viewer.Simulator.RouteModel.RouteConditions.Electrified == true
                             && worldObject.DetailLevel != 2   // Make it compatible with routes that use 'HideWire', a workaround for MSTS that 
                             && worldObject.DetailLevel != 3   // allowed a mix of electrified and non electrified track see http://msts.steam4me.net/tutorials/hidewire.html
                             )
@@ -381,7 +381,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(DynamicTrackObject))
                     {
-                        if (viewer.Simulator.Settings.Wire && viewer.Simulator.Route.Electrified)
+                        if (viewer.Simulator.Settings.Wire && viewer.Simulator.RouteModel.RouteConditions.Electrified)
                             Wire.DecomposeDynamicWire(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix);
                         // Add DyntrackDrawers for individual subsections
                         if (viewer.Settings.UseSuperElevation > 0 && SuperElevationManager.UseSuperElevationDyn(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix))
@@ -446,7 +446,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         // FirstOrDefault() checks for "animations( 0 )" as this is a valid entry in *.s files
                         // and is included by MSTSexporter for Blender 2.8+ Release V4.0 or older
                         IEnumerable<AnimationNode> animNodes = preTestShape.SharedShape.Animations?.FirstOrDefault()?.AnimationNodes ?? Enumerable.Empty<AnimationNode>();
-                        bool isAnimatedClock = animNodes.Any(node => Regex.IsMatch(node.Name, @"^orts_[hmsc]hand_clock", RegexOptions.IgnoreCase));
+                        bool isAnimatedClock = animNodes.Any(node => !string.IsNullOrEmpty(node.Name) && Regex.IsMatch(node.Name, @"^orts_[hmsc]hand_clock", RegexOptions.IgnoreCase));
 
                         if (isAnimatedClock)
                         {

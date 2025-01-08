@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Models.Imported.Shim;
 
 using Microsoft.Xna.Framework;
 
@@ -15,15 +18,15 @@ namespace FreeTrainSimulator.Toolbox
 {
     public class TrackData : RuntimeData
     {
-        public IEnumerable<Path> TrainPaths { get; }
+        public FrozenSet<PathModelCore> TrainPaths { get; }
 
-        private TrackData(string routeName, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IEnumerable<Path> trainPaths) :
-            base(routeName, trackSections, trackDb, roadTrackDB, signalConfig, useMetricUnits, null)
+        private TrackData(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, FrozenSet<PathModelCore> trainPaths) :
+            base(route, trackSections, trackDb, roadTrackDB, signalConfig, metricUnits, null)
         {
             TrainPaths = trainPaths;
         }
 
-        internal static async Task LoadTrackData(Game game, Models.Simplified.Route route, bool? useMetricUnits, CancellationToken cancellationToken)
+        internal static async ValueTask LoadTrackData(Game game, RouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;
@@ -31,12 +34,11 @@ namespace FreeTrainSimulator.Toolbox
             RoadTrackDB roadTrackDB = null;
             SignalConfigurationFile signalConfig = null;
 
-            FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(route.Path);
-            RouteFile routeFile = new RouteFile(routeFolder.TrackFileName);
+            FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
 
             loadTasks.Add(Task.Run(() =>
             {
-                string tdbFile = routeFolder.TrackDatabaseFile(routeFile.Route.FileName);
+                string tdbFile = routeFolder.TrackDatabaseFile(routeModel.RouteKey);
                 if (!System.IO.File.Exists(tdbFile))
                 {
                     Trace.TraceError($"Track Database File not found in {tdbFile}");
@@ -52,7 +54,7 @@ namespace FreeTrainSimulator.Toolbox
             }, cancellationToken));
             loadTasks.Add(Task.Run(() =>
             {
-                string rdbFile = routeFolder.RoadTrackDatabaseFile(routeFile.Route.FileName);
+                string rdbFile = routeFolder.RoadTrackDatabaseFile(routeModel.RouteKey);
                 if (!System.IO.File.Exists(rdbFile))
                 {
                     Trace.TraceWarning($"Road Database File not found in {rdbFile}");
@@ -61,8 +63,7 @@ namespace FreeTrainSimulator.Toolbox
                 roadTrackDB = new RoadDatabaseFile(rdbFile).RoadTrackDB;
             }, cancellationToken));
             loadTasks.Add(Task.Run(() => signalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken));
-            Task<IEnumerable<Path>> pathTask;
-            loadTasks.Add(pathTask = Path.GetPaths(route, true, cancellationToken));
+            Task<FrozenSet<PathModelCore>> pathTask = routeModel.GetRoutePaths(cancellationToken);
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
 
@@ -70,7 +71,7 @@ namespace FreeTrainSimulator.Toolbox
                 return;
 
             game.Services.RemoveService(typeof(RuntimeData));
-            game.Services.AddService(typeof(RuntimeData), new TrackData(routeFile.Route.Name, trackSections, trackDB, roadTrackDB, signalConfig, useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric), await pathTask.ConfigureAwait(false)));
+            game.Services.AddService(typeof(RuntimeData), new TrackData(routeModel, trackSections, trackDB, roadTrackDB, signalConfig, metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits), await pathTask.ConfigureAwait(false)));
         }
     }
 }

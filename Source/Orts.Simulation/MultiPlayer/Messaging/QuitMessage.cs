@@ -30,7 +30,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 //the client may quit because of lost connection, will remember it so it may recover in the future when the player log in again
                 if (player.Train != null && player.Status != OnlinePlayerStatus.Removed) //if this player has train and is not removed by the dispatcher
                 {
-                    multiPlayerManager.lostPlayer.TryAdd(player.Username, player);
+                    multiPlayerManager.LostPlayer.TryAdd(player.Username, player);
                     player.QuitTime = Simulator.Instance.GameTime;
                     player.Train.SpeedMpS = 0.0f;
                     player.Status = OnlinePlayerStatus.Quit;

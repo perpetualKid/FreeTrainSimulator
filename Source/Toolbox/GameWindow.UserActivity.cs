@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
@@ -59,7 +60,8 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
                 ctsRouteLoading.Cancel();
-            SaveSettings();
+            Task.Run(SaveSettings).Wait();
+            waitOnExit = false;
             Exit();
         }
 

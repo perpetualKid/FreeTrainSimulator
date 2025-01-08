@@ -49,7 +49,7 @@ Some problems remain (see comments in the code):
 */
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Frozen;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -58,66 +58,66 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Formats.Msts;
 using Orts.Settings;
 
-using Path = System.IO.Path;
-
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     public partial class ResumeForm : Form
     {
         private readonly UserSettings settings;
-        private readonly Route route;
-        private readonly Activity activity;
-        private readonly IEnumerable<Route> globalRoutes;
-        private readonly TimetableInfo timeTable;
-        private List<SavePoint> savePoints = new List<SavePoint>();
+        private readonly ProfileSelectionsModel profileSelectionsModel;
+        private readonly RouteModelCore route;
+        private readonly ActivityModelCore activity;
+        private readonly TimetableModel timeTable;
+        private FrozenSet<SavePointModel> savePoints;
         private CancellationTokenSource ctsLoader;
+        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
 
         public string SelectedSaveFile { get; private set; }
-        public MainForm.UserAction SelectedAction { get; private set; }
+        public GamePlayAction SelectedAction { get; private set; }
         private readonly bool multiplayer;
 
         private readonly Catalog catalog;
 
-        internal ResumeForm(UserSettings settings, Route route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable, IEnumerable<Route> mainRoutes)
+        internal ResumeForm(UserSettings settings, ProfileSelectionsModel profileSelections)
         {
             catalog = CatalogManager.Catalog;
-            globalRoutes = mainRoutes;
-            SelectedAction = mainFormAction;
-            multiplayer = SelectedAction == MainForm.UserAction.MultiplayerClient;
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
-
             Localizer.Localize(this, catalog);
 
             this.settings = settings;
-            this.route = route;
-            this.activity = activity;
-            this.timeTable = timeTable;
+            this.profileSelectionsModel = profileSelections;
+            this.route = profileSelections.SelectedRoute();
+            this.activity = profileSelections.SelectedActivity();
+            this.timeTable = profileSelections.SelectedTimetable();
 
             checkBoxReplayPauseBeforeEnd.Checked = settings.ReplayPauseBeforeEnd;
             numericReplayPauseBeforeEnd.Value = settings.ReplayPauseBeforeEndS;
 
             GridSaves_SelectionChanged(null, null);
 
-            if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
+            Text += profileSelections.ActivityType switch
             {
-                Text += $" - {route.Name} - {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
-                pathNameDataGridViewTextBoxColumn.Visible = true;
-            }
-            else
-            {
-                Text += $" - {route.Name} - {(activity.GetType() == typeof(Activity) ? activity.Name : activity is ExploreThroughActivity ? catalog.GetString("Explore in Activity Mode") : catalog.GetString("Explore Route"))}";
-                pathNameDataGridViewTextBoxColumn.Visible = activity.FilePath == null;
-            }
+                ActivityType.Explorer => $" - {route.Name} - {catalog.GetString("Explore Route")}",
+                ActivityType.ExploreActivity => $" - {route.Name} - {catalog.GetString("Explore in Activity Mode")}",
+                ActivityType.Activity => $" - {route.Name} - {activity.Name}",
+                ActivityType.TimeTable => $" - {route.Name} - {timeTable.Name}",
+                _ => throw new NotImplementedException(),
+            };
 
+            pathNameDataGridViewTextBoxColumn.Visible = profileSelections.ActivityType is ActivityType.TimeTable or ActivityType.Activity;
+
+            multiplayer = profileSelections.GamePlayAction == GamePlayAction.MultiplayerClient;
             if (multiplayer)
                 Text += $" - {catalog.GetString("Multiplayer")} ";
         }
@@ -144,6 +144,7 @@ namespace Orts.Menu
         {
             if (disposing)
             {
+                semaphoreSlim?.Dispose();
                 components?.Dispose();
                 ctsLoader?.Dispose();
             }
@@ -153,79 +154,88 @@ namespace Orts.Menu
 
         private async Task LoadSavePointsAsync()
         {
-            lock (savePoints)
-            {
-                if (ctsLoader != null && !ctsLoader.IsCancellationRequested)
-                {
-                    ctsLoader.Cancel();
-                    ctsLoader.Dispose();
-                }
-                ctsLoader = new CancellationTokenSource();
-            }
+            ctsLoader = await ctsLoader.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
             StringBuilder warnings = new StringBuilder();
             string prefix = string.Empty;
 
-            if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
+            prefix = profileSelectionsModel.ActivityType switch
             {
-                prefix = $"{Path.GetFileName(route.Path)} {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
-            }
-            else if (activity.FilePath != null)
-            {
-                prefix = Path.GetFileNameWithoutExtension(activity.FilePath);
-            }
-            else if (activity.Name == $"- {catalog.GetString("Explore Route")} -")
-            {
-                prefix = Path.GetFileName(route.Path);
-            }
-            // Explore in activity mode
-            else
-            {
-                prefix = $"ea${Path.GetFileName(route.Path)}$";
-            }
+                ActivityType.Explorer => Path.GetFileName(route.SourceFolder()),
+                ActivityType.ExploreActivity => $"ea${Path.GetFileName(route.SourceFolder())}$",
+                ActivityType.Activity => Path.GetFileNameWithoutExtension(activity.SourceFile()),
+                ActivityType.TimeTable => $"{Path.GetFileName(route.SourceFolder())} {Path.GetFileName(timeTable.SourceFile())}",
+                _ => throw new NotImplementedException(),
+            };
 
-            savePoints = (await SavePoint.GetSavePoints(RuntimeInfo.UserDataFolder, prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).OrderByDescending(s => s.RealTime).ToList();
+            FrozenSet<RouteModelCore> globalRoutes = await route.Parent.GetRoutes(ctsLoader.Token).ConfigureAwait(false);
+
+            savePoints = await route.RefreshSavePoints(prefix, ctsLoader.Token).ConfigureAwait(true);
+            savePoints = savePoints.Where(s => (!s.MultiplayerGame ^ multiplayer)).
+                // SavePacks are all in the same folder and activities may have the same name 
+                // (e.g. Short Passenger Run shrtpass.act) but belong to a different route,
+                // so pick only the activities for the current route.
+                Where(s => string.Equals(s.RouteName, route.Name, StringComparison.OrdinalIgnoreCase)).
+                // In case you receive a SavePack where the activity is recognised but the route has been renamed.
+                // Checks the route is not in your list of routes.
+                // If so, add it with a warning.
+                Where(s => globalRoutes.Any(route => string.Equals(route.Name, s.RouteName, StringComparison.OrdinalIgnoreCase))).
+                OrderByDescending(s => s.RealTime).
+                ToFrozenSet();
             saveBindingSource.DataSource = savePoints;
 
-            labelInvalidSaves.Text = catalog.GetString(
-                 "To prevent crashes and unexpected behaviour, saved states from older versions may be invalid and fail to restore.\n") +
-                 catalog.GetString("{0} of {1} saves for this route can not be validated.", savePoints.Count(s => (s.Valid == false)), savePoints.Count);
             GridSaves_SelectionChanged(null, null);
             // Show warning after the list has been updated as this is more useful.
-            if (warnings.Length > 0)
+
+            int invalidCount = 0;
+            foreach (var item in savePoints)
+            {
+                if (item.ValidState == false)
+                {
+                    warnings?.Append(catalog.GetString($"Error: File '{item.Name}' is invalid or corrupted.\n"));
+                    invalidCount++;
+                }
+            }
+
+            if (invalidCount > 0)
+            {
+                labelInvalidSaves.Text = catalog.GetString(
+                     "To prevent crashes and unexpected behaviour, saved states from older versions may be invalid and fail to restore.\n") +
+                     catalog.GetString("{0} of {1} saves for this route can not be validated.", invalidCount, savePoints.Count);
                 MessageBox.Show(warnings.ToString(), $"{RuntimeInfo.ProductName} {VersionInfo.Version}");
+            }
         }
 
-        private bool AcceptUseOfNonvalidSave(SavePoint save)
+        private bool AcceptUseOfNonvalidSave(SavePointModel savePoint)
         {
             DialogResult reply = MessageBox.Show(catalog.GetString(
-                $"Restoring from a save made by version {save.ProgramVersion} of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}.\n\nPlease do not report any problems that may result.\n\nContinue?"),
+                $"Restoring from a save made by version {savePoint.Version} of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}.\n\nPlease do not report any problems that may result.\n\nContinue?"),
                 $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             return reply == DialogResult.Yes;
         }
 
         private void ResumeSave()
         {
-            if (saveBindingSource.Current is SavePoint save)
+            if (saveBindingSource.Current is SavePointModel savePoint)
             {
-                if (save.Valid != false)// && Found(save)) // I.e. true or null. Check is for safety as buttons should be disabled if SavePoint is invalid.
+                if (savePoint.ValidState != false)// && Found(save)) // I.e. true or null. Check is for safety as buttons should be disabled if SavePoint is invalid.
                 {
-                    if (save.Valid == null)
-                        if (!AcceptUseOfNonvalidSave(save))
+                    if (savePoint.ValidState == null)
+                        if (!AcceptUseOfNonvalidSave(savePoint))
                             return;
 
-                    SelectedSaveFile = save.File;
-                    MainForm.UserAction selectedAction = SelectedAction;
+                    SelectedSaveFile = savePoint.SourceFile();
+                    GamePlayAction selectedAction = SelectedAction;
                     switch (SelectedAction)
                     {
-                        case MainForm.UserAction.SinglePlayerTimetableGame:
-                            selectedAction = MainForm.UserAction.SinglePlayerResumeTimetableGame;
+                        case GamePlayAction.SinglePlayerTimetableGame:
+                            selectedAction = GamePlayAction.SinglePlayerResumeTimetableGame;
                             break;
-                        case MainForm.UserAction.SingleplayerNewGame:
-                            selectedAction = MainForm.UserAction.SingleplayerResumeSave;
+                        case GamePlayAction.SingleplayerNewGame:
+                            selectedAction = GamePlayAction.SingleplayerResumeSave;
                             break;
-                        case MainForm.UserAction.MultiplayerClient:
-                            selectedAction = MainForm.UserAction.MultiplayerClientResumeSave;
+                        case GamePlayAction.MultiplayerClient:
+                            selectedAction = GamePlayAction.MultiplayerClientResumeSave;
                             break;
                     }
                     SelectedAction = selectedAction;
@@ -246,16 +256,16 @@ namespace Orts.Menu
             // Load new thumbnail.
             if (gridSaves.SelectedRows.Count > 0)
             {
-                if (saveBindingSource.Current is SavePoint save)
+                if (saveBindingSource.Current is SavePointModel savePoint)
                 {
-                    string thumbFileName = Path.ChangeExtension(save.File, "png");
+                    string thumbFileName = Path.ChangeExtension(savePoint.SourceFile(), "png");
                     if (File.Exists(thumbFileName))
                         pictureBoxScreenshot.Image = new Bitmap(thumbFileName);
 
                     buttonDelete.Enabled = true;
-                    buttonResume.Enabled = (save.Valid != false); // I.e. either true or null
-                    string replayFileName = Path.ChangeExtension(save.File, "replay");
-                    buttonReplayFromPreviousSave.Enabled = (save.Valid != false) && File.Exists(replayFileName) && !multiplayer;
+                    buttonResume.Enabled = (savePoint.ValidState != false); // I.e. either true or null
+                    string replayFileName = Path.ChangeExtension(savePoint.SourceFile(), "replay");
+                    buttonReplayFromPreviousSave.Enabled = (savePoint.ValidState != false) && File.Exists(replayFileName) && !multiplayer;
                     buttonReplayFromStart.Enabled = File.Exists(replayFileName) && !multiplayer; // can Replay From Start even if SavePoint is invalid.
                 }
                 else
@@ -296,20 +306,20 @@ namespace Orts.Menu
 
                 for (int i = 0; i < selectedRows.Count; i++)
                 {
-                    DeleteSavePoint(selectedRows[i].DataBoundItem as SavePoint);
+                    DeleteSavePoint(selectedRows[i].DataBoundItem as SavePointModel);
                 }
                 await LoadSavePointsAsync().ConfigureAwait(true);
             }
         }
 
-        private static void DeleteSavePoint(SavePoint savePoint)
+        private static void DeleteSavePoint(SavePointModel savePoint)
         {
             if (null != savePoint)
             {
                 if (!Directory.Exists(UserSettings.DeletedSaveFolder))
                     Directory.CreateDirectory(UserSettings.DeletedSaveFolder);
 
-                foreach (string fileName in Directory.EnumerateFiles(Path.GetDirectoryName(savePoint.File), savePoint.Name + ".*"))
+                foreach (string fileName in Directory.EnumerateFiles(Path.GetDirectoryName(savePoint.SourceFile()), savePoint.Name + ".*"))
                 {
                     try
                     {
@@ -343,9 +353,9 @@ namespace Orts.Menu
         {
             gridSaves.ClearSelection();
             int deleted = 0;
-            foreach (SavePoint savePoint in savePoints)
+            foreach (SavePointModel savePoint in savePoints)
             {
-                if (savePoint.Valid == false)
+                if (savePoint.ValidState == false)
                 {
                     DeleteSavePoint(savePoint);
                     deleted++;
@@ -357,26 +367,26 @@ namespace Orts.Menu
 
         private void ButtonReplayFromStart_Click(object sender, EventArgs e)
         {
-            SelectedAction = MainForm.UserAction.SingleplayerReplaySave;
+            SelectedAction = GamePlayAction.SingleplayerReplaySave;
             InitiateReplay(true);
         }
 
         private void ButtonReplayFromPreviousSave_Click(object sender, EventArgs e)
         {
-            SelectedAction = MainForm.UserAction.SingleplayerReplaySaveFromSave;
+            SelectedAction = GamePlayAction.SingleplayerReplaySaveFromSave;
             InitiateReplay(false);
         }
 
         private void InitiateReplay(bool fromStart)
         {
-            SavePoint save = saveBindingSource.Current as SavePoint;
-//            if (Found(save))
+            SavePointModel savePoint = saveBindingSource.Current as SavePointModel;
+            //            if (Found(save))
             {
-                if (fromStart && (save.Valid == null))
-                    if (!AcceptUseOfNonvalidSave(save))
+                if (fromStart && (savePoint.ValidState == null))
+                    if (!AcceptUseOfNonvalidSave(savePoint))
                         return;
 
-                SelectedSaveFile = save.File;
+                SelectedSaveFile = savePoint.SourceFile();
                 settings.ReplayPauseBeforeEnd = checkBoxReplayPauseBeforeEnd.Checked;
                 settings.ReplayPauseBeforeEndS = (int)numericReplayPauseBeforeEnd.Value;
                 DialogResult = DialogResult.OK; // Anything but DialogResult.Cancel
@@ -385,14 +395,15 @@ namespace Orts.Menu
 
         private async void ButtonImportExportSaves_Click(object sender, EventArgs e)
         {
-            SavePoint save = saveBindingSource.Current as SavePoint;
-            using (ImportExportSaveForm form = new ImportExportSaveForm(save, catalog))
+            SavePointModel savePoint = saveBindingSource.Current as SavePointModel;
+            using (ImportExportSaveForm form = new ImportExportSaveForm(savePoint, catalog))
             {
                 form.ShowDialog();
             }
             await LoadSavePointsAsync().ConfigureAwait(true);
         }
 
+        /*
         /// <summary>
         /// Saves may come from other, foreign installations (i.e. not this PC). 
         /// They can be replayed or resumed on this PC but they will contain activity / path / consist filenames
@@ -405,7 +416,7 @@ namespace Orts.Menu
         // TODO 20240502 Refactor for new savestate format
         private bool Found(SavePoint save)
         {
-            if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
+            if (SelectedAction == GamePlayAction.SinglePlayerTimetableGame)
             {
                 return true; // no additional actions required for timetable resume
             }
@@ -509,6 +520,7 @@ namespace Orts.Menu
             }
             return true;
         }
+        */
 
         private void GridSaves_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {

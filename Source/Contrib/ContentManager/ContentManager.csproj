@@ -9,13 +9,13 @@
     <RootNamespace>Orts.ContentManager</RootNamespace>
     <AssemblyName>Contrib.ContentManager</AssemblyName>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
 	<PackageReference Include="System.Resources.Extensions" Version="9.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Orts.Formats\Orts.Formats.csproj" />
     <ProjectReference Include="..\..\Orts.Settings\Orts.Settings.csproj" />
-    <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
-    <ProjectReference Include="..\..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
   </ItemGroup>
 </Project>

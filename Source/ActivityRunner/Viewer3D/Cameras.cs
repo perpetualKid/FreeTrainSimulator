@@ -31,7 +31,7 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -999,7 +999,7 @@ namespace Orts.ActivityRunner.Viewer3D
             base.OnActivate(sameCamera);
         }
 
-        private protected virtual IEnumerable<TrainCar> GetCameraCars()
+        private protected virtual List<TrainCar> GetCameraCars()
         {
             if (viewer.SelectedTrain.TrainType == TrainType.AiIncorporated)
                 viewer.ChangeSelectedTrain(viewer.SelectedTrain.IncorporatingTrain);
@@ -1773,10 +1773,9 @@ namespace Orts.ActivityRunner.Viewer3D
             Name = Viewer.Catalog.GetString("Brakeman");
         }
 
-        private protected override IEnumerable<TrainCar> GetCameraCars()
-        {
-            var cars = base.GetCameraCars();
-            return cars.Take(1).Concat(cars.TakeLast(1));
+        private protected override List<TrainCar> GetCameraCars()
+        {            
+            return new List<TrainCar>() { base.GetCameraCars()[0], base.GetCameraCars()[^1] };
         }
 
         protected override void SetCameraCar(TrainCar car)
@@ -1837,7 +1836,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var trainCars = GetCameraCars();
             List<TrainCar> trainCarList;
             int index;
-            if (!trainCars.Any())
+            if (trainCars.Count == 0)
                 return;//may not have passenger or 3d cab viewpoints
             if (sameCamera)
             {
@@ -2133,12 +2132,12 @@ namespace Orts.ActivityRunner.Viewer3D
             Name = Viewer.Catalog.GetString("3D Cab");
         }
 
-        private protected override IEnumerable<TrainCar> GetCameraCars()
+        private protected override List<TrainCar> GetCameraCars()
         {
             if (viewer.SelectedTrain != null && viewer.SelectedTrain.IsActualPlayerTrain &&
                 viewer.PlayerLocomotive != null && viewer.PlayerLocomotive.CabViewpoints != null)
             {
-                return new TrainCar[] { viewer.PlayerLocomotive };
+                return new List<TrainCar>() { viewer.PlayerLocomotive };
             }
             else
                 return base.GetCameraCars();
@@ -2332,10 +2331,10 @@ namespace Orts.ActivityRunner.Viewer3D
             rotationYRadians = forward ? 0 : -MathHelper.Pi;
         }
 
-        private protected override IEnumerable<TrainCar> GetCameraCars()
+        private protected override List<TrainCar> GetCameraCars()
         {
             // Head-out camera is only possible on the player train.
-            return viewer.PlayerTrain.Cars.Where(c => c.HeadOutViewpoints != null);
+            return viewer.PlayerTrain.Cars.Where(c => c.HeadOutViewpoints != null).ToList();
         }
 
         protected override void SetCameraCar(TrainCar car)
@@ -2449,10 +2448,10 @@ namespace Orts.ActivityRunner.Viewer3D
             base.OnActivate(sameCamera);
         }
 
-        private protected override IEnumerable<TrainCar> GetCameraCars()
+        private protected override List<TrainCar> GetCameraCars()
         {
             // Cab camera is only possible on the player locomotive.
-            return new TrainCar[] { viewer.PlayerLocomotive };
+            return new List<TrainCar>() { viewer.PlayerLocomotive };
         }
 
         protected override void SetCameraCar(TrainCar car)

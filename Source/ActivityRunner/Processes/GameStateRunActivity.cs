@@ -22,6 +22,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -29,7 +30,9 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Logging;
 using FreeTrainSimulator.Common.Native;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Imported.State;
 
 using MemoryPack;
 
@@ -151,7 +154,6 @@ namespace Orts.ActivityRunner.Processes
 
 
             UserSettings settings = Game.Settings;
-
             async ValueTask doAction()
             {
                 // Do the action specified or write out some help.
@@ -160,7 +162,7 @@ namespace Orts.ActivityRunner.Processes
                     case ActionType.Start:
                         InitLogging();
                         await InitLoading().ConfigureAwait(false);
-                        Start(settings);
+                        await Start(settings).ConfigureAwait(false);
                         break;
                     case ActionType.Resume:
                         InitLogging();
@@ -180,7 +182,7 @@ namespace Orts.ActivityRunner.Processes
                     case ActionType.Test:
                         InitLogging(true);
                         await InitLoading().ConfigureAwait(false);
-                        Test(settings);
+                        await Test(settings).ConfigureAwait(false);
                         break;
 
                     default:
@@ -252,9 +254,9 @@ namespace Orts.ActivityRunner.Processes
         /// Run the specified activity from the beginning.
         /// This is the start for MSTS Activity or Explorer mode or Timetable mode
         /// </summary>
-        private void Start(UserSettings settings)
+        private async ValueTask Start(UserSettings settings)
         {
-            InitSimulator(settings);
+            await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
             switch (activityType)
             {
@@ -273,7 +275,7 @@ namespace Orts.ActivityRunner.Processes
                 MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
-                System.Threading.Thread.Sleep(5000);
+                await Task.Delay(5000).ConfigureAwait(false);
                 if (simulator.Trains[0].RequestJump)
                 {
                     simulator.Trains[0].UpdateRemoteTrainPos(0);
@@ -306,7 +308,7 @@ namespace Orts.ActivityRunner.Processes
 
             activityType = saveState.ActivityType;
             data = saveState.Arguments.ToArray();
-            InitSimulator(settings);
+            await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
             await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
 
@@ -346,7 +348,7 @@ namespace Orts.ActivityRunner.Processes
 
             activityType = saveState.ActivityType;
             data = saveState.Arguments.ToArray();
-            InitSimulator(settings);
+            await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             simulator.Start(Game.LoaderProcess.CancellationToken);
             Viewer = new Viewer(simulator, Game);
             Viewer.Initialize();
@@ -416,7 +418,7 @@ namespace Orts.ActivityRunner.Processes
 
                 actionType = ActionType.Replay;
                 data = saveState.Arguments.ToArray();
-                InitSimulator(settings);
+                await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
@@ -430,7 +432,7 @@ namespace Orts.ActivityRunner.Processes
                 activityType = saveState.ActivityType;
                 data = saveState.Arguments.ToArray();
                 actionType = ActionType.Resume;
-                InitSimulator(settings);
+                await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                 simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
                 await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
 
@@ -453,7 +455,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Tests that ActivityRunner.exe can launch a specific activity or explore.
         /// </summary>
-        private void Test(UserSettings settings)
+        private async ValueTask Test(UserSettings settings)
         {
             DateTime startTime = DateTime.Now;
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -462,7 +464,7 @@ namespace Orts.ActivityRunner.Processes
             try
             {
                 actionType = ActionType.Test;
-                InitSimulator(settings);
+                await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
                 Viewer.Initialize();
@@ -486,7 +488,7 @@ namespace Orts.ActivityRunner.Processes
             if (Game.Settings.Logging)
             {
                 string logFileName = RuntimeInfo.LogFile(Game.Settings.LoggingPath, Game.Settings.LoggingFilename);
-                LoggingUtil.InitLogging(logFileName, Game.Settings.LogErrorsOnly, appendLog);
+                LoggingUtil.InitLogging(logFileName, Game.Settings.LogErrorsOnly ? TraceSettings.ErrorStack | TraceSettings.ErrorStack : TraceSettings.All , appendLog);
                 Game.Settings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
@@ -618,7 +620,7 @@ namespace Orts.ActivityRunner.Processes
         }
         #endregion
 
-        private void InitSimulator(UserSettings settings)
+        private async ValueTask InitSimulator(UserSettings settings,  CancellationToken cancellationToken)
         {
             if (activityType == ActivityType.None)
             {
@@ -634,12 +636,16 @@ namespace Orts.ActivityRunner.Processes
             SeasonType season = SeasonType.Summer;
             WeatherType weather = WeatherType.Clear;
 
+            FolderStructure.ContentFolder.RouteFolder route = FolderStructure.RouteFromActivity(data[0]);
+
+            RouteModel routeModel = await route.ToRouteModel(cancellationToken).ConfigureAwait(false);
+
             switch (activityType)
             {
                 case ActivityType.Activity:
                     if (data.Length == 0)
                         throw new InvalidCommandLineException("Mode 'activity' needs 1 argument: activity file.");
-                    Trace.WriteLine($"{"Route",-12}= {GetRouteName(data[0])}");
+                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
                     Trace.WriteLine($"{"Activity",-12}= {GetActivityName(data[0])} ({data[0]})");
                     break;
 
@@ -647,7 +653,7 @@ namespace Orts.ActivityRunner.Processes
                 case ActivityType.ExploreActivity:
                     if (data.Length < 5)
                         throw new InvalidCommandLineException("Mode 'explorer' needs 5 arguments: path file, consist file, time (hh[:mm[:ss]]), season (Spring, Summer, Autumn, Winter), weather (Clear, Rain, Snow).");
-                    Trace.WriteLine($"{"Route",-12}= {GetRouteName(data[0])}");
+                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
                     Trace.WriteLine($"{"Path",-12}= {GetPathName(data[0])} ({data[0]})");
                     Trace.WriteLine($"{"Consist",-12}= {GetConsistName(data[1])} ({data[1]})");
                     Trace.WriteLine($"{"Time",-12}= {(TimeSpan.TryParse(data[2], out startTime) ? startTime.ToString() : "Unknown")} ({data[2]})");
@@ -674,9 +680,9 @@ namespace Orts.ActivityRunner.Processes
             {
                 Trace.WriteLine("Multiplayer Client");
 
-                Trace.WriteLine($"{"User",-12}= {settings.Multiplayer_User}");
-                Trace.WriteLine($"{"Host",-12}= {settings.Multiplayer_Host}");
-                Trace.WriteLine($"{"Port",-12}= {settings.Multiplayer_Port}");
+                Trace.WriteLine($"{"User",-12}= {settings.MultiplayerUser}");
+                Trace.WriteLine($"{"Host",-12}= {settings.MultiplayerHost}");
+                Trace.WriteLine($"{"Port",-12}= {settings.MultiplayerPort}");
                 Trace.WriteLine(separatorLine);
             }
 
@@ -716,18 +722,8 @@ namespace Orts.ActivityRunner.Processes
 
             if (settings.MultiplayerClient)
             {
-                MultiPlayerManager.Start(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User, "1234");
+                MultiPlayerManager.Start(settings.MultiplayerHost, settings.MultiplayerPort, settings.MultiplayerUser, "1234");
             }
-        }
-
-        private static string GetRouteName(string path)
-        {
-            try
-            {
-                return new RouteFile(FolderStructure.RouteFromActivity(path).TrackFileName).Route.Name;
-            }
-            catch (Formats.Msts.Parsers.STFException) { }
-            return null;
         }
 
         private static string GetActivityName(string path)

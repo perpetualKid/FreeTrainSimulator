@@ -46,7 +46,7 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using GetText;
 
@@ -528,7 +528,8 @@ namespace Orts.Simulation.RollingStocks
         public float? TunnelFrontPositionBeyondStart { get; internal set; }          // position of front of wagon wrt start of tunnel
         public float? TunnelLengthAheadFront { get; internal set; }                 // Length of tunnel remaining ahead of front of wagon (negative if front of wagon out of tunnel)
         public float? TunnelLengthBehindRear { get; internal set; }                 // Length of tunnel behind rear of wagon (negative if rear of wagon has not yet entered tunnel)
-        public int TunnelNumPaths { get; internal set; }                               // Number of paths through tunnel
+
+        internal TunnelInfoData TunnelInfo { get; set; }
 
         public virtual void Initialize()
         {
@@ -830,23 +831,12 @@ namespace Orts.Simulation.RollingStocks
                     float tunnelLengthM = TunnelLengthAheadFront.Value + TunnelLengthBehindRear.Value;
                     float crossSectionArea = CarWidthM * CarHeightM;
 
-                    float tunnelPerimeterM;
-                    float tunnelCrossSectionAreaM2;
                     // Determine tunnel X-sect area and perimeter based upon number of tracks
-                    if (TunnelNumPaths >= 2)
-                    {
-                        tunnelCrossSectionAreaM2 = simulator.Route.DoubleTunnelAreaM2; // Set values for double track tunnels and above
-                        tunnelPerimeterM = simulator.Route.DoubleTunnelPerimeterM;
-                    }
-                    else
-                    {
-                        tunnelCrossSectionAreaM2 = simulator.Route.SingleTunnelAreaM2; // Set values for single track tunnels
-                        tunnelPerimeterM = simulator.Route.SingleTunnelPerimeterM;
-                    }
+                    float tunnelPerimeterM = TunnelInfo.Perimeter;
+                    float tunnelCrossSectionAreaM2 = TunnelInfo.CrossSectionArea;
 
                     // 
                     // Calculate first tunnel factor
-
                     double componentA = 0.00003318 * Const.DensityAir * tunnelCrossSectionAreaM2 / ((1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)));
                     double componentB = 174.419 * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2));
                     double componentC = (2.907 * (1 - (crossSectionArea / tunnelCrossSectionAreaM2)) * (1 - (crossSectionArea / tunnelCrossSectionAreaM2))) / (4.0 * (tunnelCrossSectionAreaM2 / tunnelPerimeterM));
@@ -1406,9 +1396,9 @@ namespace Orts.Simulation.RollingStocks
                 float SpeedToleranceMpS = (float)Size.Length.FromMi(Frequency.Periodic.FromHours(2.5f));  // Set bandwidth tolerance for resetting notifications
 
                 // If super elevation set in Route (TRK) file
-                if (simulator.Route.SuperElevationHgtpRadiusM != null)
+                if (simulator.RouteModel.SuperElevationRadiusSettings != null)
                 {
-                    superelevation = (float)simulator.Route.SuperElevationHgtpRadiusM[CurrentCurveRadius];
+                    superelevation = (float)simulator.RouteModel.SuperElevationRadiusSettings[CurrentCurveRadius];
                 }
                 else
                 {
@@ -1416,7 +1406,7 @@ namespace Orts.Simulation.RollingStocks
                     if (CurrentCurveRadius > 2000)
                     {
                         double speedLimit;
-                        if ((speedLimit = simulator.Route.SpeedLimit) > 55.0)   // If route speed limit is greater then 200km/h, assume high speed passenger route
+                        if ((speedLimit = simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route]) > 55.0)   // If route speed limit is greater then 200km/h, assume high speed passenger route
                         {
                             // Calculate superelevation based upon the route speed limit and the curve radius
                             // SE = ((TrackGauge x Velocity^2 ) / Gravity x curve radius)
@@ -1783,11 +1773,11 @@ namespace Orts.Simulation.RollingStocks
                 OriginalConsist = OriginalConsist,
                 PreviousTiltingZRot = PrevTiltingZRot,
                 BrakesStuck = BrakesStuck,
-                CarHeatingInitialized= carHeatingInitialized,
+                CarHeatingInitialized = carHeatingInitialized,
                 SteamHoseLeakRateRandom = steamHoseLeakRateRandom,
                 CurrentCompartmentHeat = carHeatCurrentCompartmentHeatJ,
                 SteamHeatMainPipeSteamPressure = carSteamHeatMainPipeSteamPressurePSI,
-                CompartmentHeaterOn = carHeatCompartmentHeaterOn,                
+                CompartmentHeaterOn = carHeatCompartmentHeaterOn,
                 BrakeSystemSaveState = await BrakeSystem.Snapshot().ConfigureAwait(false),
             };
         }
@@ -3063,7 +3053,7 @@ namespace Orts.Simulation.RollingStocks
                     {
                         if (builder.Length > 0)
                             builder.Append('-');
-                        builder.Append($"{count}");
+                        builder.Append(FormattableString.Invariant($"{count}"));
                     }
                     count = 0;
                 }
@@ -3073,7 +3063,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (builder.Length > 0)
                     builder.Append('-');
-                builder.Append($"{count}");
+                builder.Append(FormattableString.Invariant($"{count}"));
             }
             return builder.ToString();
         }

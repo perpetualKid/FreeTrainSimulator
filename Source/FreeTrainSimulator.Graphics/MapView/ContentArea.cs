@@ -58,9 +58,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         public ContentBase Content { get; }
 
         public double Scale { get; private set; }
-
-        public double CenterX => ((BottomRightBound.X - TopLeftBound.X) / 2) + TopLeftBound.X;
-        public double CenterY => ((TopLeftBound.Y - BottomRightBound.Y) / 2) + BottomRightBound.Y;
+        public PointD CenterPoint => new PointD(((BottomRightBound.X - TopLeftBound.X) / 2) + TopLeftBound.X, ((TopLeftBound.Y - BottomRightBound.Y) / 2) + BottomRightBound.Y);
 
         public bool SuppressDrawing { get; internal set; }
 
@@ -192,15 +190,13 @@ namespace FreeTrainSimulator.Graphics.MapView
             worldPosition = ScreenToWorldCoordinates(Mouse.GetState().Position);
         }
 
-        public void PresetPosition(string[] locationDetails)
+        public void PresetPosition(in PointD centerPoint, double scale)
         {
-            if (locationDetails == null || locationDetails.Length != 3)
-                return;
-            if (double.TryParse(locationDetails[0], out double lon) && double.TryParse(locationDetails[1], out double lat) && double.TryParse(locationDetails[2], out double scale))
+            if (centerPoint != PointD.None)
             {
                 Scale = scale;
                 UpdateFontSize();
-                CenterAround(new PointD(lon, lat));
+                CenterAround(centerPoint);
             }
             SuppressDrawing = false;
         }

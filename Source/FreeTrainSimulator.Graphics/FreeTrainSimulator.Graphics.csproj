@@ -7,6 +7,7 @@
 		<AssemblyName>FreeTrainSimulator.Graphics</AssemblyName>
 		<RootNamespace>FreeTrainSimulator.Graphics</RootNamespace>
 		<RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+		<Configurations>Debug;Release;CodeAnalysis</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
 		<EmbeddedResource Include="Resources\ActiveBrokenNode.png" />
@@ -44,11 +45,7 @@
 		<EmbeddedResource Include="Resources\PlayerTrain.png" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.2.1105" />
-		<ProjectReference Include="..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
-		<ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
-		<ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
-		<PackageReference Include="GetText.NET" Version="1.9.14" />
+		<ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
 		<PackageReference Include="System.Resources.Extensions" Version="9.0.0" />
 	</ItemGroup>
 	<ItemGroup>

@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
+using System.IO;
 using System.Text;
 
 namespace FreeTrainSimulator.Common.Position
@@ -73,6 +75,20 @@ namespace FreeTrainSimulator.Common.Position
             int tileZ = tile.Z >> step;
             tileZ <<= step;
             return new Tile(tileX, tileZ);
+        }
+
+        public static Tile FromWorldFileName(string fileName)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(fileName);
+            fileName = Path.GetFileNameWithoutExtension(fileName);
+
+            return fileName.Length != 15 || 
+                fileName[0] != 'w' || 
+                (fileName[1] != '+' && fileName[1] != '-') || 
+                (fileName[8] != '+' && fileName[8] != '-') ||
+                !int.TryParse(fileName.AsSpan(1, 7), out int tileX) || !int.TryParse(fileName.AsSpan(8, 7), out int tileZ)
+                ? throw new InvalidDataException($"WorldFile name {fileName} is not valid!")
+                : new Tile(tileX, tileZ);
         }
     }
 }

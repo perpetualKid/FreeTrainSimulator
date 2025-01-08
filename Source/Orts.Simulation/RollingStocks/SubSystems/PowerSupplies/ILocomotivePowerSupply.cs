@@ -17,7 +17,7 @@
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {

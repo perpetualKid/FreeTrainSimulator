@@ -25,10 +25,10 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
     {
         private readonly EnumArray<NameValueTextGrid, DebugScreenInformation> currentProvider = new EnumArray<NameValueTextGrid, DebugScreenInformation>();
         private readonly UserCommandController<UserCommand> userCommandController;
-        private readonly ToolboxSettings toolboxSettings;
+        private readonly ProfileToolboxSettingsModel toolboxSettings;
         private DebugScreenInformation currentDebugScreen;
 
-        public DebugScreen(WindowManager owner, ToolboxSettings settings, Color backgroundColor) :
+        public DebugScreen(WindowManager owner, ProfileToolboxSettingsModel settings, Color backgroundColor) :
             base(owner, CatalogManager.Catalog)
         {
             ZOrder = 0;
@@ -64,7 +64,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         public void UpdateBackgroundColor(Color backgroundColor)
         {
-            bool outlineFont = toolboxSettings.OutlineFont;
+            bool outlineFont = toolboxSettings.FontOutline;
             foreach (NameValueTextGrid item in currentProvider)
             {
                 item.OutlineRenderOptions = !outlineFont ? OutlineRenderOptions.Default : null;

@@ -6,7 +6,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
-using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Models.Imported.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -41,8 +41,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             if (null == RuntimeData.GameInstance(game))
                 throw new InvalidOperationException("RuntimeData not initialized!");
             ContentArea = new ContentArea(game, this);
-            RouteName = RuntimeData.GameInstance(game).RouteName;
-            UseMetricUnits = RuntimeData.GameInstance(game).UseMetricUnits;
+            RouteName = RuntimeData.GameInstance(game).RouteData.Name;
+            UseMetricUnits = RuntimeData.GameInstance(game).MetricUnits;
         }
 
         public abstract Task Initialize();

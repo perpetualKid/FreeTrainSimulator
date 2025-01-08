@@ -277,9 +277,9 @@ namespace Orts.ActivityRunner.Viewer3D
                         SemaphoreParts.Add(SemaphorePart);
                     }
 
-                    if (Simulator.Instance.Route.DefaultSignalSMS != null)
+                    if (Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.Signal] != null)
                     {
-                        var soundPath = Simulator.Instance.RouteFolder.SoundFile(Simulator.Instance.Route.DefaultSignalSMS);
+                        var soundPath = Simulator.Instance.RouteFolder.SoundFile(Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.Signal]);
                         try
                         {
                             Sound = new SoundSource(SignalShape.WorldPosition.WorldLocation, SoundEventSource.Signal, soundPath);

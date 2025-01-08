@@ -58,7 +58,7 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using GetText;
 
@@ -84,7 +84,6 @@ namespace Orts.Simulation.Physics
         ISaveStateRestoreApi<TrainCarSaveState, TrainCar>
     {
         #region const
-        private const int TileSize = 2048;
         protected const float InitialThrottlepercent = 25; // initial value of throttle when train starts activity at speed > 0
 
         internal const float ShortClearingDistanceM = 15.0f;     // clearing distance for short trains in activities
@@ -273,7 +272,7 @@ namespace Orts.Simulation.Physics
         // Variables used for autopilot mode and played train switching
         public bool IsActualPlayerTrain => this == simulator.PlayerLocomotive?.Train;
 
-        internal float MaxDistanceCheckedAhead => Math.Max((IsActualPlayerTrain ? (float)simulator.Route.SpeedLimit : AllowedMaxSpeedMpS) * MaxTimeS, MinCheckDistanceM);
+        internal float MaxDistanceCheckedAhead => Math.Max((IsActualPlayerTrain ? simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route] : AllowedMaxSpeedMpS) * MaxTimeS, MinCheckDistanceM);
 
         public bool IsPlayerDriven => TrainType == TrainType.Player || TrainType == TrainType.AiPlayerDriven;
 
@@ -456,7 +455,7 @@ namespace Orts.Simulation.Physics
         #region .ctor
         private void Init()
         {
-            allowedAbsoluteMaxSpeedSignalMpS = (float)simulator.Route.SpeedLimit;
+            allowedAbsoluteMaxSpeedSignalMpS = simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route];
             allowedAbsoluteMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
             allowedAbsoluteMaxTempSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
             DispatcherInfo = GetDispatcherInfoProvider();
@@ -975,7 +974,7 @@ namespace Orts.Simulation.Physics
                 return false;
             else
             {
-                string username = MultiPlayerManager.GetUserName();
+                string username = MultiPlayerManager.UserName1;
                 foreach (OnlinePlayer onlinePlayer in MultiPlayerManager.OnlineTrains.Players.Values)
                 {
                     // don't consider the present user
@@ -1835,7 +1834,7 @@ namespace Orts.Simulation.Physics
                 float? FrontCarPositionInTunnel = null;
                 float? FrontCarLengthOfTunnelAhead = null;
                 float? RearCarLengthOfTunnelBehind = null;
-                int numTunnelPaths = 0;
+                TunnelInfoData tunnelInfo = null;
 
                 while (validSections)
                 {
@@ -1875,8 +1874,7 @@ namespace Orts.Simulation.Physics
                             }
 
                             inTunnel = true;
-
-                            numTunnelPaths = tunnel.NumberPaths;
+                            tunnelInfo = tunnel;
 
                             // get position in tunnel
                             if (tunnelStartOffset < 0)
@@ -1906,7 +1904,7 @@ namespace Orts.Simulation.Physics
                         car.TunnelFrontPositionBeyondStart = FrontCarPositionInTunnel;
                         car.TunnelLengthAheadFront = FrontCarLengthOfTunnelAhead;
                         car.TunnelLengthBehindRear = RearCarLengthOfTunnelBehind;
-                        car.TunnelNumPaths = numTunnelPaths;
+                        car.TunnelInfo = tunnelInfo;
                     }
                     else
                     {
@@ -1926,7 +1924,7 @@ namespace Orts.Simulation.Physics
                             car.TunnelFrontPositionBeyondStart = FrontCarPositionInTunnel;
                             car.TunnelLengthAheadFront = FrontCarLengthOfTunnelAhead;
                             car.TunnelLengthBehindRear = RearCarLengthOfTunnelBehind;
-                            car.TunnelNumPaths = numTunnelPaths;
+                            car.TunnelInfo = tunnelInfo;
                         }
                     }
                 }
@@ -2050,12 +2048,12 @@ namespace Orts.Simulation.Physics
                 bool moveForward = (Math.Sign(SpeedMpS) >= 0);
                 if ((evaluationContent & EvaluationLogContents.Speed) == EvaluationLogContents.Speed)
                 {
-                    builder.Append($"{Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), RuntimeData.Instance.UseMetricUnits):0000.0}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), RuntimeData.Instance.MetricUnits):0000.0}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.MaxSpeed) == EvaluationLogContents.MaxSpeed)
                 {
-                    builder.Append($"{Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, RuntimeData.Instance.UseMetricUnits):0000.0}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, RuntimeData.Instance.MetricUnits):0000.0}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.SignalAspect) == EvaluationLogContents.SignalAspect)
@@ -2073,7 +2071,7 @@ namespace Orts.Simulation.Physics
 
                 if ((evaluationContent & EvaluationLogContents.Elevation) == EvaluationLogContents.Elevation)
                 {
-                    builder.Append($"{(simulator.PlayerLocomotive.CurrentElevationPercent):00.0}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{(simulator.PlayerLocomotive.CurrentElevationPercent):00.0}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Direction) == EvaluationLogContents.Direction)
@@ -2090,27 +2088,27 @@ namespace Orts.Simulation.Physics
 
                 if ((evaluationContent & EvaluationLogContents.Distance) == EvaluationLogContents.Distance)
                 {
-                    builder.Append($"{PresentPosition[Direction.Forward].DistanceTravelled:0.00}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{PresentPosition[Direction.Forward].DistanceTravelled:0.00}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Throttle) == EvaluationLogContents.Throttle)
                 {
-                    builder.Append($"{MUThrottlePercent:000}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{MUThrottlePercent:000}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Brake) == EvaluationLogContents.Brake)
                 {
-                    builder.Append($"{simulator.PlayerLocomotive.BrakeSystem.GetCylPressurePSI():000}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{simulator.PlayerLocomotive.BrakeSystem.GetCylPressurePSI():000}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.DynBrake) == EvaluationLogContents.DynBrake)
                 {
-                    builder.Append($"{MUDynamicBrakePercent:000}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{MUDynamicBrakePercent:000}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Gear) == EvaluationLogContents.Gear)
                 {
-                    builder.Append($"{MUGearboxGearIndex:0}{Separator}");
+                    builder.Append(FormattableString.Invariant($"{MUGearboxGearIndex:0}{Separator}"));
                 }
 
                 builder.Append('\n');
@@ -2510,7 +2508,7 @@ namespace Orts.Simulation.Physics
                         float temp1MaxSpeedMpS = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
                         if (firstObject.SignalDetails.SignalType == SignalCategory.Signal)
                         {
-                            allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? (float)simulator.Route.SpeedLimit : temp1MaxSpeedMpS;
+                            allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route] : temp1MaxSpeedMpS;
                         }
                         else if (!firstObject.SpeedInfo.Reset)
                         {
@@ -2992,7 +2990,7 @@ namespace Orts.Simulation.Physics
                 {
                     if (actualSpeedMpS > 998f)
                     {
-                        actualSpeedMpS = (float)simulator.Route.SpeedLimit;
+                        actualSpeedMpS = simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route];
                     }
 
                     if (actualSpeedMpS > 0)
@@ -9602,7 +9600,7 @@ namespace Orts.Simulation.Physics
             AllowedMaxSpeedSignalMpS = allowedAbsoluteMaxSpeedSignalMpS;
             AllowedMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedLimitMpS;
             allowedMaxTempSpeedLimitMpS = allowedAbsoluteMaxTempSpeedLimitMpS;
-            TrainMaxSpeedMpS = Math.Min((float)simulator.Route.SpeedLimit, ((MSTSLocomotive)simulator.PlayerLocomotive).MaxSpeedMpS);
+            TrainMaxSpeedMpS = Math.Min(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], (simulator.PlayerLocomotive).MaxSpeedMpS);
         }
 
         /// <summary>
@@ -9674,7 +9672,7 @@ namespace Orts.Simulation.Physics
         public void UpdatePlayerTrainData(float maxDistanceM)
         {
             // variable used to search for NORMAL signals and speedposts when not in AUTO mode
-            float maxDistanceNormalSignal = ControlMode == TrainControlMode.Explorer ? Math.Max(maxDistanceM, (float)simulator.Route.SpeedLimit * 250.0f) : maxDistanceM;
+            float maxDistanceNormalSignal = ControlMode == TrainControlMode.Explorer ? Math.Max(maxDistanceM, simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route] * 250.0f) : maxDistanceM;
             InitializePlayerTrainData();
             // fill in the lists
             TrainPathItem trainPathItem;
@@ -11773,7 +11771,7 @@ namespace Orts.Simulation.Physics
             {
                 this.train = train;
                 this.catalog = Simulator.Catalog as Catalog;
-                metricData = RuntimeData.Instance.UseMetricUnits;
+                metricData = RuntimeData.Instance.MetricUnits;
             }
 
             private void Initialize()
@@ -11933,7 +11931,7 @@ namespace Orts.Simulation.Physics
                     }
                     this["Delay"] = train.Delay?.TotalSeconds > 10 ? $"{FormatStrings.FormatDelayTime(train.Delay.Value)}" : null;
                     //  "Travelled"
-                    this["Travelled"] = FormatStrings.FormatDistanceDisplay(train.DistanceTravelledM, Simulator.Instance.Route.MilepostUnitsMetric);
+                    this["Travelled"] = FormatStrings.FormatDistanceDisplay(train.DistanceTravelledM, Simulator.Instance.RouteModel.MetricUnits);
                     //  "Speed"
                     float trainSpeed = train.TrainType == TrainType.Remote && train.SpeedMpS != 0 ? train.targetSpeedMpS : train.SpeedMpS;
                     this["Speed"] = FormatStrings.FormatSpeedDisplay(trainSpeed, metricData);
@@ -12004,7 +12002,7 @@ namespace Orts.Simulation.Physics
                         // station stops
                         circuitString.Append(train.StationStops?.Count > 0 ? $"[{train.StationStops.Count}] " : "[ ] ");
                         // route
-                        circuitString.Append($"{train.TCRoute?.ActiveSubPath.ToString(CultureInfo.InvariantCulture) ?? "?"}?={{");
+                        circuitString.Append(FormattableString.Invariant($"{train.TCRoute?.ActiveSubPath.ToString(CultureInfo.InvariantCulture) ?? "?"}?={{"));
 
                         int startIndex = train.PresentPosition[Direction.Forward].RouteListIndex;
                         if (startIndex < 0)
@@ -12022,7 +12020,7 @@ namespace Orts.Simulation.Physics
                         circuitString.Append('}');
                         if (train.TCRoute?.ActiveSubPath < train.TCRoute.TCRouteSubpaths.Count - 1)
                         {
-                            circuitString.Append($"x{train.TCRoute.ActiveSubPath + 1}");
+                            circuitString.Append(FormattableString.Invariant($"x{train.TCRoute.ActiveSubPath + 1}"));
                         }
                         if (train.TCRoute != null && train.TCRoute.OriginalSubpath != -1)
                             circuitString.Append("???");
@@ -12050,7 +12048,7 @@ namespace Orts.Simulation.Physics
                         circuitString.Append(backstring);
 
                         // train indication and direction
-                        circuitString.Append($"={{{(train.MUDirection == MidpointDirection.Reverse ? '<' : '>')}}}=");
+                        circuitString.Append(FormattableString.Invariant($"={{{(train.MUDirection == MidpointDirection.Reverse ? '<' : '>')}}}="));
 
                         // forward path
                         StringBuilder forwardstring = new StringBuilder();
@@ -12142,12 +12140,12 @@ namespace Orts.Simulation.Physics
 
                 if (section.CircuitState.TrainReserved != null)
                 {
-                    builder.Append($"({section.CircuitState.TrainReserved.Train.Number})");
+                    builder.Append(FormattableString.Invariant($"({section.CircuitState.TrainReserved.Train.Number})"));
                 }
 
                 if (section.CircuitState.SignalReserved >= 0)
                 {
-                    builder.Append($"(S{section.CircuitState.SignalReserved})");
+                    builder.Append(FormattableString.Invariant($"(S{section.CircuitState.SignalReserved})"));
                 }
 
                 if (section.CircuitState.TrainClaimed.Count > 0)

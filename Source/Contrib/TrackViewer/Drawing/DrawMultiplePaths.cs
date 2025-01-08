@@ -18,7 +18,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.Shim;
 
 using Microsoft.Xna.Framework;
 
@@ -56,7 +57,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>
         /// Constructor
         /// </summary>
-        public DrawMultiplePaths (Collection<Path> paths)
+        public DrawMultiplePaths (Collection<PathModelCore> paths)
         {
             trackDB = RuntimeData.Instance.TrackDB;
             tsectionDat = RuntimeData.Instance.TSectionDat;
@@ -65,10 +66,10 @@ namespace ORTS.TrackViewer.Drawing
             selectedTrainpaths = new List<Trainpath>();
             drawPaths = new Dictionary<Trainpath, DrawPath>();
 
-            foreach (Path path in paths)
+            foreach (PathModelCore path in paths)
             {
-                string pathName = ORTS.TrackViewer.UserInterface.MenuControl.MakePathMenyEntryName(path);
-                fullPathNames[pathName] = path.FilePath;
+                string pathName = UserInterface.MenuControl.MakePathMenyEntryName(path);
+                fullPathNames[pathName] = path.SourceFile();
             }
         }
 

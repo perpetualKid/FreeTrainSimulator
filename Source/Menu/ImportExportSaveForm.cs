@@ -17,13 +17,13 @@
 
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Info;
-using FreeTrainSimulator.Models.Simplified;
+using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Settings;
 
 using GetText;
 using GetText.WindowsForms;
@@ -32,23 +32,23 @@ using Orts.Settings;
 
 using Path = System.IO.Path;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     public partial class ImportExportSaveForm : Form
     {
-        private readonly SavePoint savePoint;
+        private readonly SavePointModel savePoint;
         private const string SavePackFileExtension = "ORSavePack";  // Includes "OR" in the extension as this may be emailed, downloaded and mixed in with non-OR files.
 
         private readonly ICatalog catalog;
 
-        internal ImportExportSaveForm(SavePoint save, ICatalog catalog)
+        internal ImportExportSaveForm(SavePointModel savePoint, ICatalog catalog)
         {
             this.catalog = catalog;
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
             Localizer.Localize(this, catalog);
 
-            savePoint = save;
+            this.savePoint = savePoint;
             if (!Directory.Exists(UserSettings.SavePackFolder))
                 Directory.CreateDirectory(UserSettings.SavePackFolder);
             UpdateFileList(null);
@@ -74,8 +74,8 @@ namespace Orts.Menu
             // all files with the same stem (i.e. *.save, *.png, *.replay, *.txt)
             // Copy files to new package in folder save_packs
             string fullZipFilePath = Path.Combine(UserSettings.SavePackFolder, savePoint.Name + "." + SavePackFileExtension);
-            AddFileToZip(fullZipFilePath, Directory.GetFiles(Path.GetDirectoryName(savePoint.File), savePoint.Name + ".*"));
-            UpdateFileList(catalog.GetString("Save Pack '{0}' exported successfully.", Path.GetFileNameWithoutExtension(savePoint.File)));
+            AddFileToZip(fullZipFilePath, Directory.GetFiles(Path.GetDirectoryName(savePoint.SourceFile()), savePoint.Name + ".*"));
+            UpdateFileList(catalog.GetString("Save Pack '{0}' exported successfully.", Path.GetFileNameWithoutExtension(savePoint.SourceFile())));
         }
 
         private void ButtonViewSavePacksFolder_Click(object sender, EventArgs e)
@@ -87,7 +87,7 @@ namespace Orts.Menu
             };
             if (savePoint != null)
             {
-                string targetFile = Path.GetFileNameWithoutExtension(savePoint.File) + "." + SavePackFileExtension;
+                string targetFile = Path.GetFileNameWithoutExtension(savePoint.SourceFile()) + "." + SavePackFileExtension;
                 string fullZipFilePath = Path.Combine(UserSettings.SavePackFolder, targetFile);
                 if (File.Exists(fullZipFilePath))
                 {

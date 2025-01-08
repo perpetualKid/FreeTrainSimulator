@@ -21,7 +21,7 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Input;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     /// <summary>
     /// A control for viewing and altering keyboard input settings, in combination with <see cref="KeyInputEditControl"/>.

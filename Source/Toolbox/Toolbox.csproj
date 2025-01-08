@@ -7,14 +7,16 @@
     <OutputPath>..\..\Program</OutputPath>
     <ApplicationIcon>..\FTS.ico</ApplicationIcon>
     <RootNamespace>FreeTrainSimulator.Toolbox</RootNamespace>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GetText.NET" Version="1.9.14" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="1.9.14" />
+    <PackageReference Include="GetText.NET" Version="8.0.5" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="8.0.5" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.2.1105" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
+    <ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
+    <ProjectReference Include="..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
     <ProjectReference Include="..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
   </ItemGroup>
 </Project>

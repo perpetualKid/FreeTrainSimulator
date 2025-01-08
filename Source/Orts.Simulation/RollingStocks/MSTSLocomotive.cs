@@ -51,7 +51,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
 
@@ -80,7 +80,7 @@ namespace Orts.Simulation.RollingStocks
     /// </summary>
     public abstract class MSTSLocomotive : MSTSWagon
     {
-        private bool speedSelectorModeDecreasing = false;
+        private bool speedSelectorModeDecreasing;
 
         // simulation parameters
         public bool ManualHorn { get; set; }
@@ -121,7 +121,9 @@ namespace Orts.Simulation.RollingStocks
         public float InitialDrvWheelWeightKg { get; set; } // initialising weight on locomotive drive wheels, includes drag factor
         public bool CabRadioOn { get; set; }
         public bool OnLineCabRadio { get; set; }
-        public string OnLineCabRadioURL;
+#pragma warning disable CA1056 // URI-like properties should not be strings
+        public string OnLineCabRadioURL { get; set; }
+#pragma warning restore CA1056 // URI-like properties should not be strings
 
         // Water trough filling
         public bool HasWaterScoop { get; set; } // indicates whether loco + tender have a water scoop or not
@@ -174,7 +176,7 @@ namespace Orts.Simulation.RollingStocks
         public bool IsSteamHeatFitted { get; set; }    // Is steam heating fitted to locomotive
         public float CurrentSteamHeatPressurePSI { get; set; }   // Current pressure in steam heat system
 
-        public string LocomotiveName; // Name of locomotive from ENG file
+        public string LocomotiveName { get; private set; } // Name of locomotive from ENG file
 
         // Carriage Steam Heating Parameters
         public float MaxSteamHeatPressurePSI { get; set; }    // Maximum Steam heating pressure
@@ -187,7 +189,6 @@ namespace Orts.Simulation.RollingStocks
         // Adhesion parameters
         public SlipControlType SlipControlSystem { get; private set; }
         private float BaseFrictionCoefficientFactor;  // Factor used to adjust Curtius formula depending upon weather conditions
-        private float SlipFrictionCoefficientFactor;
         public float SteamStaticWheelForce { get; set; }
         public float SteamTangentialWheelForce { get; set; }
         public float SteamDrvWheelWeightLbs { get; set; }  // Weight on each drive axle
@@ -389,10 +390,10 @@ namespace Orts.Simulation.RollingStocks
         public ILocomotivePowerSupply LocomotivePowerSupply => PowerSupply as ILocomotivePowerSupply;
         public ScriptedTrainControlSystem TrainControlSystem { get; private set; }
 
-        private protected readonly LocomotiveBrakeInformation locomotiveBrakeInfo;
-        private protected readonly LocomotiveForceInformation locomotiveForceInfo;
-        public DetailInfoBase LocomotiveBrakeInfo => locomotiveBrakeInfo;
-        public DetailInfoBase LocomotiveForceInfo => locomotiveForceInfo;
+        private protected readonly LocomotiveBrakeInformation _locomotiveBrakeInfo;
+        private protected readonly LocomotiveForceInformation _locomotiveForceInfo;
+        public DetailInfoBase LocomotiveBrakeInfo => _locomotiveBrakeInfo;
+        public DetailInfoBase LocomotiveForceInfo => _locomotiveForceInfo;
 
         public Axle LocomotiveAxle { get; protected set; }
         private IIRFilter currentFilter;
@@ -446,8 +447,8 @@ namespace Orts.Simulation.RollingStocks
             ThrottleController = new MSTSNotchController();
             DynamicBrakeController = new MSTSNotchController();
             TrainControlSystem = new ScriptedTrainControlSystem(this);
-            locomotiveForceInfo = new LocomotiveForceInformation(this);
-            locomotiveBrakeInfo = new LocomotiveBrakeInformation(this);
+            _locomotiveForceInfo = new LocomotiveForceInformation(this);
+            _locomotiveBrakeInfo = new LocomotiveBrakeInformation(this);
         }
 
         /// <summary>
@@ -651,7 +652,7 @@ namespace Orts.Simulation.RollingStocks
                     foreach (BrakeSystemComponent component in EnumExtension.GetValues<BrakeSystemComponent>())
                     {
                         if (BrakeSystemPressureUnits[component] == Pressure.Unit.None)
-                            BrakeSystemPressureUnits[component] = (simulator.Route.MilepostUnitsMetric ? Pressure.Unit.Bar : Pressure.Unit.PSI);
+                            BrakeSystemPressureUnits[component] = (simulator.RouteModel.MetricUnits ? Pressure.Unit.Bar : Pressure.Unit.PSI);
                     }
                     break;
 
@@ -793,6 +794,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Parse(string lowercasetoken, STFReader stf)
         {
+            ArgumentNullException.ThrowIfNull(stf, nameof(stf));
             switch (lowercasetoken)
             {
                 case "engine(sound":
@@ -1458,6 +1460,7 @@ namespace Orts.Simulation.RollingStocks
 
         protected void ParseCombData(string lowercasetoken, STFReader stf)
         {
+            ArgumentNullException.ThrowIfNull(stf, nameof(stf));
             var throttle = false;
             var train = false;
             var dynamic = false;
@@ -1503,6 +1506,7 @@ namespace Orts.Simulation.RollingStocks
         /// <param name="source"></param>
         public override void CopyControllerSettings(TrainCar source)
         {
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
             base.CopyControllerSettings(source);
             if (ThrottleController != null)
                 ThrottleController.SetValue(source.ThrottlePercent / 100);
@@ -2195,8 +2199,8 @@ namespace Orts.Simulation.RollingStocks
             PrevMotiveForceN = MotiveForceN;
             base.Update(elapsedClockSeconds);
 
-            locomotiveBrakeInfo.Update(null);
-            locomotiveForceInfo.Update(null);
+            _locomotiveBrakeInfo.Update(null);
+            _locomotiveForceInfo.Update(null);
         } // End Method Update
 
         /// <summary>
@@ -2950,7 +2954,7 @@ namespace Orts.Simulation.RollingStocks
                     if (!WaterScoopSlowSpeedFlag)
                     {
                         simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Loco speed must exceed {0} for water to enter tender.",
-                                FormatStrings.FormatSpeedLimit(WaterScoopMinSpeedMpS, simulator.Route.MilepostUnitsMetric)));
+                                FormatStrings.FormatSpeedLimit(WaterScoopMinSpeedMpS, simulator.RouteModel.MetricUnits)));
                         WaterScoopSlowSpeedFlag = true;
                         RefillProcess.OkToRefill = false;
                         RefillProcess.ActivePickupObjectUID = 0;
@@ -3694,7 +3698,7 @@ namespace Orts.Simulation.RollingStocks
         public void StopSteamHeatIncrease()
         {
             SteamHeatController.StopIncrease();
-            new ContinuousSteamHeatCommand(simulator.Log, 1, true, SteamHeatController.CurrentValue, SteamHeatController.CommandStartTime);
+            _ = new ContinuousSteamHeatCommand(simulator.Log, 1, true, SteamHeatController.CurrentValue, SteamHeatController.CommandStartTime);
         }
 
         public void StartSteamHeatDecrease()
@@ -3714,7 +3718,7 @@ namespace Orts.Simulation.RollingStocks
         {
             SteamHeatController.StopDecrease();
             if (IsPlayerTrain)
-                new ContinuousSteamHeatCommand(simulator.Log, 1, false, SteamHeatController.CurrentValue, SteamHeatController.CommandStartTime);
+                _ = new ContinuousSteamHeatCommand(simulator.Log, 1, false, SteamHeatController.CurrentValue, SteamHeatController.CommandStartTime);
         }
 
         public void SteamHeatChangeTo(bool increase, float? target)
@@ -3742,7 +3746,7 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new ContinuousSteamHeatCommand(simulator.Log, 1, change > 0, controller.CurrentValue, simulator.GameTime);
+                _ = new ContinuousSteamHeatCommand(simulator.Log, 1, change > 0, controller.CurrentValue, simulator.GameTime);
             }
             if (oldValue != controller.IntermediateValue)
                 simulator.Confirmer.UpdateWithPerCent(CabControl.SteamHeat, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
@@ -4275,7 +4279,7 @@ namespace Orts.Simulation.RollingStocks
         {
             AlerterReset(TCSEvent.TrainBrakeChanged);
             TrainBrakeController.StopIncrease();
-            new TrainBrakeCommand(simulator.Log, true, TrainBrakeController.CurrentValue, TrainBrakeController.CommandStartTime);
+            _ = new TrainBrakeCommand(simulator.Log, true, TrainBrakeController.CurrentValue, TrainBrakeController.CommandStartTime);
         }
 
         public void StartTrainBrakeZero()
@@ -4424,7 +4428,7 @@ namespace Orts.Simulation.RollingStocks
 
             AlerterReset(TCSEvent.EngineBrakeChanged);
             EngineBrakeController.StopDecrease();
-            new EngineBrakeCommand(simulator.Log, false, EngineBrakeController.CurrentValue, EngineBrakeController.CommandStartTime);
+            _ = new EngineBrakeCommand(simulator.Log, false, EngineBrakeController.CurrentValue, EngineBrakeController.CommandStartTime);
         }
 
         public void EngineBrakeChangeTo(bool increase, float? target)
@@ -4452,7 +4456,7 @@ namespace Orts.Simulation.RollingStocks
             var change = controller.SetValue(value);
             if (change != 0)
             {
-                new EngineBrakeCommand(simulator.Log, change > 0, controller.CurrentValue, simulator.ClockTime);
+                _ = new EngineBrakeCommand(simulator.Log, change > 0, controller.CurrentValue, simulator.ClockTime);
                 SignalEvent(TrainEvent.EngineBrakeChange);
                 AlerterReset(TCSEvent.EngineBrakeChanged);
             }
@@ -4534,7 +4538,7 @@ namespace Orts.Simulation.RollingStocks
 
             //   AlerterReset(TCSEvent.BrakemanBrakeChanged);
             BrakemanBrakeController.StopIncrease();
-            new BrakemanBrakeCommand(simulator.Log, true, BrakemanBrakeController.CurrentValue, BrakemanBrakeController.CommandStartTime);
+            _ = new BrakemanBrakeCommand(simulator.Log, true, BrakemanBrakeController.CurrentValue, BrakemanBrakeController.CommandStartTime);
         }
 
         public void StartBrakemanBrakeDecrease()
@@ -5082,6 +5086,7 @@ namespace Orts.Simulation.RollingStocks
 
         public virtual float GetDataOf(CabViewControl cvc)
         {
+            ArgumentNullException.ThrowIfNull(cvc, nameof(cvc));
             float data = 0;
             switch (cvc.ControlType.CabViewControlType)
             {
@@ -6009,6 +6014,7 @@ namespace Orts.Simulation.RollingStocks
 
         protected static float ConvertFromPSI(CabViewControl cvc, float data)
         {
+            ArgumentNullException.ThrowIfNull(cvc, nameof(cvc));
             if (cvc.ControlUnit == CabViewControlUnit.Bar)
                 data = (float)Pressure.Atmospheric.FromPSI(data);
             else if (cvc.ControlUnit == CabViewControlUnit.KiloPascals)

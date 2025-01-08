@@ -10,7 +10,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Models.Imported.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -57,7 +57,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);
-            DetailInfo["Route Name"] = RuntimeData.GameInstance(game).RouteName;
+            DetailInfo["Route Name"] = RuntimeData.GameInstance(game).RouteData.Name;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
         }
 
@@ -70,7 +70,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             //just put an empty list so the draw method does not skip the paths
             trackModel.ContentByTile[MapContentType.Paths] = new TileIndexedList<EditorTrainPath>(new List<EditorTrainPath>() { });
 
-            DetailInfo["Metric Scale"] = RuntimeData.GameInstance(game).UseMetricUnits.ToString();
+            DetailInfo["Metric Scale"] = RuntimeData.GameInstance(game).MetricUnits.ToString();
             DetailInfo["Track Nodes"] = $"{trackModel.SegmentSections.Count}";
             DetailInfo["Track Segments"] = $"{trackModel.ContentByTile[MapContentType.Tracks].ItemCount}";
             DetailInfo["Track End Segments"] = $"{trackModel.ContentByTile[MapContentType.EndNodes].ItemCount}";

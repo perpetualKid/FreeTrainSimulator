@@ -28,7 +28,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
 
@@ -380,7 +380,7 @@ namespace Orts.Simulation.Activities
         /// </summary>
         /// <param name="routeFile"></param>
         /// <param name="zones">List of speed restriction zones</param>
-        internal void AddRestrictZones(Route routeFile, RestrictedSpeedZones zones)
+        internal void AddRestrictZones(RestrictedSpeedZones zones)
         {
             ArgumentNullException.ThrowIfNull(zones);
 
@@ -393,19 +393,17 @@ namespace Orts.Simulation.Activities
 
             const float MaxDistanceOfWarningPost = 2000;
 
-            for (int idxZone = 0; idxZone < zones.Count; idxZone++)
+            foreach (RestrictedSpeedZone restrictionZone in zones)
             {
-                newSpeedPostItems[0] = new TempSpeedPostItem(routeFile,
-                    zones[idxZone].StartPosition, true, WorldPosition.None, false);
-                newSpeedPostItems[1] = new TempSpeedPostItem(routeFile,
-                    zones[idxZone].EndPosition, false, WorldPosition.None, false);
+                newSpeedPostItems[0] = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.StartPosition, true, WorldPosition.None, false);
+                newSpeedPostItems[1] = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.EndPosition, false, WorldPosition.None, false);
 
                 // Add the speedposts to the track database. This will set the TrItemId's of all speedposts
                 RuntimeData.Instance.TrackDB.AddTrackItems(newSpeedPostItems);
 
                 // And now update the various (vector) tracknodes (this needs the TrItemIds.
-                float? endOffset = AddItemIdToTrackNode(zones[idxZone].EndPosition, newSpeedPostItems[1], out _);
-                float? startOffset = AddItemIdToTrackNode(zones[idxZone].StartPosition, newSpeedPostItems[0], out Traveller traveller);
+                float? endOffset = AddItemIdToTrackNode(restrictionZone.EndPosition, newSpeedPostItems[1], out _);
+                float? startOffset = AddItemIdToTrackNode(restrictionZone.StartPosition, newSpeedPostItems[0], out Traveller traveller);
                 float distanceOfWarningPost = 0;
 
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
@@ -418,7 +416,7 @@ namespace Orts.Simulation.Activities
                     distanceOfWarningPost = (float)Math.Max(-MaxDistanceOfWarningPost, -(double)startOffset);
                 traveller.Move(distanceOfWarningPost);
                 WorldPosition worldPosition3 = WorldPosition.None;
-                TempSpeedPostItem speedWarningPostItem = new TempSpeedPostItem(routeFile, zones[idxZone].StartPosition, false, worldPosition3, true);
+                TempSpeedPostItem speedWarningPostItem = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.StartPosition, false, worldPosition3, true);
                 SpeedPostPosition(speedWarningPostItem, ref traveller);
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                     speedWarningPostItem.Flip();

@@ -66,13 +66,11 @@ namespace ORTS.TrackViewer.Drawing
                 {
                     // Parse the tile location out of the filename
                     // if this goes wrong, well, pity
-                    int p = fileName.ToUpper(System.Globalization.CultureInfo.InvariantCulture).LastIndexOf("\\WORLD\\W", StringComparison.OrdinalIgnoreCase);
-                    int TileX = int.Parse(fileName.Substring(p + 8, 7), System.Globalization.CultureInfo.InvariantCulture);
-                    int TileZ = int.Parse(fileName.Substring(p + 15, 7), System.Globalization.CultureInfo.InvariantCulture);
+                    Tile tile = TileHelper.FromWorldFileName(fileName);
+                    if (!worldTiles.ContainsKey(tile.X)) 
+                        worldTiles[tile.X] = new List<int>();
 
-                    if (!worldTiles.ContainsKey(TileX)) worldTiles[TileX] = new List<int>();
-
-                    worldTiles[TileX].Add(TileZ);
+                    worldTiles[tile.X].Add(tile.Z);
                 }
 #pragma warning disable CA1031 // Do not catch general exception types
                 catch { }

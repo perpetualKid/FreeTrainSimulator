@@ -8,15 +8,16 @@
     <OutputPath>..\..\Program</OutputPath>
     <RootNamespace>FreeTrainSimulator.Updater</RootNamespace>
     <ApplicationIcon>..\FTS.ico</ApplicationIcon>
-  </PropertyGroup>
+    <Configurations>Debug;Release;CodeAnalysis</Configurations>
+		<ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
+	</PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GetText.NET" Version="1.9.14" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="1.9.14" />
+    <PackageReference Include="GetText.NET" Version="8.0.5" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="8.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Resources.Extensions" Version="9.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj" />
-    <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
   </ItemGroup>
 </Project>

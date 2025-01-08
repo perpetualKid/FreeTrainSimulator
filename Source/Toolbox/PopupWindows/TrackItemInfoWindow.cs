@@ -6,7 +6,7 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
-using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Models.Imported.Track;
 
 using GetText;
 
@@ -17,7 +17,6 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
     internal sealed class TrackItemInfoWindow : WindowBase
     {
         private ContentArea contentArea;
-        private readonly UserCommandController<UserCommand> userCommandController;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private NameValueTextGrid trackItemInfoGrid;
         private ControlLayout searchBoxLine;
@@ -29,7 +28,6 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Item Information"), relativeLocation, new Point(240, 202), catalog)
         {
             this.contentArea = contentArea;
-            userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)

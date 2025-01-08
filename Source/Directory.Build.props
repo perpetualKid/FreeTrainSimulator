@@ -1,6 +1,6 @@
 <Project>
 	<ItemGroup>
-		<PackageReference Include="Nerdbank.GitVersioning" Version="3.6.146">
+		<PackageReference Include="Nerdbank.GitVersioning" Version="3.7.112">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -16,7 +16,7 @@
 		<Message Text="Restoring dotnet tools" Importance="High" />
 		<Exec Command="dotnet tool restore" />
 	</Target>
-	<PropertyGroup Condition="'$(TF_BUILD)'=='true'">
+	<PropertyGroup Condition="'$(TF_BUILD)'=='true' or '$(Configuration)'=='CodeAnalysis'">
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -10,74 +11,91 @@ namespace FreeTrainSimulator.Common.Logging
 {
     public sealed class LoggingTraceListener : TraceListener
     {
+        private class LoggingTraceFilter : TraceFilter
+        {
+            internal readonly TraceSettings traceLevel;
+
+            internal LoggingTraceFilter(TraceSettings traceLevel)
+            {
+                this.traceLevel = traceLevel;
+            }
+
+            public override bool ShouldTrace(TraceEventCache cache, string source, TraceEventType eventType, int id, [StringSyntax("CompositeFormat")] string formatOrMessage, object[] args, object data1, object[] data)
+            {
+                return traceLevel.HasFlag(TraceSettings.Trace) && eventType > TraceEventType.Error
+                    || traceLevel.HasFlag(TraceSettings.Errors) && eventType <= TraceEventType.Error;
+            }
+        }
+
         private readonly TextWriter writer;
-        private readonly bool errorsOnly;
         private bool lastWrittenFormatted;
         private readonly Dictionary<TraceEventType, int> eventCounts = new Dictionary<TraceEventType, int>(EnumExtension.GetValues<TraceEventType>().ToDictionary(t => t, t => 0));
+        private TraceSettings traceLevel;
 
         public int EventCount(TraceEventType eventType) => eventCounts[eventType];
 
+        public TraceSettings LogLevel
+        {
+            get => traceLevel; 
+            set
+            {
+                traceLevel = value;
+                Filter = new LoggingTraceFilter(value);
+            }
+        }
+
         public LoggingTraceListener(TextWriter writer)
-            : this(writer, false)
+            : this(writer, TraceSettings.Errors | TraceSettings.Trace)
         {
         }
 
-        public LoggingTraceListener(TextWriter writer, bool errorsOnly)
+        public LoggingTraceListener(TextWriter writer, TraceSettings traceLevel)
         {
             this.writer = writer;
-            this.errorsOnly = errorsOnly;
+            Filter = new LoggingTraceFilter(this.traceLevel = traceLevel);
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id)
         {
-            if (Filter == null || Filter.ShouldTrace(eventCache, source, eventType, id, null, null, null, null))
-                TraceEventInternal(eventCache, source, eventType, id, "", Array.Empty<object>());
+            TraceEventInternal(eventCache, source, eventType, id, string.Empty, null);
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
         {
-            if (Filter == null || Filter.ShouldTrace(eventCache, source, eventType, id, message, null, null, null))
-                TraceEventInternal(eventCache, source, eventType, id, message, Array.Empty<object>());
+            TraceEventInternal(eventCache, source, eventType, id, message, null);
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
         {
-            if (Filter == null || Filter.ShouldTrace(eventCache, source, eventType, id, format, args, null, null))
-                TraceEventInternal(eventCache, source, eventType, id, format, args ?? Array.Empty<object>());
+            TraceEventInternal(eventCache, source, eventType, id, format, args);
         }
 
         private void TraceEventInternal(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, object[] args)
         {
-            if (null == eventCache)
+            if (null == eventCache || !Filter.ShouldTrace(eventCache, source, eventType, id, format, args, null, null))
                 return;
             _ = source;
             _ = id;
             eventCounts[eventType]++;
 
-            // Event is less important than error (and critical) and we're logging only errors... bail.
-            if (eventType > TraceEventType.Error && errorsOnly)
-                return;
-
             StringBuilder output = new StringBuilder();
             if (!lastWrittenFormatted)
             {
                 output.AppendLine();
-                output.AppendLine();
             }
             output.Append(eventType);
             output.Append(": ");
-            if (args.Length == 0)
+            if (args == null || args.Length == 0)
                 output.Append(format);
             else
                 output.AppendFormat(CultureInfo.InvariantCulture, format, args);
 
             // Log exception details if it is an exception.
-            if (eventCache.LogicalOperationStack.Contains(LogicalOperationWriteException))
+            if (eventCache.LogicalOperationStack.Contains(LogicalOperationWriteException) && args?[0] is Exception error)
             {
                 // Attempt to clean up the stacks; the problem is that the exception stack only goes as far back as the call made inside the try block. We also have access to the
                 // full stack to this trace call, which goes via the catch block at the same level as the try block. We'd prefer to have the whole stack, so we need to find the
                 // join and stitch the stacks together.
-                Exception error = args[0] as Exception;
 
                 string[] errorStack = error.ToString().Split('\n', '\n', StringSplitOptions.RemoveEmptyEntries);
                 string[] catchStack = new StackTrace(true).ToString().Split('\n', '\n', StringSplitOptions.RemoveEmptyEntries);
@@ -88,12 +106,13 @@ namespace FreeTrainSimulator.Common.Logging
                     output.AppendLine(string.Join(Environment.NewLine, catchStack, catchIndex + 1, catchStack.Length - catchIndex - 1));
             }
             else
-
+            {
                 // Only log a stack trace for critical and error levels.
                 if (eventType < TraceEventType.Warning && (TraceOutputOptions & TraceOptions.Callstack) != 0)
-            {
-                output.AppendLine();
-                output.AppendLine(new StackTrace(true).ToString());
+                {
+                    output.AppendLine();
+                    output.AppendLine(new StackTrace(true).ToString());
+                }
             }
 
             output.AppendLine();
@@ -103,7 +122,7 @@ namespace FreeTrainSimulator.Common.Logging
 
         public override void Write(string message)
         {
-            if (!errorsOnly)
+            if (traceLevel > TraceSettings.Errors)
             {
                 writer.Write(message);
                 lastWrittenFormatted = false;
@@ -112,7 +131,7 @@ namespace FreeTrainSimulator.Common.Logging
 
         public override void WriteLine(string message)
         {
-            if (!errorsOnly)
+            if (traceLevel > TraceSettings.Errors)
             {
                 writer.WriteLine(message);
                 lastWrittenFormatted = false;
@@ -130,7 +149,7 @@ namespace FreeTrainSimulator.Common.Logging
                     Trace.TraceWarning("{0}", o);
                 Trace.CorrelationManager.StopLogicalOperation();
             }
-            else if (!errorsOnly)
+            else if (traceLevel > TraceSettings.Errors)
             {
                 base.WriteLine(o);
                 lastWrittenFormatted = false;

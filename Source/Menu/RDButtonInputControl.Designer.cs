@@ -1,6 +1,6 @@
 ﻿
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
     partial class RDButtonInputControl
     {

@@ -40,9 +40,7 @@ namespace FreeTrainSimulator.Graphics.Xna
 
         public static Color FromName(string name)
         {
-            if (string.IsNullOrEmpty(name) || !colorCodes.TryGetValue(name, out Color color))
-                return Color.Transparent;
-            return color;
+            return string.IsNullOrEmpty(name) || !colorCodes.TryGetValue(name, out Color color) ? Color.Transparent : color;
         }
 
         /// <summary>

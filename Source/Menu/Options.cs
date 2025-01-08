@@ -16,28 +16,47 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Updater;
 
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Formats.Msts;
 using Orts.Settings;
 
-namespace Orts.Menu
+namespace FreeTrainSimulator.Menu
 {
+    public enum UpdateCheckFrequency
+    {
+        [Description("Manually check for updates")] Never = -1,
+        [Description("Check for updates on each start")] Always = 0,
+        [Description("Check for updates once a day")] Daily,
+        [Description("Check for updates once a week")] Weekly,
+        [Description("Check for updates every other week")] Biweekly,
+        [Description("Check for updates every month")] Monthly,
+    }
+
     public partial class OptionsForm : Form
     {
+        [GeneratedRegex(@"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$")] //capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
+        private static partial Regex WindowSizeRegex();
+
         private readonly UserSettings settings;
         private readonly UpdateManager updateManager;
 
@@ -45,14 +64,16 @@ namespace Orts.Menu
         private readonly Dictionary<Control, HelpIconHover> helpIconMap = new Dictionary<Control, HelpIconHover>();
 
         private const string baseUrl = "https://open-rails.readthedocs.io/en/latest";
+        internal ContentModel ContentModel { get; private set; }
 
-        public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup)
+        public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup, ContentModel contentModel)
         {
             InitializeComponent();
             catalog = CatalogManager.Catalog;
             Localizer.Localize(this, catalog);
 
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.ContentModel = contentModel ?? throw new ArgumentNullException(nameof(contentModel));
             this.updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
 
             InitializeHelpIcons();
@@ -192,19 +213,19 @@ namespace Orts.Menu
             }
             checkDataLogStationStops.Checked = this.settings.EvaluationStationStops;
 
-            // Content tab
-            bindingSourceContent.DataSource = (from folder in this.settings.FolderSettings.Folders
-                                               orderby folder.Key
-                                               select new ContentFolder() { Name = folder.Key, Path = folder.Value }).ToList();
+            bindingSourceContent.DataSource = initialContentSetup ?
+                this.settings.FolderSettings.Folders.Select(f => new FolderModel(f.Key, f.Value, ContentModel)).ToList() :
+                ContentModel.ContentFolders.Count == 0 ? new List<FolderModel>() { ContentModel.TrainSimulatorFolder() } :
+                ContentModel.ContentFolders.OrderBy(f => f.Name).ToList();
+
             if (initialContentSetup)
             {
                 tabOptions.SelectedTab = tabPageContent;
                 buttonContentBrowse.Enabled = false; // Initial state because browsing a null path leads to an exception
-                bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = FolderStructure.MstsFolder });
             }
 
             // Updater tab
-            trackBarUpdaterFrequency.Value = this.settings.UpdateCheckFrequency;
+            trackBarUpdaterFrequency.Value = (int)UpdateCheckFrequency.Always;
             labelUpdaterFrequency.Text = ((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetLocalizedDescription();
             labelCurrentVersion.Text = VersionInfo.Version;
             if (updateManager.UpdaterNeedsElevation)
@@ -244,6 +265,19 @@ namespace Orts.Menu
         {
             InitializeKeyboardSettings();
             InitializeRailDriverSettings();
+
+            if (tabOptions.SelectedTab == tabPageContent) // inital setup?
+            {
+                if (settings.FolderSettings.Folders?.Count > 0)
+                {
+                    if (MessageBox.Show($"In an effort to optimize content, {RuntimeInfo.ProductName} will analyze existing content files and folders. No updates will be made to existing content." + Environment.NewLine + Environment.NewLine +
+                        "Please review the current content folder settings, and confirm using \"Ok\"-Button when closing the \"Options\" dialog." + Environment.NewLine + Environment.NewLine +
+                        $"Further information can be found online {RuntimeInfo.WikiLink}, click \"Yes\" to open in broweser.", "Please read!", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    {
+                        SystemInfo.OpenBrowser(RuntimeInfo.WikiLink + "/Content-Storage#route-content-store");
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -354,13 +388,12 @@ namespace Orts.Menu
             settings.EvaluationStationStops = checkDataLogStationStops.Checked;
 
             // Content tab
-            settings.FolderSettings.Folders.Clear();
-            foreach (ContentFolder folder in bindingSourceContent.DataSource as List<ContentFolder>)
-                settings.FolderSettings.Folders.Add(folder.Name, folder.Path);
+            ContentModel = ContentModel with
+            {
+                ContentFolders = (bindingSourceContent.DataSource as List<FolderModel>).ToFrozenSet(),
+            };
 
             // Updater tab
-
-            settings.UpdateCheckFrequency = trackBarUpdaterFrequency.Value;
 
             // Experimental tab
             settings.UseSuperElevation = (int)numericUseSuperElevation.Value;
@@ -390,10 +423,11 @@ namespace Orts.Menu
         /// </summary>
         private int[] GetValidWindowSize(string text)
         {
-            Match match = Regex.Match(text, @"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$");//capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
+            Match match = WindowSizeRegex().Match(text);//capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
             if (match.Success)
             {
-                return new int[2] { int.Parse(match.Groups[1].ValueSpan), int.Parse(match.Groups[2].ValueSpan) };
+                if (int.TryParse(match.Groups[1].ValueSpan, out int width) && int.TryParse(match.Groups[2].ValueSpan, out int height))
+                    return new int[] { width, height };
             }
             return settings.WindowSettings[WindowSetting.Size]; // i.e. no change or message. Just ignore non-numeric entries
         }
@@ -474,7 +508,7 @@ namespace Orts.Menu
 
         private void DataGridViewContent_SelectionChanged(object sender, EventArgs e)
         {
-            ContentFolder current = bindingSourceContent.Current as ContentFolder;
+            FolderModel current = bindingSourceContent.Current as FolderModel;
             textBoxContentName.Enabled = buttonContentBrowse.Enabled = current != null;
             if (current == null)
             {
@@ -483,7 +517,7 @@ namespace Orts.Menu
             else
             {
                 textBoxContentName.Text = current.Name;
-                textBoxContentPath.Text = current.Path;
+                textBoxContentPath.Text = current.ContentPath;
             }
         }
 
@@ -514,9 +548,19 @@ namespace Orts.Menu
                 folderBrowser.ShowNewFolderButton = false;
                 if (folderBrowser.ShowDialog(this) == DialogResult.OK)
                 {
-                    ContentFolder current = bindingSourceContent.Current as ContentFolder;
+                    FolderModel current = bindingSourceContent.Current as FolderModel;
                     System.Diagnostics.Debug.Assert(current != null, "List should not be empty");
-                    textBoxContentPath.Text = current.Path = folderBrowser.SelectedPath;
+                    textBoxContentPath.Text = folderBrowser.SelectedPath;
+                    int index = (bindingSourceContent.DataSource as List<FolderModel>).LastIndexOf(current);
+                    if (index > -1)
+                    {
+                        (bindingSourceContent.DataSource as List<FolderModel>)[index] = current = current with
+                        {
+                            Name = null,
+                            ContentPath = folderBrowser.SelectedPath,
+                        };
+                    }
+
                     if (string.IsNullOrEmpty(current.Name))
                         // Don't need to set current.Name here as next statement triggers event textBoxContentName_TextChanged()
                         // which does that and also checks for duplicate names 
@@ -535,9 +579,9 @@ namespace Orts.Menu
         /// <param name="e"></param>
         private void TextBoxContentName_TextChanged(object sender, EventArgs e)
         {
-            if (bindingSourceContent.Current is ContentFolder current && current.Name != textBoxContentName.Text)
+            if (bindingSourceContent.Current is FolderModel current && current.Name != textBoxContentName.Text)
             {
-                if (!Path.GetRelativePath(RuntimeInfo.ProgramRoot, current.Path).StartsWith(".."))
+                if (!Path.GetRelativePath(RuntimeInfo.ProgramRoot, current.ContentPath).StartsWith("..", StringComparison.OrdinalIgnoreCase))
                 {
                     // Block added because a succesful Update operation will empty the Open Rails folder and lose any content stored within it.
                     MessageBox.Show(catalog.GetString
@@ -550,19 +594,27 @@ namespace Orts.Menu
                 }
                 // Duplicate names lead to an exception, so append " copy" if not unique
                 string suffix = "";
-                bool isNameUnique = true;
-                while (isNameUnique)
+                bool uniqueName = true;
+                while (uniqueName)
                 {
-                    isNameUnique = false; // to exit after a single pass
+                    uniqueName = false; // to exit after a single pass
                     foreach (object item in bindingSourceContent)
-                        if (((ContentFolder)item).Name == textBoxContentName.Text + suffix)
+                        if (((FolderModel)item).Name == textBoxContentName.Text + suffix)
                         {
                             suffix += " copy"; // To ensure uniqueness
-                            isNameUnique = true; // to force another pass
+                            uniqueName = true; // to force another pass
                             break;
                         }
                 }
-                current.Name = textBoxContentName.Text + suffix;
+
+                int index = (bindingSourceContent.DataSource as List<FolderModel>).IndexOf(current);
+                if (index > -1)
+                {
+                    (bindingSourceContent.DataSource as List<FolderModel>)[index] = current with
+                    {
+                        Name = textBoxContentName.Text + suffix,
+                    };
+                }
                 bindingSourceContent.ResetCurrentItem();
             }
         }
@@ -609,8 +661,7 @@ namespace Orts.Menu
         private async void TrackBarUpdaterFrequency_Scroll(object sender, EventArgs e)
         {
             labelUpdaterFrequency.Text = ((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetLocalizedDescription();
-            settings.UpdateCheckFrequency = trackBarUpdaterFrequency.Value;
-            string availableVersion = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
+            string availableVersion = await updateManager.GetBestAvailableVersionString().ConfigureAwait(true);
             labelAvailableVersion.Text = UpdateManager.NormalizedPackageVersion(availableVersion) ?? "n/a";
             buttonUpdaterExecute.Tag = availableVersion;
             buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(availableVersion);
@@ -618,19 +669,20 @@ namespace Orts.Menu
 
         private async void PresetUpdateSelections()
         {
-            if (!string.Equals(settings.UpdateSource, settings.GetDefaultValue(nameof(settings.UpdateSource)) as string, StringComparison.OrdinalIgnoreCase))
+            UpdateMode updateMode = await ((ProfileModel)null).AllProfileGetUpdateMode(CancellationToken.None).ConfigureAwait(true);
+            switch (updateMode)
             {
-                rbDeveloperPrereleases.Checked = true;
+                case UpdateMode.Release:
+                    rbPublicReleases.Checked = true;
+                    break;
+                case UpdateMode.PreRelease:
+                    rbPublicPrereleases.Checked = true;
+                    break;
+                case UpdateMode.Developer:
+                    rbDeveloperPrereleases.Checked = true;
+                    break;
             }
-            else if (settings.UpdatePreReleases)
-            {
-                rbPublicPrereleases.Checked = true;
-            }
-            else
-            {
-                rbPublicReleases.Checked = true;
-            }
-            string availableVersion = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
+            string availableVersion = await updateManager.GetBestAvailableVersionString().ConfigureAwait(true);
             labelAvailableVersion.Text = UpdateManager.NormalizedPackageVersion(availableVersion) ?? "n/a";
             buttonUpdaterExecute.Tag = availableVersion;
             buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(availableVersion);
@@ -641,21 +693,27 @@ namespace Orts.Menu
 
         private async void UpdaterSelection_CheckedChanged(object sender, EventArgs e)
         {
-            updateManager.SetUpdateChannel(rbPublicPrereleases.Checked, rbDeveloperPrereleases.Checked);
-            if (sender == rbDeveloperPrereleases && rbDeveloperPrereleases.Checked)
+            if (sender is RadioButton selectedButton && selectedButton.Checked)
             {
-                if (MessageBox.Show("While we encourage users to support us in testing new versions and features, " + Environment.NewLine +
-                    "be aware that development versions may contain serious bugs, regressions or may not be optimized for performance." + Environment.NewLine + Environment.NewLine +
-                    "Please confirm that you want to use development code versions. Otherwise we recommend using public prerelease versions, which may run more stable and contain less defects.",
-                    "Confirm Developer Releases", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
+                if (selectedButton == rbDeveloperPrereleases)
                 {
-                    rbPublicPrereleases.Checked = true;
+                    if (MessageBox.Show("While we encourage users to support us in testing new versions and features, " + Environment.NewLine +
+                        "be aware that development versions may contain serious bugs, regressions or may not be optimized for performance." + Environment.NewLine + Environment.NewLine +
+                        "Please confirm that you want to use development code versions. Otherwise we recommend using public prerelease versions, which may run more stable and contain less defects.",
+                        "Confirm Developer Releases", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
+                    {
+                        rbPublicPrereleases.Checked = true;
+                        return; // changing the check above will trigger another CheckedChanged event, so we can return early here
+                    }
                 }
+                UpdateMode updateMode = rbDeveloperPrereleases.Checked ? UpdateMode.Developer : rbPublicPrereleases.Checked ? UpdateMode.PreRelease : UpdateMode.Release;
+                updateManager.SetUpdateMode(updateMode);
+                await updateMode.AllProfileSetUpdateMode(CancellationToken.None).ConfigureAwait(true);
+                string availableVersion = await updateManager.GetBestAvailableVersionString().ConfigureAwait(true);
+                labelAvailableVersion.Text = UpdateManager.NormalizedPackageVersion(availableVersion) ?? "n/a";
+                buttonUpdaterExecute.Tag = availableVersion;
+                buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(availableVersion);
             }
-            string availableVersion = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
-            labelAvailableVersion.Text = UpdateManager.NormalizedPackageVersion(availableVersion) ?? "n/a";
-            buttonUpdaterExecute.Tag = availableVersion;
-            buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(availableVersion);
         }
 
         private async void ButtonUpdaterExecute_Click(object sender, EventArgs e)
@@ -751,9 +809,7 @@ namespace Orts.Menu
         {
             if (sender is PictureBox pictureBox)
             {
-#pragma warning disable CA2234 // Pass system uri objects instead of strings
                 SystemInfo.OpenBrowser(baseUrl + pictureBox.Tag);
-#pragma warning restore CA2234 // Pass system uri objects instead of strings
             }
         }
 
@@ -775,18 +831,9 @@ namespace Orts.Menu
         }
         #endregion
 
-    }
-
-    public class ContentFolder
-    {
-        public string Name { get; set; }
-        public string Path { get; set; }
-
-        public ContentFolder()
+        private void BindingSourceContent_AddingNew(object sender, System.ComponentModel.AddingNewEventArgs e)
         {
-            Name = "";
-            Path = "";
+            e.NewObject = (bindingSourceContent.DataSource as List<FolderModel>).LastOrDefault() ?? ContentModel.TrainSimulatorFolder();
         }
     }
-
 }

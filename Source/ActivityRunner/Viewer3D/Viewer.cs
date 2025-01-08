@@ -36,7 +36,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.State;
+using FreeTrainSimulator.Models.Imported.State;
 
 using GetText;
 
@@ -296,14 +296,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
             ContentPath = RuntimeInfo.ContentFolder;
             Trace.Write(" ENV");
-            ENVFile = new EnvironmentFile(Path.Combine(Simulator.RouteFolder.EnvironmentFolder, Simulator.Route.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType)));
+            ENVFile = new EnvironmentFile(Path.Combine(Simulator.RouteFolder.EnvironmentFolder, Simulator.RouteModel.EnvironmentConditions[Simulator.Season, Simulator.WeatherType]));
 
             Trace.Write(" TTYPE");
             TrackTypes = new TrackTypesFile(Path.Combine(Simulator.RouteFolder.CurrentFolder, "TTYPE.DAT"));
 
             Tiles = new TileManager(Simulator.RouteFolder.TilesFolder, false);
             LoTiles = new TileManager(Simulator.RouteFolder.TilesFolderLow, true);
-            MilepostUnitsMetric = Simulator.Route.MilepostUnitsMetric;
+            MilepostUnitsMetric = Simulator.RouteModel.MetricUnits;
 
             Simulator.AllowedSpeedRaised += (object sender, EventArgs e) =>
             {
@@ -401,7 +401,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Simulator.InitializeAiPlayerHosting();
             }
 
-            SharedSMSFileManager.Initialize(TrackTypes.Count, Simulator.Route.SwitchSMSNumber, Simulator.Route.CurveSMSNumber, Simulator.Route.CurveSwitchSMSNumber);
+            SharedSMSFileManager.Initialize(TrackTypes.Count);
 
             TextureManager = new SharedTextureManager(this, Game.GraphicsDevice);
 

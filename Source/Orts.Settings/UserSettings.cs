@@ -82,11 +82,11 @@ namespace Orts.Settings
         [Default(false)]
         public bool LogSaveData { get; set; }
         [Default("")]
-        public string Multiplayer_User { get; set; }
+        public string MultiplayerUser { get; set; }
         [Default("127.0.0.1")]
-        public string Multiplayer_Host { get; set; }
+        public string MultiplayerHost { get; set; }
         [Default(30000)]
-        public int Multiplayer_Port { get; set; }
+        public int MultiplayerPort { get; set; }
 
         // General settings:
 
@@ -225,16 +225,6 @@ namespace Orts.Settings
         [Default(false)]
         public bool EvaluationStationStops { get; set; }
 
-        // Updater settings
-        #region update settings
-        [Default((int)FreeTrainSimulator.Common.UpdateCheckFrequency.Always)]
-        public int UpdateCheckFrequency { get; set; }
-        [Default("https://orts.blob.core.windows.net/releases/index.json")]
-        public string UpdateSource { get; set; }
-        [Default(false)]
-        public bool UpdatePreReleases { get; set; }
-        #endregion
-
         // Timetable settings:
         [Default(true)]
         public bool TTUseRestartDelays { get; set; }
@@ -296,7 +286,7 @@ namespace Orts.Settings
         // Hidden settings:
         [Default(0)]
         public int CarVibratingLevel { get; set; }
-        [Default("OpenRailsLog.txt")]
+        [Default("FreeTrainSimulator Log.txt")]
         public string LoggingFilename { get; set; }
         [Default("Evaluation.txt")]
         public string DebriefEvalFilename { get; set; }//
@@ -335,10 +325,6 @@ namespace Orts.Settings
         public bool ReplayPauseBeforeEnd { get; set; }
         [Default(true)]
         public bool ShowErrorDialogs { get; set; }
-        [Default(new string[0])]
-#pragma warning disable CA1819 // Properties should not return arrays
-        public string[] Menu_Selection { get; set; }
-#pragma warning restore CA1819 // Properties should not return arrays
         [Default(false)]
         public bool Multiplayer { get; set; }
 
@@ -421,7 +407,6 @@ namespace Orts.Settings
             $"{nameof(ViewerWindowType.LocationsOverlay)}=\"\"",
             $"{nameof(ViewerWindowType.TrackItemOverlay)}=\"\"",
         })]
-
         public EnumArray<string, ViewerWindowType> PopupSettings { get; set; }
         // Menu-game communication settings:
         [Default(false)]

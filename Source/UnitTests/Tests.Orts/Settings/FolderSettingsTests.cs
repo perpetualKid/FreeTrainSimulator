@@ -2,9 +2,9 @@
 using System.Collections.Immutable;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using Orts.Settings;
 using Orts.Settings.Store;
-using Tests.Orts.Shared;
 
 namespace Tests.Orts.Settings
 {
