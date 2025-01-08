@@ -294,6 +294,7 @@ namespace FreeTrainSimulator.Menu
             comboBoxTimetableDay.DataSourceFromList(Enumerable.Range(0, 7), (day) => CultureInfo.CurrentUICulture.DateTimeFormat.DayNames[day]);
 
             toolStripDropDownButton1.Text = SelectedProfile?.Name;
+            toolStripDropDownButton1.ToolTipText = SelectedProfile?.Name;
         }
         #endregion
 
@@ -1181,7 +1182,6 @@ namespace FreeTrainSimulator.Menu
             textInputControlProfileName.Focus();
             await SaveOptions().ConfigureAwait(false);
         }
-
 
         private void TextInputControlProfileName_OnCancel(object sender, EventArgs e)
         {

@@ -167,9 +167,6 @@ namespace FreeTrainSimulator.Menu
             bindingSourceContent = new System.Windows.Forms.BindingSource(components);
             tabPageUpdater = new System.Windows.Forms.TabPage();
             buttonUpdaterExecute = new System.Windows.Forms.Button();
-            groupBoxUpdateFrequency = new System.Windows.Forms.GroupBox();
-            labelUpdaterFrequency = new System.Windows.Forms.Label();
-            trackBarUpdaterFrequency = new System.Windows.Forms.TrackBar();
             labelCurrentVersion = new System.Windows.Forms.Label();
             labelCurrentVersionDesc = new System.Windows.Forms.Label();
             groupBoxUpdates = new System.Windows.Forms.GroupBox();
@@ -269,8 +266,6 @@ namespace FreeTrainSimulator.Menu
             ((System.ComponentModel.ISupportInitialize)dataGridViewContent).BeginInit();
             ((System.ComponentModel.ISupportInitialize)bindingSourceContent).BeginInit();
             tabPageUpdater.SuspendLayout();
-            groupBoxUpdateFrequency.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)trackBarUpdaterFrequency).BeginInit();
             groupBoxUpdates.SuspendLayout();
             tabPageExperimental.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericActWeatherRandomizationLevel).BeginInit();
@@ -1985,7 +1980,6 @@ namespace FreeTrainSimulator.Menu
             // tabPageUpdater
             // 
             tabPageUpdater.Controls.Add(buttonUpdaterExecute);
-            tabPageUpdater.Controls.Add(groupBoxUpdateFrequency);
             tabPageUpdater.Controls.Add(labelCurrentVersion);
             tabPageUpdater.Controls.Add(labelCurrentVersionDesc);
             tabPageUpdater.Controls.Add(groupBoxUpdates);
@@ -2011,41 +2005,6 @@ namespace FreeTrainSimulator.Menu
             buttonUpdaterExecute.UseVisualStyleBackColor = true;
             buttonUpdaterExecute.Visible = false;
             buttonUpdaterExecute.Click += ButtonUpdaterExecute_Click;
-            // 
-            // groupBoxUpdateFrequency
-            // 
-            groupBoxUpdateFrequency.Controls.Add(labelUpdaterFrequency);
-            groupBoxUpdateFrequency.Controls.Add(trackBarUpdaterFrequency);
-            groupBoxUpdateFrequency.Location = new System.Drawing.Point(6, 230);
-            groupBoxUpdateFrequency.Margin = new System.Windows.Forms.Padding(2);
-            groupBoxUpdateFrequency.Name = "groupBoxUpdateFrequency";
-            groupBoxUpdateFrequency.Padding = new System.Windows.Forms.Padding(2);
-            groupBoxUpdateFrequency.Size = new System.Drawing.Size(633, 80);
-            groupBoxUpdateFrequency.TabIndex = 40;
-            groupBoxUpdateFrequency.TabStop = false;
-            groupBoxUpdateFrequency.Text = "Update Check Frequency";
-            // 
-            // labelUpdaterFrequency
-            // 
-            labelUpdaterFrequency.Location = new System.Drawing.Point(5, 54);
-            labelUpdaterFrequency.Margin = new System.Windows.Forms.Padding(3);
-            labelUpdaterFrequency.Name = "labelUpdaterFrequency";
-            labelUpdaterFrequency.Size = new System.Drawing.Size(622, 20);
-            labelUpdaterFrequency.TabIndex = 31;
-            labelUpdaterFrequency.Text = "Always";
-            labelUpdaterFrequency.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // trackBarUpdaterFrequency
-            // 
-            trackBarUpdaterFrequency.BackColor = System.Drawing.SystemColors.Window;
-            trackBarUpdaterFrequency.LargeChange = 1;
-            trackBarUpdaterFrequency.Location = new System.Drawing.Point(5, 24);
-            trackBarUpdaterFrequency.Maximum = 4;
-            trackBarUpdaterFrequency.Minimum = -1;
-            trackBarUpdaterFrequency.Name = "trackBarUpdaterFrequency";
-            trackBarUpdaterFrequency.Size = new System.Drawing.Size(622, 45);
-            trackBarUpdaterFrequency.TabIndex = 30;
-            trackBarUpdaterFrequency.Scroll += TrackBarUpdaterFrequency_Scroll;
             // 
             // labelCurrentVersion
             // 
@@ -2697,9 +2656,6 @@ namespace FreeTrainSimulator.Menu
             ((System.ComponentModel.ISupportInitialize)bindingSourceContent).EndInit();
             tabPageUpdater.ResumeLayout(false);
             tabPageUpdater.PerformLayout();
-            groupBoxUpdateFrequency.ResumeLayout(false);
-            groupBoxUpdateFrequency.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)trackBarUpdaterFrequency).EndInit();
             groupBoxUpdates.ResumeLayout(false);
             groupBoxUpdates.PerformLayout();
             tabPageExperimental.ResumeLayout(false);
@@ -2897,9 +2853,6 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.Label label32;
         private System.Windows.Forms.Label label30;
         private System.Windows.Forms.Label labelPublicReleaseDesc;
-        private System.Windows.Forms.GroupBox groupBoxUpdateFrequency;
-        private System.Windows.Forms.Label labelUpdaterFrequency;
-        private System.Windows.Forms.TrackBar trackBarUpdaterFrequency;
         private System.Windows.Forms.Button buttonUpdaterExecute;
         private System.Windows.Forms.PictureBox pbOverspeedMonitor;
         private System.Windows.Forms.PictureBox pbEnableWebServer;

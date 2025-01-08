@@ -785,6 +785,7 @@ namespace FreeTrainSimulator.Menu
             toolStripTopMenu.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             toolStripTopMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { toolStripLabelSpaceLeft, toolLabelProfile, toolStripSeparator3, toolStripDropDownButton1, toolStripButtonProfileAdd, toolStripButtonProfileCopy, toolStripButtonProfileDelete, toolStripSeparator1, toolStripLabelSpaceRight, toolStripButtonUpdate, toolStripSeparator2, toolStripLabelNews, toolStripButtonLogFolder });
             toolStripTopMenu.Location = new System.Drawing.Point(0, 0);
+            toolStripTopMenu.BackColor = System.Drawing.SystemColors.Control;
             toolStripTopMenu.Name = "toolStripTopMenu";
             toolStripTopMenu.Size = new System.Drawing.Size(1139, 25);
             toolStripTopMenu.TabIndex = 43;

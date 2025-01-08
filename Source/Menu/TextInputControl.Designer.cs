@@ -42,7 +42,7 @@
             buttonOK.Margin = new System.Windows.Forms.Padding(4);
             buttonOK.Name = "buttonOK";
             buttonOK.Size = new System.Drawing.Size(31, 28);
-            buttonOK.TabIndex = 3;
+            buttonOK.TabIndex = 2;
             buttonOK.Text = "✔";
             toolTip1.SetToolTip(buttonOK, "Accept changes");
             buttonOK.Click += ButtonOK_Click;
@@ -54,7 +54,7 @@
             buttonCancel.Margin = new System.Windows.Forms.Padding(4);
             buttonCancel.Name = "buttonCancel";
             buttonCancel.Size = new System.Drawing.Size(31, 28);
-            buttonCancel.TabIndex = 2;
+            buttonCancel.TabIndex = 3;
             buttonCancel.Text = "✘";
             toolTip1.SetToolTip(buttonCancel, "Cancel changes");
             buttonCancel.Click += ButtonCancel_Click;
@@ -68,8 +68,9 @@
             textBox.Name = "textBox";
             textBox.PlaceholderText = "<Profile Name>";
             textBox.Size = new System.Drawing.Size(205, 23);
-            textBox.TabIndex = 0;
+            textBox.TabIndex = 1;
             toolTip1.SetToolTip(textBox, "Profile Name");
+            textBox.Validating += TextBox_Validating;
             // 
             // TextInputControl
             // 

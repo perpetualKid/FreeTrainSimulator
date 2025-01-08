@@ -42,16 +42,6 @@ using Orts.Settings;
 
 namespace FreeTrainSimulator.Menu
 {
-    public enum UpdateCheckFrequency
-    {
-        [Description("Manually check for updates")] Never = -1,
-        [Description("Check for updates on each start")] Always = 0,
-        [Description("Check for updates once a day")] Daily,
-        [Description("Check for updates once a week")] Weekly,
-        [Description("Check for updates every other week")] Biweekly,
-        [Description("Check for updates every month")] Monthly,
-    }
-
     public partial class OptionsForm : Form
     {
         [GeneratedRegex(@"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$")] //capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
@@ -225,8 +215,6 @@ namespace FreeTrainSimulator.Menu
             }
 
             // Updater tab
-            trackBarUpdaterFrequency.Value = (int)UpdateCheckFrequency.Always;
-            labelUpdaterFrequency.Text = ((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetLocalizedDescription();
             labelCurrentVersion.Text = VersionInfo.Version;
             if (updateManager.UpdaterNeedsElevation)
             {
@@ -656,15 +644,6 @@ namespace FreeTrainSimulator.Menu
         {
             numericPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
             labelPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
-        }
-
-        private async void TrackBarUpdaterFrequency_Scroll(object sender, EventArgs e)
-        {
-            labelUpdaterFrequency.Text = ((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetLocalizedDescription();
-            string availableVersion = await updateManager.GetBestAvailableVersionString().ConfigureAwait(true);
-            labelAvailableVersion.Text = UpdateManager.NormalizedPackageVersion(availableVersion) ?? "n/a";
-            buttonUpdaterExecute.Tag = availableVersion;
-            buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(availableVersion);
         }
 
         private async void PresetUpdateSelections()
