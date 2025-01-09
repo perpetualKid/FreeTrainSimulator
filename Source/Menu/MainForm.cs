@@ -239,7 +239,7 @@ namespace FreeTrainSimulator.Menu
             if (updateManager.LastCheckError != null)
             {
                 toolStripButtonUpdate.Text = catalog.GetString("Update check failed");
-                toolStripButtonUpdate.Visible = true;
+                toolStripButtonUpdate.Enabled = false;
                 toolStripButtonUpdate.Tag = null;
                 toolStripButtonUpdate.Image = null;
             }
@@ -249,12 +249,13 @@ namespace FreeTrainSimulator.Menu
                 {
                     toolStripButtonUpdate.Text = catalog.GetString($"Update to {UpdateManager.NormalizedPackageVersion(availableVersion)}");
                     toolStripButtonUpdate.Tag = availableVersion;
-                    toolStripButtonUpdate.Visible = true;
+                    toolStripButtonUpdate.Enabled = true;
                     toolStripButtonUpdate.Image = updateManager.UpdaterNeedsElevation ? elevationIcon : null;
                 }
                 else
                 {
-                    toolStripButtonUpdate.Text = catalog.GetString($"No updates available");
+                    toolStripButtonUpdate.Text = catalog.GetString($"No update available");
+                    toolStripButtonUpdate.Enabled = false;
                 }
             }
         }

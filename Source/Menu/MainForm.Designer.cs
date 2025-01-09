@@ -868,6 +868,7 @@ namespace FreeTrainSimulator.Menu
             toolStripButtonUpdate.Name = "toolStripButtonUpdate";
             toolStripButtonUpdate.Size = new System.Drawing.Size(116, 22);
             toolStripButtonUpdate.Text = "No update available";
+            toolStripButtonUpdate.Enabled = false;
             toolStripButtonUpdate.Click += ToolStripButtonUpdate_Click;
             // 
             // toolStripSeparator2
