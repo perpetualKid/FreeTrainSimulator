@@ -1,0 +1,492 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Toolbox\n"
+"POT-Creation-Date: 2025-01-10 20:24:47+0100\n"
+"PO-Revision-Date: 2025-01-10 20:24:48+0100\n"
+"Last-Translator: \n"
+"Language-Team: Open Rails Dev Team\n"
+"Language: qps-ploc\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: PowerShell Update-Pseudo.ps1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ..\..\..\Toolbox\GameWindow.cs:76
+#, csharp-format
+msgid " Route: {0}"
+msgstr "[ Rôúƭè: {0} !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:107
+#, csharp-format
+msgid "{0} {1}"
+msgstr "[{0} {1} !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\AboutWindow.cs:20
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:721
+msgid "About"
+msgstr "[Âβôúƭ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:130
+msgid "Available Train Paths"
+msgstr "[ÂƲáïℓáβℓè Třáïñ Þáƭλƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:478
+msgid "Background Color"
+msgstr "[ßáçƙϱřôúñδ Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:46
+#, csharp-format
+msgid "Cancel ({0})"
+msgstr "[Çáñçèℓ ({0}) !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:7
+msgid "Cancel or Close"
+msgstr "[Çáñçèℓ ôř Çℓôƨè !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:285
+msgid "Car Spawners"
+msgstr "[Çář §ƥáωñèřƨ !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:9
+msgid "Change Screen Mode"
+msgstr "[Çλáñϱè §çřèèñ Môδè !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:44
+msgid "Command"
+msgstr "[Çô₥₥áñδ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:29
+msgid "Common"
+msgstr "[Çô₥₥ôñ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:237
+msgid "Crossver Nodes"
+msgstr "[ÇřôƨƨƲèř Nôδèƨ !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:19
+msgid "Debug Information (Tab)"
+msgstr "[Ðèβúϱ Ìñƒôř₥áƭïôñ (Táβ) !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:343
+msgid "Do you want to visit the website now?"
+msgstr "[Ðô ¥ôú ωáñƭ ƭô Ʋïƨïƭ ƭλè ωèβƨïƭè ñôω? !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:714
+msgid "Documentation"
+msgstr "[Ðôçú₥èñƭáƭïôñ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:340
+#, csharp-format
+msgid "Documentation for {0} is available online at:"
+msgstr "[Ðôçú₥èñƭáƭïôñ ƒôř {0} ïƨ áƲáïℓáβℓè ôñℓïñè áƭ: !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:60
+msgid "Enable Logging"
+msgstr "[Éñáβℓè £ôϱϱïñϱ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:223
+msgid "End Nodes"
+msgstr "[Éñδ Nôδèƨ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:34
+#, csharp-format
+msgid "Exit {0}"
+msgstr "[Éжïƭ {0} !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:139
+msgid "File"
+msgstr "[Fïℓè !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrackItemInfoWindow.cs:46
+msgid "Find Track Item by Index"
+msgstr "[Fïñδ Třáçƙ Ìƭè₥ β¥ Ìñδèж !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:59
+msgid "Find Track Node by Index"
+msgstr "[Fïñδ Třáçƙ Nôδè β¥ Ìñδèж !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:33
+msgid "Graphics"
+msgstr "[Gřáƥλïçƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:376
+msgid "Hazards"
+msgstr "[Háƺářδƨ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:33
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:708
+msgid "Help"
+msgstr "[Hèℓƥ !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:21
+msgid "Help Window (Tab)"
+msgstr "[Hèℓƥ Wïñδôω (Táβ) !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:103
+msgid "Idx"
+msgstr "[Ìδж !!!]"
+
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:179
+msgid "Image files (*.png)"
+msgstr "[Ì₥áϱè ƒïℓèƨ (*.ƥñϱ) !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:305
+msgid "Interactives"
+msgstr "[ÌñƭèřáçƭïƲèƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:230
+msgid "Junction Nodes"
+msgstr "[Júñçƭïôñ Nôδèƨ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:47
+msgid "Key"
+msgstr "[Kè¥ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:244
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:278
+msgid "Level Crossings"
+msgstr "[£èƲèℓ Çřôƨƨïñϱƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:686
+msgid "Load Path"
+msgstr "[£ôáδ Þáƭλ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\StatusTextWindow.cs:21
+msgid "Loading Route"
+msgstr "[£ôáδïñϱ Rôúƭè !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:112
+#, csharp-format
+msgid "Location (x, z) {0,4:00.##} {1,4:00.##}"
+msgstr "[£ôçáƭïôñ (ж, ƺ) {0,4:00.##} {1,4:00.##} !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:20
+msgid "Location Window (Tab)"
+msgstr "[£ôçáƭïôñ Wïñδôω (Táβ) !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:25
+msgid "Log Window (Tab)"
+msgstr "[£ôϱ Wïñδôω (Táβ) !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\LoggingWindow.cs:19
+msgid "Logging"
+msgstr "[£ôϱϱïñϱ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:313
+msgid "Main Signals"
+msgstr "[Máïñ §ïϱñáℓƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:126
+msgid "MenuStrip1"
+msgstr "[Mèñú§ƭřïƥ1 !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:369
+msgid "Mileposts"
+msgstr "[Mïℓèƥôƨƭƨ !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:14
+msgid "Move Down (South)"
+msgstr "[MôƲè Ðôωñ (§ôúƭλ) !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:11
+msgid "Move Left (East)"
+msgstr "[MôƲè £èƒƭ (Éáƨƭ) !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:12
+msgid "Move Right (West)"
+msgstr "[MôƲè Rïϱλƭ (Wèƨƭ) !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:13
+msgid "Move Up (North)"
+msgstr "[MôƲè Ûƥ (Nôřƭλ) !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:698
+msgid "New Path"
+msgstr "[Nèω Þáƭλ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:320
+msgid "Other Signals"
+msgstr "[Óƭλèř §ïϱñáℓƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:598
+msgid "Path Color"
+msgstr "[Þáƭλ Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:31
+msgid "Path Data"
+msgstr "[Þáƭλ Ðáƭá !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:680
+msgid "Path Editor"
+msgstr "[Þáƭλ Éδïƭôř !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:29
+msgid "Path Nodes"
+msgstr "[Þáƭλ Nôδèƨ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:33
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:411
+msgid "Paths"
+msgstr "[Þáƭλƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:383
+msgid "Pickup Points (Fuel, Cargo)"
+msgstr "[Þïçƙúƥ Þôïñƭƨ (Fúèℓ, Çářϱô) !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:628
+msgid "Platform Color"
+msgstr "[Þℓáƭƒôř₥ Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:334
+msgid "Platform Names"
+msgstr "[Þℓáƭƒôř₥ Ná₥èƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:327
+msgid "Platforms"
+msgstr "[Þℓáƭƒôř₥ƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:443
+msgid "Preferences"
+msgstr "[Þřèƒèřèñçèƨ !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:10
+msgid "Quit"
+msgstr "[Qúïƭ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:44
+#, csharp-format
+msgid "Quit ({0})"
+msgstr "[Qúïƭ ({0}) !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:167
+msgid "Quit (Q)"
+msgstr "[Qúïƭ (Q) !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:17
+msgid "Reset Zoom and Center Location"
+msgstr "[Rèƨèƭ Zôô₥ áñδ Çèñƭèř £ôçáƭïôñ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:450
+msgid "Restore last view on Start"
+msgstr "[Rèƨƭôřè ℓáƨƭ Ʋïèω ôñ §ƭářƭ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:67
+msgid "Restore Last View on Start"
+msgstr "[Rèƨƭôřè £áƨƭ Vïèω ôñ §ƭářƭ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:568
+msgid "Road Color"
+msgstr "[Rôáδ Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:583
+msgid "Road End Node Color"
+msgstr "[Rôáδ Éñδ Nôδè Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:271
+msgid "Road End Nodes"
+msgstr "[Rôáδ Éñδ Nôδèƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:256
+msgid "Road Items"
+msgstr "[Rôáδ Ìƭè₥ƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:264
+msgid "Road Segments"
+msgstr "[Rôáδ §èϱ₥èñƭƨ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:57
+msgid "Roads"
+msgstr "[Rôáδƨ !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:18
+msgid "Screenshot"
+msgstr "[§çřèèñƨλôƭ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:459
+msgid "Select Language"
+msgstr "[§èℓèçƭ £áñϱúáϱè !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:156
+msgid "Select Route"
+msgstr "[§èℓèçƭ Rôúƭè !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:150
+msgid "Select Route Folder"
+msgstr "[§èℓèçƭ Rôúƭè Fôℓδèř !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:116
+msgid "Setting"
+msgstr "[§èƭƭïñϱ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:43
+msgid "Settings"
+msgstr "[§èƭƭïñϱƨ !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:24
+msgid "Settings Window (Tab)"
+msgstr "[§èƭƭïñϱƨ Wïñδôω (Táβ) !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:419
+msgid "Show Path"
+msgstr "[§λôω Þáƭλ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:643
+msgid "Siding Color"
+msgstr "[§ïδïñϱ Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:355
+msgid "Siding Names"
+msgstr "[§ïδïñϱ Ná₥èƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:348
+msgid "Sidings"
+msgstr "[§ïδïñϱƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:390
+msgid "Sound Regions"
+msgstr "[§ôúñδ Rèϱïôñƨ !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:8
+msgid "Span another instance"
+msgstr "[§ƥáñ áñôƭλèř ïñƨƭáñçè !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:362
+msgid "Speed Limits"
+msgstr "[§ƥèèδ £ï₥ïƭƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:658
+msgid "SpeedPost Text Color"
+msgstr "[§ƥèèδÞôƨƭ Tèжƭ Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:613
+msgid "Station Color"
+msgstr "[§ƭáƭïôñ Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:341
+msgid "Station Names"
+msgstr "[§ƭáƭïôñ Ná₥èƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\StatusbarControl.Designer.cs:51
+msgid "statusStrip1"
+msgstr "[ƨƭáƭúƨ§ƭřïƥ1 !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:53
+#, csharp-format
+msgid "Take Screenshot ({0})"
+msgstr "[Táƙè §çřèèñƨλôƭ ({0}) !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:189
+msgid "Take Screenshot (PrtScr)"
+msgstr "[Táƙè §çřèèñƨλôƭ (Þřƭ§çř) !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:344
+msgid "This will open the page in standard web browser."
+msgstr "[Tλïƨ ωïℓℓ ôƥèñ ƭλè ƥáϱè ïñ ƨƭáñδářδ ωèβ βřôωƨèř. !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:111
+#, csharp-format
+msgid "Tile (X:Z) {0}:{1}"
+msgstr "[Tïℓè (X:Z) {0}:{1} !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:78
+msgid "Tile Coordinates"
+msgstr "[Tïℓè Çôôřδïñáƭèƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:397
+msgid "Tile Grid"
+msgstr "[Tïℓè Gřïδ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:31
+msgid "Toolbox"
+msgstr "[Tôôℓβôж !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:493
+msgid "Track Color"
+msgstr "[Třáçƙ Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:538
+msgid "Track Crossing Color"
+msgstr "[Třáçƙ Çřôƨƨïñϱ Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:508
+msgid "Track End Node Color"
+msgstr "[Třáçƙ Éñδ Nôδè Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:23
+msgid "Track Item Info Window (Tab)"
+msgstr "[Třáçƙ Ìƭè₥ Ìñƒô Wïñδôω (Táβ) !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrackItemInfoWindow.cs:28
+msgid "Track Item Information"
+msgstr "[Třáçƙ Ìƭè₥ Ìñƒôř₥áƭïôñ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:208
+msgid "Track Items"
+msgstr "[Třáçƙ Ìƭè₥ƨ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:523
+msgid "Track Junction Node Color"
+msgstr "[Třáçƙ Júñçƭïôñ Nôδè Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:553
+msgid "Track Level Crossing Color"
+msgstr "[Třáçƙ £èƲèℓ Çřôƨƨïñϱ Çôℓôř !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:22
+msgid "Track Node Info Window (Tab)"
+msgstr "[Třáçƙ Nôδè Ìñƒô Wïñδôω (Táβ) !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:36
+msgid "Track Node Information"
+msgstr "[Třáçƙ Nôδè Ìñƒôř₥áƭïôñ !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:216
+msgid "Track Segments"
+msgstr "[Třáçƙ §èϱ₥èñƭƨ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:55
+msgid "Tracks"
+msgstr "[Třáçƙƨ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:74
+msgid "Train Path Details"
+msgstr "[Třáïñ Þáƭλ Ðèƭáïℓƨ !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:26
+msgid "Train Path Window (Tab)"
+msgstr "[Třáïñ Þáƭλ Wïñδôω (Táβ) !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:104
+msgid "Type"
+msgstr "[T¥ƥè !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:74
+msgid "Use Font Outline"
+msgstr "[Ûƨè Fôñƭ Óúƭℓïñè !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:105
+msgid "Valid"
+msgstr "[Váℓïδ !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:117
+msgid "Value"
+msgstr "[Váℓúè !!!]"
+
+#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:183
+msgid "View"
+msgstr "[Vïèω !!!]"
+
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:34
+#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:78
+msgid "World Coordinates"
+msgstr "[Wôřℓδ Çôôřδïñáƭèƨ !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:15
+msgid "Zoom In"
+msgstr "[Zôô₥ Ìñ !!!]"
+
+#: ..\..\..\Toolbox\UserCommand.cs:16
+msgid "Zoom Out"
+msgstr "[Zôô₥ Óúƭ !!!]"
+

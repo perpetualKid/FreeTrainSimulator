@@ -1,163 +1,60 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ORTS.Settings\n"
-"POT-Creation-Date: 2020-09-17 08:26:12+0200\n"
-"PO-Revision-Date: 2020-09-17 14:40+0200\n"
+"POT-Creation-Date: 2025-01-10 20:24:42+0100\n"
+"PO-Revision-Date: 2025-01-10 20:24:42+0100\n"
 "Last-Translator: \n"
 "Language-Team: Open Rails Dev Team\n"
+"Language: qps-ploc\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.1\n"
+"X-Generator: PowerShell Update-Pseudo.ps1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ..\..\Orts.Settings\RailDriverSettings.cs:43
-msgid "Reverse Auto Brake Direction"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:27
-msgid "Full Auto Brake "
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:34
-msgid "Bail Off Engaged (in Full position)"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:42
-msgid "Reverse Throttle Direction"
-msgstr ""
-
-#: ..\..\Orts.Settings\InputSettings.cs:332
+#: ..\..\..\Orts.Settings\RailDriverSettings.cs:183
 #, csharp-format
-msgid "{0} requires and is modified by Shift"
-msgstr "[{0} řè9úïřèƨ áñδ ïƨ ₥ôδïƒïèδ β¥ §λïƒƭ !!!]"
+msgid "\"{0}\" and "
+msgstr "[\"{0}\" áñδ  !!!]"
 
-#: ..\..\Orts.Settings\RailDriverSettings.cs:24
-msgid "Dynamic Brake"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:20
-msgid "Reverser Full Reversed"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:38
-msgid "Rotary Switch 2-Position 1(OFF)"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:21
-msgid "Reverser Full Forward"
-msgstr ""
-
-#: ..\..\Orts.Settings\Store\SettingsStore.cs:13
-msgid "OpenRails.json"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:40
-msgid "Rotary Switch 2-Position 3(FULL)"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:41
-msgid "Reverse Reverser Direction"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:25
-msgid "Dynamic Brake Setup"
-msgstr ""
-
-#: ..\..\Orts.Settings\InputSettings.cs:334
-#, csharp-format
-msgid "{0} requires and is modified by Control"
-msgstr "[{0} řè9úïřèƨ áñδ ïƨ ₥ôδïƒïèδ β¥ Çôñƭřôℓ !!!]"
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:31
-msgid "Bail Off Disengaged (in Released position)"
-msgstr ""
-
-#: ..\..\Orts.Settings\Store\SettingsStore.cs:15
-msgid "SOFTWARE\\OpenRails"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:23
-msgid "Full Throttle"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:36
-msgid "Rotary Switch 1-Position 2(SLOW)"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:44
-msgid "Reverse Independent Brake Direction"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:46
-msgid "Cut Off Delta"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:45
-msgid "Full Range Throttle"
-msgstr ""
-
-#: ..\..\Orts.Settings\InputSettings.cs:336
-#, csharp-format
-msgid "{0} requires and is modified by Alt"
-msgstr "[{0} řè9úïřèƨ áñδ ïƨ ₥ôδïƒïèδ β¥ Âℓƭ !!!]"
-
-#: ..\..\Orts.Settings\Store\SettingsStore.cs:11
-msgid "OpenRails.ini"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:39
-msgid "Rotary Switch 2-Position 2(DIM)"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:37
-msgid "Rotary Switch 1-Position 3(FULL)"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:26
-msgid "Auto Brake Released"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:29
-msgid "Independent Brake Released"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:19
-msgid "Reverser Neutral"
-msgstr ""
-
-#: ..\..\Orts.Settings\InputSettings.cs:369
+#: ..\..\..\Orts.Settings\InputSettings.cs:426
 #, csharp-format
 msgid "{0} and {1} both match {2}"
 msgstr "[{0} áñδ {1} βôƭλ ₥áƭçλ {2} !!!]"
 
-#: ..\..\Orts.Settings\RailDriverSettings.cs:223
+#: ..\..\..\Orts.Settings\InputSettings.cs:394
+#, csharp-format
+msgid "{0} requires and is modified by Alt"
+msgstr "[{0} řè9úïřèƨ áñδ ïƨ ₥ôδïƒïèδ β¥ Âℓƭ !!!]"
+
+#: ..\..\..\Orts.Settings\InputSettings.cs:392
+#, csharp-format
+msgid "{0} requires and is modified by Control"
+msgstr "[{0} řè9úïřèƨ áñδ ïƨ ₥ôδïƒïèδ β¥ Çôñƭřôℓ !!!]"
+
+#: ..\..\..\Orts.Settings\InputSettings.cs:390
+#, csharp-format
+msgid "{0} requires and is modified by Shift"
+msgstr "[{0} řè9úïřèƨ áñδ ïƨ ₥ôδïƒïèδ β¥ §λïƒƭ !!!]"
+
+#: ..\..\..\Orts.Settings\RailDriverSettings.cs:180
 #, csharp-format
 msgid ""
 "Button {0} is assigned to \r\n"
 "\t"
 msgstr ""
+"[ßúƭƭôñ {0} ïƨ áƨƨïϱñèδ ƭô \r\n"
+"\ƭ !!!]"
 
-#: ..\..\Orts.Settings\RailDriverSettings.cs:22
-msgid "Throttle Idle"
-msgstr ""
+#: ..\..\..\Orts.Settings\Store\SettingsStore.cs:12
+msgid "OpenRails.ini"
+msgstr "[ÓƥèñRáïℓƨ.ïñï !!!]"
 
-#: ..\..\Orts.Settings\RailDriverSettings.cs:33
-msgid "Bail Off Disengaged (in Full position)"
-msgstr ""
+#: ..\..\..\Orts.Settings\Store\SettingsStore.cs:14
+msgid "OpenRails.json"
+msgstr "[ÓƥèñRáïℓƨ.Jƨôñ !!!]"
 
-#: ..\..\Orts.Settings\RailDriverSettings.cs:30
-msgid "Independent Brake Full"
-msgstr ""
+#: ..\..\..\Orts.Settings\Store\SettingsStore.cs:16
+msgid "SOFTWARE\\OpenRails"
+msgstr "[§ÓFTWÂRÉ\\ÓƥèñRáïℓƨ !!!]"
 
-#: ..\..\Orts.Settings\RailDriverSettings.cs:35
-msgid "Rotary Switch 1-Position 1(OFF)"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:28
-msgid "Emergency Brake"
-msgstr ""
-
-#: ..\..\Orts.Settings\RailDriverSettings.cs:32
-msgid "Bail Off Engaged (in Released position)"
-msgstr ""

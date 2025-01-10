@@ -1,0 +1,94 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Orts.Formats.Msts\n"
+"POT-Creation-Date: 2022-08-18 08:51:58+0200\n"
+"PO-Revision-Date: 2022-08-18 08:51:58+0200\n"
+"Last-Translator: \n"
+"Language-Team: Open Rails Dev Team\n"
+"Language: qps-ploc\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: PowerShell Update-Pseudo.ps1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:632
+msgid "coal"
+msgstr "[çôáℓ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:659
+msgid "Control"
+msgstr "[Çôñƭřôℓ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:655
+msgid "Diesel"
+msgstr "[Ðïèƨèℓ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:633
+msgid "diesel oil"
+msgstr "[δïèƨèℓ ôïℓ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:657
+msgid "Electric"
+msgstr "[Éℓèçƭřïç !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:628
+msgid "freight-coal"
+msgstr "[ƒřèïϱλƭ-çôáℓ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:638
+msgid "freight-fuel"
+msgstr "[ƒřèïϱλƭ-ƒúèℓ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:636
+msgid "freight-general"
+msgstr "[ƒřèïϱλƭ-ϱèñèřáℓ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:627
+msgid "freight-grain"
+msgstr "[ƒřèïϱλƭ-ϱřáïñ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:629
+msgid "freight-gravel"
+msgstr "[ƒřèïϱλƭ-ϱřáƲèℓ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:637
+msgid "freight-livestock"
+msgstr "[ƒřèïϱλƭ-ℓïƲèƨƭôçƙ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:639
+msgid "freight-milk"
+msgstr "[ƒřèïϱλƭ-₥ïℓƙ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:630
+msgid "freight-sand"
+msgstr "[ƒřèïϱλƭ-ƨáñδ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:640
+msgid "mail"
+msgstr "[₥áïℓ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:626
+msgid "none"
+msgstr "[ñôñè !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:635
+msgid "sand"
+msgstr "[ƨáñδ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:653
+msgid "Steam"
+msgstr "[§ƭèá₥ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:651
+msgid "Unknown"
+msgstr "[Ûñƙñôωñ !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:631
+msgid "water"
+msgstr "[ωáƭèř !!!]"
+
+#: ..\..\..\Orts.Formats.Msts\Enums.cs:634
+msgid "wood"
+msgstr "[ωôôδ !!!]"
+

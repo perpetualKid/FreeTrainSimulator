@@ -1,0 +1,150 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: FreeTrainSimulator.Graphics\n"
+"POT-Creation-Date: 2025-01-10 20:24:28+0100\n"
+"PO-Revision-Date: 2025-01-10 20:24:29+0100\n"
+"Last-Translator: \n"
+"Language-Team: Open Rails Dev Team\n"
+"Language: qps-ploc\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: PowerShell Update-Pseudo.ps1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:36
+msgid "0m"
+msgstr "[0₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:57
+msgid "0yd"
+msgstr "[0¥δ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:52
+msgid "100km"
+msgstr "[100ƙ₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:43
+msgid "100m"
+msgstr "[100₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:64
+msgid "100yd"
+msgstr "[100¥δ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:49
+msgid "10km"
+msgstr "[10ƙ₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:40
+msgid "10m"
+msgstr "[10₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:71
+msgid "10mi"
+msgstr "[10₥ï !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:61
+msgid "10yd"
+msgstr "[10¥δ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:46
+msgid "1km"
+msgstr "[1ƙ₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:37
+msgid "1m"
+msgstr "[1₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:68
+msgid "1mi"
+msgstr "[1₥ï !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:58
+msgid "1yd"
+msgstr "[1¥δ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:44
+msgid "200m"
+msgstr "[200₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:65
+msgid "200yd"
+msgstr "[200¥δ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:50
+msgid "20km"
+msgstr "[20ƙ₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:41
+msgid "20m"
+msgstr "[20₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:72
+msgid "20mi"
+msgstr "[20₥ï !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:62
+msgid "20yd"
+msgstr "[20¥δ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:47
+msgid "2km"
+msgstr "[2ƙ₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:38
+msgid "2m"
+msgstr "[2₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:69
+msgid "2mi"
+msgstr "[2₥ï !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:59
+msgid "2yd"
+msgstr "[2¥δ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:66
+msgid "400yd"
+msgstr "[400¥δ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:45
+msgid "500m"
+msgstr "[500₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:51
+msgid "50km"
+msgstr "[50ƙ₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:42
+msgid "50m"
+msgstr "[50₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:73
+msgid "50mi"
+msgstr "[50₥ï !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:63
+msgid "50yd"
+msgstr "[50¥δ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:48
+msgid "5km"
+msgstr "[5ƙ₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:39
+msgid "5m"
+msgstr "[5₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:70
+msgid "5mi"
+msgstr "[5₥ï !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:60
+msgid "5yd"
+msgstr "[5¥δ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Graphics\DrawableComponents\ScaleRulerComponent.cs:67
+msgid "800yd"
+msgstr "[800¥δ !!!]"
+

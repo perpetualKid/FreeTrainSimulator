@@ -1,0 +1,2280 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: FreeTrainSimulator.Common\n"
+"POT-Creation-Date: 2025-01-10 20:24:27+0100\n"
+"PO-Revision-Date: 2025-01-10 20:24:27+0100\n"
+"Last-Translator: \n"
+"Language-Team: Open Rails Dev Team\n"
+"Language: qps-ploc\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: PowerShell Update-Pseudo.ps1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1188
+msgid "———"
+msgstr "[——— !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:83
+msgid "°C"
+msgstr "[°Ç !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:84
+msgid "°F"
+msgstr "[°F !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1367
+msgid "1STW"
+msgstr "[1§TW !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1331
+msgid "AIFR"
+msgstr "[ÂÌFR !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:821
+msgid "Apply"
+msgstr "[Âƥƥℓ¥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1192
+msgid "Async"
+msgstr "[Âƨ¥ñç !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1332
+msgid "AUTO"
+msgstr "[ÂÛTÓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:146
+msgid "Auto Brake Released"
+msgstr "[Âúƭô ßřáƙè Rèℓèáƨèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:828
+msgid "Auto Signal"
+msgstr "[Âúƭô §ïϱñáℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:153
+msgid "Bail Off Disengaged (in Full position)"
+msgstr "[ßáïℓ Óƒƒ Ðïƨèñϱáϱèδ (ïñ Fúℓℓ ƥôƨïƭïôñ) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:151
+msgid "Bail Off Disengaged (in Released position)"
+msgstr "[ßáïℓ Óƒƒ Ðïƨèñϱáϱèδ (ïñ Rèℓèáƨèδ ƥôƨïƭïôñ) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:154
+msgid "Bail Off Engaged (in Full position)"
+msgstr "[ßáïℓ Óƒƒ Éñϱáϱèδ (ïñ Fúℓℓ ƥôƨïƭïôñ) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:152
+msgid "Bail Off Engaged (in Released position)"
+msgstr "[ßáïℓ Óƒƒ Éñϱáϱèδ (ïñ Rèℓèáƨèδ ƥôƨïƭïôñ) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:61
+msgid "bar"
+msgstr "[βář !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1373
+msgid "BATT"
+msgstr "[ßÂTT !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1365
+msgid "BC"
+msgstr "[ßÇ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1360
+msgid "BDYN"
+msgstr "[ßÐÝN !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:79
+msgid "bhp"
+msgstr "[βλƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1361
+msgid "BLOC"
+msgstr "[ß£ÓÇ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:87
+msgid "Brake Cyl Press"
+msgstr "[ßřáƙè Ç¥ℓ Þřèƨƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1327
+msgid "BRKP"
+msgstr "[ßRKÞ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1359
+msgid "BTRN"
+msgstr "[ßTRN !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:82
+msgid "BTU"
+msgstr "[ßTÛ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:100
+msgid "Camera Brakeman"
+msgstr "[Çá₥èřá ßřáƙè₥áñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:126
+msgid "Camera Browse Backwards"
+msgstr "[Çá₥èřá ßřôωƨè ßáçƙωářδƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:127
+msgid "Camera Browse Forwards"
+msgstr "[Çá₥èřá ßřôωƨè Fôřωářδƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:88
+msgid "Camera Cab"
+msgstr "[Çá₥èřá Çáβ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:118
+msgid "Camera Car First"
+msgstr "[Çá₥èřá Çář Fïřƨƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:119
+msgid "Camera Car Last"
+msgstr "[Çá₥èřá Çář £áƨƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:116
+msgid "Camera Car Next"
+msgstr "[Çá₥èřá Çář Nèжƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:117
+msgid "Camera Car Previous"
+msgstr "[Çá₥èřá Çář ÞřèƲïôúƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:89
+msgid "Camera Change Passenger Viewpoint"
+msgstr "[Çá₥èřá Çλáñϱè Þáƨƨèñϱèř Vïèωƥôïñƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:101
+msgid "Camera Free"
+msgstr "[Çá₥èřá Fřèè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:94
+msgid "Camera Head Out Backward"
+msgstr "[Çá₥èřá Hèáδ Óúƭ ßáçƙωářδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:93
+msgid "Camera Head Out Forward"
+msgstr "[Çá₥èřá Hèáδ Óúƭ Fôřωářδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:121
+msgid "Camera Jump Back Player"
+msgstr "[Çá₥èřá Jú₥ƥ ßáçƙ Þℓá¥èř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:122
+msgid "Camera Jump See Switch"
+msgstr "[Çá₥èřá Jú₥ƥ §èè §ωïƭçλ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:120
+msgid "Camera Jumping Trains"
+msgstr "[Çá₥èřá Jú₥ƥïñϱ Třáïñƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:104
+msgid "Camera Move Fast"
+msgstr "[Çá₥èřá MôƲè Fáƨƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:105
+msgid "Camera Move Slow"
+msgstr "[Çá₥èřá MôƲè §ℓôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:95
+msgid "Camera Outside Front"
+msgstr "[Çá₥èřá Óúƭƨïδè Fřôñƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:96
+msgid "Camera Outside Rear"
+msgstr "[Çá₥èřá Óúƭƨïδè Rèář !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:109
+msgid "Camera Pan (Rotate) Down"
+msgstr "[Çá₥èřá Þáñ (Rôƭáƭè) Ðôωñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:106
+msgid "Camera Pan (Rotate) Left"
+msgstr "[Çá₥èřá Þáñ (Rôƭáƭè) £èƒƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:107
+msgid "Camera Pan (Rotate) Right"
+msgstr "[Çá₥èřá Þáñ (Rôƭáƭè) Rïϱλƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:108
+msgid "Camera Pan (Rotate) Up"
+msgstr "[Çá₥èřá Þáñ (Rôƭáƭè) Ûƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:99
+msgid "Camera Passenger"
+msgstr "[Çá₥èřá Þáƨƨèñϱèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:102
+msgid "Camera Previous Free"
+msgstr "[Çá₥èřá ÞřèƲïôúƨ Fřèè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:103
+msgid "Camera Reset"
+msgstr "[Çá₥èřá Rèƨèƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:115
+msgid "Camera Rotate (Pan) Down"
+msgstr "[Çá₥èřá Rôƭáƭè (Þáñ) Ðôωñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:112
+msgid "Camera Rotate (Pan) Left"
+msgstr "[Çá₥èřá Rôƭáƭè (Þáñ) £èƒƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:113
+msgid "Camera Rotate (Pan) Right"
+msgstr "[Çá₥èřá Rôƭáƭè (Þáñ) Rïϱλƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:114
+msgid "Camera Rotate (Pan) Up"
+msgstr "[Çá₥èřá Rôƭáƭè (Þáñ) Ûƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:125
+msgid "Camera Scroll Left"
+msgstr "[Çá₥èřá §çřôℓℓ £èƒƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:124
+msgid "Camera Scroll Right"
+msgstr "[Çá₥èřá §çřôℓℓ Rïϱλƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:98
+msgid "Camera SpecialTracksidePoint"
+msgstr "[Çá₥èřá §ƥèçïáℓTřáçƙƨïδèÞôïñƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:90
+msgid "Camera Toggle 3D Cab"
+msgstr "[Çá₥èřá Tôϱϱℓè 3Ð Çáβ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:92
+msgid "Camera Toggle Letterbox Cab"
+msgstr "[Çá₥èřá Tôϱϱℓè £èƭƭèřβôж Çáβ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:91
+msgid "Camera Toggle Show Cab"
+msgstr "[Çá₥èřá Tôϱϱℓè §λôω Çáβ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:97
+msgid "Camera Trackside"
+msgstr "[Çá₥èřá Třáçƙƨïδè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:123
+msgid "Camera Vibrate"
+msgstr "[Çá₥èřá Vïβřáƭè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:110
+msgid "Camera Zoom In (Move Z)"
+msgstr "[Çá₥èřá Zôô₥ Ìñ (MôƲè Z) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:111
+msgid "Camera Zoom Out (Move Z)"
+msgstr "[Çá₥èřá Zôô₥ Óúƭ (MôƲè Z) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1378
+msgid "CCMA"
+msgstr "[ÇÇMÂ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1337
+msgid "CCOK"
+msgstr "[ÇÇÓK !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1376
+msgid "CCST"
+msgstr "[ÇÇ§T !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1377
+msgid "CCTG"
+msgstr "[ÇÇTG !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1336
+msgid "CIRC"
+msgstr "[ÇÌRÇ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:315
+msgid "coal"
+msgstr "[çôáℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:324
+msgid "container"
+msgstr "[çôñƭáïñèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:227
+msgid "Control AI Fire Off"
+msgstr "[Çôñƭřôℓ ÂÌ Fïřè Óƒƒ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:226
+msgid "Control AI Fire On"
+msgstr "[Çôñƭřôℓ ÂÌ Fïřè Óñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:228
+msgid "Control AI Fire Reset"
+msgstr "[Çôñƭřôℓ ÂÌ Fïřè Rèƨèƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:156
+msgid "Control Alerter"
+msgstr "[Çôñƭřôℓ Âℓèřƭèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:130
+msgid "Control Backwards"
+msgstr "[Çôñƭřôℓ ßáçƙωářδƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:145
+msgid "Control Bail Off"
+msgstr "[Çôñƭřôℓ ßáïℓ Óƒƒ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:173
+msgid "Control Battery Close"
+msgstr "[Çôñƭřôℓ ßáƭƭèř¥ Çℓôƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:174
+msgid "Control Battery Open"
+msgstr "[Çôñƭřôℓ ßáƭƭèř¥ Óƥèñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:163
+msgid "Control Bell"
+msgstr "[Çôñƭřôℓ ßèℓℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:164
+msgid "Control Bell Toggle"
+msgstr "[Çôñƭřôℓ ßèℓℓ Tôϱϱℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:195
+msgid "Control Blowdown Valve"
+msgstr "[Çôñƭřôℓ ßℓôωδôωñ VáℓƲè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:197
+msgid "Control Blower Decrease"
+msgstr "[Çôñƭřôℓ ßℓôωèř Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:196
+msgid "Control Blower Increase"
+msgstr "[Çôñƭřôℓ ßℓôωèř Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:154
+msgid "Control Brake Hose Connect"
+msgstr "[Çôñƭřôℓ ßřáƙè Hôƨè Çôññèçƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:155
+msgid "Control Brake Hose Disconnect"
+msgstr "[Çôñƭřôℓ ßřáƙè Hôƨè Ðïƨçôññèçƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:142
+msgid "Control Brakeman Brake Decrease"
+msgstr "[Çôñƭřôℓ ßřáƙè₥áñ ßřáƙè Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:141
+msgid "Control Brakeman Brake Increase"
+msgstr "[Çôñƭřôℓ ßřáƙè₥áñ ßřáƙè Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:225
+msgid "Control Cab Radio"
+msgstr "[Çôñƭřôℓ Çáβ Ráδïô !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:180
+msgid "Control Circuit Breaker Closing Authorization"
+msgstr "[Çôñƭřôℓ Çïřçúïƭ ßřèáƙèř Çℓôƨïñϱ Âúƭλôřïƺáƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:178
+msgid "Control Circuit Breaker Closing Order"
+msgstr "[Çôñƭřôℓ Çïřçúïƭ ßřèáƙèř Çℓôƨïñϱ Óřδèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:179
+msgid "Control Circuit Breaker Opening Order"
+msgstr "[Çôñƭřôℓ Çïřçúïƭ ßřèáƙèř Óƥèñïñϱ Óřδèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:240
+msgid "Control Cruise Control Mode Decrease"
+msgstr "[Çôñƭřôℓ Çřúïƨè Çôñƭřôℓ Môδè Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:239
+msgid "Control Cruise Control Mode Increase"
+msgstr "[Çôñƭřôℓ Çřúïƨè Çôñƭřôℓ Môδè Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:207
+msgid "Control Cylinder Cocks"
+msgstr "[Çôñƭřôℓ Ç¥ℓïñδèř Çôçƙƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:213
+msgid "Control Cylinder Compound"
+msgstr "[Çôñƭřôℓ Ç¥ℓïñδèř Çô₥ƥôúñδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:201
+msgid "Control Damper Decrease"
+msgstr "[Çôñƭřôℓ Ðá₥ƥèř Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:200
+msgid "Control Damper Increase"
+msgstr "[Çôñƭřôℓ Ðá₥ƥèř Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:186
+msgid "Control Diesel Helper"
+msgstr "[Çôñƭřôℓ Ðïèƨèℓ Hèℓƥèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:185
+msgid "Control Diesel Player"
+msgstr "[Çôñƭřôℓ Ðïèƨèℓ Þℓá¥èř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:216
+msgid "Control Discrete Unload"
+msgstr "[Çôñƭřôℓ Ðïƨçřèƭè Ûñℓôáδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:165
+msgid "Control Door Left"
+msgstr "[Çôñƭřôℓ Ðôôř £èƒƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:166
+msgid "Control Door Right"
+msgstr "[Çôñƭřôℓ Ðôôř Rïϱλƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:248
+msgid "Control DP Brake"
+msgstr "[Çôñƭřôℓ ÐÞ ßřáƙè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:247
+msgid "Control DP Idle"
+msgstr "[Çôñƭřôℓ ÐÞ Ìδℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:250
+msgid "Control DP Less"
+msgstr "[Çôñƭřôℓ ÐÞ £èƨƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:249
+msgid "Control DP More"
+msgstr "[Çôñƭřôℓ ÐÞ Môřè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:245
+msgid "Control DP Move To Back"
+msgstr "[Çôñƭřôℓ ÐÞ MôƲè Tô ßáçƙ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:244
+msgid "Control DP Move To Front"
+msgstr "[Çôñƭřôℓ ÐÞ MôƲè Tô Fřôñƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:246
+msgid "Control DP Traction"
+msgstr "[Çôñƭřôℓ ÐÞ Třáçƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:144
+msgid "Control Dynamic Brake Decrease"
+msgstr "[Çôñƭřôℓ Ð¥ñá₥ïç ßřáƙè Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:143
+msgid "Control Dynamic Brake Increase"
+msgstr "[Çôñƭřôℓ Ð¥ñá₥ïç ßřáƙè Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:184
+msgid "Control Electric Train Supply"
+msgstr "[Çôñƭřôℓ Éℓèçƭřïç Třáïñ §úƥƥℓ¥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:157
+msgid "Control Emergency Push Button"
+msgstr "[Çôñƭřôℓ É₥èřϱèñç¥ Þúƨλ ßúƭƭôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:140
+msgid "Control Engine Brake Decrease"
+msgstr "[Çôñƭřôℓ Éñϱïñè ßřáƙè Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:139
+msgid "Control Engine Brake Increase"
+msgstr "[Çôñƭřôℓ Éñϱïñè ßřáƙè Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:158
+msgid "Control EOT Emergency Brake"
+msgstr "[Çôñƭřôℓ ÉÓT É₥èřϱèñç¥ ßřáƙè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:206
+msgid "Control Fire Shovel Full"
+msgstr "[Çôñƭřôℓ Fïřè §λôƲèℓ Fúℓℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:203
+msgid "Control Firebox Close"
+msgstr "[Çôñƭřôℓ Fïřèβôж Çℓôƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:202
+msgid "Control Firebox Open"
+msgstr "[Çôñƭřôℓ Fïřèβôж Óƥèñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:214
+msgid "Control Firing"
+msgstr "[Çôñƭřôℓ Fïřïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:205
+msgid "Control Firing Rate Decrease"
+msgstr "[Çôñƭřôℓ Fïřïñϱ Ráƭè Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:204
+msgid "Control Firing Rate Increase"
+msgstr "[Çôñƭřôℓ Fïřïñϱ Ráƭè Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:129
+msgid "Control Forwards"
+msgstr "[Çôñƭřôℓ Fôřωářδƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:135
+msgid "Control Gear Down"
+msgstr "[Çôñƭřôℓ Gèář Ðôωñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:134
+msgid "Control Gear Up"
+msgstr "[Çôñƭřôℓ Gèář Ûƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:221
+msgid "Control Generic Item 1"
+msgstr "[Çôñƭřôℓ Gèñèřïç Ìƭè₥ 1 !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:222
+msgid "Control Generic Item 2"
+msgstr "[Çôñƭřôℓ Gèñèřïç Ìƭè₥ 2 !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:147
+msgid "Control Handbrake Full"
+msgstr "[Çôñƭřôℓ Háñδβřáƙè Fúℓℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:148
+msgid "Control Handbrake None"
+msgstr "[Çôñƭřôℓ Háñδβřáƙè Nôñè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:188
+msgid "Control Headlight Decrease"
+msgstr "[Çôñƭřôℓ Hèáδℓïϱλƭ Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:187
+msgid "Control Headlight Increase"
+msgstr "[Çôñƭřôℓ Hèáδℓïϱλƭ Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:162
+msgid "Control Horn"
+msgstr "[Çôñƭřôℓ Hôřñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:218
+msgid "Control ImmediateRefill"
+msgstr "[Çôñƭřôℓ Ì₥₥èδïáƭèRèƒïℓℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:146
+msgid "Control Initialize Brakes"
+msgstr "[Çôñƭřôℓ Ìñïƭïáℓïƺè ßřáƙèƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:191
+msgid "Control Injector 1"
+msgstr "[Çôñƭřôℓ ÌñJèçƭôř 1 !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:190
+msgid "Control Injector 1 Decrease"
+msgstr "[Çôñƭřôℓ ÌñJèçƭôř 1 Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:189
+msgid "Control Injector 1 Increase"
+msgstr "[Çôñƭřôℓ ÌñJèçƭôř 1 Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:194
+msgid "Control Injector 2"
+msgstr "[Çôñƭřôℓ ÌñJèçƭôř 2 !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:193
+msgid "Control Injector 2 Decrease"
+msgstr "[Çôñƭřôℓ ÌñJèçƭôř 2 Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:192
+msgid "Control Injector 2 Increase"
+msgstr "[Çôñƭřôℓ ÌñJèçƭôř 2 Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:209
+msgid "Control Large Ejector Decrease"
+msgstr "[Çôñƭřôℓ £ářϱè ÉJèçƭôř Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:208
+msgid "Control Large Ejector Increase"
+msgstr "[Çôñƭřôℓ £ářϱè ÉJèçƭôř Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:168
+msgid "Control Light"
+msgstr "[Çôñƭřôℓ £ïϱλƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:175
+msgid "Control Master Key"
+msgstr "[Çôñƭřôℓ Máƨƭèř Kè¥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:167
+msgid "Control Mirror"
+msgstr "[Çôñƭřôℓ Mïřřôř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:85
+msgid "Control Mode"
+msgstr "[Çôñƭřôℓ Môδè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:237
+msgid "Control Number Of Axles Decrease"
+msgstr "[Çôñƭřôℓ Nú₥βèř Óƒ Âжℓèƨ Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:236
+msgid "Control Number Of Axles Increase"
+msgstr "[Çôñƭřôℓ Nú₥βèř Óƒ Âжℓèƨ Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:151
+msgid "Control Odometer Direction"
+msgstr "[Çôñƭřôℓ Óδô₥èƭèř Ðïřèçƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:149
+msgid "Control Odometer Distance Mode"
+msgstr "[Çôñƭřôℓ Óδô₥èƭèř Ðïƨƭáñçè Môδè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:150
+msgid "Control Odometer Reset"
+msgstr "[Çôñƭřôℓ Óδô₥èƭèř Rèƨèƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:169
+msgid "Control Pantograph 1"
+msgstr "[Çôñƭřôℓ Þáñƭôϱřáƥλ 1 !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:170
+msgid "Control Pantograph 2"
+msgstr "[Çôñƭřôℓ Þáñƭôϱřáƥλ 2 !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:171
+msgid "Control Pantograph 3"
+msgstr "[Çôñƭřôℓ Þáñƭôϱřáƥλ 3 !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:172
+msgid "Control Pantograph 4"
+msgstr "[Çôñƭřôℓ Þáñƭôϱřáƥλ 4 !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:215
+msgid "Control Refill"
+msgstr "[Çôñƭřôℓ Rèƒïℓℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:238
+msgid "Control Restricted Speed Zone Active"
+msgstr "[Çôñƭřôℓ Rèƨƭřïçƭèδ §ƥèèδ Zôñè ÂçƭïƲè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:153
+msgid "Control Retainers Off"
+msgstr "[Çôñƭřôℓ Rèƭáïñèřƨ Óƒƒ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:152
+msgid "Control Retainers On"
+msgstr "[Çôñƭřôℓ Rèƭáïñèřƨ Óñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:159
+msgid "Control Sander"
+msgstr "[Çôñƭřôℓ §áñδèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:160
+msgid "Control Sander Toggle"
+msgstr "[Çôñƭřôℓ §áñδèř Tôϱϱℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:233
+msgid "Control Selected Speed Decrease"
+msgstr "[Çôñƭřôℓ §èℓèçƭèδ §ƥèèδ Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:232
+msgid "Control Selected Speed Increase"
+msgstr "[Çôñƭřôℓ §èℓèçƭèδ §ƥèèδ Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:242
+msgid "Control Selected Speed To Zero"
+msgstr "[Çôñƭřôℓ §èℓèçƭèδ §ƥèèδ Tô Zèřô !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:176
+msgid "Control Service Retention"
+msgstr "[Çôñƭřôℓ §èřƲïçè Rèƭèñƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:177
+msgid "Control Service Retention Cancellation"
+msgstr "[Çôñƭřôℓ §èřƲïçè Rèƭèñƭïôñ Çáñçèℓℓáƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:211
+msgid "Control Small Ejector Decrease"
+msgstr "[Çôñƭřôℓ §₥áℓℓ ÉJèçƭôř Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:210
+msgid "Control Small Ejector Increase"
+msgstr "[Çôñƭřôℓ §₥áℓℓ ÉJèçƭôř Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:235
+msgid "Control Speed Regulator Max Acceleration Decrease"
+msgstr "[Çôñƭřôℓ §ƥèèδ Rèϱúℓáƭôř Máж Âççèℓèřáƭïôñ Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:234
+msgid "Control Speed Regulator Max Acceleration Increase"
+msgstr "[Çôñƭřôℓ §ƥèèδ Rèϱúℓáƭôř Máж Âççèℓèřáƭïôñ Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:231
+msgid "Control Speed Regulator Mode Descrease"
+msgstr "[Çôñƭřôℓ §ƥèèδ Rèϱúℓáƭôř Môδè Ðèƨçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:230
+msgid "Control Speed Regulator Mode Increase"
+msgstr "[Çôñƭřôℓ §ƥèèδ Rèϱúℓáƭôř Môδè Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:199
+msgid "Control Steam Heat Decrease"
+msgstr "[Çôñƭřôℓ §ƭèá₥ Hèáƭ Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:198
+msgid "Control Steam Heat Increase"
+msgstr "[Çôñƭřôℓ §ƭèá₥ Hèáƭ Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:223
+msgid "Control TCS Generic 1"
+msgstr "[Çôñƭřôℓ TÇ§ Gèñèřïç 1 !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:224
+msgid "Control TCS Generic 2"
+msgstr "[Çôñƭřôℓ TÇ§ Gèñèřïç 2 !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:132
+msgid "Control Throttle Decrease"
+msgstr "[Çôñƭřôℓ Tλřôƭƭℓè Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:131
+msgid "Control Throttle Increase"
+msgstr "[Çôñƭřôℓ Tλřôƭƭℓè Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:133
+msgid "Control Throttle Zero"
+msgstr "[Çôñƭřôℓ Tλřôƭƭℓè Zèřô !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:183
+msgid "Control Traction Cut-Off Relay Closing Authorization"
+msgstr "[Çôñƭřôℓ Třáçƭïôñ Çúƭ-Óƒƒ Rèℓá¥ Çℓôƨïñϱ Âúƭλôřïƺáƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:181
+msgid "Control Traction Cut-Off Relay Closing Order"
+msgstr "[Çôñƭřôℓ Třáçƭïôñ Çúƭ-Óƒƒ Rèℓá¥ Çℓôƨïñϱ Óřδèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:182
+msgid "Control Traction Cut-Off Relay Opening Order"
+msgstr "[Çôñƭřôℓ Třáçƭïôñ Çúƭ-Óƒƒ Rèℓá¥ Óƥèñïñϱ Óřδèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:137
+msgid "Control Train Brake Decrease"
+msgstr "[Çôñƭřôℓ Třáïñ ßřáƙè Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:136
+msgid "Control Train Brake Increase"
+msgstr "[Çôñƭřôℓ Třáïñ ßřáƙè Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:138
+msgid "Control Train Brake Zero"
+msgstr "[Çôñƭřôℓ Třáïñ ßřáƙè Zèřô !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:241
+msgid "Control Train Type Change (Passenger/Cargo)"
+msgstr "[Çôñƭřôℓ Třáïñ T¥ƥè Çλáñϱè (Þáƨƨèñϱèř/Çářϱô) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:219
+msgid "Control Turntable Clockwise"
+msgstr "[Çôñƭřôℓ Túřñƭáβℓè Çℓôçƙωïƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:220
+msgid "Control Turntable Counterclockwise"
+msgstr "[Çôñƭřôℓ Túřñƭáβℓè Çôúñƭèřçℓôçƙωïƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:212
+msgid "Control Vacuum Exhauster"
+msgstr "[Çôñƭřôℓ Váçúú₥ Éжλáúƨƭèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:217
+msgid "Control Water Scoop"
+msgstr "[Çôñƭřôℓ Wáƭèř §çôôƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:161
+msgid "Control Wiper"
+msgstr "[Çôñƭřôℓ Wïƥèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:166
+msgid "Cut Off Delta"
+msgstr "[Çúƭ Óƒƒ Ðèℓƭá !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:75
+msgid "Debug Clock Backwards"
+msgstr "[Ðèβúϱ Çℓôçƙ ßáçƙωářδƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:74
+msgid "Debug Clock Forwards"
+msgstr "[Ðèβúϱ Çℓôçƙ Fôřωářδƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:78
+msgid "Debug Dump Keyboard Map"
+msgstr "[Ðèβúϱ Ðú₥ƥ Kè¥βôářδ Máƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:68
+msgid "Debug Fog Decrease"
+msgstr "[Ðèβúϱ Fôϱ Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:67
+msgid "Debug Fog Increase"
+msgstr "[Ðèβúϱ Fôϱ Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:77
+msgid "Debug Lock Shadows"
+msgstr "[Ðèβúϱ £ôçƙ §λáδôωƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:79
+msgid "Debug Log Render Frame"
+msgstr "[Ðèβúϱ £ôϱ Rèñδèř Fřá₥è !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:76
+msgid "Debug Logger"
+msgstr "[Ðèβúϱ £ôϱϱèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:66
+msgid "Debug Overcast Decrease"
+msgstr "[Ðèβúϱ ÓƲèřçáƨƭ Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:65
+msgid "Debug Overcast Increase"
+msgstr "[Ðèβúϱ ÓƲèřçáƨƭ Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:85
+msgid "Debug Physics Form"
+msgstr "[Ðèβúϱ Þλ¥ƨïçƨ Fôř₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:70
+msgid "Debug Precipitation Decrease"
+msgstr "[Ðèβúϱ Þřèçïƥïƭáƭïôñ Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:69
+msgid "Debug Precipitation Increase"
+msgstr "[Ðèβúϱ Þřèçïƥïƭáƭïôñ Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:72
+msgid "Debug Precipitation Liquidity Decrease"
+msgstr "[Ðèβúϱ Þřèçïƥïƭáƭïôñ £ï9úïδïƭ¥ Ðèçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:71
+msgid "Debug Precipitation Liquidity Increase"
+msgstr "[Ðèβúϱ Þřèçïƥïƭáƭïôñ £ï9úïδïƭ¥ Ìñçřèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:82
+msgid "Debug Reset Wheel Slip"
+msgstr "[Ðèβúϱ Rèƨèƭ Wλèèℓ §ℓïƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:81
+msgid "Debug Signalling"
+msgstr "[Ðèβúϱ §ïϱñáℓℓïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:84
+msgid "Debug Sound Form"
+msgstr "[Ðèβúϱ §ôúñδ Fôř₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:63
+msgid "Debug Speed Down"
+msgstr "[Ðèβúϱ §ƥèèδ Ðôωñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:64
+msgid "Debug Speed Reset"
+msgstr "[Ðèβúϱ §ƥèèδ Rèƨèƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:62
+msgid "Debug Speed Up"
+msgstr "[Ðèβúϱ §ƥèèδ Ûƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:83
+msgid "Debug Toggle Advanced Adhesion"
+msgstr "[Ðèβúϱ Tôϱϱℓè ÂδƲáñçèδ Âδλèƨïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:86
+msgid "Debug Toggle Confirmations"
+msgstr "[Ðèβúϱ Tôϱϱℓè Çôñƒïř₥áƭïôñƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:80
+msgid "Debug Tracks"
+msgstr "[Ðèβúϱ Třáçƙƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:73
+msgid "Debug Weather Change"
+msgstr "[Ðèβúϱ Wèáƭλèř Çλáñϱè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1340
+msgid "DERL"
+msgstr "[ÐÉR£ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1041
+msgid "Developer Builds"
+msgstr "[ÐèƲèℓôƥèř ßúïℓδƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:316
+msgid "diesel oil"
+msgstr "[δïèƨèℓ ôïℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1338
+msgid "DIR"
+msgstr "[ÐÌR !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:83
+msgid "Direction"
+msgstr "[Ðïřèçƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:52
+msgid "Display Car Labels"
+msgstr "[Ðïƨƥℓá¥ Çář £áβèℓƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:58
+msgid "Display Compass Window"
+msgstr "[Ðïƨƥℓá¥ Çô₥ƥáƨƨ Wïñδôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:60
+msgid "Display EOT List Window"
+msgstr "[Ðïƨƥℓá¥ ÉÓT £ïƨƭ Wïñδôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:41
+msgid "Display Help Window"
+msgstr "[Ðïƨƥℓá¥ Hèℓƥ Wïñδôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:43
+msgid "Display HUD"
+msgstr "[Ðïƨƥℓá¥ HÛÐ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:48
+msgid "Display HUD Next Loco"
+msgstr "[Ðïƨƥℓá¥ HÛÐ Nèжƭ £ôçô !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:49
+msgid "Display HUD Previous Loco"
+msgstr "[Ðïƨƥℓá¥ HÛÐ ÞřèƲïôúƨ £ôçô !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:47
+msgid "Display HUD Scroll Down"
+msgstr "[Ðïƨƥℓá¥ HÛÐ §çřôℓℓ Ðôωñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:44
+msgid "Display HUD Scroll Left"
+msgstr "[Ðïƨƥℓá¥ HÛÐ §çřôℓℓ £èƒƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:45
+msgid "Display HUD Scroll Right"
+msgstr "[Ðïƨƥℓá¥ HÛÐ §çřôℓℓ Rïϱλƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:46
+msgid "Display HUD Scroll Up"
+msgstr "[Ðïƨƥℓá¥ HÛÐ §çřôℓℓ Ûƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:51
+msgid "Display Multi Player Window"
+msgstr "[Ðïƨƥℓá¥ Múℓƭï Þℓá¥èř Wïñδôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:57
+msgid "Display Next Station Window"
+msgstr "[Ðïƨƥℓá¥ Nèжƭ §ƭáƭïôñ Wïñδôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:40
+msgid "Display Next Window Tab"
+msgstr "[Ðïƨƥℓá¥ Nèжƭ Wïñδôω Táβ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:53
+msgid "Display Station Labels"
+msgstr "[Ðïƨƥℓá¥ §ƭáƭïôñ £áβèℓƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:54
+msgid "Display Switch Window"
+msgstr "[Ðïƨƥℓá¥ §ωïƭçλ Wïñδôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:42
+msgid "Display Track Monitor Window"
+msgstr "[Ðïƨƥℓá¥ Třáçƙ Môñïƭôř Wïñδôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:56
+msgid "Display Train Dpu Window"
+msgstr "[Ðïƨƥℓá¥ Třáïñ Ðƥú Wïñδôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:50
+msgid "Display Train Driving Window"
+msgstr "[Ðïƨƥℓá¥ Třáïñ ÐřïƲïñϱ Wïñδôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:59
+msgid "Display Train List Window"
+msgstr "[Ðïƨƥℓá¥ Třáïñ £ïƨƭ Wïñδôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:55
+msgid "Display Train Operations Window"
+msgstr "[Ðïƨƥℓá¥ Třáïñ Óƥèřáƭïôñƨ Wïñδôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:84
+msgid "Distance Travelled"
+msgstr "[Ðïƨƭáñçè TřáƲèℓℓèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1341
+msgid "DOOR"
+msgstr "[ÐÓÓR !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1339
+msgid "DRLC"
+msgstr "[ÐR£Ç !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:88
+msgid "Dyn Brake %"
+msgstr "[Ð¥ñ ßřáƙè % !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:144
+msgid "Dynamic Brake"
+msgstr "[Ð¥ñá₥ïç ßřáƙè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:145
+msgid "Dynamic Brake Setup"
+msgstr "[Ð¥ñá₥ïç ßřáƙè §èƭúƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:823
+msgid "Emergency"
+msgstr "[É₥èřϱèñç¥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:148
+msgid "Emergency Brake"
+msgstr "[É₥èřϱèñç¥ ßřáƙè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1582
+msgid "End Auth"
+msgstr "[Éñδ Âúƭλ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1576
+msgid "End Path"
+msgstr "[Éñδ Þáƭλ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1575
+msgid "End Trck"
+msgstr "[Éñδ Třçƙ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1342
+msgid "ENGN"
+msgstr "[ÉNGN !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1375
+msgid "EOTD"
+msgstr "[ÉÓTÐ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1366
+msgid "EOTW"
+msgstr "[ÉÓTW !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1363
+msgid "ER"
+msgstr "[ÉR !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:200
+msgid "Error"
+msgstr "[Éřřôř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1509
+msgid "Exhaust"
+msgstr "[Éжλáúƨƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:831
+msgid "Explorer"
+msgstr "[Éжƥℓôřèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1343
+msgid "FIRE"
+msgstr "[FÌRÉ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1314
+msgid "FLOW"
+msgstr "[F£ÓW !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:311
+msgid "freight-coal"
+msgstr "[ƒřèïϱλƭ-çôáℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:321
+msgid "freight-fuel"
+msgstr "[ƒřèïϱλƭ-ƒúèℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:319
+msgid "freight-general"
+msgstr "[ƒřèïϱλƭ-ϱèñèřáℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:310
+msgid "freight-grain"
+msgstr "[ƒřèïϱλƭ-ϱřáïñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:312
+msgid "freight-gravel"
+msgstr "[ƒřèïϱλƭ-ϱřáƲèℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:320
+msgid "freight-livestock"
+msgstr "[ƒřèïϱλƭ-ℓïƲèƨƭôçƙ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:322
+msgid "freight-milk"
+msgstr "[ƒřèïϱλƭ-₥ïℓƙ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:313
+msgid "freight-sand"
+msgstr "[ƒřèïϱλƭ-ƨáñδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:52
+msgid "ft"
+msgstr "[ƒƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:55
+msgid "ft²"
+msgstr "[ƒƭ² !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:57
+msgid "ft³"
+msgstr "[ƒƭ³ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1345
+msgid "FUEL"
+msgstr "[FÛÉ£ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:147
+msgid "Full Auto Brake "
+msgstr "[Fúℓℓ Âúƭô ßřáƙè  !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:165
+msgid "Full Range Throttle"
+msgstr "[Fúℓℓ Ráñϱè Tλřôƭƭℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:143
+msgid "Full Throttle"
+msgstr "[Fúℓℓ Tλřôƭƭℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:74
+msgid "g-uk"
+msgstr "[ϱ-úƙ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:75
+msgid "g-us"
+msgstr "[ϱ-úƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:37
+msgid "Game Autopilot Mode"
+msgstr "[Gá₥è Âúƭôƥïℓôƭ Môδè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:27
+msgid "Game Change Cab"
+msgstr "[Gá₥è Çλáñϱè Çáβ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:34
+msgid "Game Clear Signal Backward"
+msgstr "[Gá₥è Çℓèář §ïϱñáℓ ßáçƙωářδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:33
+msgid "Game Clear Signal Forward"
+msgstr "[Gá₥è Çℓèář §ïϱñáℓ Fôřωářδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:20
+msgid "Game External Controller (RailDriver)"
+msgstr "[Gá₥è Éжƭèřñáℓ Çôñƭřôℓℓèř (RáïℓÐřïƲèř) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:19
+msgid "Game Fullscreen"
+msgstr "[Gá₥è Fúℓℓƨçřèèñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:29
+msgid "Game Multi Player Dispatcher"
+msgstr "[Gá₥è Múℓƭï Þℓá¥èř Ðïƨƥáƭçλèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:30
+msgid "Game Multi Player Texting"
+msgstr "[Gá₥è Múℓƭï Þℓá¥èř Tèжƭïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:17
+msgid "Game Pause"
+msgstr "[Gá₥è Þáúƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:14
+msgid "Game Pause Menu"
+msgstr "[Gá₥è Þáúƨè Mèñú !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:16
+msgid "Game Quit"
+msgstr "[Gá₥è Qúïƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:28
+msgid "Game Request Control"
+msgstr "[Gá₥è Rè9úèƨƭ Çôñƭřôℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:32
+msgid "Game Reset Out Of Control Mode"
+msgstr "[Gá₥è Rèƨèƭ Óúƭ Óƒ Çôñƭřôℓ Môδè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:36
+msgid "Game Reset Signal Backward"
+msgstr "[Gá₥è Rèƨèƭ §ïϱñáℓ ßáçƙωářδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:35
+msgid "Game Reset Signal Forward"
+msgstr "[Gá₥è Rèƨèƭ §ïϱñáℓ Fôřωářδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:15
+msgid "Game Save"
+msgstr "[Gá₥è §áƲè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:18
+msgid "Game Screenshot"
+msgstr "[Gá₥è §çřèèñƨλôƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:24
+msgid "Game Signal Picked"
+msgstr "[Gá₥è §ïϱñáℓ Þïçƙèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:38
+msgid "Game Suspend Old Player"
+msgstr "[Gá₥è §úƨƥèñδ Óℓδ Þℓá¥èř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:21
+msgid "Game Switch Ahead"
+msgstr "[Gá₥è §ωïƭçλ Âλèáδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:22
+msgid "Game Switch Behind"
+msgstr "[Gá₥è §ωïƭçλ ßèλïñδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:31
+msgid "Game Switch Manual Mode"
+msgstr "[Gá₥è §ωïƭçλ Máñúáℓ Môδè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:23
+msgid "Game Switch Picked"
+msgstr "[Gá₥è §ωïƭçλ Þïçƙèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:25
+msgid "Game Switch With Mouse"
+msgstr "[Gá₥è §ωïƭçλ Wïƭλ Môúƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\UserCommand.cs:26
+msgid "Game Uncouple With Mouse"
+msgstr "[Gá₥è Ûñçôúƥℓè Wïƭλ Môúƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1344
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1346
+msgid "GEAR"
+msgstr "[GÉÂR !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:89
+msgid "Gear Setting"
+msgstr "[Gèář §èƭƭïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1347
+msgid "GRAD"
+msgstr "[GRÂÐ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1348
+msgid "GRAT"
+msgstr "[GRÂT !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1316
+msgid "GRUP"
+msgstr "[GRÛÞ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:72
+msgid "h"
+msgstr "[λ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1510
+msgid "High Pressure"
+msgstr "[Hïϱλ Þřèƨƨúřè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:78
+msgid "hp"
+msgstr "[λƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:833
+msgid "Inactive"
+msgstr "[ÌñáçƭïƲè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:150
+msgid "Independent Brake Full"
+msgstr "[Ìñδèƥèñδèñƭ ßřáƙè Fúℓℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:149
+msgid "Independent Brake Released"
+msgstr "[Ìñδèƥèñδèñƭ ßřáƙè Rèℓèáƨèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:198
+msgid "Information"
+msgstr "[Ìñƒôř₥áƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:63
+msgid "inHg"
+msgstr "[ïñHϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:16
+msgid "Key Down"
+msgstr "[Kè¥ Ðôωñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:12
+msgid "Key Pressed"
+msgstr "[Kè¥ Þřèƨƨèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:20
+msgid "Key Released"
+msgstr "[Kè¥ Rèℓèáƨèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:65
+msgid "kg"
+msgstr "[ƙϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:64
+msgid "kgf/cm²"
+msgstr "[ƙϱƒ/ç₥² !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:80
+msgid "kJ"
+msgstr "[ƙJ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:88
+msgid "klbf"
+msgstr "[ƙℓβƒ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:49
+msgid "km"
+msgstr "[ƙ₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:58
+msgid "km/h"
+msgstr "[ƙ₥/λ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:86
+msgid "kN"
+msgstr "[ƙN !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:60
+msgid "kPa"
+msgstr "[ƙÞá !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:77
+msgid "kW"
+msgstr "[ƙW !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:73
+msgid "L"
+msgstr "[£ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:820
+msgid "Lap"
+msgstr "[£áƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:69
+msgid "lb"
+msgstr "[ℓβ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:87
+msgid "lbf"
+msgstr "[ℓβƒ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1335
+msgid "LEVL"
+msgstr "[£ÉV£ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1315
+msgid "LOAD"
+msgstr "[£ÓÂÐ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1328
+msgid "LOCS"
+msgstr "[£ÓÇ§ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1580
+msgid "Loop"
+msgstr "[£ôôƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1511
+msgid "Low Pressure"
+msgstr "[£ôω Þřèƨƨúřè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:48
+msgid "m"
+msgstr "[₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:54
+msgid "m²"
+msgstr "[₥² !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:56
+msgid "m³"
+msgstr "[₥³ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:323
+msgid "mail"
+msgstr "[₥áïℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:830
+msgid "Manual"
+msgstr "[Máñúáℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1372
+msgid "MAST"
+msgstr "[MÂ§T !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1579
+msgid "Max Dist"
+msgstr "[Máж Ðïƨƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:80
+msgid "Max. Speed"
+msgstr "[Máж. §ƥèèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:201
+msgid "Message"
+msgstr "[Mèƨƨáϱè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:51
+msgid "mi"
+msgstr "[₥ï !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:71
+msgid "min"
+msgstr "[₥ïñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:842
+msgid "Misalg Sw"
+msgstr "[Mïƨáℓϱ §ω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:81
+msgid "MJ"
+msgstr "[MJ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:50
+msgid "mm"
+msgstr "[₥₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:59
+msgid "mph"
+msgstr "[₥ƥλ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1364
+msgid "MR"
+msgstr "[MR !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:85
+msgid "N"
+msgstr "[N !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1583
+msgid "No Path"
+msgstr "[Nô Þáƭλ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:829
+msgid "Node"
+msgstr "[Nôδè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:309
+msgid "none"
+msgstr "[ñôñè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:77
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:197
+msgid "None"
+msgstr "[Nôñè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1356
+msgid "ODO"
+msgstr "[ÓÐÓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:843
+msgid "Off Auth"
+msgstr "[Óƒƒ Âúƭλ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:844
+msgid "Off Path"
+msgstr "[Óƒƒ Þáƭλ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:847
+msgid "Off Track"
+msgstr "[Óƒƒ Třáçƙ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1317
+msgid "OILP"
+msgstr "[ÓÌ£Þ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:832
+msgid "OutOfControl"
+msgstr "[ÓúƭÓƒÇôñƭřôℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1349
+msgid "PANT"
+msgstr "[ÞÂNT !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1318
+msgid "POWR"
+msgstr "[ÞÓWR !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1040
+msgid "Pre-Release"
+msgstr "[Þřè-Rèℓèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1333
+msgid "PRES"
+msgstr "[ÞRÉ§ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:62
+msgid "psi"
+msgstr "[ƥƨï !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1350
+msgid "REGL"
+msgstr "[RÉG£ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:822
+msgid "Release"
+msgstr "[Rèℓèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1362
+msgid "RETN"
+msgstr "[RÉTN !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:163
+msgid "Reverse Auto Brake Direction"
+msgstr "[RèƲèřƨè Âúƭô ßřáƙè Ðïřèçƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:164
+msgid "Reverse Independent Brake Direction"
+msgstr "[RèƲèřƨè Ìñδèƥèñδèñƭ ßřáƙè Ðïřèçƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:161
+msgid "Reverse Reverser Direction"
+msgstr "[RèƲèřƨè RèƲèřƨèř Ðïřèçƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:162
+msgid "Reverse Throttle Direction"
+msgstr "[RèƲèřƨè Tλřôƭƭℓè Ðïřèçƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:141
+msgid "Reverser Full Forward"
+msgstr "[RèƲèřƨèř Fúℓℓ Fôřωářδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:140
+msgid "Reverser Full Reversed"
+msgstr "[RèƲèřƨèř Fúℓℓ RèƲèřƨèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:139
+msgid "Reverser Neutral"
+msgstr "[RèƲèřƨèř Nèúƭřáℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1321
+msgid "REVR"
+msgstr "[RÉVR !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1319
+msgid "RMT"
+msgstr "[RMT !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:155
+msgid "Rotary Switch 1-Position 1(OFF)"
+msgstr "[Rôƭář¥ §ωïƭçλ 1-Þôƨïƭïôñ 1(ÓFF) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:156
+msgid "Rotary Switch 1-Position 2(SLOW)"
+msgstr "[Rôƭář¥ §ωïƭçλ 1-Þôƨïƭïôñ 2(§£ÓW) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:157
+msgid "Rotary Switch 1-Position 3(FULL)"
+msgstr "[Rôƭář¥ §ωïƭçλ 1-Þôƨïƭïôñ 3(FÛ££) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:158
+msgid "Rotary Switch 2-Position 1(OFF)"
+msgstr "[Rôƭář¥ §ωïƭçλ 2-Þôƨïƭïôñ 1(ÓFF) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:159
+msgid "Rotary Switch 2-Position 2(DIM)"
+msgstr "[Rôƭář¥ §ωïƭçλ 2-Þôƨïƭïôñ 2(ÐÌM) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:160
+msgid "Rotary Switch 2-Position 3(FULL)"
+msgstr "[Rôƭář¥ §ωïƭçλ 2-Þôƨïƭïôñ 3(FÛ££) !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1351
+msgid "RPLY"
+msgstr "[RÞ£Ý !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:76
+msgid "rpm"
+msgstr "[řƥ₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1320
+msgid "RPM"
+msgstr "[RÞM !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:70
+msgid "s"
+msgstr "[ƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:318
+msgid "sand"
+msgstr "[ƨáñδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1352
+msgid "SAND"
+msgstr "[§ÂNÐ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1581
+msgid "Signal"
+msgstr "[§ïϱñáℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:81
+msgid "SignalAspect"
+msgstr "[§ïϱñáℓÂƨƥèçƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:845
+msgid "Slip Path"
+msgstr "[§ℓïƥ Þáƭλ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:846
+msgid "Slip Track"
+msgstr "[§ℓïƥ Třáçƙ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:848
+msgid "Slip Turn"
+msgstr "[§ℓïƥ Túřñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1512
+msgid "Slow Direct"
+msgstr "[§ℓôω Ðïřèçƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:840
+msgid "SPAD"
+msgstr "[§ÞÂÐ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:841
+msgid "SPAD-Rear"
+msgstr "[§ÞÂÐ-Rèář !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1353
+msgid "SPED"
+msgstr "[§ÞÉÐ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1039
+msgid "Stable Release"
+msgstr "[§ƭáβℓè Rèℓèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1322
+msgid "STAT"
+msgstr "[§TÂT !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1354
+msgid "STEM"
+msgstr "[§TÉM !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1577
+msgid "Switch"
+msgstr "[§ωïƭçλ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1190
+msgid "Sync"
+msgstr "[§¥ñç !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:66
+msgid "t"
+msgstr "[ƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:67
+msgid "t-uk"
+msgstr "[ƭ-úƙ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:68
+msgid "t-us"
+msgstr "[ƭ-úƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1323
+msgid "TEMP"
+msgstr "[TÉMÞ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1324
+msgid "THRO"
+msgstr "[THRÓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:86
+msgid "Throttle %"
+msgstr "[Tλřôƭƭℓè % !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Input\Enums.cs:142
+msgid "Throttle Idle"
+msgstr "[Tλřôƭƭℓè Ìδℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:78
+msgid "Time"
+msgstr "[Tï₥è !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1325
+msgid "TIME"
+msgstr "[TÌMÉ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1326
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1371
+msgid "TRAC"
+msgstr "[TRÂÇ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:82
+msgid "Track Elevation"
+msgstr "[Třáçƙ ÉℓèƲáƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:79
+msgid "Train Speed"
+msgstr "[Třáïñ §ƥèèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1578
+msgid "TrainAhd"
+msgstr "[TřáïñÂλδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1370
+msgid "TSUP"
+msgstr "[T§ÛÞ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:834
+msgid "Turntable"
+msgstr "[Túřñƭáβℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:849
+msgid "Undefined"
+msgstr "[Ûñδèƒïñèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:835
+msgid "Unknown"
+msgstr "[Ûñƙñôωñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:199
+msgid "Warning"
+msgstr "[Wářñïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:314
+msgid "water"
+msgstr "[ωáƭèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1334
+msgid "WATR"
+msgstr "[WÂTR !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1355
+msgid "WHEL"
+msgstr "[WHÉ£ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:317
+msgid "wood"
+msgstr "[ωôôδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\FormatStrings.cs:53
+msgid "yd"
+msgstr "[¥δ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:747
+msgctxt "Brake Controller"
+msgid "Apply"
+msgstr "[Âƥƥℓ¥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:757
+msgctxt "Brake Controller"
+msgid "Cont. Service"
+msgstr "[Çôñƭ. §èřƲïçè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:761
+msgctxt "Brake Controller"
+msgid "Emergency"
+msgstr "[É₥èřϱèñç¥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:788
+msgctxt "Brake Controller"
+msgid "Emergency Braking Push Button"
+msgstr "[É₥èřϱèñç¥ ßřáƙïñϱ Þúƨλ ßúƭƭôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:804
+msgctxt "Brake Controller"
+msgid "EP Full Service"
+msgstr "[ÉÞ Fúℓℓ §èřƲïçè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:802
+msgctxt "Brake Controller"
+msgid "EP Service"
+msgstr "[ÉÞ §èřƲïçè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:749
+msgctxt "Brake Controller"
+msgid "EPApply"
+msgstr "[ÉÞÂƥƥℓ¥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:759
+msgctxt "Brake Controller"
+msgid "Full Service"
+msgstr "[Fúℓℓ §èřƲïçè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:767
+msgctxt "Brake Controller"
+msgid "Hold"
+msgstr "[Hôℓδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:745
+msgctxt "Brake Controller"
+msgid "Lap"
+msgstr "[£áƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:798
+msgctxt "Brake Controller"
+msgid "Manual Braking"
+msgstr "[Máñúáℓ ßřáƙïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:765
+msgctxt "Brake Controller"
+msgid "Minimum Reduction"
+msgstr "[Mïñï₥ú₥ Rèδúçƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:741
+msgctxt "Brake Controller"
+msgid "Neutral"
+msgstr "[Nèúƭřáℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:800
+msgctxt "Brake Controller"
+msgid "Notch"
+msgstr "[Nôƭçλ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:786
+msgctxt "Brake Controller"
+msgid "Overcharge"
+msgstr "[ÓƲèřçλářϱè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:737
+msgctxt "Brake Controller"
+msgid "Quick Release"
+msgstr "[Qúïçƙ Rèℓèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:735
+msgctxt "Brake Controller"
+msgid "Release"
+msgstr "[Rèℓèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:739
+msgctxt "Brake Controller"
+msgid "Running"
+msgstr "[Rúññïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:743
+msgctxt "Brake Controller"
+msgid "Self Lap"
+msgstr "[§èℓƒ £áƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:751
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:753
+msgctxt "Brake Controller"
+msgid "Service"
+msgstr "[§èřƲïçè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:806
+msgctxt "Brake Controller"
+msgid "Slow service"
+msgstr "[§ℓôω ƨèřƲïçè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:810
+msgctxt "Brake Controller"
+msgid "SME Full service"
+msgstr "[§MÉ Fúℓℓ ƨèřƲïçè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:814
+msgctxt "Brake Controller"
+msgid "SME Release Start"
+msgstr "[§MÉ Rèℓèáƨè §ƭářƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:812
+msgctxt "Brake Controller"
+msgid "SME Self Lap"
+msgstr "[§MÉ §èℓƒ £áƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:808
+msgctxt "Brake Controller"
+msgid "SME service"
+msgstr "[§MÉ ƨèřƲïçè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:779
+msgctxt "Brake Controller"
+msgid "Straight Brake Apply"
+msgstr "[§ƭřáïϱλƭ ßřáƙè Âƥƥℓ¥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:781
+msgctxt "Brake Controller"
+msgid "Straight Brake Apply All"
+msgstr "[§ƭřáïϱλƭ ßřáƙè Âƥƥℓ¥ Âℓℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:783
+msgctxt "Brake Controller"
+msgid "Straight Brake Emergency"
+msgstr "[§ƭřáïϱλƭ ßřáƙè É₥èřϱèñç¥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:777
+msgctxt "Brake Controller"
+msgid "Straight Brake Lap"
+msgstr "[§ƭřáïϱλƭ ßřáƙè £áƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:775
+msgctxt "Brake Controller"
+msgid "Straight Brake Release"
+msgstr "[§ƭřáïϱλƭ ßřáƙè Rèℓèáƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:773
+msgctxt "Brake Controller"
+msgid "Straight Brake Release Off"
+msgstr "[§ƭřáïϱλƭ ßřáƙè Rèℓèáƨè Óƒƒ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:771
+msgctxt "Brake Controller"
+msgid "Straight Brake Release On"
+msgstr "[§ƭřáïϱλƭ ßřáƙè Rèℓèáƨè Óñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:755
+msgctxt "Brake Controller"
+msgid "Suppression"
+msgstr "[§úƥƥřèƨƨïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:790
+msgctxt "Brake Controller"
+msgid "TCS Emergency Braking"
+msgstr "[TÇ§ É₥èřϱèñç¥ ßřáƙïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:792
+msgctxt "Brake Controller"
+msgid "TCS Full Service Braking"
+msgstr "[TÇ§ Fúℓℓ §èřƲïçè ßřáƙïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:796
+msgctxt "Brake Controller"
+msgid "Vac. Apply Cont.Service"
+msgstr "[Váç. Âƥƥℓ¥ Çôñƭ.§èřƲïçè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:794
+msgctxt "Brake Controller"
+msgid "Vac. Cont. Service"
+msgstr "[Váç. Çôñƭ. §èřƲïçè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:665
+msgctxt "CircuitBreaker"
+msgid "Closed"
+msgstr "[Çℓôƨèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:664
+msgctxt "CircuitBreaker"
+msgid "Closing"
+msgstr "[Çℓôƨïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:663
+msgctxt "CircuitBreaker"
+msgid "Open"
+msgstr "[Óƥèñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:662
+msgctxt "CircuitBreaker"
+msgid "Unavailable"
+msgstr "[ÛñáƲáïℓáβℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1071
+msgctxt "Difficulty"
+msgid "Easy"
+msgstr "[Éáƨ¥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1073
+msgctxt "Difficulty"
+msgid "Hard"
+msgstr "[Hářδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1072
+msgctxt "Difficulty"
+msgid "Medium"
+msgstr "[Mèδïú₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:656
+msgctxt "Engine"
+msgid "Running"
+msgstr "[Rúññïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:655
+msgctxt "Engine"
+msgid "Starting"
+msgstr "[§ƭářƭïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:653
+msgctxt "Engine"
+msgid "Stopped"
+msgstr "[§ƭôƥƥèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:654
+msgctxt "Engine"
+msgid "Stopping"
+msgstr "[§ƭôƥƥïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:652
+msgctxt "Engine"
+msgid "Unavailable"
+msgstr "[ÛñáƲáïℓáβℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:867
+msgctxt "EoT"
+msgid "2-way Armed"
+msgstr "[2-ωá¥ Âř₥èδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:866
+msgctxt "EoT"
+msgid "Arm Now"
+msgstr "[Âř₥ Nôω !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:864
+msgctxt "EoT"
+msgid "Armed"
+msgstr "[Âř₥èδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:863
+msgctxt "EoT"
+msgid "Comm Test"
+msgstr "[Çô₥₥ Tèƨƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:862
+msgctxt "EoT"
+msgid "Disarmed"
+msgstr "[Ðïƨář₥èδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:865
+msgctxt "EoT"
+msgid "Local Test"
+msgstr "[£ôçáℓ Tèƨƭ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:47
+msgctxt "Measurement units Preference"
+msgid "Imperial UK"
+msgstr "[Ì₥ƥèřïáℓ ÛK !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:46
+msgctxt "Measurement units Preference"
+msgid "Imperial US"
+msgstr "[Ì₥ƥèřïáℓ Û§ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:45
+msgctxt "Measurement units Preference"
+msgid "Metric"
+msgstr "[Mèƭřïç !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:44
+msgctxt "Measurement units Preference"
+msgid "Player's location"
+msgstr "[Þℓá¥èř'ƨ ℓôçáƭïôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:43
+msgctxt "Measurement units Preference"
+msgid "Route"
+msgstr "[Rôúƭè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:643
+msgctxt "Pantograph"
+msgid "Down"
+msgstr "[Ðôωñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:644
+msgctxt "Pantograph"
+msgid "Lowering"
+msgstr "[£ôωèřïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:645
+msgctxt "Pantograph"
+msgid "Raising"
+msgstr "[Ráïƨïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:642
+msgctxt "Pantograph"
+msgid "Unavailable"
+msgstr "[ÛñáƲáïℓáβℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:646
+msgctxt "Pantograph"
+msgid "Up"
+msgstr "[Ûƥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:627
+msgctxt "PowerSupply"
+msgid "ControlCar"
+msgstr "[ÇôñƭřôℓÇář !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:624
+msgctxt "PowerSupply"
+msgid "DieselElectric"
+msgstr "[ÐïèƨèℓÉℓèçƭřïç !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:623
+msgctxt "PowerSupply"
+msgid "DieselHydraulic"
+msgstr "[ÐïèƨèℓH¥δřáúℓïç !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:622
+msgctxt "PowerSupply"
+msgid "DieselMechanical"
+msgstr "[ÐïèƨèℓMèçλáñïçáℓ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:626
+msgctxt "PowerSupply"
+msgid "DualMode"
+msgstr "[ÐúáℓMôδè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:625
+msgctxt "PowerSupply"
+msgid "Electric"
+msgstr "[Éℓèçƭřïç !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:634
+msgctxt "PowerSupply"
+msgid "Off"
+msgstr "[Óƒƒ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:636
+msgctxt "PowerSupply"
+msgid "On"
+msgstr "[Óñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:635
+msgctxt "PowerSupply"
+msgid "On ongoing"
+msgstr "[Óñ ôñϱôïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:621
+msgctxt "PowerSupply"
+msgid "Steam"
+msgstr "[§ƭèá₥ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:633
+msgctxt "PowerSupply"
+msgid "Unavailable"
+msgstr "[ÛñáƲáïℓáβℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:53
+msgctxt "Pressure units Preference"
+msgid "Automatic"
+msgstr "[Âúƭô₥áƭïç !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:55
+msgctxt "Pressure units Preference"
+msgid "bar"
+msgstr "[βář !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:59
+msgctxt "Pressure units Preference"
+msgid "inHg"
+msgstr "[ïñHϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:61
+msgctxt "Pressure units Preference"
+msgid "kgf/cm²"
+msgstr "[ƙϱƒ/ç₥² !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:57
+msgctxt "Pressure units Preference"
+msgid "psi"
+msgstr "[ƥƨï !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:11
+msgctxt "Reverser"
+msgid "Forward"
+msgstr "[Fôřωářδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:10
+msgctxt "Reverser"
+msgid "N"
+msgstr "[N !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:9
+msgctxt "Reverser"
+msgid "Reverse"
+msgstr "[RèƲèřƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:19
+msgctxt "Rotation"
+msgid "Clockwise"
+msgstr "[Çℓôçƙωïƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:17
+msgctxt "Rotation"
+msgid "CounterClockwise"
+msgstr "[ÇôúñƭèřÇℓôçƙωïƨè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:18
+msgctxt "Rotation"
+msgid "None"
+msgstr "[Nôñè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1056
+msgctxt "Season"
+msgid "Autumn"
+msgstr "[Âúƭú₥ñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1054
+msgctxt "Season"
+msgid "Spring"
+msgstr "[§ƥřïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1055
+msgctxt "Season"
+msgid "Summer"
+msgstr "[§ú₥₥èř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1057
+msgctxt "Season"
+msgid "Winter"
+msgstr "[Wïñƭèř !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:34
+msgctxt "Separator"
+msgid "Comma"
+msgstr "[Çô₥₥á !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:35
+msgctxt "Separator"
+msgid "Semicolon"
+msgstr "[§è₥ïçôℓôñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:37
+msgctxt "Separator"
+msgid "Space"
+msgstr "[§ƥáçè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:36
+msgctxt "Separator"
+msgid "Tab"
+msgstr "[Táβ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:69
+msgctxt "Speed Unit Preference"
+msgid "km/h"
+msgstr "[ƙ₥/λ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:68
+msgctxt "Speed Unit Preference"
+msgid "m/s"
+msgstr "[₥/ƨ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:70
+msgctxt "Speed Unit Preference"
+msgid "mph"
+msgstr "[₥ƥλ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:67
+msgctxt "Speed Unit Preference"
+msgid "Route"
+msgstr "[Rôúƭè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:674
+msgctxt "TractionCutOffRelay"
+msgid "Closed"
+msgstr "[Çℓôƨèδ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:673
+msgctxt "TractionCutOffRelay"
+msgid "Closing"
+msgstr "[Çℓôƨïñϱ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:672
+msgctxt "TractionCutOffRelay"
+msgid "Open"
+msgstr "[Óƥèñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:671
+msgctxt "TractionCutOffRelay"
+msgid "Unavailable"
+msgstr "[ÛñáƲáïℓáβℓè !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1063
+msgctxt "Weather"
+msgid "Clear"
+msgstr "[Çℓèář !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1065
+msgctxt "Weather"
+msgid "Rain"
+msgstr "[Ráïñ !!!]"
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1064
+msgctxt "Weather"
+msgid "Snow"
+msgstr "[§ñôω !!!]"
+

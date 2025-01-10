@@ -2,16 +2,19 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orts.Formats.OR\n"
 "POT-Creation-Date: 2020-08-29 03:09:37+0300\n"
-"PO-Revision-Date: 2020-09-17 14:30+0200\n"
+"PO-Revision-Date: 2020-08-29 03:09:37+0300\n"
 "Last-Translator: \n"
 "Language-Team: Open Rails Dev Team\n"
+"Language: qps-ploc\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.1\n"
+"X-Generator: PowerShell Update-Pseudo.ps1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
 
 #: ../../Orts.Formats.OR/TimetableFile.cs:286
 #, csharp-format
 msgid "Start time: {0}"
 msgstr "[§ƭářƭ ƭï₥è: {0} !!!]"
+

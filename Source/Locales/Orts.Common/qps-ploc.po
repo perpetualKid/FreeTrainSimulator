@@ -1,1351 +1,178 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ORTS.Common\n"
-"POT-Creation-Date: 2020-09-17 08:26:06+0200\n"
-"PO-Revision-Date: 2020-09-17 14:28+0200\n"
+"POT-Creation-Date: 2023-02-08 11:32:24+0100\n"
+"PO-Revision-Date: 2023-02-08 11:32:25+0100\n"
 "Last-Translator: \n"
 "Language-Team: Open Rails Dev Team\n"
+"Language: qps-ploc\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.1\n"
+"X-Generator: PowerShell Update-Pseudo.ps1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ..\..\Orts.Common\Input\UserCommand.cs:122
-msgid "Control Throttle Increase"
-msgstr "[Çôñƭřôℓ Tλřôƭƭℓè Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:50
-msgid "kPa"
-msgstr "[ƙÞá !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:76
-msgid "kN"
-msgstr "[ƙN !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:42
-msgid "Display HUD"
-msgstr "[Ðïƨƥℓá¥ HÛÐ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:529
-msgctxt "Brake Controller"
-msgid "Overcharge"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:108
-msgid "Camera Car Previous"
-msgstr "[Çá₥èřá Çář ÞřèƲïôúƨ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:515
-#, fuzzy
-#| msgid "Control Generic 1"
-msgctxt "Brake Controller"
-msgid "Cont. Service"
-msgstr "[Çôñƭřôℓ Gèñèřïç 1 !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:447
-msgctxt "CircuitBreaker"
-msgid "Closed"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:541
-msgctxt "Brake Controller"
-msgid "Notch"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:44
-msgctxt "Separator"
-msgid "Tab"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:89
-msgid "SignalAspect"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:195
-msgid "Control Water Scoop"
-msgstr "[Çôñƭřôℓ Wáƭèř §çôôƥ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:149
-msgid "Control Wiper"
-msgstr "[Çôñƭřôℓ Wïƥèř !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:683
-msgctxt "Season"
-msgid "Summer"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:445
-msgctxt "CircuitBreaker"
-msgid "Open"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:159
-msgid "Control Pantograph 3"
-msgstr "[Çôñƭřôℓ Þáñƭôϱřáƥλ 3 !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:172
-msgid "Control Injector 2 Decrease"
-msgstr "[Çôñƭřôℓ ÌñJèçƭôř 2 Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:501
-msgctxt "Brake Controller"
-msgid "Self Lap"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:86
-msgid "Time"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:98
-msgid "Camera Pan (Rotate) Right"
-msgstr "[Çá₥èřá Þáñ (Rôƭáƭè) Rïϱλƭ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:499
-msgctxt "Brake Controller"
-msgid "Neutral"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:145
-msgid "Control Alerter"
-msgstr "[Çôñƭřôℓ Âℓèřƭèř !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:174
-msgid "Control Blowdown Valve"
-msgstr "[Çôñƭřôℓ ßℓôωδôωñ VáℓƲè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:188
-msgid "Control Large Ejector Decrease"
-msgstr "[Çôñƭřôℓ £ářϱè ÉJèçƭôř Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:165
-msgid "Control Diesel Helper"
-msgstr "[Çôñƭřôℓ Ðïèƨèℓ Hèℓƥèř !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:26
-msgctxt "Reverser"
-msgid "Reverse"
-msgstr "[RèƲèřƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:64
-msgid "Debug Weather Change"
-msgstr "[Ðèβúϱ Wèáƭλèř Çλáñϱè !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:40
-msgid "mm"
-msgstr "[₥₥ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:128
-msgid "Control Train Brake Decrease"
-msgstr "[Çôñƭřôℓ Třáïñ ßřáƙè Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:86
-msgid "Camera Outside Front"
-msgstr "[Çá₥èřá Óúƭƨïδè Fřôñƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:26
-msgid "Game Uncouple With Mouse"
-msgstr "[Gá₥è Ûñçôúƥℓè Wïƭλ Môúƨè !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:60
-msgid "s"
-msgstr "[ƨ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:140
-msgid "Information"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:133
-msgid "Control Dynamic Brake Decrease"
-msgstr "[Çôñƭřôℓ Ð¥ñá₥ïç ßřáƙè Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:65
-msgid "g-us"
-msgstr "[ϱ-úƨ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:154
-msgid "Control Door Right"
-msgstr "[Çôñƭřôℓ Ðôôř Rïϱλƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:118
-msgid "Camera Browse Forwards"
-msgstr "[Çá₥èřá ßřôωƨè Fôřωářδƨ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:668
-msgid "Check for updates every other week"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:99
-msgid "Camera Pan (Rotate) Up"
-msgstr "[Çá₥èřá Þáñ (Rôƭáƭè) Ûƥ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:32
-msgid "Game Clear Signal Forward"
-msgstr "[Gá₥è Çℓèář §ïϱñáℓ Fôřωářδ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:136
-msgid "Control Handbrake Full"
-msgstr "[Çôñƭřôℓ Háñδβřáƙè Fúℓℓ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:43
-msgid "yd"
-msgstr "[¥δ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:61
-msgid "min"
-msgstr "[₥ïñ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:132
-msgid "Control Dynamic Brake Increase"
-msgstr "[Çôñƭřôℓ Ð¥ñá₥ïç ßřáƙè Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:138
-msgid "Control Odometer Show/Hide"
-msgstr "[Çôñƭřôℓ Óδô₥èƭèř §λôω/Hïδè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:111
-msgid "Camera Jumping Trains"
-msgstr "[Çá₥èřá Jú₥ƥïñϱ Třáïñƨ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:539
-msgctxt "Brake Controller"
-msgid "Vac. Apply Cont.Service"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:503
-msgctxt "Brake Controller"
-msgid "Lap"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:49
-msgid "Display Compass Window"
-msgstr "[Ðïƨƥℓá¥ Çô₥ƥáƨƨ Wïñδôω !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:41
-msgid "mi"
-msgstr "[₥ï !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:130
-msgid "Control Engine Brake Increase"
-msgstr "[Çôñƭřôℓ Éñϱïñè ßřáƙè Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:196
-msgid "Control ImmediateRefill"
-msgstr "[Çôñƭřôℓ Ì₥₥èδïáƭèRèƒïℓℓ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:28
-msgid "Game Request Control"
-msgstr "[Gá₥è Rè9úèƨƭ Çôñƭřôℓ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:495
-msgctxt "Brake Controller"
-msgid "Quick Release"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:97
-msgid "Camera Pan (Rotate) Left"
-msgstr "[Çá₥èřá Þáñ (Rôƭáƭè) £èƒƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:29
-msgid "Game Multi Player Dispatcher"
-msgstr "[Gá₥è Múℓƭï Þℓá¥èř Ðïƨƥáƭçλèř !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:45
-msgid "Display Station Labels"
-msgstr "[Ðïƨƥℓá¥ §ƭáƭïôñ £áβèℓƨ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:90
-msgid "Track Elevation"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:96
-msgid "Dyn Brake %"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:77
-msgid "Debug Toggle Confirmations"
-msgstr "[Ðèβúϱ Tôϱϱℓè Çôñƒïř₥áƭïôñƨ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:79
-msgid "Camera Cab"
-msgstr "[Çá₥èřá Çáβ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:115
-msgid "Camera Scroll Right"
-msgstr "[Çá₥èřá §çřôℓℓ Rïϱλƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:121
-msgid "Control Backwards"
-msgstr "[Çôñƭřôℓ ßáçƙωářδƨ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:700
-msgctxt "Difficulty"
-msgid "Medium"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:51
-msgctxt "Measurement units Preference"
-msgid "Route"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:163
-msgid "Control Circuit Breaker Closing Authorization"
-msgstr "[Çôñƭřôℓ Çïřçúïƭ ßřèáƙèř Çℓôƨïñϱ Âúƭλôřïƺáƭïôñ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:85
-msgid "Camera Head Out Backward"
-msgstr "[Çá₥èřá Hèáδ Óúƭ ßáçƙωářδ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:157
-msgid "Control Pantograph 1"
-msgstr "[Çôñƭřôℓ Þáñƭôϱřáƥλ 1 !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:54
-msgid "Debug Speed Down"
-msgstr "[Ðèβúϱ §ƥèèδ Ðôωñ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:436
-msgctxt "Pantograph"
-msgid "Down"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:446
-msgctxt "CircuitBreaker"
-msgid "Closing"
-msgstr ""
-
-#: ..\..\Orts.Common\FormatStrings.cs:51
-msgid "bar"
-msgstr "[βář !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:692
-msgctxt "Weather"
-msgid "Snow"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:513
-msgctxt "Brake Controller"
-msgid "Suppression"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:93
-#, fuzzy
-#| msgid "Control Mirror"
-msgid "Control Mode"
-msgstr "[Çôñƭřôℓ Mïřřôř !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:22
-msgid "Game Switch Behind"
-msgstr "[Gá₥è §ωïƭçλ ßèλïñδ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:438
-msgctxt "Pantograph"
-msgid "Raising"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:91
-msgid "Direction"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:75
-msgctxt "Speed Unit Preference"
-msgid "Route"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:190
-msgid "Control Small Ejector Decrease"
-msgstr "[Çôñƭřôℓ §₥áℓℓ ÉJèçƭôř Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:81
-msgid "Camera Toggle 3D Cab"
-msgstr "[Çá₥èřá Tôϱϱℓè 3Ð Çáβ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:57
-msgid "Debug Overcast Decrease"
-msgstr "[Ðèβúϱ ÓƲèřçáƨƭ Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:64
-msgid "g-uk"
-msgstr "[ϱ-úƙ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:44
-msgid "Display Car Labels"
-msgstr "[Ðïƨƥℓá¥ Çář £áβèℓƨ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:112
-msgid "Camera Jump Back Player"
-msgstr "[Çá₥èřá Jú₥ƥ ßáçƙ Þℓá¥èř !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:143
-msgid "Control Brake Hose Connect"
-msgstr "[Çôñƭřôℓ ßřáƙè Hôƨè Çôññèçƭ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:523
-msgctxt "Brake Controller"
-msgid "Minimum Reduction"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:180
-msgid "Control Damper Decrease"
-msgstr "[Çôñƭřôℓ Ðá₥ƥèř Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:73
+#: ..\..\..\Orts.Common\FormatStrings.cs:102
 msgid "°C"
 msgstr "[°Ç !!!]"
 
-#: ..\..\Orts.Common\Enums.cs:43
-msgctxt "Separator"
-msgid "Semicolon"
-msgstr ""
-
-#: ..\..\Orts.Common\FormatStrings.cs:72
-msgid "BTU"
-msgstr "[ßTÛ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:47
-msgid "ft³"
-msgstr "[ƒƭ³ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:152
-msgid "Control Bell Toggle"
-msgstr "[Çôñƭřôℓ ßèℓℓ Tôϱϱℓè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:65
-#, fuzzy
-#| msgid "psi"
-msgctxt "Pressure units Preference"
-msgid "psi"
-msgstr "[ƥƨï !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:114
-msgid "Camera Vibrate"
-msgstr "[Çá₥èřá Vïβřáƭè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:537
-msgctxt "Brake Controller"
-msgid "Vac. Cont. Service"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:137
-msgid "Control Handbrake None"
-msgstr "[Çôñƭřôℓ Háñδβřáƙè Nôñè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:73
-msgid "Debug Reset Wheel Slip"
-msgstr "[Ðèβúϱ Rèƨèƭ Wλèèℓ §ℓïƥ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:193
-msgid "Control Firing"
-msgstr "[Çôñƭřôℓ Fïřïñϱ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:60
-msgid "Debug Precipitation Increase"
-msgstr "[Ðèβúϱ Þřèçïƥïƭáƭïôñ Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:80
-msgid "Camera Change Passenger Viewpoint"
-msgstr "[Çá₥èřá Çλáñϱè Þáƨƨèñϱèř Vïèωƥôïñƭ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:75
-msgid "N"
-msgstr "[N !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:52
-msgid "psi"
-msgstr "[ƥƨï !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:96
-msgid "Camera Move Slow"
-msgstr "[Çá₥èřá MôƲè §ℓôω !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:75
-msgid "Debug Sound Form"
-msgstr "[Ðèβúϱ §ôúñδ Fôř₥ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:67
-msgid "kW"
-msgstr "[ƙW !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:167
-msgid "Control Headlight Decrease"
-msgstr "[Çôñƭřôℓ Hèáδℓïϱλƭ Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:63
-msgid "L"
-msgstr "[£ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:30
-msgid "Game Multi Player Texting"
-msgstr "[Gá₥è Múℓƭï Þℓá¥èř Tèжƭïñϱ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:198
-msgid "Control Turntable Counterclockwise"
-msgstr "[Çôñƭřôℓ Túřñƭáβℓè Çôúñƭèřçℓôçƙωïƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:85 ..\..\Orts.Common\Enums.cs:139
-msgid "None"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:92
-msgid "Camera Free"
-msgstr "[Çá₥èřá Fřèè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:183
-msgid "Control Firing Rate Increase"
-msgstr "[Çôñƭřôℓ Fïřïñϱ Ráƭè Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:693
-msgctxt "Weather"
-msgid "Rain"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:105
-msgid "Camera Rotate (Pan) Up"
-msgstr "[Çá₥èřá Rôƭáƭè (Þáñ) Ûƥ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:62
-msgid "h"
-msgstr "[λ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:42
-msgid "ft"
-msgstr "[ƒƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:39
-msgid "Display Next Window Tab"
-msgstr "[Ðïƨƥℓá¥ Nèжƭ Wïñδôω Táβ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:153
-msgid "Control Door Left"
-msgstr "[Çôñƭřôℓ Ðôôř £èƒƭ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:57
-msgid "t-uk"
-msgstr "[ƭ-úƙ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:665
-msgid "Check for updates on each start"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:93
-msgid "Camera Previous Free"
-msgstr "[Çá₥èřá ÞřèƲïôúƨ Fřèè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:45
-msgctxt "Separator"
-msgid "Space"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:102
-msgid "Camera Zoom Out (Move Z)"
-msgstr "[Çá₥èřá Zôô₥ Óúƭ (MôƲè Z) !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:66
-msgid "rpm"
-msgstr "[řƥ₥ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:101
-msgid "Camera Zoom In (Move Z)"
-msgstr "[Çá₥èřá Zôô₥ Ìñ (MôƲè Z) !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:53
-msgid "Debug Speed Up"
-msgstr "[Ðèβúϱ §ƥèèδ Ûƥ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:78
-msgid "klbf"
-msgstr "[ƙℓβƒ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:67
-#, fuzzy
-#| msgid "inHg"
-msgctxt "Pressure units Preference"
-msgid "inHg"
-msgstr "[ïñHϱ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:59
-msgid "lb"
-msgstr "[ℓβ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:59
-msgid "Debug Fog Decrease"
-msgstr "[Ðèβúϱ Fôϱ Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:126
-msgid "Control Gear Down"
-msgstr "[Çôñƭřôℓ Gèář Ðôωñ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:40
-msgid "Display Help Window"
-msgstr "[Ðïƨƥℓá¥ Hèℓƥ Wïñδôω !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:70
-msgid "kJ"
-msgstr "[ƙJ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:204
-msgid "Control AI Fire Reset"
-msgstr "[Çôñƭřôℓ ÂÌ Fïřè Rèƨèƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:31
-msgid "Game Switch Manual Mode"
-msgstr "[Gá₥è §ωïƭçλ Máñúáℓ Môδè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:203
-msgid "Control AI Fire Off"
-msgstr "[Çôñƭřôℓ ÂÌ Fïřè Óƒƒ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:17
-msgid "Game Pause"
-msgstr "[Gá₥è Þáúƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:507
-msgctxt "Brake Controller"
-msgid "EPApply"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:127
-msgid "Control Train Brake Increase"
-msgstr "[Çôñƭřôℓ Třáïñ ßřáƙè Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:117
-msgid "Camera Browse Backwards"
-msgstr "[Çá₥èřá ßřôωƨè ßáçƙωářδƨ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:109
-msgid "Camera Car First"
-msgstr "[Çá₥èřá Çář Fïřƨƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:33
-msgid "Game Clear Signal Backward"
-msgstr "[Gá₥è Çℓèář §ïϱñáℓ ßáçƙωářδ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:90
-msgid "Camera Passenger"
-msgstr "[Çá₥èřá Þáƨƨèñϱèř !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:82
-msgid "Camera Toggle Show Cab"
-msgstr "[Çá₥èřá Tôϱϱℓè §λôω Çáβ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:185
-msgid "Control Fire Shovel Full"
-msgstr "[Çôñƭřôℓ Fïřè §λôƲèℓ Fúℓℓ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:74
-msgid "Debug Toggle Advanced Adhesion"
-msgstr "[Ðèβúϱ Tôϱϱℓè ÂδƲáñçèδ Âδλèƨïôñ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:189
-msgid "Control Small Ejector Increase"
-msgstr "[Çôñƭřôℓ §₥áℓℓ ÉJèçƭôř Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:134
-msgid "Control Bail Off"
-msgstr "[Çôñƭřôℓ ßáïℓ Óƒƒ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:74
+#: ..\..\..\Orts.Common\FormatStrings.cs:103
 msgid "°F"
 msgstr "[°F !!!]"
 
-#: ..\..\Orts.Common\Input\UserCommand.cs:76
-msgid "Debug Physics Form"
-msgstr "[Ðèβúϱ Þλ¥ƨïçƨ Fôř₥ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:25
-msgid "Game Switch With Mouse"
-msgstr "[Gá₥è §ωïƭçλ Wïƭλ Môúƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:161
-msgid "Control Circuit Breaker Closing Order"
-msgstr "[Çôñƭřôℓ Çïřçúïƭ ßřèáƙèř Çℓôƨïñϱ Óřδèř !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:56
-msgid "t"
-msgstr "[ƭ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:509 ..\..\Orts.Common\Enums.cs:511
-msgctxt "Brake Controller"
-msgid "Service"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:535
-msgctxt "Brake Controller"
-msgid "TCS Full Service Braking"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:92
-msgid "Distance Travelled"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:54
-msgctxt "Measurement units Preference"
-msgid "Imperial US"
-msgstr ""
-
-#: ..\..\Orts.Common\FormatStrings.cs:53
-msgid "inHg"
-msgstr "[ïñHϱ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:68
-msgid "Debug Lock Shadows"
-msgstr "[Ðèβúϱ £ôçƙ §λáδôωƨ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:87
-msgid "Camera Outside Rear"
-msgstr "[Çá₥èřá Óúƭƨïδè Rèář !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:178
-msgid "Control Steam Heat Decrease"
-msgstr "[Çôñƭřôℓ §ƭèá₥ Hèáƭ Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:201
-msgid "Control Cab Radio"
-msgstr "[Çôñƭřôℓ Çáβ Ráδïô !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:95
-msgid "Brake Cyl Press"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:89
-msgid "Camera SpecialTracksidePoint"
-msgstr "[Çá₥èřá §ƥèçïáℓTřáçƙƨïδèÞôïñƭ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:54
-msgid "kgf/cm²"
-msgstr "[ƙϱƒ/ç₥² !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:100
-msgid "Camera Pan (Rotate) Down"
-msgstr "[Çá₥èřá Þáñ (Rôƭáƭè) Ðôωñ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:67
-msgid "Debug Logger"
-msgstr "[Ðèβúϱ £ôϱϱèř !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:55
-msgid "kg"
-msgstr "[ƙϱ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:124
-msgid "Control Throttle Zero"
-msgstr "[Çôñƭřôℓ Tλřôƭƭℓè Zèřô !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:493
-msgctxt "Brake Controller"
-msgid "Release"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:684
-msgctxt "Season"
-msgid "Autumn"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:18
-msgid "Game Screenshot"
-msgstr "[Gá₥è §çřèèñƨλôƭ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:39
-msgid "km"
-msgstr "[ƙ₥ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:170
-msgid "Control Injector 1"
-msgstr "[Çôñƭřôℓ ÌñJèçƭôř 1 !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:46
-msgid "m³"
-msgstr "[₥³ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:139
-msgid "Control Odometer Reset"
-msgstr "[Çôñƭřôℓ Óδô₥èƭèř Rèƨèƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:116
-msgid "Camera Scroll Left"
-msgstr "[Çá₥èřá §çřôℓℓ £èƒƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:135
-msgid "Control Initialize Brakes"
-msgstr "[Çôñƭřôℓ Ìñïƭïáℓïƺè ßřáƙèƨ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:110
-msgid "Camera Car Last"
-msgstr "[Çá₥èřá Çář £áƨƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:187
-msgid "Control Large Ejector Increase"
-msgstr "[Çôñƭřôℓ £ářϱè ÉJèçƭôř Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:168
-msgid "Control Injector 1 Increase"
-msgstr "[Çôñƭřôℓ ÌñJèçƭôř 1 Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:65
-msgid "Debug Clock Forwards"
-msgstr "[Ðèβúϱ Çℓôçƙ Fôřωářδƨ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:71
-msgid "MJ"
-msgstr "[MJ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:171
-msgid "Control Injector 2 Increase"
-msgstr "[Çôñƭřôℓ ÌñJèçƭôř 2 Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:38
-msgid "m"
-msgstr "[₥ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:20
-msgid "Game External Controller (RailDriver)"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:517
-msgctxt "Brake Controller"
-msgid "Full Service"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:113
-msgid "Camera Jump See Switch"
-msgstr "[Çá₥èřá Jú₥ƥ §èè §ωïƭçλ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:95
-msgid "Camera Move Fast"
-msgstr "[Çá₥èřá MôƲè Fáƨƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:179
-msgid "Control Damper Increase"
-msgstr "[Çôñƭřôℓ Ðá₥ƥèř Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:533
-msgctxt "Brake Controller"
-msgid "TCS Emergency Braking"
-msgstr ""
-
-#: ..\..\Orts.Common\FormatStrings.cs:58
-msgid "t-us"
-msgstr "[ƭ-úƨ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:125
-msgid "Control Gear Up"
-msgstr "[Çôñƭřôℓ Gèář Ûƥ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:497
-msgctxt "Brake Controller"
-msgid "Running"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:505
-msgctxt "Brake Controller"
-msgid "Apply"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:106
-msgid "Camera Rotate (Pan) Down"
-msgstr "[Çá₥èřá Rôƭáƭè (Þáñ) Ðôωñ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:669
-msgid "Check for updates every month"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:47
-msgid "Display Train Operations Window"
-msgstr "[Ðïƨƥℓá¥ Třáïñ Óƥèřáƭïôñƨ Wïñδôω !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:164
-msgid "Control Diesel Player"
-msgstr "[Çôñƭřôℓ Ðïèƨèℓ Þℓá¥èř !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:186
-msgid "Control Cylinder Cocks"
-msgstr "[Çôñƭřôℓ Ç¥ℓïñδèř Çôçƙƨ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:70
-msgid "Debug Log Render Frame"
-msgstr "[Ðèβúϱ £ôϱ Rèñδèř Fřá₥è !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:191
-msgid "Control Vacuum Exhauster"
-msgstr "[Çôñƭřôℓ Váçúú₥ Éжλáúƨƭèř !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:175
-msgid "Control Blower Increase"
-msgstr "[Çôñƭřôℓ ßℓôωèř Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:519
-msgctxt "Brake Controller"
-msgid "Emergency"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:51
-msgid "Display Train List Window"
-msgstr "[Ðïƨƥℓá¥ Třáïñ £ïƨƭ Wïñδôω !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:685
-msgctxt "Season"
-msgid "Winter"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:200
-msgid "Control Generic 2"
-msgstr "[Çôñƭřôℓ Gèñèřïç 2 !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:181
-msgid "Control Firebox Open"
-msgstr "[Çôñƭřôℓ Fïřèβôж Óƥèñ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:141
-msgid "Warning"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:94
-msgid "Throttle %"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:87
-msgid "Train Speed"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:21
-msgid "Game Switch Ahead"
-msgstr "[Gá₥è §ωïƭçλ Âλèáδ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:61
-msgctxt "Pressure units Preference"
-msgid "Automatic"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:103
-msgid "Camera Rotate (Pan) Left"
-msgstr "[Çá₥èřá Rôƭáƭè (Þáñ) £èƒƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:72
-msgid "Debug Signalling"
-msgstr "[Ðèβúϱ §ïϱñáℓℓïñϱ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:192
-msgid "Control Cylinder Compound"
-msgstr "[Çôñƭřôℓ Ç¥ℓïñδèř Çô₥ƥôúñδ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:50
-msgid "Display Basic HUD Toggle"
-msgstr "[Ðïƨƥℓá¥ ßáƨïç HÛÐ Tôϱϱℓè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:37
-msgid "Game Suspend Old Player"
-msgstr "[Gá₥è §úƨƥèñδ Óℓδ Þℓá¥èř !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:146
-msgid "Control Emergency Push Button"
-msgstr "[Çôñƭřôℓ É₥èřϱèñç¥ Þúƨλ ßúƭƭôñ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:430
-msgctxt "PowerSupply"
-msgid "On"
-msgstr ""
-
-#: ..\..\Orts.Common\FormatStrings.cs:48
-msgid "km/h"
-msgstr "[ƙ₥/λ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:94
-msgid "Camera Reset"
-msgstr "[Çá₥èřá Rèƨèƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:156
-msgid "Control Light"
-msgstr "[Çôñƭřôℓ £ïϱλƭ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:666
-msgid "Check for updates once a day"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:61
-msgid "Debug Precipitation Decrease"
-msgstr "[Ðèβúϱ Þřèçïƥïƭáƭïôñ Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:63
-#, fuzzy
-#| msgid "bar"
-msgctxt "Pressure units Preference"
+#: ..\..\..\Orts.Common\FormatStrings.cs:80
 msgid "bar"
 msgstr "[βář !!!]"
 
-#: ..\..\Orts.Common\Input\UserCommand.cs:150
-msgid "Control Horn"
-msgstr "[Çôñƭřôℓ Hôřñ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:142
-msgid "Error"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:525
-msgctxt "Brake Controller"
-msgid "Hold"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:197
-msgid "Control Turntable Clockwise"
-msgstr "[Çôñƭřôℓ Túřñƭáβℓè Çℓôçƙωïƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:439
-msgctxt "Pantograph"
-msgid "Up"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:84
-msgid "Camera Head Out Forward"
-msgstr "[Çá₥èřá Hèáδ Óúƭ Fôřωářδ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:42
-msgctxt "Separator"
-msgid "Comma"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:176
-msgid "Control Blower Decrease"
-msgstr "[Çôñƭřôℓ ßℓôωèř Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:14
-msgid "Game Pause Menu"
-msgstr "[Gá₥è Þáúƨè Mèñú !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:88
-msgid "Camera Trackside"
-msgstr "[Çá₥èřá Třáçƙƨïδè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:428
-msgctxt "PowerSupply"
-msgid "Off"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:162
-msgid "Control Circuit Breaker Opening Order"
-msgstr "[Çôñƭřôℓ Çïřçúïƭ ßřèáƙèř Óƥèñïñϱ Óřδèř !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:45
-msgid "ft²"
-msgstr "[ƒƭ² !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:202
-msgid "Control AI Fire On"
-msgstr "[Çôñƭřôℓ ÂÌ Fïřè Óñ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:437
-msgctxt "Pantograph"
-msgid "Lowering"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:91
-msgid "Camera Brakeman"
-msgstr "[Çá₥èřá ßřáƙè₥áñ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:69
-#, fuzzy
-#| msgid "kgf/cm²"
-msgctxt "Pressure units Preference"
-msgid "kgf/cm²"
-msgstr "[ƙϱƒ/ç₥² !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:41
-msgid "Display Track Monitor Window"
-msgstr "[Ðïƨƥℓá¥ Třáçƙ Môñïƭôř Wïñδôω !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:531
-#, fuzzy
-#| msgid "Control Emergency Push Button"
-msgctxt "Brake Controller"
-msgid "Emergency Braking Push Button"
-msgstr "[Çôñƭřôℓ É₥èřϱèñç¥ Þúƨλ ßúƭƭôñ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:194
-msgid "Control Refill"
-msgstr "[Çôñƭřôℓ Rèƒïℓℓ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:55
-msgid "Debug Speed Reset"
-msgstr "[Ðèβúϱ §ƥèèδ Rèƨèƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:48
-msgid "Display Next Station Window"
-msgstr "[Ðïƨƥℓá¥ Nèжƭ §ƭáƭïôñ Wïñδôω !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:664
-msgid "Manually check for updates"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:66
-msgid "Debug Clock Backwards"
-msgstr "[Ðèβúϱ Çℓôçƙ ßáçƙωářδƨ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:169
-msgid "Control Injector 1 Decrease"
-msgstr "[Çôñƭřôℓ ÌñJèçƭôř 1 Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:158
-msgid "Control Pantograph 2"
-msgstr "[Çôñƭřôℓ Þáñƭôϱřáƥλ 2 !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:143
-msgid "Message"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:129
-msgid "Control Train Brake Zero"
-msgstr "[Çôñƭřôℓ Třáïñ ßřáƙè Zèřô !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:177
-msgid "Control Steam Heat Increase"
-msgstr "[Çôñƭřôℓ §ƭèá₥ Hèáƭ Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:76
-msgctxt "Speed Unit Preference"
-msgid "m/s"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:682
-msgctxt "Season"
-msgid "Spring"
-msgstr ""
-
-#: ..\..\Orts.Common\FormatStrings.cs:49
-msgid "mph"
-msgstr "[₥ƥλ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:27
-msgid "Game Change Cab"
-msgstr "[Gá₥è Çλáñϱè Çáβ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:147
-msgid "Control Sander"
-msgstr "[Çôñƭřôℓ §áñδèř !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:429
-msgctxt "PowerSupply"
-msgid "On ongoing"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:62
-msgid "Debug Precipitation Liquidity Increase"
-msgstr "[Ðèβúϱ Þřèçïƥïƭáƭïôñ £ï9úïδïƭ¥ Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:691
-msgctxt "Weather"
-msgid "Clear"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:107
-msgid "Camera Car Next"
-msgstr "[Çá₥èřá Çář Nèжƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:173
-msgid "Control Injector 2"
-msgstr "[Çôñƭřôℓ ÌñJèçƭôř 2 !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:104
-msgid "Camera Rotate (Pan) Right"
-msgstr "[Çá₥èřá Rôƭáƭè (Þáñ) Rïϱλƭ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:24
-msgid "Game Signal Picked"
-msgstr "[Gá₥è §ïϱñáℓ Þïçƙèδ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:77
-msgid "lbf"
-msgstr "[ℓβƒ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:160
-msgid "Control Pantograph 4"
-msgstr "[Çôñƭřôℓ Þáñƭôϱřáƥλ 4 !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:144
-msgid "Control Brake Hose Disconnect"
-msgstr "[Çôñƭřôℓ ßřáƙè Hôƨè Ðïƨçôññèçƭ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:55
-msgctxt "Measurement units Preference"
-msgid "Imperial UK"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:27
-msgctxt "Reverser"
-msgid "N"
-msgstr "[N !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:58
-msgid "Debug Fog Increase"
-msgstr "[Ðèβúϱ Fôϱ Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:78
-#, fuzzy
-#| msgid "mph"
-msgctxt "Speed Unit Preference"
-msgid "mph"
-msgstr "[₥ƥλ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:46
-msgid "Display Switch Window"
-msgstr "[Ðïƨƥℓá¥ §ωïƭçλ Wïñδôω !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:43
-#, fuzzy
-#| msgid "Display Train List Window"
-msgid "Display Train Driving Window"
-msgstr "[Ðïƨƥℓá¥ Třáïñ £ïƨƭ Wïñδôω !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:15
-msgid "Game Save"
-msgstr "[Gá₥è §áƲè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:142
-msgid "Control Retainers Off"
-msgstr "[Çôñƭřôℓ Rèƭáïñèřƨ Óƒƒ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:148
-msgid "Control Sander Toggle"
-msgstr "[Çôñƭřôℓ §áñδèř Tôϱϱℓè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:199
-msgid "Control Generic 1"
-msgstr "[Çôñƭřôℓ Gèñèřïç 1 !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:184
-msgid "Control Firing Rate Decrease"
-msgstr "[Çôñƭřôℓ Fïřïñϱ Ráƭè Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:19
-msgid "Game Fullscreen"
-msgstr "[Gá₥è Fúℓℓƨçřèèñ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:52
-msgctxt "Measurement units Preference"
-msgid "Player's location"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:63
-msgid "Debug Precipitation Liquidity Decrease"
-msgstr "[Ðèβúϱ Þřèçïƥïƭáƭïôñ £ï9úïδïƭ¥ Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:667
-msgid "Check for updates once a week"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:69
-msgid "Debug Dump Keyboard Map"
-msgstr "[Ðèβúϱ Ðú₥ƥ Kè¥βôářδ Máƥ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:182
-msgid "Control Firebox Close"
-msgstr "[Çôñƭřôℓ Fïřèβôж Çℓôƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:56
-msgid "Debug Overcast Increase"
-msgstr "[Ðèβúϱ ÓƲèřçáƨƭ Ìñçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:34
-msgid "Game Reset Signal Forward"
-msgstr "[Gá₥è Rèƨèƭ §ïϱñáℓ Fôřωářδ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:16
-msgid "Game Quit"
-msgstr "[Gá₥è Qúïƭ !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:68
-msgid "hp"
-msgstr "[λƥ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:151
-msgid "Control Bell"
-msgstr "[Çôñƭřôℓ ßèℓℓ !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:35
-msgid "Game Reset Signal Backward"
-msgstr "[Gá₥è Rèƨèƭ §ïϱñáℓ ßáçƙωářδ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:701
-msgctxt "Difficulty"
-msgid "Hard"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:83
-msgid "Camera Toggle Letterbox Cab"
-msgstr "[Çá₥èřá Tôϱϱℓè £èƭƭèřβôж Çáβ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:699
-msgctxt "Difficulty"
-msgid "Easy"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:71
-msgid "Debug Tracks"
-msgstr "[Ðèβúϱ Třáçƙƨ !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:53
-msgctxt "Measurement units Preference"
-msgid "Metric"
-msgstr ""
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:131
-msgid "Control Engine Brake Decrease"
-msgstr "[Çôñƭřôℓ Éñϱïñè ßřáƙè Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\Input\UserCommand.cs:123
-msgid "Control Throttle Decrease"
-msgstr "[Çôñƭřôℓ Tλřôƭƭℓè Ðèçřèáƨè !!!]"
-
-#: ..\..\Orts.Common\FormatStrings.cs:44
-msgid "m²"
-msgstr "[₥² !!!]"
-
-#: ..\..\Orts.Common\Enums.cs:97
-msgid "Gear Setting"
-msgstr ""
-
-#: ..\..\Orts.Common\Enums.cs:88
-msgid "Max. Speed"
-msgstr ""
-
-#: ..\..\Orts.Common\FormatStrings.cs:69
+#: ..\..\..\Orts.Common\FormatStrings.cs:98
 msgid "bhp"
 msgstr "[βλƥ !!!]"
 
-#: ..\..\Orts.Common\Enums.cs:28
-msgctxt "Reverser"
-msgid "Forward"
-msgstr "[Fôřωářδ !!!]"
+#: ..\..\..\Orts.Common\FormatStrings.cs:101
+msgid "BTU"
+msgstr "[ßTÛ !!!]"
 
-#: ..\..\Orts.Common\Input\UserCommand.cs:166
-msgid "Control Headlight Increase"
-msgstr "[Çôñƭřôℓ Hèáδℓïϱλƭ Ìñçřèáƨè !!!]"
+#: ..\..\..\Orts.Common\FormatStrings.cs:71
+msgid "ft"
+msgstr "[ƒƭ !!!]"
 
-#: ..\..\Orts.Common\Input\UserCommand.cs:140
-msgid "Control Odometer Direction"
-msgstr "[Çôñƭřôℓ Óδô₥èƭèř Ðïřèçƭïôñ !!!]"
+#: ..\..\..\Orts.Common\FormatStrings.cs:74
+msgid "ft²"
+msgstr "[ƒƭ² !!!]"
 
-#: ..\..\Orts.Common\Input\UserCommand.cs:36
-msgid "Game Autopilot Mode"
-msgstr "[Gá₥è Âúƭôƥïℓôƭ Môδè !!!]"
+#: ..\..\..\Orts.Common\FormatStrings.cs:76
+msgid "ft³"
+msgstr "[ƒƭ³ !!!]"
 
-#: ..\..\Orts.Common\Input\UserCommand.cs:120
-msgid "Control Forwards"
-msgstr "[Çôñƭřôℓ Fôřωářδƨ !!!]"
+#: ..\..\..\Orts.Common\FormatStrings.cs:93
+msgid "g-uk"
+msgstr "[ϱ-úƙ !!!]"
 
-#: ..\..\Orts.Common\Input\UserCommand.cs:23
-msgid "Game Switch Picked"
-msgstr "[Gá₥è §ωïƭçλ Þïçƙèδ !!!]"
+#: ..\..\..\Orts.Common\FormatStrings.cs:94
+msgid "g-us"
+msgstr "[ϱ-úƨ !!!]"
 
-#: ..\..\Orts.Common\Input\UserCommand.cs:155
-msgid "Control Mirror"
-msgstr "[Çôñƭřôℓ Mïřřôř !!!]"
+#: ..\..\..\Orts.Common\FormatStrings.cs:91
+msgid "h"
+msgstr "[λ !!!]"
 
-#: ..\..\Orts.Common\Enums.cs:77
-#, fuzzy
-#| msgid "km/h"
-msgctxt "Speed Unit Preference"
+#: ..\..\..\Orts.Common\FormatStrings.cs:97
+msgid "hp"
+msgstr "[λƥ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:82
+msgid "inHg"
+msgstr "[ïñHϱ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:84
+msgid "kg"
+msgstr "[ƙϱ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:83
+msgid "kgf/cm²"
+msgstr "[ƙϱƒ/ç₥² !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:99
+msgid "kJ"
+msgstr "[ƙJ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:107
+msgid "klbf"
+msgstr "[ƙℓβƒ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:68
+msgid "km"
+msgstr "[ƙ₥ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:77
 msgid "km/h"
 msgstr "[ƙ₥/λ !!!]"
 
-#: ..\..\Orts.Common\Input\UserCommand.cs:141
-msgid "Control Retainers On"
-msgstr "[Çôñƭřôℓ Rèƭáïñèřƨ Óñ !!!]"
+#: ..\..\..\Orts.Common\FormatStrings.cs:105
+msgid "kN"
+msgstr "[ƙN !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:79
+msgid "kPa"
+msgstr "[ƙÞá !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:96
+msgid "kW"
+msgstr "[ƙW !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:92
+msgid "L"
+msgstr "[£ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:88
+msgid "lb"
+msgstr "[ℓβ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:106
+msgid "lbf"
+msgstr "[ℓβƒ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:67
+msgid "m"
+msgstr "[₥ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:73
+msgid "m²"
+msgstr "[₥² !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:75
+msgid "m³"
+msgstr "[₥³ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:70
+msgid "mi"
+msgstr "[₥ï !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:90
+msgid "min"
+msgstr "[₥ïñ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:100
+msgid "MJ"
+msgstr "[MJ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:69
+msgid "mm"
+msgstr "[₥₥ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:78
+msgid "mph"
+msgstr "[₥ƥλ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:104
+msgid "N"
+msgstr "[N !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:81
+msgid "psi"
+msgstr "[ƥƨï !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:95
+msgid "rpm"
+msgstr "[řƥ₥ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:89
+msgid "s"
+msgstr "[ƨ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:85
+msgid "t"
+msgstr "[ƭ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:86
+msgid "t-uk"
+msgstr "[ƭ-úƙ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:87
+msgid "t-us"
+msgstr "[ƭ-úƨ !!!]"
+
+#: ..\..\..\Orts.Common\FormatStrings.cs:72
+msgid "yd"
+msgstr "[¥δ !!!]"
+

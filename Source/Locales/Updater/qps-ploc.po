@@ -1,21 +1,24 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Updater\n"
-"POT-Creation-Date: 2020-09-17 08:26:19+0200\n"
-"PO-Revision-Date: 2020-09-17 14:45+0200\n"
+"POT-Creation-Date: 2025-01-10 20:24:49+0100\n"
+"PO-Revision-Date: 2025-01-10 20:24:50+0100\n"
 "Last-Translator: \n"
 "Language-Team: Open Rails Dev Team\n"
+"Language: qps-ploc\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.1\n"
+"X-Generator: PowerShell Update-Pseudo.ps1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ..\..\Updater\UpdaterProgress.cs:158 ..\..\Updater\UpdaterProgress.cs:184
+#: ..\..\..\Updater\UpdaterProgress.cs:136
+#: ..\..\..\Updater\UpdaterProgress.cs:163
 #, csharp-format
 msgid "Error: {0} {1}"
-msgstr ""
+msgstr "[Éřřôř: {0} {1} !!!]"
 
-#: ..\..\Updater\UpdaterProgress.Designer.cs:55
-msgid "Open Rails Updater"
-msgstr "[Óƥèñ Ráïℓƨ Ûƥδáƭèř !!!]"
+#: ..\..\..\Updater\UpdaterProgress.Designer.cs:58
+msgid "Free Train Simulator Updater"
+msgstr "[Fřèè Třáïñ §ï₥úℓáƭôř Ûƥδáƭèř !!!]"
+

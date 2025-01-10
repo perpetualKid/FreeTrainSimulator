@@ -1,0 +1,67 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Orts.Formats\n"
+"POT-Creation-Date: 2025-01-10 20:24:38+0100\n"
+"PO-Revision-Date: 2025-01-10 20:24:39+0100\n"
+"Last-Translator: \n"
+"Language-Team: Open Rails Dev Team\n"
+"Language: qps-ploc\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: PowerShell Update-Pseudo.ps1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:51
+msgid "Approach1"
+msgstr "[Âƥƥřôáçλ1 !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:54
+msgid "Approach2"
+msgstr "[Âƥƥřôáçλ2 !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:57
+msgid "Approach3"
+msgstr "[Âƥƥřôáçλ3 !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:60
+msgid "Clear1"
+msgstr "[Çℓèář1 !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:63
+msgid "Clear2"
+msgstr "[Çℓèář2 !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:623
+msgid "Control"
+msgstr "[Çôñƭřôℓ !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:619
+msgid "Diesel"
+msgstr "[Ðïèƨèℓ !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:621
+msgid "Electric"
+msgstr "[Éℓèçƭřïç !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:48
+msgid "Restricting"
+msgstr "[Rèƨƭřïçƭïñϱ !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:617
+msgid "Steam"
+msgstr "[§ƭèá₥ !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:42
+msgid "Stop"
+msgstr "[§ƭôƥ !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:45
+msgid "StopProceed"
+msgstr "[§ƭôƥÞřôçèèδ !!!]"
+
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:66
+#: ..\..\..\Orts.Formats\Msts\Enums.cs:615
+msgid "Unknown"
+msgstr "[Ûñƙñôωñ !!!]"
+

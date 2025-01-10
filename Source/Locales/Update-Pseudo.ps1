@@ -2,7 +2,7 @@
     process {
         $a = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         $b = "ÂßÇÐÉFGHÌJK£MNÓÞQR§TÛVWXÝZáβçδèƒϱλïJƙℓ₥ñôƥ9řƨƭúƲωж¥ƺ"
-        Write-Output ('[{0} !!!]' -f ((($_ -split '' | % {
+        Write-Output ('[{0} !!!]' -f ((($_ -split '' | ForEach-Object {
             $inFormat = 0
         } {
             $i = $a.IndexOf($_);
@@ -14,10 +14,10 @@
     }
 }
 
-gci -Directory | %{
-    $file = $_
-    Write-Host ('Reading template file ''{0}''' -f (gi ($file.Name + '\*.pot')))
-    (gc -Encoding UTF8 ($file.Name + '\*.pot') | %{
+Get-ChildItem -Directory | ForEach-Object{
+    $folder = $_
+    Write-Host ('Reading template file ''{0}''' -f (Get-Item ($folder.Name + '\*.pot')))
+    (Get-Content -Encoding UTF8 ($folder.Name + '\*.pot') | ForEach-Object{
         $header = 1
         $msgid = @()
         $msgid_plural = @()
@@ -26,7 +26,7 @@ gci -Directory | %{
             $header = 0
             Write-Output $_
         } elseif ($header -and $_ -like '"Project-Id-Version: *"') {
-            Write-Output ('"Project-Id-Version: {0}\n"' -f $file.Name)
+            Write-Output ('"Project-Id-Version: {0}\n"' -f $folder.Name)
         } elseif ($header -and $_ -like '"Language-Team: *"') {
             Write-Output '"Language-Team: Open Rails Dev Team\n"'
             Write-Output '"Language: qps-ploc\n"'
@@ -51,15 +51,15 @@ gci -Directory | %{
         } elseif ($msgid.Length -gt 0 -and $_ -cmatch '^msgstr ""') {
             if ($msgid.Length -gt 1) {
                 Write-Output 'msgstr ""'
-                ((($msgid | select -Skip 1) -join "`n") | Get-Translation) -split "`n" | %{'"{0}"' -f $_}
+                ((($msgid | Select-Object -Skip 1) -join "`n") | Get-Translation) -split "`n" | ForEach-Object{'"{0}"' -f $_}
             } else {
-                $msgid[0] | Get-Translation | %{'msgstr "{0}"' -f $_}
+                $msgid[0] | Get-Translation | ForEach-Object{'msgstr "{0}"' -f $_}
             }
             $msgid = @()
         } elseif ($msgid.Length -gt 0 -and $_ -cmatch '^msgstr\[0\] ""') {
             if ($msgid.Length -gt 1) {
                 Write-Output 'msgstr[0] ""'
-                ((($msgid | select -Skip 1) -join "`n") | Get-Translation) -split "`n" | %{'"{0}"' -f $_}
+                ((($msgid | Select-Object -Skip 1) -join "`n") | Get-Translation) -split "`n" | ForEach-Object{'"{0}"' -f $_}
             } else {
                 $msgid[0] | Get-Translation | %{'msgstr[0] "{0}"' -f $_}
             }
@@ -67,13 +67,13 @@ gci -Directory | %{
         } elseif ($msgid_plural.Length -gt 0 -and $_ -cmatch '^msgstr\[1\] ""') {
             if ($msgid_plural.Length -gt 1) {
                 Write-Output 'msgstr[1] ""'
-                ((($msgid_plural | select -Skip 1) -join "`n") | Get-Translation) -split "`n" | %{'"{0}"' -f $_}
+                ((($msgid_plural | Select-Object -Skip 1) -join "`n") | Get-Translation) -split "`n" | ForEach-Object{'"{0}"' -f $_}
             } else {
                 $msgid_plural[0] | Get-Translation | %{'msgstr[1] "{0}"' -f $_}
             }
             $msgid_plural = @()
         } elseif ($_ -like '"Project-Id-Version: *"') {
-            Write-Output ('"Project-Id-Version: {0}\n"' -f $file.Name)
+            Write-Output ('"Project-Id-Version: {0}\n"' -f $folder.Name)
         } elseif ($_ -like '"Language-Team: *"') {
             Write-Output '"Language-Team: Open Rails Dev Team\n"'
             Write-Output '"Language: qps-ploc\n"'
@@ -84,7 +84,8 @@ gci -Directory | %{
         } else {
             Write-Output $_
         }
-    }) -join "`r`n" | % {
-        [System.IO.File]::WriteAllLines(($file.Name + '\qps-ploc.po'), $_)
+    }) -join "`r`n" | ForEach-Object {        
+                Write-Host(Join-Path $pwd $folder.Name 'qps-ploc.po')
+        [System.IO.File]::WriteAllLines((Join-Path $pwd $folder.Name 'qps-ploc.po'), $_)
     }
 }
