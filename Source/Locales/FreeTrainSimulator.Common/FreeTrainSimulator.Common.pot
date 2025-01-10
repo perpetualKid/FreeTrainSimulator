@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeTrainSimulator.Common\n"
-"POT-Creation-Date: 2024-12-19 22:04:30+0100\n"
-"PO-Revision-Date: 2024-12-19 22:04:30+0100\n"
+"POT-Creation-Date: 2025-01-10 20:24:27+0100\n"
+"PO-Revision-Date: 2025-01-10 20:24:27+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1191
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1188
 msgid "———"
 msgstr ""
 
@@ -22,11 +22,11 @@ msgstr ""
 msgid "°F"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1370
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1367
 msgid "1STW"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1334
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1331
 msgid "AIFR"
 msgstr ""
 
@@ -34,11 +34,11 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1195
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1192
 msgid "Async"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1335
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1332
 msgid "AUTO"
 msgstr ""
 
@@ -70,15 +70,15 @@ msgstr ""
 msgid "bar"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1376
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1373
 msgid "BATT"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1368
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1365
 msgid "BC"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1363
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1360
 msgid "BDYN"
 msgstr ""
 
@@ -86,7 +86,7 @@ msgstr ""
 msgid "bhp"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1364
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1361
 msgid "BLOC"
 msgstr ""
 
@@ -94,11 +94,11 @@ msgstr ""
 msgid "Brake Cyl Press"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1330
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1327
 msgid "BRKP"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1362
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1359
 msgid "BTRN"
 msgstr ""
 
@@ -266,43 +266,23 @@ msgstr ""
 msgid "Camera Zoom Out (Move Z)"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1381
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1378
 msgid "CCMA"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1340
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1337
 msgid "CCOK"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1379
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1376
 msgid "CCST"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1380
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1377
 msgid "CCTG"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1044
-msgid "Check for updates every month"
-msgstr ""
-
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1043
-msgid "Check for updates every other week"
-msgstr ""
-
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1040
-msgid "Check for updates on each start"
-msgstr ""
-
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1041
-msgid "Check for updates once a day"
-msgstr ""
-
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1042
-msgid "Check for updates once a week"
-msgstr ""
-
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1339
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1336
 msgid "CIRC"
 msgstr ""
 
@@ -902,15 +882,19 @@ msgstr ""
 msgid "Debug Weather Change"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1343
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1340
 msgid "DERL"
+msgstr ""
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1041
+msgid "Developer Builds"
 msgstr ""
 
 #: ..\..\..\FreeTrainSimulator.Common\Enums.cs:316
 msgid "diesel oil"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1341
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1338
 msgid "DIR"
 msgstr ""
 
@@ -1006,11 +990,11 @@ msgstr ""
 msgid "Distance Travelled"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1344
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1341
 msgid "DOOR"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1342
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1339
 msgid "DRLC"
 msgstr ""
 
@@ -1034,31 +1018,31 @@ msgstr ""
 msgid "Emergency Brake"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1585
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1582
 msgid "End Auth"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1579
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1576
 msgid "End Path"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1578
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1575
 msgid "End Trck"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1345
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1342
 msgid "ENGN"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1378
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1375
 msgid "EOTD"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1369
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1366
 msgid "EOTW"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1366
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1363
 msgid "ER"
 msgstr ""
 
@@ -1066,7 +1050,7 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1512
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1509
 msgid "Exhaust"
 msgstr ""
 
@@ -1074,11 +1058,11 @@ msgstr ""
 msgid "Explorer"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1346
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1343
 msgid "FIRE"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1317
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1314
 msgid "FLOW"
 msgstr ""
 
@@ -1126,7 +1110,7 @@ msgstr ""
 msgid "ft³"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1348
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1345
 msgid "FUEL"
 msgstr ""
 
@@ -1250,8 +1234,8 @@ msgstr ""
 msgid "Game Uncouple With Mouse"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1347
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1349
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1344
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1346
 msgid "GEAR"
 msgstr ""
 
@@ -1259,15 +1243,15 @@ msgstr ""
 msgid "Gear Setting"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1350
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1347
 msgid "GRAD"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1351
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1348
 msgid "GRAT"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1319
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1316
 msgid "GRUP"
 msgstr ""
 
@@ -1275,7 +1259,7 @@ msgstr ""
 msgid "h"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1513
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1510
 msgid "High Pressure"
 msgstr ""
 
@@ -1367,23 +1351,23 @@ msgstr ""
 msgid "lbf"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1338
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1335
 msgid "LEVL"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1318
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1315
 msgid "LOAD"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1331
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1328
 msgid "LOCS"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1583
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1580
 msgid "Loop"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1514
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1511
 msgid "Low Pressure"
 msgstr ""
 
@@ -1407,15 +1391,11 @@ msgstr ""
 msgid "Manual"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1039
-msgid "Manually check for updates"
-msgstr ""
-
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1375
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1372
 msgid "MAST"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1582
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1579
 msgid "Max Dist"
 msgstr ""
 
@@ -1451,7 +1431,7 @@ msgstr ""
 msgid "mph"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1367
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1364
 msgid "MR"
 msgstr ""
 
@@ -1459,7 +1439,7 @@ msgstr ""
 msgid "N"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1586
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1583
 msgid "No Path"
 msgstr ""
 
@@ -1476,7 +1456,7 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1359
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1356
 msgid "ODO"
 msgstr ""
 
@@ -1492,7 +1472,7 @@ msgstr ""
 msgid "Off Track"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1320
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1317
 msgid "OILP"
 msgstr ""
 
@@ -1500,15 +1480,19 @@ msgstr ""
 msgid "OutOfControl"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1352
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1349
 msgid "PANT"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1321
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1318
 msgid "POWR"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1336
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1040
+msgid "Pre-Release"
+msgstr ""
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1333
 msgid "PRES"
 msgstr ""
 
@@ -1516,7 +1500,7 @@ msgstr ""
 msgid "psi"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1353
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1350
 msgid "REGL"
 msgstr ""
 
@@ -1524,7 +1508,7 @@ msgstr ""
 msgid "Release"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1365
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1362
 msgid "RETN"
 msgstr ""
 
@@ -1556,11 +1540,11 @@ msgstr ""
 msgid "Reverser Neutral"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1324
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1321
 msgid "REVR"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1322
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1319
 msgid "RMT"
 msgstr ""
 
@@ -1588,7 +1572,7 @@ msgstr ""
 msgid "Rotary Switch 2-Position 3(FULL)"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1354
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1351
 msgid "RPLY"
 msgstr ""
 
@@ -1596,7 +1580,7 @@ msgstr ""
 msgid "rpm"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1323
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1320
 msgid "RPM"
 msgstr ""
 
@@ -1608,11 +1592,11 @@ msgstr ""
 msgid "sand"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1355
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1352
 msgid "SAND"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1584
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1581
 msgid "Signal"
 msgstr ""
 
@@ -1632,7 +1616,7 @@ msgstr ""
 msgid "Slip Turn"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1515
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1512
 msgid "Slow Direct"
 msgstr ""
 
@@ -1644,23 +1628,27 @@ msgstr ""
 msgid "SPAD-Rear"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1356
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1353
 msgid "SPED"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1325
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1039
+msgid "Stable Release"
+msgstr ""
+
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1322
 msgid "STAT"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1357
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1354
 msgid "STEM"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1580
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1577
 msgid "Switch"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1193
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1190
 msgid "Sync"
 msgstr ""
 
@@ -1676,11 +1664,11 @@ msgstr ""
 msgid "t-us"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1326
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1323
 msgid "TEMP"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1327
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1324
 msgid "THRO"
 msgstr ""
 
@@ -1696,12 +1684,12 @@ msgstr ""
 msgid "Time"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1328
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1325
 msgid "TIME"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1329
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1374
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1326
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1371
 msgid "TRAC"
 msgstr ""
 
@@ -1713,11 +1701,11 @@ msgstr ""
 msgid "Train Speed"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1581
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1578
 msgid "TrainAhd"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1373
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1370
 msgid "TSUP"
 msgstr ""
 
@@ -1741,11 +1729,11 @@ msgstr ""
 msgid "water"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1337
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1334
 msgid "WATR"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1358
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1355
 msgid "WHEL"
 msgstr ""
 
@@ -1963,17 +1951,17 @@ msgctxt "CircuitBreaker"
 msgid "Unavailable"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1074
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1071
 msgctxt "Difficulty"
 msgid "Easy"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1076
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1073
 msgctxt "Difficulty"
 msgid "Hard"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1075
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1072
 msgctxt "Difficulty"
 msgid "Medium"
 msgstr ""
@@ -2193,22 +2181,22 @@ msgctxt "Rotation"
 msgid "None"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1059
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1056
 msgctxt "Season"
 msgid "Autumn"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1057
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1054
 msgctxt "Season"
 msgid "Spring"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1058
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1055
 msgctxt "Season"
 msgid "Summer"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1060
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1057
 msgctxt "Season"
 msgid "Winter"
 msgstr ""
@@ -2273,17 +2261,17 @@ msgctxt "TractionCutOffRelay"
 msgid "Unavailable"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1066
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1063
 msgctxt "Weather"
 msgid "Clear"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1068
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1065
 msgctxt "Weather"
 msgid "Rain"
 msgstr ""
 
-#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1067
+#: ..\..\..\FreeTrainSimulator.Common\Enums.cs:1064
 msgctxt "Weather"
 msgid "Snow"
 msgstr ""

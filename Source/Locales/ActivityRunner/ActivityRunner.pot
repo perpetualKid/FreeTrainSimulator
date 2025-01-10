@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ActivityRunner\n"
-"POT-Creation-Date: 2024-12-19 22:04:26+0100\n"
-"PO-Revision-Date: 2024-12-19 22:04:27+0100\n"
+"POT-Creation-Date: 2025-01-10 20:24:22+0100\n"
+"PO-Revision-Date: 2025-01-10 20:24:24+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -59,10 +59,10 @@ msgstr ""
 
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\HelpWindow.cs:178
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\HelpWindow.cs:182
-#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\NextStationWindow.cs:210
-#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\NextStationWindow.cs:384
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\HelpWindow.cs:540
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\HelpWindow.cs:542
+#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\NextStationWindow.cs:210
+#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\NextStationWindow.cs:384
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\NextStationWindow.cs:479
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\NextStationWindow.cs:482
 msgid "(missed)"
@@ -152,15 +152,15 @@ msgstr ""
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DistributedPowerWindow.cs:254
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DistributedPowerWindow.cs:270
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DistributedPowerWindow.cs:298
-#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\MultiPlayerWindow.cs:122
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:479
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:485
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:489
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:528
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:539
+#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:737
+#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\MultiPlayerWindow.cs:122
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\HelpWindow.cs:540
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\HelpWindow.cs:542
-#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:737
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\TrackMonitorWindow.cs:74
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\TrackMonitorWindow.cs:76
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\TrackMonitorWindow.cs:77
@@ -173,11 +173,11 @@ msgstr ""
 
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\CompassWindow.cs:61
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\CompassWindow.cs:62
-#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\MultiPlayerWindow.cs:82
-#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\MultiPlayerWindow.cs:83
-#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\NotificationOverlay.cs:96
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:666
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:672
+#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\NotificationOverlay.cs:96
+#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\MultiPlayerWindow.cs:82
+#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\MultiPlayerWindow.cs:83
 #, csharp-format
 msgid "{0} {1}"
 msgstr ""
@@ -764,8 +764,8 @@ msgid "DIRC"
 msgstr ""
 
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:181
-#: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:130
 #: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:279
+#: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:130
 msgid "Direction"
 msgstr ""
 
@@ -788,8 +788,8 @@ msgstr ""
 #: ..\..\..\ActivityRunner\Viewer3D\Common\DispatcherInformation.cs:29
 #: ..\..\..\ActivityRunner\Viewer3D\Common\DispatcherInformation.cs:31
 #: ..\..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:542
-#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\MultiPlayerWindow.cs:66
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\NextStationWindow.cs:64
+#: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\MultiPlayerWindow.cs:66
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\TrackMonitorWindow.cs:61
 msgid "Distance"
 msgstr ""
@@ -1103,9 +1103,9 @@ msgstr ""
 
 #: ..\..\..\ActivityRunner\Viewer3D\Common\ForceInformation.cs:34
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:176
+#: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:269
 #: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:140
 #: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:287
-#: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:269
 msgid "Gradient"
 msgstr ""
 
@@ -1779,9 +1779,9 @@ msgid "RETN"
 msgstr ""
 
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:180
+#: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:279
 #: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrainDpuDisplay.cs:81
 #: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:148
-#: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:279
 msgid "Reverser"
 msgstr ""
 
@@ -1982,9 +1982,9 @@ msgstr ""
 #: ..\..\..\ActivityRunner\Viewer3D\Dispatcher\PopupWindows\TrainInformationWindow.cs:64
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\DrivingTrainWindow.cs:175
 #: ..\..\..\ActivityRunner\Viewer3D\PopupWindows\TrackMonitorWindow.cs:44
+#: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:238
 #: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:150
 #: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:269
-#: ..\..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:238
 msgid "Speed"
 msgstr ""
 
@@ -2240,9 +2240,9 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: ..\..\..\ActivityRunner\Viewer3D\Common\DispatcherInformation.cs:46
+#: ..\..\..\ActivityRunner\Viewer3D\Dispatcher\PopupWindows\TrainInformationWindow.cs:48
 #: ..\..\..\ActivityRunner\Viewer3D\Dispatcher\PopupWindows\SignalStateWindow.cs:55
 #: ..\..\..\ActivityRunner\Viewer3D\Dispatcher\PopupWindows\SignalStateWindow.cs:57
-#: ..\..\..\ActivityRunner\Viewer3D\Dispatcher\PopupWindows\TrainInformationWindow.cs:48
 msgid "Train"
 msgstr ""
 
@@ -2358,8 +2358,8 @@ msgstr ""
 msgid "Tunnel"
 msgstr ""
 
-#: ..\..\..\ActivityRunner\Viewer3D\Common\BrakeInformation.cs:20
 #: ..\..\..\ActivityRunner\Viewer3D\Common\ConsistInformation.cs:67
+#: ..\..\..\ActivityRunner\Viewer3D\Common\BrakeInformation.cs:20
 #: ..\..\..\ActivityRunner\Viewer3D\Common\TrainInformation.cs:28
 #: ..\..\..\ActivityRunner\Viewer3D\Common\TrainInformation.cs:59
 msgid "Type"

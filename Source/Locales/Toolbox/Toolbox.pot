@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Toolbox\n"
-"POT-Creation-Date: 2024-12-19 22:04:44+0100\n"
-"PO-Revision-Date: 2024-12-19 22:04:44+0100\n"
+"POT-Creation-Date: 2025-01-10 20:24:47+0100\n"
+"PO-Revision-Date: 2025-01-10 20:24:48+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
-#: ..\..\..\Toolbox\GameWindow.cs:78
+#: ..\..\..\Toolbox\GameWindow.cs:76
 #, csharp-format
 msgid " Route: {0}"
 msgstr ""
