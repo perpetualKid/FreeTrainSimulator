@@ -59,8 +59,8 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 int width = (int)(line.RemainingWidth * 0.8);
                 line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Enable Logging")));
                 Checkbox chkLoggingEnabled = new Checkbox(this);
-                chkLoggingEnabled.OnClick += (object sender, MouseClickEventArgs e) => userSettings.LogLevel = (sender as Checkbox).State.Value ? TraceSettings.All : TraceSettings.None;
-                chkLoggingEnabled.State = userSettings.LogLevel != TraceSettings.None;
+                chkLoggingEnabled.OnClick += (object sender, MouseClickEventArgs e) => userSettings.TraceType = (sender as Checkbox).State.Value ? System.Diagnostics.TraceEventType.Verbose: System.Diagnostics.TraceEventType.Critical;
+                chkLoggingEnabled.State = userSettings.TraceType != System.Diagnostics.TraceEventType.Critical;
                 line.Add(chkLoggingEnabled);
 
                 line = layoutContainer.AddLayoutHorizontalLineOfText();

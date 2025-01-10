@@ -1836,16 +1836,4 @@ namespace FreeTrainSimulator.Common
         MultiplayerClientResumeSave
     }
     #endregion
-
-    [Flags]
-    public enum TraceSettings
-    {
-        None = 0x00,
-        Errors = 0x01,
-        ErrorStack = 0x02,
-        Trace = 0x04,
-        SystemDetails = 0x08,
-        ContentErrors = 0x10,
-        All = Errors | ErrorStack | Trace | SystemDetails | ContentErrors,
-    }
 }

@@ -488,7 +488,7 @@ namespace Orts.ActivityRunner.Processes
             if (Game.Settings.Logging)
             {
                 string logFileName = RuntimeInfo.LogFile(Game.Settings.LoggingPath, Game.Settings.LoggingFilename);
-                LoggingUtil.InitLogging(logFileName, Game.Settings.LogErrorsOnly ? TraceSettings.ErrorStack | TraceSettings.ErrorStack : TraceSettings.All , appendLog);
+                LoggingUtil.InitLogging(logFileName, Game.Settings.LogErrorsOnly ? TraceEventType.Error : TraceEventType.Verbose, true, appendLog);
                 Game.Settings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }

@@ -51,7 +51,7 @@ namespace FreeTrainSimulator.Common.Logging
             return invalidCharReplacement.Replace(result, "_");
         }
 
-        public static void InitLogging(string logFileName, TraceSettings traceLevel, bool appendLog)
+        public static void InitLogging(string logFileName, TraceEventType eventType, bool systemDetails, bool appendLog)
         {
             if (string.IsNullOrEmpty(logFileName))
                 return;
@@ -83,10 +83,7 @@ namespace FreeTrainSimulator.Common.Logging
                     AutoFlush = true
                 };
                 // Captures Trace.Trace* calls and others and formats.
-                LoggingTraceListener traceListener = new LoggingTraceListener(writer, traceLevel)
-                {
-                    TraceOutputOptions = traceLevel.HasFlag(TraceSettings.ErrorStack) ? TraceOptions.Callstack | TraceOptions.LogicalOperationStack : TraceOptions.None
-                };
+                LoggingTraceListener traceListener = new LoggingTraceListener(writer, TraceEventType.Information);
                 Trace.Listeners.Add(traceListener);
             }
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is ArgumentException || ex is IOException)
@@ -95,14 +92,14 @@ namespace FreeTrainSimulator.Common.Logging
 
             Trace.WriteLine($"This is a log file for {RuntimeInfo.ProductName} {RuntimeInfo.ProductApplication}. Please include this file in bug reports.");
             Trace.WriteLine(SeparatorLine);
-            if (traceLevel <= TraceSettings.Errors)
+            if (eventType <= TraceEventType.Error)
             {
                 Trace.WriteLine("Logging is disabled, only fatal errors will appear here.");
                 Trace.WriteLine(SeparatorLine);
             }
             else
             {
-                if (traceLevel.HasFlag(TraceSettings.SystemDetails))
+                if (systemDetails)
                 {
                     SystemInfo.WriteSystemDetails();
                     Trace.WriteLine(SeparatorLine);
@@ -114,7 +111,7 @@ namespace FreeTrainSimulator.Common.Logging
                 Trace.WriteLine($"{"Runtime",-12}= {RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
                 if (logFileName.Length > 0)
                     Trace.WriteLine($"{"Logfile",-12}= {logFileName.Replace(Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
-                Trace.WriteLine($"{"Logging",-12}= {traceLevel}");
+                Trace.WriteLine($"{"Logging",-12}= {eventType}");
                 foreach (string arg in Environment.GetCommandLineArgs())
                     Trace.WriteLine($"{"Argument",-12}= {arg.Replace(Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
                 Trace.WriteLine(SeparatorLine);

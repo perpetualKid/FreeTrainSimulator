@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
@@ -14,7 +15,7 @@ namespace FreeTrainSimulator.Models.Settings
     {
         public override ProfileModel Parent => base.Parent as ProfileModel;
 
-        public TraceSettings LogLevel { get; set; } = TraceSettings.Errors;
+        public TraceEventType TraceType { get; set; } = TraceEventType.Error;
         public string LogFileName { get; set; } = "{Product} {Application} Log.txt";
         public string LogFilePath { get; set; } = RuntimeInfo.LogFilesFolder;
 

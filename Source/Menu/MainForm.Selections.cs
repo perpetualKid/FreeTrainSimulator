@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Frozen;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -29,10 +30,10 @@ namespace FreeTrainSimulator.Menu
             ProfileSelections = await SelectedProfile.LoadSettingsModel<ProfileSelectionsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
             ProfileUserSettings = await SelectedProfile.LoadSettingsModel<ProfileUserSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
 
-            if (ProfileUserSettings.LogLevel != TraceSettings.None)
+            if (ProfileUserSettings.TraceType != TraceEventType.Critical)
             {
                 string logFileName = RuntimeInfo.LogFile(ProfileUserSettings.LogFilePath, ProfileUserSettings.LogFileName);
-                LoggingUtil.InitLogging(logFileName, TraceSettings.Errors | TraceSettings.ErrorStack | TraceSettings.Trace, false);
+                LoggingUtil.InitLogging(logFileName, TraceEventType.Error, false, false);
                 ProfileUserSettings.Log();
             }
 
