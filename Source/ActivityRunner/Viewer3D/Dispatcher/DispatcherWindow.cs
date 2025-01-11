@@ -17,6 +17,7 @@ using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Imported.Track;
+using FreeTrainSimulator.Models.Settings;
 
 using GetText;
 using GetText.WindowsForms;
@@ -48,6 +49,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         private readonly Point clientRectangleOffset;
 
         private readonly UserSettings settings;
+        private readonly ProfileUserSettingsModel userSettings;
         private Color BackgroundColor;
 
         private Catalog Catalog;
@@ -89,9 +91,10 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             "White",        // LevelCrossingItem
         });
 
-        public DispatcherWindow(UserSettings settings)
+        public DispatcherWindow(UserSettings settings, ProfileUserSettingsModel userSettings)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
 
             if (settings.Dispatcher.WindowScreen < System.Windows.Forms.Screen.AllScreens.Length)
@@ -395,11 +398,11 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             Localizer.Revert(windowForm, store);
             CatalogManager.Reset();
 
-            if (!string.IsNullOrEmpty(settings.Language))
+            if (!string.IsNullOrEmpty(userSettings.Language))
             {
                 try
                 {
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(settings.Language);
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(userSettings.Language);
                 }
                 catch (CultureNotFoundException exception)
                 {

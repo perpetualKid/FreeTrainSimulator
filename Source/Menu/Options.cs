@@ -54,14 +54,16 @@ namespace FreeTrainSimulator.Menu
         private readonly Dictionary<Control, HelpIconHover> helpIconMap = new Dictionary<Control, HelpIconHover>();
 
         private const string baseUrl = "https://open-rails.readthedocs.io/en/latest";
+        private ProfileUserSettingsModel userSettings;
         internal ContentModel ContentModel { get; private set; }
 
-        public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup, ContentModel contentModel)
+        public OptionsForm(ProfileUserSettingsModel userSettings, UserSettings settings, UpdateManager updateManager, bool initialContentSetup, ContentModel contentModel)
         {
             InitializeComponent();
             catalog = CatalogManager.Catalog;
             Localizer.Localize(this, catalog);
 
+            this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.ContentModel = contentModel ?? throw new ArgumentNullException(nameof(contentModel));
             this.updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
@@ -72,7 +74,9 @@ namespace FreeTrainSimulator.Menu
             // localisation files, but always include English (base language).
             List<string> languageCodes = new List<string> { "en" };
             if (Directory.Exists(RuntimeInfo.LocalesFolder))
+            {
                 foreach (string path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
+                {
                     if (Directory.EnumerateFiles(path, "*.mo").Any())
                     {
                         try
@@ -83,14 +87,17 @@ namespace FreeTrainSimulator.Menu
                         }
                         catch (CultureNotFoundException) { }
                     }
+                }
+            }
             // Turn the list of codes in to a list of code + name pairs for
             // displaying in the dropdown list.
             languageCodes.Add(string.Empty);
             languageCodes.Sort();
             comboLanguage.DataSourceFromList(languageCodes, (language) => string.IsNullOrEmpty(language) ? "System" : CultureInfo.GetCultureInfo(language).NativeName);
-            comboLanguage.SelectedValue = this.settings.Language;
-            if (comboLanguage.SelectedValue == null)
-                comboLanguage.SelectedIndex = 0;
+            comboLanguage.SetComboBoxItem((string language) => string.Equals(language, userSettings.Language, StringComparison.OrdinalIgnoreCase));
+            //comboLanguage.SelectedValue = this.userSettings.Language ?? string.Empty;
+            //if (comboLanguage.SelectedValue == null)
+            //    comboLanguage.SelectedIndex = 0;
 
             comboOtherUnits.DataSourceFromEnum<MeasurementUnit>();
             comboPressureUnit.DataSourceFromEnum<PressureUnit>();
@@ -115,7 +122,7 @@ namespace FreeTrainSimulator.Menu
             checkRetainers.Checked = this.settings.RetainersOnAllCars;
             checkGraduatedRelease.Checked = this.settings.GraduatedRelease;
             numericBrakePipeChargingRate.Value = this.settings.BrakePipeChargingRate;
-            comboLanguage.Text = this.settings.Language;
+//            comboLanguage.Text = this.userSettings.Language;
             comboPressureUnit.SelectedValue = this.settings.PressureUnit;
             comboOtherUnits.SelectedValue = settings.MeasurementUnit;
             checkEnableTCSScripts.Checked = !this.settings.DisableTCSScripts;// Inverted as "Enable scripts" is better UI than "Disable scripts"
@@ -282,7 +289,7 @@ namespace FreeTrainSimulator.Menu
             base.Dispose(disposing);
         }
 
-        private void ButtonOK_Click(object sender, EventArgs e)
+        private async void ButtonOK_Click(object sender, EventArgs e)
         {
             string result = settings.Input.CheckForErrors();
             if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, RuntimeInfo.ProductName, MessageBoxButtons.YesNo))
@@ -293,8 +300,6 @@ namespace FreeTrainSimulator.Menu
                 return;
 
             DialogResult = DialogResult.OK;
-            if (settings.Language != comboLanguage.SelectedValue.ToString())
-                DialogResult = DialogResult.Retry;
 
             // General tab
             settings.Alerter = checkAlerter.Checked;
@@ -304,7 +309,7 @@ namespace FreeTrainSimulator.Menu
             settings.RetainersOnAllCars = checkRetainers.Checked;
             settings.GraduatedRelease = checkGraduatedRelease.Checked;
             settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
-            settings.Language = comboLanguage.SelectedValue.ToString();
+            userSettings.Language = comboLanguage.SelectedValue.ToString();
             settings.PressureUnit = (PressureUnit)comboPressureUnit.SelectedValue;
             settings.MeasurementUnit = (MeasurementUnit)comboOtherUnits.SelectedValue;
             settings.DisableTCSScripts = !checkEnableTCSScripts.Checked; // Inverted as "Enable scripts" is better UI than "Disable scripts"
@@ -404,6 +409,9 @@ namespace FreeTrainSimulator.Menu
             settings.ActWeatherRandomizationLevel = (int)numericActWeatherRandomizationLevel.Value;
 
             settings.Save();
+
+            ProfileModel profile = userSettings.Parent;
+            _ = await profile.UpdateSettingsModel(userSettings, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>

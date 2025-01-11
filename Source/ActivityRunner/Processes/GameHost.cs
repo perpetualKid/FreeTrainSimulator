@@ -28,6 +28,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Logging;
+using FreeTrainSimulator.Models.Settings;
 
 using Microsoft.Xna.Framework;
 
@@ -46,6 +47,8 @@ namespace Orts.ActivityRunner.Processes
         /// Gets the <see cref="UserSettings"/> for the game.
         /// </summary>
         public UserSettings Settings { get; }
+
+        public ProfileUserSettingsModel UserSettings { get; }
 
         /// <summary>
         /// Exposes access to the <see cref="RenderProcess"/> for the game.
@@ -87,9 +90,10 @@ namespace Orts.ActivityRunner.Processes
         /// Initializes a new instance of the <see cref="GameHost"/> based on the specified <see cref="UserSettings"/>.
         /// </summary>
         /// <param name="settings">The <see cref="UserSettings"/> for the game to use.</param>
-        public GameHost(UserSettings settings)
+        public GameHost(UserSettings settings, ProfileUserSettingsModel userSettings)
         {
             Settings = settings;
+            UserSettings = userSettings;
             Exiting += Game_Exiting;
             RenderProcess = new RenderProcess(this);
             UpdaterProcess = new UpdaterProcess(this);

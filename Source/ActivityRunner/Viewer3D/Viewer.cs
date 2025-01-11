@@ -37,6 +37,7 @@ using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Settings;
 
 using GetText;
 
@@ -89,7 +90,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public static ICatalog Catalog { get; private set; }
         // User setups.
-        public UserSettings Settings { get; private set; }
+        public UserSettings Settings { get; }
+        public ProfileUserSettingsModel UserSettings { get; }
 
         public UserCommandController<UserCommand> UserCommandController { get; }
 
@@ -273,6 +275,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
             Game = game ?? throw new ArgumentNullException(nameof(game));
             Settings = simulator.Settings;
+            UserSettings = game.UserSettings;
 
             RenderProcess = game.RenderProcess;
             UpdaterProcess = game.UpdaterProcess;
@@ -591,8 +594,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     windowManager[ViewerWindowType.DebugOverlay].ToggleVisibility();
             });
             UserCommandController.AddEvent(UserCommand.GameFullscreen, KeyEventType.KeyPressed, RenderProcess.ToggleFullScreen);
-//            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, async delegate (UserCommandArgs userCommandArgs) { await Game.State.Save().ConfigureAwait(false); userCommandArgs.Handled = true; });
-            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, delegate (UserCommandArgs userCommandArgs) { Game.State.Save().AsTask().Wait(); userCommandArgs.Handled = true; });
+            //            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, async delegate (UserCommandArgs userCommandArgs) { await Game.State.Save().ConfigureAwait(false); userCommandArgs.Handled = true; });
+            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, delegate (UserCommandArgs userCommandArgs)
+            { Game.State.Save().AsTask().Wait(); userCommandArgs.Handled = true; });
             UserCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
@@ -986,7 +990,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void StartDispatcherViewThread()
         {
-            using (Dispatcher.DispatcherWindow dispatcherWindow = new Dispatcher.DispatcherWindow(Settings))
+            using (Dispatcher.DispatcherWindow dispatcherWindow = new Dispatcher.DispatcherWindow(Settings, UserSettings))
             {
                 this.dispatcherWindow = dispatcherWindow;
                 dispatcherWindow.Run();
@@ -1731,7 +1735,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 WeatherState = await World.WeatherControl.Snapshot().ConfigureAwait(false),
                 CurrentCamera = await Camera.Snapshot().ConfigureAwait(false),
             };
-            foreach(Camera camera in WellKnownCameras)
+            foreach (Camera camera in WellKnownCameras)
             {
                 viewerState.CameraStates.Add(await camera.Snapshot().ConfigureAwait(false));
             }

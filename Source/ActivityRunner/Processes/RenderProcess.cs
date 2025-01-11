@@ -95,11 +95,11 @@ namespace Orts.ActivityRunner.Processes
 
             LoadSettings();
 
-            if (gameHost.Settings.Language.Length > 0)
+            if (gameHost.UserSettings.Language.Length > 0)
             {
                 try
                 {
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(gameHost.Settings.Language);
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(gameHost.UserSettings.Language);
                 }
                 catch (CultureNotFoundException) { }
             }

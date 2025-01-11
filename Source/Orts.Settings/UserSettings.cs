@@ -111,8 +111,6 @@ namespace Orts.Settings
         public int NotificationsTimeout { get; set; }
         [Default(21)]
         public int BrakePipeChargingRate { get; set; }
-        [Default("")]
-        public string Language { get; set; }
         [Default(PressureUnit.Automatic)]
         public PressureUnit PressureUnit { get; set; }
         [Default(MeasurementUnit.Route)]

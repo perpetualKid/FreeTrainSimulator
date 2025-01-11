@@ -270,11 +270,11 @@ namespace FreeTrainSimulator.Menu
             Localizer.Revert(this, store);
             CatalogManager.Reset();
 
-            if (!string.IsNullOrEmpty(settings.Language))
+            if (!string.IsNullOrEmpty(ProfileUserSettings.Language))
             {
                 try
                 {
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(settings.Language);
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(ProfileUserSettings.Language);
                 }
                 catch (CultureNotFoundException exception)
                 {
@@ -477,37 +477,31 @@ namespace FreeTrainSimulator.Menu
                 Invoke(ShowOptionsForm, initialSetup);
                 return;
             }
-            using (OptionsForm form = new OptionsForm(settings, updateManager, initialSetup, ContentModel))
+            using (OptionsForm form = new OptionsForm(ProfileUserSettings, settings, updateManager, initialSetup, ContentModel))
             {
-                switch (form.ShowDialog(this))
+                if (form.ShowDialog(this) == DialogResult.OK)
                 {
-                    case DialogResult.OK:
-                        ModelConverterProgress progressForm = null;
-                        try
+                    ModelConverterProgress progressForm = null;
+                    try
+                    {
+                        ProfileModel currentProfile = SelectedProfile;
+                        SelectedProfile = null;
+                        progressForm = new ModelConverterProgress();
                         {
-                            ProfileModel currentProfile = SelectedProfile;
-                            SelectedProfile = null;
-                            progressForm = new ModelConverterProgress();
-                            {
-                                progressForm.Show(this);
-                                Enabled = false;
-                                ContentModel = await form.ContentModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(true);
-                                await ProfileChanged(currentProfile).ConfigureAwait(true);
-                                await Task.Delay(1200).ConfigureAwait(true);
-                                progressForm.Close();
-                            }
+                            progressForm.Show(this);
+                            Enabled = false;
+                            ContentModel = await form.ContentModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(true);
+                            await ProfileChanged(currentProfile).ConfigureAwait(true);
+                            await Task.Delay(1200).ConfigureAwait(true);
+                            progressForm.Close();
                         }
-                        finally
-                        {
-                            progressForm?.Dispose();
-                            Enabled = true;
-                            BringToFront();
-                        }
-                        break;
-                    case DialogResult.Retry: //Language has changed
-                        LoadLanguage();
-                        LoadToolsAndDocuments();
-                        break;
+                    }
+                    finally
+                    {
+                        progressForm?.Dispose();
+                        Enabled = true;
+                        BringToFront();
+                    }
                 }
             }
         }
@@ -622,11 +616,12 @@ namespace FreeTrainSimulator.Menu
             }
             else
             {
-                settings.MultiplayerPort = (int)settings.GetDefaultValue("Multiplayer_Port");
+                settings.MultiplayerPort = (int)settings.GetDefaultValue("MultiplayerPort");
             }
             settings.Save();
 
             ProfileSelections = await SelectedProfile.UpdateSettingsModel(ProfileSelections, CancellationToken.None).ConfigureAwait(false);
+            ProfileUserSettings = await SelectedProfile.UpdateSettingsModel(ProfileUserSettings, CancellationToken.None).ConfigureAwait(false);
             await SelectedProfile.UpdateCurrent(CancellationToken.None).ConfigureAwait(!false);
         }
         #endregion
