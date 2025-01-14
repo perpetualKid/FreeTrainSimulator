@@ -44,7 +44,7 @@ namespace FreeTrainSimulator.Menu
             Localizer.Localize(this, CatalogManager.Catalog);
 
             this.contentModel = contentModel;
-            this.userSettings = userSettings;
+            this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
             logFilePath = Path.Combine(userSettings.LogFilePath, logFileName);
             UpdateButtons();
         }

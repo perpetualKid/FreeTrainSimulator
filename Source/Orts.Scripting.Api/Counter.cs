@@ -28,6 +28,7 @@ namespace Orts.Scripting.Api
     {
         public Timer(ScriptBase script)
         {
+            ArgumentNullException.ThrowIfNull(script, nameof(script));
             CurrentValue = script.GameTime;
         }
 
@@ -41,6 +42,7 @@ namespace Orts.Scripting.Api
     {
         public Odometer(TrainScriptBase script)
         {
+            ArgumentNullException.ThrowIfNull(script, nameof(script));
             CurrentValue = script.DistanceM;
         }
 
@@ -64,6 +66,7 @@ namespace Orts.Scripting.Api
 
         public Blinker(ScriptBase script)
         {
+            ArgumentNullException.ThrowIfNull(script, nameof(script));
             CurrentValue = script.GameTime;
         }
 
