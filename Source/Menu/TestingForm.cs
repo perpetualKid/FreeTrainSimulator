@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 
@@ -23,17 +24,18 @@ namespace FreeTrainSimulator.Menu
 {
     public partial class TestingForm : Form
     {
+        private const string testingProfileName = "$testing";
+        private const string logFileName = "TestingLog.txt";
         private CancellationTokenSource ctsTestActivityLoader;
         private CancellationTokenSource ctsTestActivityRunner;
         private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         private readonly ContentModel contentModel;
+        private readonly ProfileUserSettingsModel userSettings;
         private bool clearedLogs;
-        private readonly string runActivity;
         private readonly string summaryFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingSummary.csv");
-        private readonly string logFilePath = Path.Combine(RuntimeInfo.UserDataFolder, "TestingLog.txt");
+        private string logFilePath;
 
-        public TestingForm(ContentModel contentModel
-            , string runActivity)
+        public TestingForm(ContentModel contentModel, ProfileUserSettingsModel userSettings)
         {
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
@@ -41,9 +43,9 @@ namespace FreeTrainSimulator.Menu
 
             Localizer.Localize(this, CatalogManager.Catalog);
 
-            this.runActivity = runActivity;
             this.contentModel = contentModel;
-
+            this.userSettings = userSettings;
+            logFilePath = Path.Combine(userSettings.LogFilePath, logFileName);
             UpdateButtons();
         }
 
@@ -125,12 +127,12 @@ namespace FreeTrainSimulator.Menu
 
         private void ButtonSummary_Click(object sender, EventArgs e)
         {
-            Process.Start(new ProcessStartInfo { FileName = summaryFilePath, UseShellExecute = true });
+            SystemInfo.OpenFile(summaryFilePath);
         }
 
         private void ButtonDetails_Click(object sender, EventArgs e)
         {
-            Process.Start(new ProcessStartInfo { FileName = logFilePath, UseShellExecute = true });
+            SystemInfo.OpenFile(logFilePath);
         }
 
         private async Task TestMarkedActivitiesAsync(IEnumerable<DataGridViewRow> rows)
@@ -163,14 +165,23 @@ namespace FreeTrainSimulator.Menu
 
         private async Task<TestActivityModel> RunTestTask(TestActivityModel activity, bool overrideSettings, CancellationToken cancellationToken)
         {
-            string parameters = $"/Test /Logging /LoggingFilename=\"{Path.GetFileName(logFilePath)}\" /LoggingPath=\"{Path.GetDirectoryName(logFilePath)}\" " +
-                $"/Profiling /ProfilingTime=10 /ShowErrorDialogs=False";
-            if (overrideSettings)
-                parameters += " /Skip-User-Settings";
+            ProfileModel testingProfile = new ProfileModel(testingProfileName);
+
+            ProfileUserSettingsModel testingSettings = (overrideSettings ? new ProfileUserSettingsModel() : userSettings) with
+            {
+                Id = testingProfileName,
+                Name = testingProfileName,
+                LogFileName = logFileName,
+                LogLevel = TraceEventType.Verbose,
+                ErrorDialogEnabled = false,
+            };
+            _ = await testingProfile.UpdateSettingsModel(testingSettings, cancellationToken).ConfigureAwait(false);
+
+            string parameters = $"/Test /Profile={testingProfileName} /Profiling /ProfilingTime=10";
 
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
-                FileName = runActivity,
+                FileName = RuntimeInfo.ActivityRunnerExecutable,
                 WindowStyle = ProcessWindowStyle.Normal,
                 WorkingDirectory = Application.StartupPath
             };
@@ -179,8 +190,11 @@ namespace FreeTrainSimulator.Menu
             {
                 using (StreamWriter writer = File.CreateText(summaryFilePath))
                     await writer.WriteLineAsync("Route, Activity, Passed, Errors, Warnings, Infos, Load Time, FPS").ConfigureAwait(false);
-                using (StreamWriter writer = File.CreateText(logFilePath))
-                    await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    File.Delete(logFilePath);
+                }
+                catch (IOException) { };
                 clearedLogs = true;
             }
 
@@ -188,7 +202,7 @@ namespace FreeTrainSimulator.Menu
             using (StreamReader reader = File.OpenText(summaryFilePath))
                 summaryFilePosition = reader.BaseStream.Length;
 
-            processStartInfo.Arguments = $"{parameters} \"{activity.ActivityFilePath}\"";
+            processStartInfo.Arguments = $"{parameters} \"{activity.SourceFile()}\"";
             bool passed = await RunProcessAsync(processStartInfo, cancellationToken).ConfigureAwait(false);
             string errors = string.Empty;
             string load = string.Empty;

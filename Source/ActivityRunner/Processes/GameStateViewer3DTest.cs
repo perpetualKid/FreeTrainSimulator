@@ -22,7 +22,7 @@ namespace Orts.ActivityRunner.Processes
         {
         }
 
-        internal override ValueTask Load()
+        internal override Task Load()
         {
             Game.PopState();
             return base.Load();

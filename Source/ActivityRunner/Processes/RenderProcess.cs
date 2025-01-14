@@ -95,7 +95,7 @@ namespace Orts.ActivityRunner.Processes
 
             LoadSettings();
 
-            if (gameHost.UserSettings.Language.Length > 0)
+            if (!string.IsNullOrEmpty(gameHost.UserSettings.Language))
             {
                 try
                 {

@@ -288,8 +288,6 @@ namespace Orts.Settings
         public string LoggingFilename { get; set; }
         [Default("Evaluation.txt")]
         public string DebriefEvalFilename { get; set; }//
-        [Default("")] // If left as "", OR will use the user's desktop folder
-        public string LoggingPath { get; set; }
         [Default("")]
         public string ScreenshotPath { get; set; }
         [Default(true)]
@@ -432,7 +430,6 @@ namespace Orts.Settings
         public UserSettings(in ImmutableArray<string> options, SettingsStore store) :
             base(store)
         {
-            customDefaultValues["LoggingPath"] = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             customDefaultValues["ScreenshotPath"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), Application.ProductName);
             customDefaultValues["Multiplayer_User"] = Environment.UserName;
             LoadSettings(options);

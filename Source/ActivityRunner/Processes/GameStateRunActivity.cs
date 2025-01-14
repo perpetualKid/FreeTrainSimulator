@@ -33,6 +33,8 @@ using FreeTrainSimulator.Common.Native;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 
 using MemoryPack;
 
@@ -138,7 +140,7 @@ namespace Orts.ActivityRunner.Processes
             base.Update(frame, gameTime);
         }
 
-        internal override async ValueTask Load()
+        internal override async Task Load()
         {
             // Load loading image first!
             loading ??= new LoadingPrimitive(Game);
@@ -151,7 +153,6 @@ namespace Orts.ActivityRunner.Processes
                 // in multiplayer start/resume there is no "-start" or "-resume" string, so you have to discriminate
                 actionType = activityType != ActivityType.None || options.Length == 0 ? ActionType.Start : ActionType.Resume;
             }
-
 
             UserSettings settings = Game.Settings;
             async ValueTask doAction()
@@ -186,8 +187,8 @@ namespace Orts.ActivityRunner.Processes
                         break;
 
                     default:
-                        MessageBox.Show($"To start {RuntimeInfo.ProductName}, please run 'OpenRails.exe'.\n\n"
-                                + "If you are attempting to debug this component, please run 'OpenRails.exe' and execute the scenario you are interested in. "
+                        MessageBox.Show($"To start {RuntimeInfo.ProductName}, please run 'FreeTrainSimulator.exe'.\n\n"
+                                + "If you are attempting to debug this component, please run 'FreeTrainSimulator.exe' and execute the scenario you are interested in. "
                                 + "In the log file, the command-line arguments used will be listed at the top. "
                                 + "You should then configure your debug environment to execute this component with those command-line arguments.",
                                 $"{Application.ProductName}  {VersionInfo.Version}");
@@ -202,7 +203,7 @@ namespace Orts.ActivityRunner.Processes
             catch (Exception error) when (!Debugger.IsAttached)
             {
                 Trace.WriteLine(new FatalException(error));
-                if (settings.ShowErrorDialogs)
+                if (Game.UserSettings.ErrorDialogEnabled)
                 {
                     // If we had a load error but the inner error is one we handle here specially, unwrap it and discard the extra file information.
                     if (error is FileLoadException fileLoadException && (fileLoadException.InnerException is FileNotFoundException || fileLoadException.InnerException is DirectoryNotFoundException))
@@ -233,7 +234,7 @@ namespace Orts.ActivityRunner.Processes
                     else
                     {
                         string errorSummary = error.GetType().FullName + ": " + error.Message;
-                        string logFile = Path.Combine(settings.LoggingPath, settings.LoggingFilename);
+                        string logFile = RuntimeInfo.LogFile(Game.UserSettings.LogFilePath, Game.UserSettings.LogFileName);
                         DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ProductName} cannot continue.\n\n" +
                                 $"    {errorSummary}\n\n" +
                                 $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ProductName} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {logFile}.\n\n" +
@@ -487,9 +488,11 @@ namespace Orts.ActivityRunner.Processes
         {
             if (Game.Settings.Logging)
             {
-                string logFileName = RuntimeInfo.LogFile(Game.Settings.LoggingPath, Game.Settings.LoggingFilename);
+                string logFileName = RuntimeInfo.LogFile(Game.UserSettings.LogFilePath, Game.UserSettings.LogFileName);
                 LoggingUtil.InitLogging(logFileName, Game.Settings.LogErrorsOnly ? TraceEventType.Error : TraceEventType.Verbose, true, appendLog);
                 Game.Settings.Log();
+                Trace.WriteLine(LoggingUtil.SeparatorLine);
+                Game.UserSettings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
         }
@@ -620,7 +623,7 @@ namespace Orts.ActivityRunner.Processes
         }
         #endregion
 
-        private async ValueTask InitSimulator(UserSettings settings,  CancellationToken cancellationToken)
+        private async ValueTask InitSimulator(UserSettings settings, CancellationToken cancellationToken)
         {
             if (activityType == ActivityType.None)
             {

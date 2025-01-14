@@ -102,7 +102,7 @@ namespace FreeTrainSimulator.Toolbox
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
 
             Task.Run(LoadSettings).Wait();
-            if (ToolboxUserSettings.TraceType != TraceEventType.Critical)
+            if (ToolboxUserSettings.LogLevel != TraceEventType.Critical)
             {
                 LogFileName = RuntimeInfo.LogFile(ToolboxUserSettings.LogFilePath, ToolboxUserSettings.LogFileName);
                 LoggingUtil.InitLogging(LogFileName, TraceEventType.Error, false, false);

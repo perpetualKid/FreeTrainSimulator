@@ -17,6 +17,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -39,6 +41,8 @@ namespace Orts.ActivityRunner
 {
     internal static class Program
     {
+        private static readonly char[] optionSeparators = new[] { '=', ':' };
+
         public static Viewer Viewer;
         public static SoundDebugForm SoundDebugForm;
 
@@ -51,9 +55,10 @@ namespace Orts.ActivityRunner
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
 
             ImmutableArray<string> options = args.Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
+
             UserSettings settings = new UserSettings(options);
 
-            ProfileModel currentProfile = await ((ProfileModel)null).Current(CancellationToken.None).ConfigureAwait(false);
+            ProfileModel currentProfile = await ResolveProfile(options).ConfigureAwait(false);
             ProfileUserSettingsModel userSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(CancellationToken.None).ConfigureAwait(false);
 
             //enables loading of dll for specific architecture(32 or 64bit) from distinct folders, useful when both versions require same name (as for soft_oal.dll)
@@ -67,6 +72,36 @@ namespace Orts.ActivityRunner
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 game.Run();
             }
+        }
+
+        private static async Task<ProfileModel> ResolveProfile(ImmutableArray<string> options)
+        {
+            NameValueCollection commandLineOptions = ParseCommandLineOptions(options);
+            string profileName;
+            ProfileModel profile = null;
+            if (!string.IsNullOrEmpty(profileName = commandLineOptions["Profile"]))
+            {
+                profile = (await ((ProfileModel)null).GetProfiles(CancellationToken.None).ConfigureAwait(false)).GetByName(profileName);
+            }
+            return profile ?? await ((ProfileModel)null).Current(CancellationToken.None).ConfigureAwait(false);
+        }
+
+        private static NameValueCollection ParseCommandLineOptions(ImmutableArray<string> options)
+        {
+            NameValueCollection cmdOptions = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
+            if (options.Length > 0)
+            {
+                // Pull apart the command-line options so we can find them by setting name.
+                foreach (string option in options)
+                {
+                    string[] kvp = option.Split(optionSeparators, 2);
+
+                    string k = kvp[0];
+                    string v = kvp.Length > 1 ? kvp[1] : "yes";
+                    cmdOptions[k] = v;
+                }
+            }
+            return cmdOptions;
         }
     }
 }

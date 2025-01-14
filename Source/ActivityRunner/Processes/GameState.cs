@@ -73,14 +73,14 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Called to load new content as and when necessary.
         /// </summary>
-        internal virtual ValueTask Load()
+        internal virtual Task Load()
         {
-            return ValueTask.CompletedTask;
+            return Task.CompletedTask;
         }
 
-        internal virtual ValueTask Save()
+        internal virtual Task Save()
         {
-            return ValueTask.CompletedTask;
+            return Task.CompletedTask;
         }
 
         protected virtual void Dispose(bool disposing)

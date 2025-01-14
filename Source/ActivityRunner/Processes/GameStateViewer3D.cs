@@ -131,7 +131,7 @@ namespace Orts.ActivityRunner.Processes
             Viewer.Update(frame, elapsedRealTime);
         }
 
-        internal override ValueTask Load()
+        internal override Task Load()
         {
             Viewer.Load();
             return base.Load();
@@ -148,7 +148,7 @@ namespace Orts.ActivityRunner.Processes
             base.Dispose(disposing);
         }
 
-        internal override async ValueTask Save()
+        internal override async Task Save()
         {
             Simulator simulator = Simulator.Instance;
             if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer())
@@ -179,7 +179,7 @@ namespace Orts.ActivityRunner.Processes
             // Copy the logfile to the save folder
             string logName = Path.Combine(RuntimeInfo.UserDataFolder, fileStem + FileNameExtensions.TextReport);
 
-            string logFileName = RuntimeInfo.LogFile(Game.Settings.LoggingPath, Game.Settings.LoggingFilename);
+            string logFileName = RuntimeInfo.LogFile(Game.UserSettings.LogFilePath, Game.UserSettings.LogFileName);
 
             if (File.Exists(logFileName))
             {

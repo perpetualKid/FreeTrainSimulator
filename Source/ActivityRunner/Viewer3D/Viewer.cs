@@ -595,8 +595,11 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.GameFullscreen, KeyEventType.KeyPressed, RenderProcess.ToggleFullScreen);
             //            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, async delegate (UserCommandArgs userCommandArgs) { await Game.State.Save().ConfigureAwait(false); userCommandArgs.Handled = true; });
-            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, delegate (UserCommandArgs userCommandArgs)
-            { Game.State.Save().AsTask().Wait(); userCommandArgs.Handled = true; });
+            UserCommandController.AddEvent(UserCommand.GameSave, KeyEventType.KeyPressed, async delegate (UserCommandArgs userCommandArgs)
+            { 
+                await Game.State.Save().ConfigureAwait(true); 
+                userCommandArgs.Handled = true; 
+            });
             UserCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
@@ -819,12 +822,11 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DebugDumpKeymap, KeyEventType.KeyPressed, () =>
             {
-                //TODO 20210320 move path settings to RuntimeInfo
-                string textPath = Path.Combine(Settings.LoggingPath, "OpenRailsKeyboard.txt");
+                string textPath = Path.Combine(UserSettings.LogFilePath, "OpenRailsKeyboard.txt");
                 Settings.Input.UserCommands.DumpToText(textPath);
                 Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Keyboard map list saved to '{0}'.", textPath), 10);
 
-                string graphicPath = Path.Combine(Settings.LoggingPath, "OpenRailsKeyboard.png");
+                string graphicPath = Path.Combine(UserSettings.LogFilePath, "OpenRailsKeyboard.png");
                 KeyboardMap.DumpToGraphic(Settings.Input.UserCommands, graphicPath);
                 Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Keyboard map image saved to '{0}'.", graphicPath), 10);
             });

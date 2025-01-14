@@ -214,10 +214,10 @@ namespace Orts.ActivityRunner.Processes
             // Log the error first in case we're burning.
             Trace.WriteLine(new FatalException(error));
             // Show the user that it's all gone horribly wrong.
-            if (Settings.ShowErrorDialogs)
+            if (UserSettings.ErrorDialogEnabled)
             {
                 string errorSummary = error?.GetType().FullName + ": " + error.Message;
-                string logFile = Path.Combine(Settings.LoggingPath, Settings.LoggingFilename);
+                string logFile = RuntimeInfo.LogFile(UserSettings.LogFilePath, UserSettings.LogFileName);
                 DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ProductName} cannot continue.\n\n" +
                         $"    {errorSummary}\n\n" +
                         $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ProductName} by reporting this error in our bug tracker at {LoggingUtil.BugTrackerUrl} and attaching the log file {logFile}.\n\n" +
