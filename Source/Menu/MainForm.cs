@@ -597,7 +597,7 @@ namespace FreeTrainSimulator.Menu
                 Invoke(LoadOptions);
                 return;
             }
-            checkBoxWarnings.Checked = settings.Logging;
+            checkBoxWarnings.Checked = ProfileUserSettings.LogLevel > TraceEventType.Critical;
 
             textBoxMPUser.Text = settings.MultiplayerUser;
             textBoxMPHost.Text = settings.MultiplayerHost + ":" + settings.MultiplayerPort;
@@ -605,7 +605,7 @@ namespace FreeTrainSimulator.Menu
 
         private async Task SaveOptions()
         {
-            settings.Logging = checkBoxWarnings.Checked;
+            ProfileUserSettings.LogLevel = checkBoxWarnings.Checked ? TraceEventType.Verbose : TraceEventType.Critical;
             settings.MultiplayerUser = textBoxMPUser.Text;
 
             string[] mpHost = textBoxMPHost.Text.Split(':');

@@ -16,6 +16,7 @@ namespace FreeTrainSimulator.Models.Shim
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
             T settingsModel = new T() { Id = profileModel.Name, Name = profileModel.Name };
+            settingsModel.RefreshModel();
             settingsModel.Initialize(profileModel);
 
             return await ProfileSettingModelHandler<T>.FromFile(settingsModel, cancellationToken).ConfigureAwait(false);

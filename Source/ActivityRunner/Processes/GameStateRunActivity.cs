@@ -486,10 +486,10 @@ namespace Orts.ActivityRunner.Processes
 
         private void InitLogging(bool appendLog = false)
         {
-            if (Game.Settings.Logging)
+            if (Game.UserSettings.LogLevel != TraceEventType.Critical)
             {
                 string logFileName = RuntimeInfo.LogFile(Game.UserSettings.LogFilePath, Game.UserSettings.LogFileName);
-                LoggingUtil.InitLogging(logFileName, Game.Settings.LogErrorsOnly ? TraceEventType.Error : TraceEventType.Verbose, true, appendLog);
+                LoggingUtil.InitLogging(logFileName, Game.UserSettings.LogLevel, true, appendLog);
                 Game.Settings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
                 Game.UserSettings.Log();

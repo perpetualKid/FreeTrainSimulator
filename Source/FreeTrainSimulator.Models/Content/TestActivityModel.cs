@@ -13,7 +13,6 @@ namespace FreeTrainSimulator.Models.Content
         public string Folder {  get; init; }
         public string Route { get; init; }
         public string Activity { get; init; }
-        public string ActivityFilePath { get; init; }
         public bool Tested { get; init; }
         public bool Passed { get; init; }
         public string Errors { get; init; }

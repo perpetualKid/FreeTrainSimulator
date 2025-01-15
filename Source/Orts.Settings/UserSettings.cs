@@ -75,12 +75,6 @@ namespace Orts.Settings
         // of type 'string', 'int', 'bool', 'string[]' and 'int[]' are automatically loaded/saved.
 
         // Main menu settings:
-        [Default(true)]
-        public bool Logging { get; set; }
-        [Default(false)]
-        public bool LogErrorsOnly { get; set; }
-        [Default(false)]
-        public bool LogSaveData { get; set; }
         [Default("")]
         public string MultiplayerUser { get; set; }
         [Default("127.0.0.1")]
@@ -284,10 +278,6 @@ namespace Orts.Settings
         // Hidden settings:
         [Default(0)]
         public int CarVibratingLevel { get; set; }
-        [Default("FreeTrainSimulator Log.txt")]
-        public string LoggingFilename { get; set; }
-        [Default("Evaluation.txt")]
-        public string DebriefEvalFilename { get; set; }//
         [Default("")]
         public string ScreenshotPath { get; set; }
         [Default(true)]

@@ -33,7 +33,7 @@ namespace FreeTrainSimulator.Menu
             if (ProfileUserSettings.LogLevel != TraceEventType.Critical)
             {
                 string logFileName = RuntimeInfo.LogFile(ProfileUserSettings.LogFilePath, ProfileUserSettings.LogFileName);
-                LoggingUtil.InitLogging(logFileName, TraceEventType.Error, false, false);
+                LoggingUtil.InitLogging(logFileName, ProfileUserSettings.LogLevel, false, false);
                 ProfileUserSettings.Log();
             }
 
