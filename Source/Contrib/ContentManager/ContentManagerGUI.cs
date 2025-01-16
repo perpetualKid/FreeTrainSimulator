@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -29,13 +28,10 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 
-using Orts.Settings;
-
 namespace Orts.ContentManager
 {
     public partial class ContentManagerGUI : Form
     {
-        private readonly UserSettings settings;
         private readonly ContentRoot contentManager;
 
         private static readonly Regex contentBold = new Regex("(?:^|\t)([\\w ]+:)\t", RegexOptions.Multiline);
@@ -57,8 +53,7 @@ namespace Orts.ContentManager
         {
             InitializeComponent();
 
-            settings = new UserSettings(ImmutableArray<string>.Empty);
-            contentManager = new ContentRoot(settings.FolderSettings);
+            contentManager = new ContentRoot();
 
             // Start off the tree with the Content Manager itself at the root and expand to show packages.
             treeViewContent.Nodes.Add(CreateContentNode(contentManager));

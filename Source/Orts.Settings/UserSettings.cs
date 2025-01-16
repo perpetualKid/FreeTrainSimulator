@@ -400,8 +400,6 @@ namespace Orts.Settings
         public bool MultiplayerClient { get; set; }
         #endregion
 
-        public FolderSettings FolderSettings { get; private set; }
-
         public InputSettings Input { get; private set; }
 
         public RailDriverSettings RailDriver { get; private set; }
@@ -423,7 +421,6 @@ namespace Orts.Settings
             customDefaultValues["ScreenshotPath"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), Application.ProductName);
             customDefaultValues["Multiplayer_User"] = Environment.UserName;
             LoadSettings(options);
-            FolderSettings = new FolderSettings(options, store);
             Input = new InputSettings(options, store);
             RailDriver = new RailDriverSettings(options, store);
             Dispatcher = new DispatcherSettings(options, store);
@@ -473,7 +470,6 @@ namespace Orts.Settings
             foreach (PropertyInfo property in GetProperties())
                 Save(property.Name);
 
-            FolderSettings.Save();
             Input.Save();
             RailDriver.Save();
             Dispatcher.Save();

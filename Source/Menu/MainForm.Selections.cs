@@ -39,7 +39,7 @@ namespace FreeTrainSimulator.Menu
 
             LoadLanguage();
             LoadOptions();
-            await CheckForUpdateAsync().ConfigureAwait(false);
+            Task updateTask = CheckForUpdateAsync();
 
             //Initial setup if necessary
             if (ContentModel.ContentFolders.Count == 0)
@@ -51,6 +51,8 @@ namespace FreeTrainSimulator.Menu
                 SetupFoldersDropdown(ContentModel.ContentFolders);
                 await SetupFolderFromSelection().ConfigureAwait(false);
             }
+
+            await updateTask.ConfigureAwait(false);
         }
 
         private async Task FolderChanged(FolderModel contentFolder)

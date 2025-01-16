@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,12 +10,41 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 
-using Orts.Formats.Msts;
+using Microsoft.Win32;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
     internal sealed class FolderModelImportHandler : ContentHandlerBase<FolderModel>
     {
+        private const string importKey = "$Import";
+
+        internal static FrozenSet<FolderModel> InitialFolderImport(ContentModel contentModel)
+        {
+            if (!modelSetTaskCache.TryGetValue(importKey, out Task<FrozenSet<FolderModel>> modelSetTask))
+            {
+
+                List<FolderModel> folderModels = new List<FolderModel>();
+
+                string location = "SOFTWARE\\OpenRails\\ORTS\\Folders";
+                try
+                {
+                    RegistryKey key = Registry.CurrentUser.OpenSubKey(location);
+
+                    foreach (string folder in key.GetValueNames())
+                    {
+                        folderModels.Add(new FolderModel(folder, key.GetValue(folder) as string, contentModel));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError($"Could not import existing content folders {ex.Message}.");
+                }
+                modelSetTaskCache[importKey] = modelSetTask = Task.FromResult(folderModels.ToFrozenSet());
+            }
+
+            return modelSetTask.Result;
+        }
+
         public static async Task<FrozenSet<FolderModel>> ExpandFolderModels(ContentModel contentModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));

@@ -14,16 +14,6 @@ namespace FreeTrainSimulator.Models.Imported.Shim
             return ContentModelConverter.SetupContent(contentModel, true, progressClient, cancellationToken);
         }
 
-        public static Task<ContentModel> GetOrCreate(CancellationToken cancellationToken)
-        {
-            ContentModel contentModel = null;
-            return Task.FromResult(contentModel);
-            //= Get profiles.GetByName(profileName);
-            //return null != profileModel
-            //    ? Task.FromResult(profileModel)
-            //    : Models.Shim.ContentModelExtensions.Setup(profileModel, profileName, Enumerable.Empty<(string, string)>(), cancellationToken);
-        }
-
         public static Task<ContentModel> Convert(this ContentModel contentModel, bool force, CancellationToken cancellationToken)
         {
             return ContentModelConverter.ConvertContent(contentModel, force, cancellationToken);

@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -95,9 +94,6 @@ namespace FreeTrainSimulator.Menu
             languageCodes.Sort();
             comboLanguage.DataSourceFromList(languageCodes, (language) => string.IsNullOrEmpty(language) ? "System" : CultureInfo.GetCultureInfo(language).NativeName);
             comboLanguage.SetComboBoxItem((string language) => string.Equals(language, userSettings.Language, StringComparison.OrdinalIgnoreCase));
-            //comboLanguage.SelectedValue = this.userSettings.Language ?? string.Empty;
-            //if (comboLanguage.SelectedValue == null)
-            //    comboLanguage.SelectedIndex = 0;
 
             comboOtherUnits.DataSourceFromEnum<MeasurementUnit>();
             comboPressureUnit.DataSourceFromEnum<PressureUnit>();
@@ -210,8 +206,7 @@ namespace FreeTrainSimulator.Menu
             }
             checkDataLogStationStops.Checked = this.settings.EvaluationStationStops;
 
-            bindingSourceContent.DataSource = initialContentSetup ?
-                this.settings.FolderSettings.Folders.Select(f => new FolderModel(f.Key, f.Value, ContentModel)).ToList() :
+            bindingSourceContent.DataSource = initialContentSetup ? ContentModel.ImportFolderSettings().ToList() :
                 ContentModel.ContentFolders.Count == 0 ? new List<FolderModel>() { ContentModel.TrainSimulatorFolder() } :
                 ContentModel.ContentFolders.OrderBy(f => f.Name).ToList();
 
@@ -263,7 +258,7 @@ namespace FreeTrainSimulator.Menu
 
             if (tabOptions.SelectedTab == tabPageContent) // inital setup?
             {
-                if (settings.FolderSettings.Folders?.Count > 0)
+                if (ContentModel.ImportFolderSettings().Count > 0)
                 {
                     if (MessageBox.Show($"In an effort to optimize content, {RuntimeInfo.ProductName} will analyze existing content files and folders. No updates will be made to existing content." + Environment.NewLine + Environment.NewLine +
                         "Please review the current content folder settings, and confirm using \"Ok\"-Button when closing the \"Options\" dialog." + Environment.NewLine + Environment.NewLine +

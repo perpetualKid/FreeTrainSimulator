@@ -15,38 +15,35 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Settings;
-using System;
 using System.Collections.Generic;
+
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.Shim;
 
 namespace Orts.ContentManager
 {
     public class ContentRoot : ContentBase
     {
-        [NonSerialized]
-        private readonly FolderSettings Settings;
-
         public override ContentType Type => ContentType.Root;
 
-        public ContentRoot(FolderSettings settings)
+        public ContentRoot()
             : base(null)
         {
-            Settings = settings;
             Name = "Content Manager";
             PathName = "";
         }
 
         public override IEnumerable<ContentBase> GetContent(ContentType type)
-        {
+        {            
             if (type == ContentType.Package)
             {
                 // TODO: Support OR content folders.
-                foreach (KeyValuePair<string, string> folder in Settings.Folders)
+                foreach (FolderModel folder in ContentModel.None.ImportFolderSettings())
                 {
-                    if (ContentMSTSPackage.IsValid(folder.Value))
-                        yield return new ContentMSTSPackage(this, folder.Key, folder.Value);
+                    if (ContentMSTSPackage.IsValid(folder.ContentPath))
+                        yield return new ContentMSTSPackage(this, folder.Name, folder.ContentPath);
                     else
-                        yield return new ContentMSTS(this, folder.Key, folder.Value);
+                        yield return new ContentMSTS(this, folder.Name, folder.ContentPath);
                 }
             }
         }

@@ -144,11 +144,9 @@ namespace FreeTrainSimulator.Menu
 
             await ProfileChanged(currentProfile).ConfigureAwait(true);
 
-            Task updateTask = CheckForUpdateAsync();
             LoadToolsAndDocuments();
 
             UpdateEnabled();
-            await updateTask.ConfigureAwait(false);
         }
 
         private IEnumerable<ToolStripItem> LoadTools()
