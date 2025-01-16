@@ -24,11 +24,13 @@ namespace FreeTrainSimulator.Menu
 
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
-            ContentModel = await ContentModel.Get(ctsProfileLoading.Token).ConfigureAwait(false);
+            Task<ContentModel> contentModelTask = ContentModel.Get(ctsProfileLoading.Token);
             SelectedProfile = profileModel;
+            Task<ProfileUserSettingsModel> profileUserSettingsTask = SelectedProfile.LoadSettingsModel<ProfileUserSettingsModel>(ctsProfileLoading.Token);
             UpdateProfilesDropdown(profileModel);
-            ProfileSelections = await SelectedProfile.LoadSettingsModel<ProfileSelectionsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
-            ProfileUserSettings = await SelectedProfile.LoadSettingsModel<ProfileUserSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
+            Task<ProfileSelectionsModel> profileSelectionsTask = SelectedProfile.LoadSettingsModel<ProfileSelectionsModel>(ctsProfileLoading.Token);
+
+            ProfileUserSettings = await profileUserSettingsTask.ConfigureAwait(false);
 
             if (ProfileUserSettings.LogLevel != TraceEventType.Critical)
             {
@@ -42,6 +44,8 @@ namespace FreeTrainSimulator.Menu
             Task updateTask = CheckForUpdateAsync();
 
             //Initial setup if necessary
+            ContentModel = await contentModelTask.ConfigureAwait(false);
+            ProfileSelections = await profileSelectionsTask.ConfigureAwait(false);
             if (ContentModel.ContentFolders.Count == 0)
             {
                 await ShowOptionsForm(true).ConfigureAwait(false);

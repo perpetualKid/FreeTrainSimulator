@@ -11,7 +11,7 @@ namespace FreeTrainSimulator.Models.Shim
     public static class ProfileSettingsExtensions
     {
         #region settings
-        public static async ValueTask<T> LoadSettingsModel<T>(this ProfileModel profileModel, CancellationToken cancellationToken) where T : ProfileSettingsModelBase, new()
+        public static Task<T> LoadSettingsModel<T>(this ProfileModel profileModel, CancellationToken cancellationToken) where T : ProfileSettingsModelBase, new()
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
 
@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Models.Shim
             settingsModel.RefreshModel();
             settingsModel.Initialize(profileModel);
 
-            return await ProfileSettingModelHandler<T>.FromFile(settingsModel, cancellationToken).ConfigureAwait(false);
+            return ProfileSettingModelHandler<T>.FromFile(settingsModel, cancellationToken);
         }
 
         public static Task<T> UpdateSettingsModel<T>(this ProfileModel profileModel, T settingsModel, CancellationToken cancellationToken) where T : ProfileSettingsModelBase
