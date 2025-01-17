@@ -404,8 +404,6 @@ namespace Orts.Settings
 
         public RailDriverSettings RailDriver { get; private set; }
 
-        public DispatcherSettings Dispatcher { get; private set; }
-
         public UserSettings() :
             this(ImmutableArray<string>.Empty)
         { }
@@ -423,7 +421,6 @@ namespace Orts.Settings
             LoadSettings(options);
             Input = new InputSettings(options, store);
             RailDriver = new RailDriverSettings(options, store);
-            Dispatcher = new DispatcherSettings(options, store);
         }
 
         public override object GetDefaultValue(string name)
@@ -472,7 +469,6 @@ namespace Orts.Settings
 
             Input.Save();
             RailDriver.Save();
-            Dispatcher.Save();
             properties = null;
         }
 

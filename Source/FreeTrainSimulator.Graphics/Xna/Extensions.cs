@@ -11,6 +11,16 @@ namespace FreeTrainSimulator.Graphics.Xna
     {
         public static readonly Point EmptyPoint = new Point(-1, -1);
 
+        public static Point ToPoint(this in (int X, int Y) source)
+        {
+            return new Point(source.X, source.Y);
+        }
+
+        public static (int X, int Y) FromPoint(this in Point point)
+        {
+            return (point.X, point.Y);
+        }
+
         public static Point ToPoint(this int[] source)
         {
             if (source?.Length > 1)

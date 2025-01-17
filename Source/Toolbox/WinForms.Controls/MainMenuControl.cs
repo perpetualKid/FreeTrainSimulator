@@ -49,7 +49,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             SetupVisibilityMenuItem(trackSegmentsVisibleToolStripMenuItem, MapContentType.Tracks);
             SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, MapContentType.EndNodes);
             SetupVisibilityMenuItem(trackJunctionNodesVisibleToolStripMenuItem, MapContentType.JunctionNodes);
-            SetupVisibilityMenuItem(trackCrossverNodesVisibleToolStripMenuItem, MapContentType.CrossOvers);
+            SetupVisibilityMenuItem(trackCrossverNodesVisibleToolStripMenuItem, MapContentType.Crossovers);
             SetupVisibilityMenuItem(trackLevelCrossingsVisibleToolStripMenuItem, MapContentType.LevelCrossings);
 
             SetupVisibilityMenuItem(roadSegmentsVisibleToolStripMenuItem, MapContentType.Roads);

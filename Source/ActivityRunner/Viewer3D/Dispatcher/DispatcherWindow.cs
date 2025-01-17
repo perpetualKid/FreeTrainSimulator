@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
@@ -18,6 +20,7 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Imported.Track;
 using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 
 using GetText;
 using GetText.WindowsForms;
@@ -50,6 +53,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         private readonly UserSettings settings;
         private readonly ProfileUserSettingsModel userSettings;
+        private readonly ProfileDispatcherSettingsModel dispatcherSettings;
         private Color BackgroundColor;
 
         private Catalog Catalog;
@@ -63,7 +67,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         private CommonDebugInfo debugInfo;
 
         private UserCommandController<UserCommand> userCommandController;
-        private WindowManager<InternalDispatcherWindowType> windowManager;
+        private WindowManager<DispatcherWindowType> windowManager;
 
         private bool followTrain;
 
@@ -91,16 +95,16 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             "White",        // LevelCrossingItem
         });
 
-        public DispatcherWindow(UserSettings settings, ProfileUserSettingsModel userSettings)
+        public DispatcherWindow(UserSettings settings, ProfileUserSettingsModel userSettings, ProfileDispatcherSettingsModel dispatcherSettings)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
+            this.dispatcherSettings = dispatcherSettings ?? throw new ArgumentNullException(nameof(dispatcherSettings));
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
 
-            if (settings.Dispatcher.WindowScreen < System.Windows.Forms.Screen.AllScreens.Length)
-                currentScreen = System.Windows.Forms.Screen.AllScreens[settings.Dispatcher.WindowScreen];
-            else
-                currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
+            currentScreen = dispatcherSettings.WindowScreen < System.Windows.Forms.Screen.AllScreens.Length
+                ? System.Windows.Forms.Screen.AllScreens[dispatcherSettings.WindowScreen]
+                : System.Windows.Forms.Screen.PrimaryScreen;
             FontManager.ScalingFactor = (float)WindowManager.DisplayScalingFactor(currentScreen);
             LoadSettings();
 
@@ -108,7 +112,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             IsFixedTimeStep = true;
             graphicsDeviceManager = new GraphicsDeviceManager(this);
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
-            graphicsDeviceManager.PreferMultiSampling = settings.MultisamplingCount > 0;
+            graphicsDeviceManager.PreferMultiSampling = userSettings.MultiSamplingCount > 0;
 
             IsMouseVisible = true;
 
@@ -134,9 +138,9 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             Window.Title = Catalog.GetString("Dispatcher View");
         }
 
-        private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
+        private async void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
         {
-            SaveSettings();
+            await SaveSettings().ConfigureAwait(true);
         }
 
         private void GraphicsPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
@@ -144,7 +148,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             e.GraphicsDeviceInformation.GraphicsProfile = GraphicsProfile.HiDef;
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
-            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = settings.MultisamplingCount;
+            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = userSettings.MultiSamplingCount;
         }
 
         protected override void Initialize()
@@ -164,44 +168,44 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
 
             #region popup windows
-            windowManager = WindowManager.Initialize<UserCommand, InternalDispatcherWindowType>(this, userCommandController.AddTopLayerController());
-            windowManager.SetLazyWindows(InternalDispatcherWindowType.DebugScreen, new Lazy<FormBase>(() =>
+            windowManager = WindowManager.Initialize<UserCommand, DispatcherWindowType>(this, userCommandController.AddTopLayerController());
+            windowManager.SetLazyWindows(DispatcherWindowType.DebugScreen, new Lazy<FormBase>(() =>
             {
                 DebugScreen debugWindow = new DebugScreen(windowManager, BackgroundColor);
                 debugWindow.SetInformationProvider(DebugScreenInformation.Common, debugInfo);
                 return debugWindow;
             }));
-            windowManager.SetLazyWindows(InternalDispatcherWindowType.SignalChange, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalChange, new Lazy<FormBase>(() =>
             {
                 return new SignalChangeWindow(windowManager, new Point(50, 50));
             }));
-            windowManager.SetLazyWindows(InternalDispatcherWindowType.SwitchChange, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SwitchChange, new Lazy<FormBase>(() =>
             {
                 return new SwitchChangeWindow(windowManager, new Point(50, 50));
             }));
-            windowManager.SetLazyWindows(InternalDispatcherWindowType.SignalState, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.SignalState, new Lazy<FormBase>(() =>
             {
-                return new SignalStateWindow(windowManager, settings.Dispatcher.WindowLocations[InternalDispatcherWindowType.SignalState].ToPoint());
+                return new SignalStateWindow(windowManager, dispatcherSettings.PopupLocations[DispatcherWindowType.SignalState].ToPoint());
             }));
-            windowManager.SetLazyWindows(InternalDispatcherWindowType.HelpWindow, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
-                return new HelpWindow(windowManager, settings.Dispatcher.WindowLocations[InternalDispatcherWindowType.HelpWindow].ToPoint());
+                return new HelpWindow(windowManager, dispatcherSettings.PopupLocations[DispatcherWindowType.HelpWindow].ToPoint());
             }));
-            windowManager.SetLazyWindows(InternalDispatcherWindowType.Settings, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.Settings, new Lazy<FormBase>(() =>
             {
-                return new SettingsWindow(windowManager, settings.Dispatcher, settings.Dispatcher.WindowLocations[InternalDispatcherWindowType.Settings].ToPoint());
+                return new SettingsWindow(windowManager, dispatcherSettings, dispatcherSettings.PopupLocations[DispatcherWindowType.Settings].ToPoint());
             }));
-            windowManager.SetLazyWindows(InternalDispatcherWindowType.TrainInfo, new Lazy<FormBase>(() =>
+            windowManager.SetLazyWindows(DispatcherWindowType.TrainInfo, new Lazy<FormBase>(() =>
             {
-                return new TrainInformationWindow(windowManager, settings.Dispatcher.WindowLocations[InternalDispatcherWindowType.TrainInfo].ToPoint());
+                return new TrainInformationWindow(windowManager, dispatcherSettings.PopupLocations[DispatcherWindowType.TrainInfo].ToPoint());
             }));
             Components.Add(windowManager);
 
             #endregion
 
-            foreach (InternalDispatcherWindowType windowType in EnumExtension.GetValues<InternalDispatcherWindowType>())
+            foreach (DispatcherWindowType windowType in EnumExtension.GetValues<DispatcherWindowType>())
             {
-                if (settings.Dispatcher.WindowStatus[windowType])
+                if (dispatcherSettings.PopupStatus[windowType])
                     windowManager[windowType].Open();
             }
 
@@ -223,7 +227,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
             content = new DispatcherContent(this);
             await content.Initialize().ConfigureAwait(true);
-            content.InitializeItemVisiblity(settings.Dispatcher.ViewSettings);
+            content.InitializeItemVisiblity(dispatcherSettings.ContentTypeVisibility);
             content.UpdateWidgetColorSettings(colorSettings);
             contentArea = content.ContentArea;
             contentArea.ResetSize(Window.ClientBounds.Size, 60);
@@ -244,29 +248,29 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseLeftClick);
             userCommandController.AddEvent(CommonUserCommand.AlternatePointerDown, MouseRightClick);
             userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolute(1.5); });
-            userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, () => windowManager[InternalDispatcherWindowType.DebugScreen].ToggleVisibility());
-            userCommandController.AddEvent(UserCommand.DisplaySignalStateWindow, KeyEventType.KeyPressed, () => windowManager[InternalDispatcherWindowType.SignalState].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.DebugScreen].ToggleVisibility());
+            userCommandController.AddEvent(UserCommand.DisplaySignalStateWindow, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.SignalState].ToggleVisibility());
             userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
-                    windowManager[InternalDispatcherWindowType.HelpWindow].ToggleVisibility();
+                    windowManager[DispatcherWindowType.HelpWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
-                    windowManager[InternalDispatcherWindowType.Settings].ToggleVisibility();
+                    windowManager[DispatcherWindowType.Settings].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayTrainInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (!(userCommandArgs is ModifiableKeyCommandArgs))
-                    windowManager[InternalDispatcherWindowType.TrainInfo].ToggleVisibility();
+                    windowManager[DispatcherWindowType.TrainInfo].ToggleVisibility();
             });
             //            userCommandController.AddEvent(UserCommand.DebugStep, KeyEventType.KeyPressed, null);
             #endregion
 
             debugInfo = new CommonDebugInfo(contentArea);
-            if (windowManager.WindowInitialized(InternalDispatcherWindowType.DebugScreen))
-                (windowManager[InternalDispatcherWindowType.DebugScreen] as DebugScreen).SetInformationProvider(DebugScreenInformation.Common, debugInfo);
+            if (windowManager.WindowInitialized(DispatcherWindowType.DebugScreen))
+                (windowManager[DispatcherWindowType.DebugScreen] as DebugScreen).SetInformationProvider(DebugScreenInformation.Common, debugInfo);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -352,44 +356,35 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         private void LoadSettings()
         {
-            windowSize.Width = (int)(currentScreen.WorkingArea.Size.Width * Math.Abs(settings.Dispatcher.WindowSettings[WindowSetting.Size][0]) / 100.0);
-            windowSize.Height = (int)(currentScreen.WorkingArea.Size.Height * Math.Abs(settings.Dispatcher.WindowSettings[WindowSetting.Size][1]) / 100.0);
+            windowSize.Width = (int)(currentScreen.WorkingArea.Size.Width * Math.Abs(dispatcherSettings.WindowSettings[WindowSetting.Size].X) / 100.0);
+            windowSize.Height = (int)(currentScreen.WorkingArea.Size.Height * Math.Abs(dispatcherSettings.WindowSettings[WindowSetting.Size].Y) / 100.0);
 
-            windowPosition = PointExtension.ToPoint(settings.Dispatcher.WindowSettings[WindowSetting.Location]);
-            if (windowPosition != PointExtension.EmptyPoint)
-            {
-                windowPosition = new Point(
-                    currentScreen.WorkingArea.Left + windowPosition.X * (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 100,
-                    currentScreen.WorkingArea.Top + windowPosition.Y * (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 100);
-            }
-            else
-            {
-                windowPosition = new Point(
-                    currentScreen.WorkingArea.Left + (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2,
-                    currentScreen.WorkingArea.Top + (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2);
-            }
+            windowPosition = PointExtension.ToPoint(dispatcherSettings.WindowSettings[WindowSetting.Location]);
+            windowPosition = new Point(
+                currentScreen.WorkingArea.Left + windowPosition.X * (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 100,
+                currentScreen.WorkingArea.Top + windowPosition.Y * (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 100);
             BackgroundColor = ColorExtension.FromName(colorSettings[ColorSetting.Background]);
         }
 
-        private void SaveSettings()
+        private async Task SaveSettings()
         {
-            settings.Dispatcher.WindowSettings[WindowSetting.Size][0] = (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width);
-            settings.Dispatcher.WindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height);
+            dispatcherSettings.WindowSettings[WindowSetting.Size] = ((int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width), (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height));
 
-            settings.Dispatcher.WindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
-            settings.Dispatcher.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
-            settings.Dispatcher.WindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
+            dispatcherSettings.WindowSettings[WindowSetting.Location] = 
+                ((int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width))), 
+                (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height))));
+            dispatcherSettings.WindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
 
-            foreach (InternalDispatcherWindowType windowType in EnumExtension.GetValues<InternalDispatcherWindowType>())
+            foreach (DispatcherWindowType windowType in EnumExtension.GetValues<DispatcherWindowType>())
             {
                 if (windowManager.WindowInitialized(windowType))
                 {
-                    settings.Dispatcher.WindowLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+                    dispatcherSettings.PopupLocations[windowType] = windowManager[windowType].RelativeLocation.FromPoint();
                 }
-                settings.Dispatcher.WindowStatus[windowType] = windowManager.WindowOpened(windowType);
+                dispatcherSettings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
             }
 
-            settings.Save();
+            _ = await dispatcherSettings.Parent.UpdateSettingsModel(dispatcherSettings, CancellationToken.None).ConfigureAwait(false);
         }
 
 
@@ -511,14 +506,14 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         public void MouseLeftClick(UserCommandArgs userCommandArgs)
         {
-            if (content.SignalSelected != null && windowManager.WindowInitialized(InternalDispatcherWindowType.SignalState))
+            if (content.SignalSelected != null && windowManager.WindowInitialized(DispatcherWindowType.SignalState))
             {
-                SignalStateWindow signalstateWindow = windowManager[InternalDispatcherWindowType.SignalState] as SignalStateWindow;
+                SignalStateWindow signalstateWindow = windowManager[DispatcherWindowType.SignalState] as SignalStateWindow;
                 signalstateWindow.UpdateSignal(content.SignalSelected);
             }
-            if (content.Trains != null && windowManager.WindowInitialized(InternalDispatcherWindowType.TrainInfo))
+            if (content.Trains != null && windowManager.WindowInitialized(DispatcherWindowType.TrainInfo))
             {
-                TrainInformationWindow trainInfoWindow = windowManager[InternalDispatcherWindowType.TrainInfo] as TrainInformationWindow;
+                TrainInformationWindow trainInfoWindow = windowManager[DispatcherWindowType.TrainInfo] as TrainInformationWindow;
                 trainInfoWindow.UpdateTrain(content.TrainSelected);
             }
 
@@ -530,12 +525,12 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             {
                 if (content.SignalSelected != null && (MultiPlayerManager.MultiplayerState == MultiplayerState.None))
                 {
-                    SignalChangeWindow signalstateWindow = windowManager[InternalDispatcherWindowType.SignalChange] as SignalChangeWindow;
+                    SignalChangeWindow signalstateWindow = windowManager[DispatcherWindowType.SignalChange] as SignalChangeWindow;
                     signalstateWindow.OpenAt(pointerCommandArgs.Position, content.SignalSelected);
                 }
                 else if (content.SwitchSelected != null && MultiPlayerManager.MultiplayerState == MultiplayerState.None)
                 {
-                    SwitchChangeWindow switchstateWindow = windowManager[InternalDispatcherWindowType.SwitchChange] as SwitchChangeWindow;
+                    SwitchChangeWindow switchstateWindow = windowManager[DispatcherWindowType.SwitchChange] as SwitchChangeWindow;
                     switchstateWindow.OpenAt(pointerCommandArgs.Position, content.SwitchSelected);
                 }
             }
@@ -548,7 +543,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             private readonly ContentArea contentArea;
 
             private const double fpsLow = targetFps - targetFps / 5.0;
-            public CommonDebugInfo(ContentArea contentArea): base(true)
+            public CommonDebugInfo(ContentArea contentArea) : base(true)
             {
                 this.contentArea = contentArea;
                 frameRate.Preset(targetFps);

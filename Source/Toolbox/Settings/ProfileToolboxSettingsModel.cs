@@ -20,9 +20,13 @@ namespace FreeTrainSimulator.Toolbox.Settings
             new Point(50, 50), // % of the windows Screen
             new Point(75, 75), // % of screen size 
         });
+
         public int WindowScreen { get; set; }
+        
         public PointD ContentPosition { get; set; }
+        
         public double ContentScale { get; set; }
+        
         public EnumArray<string, ColorSetting> ColorSettings { get; private set; } = new EnumArray<string, ColorSetting>((ColorSetting colorSetting) => colorSetting switch
         {
             ColorSetting.Background => nameof(Color.DarkGray),
@@ -47,7 +51,9 @@ namespace FreeTrainSimulator.Toolbox.Settings
             ColorSetting.LevelCrossingItem => nameof(Color.White),
             _ => throw new System.InvalidCastException(),
         });
+
         public EnumArray<bool, MapContentType> ViewSettings { get; private set; } = new EnumArray<bool, MapContentType>(true);
+
         public EnumArray<Point, ToolboxWindowType> PopupLocations { get; private set; } = new EnumArray<Point, ToolboxWindowType>((ToolboxWindowType toolboxWindowType) => toolboxWindowType switch
         {
             ToolboxWindowType.QuitWindow => new Point(50, 50),
@@ -63,6 +69,7 @@ namespace FreeTrainSimulator.Toolbox.Settings
             ToolboxWindowType.TrainPathWindow => new Point(10, 40),
             _ => throw new System.NotImplementedException(),
         });
+
         public EnumArray<bool, ToolboxWindowType> PopupStatus { get; private set; } = new EnumArray<bool, ToolboxWindowType>((ToolboxWindowType toolboxWindowType) => toolboxWindowType switch
         {
             ToolboxWindowType.QuitWindow => false,
@@ -78,13 +85,18 @@ namespace FreeTrainSimulator.Toolbox.Settings
             ToolboxWindowType.TrainPathWindow => false,
             _ => throw new System.NotImplementedException(),
         });
+
         public EnumArray<string, ToolboxWindowType> PopupSettings { get; private set; } = new EnumArray<string, ToolboxWindowType>();
+
         public bool RestoreLastView { get; set; } = true;
+
         public bool FontOutline { get; set; } = true;
         // Route selections
-        public string Folder { get; set; }
-        public string RouteId { get; set; }
-        public string PathId { get; set; }
 
+        public string Folder { get; set; }
+
+        public string RouteId { get; set; }
+
+        public string PathId { get; set; }
     }
 }

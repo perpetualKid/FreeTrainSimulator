@@ -1087,7 +1087,7 @@ namespace FreeTrainSimulator.Common
         Tracks,
         EndNodes,
         JunctionNodes,
-        CrossOvers,
+        Crossovers,
         SidingNames,
         PlatformNames,
         StationNames,
@@ -1271,7 +1271,7 @@ namespace FreeTrainSimulator.Common
         Size,
     }
 
-    public enum InternalDispatcherWindowType
+    public enum DispatcherWindowType
     {
         DebugScreen,
         SignalChange,

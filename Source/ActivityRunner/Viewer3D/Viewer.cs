@@ -38,6 +38,7 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 
 using GetText;
 
@@ -189,7 +190,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public bool SaveActivityThumbnail { get; private set; }
         public string SaveActivityFileStem { get; private set; }
 
-        public bool DebugViewerEnabled { get; set; }
         public bool SoundDebugFormEnabled { get; set; }
 
         public TRPFile TRP { get; set; } // Track profile file
@@ -978,7 +978,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void ToggleDispatcherView()
         {
-            DebugViewerEnabled = !DebugViewerEnabled;
             if (null == dispatcherThread)
             {
                 dispatcherThread = new Thread(StartDispatcherViewThread);
@@ -992,7 +991,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void StartDispatcherViewThread()
         {
-            using (Dispatcher.DispatcherWindow dispatcherWindow = new Dispatcher.DispatcherWindow(Settings, UserSettings))
+            ProfileDispatcherSettingsModel dispatcherSettings = Task.Run(async () => await UserSettings.Parent.LoadSettingsModel<ProfileDispatcherSettingsModel>(CancellationToken.None).ConfigureAwait(true)).Result;
+            using (Dispatcher.DispatcherWindow dispatcherWindow = new Dispatcher.DispatcherWindow(Settings, UserSettings, dispatcherSettings))
             {
                 this.dispatcherWindow = dispatcherWindow;
                 dispatcherWindow.Run();

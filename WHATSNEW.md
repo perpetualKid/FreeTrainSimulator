@@ -2,6 +2,7 @@
 
 ## Features
 
+- Profile-dependent Dispatcher
 - Initialize Testing from user profile settings
 - Loading Language settings from user profile
 - Log files are stored in the user's application data folder (i.e. C:\Users\USERNAME\AppData\Roaming\Free Train Simulator\Logs). 

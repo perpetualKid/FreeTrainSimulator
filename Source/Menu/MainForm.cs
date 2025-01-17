@@ -1184,29 +1184,37 @@ namespace FreeTrainSimulator.Menu
 
         private async void TextInputControlProfileName_OnAccept(object sender, EventArgs e)
         {
+            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
             textInputControlProfileName.Visible = false;
-            ProfileModel currentProfile = new ProfileModel(textInputControlProfileName.Text);
+            ProfileModel profile = new ProfileModel(textInputControlProfileName.Text);
             textInputControlProfileName.ResetText();
-            FrozenSet<ProfileModel> profiles = await currentProfile.Create(CancellationToken.None).ConfigureAwait(false);
+            FrozenSet<ProfileModel> profiles = await profile.Create(ctsProfileLoading.Token).ConfigureAwait(false);
             SetupProfilesDropdown(profiles);
             if (profileFromCurrent)
             {
                 ProfileSelectionsModel profileSelections = ProfileSelections with
                 {
-                    Name = currentProfile.Name,
-                    Id = currentProfile.Id,
+                    Name = profile.Name,
+                    Id = profile.Id,
                 };
                 ProfileUserSettingsModel profileUserSettings = ProfileUserSettings with
                 {
-                    Name = currentProfile.Name,
-                    Id = currentProfile.Id,
+                    Name = profile.Name,
+                    Id = profile.Id,
                 };
+                ProfileDispatcherSettingsModel profileDispatcherSettings = ((await SelectedProfile.LoadSettingsModel<ProfileDispatcherSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false)) ?? new ProfileDispatcherSettingsModel()) with
+                {
+                    Name = profile.Name,
+                    Id = profile.Id,
+                };
+
                 await Task.WhenAll(
-                    currentProfile.UpdateSettingsModel(profileSelections, ctsProfileLoading.Token),
-                    currentProfile.UpdateSettingsModel(profileUserSettings, ctsProfileLoading.Token)
+                    profile.UpdateSettingsModel(profileSelections, ctsProfileLoading.Token),
+                    profile.UpdateSettingsModel(profileUserSettings, ctsProfileLoading.Token),
+                    profile.UpdateSettingsModel(profileDispatcherSettings, ctsProfileLoading.Token)
                     ).ConfigureAwait(false);
             }
-            await ProfileChanged(currentProfile).ConfigureAwait(false);
+            await ProfileChanged(profile).ConfigureAwait(false);
         }
 
         private void TextInputControlProfileName_Leave(object sender, EventArgs e)
