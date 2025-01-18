@@ -15,10 +15,10 @@ namespace FreeTrainSimulator.Toolbox.Settings
     [ModelResolver("", ".toolboxsettings")]
     public sealed partial record ProfileToolboxSettingsModel : ProfileSettingsModelBase
     {
-        public EnumArray<Point, WindowSetting> WindowSettings { get; set; } = new EnumArray<Point, WindowSetting>(new Point[]
+        public EnumArray<(int X, int Y), WindowSetting> WindowSettings { get; set; } = new EnumArray<(int X, int Y), WindowSetting>(new (int X, int Y)[]
         {
-            new Point(50, 50), // % of the windows Screen
-            new Point(75, 75), // % of screen size 
+            (50, 50), // % of the windows Screen
+            (75, 75), // % of screen size 
         });
 
         public int WindowScreen { get; set; }
@@ -54,19 +54,19 @@ namespace FreeTrainSimulator.Toolbox.Settings
 
         public EnumArray<bool, MapContentType> ViewSettings { get; private set; } = new EnumArray<bool, MapContentType>(true);
 
-        public EnumArray<Point, ToolboxWindowType> PopupLocations { get; private set; } = new EnumArray<Point, ToolboxWindowType>((ToolboxWindowType toolboxWindowType) => toolboxWindowType switch
+        public EnumArray<(int X, int Y), ToolboxWindowType> PopupLocations { get; private set; } = new EnumArray<(int X, int Y), ToolboxWindowType>((ToolboxWindowType toolboxWindowType) => toolboxWindowType switch
         {
-            ToolboxWindowType.QuitWindow => new Point(50, 50),
-            ToolboxWindowType.AboutWindow => new Point(50, 50),
-            ToolboxWindowType.StatusWindow => new Point(50, 50),
-            ToolboxWindowType.DebugScreen => new Point(0, 0),
-            ToolboxWindowType.LocationWindow => new Point(100, 100),
-            ToolboxWindowType.HelpWindow => new Point(10, 90),
-            ToolboxWindowType.TrackNodeInfoWindow => new Point(10, 70),
-            ToolboxWindowType.TrackItemInfoWindow => new Point(30, 70),
-            ToolboxWindowType.SettingsWindow => new Point(70, 70),
-            ToolboxWindowType.LogWindow => new Point(30, 70),
-            ToolboxWindowType.TrainPathWindow => new Point(10, 40),
+            ToolboxWindowType.QuitWindow => (50, 50),
+            ToolboxWindowType.AboutWindow => (50, 50),
+            ToolboxWindowType.StatusWindow => (50, 50),
+            ToolboxWindowType.DebugScreen => (0, 0),
+            ToolboxWindowType.LocationWindow => (100, 100),
+            ToolboxWindowType.HelpWindow => (10, 10),
+            ToolboxWindowType.TrackNodeInfoWindow => (10, 10),
+            ToolboxWindowType.TrackItemInfoWindow => (30, 30),
+            ToolboxWindowType.SettingsWindow => (70, 70),
+            ToolboxWindowType.LogWindow => (30, 30),
+            ToolboxWindowType.TrainPathWindow => (10, 10),
             _ => throw new System.NotImplementedException(),
         });
 

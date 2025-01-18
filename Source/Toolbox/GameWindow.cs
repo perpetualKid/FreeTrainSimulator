@@ -232,24 +232,18 @@ namespace FreeTrainSimulator.Toolbox
                 (int)(currentScreen.WorkingArea.Size.Width * Math.Abs(ToolboxSettings.WindowSettings[WindowSetting.Size].X) / 100.0),
                 (int)(currentScreen.WorkingArea.Size.Height * Math.Abs(ToolboxSettings.WindowSettings[WindowSetting.Size].Y) / 100.0));
 
-            windowPosition = ToolboxSettings.WindowSettings[WindowSetting.Location];
-            windowPosition = windowPosition != PointExtension.EmptyPoint
-                ? new Point(
+            windowPosition = ToolboxSettings.WindowSettings[WindowSetting.Location].ToPoint();
+            windowPosition = new Point(
                     currentScreen.WorkingArea.Left + (windowPosition.X * (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 100),
-                    currentScreen.WorkingArea.Top + (windowPosition.Y * (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 100))
-                : new Point(
-                    currentScreen.WorkingArea.Left + ((currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2),
-                    currentScreen.WorkingArea.Top + ((currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2));
-
+                    currentScreen.WorkingArea.Top + (windowPosition.Y * (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 100));
             backgroundColor = ColorExtension.FromName(ToolboxSettings.ColorSettings[ColorSetting.Background]);
         }
 
         private async Task SaveSettings()
         {
-            ToolboxSettings.WindowSettings[WindowSetting.Size] = new Point(
-                (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width), (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height));
+            ToolboxSettings.WindowSettings[WindowSetting.Size] = ((int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width), (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height));
 
-            ToolboxSettings.WindowSettings[WindowSetting.Location] = new Point(
+            ToolboxSettings.WindowSettings[WindowSetting.Location] = (
                 (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width))),
                 (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height))));
 
@@ -257,7 +251,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 if (windowManager.WindowInitialized(windowType))
                 {
-                    ToolboxSettings.PopupLocations[windowType] = windowManager[windowType].RelativeLocation;
+                    ToolboxSettings.PopupLocations[windowType] = windowManager[windowType].RelativeLocation.FromPoint();
                 }
                 if (windowType != ToolboxWindowType.QuitWindow)
                     ToolboxSettings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
@@ -429,11 +423,11 @@ namespace FreeTrainSimulator.Toolbox
 
             #region popup windows
             windowManager = WindowManager.Initialize<UserCommand, ToolboxWindowType>(this, userCommandController.AddTopLayerController());
-            windowManager[ToolboxWindowType.StatusWindow] = new StatusTextWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.StatusWindow]);
-            windowManager[ToolboxWindowType.AboutWindow] = new AboutWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.AboutWindow]);
+            windowManager[ToolboxWindowType.StatusWindow] = new StatusTextWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.StatusWindow].ToPoint());
+            windowManager[ToolboxWindowType.AboutWindow] = new AboutWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.AboutWindow].ToPoint());
             windowManager.SetLazyWindows(ToolboxWindowType.QuitWindow, new Lazy<FormBase>(() =>
             {
-                QuitWindow quitWindow = new QuitWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.QuitWindow]);
+                QuitWindow quitWindow = new QuitWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.QuitWindow].ToPoint());
                 quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
                 quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
                 quitWindow.OnPrintScreen += QuitWindow_OnPrintScreen;
@@ -452,39 +446,39 @@ namespace FreeTrainSimulator.Toolbox
 
             windowManager.SetLazyWindows(ToolboxWindowType.LocationWindow, new Lazy<FormBase>(() =>
             {
-                LocationWindow locationWindow = new LocationWindow(windowManager, ToolboxSettings, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.LocationWindow]);
+                LocationWindow locationWindow = new LocationWindow(windowManager, ToolboxSettings, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.LocationWindow].ToPoint());
                 OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
                 return locationWindow;
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
-                return new HelpWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.HelpWindow]);
+                return new HelpWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.HelpWindow].ToPoint());
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrackNodeInfoWindow, new Lazy<FormBase>(() =>
             {
-                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow]);
+                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow].ToPoint());
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrackItemInfoWindow, new Lazy<FormBase>(() =>
             {
-                TrackItemInfoWindow trackInfoWindow = new TrackItemInfoWindow(windowManager, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackItemInfoWindow]);
+                TrackItemInfoWindow trackInfoWindow = new TrackItemInfoWindow(windowManager, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackItemInfoWindow].ToPoint());
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.SettingsWindow, new Lazy<FormBase>(() =>
             {
-                SettingsWindow settingsWindow = new SettingsWindow(windowManager, ToolboxSettings, ToolboxUserSettings, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.SettingsWindow]);
+                SettingsWindow settingsWindow = new SettingsWindow(windowManager, ToolboxSettings, ToolboxUserSettings, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.SettingsWindow].ToPoint());
                 OnContentAreaChanged += settingsWindow.GameWindow_OnContentAreaChanged;
                 return settingsWindow;
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.LogWindow, new Lazy<FormBase>(() =>
             {
-                return new LoggingWindow(windowManager, LogFileName, ToolboxSettings.PopupLocations[ToolboxWindowType.LogWindow]);
+                return new LoggingWindow(windowManager, LogFileName, ToolboxSettings.PopupLocations[ToolboxWindowType.LogWindow].ToPoint());
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
             {
-                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, ToolboxSettings, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathWindow]);
+                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, ToolboxSettings, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
                 OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
                 return trainPathDetailWindow;
             }));
