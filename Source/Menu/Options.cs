@@ -24,10 +24,12 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Settings;
@@ -53,7 +55,7 @@ namespace FreeTrainSimulator.Menu
         private readonly Dictionary<Control, HelpIconHover> helpIconMap = new Dictionary<Control, HelpIconHover>();
 
         private const string baseUrl = "https://open-rails.readthedocs.io/en/latest";
-        private ProfileUserSettingsModel userSettings;
+        private readonly ProfileUserSettingsModel userSettings;
         internal ContentModel ContentModel { get; private set; }
 
         public OptionsForm(ProfileUserSettingsModel userSettings, UserSettings settings, UpdateManager updateManager, bool initialContentSetup, ContentModel contentModel)
@@ -251,9 +253,9 @@ namespace FreeTrainSimulator.Menu
             numericActWeatherRandomizationLevel.Value = this.settings.ActWeatherRandomizationLevel;
         }
 
-        private void OptionsForm_Shown(object sender, EventArgs e)
+        private async void OptionsForm_Shown(object sender, EventArgs e)
         {
-            InitializeKeyboardSettings();
+            Task keyboardTask = InitializeKeyboardSettings();
             InitializeRailDriverSettings();
 
             if (tabOptions.SelectedTab == tabPageContent) // inital setup?
@@ -268,6 +270,7 @@ namespace FreeTrainSimulator.Menu
                     }
                 }
             }
+            await Task.WhenAll(keyboardTask).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -286,7 +289,9 @@ namespace FreeTrainSimulator.Menu
 
         private async void ButtonOK_Click(object sender, EventArgs e)
         {
-            string result = settings.Input.CheckForErrors();
+            ProfileKeyboardSettingsModel defaultSettings = ProfileKeyboardSettingsModel.Default;
+
+            string result = userSettings.KeyboardSettings.UserCommands.CheckForErrors(defaultSettings.UserCommands);
             if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, RuntimeInfo.ProductName, MessageBoxButtons.YesNo))
                 return;
 

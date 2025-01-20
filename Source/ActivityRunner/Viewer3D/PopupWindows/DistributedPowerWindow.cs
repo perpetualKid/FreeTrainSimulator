@@ -47,6 +47,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             MainReservoir,
         }
 
+        private readonly Viewer viewer;
         private readonly UserSettings settings;
         private readonly UserCommandController<UserCommand> userCommandController;
         private WindowMode windowMode;
@@ -62,6 +63,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             userCommandController = viewer.UserCommandController;
             this.settings = settings;
+            this.viewer = viewer;
             _ = EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.DistributedPowerWindow], out windowMode);
             UpdatePowerInformation();
             Resize();
@@ -180,7 +182,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void TabAction(UserCommandArgs args)
         {
-            if (groupCount > 0 && args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & settings.Input.WindowTabCommandModifier) == settings.Input.WindowTabCommandModifier)
+            if (groupCount > 0 && args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & viewer.UserSettings.KeyboardSettings.WindowTabCommandModifier) == viewer.UserSettings.KeyboardSettings.WindowTabCommandModifier)
             {
                 windowMode = windowMode.Next();
                 Resize();

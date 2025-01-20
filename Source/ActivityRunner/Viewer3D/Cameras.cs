@@ -370,9 +370,9 @@ namespace Orts.ActivityRunner.Viewer3D
             double speed = 5 * gameTime.ElapsedGameTime.TotalSeconds;
             if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs)
             {
-                if (modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(viewer.Settings.Input.CameraMoveFastModifier))
+                if (modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(viewer.UserSettings.KeyboardSettings.CameraMoveFastModifier))
                     speed *= SpeedFactorFastSlow;
-                else if (modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(viewer.Settings.Input.CameraMoveSlowModifier))
+                else if (modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(viewer.UserSettings.KeyboardSettings.CameraMoveSlowModifier))
                     speed /= SpeedFactorFastSlow;
             }
             return (float)speed;
@@ -383,9 +383,9 @@ namespace Orts.ActivityRunner.Viewer3D
             if (userCommandArgs is ScrollCommandArgs scrollCommandArgs)
             {
                 double speed = 5 * gameTime.ElapsedGameTime.TotalSeconds;
-                if (modifiers.HasFlag(viewer.Settings.Input.CameraMoveFastModifier))
+                if (modifiers.HasFlag(viewer.UserSettings.KeyboardSettings.CameraMoveFastModifier))
                     speed *= SpeedFactorFastSlow;
-                else if (modifiers.HasFlag(viewer.Settings.Input.CameraMoveSlowModifier))
+                else if (modifiers.HasFlag(viewer.UserSettings.KeyboardSettings.CameraMoveSlowModifier))
                     speed /= SpeedFactorFastSlow;
                 return (float)speed * scrollCommandArgs.Delta;
             }
@@ -545,7 +545,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             // Ignore CameraMoveFast as that is too fast to be useful
             delta *= 0.005f;
-            if (keyModifiers.HasFlag(viewer.Settings.Input.CameraMoveSlowModifier))
+            if (keyModifiers.HasFlag(viewer.UserSettings.KeyboardSettings.CameraMoveSlowModifier))
                 delta *= 0.1f;
             return delta;
         }

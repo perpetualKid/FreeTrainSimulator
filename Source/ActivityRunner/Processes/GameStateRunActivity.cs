@@ -625,6 +625,8 @@ namespace Orts.ActivityRunner.Processes
 
         private async ValueTask InitSimulator(UserSettings settings, CancellationToken cancellationToken)
         {
+            Task<ProfileKeyboardSettingsModel> keyboardSettingsTask = Game.UserSettings.Parent.LoadSettingsModel<ProfileKeyboardSettingsModel>(cancellationToken);
+
             if (activityType == ActivityType.None)
             {
                 // implicit processing without explicit action definition
@@ -727,6 +729,8 @@ namespace Orts.ActivityRunner.Processes
             {
                 MultiPlayerManager.Start(settings.MultiplayerHost, settings.MultiplayerPort, settings.MultiplayerUser, "1234");
             }
+
+            Game.UserSettings.KeyboardSettings = await keyboardSettingsTask.ConfigureAwait(false);
         }
 
         private static string GetActivityName(string path)

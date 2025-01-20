@@ -31,11 +31,13 @@ namespace FreeTrainSimulator.Models.Handler
 
         public static async Task UpdateCurrent(ProfileModel profileModel, CancellationToken cancellationToken)
         {
+            Task<AllProfileSettingsModel> modelTask;
             AllProfileSettingsModel currentProfileSettingsModel = ((await GetCore(cancellationToken).ConfigureAwait(false)) ?? new AllProfileSettingsModel()) with
             {
                 Profile = profileModel?.Name,
             };
-            modelTaskCache[root] = ToFile(currentProfileSettingsModel, cancellationToken);
+            modelTaskCache[root] = modelTask = ToFile(currentProfileSettingsModel, cancellationToken);
+            await modelTask.ConfigureAwait(false);
         }
     }
 }

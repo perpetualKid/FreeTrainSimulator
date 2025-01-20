@@ -108,7 +108,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 ControlLayout keyboardMap = layoutContainer.AddLayoutPanel(KeyboardMap.MapWidth * keyWidth, keyHeight * KeyboardMap.KeyboardLayout.Length);
                 KeyboardMap.DrawKeyboardMap((keyBox, keyScanCode, keyName) =>
                 {
-                    Color color = KeyboardMap.GetScanCodeColor(KeyboardMap.GetScanCodeCommands(keyScanCode, settings.Input.UserCommands));
+                    Color color = KeyboardMap.GetScanCodeColor(KeyboardMap.GetScanCodeCommands(keyScanCode, viewer.UserSettings.KeyboardSettings.UserCommands));
                     if (color == Color.Transparent)
                         color = Color.Black;
                     KeyboardMap.Scale(ref keyBox, keyWidth, keyHeight);
@@ -139,7 +139,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 {
                     ControlLayoutHorizontal line = helpCommandScrollbox.Client.AddLayoutHorizontalLineOfText();
                     line.Add(new Label(this, width, line.RemainingHeight, command.GetLocalizedDescription()));
-                    line.Add(new Label(this, width, line.RemainingHeight, settings.Input.UserCommands[command].ToString()));
+                    line.Add(new Label(this, width, line.RemainingHeight, viewer.UserSettings.KeyboardSettings.UserCommands[command].ToString()));
                     helpCommandControls.Add(line);
                 }
             };
@@ -592,7 +592,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void TabAction(UserCommandArgs args)
         {
-            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & settings.Input.WindowTabCommandModifier) == settings.Input.WindowTabCommandModifier)
+            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & viewer.UserSettings.KeyboardSettings.WindowTabCommandModifier) == viewer.UserSettings.KeyboardSettings.WindowTabCommandModifier)
             {
                 tabControl?.TabAction();
             }

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
+
+using GetText;
 
 using Microsoft.Xna.Framework;
 
@@ -13,6 +16,8 @@ namespace FreeTrainSimulator.Common.Input
     /// </summary>
     public static class KeyboardMap
     {
+        private static readonly Catalog catalog = CatalogManager.Catalog;
+
         private static readonly int[] excludedFunctionKeys = new[] { 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40, 0x41, 0x42, 0x43, 0x44, 0x57, 0x58 };
 
         // Keyboard scancodes are basically constant; some keyboards have extra buttons (e.g. UK ones tend to have an
@@ -176,5 +181,64 @@ namespace FreeTrainSimulator.Common.Input
         {
             return EnumExtension.GetValues<UserCommand>().Where(uc => (commands[uc] as UserCommandKeyInput)?.ScanCode == scanCode);
         }
+
+        public static string CheckForErrors(this EnumArray<UserCommandInput, UserCommand> userCommands, EnumArray<UserCommandInput, UserCommand> defaultCommands)
+        {
+
+            // Make sure all modifiable input commands are synchronized first.
+            foreach (UserCommandInput command in userCommands)
+                (command as UserCommandModifiableKeyInput)?.SynchronizeCombine();
+
+            StringBuilder errors = new StringBuilder();
+
+            // Check for commands which both require a particular modifier, and ignore it.
+            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
+            {
+                if (userCommands[command] is UserCommandModifiableKeyInput modInput)
+                {
+                    if (modInput.Shift && modInput.IgnoreShift)
+                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Shift", command.GetLocalizedDescription()));
+                    if (modInput.Control && modInput.IgnoreControl)
+                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Control", command.GetLocalizedDescription()));
+                    if (modInput.Alt && modInput.IgnoreAlt)
+                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Alt", command.GetLocalizedDescription()));
+                }
+            }
+
+            // Check for two commands assigned to the same key
+            UserCommand firstCommand = EnumExtension.GetValues<UserCommand>().Min();
+            UserCommand lastCommand = EnumExtension.GetValues<UserCommand>().Max();
+            for (UserCommand command1 = firstCommand; command1 <= lastCommand; command1++)
+            {
+                UserCommandInput input1 = userCommands[command1];
+
+                // Modifier inputs don't matter as they don't represent any key.
+                if (input1 is UserCommandModifierInput)
+                    continue;
+
+                for (UserCommand command2 = command1 + 1; command2 <= lastCommand; command2++)
+                {
+                    UserCommandInput input2 = userCommands[command2];
+
+                    // Modifier inputs don't matter as they don't represent any key.
+                    if (input2 is UserCommandModifierInput)
+                        continue;
+
+                    // Ignore problems when both inputs are on defaults. (This protects the user somewhat but leaves developers in the dark.)
+                    if (input1.UniqueDescriptor == defaultCommands[command1].UniqueDescriptor &&
+                    input2.UniqueDescriptor == defaultCommands[command2].UniqueDescriptor)
+                        continue;
+
+                    IEnumerable<string> unique1 = input1.GetUniqueInputs();
+                    IEnumerable<string> unique2 = input2.GetUniqueInputs();
+                    IEnumerable<string> sharedUnique = unique1.Where(id => unique2.Contains(id));
+                    foreach (string uniqueInput in sharedUnique)
+                        errors.AppendLine(catalog.GetString("{0} and {1} both match {2}", command1.GetLocalizedDescription(), command2.GetLocalizedDescription(), KeyboardMap.GetPrettyUniqueInput(uniqueInput)));
+                }
+            }
+
+            return errors.ToString();
+        }
+
     }
 }

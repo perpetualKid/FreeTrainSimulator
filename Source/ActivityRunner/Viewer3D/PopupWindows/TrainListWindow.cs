@@ -128,7 +128,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     aiTrain.IncorporatingTrain.IsPathless && aiTrain.IncorporatingTrain == viewer.SelectedTrain)) && !train.IsActualPlayerTrain &&
                     Simulator.Instance.IsAutopilotMode && train.IsPlayable)
                 {
-                    if (e.KeyModifiers.HasFlag(viewer.Settings.Input.GameSuspendOldPlayerModifier))
+                    if (e.KeyModifiers.HasFlag(viewer.UserSettings.KeyboardSettings.GameSuspendOldPlayerModifier))
                         Simulator.Instance.TrainSwitcher.SuspendOldPlayer = true;
                     //Ask for change of driven train
                     Simulator.Instance.TrainSwitcher.SelectedAsPlayer = train;

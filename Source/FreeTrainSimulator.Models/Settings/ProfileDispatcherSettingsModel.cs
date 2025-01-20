@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Models.Settings
 
         public int WindowScreen { get; set; }
 
-        public EnumArray<(int X, int Y), DispatcherWindowType> PopupLocations { get; private set; } = new EnumArray<(int X, int Y), DispatcherWindowType>((DispatcherWindowType windowType) => windowType switch
+        public EnumArray<(int X, int Y), DispatcherWindowType> PopupLocations { get; } = new EnumArray<(int X, int Y), DispatcherWindowType>((DispatcherWindowType windowType) => windowType switch
         {
             DispatcherWindowType.SignalState => (100, 100),
             DispatcherWindowType.HelpWindow => (50, 50),
@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Models.Settings
             _ => throw new System.NotImplementedException(),
         });
 
-        public EnumArray<bool, DispatcherWindowType> PopupStatus { get; private set; } = new EnumArray<bool, DispatcherWindowType>((DispatcherWindowType windowType) => windowType switch
+        public EnumArray<bool, DispatcherWindowType> PopupStatus { get; } = new EnumArray<bool, DispatcherWindowType>((DispatcherWindowType windowType) => windowType switch
         {
             DispatcherWindowType.SignalState => true,
             DispatcherWindowType.HelpWindow => true,
@@ -43,7 +43,7 @@ namespace FreeTrainSimulator.Models.Settings
             _ => throw new System.NotImplementedException(),
         });
 
-        public EnumArray<bool, MapContentType> ContentTypeVisibility { get; private set; } = new EnumArray<bool, MapContentType>((MapContentType contentType) => contentType switch
+        public EnumArray<bool, MapContentType> ContentTypeVisibility { get; } = new EnumArray<bool, MapContentType>((MapContentType contentType) => contentType switch
         {
             MapContentType.Tracks => true,
             MapContentType.EndNodes => true,

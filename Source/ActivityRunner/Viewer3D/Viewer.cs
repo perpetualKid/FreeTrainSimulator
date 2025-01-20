@@ -384,7 +384,7 @@ namespace Orts.ActivityRunner.Viewer3D
             #region Input Command Controller
             KeyboardInputGameComponent keyboardInputGameComponent = new KeyboardInputGameComponent(Game);
             KeyboardInputHandler<UserCommand> keyboardInput = new KeyboardInputHandler<UserCommand>();
-            keyboardInput.Initialize(Settings.Input.UserCommands, keyboardInputGameComponent, UserCommandController);
+            keyboardInput.Initialize(UserSettings.KeyboardSettings.UserCommands, keyboardInputGameComponent, UserCommandController);
 
             MouseInputGameComponent mouseInputGameComponent = new MouseInputGameComponent(Game);
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
@@ -822,12 +822,12 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.DebugDumpKeymap, KeyEventType.KeyPressed, () =>
             {
-                string textPath = Path.Combine(UserSettings.LogFilePath, "OpenRailsKeyboard.txt");
-                Settings.Input.UserCommands.DumpToText(textPath);
+                string textPath = Path.Combine(UserSettings.LogFilePath, "KeyboardMap.txt");
+                UserSettings.KeyboardSettings.UserCommands.DumpToText(textPath);
                 Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Keyboard map list saved to '{0}'.", textPath), 10);
 
-                string graphicPath = Path.Combine(UserSettings.LogFilePath, "OpenRailsKeyboard.png");
-                KeyboardMap.DumpToGraphic(Settings.Input.UserCommands, graphicPath);
+                string graphicPath = Path.Combine(UserSettings.LogFilePath, "KeyboardMap.png");
+                KeyboardMap.DumpToGraphic(UserSettings.KeyboardSettings.UserCommands, graphicPath);
                 Simulator.Confirmer.PlainTextMessage(ConfirmLevel.Message, Catalog.GetString("Keyboard map image saved to '{0}'.", graphicPath), 10);
             });
 
@@ -934,7 +934,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         TryUncoupleAt(nearPoint, farPoint);
                     }
-                    if (modifiers.HasFlag(Settings.Input.GameSwitchWithMouseModifier))
+                    if (modifiers.HasFlag(UserSettings.KeyboardSettings.GameSwitchWithMouseModifier))
                     {
                         TryThrowSwitchAt(nearPoint, farPoint);
                     }

@@ -618,9 +618,21 @@ namespace FreeTrainSimulator.Menu
             }
             settings.Save();
 
-            ProfileSelections = await SelectedProfile.UpdateSettingsModel(ProfileSelections, CancellationToken.None).ConfigureAwait(false);
-            ProfileUserSettings = await SelectedProfile.UpdateSettingsModel(ProfileUserSettings, CancellationToken.None).ConfigureAwait(false);
-            await SelectedProfile.UpdateCurrent(CancellationToken.None).ConfigureAwait(!false);
+            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
+
+            Task<ProfileSelectionsModel> profileSelectionsTask = SelectedProfile.UpdateSettingsModel(ProfileSelections, ctsProfileLoading.Token);
+            Task<ProfileUserSettingsModel> profileUserSettingsTask = SelectedProfile.UpdateSettingsModel(ProfileUserSettings, ctsProfileLoading.Token);
+            Task<ProfileKeyboardSettingsModel> profileKeyboardSettingsTask = null;
+            if (null != ProfileUserSettings.KeyboardSettings)
+                profileKeyboardSettingsTask = SelectedProfile.UpdateSettingsModel(ProfileUserSettings.KeyboardSettings, ctsProfileLoading.Token);
+
+            Task profileUpdateTask = SelectedProfile.UpdateCurrent(ctsProfileLoading.Token);
+
+            ProfileSelections = await profileSelectionsTask.ConfigureAwait(false);
+            ProfileUserSettings = await profileUserSettingsTask.ConfigureAwait(false);
+            if (null != profileKeyboardSettingsTask)
+                ProfileUserSettings.KeyboardSettings = await profileKeyboardSettingsTask.ConfigureAwait(false);
+            await profileUpdateTask.ConfigureAwait(false);
         }
         #endregion
 

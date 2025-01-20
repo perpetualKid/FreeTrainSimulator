@@ -38,20 +38,20 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             layout = base.Layout(layout, 1.5f);
 
             ControlLayout buttonLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.5));
-            Label quitLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, Catalog.GetString($"Quit {RuntimeInfo.ApplicationName} ({settings.Input.UserCommands[UserCommand.GameQuit]})"), HorizontalAlignment.Center);
+            Label quitLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, Catalog.GetString($"Quit {RuntimeInfo.ApplicationName} ({viewer.UserSettings.KeyboardSettings.UserCommands[UserCommand.GameQuit]})"), HorizontalAlignment.Center);
             quitLabel.OnClick += QuitLabel_OnClick;
             buttonLine.Add(quitLabel);
             layout.AddHorizontalSeparator();
             if (!MultiPlayerManager.IsMultiPlayer())
             {
                 buttonLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.5));
-                Label saveLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, Catalog.GetString($"Save your game ({settings.Input.UserCommands[UserCommand.GameSave]})"), HorizontalAlignment.Center);
+                Label saveLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, Catalog.GetString($"Save your game ({viewer.UserSettings.KeyboardSettings.UserCommands[UserCommand.GameSave]})"), HorizontalAlignment.Center);
                 saveLabel.OnClick += SaveLabel_OnClick;
                 buttonLine.Add(saveLabel);
                 layout.AddHorizontalSeparator();
             }
             buttonLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.5));
-            Label continueLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, Catalog.GetString($"Continue playing ({settings.Input.UserCommands[UserCommand.GamePauseMenu]})"), HorizontalAlignment.Center);
+            Label continueLabel = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, Catalog.GetString($"Continue playing ({viewer.UserSettings.KeyboardSettings.UserCommands[UserCommand.GamePauseMenu]})"), HorizontalAlignment.Center);
             continueLabel.OnClick += ContinueLabel_OnClick;
             buttonLine.Add(continueLabel);
             return layout;

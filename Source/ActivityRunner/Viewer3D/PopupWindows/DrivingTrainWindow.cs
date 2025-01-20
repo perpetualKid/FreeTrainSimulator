@@ -86,6 +86,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             CruiseControlMaxAccel,
         }
 
+        private readonly Viewer viewer;
         private readonly UserSettings settings;
         private readonly UserCommandController<UserCommand> userCommandController;
         private WindowMode windowMode;
@@ -118,6 +119,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Driving Info"), relativeLocation, new Point(200, 220), catalog)
         {
             userCommandController = viewer.UserCommandController;
+            this.viewer = viewer;
             this.settings = settings;
             _ = EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.DrivingTrainWindow], out windowMode);
 
@@ -359,7 +361,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void TabAction(UserCommandArgs args)
         {
-            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & settings.Input.WindowTabCommandModifier) == settings.Input.WindowTabCommandModifier)
+            if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & viewer.UserSettings.KeyboardSettings.WindowTabCommandModifier) == viewer.UserSettings.KeyboardSettings.WindowTabCommandModifier)
             {
                 windowMode = windowMode.Next();
                 Resize();

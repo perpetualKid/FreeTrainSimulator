@@ -1,133 +1,53 @@
-﻿// COPYRIGHT 2012, 2013, 2014 by the Open Rails project.
-// 
-// This file is part of Open Rails.
-// 
-// Open Rails is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// Open Rails is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
+﻿using System.Reflection.Metadata.Ecma335;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Models.Base;
+
+using MemoryPack;
 
 using Microsoft.Xna.Framework.Input;
 
-using Orts.Settings.Store;
-
-namespace Orts.Settings
+namespace FreeTrainSimulator.Models.Settings
 {
-    /// <summary>
-    /// Loads, stores and manages keyboard input settings for all available <see cref="UserCommands"/>.
-    /// </summary>
-    /// <remarks>
-    /// <para>Keyboard input is processed by associating specific combinations of keys (either scan codes or virtual keys) and modifiers with each <see cref="UserCommands"/>.</para>
-    /// <para>There are three kinds of <see cref="UserCommand"/>, each using a different <see cref="UserCommandInput"/>:</para>
-    /// <list type="bullet">
-    /// <item><description><see cref="UserCommandModifierInput"/> represents a specific combination of keyboard modifiers (Shift, Control and Alt). E.g. Shift.</description></item>
-    /// <item><description><see cref="UserCommandKeyInput"/> represents a key (scan code or virtual key) and a specific combination of keyboard modifiers. E.g. Alt-F4.</description></item>
-    /// <item><description><see cref="UserCommandModifiableKeyInput"/> represents a key (scan code or virtual key), a specific combination of keyboard modifiers and a set of keyboard modifiers to ignore. E.g. Up Arrow (+ Shift) (+ Control).</description></item>
-    /// </list>
-    /// <para>Keyboard input is identified in two distinct ways:</para>
-    /// <list>
-    /// <item><term>Scan code</term><description>A scan code represents a specific location on the physical keyboard, irrespective of the user's locale, keyboard layout and other enviromental settings. For this reason, this is the preferred way to refer to the "main" area of the keyboard - this area varies significantly by locale and usually it is the physical location that matters.</description></item>
-    /// <item><term>Virtual key</term><description>A virtual key represents a logical key on the keyboard, irrespective of where it might be located. For keys outside the "main" area, this is much the same as scan codes and is preferred when refering to logical keys like "Up Arrow".</description></item>
-    /// </list>
-    /// </remarks>
-    public class InputSettings : SettingsBase
+    [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
+    [ModelResolver("", ".keyboardsettings")]
+    public partial record ProfileKeyboardSettingsModel : ProfileSettingsModelBase
     {
+        private static ProfileKeyboardSettingsModel defaultModel;
 
-        public static EnumArray<UserCommandInput, UserCommand> DefaultCommands { get; } = new EnumArray<UserCommandInput, UserCommand>();
-        public EnumArray<UserCommandInput, UserCommand> UserCommands { get; } = new EnumArray<UserCommandInput, UserCommand>();
+        [MemoryPackInclude]
+        private EnumArray<int, UserCommand> userCommands = new EnumArray<int, UserCommand>();
 
-        public KeyModifiers WindowTabCommandModifier { get; }
-        public KeyModifiers CameraMoveFastModifier { get; }
-        public KeyModifiers CameraMoveSlowModifier { get; }
-        public KeyModifiers GameSuspendOldPlayerModifier { get; }
-        public KeyModifiers GameSwitchWithMouseModifier { get; }
-        static InputSettings()
-        {
-            InitializeCommands(DefaultCommands);
-        }
+        public static ProfileKeyboardSettingsModel Default => defaultModel ??= new ProfileKeyboardSettingsModel();
 
-        public InputSettings(in ImmutableArray<string> options, SettingsStore store) :
-            base(SettingsStore.GetSettingsStore(store?.StoreType ?? StoreType.Registry, store.Location, "Keyboard"))
-        {
-            InitializeCommands(UserCommands);
-            LoadSettings(options);
+        public override ProfileModel Parent => base.Parent as ProfileModel;
 
-            UserCommandModifierInput userCommandModifier = UserCommands[UserCommand.DisplayNextWindowTab] as UserCommandModifierInput;
-            WindowTabCommandModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
+        [MemoryPackIgnore]
+        public EnumArray<UserCommandInput, UserCommand> UserCommands { get; } = InitializeCommands();
 
-            userCommandModifier = UserCommands[UserCommand.CameraMoveFast] as UserCommandModifierInput;
-            CameraMoveFastModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
-            userCommandModifier = UserCommands[UserCommand.CameraMoveSlow] as UserCommandModifierInput;
-            CameraMoveSlowModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
-            userCommandModifier = UserCommands[UserCommand.GameSuspendOldPlayer] as UserCommandModifierInput;
-            GameSuspendOldPlayerModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
-            userCommandModifier = UserCommands[UserCommand.GameSwitchWithMouse] as UserCommandModifierInput;
-            GameSwitchWithMouseModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
-        }
+        [MemoryPackIgnore]
+        public KeyModifiers WindowTabCommandModifier => (UserCommands[UserCommand.DisplayNextWindowTab] is UserCommandModifierInput userCommandInput) ?
+            ((userCommandInput.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandInput.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandInput.Shift ? KeyModifiers.Shift : KeyModifiers.None)) : KeyModifiers.None;
 
-        private static UserCommand GetCommand(string name)
-        {
-            if (!EnumExtension.GetValue(name, out UserCommand result))
-                throw new ArgumentOutOfRangeException(nameof(name));
-            return result;
-        }
-
-        public override object GetDefaultValue(string name)
-        {
-            return DefaultCommands[GetCommand(name)].UniqueDescriptor;
-        }
-
-        protected override object GetValue(string name)
-        {
-            return UserCommands[GetCommand(name)].UniqueDescriptor;
-        }
-
-        protected override void SetValue(string name, object value)
-        {
-            UserCommands[GetCommand(name)].UniqueDescriptor = (int)value;
-        }
-
-        protected override void Load(bool allowUserSettings, NameValueCollection optionalValues)
-        {
-            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
-                LoadSetting(allowUserSettings, optionalValues, command.ToString());
-            properties = null;
-        }
-
-        public override void Save()
-        {
-            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
-                SaveSetting(command.ToString());
-            properties = null;
-        }
-
-        public override void Reset()
-        {
-            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
-                Reset(command.ToString());
-        }
+        [MemoryPackIgnore]
+        public KeyModifiers CameraMoveFastModifier => (UserCommands[UserCommand.CameraMoveFast] is UserCommandModifierInput userCommandInput) ?
+            ((userCommandInput.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandInput.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandInput.Shift ? KeyModifiers.Shift : KeyModifiers.None)) : KeyModifiers.None;
+        [MemoryPackIgnore]
+        public KeyModifiers CameraMoveSlowModifier => (UserCommands[UserCommand.CameraMoveSlow] is UserCommandModifierInput userCommandInput) ?
+            ((userCommandInput.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandInput.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandInput.Shift ? KeyModifiers.Shift : KeyModifiers.None)) : KeyModifiers.None;
+        [MemoryPackIgnore]
+        public KeyModifiers GameSuspendOldPlayerModifier => (UserCommands[UserCommand.GameSuspendOldPlayer] is UserCommandModifierInput userCommandInput) ?
+            ((userCommandInput.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandInput.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandInput.Shift ? KeyModifiers.Shift : KeyModifiers.None)) : KeyModifiers.None;
+        [MemoryPackIgnore]
+        public KeyModifiers GameSwitchWithMouseModifier => (UserCommands[UserCommand.GameSwitchWithMouse] is UserCommandModifierInput userCommandInput) ?
+            ((userCommandInput.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandInput.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandInput.Shift ? KeyModifiers.Shift : KeyModifiers.None)) : KeyModifiers.None;
 
         #region Default Input Settings
-        private static void InitializeCommands(EnumArray<UserCommandInput, UserCommand> commands)
+        private static EnumArray<UserCommandInput, UserCommand> InitializeCommands()
         {
+            EnumArray<UserCommandInput, UserCommand> commands = new EnumArray<UserCommandInput, UserCommand>();
+
             // All UserCommandModifierInput commands go here.
             commands[UserCommand.GameSwitchWithMouse] = new UserCommandModifierInput(KeyModifiers.Alt);
             commands[UserCommand.DisplayNextWindowTab] = new UserCommandModifierInput(KeyModifiers.Shift);
@@ -169,7 +89,8 @@ namespace Orts.Settings
             commands[UserCommand.CameraChangePassengerViewPoint] = new UserCommandKeyInput(0x06, KeyModifiers.Shift);
             commands[UserCommand.CameraToggleLetterboxCab] = new UserCommandKeyInput(0x02, KeyModifiers.Control);
             commands[UserCommand.CameraToggleShowCab] = new UserCommandKeyInput(0x02, KeyModifiers.Shift);
-            commands[UserCommand.CameraTrackside] = new UserCommandKeyInput(0x05); ;
+            commands[UserCommand.CameraTrackside] = new UserCommandKeyInput(0x05);
+            ;
             commands[UserCommand.CameraSpecialTracksidePoint] = new UserCommandKeyInput(0x05, KeyModifiers.Shift);
             commands[UserCommand.CameraVibrate] = new UserCommandKeyInput(0x2F, KeyModifiers.Control);
             commands[UserCommand.CameraZoomIn] = new UserCommandModifiableKeyInput(0x49, commands[UserCommand.CameraMoveFast], commands[UserCommand.CameraMoveSlow]);
@@ -370,65 +291,27 @@ namespace Orts.Settings
             commands[UserCommand.GameSwitchManualMode] = new UserCommandKeyInput(0x32, KeyModifiers.Control);
             commands[UserCommand.GameSwitchPicked] = new UserCommandKeyInput(0x22, KeyModifiers.Alt);
             commands[UserCommand.GameUncoupleWithMouse] = new UserCommandKeyInput(0x16);
+
+            return commands;
         }
         #endregion
 
-        public string CheckForErrors()
+        [MemoryPackOnSerializing]
+        private void OnSerializing()
         {
-            // Make sure all modifiable input commands are synchronized first.
-            foreach (UserCommandInput command in UserCommands)
-                (command as UserCommandModifiableKeyInput)?.SynchronizeCombine();
-
-            StringBuilder errors = new StringBuilder();
-
-            // Check for commands which both require a particular modifier, and ignore it.
             foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
             {
-                if (UserCommands[command] is UserCommandModifiableKeyInput modInput)
-                {
-                    if (modInput.Shift && modInput.IgnoreShift)
-                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Shift", command.GetLocalizedDescription()));
-                    if (modInput.Control && modInput.IgnoreControl)
-                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Control", command.GetLocalizedDescription()));
-                    if (modInput.Alt && modInput.IgnoreAlt)
-                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Alt", command.GetLocalizedDescription()));
-                }
+                userCommands[command] = UserCommands[command].UniqueDescriptor;
             }
+        }
 
-            // Check for two commands assigned to the same key
-            UserCommand firstCommand = EnumExtension.GetValues<UserCommand>().Min();
-            UserCommand lastCommand = EnumExtension.GetValues<UserCommand>().Max();
-            for (UserCommand command1 = firstCommand; command1 <= lastCommand; command1++)
+        [MemoryPackOnDeserialized]
+        private void OnDeserializing()
+        {
+            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
             {
-                UserCommandInput input1 = UserCommands[command1];
-
-                // Modifier inputs don't matter as they don't represent any key.
-                if (input1 is UserCommandModifierInput)
-                    continue;
-
-                for (UserCommand command2 = command1 + 1; command2 <= lastCommand; command2++)
-                {
-                    UserCommandInput input2 = UserCommands[command2];
-
-                    // Modifier inputs don't matter as they don't represent any key.
-                    if (input2 is UserCommandModifierInput)
-                        continue;
-
-                    // Ignore problems when both inputs are on defaults. (This protects the user somewhat but leaves developers in the dark.)
-                    if (input1.UniqueDescriptor == DefaultCommands[command1].UniqueDescriptor &&
-                    input2.UniqueDescriptor == DefaultCommands[command2].UniqueDescriptor)
-                        continue;
-
-                    IEnumerable<string> unique1 = input1.GetUniqueInputs();
-                    IEnumerable<string> unique2 = input2.GetUniqueInputs();
-                    IEnumerable<string> sharedUnique = unique1.Where(id => unique2.Contains(id));
-                    foreach (string uniqueInput in sharedUnique)
-                        errors.AppendLine(catalog.GetString("{0} and {1} both match {2}", command1.GetLocalizedDescription(), command2.GetLocalizedDescription(), KeyboardMap.GetPrettyUniqueInput(uniqueInput)));
-                }
+                UserCommands[command].UniqueDescriptor = userCommands[command];
             }
-
-            return errors.ToString();
         }
     }
-
 }

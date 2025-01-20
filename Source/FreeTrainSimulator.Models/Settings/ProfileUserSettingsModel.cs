@@ -14,6 +14,9 @@ namespace FreeTrainSimulator.Models.Settings
     {
         public override ProfileModel Parent => base.Parent as ProfileModel;
 
+        [MemoryPackIgnore]
+        public ProfileKeyboardSettingsModel KeyboardSettings { get; set; }
+
         public TraceEventType LogLevel { get; set; } = TraceEventType.Verbose;
         public string LogFileName { get; set; } = "{Product} {Application} Log.txt";
         public string LogFilePath { get; set; } = RuntimeInfo.LogFilesFolder;

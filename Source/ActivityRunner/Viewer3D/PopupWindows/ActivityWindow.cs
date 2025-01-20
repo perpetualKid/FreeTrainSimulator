@@ -53,11 +53,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             layout.AddHorizontalSeparator();
             line = layout.AddLayoutHorizontalLineOfText();
             int columnWidth = line.RemainingWidth / 3;
-            line.Add(gameSaveLabel = new Label(this, columnWidth, line.RemainingHeight, Catalog.GetString($"Save game ({viewer.Settings.Input.UserCommands[UserCommand.GameSave]})"), HorizontalAlignment.Center));
+            line.Add(gameSaveLabel = new Label(this, columnWidth, line.RemainingHeight, Catalog.GetString($"Save game ({viewer.UserSettings.KeyboardSettings.UserCommands[UserCommand.GameSave]})"), HorizontalAlignment.Center));
             gameSaveLabel.OnClick += GameSaveLabel_OnClick;
-            line.Add(resumeGameLabel = new Label(this, columnWidth, line.RemainingHeight, Catalog.GetString($"Resume ({viewer.Settings.Input.UserCommands[UserCommand.GamePause]})"), HorizontalAlignment.Center));
+            line.Add(resumeGameLabel = new Label(this, columnWidth, line.RemainingHeight, Catalog.GetString($"Resume ({viewer.UserSettings.KeyboardSettings.UserCommands[UserCommand.GamePause]})"), HorizontalAlignment.Center));
             resumeGameLabel.OnClick += ResumeGameLabel_OnClick;
-            line.Add(quitLabel = new Label(this, columnWidth, line.RemainingHeight, Catalog.GetString($"Quit game ({viewer.Settings.Input.UserCommands[UserCommand.GameQuit]})"), HorizontalAlignment.Center));
+            line.Add(quitLabel = new Label(this, columnWidth, line.RemainingHeight, Catalog.GetString($"Quit game ({viewer.UserSettings.KeyboardSettings.UserCommands[UserCommand.GameQuit]})"), HorizontalAlignment.Center));
             quitLabel.OnClick += QuitLabel_OnClick;
             return layout;
         }
