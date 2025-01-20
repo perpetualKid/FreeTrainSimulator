@@ -72,7 +72,7 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             base.Draw(gameTime);
         }
 
-        private Texture2D DrawTrackInset()
+        private RenderTarget2D DrawTrackInset()
         {
             UpdateWindowSize();
             RenderTarget2D renderTarget = new RenderTarget2D(GraphicsDevice, size.X, size.Y);

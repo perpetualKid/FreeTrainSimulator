@@ -270,7 +270,8 @@ namespace FreeTrainSimulator.Menu
                     }
                 }
             }
-            await Task.WhenAll(keyboardTask).ConfigureAwait(false);
+//            await Task.WhenAll(keyboardTask).ConfigureAwait(false);
+            await keyboardTask.ConfigureAwait(false);
         }
 
         /// <summary>

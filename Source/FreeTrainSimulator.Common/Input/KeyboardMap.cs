@@ -184,6 +184,8 @@ namespace FreeTrainSimulator.Common.Input
 
         public static string CheckForErrors(this EnumArray<UserCommandInput, UserCommand> userCommands, EnumArray<UserCommandInput, UserCommand> defaultCommands)
         {
+            ArgumentNullException.ThrowIfNull(userCommands, nameof(userCommands));
+            ArgumentNullException.ThrowIfNull(defaultCommands, nameof(defaultCommands));
 
             // Make sure all modifiable input commands are synchronized first.
             foreach (UserCommandInput command in userCommands)
