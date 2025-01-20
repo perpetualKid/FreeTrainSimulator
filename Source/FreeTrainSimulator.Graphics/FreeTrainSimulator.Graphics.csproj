@@ -46,7 +46,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
-		<PackageReference Include="System.Resources.Extensions" Version="9.0.0" />
+		<PackageReference Include="System.Resources.Extensions" Version="9.0.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Update="Content\blank.png">
