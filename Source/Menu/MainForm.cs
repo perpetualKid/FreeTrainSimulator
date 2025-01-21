@@ -501,6 +501,10 @@ namespace FreeTrainSimulator.Menu
                         BringToFront();
                     }
                 }
+                else
+                {
+                    ProfileUserSettings.KeyboardSettings = null;
+                }
             }
         }
 

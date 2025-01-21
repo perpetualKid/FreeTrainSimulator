@@ -107,6 +107,8 @@ namespace FreeTrainSimulator.Models.Handler
                     if (cancellationToken.IsCancellationRequested)
                         return;
                     string profileId = Path.GetFileNameWithoutExtension(directory);
+                    if (String.Equals(profileId, "$testing", StringComparison.OrdinalIgnoreCase))
+                        return; // skip the $Testing profile from any regular listings
 
                     if (profileId.EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
                         profileId = profileId[..^fileExtension.Length];
