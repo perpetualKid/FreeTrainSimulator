@@ -400,8 +400,6 @@ namespace Orts.Settings
         public bool MultiplayerClient { get; set; }
         #endregion
 
-        public RailDriverSettings RailDriver { get; private set; }
-
         public UserSettings() :
             this(ImmutableArray<string>.Empty)
         { }
@@ -417,7 +415,6 @@ namespace Orts.Settings
             customDefaultValues["ScreenshotPath"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), Application.ProductName);
             customDefaultValues["Multiplayer_User"] = Environment.UserName;
             LoadSettings(options);
-            RailDriver = new RailDriverSettings(options, store);
         }
 
         public override object GetDefaultValue(string name)
@@ -464,7 +461,6 @@ namespace Orts.Settings
             foreach (PropertyInfo property in GetProperties())
                 Save(property.Name);
 
-            RailDriver.Save();
             properties = null;
         }
 

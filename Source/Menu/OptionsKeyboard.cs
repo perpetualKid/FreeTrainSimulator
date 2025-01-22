@@ -17,7 +17,7 @@ namespace FreeTrainSimulator.Menu
     {
         private Panel InitializeKeyboardInputControls()
         {
-            ProfileKeyboardSettingsModel defaultKeyboardSettings = new ProfileKeyboardSettingsModel();
+            ProfileKeyboardSettingsModel defaultKeyboardSettings = ProfileKeyboardSettingsModel.Default;
             Panel panel = new Panel() { AutoScroll = true };
             panel.SuspendLayout();
 
@@ -90,6 +90,7 @@ namespace FreeTrainSimulator.Menu
 
         private async Task InitializeKeyboardSettings()
         {
+            panelKeys.SuspendLayout();
             panelKeys.Controls.Clear();
 
             userSettings.KeyboardSettings ??= await userSettings.Parent.LoadSettingsModel<ProfileKeyboardSettingsModel>(CancellationToken.None).ConfigureAwait(false);
@@ -101,6 +102,7 @@ namespace FreeTrainSimulator.Menu
             foreach (Control control in controls.Controls)
                 if (control is KeyInputControl)
                     toolTip1.SetToolTip(control, toolTip);
+            panelKeys.ResumeLayout();
         }
 
         private async void ButtonDefaultKeys_Click(object sender, EventArgs e)

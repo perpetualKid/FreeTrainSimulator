@@ -17,6 +17,9 @@ namespace FreeTrainSimulator.Models.Settings
         [MemoryPackIgnore]
         public ProfileKeyboardSettingsModel KeyboardSettings { get; set; }
 
+        [MemoryPackIgnore]
+        public ProfileRailDriverSettingsModel RailDriverSettings { get; set; }
+
         public TraceEventType LogLevel { get; set; } = TraceEventType.Verbose;
         public string LogFileName { get; set; } = "{Product} {Application} Log.txt";
         public string LogFilePath { get; set; } = RuntimeInfo.LogFilesFolder;

@@ -390,9 +390,9 @@ namespace Orts.ActivityRunner.Viewer3D
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, UserCommandController);
 
-            RailDriverInputGameComponent railDriverInputGameComponent = new RailDriverInputGameComponent(Game, Settings.RailDriver.CalibrationSettings);
+            RailDriverInputGameComponent railDriverInputGameComponent = new RailDriverInputGameComponent(Game, UserSettings.RailDriverSettings.CalibrationSettings);
             RailDriverInputHandler<UserCommand> railDriverInput = new RailDriverInputHandler<UserCommand>();
-            railDriverInput.Initialize(Settings.RailDriver.UserCommands, railDriverInputGameComponent, UserCommandController);
+            railDriverInput.Initialize(UserSettings.RailDriverSettings.UserCommands, railDriverInputGameComponent, UserCommandController);
             #endregion
 
             if (PlayerLocomotive == null)

@@ -626,6 +626,7 @@ namespace Orts.ActivityRunner.Processes
         private async ValueTask InitSimulator(UserSettings settings, CancellationToken cancellationToken)
         {
             Task<ProfileKeyboardSettingsModel> keyboardSettingsTask = Game.UserSettings.Parent.LoadSettingsModel<ProfileKeyboardSettingsModel>(cancellationToken);
+            Task<ProfileRailDriverSettingsModel> raildriverSettingsTask = Game.UserSettings.Parent.LoadSettingsModel<ProfileRailDriverSettingsModel>(cancellationToken);
 
             if (activityType == ActivityType.None)
             {
@@ -731,6 +732,7 @@ namespace Orts.ActivityRunner.Processes
             }
 
             Game.UserSettings.KeyboardSettings = await keyboardSettingsTask.ConfigureAwait(false);
+            Game.UserSettings.RailDriverSettings = await raildriverSettingsTask.ConfigureAwait(false);
         }
 
         private static string GetActivityName(string path)

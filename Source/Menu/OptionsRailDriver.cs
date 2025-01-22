@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
-
-using Orts.Settings;
+using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 
 namespace FreeTrainSimulator.Menu
 {
@@ -17,7 +19,7 @@ namespace FreeTrainSimulator.Menu
         private Form railDriverLegend;
         private RailDriverCalibrationSetting currentCalibrationStep = RailDriverCalibrationSetting.CutOffDelta;
 
-        private readonly byte[] calibrationSettings = new byte[EnumExtension.GetLength<RailDriverCalibrationSetting>()];
+        private readonly EnumArray<byte, RailDriverCalibrationSetting> calibrationSettings = new EnumArray<byte, RailDriverCalibrationSetting>();
         private bool calibrationSet;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
@@ -88,13 +90,14 @@ namespace FreeTrainSimulator.Menu
 
         private Panel InitializeRailDriverInputControls()
         {
+            ProfileRailDriverSettingsModel defaultRailDriverSettings = ProfileRailDriverSettingsModel.Default;
             Panel panel = new Panel() { AutoScroll = true, Width = panelRDSettings.Width / 2 };
             panel.SuspendLayout();
 
             int columnWidth = (panel.ClientSize.Width - 20) / 3;
 
             Label tempLabel = new Label();
-            RDButtonInputControl tempControl = new RDButtonInputControl(settings.RailDriver.UserCommands[UserCommand.GameQuit], RailDriverSettings.GetDefaultValue(UserCommand.GameQuit), instance);
+            RDButtonInputControl tempControl = new RDButtonInputControl(userSettings.RailDriverSettings.UserCommands[UserCommand.GameQuit], defaultRailDriverSettings.UserCommands[UserCommand.GameQuit], instance);
             int rowTop = Math.Max(tempLabel.Margin.Top, tempControl.Margin.Top);
             int rowHeight = tempControl.Height;
             int rowSpacing = rowHeight + tempControl.Margin.Vertical;
@@ -146,7 +149,7 @@ namespace FreeTrainSimulator.Menu
                 };
                 panel.Controls.Add(label);
 
-                RDButtonInputControl rdButtonControl = new RDButtonInputControl(settings.RailDriver.UserCommands[command], RailDriverSettings.GetDefaultValue(command), instance)
+                RDButtonInputControl rdButtonControl = new RDButtonInputControl(userSettings.RailDriverSettings.UserCommands[command], defaultRailDriverSettings.UserCommands[command], instance)
                 {
                     Location = new Point(columnWidth * 2 + tempControl.Margin.Left, rowTop + rowSpacing * i),
                     Size = inputControlSize,
@@ -162,7 +165,7 @@ namespace FreeTrainSimulator.Menu
             return panel;
         }
 
-        private void InitializeRailDriverSettings()
+        private async Task InitializeRailDriverSettings()
         {
             instance = RailDriverDevice.Instance;
 //#if !DEBUG
@@ -172,14 +175,17 @@ namespace FreeTrainSimulator.Menu
                 return;
             }
 //#endif
+            userSettings.RailDriverSettings ??= await userSettings.Parent.LoadSettingsModel<ProfileRailDriverSettingsModel>(CancellationToken.None).ConfigureAwait(false);
+
+            panelRDButtons.SuspendLayout();
             panelRDButtons.Width = panelRDSettings.Width / 2;
             panelRDButtons.Controls.Clear();
 
-            checkReverseReverser.Checked = settings.RailDriver.CalibrationSettings[RailDriverCalibrationSetting.ReverseReverser] != 0;
-            checkReverseThrottle.Checked = settings.RailDriver.CalibrationSettings[RailDriverCalibrationSetting.ReverseThrottle] != 0;
-            checkReverseAutoBrake.Checked = settings.RailDriver.CalibrationSettings[RailDriverCalibrationSetting.ReverseAutoBrake] != 0;
-            checkReverseIndependentBrake.Checked = settings.RailDriver.CalibrationSettings[RailDriverCalibrationSetting.ReverseIndependentBrake] != 0;
-            checkFullRangeThrottle.Checked = settings.RailDriver.CalibrationSettings[RailDriverCalibrationSetting.FullRangeThrottle] != 0;
+            checkReverseReverser.Checked = userSettings.RailDriverSettings.CalibrationSettings[RailDriverCalibrationSetting.ReverseReverser] != 0;
+            checkReverseThrottle.Checked = userSettings.RailDriverSettings.CalibrationSettings[RailDriverCalibrationSetting.ReverseThrottle] != 0;
+            checkReverseAutoBrake.Checked = userSettings.RailDriverSettings.CalibrationSettings[RailDriverCalibrationSetting.ReverseAutoBrake] != 0;
+            checkReverseIndependentBrake.Checked = userSettings.RailDriverSettings.CalibrationSettings[RailDriverCalibrationSetting.ReverseIndependentBrake] != 0;
+            checkFullRangeThrottle.Checked = userSettings.RailDriverSettings.CalibrationSettings[RailDriverCalibrationSetting.FullRangeThrottle] != 0;
             Panel controls = InitializeRailDriverInputControls();
             controls.Dock = DockStyle.Fill;
             panelRDButtons.Controls.Add(controls);
@@ -187,6 +193,7 @@ namespace FreeTrainSimulator.Menu
             foreach (Control control in controls.Controls)
                 if (control is RDButtonInputControl)
                     toolTip1.SetToolTip(control, tooltip);
+            panelRDButtons.ResumeLayout();
         }
 
         private void RunCalibration()
@@ -221,7 +228,7 @@ namespace FreeTrainSimulator.Menu
                         else if ((int)currentCalibrationStep < 22)  //Rotary 2
                             index = 7;
 
-                        calibrationSettings[(int)currentCalibrationStep] = readData[index];
+                        calibrationSettings[currentCalibrationStep] = readData[index];
                         instance.SetLedsNumeric(readData[index]);
                     }
                 }
@@ -242,12 +249,12 @@ namespace FreeTrainSimulator.Menu
             RunCalibration();
         }
 
-        private void BtnRDReset_Click(object sender, EventArgs e)
+        private async void BtnRDReset_Click(object sender, EventArgs e)
         {
             if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom button assignments?"), RuntimeInfo.ProductName, MessageBoxButtons.YesNo))
             {
-                settings.RailDriver.Reset();
-                InitializeRailDriverSettings();
+                userSettings.RailDriverSettings = new ProfileRailDriverSettingsModel();
+                await InitializeRailDriverSettings().ConfigureAwait(false);
             }
         }
 
@@ -268,7 +275,7 @@ namespace FreeTrainSimulator.Menu
         private void BtnRDSettingsExport_Click(object sender, EventArgs e)
         {
             string outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Open Rails RailDriver.txt");
-            settings.RailDriver.DumpToText(outputPath);
+            userSettings.RailDriverSettings.UserCommands.DumpToText(outputPath);
             MessageBox.Show(catalog.GetString("A listing of all Raildriver button assignments has been placed here:\n\n") + outputPath, RuntimeInfo.ProductName);
         }
 
@@ -287,7 +294,7 @@ namespace FreeTrainSimulator.Menu
                     break;
                 }
             }
-            return RailDriverSettings.CheckForErrors(buttons);
+            return buttons.CheckForErrors();
         }
 
         private void SaveRailDriverSettings()
@@ -298,7 +305,7 @@ namespace FreeTrainSimulator.Menu
                 {
                     foreach (Control child in control.Controls)
                         if (child is RDButtonInputControl)
-                            settings.RailDriver.UserCommands[(UserCommand)child.Tag] = (child as RDButtonInputControl).UserButton;
+                            userSettings.RailDriverSettings.UserCommands[(UserCommand)child.Tag] = (child as RDButtonInputControl).UserButton;
                     break;
                 }
             }
@@ -309,16 +316,16 @@ namespace FreeTrainSimulator.Menu
                 while (currentCalibrationStep < RailDriverCalibrationSetting.ReverseReverser)
                 {
 
-                    settings.RailDriver.CalibrationSettings[currentCalibrationStep] = calibrationSettings[(int)currentCalibrationStep];
-                    currentCalibrationStep++;
+                    userSettings.RailDriverSettings.CalibrationSettings[currentCalibrationStep] = calibrationSettings[currentCalibrationStep];
+                    currentCalibrationStep.Next();
                 }
             }
 
-            settings.RailDriver.CalibrationSettings[RailDriverCalibrationSetting.ReverseReverser] = Convert.ToByte(checkReverseReverser.Checked);
-            settings.RailDriver.CalibrationSettings[RailDriverCalibrationSetting.ReverseThrottle] = Convert.ToByte(checkReverseThrottle.Checked);
-            settings.RailDriver.CalibrationSettings[RailDriverCalibrationSetting.ReverseAutoBrake] = Convert.ToByte(checkReverseAutoBrake.Checked);
-            settings.RailDriver.CalibrationSettings[RailDriverCalibrationSetting.ReverseIndependentBrake] = Convert.ToByte(checkReverseIndependentBrake.Checked);
-            settings.RailDriver.CalibrationSettings[RailDriverCalibrationSetting.FullRangeThrottle] = Convert.ToByte(checkFullRangeThrottle.Checked);
+            userSettings.RailDriverSettings.CalibrationSettings[RailDriverCalibrationSetting.ReverseReverser] = Convert.ToByte(checkReverseReverser.Checked);
+            userSettings.RailDriverSettings.CalibrationSettings[RailDriverCalibrationSetting.ReverseThrottle] = Convert.ToByte(checkReverseThrottle.Checked);
+            userSettings.RailDriverSettings.CalibrationSettings[RailDriverCalibrationSetting.ReverseAutoBrake] = Convert.ToByte(checkReverseAutoBrake.Checked);
+            userSettings.RailDriverSettings.CalibrationSettings[RailDriverCalibrationSetting.ReverseIndependentBrake] = Convert.ToByte(checkReverseIndependentBrake.Checked);
+            userSettings.RailDriverSettings.CalibrationSettings[RailDriverCalibrationSetting.FullRangeThrottle] = Convert.ToByte(checkFullRangeThrottle.Checked);
 
             currentCalibrationStep = RailDriverCalibrationSetting.CutOffDelta;
         }

@@ -256,7 +256,7 @@ namespace FreeTrainSimulator.Menu
         private async void OptionsForm_Shown(object sender, EventArgs e)
         {
             Task keyboardTask = InitializeKeyboardSettings();
-            InitializeRailDriverSettings();
+            Task railDriverTask = InitializeRailDriverSettings();
 
             if (tabOptions.SelectedTab == tabPageContent) // inital setup?
             {
@@ -270,8 +270,7 @@ namespace FreeTrainSimulator.Menu
                     }
                 }
             }
-//            await Task.WhenAll(keyboardTask).ConfigureAwait(false);
-            await keyboardTask.ConfigureAwait(false);
+            await Task.WhenAll(keyboardTask, railDriverTask).ConfigureAwait(false);
         }
 
         /// <summary>

@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-
-using FreeTrainSimulator.Common;
+﻿using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Models.Base;
 
@@ -12,7 +10,7 @@ namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver("", ".keyboardsettings")]
-    public partial record ProfileKeyboardSettingsModel : ProfileSettingsModelBase
+    public sealed partial record ProfileKeyboardSettingsModel : ProfileSettingsModelBase
     {
         private static ProfileKeyboardSettingsModel defaultModel;
 

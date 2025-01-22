@@ -45,9 +45,10 @@ namespace FreeTrainSimulator.Menu
         {
             InitializeComponent();
             if (RDButtonInputControl.railDriver == null)
+            {
                 RDButtonInputControl.railDriver = railDriver;
-            if (null == readBuffer)
                 readBuffer = railDriver.GetReadBuffer();
+            }
             UserButton = userButton;
             DefaultButton = defaultButton;
 
@@ -140,6 +141,7 @@ namespace FreeTrainSimulator.Menu
                 UserButton = 255;
             ButtonClick();
         }
+
         private void ButtonCancel_Click(object sender, EventArgs e)
         {
             ButtonClick();

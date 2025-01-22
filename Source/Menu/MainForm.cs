@@ -504,6 +504,7 @@ namespace FreeTrainSimulator.Menu
                 else
                 {
                     ProfileUserSettings.KeyboardSettings = null;
+                    ProfileUserSettings.RailDriverSettings = null;
                 }
             }
         }
@@ -629,6 +630,9 @@ namespace FreeTrainSimulator.Menu
             Task<ProfileKeyboardSettingsModel> profileKeyboardSettingsTask = null;
             if (null != ProfileUserSettings.KeyboardSettings)
                 profileKeyboardSettingsTask = SelectedProfile.UpdateSettingsModel(ProfileUserSettings.KeyboardSettings, ctsProfileLoading.Token);
+            Task<ProfileRailDriverSettingsModel> profileRaildriverSettingsTask = null;
+            if (null != ProfileUserSettings.RailDriverSettings)
+                profileRaildriverSettingsTask = SelectedProfile.UpdateSettingsModel(ProfileUserSettings.RailDriverSettings, ctsProfileLoading.Token);
 
             Task profileUpdateTask = SelectedProfile.UpdateCurrent(ctsProfileLoading.Token);
 
@@ -636,6 +640,8 @@ namespace FreeTrainSimulator.Menu
             ProfileUserSettings = await profileUserSettingsTask.ConfigureAwait(false);
             if (null != profileKeyboardSettingsTask)
                 ProfileUserSettings.KeyboardSettings = await profileKeyboardSettingsTask.ConfigureAwait(false);
+            if (null != profileRaildriverSettingsTask)
+                ProfileUserSettings.RailDriverSettings = await profileRaildriverSettingsTask.ConfigureAwait(false);
             await profileUpdateTask.ConfigureAwait(false);
         }
         #endregion
