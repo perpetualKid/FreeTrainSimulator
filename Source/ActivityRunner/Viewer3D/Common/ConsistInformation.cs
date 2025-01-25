@@ -45,7 +45,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
                 {
                     AddHeader(train);
                 }
-                bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
+                bool isUK = Simulator.Instance.UserSettings.MeasurementUnit == MeasurementUnit.UK;
                 for (int i = 0; i < train.Cars.Count; i++)
                 {
                     TrainCar car = train.Cars[i];

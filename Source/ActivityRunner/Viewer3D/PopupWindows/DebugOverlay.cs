@@ -10,13 +10,13 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Settings;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
-using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
@@ -41,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly Viewer viewer;
-        private readonly UserSettings settings;
+        private readonly ProfileUserSettingsModel userSettings;
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private TabLayout<TabSettings> tabLayout;
@@ -80,10 +80,10 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         internal static readonly int[] columnWidth40_64_80_100 = new int[] { 40, 64, 80, 100 };
         internal static readonly int[] columnWidth140_120 = new int[] { 140, 120 };
 
-        public DebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
+        public DebugOverlay(WindowManager owner, ProfileUserSettingsModel userSettings, Viewer viewer, Catalog catalog = null) : base(owner, catalog ?? CatalogManager.Catalog)
         {
             ArgumentNullException.ThrowIfNull(viewer);
-            this.settings = settings;
+            this.userSettings = userSettings;
             userCommandController = viewer.UserCommandController;
             this.viewer = viewer;
             ZOrder = 30;
@@ -341,7 +341,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         protected override void Initialize()
         {
             base.Initialize();
-            if (EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.DebugOverlay], out TabSettings tab))
+            if (EnumExtension.GetValue(userSettings.PopupSettings[ViewerWindowType.DebugOverlay], out TabSettings tab))
                 tabLayout.TabAction(tab);
             SetScrollableGridTarget();
             SetChangeableGridTarget();
@@ -352,7 +352,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
             {
                 tabLayout.TabAction();
-                settings.PopupSettings[ViewerWindowType.DebugOverlay] = tabLayout.CurrentTab.ToString();
+                userSettings.PopupSettings[ViewerWindowType.DebugOverlay] = tabLayout.CurrentTab.ToString();
                 SetScrollableGridTarget();
                 SetChangeableGridTarget();
             }

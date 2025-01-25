@@ -9,8 +9,6 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Settings;
-
 namespace Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows
 {
     internal sealed class SettingsWindow : WindowBase

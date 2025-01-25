@@ -404,7 +404,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void LoadPrep()
         {
-            if (Viewer.Settings.UseMSTSEnv == false)
+            if (!Viewer.UserSettings.MstsEnvironment)
             {
                 Viewer.World.Sky.LoadPrep();
                 sunDirection = Viewer.World.Sky.SolarDirection;
@@ -432,12 +432,12 @@ namespace Orts.ActivityRunner.Viewer3D
         private float distance = 1000;
         internal void UpdateShaders()
         {
-            if (Viewer.Settings.UseMSTSEnv == false)
+            if (!Viewer.UserSettings.MstsEnvironment)
                 sunDirection = Viewer.World.Sky.SolarDirection;
             else
                 sunDirection = Viewer.World.MSTSSky.mstsskysolarDirection;
 
-            SceneryShader.SetLightVector_ZFar(sunDirection, Viewer.Settings.ViewingDistance);
+            SceneryShader.SetLightVector_ZFar(sunDirection, Viewer.UserSettings.ViewingDistance);
 
             // Headlight illumination
             if (Viewer.PlayerLocomotiveViewer != null
@@ -493,7 +493,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 SceneryShader.SetHeadlightOff();
             }
             // End headlight illumination
-            if (Viewer.Settings.UseMSTSEnv == false)
+            if (!Viewer.UserSettings.MstsEnvironment)
             {
                 SceneryShader.Overcast = Viewer.Simulator.Weather.OvercastFactor;
                 SceneryShader.SetFog(Viewer.Simulator.Weather.FogVisibilityDistance, ref SharedMaterialManager.FogColor);
@@ -1036,7 +1036,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public ShadowMapMaterial(Viewer viewer)
             : base(viewer, null)
         {
-            int shadowMapResolution = base.viewer.Settings.ShadowMapResolution;
+            int shadowMapResolution = base.viewer.UserSettings.ShadowMapResolution;
             blurVertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
             blurVertexBuffer.SetData(new[] {
                new VertexPositionTexture(new Vector3(-1, +1, 0), new Vector2(0, 0)),

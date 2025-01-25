@@ -35,6 +35,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D;
 
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
 namespace Orts.ActivityRunner.Processes
 {
     internal sealed class RenderProcess : IDisposable
@@ -115,14 +117,15 @@ namespace Orts.ActivityRunner.Processes
             graphicsDeviceManager = new GraphicsDeviceManager(gameHost)
             {
                 // Set up the rest of the graphics according to the settings.
-                SynchronizeWithVerticalRetrace = gameHost.Settings.VerticalSync,
+                SynchronizeWithVerticalRetrace = gameHost.UserSettings.VerticalSync,
                 PreferredBackBufferFormat = SurfaceFormat.Color,
                 PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8,
-                PreferMultiSampling = gameHost.Settings.MultisamplingCount > 0,
-                IsFullScreen = gameHost.Settings.FullScreen,
+                PreferMultiSampling = gameHost.UserSettings.MultiSamplingCount > 0,
+                IsFullScreen = gameHost.UserSettings.ScreenMode == ScreenMode.BorderlessFullscreen,
             };
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
 
+            gameHost.Window.Position = windowPosition;
             SetScreenMode(currentScreenMode);
             RenderPrimitive.SetGraphicsDevice(gameHost.GraphicsDevice);
 
@@ -169,23 +172,20 @@ namespace Orts.ActivityRunner.Processes
             // This stops ResolveBackBuffer() clearing the back buffer.
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.PreserveContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
-            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = game.Settings.MultisamplingCount;
+            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = game.UserSettings.MultiSamplingCount;
         }
 
         internal void Start()
         {
             DisplaySize = game.GraphicsDevice.Viewport.Bounds.Size;
 
-            if (game.Settings.ShadowMapDistance == 0)
-                game.Settings.ShadowMapDistance = game.Settings.ViewingDistance / 2;
-
-            ShadowMapCount = game.Settings.ShadowMapCount;
-            if (!game.Settings.DynamicShadows || ShadowMapCount < 0)
+            ShadowMapCount = game.UserSettings.ShadowMapCount;
+            if (!game.UserSettings.DynamicShadows || ShadowMapCount < 0)
                 ShadowMapCount = 0;
             else if (ShadowMapCount > ShadowMapCountMaximum)
                 ShadowMapCount = ShadowMapCountMaximum;
             if (ShadowMapCount < 1)
-                game.Settings.DynamicShadows = false;
+                game.UserSettings.DynamicShadows = false;
 
             ShadowMapDistance = new int[ShadowMapCount];
             ShadowMapDiameter = new int[ShadowMapCount];
@@ -203,11 +203,9 @@ namespace Orts.ActivityRunner.Processes
         private void InitializeShadowMapLocations()
         {
             float ratio = (float)DisplaySize.X / DisplaySize.Y;
-            float fov = MathHelper.ToRadians(game.Settings.ViewingFOV);
+            float fov = MathHelper.ToRadians(game.UserSettings.FieldOfView);
             float n = 0.5f;
-            float f = game.Settings.ShadowMapDistance;
-            if (f == 0)
-                f = game.Settings.ViewingDistance / 2f;
+            float f = game.UserSettings.ViewingDistance / 2f;
 
             var m = (float)ShadowMapCount;
             var LastC = n;
@@ -283,40 +281,27 @@ namespace Orts.ActivityRunner.Processes
 
         private void LoadSettings()
         {
-            currentScreenMode = game.Settings.FullScreen ? game.Settings.NativeFullscreenResolution ? ScreenMode.BorderlessFullscreen : ScreenMode.WindowedFullscreen : ScreenMode.Windowed;
-            currentScreen = game.Settings.WindowScreen >= 0 && game.Settings.WindowScreen < Screen.AllScreens.Length ? Screen.AllScreens[game.Settings.WindowScreen] : Screen.PrimaryScreen;
+            currentScreenMode = game.UserSettings.ScreenMode;
+            currentScreen = game.UserSettings.WindowScreen >= 0 && game.UserSettings.WindowScreen < Screen.AllScreens.Length ? Screen.AllScreens[game.UserSettings.WindowScreen] : Screen.PrimaryScreen;
 
-            windowSize.Width = game.Settings.WindowSettings[WindowSetting.Size][0];
-            windowSize.Height = game.Settings.WindowSettings[WindowSetting.Size][1];
+            windowSize.Width = game.UserSettings.WindowSettings[WindowSetting.Size].X;
+            windowSize.Height = game.UserSettings.WindowSettings[WindowSetting.Size].Y;
 
-            windowPosition = game.Settings.WindowSettings[WindowSetting.Location].ToPoint();
-            if (windowPosition != PointExtension.EmptyPoint)
-            {
-                windowPosition = new Point(
-                    currentScreen.WorkingArea.Left + windowPosition.X * (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 100,
-                    currentScreen.WorkingArea.Top + windowPosition.Y * (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 100);
-            }
-            else
-            {
-                windowPosition = new Point(
-                    currentScreen.WorkingArea.Left + (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2,
-                    currentScreen.WorkingArea.Top + (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2);
-            }
+            windowPosition = game.UserSettings.WindowSettings[WindowSetting.Location].ToPoint();
+            windowPosition = new Point(
+                currentScreen.WorkingArea.Left + windowPosition.X * (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 100,
+                currentScreen.WorkingArea.Top + windowPosition.Y * (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 100);
         }
 
         private void SaveSettings()
         {
-            game.Settings.WindowSettings[WindowSetting.Size][0] = windowSize.Width;
-            game.Settings.WindowSettings[WindowSetting.Size][1] = windowSize.Height;
-
-            game.Settings.WindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
-            game.Settings.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
-            game.Settings.WindowScreen = Screen.AllScreens.ToList().IndexOf(currentScreen);
-
-            game.Settings.Save(nameof(game.Settings.WindowSettings));
-            game.Settings.Save(nameof(game.Settings.WindowScreen));
+            /// Settings which should be persisted in the model, need to be configured also in <see cref="FreeTrainSimulator.Models.Shim.ProfileSettingsExtensions.UpdateRuntimeUserSettingsModel"/>
+            game.UserSettings.WindowSettings[WindowSetting.Size] = (windowSize.Width, windowSize.Height);
+            game.UserSettings.WindowSettings[WindowSetting.Location] = (
+                (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width))),
+                (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height))));
+            game.UserSettings.WindowScreen = Screen.AllScreens.ToList().IndexOf(currentScreen);
         }
-
 
         private void SetScreenMode(ScreenMode targetMode)
         {

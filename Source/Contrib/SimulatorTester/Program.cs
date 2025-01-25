@@ -22,10 +22,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 
 using Orts.Simulation;
 using Orts.Simulation.Commanding;
@@ -36,11 +39,10 @@ namespace Orts.SimulatorTester
     internal sealed class Program
     {
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             ImmutableArray<string> options = args.Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
             List<string> files = args.Where(a => !a.StartsWith('-') && !a.StartsWith('/')).ToList();
-            UserSettings settings = new UserSettings(options);
 
             Trace.Listeners.Add(new ConsoleTraceListener());
 
@@ -71,7 +73,10 @@ namespace Orts.SimulatorTester
                 return;
             }
 
-            if (settings.Verbose)
+            ProfileModel profileModel = await ((ProfileModel)null).Current(CancellationToken.None).ConfigureAwait(false);
+            ProfileUserSettingsModel userSettings = await profileModel.LoadSettingsModel<ProfileUserSettingsModel>(CancellationToken.None).ConfigureAwait(false);
+
+            if (userSettings.ProfilingVerbose)
             {
                 Console.WriteLine("This is a log file for {0}. Please include this file in bug reports.", RuntimeInfo.ProductName);
                 LogSeparator();
@@ -86,7 +91,7 @@ namespace Orts.SimulatorTester
                     Console.WriteLine("Argument     = {0}", arg);
                 LogSeparator();
 
-                settings.Log();
+                userSettings.Log();
                 LogSeparator();
             }
 
@@ -96,7 +101,7 @@ namespace Orts.SimulatorTester
                 SaveData data = GetSaveData(inf);
                 string activityFile = data.Args[0];
 
-                if (!settings.Quiet)
+                if (!userSettings.ProfilingQuiet)
                 {
                     foreach (string arg in data.Args)
                         Console.WriteLine("Argument     = {0}", arg);
@@ -106,8 +111,9 @@ namespace Orts.SimulatorTester
                 }
 
                 StaticRandom.MakeDeterministic();
+
                 DateTimeOffset startTime = DateTimeOffset.Now;
-                Simulator simulator = new Simulator(settings, activityFile);
+                Simulator simulator = new Simulator(userSettings, activityFile);
                 simulator.SetActivity(activityFile);
                 simulator.Start(CancellationToken.None);
                 simulator.SetCommandReceivers();
@@ -117,13 +123,13 @@ namespace Orts.SimulatorTester
                 simulator.Log.CommandList.Clear();
 
                 DateTimeOffset loadTime = DateTimeOffset.Now;
-                if (!settings.Quiet)
+                if (!userSettings.ProfilingQuiet)
                 {
                     Console.WriteLine("{0:N1} seconds", (loadTime - startTime).TotalSeconds);
                     Console.Write("Replaying... ");
                 }
 
-                float step = 1f / settings.FPS;
+                float step = 1f / userSettings.ProfilingFps;
                 for (float tick = 0f; tick < data.TimeElapsed; tick += step)
                 {
                     simulator.Update(step);
@@ -136,7 +142,7 @@ namespace Orts.SimulatorTester
                 double initialToExpectedM = Math.Sqrt(Math.Pow(data.ExpectedTileX - data.InitialTileX, 2) + Math.Pow(data.ExpectedTileZ - data.InitialTileZ, 2)) * WorldPosition.TileSize;
                 double expectedToActualM = Math.Sqrt(Math.Pow(actualTileX - data.ExpectedTileX, 2) + Math.Pow(actualTileZ - data.ExpectedTileZ, 2)) * WorldPosition.TileSize;
 
-                if (!settings.Quiet)
+                if (!userSettings.ProfilingQuiet)
                 {
                     Console.WriteLine("{0:N1} seconds ({1:F0}x speed-up)", (endTime - loadTime).TotalSeconds, data.TimeElapsed / (endTime - loadTime).TotalSeconds);
                     Console.WriteLine("Actual Pos   = {0}, {1}", actualTileX, actualTileZ);

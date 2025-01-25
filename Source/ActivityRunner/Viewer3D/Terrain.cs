@@ -65,7 +65,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 var tiles = new List<TileSample>();
                 var loTiles = new List<TileSample>();
-                var needed = (int)Math.Ceiling((float)Viewer.Settings.ViewingDistance / 2048);
+                var needed = (int)Math.Ceiling(Viewer.UserSettings.ViewingDistance / 2048f);
 
                 // First we establish the regular tiles we need to cover the current viewable area.
                 for (var x = tile.X - needed; x <= tile.X + needed; x++)
@@ -73,10 +73,10 @@ namespace Orts.ActivityRunner.Viewer3D
                         if (!cancellation.IsCancellationRequested)
                             tiles.Add(Viewer.Tiles.LoadAndGetTile(x, z, x == tile.X && z == tile.Z));
 
-                if (Viewer.Settings.DistantMountains)
+                if (Viewer.UserSettings.FarMountainsViewingDistance > 0)
                 {
                     // Second we establish the distant mountain/lo-resolution tiles we need.
-                    needed = (int)Math.Ceiling((float)Viewer.Settings.DistantMountainsViewingDistance / 2048);
+                    needed = (int)Math.Ceiling((float)Viewer.UserSettings.FarMountainsViewingDistance / 2048);
                     for (var x = 8 * (int)((tile.X - needed) / 8); x <= 8 * (int)((tile.X + needed + 7) / 8); x += 8)
                         for (var z = 8 * (int)((tile.Z - needed) / 8); z <= 8 * (int)((tile.Z + needed + 7) / 8); z += 8)
                             if (!cancellation.IsCancellationRequested)

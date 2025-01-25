@@ -30,6 +30,31 @@ namespace FreeTrainSimulator.Models.Shim
             settingsModel.Initialize(profileModel);
             return ProfileSettingModelHandler<T>.ToFile(settingsModel, cancellationToken);
         }
+
+        /// <summary>
+        /// Only some user settings which are changed at runtime should be persisted, while others are kept with the configired profile settings
+        /// Since the whole settingsmodel is stored at once, a copy is used and updated specifically with the settings to be persisted
+        /// Only use this from ActivityViewer runtime when stored user settings model
+        /// </summary>
+        public static async Task<ProfileUserSettingsModel> UpdateRuntimeUserSettingsModel(this ProfileModel profileModel, ProfileUserSettingsModel settingsModel, CancellationToken cancellationToken) 
+        {
+            ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
+            ArgumentNullException.ThrowIfNull(settingsModel, nameof(settingsModel));
+
+            ProfileUserSettingsModel initialModel = await profileModel.LoadSettingsModel<ProfileUserSettingsModel>(cancellationToken).ConfigureAwait(false);
+
+            initialModel.WindowSettings = settingsModel.WindowSettings;
+            initialModel.WindowScreen = settingsModel.WindowScreen;
+            initialModel.PopupLocations = settingsModel.PopupLocations;
+            initialModel.PopupSettings = settingsModel.PopupSettings;
+            initialModel.PopupStatus = settingsModel.PopupStatus;
+
+            initialModel.Confirmations = settingsModel.Confirmations;
+            initialModel.OdometerShortDistances = settingsModel.OdometerShortDistances;
+            initialModel.VibrationLevel = settingsModel.VibrationLevel;
+
+            return await UpdateSettingsModel(profileModel, settingsModel, cancellationToken).ConfigureAwait(false);
+        }
         #endregion
 
         public static async ValueTask<FolderModel> SelectedFolder(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)

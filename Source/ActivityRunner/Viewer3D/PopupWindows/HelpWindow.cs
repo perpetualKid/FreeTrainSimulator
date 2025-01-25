@@ -11,6 +11,7 @@ using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Models.Settings;
 
 using GetText;
 
@@ -18,7 +19,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.RollingStocks;
@@ -66,7 +66,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private TabControl<TabSettings> tabControl;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly UserCommandController<UserCommand> userCommandController;
-        private readonly UserSettings settings;
+        private readonly ProfileUserSettingsModel userSettings;
         private readonly Viewer viewer;
 
         private ActivityTask lastActivityTask;
@@ -83,11 +83,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly List<WindowControl> helpCommandControls = new List<WindowControl>();
         private VerticalScrollboxControlLayout helpCommandScrollbox;
 
-        public HelpWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Viewer viewer, Catalog catalog = null) :
+        public HelpWindow(WindowManager owner, Point relativeLocation, ProfileUserSettingsModel userSettings, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Help"), relativeLocation, new Point(560, 380), catalog)
         {
             userCommandController = viewer.UserCommandController;
-            this.settings = settings;
+            this.userSettings = userSettings;
             this.viewer = viewer;
             if (Simulator.Instance.ActivityRun != null)
                 Simulator.Instance.ActivityRun.OnEventTriggered += ActivityRun_OnEventTriggered;
@@ -407,9 +407,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.FullBrakeAbove16kmh}", Color.White)));
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Auto pilot Time", $"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.AutoPilotTime)}");
                             activityEvaluation.Add((functionLabel, () => ($"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.AutoPilotTime)}", Color.White)));
-                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, Simulator.Instance.Settings.BreakCouplers ? "Coupler breaks" : "Coupler overloaded", $"= {ActivityEvaluation.Instance.CouplerBreaks}");
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, Simulator.Instance.UserSettings.CouplersBreak ? "Coupler breaks" : "Coupler overloaded", $"= {ActivityEvaluation.Instance.CouplerBreaks}");
                             activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.CouplerBreaks}", Color.White)));
-                            if (Simulator.Instance.Settings.CurveSpeedDependent)
+                            if (viewer.UserSettings.CurveDependentSpeedLimits)
                             {
                                 functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Curve speeds exceeded", $"= {ActivityEvaluation.Instance.TravellingTooFast}");
                                 activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.TravellingTooFast}", Color.White)));
@@ -428,7 +428,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Emergency applications while stopped", $"= {ActivityEvaluation.Instance.EmergencyButtonStopped}");
                             activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.EmergencyButtonStopped}", Color.White)));
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Full Train Brake applications under 5MPH/8KMH", $"= {ActivityEvaluation.Instance.FullTrainBrakeUnder8kmh}");
-                            if (Simulator.Instance.Settings.CurveSpeedDependent)
+                            if (viewer.UserSettings.CurveDependentSpeedLimits)
                             {
                                 functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Hose breaks", $"= {ActivityEvaluation.Instance.SnappedBrakeHose}");
                                 activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.SnappedBrakeHose}", Color.White)));
@@ -512,13 +512,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void TabControl_TabChanged(object sender, TabChangedEventArgs<TabSettings> e)
         {
-            settings.PopupSettings[ViewerWindowType.HelpWindow] = e.Tab.ToString();
+            userSettings.PopupSettings[ViewerWindowType.HelpWindow] = e.Tab.ToString();
         }
 
         protected override void Initialize()
         {
             base.Initialize();
-            if (EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.HelpWindow], out TabSettings tab))
+            if (EnumExtension.GetValue(userSettings.PopupSettings[ViewerWindowType.HelpWindow], out TabSettings tab))
                 tabControl.TabAction(tab);
             tabControl.TabChanged += TabControl_TabChanged;
         }

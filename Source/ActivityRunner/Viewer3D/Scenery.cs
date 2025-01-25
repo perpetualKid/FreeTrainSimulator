@@ -92,7 +92,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var worldFiles = WorldFiles;
                 var newWorldFiles = new List<WorldFile>();
                 var oldWorldFiles = new List<WorldFile>(worldFiles);
-                var needed = (int)Math.Ceiling((float)viewer.Settings.ViewingDistance / 2048f);
+                var needed = (int)Math.Ceiling(viewer.UserSettings.ViewingDistance / 2048f);
                 for (var x = -needed; x <= needed; x++)
                 {
                     for (var z = -needed; z <= needed; z++)
@@ -268,7 +268,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // create all the individual scenery objects specified in the WFile
             foreach (var worldObject in WFile.Objects)
             {
-                if (worldObject.DetailLevel > viewer.Settings.WorldObjectDensity)
+                if (worldObject.DetailLevel > viewer.UserSettings.VisibleDetailLevel)
                     continue;
 
                 // If the loader has been asked to temrinate, bail out early.
@@ -278,7 +278,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Get the position of the scenery object into ORTS coordinate space.
                 ref readonly WorldPosition worldMatrix = ref worldObject.WorldPosition;
 
-                var shadowCaster = (worldObject.StaticFlags & (uint)StaticFlag.AnyShadow) != 0 || viewer.Settings.ShadowAllShapes;
+                var shadowCaster = (worldObject.StaticFlags & (uint)StaticFlag.AnyShadow) != 0 || viewer.UserSettings.ShadowAllShapes;
                 var animated = (worldObject.StaticFlags & (uint)StaticFlag.Animate) != 0;
                 var global = (worldObject is TrackObject) || (worldObject is HazardObject) || (worldObject.StaticFlags & (uint)StaticFlag.Global) != 0;
 
@@ -323,14 +323,14 @@ namespace Orts.ActivityRunner.Viewer3D
                         // We might not have found the junction node; if so, fall back to the static track shape.
                         if (trJunctionNode != null)
                         {
-                            if (viewer.Settings.UseSuperElevation > 0)
+                            if (viewer.UserSettings.SuperElevationLevel > 0)
                                 SuperElevationManager.DecomposeStaticSuperElevation(viewer, DynamicTrackList, trackObj, worldMatrix, tile, shapeFilePath);
                             SceneryObjects.Add(new SwitchTrackShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), trJunctionNode));
                         }
                         else
                         {
                             //if want to use super elevation, we will generate tracks using dynamic tracks
-                            if (viewer.Settings.UseSuperElevation > 0
+                            if (viewer.UserSettings.SuperElevationLevel > 0
                                 && SuperElevationManager.DecomposeStaticSuperElevation(viewer, DynamicTrackList, trackObj, worldMatrix, tile, shapeFilePath))
                             {
                                 //var success = SuperElevation.DecomposeStaticSuperElevation(viewer, dTrackList, trackObj, worldMatrix, TileX, TileZ, shapeFilePath);
@@ -368,7 +368,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     SceneryObjects.Add(new StaticTrackShape(shapeFilePath, worldMatrix));
                             }
                         }
-                        if (viewer.Simulator.Settings.Wire == true && viewer.Simulator.RouteModel.RouteConditions.Electrified == true
+                        if (viewer.UserSettings.OverheadWireType >= OverheadWireType.Single && viewer.Simulator.RouteModel.RouteConditions.Electrified == true
                             && worldObject.DetailLevel != 2   // Make it compatible with routes that use 'HideWire', a workaround for MSTS that 
                             && worldObject.DetailLevel != 3   // allowed a mix of electrified and non electrified track see http://msts.steam4me.net/tutorials/hidewire.html
                             )
@@ -381,10 +381,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(DynamicTrackObject))
                     {
-                        if (viewer.Simulator.Settings.Wire && viewer.Simulator.RouteModel.RouteConditions.Electrified)
+                        if (viewer.UserSettings.OverheadWireType >= OverheadWireType.Single && viewer.Simulator.RouteModel.RouteConditions.Electrified)
                             Wire.DecomposeDynamicWire(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix);
                         // Add DyntrackDrawers for individual subsections
-                        if (viewer.Settings.UseSuperElevation > 0 && SuperElevationManager.UseSuperElevationDyn(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix))
+                        if (viewer.UserSettings.SuperElevationLevel > 0 && SuperElevationManager.UseSuperElevationDyn(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix))
                             SuperElevationManager.DecomposeDynamicSuperElevation(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix);
                         else
                             DynamicTrack.Decompose(viewer, DynamicTrackList, (DynamicTrackObject)worldObject, worldMatrix);
@@ -502,7 +502,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-            if (Viewer.Settings.ModelInstancing)
+            if (Viewer.UserSettings.ModelInstancing)
             {
                 // Instancing collapsed multiple copies of the same model in to a single set of data (the normal model
                 // data, plus a list of position information for each copy) and then draws them in a single batch.
@@ -536,10 +536,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-            if (viewer.Settings.UseSuperElevation > 0)
+            if (viewer.UserSettings.SuperElevationLevel > 0)
                 SuperElevationManager.DecomposeStaticSuperElevation(Viewer, DynamicTrackList, tile);
-            if (Viewer.World.Sounds != null)
-                Viewer.World.Sounds.AddByTile(tile);
+            Viewer.World.Sounds?.AddByTile(tile);
         }
 
         //Method to check a shape name is listed in "openrails\clocks.dat"

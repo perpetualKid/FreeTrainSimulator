@@ -440,7 +440,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             if (shader != null)
             {
                 // TODO: Readd ability to control night time lighting.
-                float overcast = viewer.Settings.UseMSTSEnv ? viewer.World.MSTSSky.mstsskyovercastFactor : viewer.Simulator.Weather.OvercastFactor;
+                float overcast = viewer.UserSettings.MstsEnvironment ? viewer.World.MSTSSky.mstsskyovercastFactor : viewer.Simulator.Weather.OvercastFactor;
                 shader.SetData(viewer.MaterialManager.sunDirection, nightTexture, false, overcast);
                 shader.SetTextureData(cabRect.Left, cabRect.Top, cabRect.Width, cabRect.Height);
             }

@@ -42,7 +42,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public void LoadPrep()
         {
             List<Container> visibleContainers = new List<Container>();
-            float removeDistance = viewer.Settings.ViewingDistance * 1.5f;
+            float removeDistance = viewer.UserSettings.ViewingDistance * 1.5f;
             foreach (Container container in Simulator.Instance.ContainerManager.Containers)
                 if (WorldLocation.ApproximateDistance(viewer.Camera.CameraWorldLocation, container.WorldPosition.WorldLocation) < removeDistance && container.Visible)
                     visibleContainers.Add(container);

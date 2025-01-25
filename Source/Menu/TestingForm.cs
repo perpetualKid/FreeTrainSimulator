@@ -174,10 +174,13 @@ namespace FreeTrainSimulator.Menu
                 LogFileName = logFileName,
                 LogLevel = TraceEventType.Verbose,
                 ErrorDialogEnabled = false,
+                PauseAtStart = false,
+                Profiling = true,
+                ProfilingTime = 10,
             };
             _ = await testingProfile.UpdateSettingsModel(testingSettings, cancellationToken).ConfigureAwait(false);
 
-            string parameters = $"/Test /Profile={testingProfileName} /Profiling /ProfilingTime=10";
+            string parameters = $"/Test /Profile={testingProfileName}";
 
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {

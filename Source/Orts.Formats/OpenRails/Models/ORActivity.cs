@@ -7,6 +7,7 @@ using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.OpenRails.Models
 {
+    // TODO 2025-01-25 refactor to use profileusersettingsmodel from activityfolder
     public class ORActivity
     {
         public bool AIBlowsHornAtLevelCrossings { get; private set; }

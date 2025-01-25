@@ -911,7 +911,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void Initialize()
         {
-            if (Simulator.Instance.Settings.DieselEngineStart && !Locomotive.gearSaved)
+            if (Simulator.Instance.UserSettings.DieselEngineRun && !Locomotive.gearSaved)
             {
                 RealRPM = IdleRPM;
                 State = DieselEngineState.Running;
@@ -936,7 +936,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void InitializeMoving()
         {
-            if (Simulator.Instance.Settings.DieselEngineStart && !Locomotive.gearSaved)
+            if (Simulator.Instance.UserSettings.DieselEngineRun && !Locomotive.gearSaved)
             {
                 RealRPM = IdleRPM;
                 State = DieselEngineState.Running;
@@ -1547,7 +1547,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// </summary>
         public void InitFromMSTS()
         {
-            bool verboseConfigurationMessages = Simulator.Instance.Settings.VerboseConfigurationMessages;
+            bool verboseConfigurationMessages = Simulator.Instance.UserSettings.ConfigurationMessages;
             if (MaximumRailOutputPowerW == 0 && Locomotive.MaxPowerW != 0)
             {
                 MaximumRailOutputPowerW = Locomotive.MaxPowerW; // set rail power to a default value on the basis that of the value specified in the MaxPowerW parameter
@@ -1962,7 +1962,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     float ThrottleSetting = 1;
                     MaximumRailOutputPowerW = (float)loco.TractiveForceCurves.Get(ThrottleSetting, loco.SpeedOfMaxContinuousForceMpS) * loco.SpeedOfMaxContinuousForceMpS;
-                    if (Simulator.Instance.Settings.VerboseConfigurationMessages)
+                    if (Simulator.Instance.UserSettings.ConfigurationMessages)
                         Trace.TraceInformation("Maximum Rail Output Power set by Diesel Traction Curves {0} value", FormatStrings.FormatPower(MaximumRailOutputPowerW, Simulator.Instance.MetricUnits, false, false));
                 }
                 else if (loco.MaxPowerW != 0)

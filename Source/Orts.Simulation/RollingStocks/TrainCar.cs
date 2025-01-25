@@ -586,7 +586,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 AccelerationMpSS = (SpeedMpS - prevSpeedMpS) / (float)elapsedClockSeconds;
 
-                if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics)
+                if (simulator.UserSettings.AdvancedAdhesion && !simulator.UserSettings.SimplifiedControls)
                     AccelerationMpSS = (float)accelerationFilter.Filter(AccelerationMpSS, elapsedClockSeconds);
 
                 prevSpeedMpS = SpeedMpS;
@@ -663,13 +663,13 @@ namespace Orts.Simulation.RollingStocks
         {
 
             // Only apply slide, and advanced brake friction, if advanced adhesion is selected, simplecontrolphysics is not set, and it is a Player train
-            if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && IsPlayerTrain)
+            if (simulator.UserSettings.AdvancedAdhesion && !simulator.UserSettings.SimplifiedControls && IsPlayerTrain)
             {
 
                 // Get user defined brake shoe coefficient if defined in WAG file
                 float UserFriction = GetUserBrakeShoeFrictionFactor();
                 float ZeroUserFriction = GetZeroUserBrakeShoeFrictionFactor();
-                float AdhesionMultiplier = simulator.Settings.AdhesionFactor / 100.0f; // User set adjustment factor - convert to a factor where 100% = no change to adhesion
+                float AdhesionMultiplier = simulator.UserSettings.AdhesionFactor / 100.0f; // User set adjustment factor - convert to a factor where 100% = no change to adhesion
 
                 // This section calculates an adjustment factor for the brake force dependent upon the "base" (zero speed) friction value. 
                 //For a user defined case the base value is the zero speed value from the curve entered by the user.
@@ -2396,7 +2396,7 @@ namespace Orts.Simulation.RollingStocks
         #region Super-elevation
         private void UpdateSuperElevation(Traveller traveller, double elapsedTimeS)
         {
-            if (simulator.Settings.UseSuperElevation == 0)
+            if (simulator.UserSettings.SuperElevationLevel == 0)
                 return;
             if (prevElev < -30f)
             { prevElev += 40f; return; }//avoid the first two updates as they are not valid
@@ -2469,7 +2469,7 @@ namespace Orts.Simulation.RollingStocks
             // Don't add vibrations to train cars less than 2.5 meter in length; they're unsuitable for these calculations.
             if (CarLengthM < 2.5f)
                 return;
-            if (simulator.Settings.CarVibratingLevel != 0)
+            if (simulator.UserSettings.VibrationLevel != 0)
             {
 
                 //var elapsedTimeS = Math.Abs(speedMpS) > 0.001f ? distanceM / speedMpS : 0;
@@ -2546,7 +2546,7 @@ namespace Orts.Simulation.RollingStocks
                 if (this.Flipped)
                     TiltingZRot *= -1f;
             }
-            if (simulator.Settings.CarVibratingLevel != 0 || Train.IsTilting)
+            if (simulator.UserSettings.VibrationLevel != 0 || Train.IsTilting)
             {
                 var rotation = Matrix.CreateFromYawPitchRoll(VibrationRotationRad.Y, VibrationRotationRad.X, VibrationRotationRad.Z + TiltingZRot);
                 var translation = Matrix.CreateTranslation(VibrationTranslationM.X, VibrationTranslationM.Y, 0);
@@ -2561,16 +2561,16 @@ namespace Orts.Simulation.RollingStocks
             switch (StaticRandom.Next(4))
             {
                 case 0:
-                    VibrationRotationVelocityRadpS.Y += factor * simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength * 2 / CarLengthM;
+                    VibrationRotationVelocityRadpS.Y += factor * simulator.UserSettings.VibrationLevel * VibrationIntroductionStrength * 2 / CarLengthM;
                     break;
                 case 1:
-                    VibrationRotationVelocityRadpS.Z += factor * simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength * 2 / CarLengthM;
+                    VibrationRotationVelocityRadpS.Z += factor * simulator.UserSettings.VibrationLevel * VibrationIntroductionStrength * 2 / CarLengthM;
                     break;
                 case 2:
-                    VibrationTranslationVelocityMpS.X += factor * simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength;
+                    VibrationTranslationVelocityMpS.X += factor * simulator.UserSettings.VibrationLevel * VibrationIntroductionStrength;
                     break;
                 case 3:
-                    VibrationTranslationVelocityMpS.Y += factor * simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength;
+                    VibrationTranslationVelocityMpS.Y += factor * simulator.UserSettings.VibrationLevel * VibrationIntroductionStrength;
                     break;
             }
         }
@@ -2726,7 +2726,7 @@ namespace Orts.Simulation.RollingStocks
             // Only initialise these values the first time around the loop
             if (!carHeatingInitialized)
             {
-                if (mstsLocomotive.EngineType == EngineType.Steam && simulator.Settings.HotStart || mstsLocomotive.EngineType == EngineType.Diesel || mstsLocomotive.EngineType == EngineType.Electric)
+                if (mstsLocomotive.EngineType == EngineType.Steam && simulator.UserSettings.SteamHotStart || mstsLocomotive.EngineType == EngineType.Diesel || mstsLocomotive.EngineType == EngineType.Electric)
                 {
                     if (CarOutsideTempC < DesiredCompartmentTempSetpointC)
                     {
@@ -3118,7 +3118,7 @@ namespace Orts.Simulation.RollingStocks
         private protected virtual void UpdateForceStatus()
         {
             bool metricUnits = Simulator.Instance.MetricUnits;
-            bool ukUnits = simulator.Settings.MeasurementUnit == MeasurementUnit.UK;
+            bool ukUnits = simulator.UserSettings.MeasurementUnit == MeasurementUnit.UK;
             forceInfo["Car"] = CarID;
 
             forceInfo["Total"] = FormatStrings.FormatForce(TotalForceN, metricUnits);

@@ -43,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             if (UpdateNeeded)
             {
                 MSTSLocomotive locomotive = Simulator.Instance.PlayerLocomotive;
-                bool isUK = Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK;
+                bool isUK = Simulator.Instance.UserSettings.MeasurementUnit == MeasurementUnit.UK;
                 if (train != (train = Simulator.Instance.PlayerLocomotive.Train))
                 {
 

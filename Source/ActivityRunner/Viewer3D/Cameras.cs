@@ -221,7 +221,7 @@ namespace Orts.ActivityRunner.Viewer3D
         protected Camera(Viewer viewer)
         {
             this.viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
-            FieldOfView = this.viewer.Settings.ViewingFOV;
+            FieldOfView = this.viewer.UserSettings.FieldOfView;
             CameraEventHandler.Initialize(viewer);
         }
 
@@ -240,7 +240,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public virtual void Reset()
         {
-            FieldOfView = viewer.Settings.ViewingFOV;
+            FieldOfView = viewer.UserSettings.FieldOfView;
             ScreenChanged();
         }
 
@@ -289,9 +289,9 @@ namespace Orts.ActivityRunner.Viewer3D
             var farPlaneDistance = SkyConstants.Radius + 100;  // so far the sky is the biggest object in view
             var fovWidthRadians = MathHelper.ToRadians(FieldOfView);
 
-            if (viewer.Settings.DistantMountains)
-                distantMountainProjection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, MathHelper.Clamp(viewer.Settings.ViewingDistance - 500, 500, 1500), viewer.Settings.DistantMountainsViewingDistance);
-            projection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, NearPlane, viewer.Settings.ViewingDistance);
+            if (viewer.UserSettings.FarMountainsViewingDistance > 0)
+                distantMountainProjection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, MathHelper.Clamp(viewer.UserSettings.ViewingDistance - 500, 500, 1500), viewer.UserSettings.FarMountainsViewingDistance);
+            projection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, NearPlane, viewer.UserSettings.ViewingDistance);
             skyProjection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, NearPlane, farPlaneDistance);    // TODO remove? 
             frustumRightProjected.X = (float)Math.Cos(fovWidthRadians / 2 * aspectRatio);  // Precompute the right edge of the view frustrum.
             frustumRightProjected.Z = (float)Math.Sin(fovWidthRadians / 2 * aspectRatio);
@@ -340,8 +340,8 @@ namespace Orts.ActivityRunner.Viewer3D
             mstsObjectCenter.Z -= cameraLocation.Location.Z;
 
             // An object cannot be visible further away than the viewing distance.
-            if (objectViewingDistance > viewer.Settings.ViewingDistance)
-                objectViewingDistance = viewer.Settings.ViewingDistance;
+            if (objectViewingDistance > viewer.UserSettings.ViewingDistance)
+                objectViewingDistance = viewer.UserSettings.ViewingDistance;
 
             var distanceSquared = mstsObjectCenter.X * mstsObjectCenter.X + mstsObjectCenter.Z * mstsObjectCenter.Z;
 
@@ -2409,7 +2409,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Reset()
         {
-            FieldOfView = viewer.Settings.ViewingFOV;
+            FieldOfView = viewer.UserSettings.FieldOfView;
             rotationXRadians = rotationYRadians = xRadians = yRadians = zRadians = 0;
             viewer.CabYOffsetPixels = (viewer.DisplaySize.Y - viewer.CabHeightPixels) / 2;
             viewer.CabXOffsetPixels = (viewer.CabWidthPixels - viewer.DisplaySize.X) / 2;
@@ -2423,20 +2423,20 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void Initialize()
         {
-            if (viewer.Settings.Letterbox2DCab)
+            if (viewer.Letterbox2DCab)
             {
                 float fovFactor = 1f - Math.Max((float)viewer.CabXLetterboxPixels / viewer.DisplaySize.X, (float)viewer.CabYLetterboxPixels / viewer.DisplaySize.Y);
-                FieldOfView = MathHelper.ToDegrees((float)(2 * Math.Atan(fovFactor * Math.Tan(MathHelper.ToRadians(viewer.Settings.ViewingFOV / 2)))));
+                FieldOfView = MathHelper.ToDegrees((float)(2 * Math.Atan(fovFactor * Math.Tan(MathHelper.ToRadians(viewer.UserSettings.FieldOfView / 2)))));
             }
-            else if (viewer.Settings.Cab2DStretch == 0 && viewer.CabExceedsDisplayHorizontally <= 0)
+            else if (viewer.UserSettings.Cab2DStretch == 0 && viewer.CabExceedsDisplayHorizontally <= 0)
             {
                 // We must modify FOV to get correct lookout
-                FieldOfView = MathHelper.ToDegrees((float)(2 * Math.Atan((float)viewer.DisplaySize.Y / viewer.DisplaySize.X / viewer.CabTextureInverseRatio * Math.Tan(MathHelper.ToRadians(viewer.Settings.ViewingFOV / 2)))));
+                FieldOfView = MathHelper.ToDegrees((float)(2 * Math.Atan((float)viewer.DisplaySize.Y / viewer.DisplaySize.X / viewer.CabTextureInverseRatio * Math.Tan(MathHelper.ToRadians(viewer.UserSettings.FieldOfView / 2)))));
                 rotationRatio = (float)(0.962314f * 2 * Math.Tan(MathHelper.ToRadians(FieldOfView / 2)) / viewer.DisplaySize.Y);
             }
             else if (viewer.CabExceedsDisplayHorizontally > 0)
             {
-                rotationRatioHorizontal = (float)(0.962314f * 2 * viewer.DisplaySize.X / viewer.DisplaySize.Y * Math.Tan(MathHelper.ToRadians(viewer.Settings.ViewingFOV / 2)) / viewer.DisplaySize.X);
+                rotationRatioHorizontal = (float)(0.962314f * 2 * viewer.DisplaySize.X / viewer.DisplaySize.Y * Math.Tan(MathHelper.ToRadians(viewer.UserSettings.FieldOfView / 2)) / viewer.DisplaySize.X);
             }
             InitialiseRotation(AttachedCar);
         }
@@ -2572,7 +2572,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private protected override void ToggleLetterboxCab()
         {
-            viewer.Settings.Letterbox2DCab = !viewer.Settings.Letterbox2DCab;
+            viewer.Letterbox2DCab = !viewer.Letterbox2DCab;
             viewer.AdjustCabHeight(viewer.DisplaySize.X, viewer.DisplaySize.Y);
             if (AttachedCar != null)
                 Initialize();
@@ -2882,7 +2882,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public SpecialTracksideCamera([NotNull] Viewer viewer)
             : base(viewer)
         {
-            superElevationGaugeOverTwo = viewer.Settings.SuperElevationGauge / 1000f / 2;
+            superElevationGaugeOverTwo = viewer.UserSettings.TrackGauge / 1000f / 2;
         }
 
         protected override void OnActivate(bool sameCamera)

@@ -609,7 +609,7 @@ namespace Orts.Simulation.RollingStocks
 
         protected void GetPressureUnit()
         {
-            switch (simulator.Settings.PressureUnit)
+            switch (simulator.UserSettings.PressureUnit)
             {
                 default:
                 case PressureUnit.Automatic:
@@ -1576,7 +1576,7 @@ namespace Orts.Simulation.RollingStocks
                     locoNumDrvAxles = 4; // Set 4 axles as default
                 }
 
-                if (simulator.Settings.VerboseConfigurationMessages)
+                if (simulator.UserSettings.ConfigurationMessages)
                 {
                     Trace.TraceInformation("Number of Locomotive Drive Axles set to default value of {0}", locoNumDrvAxles);
                 }
@@ -1614,7 +1614,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    BrakePipeChargingRatePSIorInHgpS = simulator.Settings.BrakePipeChargingRate; // Air brakes
+                    BrakePipeChargingRatePSIorInHgpS = simulator.UserSettings.BrakePipeChargingRate; // Air brakes
                 }
             }
             // Initialise Brake Pipe Quick Charging Rate
@@ -1689,7 +1689,7 @@ namespace Orts.Simulation.RollingStocks
                 if (MaximumMainReservoirPipePressurePSI == 0)
                 {
                     MaximumMainReservoirPipePressurePSI = MaxMainResPressurePSI;
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                     {
                         Trace.TraceInformation("AirBrakeMaxMainResPipePressure not set in ENG file, set to default pressure of {0}.", FormatStrings.FormatPressure(MaximumMainReservoirPipePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true));
                     }
@@ -1704,7 +1704,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     // for a airsinglepipe system, AirBrakeMaxMainResPipePressure should be left out of ENG file, and it should be set the same as MaxMainResPressurePSI
                     MaximumMainReservoirPipePressurePSI = MaxMainResPressurePSI;
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                     {
                         Trace.TraceInformation("AirBrakeMaxMainResPipePressure is set in ENG file, but should not be normally used for AirSinglePipe system, reset to default pressure of {0}. Consider removing AirBrakeMaxMainResPipePressure parameter from ENG file", FormatStrings.FormatPressure(MaximumMainReservoirPipePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true));
                     }
@@ -1727,7 +1727,7 @@ namespace Orts.Simulation.RollingStocks
                     // Convert assumed inHg value to psi
                     TrainBrakeController.MaxPressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(TrainBrakeController.MaxPressurePSI));
 
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                     {
                         Trace.TraceInformation("TrainBrakeController.MaxPressurePSI is assumed to be {0} Inhg, - confirmed as a value of {1} InHg", TempMaxPressure, Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(TrainBrakeController.MaxPressurePSI)));
                     }
@@ -1735,7 +1735,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else if (TrainBrakeController.MaxPressurePSI < 7 || TrainBrakeController.MaxPressurePSI > 13) // Outside an acceptable range (Eqiv = 15InHg to 25InHg), then convert to a fixed default
                 {
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                     {
                         Trace.TraceInformation("TrainBrakeController.MaxPressurePSI being incorrectly read as {0} Inhg, - set to a default value of {1} InHg", TrainBrakeController.MaxPressurePSI, Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(21.0f)))));
                     }
@@ -1748,7 +1748,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 BrakeCutsPowerAtBrakePipePressurePSI = BrakeRestoresPowerAtBrakePipePressurePSI - 1.0f;
 
-                if (simulator.Settings.VerboseConfigurationMessages)
+                if (simulator.UserSettings.ConfigurationMessages)
                 {
                     Trace.TraceInformation("BrakeCutsPowerAtBrakePipePressure is greater then BrakeRestoresPowerAtBrakePipePressurePSI, and has been set to value of {0} InHg", Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(BrakeCutsPowerAtBrakePipePressurePSI)));
                 }
@@ -1758,7 +1758,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 BrakeRestoresPowerAtBrakePipePressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(15.0f)); // Power can be restored once brake pipe rises above 15 InHg
 
-                if (simulator.Settings.VerboseConfigurationMessages)
+                if (simulator.UserSettings.ConfigurationMessages)
                 {
                     Trace.TraceInformation("BrakeRestoresPowerAtBrakePipePressure appears out of limits, and has been set to value of {0} InHg", Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(BrakeRestoresPowerAtBrakePipePressurePSI)));
                 }
@@ -1858,7 +1858,7 @@ namespace Orts.Simulation.RollingStocks
         /// 
         protected void CorrectBrakingParams()
         {
-            if (simulator.Settings.CorrectQuestionableBrakingParams || simulator.Settings.SimpleControlPhysics)
+            if (simulator.UserSettings.ValidateBrakingParams || simulator.UserSettings.SimplifiedControls)
             {
                 if (!(BrakeSystem is EPBrakeSystem) && !(BrakeSystem is VacuumSinglePipe) && !(BrakeSystem is AirTwinPipe))
                 {
@@ -1894,7 +1894,7 @@ namespace Orts.Simulation.RollingStocks
                 DynamicBrakeSpeed2MpS = DynamicBrakeSpeed3MpS;
                 DynamicBrakeSpeed3MpS = temp;
             }
-            if (simulator.Settings.CorrectQuestionableBrakingParams)
+            if (simulator.UserSettings.ValidateBrakingParams)
             {
                 if (MaxDynamicBrakeForceN > 0 && MaxContinuousForceN > 0 &&
                 (MaxDynamicBrakeForceN / MaxContinuousForceN < 0.3f && MaxDynamicBrakeForceN == 20000))
@@ -2130,7 +2130,7 @@ namespace Orts.Simulation.RollingStocks
                     }
 
                     // SimpleControlPhysics and if locomotive is a control car advanced adhesion will be "disabled".
-                    if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && EngineType != EngineType.Control)
+                    if (simulator.UserSettings.AdvancedAdhesion && !simulator.UserSettings.SimplifiedControls && EngineType != EngineType.Control)
                     {
                         AdvancedAdhesion(elapsedClockSeconds); // Use advanced adhesion model
                         AdvancedAdhesionModel = true;  // Set flag to advise advanced adhesion model is in use
@@ -2508,7 +2508,7 @@ namespace Orts.Simulation.RollingStocks
         {
             // Ejectors are controlled independently for the "straight_vacuum_single_pipe" brake type 
             // Ejectors are controlled by brake control valves in Simple Physics Control
-            if (simulator.Settings.SimpleControlPhysics && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe)
+            if (simulator.UserSettings.SimplifiedControls && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe)
             // Simple braking - control Ejector automatically based upon the brake control position
             // Stop ejector operation if full vacuum pressure reached
             {
@@ -3246,8 +3246,8 @@ namespace Orts.Simulation.RollingStocks
 
             }
 
-            var AdhesionMultiplier = simulator.Settings.AdhesionFactor / 100.0f; // Convert to a factor where 100% = no change to adhesion
-            var AdhesionRandom = (float)(simulator.Settings.AdhesionFactorChange * 0.01f * 2f * (StaticRandom.NextDouble() - 0.5f));
+            var AdhesionMultiplier = simulator.UserSettings.AdhesionFactor / 100.0f; // Convert to a factor where 100% = no change to adhesion
+            var AdhesionRandom = (float)(simulator.UserSettings.AdhesionFactorChange * 0.01f * 2f * (StaticRandom.NextDouble() - 0.5f));
 
             Train.LocomotiveCoefficientFriction = BaseuMax * BaseFrictionCoefficientFactor * AdhesionMultiplier;  // Find friction coefficient factor for locomotive
             Train.LocomotiveCoefficientFriction = MathHelper.Clamp(Train.LocomotiveCoefficientFriction, 0.05f, 0.8f); // Ensure friction coefficient never exceeds a "reasonable" value
@@ -5002,9 +5002,9 @@ namespace Orts.Simulation.RollingStocks
             switch (evt)
             {
                 case TrainEvent.VigilanceAlarmOn:
-                    { AlerterSnd = true; if (simulator.Settings.Alerter) simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.On); break; }
+                    { AlerterSnd = true; if (simulator.UserSettings.Alerter) simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.On); break; }
                 case TrainEvent.VigilanceAlarmOff:
-                    { AlerterSnd = false; if (simulator.Settings.Alerter) simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.Off); break; }
+                    { AlerterSnd = false; if (simulator.UserSettings.Alerter) simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.Off); break; }
                 case TrainEvent.BellOn:
                 case TrainEvent.BellOff:
                     if (this == simulator.PlayerLocomotive && simulator.Confirmer != null)
@@ -5628,7 +5628,7 @@ namespace Orts.Simulation.RollingStocks
 
                 case CabViewControlType.Alerter_Display:
                     {
-                        if (simulator.Settings.Alerter)
+                        if (simulator.UserSettings.Alerter)
                         {
                             if (TrainControlSystem.VigilanceEmergency)
                                 data = 2;
@@ -6085,7 +6085,7 @@ namespace Orts.Simulation.RollingStocks
                 carInfo["Steam Heat Pressure Front"] = FormatStrings.FormatPressure(CurrentSteamHeatPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
                 carInfo["Steam Heat Temperature"] = FormatStrings.FormatTemperature(Temperature.Celsius.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]), simulator.MetricUnits);
                 carInfo["Steam Heat Usage"] = $"{FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CalculatedCarHeaterSteamUsageLBpS)), simulator.MetricUnits)}/{FormatStrings.h}";
-                carInfo["Steam Heat Water Level"] = FormatStrings.FormatFuelVolume(CurrentLocomotiveSteamHeatBoilerWaterCapacityL, simulator.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK);
+                carInfo["Steam Heat Water Level"] = FormatStrings.FormatFuelVolume(CurrentLocomotiveSteamHeatBoilerWaterCapacityL, simulator.MetricUnits, Simulator.Instance.UserSettings.MeasurementUnit == MeasurementUnit.UK);
                 carInfo["Steam Heat Pressure Rear"] = FormatStrings.FormatPressure(Train.LastCar.carSteamHeatMainPipeSteamPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
                 carInfo["Steam Heat Temperature Rear"] = FormatStrings.FormatTemperature(Train.LastCar.CarInsideTempC, simulator.MetricUnits);
                 carInfo["Outside Temperature"] = FormatStrings.FormatTemperature(CarOutsideTempC, simulator.MetricUnits);

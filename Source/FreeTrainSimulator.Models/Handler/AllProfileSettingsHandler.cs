@@ -2,9 +2,7 @@
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Settings;
-using FreeTrainSimulator.Models.Shim;
 
 namespace FreeTrainSimulator.Models.Handler
 {

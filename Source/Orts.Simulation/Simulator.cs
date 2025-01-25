@@ -33,6 +33,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Settings;
 
 using GetText;
 
@@ -44,7 +45,6 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.OpenRails.Files;
 using Orts.Formats.OpenRails.Models;
 using Orts.Scripting.Api;
-using Orts.Settings;
 using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Commanding;
@@ -134,7 +134,7 @@ namespace Orts.Simulation
         // while Simulator.Update() is running, objects are adjusted to this target time 
         // after Simulator.Update() is complete, the simulator state matches this time
 
-        public UserSettings Settings { get; }
+        public ProfileUserSettingsModel UserSettings { get; }
 
         public bool MetricUnits { get; }
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
@@ -223,7 +223,6 @@ namespace Orts.Simulation
         public Train OriginalPlayerTrain { get; private set; } // Used in Activity mode
 
         public bool PlayerIsInCab { get; set; }
-        public bool OpenDoorsInAITrains { get; init; }
 
         public MovingTable ActiveMovingTable { get; set; }
 
@@ -249,7 +248,7 @@ namespace Orts.Simulation
 
         public float TimetableLoadedFraction { get; internal set; }    // Set by AI.PrerunAI(), Get by GameStateRunActivity.Update()
 
-        public Simulator(UserSettings settings, string activityPath)
+        public Simulator(ProfileUserSettingsModel userSettings, string activityPath)
         {
             Instance = this;
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
@@ -257,8 +256,8 @@ namespace Orts.Simulation
 
             TimetableMode = false;
 
-            Settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            GamePaused = settings.StartGamePaused;
+            UserSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
+            GamePaused = userSettings.PauseAtStart;
 
             RouteFolder = FolderStructure.RouteFromActivity(activityPath);
 
@@ -272,9 +271,8 @@ namespace Orts.Simulation
 
             Debug.Assert(RouteModel != null);
 
-            if (RouteModel.Settings.TryGetValue("OpenComputerTrainDoors", out string trainDoorsSetting) &&
-                bool.TryParse(trainDoorsSetting, out bool openComputerTrainDoors))
-                OpenDoorsInAITrains = openComputerTrainDoors;
+            if (RouteModel.Settings.TryGetValue("OpenComputerTrainDoors", out string trainDoorsSetting) && bool.TryParse(trainDoorsSetting, out bool openComputerTrainDoors))
+                UserSettings.ComputerTrainDoors = openComputerTrainDoors;
 
             Trace.Write(" TDB");
             TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(RouteModel.RouteKey)).TrackDB;
@@ -294,7 +292,7 @@ namespace Orts.Simulation
                 roadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(RouteModel.RouteKey)).RoadTrackDB;
             }
 
-            MetricUnits = Settings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            MetricUnits = userSettings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (userSettings.MeasurementUnit == MeasurementUnit.Metric || userSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             RuntimeData.Initialize(RouteModel, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
 
             SuperElevation = new SuperElevation(this);
@@ -343,7 +341,7 @@ namespace Orts.Simulation
             if (File.Exists(activityPath))
             {
                 ORActivitySettingsFile orActivitySettings = new ORActivitySettingsFile(activityPath);
-                OverrideUserSettings(Settings, orActivitySettings.Activity);    // Override user settings for the purposes of this activity
+                OverrideUserSettings(UserSettings, orActivitySettings.Activity);    // Override user settings for the purposes of this activity
                 //TODO override Activity.Activity.AIHornAtCrossings from orActivitySettings
             }
 
@@ -398,7 +396,7 @@ namespace Orts.Simulation
             {
                 ContainerManager.LoadPopulationFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(ActivityFile?.Activity?.Header?.LoadStationsPopulationFile, ".load-stations-loads-or")));
             }
-            SignalEnvironment = new SignalEnvironment(SignalConfig, Settings.UseLocationPassingPaths, cancellationToken);
+            SignalEnvironment = new SignalEnvironment(SignalConfig, UserSettings.UseLocationPassingPaths, cancellationToken);
             MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings();
             Trains = new TrainList(this);
@@ -407,7 +405,7 @@ namespace Orts.Simulation
             _ = IsAutopilotMode ? InitializeAPTrains(cancellationToken) : InitializeTrains(cancellationToken);
 
             // start activity logging if required
-            if (Settings.EvaluationStationStops && ActivityRun != null)
+            if (UserSettings.EvaluationStationStops && ActivityRun != null)
             {
                 string stationLogFile = DeriveLogFile("Stops");
                 if (!string.IsNullOrEmpty(stationLogFile))
@@ -2062,7 +2060,7 @@ namespace Orts.Simulation
         }
 
         // Override User settings with activity creator settings if present in INCLUDE file
-        private static void OverrideUserSettings(UserSettings setting, ORActivity activitySettings)
+        private static void OverrideUserSettings(ProfileUserSettingsModel userSettings, ORActivity activitySettings)
         {
             if (activitySettings.IsActivityOverride)
             {
@@ -2071,33 +2069,33 @@ namespace Orts.Simulation
 
                 // General TAB 
 
-                setting.RetainersOnAllCars = activitySettings.Options.RetainersOnAllCars == 1;
-                Trace.Write($"\n{"Retainers on all cars",-40}={setting.RetainersOnAllCars,6}");
+                userSettings.RetainersOnAllCars = activitySettings.Options.RetainersOnAllCars == 1;
+                Trace.Write($"\n{"Retainers on all cars",-40}={userSettings.RetainersOnAllCars,6}");
 
-                setting.GraduatedRelease = activitySettings.Options.GraduatedBrakeRelease == 1;
-                Trace.Write($"\n{"Graduated Brake Release",-40}={setting.GraduatedRelease,6}");
+                userSettings.GraduatedRelease = activitySettings.Options.GraduatedBrakeRelease == 1;
+                Trace.Write($"\n{"Graduated Brake Release",-40}={userSettings.GraduatedRelease,6}");
 
-                setting.SpeedControl = activitySettings.Options.SoundSpeedControl == 1;
-                Trace.Write($"\n{"Sound speed control",-40}={setting.SpeedControl,6}");
+                userSettings.SpeedControl = activitySettings.Options.SoundSpeedControl == 1;
+                Trace.Write($"\n{"Sound speed control",-40}={userSettings.SpeedControl,6}");
 
                 // Simulation TAB
-                setting.NoForcedRedAtStationStops = activitySettings.Options.ForcedRedAtStationStops == 0; // Note this parameter is reversed in its logic to others.
-                Trace.Write($"\n{"Forced Red at Station Stops",-40}={setting.NoForcedRedAtStationStops,6}");
+                userSettings.ForcedRedStationStops = activitySettings.Options.ForcedRedAtStationStops != 0;
+                Trace.Write($"\n{"Forced Red at Station Stops",-40}={userSettings.ForcedRedStationStops,6}");
 
-                setting.UseLocationPassingPaths = activitySettings.Options.UseLocationPassingPaths == 1;
-                Trace.Write($"\n{"Location Based Passing Paths",-40}={setting.UseLocationPassingPaths,6}");
+                userSettings.UseLocationPassingPaths = activitySettings.Options.UseLocationPassingPaths == 1;
+                Trace.Write($"\n{"Location Based Passing Paths",-40}={userSettings.UseLocationPassingPaths,6}");
 
-                setting.UseAdvancedAdhesion = activitySettings.Options.UseAdvancedAdhesion == 1;
-                Trace.Write($"\n{"Use Advanced Adhesion",-40}={setting.UseAdvancedAdhesion,6}");
+                userSettings.AdvancedAdhesion = activitySettings.Options.UseAdvancedAdhesion == 1;
+                Trace.Write($"\n{"Use Advanced Adhesion",-40}={userSettings.AdvancedAdhesion,6}");
 
-                setting.BreakCouplers = activitySettings.Options.BreakCouplers == 1;
-                Trace.Write($"\n{"Break Couplers",-40}={setting.BreakCouplers,6}");
+                userSettings.CouplersBreak = activitySettings.Options.BreakCouplers == 1;
+                Trace.Write($"\n{"Break Couplers",-40}={userSettings.CouplersBreak,6}");
 
-                setting.CurveSpeedDependent = activitySettings.Options.CurveSpeedDependent == 1;
-                Trace.Write($"\n{"Curve Speed Dependent",-40}={setting.CurveSpeedDependent,6}");
+                userSettings.CurveDependentSpeedLimits = activitySettings.Options.CurveSpeedDependent == 1;
+                Trace.Write($"\n{"Curve Speed Dependent",-40}={userSettings.CurveDependentSpeedLimits,6}");
 
-                setting.HotStart = activitySettings.Options.HotStart == 1;
-                Trace.Write($"\n{"Hot Start",-40}={setting.HotStart,6}");
+                userSettings.SteamHotStart = activitySettings.Options.HotStart == 1;
+                Trace.Write($"\n{"Hot Start",-40}={userSettings.SteamHotStart,6}");
 
                 Trace.Write($"\n{"Simple Control/Physics",-40}={activitySettings.Options.SimpleControlPhysics == 1,6}");
 
@@ -2107,54 +2105,47 @@ namespace Orts.Simulation
                 // Experimental TAB
                 if (activitySettings.Options.AdhesionFactor > 0)
                 {
-                    setting.AdhesionFactor = activitySettings.Options.AdhesionFactor;
-                    setting.AdhesionFactor = MathHelper.Clamp(setting.AdhesionFactor, 10, 200);
-                    Trace.Write($"\n{"Adhesion Factor Correction",-40}={setting.AdhesionFactor,6}");
+                    userSettings.AdhesionFactor = activitySettings.Options.AdhesionFactor;
+                    userSettings.AdhesionFactor = MathHelper.Clamp(userSettings.AdhesionFactor, 10, 200);
+                    Trace.Write($"\n{"Adhesion Factor Correction",-40}={userSettings.AdhesionFactor,6}");
                 }
 
                 if (activitySettings.Options.AdhesionFactorChange > 0)
                 {
-                    setting.AdhesionFactorChange = activitySettings.Options.AdhesionFactorChange;
-                    setting.AdhesionFactorChange = MathHelper.Clamp(setting.AdhesionFactorChange, 0, 100);
-                    Trace.Write($"\n{"Adhesion Factor Change",-40}={setting.AdhesionFactorChange,6}");
+                    userSettings.AdhesionFactorChange = activitySettings.Options.AdhesionFactorChange;
+                    userSettings.AdhesionFactorChange = MathHelper.Clamp(userSettings.AdhesionFactorChange, 0, 100);
+                    Trace.Write($"\n{"Adhesion Factor Change",-40}={userSettings.AdhesionFactorChange,6}");
                 }
 
-                setting.AdhesionProportionalToWeather = activitySettings.Options.AdhesionProportionalToWeather == 1;
-                Trace.Write($"\n{"Adhesion Proportional to Weather",-40}={setting.AdhesionProportionalToWeather,6}");
+                userSettings.WeatherDependentAdhesion = activitySettings.Options.AdhesionProportionalToWeather == 1;
+                Trace.Write($"\n{"Adhesion Proportional to Weather",-40}={userSettings.WeatherDependentAdhesion,6}");
 
                 if (activitySettings.Options.ActivityRandomization > 0)
                 {
-                    setting.ActRandomizationLevel = activitySettings.Options.ActivityRandomization;
-                    setting.ActRandomizationLevel = MathHelper.Clamp(setting.ActRandomizationLevel, 0, 3);
-                    Trace.Write($"\n{"Activity Randomization",-40}={setting.ActRandomizationLevel,6}");
+                    userSettings.ActivityRandomizationLevel = activitySettings.Options.ActivityRandomization;
+                    userSettings.ActivityRandomizationLevel = MathHelper.Clamp(userSettings.ActivityRandomizationLevel, 0, 3);
+                    Trace.Write($"\n{"Activity Randomization",-40}={userSettings.ActivityRandomizationLevel,6}");
                 }
 
                 if (activitySettings.Options.ActivityWeatherRandomization > 0)
                 {
-                    setting.ActWeatherRandomizationLevel = activitySettings.Options.ActivityWeatherRandomization;
-                    setting.ActWeatherRandomizationLevel = MathHelper.Clamp(setting.ActWeatherRandomizationLevel, 0, 3);
-                    Trace.Write($"\n{"Activity Weather Randomization",-40}={setting.ActWeatherRandomizationLevel,6}");
+                    userSettings.WeatherRandomizationLevel = activitySettings.Options.ActivityWeatherRandomization;
+                    userSettings.WeatherRandomizationLevel = MathHelper.Clamp(userSettings.WeatherRandomizationLevel, 0, 3);
+                    Trace.Write($"\n{"Activity Weather Randomization",-40}={userSettings.WeatherRandomizationLevel,6}");
                 }
 
                 if (activitySettings.Options.SuperElevationLevel > 0)
                 {
-                    setting.UseSuperElevation = activitySettings.Options.SuperElevationLevel;
-                    setting.UseSuperElevation = MathHelper.Clamp(setting.UseSuperElevation, 0, 10);
-                    Trace.Write($"\n{"Super elevation - level",-40}={setting.UseSuperElevation}");
-                }
-
-                if (activitySettings.Options.SuperElevationMinimumLength > 0)
-                {
-                    setting.SuperElevationMinLen = activitySettings.Options.SuperElevationMinimumLength;
-                    setting.SuperElevationMinLen = MathHelper.Clamp(setting.SuperElevationMinLen, 50, 1000000);
-                    Trace.Write($"\n{"Super elevation - minimum length",-40}={setting.SuperElevationMinLen,6}");
+                    userSettings.SuperElevationLevel = activitySettings.Options.SuperElevationLevel;
+                    userSettings.SuperElevationLevel = MathHelper.Clamp(userSettings.SuperElevationLevel, 0, 10);
+                    Trace.Write($"\n{"Super elevation - level",-40}={userSettings.SuperElevationLevel}");
                 }
 
                 if (activitySettings.Options.SuperElevationGauge > 0)
                 {
-                    setting.SuperElevationGauge = activitySettings.Options.SuperElevationGauge;
-                    setting.SuperElevationGauge = MathHelper.Clamp(setting.SuperElevationGauge, 300, 2500);
-                    Trace.Write($"\n{"Super elevation - gauge",-40}={setting.SuperElevationGauge,6}");
+                    userSettings.TrackGauge = activitySettings.Options.SuperElevationGauge;
+                    userSettings.TrackGauge = MathHelper.Clamp(userSettings.TrackGauge, 300, 2500);
+                    Trace.Write($"\n{"Super elevation - gauge",-40}={userSettings.TrackGauge,6}");
                 }
 
                 Trace.Write("\n------------------------------------------------------------------------------------------------");

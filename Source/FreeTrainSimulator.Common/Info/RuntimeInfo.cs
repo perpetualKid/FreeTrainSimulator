@@ -42,6 +42,11 @@ namespace FreeTrainSimulator.Common.Info
 
         public static string UserDataFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ProductName);
 
+        public static string ScreenshotFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), ProductName);
+
+        public static string DeletedSaveFolder { get; } = Path.Combine(UserDataFolder, "Deleted Saves");
+        public static string SavePackFolder { get; } = Path.Combine(UserDataFolder, "Save Packs");
+
         public static string CacheFolder { get; } = Path.Combine(UserDataFolder, "Cache");
 
         public static string ContentFolder { get; } = Path.Combine(ApplicationFolder, "content");

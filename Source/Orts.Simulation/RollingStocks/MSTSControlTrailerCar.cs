@@ -73,7 +73,7 @@ namespace Orts.Simulation.RollingStocks
             if (ControllerNumberOfGears > 0)
             {
                 GearBoxController = new MSTSNotchController(ControllerNumberOfGears + 1);
-                if (Simulator.Instance.Settings.VerboseConfigurationMessages)
+                if (Simulator.Instance.UserSettings.ConfigurationMessages)
                     hasGearController = true;
                 //                Trace.TraceInformation("Control Car Gear Controller created");
                 controlGearIndex = 0;

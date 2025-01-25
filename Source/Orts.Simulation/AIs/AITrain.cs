@@ -109,7 +109,7 @@ namespace Orts.Simulation.AIs
             TrainType = TrainType.AiNotStarted;
             StartTime = ServiceDefinition.Time;
             Efficiency = efficiency;
-            if (simulator.Settings.ActRandomizationLevel > 0 && simulator.ActivityRun != null) // randomize efficiency
+            if (simulator.UserSettings.ActivityRandomizationLevel > 0 && simulator.ActivityRun != null) // randomize efficiency
             {
                 RandomizeEfficiency(ref Efficiency);
             }
@@ -198,7 +198,7 @@ namespace Orts.Simulation.AIs
             UncondAttach = aiTrainSaveState.UnconditionalAttach;
             doorCloseAdvance = aiTrainSaveState.DoorsCloseAdvance;
             doorOpenDelay = aiTrainSaveState.DoorsOpenDelay;
-            if (!simulator.TimetableMode && doorOpenDelay <= 0 && doorCloseAdvance > 0 && simulator.OpenDoorsInAITrains &&
+            if (!simulator.TimetableMode && doorOpenDelay <= 0 && doorCloseAdvance > 0 && simulator.UserSettings.ComputerTrainDoors &&
                 MovementState == AiMovementState.StationStop && StationStops.Count > 0)
             {
                 StationStop stationStop = StationStops[0];
@@ -333,7 +333,7 @@ namespace Orts.Simulation.AIs
                     {
                         // <CScomment> gets efficiency from .act file to override TrainMaxSpeedMpS computed from .srv efficiency
                         var sectionEfficiency = ServiceDefinition[0].Efficiency;
-                        if (simulator.Settings.ActRandomizationLevel > 0)
+                        if (simulator.UserSettings.ActivityRandomizationLevel > 0)
                             RandomizeEfficiency(ref sectionEfficiency);
                         if (sectionEfficiency > 0)
                             TrainMaxSpeedMpS = Math.Min(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], MaxVelocityA * sectionEfficiency);
@@ -1386,7 +1386,7 @@ namespace Orts.Simulation.AIs
                 }
                 else
                 {
-                    if (!IsFreight && simulator.OpenDoorsInAITrains)
+                    if (!IsFreight && simulator.UserSettings.ComputerTrainDoors)
                     {
                         var frontIsFront = thisStation.PlatformReference == thisStation.PlatformItem.PlatformFrontUiD;
                         if (doorOpenDelay > 0)
@@ -1473,7 +1473,7 @@ namespace Orts.Simulation.AIs
                 if (actualServiceItemIdx >= 0 && ServiceDefinition.Count >= actualServiceItemIdx + 2)
                 {
                     var sectionEfficiency = ServiceDefinition[actualServiceItemIdx + 1].Efficiency;
-                    if (simulator.Settings.ActRandomizationLevel > 0)
+                    if (simulator.UserSettings.ActivityRandomizationLevel > 0)
                         RandomizeEfficiency(ref sectionEfficiency);
                     if (sectionEfficiency > 0)
                     {
@@ -3030,7 +3030,7 @@ namespace Orts.Simulation.AIs
                     {
                         AIActionWPRef action = new AIActionWPRef(this, waitingPoint.Offset, 0f, waitingPoint.SubListIndex, lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, direction);
                         var randomizedDelay = waitingPoint.WaitTime;
-                        if (simulator.Settings.ActRandomizationLevel > 0)
+                        if (simulator.UserSettings.ActivityRandomizationLevel > 0)
                         {
                             randomizedDelay = RandomizedWPDelay(randomizedDelay);
                         }
@@ -3059,7 +3059,7 @@ namespace Orts.Simulation.AIs
                 {
                     AIActionWPRef action = new AIActionWPRef(this, waitingPoint.Offset, 0f, waitingPoint.SubListIndex, lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, direction);
                     var randomizedDelay = waitingPoint.WaitTime;
-                    if (simulator.Settings.ActRandomizationLevel > 0)
+                    if (simulator.UserSettings.ActivityRandomizationLevel > 0)
                     {
                         randomizedDelay = RandomizedWPDelay(randomizedDelay);
                     }

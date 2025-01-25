@@ -21,7 +21,7 @@ namespace Orts.Simulation.Physics
                 simulator.Confirmer?.Warning(CabControl.InitializeBrakes, CabSetting.Warn1);// As Confirmer may not be created until after a restore.
                 return;
             }
-            if (simulator.Settings.VerboseConfigurationMessages && LeadLocomotiveIndex >= 0) // Check incompatibilities between brake control valves
+            if (simulator.UserSettings.ConfigurationMessages && LeadLocomotiveIndex >= 0) // Check incompatibilities between brake control valves
             {
                 if (Cars.Any(x => (x as MSTSWagon).BrakeValve != LeadLocomotive.BrakeValve))
                 {
@@ -35,7 +35,7 @@ namespace Orts.Simulation.Physics
         /// Initializes brakes also if Speed != 0; directly used by keyboard command
         internal void UnconditionalInitializeBrakes()
         {
-            if (simulator.Settings.SimpleControlPhysics && LeadLocomotiveIndex >= 0) // If brake and control set to simple, and a locomotive present, then set all cars to same brake system as the locomotive
+            if (simulator.UserSettings.SimplifiedControls && LeadLocomotiveIndex >= 0) // If brake and control set to simple, and a locomotive present, then set all cars to same brake system as the locomotive
             {
                 MSTSLocomotive lead = (MSTSLocomotive)Cars[LeadLocomotiveIndex];
                 if (lead.TrainBrakeController != null)

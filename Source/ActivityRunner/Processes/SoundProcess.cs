@@ -55,7 +55,7 @@ namespace Orts.ActivityRunner.Processes
 
         internal override void Start()
         {
-            if (gameHost.Settings.SoundDetailLevel > 0)
+            if (gameHost.UserSettings.SoundDetailLevel > 0)
             {
                 base.Start();
             }
@@ -73,7 +73,7 @@ namespace Orts.ActivityRunner.Processes
             if (viewer == null)
                 return;
 
-            OpenAL.Listenerf(OpenAL.AL_GAIN, Simulator.Instance.GamePaused ? 0 : gameHost.Settings.SoundVolumePercent / 100f);
+            OpenAL.Listenerf(OpenAL.AL_GAIN, Simulator.Instance.GamePaused ? 0 : gameHost.UserSettings.SoundVolumePercent / 100f);
 
             // Update activity sounds
             if (viewer.Simulator.SoundNotify != TrainEvent.None)

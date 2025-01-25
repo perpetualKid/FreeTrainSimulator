@@ -82,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             //           string dir = Path.GetDirectoryName(filePath);
             //            string file = Path.GetFileName(filePath);
             //            string orFilePath = dir + @"\openrails\" + file;
-            var sFile = new ShapeFile(filePath, viewer.Settings.SuppressShapeWarnings);
+            var sFile = new ShapeFile(filePath, viewer.UserSettings.ShapeWarnings);
             //            if (file.ToLower().Contains("turntable") && File.Exists(orFilePath))
             //            {
             //                sFile.ReadAnimationBlock(orFilePath);
@@ -600,7 +600,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, bool[] subObjVisible, ShapeFlags flags, bool[] matrixVisible = null)
         {
-            var lodBias = ((float)viewer.Settings.LODBias / 100 + 1);
+            var lodBias = ((float)viewer.UserSettings.DetailLevelBias / 100 + 1);
 
             // Locate relative to the camera
             Tile delta = location.Tile - viewer.Camera.Tile;
@@ -635,16 +635,16 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 // viewing distance - right down to the lowest detail viewing distance. Otherwise, we'll scale the
                 // highest detail viewing distance up by 100% and then the object will just disappear!
 
-                if (viewer.Settings.LODBias == 100)
+                if (viewer.UserSettings.DetailLevelBias == 100)
                     // Maximum detail!
                     displayDetailLevel = 0;
-                else if (viewer.Settings.LODBias > -100)
+                else if (viewer.UserSettings.DetailLevelBias > -100)
                     // Not minimum detail, so find the correct level (with scaling by LODBias)
                     while ((displayDetailLevel > 0) && viewer.Camera.InRange(mstsLocation, lodControl.DistanceLevels[displayDetailLevel - 1].ViewSphereRadius, lodControl.DistanceLevels[displayDetailLevel - 1].ViewingDistance * lodBias))
                         displayDetailLevel--;
 
                 var displayDetail = lodControl.DistanceLevels[displayDetailLevel];
-                var distanceDetail = viewer.Settings.LODBias == 100
+                var distanceDetail = viewer.UserSettings.DetailLevelBias == 100
                     ? lodControl.DistanceLevels[lodControl.DistanceLevels.Length - 1]
                     : displayDetail;
 

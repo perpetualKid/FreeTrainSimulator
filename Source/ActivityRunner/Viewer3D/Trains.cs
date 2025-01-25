@@ -125,7 +125,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void LoadPrep()
         {
             var visibleCars = new List<TrainCar>();
-            var removeDistance = Viewer.Settings.ViewingDistance * 1.5f;
+            var removeDistance = Viewer.UserSettings.ViewingDistance * 1.5f;
             visibleCars.Add(Viewer.PlayerLocomotive);
             foreach (var train in Viewer.Simulator.Trains)
                 foreach (var car in train.Cars)

@@ -10,7 +10,6 @@ using GetText;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Processes;
-using Orts.Settings;
 using Orts.Simulation.Multiplayer;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
@@ -18,19 +17,17 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
     internal sealed class QuitWindow : WindowBase
     {
         private readonly UserCommandController<UserCommand> userCommandController;
-        private readonly UserSettings settings;
         private readonly Viewer viewer;
 
-        public QuitWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Viewer viewer, Catalog catalog = null) :
+        public QuitWindow(WindowManager owner, Point relativeLocation, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Pause Menu"), relativeLocation, new Point(320, 112), catalog)
         {
             Modal = true;
             ZOrder = 100;
             userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
-            this.settings = settings;
+            this.viewer = viewer;
             if (MultiPlayerManager.IsMultiPlayer())
                 Resize(new Point(320, 95));
-            this.viewer = viewer;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)

@@ -44,7 +44,6 @@ using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Primitives;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
-using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
@@ -154,7 +153,6 @@ namespace Orts.ActivityRunner.Processes
                 actionType = activityType != ActivityType.None || options.Length == 0 ? ActionType.Start : ActionType.Resume;
             }
 
-            UserSettings settings = Game.Settings;
             async ValueTask doAction()
             {
                 // Do the action specified or write out some help.
@@ -163,27 +161,27 @@ namespace Orts.ActivityRunner.Processes
                     case ActionType.Start:
                         InitLogging();
                         await InitLoading().ConfigureAwait(false);
-                        await Start(settings).ConfigureAwait(false);
+                        await Start(Game.UserSettings).ConfigureAwait(false);
                         break;
                     case ActionType.Resume:
                         InitLogging();
                         await InitLoading().ConfigureAwait(false);
-                        await Resume(settings).ConfigureAwait(false);
+                        await Resume(Game.UserSettings).ConfigureAwait(false);
                         break;
                     case ActionType.Replay:
                         InitLogging();
                         await InitLoading().ConfigureAwait(false);
-                        await Replay(settings).ConfigureAwait(false);
+                        await Replay(Game.UserSettings).ConfigureAwait(false);
                         break;
                     case ActionType.ReplayFromSave:
                         InitLogging();
                         await InitLoading().ConfigureAwait(false);
-                        await ReplayFromSave(settings).ConfigureAwait(false);
+                        await ReplayFromSave(Game.UserSettings).ConfigureAwait(false);
                         break;
                     case ActionType.Test:
                         InitLogging(true);
                         await InitLoading().ConfigureAwait(false);
-                        await Test(settings).ConfigureAwait(false);
+                        await Test(Game.UserSettings).ConfigureAwait(false);
                         break;
 
                     default:
@@ -255,9 +253,9 @@ namespace Orts.ActivityRunner.Processes
         /// Run the specified activity from the beginning.
         /// This is the start for MSTS Activity or Explorer mode or Timetable mode
         /// </summary>
-        private async ValueTask Start(UserSettings settings)
+        private async ValueTask Start(ProfileUserSettingsModel userSettings)
         {
-            await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
             switch (activityType)
             {
@@ -296,7 +294,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Resume a saved game.
         /// </summary>
-        private async ValueTask Resume(UserSettings settings)
+        private async ValueTask Resume(ProfileUserSettingsModel userSettings)
         {
             // If "-resume" also specifies a save file then use it
             // E.g. ActivityRunner.exe -resume "yard_two 2012-03-20 22.07.36"
@@ -309,7 +307,7 @@ namespace Orts.ActivityRunner.Processes
 
             activityType = saveState.ActivityType;
             data = saveState.Arguments.ToArray();
-            await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
             await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
 
@@ -334,7 +332,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Replay a saved game.
         /// </summary>
-        private async ValueTask Replay(UserSettings settings)
+        private async ValueTask Replay(ProfileUserSettingsModel userSettings)
         {
             // If "-replay" also specifies a save file then use it
             // E.g. ActivityRunner.exe -replay "yard_two 2012-03-20 22.07.36"
@@ -349,7 +347,7 @@ namespace Orts.ActivityRunner.Processes
 
             activityType = saveState.ActivityType;
             data = saveState.Arguments.ToArray();
-            await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             simulator.Start(Game.LoaderProcess.CancellationToken);
             Viewer = new Viewer(simulator, Game);
             Viewer.Initialize();
@@ -373,7 +371,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Replay the last segment of a saved game.
         /// </summary>
-        private async ValueTask ReplayFromSave(UserSettings settings)
+        private async ValueTask ReplayFromSave(ProfileUserSettingsModel userSettings)
         {
             // E.g. RunActivity.exe -replay_from_save "yard_two 2012-03-20 22.07.36"
             string saveFile = GetSaveFile(data);
@@ -419,7 +417,7 @@ namespace Orts.ActivityRunner.Processes
 
                 actionType = ActionType.Replay;
                 data = saveState.Arguments.ToArray();
-                await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
@@ -433,7 +431,7 @@ namespace Orts.ActivityRunner.Processes
                 activityType = saveState.ActivityType;
                 data = saveState.Arguments.ToArray();
                 actionType = ActionType.Resume;
-                await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                 simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
                 await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
 
@@ -456,7 +454,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Tests that ActivityRunner.exe can launch a specific activity or explore.
         /// </summary>
-        private async ValueTask Test(UserSettings settings)
+        private async ValueTask Test(ProfileUserSettingsModel userSettings)
         {
             DateTime startTime = DateTime.Now;
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -465,7 +463,7 @@ namespace Orts.ActivityRunner.Processes
             try
             {
                 actionType = ActionType.Test;
-                await InitSimulator(settings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
                 Viewer.Initialize();
@@ -490,8 +488,6 @@ namespace Orts.ActivityRunner.Processes
             {
                 string logFileName = RuntimeInfo.LogFile(Game.UserSettings.LogFilePath, Game.UserSettings.LogFileName);
                 LoggingUtil.InitLogging(logFileName, Game.UserSettings.LogLevel, true, appendLog);
-                Game.Settings.Log();
-                Trace.WriteLine(LoggingUtil.SeparatorLine);
                 Game.UserSettings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
@@ -623,7 +619,7 @@ namespace Orts.ActivityRunner.Processes
         }
         #endregion
 
-        private async ValueTask InitSimulator(UserSettings settings, CancellationToken cancellationToken)
+        private async ValueTask InitSimulator(ProfileUserSettingsModel userSettings, CancellationToken cancellationToken)
         {
             Task<ProfileKeyboardSettingsModel> keyboardSettingsTask = Game.UserSettings.Parent.LoadSettingsModel<ProfileKeyboardSettingsModel>(cancellationToken);
             Task<ProfileRailDriverSettingsModel> raildriverSettingsTask = Game.UserSettings.Parent.LoadSettingsModel<ProfileRailDriverSettingsModel>(cancellationToken);
@@ -682,38 +678,38 @@ namespace Orts.ActivityRunner.Processes
             }
 
             Trace.WriteLine(separatorLine);
-            if (settings.MultiplayerClient)
+            if (userSettings.MultiPlayer)
             {
                 Trace.WriteLine("Multiplayer Client");
 
-                Trace.WriteLine($"{"User",-12}= {settings.MultiplayerUser}");
-                Trace.WriteLine($"{"Host",-12}= {settings.MultiplayerHost}");
-                Trace.WriteLine($"{"Port",-12}= {settings.MultiplayerPort}");
+                Trace.WriteLine($"{"User",-12}= {userSettings.MultiplayerUser}");
+                Trace.WriteLine($"{"Host",-12}= {userSettings.MultiplayerHost}");
+                Trace.WriteLine($"{"Port",-12}= {userSettings.MultiplayerPort}");
                 Trace.WriteLine(separatorLine);
             }
 
             switch (activityType)
             {
                 case ActivityType.Activity:
-                    simulator = new Simulator(settings, data[0]);
+                    simulator = new Simulator(userSettings, data[0]);
                     loadingScreen ??= new LoadingScreenPrimitive(Game);
                     simulator.SetActivity(data[0]);
                     break;
 
                 case ActivityType.Explorer:
-                    simulator = new Simulator(settings, data[0]);
+                    simulator = new Simulator(userSettings, data[0]);
                     loadingScreen ??= new LoadingScreenPrimitive(Game);
                     simulator.SetExplore(data[0], data[1], startTime, season, weather);
                     break;
 
                 case ActivityType.ExploreActivity:
-                    simulator = new Simulator(settings, data[0]);
+                    simulator = new Simulator(userSettings, data[0]);
                     loadingScreen ??= new LoadingScreenPrimitive(Game);
                     simulator.SetExploreThroughActivity(data[0], data[1], startTime, season, weather);
                     break;
 
                 case ActivityType.TimeTable:
-                    simulator = new Simulator(settings, data[0]);
+                    simulator = new Simulator(userSettings, data[0]);
                     loadingScreen ??= new LoadingScreenPrimitive(Game);
                     if (actionType != ActionType.Start) // no specific action for start, handled in start_timetable
                     {
@@ -726,9 +722,9 @@ namespace Orts.ActivityRunner.Processes
                     break;
             }
 
-            if (settings.MultiplayerClient)
+            if (userSettings.MultiPlayer)
             {
-                MultiPlayerManager.Start(settings.MultiplayerHost, settings.MultiplayerPort, settings.MultiplayerUser, "1234");
+                MultiPlayerManager.Start(userSettings.MultiplayerHost, userSettings.MultiplayerPort, userSettings.MultiplayerUser, "1234");
             }
 
             Game.UserSettings.KeyboardSettings = await keyboardSettingsTask.ConfigureAwait(false);

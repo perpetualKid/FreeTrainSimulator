@@ -39,8 +39,6 @@ using FreeTrainSimulator.Updater;
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Settings;
-
 namespace FreeTrainSimulator.Menu
 {
     public partial class OptionsForm : Form
@@ -48,7 +46,6 @@ namespace FreeTrainSimulator.Menu
         [GeneratedRegex(@"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$")] //capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
         private static partial Regex WindowSizeRegex();
 
-        private readonly UserSettings settings;
         private readonly UpdateManager updateManager;
 
         private readonly Catalog catalog;
@@ -58,14 +55,13 @@ namespace FreeTrainSimulator.Menu
         private readonly ProfileUserSettingsModel userSettings;
         internal ContentModel ContentModel { get; private set; }
 
-        public OptionsForm(ProfileUserSettingsModel userSettings, UserSettings settings, UpdateManager updateManager, bool initialContentSetup, ContentModel contentModel)
+        public OptionsForm(ProfileUserSettingsModel userSettings, UpdateManager updateManager, bool initialContentSetup, ContentModel contentModel)
         {
             InitializeComponent();
             catalog = CatalogManager.Catalog;
             Localizer.Localize(this, catalog);
 
             this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
-            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.ContentModel = contentModel ?? throw new ArgumentNullException(nameof(contentModel));
             this.updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
 
@@ -112,64 +108,60 @@ namespace FreeTrainSimulator.Menu
             }
 
             // General tab
-            checkAlerter.Checked = this.settings.Alerter;
-            checkAlerterExternal.Enabled = this.settings.Alerter;
-            checkAlerterExternal.Checked = this.settings.Alerter && !this.settings.AlerterDisableExternal;
-            checkSpeedMonitor.Checked = this.settings.SpeedControl;
-            checkConfirmations.Checked = !this.settings.SuppressConfirmations;// Inverted as "Show confirmations" is better UI than "Suppress confirmations"
-            checkRetainers.Checked = this.settings.RetainersOnAllCars;
-            checkGraduatedRelease.Checked = this.settings.GraduatedRelease;
-            numericBrakePipeChargingRate.Value = this.settings.BrakePipeChargingRate;
-//            comboLanguage.Text = this.userSettings.Language;
-            comboPressureUnit.SelectedValue = this.settings.PressureUnit;
-            comboOtherUnits.SelectedValue = settings.MeasurementUnit;
-            checkEnableTCSScripts.Checked = !this.settings.DisableTCSScripts;// Inverted as "Enable scripts" is better UI than "Disable scripts"
-            checkEnableWebServer.Checked = this.settings.WebServer;
-            numericWebServerPort.Value = this.settings.WebServerPort;
+            checkAlerter.Checked = this.userSettings.Alerter;
+            checkAlerterExternal.Enabled = this.userSettings.Alerter;
+            checkAlerterExternal.Checked = this.userSettings.Alerter && this.userSettings.AlerterExternal;
+            checkSpeedMonitor.Checked = this.userSettings.SpeedControl;
+            checkConfirmations.Checked = !this.userSettings.Confirmations;
+            checkRetainers.Checked = this.userSettings.RetainersOnAllCars;
+            checkGraduatedRelease.Checked = this.userSettings.GraduatedRelease;
+            numericBrakePipeChargingRate.Value = this.userSettings.BrakePipeChargingRate;
+            //            comboLanguage.Text = this.userSettings.Language;
+            comboPressureUnit.SelectedValue = this.userSettings.PressureUnit;
+            comboOtherUnits.SelectedValue = this.userSettings.MeasurementUnit;
+            checkEnableTCSScripts.Checked = this.userSettings.TcsScripts;
+            checkEnableWebServer.Checked = this.userSettings.WebServer;
+            numericWebServerPort.Value = this.userSettings.WebServerPort;
 
             // Audio tab
-            numericSoundVolumePercent.Value = this.settings.SoundVolumePercent;
-            numericSoundDetailLevel.Value = this.settings.SoundDetailLevel;
-            numericExternalSoundPassThruPercent.Value = this.settings.ExternalSoundPassThruPercent;
+            numericSoundVolumePercent.Value = this.userSettings.SoundVolumePercent;
+            numericSoundDetailLevel.Value = this.userSettings.SoundDetailLevel;
+            numericExternalSoundPassThruPercent.Value = this.userSettings.ExternalSoundPassThruPercent;
 
             // Video tab
-            checkDynamicShadows.Checked = this.settings.DynamicShadows;
-            checkShadowAllShapes.Checked = this.settings.ShadowAllShapes;
-            checkWindowGlass.Checked = this.settings.WindowGlass;
-            checkModelInstancing.Checked = this.settings.ModelInstancing;
-            checkWire.Checked = this.settings.Wire;
-            checkVerticalSync.Checked = this.settings.VerticalSync;
-            trackbarMultiSampling.Value = (int)Math.Log(this.settings.MultisamplingCount, 2);
+            checkDynamicShadows.Checked = this.userSettings.DynamicShadows;
+            checkShadowAllShapes.Checked = this.userSettings.ShadowAllShapes;
+            checkModelInstancing.Checked = this.userSettings.ModelInstancing;
+            checkWire.Checked = this.userSettings.OverheadWireType >= OverheadWireType.Single;
+            checkVerticalSync.Checked = this.userSettings.VerticalSync;
+            trackbarMultiSampling.Value = (int)Math.Log(this.userSettings.MultiSamplingCount, 2);
             TrackbarMultiSampling_Scroll(this, null);
-            numericCab2DStretch.Value = this.settings.Cab2DStretch;
-            numericViewingDistance.Value = this.settings.ViewingDistance;
-            checkDistantMountains.Checked = this.settings.DistantMountains;
-            labelDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
-            numericDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
-            numericDistantMountainsViewingDistance.Value = this.settings.DistantMountainsViewingDistance / 1000;
-            checkLODViewingExtension.Checked = this.settings.LODViewingExtension;
-            numericViewingFOV.Value = this.settings.ViewingFOV;
-            numericWorldObjectDensity.Value = this.settings.WorldObjectDensity;
-            comboWindowSize.Text = $"{this.settings.WindowSettings[WindowSetting.Size][0]}x{this.settings.WindowSettings[WindowSetting.Size][1]}";
-            trackDayAmbientLight.Value = this.settings.DayAmbientLight;
+            numericCab2DStretch.Value = this.userSettings.Cab2DStretch;
+            numericViewingDistance.Value = this.userSettings.ViewingDistance;
+            numericDistantMountainsViewingDistance.Value = this.userSettings.FarMountainsViewingDistance / 1000;
+            checkLODViewingExtension.Checked = this.userSettings.ExtendedDetailLevelView;
+            numericViewingFOV.Value = this.userSettings.FieldOfView;
+            numericWorldObjectDensity.Value = this.userSettings.VisibleDetailLevel;
+            comboWindowSize.Text = $"{this.userSettings.WindowSettings[WindowSetting.Size].X}x{this.userSettings.WindowSettings[WindowSetting.Size].Y}";
+            trackDayAmbientLight.Value = this.userSettings.AmbientBrightness;
             TrackDayAmbientLight_ValueChanged(null, null);
-            checkDoubleWire.Checked = this.settings.DoubleWire;
-            checkBoxFullScreenNativeResolution.Checked = this.settings.NativeFullscreenResolution;
-            radioButtonFullScreen.Checked = this.settings.FullScreen;
-            radioButtonWindow.Checked = !radioButtonFullScreen.Checked;
+            checkDoubleWire.Checked = this.userSettings.OverheadWireType == OverheadWireType.Double;
+            checkBoxFullScreenNativeResolution.Checked = this.userSettings.ScreenMode == ScreenMode.BorderlessFullscreen;
+            radioButtonFullScreen.Checked = this.userSettings.ScreenMode == ScreenMode.WindowedFullscreen;
+            radioButtonWindow.Checked = this.userSettings.ScreenMode == ScreenMode.Windowed;
 
             // Simulation tab
-            checkUseAdvancedAdhesion.Checked = this.settings.UseAdvancedAdhesion;
+            checkUseAdvancedAdhesion.Checked = this.userSettings.AdvancedAdhesion;
             labelAdhesionMovingAverageFilterSize.Enabled = checkUseAdvancedAdhesion.Checked;
             numericAdhesionMovingAverageFilterSize.Enabled = checkUseAdvancedAdhesion.Checked;
-            numericAdhesionMovingAverageFilterSize.Value = this.settings.AdhesionMovingAverageFilterSize;
-            checkBreakCouplers.Checked = this.settings.BreakCouplers;
-            checkCurveSpeedDependent.Checked = this.settings.CurveSpeedDependent;
-            checkBoilerPreheated.Checked = this.settings.HotStart;
-            checkSimpleControlPhysics.Checked = this.settings.SimpleControlPhysics;
-            checkForcedRedAtStationStops.Checked = !this.settings.NoForcedRedAtStationStops;
-            checkDoorsAITrains.Checked = this.settings.OpenDoorsInAITrains;
-            checkDieselEnginesStarted.Checked = this.settings.DieselEngineStart;
+            numericAdhesionMovingAverageFilterSize.Value = this.userSettings.AdhesionFilterSize;
+            checkBreakCouplers.Checked = this.userSettings.CouplersBreak;
+            checkCurveSpeedDependent.Checked = this.userSettings.CurveDependentSpeedLimits;
+            checkBoilerPreheated.Checked = this.userSettings.SteamHotStart;
+            checkSimpleControlPhysics.Checked = this.userSettings.SimplifiedControls;
+            checkForcedRedAtStationStops.Checked = this.userSettings.ForcedRedStationStops;
+            checkDoorsAITrains.Checked = this.userSettings.ComputerTrainDoors;
+            checkDieselEnginesStarted.Checked = this.userSettings.DieselEngineRun;
 
             //// Keyboard tab
             //InitializeKeyboardSettings();
@@ -179,24 +171,24 @@ namespace FreeTrainSimulator.Menu
 
             // DataLogger tab
             comboDataLoggerSeparator.DataSourceFromEnum<SeparatorChar>();
-            comboDataLoggerSeparator.SelectedValue = settings.DataLoggerSeparator;
+            comboDataLoggerSeparator.SelectedValue = userSettings.DataLogSeparator;
 
             comboDataLogSpeedUnits.DataSourceFromEnum<SpeedUnit>();
-            comboDataLogSpeedUnits.SelectedValue = settings.DataLogSpeedUnits;
+            comboDataLogSpeedUnits.SelectedValue = userSettings.DataLogSpeedUnits;
 
-            checkDataLogger.Checked = this.settings.DataLogger;
-            checkDataLogPerformance.Checked = this.settings.DataLogPerformance;
-            checkDataLogPhysics.Checked = this.settings.DataLogPhysics;
-            checkDataLogMisc.Checked = this.settings.DataLogMisc;
-            checkDataLogSteamPerformance.Checked = this.settings.DataLogSteamPerformance;
-            checkVerboseConfigurationMessages.Checked = this.settings.VerboseConfigurationMessages;
+            checkDataLogger.Checked = this.userSettings.DataLogger;
+            checkDataLogPerformance.Checked = this.userSettings.DataLogPerformance;
+            checkDataLogPhysics.Checked = this.userSettings.DataLogPhysics;
+            checkDataLogMisc.Checked = this.userSettings.DataLogMisc;
+            checkDataLogSteamPerformance.Checked = this.userSettings.DataLogSteamPerformance;
+            checkVerboseConfigurationMessages.Checked = this.userSettings.ConfigurationMessages;
 
             // Evaluation tab
-            checkDataLogTrainSpeed.Checked = this.settings.EvaluationTrainSpeed;
+            checkDataLogTrainSpeed.Checked = this.userSettings.EvaluationTrainSpeed;
             labelDataLogTSInterval.Enabled = checkDataLogTrainSpeed.Checked;
             numericDataLogTSInterval.Enabled = checkDataLogTrainSpeed.Checked;
             checkListDataLogTSContents.Enabled = checkDataLogTrainSpeed.Checked;
-            numericDataLogTSInterval.Value = this.settings.EvaluationInterval;
+            numericDataLogTSInterval.Value = this.userSettings.EvaluationInterval;
 
             checkListDataLogTSContents.Items.AddRange(EnumExtension.GetValues<EvaluationLogContents>().
                 Where(content => content != EvaluationLogContents.None).
@@ -204,9 +196,9 @@ namespace FreeTrainSimulator.Menu
 
             for (int i = 0; i < checkListDataLogTSContents.Items.Count; i++)
             {
-                checkListDataLogTSContents.SetItemChecked(i, settings.EvaluationContent.HasFlag((EvaluationLogContents)(1 << i)));
+                checkListDataLogTSContents.SetItemChecked(i, userSettings.EvaluationContent.HasFlag((EvaluationLogContents)(1 << i)));
             }
-            checkDataLogStationStops.Checked = this.settings.EvaluationStationStops;
+            checkDataLogStationStops.Checked = this.userSettings.EvaluationStationStops;
 
             bindingSourceContent.DataSource = initialContentSetup ? ContentModel.ImportFolderSettings().ToList() :
                 ContentModel.ContentFolders.Count == 0 ? new List<FolderModel>() { ContentModel.TrainSimulatorFolder() } :
@@ -229,28 +221,24 @@ namespace FreeTrainSimulator.Menu
             PresetUpdateSelections();
 
             // Experimental tab
-            numericUseSuperElevation.Value = this.settings.UseSuperElevation;
-            numericSuperElevationMinLen.Value = this.settings.SuperElevationMinLen;
-            numericSuperElevationGauge.Value = this.settings.SuperElevationGauge;
-            checkPerformanceTuner.Checked = this.settings.PerformanceTuner;
+            numericUseSuperElevation.Value = this.userSettings.SuperElevationLevel;
+            numericSuperElevationGauge.Value = this.userSettings.TrackGauge;
+            checkPerformanceTuner.Checked = this.userSettings.PerformanceTuner;
             labelPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
             numericPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
-            numericPerformanceTunerTarget.Value = this.settings.PerformanceTunerTarget;
-            trackLODBias.Value = this.settings.LODBias;
+            numericPerformanceTunerTarget.Value = this.userSettings.PerformanceTunerTarget;
+            trackLODBias.Value = this.userSettings.DetailLevelBias;
             TrackLODBias_ValueChanged(null, null);
-            checkSignalLightGlow.Checked = this.settings.SignalLightGlow;
-            checkUseLocationPassingPaths.Checked = this.settings.UseLocationPassingPaths;
-            checkUseMSTSEnv.Checked = this.settings.UseMSTSEnv;
-            trackAdhesionFactor.Value = this.settings.AdhesionFactor;
-            trackAdhesionFactorChange.Value = this.settings.AdhesionFactorChange;
+            checkSignalLightGlow.Checked = this.userSettings.SignalLightGlow;
+            checkUseLocationPassingPaths.Checked = this.userSettings.UseLocationPassingPaths;
+            checkUseMSTSEnv.Checked = this.userSettings.MstsEnvironment;
+            trackAdhesionFactor.Value = this.userSettings.AdhesionFactor;
+            trackAdhesionFactorChange.Value = this.userSettings.AdhesionFactorChange;
             TrackAdhesionFactor_ValueChanged(null, null);
-            checkShapeWarnings.Checked = !this.settings.SuppressShapeWarnings;   // Inverted as "Show warnings" is better UI than "Suppress warnings"
-            precipitationBoxHeight.Value = this.settings.PrecipitationBoxHeight;
-            precipitationBoxWidth.Value = this.settings.PrecipitationBoxWidth;
-            precipitationBoxLength.Value = this.settings.PrecipitationBoxLength;
-            checkCorrectQuestionableBrakingParams.Checked = this.settings.CorrectQuestionableBrakingParams;
-            numericActRandomizationLevel.Value = this.settings.ActRandomizationLevel;
-            numericActWeatherRandomizationLevel.Value = this.settings.ActWeatherRandomizationLevel;
+            checkShapeWarnings.Checked = this.userSettings.ShapeWarnings;
+            checkCorrectQuestionableBrakingParams.Checked = this.userSettings.ValidateBrakingParams;
+            numericActRandomizationLevel.Value = this.userSettings.ActivityRandomizationLevel;
+            numericActWeatherRandomizationLevel.Value = this.userSettings.WeatherRandomizationLevel;
         }
 
         private async void OptionsForm_Shown(object sender, EventArgs e)
@@ -302,57 +290,53 @@ namespace FreeTrainSimulator.Menu
             DialogResult = DialogResult.OK;
 
             // General tab
-            settings.Alerter = checkAlerter.Checked;
-            settings.AlerterDisableExternal = !checkAlerterExternal.Checked;
-            settings.SpeedControl = checkSpeedMonitor.Checked;
-            settings.SuppressConfirmations = !checkConfirmations.Checked;
-            settings.RetainersOnAllCars = checkRetainers.Checked;
-            settings.GraduatedRelease = checkGraduatedRelease.Checked;
-            settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
+            userSettings.Alerter = checkAlerter.Checked;
+            userSettings.AlerterExternal = checkAlerterExternal.Checked;
+            userSettings.SpeedControl = checkSpeedMonitor.Checked;
+            userSettings.Confirmations = checkConfirmations.Checked;
+            userSettings.RetainersOnAllCars = checkRetainers.Checked;
+            userSettings.GraduatedRelease = checkGraduatedRelease.Checked;
+            userSettings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
             userSettings.Language = comboLanguage.SelectedValue.ToString();
-            settings.PressureUnit = (PressureUnit)comboPressureUnit.SelectedValue;
-            settings.MeasurementUnit = (MeasurementUnit)comboOtherUnits.SelectedValue;
-            settings.DisableTCSScripts = !checkEnableTCSScripts.Checked; // Inverted as "Enable scripts" is better UI than "Disable scripts"
-            settings.WebServer = checkEnableWebServer.Checked;
-            settings.WebServerPort = (int)numericWebServerPort.Value;
+            userSettings.PressureUnit = (PressureUnit)comboPressureUnit.SelectedValue;
+            userSettings.MeasurementUnit = (MeasurementUnit)comboOtherUnits.SelectedValue;
+            userSettings.TcsScripts = checkEnableTCSScripts.Checked;
+            userSettings.WebServer = checkEnableWebServer.Checked;
+            userSettings.WebServerPort = (int)numericWebServerPort.Value;
 
             // Audio tab
-            settings.SoundVolumePercent = (int)numericSoundVolumePercent.Value;
-            settings.SoundDetailLevel = (int)numericSoundDetailLevel.Value;
-            settings.ExternalSoundPassThruPercent = (int)numericExternalSoundPassThruPercent.Value;
+            userSettings.SoundVolumePercent = (int)numericSoundVolumePercent.Value;
+            userSettings.SoundDetailLevel = (int)numericSoundDetailLevel.Value;
+            userSettings.ExternalSoundPassThruPercent = (int)numericExternalSoundPassThruPercent.Value;
 
             // Video tab
-            settings.DynamicShadows = checkDynamicShadows.Checked;
-            settings.ShadowAllShapes = checkShadowAllShapes.Checked;
-            settings.WindowGlass = checkWindowGlass.Checked;
-            settings.ModelInstancing = checkModelInstancing.Checked;
-            settings.Wire = checkWire.Checked;
-            settings.VerticalSync = checkVerticalSync.Checked;
-            settings.MultisamplingCount = 1 << trackbarMultiSampling.Value;
-            settings.Cab2DStretch = (int)numericCab2DStretch.Value;
-            settings.ViewingDistance = (int)numericViewingDistance.Value;
-            settings.DistantMountains = checkDistantMountains.Checked;
-            settings.DistantMountainsViewingDistance = (int)numericDistantMountainsViewingDistance.Value * 1000;
-            settings.LODViewingExtension = checkLODViewingExtension.Checked;
-            settings.ViewingFOV = (int)numericViewingFOV.Value;
-            settings.WorldObjectDensity = (int)numericWorldObjectDensity.Value;
-            settings.WindowSettings[WindowSetting.Size] = GetValidWindowSize(comboWindowSize.Text);
+            userSettings.DynamicShadows = checkDynamicShadows.Checked;
+            userSettings.ShadowAllShapes = checkShadowAllShapes.Checked;
+            userSettings.ModelInstancing = checkModelInstancing.Checked;
+            userSettings.OverheadWireType = checkDoubleWire.Checked ? OverheadWireType.Double : checkWire.Checked ? OverheadWireType.Single : OverheadWireType.None;
+            userSettings.VerticalSync = checkVerticalSync.Checked;
+            userSettings.MultiSamplingCount = 1 << trackbarMultiSampling.Value;
+            userSettings.Cab2DStretch = (int)numericCab2DStretch.Value;
+            userSettings.ViewingDistance = (int)numericViewingDistance.Value;
+            userSettings.FarMountainsViewingDistance = (int)numericDistantMountainsViewingDistance.Value * 1000;
+            userSettings.ExtendedDetailLevelView = checkLODViewingExtension.Checked;
+            userSettings.FieldOfView = (int)numericViewingFOV.Value;
+            userSettings.VisibleDetailLevel = (int)numericWorldObjectDensity.Value;
+            userSettings.WindowSettings[WindowSetting.Size] = GetValidWindowSize(comboWindowSize.Text);
+            userSettings.ScreenMode = checkBoxFullScreenNativeResolution.Checked ? ScreenMode.BorderlessFullscreen : radioButtonFullScreen.Checked ? ScreenMode.WindowedFullscreen : ScreenMode.Windowed;
 
-            settings.DayAmbientLight = (int)trackDayAmbientLight.Value;
-            settings.DoubleWire = checkDoubleWire.Checked;
-            settings.NativeFullscreenResolution = checkBoxFullScreenNativeResolution.Checked;
-            settings.FullScreen = radioButtonFullScreen.Checked;
+            userSettings.AmbientBrightness = trackDayAmbientLight.Value;
 
             // Simulation tab
-            settings.UseAdvancedAdhesion = checkUseAdvancedAdhesion.Checked;
-            settings.AdhesionMovingAverageFilterSize = (int)numericAdhesionMovingAverageFilterSize.Value;
-            settings.BreakCouplers = checkBreakCouplers.Checked;
-            settings.CurveSpeedDependent = checkCurveSpeedDependent.Checked;
-            settings.HotStart = checkBoilerPreheated.Checked;
-            settings.SimpleControlPhysics = checkSimpleControlPhysics.Checked;
-            settings.NoForcedRedAtStationStops = !checkForcedRedAtStationStops.Checked;
-            settings.OpenDoorsInAITrains = checkDoorsAITrains.Checked;
-            settings.DieselEngineStart = checkDieselEnginesStarted.Checked;
+            userSettings.AdvancedAdhesion = checkUseAdvancedAdhesion.Checked;
+            userSettings.AdhesionFilterSize = (int)numericAdhesionMovingAverageFilterSize.Value;
+            userSettings.CouplersBreak = checkBreakCouplers.Checked;
+            userSettings.CurveDependentSpeedLimits = checkCurveSpeedDependent.Checked;
+            userSettings.SteamHotStart = checkBoilerPreheated.Checked;
+            userSettings.SimplifiedControls = checkSimpleControlPhysics.Checked;
+            userSettings.ForcedRedStationStops = checkForcedRedAtStationStops.Checked;
+            userSettings.ComputerTrainDoors = checkDoorsAITrains.Checked;
+            userSettings.DieselEngineRun = checkDieselEnginesStarted.Checked;
 
             // Keyboard tab
             // These are edited live.
@@ -362,23 +346,23 @@ namespace FreeTrainSimulator.Menu
             SaveRailDriverSettings();
 
             // DataLogger tab
-            settings.DataLoggerSeparator = (SeparatorChar)comboDataLoggerSeparator.SelectedValue;
-            settings.DataLogSpeedUnits = (SpeedUnit)comboDataLogSpeedUnits.SelectedValue;
-            settings.DataLogger = checkDataLogger.Checked;
-            settings.DataLogPerformance = checkDataLogPerformance.Checked;
-            settings.DataLogPhysics = checkDataLogPhysics.Checked;
-            settings.DataLogMisc = checkDataLogMisc.Checked;
-            settings.DataLogSteamPerformance = checkDataLogSteamPerformance.Checked;
-            settings.VerboseConfigurationMessages = checkVerboseConfigurationMessages.Checked;
+            userSettings.DataLogSeparator = (SeparatorChar)comboDataLoggerSeparator.SelectedValue;
+            userSettings.DataLogSpeedUnits = (SpeedUnit)comboDataLogSpeedUnits.SelectedValue;
+            userSettings.DataLogger = checkDataLogger.Checked;
+            userSettings.DataLogPerformance = checkDataLogPerformance.Checked;
+            userSettings.DataLogPhysics = checkDataLogPhysics.Checked;
+            userSettings.DataLogMisc = checkDataLogMisc.Checked;
+            userSettings.DataLogSteamPerformance = checkDataLogSteamPerformance.Checked;
+            userSettings.ConfigurationMessages = checkVerboseConfigurationMessages.Checked;
 
             // Evaluation tab
-            settings.EvaluationTrainSpeed = checkDataLogTrainSpeed.Checked;
-            settings.EvaluationInterval = (int)numericDataLogTSInterval.Value;
+            userSettings.EvaluationTrainSpeed = checkDataLogTrainSpeed.Checked;
+            userSettings.EvaluationInterval = (int)numericDataLogTSInterval.Value;
             for (int i = 0; i < checkListDataLogTSContents.Items.Count; i++)
             {
-                settings.EvaluationContent = checkListDataLogTSContents.GetItemChecked(i) ? settings.EvaluationContent | (EvaluationLogContents)(1 << i) : settings.EvaluationContent & ~(EvaluationLogContents)(1 << i);
+                userSettings.EvaluationContent = checkListDataLogTSContents.GetItemChecked(i) ? userSettings.EvaluationContent | (EvaluationLogContents)(1 << i) : userSettings.EvaluationContent & ~(EvaluationLogContents)(1 << i);
             }
-            settings.EvaluationStationStops = checkDataLogStationStops.Checked;
+            userSettings.EvaluationStationStops = checkDataLogStationStops.Checked;
 
             // Content tab
             ContentModel = ContentModel with
@@ -389,26 +373,20 @@ namespace FreeTrainSimulator.Menu
             // Updater tab
 
             // Experimental tab
-            settings.UseSuperElevation = (int)numericUseSuperElevation.Value;
-            settings.SuperElevationMinLen = (int)numericSuperElevationMinLen.Value;
-            settings.SuperElevationGauge = (int)numericSuperElevationGauge.Value;
-            settings.PerformanceTuner = checkPerformanceTuner.Checked;
-            settings.PerformanceTunerTarget = (int)numericPerformanceTunerTarget.Value;
-            settings.LODBias = trackLODBias.Value;
-            settings.SignalLightGlow = checkSignalLightGlow.Checked;
-            settings.UseLocationPassingPaths = checkUseLocationPassingPaths.Checked;
-            settings.UseMSTSEnv = checkUseMSTSEnv.Checked;
-            settings.AdhesionFactor = (int)trackAdhesionFactor.Value;
-            settings.AdhesionFactorChange = (int)trackAdhesionFactorChange.Value;
-            settings.SuppressShapeWarnings = !checkShapeWarnings.Checked;
-            settings.PrecipitationBoxHeight = (int)precipitationBoxHeight.Value;
-            settings.PrecipitationBoxWidth = (int)precipitationBoxWidth.Value;
-            settings.PrecipitationBoxLength = (int)precipitationBoxLength.Value;
-            settings.CorrectQuestionableBrakingParams = checkCorrectQuestionableBrakingParams.Checked;
-            settings.ActRandomizationLevel = (int)numericActRandomizationLevel.Value;
-            settings.ActWeatherRandomizationLevel = (int)numericActWeatherRandomizationLevel.Value;
-
-            settings.Save();
+            userSettings.SuperElevationLevel = (int)numericUseSuperElevation.Value;
+            userSettings.TrackGauge = (int)numericSuperElevationGauge.Value;
+            userSettings.PerformanceTuner = checkPerformanceTuner.Checked;
+            userSettings.PerformanceTunerTarget = (int)numericPerformanceTunerTarget.Value;
+            userSettings.DetailLevelBias = trackLODBias.Value;
+            userSettings.SignalLightGlow = checkSignalLightGlow.Checked;
+            userSettings.UseLocationPassingPaths = checkUseLocationPassingPaths.Checked;
+            userSettings.MstsEnvironment = checkUseMSTSEnv.Checked;
+            userSettings.AdhesionFactor = trackAdhesionFactor.Value;
+            userSettings.AdhesionFactorChange = trackAdhesionFactorChange.Value;
+            userSettings.ShapeWarnings = checkShapeWarnings.Checked;
+            userSettings.ValidateBrakingParams = checkCorrectQuestionableBrakingParams.Checked;
+            userSettings.ActivityRandomizationLevel = (int)numericActRandomizationLevel.Value;
+            userSettings.WeatherRandomizationLevel = (int)numericActWeatherRandomizationLevel.Value;
 
             ProfileModel profile = userSettings.Parent;
             _ = await profile.UpdateSettingsModel(userSettings, CancellationToken.None).ConfigureAwait(false);
@@ -417,15 +395,15 @@ namespace FreeTrainSimulator.Menu
         /// <summary>
         /// Returns user's [width]x[height] if expression is valid and values are sane, else returns previous value of setting.
         /// </summary>
-        private int[] GetValidWindowSize(string text)
+        private (int, int) GetValidWindowSize(string text)
         {
             Match match = WindowSizeRegex().Match(text);//capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
             if (match.Success)
             {
                 if (int.TryParse(match.Groups[1].ValueSpan, out int width) && int.TryParse(match.Groups[2].ValueSpan, out int height))
-                    return new int[] { width, height };
+                    return (width, height);
             }
-            return settings.WindowSettings[WindowSetting.Size]; // i.e. no change or message. Just ignore non-numeric entries
+            return userSettings.WindowSettings[WindowSetting.Size]; // i.e. no change or message. Just ignore non-numeric entries
         }
 
         private void NumericUpDownFOV_ValueChanged(object sender, EventArgs e)
@@ -486,6 +464,7 @@ namespace FreeTrainSimulator.Menu
         private void CheckBoxFullScreenNativeResolution_CheckedChanged(object sender, EventArgs e)
         {
             comboWindowSize.Enabled = !checkBoxFullScreenNativeResolution.Checked;
+            panelWindowMode.Enabled = !checkBoxFullScreenNativeResolution.Checked;
         }
 
         private void TrackLODBias_ValueChanged(object sender, EventArgs e)
@@ -627,12 +606,6 @@ namespace FreeTrainSimulator.Menu
                 checkAlerterExternal.Enabled = false;
                 checkAlerterExternal.Checked = false;
             }
-        }
-
-        private void CheckDistantMountains_Click(object sender, EventArgs e)
-        {
-            labelDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
-            numericDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
         }
 
         private void CheckUseAdvancedAdhesion_Click(object sender, EventArgs e)

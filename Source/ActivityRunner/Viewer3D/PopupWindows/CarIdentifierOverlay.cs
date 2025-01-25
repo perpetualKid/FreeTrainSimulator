@@ -9,12 +9,12 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Settings;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -32,7 +32,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly Viewer viewer;
-        private readonly UserSettings settings;
+        private readonly ProfileUserSettingsModel userSettings;
         private ViewMode viewMode;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private ControlLayout controlLayout;
@@ -41,11 +41,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly List<Label3DOverlay> labelList = new List<Label3DOverlay>();
         private readonly CameraViewProjectionHolder cameraViewProjection;
 
-        public CarIdentifierOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) :
+        public CarIdentifierOverlay(WindowManager owner, ProfileUserSettingsModel userSettings, Viewer viewer, Catalog catalog = null) :
             base(owner, catalog ?? CatalogManager.Catalog)
         {
             ArgumentNullException.ThrowIfNull(viewer);
-            this.settings = settings;
+            this.userSettings = userSettings;
             userCommandController = viewer.UserCommandController;
             this.viewer = viewer;
             ZOrder = -5;
@@ -112,7 +112,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override void Initialize()
         {
-            if (EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.CarIdentifierOverlay], out viewMode))
+            if (EnumExtension.GetValue(userSettings.PopupSettings[ViewerWindowType.CarIdentifierOverlay], out viewMode))
             {
                 ChangeMode();
             }
@@ -124,7 +124,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
             {
                 viewMode = viewMode.Next();
-                settings.PopupSettings[ViewerWindowType.CarIdentifierOverlay] = viewMode.ToString();
+                userSettings.PopupSettings[ViewerWindowType.CarIdentifierOverlay] = viewMode.ToString();
                 ChangeMode();
             }
         }

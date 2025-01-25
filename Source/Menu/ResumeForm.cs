@@ -68,13 +68,11 @@ using FreeTrainSimulator.Models.Shim;
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Settings;
-
 namespace FreeTrainSimulator.Menu
 {
     public partial class ResumeForm : Form
     {
-        private readonly UserSettings settings;
+        private readonly ProfileUserSettingsModel userSettings;
         private readonly ProfileSelectionsModel profileSelectionsModel;
         private readonly RouteModelCore route;
         private readonly ActivityModelCore activity;
@@ -89,20 +87,20 @@ namespace FreeTrainSimulator.Menu
 
         private readonly Catalog catalog;
 
-        internal ResumeForm(UserSettings settings, ProfileSelectionsModel profileSelections)
+        internal ResumeForm(ProfileUserSettingsModel userSettings, ProfileSelectionsModel profileSelections)
         {
             catalog = CatalogManager.Catalog;
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
             Localizer.Localize(this, catalog);
 
-            this.settings = settings;
+            this.userSettings = userSettings;
             this.profileSelectionsModel = profileSelections;
             this.route = profileSelections.SelectedRoute();
             this.activity = profileSelections.SelectedActivity();
             this.timeTable = profileSelections.SelectedTimetable();
 
-            checkBoxReplayPauseBeforeEnd.Checked = settings.ReplayPauseBeforeEnd;
-            numericReplayPauseBeforeEnd.Value = settings.ReplayPauseBeforeEndS;
+            checkBoxReplayPauseBeforeEnd.Checked = userSettings.ReplayPause;
+            numericReplayPauseBeforeEnd.Value = userSettings.ReplayPauseDuration;
 
             GridSaves_SelectionChanged(null, null);
 
@@ -279,7 +277,7 @@ namespace FreeTrainSimulator.Menu
             }
 
             buttonDeleteInvalid.Enabled = true; // Always enabled because there may be Saves to be deleted for other activities not just this one.
-            buttonUndelete.Enabled = Directory.Exists(UserSettings.DeletedSaveFolder) && Directory.GetFiles(UserSettings.DeletedSaveFolder).Length > 0;
+            buttonUndelete.Enabled = Directory.Exists(RuntimeInfo.DeletedSaveFolder) && Directory.GetFiles(RuntimeInfo.DeletedSaveFolder).Length > 0;
         }
 
         private void GridSaves_DoubleClick(object sender, EventArgs e)
@@ -316,14 +314,14 @@ namespace FreeTrainSimulator.Menu
         {
             if (null != savePoint)
             {
-                if (!Directory.Exists(UserSettings.DeletedSaveFolder))
-                    Directory.CreateDirectory(UserSettings.DeletedSaveFolder);
+                if (!Directory.Exists(RuntimeInfo.DeletedSaveFolder))
+                    Directory.CreateDirectory(RuntimeInfo.DeletedSaveFolder);
 
                 foreach (string fileName in Directory.EnumerateFiles(Path.GetDirectoryName(savePoint.SourceFile()), savePoint.Name + ".*"))
                 {
                     try
                     {
-                        File.Move(fileName, Path.Combine(UserSettings.DeletedSaveFolder, Path.GetFileName(fileName)));
+                        File.Move(fileName, Path.Combine(RuntimeInfo.DeletedSaveFolder, Path.GetFileName(fileName)));
                     }
                     catch (Exception ex) when (ex is IOException || ex is FileNotFoundException || ex is UnauthorizedAccessException)
                     { }
@@ -333,9 +331,9 @@ namespace FreeTrainSimulator.Menu
 
         private async void ButtonUndelete_Click(object sender, EventArgs e)
         {
-            if (Directory.Exists(UserSettings.DeletedSaveFolder))
+            if (Directory.Exists(RuntimeInfo.DeletedSaveFolder))
             {
-                foreach (string filePath in Directory.EnumerateFiles(UserSettings.DeletedSaveFolder))
+                foreach (string filePath in Directory.EnumerateFiles(RuntimeInfo.DeletedSaveFolder))
                 {
                     try
                     {
@@ -344,7 +342,7 @@ namespace FreeTrainSimulator.Menu
                     catch (Exception ex) when (ex is IOException || ex is FileNotFoundException || ex is UnauthorizedAccessException)
                     { }
                 }
-                Directory.Delete(UserSettings.DeletedSaveFolder);
+                Directory.Delete(RuntimeInfo.DeletedSaveFolder);
             }
             await LoadSavePointsAsync().ConfigureAwait(true);
         }
@@ -387,8 +385,8 @@ namespace FreeTrainSimulator.Menu
                         return;
 
                 SelectedSaveFile = savePoint.SourceFile();
-                settings.ReplayPauseBeforeEnd = checkBoxReplayPauseBeforeEnd.Checked;
-                settings.ReplayPauseBeforeEndS = (int)numericReplayPauseBeforeEnd.Value;
+                userSettings.ReplayPause = checkBoxReplayPauseBeforeEnd.Checked;
+                userSettings.ReplayPauseDuration = (int)numericReplayPauseBeforeEnd.Value;
                 DialogResult = DialogResult.OK; // Anything but DialogResult.Cancel
             }
         }

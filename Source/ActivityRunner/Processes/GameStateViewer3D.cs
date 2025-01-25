@@ -55,15 +55,15 @@ namespace Orts.ActivityRunner.Processes
         public GameStateViewer3D(Viewer viewer)
         {
             Viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
-            Viewer.Pause(viewer.Settings.StartGamePaused);
+            Viewer.Pause(viewer.UserSettings.PauseAtStart);
             instance = this;
         }
 
         internal override void BeginRender(RenderFrame frame)
         {
             // Do this here (instead of RenderProcess) because we only want to measure/time the running game.
-            if (Game.Settings.Profiling)
-                if (Game.Settings.ProfilingFrameCount > 0 && ++profileFrames > Game.Settings.ProfilingFrameCount || Game.Settings.ProfilingTime > 0 && Viewer?.RealTime >= Game.Settings.ProfilingTime)
+            if (Game.UserSettings.Profiling)
+                if (Game.UserSettings.ProfilingFrameCount > 0 && ++profileFrames > Game.UserSettings.ProfilingFrameCount || Game.UserSettings.ProfilingTime > 0 && Viewer?.RealTime >= Game.UserSettings.ProfilingTime)
                     Game.PopState();
 
             if (firstFrame)

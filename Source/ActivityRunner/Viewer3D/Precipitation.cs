@@ -110,9 +110,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
         // This is a fiddle factor because the above values feel too slow. Alternative suggestions welcome.
         private const float ParticleVelocityFactor = 10.0f;
-        private readonly float ParticleBoxLengthM;
-        private readonly float ParticleBoxWidthM;
-        private readonly float ParticleBoxHeightM;
+
+        private const float ParticleBoxLengthM = 500;
+        private const float ParticleBoxWidthM = 500;
+        private const float ParticleBoxHeightM = 43;
 
         // 16bit Box Parameters
         private const int IndiciesPerParticle = 6;
@@ -161,10 +162,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public PrecipitationPrimitive(GraphicsDevice graphicsDevice)
         {
             // Snow is the slower particle, hence longer duration, hence more particles in total.
-            // Setting the precipitaton box size based on GraphicsDeviceCapabilities.
-            ParticleBoxLengthM = (float)Simulator.Instance.Settings.PrecipitationBoxLength;
-            ParticleBoxWidthM = (float)Simulator.Instance.Settings.PrecipitationBoxWidth;
-            ParticleBoxHeightM = (float)Simulator.Instance.Settings.PrecipitationBoxHeight;
             MaxParticles = (int)(PrecipitationViewer.MaxIntensityPPSPM2 * ParticleBoxLengthM * ParticleBoxWidthM * ParticleBoxHeightM / SnowVelocityMpS / ParticleVelocityFactor);
             // Checking if graphics device is 16bit.
             Vertices = new ParticleVertex[MaxParticles * VerticiesPerParticle];
@@ -470,7 +467,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             shader.CurrentTechnique = shader.Techniques[0]; //["Precipitation"];
 
-            shader.LightVector.SetValue(viewer.Settings.UseMSTSEnv ? viewer.World.MSTSSky.mstsskysolarDirection : viewer.World.Sky.SolarDirection);
+            shader.LightVector.SetValue(viewer.UserSettings.MstsEnvironment ? viewer.World.MSTSSky.mstsskysolarDirection : viewer.World.Sky.SolarDirection);
             shader.particleSize.SetValue(1f);
             if (viewer.Simulator.Weather.PrecipitationLiquidity == 0 || viewer.Simulator.Weather.PrecipitationLiquidity == 1)
             {

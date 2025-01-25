@@ -402,7 +402,7 @@ namespace Orts.ActivityRunner.Viewer3D
             LODItem.LoadMaterial(viewer, lodItem);
 
             bool drawTriphaseWire = viewer.Simulator.RouteModel.RouteConditions.TriphaseEnabled;
-            bool drawDoubleWire = viewer.Simulator.RouteModel.RouteConditions.DoubleWireEnabled || viewer.Settings.DoubleWire;
+            bool drawDoubleWire = viewer.Simulator.RouteModel.RouteConditions.DoubleWireEnabled || viewer.UserSettings.OverheadWireType >= FreeTrainSimulator.Common.OverheadWireType.Double;
             float topHeight = viewer.Simulator.RouteModel.RouteConditions.OverheadWireHeight;
             float topWireOffset = (viewer.Simulator.RouteModel.RouteConditions.DoubleWireHeight > 0 ?
                 viewer.Simulator.RouteModel.RouteConditions.DoubleWireHeight : 1.0f);

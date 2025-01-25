@@ -1822,6 +1822,13 @@ namespace FreeTrainSimulator.Common
         Cab3D,
     }
 
+    public enum ScreenMode
+    {
+        Windowed,
+        WindowedFullscreen,
+        BorderlessFullscreen,
+    }
+
     #region Menu_Selection enum
     public enum GamePlayAction
     {
@@ -1836,4 +1843,11 @@ namespace FreeTrainSimulator.Common
         MultiplayerClientResumeSave
     }
     #endregion
+
+    public enum OverheadWireType
+    {
+        None,
+        Single,
+        Double,
+    }
 }

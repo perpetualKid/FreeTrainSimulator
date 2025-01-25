@@ -260,7 +260,7 @@ namespace Orts.Simulation.Activities
             }
             if (locomotiveTypes[EngineType.Diesel] > 0)
             {
-                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Burned Diesel",-26}= {FormatStrings.FormatFuelVolume(dieselBurned, simulator.MetricUnits, simulator.Settings.MeasurementUnit == MeasurementUnit.UK)}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Burned Diesel",-26}= {FormatStrings.FormatFuelVolume(dieselBurned, simulator.MetricUnits, simulator.UserSettings.MeasurementUnit == MeasurementUnit.UK)}");
             }
             builder.AppendLine();
 
@@ -389,9 +389,9 @@ namespace Orts.Simulation.Activities
                 builder.AppendLine();
 
                 builder.AppendLine("4-Freight Durability/Passenger Comfort Evaluation:");
-                builder.AppendLine(simulator.Settings.CurveSpeedDependent ? $"  {"Curve speeds exceeded",-26}= {TravellingTooFast}" : "  Curve dependent speed limit (Disabled)");
-                builder.AppendLine(simulator.Settings.CurveSpeedDependent ? $"  {"Hose breaks",-26}= {SnappedBrakeHose}" : "  Curve dependent speed limit (Disabled)");
-                builder.AppendLine(CultureInfo.InvariantCulture, $"  {(simulator.Settings.BreakCouplers ? "Coupler breaks" : "Coupler overloaded"),-26}= {CouplerBreaks}");
+                builder.AppendLine(simulator.UserSettings.CurveDependentSpeedLimits ? $"  {"Curve speeds exceeded",-26}= {TravellingTooFast}" : "  Curve dependent speed limit (Disabled)");
+                builder.AppendLine(simulator.UserSettings.CurveDependentSpeedLimits ? $"  {"Hose breaks",-26}= {SnappedBrakeHose}" : "  Curve dependent speed limit (Disabled)");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  {(simulator.UserSettings.CouplersBreak ? "Coupler breaks" : "Coupler overloaded"),-26}= {CouplerBreaks}");
                 builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Train Overturned",-26}= {TrainOverTurned}");
                 int curveSpeedPenalty = 100 - (TravellingTooFast + SnappedBrakeHose + CouplerBreaks + TrainOverTurned);
                 curveSpeedPenalty = curveSpeedPenalty > 100 ? 100 : curveSpeedPenalty;

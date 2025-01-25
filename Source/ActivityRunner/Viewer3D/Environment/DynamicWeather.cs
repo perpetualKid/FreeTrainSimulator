@@ -70,7 +70,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 this.viewer = viewer;
                 // We have a pause in weather change, depending from randomization level
                 if (randomizedWeather)
-                    StableWeatherTimer = (4.0f - this.viewer.Settings.ActWeatherRandomizationLevel) * 600 + StaticRandom.Next(300) - 150;
+                    StableWeatherTimer = (4.0f - this.viewer.UserSettings.WeatherRandomizationLevel) * 600 + StaticRandom.Next(300) - 150;
             }
 
             public void ResetWeatherTargets()
@@ -257,8 +257,8 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             public void WeatherChange_NextRandomization(in ElapsedTime elapsedTime, WeatherControl weatherControl) // start next randomization
             {
                 // define how much time transition will last
-                var weatherChangeTimer = (4 - viewer.Settings.ActWeatherRandomizationLevel) * 600 +
-                    StaticRandom.Next((4 - viewer.Settings.ActWeatherRandomizationLevel) * 600);
+                var weatherChangeTimer = (4 - viewer.UserSettings.WeatherRandomizationLevel) * 600 +
+                    StaticRandom.Next((4 - viewer.UserSettings.WeatherRandomizationLevel) * 600);
                 // begin with overcast
                 var randValue = StaticRandom.Next(170);
                 var intermValue = randValue >= 50 ? (float)(randValue - 50f) : randValue;

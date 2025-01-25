@@ -66,7 +66,7 @@ namespace FreeTrainSimulator.Menu
             numericSoundDetailLevel = new System.Windows.Forms.NumericUpDown();
             tabPageVideo = new System.Windows.Forms.TabPage();
             checkLODViewingExtension = new System.Windows.Forms.CheckBox();
-            panel1 = new System.Windows.Forms.Panel();
+            panelWindowMode = new System.Windows.Forms.Panel();
             radioButtonWindow = new System.Windows.Forms.RadioButton();
             radioButtonFullScreen = new System.Windows.Forms.RadioButton();
             checkBoxFullScreenNativeResolution = new System.Windows.Forms.CheckBox();
@@ -82,7 +82,6 @@ namespace FreeTrainSimulator.Menu
             checkVerticalSync = new System.Windows.Forms.CheckBox();
             labelDistantMountainsViewingDistance = new System.Windows.Forms.Label();
             numericDistantMountainsViewingDistance = new System.Windows.Forms.NumericUpDown();
-            checkDistantMountains = new System.Windows.Forms.CheckBox();
             label14 = new System.Windows.Forms.Label();
             numericViewingDistance = new System.Windows.Forms.NumericUpDown();
             labelFOVHelp = new System.Windows.Forms.Label();
@@ -93,7 +92,6 @@ namespace FreeTrainSimulator.Menu
             label1 = new System.Windows.Forms.Label();
             numericWorldObjectDensity = new System.Windows.Forms.NumericUpDown();
             comboWindowSize = new System.Windows.Forms.ComboBox();
-            checkWindowGlass = new System.Windows.Forms.CheckBox();
             label3 = new System.Windows.Forms.Label();
             checkDynamicShadows = new System.Windows.Forms.CheckBox();
             checkWire = new System.Windows.Forms.CheckBox();
@@ -186,12 +184,6 @@ namespace FreeTrainSimulator.Menu
             label12 = new System.Windows.Forms.Label();
             numericActRandomizationLevel = new System.Windows.Forms.NumericUpDown();
             checkCorrectQuestionableBrakingParams = new System.Windows.Forms.CheckBox();
-            label25 = new System.Windows.Forms.Label();
-            precipitationBoxLength = new System.Windows.Forms.NumericUpDown();
-            label24 = new System.Windows.Forms.Label();
-            precipitationBoxWidth = new System.Windows.Forms.NumericUpDown();
-            label23 = new System.Windows.Forms.Label();
-            precipitationBoxHeight = new System.Windows.Forms.NumericUpDown();
             label16 = new System.Windows.Forms.Label();
             label9 = new System.Windows.Forms.Label();
             label21 = new System.Windows.Forms.Label();
@@ -211,8 +203,6 @@ namespace FreeTrainSimulator.Menu
             checkPerformanceTuner = new System.Windows.Forms.CheckBox();
             label8 = new System.Windows.Forms.Label();
             numericSuperElevationGauge = new System.Windows.Forms.NumericUpDown();
-            label7 = new System.Windows.Forms.Label();
-            numericSuperElevationMinLen = new System.Windows.Forms.NumericUpDown();
             label6 = new System.Windows.Forms.Label();
             numericUseSuperElevation = new System.Windows.Forms.NumericUpDown();
             ElevationText = new System.Windows.Forms.Label();
@@ -241,7 +231,7 @@ namespace FreeTrainSimulator.Menu
             ((System.ComponentModel.ISupportInitialize)numericSoundVolumePercent).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericSoundDetailLevel).BeginInit();
             tabPageVideo.SuspendLayout();
-            panel1.SuspendLayout();
+            panelWindowMode.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)trackbarMultiSampling).BeginInit();
             ((System.ComponentModel.ISupportInitialize)trackDayAmbientLight).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericDistantMountainsViewingDistance).BeginInit();
@@ -270,15 +260,11 @@ namespace FreeTrainSimulator.Menu
             tabPageExperimental.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericActWeatherRandomizationLevel).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericActRandomizationLevel).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)precipitationBoxLength).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)precipitationBoxWidth).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)precipitationBoxHeight).BeginInit();
             ((System.ComponentModel.ISupportInitialize)trackLODBias).BeginInit();
             ((System.ComponentModel.ISupportInitialize)trackAdhesionFactorChange).BeginInit();
             ((System.ComponentModel.ISupportInitialize)trackAdhesionFactor).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericPerformanceTunerTarget).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericSuperElevationGauge).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)numericSuperElevationMinLen).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUseSuperElevation).BeginInit();
             SuspendLayout();
             // 
@@ -818,7 +804,7 @@ namespace FreeTrainSimulator.Menu
             // tabPageVideo
             // 
             tabPageVideo.Controls.Add(checkLODViewingExtension);
-            tabPageVideo.Controls.Add(panel1);
+            tabPageVideo.Controls.Add(panelWindowMode);
             tabPageVideo.Controls.Add(checkBoxFullScreenNativeResolution);
             tabPageVideo.Controls.Add(labelMSAACount);
             tabPageVideo.Controls.Add(label28);
@@ -832,7 +818,6 @@ namespace FreeTrainSimulator.Menu
             tabPageVideo.Controls.Add(checkVerticalSync);
             tabPageVideo.Controls.Add(labelDistantMountainsViewingDistance);
             tabPageVideo.Controls.Add(numericDistantMountainsViewingDistance);
-            tabPageVideo.Controls.Add(checkDistantMountains);
             tabPageVideo.Controls.Add(label14);
             tabPageVideo.Controls.Add(numericViewingDistance);
             tabPageVideo.Controls.Add(labelFOVHelp);
@@ -843,7 +828,6 @@ namespace FreeTrainSimulator.Menu
             tabPageVideo.Controls.Add(label1);
             tabPageVideo.Controls.Add(numericWorldObjectDensity);
             tabPageVideo.Controls.Add(comboWindowSize);
-            tabPageVideo.Controls.Add(checkWindowGlass);
             tabPageVideo.Controls.Add(label3);
             tabPageVideo.Controls.Add(checkDynamicShadows);
             tabPageVideo.Controls.Add(checkWire);
@@ -865,14 +849,14 @@ namespace FreeTrainSimulator.Menu
             checkLODViewingExtension.Text = "Extend object maximum viewing distance to horizon";
             checkLODViewingExtension.UseVisualStyleBackColor = true;
             // 
-            // panel1
+            // panelWindowMode
             // 
-            panel1.Controls.Add(radioButtonWindow);
-            panel1.Controls.Add(radioButtonFullScreen);
-            panel1.Location = new System.Drawing.Point(336, 90);
-            panel1.Name = "panel1";
-            panel1.Size = new System.Drawing.Size(301, 26);
-            panel1.TabIndex = 32;
+            panelWindowMode.Controls.Add(radioButtonWindow);
+            panelWindowMode.Controls.Add(radioButtonFullScreen);
+            panelWindowMode.Location = new System.Drawing.Point(336, 90);
+            panelWindowMode.Name = "panelWindowMode";
+            panelWindowMode.Size = new System.Drawing.Size(301, 26);
+            panelWindowMode.TabIndex = 32;
             // 
             // radioButtonWindow
             // 
@@ -890,20 +874,20 @@ namespace FreeTrainSimulator.Menu
             radioButtonFullScreen.Checked = true;
             radioButtonFullScreen.Location = new System.Drawing.Point(22, 3);
             radioButtonFullScreen.Name = "radioButtonFullScreen";
-            radioButtonFullScreen.Size = new System.Drawing.Size(79, 19);
+            radioButtonFullScreen.Size = new System.Drawing.Size(123, 19);
             radioButtonFullScreen.TabIndex = 0;
             radioButtonFullScreen.TabStop = true;
-            radioButtonFullScreen.Text = "FullScreen";
+            radioButtonFullScreen.Text = "FullScreen (scaled)";
             radioButtonFullScreen.UseVisualStyleBackColor = true;
             // 
             // checkBoxFullScreenNativeResolution
             // 
             checkBoxFullScreenNativeResolution.AutoSize = true;
-            checkBoxFullScreenNativeResolution.Location = new System.Drawing.Point(336, 67);
+            checkBoxFullScreenNativeResolution.Location = new System.Drawing.Point(336, 15);
             checkBoxFullScreenNativeResolution.Name = "checkBoxFullScreenNativeResolution";
-            checkBoxFullScreenNativeResolution.Size = new System.Drawing.Size(245, 19);
+            checkBoxFullScreenNativeResolution.Size = new System.Drawing.Size(247, 19);
             checkBoxFullScreenNativeResolution.TabIndex = 29;
-            checkBoxFullScreenNativeResolution.Text = "Use native screen resolution for fullscreen";
+            checkBoxFullScreenNativeResolution.Text = "Full screen using system screen resolution";
             checkBoxFullScreenNativeResolution.UseVisualStyleBackColor = true;
             checkBoxFullScreenNativeResolution.CheckedChanged += CheckBoxFullScreenNativeResolution_CheckedChanged;
             // 
@@ -1020,17 +1004,17 @@ namespace FreeTrainSimulator.Menu
             // labelDistantMountainsViewingDistance
             // 
             labelDistantMountainsViewingDistance.AutoSize = true;
-            labelDistantMountainsViewingDistance.Location = new System.Drawing.Point(92, 245);
+            labelDistantMountainsViewingDistance.Location = new System.Drawing.Point(70, 245);
             labelDistantMountainsViewingDistance.Margin = new System.Windows.Forms.Padding(3);
             labelDistantMountainsViewingDistance.Name = "labelDistantMountainsViewingDistance";
-            labelDistantMountainsViewingDistance.Size = new System.Drawing.Size(124, 15);
+            labelDistantMountainsViewingDistance.Size = new System.Drawing.Size(232, 15);
             labelDistantMountainsViewingDistance.TabIndex = 12;
-            labelDistantMountainsViewingDistance.Text = "Viewing distance (km)";
+            labelDistantMountainsViewingDistance.Text = "Distance mountains Viewing distance (km)";
             // 
             // numericDistantMountainsViewingDistance
             // 
             numericDistantMountainsViewingDistance.Increment = new decimal(new int[] { 5, 0, 0, 0 });
-            numericDistantMountainsViewingDistance.Location = new System.Drawing.Point(28, 243);
+            numericDistantMountainsViewingDistance.Location = new System.Drawing.Point(6, 243);
             numericDistantMountainsViewingDistance.Margin = new System.Windows.Forms.Padding(25, 3, 3, 3);
             numericDistantMountainsViewingDistance.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             numericDistantMountainsViewingDistance.Minimum = new decimal(new int[] { 10, 0, 0, 0 });
@@ -1039,17 +1023,6 @@ namespace FreeTrainSimulator.Menu
             numericDistantMountainsViewingDistance.TabIndex = 11;
             toolTip1.SetToolTip(numericDistantMountainsViewingDistance, "Distance to see mountains");
             numericDistantMountainsViewingDistance.Value = new decimal(new int[] { 40, 0, 0, 0 });
-            // 
-            // checkDistantMountains
-            // 
-            checkDistantMountains.AutoSize = true;
-            checkDistantMountains.Location = new System.Drawing.Point(6, 221);
-            checkDistantMountains.Name = "checkDistantMountains";
-            checkDistantMountains.Size = new System.Drawing.Size(123, 19);
-            checkDistantMountains.TabIndex = 10;
-            checkDistantMountains.Text = "Distant mountains";
-            checkDistantMountains.UseVisualStyleBackColor = true;
-            checkDistantMountains.Click += CheckDistantMountains_Click;
             // 
             // label14
             // 
@@ -1144,24 +1117,14 @@ namespace FreeTrainSimulator.Menu
             // 
             comboWindowSize.FormattingEnabled = true;
             comboWindowSize.Items.AddRange(new object[] { "800x600", "1024x768", "1280x720", "1280x800", "1280x1024", "1360x768", "1366x768", "1440x900", "1536x864", "1600x900", "1680x1050", "1920x1080", "1920x1200", "2560x1440" });
-            comboWindowSize.Location = new System.Drawing.Point(336, 16);
+            comboWindowSize.Location = new System.Drawing.Point(336, 49);
             comboWindowSize.Name = "comboWindowSize";
             comboWindowSize.Size = new System.Drawing.Size(129, 23);
             comboWindowSize.TabIndex = 18;
             // 
-            // checkWindowGlass
-            // 
-            checkWindowGlass.AutoSize = true;
-            checkWindowGlass.Location = new System.Drawing.Point(6, 51);
-            checkWindowGlass.Name = "checkWindowGlass";
-            checkWindowGlass.Size = new System.Drawing.Size(168, 19);
-            checkWindowGlass.TabIndex = 2;
-            checkWindowGlass.Text = "Glass on in-game windows";
-            checkWindowGlass.UseVisualStyleBackColor = true;
-            // 
             // label3
             // 
-            label3.Location = new System.Drawing.Point(471, 7);
+            label3.Location = new System.Drawing.Point(471, 40);
             label3.Margin = new System.Windows.Forms.Padding(3);
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(164, 54);
@@ -2134,12 +2097,6 @@ namespace FreeTrainSimulator.Menu
             tabPageExperimental.Controls.Add(label12);
             tabPageExperimental.Controls.Add(numericActRandomizationLevel);
             tabPageExperimental.Controls.Add(checkCorrectQuestionableBrakingParams);
-            tabPageExperimental.Controls.Add(label25);
-            tabPageExperimental.Controls.Add(precipitationBoxLength);
-            tabPageExperimental.Controls.Add(label24);
-            tabPageExperimental.Controls.Add(precipitationBoxWidth);
-            tabPageExperimental.Controls.Add(label23);
-            tabPageExperimental.Controls.Add(precipitationBoxHeight);
             tabPageExperimental.Controls.Add(label16);
             tabPageExperimental.Controls.Add(label9);
             tabPageExperimental.Controls.Add(label21);
@@ -2159,8 +2116,6 @@ namespace FreeTrainSimulator.Menu
             tabPageExperimental.Controls.Add(checkPerformanceTuner);
             tabPageExperimental.Controls.Add(label8);
             tabPageExperimental.Controls.Add(numericSuperElevationGauge);
-            tabPageExperimental.Controls.Add(label7);
-            tabPageExperimental.Controls.Add(numericSuperElevationMinLen);
             tabPageExperimental.Controls.Add(label6);
             tabPageExperimental.Controls.Add(numericUseSuperElevation);
             tabPageExperimental.Controls.Add(ElevationText);
@@ -2242,69 +2197,6 @@ namespace FreeTrainSimulator.Menu
             checkCorrectQuestionableBrakingParams.TabIndex = 43;
             checkCorrectQuestionableBrakingParams.Text = "Correct questionable braking parameters";
             checkCorrectQuestionableBrakingParams.UseVisualStyleBackColor = true;
-            // 
-            // label25
-            // 
-            label25.AutoSize = true;
-            label25.Location = new System.Drawing.Point(74, 358);
-            label25.Margin = new System.Windows.Forms.Padding(3);
-            label25.Name = "label25";
-            label25.Size = new System.Drawing.Size(155, 15);
-            label25.TabIndex = 42;
-            label25.Text = "Precipitation box length (m)";
-            // 
-            // precipitationBoxLength
-            // 
-            precipitationBoxLength.Increment = new decimal(new int[] { 25, 0, 0, 0 });
-            precipitationBoxLength.Location = new System.Drawing.Point(10, 355);
-            precipitationBoxLength.Maximum = new decimal(new int[] { 3000, 0, 0, 0 });
-            precipitationBoxLength.Minimum = new decimal(new int[] { 500, 0, 0, 0 });
-            precipitationBoxLength.Name = "precipitationBoxLength";
-            precipitationBoxLength.Size = new System.Drawing.Size(58, 23);
-            precipitationBoxLength.TabIndex = 41;
-            precipitationBoxLength.Value = new decimal(new int[] { 500, 0, 0, 0 });
-            // 
-            // label24
-            // 
-            label24.AutoSize = true;
-            label24.Location = new System.Drawing.Point(74, 332);
-            label24.Margin = new System.Windows.Forms.Padding(3);
-            label24.Name = "label24";
-            label24.Size = new System.Drawing.Size(151, 15);
-            label24.TabIndex = 40;
-            label24.Text = "Precipitation box width (m)";
-            // 
-            // precipitationBoxWidth
-            // 
-            precipitationBoxWidth.Increment = new decimal(new int[] { 25, 0, 0, 0 });
-            precipitationBoxWidth.Location = new System.Drawing.Point(10, 330);
-            precipitationBoxWidth.Maximum = new decimal(new int[] { 3000, 0, 0, 0 });
-            precipitationBoxWidth.Minimum = new decimal(new int[] { 500, 0, 0, 0 });
-            precipitationBoxWidth.Name = "precipitationBoxWidth";
-            precipitationBoxWidth.Size = new System.Drawing.Size(58, 23);
-            precipitationBoxWidth.TabIndex = 39;
-            precipitationBoxWidth.Value = new decimal(new int[] { 500, 0, 0, 0 });
-            // 
-            // label23
-            // 
-            label23.AutoSize = true;
-            label23.Location = new System.Drawing.Point(74, 306);
-            label23.Margin = new System.Windows.Forms.Padding(3);
-            label23.Name = "label23";
-            label23.Size = new System.Drawing.Size(155, 15);
-            label23.TabIndex = 38;
-            label23.Text = "Precipitation box height (m)";
-            // 
-            // precipitationBoxHeight
-            // 
-            precipitationBoxHeight.Increment = new decimal(new int[] { 25, 0, 0, 0 });
-            precipitationBoxHeight.Location = new System.Drawing.Point(10, 304);
-            precipitationBoxHeight.Maximum = new decimal(new int[] { 300, 0, 0, 0 });
-            precipitationBoxHeight.Minimum = new decimal(new int[] { 100, 0, 0, 0 });
-            precipitationBoxHeight.Name = "precipitationBoxHeight";
-            precipitationBoxHeight.Size = new System.Drawing.Size(58, 23);
-            precipitationBoxHeight.TabIndex = 37;
-            precipitationBoxHeight.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
             // label16
             // 
@@ -2512,29 +2404,6 @@ namespace FreeTrainSimulator.Menu
             numericSuperElevationGauge.TabIndex = 6;
             numericSuperElevationGauge.Value = new decimal(new int[] { 600, 0, 0, 0 });
             // 
-            // label7
-            // 
-            label7.AutoSize = true;
-            label7.Location = new System.Drawing.Point(92, 69);
-            label7.Margin = new System.Windows.Forms.Padding(3);
-            label7.Name = "label7";
-            label7.Size = new System.Drawing.Size(119, 15);
-            label7.TabIndex = 5;
-            label7.Text = "Minimum length (m)";
-            // 
-            // numericSuperElevationMinLen
-            // 
-            numericSuperElevationMinLen.Increment = new decimal(new int[] { 5, 0, 0, 0 });
-            numericSuperElevationMinLen.Location = new System.Drawing.Point(28, 67);
-            numericSuperElevationMinLen.Margin = new System.Windows.Forms.Padding(25, 3, 3, 3);
-            numericSuperElevationMinLen.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
-            numericSuperElevationMinLen.Minimum = new decimal(new int[] { 10, 0, 0, 0 });
-            numericSuperElevationMinLen.Name = "numericSuperElevationMinLen";
-            numericSuperElevationMinLen.Size = new System.Drawing.Size(58, 23);
-            numericSuperElevationMinLen.TabIndex = 4;
-            toolTip1.SetToolTip(numericSuperElevationMinLen, "Shortest curve to have elevation");
-            numericSuperElevationMinLen.Value = new decimal(new int[] { 10, 0, 0, 0 });
-            // 
             // label6
             // 
             label6.AutoSize = true;
@@ -2622,8 +2491,8 @@ namespace FreeTrainSimulator.Menu
             ((System.ComponentModel.ISupportInitialize)numericSoundDetailLevel).EndInit();
             tabPageVideo.ResumeLayout(false);
             tabPageVideo.PerformLayout();
-            panel1.ResumeLayout(false);
-            panel1.PerformLayout();
+            panelWindowMode.ResumeLayout(false);
+            panelWindowMode.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)trackbarMultiSampling).EndInit();
             ((System.ComponentModel.ISupportInitialize)trackDayAmbientLight).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericDistantMountainsViewingDistance).EndInit();
@@ -2662,15 +2531,11 @@ namespace FreeTrainSimulator.Menu
             tabPageExperimental.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)numericActWeatherRandomizationLevel).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericActRandomizationLevel).EndInit();
-            ((System.ComponentModel.ISupportInitialize)precipitationBoxLength).EndInit();
-            ((System.ComponentModel.ISupportInitialize)precipitationBoxWidth).EndInit();
-            ((System.ComponentModel.ISupportInitialize)precipitationBoxHeight).EndInit();
             ((System.ComponentModel.ISupportInitialize)trackLODBias).EndInit();
             ((System.ComponentModel.ISupportInitialize)trackAdhesionFactorChange).EndInit();
             ((System.ComponentModel.ISupportInitialize)trackAdhesionFactor).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericPerformanceTunerTarget).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericSuperElevationGauge).EndInit();
-            ((System.ComponentModel.ISupportInitialize)numericSuperElevationMinLen).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericUseSuperElevation).EndInit();
             ResumeLayout(false);
         }
@@ -2695,10 +2560,6 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.TabPage tabPageSimulation;
         private System.Windows.Forms.CheckBox checkUseAdvancedAdhesion;
         private System.Windows.Forms.CheckBox checkBreakCouplers;
-        private System.Windows.Forms.TabPage tabPageExperimental;
-        private System.Windows.Forms.NumericUpDown numericUseSuperElevation;
-        private System.Windows.Forms.Label ElevationText;
-        private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TabPage tabPageAudio;
         private System.Windows.Forms.TabPage tabPageVideo;
         private System.Windows.Forms.NumericUpDown numericSoundVolumePercent;
@@ -2710,15 +2571,9 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.NumericUpDown numericWorldObjectDensity;
         private System.Windows.Forms.ComboBox comboWindowSize;
-        private System.Windows.Forms.CheckBox checkWindowGlass;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.CheckBox checkDynamicShadows;
         private System.Windows.Forms.CheckBox checkWire;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.NumericUpDown numericSuperElevationMinLen;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.NumericUpDown numericSuperElevationGauge;
         private System.Windows.Forms.Label labelFOVHelp;
         private System.Windows.Forms.NumericUpDown numericViewingFOV;
         private System.Windows.Forms.Label label10;
@@ -2738,21 +2593,16 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Label labelAdhesionMovingAverageFilterSize;
         private System.Windows.Forms.NumericUpDown numericAdhesionMovingAverageFilterSize;
-        private System.Windows.Forms.Label labelPerformanceTunerTarget;
-        private System.Windows.Forms.NumericUpDown numericPerformanceTunerTarget;
-        private System.Windows.Forms.CheckBox checkPerformanceTuner;
         private System.Windows.Forms.TabPage tabPageEvaluate;
         private System.Windows.Forms.CheckedListBox checkListDataLogTSContents;
         private System.Windows.Forms.Label labelDataLogTSInterval;
         private System.Windows.Forms.CheckBox checkDataLogStationStops;
         private System.Windows.Forms.NumericUpDown numericDataLogTSInterval;
         private System.Windows.Forms.CheckBox checkDataLogTrainSpeed;
-        private System.Windows.Forms.CheckBox checkUseMSTSEnv;
         private System.Windows.Forms.Label labelLanguage;
         private System.Windows.Forms.ComboBox comboLanguage;
         private System.Windows.Forms.Label labelDistantMountainsViewingDistance;
         private System.Windows.Forms.NumericUpDown numericDistantMountainsViewingDistance;
-        private System.Windows.Forms.CheckBox checkDistantMountains;
         private System.Windows.Forms.CheckBox checkAlerterExternal;
         private System.Windows.Forms.CheckBox checkCurveSpeedDependent;
         private System.Windows.Forms.CheckBox checkBoilerPreheated;
@@ -2760,23 +2610,11 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.CheckBox checkVerticalSync;
         private System.Windows.Forms.ComboBox comboPressureUnit;
         private System.Windows.Forms.Label labelPressureUnit;
-        private System.Windows.Forms.CheckBox checkSignalLightGlow;
         private System.Windows.Forms.TabPage tabPageUpdater;
-        private System.Windows.Forms.Label AdhesionFactorChangeValueLabel;
-        private System.Windows.Forms.Label AdhesionFactorValueLabel;
-        private System.Windows.Forms.Label AdhesionLevelValue;
-        private System.Windows.Forms.Label AdhesionLevelLabel;
-        private System.Windows.Forms.Label label16;
-        private System.Windows.Forms.TrackBar trackAdhesionFactorChange;
-        private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.TrackBar trackAdhesionFactor;
         private System.Windows.Forms.CheckBox checkModelInstancing;
         private System.Windows.Forms.TrackBar trackDayAmbientLight;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.CheckBox checkRetainers;
-        private System.Windows.Forms.Label labelLODBias;
-        private System.Windows.Forms.Label label21;
-        private System.Windows.Forms.TrackBar trackLODBias;
         private System.Windows.Forms.Label labelOtherUnits;
         private System.Windows.Forms.ComboBox comboOtherUnits;
         private System.Windows.Forms.TabPage tabPageContent;
@@ -2791,16 +2629,8 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.Button buttonContentBrowse;
         private System.Windows.Forms.Button buttonContentAdd;
         private System.Windows.Forms.Label labelContent;
-        private System.Windows.Forms.CheckBox checkShapeWarnings;
         private System.Windows.Forms.Label labelDayAmbientLight;
         private System.Windows.Forms.CheckBox checkEnableTCSScripts;
-        private System.Windows.Forms.NumericUpDown precipitationBoxHeight;
-        private System.Windows.Forms.NumericUpDown precipitationBoxWidth;
-        private System.Windows.Forms.Label label23;
-        private System.Windows.Forms.Label label24;
-        private System.Windows.Forms.Label label25;
-        private System.Windows.Forms.NumericUpDown precipitationBoxLength;
-        private System.Windows.Forms.CheckBox checkCorrectQuestionableBrakingParams;
         private System.Windows.Forms.CheckBox checkSpeedMonitor;
         private System.Windows.Forms.NumericUpDown numericExternalSoundPassThruPercent;
         private System.Windows.Forms.Label labelExternalSound;
@@ -2808,12 +2638,6 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.CheckBox checkDoorsAITrains;
         private System.Windows.Forms.CheckBox checkForcedRedAtStationStops;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.NumericUpDown numericActRandomizationLevel;
-        private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.Label label27;
-        private System.Windows.Forms.NumericUpDown numericActWeatherRandomizationLevel;
-        private System.Windows.Forms.Label label26;
         private System.Windows.Forms.CheckBox checkShadowAllShapes;
         private System.Windows.Forms.CheckBox checkEnableWebServer;
         private System.Windows.Forms.NumericUpDown numericWebServerPort;
@@ -2841,7 +2665,7 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.CheckBox checkBoxFullScreenNativeResolution;
         private System.Windows.Forms.RadioButton radioButtonWindow;
         private System.Windows.Forms.RadioButton radioButtonFullScreen;
-        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Panel panelWindowMode;
         private System.Windows.Forms.Label labelAvailableVersion;
         private System.Windows.Forms.Label labelAvailableVersionDesc;
         private System.Windows.Forms.GroupBox groupBoxUpdates;
@@ -2874,5 +2698,36 @@ namespace FreeTrainSimulator.Menu
         private System.Windows.Forms.BindingSource bindingSourceContent;
         private System.Windows.Forms.DataGridViewTextBoxColumn NameColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn PathColumn;
+        private System.Windows.Forms.TabPage tabPageExperimental;
+        private System.Windows.Forms.Label label27;
+        private System.Windows.Forms.NumericUpDown numericActWeatherRandomizationLevel;
+        private System.Windows.Forms.Label label26;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.NumericUpDown numericActRandomizationLevel;
+        private System.Windows.Forms.CheckBox checkCorrectQuestionableBrakingParams;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Label label21;
+        private System.Windows.Forms.Label AdhesionFactorChangeValueLabel;
+        private System.Windows.Forms.Label AdhesionFactorValueLabel;
+        private System.Windows.Forms.Label labelLODBias;
+        private System.Windows.Forms.CheckBox checkShapeWarnings;
+        private System.Windows.Forms.TrackBar trackLODBias;
+        private System.Windows.Forms.Label AdhesionLevelValue;
+        private System.Windows.Forms.Label AdhesionLevelLabel;
+        private System.Windows.Forms.TrackBar trackAdhesionFactorChange;
+        private System.Windows.Forms.TrackBar trackAdhesionFactor;
+        private System.Windows.Forms.CheckBox checkSignalLightGlow;
+        private System.Windows.Forms.CheckBox checkUseMSTSEnv;
+        private System.Windows.Forms.Label labelPerformanceTunerTarget;
+        private System.Windows.Forms.NumericUpDown numericPerformanceTunerTarget;
+        private System.Windows.Forms.CheckBox checkPerformanceTuner;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.NumericUpDown numericSuperElevationGauge;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.NumericUpDown numericUseSuperElevation;
+        private System.Windows.Forms.Label ElevationText;
+        private System.Windows.Forms.Label label5;
     }
 }

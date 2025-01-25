@@ -140,7 +140,7 @@ namespace Orts.Simulation.Timetables
             string Worldfile = string.Empty;
             int UiD = -1;
 
-            forceCreation = Simulator.Instance.Settings.TTCreateTrainOnPoolUnderflow;
+            forceCreation = true;//Simulator.Instance.Settings.TTCreateTrainOnPoolUnderflow;
 
             AdditionalTurntableDetails.TurntableApproachClearanceM = defaultTurntableApproachClearanceM;
             AdditionalTurntableDetails.TurntableReleaseClearanceM = defaultTurntableReleaseClearanceM;

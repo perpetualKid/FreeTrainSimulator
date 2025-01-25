@@ -104,7 +104,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             UpdateWeatherParameters();
 
             // add here randomized weather
-            if (this.viewer.Settings.ActWeatherRandomizationLevel > 0 && this.viewer.Simulator.ActivityRun != null && !this.viewer.Simulator.ActivityRun.WeatherChangesPresent)
+            if (this.viewer.UserSettings.WeatherRandomizationLevel > 0 && this.viewer.Simulator.ActivityRun != null && !this.viewer.Simulator.ActivityRun.WeatherChangesPresent)
             {
                 RandomizedWeather = RandomizeInitialWeather();
                 dynamicWeather = new DynamicWeather(viewer, RandomizedWeather);

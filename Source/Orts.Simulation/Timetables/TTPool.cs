@@ -130,7 +130,7 @@ namespace Orts.Simulation.Timetables
             bool newName = false;
             bool firstName = false;
 
-            forceCreation = Simulator.Instance.Settings.TTCreateTrainOnPoolUnderflow;
+            forceCreation = true; // Simulator.Instance.Settings.TTCreateTrainOnPoolUnderflow;
 
             // loop through definitions
             while (lineindex < fileContents.Strings.Count && !newName)

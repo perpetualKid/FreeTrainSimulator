@@ -466,9 +466,9 @@ namespace Orts.ActivityRunner.Viewer3D
             lodItem.ESD_Alternative_Texture = 0;
             lodItem.MipMapLevelOfDetailBias = 0;
             LODItem.LoadMaterial(viewer, lodItem);
-            var gauge = viewer.Settings.SuperElevationGauge / 1000f;
-            var inner = gauge / 2f;
-            var outer = inner + 0.15f * gauge / 1.435f;
+            float gauge = viewer.UserSettings.TrackGauge / 1000f;
+            float inner = gauge / 2f;
+            float outer = inner + 0.15f * gauge / 1.435f;
 
             pl = new Polyline(this, "left_outer", 2);
             pl.DeltaTexCoord = new Vector2(.1673372f, 0f);

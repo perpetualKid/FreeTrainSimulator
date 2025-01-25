@@ -226,7 +226,7 @@ namespace Orts.Simulation.Activities
                         if (logStationStops)
                         {
                             StringBuilder stringBuild = new StringBuilder();
-                            char separator = (char)simulator.Settings.DataLoggerSeparator;
+                            char separator = (char)simulator.UserSettings.DataLogSeparator;
                             stringBuild.Append(PlatformEnd1.Station);
                             stringBuild.Append(separator);
                             stringBuild.Append(ScheduledArrival.ToString("c"));
@@ -306,7 +306,7 @@ namespace Orts.Simulation.Activities
                                 if (logStationStops)
                                 {
                                     StringBuilder stringBuild = new StringBuilder();
-                                    char separator = (char)simulator.Settings.DataLoggerSeparator;
+                                    char separator = (char)simulator.UserSettings.DataLogSeparator;
                                     stringBuild.Append(PlatformEnd1.Station);
                                     stringBuild.Append(separator);
                                     stringBuild.Append(ScheduledArrival.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture));
@@ -344,7 +344,7 @@ namespace Orts.Simulation.Activities
                                 if (logStationStops)
                                 {
                                     StringBuilder stringBuild = new StringBuilder();
-                                    char separator = (char)simulator.Settings.DataLoggerSeparator;
+                                    char separator = (char)simulator.UserSettings.DataLogSeparator;
                                     stringBuild.Append(PlatformEnd1.Station);
                                     stringBuild.Append(separator);
                                     stringBuild.Append(ScheduledArrival.ToString("c"));

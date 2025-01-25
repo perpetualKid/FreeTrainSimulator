@@ -2,6 +2,7 @@
 
 ## Features
 
+- ALL settings are now profile-dependent
 - Profile-dependent keyboard input settings, allowing to quickly change between different keyboard profiles
 - Profile-dependent Dispatcher settings
 - Initialize Testing with user profile settings

@@ -65,20 +65,25 @@ namespace Orts.ActivityRunner.Viewer3D
 #if DEBUG_DUMP_STEAM_POWER_CURVE
         private float previousLoggedSpeedMpH = -1.0f;
         private bool disposedValue;
+        private static readonly string[] logHeader = new string[] {
+                    "speed (mph)",
+                    "power (hp)",
+                    "throttle (%)",
+                    "cut-off (%)" };
 #endif
 
         public InfoDisplay(Viewer viewer)
         {
             this.viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
-            dataLog = new DataLogger(Path.Combine(viewer.UserSettings.LogFilePath, "OpenRailsDump.csv"), viewer.Settings.DataLoggerSeparator);
+            dataLog = new DataLogger(Path.Combine(viewer.UserSettings.LogFilePath, "FreeTrainSimulatorDump.csv"), viewer.UserSettings.DataLogSeparator);
 
-            if (viewer.Settings.DataLogger)
+            if (viewer.UserSettings.DataLogger)
                 DataLoggerStart();
 
             viewer.UserCommandController.AddEvent(UserCommand.DebugLogger, KeyEventType.KeyPressed, () =>
             {
-                viewer.Settings.DataLogger = !viewer.Settings.DataLogger;
-                if (viewer.Settings.DataLogger)
+                viewer.UserSettings.DataLogger = !viewer.UserSettings.DataLogger;
+                if (viewer.UserSettings.DataLogger)
                     DataLoggerStart();
                 else
                     DataLoggerStop();
@@ -87,7 +92,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         internal void Terminate()
         {
-            if (viewer.Settings.DataLogger)
+            if (viewer.UserSettings.DataLogger)
                 DataLoggerStop();
         }
 
@@ -184,9 +189,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
 
             //Here's where the logger stores the data from each frame
-                if (viewer.Settings.DataLogger)
+                if (viewer.UserSettings.DataLogger)
                 {
-                    if (viewer.Settings.DataLogPerformance)
+                    if (viewer.UserSettings.DataLogPerformance)
                     {
                         dataLog.Data(VersionInfo.Version);
                         dataLog.Data($"{frameNumber:F0}");
@@ -205,7 +210,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         dataLog.Data($"{Profiler.ProfilingData[ProcessType.Loader].Wall.Value:F0}");
                         dataLog.Data($"{Profiler.ProfilingData[ProcessType.Sound].Wall.Value:F0}");
                     }
-                    if (viewer.Settings.DataLogPhysics)
+                    if (viewer.UserSettings.DataLogPhysics)
                     {
                         dataLog.Data(FormatStrings.FormatPreciseTime(viewer.Simulator.ClockTime));
                         dataLog.Data(viewer.PlayerLocomotive.Direction.ToString());
@@ -218,7 +223,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                         string LogSpeed(float speedMpS)
                         {
-                            switch (viewer.Settings.DataLogSpeedUnits)
+                            switch (viewer.UserSettings.DataLogSpeedUnits)
                             {
                                 case SpeedUnit.Mps:
                                     return $"{speedMpS:F1}";
@@ -237,24 +242,24 @@ namespace Orts.ActivityRunner.Viewer3D
                         dataLog.Data($"{viewer.PlayerLocomotive.DistanceTravelled:F0}");
                         dataLog.Data($"{viewer.PlayerLocomotive.GravityForceN:F0}");
 
-                        if ((viewer.PlayerLocomotive as MSTSLocomotive).TrainBrakeController != null)
-                            dataLog.Data($"{(viewer.PlayerLocomotive as MSTSLocomotive).TrainBrakeController.CurrentValue:F2}");
+                        if (viewer.PlayerLocomotive.TrainBrakeController != null)
+                            dataLog.Data($"{viewer.PlayerLocomotive.TrainBrakeController.CurrentValue:F2}");
                         else
                             dataLog.Data("null");
 
-                        if ((viewer.PlayerLocomotive as MSTSLocomotive).EngineBrakeController != null)
-                            dataLog.Data($"{(viewer.PlayerLocomotive as MSTSLocomotive).EngineBrakeController.CurrentValue:F2}");
+                        if (viewer.PlayerLocomotive.EngineBrakeController != null)
+                            dataLog.Data($"{viewer.PlayerLocomotive.EngineBrakeController.CurrentValue:F2}");
                         else
                             dataLog.Data("null");
 
-                        if ((viewer.PlayerLocomotive as MSTSLocomotive).BrakemanBrakeController != null)
-                            dataLog.Data($"{(viewer.PlayerLocomotive as MSTSLocomotive).BrakemanBrakeController.CurrentValue:F2}");
+                        if (viewer.PlayerLocomotive.BrakemanBrakeController != null)
+                            dataLog.Data($"{viewer.PlayerLocomotive.BrakemanBrakeController.CurrentValue:F2}");
                         else
                             dataLog.Data("null");
                         
                         dataLog.Data($"{viewer.PlayerLocomotive.BrakeSystem.GetCylPressurePSI():F0}");
-                        dataLog.Data($"{(viewer.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI:F0}");
-                        dataLog.Data($"{(viewer.PlayerLocomotive as MSTSLocomotive).CompressorIsOn}");
+                        dataLog.Data($"{viewer.PlayerLocomotive.MainResPressurePSI:F0}");
+                        dataLog.Data($"{viewer.PlayerLocomotive.CompressorIsOn}");
 #if GEARBOX_DEBUG_LOG
                         if (viewer.PlayerLocomotive is MSTSDieselLocomotive dieselLoco)
                         {
@@ -343,7 +348,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             recordSteamPerformance = false;
             recordSteamPowerCurve = false;
-            if (viewer.Settings.DataLogPerformance)
+            if (viewer.UserSettings.DataLogPerformance)
             {
                 headline.Append(string.Join(((char)dataLog.Separator).ToString(), new string[] {
                     "SVN",
@@ -363,7 +368,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     "Loader Process",
                     "Sound Process" } ));
             }
-            if (viewer.Settings.DataLogPhysics)
+            if (viewer.UserSettings.DataLogPhysics)
             {
                 if (headline.Length > 0)
                     headline.Append(((char)dataLog.Separator));
@@ -377,8 +382,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     "Player Brake Force [N]",
                     "Player Axle Force [N]",
                     "Player Wheelslip",
-                    $"Player Speed [{viewer.Settings.DataLogSpeedUnits}]",
-                    $"Speed Limit [{viewer.Settings.DataLogSpeedUnits}]",
+                    $"Player Speed [{viewer.UserSettings.DataLogSpeedUnits}]",
+                    $"Speed Limit [{viewer.UserSettings.DataLogSpeedUnits}]",
                     "Distance [m]",
                     "Player Gravity Force [N]",
                     "Train Brake",
@@ -398,7 +403,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     "D:null / E:null / S:Injector 1",
                     "D:null / E:null / S:Injector 2" } ));
             }
-            if (viewer.Settings.DataLogSteamPerformance)
+            if (viewer.UserSettings.DataLogSteamPerformance)
             {
                 recordSteamPerformance = true;
                 if (headline.Length > 0)
@@ -442,14 +447,10 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
 #if DEBUG_DUMP_STEAM_POWER_CURVE
-            if (!viewer.Settings.DataLogPerformance && !viewer.Settings.DataLogPhysics && !viewer.Settings.DataLogMisc && !viewer.Settings.DataLogSteamPerformance)
+            if (!viewer.UserSettings.DataLogPerformance && !viewer.UserSettings.DataLogPhysics && !viewer.UserSettings.DataLogMisc && !viewer.UserSettings.DataLogSteamPerformance)
             {
                 recordSteamPowerCurve = true;
-                headline.Append(string.Join(((char)dataLog.Separator).ToString(), new string[] {
-                    "speed (mph)",
-                    "power (hp)",
-                    "throttle (%)",
-                    "cut-off (%)" } ));
+                headline.Append(string.Join(((char)dataLog.Separator).ToString(), logHeader ));
             }
 #endif
             dataLog.AddHeadline(headline.ToString());

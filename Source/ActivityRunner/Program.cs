@@ -32,7 +32,6 @@ using FreeTrainSimulator.Models.Shim;
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Debugging;
-using Orts.Settings;
 
 [assembly: CLSCompliant(false)]
 
@@ -54,17 +53,17 @@ namespace Orts.ActivityRunner
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
 
             ImmutableArray<string> options = args.Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
+            NameValueCollection commandLineOptions = ParseCommandLineOptions(options);
 
-            UserSettings settings = new UserSettings(options);
-
-            ProfileModel currentProfile = await ResolveProfile(options).ConfigureAwait(false);
+            ProfileModel currentProfile = await ResolveProfile(commandLineOptions).ConfigureAwait(false);
             ProfileUserSettingsModel userSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(CancellationToken.None).ConfigureAwait(false);
+            userSettings.MultiPlayer = !string.IsNullOrEmpty(commandLineOptions["multiplayerclient"]);
 
             //enables loading of dll for specific architecture(32 or 64bit) from distinct folders, useful when both versions require same name (as for soft_oal.dll)
             string path = Path.Combine(RuntimeInfo.ApplicationFolder, "Native", (Environment.Is64BitProcess) ? "x64" : "x86");
             NativeMethods.SetDllDirectory(path);
 
-            using (GameHost game = new GameHost(settings, userSettings))
+            using (GameHost game = new GameHost(userSettings))
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 game.PushState(new GameStateRunActivity(args));
@@ -73,9 +72,8 @@ namespace Orts.ActivityRunner
             }
         }
 
-        private static async Task<ProfileModel> ResolveProfile(ImmutableArray<string> options)
+        private static async Task<ProfileModel> ResolveProfile(NameValueCollection commandLineOptions)
         {
-            NameValueCollection commandLineOptions = ParseCommandLineOptions(options);
             string profileName;
             ProfileModel profile = null;
             if (!string.IsNullOrEmpty(profileName = commandLineOptions["Profile"]))

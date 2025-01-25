@@ -42,9 +42,9 @@ namespace Orts.ActivityRunner.Processes
         {
             ArgumentNullException.ThrowIfNull(game);
 
-            if (!game.Settings.WebServer)
+            if (!game.UserSettings.WebServer)
                 return;
-            portNumber = game.Settings.WebServerPort;
+            portNumber = game.UserSettings.WebServerPort;
             thread = new Thread(WebServerThread);
         }
 

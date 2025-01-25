@@ -28,8 +28,6 @@ using FreeTrainSimulator.Models.Settings;
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Settings;
-
 using Path = System.IO.Path;
 
 namespace FreeTrainSimulator.Menu
@@ -49,8 +47,8 @@ namespace FreeTrainSimulator.Menu
             Localizer.Localize(this, catalog);
 
             this.savePoint = savePoint;
-            if (!Directory.Exists(UserSettings.SavePackFolder))
-                Directory.CreateDirectory(UserSettings.SavePackFolder);
+            if (!Directory.Exists(RuntimeInfo.SavePackFolder))
+                Directory.CreateDirectory(RuntimeInfo.SavePackFolder);
             UpdateFileList(null);
             bExport.Enabled = (savePoint != null);
             ofdImportSave.Filter = $"{RuntimeInfo.ProductName}{catalog.GetString("Save Packs")} (*.{SavePackFileExtension})|*.{SavePackFileExtension}|{catalog.GetString("All files")} (*.*)|*";
@@ -60,7 +58,7 @@ namespace FreeTrainSimulator.Menu
         private void ButtonImportSave_Click(object sender, EventArgs e)
         {
             // Show the dialog and get result.
-            ofdImportSave.InitialDirectory = UserSettings.SavePackFolder;
+            ofdImportSave.InitialDirectory = RuntimeInfo.SavePackFolder;
             if (ofdImportSave.ShowDialog() == DialogResult.OK)
             {
                 ExtractFilesFromZip(ofdImportSave.FileName, RuntimeInfo.UserDataFolder);
@@ -73,7 +71,7 @@ namespace FreeTrainSimulator.Menu
             // Create a Zip-compatible file/compressed folder containing:
             // all files with the same stem (i.e. *.save, *.png, *.replay, *.txt)
             // Copy files to new package in folder save_packs
-            string fullZipFilePath = Path.Combine(UserSettings.SavePackFolder, savePoint.Name + "." + SavePackFileExtension);
+            string fullZipFilePath = Path.Combine(RuntimeInfo.SavePackFolder, savePoint.Name + "." + SavePackFileExtension);
             AddFileToZip(fullZipFilePath, Directory.GetFiles(Path.GetDirectoryName(savePoint.SourceFile()), savePoint.Name + ".*"));
             UpdateFileList(catalog.GetString("Save Pack '{0}' exported successfully.", Path.GetFileNameWithoutExtension(savePoint.SourceFile())));
         }
@@ -83,12 +81,12 @@ namespace FreeTrainSimulator.Menu
             ProcessStartInfo processStart = new ProcessStartInfo
             {
                 FileName = "explorer.exe",
-                Arguments = $"\"{UserSettings.SavePackFolder}\"" // Opens the SavePoint Packs folder
+                Arguments = $"\"{RuntimeInfo.SavePackFolder}\"" // Opens the SavePoint Packs folder
             };
             if (savePoint != null)
             {
                 string targetFile = Path.GetFileNameWithoutExtension(savePoint.SourceFile()) + "." + SavePackFileExtension;
-                string fullZipFilePath = Path.Combine(UserSettings.SavePackFolder, targetFile);
+                string fullZipFilePath = Path.Combine(RuntimeInfo.SavePackFolder, targetFile);
                 if (File.Exists(fullZipFilePath))
                 {
                     processStart.Arguments = $"/select,\"{fullZipFilePath}\""; // Opens the SavePoint Packs folder and selects the exported SavePack
@@ -100,7 +98,7 @@ namespace FreeTrainSimulator.Menu
 
         private void UpdateFileList(string message)
         {
-            string[] files = Directory.GetFiles(UserSettings.SavePackFolder, "*." + SavePackFileExtension);
+            string[] files = Directory.GetFiles(RuntimeInfo.SavePackFolder, "*." + SavePackFileExtension);
             textBoxSavePacks.Text = string.IsNullOrEmpty(message) ? "" : message + "\r\n";
             textBoxSavePacks.Text += catalog.GetPluralString("Save Pack folder contains {0} save pack:", "Save Pack folder contains {0} save packs:", files.Length);
             foreach (string s in files)

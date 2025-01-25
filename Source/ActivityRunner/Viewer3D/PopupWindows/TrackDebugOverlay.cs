@@ -2,19 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.Window;
+using FreeTrainSimulator.Graphics.Window.Controls;
+using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Settings;
+
 using GetText;
 
 using Microsoft.Xna.Framework;
-using Orts.Formats.Msts.Models;
-using Orts.Formats.Msts;
-using Orts.Settings;
+
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Common.Input;
-using FreeTrainSimulator.Graphics.Window.Controls;
-using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Graphics.Window;
-using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
@@ -25,7 +27,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly Viewer viewer;
-        private readonly UserSettings settings;
+        private readonly ProfileUserSettingsModel userSettings;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private ControlLayout controlLayout;
         private Track3DOverlay trackOverlay;
@@ -38,11 +40,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly TrackDB trackDb = RuntimeData.Instance.TrackDB;
         private readonly RoadTrackDB roadTrackDb = RuntimeData.Instance.RoadTrackDB;
 
-        public TrackDebugOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) :
+        public TrackDebugOverlay(WindowManager owner, ProfileUserSettingsModel userSettings, Viewer viewer, Catalog catalog = null) :
             base(owner, catalog ?? CatalogManager.Catalog)
         {
             ArgumentNullException.ThrowIfNull(viewer);
-            this.settings = settings;
+            this.userSettings = userSettings;
             userCommandController = viewer.UserCommandController;
             this.viewer = viewer;
             ZOrder = -5;
@@ -56,7 +58,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             layout = base.Layout(layout, headerScaling);
             layout.Add(trackOverlay = new Track3DOverlay(this));
             trackOverlay.CameraView = cameraViewProjection;
-            trackOverlay.ViewDistance = settings.ViewingDistance;
+            trackOverlay.ViewDistance = userSettings.ViewingDistance;
             controlLayout = layout.AddLayoutPanel(0, 0);
             return controlLayout;
         }

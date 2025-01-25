@@ -43,8 +43,6 @@ using FreeTrainSimulator.Updater;
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Settings;
-
 namespace FreeTrainSimulator.Menu
 {
     public partial class MainForm : Form
@@ -63,8 +61,6 @@ namespace FreeTrainSimulator.Menu
         {
             ".pdf", ".doc", ".docx", ".pptx", ".txt"
         };
-
-        private UserSettings settings;
         private CancellationTokenSource ctsProfileLoading;
         private CancellationTokenSource ctsFolderLoading;
         private CancellationTokenSource ctsRouteLoading;
@@ -139,7 +135,6 @@ namespace FreeTrainSimulator.Menu
 
             ProfileModel currentProfile = await SelectedProfile.Current(ctsProfileLoading.Token).ConfigureAwait(true);
 
-            settings = new UserSettings(options);
             updateManager = new UpdateManager(await SelectedProfile.AllProfileGetUpdateMode(ctsProfileLoading.Token).ConfigureAwait(true));
 
             await ProfileChanged(currentProfile).ConfigureAwait(true);
@@ -172,7 +167,7 @@ namespace FreeTrainSimulator.Menu
                         if (toolIsConsole)
                         {
                             if (toolName.Equals("MultiPlayer Hub", StringComparison.OrdinalIgnoreCase))
-                                Process.Start("cmd", $"/k \"{toolPath}\" {settings.MultiplayerPort}");
+                                Process.Start("cmd", $"/k \"{toolPath}\" {ProfileUserSettings.MultiplayerPort}");
                             else
                                 Process.Start("cmd", $"/k \"{toolPath}\"");
                         }
@@ -227,8 +222,8 @@ namespace FreeTrainSimulator.Menu
                 await ctsRouteLoading.CancelAsync().ConfigureAwait(false);
 
             // Remove any deleted saves
-            if (Directory.Exists(UserSettings.DeletedSaveFolder))
-                Directory.Delete(UserSettings.DeletedSaveFolder, true);   // true removes all contents as well as folder
+            if (Directory.Exists(RuntimeInfo.DeletedSaveFolder))
+                Directory.Delete(RuntimeInfo.DeletedSaveFolder, true);   // true removes all contents as well as folder
         }
 
         private async Task CheckForUpdateAsync()
@@ -475,7 +470,7 @@ namespace FreeTrainSimulator.Menu
                 Invoke(ShowOptionsForm, initialSetup);
                 return;
             }
-            using (OptionsForm form = new OptionsForm(ProfileUserSettings, settings, updateManager, initialSetup, ContentModel))
+            using (OptionsForm form = new OptionsForm(ProfileUserSettings, updateManager, initialSetup, ContentModel))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
@@ -558,7 +553,7 @@ namespace FreeTrainSimulator.Menu
                 return;
             }
 
-            using (ResumeForm form = new ResumeForm(settings, ProfileSelections))
+            using (ResumeForm form = new ResumeForm(ProfileUserSettings, ProfileSelections))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
@@ -582,10 +577,10 @@ namespace FreeTrainSimulator.Menu
         private async void ButtonConnectivityTest_Click(object sender, EventArgs e)
         {
             string[] mpHost = textBoxMPHost.Text.Split(':');
-            settings.MultiplayerHost = mpHost[0];
-            settings.MultiplayerPort = mpHost.Length > 1 && int.TryParse(mpHost[1], out int port) ? port : (int)settings.GetDefaultValue("Multiplayer_Port");
+            ProfileUserSettings.MultiplayerHost = mpHost[0];
+            ProfileUserSettings.MultiplayerPort = mpHost.Length > 1 && int.TryParse(mpHost[1], out int port) ? port : ProfileUserSettingsModel.Default.MultiplayerPort;
 
-            ConnectivityClient client = new ConnectivityClient(settings.MultiplayerHost, settings.MultiplayerPort, CancellationToken.None, true);
+            ConnectivityClient client = new ConnectivityClient(ProfileUserSettings.MultiplayerHost, ProfileUserSettings.MultiplayerPort, CancellationToken.None, true);
             bool result = await client.Ping().ConfigureAwait(true);
             MessageBox.Show($"Connectivity test {(result ? "succeeded" : "failed")}!", "Multiplayer Connection", MessageBoxButtons.OK, result ? MessageBoxIcon.Information : MessageBoxIcon.Exclamation);
         }
@@ -602,26 +597,25 @@ namespace FreeTrainSimulator.Menu
             }
             checkBoxWarnings.Checked = ProfileUserSettings.LogLevel > TraceEventType.Critical;
 
-            textBoxMPUser.Text = settings.MultiplayerUser;
-            textBoxMPHost.Text = settings.MultiplayerHost + ":" + settings.MultiplayerPort;
+            textBoxMPUser.Text = ProfileUserSettings.MultiplayerUser;
+            textBoxMPHost.Text = ProfileUserSettings.MultiplayerHost + ":" + ProfileUserSettings.MultiplayerPort;
         }
 
         private async Task SaveOptions()
         {
             ProfileUserSettings.LogLevel = checkBoxWarnings.Checked ? TraceEventType.Verbose : TraceEventType.Critical;
-            settings.MultiplayerUser = textBoxMPUser.Text;
+            ProfileUserSettings.MultiplayerUser = textBoxMPUser.Text;
 
             string[] mpHost = textBoxMPHost.Text.Split(':');
-            settings.MultiplayerHost = mpHost[0];
+            ProfileUserSettings.MultiplayerHost = mpHost[0];
             if (mpHost.Length > 1 && int.TryParse(mpHost[1], out int port))
             {
-                settings.MultiplayerPort = port;
+                ProfileUserSettings.MultiplayerPort = port;
             }
             else
             {
-                settings.MultiplayerPort = (int)settings.GetDefaultValue("MultiplayerPort");
+                ProfileUserSettings.MultiplayerPort = ProfileUserSettingsModel.Default.MultiplayerPort;
             }
-            settings.Save();
 
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 

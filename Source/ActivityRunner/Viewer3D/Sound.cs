@@ -771,7 +771,8 @@ namespace Orts.ActivityRunner.Viewer3D
             int iSG = 0;
             while (iSG < smsFile.ScalabiltyGroups.Count)
             {
-                if (smsFile.ScalabiltyGroups[iSG].DetailLevel <= Simulator.Instance.Settings.SoundDetailLevel)
+
+                if (smsFile.ScalabiltyGroups[iSG].DetailLevel <= viewer.UserSettings.SoundDetailLevel)
                     break;
                 ++iSG;
             }
@@ -814,7 +815,7 @@ namespace Orts.ActivityRunner.Viewer3D
             SMSFolder = WavFolder;
             SMSFileName = WavFileName;
 
-            if (SoundSourceBase.viewer.Settings.SoundDetailLevel >= 3)
+            if (viewer.UserSettings.SoundDetailLevel >= 3)
             {
                 // base initializations
                 ActivationConditions = new SoundActivationCondition(ORTSActSoundFileType, ActivationType.Activate);
@@ -1419,7 +1420,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             if (SoundSource.IsExternal && Program.Viewer.Camera.Style != CameraStyle.External && !SoundSource.IsUnattenuated)
             {
                 if (Program.Viewer.Camera.AttachedCar == null || ((MSTSWagon)Program.Viewer.Camera.AttachedCar).ExternalSoundPassThruPercent == -1)
-                    volume *= Program.Viewer.Settings.ExternalSoundPassThruPercent * 0.01f;
+                    volume *= Program.Viewer.UserSettings.ExternalSoundPassThruPercent * 0.01f;
                 else
                     volume *= ((MSTSWagon)Program.Viewer.Camera.AttachedCar).ExternalSoundPassThruPercent * 0.01f;
             }

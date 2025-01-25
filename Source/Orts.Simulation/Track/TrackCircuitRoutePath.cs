@@ -787,7 +787,7 @@ namespace Orts.Simulation.Track
 
             // process alternative paths - MSTS style
 
-            if (Simulator.Instance.Settings.UseLocationPassingPaths)
+            if (Simulator.Instance.UserSettings.UseLocationPassingPaths)
             {
                 ProcessAlternativePathLocationDef(alternativeRoutes, aiPath, trainNumber);
                 if (trainNumber >= 0)

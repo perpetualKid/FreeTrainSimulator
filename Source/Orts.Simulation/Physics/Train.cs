@@ -346,7 +346,7 @@ namespace Orts.Simulation.Physics
         private protected string evaluationLogFile;                 // required datalog file
 
         private protected static readonly Simulator simulator = Simulator.Instance;                 // reference to the simulator
-        private protected static readonly char Separator = (char)simulator.Settings.DataLoggerSeparator;
+        private protected static readonly char Separator = (char)simulator.UserSettings.DataLogSeparator;
 
         // For AI control of the train
         public float AITrainBrakePercent
@@ -1360,7 +1360,7 @@ namespace Orts.Simulation.Physics
             }
 
 
-            if (IsActualPlayerTrain && simulator.Settings.ActRandomizationLevel > 0 && simulator.ActivityRun != null) // defects might occur
+            if (IsActualPlayerTrain && simulator.UserSettings.ActivityRandomizationLevel > 0 && simulator.ActivityRun != null) // defects might occur
             {
                 CheckFailures(elapsedClockSeconds);
             }
@@ -1553,7 +1553,7 @@ namespace Orts.Simulation.Physics
                         ActivityEvaluation.Instance.CouplerBreaks++;
                         numOfCouplerBreaksNoted = true;
 
-                        if (simulator.Settings.BreakCouplers)
+                        if (simulator.UserSettings.CouplersBreak)
                         {
                             simulator.UncoupleBehind(uncoupleBehindCar, true);
                             uncoupleBehindCar.CouplerExceedBreakLimit = false;
@@ -2207,10 +2207,10 @@ namespace Orts.Simulation.Physics
         /// set train speed logging flag (valid per activity, so will be restored after save)
         protected void SetTrainSpeedLoggingFlag()
         {
-            evaluateTrainSpeed = simulator.Settings.EvaluationTrainSpeed;
-            evaluationInterval = simulator.Settings.EvaluationInterval;
+            evaluateTrainSpeed = simulator.UserSettings.EvaluationTrainSpeed;
+            evaluationInterval = simulator.UserSettings.EvaluationInterval;
 
-            evaluationContent = simulator.Settings.EvaluationContent;
+            evaluationContent = simulator.UserSettings.EvaluationContent;
 
             // if logging required, derive filename and open file
             if (evaluateTrainSpeed)
@@ -3466,7 +3466,7 @@ namespace Orts.Simulation.Physics
                     // Cycle down the train consist until the first stationary car is found that has its leading couplers starting to pull it. The next car is then started by allowing its speed to increase above 0.
                     f += car.TotalForceN - (car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN);
                     m += car.MassKG;
-                    if (car.IsPlayerTrain && !simulator.Settings.SimpleControlPhysics && car.avancedCoupler) // "Advanced coupler" - operates in three extension zones
+                    if (car.IsPlayerTrain && !simulator.UserSettings.SimplifiedControls && car.avancedCoupler) // "Advanced coupler" - operates in three extension zones
                     {
                         if (j == Cars.Count - 1 || car.CouplerSlackM < car.AdvancedCouplerDynamicTensionSlackLimitM)
                             break;
@@ -3520,7 +3520,7 @@ namespace Orts.Simulation.Physics
                     // Cycle up the train consist until the first stationary car is found that has its leading couplers starting to pull it. The next car is then started by allowing its speed to increase above 0.
                     f += car.TotalForceN + car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN;
                     m += car.MassKG;
-                    if (car.IsPlayerTrain && !simulator.Settings.SimpleControlPhysics && car.avancedCoupler) // "Advanced coupler" - operates in three extension zones
+                    if (car.IsPlayerTrain && !simulator.UserSettings.SimplifiedControls && car.avancedCoupler) // "Advanced coupler" - operates in three extension zones
                     {
                         if (j == 0 || car.CouplerSlackM > car.AdvancedCouplerDynamicCompressionSlackLimitM)
                             break;
@@ -9274,7 +9274,7 @@ namespace Orts.Simulation.Physics
                     }
                 }
 
-                if (simulator.Settings.NoForcedRedAtStationStops)
+                if (!simulator.UserSettings.ForcedRedStationStops)
                 {
                     // We don't want reds at exit signal in this case
                     holdSignal = false;
@@ -9466,7 +9466,7 @@ namespace Orts.Simulation.Physics
         /// </summary>Ac
         protected static int RandomizedDelayWithThreshold(int maxAddedDelay)
         {
-            if (DateTime.UtcNow.Millisecond % 10 < 6 - simulator.Settings.ActRandomizationLevel)
+            if (DateTime.UtcNow.Millisecond % 10 < 6 - simulator.UserSettings.ActivityRandomizationLevel)
                 return 0;
             return (int)(StaticRandom.Next(0, (int)(RandomizationResolution * StaticRandom.NextDouble()) + 1) / (double)RandomizationResolution * maxAddedDelay);
         }
@@ -9489,11 +9489,11 @@ namespace Orts.Simulation.Physics
         {
             if (randomizedDelay < 30000) // standard WP
             {
-                randomizedDelay += RandomizedDelayWithThreshold(15 + 5 * simulator.Settings.ActRandomizationLevel);
+                randomizedDelay += RandomizedDelayWithThreshold(15 + 5 * simulator.UserSettings.ActivityRandomizationLevel);
             }
             else if (randomizedDelay >= 30000 && randomizedDelay < 40000) // absolute WP
             {
-                randomizedDelay += RandomizedDelayWithThreshold(2 + simulator.Settings.ActRandomizationLevel);
+                randomizedDelay += RandomizedDelayWithThreshold(2 + simulator.UserSettings.ActivityRandomizationLevel);
                 if (randomizedDelay % 100 > 59)
                 {
                     randomizedDelay += 40;
@@ -11002,7 +11002,7 @@ namespace Orts.Simulation.Physics
                     }
                 }
 
-                if (simulator.Settings.NoForcedRedAtStationStops)
+                if (!simulator.UserSettings.ForcedRedStationStops)
                 {
                     // We don't want reds at exit signal in this case
                     holdSignal = false;
@@ -11271,11 +11271,11 @@ namespace Orts.Simulation.Physics
                         {
                             BrakingTime += elapsedClockSeconds;
                             ContinuousBrakingTime += elapsedClockSeconds;
-                            if (BrakingTime >= 1200.0 / simulator.Settings.ActRandomizationLevel || ContinuousBrakingTime >= 600.0 / simulator.Settings.ActRandomizationLevel)
+                            if (BrakingTime >= 1200.0 / simulator.UserSettings.ActivityRandomizationLevel || ContinuousBrakingTime >= 600.0 / simulator.UserSettings.ActivityRandomizationLevel)
                             {
                                 int randInt = StaticRandom.Next(200000);
                                 bool brakesStuck = false;
-                                if (randInt > 200000 - (simulator.Settings.ActRandomizationLevel == 1 ? 4 : simulator.Settings.ActRandomizationLevel == 2 ? 8 : 31))
+                                if (randInt > 200000 - (simulator.UserSettings.ActivityRandomizationLevel == 1 ? 4 : simulator.UserSettings.ActivityRandomizationLevel == 2 ? 8 : 31))
                                 // a car will have brakes stuck. Select which one
                                 {
                                     int iBrakesStuckCar = StaticRandom.Next(Cars.Count);
@@ -11343,7 +11343,7 @@ namespace Orts.Simulation.Physics
                     {
                         int randInt = StaticRandom.Next(2000000 / nLocos);
                         bool locoUnpowered;
-                        if (randInt > 2000000 / nLocos - (simulator.Settings.ActRandomizationLevel == 1 ? 2 : simulator.Settings.ActRandomizationLevel == 2 ? 8 : 50))
+                        if (randInt > 2000000 / nLocos - (simulator.UserSettings.ActivityRandomizationLevel == 1 ? 2 : simulator.UserSettings.ActivityRandomizationLevel == 2 ? 8 : 50))
                         // a loco will be partly or totally unpowered. Select which one
                         {
                             int iLocoUnpoweredCar = StaticRandom.Next(Cars.Count);

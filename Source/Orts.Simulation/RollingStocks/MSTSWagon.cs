@@ -509,7 +509,7 @@ namespace Orts.Simulation.RollingStocks
                     wagonNumAxles = 4; // Set 4 axles as default
                 }
 
-                if (simulator.Settings.VerboseConfigurationMessages)
+                if (simulator.UserSettings.ConfigurationMessages)
                 {
                     Trace.TraceInformation("Number of Wagon Axles set to default value of {0}", wagonNumAxles);
                 }
@@ -1820,10 +1820,10 @@ namespace Orts.Simulation.RollingStocks
                         TendersSteamLocomotive.MaxTenderCoalMassKG = TenderWagonMaxCoalMassKG;
                         TendersSteamLocomotive.MaxLocoTenderWaterMassKG = TenderWagonMaxWaterMassKG;
 
-                        if (simulator.Settings.VerboseConfigurationMessages)
+                        if (simulator.UserSettings.ConfigurationMessages)
                         {
                             Trace.TraceInformation("Fuel and Water Masses adjusted to Tender Values Specified in WAG File - Coal mass {0} kg, Water Mass {1}", FormatStrings.FormatMass(TendersSteamLocomotive.MaxTenderCoalMassKG, simulator.MetricUnits),
-                                FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG), simulator.MetricUnits, simulator.Settings.MeasurementUnit == MeasurementUnit.UK));
+                                FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG), simulator.MetricUnits, simulator.UserSettings.MeasurementUnit == MeasurementUnit.UK));
                         }
                     }
                 }
@@ -2689,9 +2689,9 @@ namespace Orts.Simulation.RollingStocks
                 if (!hotBoxHasBeenInitialized) // If already initialised then skip
                 {
                     // Activity randomizatrion needs to be active in Options menu, and HotBox will not be applied to a locomotive or tender.
-                    if (simulator.Settings.ActRandomizationLevel > 0 && WagonType != WagonType.Engine && WagonType != WagonType.Tender)
+                    if (simulator.UserSettings.ActivityRandomizationLevel > 0 && WagonType != WagonType.Engine && WagonType != WagonType.Tender)
                     {
-                        var HotboxRandom = StaticRandom.Next(100) / simulator.Settings.ActRandomizationLevel;
+                        var HotboxRandom = StaticRandom.Next(100) / simulator.UserSettings.ActivityRandomizationLevel;
                         float PerCentRandom = 0.66f; // Set so that random time is always in first 66% of activity duration
                         var RawHotBoxTimeRandomS = StaticRandom.Next((int)simulator.ActivityFile.Activity.Header.Duration.TotalSeconds);
                         if (!Train.HotBoxSetOnTrain) // only allow one hot box to be set per train 
@@ -3587,7 +3587,7 @@ namespace Orts.Simulation.RollingStocks
 
         public override float GetCouplerZeroLengthM()
         {
-            if (IsPlayerTrain && simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && avancedCoupler)
+            if (IsPlayerTrain && simulator.UserSettings.AdvancedAdhesion && !simulator.UserSettings.SimplifiedControls && avancedCoupler)
             {
                 // Ensure zerolength doesn't go higher then 0.5
                 return Math.Min(Coupler?.R0X ?? base.GetCouplerZeroLengthM(), 0.5f);

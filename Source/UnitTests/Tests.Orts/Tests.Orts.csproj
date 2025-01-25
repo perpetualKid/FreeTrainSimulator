@@ -23,7 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
-    <ProjectReference Include="..\..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />
   </ItemGroup>
 </Project>

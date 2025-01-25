@@ -353,7 +353,7 @@ namespace Orts.Simulation.Activities
 
             StringBuilder stringBuild = new StringBuilder();
 
-            char separator = (char)simulator.Settings.DataLoggerSeparator;
+            char separator = (char)simulator.UserSettings.DataLogSeparator;
 
             stringBuild.Append("STATION");
             stringBuild.Append(separator);

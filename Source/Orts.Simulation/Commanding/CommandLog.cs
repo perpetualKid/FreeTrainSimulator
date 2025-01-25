@@ -81,7 +81,7 @@ namespace Orts.Simulation.Commanding
 
             if (PauseState == ReplayPauseState.Before)
             {
-                if (elapsedTime > ReplayEndsAt - Simulator.Settings.ReplayPauseBeforeEndS)
+                if (elapsedTime > ReplayEndsAt - Simulator.UserSettings.ReplayPauseDuration)
                 {
                     PauseState = ReplayPauseState.Due;  // For Viewer.Update() to detect and pause.
                 }

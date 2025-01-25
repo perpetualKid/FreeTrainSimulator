@@ -20,8 +20,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
@@ -29,10 +29,9 @@ using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Logging;
 using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Settings;
 
 namespace Orts.ActivityRunner.Processes
 {
@@ -44,10 +43,8 @@ namespace Orts.ActivityRunner.Processes
         internal SystemProcess SystemProcess { get; }
 
         /// <summary>
-        /// Gets the <see cref="UserSettings"/> for the game.
+        /// Gets the <see cref="ProfileUserSettingsModel"/> user settings for the game.
         /// </summary>
-        public UserSettings Settings { get; }
-
         public ProfileUserSettingsModel UserSettings { get; }
 
         /// <summary>
@@ -90,9 +87,8 @@ namespace Orts.ActivityRunner.Processes
         /// Initializes a new instance of the <see cref="GameHost"/> based on the specified <see cref="UserSettings"/>.
         /// </summary>
         /// <param name="settings">The <see cref="UserSettings"/> for the game to use.</param>
-        public GameHost(UserSettings settings, ProfileUserSettingsModel userSettings)
+        public GameHost(ProfileUserSettingsModel userSettings)
         {
-            Settings = settings;
             UserSettings = userSettings;
             Exiting += Game_Exiting;
             RenderProcess = new RenderProcess(this);
@@ -162,7 +158,7 @@ namespace Orts.ActivityRunner.Processes
             base.EndDraw();
         }
 
-        protected override void EndRun()
+        protected override async void EndRun()
         {
             base.EndRun();
             RenderProcess.Stop();
@@ -171,6 +167,8 @@ namespace Orts.ActivityRunner.Processes
             SoundProcess.Stop();
             WebServerProcess.Stop();
             SystemProcess.Stop();
+
+            _ = await UserSettings.Parent.UpdateRuntimeUserSettingsModel(UserSettings, CancellationToken.None).ConfigureAwait(false);
         }
 
         private void Game_Exiting(object sender, EventArgs e)

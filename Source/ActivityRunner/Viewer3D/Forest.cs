@@ -60,7 +60,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Tile delta = position.Tile - viewer.Camera.Tile;
                 Vector3 mstsLocation = position.Location + delta.TileVector();
                 Matrix xnaMatrix = Matrix.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
-                frame.AddAutoPrimitive(mstsLocation, primitive.ObjectRadius, float.MaxValue, material, primitive, RenderPrimitiveGroup.World, ref xnaMatrix, viewer.Settings.ShadowAllShapes ? ShapeFlags.ShadowCaster : ShapeFlags.None);
+                frame.AddAutoPrimitive(mstsLocation, primitive.ObjectRadius, float.MaxValue, material, primitive, RenderPrimitiveGroup.World, ref xnaMatrix, viewer.UserSettings.ShadowAllShapes ? ShapeFlags.ShadowCaster : ShapeFlags.None);
             }
         }
 

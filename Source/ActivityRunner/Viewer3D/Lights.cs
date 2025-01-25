@@ -161,7 +161,7 @@ namespace Orts.ActivityRunner.Viewer3D
             xnaDTileTranslation = MatrixExtension.Multiply(positionSource.WorldPosition.XNAMatrix,xnaDTileTranslation);
 
             float objectRadius = 20; // Even more arbitrary.
-            float objectViewingDistance = Viewer.Settings.ViewingDistance; // Arbitrary.
+            float objectViewingDistance = Viewer.UserSettings.ViewingDistance; // Arbitrary.
             if (Viewer.Camera.CanSee(mstsLocation, objectRadius, objectViewingDistance))
                 foreach (var lightPrimitive in LightPrimitives)
                     if (lightPrimitive.Enabled || lightPrimitive.FadeOut)
@@ -236,7 +236,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var newCarInService = (Car.Train != null && Car.Train == Viewer.PlayerTrain) || (Car.Train != null && Car.Train.TrainType == TrainType.Remote) || (Car.Train != null && Car.Train.TrainType == TrainType.Ai);
             // Time of day
             bool newIsDay = false;
-            if (Viewer.Settings.UseMSTSEnv == false)
+            if (!Viewer.UserSettings.MstsEnvironment)
                 newIsDay = Viewer.World.Sky.SolarDirection.Y > 0;
             else
                 newIsDay = Viewer.World.MSTSSky.mstsskysolarDirection.Y > 0;

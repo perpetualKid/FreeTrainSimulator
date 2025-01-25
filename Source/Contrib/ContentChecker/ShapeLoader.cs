@@ -32,7 +32,7 @@ namespace Orts.ContentChecker
         /// <param name="file">The file that needs to be loaded</param>
         public override void TryLoading(string file)
         {
-            _ = new ShapeFile(file, false);
+            _ = new ShapeFile(file, true);
         }
     }
 }

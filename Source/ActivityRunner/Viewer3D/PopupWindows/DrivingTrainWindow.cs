@@ -9,13 +9,13 @@ using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Models.Settings;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
-using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.RollingStocks;
@@ -87,7 +87,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         }
 
         private readonly Viewer viewer;
-        private readonly UserSettings settings;
+        private readonly ProfileUserSettingsModel userSettings;
         private readonly UserCommandController<UserCommand> userCommandController;
         private WindowMode windowMode;
 #pragma warning disable CA2213 // Disposable fields should be disposed
@@ -115,13 +115,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private string gearKeyInput;
         private string pantographKeyInput;
 
-        public DrivingTrainWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Viewer viewer, Catalog catalog = null) :
+        public DrivingTrainWindow(WindowManager owner, Point relativeLocation, ProfileUserSettingsModel userSettings, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Driving Info"), relativeLocation, new Point(200, 220), catalog)
         {
             userCommandController = viewer.UserCommandController;
             this.viewer = viewer;
-            this.settings = settings;
-            _ = EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.DrivingTrainWindow], out windowMode);
+            this.userSettings = userSettings;
+            _ = EnumExtension.GetValue(this.userSettings.PopupSettings[ViewerWindowType.DrivingTrainWindow], out windowMode);
 
             Resize();
         }
@@ -381,7 +381,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
             Resize(size);
 
-            settings.PopupSettings[ViewerWindowType.DrivingTrainWindow] = windowMode.ToString();
+            userSettings.PopupSettings[ViewerWindowType.DrivingTrainWindow] = windowMode.ToString();
         }
 
         //we need to keep a delegate reference to be able to unsubscribe, so those are just forwarders
@@ -503,7 +503,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             // Odometer
             if (groupDetails[DetailInfo.Odometer]?.Controls[3] is Label odometerLabel)
             {
-                odometerLabel.Text = Simulator.Instance.Settings.OdometerShortDistanceMode ? 
+                odometerLabel.Text = viewer.UserSettings.OdometerShortDistances ? 
                     FormatStrings.FormatShortDistanceDisplay(playerLocomotive.OdometerM, Simulator.Instance.MetricUnits) : 
                     FormatStrings.FormatDistanceDisplay(playerLocomotive.OdometerM, Simulator.Instance.MetricUnits);
             }
@@ -802,13 +802,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 string derailedCar = playerLocomotive.Train.Cars.Where(c => c.DerailExpected).FirstOrDefault()?.CarID;
                 if (!string.IsNullOrEmpty(derailedCar))
                 {
-                    derailTimeout = System.Environment.TickCount64 + (2 * settings.NotificationsTimeout);
+                    derailTimeout = System.Environment.TickCount64 + (2 * userSettings.NotificationsTimeout);
                     derailmentLabel.Text = Catalog.GetString($"Derailed {derailedCar})");
                     derailmentLabel.TextColor = Color.OrangeRed;
                 }
                 else if (!string.IsNullOrEmpty(derailedCar = playerLocomotive.Train.Cars.Where(c => c.DerailPossible).FirstOrDefault()?.CarID))
                 {
-                    derailTimeout = System.Environment.TickCount64 + (2 * settings.NotificationsTimeout);
+                    derailTimeout = System.Environment.TickCount64 + (2 * userSettings.NotificationsTimeout);
                     derailmentLabel.Text = Catalog.GetString($"Warning {derailedCar})");
                     derailmentLabel.TextColor = Color.Yellow;
                 }
@@ -828,19 +828,19 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 {
                     wheelSlipLabel.Text = Viewer.Catalog.GetString("slip");
                     wheelSlipLabel.TextColor = Color.OrangeRed;
-                    wheelSlipTimeout = System.Environment.TickCount64 + (settings.NotificationsTimeout * 2);
+                    wheelSlipTimeout = System.Environment.TickCount64 + (userSettings.NotificationsTimeout * 2);
                 }
                 else if (playerLocomotive.Train.IsWheelSlipWarninq)
                 {
                     wheelSlipLabel.Text = Viewer.Catalog.GetString("slip warning");
                     wheelSlipLabel.TextColor = Color.Yellow;
-                    wheelSlipTimeout = System.Environment.TickCount64 + (settings.NotificationsTimeout * 2);
+                    wheelSlipTimeout = System.Environment.TickCount64 + (userSettings.NotificationsTimeout * 2);
                 }
                 else if (playerLocomotive.Train.IsBrakeSkid)
                 {
                     wheelSlipLabel.Text = Viewer.Catalog.GetString("skid");
                     wheelSlipLabel.TextColor = Color.OrangeRed;
-                    wheelSlipTimeout = System.Environment.TickCount64 + (settings.NotificationsTimeout * 2);
+                    wheelSlipTimeout = System.Environment.TickCount64 + (userSettings.NotificationsTimeout * 2);
                 }
                 else
                 {
@@ -860,7 +860,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 if (doorLeftOpen || doorRightOpen)
                 {
-                    doorOpenTimeout = System.Environment.TickCount64 + (settings.NotificationsTimeout * 2);
+                    doorOpenTimeout = System.Environment.TickCount64 + (userSettings.NotificationsTimeout * 2);
 
                     doorLabel.Text = FormatStrings.JoinIfNotEmpty(FormatStrings.Markers.Fence[0], 
                         doorLeftOpen ? Catalog.GetString("Left") : null,

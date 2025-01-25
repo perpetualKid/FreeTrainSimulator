@@ -259,7 +259,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public RenderFrame(GameHost game)
         {
             shadowMapCount = RenderProcess.ShadowMapCount;
-            dynamicShadows = game.Settings.DynamicShadows;
+            dynamicShadows = game.UserSettings.DynamicShadows;
             this.game = game;
             DummyBlendedMaterial = new EmptyMaterial(null);
 
@@ -270,7 +270,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 if (shadowMap == null)
                 {
-                    int shadowMapSize = game.Settings.ShadowMapResolution;
+                    int shadowMapSize = game.UserSettings.ShadowMapResolution;
                     shadowMap = new RenderTarget2D[shadowMapCount];
                     shadowMapRenderTarget = new RenderTarget2D[shadowMapCount];
                     for (int shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
@@ -338,15 +338,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void PrepareFrame(Viewer viewer)
         {
-            if (viewer.Settings.UseMSTSEnv == false)
+            if (!viewer.UserSettings.MstsEnvironment)
                 solarDirection = viewer.World.Sky.SolarDirection;
             else
                 solarDirection = viewer.World.MSTSSky.mstsskysolarDirection;
 
-            if (shadowMapMaterial == null)
-                shadowMapMaterial = (ShadowMapMaterial)viewer.MaterialManager.Load("ShadowMap");
-            if (sceneryShader == null)
-                sceneryShader = viewer.MaterialManager.SceneryShader;
+            shadowMapMaterial ??= (ShadowMapMaterial)viewer.MaterialManager.Load("ShadowMap");
+            sceneryShader ??= viewer.MaterialManager.SceneryShader;
         }
 
         public void SetCamera(Camera camera)
@@ -389,15 +387,15 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                 {
-                    var viewingDistance = game.Settings.ViewingDistance;
+                    var viewingDistance = game.UserSettings.ViewingDistance;
                     var shadowMapDiameter = RenderProcess.ShadowMapDiameter[shadowMapIndex];
                     var shadowMapLocation = cameraLocation + RenderProcess.ShadowMapDistance[shadowMapIndex] * cameraDirection;
 
                     // Align shadow map location to grid so it doesn't "flutter" so much. This basically means aligning it along a
                     // grid based on the size of a shadow texel (shadowMapSize / shadowMapSize) along the axes of the sun direction
                     // and up/left.
-                    var shadowMapAlignmentGrid = (float)shadowMapDiameter / game.Settings.ShadowMapResolution;
-                    var shadowMapSize = game.Settings.ShadowMapResolution;
+                    var shadowMapAlignmentGrid = (float)shadowMapDiameter / game.UserSettings.ShadowMapResolution;
+                    var shadowMapSize = game.UserSettings.ShadowMapResolution;
                     var adjustX = (float)Math.IEEERemainder(Vector3.Dot(shadowMapAlignAxisX, shadowMapLocation), shadowMapAlignmentGrid);
                     var adjustY = (float)Math.IEEERemainder(Vector3.Dot(shadowMapAlignAxisY, shadowMapLocation), shadowMapAlignmentGrid);
                     shadowMapLocation.X -= shadowMapAlignAxisX.X * adjustX;
@@ -642,7 +640,7 @@ namespace Orts.ActivityRunner.Viewer3D
             game.GraphicsDevice.SetRenderTarget(null);
 
             // Blur the shadow map.
-            if (game.Settings.ShadowMapBlur)
+            if (game.UserSettings.ShadowMapBlur)
             {
                 //shadowMap[shadowMapIndex] = 
                 shadowMapMaterial.ApplyBlur(shadowMap[shadowMapIndex], shadowMapRenderTarget[shadowMapIndex]);
@@ -661,7 +659,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="logging"></param>
         private void DrawSimple(bool logging)
         {
-            if (game.Settings.DistantMountains)
+            if (game.UserSettings.FarMountainsViewingDistance > 0)
             {
                 if (logging)
                     Trace.WriteLine("  DrawSimple (Distant Mountains) {");
@@ -741,7 +739,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else
                     {
-                        if (game.Settings.DistantMountains && (sequenceMaterial.Key is TerrainSharedDistantMountain || sequenceMaterial.Key is SkyMaterial
+                        if (game.UserSettings.FarMountainsViewingDistance > 0 && (sequenceMaterial.Key is TerrainSharedDistantMountain || sequenceMaterial.Key is SkyMaterial
                             || sequenceMaterial.Key is MSTSSkyMaterial))
                             continue;
                         // Opaque: single material, render in one go.

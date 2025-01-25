@@ -9,6 +9,7 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Settings;
 
 using GetText;
 
@@ -17,7 +18,6 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Signalling;
@@ -36,7 +36,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly Viewer viewer;
-        private readonly UserSettings settings;
+        private readonly ProfileUserSettingsModel userSettings;
         private ViewMode viewMode;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private ControlLayout controlLayout;
@@ -52,11 +52,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private int stationStopsCount;
         private ActivityTask activityTask;
 
-        public LocationOverlay(WindowManager owner, UserSettings settings, Viewer viewer, Catalog catalog = null) :
+        public LocationOverlay(WindowManager owner, ProfileUserSettingsModel userSettings, Viewer viewer, Catalog catalog = null) :
             base(owner, catalog ?? CatalogManager.Catalog)
         {
             ArgumentNullException.ThrowIfNull(viewer);
-            this.settings = settings;
+            this.userSettings = userSettings;
             userCommandController = viewer.UserCommandController;
             this.viewer = viewer;
             ZOrder = -5;
@@ -123,7 +123,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         protected override void Initialize()
         {
-            if (EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.LocationsOverlay], out viewMode))
+            if (EnumExtension.GetValue(userSettings.PopupSettings[ViewerWindowType.LocationsOverlay], out viewMode))
             {
                 ChangeMode();
             }
@@ -135,7 +135,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             if (args is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
             {
                 viewMode = viewMode.Next();
-                settings.PopupSettings[ViewerWindowType.LocationsOverlay] = viewMode.ToString();
+                userSettings.PopupSettings[ViewerWindowType.LocationsOverlay] = viewMode.ToString();
                 ChangeMode();
             }
         }

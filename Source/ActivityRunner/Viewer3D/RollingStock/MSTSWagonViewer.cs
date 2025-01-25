@@ -768,7 +768,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             float AnimationWheelRadiusM = MSTSWagon.WheelRadiusM; // Radius of non driven wheels
             float AnimationDriveWheelRadiusM = MSTSWagon.DriverWheelRadiusM; // Radius of driven wheels
 
-            if (MSTSWagon is MSTSLocomotive mstsLocomotive && Viewer.Settings.UseAdvancedAdhesion && !Viewer.Settings.SimpleControlPhysics)
+            if (MSTSWagon is MSTSLocomotive mstsLocomotive && Viewer.UserSettings.AdvancedAdhesion && !Viewer.UserSettings.SimplifiedControls)
             {
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
@@ -843,7 +843,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 trainCarShape.XNAMatrices[p.Matrix] = Car.VibrationInverseMatrix * m;
             }
 
-            if ((MSTSWagon.Train?.IsPlayerDriven ?? false) && !Viewer.Settings.SimpleControlPhysics)
+            if ((MSTSWagon.Train?.IsPlayerDriven ?? false) && !Viewer.UserSettings.SimplifiedControls)
                 // Place the coupler in the centre of the car
                 Car.WorldPosition.XNAMatrix.Decompose(out Vector3 scale, out Quaternion quaternion, out Vector3 translation);
             {

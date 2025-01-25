@@ -90,13 +90,13 @@ namespace Orts.Formats.Msts.Files
             }
         }
 
-        public ShapeFile(string fileName, bool suppressShapeWarnings)
+        public ShapeFile(string fileName, bool shapeWarnings)
         {
             using (SBR file = SBR.Open(fileName))
             {
                 Shape = new Shape(file.ReadSubBlock());
                 //                file.VerifyEndOfBlock();//covered through "using" Dispose-implementation
-                if (!suppressShapeWarnings)
+                if (shapeWarnings)
                     Validate(fileName);
             }
         }

@@ -42,7 +42,7 @@ namespace Orts.Simulation
             Curves = new List<List<TrackVectorSection>>();
             Sections = new Dictionary<int, List<TrackVectorSection>>();
 
-            MaximumAllowedM = 0.07f + simulator.Settings.UseSuperElevation / 100f;//max allowed elevation controlled by user setting
+            MaximumAllowedM = 0.07f + simulator.UserSettings.SuperElevationLevel / 100f;//max allowed elevation controlled by user setting
 
             List<TrackVectorSection> SectionList = new List<TrackVectorSection>();
             foreach (TrackVectorNode trackVectorNode in RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes)
@@ -51,15 +51,15 @@ namespace Orts.Simulation
                 int CurveDir = 0;
                 float Len = 0.0f;
                 SectionList.Clear();
-                int i = 0; 
+                int i = 0;
                 int count = trackVectorNode.TrackVectorSections.Length;
                 foreach (TrackVectorSection section in trackVectorNode.TrackVectorSections)//loop all curves
                 {
                     i++;
                     TrackSection sec = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(section.SectionIndex);
-                    if (sec == null) 
+                    if (sec == null)
                         continue;
-                    if (Math.Abs(sec.Width - (simulator.Settings.SuperElevationGauge / 1000f)) > 0.2) 
+                    if (Math.Abs(sec.Width - (simulator.UserSettings.TrackGauge / 1000f)) > 0.2)
                         continue;//the main route has a gauge different than mine
                     float angle = sec.Angle;
                     if (sec.Curved && !angle.AlmostEqual(0f, 0.01f)) //a good curve
@@ -107,20 +107,21 @@ namespace Orts.Simulation
         {
             ArgumentNullException.ThrowIfNull(simulator);
 
-            if (Len < simulator.Settings.SuperElevationMinLen || SectionList.Count == 0) 
+            //if (Len < simulator.Settings.SuperElevationMinLen || SectionList.Count == 0) 
+            if (SectionList.Count == 0)
                 return;//too short a curve or the list is empty
             TrackSections tSection = RuntimeData.Instance.TSectionDat.TrackSections;
             TrackSection sectionData = tSection.TryGet(SectionList[0].SectionIndex);
-            if (sectionData == null) 
+            if (sectionData == null)
                 return;
             //loop all section to determine the max elevation for the whole track
             double Curvature = sectionData.Angle * SectionList.Count * 33 / Len;//average radius in degree/100feet
             float Max = (float)(Math.Pow(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route] * 2.25, 2) * 0.0007 * Math.Abs(Curvature) - 3); //in inch
             Max *= 2.5f;//change to cm
             Max = (float)Math.Round(Max * 2, MidpointRounding.AwayFromZero) / 200f;//closest to 5 mm increase;
-            if (Max < 0.01f) 
+            if (Max < 0.01f)
                 return;
-            if (Max > MaximumAllowedM) 
+            if (Max > MaximumAllowedM)
                 Max = MaximumAllowedM;//max
             Max = (float)Math.Atan(Max / 1.44f); //now change to rotation in radius by quick estimation as the angle is small
 
@@ -128,7 +129,8 @@ namespace Orts.Simulation
             MapWFiles2Sections(SectionList);//map these sections to tiles, so we can compute it quicker later
             if (SectionList.Count == 1)//only one section in the curve
             {
-                SectionList[0].StartElev = SectionList[0].EndElev = 0f; SectionList[0].MaxElev = Max;
+                SectionList[0].StartElev = SectionList[0].EndElev = 0f;
+                SectionList[0].MaxElev = Max;
             }
             else//more than one section in the curve
             {
@@ -136,21 +138,21 @@ namespace Orts.Simulation
 
                 foreach (TrackVectorSection section in SectionList)
                 {
-                    if (count == 0) 
-                    { 
-                        section.StartElev = 0f; 
-                        section.MaxElev = Max; 
-                        section.EndElev = Max; 
+                    if (count == 0)
+                    {
+                        section.StartElev = 0f;
+                        section.MaxElev = Max;
+                        section.EndElev = Max;
                     }
-                    else if (count == SectionList.Count - 1) 
-                    { 
-                        section.StartElev = Max; 
-                        section.MaxElev = Max; 
-                        section.EndElev = 0f; 
+                    else if (count == SectionList.Count - 1)
+                    {
+                        section.StartElev = Max;
+                        section.MaxElev = Max;
+                        section.EndElev = 0f;
                     }
-                    else 
-                    { 
-                        section.StartElev = section.EndElev = section.MaxElev = Max; 
+                    else
+                    {
+                        section.StartElev = section.EndElev = section.MaxElev = Max;
                     }
                     count++;
                 }

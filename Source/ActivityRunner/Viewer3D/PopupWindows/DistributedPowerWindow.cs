@@ -9,12 +9,12 @@ using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Models.Settings;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
@@ -48,7 +48,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         }
 
         private readonly Viewer viewer;
-        private readonly UserSettings settings;
+        private readonly ProfileUserSettingsModel userSettings;
         private readonly UserCommandController<UserCommand> userCommandController;
         private WindowMode windowMode;
 #pragma warning disable CA2213 // Disposable fields should be disposed
@@ -58,13 +58,13 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly EnumArray<ControlLayout, GroupDetail> groupDetails = new EnumArray<ControlLayout, GroupDetail>();
         private int groupCount;
 
-        public DistributedPowerWindow(WindowManager owner, Point relativeLocation, UserSettings settings, Viewer viewer, Catalog catalog = null) :
+        public DistributedPowerWindow(WindowManager owner, Point relativeLocation, ProfileUserSettingsModel userSettings, Viewer viewer, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Distributed Power"), relativeLocation, new Point(160, 200), catalog)
         {
             userCommandController = viewer.UserCommandController;
-            this.settings = settings;
+            this.userSettings = userSettings;
             this.viewer = viewer;
-            _ = EnumExtension.GetValue(settings.PopupSettings[ViewerWindowType.DistributedPowerWindow], out windowMode);
+            _ = EnumExtension.GetValue(userSettings.PopupSettings[ViewerWindowType.DistributedPowerWindow], out windowMode);
             UpdatePowerInformation();
             Resize();
         }
@@ -209,7 +209,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 Resize(size);
             }
 
-            settings.PopupSettings[ViewerWindowType.DistributedPowerWindow] = windowMode.ToString();
+            userSettings.PopupSettings[ViewerWindowType.DistributedPowerWindow] = windowMode.ToString();
         }
 
         private void UpdatePowerInformation()

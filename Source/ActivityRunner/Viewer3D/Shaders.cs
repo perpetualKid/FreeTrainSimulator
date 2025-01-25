@@ -219,7 +219,7 @@ namespace Orts.ActivityRunner.Viewer3D
             referenceAlpha = Parameters["ReferenceAlpha"];
             overlayScale = Parameters["OverlayScale"];
 
-            fullBrightness = Simulator.Instance.Settings.DayAmbientLight / 20.0f;
+            fullBrightness = Simulator.Instance.UserSettings.AmbientBrightness/ 20.0f;
 
         }
     }
@@ -411,7 +411,7 @@ namespace Orts.ActivityRunner.Viewer3D
         // This function dims the lighting at night, with a transition period as the sun rises or sets
         private static float Day2Night(float startNightTrans, float finishNightTrans, float minDarknessCoeff, float sunDirectionY)
         {
-            int vIn = Simulator.Instance.Settings.DayAmbientLight;
+            int vIn = Simulator.Instance.UserSettings.AmbientBrightness;
             float dayAmbientLight = (float)vIn / 20.0f ;
               
             // The following two are used to interpoate between day and night lighting (y = mx + b)

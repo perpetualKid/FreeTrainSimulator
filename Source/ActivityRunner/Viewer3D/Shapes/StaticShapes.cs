@@ -66,7 +66,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 objectRadius = shapes.Max(s => (WorldPosition.Location - s.WorldPosition.Location).Length()) + dlHighest.ViewSphereRadius;
 
                 // Object viewing distance is easy because it's based on the outside of the object radius.
-                if (viewer.Settings.LODViewingExtension)
+                if (viewer.UserSettings.ExtendedDetailLevelView)
                     // Set to MaxValue so that an object never disappears.
                     // Many MSTS objects had a LOD of 2km which is the maximum distance that MSTS can handle.
                     // Open Rails can handle greater distances, so we override the lowest-detail LOD to make sure OR shows shapes further away than 2km.

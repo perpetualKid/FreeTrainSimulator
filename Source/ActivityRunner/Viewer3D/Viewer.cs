@@ -55,7 +55,6 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
@@ -90,8 +89,6 @@ namespace Orts.ActivityRunner.Viewer3D
         private bool pauseWindow;
 
         public static ICatalog Catalog { get; private set; }
-        // User setups.
-        public UserSettings Settings { get; }
         public ProfileUserSettingsModel UserSettings { get; }
 
         public UserCommandController<UserCommand> UserCommandController { get; }
@@ -156,6 +153,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private Camera currentCamera;
         private float fieldOfView;
+
+        internal bool Letterbox2DCab;
 
         public TrainCarViewer PlayerLocomotiveViewer
         {
@@ -274,7 +273,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
             Simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
             Game = game ?? throw new ArgumentNullException(nameof(game));
-            Settings = simulator.Settings;
             UserSettings = game.UserSettings;
 
             RenderProcess = game.RenderProcess;
@@ -359,19 +357,15 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void SaveSettings()
         {
+            /// Settings which should be persisted in the model, need to be configured also in <see cref="FreeTrainSimulator.Models.Shim.ProfileSettingsExtensions.UpdateRuntimeUserSettingsModel"/>
             foreach (ViewerWindowType windowType in EnumExtension.GetValues<ViewerWindowType>())
             {
                 if (windowManager.WindowInitialized(windowType))
                 {
-                    Settings.PopupLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+                    UserSettings.PopupLocations[windowType] = windowManager[windowType].RelativeLocation.FromPoint();
                 }
-                Settings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
+                UserSettings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
             }
-
-            Settings.Save(nameof(Settings.PopupLocations));
-            Settings.Save(nameof(Settings.PopupStatus));
-            Settings.Save(nameof(Settings.PopupSettings));
-            Settings.Save(nameof(Settings.OdometerShortDistanceMode));
         }
 
         /// <summary>
@@ -420,51 +414,51 @@ namespace Orts.ActivityRunner.Viewer3D
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             windowManager.SetLazyWindows(ViewerWindowType.QuitWindow, new Lazy<FormBase>(() =>
             {
-                return new QuitWindow(windowManager, Settings.PopupLocations[ViewerWindowType.QuitWindow].ToPoint(), Settings, this);
+                return new QuitWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.QuitWindow].ToPoint(), this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
-                return new HelpWindow(windowManager, Settings.PopupLocations[ViewerWindowType.HelpWindow].ToPoint(), Settings, this);
+                return new HelpWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.HelpWindow].ToPoint(), UserSettings, this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.ActivityWindow, new Lazy<FormBase>(() =>
             {
-                return new ActivityWindow(windowManager, Settings.PopupLocations[ViewerWindowType.ActivityWindow].ToPoint(), this);
+                return new ActivityWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.ActivityWindow].ToPoint(), this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.CompassWindow, new Lazy<FormBase>(() =>
             {
-                return new CompassWindow(windowManager, Settings.PopupLocations[ViewerWindowType.CompassWindow].ToPoint(), this);
+                return new CompassWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.CompassWindow].ToPoint(), this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.SwitchWindow, new Lazy<FormBase>(() =>
             {
-                return new SwitchWindow(windowManager, Settings.PopupLocations[ViewerWindowType.SwitchWindow].ToPoint());
+                return new SwitchWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.SwitchWindow].ToPoint());
             }));
             windowManager.SetLazyWindows(ViewerWindowType.EndOfTrainDeviceWindow, new Lazy<FormBase>(() =>
             {
-                return new EndOfTrainDeviceWindow(windowManager, Settings.PopupLocations[ViewerWindowType.EndOfTrainDeviceWindow].ToPoint());
+                return new EndOfTrainDeviceWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.EndOfTrainDeviceWindow].ToPoint());
             }));
             windowManager.SetLazyWindows(ViewerWindowType.NextStationWindow, new Lazy<FormBase>(() =>
             {
-                return new NextStationWindow(windowManager, Settings.PopupLocations[ViewerWindowType.NextStationWindow].ToPoint());
+                return new NextStationWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.NextStationWindow].ToPoint());
             }));
             windowManager.SetLazyWindows(ViewerWindowType.DetachTimetableTrainWindow, new Lazy<FormBase>(() =>
             {
-                return new TimetableDetachWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DetachTimetableTrainWindow].ToPoint());
+                return new TimetableDetachWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.DetachTimetableTrainWindow].ToPoint());
             }));
             windowManager.SetLazyWindows(ViewerWindowType.TrainListWindow, new Lazy<FormBase>(() =>
             {
-                return new TrainListWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrainListWindow].ToPoint(), this);
+                return new TrainListWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.TrainListWindow].ToPoint(), this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.MultiPlayerWindow, new Lazy<FormBase>(() =>
             {
-                return new MultiPlayerWindow(windowManager, Settings.PopupLocations[ViewerWindowType.MultiPlayerWindow].ToPoint());
+                return new MultiPlayerWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.MultiPlayerWindow].ToPoint());
             }));
             windowManager.SetLazyWindows(ViewerWindowType.DistributedPowerWindow, new Lazy<FormBase>(() =>
             {
-                return new DistributedPowerWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DistributedPowerWindow].ToPoint(), Settings, this);
+                return new DistributedPowerWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.DistributedPowerWindow].ToPoint(), UserSettings, this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.DrivingTrainWindow, new Lazy<FormBase>(() =>
             {
-                return new DrivingTrainWindow(windowManager, Settings.PopupLocations[ViewerWindowType.DrivingTrainWindow].ToPoint(), Settings, this);
+                return new DrivingTrainWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.DrivingTrainWindow].ToPoint(), UserSettings, this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.PauseOverlay, new Lazy<FormBase>(() =>
             {
@@ -472,7 +466,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }));
             windowManager.SetLazyWindows(ViewerWindowType.TrainOperationsWindow, new Lazy<FormBase>(() =>
             {
-                return new TrainOperationsWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrainOperationsWindow].ToPoint(), this);
+                return new TrainOperationsWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.TrainOperationsWindow].ToPoint(), this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.CarOperationsWindow, new Lazy<FormBase>(() =>
             {
@@ -480,11 +474,11 @@ namespace Orts.ActivityRunner.Viewer3D
             }));
             windowManager.SetLazyWindows(ViewerWindowType.TrackMonitorWindow, new Lazy<FormBase>(() =>
             {
-                return new TrackMonitorWindow(windowManager, Settings.PopupLocations[ViewerWindowType.TrackMonitorWindow].ToPoint());
+                return new TrackMonitorWindow(windowManager, UserSettings.PopupLocations[ViewerWindowType.TrackMonitorWindow].ToPoint());
             }));
             windowManager.SetLazyWindows(ViewerWindowType.MultiPlayerMessagingWindow, new Lazy<FormBase>(() =>
             {
-                return new MultiPlayerMessaging(windowManager, Settings.PopupLocations[ViewerWindowType.MultiPlayerMessagingWindow].ToPoint());
+                return new MultiPlayerMessaging(windowManager, UserSettings.PopupLocations[ViewerWindowType.MultiPlayerMessagingWindow].ToPoint());
             }));
             windowManager.SetLazyWindows(ViewerWindowType.NotificationOverlay, new Lazy<FormBase>(() =>
             {
@@ -492,19 +486,19 @@ namespace Orts.ActivityRunner.Viewer3D
             }));
             windowManager.SetLazyWindows(ViewerWindowType.DebugOverlay, new Lazy<FormBase>(() =>
             {
-                return new DebugOverlay(windowManager, Settings, this);
+                return new DebugOverlay(windowManager, UserSettings, this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.CarIdentifierOverlay, new Lazy<FormBase>(() =>
             {
-                return new CarIdentifierOverlay(windowManager, Settings, this);
+                return new CarIdentifierOverlay(windowManager, UserSettings, this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.LocationsOverlay, new Lazy<FormBase>(() =>
             {
-                return new LocationOverlay(windowManager, Settings, this);
+                return new LocationOverlay(windowManager, UserSettings, this);
             }));
             windowManager.SetLazyWindows(ViewerWindowType.TrackItemOverlay, new Lazy<FormBase>(() =>
             {
-                return new TrackDebugOverlay(windowManager, Settings, this);
+                return new TrackDebugOverlay(windowManager, UserSettings, this);
             }));
 
             Game.Components.Add(windowManager);
@@ -581,7 +575,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Simulator.Confirmer.ConfirmWithPerCent(CabControl.SimulationSpeed, CabSetting.Off, Simulator.GameSpeed * 100);
                 });
             }
-            if (MultiPlayerManager.IsMultiPlayer() || (Settings.MultiplayerClient && Simulator.Confirmer != null))
+            if (MultiPlayerManager.IsMultiPlayer() || (UserSettings.MultiPlayer && Simulator.Confirmer != null))
             {
                 UserCommandController.AddEvent(UserCommand.DisplayMultiPlayerWindow, KeyEventType.KeyPressed, () =>
                 {
@@ -714,15 +708,13 @@ namespace Orts.ActivityRunner.Viewer3D
             UserCommandController.AddEvent(UserCommand.CameraJumpingTrains, KeyEventType.KeyPressed, RandomSelectTrain);
             UserCommandController.AddEvent(UserCommand.CameraVibrate, KeyEventType.KeyPressed, () =>
             {
-                Settings.CarVibratingLevel = (Settings.CarVibratingLevel + 1) % 4;
-                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString($"Vibrating at level {Settings.CarVibratingLevel}"));
-                Settings.Save("CarVibratingLevel");
+                UserSettings.VibrationLevel = (UserSettings.VibrationLevel + 1) % 4;
+                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString($"Vibrating at level {UserSettings.VibrationLevel}"));
             });
             UserCommandController.AddEvent(UserCommand.DebugToggleConfirmations, KeyEventType.KeyPressed, () =>
             {
-                Simulator.Settings.SuppressConfirmations = !Simulator.Settings.SuppressConfirmations;
-                Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Settings.SuppressConfirmations ? Catalog.GetString("Confirmations suppressed") : Catalog.GetString("Confirmations visible"));
-                Simulator.Settings.Save();
+                Simulator.UserSettings.Confirmations = !Simulator.UserSettings.Confirmations;
+                Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.UserSettings.Confirmations ? Catalog.GetString("Confirmations visible") : Catalog.GetString("Confirmations suppressed"));
             });
             UserCommandController.AddEvent(UserCommand.CameraJumpBackPlayer, KeyEventType.KeyPressed, () =>
             {
@@ -833,8 +825,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
             UserCommandController.AddEvent(UserCommand.ControlOdoMeterDisplayMode, KeyEventType.KeyPressed, () =>
             {
-                Settings.OdometerShortDistanceMode = !Settings.OdometerShortDistanceMode;
-                Simulator.Confirmer.Confirm(CabControl.Odometer, Settings.OdometerShortDistanceMode ? "Short distance Measure mode" : "Long distance mode");
+                UserSettings.OdometerShortDistances = !UserSettings.OdometerShortDistances;
+                Simulator.Confirmer.Confirm(CabControl.Odometer, UserSettings.OdometerShortDistances ? "Short distance Measure mode" : "Long distance mode");
             });
 
             // Turntable commands
@@ -958,7 +950,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             foreach (ViewerWindowType windowType in EnumExtension.GetValues<ViewerWindowType>())
             {
-                if (Settings.PopupStatus[windowType] &&
+                if (UserSettings.PopupStatus[windowType] &&
                     (windowType is not ViewerWindowType.QuitWindow
                     and not ViewerWindowType.ActivityWindow
                     and not ViewerWindowType.PauseOverlay
@@ -992,7 +984,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private void StartDispatcherViewThread()
         {
             ProfileDispatcherSettingsModel dispatcherSettings = Task.Run(async () => await UserSettings.Parent.LoadSettingsModel<ProfileDispatcherSettingsModel>(CancellationToken.None).ConfigureAwait(true)).Result;
-            using (Dispatcher.DispatcherWindow dispatcherWindow = new Dispatcher.DispatcherWindow(Settings, UserSettings, dispatcherSettings))
+            using (Dispatcher.DispatcherWindow dispatcherWindow = new Dispatcher.DispatcherWindow(UserSettings, dispatcherSettings))
             {
                 this.dispatcherWindow = dispatcherWindow;
                 dispatcherWindow.Run();
@@ -1071,7 +1063,7 @@ namespace Orts.ActivityRunner.Viewer3D
             int unstretchedCabHeightPixels = (int)(CabTextureInverseRatio * windowWidth);
             int unstretchedCabWidthPixels = (int)(windowHeight / CabTextureInverseRatio);
             float windowInverseRatio = (float)windowHeight / windowWidth;
-            if (Settings.Letterbox2DCab)
+            if (Letterbox2DCab)
             {
                 CabWidthPixels = Math.Min((int)Math.Round(windowHeight / CabTextureInverseRatio), windowWidth);
                 CabHeightPixels = Math.Min((int)Math.Round(windowWidth * CabTextureInverseRatio), windowHeight);
@@ -1090,7 +1082,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 else if (windowInverseRatio < CabTextureInverseRatio)
                 {
                     // screen is wide-screen, so can choose between vertical scroll or horizontal stretch
-                    CabExceedsDisplay = (int)((unstretchedCabHeightPixels - windowHeight) * ((100 - Settings.Cab2DStretch) / 100f));
+                    CabExceedsDisplay = (int)((unstretchedCabHeightPixels - windowHeight) * ((100 - UserSettings.Cab2DStretch) / 100f));
                     CabExceedsDisplayHorizontally = 0;
                 }
                 else
@@ -1167,7 +1159,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 if (Log.PauseState == ReplayPauseState.Due)
                 {
-                    if (Simulator.Settings.ReplayPauseBeforeEnd)
+                    if (Simulator.UserSettings.ReplayPause)
                     {
                         // Reveal Quit Menu
                         //QuitWindow.Visible = Simulator.GamePaused = !QuitWindow.Visible;
@@ -1454,6 +1446,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         internal void Terminate()
         {
+            World.Unload();
             SaveSettings();
             dispatcherWindow?.Close();
             dataDump.Terminate();
@@ -1611,9 +1604,9 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Visibility == VisibilityState.Hidden)  // Test for Hidden state must come before setting Hidden state.
             {
                 Visibility = VisibilityState.ScreenshotPending;  // Next state else this path would be taken more than once.
-                if (!Directory.Exists(Settings.ScreenshotPath))
-                    Directory.CreateDirectory(Settings.ScreenshotPath);
-                string fileName = Path.Combine(Settings.ScreenshotPath, $"{Application.ProductName} {DateTime.Now:yyyy-MM-dd hh-mm-ss}.png");
+                if (!Directory.Exists(RuntimeInfo.ScreenshotFolder))
+                    Directory.CreateDirectory(RuntimeInfo.ScreenshotFolder);
+                string fileName = Path.Combine(RuntimeInfo.ScreenshotFolder, $"{Application.ProductName} {DateTime.Now:yyyy-MM-dd hh-mm-ss}.png");
                 SaveScreenshotToFile(Game.GraphicsDevice, fileName, false, false);
                 SaveScreenshot = false; // cancel trigger
             }

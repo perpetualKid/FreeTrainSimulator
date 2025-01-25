@@ -748,10 +748,10 @@ namespace Orts.Simulation.Timetables
             {
                 SetupStationStopHandling(); // player train must now perform own station stop handling (no activity function available)
 
-                evaluateTrainSpeed = simulator.Settings.EvaluationTrainSpeed;
-                evaluationInterval = simulator.Settings.EvaluationInterval;
+                evaluateTrainSpeed = simulator.UserSettings.EvaluationTrainSpeed;
+                evaluationInterval = simulator.UserSettings.EvaluationInterval;
 
-                evaluationContent = simulator.Settings.EvaluationContent;
+                evaluationContent = simulator.UserSettings.EvaluationContent;
 
                 // if logging required, derive filename and open file
                 if (evaluateTrainSpeed)
@@ -2390,7 +2390,7 @@ namespace Orts.Simulation.Timetables
         public override AiMovementState UpdateStoppedState(double elapsedClockSeconds)
         {
             // check if restart is delayed
-            if (DelayStart && simulator.Settings.TTUseRestartDelays)
+            if (DelayStart)// && simulator.Settings.TTUseRestartDelays)
             {
                 RestdelayS -= (float)elapsedClockSeconds;
                 if (RestdelayS <= 0)   // wait time has elapsed - start moving

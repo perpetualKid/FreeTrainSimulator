@@ -21,7 +21,6 @@
     <ProjectReference Include="..\..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
     <ProjectReference Include="..\..\FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj" />
     <ProjectReference Include="..\..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
-    <ProjectReference Include="..\..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />
 		<ProjectReference Include="..\..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
 	</ItemGroup>

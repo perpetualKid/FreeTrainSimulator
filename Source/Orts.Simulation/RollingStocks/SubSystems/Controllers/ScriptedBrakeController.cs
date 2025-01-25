@@ -333,7 +333,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             if (script == null)
             {
                 script = new MSTSBrakeController();
-                (script as MSTSBrakeController).ForceControllerReleaseGraduated = simulator.Settings.GraduatedRelease;
+                (script as MSTSBrakeController).ForceControllerReleaseGraduated = simulator.UserSettings.GraduatedRelease;
             }
 
             // AbstractScriptClass

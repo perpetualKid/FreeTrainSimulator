@@ -808,7 +808,7 @@ namespace Orts.Simulation.AIs
             train.BrakeSystem.BrakeLine3Pressure = 0;
 
             // Compute length of path to evaluate possibility of activity randomization
-            if (simulator.Settings.ActRandomizationLevel > 0 && simulator.ActivityRun != null)
+            if (simulator.UserSettings.ActivityRandomizationLevel > 0 && simulator.ActivityRun != null)
                 train.PathLength = train.ComputePathLength();
 
             return train;

@@ -1422,7 +1422,7 @@ namespace Orts.Simulation.RollingStocks
 
             // If the maximum cutoff for the locomotive is less then the default tractive effort constant value, then flag to the user to check. See this reference - 
             // https://babel.hathitrust.org/cgi/pt?id=wu.89089676290&view=1up&seq=510&skin=2021&q1=booster
-            if (CutoffController.MaximumValue < TractiveEffortFactor && simulator.Settings.VerboseConfigurationMessages && (CutoffController.MaximumValue < 0.7 || TractiveEffortFactor >= 0.85))
+            if (CutoffController.MaximumValue < TractiveEffortFactor && simulator.UserSettings.ConfigurationMessages && (CutoffController.MaximumValue < 0.7 || TractiveEffortFactor >= 0.85))
             {
                 Trace.TraceInformation("Maximum Cutoff setting {0} is less then the TractiveEffortFactor {1}, is this correct?", CutoffController.MaximumValue, TractiveEffortFactor);
             }
@@ -1704,7 +1704,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Determine whether to start locomotive in Hot or Cold State
-            HotStart = simulator.Settings.HotStart;
+            HotStart = simulator.UserSettings.SteamHotStart;
 
             // Calculate maximum power of the locomotive, based upon the maximum IHP
             // Maximum IHP will occur at different (piston) speed for saturated locomotives and superheated based upon the wheel revolution. Typically saturated locomotive produce maximum power @ a piston speed of 700 ft/min , and superheated will occur @ 1000ft/min
@@ -2065,7 +2065,7 @@ namespace Orts.Simulation.RollingStocks
 
             ApplyBoilerPressure();
 
-            if (simulator.Settings.DataLogSteamPerformance)
+            if (simulator.UserSettings.DataLogSteamPerformance)
             {
                 Trace.TraceInformation("============================================= Steam Locomotive Performance - Locomotive Details =========================================================");
                 Trace.TraceInformation("Version - {0}", VersionInfo.Version);
@@ -3599,7 +3599,7 @@ namespace Orts.Simulation.RollingStocks
                 if (IsGrateLimit)  // Provide message to player that grate limit has now returned within limits
                 {
                     simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Grate limit return to normal."));
-                    grateNotificationTimeout = System.Environment.TickCount64 + (simulator.Settings.NotificationsTimeout * 2);
+                    grateNotificationTimeout = System.Environment.TickCount64 + (simulator.UserSettings.NotificationsTimeout * 2);
                     carInfo["GrateLimit"] = Simulator.Catalog.GetString("Normal");
                 }
                 if (System.Environment.TickCount64 > grateNotificationTimeout)
@@ -4963,7 +4963,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Calculate the elapse time for the steam performance monitoring
-            if (simulator.Settings.DataLogSteamPerformance)
+            if (simulator.UserSettings.DataLogSteamPerformance)
             {
                 if (SpeedMpS > 0.05)
                 {
@@ -5092,7 +5092,7 @@ namespace Orts.Simulation.RollingStocks
             // Typically tangential force will be greater at starting then when the locomotive is at speed, as interia and reduce steam pressure will decrease the value. 
             // By default this model uses information based upon a "NYC 4-4-2 locomotive", for smaller locomotives this data is changed in the OR initialisation phase.
 
-            if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && IsPlayerTrain && this.Train.TrainType != TrainType.AiPlayerHosting && SteamEngineType != SteamEngineType.Geared)
+            if (simulator.UserSettings.AdvancedAdhesion && !simulator.UserSettings.SimplifiedControls && IsPlayerTrain && this.Train.TrainType != TrainType.AiPlayerHosting && SteamEngineType != SteamEngineType.Geared)
             // only set advanced wheel slip when advanced adhesion, and simplecontrols/physics is not set and is in the the player train, AI locomotive will not work to this model. 
             // Don't use slip model when train is in auto pilot
             {
@@ -5617,7 +5617,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // If simple brake controls chosen, then "automatically" set the large ejector value
-                if (simulator.Settings.SimpleControlPhysics || !LargeEjectorControllerFitted)
+                if (simulator.UserSettings.SimplifiedControls || !LargeEjectorControllerFitted)
                 {
 
                     //  Provided BP is greater then max vacuum pressure large ejector will operate at full efficiency
@@ -7287,7 +7287,7 @@ namespace Orts.Simulation.RollingStocks
         public void AIFireReset()
         {
             aiFireState = AiFireState.Reset;
-            aiFireResetTicks = System.Environment.TickCount64 + (simulator.Settings.NotificationsTimeout * 2);
+            aiFireResetTicks = System.Environment.TickCount64 + (simulator.UserSettings.NotificationsTimeout * 2);
             simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("AI Fireman has been reset"));
         }
 
@@ -7393,7 +7393,7 @@ namespace Orts.Simulation.RollingStocks
         {
             base.UpdateCarStatus();
 
-            bool ukUnits = simulator.Settings.MeasurementUnit == MeasurementUnit.UK;
+            bool ukUnits = simulator.UserSettings.MeasurementUnit == MeasurementUnit.UK;
 
             carInfo["Steam Locomotive type"] = steamLocoType;
             // Set variable to change text colour as appropriate to flag different degrees of warning
@@ -7633,7 +7633,7 @@ namespace Orts.Simulation.RollingStocks
             carInfo["Motive Force Gear Ratio"] = $"{MotiveForceGearRatio:N2}";
             carInfo["Speed Factor Max"] = $"{MaxSpeedFactor:F3}";
 
-            if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && SteamEngineType != SteamEngineType.Geared)
+            if (simulator.UserSettings.AdvancedAdhesion && !simulator.UserSettings.SimplifiedControls && SteamEngineType != SteamEngineType.Geared)
             // Only display slip monitor if advanced adhesion is set and simplecontrols/physics not set
             {
                 carInfo[".Slip Monitor"] = null;

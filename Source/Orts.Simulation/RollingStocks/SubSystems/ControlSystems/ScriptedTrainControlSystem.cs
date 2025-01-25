@@ -61,7 +61,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
         public TrackMonitorSignalAspect CabSignalAspect { get; set; }
 
         private bool activated;
-        private bool customTCSScript;
         private readonly MSTSLocomotive Locomotive;
         protected static readonly Simulator Simulator = Simulator.Instance;
         private float ItemSpeedLimit;
@@ -180,10 +179,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
         {
             if (!activated)
             {
-                if (!Simulator.Settings.DisableTCSScripts && !string.IsNullOrEmpty(scriptName) && !scriptName.Equals("MSTS", StringComparison.OrdinalIgnoreCase))
+                if (Simulator.UserSettings.TcsScripts && !string.IsNullOrEmpty(scriptName) && !scriptName.Equals("MSTS", StringComparison.OrdinalIgnoreCase))
                 {
                     script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), scriptName) as TrainControlSystem;
-                    customTCSScript = true;
                 }
 
                 if (parametersFileName != null)
@@ -224,14 +222,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 // TrainControlSystem getters
                 script.IsTrainControlEnabled = () => Locomotive == Locomotive.Train.LeadLocomotive && Locomotive.Train.TrainType != TrainType.AiPlayerHosting;
                 script.IsAutopiloted = () => Locomotive == Simulator.PlayerLocomotive && Locomotive.Train.TrainType == TrainType.AiPlayerHosting;
-                script.IsAlerterEnabled = () =>
-                {
-                    return Simulator.Settings.Alerter
-                        && !(Simulator.Settings.AlerterDisableExternal
-                            && !Simulator.PlayerIsInCab
-                        );
-                };
-                script.IsSpeedControlEnabled = () => Simulator.Settings.SpeedControl;
+                script.IsAlerterEnabled = () => Simulator.UserSettings.Alerter && Simulator.UserSettings.AlerterExternal && !Simulator.PlayerIsInCab;
+                script.IsSpeedControlEnabled = () => Simulator.UserSettings.SpeedControl;
                 script.IsLowVoltagePowerSupplyOn = () => Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn;
                 script.IsCabPowerSupplyOn = () => Locomotive.LocomotivePowerSupply.CabPowerSupplyOn;
                 script.AlerterSound = () => Locomotive.AlerterSnd;
@@ -840,7 +832,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
         public async ValueTask<ScriptedTrainControlSystemSaveState> Snapshot()
         {
             return new ScriptedTrainControlSystemSaveState()
-            { 
+            {
                 ScriptName = scriptName,
                 ScriptState = string.IsNullOrEmpty(scriptName) ? ReadOnlySequence<byte>.Empty : await script.Snapshot().ConfigureAwait(false),
             };

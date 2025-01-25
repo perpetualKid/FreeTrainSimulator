@@ -27,7 +27,6 @@ using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
-using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Simulation;
@@ -37,8 +36,8 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
     public class World
     {
         private readonly Viewer viewer;
-        private readonly int performanceInitialViewingDistance;
-        private readonly int performanceInitialLODBias;
+        private readonly int initialViewingDistance;
+        private readonly int initialDetailLevelBias;
         private Tile tile;
         private Tile visibleTile;
         private bool performanceTune;
@@ -59,15 +58,15 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
         public World(Viewer viewer, double gameTime)
         {
             this.viewer = viewer;
-            performanceInitialViewingDistance = this.viewer.Settings.ViewingDistance;
-            performanceInitialLODBias = this.viewer.Settings.LODBias;
+            initialViewingDistance = this.viewer.UserSettings.ViewingDistance;
+            initialDetailLevelBias = this.viewer.UserSettings.DetailLevelBias;
             // Control stuff first.
             // check if weather file is defined
             WeatherControl = string.IsNullOrEmpty(viewer.Simulator.UserWeatherFile)
                 ? new WeatherControl(viewer)
                 : new AutomaticWeatherControl(viewer, viewer.Simulator.UserWeatherFile, gameTime);
             // Then drawers.
-            if (viewer.Settings.UseMSTSEnv)
+            if (viewer.UserSettings.MstsEnvironment)
                 MSTSSky = new MSTSSkyDrawer(viewer);
             else
                 Sky = new SkyViewer(viewer);
@@ -78,7 +77,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             RoadCars = new RoadCarViewer(viewer);
             Containers = new ContainersViewer(viewer);
             // Then sound.
-            if (viewer.Settings.SoundDetailLevel > 0)
+            if (viewer.UserSettings.SoundDetailLevel > 0)
             {
                 // Keep it silent while loading.
                 ALSoundSource.MuteAll();
@@ -105,7 +104,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                     viewer.MaterialManager.Mark();
                     viewer.TextureManager.Mark();
                     viewer.SignalTypeDataManager.Mark();
-                    if (viewer.Settings.UseMSTSEnv)
+                    if (viewer.UserSettings.MstsEnvironment)
                         MSTSSky.Mark();
                     else
                         Sky.Mark();
@@ -128,6 +127,12 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             }
         }
 
+        public void Unload()
+        {
+            viewer.UserSettings.ViewingDistance = initialViewingDistance;
+            viewer.UserSettings.DetailLevelBias = initialDetailLevelBias;
+        }
+
         public void Update(in ElapsedTime elapsedTime)
         {
             if (performanceTune && viewer.Game.IsActive)
@@ -135,10 +140,10 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 // Work out how far we need to change the actual FPS to get to the target.
                 //   +ve = under-performing/too much detail
                 //   -ve = over-performing/not enough detail
-                var fpsTarget = viewer.Settings.PerformanceTunerTarget - MetricCollector.Instance.Metrics[SlidingMetric.FrameRate].SmoothedValue;
+                var fpsTarget = viewer.UserSettings.PerformanceTunerTarget - MetricCollector.Instance.Metrics[SlidingMetric.FrameRate].SmoothedValue;
 
                 // If vertical sync is on, we're capped to 60 FPS. This means we need to shift a target of 60FPS down to 57FPS.
-                if (viewer.Settings.VerticalSync && viewer.Settings.PerformanceTunerTarget > 55)
+                if (viewer.UserSettings.VerticalSync && viewer.UserSettings.PerformanceTunerTarget > 55)
                     fpsTarget -= 3;
 
                 // Summarise the FPS adjustment to: +1 (add detail), 0 (keep), -1 (remove detail).
@@ -147,7 +152,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 // If we're not vertical sync-limited, there's no point calculating the CPU change, just assume adding detail is okay.
                 double cpuTarget = 0;
                 var cpuChange = 1;
-                if (viewer.Settings.VerticalSync)
+                if (viewer.UserSettings.VerticalSync)
                 {
                     // Work out how much spare CPU we have; the target is 90%.
                     //   +ve = under-performing/too much detail
@@ -161,18 +166,18 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
                 }
 
                 // Now we adjust the viewing distance to try and balance out the FPS.
-                var oldViewingDistance = viewer.Settings.ViewingDistance;
+                var oldViewingDistance = viewer.UserSettings.ViewingDistance;
                 if (fpsChange < 0)
-                    viewer.Settings.ViewingDistance -= (int)(fpsTarget - 1.5);
+                    viewer.UserSettings.ViewingDistance -= (int)(fpsTarget - 1.5);
                 else if (cpuChange < 0)
-                    viewer.Settings.ViewingDistance -= (int)(cpuTarget - 1.5);
+                    viewer.UserSettings.ViewingDistance -= (int)(cpuTarget - 1.5);
                 else if (fpsChange > 0 && cpuChange > 0)
-                    viewer.Settings.ViewingDistance += (int)(-fpsTarget - 1.5);
-                viewer.Settings.ViewingDistance = MathHelper.Clamp(viewer.Settings.ViewingDistance, 500, 10000);
-                viewer.Settings.LODBias = (int)MathHelper.Clamp(performanceInitialLODBias + 100 * ((float)viewer.Settings.ViewingDistance / performanceInitialViewingDistance - 1), -100, 100);
+                    viewer.UserSettings.ViewingDistance += (int)(-fpsTarget - 1.5);
+                viewer.UserSettings.ViewingDistance = MathHelper.Clamp(viewer.UserSettings.ViewingDistance, 500, 10000);
+                viewer.UserSettings.DetailLevelBias = (int)MathHelper.Clamp(initialDetailLevelBias + 100 * ((float)viewer.UserSettings.ViewingDistance / initialViewingDistance - 1), -100, 100);
 
                 // If we've changed the viewing distance, we need to update the camera matricies.
-                if (oldViewingDistance != viewer.Settings.ViewingDistance)
+                if (oldViewingDistance != viewer.UserSettings.ViewingDistance)
                     viewer.Camera.ScreenChanged();
 
                 // Flag as done, so the next load prep (every 250ms) can trigger us again.
@@ -190,12 +195,12 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             RoadCars.LoadPrep();
             Containers.LoadPrep();
             visibleTile = viewer.Camera.Tile;
-            performanceTune = viewer.Settings.PerformanceTuner;
+            performanceTune = viewer.UserSettings.PerformanceTuner;
         }
 
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (viewer.Settings.UseMSTSEnv)
+            if (viewer.UserSettings.MstsEnvironment)
                 MSTSSky.PrepareFrame(frame, elapsedTime);
             else
                 Sky.PrepareFrame(frame, elapsedTime);

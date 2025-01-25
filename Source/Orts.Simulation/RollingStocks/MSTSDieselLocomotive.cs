@@ -258,7 +258,7 @@ namespace Orts.Simulation.RollingStocks
         {
             base.LoadFromWagFile(wagFilePath);
 
-            if (simulator.Settings.VerboseConfigurationMessages)  // Display locomotivve name for verbose error messaging
+            if (simulator.UserSettings.ConfigurationMessages)  // Display locomotivve name for verbose error messaging
             {
                 Trace.TraceInformation("\n\n ================================================= {0} =================================================", LocomotiveName);
             }
@@ -272,7 +272,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     SpeedOfMaxContinuousForceMpS = MSTSSpeedOfMaxContinuousForceMpS; // Use MSTS value if present
 
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                         Trace.TraceInformation("Speed Of Max Continuous Force: set to default value {0}", FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, simulator.MetricUnits));
 
                 }
@@ -280,7 +280,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     SpeedOfMaxContinuousForceMpS = MaxPowerW / MaxContinuousForceN;
 
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                         Trace.TraceInformation("Speed Of Max Continuous Force: set to 'calculated' value {0}", FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, simulator.MetricUnits));
 
                 }
@@ -288,7 +288,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     SpeedOfMaxContinuousForceMpS = 10.0f; // If not defined then set at an "arbitary" value of 22mph
 
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                         Trace.TraceInformation("Speed Of Max Continuous Force: set to 'arbitary' value {0}", FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, simulator.MetricUnits));
 
                 }
@@ -321,7 +321,7 @@ namespace Orts.Simulation.RollingStocks
 
                     locomotiveMaxRailOutputPowerW = MaxPowerW;  // Set to default power value
 
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                     {
                         Trace.TraceInformation("MaxRailOutputPower (BASIC Config): set to default value = {0}", FormatStrings.FormatPower(locomotiveMaxRailOutputPowerW, simulator.MetricUnits, false, false));
                     }
@@ -330,7 +330,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     locomotiveMaxRailOutputPowerW = 2500000.0f; // If no default value then set to arbitary value
 
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                     {
                         Trace.TraceInformation("MaxRailOutputPower (BASIC Config): set at arbitary value = {0}", FormatStrings.FormatPower(locomotiveMaxRailOutputPowerW, simulator.MetricUnits, false, false));
                     }
@@ -342,7 +342,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     MaximumDieselEnginePowerW = locomotiveMaxRailOutputPowerW;  // If no value set in ENG file, then set the Prime Mover power to same as RailOutputPower (typically the MaxPower value)
 
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                         Trace.TraceInformation("Maximum Diesel Engine Prime Mover Power set the same as MaxRailOutputPower {0} value", FormatStrings.FormatPower(MaximumDieselEnginePowerW, simulator.MetricUnits, false, false));
 
                 }
@@ -358,7 +358,7 @@ namespace Orts.Simulation.RollingStocks
                     float StartingSpeedMpS = 0.1f; // Assumed starting speed for diesel - can't be zero otherwise error will occurr
                     MaxForceN = locomotiveMaxRailOutputPowerW / StartingSpeedMpS;
 
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                         Trace.TraceInformation("Maximum Force set to {0} value, calculated from Rail Power Value.", FormatStrings.FormatForce(MaxForceN, simulator.MetricUnits));
                 }
                 else
@@ -367,7 +367,7 @@ namespace Orts.Simulation.RollingStocks
                     float StartingSpeedMpS = 0.1f; // Assumed starting speed for diesel - can't be zero otherwise error will occurr
                     float MaxForceN = (float)TractiveForceCurves.Get(ThrottleSetting, StartingSpeedMpS);
 
-                    if (simulator.Settings.VerboseConfigurationMessages)
+                    if (simulator.UserSettings.ConfigurationMessages)
                         Trace.TraceInformation("Maximum Force set to {0} value, calcuated from Tractive Force Tables", FormatStrings.FormatForce(MaxForceN, simulator.MetricUnits));
                 }
 
@@ -376,7 +376,7 @@ namespace Orts.Simulation.RollingStocks
 
 
             // Check force assumptions set for diesel
-            if (simulator.Settings.VerboseConfigurationMessages)
+            if (simulator.UserSettings.ConfigurationMessages)
             {
                 CalculatedMaxContinuousForceN = 0;
                 float ThrottleSetting = 1.0f; // Must be at full throttle for these calculations
@@ -535,7 +535,7 @@ namespace Orts.Simulation.RollingStocks
                 GearBoxController.SetValue((float)DieselEngines[0].GearBox.CurrentGearIndex);
             }
 
-            if (simulator.Settings.VerboseConfigurationMessages)
+            if (simulator.UserSettings.ConfigurationMessages)
             {
                 if (DieselEngines.GearBox is GearBox gearBox)
                 {
@@ -1442,13 +1442,13 @@ namespace Orts.Simulation.RollingStocks
             carInfo["TractionCutOffRelay"] = Simulator.Catalog.GetParticularString("TractionCutOffRelay", DieselPowerSupply.TractionCutOffRelay.State.GetLocalizedDescription());
             carInfo["ElectricTrainSupply"] = LocomotivePowerSupply.ElectricTrainSupplySwitch.On ? Simulator.Catalog.GetString("On") : Simulator.Catalog.GetString("Off");
             carInfo["PowerSupply"] = LocomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
-            carInfo["Fuel"] = $"{FormatStrings.FormatFuelVolume(DieselLevelL, simulator.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}";
+            carInfo["Fuel"] = $"{FormatStrings.FormatFuelVolume(DieselLevelL, simulator.MetricUnits, Simulator.Instance.UserSettings.MeasurementUnit == MeasurementUnit.UK)}";
 
             DieselEngine engine = DieselEngines[0];
             carInfo["Power"] = FormatStrings.FormatPower(engine.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false);
             carInfo["Load"] = $"{engine.LoadPercent:F1} %";
             carInfo["RPM"] = $"{engine.RealRPM:F0} {FormatStrings.rpm}";
-            carInfo["Flow"] = $"{FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(engine.DieselFlowLps), Simulator.Instance.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}/{FormatStrings.h}";
+            carInfo["Flow"] = $"{FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(engine.DieselFlowLps), Simulator.Instance.MetricUnits, Simulator.Instance.UserSettings.MeasurementUnit == MeasurementUnit.UK)}/{FormatStrings.h}";
             carInfo["Temperature"] = FormatStrings.FormatTemperature(engine.DieselTemperatureDeg, Simulator.Instance.MetricUnits);
             carInfo["Oil Pressure"] = FormatStrings.FormatPressure(engine.DieselOilPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true);
         }
@@ -1473,7 +1473,7 @@ namespace Orts.Simulation.RollingStocks
 
                     this["Reverser"] = $"{locomotive.Direction.GetLocalizedDescription()} {(locomotive.Flipped ? Simulator.Catalog.GetString("(flipped)") : "")}";
                     this["Remote"] = $"{(locomotive.IsLeadLocomotive() ? RemoteControlGroup.Unconnected.GetLocalizedDescription() : locomotive.RemoteControlGroup.GetLocalizedDescription())}";
-                    this["Fuel"] = $"{FormatStrings.FormatFuelVolume(locomotive.DieselLevelL, simulator.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}";
+                    this["Fuel"] = $"{FormatStrings.FormatFuelVolume(locomotive.DieselLevelL, simulator.MetricUnits, Simulator.Instance.UserSettings.MeasurementUnit == MeasurementUnit.UK)}";
 
                     this["Motive Force"] = $"{FormatStrings.FormatForce(locomotive.MotiveForceN, simulator.MetricUnits)}";
                     FormattingOptions["Motive Force"] = locomotive.CouplerOverloaded ? FormatOption.RegularYellow : null;
@@ -1486,7 +1486,7 @@ namespace Orts.Simulation.RollingStocks
                     this["Power"] = FormatStrings.FormatPower(engine.CurrentDieselOutputPowerW, Simulator.Instance.MetricUnits, false, false);
                     this["Load"] = $"{engine.LoadPercent:F1} %";
                     this["RPM"] = $"{engine.RealRPM:F0} {FormatStrings.rpm}";
-                    this["Flow"] = $"{FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(engine.DieselFlowLps), Simulator.Instance.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}/{FormatStrings.h}";
+                    this["Flow"] = $"{FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(engine.DieselFlowLps), Simulator.Instance.MetricUnits, Simulator.Instance.UserSettings.MeasurementUnit == MeasurementUnit.UK)}/{FormatStrings.h}";
                     this["Temperature"] = FormatStrings.FormatTemperature(engine.DieselTemperatureDeg, Simulator.Instance.MetricUnits);
                     this["Oil Pressure"] = FormatStrings.FormatPressure(engine.DieselOilPressurePSI, Pressure.Unit.PSI, locomotive.MainPressureUnit, true);
 

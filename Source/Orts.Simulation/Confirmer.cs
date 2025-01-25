@@ -58,7 +58,7 @@ namespace Orts.Simulation
         public Confirmer(Simulator simulator)
         {
             Simulator = simulator;
-            defaultDuration = simulator?.Settings.NotificationsTimeout / 1000f ?? throw new ArgumentNullException(nameof(simulator));
+            defaultDuration = simulator?.UserSettings.NotificationsTimeout / 1000f ?? throw new ArgumentNullException(nameof(simulator));
 
             //TODO 2020-01-14 this needs to be synced and moved up to Orts.Common.Enums.CabControl
             Func<string, string> GetString = (value) => Simulator.Catalog.GetString(value);
@@ -262,7 +262,7 @@ namespace Orts.Simulation
         {
             // User can suppress levels None and Information but not Warning, Error and MSGs.
             // Cab control confirmations have level None.
-            if (level < ConfirmLevel.Information && Simulator.Settings.SuppressConfirmations)
+            if (level < ConfirmLevel.Information && !Simulator.UserSettings.Confirmations)
                 return;
 
             var format = "{2}";

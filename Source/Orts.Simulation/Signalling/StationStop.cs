@@ -422,21 +422,21 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private int RandomizePassengersWaiting(int actualNumPassengersWaiting)
         {
-            if (Simulator.Instance.Settings.ActRandomizationLevel > 0)
+            if (Simulator.Instance.UserSettings.ActivityRandomizationLevel > 0)
             {
                 int randms = DateTime.UtcNow.Millisecond % 10;
-                if (randms >= 6 - Simulator.Instance.Settings.ActRandomizationLevel)
+                if (randms >= 6 - Simulator.Instance.UserSettings.ActivityRandomizationLevel)
                 {
                     if (randms < 8)
                     {
                         actualNumPassengersWaiting += Train.RandomizedDelay(2 * PlatformItem.NumPassengersWaiting *
-                            Simulator.Instance.Settings.ActRandomizationLevel); // real passenger number may be up to 3 times the standard.
+                            Simulator.Instance.UserSettings.ActivityRandomizationLevel); // real passenger number may be up to 3 times the standard.
                     }
                     else
                     // less passengers than standard
                     {
                         actualNumPassengersWaiting -= Train.RandomizedDelay(PlatformItem.NumPassengersWaiting *
-                            Simulator.Instance.Settings.ActRandomizationLevel / 6);
+                            Simulator.Instance.UserSettings.ActivityRandomizationLevel / 6);
                     }
                 }
             }

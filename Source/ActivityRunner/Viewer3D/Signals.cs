@@ -358,7 +358,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         continue;
 
                     bool isDay;
-                    if (Viewer.Settings.UseMSTSEnv == false)
+                    if (Viewer.UserSettings.MstsEnvironment == false)
                         isDay = Viewer.World.Sky.SolarDirection.Y > 0;
                     else
                         isDay = Viewer.World.MSTSSky.mstsskysolarDirection.Y > 0;
@@ -375,7 +375,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     MatrixExtension.Multiply(in temp, in xnaTileTranslation, out Matrix xnaMatrix);
 
                     frame.AddPrimitive(SignalTypeData.Material, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix, ShapeFlags.None, state);
-                    if (Viewer.Settings.SignalLightGlow)
+                    if (Viewer.UserSettings.SignalLightGlow)
                         frame.AddPrimitive(SignalTypeData.GlowMaterial, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix, ShapeFlags.None, state);
                 }
 
@@ -757,7 +757,7 @@ namespace Orts.ActivityRunner.Viewer3D
             const float startNightTrans = 0.1f;
             const float finishNightTrans = -0.1f;
 
-            var sunDirection = viewer.Settings.UseMSTSEnv ? viewer.World.MSTSSky.mstsskysolarDirection : viewer.World.Sky.SolarDirection;
+            var sunDirection = viewer.UserSettings.MstsEnvironment ? viewer.World.MSTSSky.mstsskysolarDirection : viewer.World.Sky.SolarDirection;
             nightEffect = 1 - MathHelper.Clamp((sunDirection.Y - finishNightTrans) / (startNightTrans - finishNightTrans), 0, 1);
         }
 

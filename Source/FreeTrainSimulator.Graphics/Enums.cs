@@ -14,13 +14,6 @@
         Bottom = 2,
     }
 
-    public enum ScreenMode
-    {
-        Windowed,
-        WindowedFullscreen,
-        BorderlessFullscreen,
-    }
-
     public enum ColorSetting
     {
         Background,

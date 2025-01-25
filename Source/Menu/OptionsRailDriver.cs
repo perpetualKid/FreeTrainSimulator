@@ -299,6 +299,8 @@ namespace FreeTrainSimulator.Menu
 
         private void SaveRailDriverSettings()
         {
+            if (userSettings.RailDriverSettings == null)
+                return;
             foreach (Control control in panelRDButtons.Controls)
             {
                 if (control is Panel)

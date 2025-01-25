@@ -30,7 +30,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Dispatcher.PopupWindows;
 using Orts.Formats.Msts;
-using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Physics;
@@ -51,7 +50,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         private System.Drawing.Size windowSize;
         private readonly Point clientRectangleOffset;
 
-        private readonly UserSettings settings;
         private readonly ProfileUserSettingsModel userSettings;
         private readonly ProfileDispatcherSettingsModel dispatcherSettings;
         private Color BackgroundColor;
@@ -95,9 +93,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             "White",        // LevelCrossingItem
         });
 
-        public DispatcherWindow(UserSettings settings, ProfileUserSettingsModel userSettings, ProfileDispatcherSettingsModel dispatcherSettings)
+        public DispatcherWindow(ProfileUserSettingsModel userSettings, ProfileDispatcherSettingsModel dispatcherSettings)
         {
-            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
             this.dispatcherSettings = dispatcherSettings ?? throw new ArgumentNullException(nameof(dispatcherSettings));
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
@@ -218,8 +215,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
             Simulator simulator = Simulator.Instance;
             base.LoadContent();
-            bool useMetricUnits = settings.MeasurementUnit == MeasurementUnit.Metric || (settings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||
-                (settings.MeasurementUnit == MeasurementUnit.Route && simulator.RouteModel.MetricUnits);
+            bool useMetricUnits = userSettings.MeasurementUnit == MeasurementUnit.Metric || (userSettings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||
+                (userSettings.MeasurementUnit == MeasurementUnit.Route && simulator.RouteModel.MetricUnits);
 
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Scaled(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
