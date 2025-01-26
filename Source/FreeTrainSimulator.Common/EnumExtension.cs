@@ -17,15 +17,15 @@ namespace FreeTrainSimulator.Common
         {
             internal static readonly ImmutableArray<string> Names;
             internal static readonly ImmutableArray<T> Values;
-            internal static readonly Dictionary<T, string> ValueToDescriptionMap;
+            internal static readonly ImmutableDictionary<T, string> ValueToDescriptionMap;
             internal static readonly string EnumDescription;
-            internal static readonly Dictionary<string, T> NameValuePairs;
+            internal static readonly ImmutableDictionary<string, T> NameValuePairs;
             internal static readonly int Length;
             internal static readonly int SupportsReverse;
 #pragma warning disable CA1802 // Use literals where appropriate
             internal static readonly bool ConsecutiveValues = true;
 #pragma warning restore CA1802 // Use literals where appropriate
-            internal static readonly Dictionary<T, int> ValueLookup;
+            internal static readonly ImmutableDictionary<T, int> ValueLookup;
             internal static readonly int Offset;
             internal static Catalog Catalog;
 
@@ -35,16 +35,14 @@ namespace FreeTrainSimulator.Common
             {
                 Values = ImmutableCollectionsMarshal.AsImmutableArray((T[])Enum.GetValues(typeof(T)));
                 Names = ImmutableCollectionsMarshal.AsImmutableArray(Enum.GetNames(typeof(T)));
-                ValueToDescriptionMap = new Dictionary<T, string>();
                 EnumDescription = typeof(T).GetCustomAttributes(typeof(DescriptionAttribute), false).
                     Cast<DescriptionAttribute>().
                     Select(x => x.Description).
                     FirstOrDefault();
-                foreach (T value in Values)
-                    ValueToDescriptionMap[value] = GetDescription(value);
 
+                ValueToDescriptionMap = Values.ToImmutableDictionary(v => v, GetDescription);
                 NameValuePairs = Names.Zip(Values, (k, v) => new { k, v })
-                              .ToDictionary(x => x.k, x => x.v, StringComparer.OrdinalIgnoreCase);
+                              .ToImmutableDictionary(x => x.k, x => x.v, StringComparer.OrdinalIgnoreCase);
 
                 Length = Values.Length;
                 if (typeof(int).IsAssignableFrom(Enum.GetUnderlyingType(typeof(T))))
@@ -68,7 +66,7 @@ namespace FreeTrainSimulator.Common
                     T offsetItem = sortedValues.FirstOrDefault();
                     Offset = Unsafe.As<T, int>(ref offsetItem);
 
-                    ValueLookup = Values.Select((i, index) => (i, index)).ToDictionary(pair => pair.i, pair => pair.index);
+                    ValueLookup = Values.Select((i, index) => (i, index)).ToImmutableDictionary(pair => pair.i, pair => pair.index);
                 }
             }
 
@@ -134,7 +132,7 @@ namespace FreeTrainSimulator.Common
         /// <summary>
         /// returns a static list of all names in this enum
         /// </summary>
-        public static IReadOnlyCollection<string> GetNames<T>() where T : Enum
+        public static ImmutableArray<string> GetNames<T>() where T : Enum
         {
             return EnumCache<T>.Names;
         }
@@ -142,7 +140,7 @@ namespace FreeTrainSimulator.Common
         /// <summary>
         /// returns a static list of all values in this enum
         /// </summary>
-        public static IReadOnlyCollection<T> GetValues<T>() where T : Enum
+        public static ImmutableArray<T> GetValues<T>() where T : Enum
         {
             return EnumCache<T>.Values;
         }
