@@ -10,7 +10,7 @@
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
     <PackageReference Include="GetText.NET" Version="1.9.14" />
-    <PackageReference Include="MemoryPack" Version="1.21.1" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="8.0.1" />
+    <PackageReference Include="MemoryPack" Version="1.21.3" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="9.0.0" />
   </ItemGroup>
 </Project>
