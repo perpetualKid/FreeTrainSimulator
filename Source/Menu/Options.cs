@@ -427,9 +427,6 @@ namespace FreeTrainSimulator.Menu
         {
             int level = trackAdhesionFactor.Value - trackAdhesionFactorChange.Value;
 
-            // Allowance to make adhesion proportional to rain/snow/fog
-            level -= 40;
-
             if (level > 159)
                 AdhesionLevelValue.Text = catalog.GetString("Very easy");
             else if (level > 139)

@@ -21,7 +21,6 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
-using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Timetables;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
@@ -407,7 +406,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.FullBrakeAbove16kmh}", Color.White)));
                             functionLabel = AddEvaluationLine(evaluationLayoutContainer, "Auto pilot Time", $"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.AutoPilotTime)}");
                             activityEvaluation.Add((functionLabel, () => ($"= {FormatStrings.FormatTime(ActivityEvaluation.Instance.AutoPilotTime)}", Color.White)));
-                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, Simulator.Instance.UserSettings.CouplersBreak ? "Coupler breaks" : "Coupler overloaded", $"= {ActivityEvaluation.Instance.CouplerBreaks}");
+                            functionLabel = AddEvaluationLine(evaluationLayoutContainer, viewer.UserSettings.CouplersBreak ? "Coupler breaks" : "Coupler overloaded", $"= {ActivityEvaluation.Instance.CouplerBreaks}");
                             activityEvaluation.Add((functionLabel, () => ($"= {ActivityEvaluation.Instance.CouplerBreaks}", Color.White)));
                             if (viewer.UserSettings.CurveDependentSpeedLimits)
                             {
@@ -498,7 +497,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             }
             tabControl.TabLayouts[TabSettings.LocomotiveProcedures] = (layoutContainer) =>
             {
-                TextBox proceduresText = new TextBox(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight, (Simulator.Instance.PlayerLocomotive as MSTSLocomotive)?.EngineOperatingProcedures, false);
+                TextBox proceduresText = new TextBox(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight, Simulator.Instance.PlayerLocomotive?.EngineOperatingProcedures, false);
                 layoutContainer.Add(proceduresText);
             };
             layout.Add(tabControl);

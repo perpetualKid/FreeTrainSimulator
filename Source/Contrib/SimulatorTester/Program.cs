@@ -76,7 +76,7 @@ namespace Orts.SimulatorTester
             ProfileModel profileModel = await ((ProfileModel)null).Current(CancellationToken.None).ConfigureAwait(false);
             ProfileUserSettingsModel userSettings = await profileModel.LoadSettingsModel<ProfileUserSettingsModel>(CancellationToken.None).ConfigureAwait(false);
 
-            if (userSettings.ProfilingVerbose)
+            if (userSettings.LogLevel > TraceEventType.Warning)
             {
                 Console.WriteLine("This is a log file for {0}. Please include this file in bug reports.", RuntimeInfo.ProductName);
                 LogSeparator();
@@ -101,7 +101,7 @@ namespace Orts.SimulatorTester
                 SaveData data = GetSaveData(inf);
                 string activityFile = data.Args[0];
 
-                if (!userSettings.ProfilingQuiet)
+                if (userSettings.LogLevel > TraceEventType.Warning)
                 {
                     foreach (string arg in data.Args)
                         Console.WriteLine("Argument     = {0}", arg);
@@ -123,7 +123,7 @@ namespace Orts.SimulatorTester
                 simulator.Log.CommandList.Clear();
 
                 DateTimeOffset loadTime = DateTimeOffset.Now;
-                if (!userSettings.ProfilingQuiet)
+                if (userSettings.LogLevel > TraceEventType.Warning)
                 {
                     Console.WriteLine("{0:N1} seconds", (loadTime - startTime).TotalSeconds);
                     Console.Write("Replaying... ");
@@ -142,7 +142,7 @@ namespace Orts.SimulatorTester
                 double initialToExpectedM = Math.Sqrt(Math.Pow(data.ExpectedTileX - data.InitialTileX, 2) + Math.Pow(data.ExpectedTileZ - data.InitialTileZ, 2)) * WorldPosition.TileSize;
                 double expectedToActualM = Math.Sqrt(Math.Pow(actualTileX - data.ExpectedTileX, 2) + Math.Pow(actualTileZ - data.ExpectedTileZ, 2)) * WorldPosition.TileSize;
 
-                if (!userSettings.ProfilingQuiet)
+                if (userSettings.LogLevel > TraceEventType.Warning)
                 {
                     Console.WriteLine("{0:N1} seconds ({1:F0}x speed-up)", (endTime - loadTime).TotalSeconds, data.TimeElapsed / (endTime - loadTime).TotalSeconds);
                     Console.WriteLine("Actual Pos   = {0}, {1}", actualTileX, actualTileZ);

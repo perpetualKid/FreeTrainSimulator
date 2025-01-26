@@ -28,8 +28,6 @@ using FreeTrainSimulator.Models.Settings;
 using GetText;
 using GetText.WindowsForms;
 
-using Path = System.IO.Path;
-
 namespace FreeTrainSimulator.Menu
 {
     public partial class ImportExportSaveForm : Form

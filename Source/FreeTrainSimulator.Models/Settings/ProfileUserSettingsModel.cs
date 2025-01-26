@@ -215,8 +215,6 @@ namespace FreeTrainSimulator.Models.Settings
         public bool Profiling { get; set; }
         public int ProfilingFrameCount { get; set; }
         public int ProfilingTime { get; set; }
-        public bool ProfilingQuiet { get; set; }
-        public bool ProfilingVerbose { get; set; }
         public int ProfilingFps { get; set; } = 10;
         #endregion
 
@@ -224,6 +222,5 @@ namespace FreeTrainSimulator.Models.Settings
         public int ReplayPauseDuration { get; set; }
 
         public bool MultiPlayer { get; set; }
-
     }
 }
