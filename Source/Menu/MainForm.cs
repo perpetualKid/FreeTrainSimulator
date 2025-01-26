@@ -470,30 +470,34 @@ namespace FreeTrainSimulator.Menu
                 Invoke(ShowOptionsForm, initialSetup);
                 return;
             }
+            FrozenSet<FolderModel> existingFolders = ContentModel.ContentFolders;
             using (OptionsForm form = new OptionsForm(ProfileUserSettings, updateManager, initialSetup, ContentModel))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
-                    ModelConverterProgress progressForm = null;
-                    try
+                    if (existingFolders.Except(form.ContentModel.ContentFolders).Any() || form.ContentModel.ContentFolders.Except(existingFolders).Any()) // FrozenSet.SetEquals always returns false
                     {
-                        ProfileModel currentProfile = SelectedProfile;
-                        SelectedProfile = null;
-                        progressForm = new ModelConverterProgress();
+                        ModelConverterProgress progressForm = null;
+                        try
                         {
-                            progressForm.Show(this);
-                            Enabled = false;
-                            ContentModel = await form.ContentModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(true);
-                            await ProfileChanged(currentProfile).ConfigureAwait(true);
-                            await Task.Delay(1200).ConfigureAwait(true);
-                            progressForm.Close();
+                            ProfileModel currentProfile = SelectedProfile;
+                            SelectedProfile = null;
+                            progressForm = new ModelConverterProgress();
+                            {
+                                progressForm.Show(this);
+                                Enabled = false;
+                                ContentModel = await form.ContentModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(true);
+                                await ProfileChanged(currentProfile).ConfigureAwait(true);
+                                await Task.Delay(1200).ConfigureAwait(true);
+                                progressForm.Close();
+                            }
                         }
-                    }
-                    finally
-                    {
-                        progressForm?.Dispose();
-                        Enabled = true;
-                        BringToFront();
+                        finally
+                        {
+                            progressForm?.Dispose();
+                            Enabled = true;
+                            BringToFront();
+                        }
                     }
                 }
                 else
