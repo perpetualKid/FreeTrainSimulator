@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Menu
             if (profileModel != null && SelectedProfile == profileModel)
                 return;
 
-            buttonOptions.Enabled = false;
+            Invoke(() => { buttonOptions.Enabled = false; });
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
             Task<ContentModel> contentModelTask = ContentModel.Get(ctsProfileLoading.Token);
@@ -58,8 +58,7 @@ namespace FreeTrainSimulator.Menu
             }
 
             await updateTask.ConfigureAwait(false);
-            Invoke(() => { buttonOptions.Enabled = true; });
-            
+            Invoke(() => { buttonOptions.Enabled = true; });            
         }
 
         private async Task FolderChanged(FolderModel contentFolder)
