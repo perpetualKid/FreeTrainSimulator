@@ -112,7 +112,7 @@ namespace FreeTrainSimulator.Menu
             checkAlerterExternal.Enabled = this.userSettings.Alerter;
             checkAlerterExternal.Checked = this.userSettings.Alerter && this.userSettings.AlerterExternal;
             checkSpeedMonitor.Checked = this.userSettings.SpeedControl;
-            checkConfirmations.Checked = !this.userSettings.Confirmations;
+            checkConfirmations.Checked = this.userSettings.Confirmations;
             checkRetainers.Checked = this.userSettings.RetainersOnAllCars;
             checkGraduatedRelease.Checked = this.userSettings.GraduatedRelease;
             numericBrakePipeChargingRate.Value = this.userSettings.BrakePipeChargingRate;
