@@ -1850,4 +1850,11 @@ namespace FreeTrainSimulator.Common
         Single,
         Double,
     }
+
+    public enum FuelType
+    {
+        Water,
+        Coal,
+        Diesel,
+    }
 }
