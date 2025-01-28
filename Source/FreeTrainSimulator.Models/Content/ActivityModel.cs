@@ -9,6 +9,6 @@ namespace FreeTrainSimulator.Models.Content
     {
         public int InitialSpeed { get; init; }
         public EnumArray<int, FuelType> FuelLevels { get; init; }
-        public int Hazards { get; init; }
+        public int HazardProbability { get; init; }
     }
 }

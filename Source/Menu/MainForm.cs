@@ -475,7 +475,8 @@ namespace FreeTrainSimulator.Menu
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
-                    if (existingFolders.Except(form.ContentModel.ContentFolders).Any() || form.ContentModel.ContentFolders.Except(existingFolders).Any()) // FrozenSet.SetEquals always returns false
+                    if (existingFolders.Except(form.ContentModel.ContentFolders).Any() || form.ContentModel.ContentFolders.Except(existingFolders).Any() || // FrozenSet.SetEquals always returns false
+                         ContentModel.Version.Compare("2.0.0-dev.32") < 0)
                     {
                         ModelConverterProgress progressForm = null;
                         try
@@ -607,6 +608,9 @@ namespace FreeTrainSimulator.Menu
 
         private async Task SaveOptions()
         {
+            if (null == SelectedProfile || null == ProfileSelections)
+                return;
+
             ProfileUserSettings.LogLevel = checkBoxWarnings.Checked ? TraceEventType.Verbose : TraceEventType.Critical;
             ProfileUserSettings.MultiplayerUser = textBoxMPUser.Text;
 
