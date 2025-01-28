@@ -83,6 +83,19 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     return null;
                 }
 
+                // use average of both probabilities > 0, else use only the one which is > 0, else 0
+                static int CombinedHazardProbability(int workers, int animals)
+                {
+                    if (workers > 0 && animals > 0)
+                        return (workers + animals) / 2;
+                    else if (workers > 0)
+                        return workers;
+                    else if (animals > 0)
+                        return animals;
+                    else
+                        return 0;
+                }
+
                 ActivityModel activityModel = new ActivityModel()
                 {
                     Id = Path.GetFileNameWithoutExtension(filePath),
@@ -99,6 +112,15 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     PathId = activityFile.Activity.Header.PathID,
                     ConsistId = srvFile.TrainConfig,
                     Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
+                    FuelLevels = new EnumArray<int, FuelType>((FuelType fuelType) => fuelType switch
+                    {
+                        FuelType.Water => activityFile.Activity.Header.FuelWater,
+                        FuelType.Coal => activityFile.Activity.Header.FuelCoal,
+                        FuelType.Diesel => activityFile.Activity.Header.FuelDiesel,
+                        _ => throw new NotImplementedException(),
+                    }),
+                    InitialSpeed = activityFile.Activity.Header.StartingSpeed,
+                    HazardProbability = CombinedHazardProbability(activityFile.Activity.Header.Workers, activityFile.Activity.Header.Animals)
                 };
 
                 await Create(activityModel, routeModel, cancellationToken).ConfigureAwait(false);
