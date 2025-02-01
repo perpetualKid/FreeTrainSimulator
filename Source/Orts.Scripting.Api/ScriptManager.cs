@@ -23,8 +23,8 @@ namespace Orts.Scripting.Api
         {
             MetadataReference.CreateFromFile(typeof(Trace).GetTypeInfo().Assembly.Location),
             MetadataReference.CreateFromFile("FreeTrainSimulator.Common.dll"),
+            MetadataReference.CreateFromFile("FreeTrainSimulator.Models.dll"),
             MetadataReference.CreateFromFile("Orts.Formats.dll"),
-            MetadataReference.CreateFromFile("Orts.Settings.dll"),
             MetadataReference.CreateFromFile("Orts.Scripting.Api.dll"),
             MetadataReference.CreateFromFile("Orts.Simulation.dll"),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "mscorlib.dll")),
