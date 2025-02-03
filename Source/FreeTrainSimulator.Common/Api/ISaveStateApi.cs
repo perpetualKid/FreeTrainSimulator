@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace FreeTrainSimulator.Common.Api
@@ -13,7 +12,6 @@ namespace FreeTrainSimulator.Common.Api
         public ValueTask<T> Snapshot();
         public ValueTask Restore(T saveState);
         public virtual T CreateRuntimeTarget() => default(T);
-
     }
 
     public interface ISaveStateRestoreApi<TSaveState, TRuntime>

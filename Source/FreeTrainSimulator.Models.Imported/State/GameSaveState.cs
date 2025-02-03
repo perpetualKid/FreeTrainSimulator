@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Settings;
 
 using MemoryPack;
 
@@ -28,6 +29,7 @@ namespace FreeTrainSimulator.Models.Imported.State
         public SimulatorSaveState SimulatorSaveState { get; set; }
         public ViewerSaveState ViewerSaveState { get; set; }
         public ActivityEvaluationState ActivityEvaluationState { get; set; }
+        public ProfileSelectionsModel ProfileSelections { get; set; }
         [MemoryPackInclude]
         private string finalMarker = HeaderEofMarker;
 

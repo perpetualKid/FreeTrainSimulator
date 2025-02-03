@@ -54,6 +54,8 @@ namespace Orts.ActivityRunner.Processes
 {
     internal sealed class GameStateRunActivity : GameState
     {
+        private static readonly char[] separatorChars = new char[] { '/', '\\' };
+
         private enum ActionType
         {
             None,
@@ -76,8 +78,7 @@ namespace Orts.ActivityRunner.Processes
         private Matrix loadingMatrix = Matrix.Identity;
 
         private static readonly string separatorLine = new string('-', 80);
-        private static string[] arguments;
-        private static string[] options;
+        private readonly string[] arguments;
 
         public GameStateRunActivity(string[] args)
         {
@@ -91,8 +92,6 @@ namespace Orts.ActivityRunner.Processes
             optionsList.RemoveAll(option => string.Equals(option, activityType.ToString(), StringComparison.OrdinalIgnoreCase));
             _ = optionsList.Where(argument => EnumExtension.GetValue(argument, out actionType)).FirstOrDefault();
             optionsList.RemoveAll(option => string.Equals(option, actionType.ToString(), StringComparison.OrdinalIgnoreCase));
-
-            options = optionsList.ToArray();
         }
 
         protected override void Dispose(bool disposing)
@@ -146,44 +145,29 @@ namespace Orts.ActivityRunner.Processes
             loadingBar ??= new LoadingBarPrimitive(Game);
             timetableLoadingBar ??= new TimetableLoadingBarPrimitive(Game);
 
-            // No action, check for data; for now assume any data is good data.
-            if (actionType == ActionType.None && data.Length != 0)
-            {
-                // in multiplayer start/resume there is no "-start" or "-resume" string, so you have to discriminate
-                actionType = activityType != ActivityType.None || options.Length == 0 ? ActionType.Start : ActionType.Resume;
-            }
+            //// No action, check for data; for now assume any data is good data.
+            //if (actionType == ActionType.None && data.Length != 0)
+            //{
+            //    // in multiplayer start/resume there is no "-start" or "-resume" string, so you have to discriminate
+            //    actionType = activityType != ActivityType.None || options.Length == 0 ? ActionType.Start : ActionType.Resume;
+            //}
 
-            async ValueTask doAction()
+            try
             {
-                // Do the action specified or write out some help.
-                switch (actionType)
+                InitLogging(actionType == ActionType.Test);
+                profileSelections = await ResolveSelectionsFronCommandLine(arguments);
+                await InitLoading(profileSelections).ConfigureAwait(false);
+
+                switch (profileSelections.GamePlayAction)
                 {
-                    case ActionType.Start:
-                        InitLogging();
-                        await InitLoading().ConfigureAwait(false);
-                        await Start(Game.UserSettings).ConfigureAwait(false);
+                    case GamePlayAction.SingleplayerNewGame:
+                    case GamePlayAction.SinglePlayerTimetableGame:
+                    case GamePlayAction.MultiplayerClientGame:
+                        await Start(profileSelections).ConfigureAwait(false);
                         break;
-                    case ActionType.Resume:
-                        InitLogging();
-                        await InitLoading().ConfigureAwait(false);
-                        await Resume(Game.UserSettings).ConfigureAwait(false);
+                    case GamePlayAction.SingleplayerResumeSave:
+                        await Resume(profileSelections).ConfigureAwait(false);
                         break;
-                    case ActionType.Replay:
-                        InitLogging();
-                        await InitLoading().ConfigureAwait(false);
-                        await Replay(Game.UserSettings).ConfigureAwait(false);
-                        break;
-                    case ActionType.ReplayFromSave:
-                        InitLogging();
-                        await InitLoading().ConfigureAwait(false);
-                        await ReplayFromSave(Game.UserSettings).ConfigureAwait(false);
-                        break;
-                    case ActionType.Test:
-                        InitLogging(true);
-                        await InitLoading().ConfigureAwait(false);
-                        await Test(Game.UserSettings).ConfigureAwait(false);
-                        break;
-
                     default:
                         MessageBox.Show($"To start {RuntimeInfo.ProductName}, please run 'FreeTrainSimulator.exe'.\n\n"
                                 + "If you are attempting to debug this component, please run 'FreeTrainSimulator.exe' and execute the scenario you are interested in. "
@@ -193,10 +177,31 @@ namespace Orts.ActivityRunner.Processes
                         Game.Exit();
                         break;
                 }
-            }
-            try
-            {
-                await doAction().ConfigureAwait(false);
+                //// Do the action specified or write out some help.
+                //switch (actionType)
+                //{
+                //    case ActionType.Resume:
+                //        await Resume(Game.UserSettings).ConfigureAwait(false);
+                //        break;
+                //    case ActionType.Replay:
+                //        await Replay(Game.UserSettings).ConfigureAwait(false);
+                //        break;
+                //    case ActionType.ReplayFromSave:
+                //        await ReplayFromSave(Game.UserSettings).ConfigureAwait(false);
+                //        break;
+                //    case ActionType.Test:
+                //        await Test(Game.UserSettings).ConfigureAwait(false);
+                //        break;
+
+                //    default:
+                //        MessageBox.Show($"To start {RuntimeInfo.ProductName}, please run 'FreeTrainSimulator.exe'.\n\n"
+                //                + "If you are attempting to debug this component, please run 'FreeTrainSimulator.exe' and execute the scenario you are interested in. "
+                //                + "In the log file, the command-line arguments used will be listed at the top. "
+                //                + "You should then configure your debug environment to execute this component with those command-line arguments.",
+                //                $"{Application.ProductName}  {VersionInfo.Version}");
+                //        Game.Exit();
+                //        break;
+                //}
             }
             catch (Exception error) when (!Debugger.IsAttached)
             {
@@ -235,11 +240,11 @@ namespace Orts.ActivityRunner.Processes
                         string logFile = RuntimeInfo.LogFile(Game.UserSettings.LogFilePath, Game.UserSettings.LogFileName);
                         DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ProductName} cannot continue.\n\n" +
                                 $"    {errorSummary}\n\n" +
-                                $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ProductName} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {logFile}.\n\n" +
+                                $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ProductName} by reporting this error in our bug tracker at https://github.com/perpetualKid/FreeTrainSimulator/issues and attaching the log file {logFile}.\n\n" +
                                 ">>> Click OK to report this error on the GitHub bug tracker <<<",
                                 $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
                         if (openTracker == DialogResult.OK)
-                            Process.Start(new ProcessStartInfo("https://github.com/perpetualKid/ORTS-MG/issues") { UseShellExecute = true });
+                            SystemInfo.OpenBrowser("https://github.com/perpetualKid/FreeTrainSimulator/issues");
                     }
                 }
                 // Make sure we quit after handling an error.
@@ -253,16 +258,15 @@ namespace Orts.ActivityRunner.Processes
         /// Run the specified activity from the beginning.
         /// This is the start for MSTS Activity or Explorer mode or Timetable mode
         /// </summary>
-        private async ValueTask Start(ProfileUserSettingsModel userSettings)
+        private async ValueTask Start(ProfileSelectionsModel profileSelections)
         {
-            await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            await InitSimulator(Game.UserSettings, profileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
-            switch (activityType)
+            switch (profileSelections.ActivityType)
             {
                 case ActivityType.TimeTable:
                     simulator.StartTimetable(Game.LoaderProcess.CancellationToken);
                     break;
-
                 default:
                     simulator.Start(Game.LoaderProcess.CancellationToken);
                     break;
@@ -272,9 +276,9 @@ namespace Orts.ActivityRunner.Processes
             {
                 MultiPlayerManager.Instance().Connect();
                 MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
-                // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
+                // wait 2 seconds to see if you get a reply from server with updated position/consist data, else go on
 
-                await Task.Delay(5000).ConfigureAwait(false);
+                await Task.Delay(2000).ConfigureAwait(false);
                 if (simulator.Trains[0].RequestJump)
                 {
                     simulator.Trains[0].UpdateRemoteTrainPos(0);
@@ -294,7 +298,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Resume a saved game.
         /// </summary>
-        private async ValueTask Resume(ProfileUserSettingsModel userSettings)
+        private async ValueTask Resume(ProfileSelectionsModel profileSelections)
         {
             // If "-resume" also specifies a save file then use it
             // E.g. ActivityRunner.exe -resume "yard_two 2012-03-20 22.07.36"
@@ -302,12 +306,11 @@ namespace Orts.ActivityRunner.Processes
             // E.g. ActivityRunner.exe -resume
 
             // First use the .save file to check the validity and extract the route and activity.
-            string saveFile = GetSaveFile(data);
-            GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(profileSelections.GameSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
             activityType = saveState.ActivityType;
-            data = saveState.Arguments.ToArray();
-            await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+
+            await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
             await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
 
@@ -322,7 +325,7 @@ namespace Orts.ActivityRunner.Processes
             await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
 
             // Reload the command log
-            simulator.Log.LoadLog(Path.ChangeExtension(saveFile, "replay"));
+            simulator.Log.LoadLog(Path.ChangeExtension(profileSelections.GameSaveFile, "replay"));
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(Viewer));
@@ -487,9 +490,8 @@ namespace Orts.ActivityRunner.Processes
             if (Game.UserSettings.LogLevel != TraceEventType.Critical)
             {
                 string logFileName = RuntimeInfo.LogFile(Game.UserSettings.LogFilePath, Game.UserSettings.LogFileName);
-                LoggingUtil.InitLogging(logFileName, Game.UserSettings.LogLevel, true, appendLog);
+                LoggingUtil.InitLogging(logFileName, Game.UserSettings.LogLevel, !Debugger.IsAttached, appendLog);
                 Game.UserSettings.Log();
-                Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
         }
 
@@ -506,22 +508,29 @@ namespace Orts.ActivityRunner.Processes
         private DateTime loadingNextSample = DateTime.MinValue;
         private float loadedPercent = -1f;
 
-        private async ValueTask InitLoading()
+        private async ValueTask InitLoading(ProfileSelectionsModel profileSelections)
         {
             // Get the initial bytes; this is subtracted from all further uses of GetProcessBytesLoaded().
             loadingBytesInitial = GetProcessBytesLoaded();
 
             // We hash together all the appropriate arguments to the program as the key for the loading cache file.
-            // Arguments without a '.' in them and those starting '/' are ignored, since they are explore activity
-            // configuration (time, season, etc.) or flags like /test which we don't want to change on.
-            loadingDataKey = string.Join(" ", data.Where(a => a.Contains('.', StringComparison.OrdinalIgnoreCase)).ToArray()).ToUpperInvariant();
+            loadingDataKey = string.Join(" ",
+                profileSelections.FolderName,
+                profileSelections.RouteId,
+                profileSelections.ActivityId,
+                profileSelections.TimetableSet,
+                profileSelections.TimetableName,
+                profileSelections.TimetableTrain,
+                profileSelections.GamePlayAction,
+                profileSelections.ActivityType).ToUpperInvariant();
             loadingDataFilePath = RuntimeInfo.GetCacheFilePath("Load", loadingDataKey);
 
             // The loading of the cached data doesn't matter if anything goes wrong; we'll simply have no progress bar.
             LoadingDataState loadingData = null;
             try
             {
-                loadingData = await LoadingDataState.FromFile<LoadingDataState>(loadingDataFilePath, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                if (File.Exists(loadingDataFilePath))
+                    loadingData = await LoadingDataState.FromFile<LoadingDataState>(loadingDataFilePath, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException || exception is ArgumentException || exception is MemoryPackSerializationException)
             { }
@@ -619,18 +628,122 @@ namespace Orts.ActivityRunner.Processes
         }
         #endregion
 
+        private async ValueTask InitSimulator(ProfileUserSettingsModel userSettings, ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
+        {
+            Task<ProfileKeyboardSettingsModel> keyboardSettingsTask = userSettings.Parent.LoadSettingsModel<ProfileKeyboardSettingsModel>(cancellationToken);
+            Task<ProfileRailDriverSettingsModel> raildriverSettingsTask = userSettings.Parent.LoadSettingsModel<ProfileRailDriverSettingsModel>(cancellationToken);
+
+            FolderModel folderModel = await profileSelections.SelectedFolder(Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            RouteModel routeModel = await folderModel.RouteModel(profileSelections.RouteId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+
+            Trace.WriteLine($"{"Mode",-12}= -{profileSelections.GamePlayAction} -{profileSelections.ActivityType}");
+
+            switch (profileSelections.GamePlayAction)
+            {
+                case GamePlayAction.SingleplayerNewGame:
+                case GamePlayAction.MultiplayerClientGame:
+                case GamePlayAction.SinglePlayerTimetableGame:
+                    {
+                        switch (profileSelections.ActivityType)
+                        {
+                            case ActivityType.Explorer:
+                                {
+                                    PathModel pathModel = await routeModel.PathModel(profileSelections.PathId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                                    WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+
+                                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
+                                    Trace.WriteLine($"{"Path",-12}= {pathModel.Name}");
+                                    Trace.WriteLine($"{"Consist",-12}= {wagonSetModel.Name}");
+                                    Trace.WriteLine($"{"Time",-12}= {profileSelections.StartTime}");
+                                    Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
+                                    Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
+
+                                    simulator = new Simulator(userSettings, routeModel);
+                                    simulator.SetExplore(pathModel.SourceFile(), wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
+                                    break;
+                                }
+                            case ActivityType.ExploreActivity:
+                                {
+                                    PathModel pathModel = await routeModel.PathModel(profileSelections.PathId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                                    WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+
+                                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
+                                    Trace.WriteLine($"{"Path",-12}= {pathModel.Name}");
+                                    Trace.WriteLine($"{"Consist",-12}= {wagonSetModel.Name}");
+                                    Trace.WriteLine($"{"Time",-12}= {profileSelections.StartTime}");
+                                    Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
+                                    Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
+
+                                    simulator = new Simulator(userSettings, routeModel);
+                                    simulator.SetExploreThroughActivity(pathModel.SourceFile(), wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
+                                    break;
+                                }
+                            case ActivityType.TimeTable:
+                                {
+                                    TimetableModel timetableModel = await routeModel.TimetableModel(profileSelections.TimetableSet, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                                    Trace.WriteLine($"{"Timetable",-12}= {profileSelections.TimetableSet}:{profileSelections.TimetableName}");
+                                    Trace.WriteLine($"{"Train",-12}= {profileSelections.TimetableName}:{profileSelections.TimetableTrain}");
+                                    Trace.WriteLine($"{"Day",-12}= {profileSelections.TimetableDay}");
+                                    Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
+                                    Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
+                                    if (!string.IsNullOrEmpty(profileSelections.WeatherChanges))
+                                        Trace.WriteLine($"{"Weath Change",-12}= {profileSelections.WeatherChanges}");
+
+                                    simulator = new Simulator(userSettings, routeModel);
+                                    simulator.SetTimetableOptions(timetableModel.SourceFile(), $"{profileSelections.TimetableName}:{profileSelections.TimetableTrain}", profileSelections.Season, profileSelections.Weather, profileSelections.WeatherChanges);
+                                    break;
+                                }
+                            default:
+                                {
+                                    ActivityModel activityModel = await routeModel.ActivityModel(profileSelections.ActivityId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+
+                                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
+                                    Trace.WriteLine($"{"Activity",-12}= {activityModel.Name}");
+
+                                    simulator = new Simulator(userSettings, routeModel);
+                                    simulator.SetActivity(activityModel.SourceFile());
+                                    break;
+                                }
+                        }
+                        break;
+                    }
+                case GamePlayAction.SingleplayerResumeSave:
+                case GamePlayAction.SingleplayerReplaySave:
+                case GamePlayAction.SingleplayerReplaySaveFromSave:
+                case GamePlayAction.MultiplayerClientResumeSave:
+                    //parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
+                    break;
+                case GamePlayAction.SinglePlayerResumeTimetableGame:
+                    //parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
+                    break;
+            }
+
+            if (userSettings.MultiPlayer)
+            {
+                MultiPlayerManager.Start(userSettings.MultiplayerHost, userSettings.MultiplayerPort, userSettings.MultiplayerUser, "1234");
+            }
+
+            Game.UserSettings.KeyboardSettings = await keyboardSettingsTask.ConfigureAwait(false);
+            Game.UserSettings.RailDriverSettings = await raildriverSettingsTask.ConfigureAwait(false);
+        }
+
         private async ValueTask InitSimulator(ProfileUserSettingsModel userSettings, CancellationToken cancellationToken)
         {
-            Task<ProfileKeyboardSettingsModel> keyboardSettingsTask = Game.UserSettings.Parent.LoadSettingsModel<ProfileKeyboardSettingsModel>(cancellationToken);
-            Task<ProfileRailDriverSettingsModel> raildriverSettingsTask = Game.UserSettings.Parent.LoadSettingsModel<ProfileRailDriverSettingsModel>(cancellationToken);
+            Task<ProfileKeyboardSettingsModel> keyboardSettingsTask = userSettings.Parent.LoadSettingsModel<ProfileKeyboardSettingsModel>(cancellationToken);
+            Task<ProfileRailDriverSettingsModel> raildriverSettingsTask = userSettings.Parent.LoadSettingsModel<ProfileRailDriverSettingsModel>(cancellationToken);
 
             if (activityType == ActivityType.None)
             {
                 // implicit processing without explicit action definition
-                if (data.Length == 1)
-                    activityType = ActivityType.Activity;
-                else if (data.Length == 5)
-                    activityType = ActivityType.Explorer;
+                switch (data.Length)
+                {
+                    case 1:
+                        activityType = ActivityType.Activity;
+                        break;
+                    case 5:
+                        activityType = ActivityType.Explorer;
+                        break;
+                }
             }
 
             Trace.WriteLine($"{"Mode",-12}= {actionType} {activityType}");
@@ -688,29 +801,20 @@ namespace Orts.ActivityRunner.Processes
                 Trace.WriteLine(separatorLine);
             }
 
+            simulator = new Simulator(userSettings, data[0]);
+            loadingScreen ??= new LoadingScreenPrimitive(Game);
             switch (activityType)
             {
                 case ActivityType.Activity:
-                    simulator = new Simulator(userSettings, data[0]);
-                    loadingScreen ??= new LoadingScreenPrimitive(Game);
                     simulator.SetActivity(data[0]);
                     break;
-
                 case ActivityType.Explorer:
-                    simulator = new Simulator(userSettings, data[0]);
-                    loadingScreen ??= new LoadingScreenPrimitive(Game);
                     simulator.SetExplore(data[0], data[1], startTime, season, weather);
                     break;
-
                 case ActivityType.ExploreActivity:
-                    simulator = new Simulator(userSettings, data[0]);
-                    loadingScreen ??= new LoadingScreenPrimitive(Game);
                     simulator.SetExploreThroughActivity(data[0], data[1], startTime, season, weather);
                     break;
-
                 case ActivityType.TimeTable:
-                    simulator = new Simulator(userSettings, data[0]);
-                    loadingScreen ??= new LoadingScreenPrimitive(Game);
                     if (actionType != ActionType.Start) // no specific action for start, handled in start_timetable
                     {
                         // for resume and replay : set timetable file and selected train info
@@ -768,6 +872,157 @@ namespace Orts.ActivityRunner.Processes
             }
             catch (Formats.Msts.Parsers.STFException) { }
             return null;
+        }
+
+        private async Task<ProfileSelectionsModel> ResolveSelectionsFronCommandLine(string[] args)
+        {
+            if (args.Length == 0) // just load the selections from current profile
+            {
+                return await Game.UserSettings.Parent.LoadSettingsModel<ProfileSelectionsModel>(Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            }
+
+            IEnumerable<IGrouping<bool, string>> groupedArguments = args.GroupBy(argumenType => argumenType.StartsWith('-') || argumenType.StartsWith('/'));
+            List<string> optionsList = groupedArguments.Where(grouping => grouping.Key).SelectMany(grouping => grouping).Select(option => option[1..]).ToList();
+            string[] parameters = groupedArguments.Where(grouping => !grouping.Key).SelectMany(grouping => grouping).ToArray();
+
+            GamePlayAction actionType = GamePlayAction.None;
+            ActivityType activityType = ActivityType.None;
+
+            _ = optionsList.Where(argument => EnumExtension.GetValue(argument, out actionType)).FirstOrDefault();
+            optionsList.RemoveAll(option => string.Equals(option, actionType.ToString(), StringComparison.OrdinalIgnoreCase));
+            _ = optionsList.Where(argument => EnumExtension.GetValue(argument, out activityType)).FirstOrDefault();
+            optionsList.RemoveAll(option => string.Equals(option, activityType.ToString(), StringComparison.OrdinalIgnoreCase));
+
+            ProfileSelectionsModel NewGameFromParams(string[] parameters, GamePlayAction targetActionType, ActivityType targetActivityType)
+            {
+                if (targetActionType is not (GamePlayAction.SingleplayerNewGame or GamePlayAction.SinglePlayerTimetableGame or GamePlayAction.MultiplayerClientGame))
+                    throw new InvalidCommandLineException($"Unexpected GamePlayAction {targetActionType} to start a new game.");
+
+                ProfileSelectionsModel selectionsModel = new ProfileSelectionsModel()
+                {
+                    GamePlayAction = targetActionType,
+                    ActivityType = targetActivityType,
+                };
+
+                switch (activityType)
+                {
+                    case ActivityType.Explorer:
+                    case ActivityType.ExploreActivity:
+                        selectionsModel.FolderName = parameters[0];
+                        selectionsModel.RouteId = parameters[1];
+                        selectionsModel.PathId = parameters[2];
+                        selectionsModel.WagonSetId = parameters[3];
+
+                        selectionsModel.StartTime = TimeOnly.TryParse(parameters[4], out TimeOnly startTime) ? startTime : TimeOnly.FromTimeSpan(TimeSpan.FromHours(12));
+                        selectionsModel.Season = EnumExtension.GetValue(parameters[5], out SeasonType season) ? season : SeasonType.Summer;
+                        selectionsModel.Weather = EnumExtension.GetValue(parameters[6], out WeatherType weather) ? weather : WeatherType.Clear;
+                        break;
+                    case ActivityType.TimeTable:
+                        selectionsModel.FolderName = parameters[0];
+                        selectionsModel.RouteId = parameters[1];
+                        selectionsModel.TimetableSet = parameters[2];
+                        selectionsModel.TimetableName = parameters[3];
+                        selectionsModel.TimetableTrain = parameters[4];
+
+                        selectionsModel.TimetableDay = EnumExtension.GetValue(parameters[5], out DayOfWeek weekday) ? weekday : DayOfWeek.Monday;
+                        selectionsModel.Season = EnumExtension.GetValue(parameters[6], out season) ? season : SeasonType.Summer;
+                        selectionsModel.Weather = EnumExtension.GetValue(parameters[7], out weather) ? weather : WeatherType.Clear;
+                        if (parameters.Length > 8)
+                            selectionsModel.WeatherChanges = parameters[8];
+                        break;
+                    case ActivityType.Activity:
+                        selectionsModel.FolderName = parameters[0];
+                        selectionsModel.RouteId = parameters[1];
+                        selectionsModel.ActivityId = parameters[2];
+                        break;
+                }
+                return selectionsModel;
+            }
+
+            ProfileSelectionsModel profileSelections = null;
+            string[] selectionElements;
+            switch (actionType)
+            {
+                case GamePlayAction.SingleplayerNewGame:
+                case GamePlayAction.SinglePlayerTimetableGame:
+                case GamePlayAction.None:
+                    switch (activityType)
+                    {
+                        case ActivityType.Explorer:
+                        case ActivityType.ExploreActivity:
+                            if ((selectionElements = parameters).Length == 7 ||
+                                parameters.Length == 4 && (selectionElements = parameters[0].Split(separatorChars, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))?.Length == 4 &&
+                                (selectionElements = new List<string>(selectionElements).Concat(parameters[1..]).ToArray()).Length == 7)
+                            {
+                                profileSelections = NewGameFromParams(selectionElements, GamePlayAction.SingleplayerNewGame, activityType);
+                            }
+                            else
+                                throw new InvalidCommandLineException($"Mode '{activityType}' needs 4 argument: \"Folder\\Route\\Path\\WagonSet\" StartTime (HH:MM) Season (Spring, Summer, Autumn, Winter) Weather (Clear, Rain, Snow). " +
+                                    $"Alternatively 7 arguments with \"Folder\" \"Route\" \"Path\" \"WagonSet\" provided individually.");
+                            break;
+                        case ActivityType.TimeTable:
+
+                            if ((selectionElements = parameters).Length >= 8 ||
+                                parameters.Length >= 4 && (selectionElements = parameters[0].Split(separatorChars, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))?.Length == 5 &&
+                                (selectionElements = new List<string>(selectionElements).Concat(parameters[1..]).ToArray()).Length >= 8)
+                            {
+                                profileSelections = NewGameFromParams(selectionElements, GamePlayAction.SinglePlayerTimetableGame, ActivityType.TimeTable);
+                            }
+                            else
+                                throw new InvalidCommandLineException($"Mode '{activityType}' needs 4 (optional 5) argument: \"Folder\\Route\\Timetable\\TimetableName\\TrainName\" Day (Monday - Sunday) Season (Spring, Summer, Autumn, Winter) Weather (Clear, Rain, Snow) [optional] WeatherChanges." +
+                                    $"Alternatively 8 (optional 9) arguments with \"Folder\" \"Route\" \"Timetable\" \"TimetableName\" \"TrainName\" provided individually.");
+                            break;
+                        case ActivityType.Activity:
+                        case ActivityType.None:
+                            //expect 3 parameters, to be the name of the folder, route and the activity, or one path-like parameter separated by path-separator chat folder\route\activity
+                            if ((selectionElements = parameters).Length == 3 || parameters.Length == 1 && (selectionElements = parameters[0].Split(separatorChars, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))?.Length == 3)
+                            {
+                                profileSelections = NewGameFromParams(selectionElements, GamePlayAction.SingleplayerNewGame, ActivityType.Activity);
+                            }
+                            else
+                                throw new InvalidCommandLineException($"Mode '{activityType}' needs 1 argument: \"Folder\\Route\\Activity\" or 3 arguments \"Folder\" \"Route\" \"Activity\".");
+                            break;
+                    }
+                    break;
+                case GamePlayAction.MultiplayerClientGame:
+                    break;
+                case GamePlayAction.SingleplayerResumeSave:
+                case GamePlayAction.SingleplayerReplaySave:
+                case GamePlayAction.SingleplayerReplaySaveFromSave:
+                case GamePlayAction.SinglePlayerResumeTimetableGame:
+                case GamePlayAction.MultiplayerClientResumeSave:
+                    //optional 1 parameters about save file name
+                    profileSelections = new ProfileSelectionsModel()
+                    {
+                        GamePlayAction = actionType,
+                        GameSaveFile = GetSaveFile(parameters?.Length == 1 ? parameters[0] : string.Empty)
+                    };
+                    break;
+                default:
+                    throw new InvalidCommandLineException("Invalid combination of command line arguments.");
+
+            }
+
+            return profileSelections;
+        }
+
+        private static string GetSaveFile(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                // return the latest save file
+                DirectoryInfo directory = new DirectoryInfo(RuntimeInfo.UserDataFolder);
+                FileInfo file = directory.EnumerateFiles("*" + FileNameExtensions.SaveFile).OrderByDescending(f => f.LastWriteTime).FirstOrDefault();
+                return file == null
+                    ? throw new FileNotFoundException($"No activity save file '*.save' not found in folder {directory}")
+                    : file.FullName;
+            }
+            string saveFile = fileName;
+            if (!saveFile.EndsWith(FileNameExtensions.SaveFile, StringComparison.OrdinalIgnoreCase))
+            {
+                saveFile += FileNameExtensions.SaveFile;
+            }
+            return Path.Combine(RuntimeInfo.UserDataFolder, saveFile);
         }
 
         private static string GetSaveFile(string[] args)

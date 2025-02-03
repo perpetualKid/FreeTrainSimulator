@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Settings;
 
 using Microsoft.Xna.Framework;
 
@@ -39,6 +40,7 @@ namespace Orts.ActivityRunner.Processes
 
         private protected static ActivityType activityType;
         private protected static string[] data;
+        private protected static ProfileSelectionsModel profileSelections;
 
         internal GameHost Game { get; set; }
 

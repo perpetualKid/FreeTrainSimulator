@@ -32,5 +32,6 @@ namespace FreeTrainSimulator.Models.Settings
         public WeatherType Weather { get; set; } = WeatherType.Clear;
         // Other selections
         public GamePlayAction GamePlayAction { get; set; }
+        public string GameSaveFile { get; set; }
     }
 }

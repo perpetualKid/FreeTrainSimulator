@@ -248,6 +248,72 @@ namespace Orts.Simulation
 
         public float TimetableLoadedFraction { get; internal set; }    // Set by AI.PrerunAI(), Get by GameStateRunActivity.Update()
 
+        public Simulator(ProfileUserSettingsModel userSettings, RouteModel routeModel)
+        {
+            Instance = this;
+            CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
+            Catalog = CatalogManager.Catalog;
+
+            TimetableMode = false;
+
+            UserSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
+            GamePaused = userSettings.PauseAtStart;
+
+            RouteModel = routeModel ?? throw new ArgumentNullException(nameof(routeModel));
+            RouteFolder = routeModel.MstsRouteFolder();
+
+            // TODO 2025-01-29 refactor to use route specific configuration settings
+            if (RouteModel.Settings.TryGetValue("OpenComputerTrainDoors", out string trainDoorsSetting) && bool.TryParse(trainDoorsSetting, out bool openComputerTrainDoors))
+                UserSettings.ComputerTrainDoors = openComputerTrainDoors;
+
+            TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(RouteModel.RouteKey)).TrackDB;
+
+            SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.ORSignalConfigFile);
+
+            TrackSectionsFile tsectionDat = new TrackSectionsFile(RouteFolder.TrackSectionFile);
+            if (File.Exists(RouteFolder.RouteTrackSectionFile))
+                tsectionDat.AddRouteTSectionDatFile(RouteFolder.RouteTrackSectionFile);
+
+            RoadTrackDB roadDatabase = null;
+            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(RouteModel.RouteKey)))
+            {
+                roadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(RouteModel.RouteKey)).RoadTrackDB;
+            }
+
+            MetricUnits = userSettings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (userSettings.MeasurementUnit == MeasurementUnit.Metric || userSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            RuntimeData.Initialize(RouteModel, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
+
+            SuperElevation = new SuperElevation(this);
+
+            string carSpawnFile = RouteFolder.CarSpawnerFile;
+            if (File.Exists(carSpawnFile))
+            {
+                CarSpawnerFile csf = new CarSpawnerFile(carSpawnFile, RouteFolder.ShapesFolder);
+                CarSpawnerLists.Add(csf.CarSpawners);
+            }
+
+            if (File.Exists(carSpawnFile = RouteFolder.OpenRailsCarSpawnerFile))
+            {
+                ORCarSpawnerFile acsf = new ORCarSpawnerFile(carSpawnFile, RouteFolder.ShapesFolder);
+                CarSpawnerLists.AddRange(acsf.CarSpawners);
+            }
+
+            //Load OR-Clock if external file "openrails\clock.dat" exists --------------------------------------------------------
+            string clockFile = Path.Combine(RouteFolder.OpenRailsRouteFolder, "clocks.dat");
+            if (File.Exists(clockFile))
+            {
+                ClockFile cf = new ClockFile(clockFile, RouteFolder.ShapesFolder);
+                Clocks = cf.Clocks;
+            }
+
+            Confirmer = new Confirmer(this);
+            HazardManager = new HazardManager();
+            FuelManager = new FuelManager(this);
+            ScriptManager = new ScriptManager();
+            ContainerManager = new ContainerManager(this);
+            Log = new CommandLog(this);
+        }
+
         public Simulator(ProfileUserSettingsModel userSettings, string activityPath)
         {
             Instance = this;

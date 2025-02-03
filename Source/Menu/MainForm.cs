@@ -77,7 +77,6 @@ namespace FreeTrainSimulator.Menu
         internal ProfileSelectionsModel ProfileSelections { get; private set; }
         internal ProfileUserSettingsModel ProfileUserSettings { get; private set; }
         internal ContentModel ContentModel { get; private set; }
-        internal string SelectedSaveFile { get; private set; }
         #endregion
 
         private Catalog catalog;
@@ -549,7 +548,7 @@ namespace FreeTrainSimulator.Menu
             }
             else
             {
-                ProfileSelections.GamePlayAction = GamePlayAction.MultiplayerClient;
+                ProfileSelections.GamePlayAction = GamePlayAction.MultiplayerClientGame;
             }
 
             // if timetable mode but no timetable selected - no action
@@ -563,8 +562,8 @@ namespace FreeTrainSimulator.Menu
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
                     ProfileSelections.GamePlayAction = form.SelectedAction;
+                    ProfileSelections.GameSaveFile = form.SelectedSaveFile;
                     await SaveOptions().ConfigureAwait(true);
-                    SelectedSaveFile = form.SelectedSaveFile;
                     DialogResult = DialogResult.OK;
                 }
             }
@@ -574,7 +573,7 @@ namespace FreeTrainSimulator.Menu
         {
             if (!CheckUserName(textBoxMPUser.Text))
                 return;
-            ProfileSelections.GamePlayAction = GamePlayAction.MultiplayerClient;
+            ProfileSelections.GamePlayAction = GamePlayAction.MultiplayerClientGame;
             await SaveOptions().ConfigureAwait(true);
             DialogResult = DialogResult.OK;
         }

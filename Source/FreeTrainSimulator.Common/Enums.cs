@@ -1832,14 +1832,14 @@ namespace FreeTrainSimulator.Common
     #region Menu_Selection enum
     public enum GamePlayAction
     {
+        None,
         SingleplayerNewGame,
         SingleplayerResumeSave,
         SingleplayerReplaySave,
         SingleplayerReplaySaveFromSave,
-        MultiplayerClient,
         SinglePlayerTimetableGame,
         SinglePlayerResumeTimetableGame,
-        MultiplayerServerResumeSave,
+        MultiplayerClientGame,
         MultiplayerClientResumeSave
     }
     #endregion

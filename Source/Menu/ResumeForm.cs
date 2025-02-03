@@ -115,7 +115,7 @@ namespace FreeTrainSimulator.Menu
 
             pathNameDataGridViewTextBoxColumn.Visible = profileSelections.ActivityType is ActivityType.TimeTable or ActivityType.Activity;
 
-            multiplayer = profileSelections.GamePlayAction == GamePlayAction.MultiplayerClient;
+            multiplayer = profileSelections.GamePlayAction == GamePlayAction.MultiplayerClientGame;
             if (multiplayer)
                 Text += $" - {catalog.GetString("Multiplayer")} ";
         }
@@ -223,20 +223,21 @@ namespace FreeTrainSimulator.Menu
                             return;
 
                     SelectedSaveFile = savePoint.SourceFile();
-                    GamePlayAction selectedAction = SelectedAction;
-                    switch (SelectedAction)
-                    {
-                        case GamePlayAction.SinglePlayerTimetableGame:
-                            selectedAction = GamePlayAction.SinglePlayerResumeTimetableGame;
-                            break;
-                        case GamePlayAction.SingleplayerNewGame:
-                            selectedAction = GamePlayAction.SingleplayerResumeSave;
-                            break;
-                        case GamePlayAction.MultiplayerClient:
-                            selectedAction = GamePlayAction.MultiplayerClientResumeSave;
-                            break;
-                    }
-                    SelectedAction = selectedAction;
+                    SelectedAction = GamePlayAction.SingleplayerResumeSave;
+                    //GamePlayAction selectedAction = SelectedAction;
+                    //switch (SelectedAction)
+                    //{
+                    //    case GamePlayAction.SinglePlayerTimetableGame:
+                    //        selectedAction = GamePlayAction.SinglePlayerResumeTimetableGame;
+                    //        break;
+                    //    case GamePlayAction.SingleplayerNewGame:
+                    //        selectedAction = GamePlayAction.SingleplayerResumeSave;
+                    //        break;
+                    //    case GamePlayAction.MultiplayerClientGame:
+                    //        selectedAction = GamePlayAction.MultiplayerClientResumeSave;
+                    //        break;
+                    //}
+                    //SelectedAction = selectedAction;
                     DialogResult = DialogResult.OK;
                 }
             }
