@@ -168,6 +168,9 @@ namespace Orts.ActivityRunner.Processes
                     case GamePlayAction.SingleplayerResumeSave:
                         await Resume(profileSelections).ConfigureAwait(false);
                         break;
+                    case GamePlayAction.SingleplayerReplaySave:
+                        await Replay(profileSelections).ConfigureAwait(false);
+                        break;
                     default:
                         MessageBox.Show($"To start {RuntimeInfo.ProductName}, please run 'FreeTrainSimulator.exe'.\n\n"
                                 + "If you are attempting to debug this component, please run 'FreeTrainSimulator.exe' and execute the scenario you are interested in. "
@@ -300,15 +303,8 @@ namespace Orts.ActivityRunner.Processes
         /// </summary>
         private async ValueTask Resume(ProfileSelectionsModel profileSelections)
         {
-            // If "-resume" also specifies a save file then use it
-            // E.g. ActivityRunner.exe -resume "yard_two 2012-03-20 22.07.36"
-            // else use most recently changed *.save
-            // E.g. ActivityRunner.exe -resume
-
             // First use the .save file to check the validity and extract the route and activity.
             GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(profileSelections.GameSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-
-            activityType = saveState.ActivityType;
 
             await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
@@ -318,7 +314,7 @@ namespace Orts.ActivityRunner.Processes
             Viewer.Initialize();
             if (MultiPlayerManager.IsMultiPlayer())
             {
-                if (activityType == ActivityType.Activity)
+                if (saveState.ActivityType == ActivityType.Activity)
                     simulator.SetPathAndConsist();
                 MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
             }
@@ -335,7 +331,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Replay a saved game.
         /// </summary>
-        private async ValueTask Replay(ProfileUserSettingsModel userSettings)
+        private async ValueTask Replay(ProfileSelectionsModel profileSelections)
         {
             // If "-replay" also specifies a save file then use it
             // E.g. ActivityRunner.exe -replay "yard_two 2012-03-20 22.07.36"
@@ -343,21 +339,17 @@ namespace Orts.ActivityRunner.Processes
             // E.g. ActivityRunner.exe -replay
 
             // First use the .save file to extract the route and activity.
-            string saveFile = GetSaveFile(data);
-
-            GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(profileSelections.GameSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             await Restore(saveState).ConfigureAwait(false);
 
-            activityType = saveState.ActivityType;
-            data = saveState.Arguments.ToArray();
-            await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             simulator.Start(Game.LoaderProcess.CancellationToken);
             Viewer = new Viewer(simulator, Game);
             Viewer.Initialize();
 
             // Load command log to replay
             simulator.ReplayCommandList = new List<ICommand>();
-            string replayFile = Path.ChangeExtension(saveFile, "replay");
+            string replayFile = Path.ChangeExtension(profileSelections.GameSaveFile, "replay");
             simulator.Log.LoadLog(replayFile);
             foreach (ICommand command in simulator.Log.CommandList)
             {
@@ -638,84 +630,67 @@ namespace Orts.ActivityRunner.Processes
 
             Trace.WriteLine($"{"Mode",-12}= -{profileSelections.GamePlayAction} -{profileSelections.ActivityType}");
 
-            switch (profileSelections.GamePlayAction)
+            switch (profileSelections.ActivityType)
             {
-                case GamePlayAction.SingleplayerNewGame:
-                case GamePlayAction.MultiplayerClientGame:
-                case GamePlayAction.SinglePlayerTimetableGame:
+                case ActivityType.Explorer:
                     {
-                        switch (profileSelections.ActivityType)
-                        {
-                            case ActivityType.Explorer:
-                                {
-                                    PathModel pathModel = await routeModel.PathModel(profileSelections.PathId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-                                    WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                        PathModel pathModel = await routeModel.PathModel(profileSelections.PathId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                        WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
-                                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
-                                    Trace.WriteLine($"{"Path",-12}= {pathModel.Name}");
-                                    Trace.WriteLine($"{"Consist",-12}= {wagonSetModel.Name}");
-                                    Trace.WriteLine($"{"Time",-12}= {profileSelections.StartTime}");
-                                    Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
-                                    Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
+                        Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
+                        Trace.WriteLine($"{"Path",-12}= {pathModel.Name}");
+                        Trace.WriteLine($"{"Consist",-12}= {wagonSetModel.Name}");
+                        Trace.WriteLine($"{"Time",-12}= {profileSelections.StartTime}");
+                        Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
+                        Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
 
-                                    simulator = new Simulator(userSettings, routeModel);
-                                    simulator.SetExplore(pathModel.SourceFile(), wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
-                                    break;
-                                }
-                            case ActivityType.ExploreActivity:
-                                {
-                                    PathModel pathModel = await routeModel.PathModel(profileSelections.PathId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-                                    WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-
-                                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
-                                    Trace.WriteLine($"{"Path",-12}= {pathModel.Name}");
-                                    Trace.WriteLine($"{"Consist",-12}= {wagonSetModel.Name}");
-                                    Trace.WriteLine($"{"Time",-12}= {profileSelections.StartTime}");
-                                    Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
-                                    Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
-
-                                    simulator = new Simulator(userSettings, routeModel);
-                                    simulator.SetExploreThroughActivity(pathModel.SourceFile(), wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
-                                    break;
-                                }
-                            case ActivityType.TimeTable:
-                                {
-                                    TimetableModel timetableModel = await routeModel.TimetableModel(profileSelections.TimetableSet, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-                                    Trace.WriteLine($"{"Timetable",-12}= {profileSelections.TimetableSet}:{profileSelections.TimetableName}");
-                                    Trace.WriteLine($"{"Train",-12}= {profileSelections.TimetableName}:{profileSelections.TimetableTrain}");
-                                    Trace.WriteLine($"{"Day",-12}= {profileSelections.TimetableDay}");
-                                    Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
-                                    Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
-                                    if (!string.IsNullOrEmpty(profileSelections.WeatherChanges))
-                                        Trace.WriteLine($"{"Weath Change",-12}= {profileSelections.WeatherChanges}");
-
-                                    simulator = new Simulator(userSettings, routeModel);
-                                    simulator.SetTimetableOptions(timetableModel.SourceFile(), $"{profileSelections.TimetableName}:{profileSelections.TimetableTrain}", profileSelections.Season, profileSelections.Weather, profileSelections.WeatherChanges);
-                                    break;
-                                }
-                            default:
-                                {
-                                    ActivityModel activityModel = await routeModel.ActivityModel(profileSelections.ActivityId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-
-                                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
-                                    Trace.WriteLine($"{"Activity",-12}= {activityModel.Name}");
-
-                                    simulator = new Simulator(userSettings, routeModel);
-                                    simulator.SetActivity(activityModel.SourceFile());
-                                    break;
-                                }
-                        }
+                        simulator = new Simulator(userSettings, routeModel);
+                        simulator.SetExplore(pathModel.SourceFile(), wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
                         break;
                     }
-                case GamePlayAction.SingleplayerResumeSave:
-                case GamePlayAction.SingleplayerReplaySave:
-                case GamePlayAction.SingleplayerReplaySaveFromSave:
-                case GamePlayAction.MultiplayerClientResumeSave:
-                    //parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
-                    break;
-                case GamePlayAction.SinglePlayerResumeTimetableGame:
-                    //parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
-                    break;
+                case ActivityType.ExploreActivity:
+                    {
+                        PathModel pathModel = await routeModel.PathModel(profileSelections.PathId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                        WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+
+                        Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
+                        Trace.WriteLine($"{"Path",-12}= {pathModel.Name}");
+                        Trace.WriteLine($"{"Consist",-12}= {wagonSetModel.Name}");
+                        Trace.WriteLine($"{"Time",-12}= {profileSelections.StartTime}");
+                        Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
+                        Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
+
+                        simulator = new Simulator(userSettings, routeModel);
+                        simulator.SetExploreThroughActivity(pathModel.SourceFile(), wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
+                        break;
+                    }
+                case ActivityType.TimeTable:
+                    {
+                        TimetableModel timetableModel = await routeModel.TimetableModel(profileSelections.TimetableSet, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+
+                        Trace.WriteLine($"{"Timetable",-12}= {profileSelections.TimetableSet}:{profileSelections.TimetableName}");
+                        Trace.WriteLine($"{"Train",-12}= {profileSelections.TimetableName}:{profileSelections.TimetableTrain}");
+                        Trace.WriteLine($"{"Day",-12}= {profileSelections.TimetableDay}");
+                        Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
+                        Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
+                        if (!string.IsNullOrEmpty(profileSelections.WeatherChanges))
+                            Trace.WriteLine($"{"Weath Change",-12}= {profileSelections.WeatherChanges}");
+
+                        simulator = new Simulator(userSettings, routeModel);
+                        simulator.SetTimetableOptions(timetableModel.SourceFile(), $"{profileSelections.TimetableName}:{profileSelections.TimetableTrain}", profileSelections.Season, profileSelections.Weather, profileSelections.WeatherChanges);
+                        break;
+                    }
+                default:
+                    {
+                        ActivityModel activityModel = await routeModel.ActivityModel(profileSelections.ActivityId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+
+                        Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
+                        Trace.WriteLine($"{"Activity",-12}= {activityModel.Name}");
+
+                        simulator = new Simulator(userSettings, routeModel);
+                        simulator.SetActivity(activityModel.SourceFile());
+                        break;
+                    }
             }
 
             if (userSettings.MultiPlayer)
