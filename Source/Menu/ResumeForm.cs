@@ -162,7 +162,7 @@ namespace FreeTrainSimulator.Menu
                 ActivityType.Explorer => Path.GetFileName(route.SourceFolder()),
                 ActivityType.ExploreActivity => $"ea${Path.GetFileName(route.SourceFolder())}$",
                 ActivityType.Activity => Path.GetFileNameWithoutExtension(activity.SourceFile()),
-                ActivityType.TimeTable => $"{Path.GetFileName(route.SourceFolder())} {Path.GetFileName(timeTable.SourceFile())}",
+                ActivityType.TimeTable => $"{Path.GetFileName(route.SourceFolder())} {Path.GetFileNameWithoutExtension(timeTable.SourceFile())}",
                 _ => throw new NotImplementedException(),
             };
 
