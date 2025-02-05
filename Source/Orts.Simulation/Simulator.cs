@@ -1587,7 +1587,7 @@ namespace Orts.Simulation
 
             // do not save AI trains (done by AITrain)
             // do not save Timetable Trains (done by TTTrain through AITrain)
-            return await Trains.Where((train) => train.TrainType != TrainType.Ai && train.TrainType != TrainType.AiIncorporated && train is not TTTrain)
+            return await Trains.Where((train) => train.TrainType != TrainType.Ai && train.TrainType != TrainType.AiIncorporated) // && train is not TTTrain)
                 .SnapshotCollection<TrainSaveState, Train>().ConfigureAwait(false);
         }
 
