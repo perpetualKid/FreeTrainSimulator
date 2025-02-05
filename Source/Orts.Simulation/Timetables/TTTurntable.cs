@@ -1145,10 +1145,9 @@ namespace Orts.Simulation.Timetables
             // find storage path with enough space to store train
 
             int reqPool = GetPoolExitIndex(train);
-            int reqPath = 0;
 
             // no storage space found : pool overflow
-            if (reqPool == (int)PoolAccessState.PoolOverflow)
+            if (reqPool == PoolAccessState.PoolOverflow)
             {
                 Trace.TraceWarning("Pool : " + PoolName + " : overflow : cannot place train : " + train.Name + "\n");
 
@@ -1158,7 +1157,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // no valid pool found
-            else if (reqPool == (int)PoolAccessState.PoolInvalid)
+            else if (reqPool == PoolAccessState.PoolInvalid)
             {
                 // pool invalid
                 Trace.TraceWarning("Pool : " + PoolName + " : no valid pool found : " + train.Name + "\n");
@@ -1176,6 +1175,7 @@ namespace Orts.Simulation.Timetables
                 // train approaches from exit path - train is moving toward turntable and is stored after turntable movement
                 if (checkAccessPath)
                 {
+                    int reqPath;
                     bool validPath = TestPoolAccess(train, out reqPath);
 
                     // none found

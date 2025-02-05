@@ -132,7 +132,7 @@ namespace FreeTrainSimulator.Menu
             checkDynamicShadows.Checked = this.userSettings.DynamicShadows;
             checkShadowAllShapes.Checked = this.userSettings.ShadowAllShapes;
             checkModelInstancing.Checked = this.userSettings.ModelInstancing;
-            checkWire.Checked = this.userSettings.OverheadWireType >= OverheadWireType.Single;
+            checkWire.Checked = this.userSettings.OverheadWireType >= OverheadWireType.SingleWire;
             checkVerticalSync.Checked = this.userSettings.VerticalSync;
             trackbarMultiSampling.Value = (int)Math.Log(this.userSettings.MultiSamplingCount, 2);
             TrackbarMultiSampling_Scroll(this, null);
@@ -145,7 +145,7 @@ namespace FreeTrainSimulator.Menu
             comboWindowSize.Text = $"{this.userSettings.WindowSettings[WindowSetting.Size].X}x{this.userSettings.WindowSettings[WindowSetting.Size].Y}";
             trackDayAmbientLight.Value = this.userSettings.AmbientBrightness;
             TrackDayAmbientLight_ValueChanged(null, null);
-            checkDoubleWire.Checked = this.userSettings.OverheadWireType == OverheadWireType.Double;
+            checkDoubleWire.Checked = this.userSettings.OverheadWireType == OverheadWireType.DoubleWire;
             checkBoxFullScreenNativeResolution.Checked = this.userSettings.ScreenMode == ScreenMode.BorderlessFullscreen;
             radioButtonFullScreen.Checked = this.userSettings.ScreenMode == ScreenMode.WindowedFullscreen;
             radioButtonWindow.Checked = this.userSettings.ScreenMode == ScreenMode.Windowed;
@@ -313,7 +313,7 @@ namespace FreeTrainSimulator.Menu
             userSettings.DynamicShadows = checkDynamicShadows.Checked;
             userSettings.ShadowAllShapes = checkShadowAllShapes.Checked;
             userSettings.ModelInstancing = checkModelInstancing.Checked;
-            userSettings.OverheadWireType = checkDoubleWire.Checked ? OverheadWireType.Double : checkWire.Checked ? OverheadWireType.Single : OverheadWireType.None;
+            userSettings.OverheadWireType = checkDoubleWire.Checked ? OverheadWireType.DoubleWire : checkWire.Checked ? OverheadWireType.SingleWire : OverheadWireType.None;
             userSettings.VerticalSync = checkVerticalSync.Checked;
             userSettings.MultiSamplingCount = 1 << trackbarMultiSampling.Value;
             userSettings.Cab2DStretch = (int)numericCab2DStretch.Value;

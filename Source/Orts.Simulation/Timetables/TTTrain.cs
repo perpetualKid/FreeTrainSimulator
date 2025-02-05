@@ -5240,7 +5240,7 @@ namespace Orts.Simulation.Timetables
             if (PoolAccessSection == sectionIndex)
             {
                 TimetablePool thisPool = simulator.PoolHolder.Pools[ExitPool];
-                int PoolStorageState = (int)PoolAccessState.PoolInvalid;
+                int PoolStorageState = PoolAccessState.PoolInvalid;
 
                 TrackCircuitPartialPathRoute newRoute = thisPool.SetPoolExit(this, out PoolStorageState, true);
 
@@ -5281,7 +5281,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 // if pool is claimed, set valid pool but take no further actions
-                else if (PoolStorageState == (int)PoolAccessState.PoolClaimed)
+                else if (PoolStorageState == PoolAccessState.PoolClaimed)
                 {
                     validPool = true;
                 }

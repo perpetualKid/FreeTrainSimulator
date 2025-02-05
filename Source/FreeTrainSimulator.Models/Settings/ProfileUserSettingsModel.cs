@@ -134,7 +134,7 @@ namespace FreeTrainSimulator.Models.Settings
         public bool DynamicShadows { get; set; } = true;
         public bool ShadowAllShapes { get; set; }
         public bool ModelInstancing { get; set; } = true;
-        public OverheadWireType OverheadWireType { get; set; } = OverheadWireType.Single;
+        public OverheadWireType OverheadWireType { get; set; } = OverheadWireType.SingleWire;
         public bool VerticalSync { get; set; } = true;
         public int Cab2DStretch { get; set; }
         public int ViewingDistance { get; set; } = 2_000;

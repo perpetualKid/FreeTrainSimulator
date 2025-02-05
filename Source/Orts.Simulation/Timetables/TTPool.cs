@@ -562,19 +562,18 @@ namespace Orts.Simulation.Timetables
         /// <param name="train"></param>
         virtual public int CreateInPool(TTTrain train, List<TTTrain> nextTrains)
         {
-            int PoolStorageState = (int)PoolAccessState.PoolInvalid;
-            train.TCRoute.TCRouteSubpaths[0] = PlaceInPool(train, out PoolStorageState, false);
+            train.TCRoute.TCRouteSubpaths[0] = PlaceInPool(train, out int poolStorageState, false);
             train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
             train.TCRoute.ActiveSubPath = 0;
 
             // if no storage available - abondone train
-            if (PoolStorageState < 0)
+            if (poolStorageState < 0)
             {
-                return (PoolStorageState);
+                return poolStorageState;
             }
 
             // use stored traveller
-            train.PoolStorageIndex = PoolStorageState;
+            train.PoolStorageIndex = poolStorageState;
             train.RearTDBTraveller = new Traveller(StoragePool[train.PoolStorageIndex].StoragePathTraveller);
 
             // if storage available check for other engines on storage track
@@ -612,7 +611,7 @@ namespace Orts.Simulation.Timetables
                 validPosition = train.PostInit(false); // post init train but do not activate
             }
 
-            return (PoolStorageState);
+            return (poolStorageState);
         }
 
 
@@ -638,7 +637,6 @@ namespace Orts.Simulation.Timetables
         {
             // new route
             TrackCircuitPartialPathRoute newRoute = null;
-            poolStorageState = (int)PoolAccessState.PoolInvalid;
 
             // set dispose states
             train.FormsStatic = true;
@@ -653,7 +651,7 @@ namespace Orts.Simulation.Timetables
             poolStorageState = GetPoolExitIndex(train);
 
             // pool overflow
-            if (poolStorageState == (int)PoolAccessState.PoolOverflow)
+            if (poolStorageState == PoolAccessState.PoolOverflow)
             {
                 Trace.TraceWarning("Pool : " + PoolName + " : overflow : cannot place train : " + train.Name + "\n");
 
@@ -663,7 +661,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // pool invalid
-            else if (poolStorageState == (int)PoolAccessState.PoolInvalid)
+            else if (poolStorageState == PoolAccessState.PoolInvalid)
             {
                 Trace.TraceWarning("Pool : " + PoolName + " : no valid pool found : " + train.Name + "\n");
 
@@ -755,7 +753,7 @@ namespace Orts.Simulation.Timetables
                 }
             }
 
-            return (newRoute);
+            return newRoute;
         }
 
         //================================================================================================//
@@ -778,7 +776,7 @@ namespace Orts.Simulation.Timetables
         {
             // find storage path with enough space to store train
 
-            int reqPool = (int)PoolAccessState.PoolInvalid;
+            int reqPool = PoolAccessState.PoolInvalid;
             for (int iPool = 0; iPool < StoragePool.Count && reqPool < 0; iPool++)
             {
                 PoolDetails thisStorage = StoragePool[iPool];
@@ -816,19 +814,19 @@ namespace Orts.Simulation.Timetables
             // else state is pool overflow
             if (reqPool < 0)
             {
-                reqPool = (int)PoolAccessState.PoolOverflow;
+                reqPool = PoolAccessState.PoolOverflow;
 
                 foreach (PoolDetails thisPool in StoragePool)
                 {
                     if (thisPool.ClaimUnits.Count > 0)
                     {
-                        reqPool = (int)PoolAccessState.PoolClaimed;
+                        reqPool = PoolAccessState.PoolClaimed;
                         break;
                     }
                 }
             }
 
-            return (reqPool);
+            return reqPool;
         }
 
         //================================================================================================//

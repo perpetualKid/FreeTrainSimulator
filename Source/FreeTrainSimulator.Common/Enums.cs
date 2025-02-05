@@ -1694,13 +1694,13 @@ namespace FreeTrainSimulator.Common
     }
 
 
-    public enum PoolAccessState
+    public static class PoolAccessState
     {
         // used to indicate access state to pool, combined with storage index
         // values are <0, value >= 0 is returned storage index
-        PoolClaimed = -1,
-        PoolOverflow = -2,
-        PoolInvalid = -3,
+        public const int PoolClaimed = -1;
+        public const int PoolOverflow = -2;
+        public const int PoolInvalid = -3;
     }
 
     public enum PoolExitDirection
@@ -1848,8 +1848,8 @@ namespace FreeTrainSimulator.Common
     public enum OverheadWireType
     {
         None,
-        Single,
-        Double,
+        SingleWire,
+        DoubleWire,
     }
 
     public enum FuelType

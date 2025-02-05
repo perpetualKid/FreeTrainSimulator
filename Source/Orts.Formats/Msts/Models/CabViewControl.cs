@@ -267,9 +267,8 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatch("(");
             var newScreen = stf.ReadString();
             stf.SkipRestOfBlock();
-            if (Screens == null)
-                Screens = new List<string>();
-            Screens.Add(newScreen.ToLower());
+            Screens ??= new List<string>();
+            Screens.Add(newScreen.ToLowerInvariant());
         }
 
         private protected virtual void ParseCabViewpoint(STFReader stf)
