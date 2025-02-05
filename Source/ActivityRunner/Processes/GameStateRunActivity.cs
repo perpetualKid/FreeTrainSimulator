@@ -469,7 +469,8 @@ namespace Orts.ActivityRunner.Processes
                 profileSelections.TimetableName,
                 profileSelections.TimetableTrain,
                 profileSelections.GamePlayAction,
-                profileSelections.ActivityType).ToUpperInvariant();
+                profileSelections.ActivityType,
+                profileSelections.GameSaveFile).ToUpperInvariant();
             loadingDataFilePath = RuntimeInfo.GetCacheFilePath("Load", loadingDataKey);
 
             // The loading of the cached data doesn't matter if anything goes wrong; we'll simply have no progress bar.
