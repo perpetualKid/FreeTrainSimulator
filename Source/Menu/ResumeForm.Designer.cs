@@ -344,7 +344,7 @@ namespace FreeTrainSimulator.Menu
             // 
             // pathNameDataGridViewTextBoxColumn
             // 
-            pathNameDataGridViewTextBoxColumn.DataPropertyName = "PathName";
+            pathNameDataGridViewTextBoxColumn.DataPropertyName = "Path";
             pathNameDataGridViewTextBoxColumn.HeaderText = "Path";
             pathNameDataGridViewTextBoxColumn.MinimumWidth = 6;
             pathNameDataGridViewTextBoxColumn.Name = "pathNameDataGridViewTextBoxColumn";

@@ -109,9 +109,9 @@ namespace FreeTrainSimulator.Menu
                         parameters.Add($"\"{profileSelections.FolderName}\\{profileSelections.RouteId}\\{profileSelections.ActivityId}\"");
                     }
                     break;
-                case GamePlayAction.SingleplayerResumeSave:
-                case GamePlayAction.SingleplayerReplaySave:
-                case GamePlayAction.SingleplayerReplaySaveFromSave:
+                case GamePlayAction.SingleplayerResume:
+                case GamePlayAction.SingleplayerReplay:
+                case GamePlayAction.SingleplayerReplayFromSave:
                 case GamePlayAction.MultiplayerClientResumeSave:
                     parameters.Add($"\"{profileSelections.GameSaveFile}\"");
                     break;

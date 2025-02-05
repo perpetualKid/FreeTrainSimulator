@@ -180,7 +180,17 @@ namespace FreeTrainSimulator.Menu
             };
             _ = await testingProfile.UpdateSettingsModel(testingSettings, cancellationToken).ConfigureAwait(false);
 
-            string parameters = $"/Test /Profile={testingProfileName}";
+            ProfileSelectionsModel profileSelections = new ProfileSelectionsModel()
+            {
+                Id = testingProfileName,
+                Name = testingProfileName,
+                ActivityId = activity.Id,
+                ActivityType = ActivityType.Activity,
+                FolderName = activity.Folder,
+                RouteId = activity.Parent.Id,
+                GamePlayAction = GamePlayAction.TestActivity,
+            };
+            _ = await testingProfile.UpdateSettingsModel(profileSelections, cancellationToken).ConfigureAwait(false);
 
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
@@ -205,7 +215,7 @@ namespace FreeTrainSimulator.Menu
             using (StreamReader reader = File.OpenText(summaryFilePath))
                 summaryFilePosition = reader.BaseStream.Length;
 
-            processStartInfo.Arguments = $"{parameters} \"{activity.SourceFile()}\"";
+            processStartInfo.Arguments = $"/Profile={testingProfileName}";
             bool passed = await RunProcessAsync(processStartInfo, cancellationToken).ConfigureAwait(false);
             string errors = string.Empty;
             string load = string.Empty;

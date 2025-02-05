@@ -171,17 +171,20 @@ namespace FreeTrainSimulator.Menu
                 // SavePacks are all in the same folder and activities may have the same name 
                 // (e.g. Short Passenger Run shrtpass.act) but belong to a different route,
                 // so pick only the activities for the current route.
-                Where(s => string.Equals(s.RouteName, route.Name, StringComparison.OrdinalIgnoreCase)).
+                Where(s => string.Equals(s.Route, route.Id, StringComparison.OrdinalIgnoreCase)).
                 // In case you receive a SavePack where the activity is recognised but the route has been renamed.
                 // Checks the route is not in your list of routes.
                 // If so, add it with a warning.
-                Where(s => globalRoutes.Any(route => string.Equals(route.Name, s.RouteName, StringComparison.OrdinalIgnoreCase))).
+                Where(s => globalRoutes.Any(route => string.Equals(s.Route, route.Id, StringComparison.OrdinalIgnoreCase))).
                 OrderByDescending(s => s.RealTime).
                 ToFrozenSet();
             saveBindingSource.DataSource = savePoints;
 
             GridSaves_SelectionChanged(null, null);
             // Show warning after the list has been updated as this is more useful.
+
+            if (savePoints.Count == 0)
+                gridSaves.Rows.Clear();
 
             int invalidCount = 0;
             foreach (var item in savePoints)
@@ -221,21 +224,7 @@ namespace FreeTrainSimulator.Menu
                             return;
 
                     SelectedSaveFile = savePoint.SourceFile();
-                    SelectedAction = GamePlayAction.SingleplayerResumeSave;
-                    //GamePlayAction selectedAction = SelectedAction;
-                    //switch (SelectedAction)
-                    //{
-                    //    case GamePlayAction.SinglePlayerTimetableGame:
-                    //        selectedAction = GamePlayAction.SinglePlayerResumeTimetableGame;
-                    //        break;
-                    //    case GamePlayAction.SingleplayerNewGame:
-                    //        selectedAction = GamePlayAction.SingleplayerResumeSave;
-                    //        break;
-                    //    case GamePlayAction.MultiplayerClientGame:
-                    //        selectedAction = GamePlayAction.MultiplayerClientResumeSave;
-                    //        break;
-                    //}
-                    //SelectedAction = selectedAction;
+                    SelectedAction = GamePlayAction.SingleplayerResume;
                     DialogResult = DialogResult.OK;
                 }
             }
@@ -364,13 +353,13 @@ namespace FreeTrainSimulator.Menu
 
         private void ButtonReplayFromStart_Click(object sender, EventArgs e)
         {
-            SelectedAction = GamePlayAction.SingleplayerReplaySave;
+            SelectedAction = GamePlayAction.SingleplayerReplay;
             InitiateReplay(true);
         }
 
         private void ButtonReplayFromPreviousSave_Click(object sender, EventArgs e)
         {
-            SelectedAction = GamePlayAction.SingleplayerReplaySaveFromSave;
+            SelectedAction = GamePlayAction.SingleplayerReplayFromSave;
             InitiateReplay(false);
         }
 

@@ -43,7 +43,6 @@ using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Primitives;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
@@ -56,18 +55,6 @@ namespace Orts.ActivityRunner.Processes
     {
         private static readonly char[] separatorChars = new char[] { '/', '\\' };
 
-        private enum ActionType
-        {
-            None,
-            Start,
-            Resume,
-            Replay,
-            ReplayFromSave,
-            Test,
-        }
-
-        private static ActionType actionType;
-
         private Simulator simulator;
 
         private static Viewer Viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
@@ -77,21 +64,11 @@ namespace Orts.ActivityRunner.Processes
         private TimetableLoadingBarPrimitive timetableLoadingBar;
         private Matrix loadingMatrix = Matrix.Identity;
 
-        private static readonly string separatorLine = new string('-', 80);
-        private readonly string[] arguments;
+        private string[] arguments;
 
         public GameStateRunActivity(string[] args)
         {
             arguments = args;
-
-            IEnumerable<IGrouping<bool, string>> groupedArguments = args.GroupBy(argumenType => argumenType.StartsWith('-') || argumenType.StartsWith('/'));
-            List<string> optionsList = groupedArguments.Where(grouping => grouping.Key).SelectMany(grouping => grouping).Select(option => option[1..]).ToList();
-            data = groupedArguments.Where(grouping => !grouping.Key).SelectMany(grouping => grouping).ToArray();
-
-            _ = optionsList.Where(argument => EnumExtension.GetValue(argument, out activityType)).FirstOrDefault();
-            optionsList.RemoveAll(option => string.Equals(option, activityType.ToString(), StringComparison.OrdinalIgnoreCase));
-            _ = optionsList.Where(argument => EnumExtension.GetValue(argument, out actionType)).FirstOrDefault();
-            optionsList.RemoveAll(option => string.Equals(option, actionType.ToString(), StringComparison.OrdinalIgnoreCase));
         }
 
         protected override void Dispose(bool disposing)
@@ -154,8 +131,9 @@ namespace Orts.ActivityRunner.Processes
 
             try
             {
-                InitLogging(actionType == ActionType.Test);
-                profileSelections = await ResolveSelectionsFronCommandLine(arguments);
+                InitLogging(); //TODO actionType == ActionType.Test
+                profileSelections = await ResolveSelectionsFromCommandLine(arguments);
+                arguments = null;
                 await InitLoading(profileSelections).ConfigureAwait(false);
 
                 switch (profileSelections.GamePlayAction)
@@ -165,12 +143,23 @@ namespace Orts.ActivityRunner.Processes
                     case GamePlayAction.MultiplayerClientGame:
                         await Start(profileSelections).ConfigureAwait(false);
                         break;
-                    case GamePlayAction.SingleplayerResumeSave:
+                    case GamePlayAction.SingleplayerResume:
                         await Resume(profileSelections).ConfigureAwait(false);
                         break;
-                    case GamePlayAction.SingleplayerReplaySave:
+                    case GamePlayAction.SingleplayerReplay:
                         await Replay(profileSelections).ConfigureAwait(false);
                         break;
+                    case GamePlayAction.SingleplayerReplayFromSave:
+                        await ReplayFromSave(profileSelections).ConfigureAwait(false);
+                        break;
+                    case GamePlayAction.SinglePlayerResumeTimetableGame:
+                        break;
+                    case GamePlayAction.MultiplayerClientResumeSave:
+                        break;
+                    case GamePlayAction.TestActivity:
+                        await TestActivity(profileSelections).ConfigureAwait(false);
+                        break;
+                    case GamePlayAction.None:
                     default:
                         MessageBox.Show($"To start {RuntimeInfo.ProductName}, please run 'FreeTrainSimulator.exe'.\n\n"
                                 + "If you are attempting to debug this component, please run 'FreeTrainSimulator.exe' and execute the scenario you are interested in. "
@@ -180,31 +169,6 @@ namespace Orts.ActivityRunner.Processes
                         Game.Exit();
                         break;
                 }
-                //// Do the action specified or write out some help.
-                //switch (actionType)
-                //{
-                //    case ActionType.Resume:
-                //        await Resume(Game.UserSettings).ConfigureAwait(false);
-                //        break;
-                //    case ActionType.Replay:
-                //        await Replay(Game.UserSettings).ConfigureAwait(false);
-                //        break;
-                //    case ActionType.ReplayFromSave:
-                //        await ReplayFromSave(Game.UserSettings).ConfigureAwait(false);
-                //        break;
-                //    case ActionType.Test:
-                //        await Test(Game.UserSettings).ConfigureAwait(false);
-                //        break;
-
-                //    default:
-                //        MessageBox.Show($"To start {RuntimeInfo.ProductName}, please run 'FreeTrainSimulator.exe'.\n\n"
-                //                + "If you are attempting to debug this component, please run 'FreeTrainSimulator.exe' and execute the scenario you are interested in. "
-                //                + "In the log file, the command-line arguments used will be listed at the top. "
-                //                + "You should then configure your debug environment to execute this component with those command-line arguments.",
-                //                $"{Application.ProductName}  {VersionInfo.Version}");
-                //        Game.Exit();
-                //        break;
-                //}
             }
             catch (Exception error) when (!Debugger.IsAttached)
             {
@@ -215,8 +179,8 @@ namespace Orts.ActivityRunner.Processes
                     if (error is FileLoadException fileLoadException && (fileLoadException.InnerException is FileNotFoundException || fileLoadException.InnerException is DirectoryNotFoundException))
                         error = fileLoadException.InnerException;
 
-                    if (error is InvalidCommandLineException)
-                        MessageBox.Show($"{RuntimeInfo.ProductName} was started with an invalid command-line. {error.Message} Arguments given:\n\n{string.Join("\n", data.Select(d => "\u2022 " + d).ToArray())}",
+                    if (error is InvalidCommandLineException invalidCommandLineException)
+                        MessageBox.Show($"{RuntimeInfo.ProductName} was started with an invalid command-line. {error.Message} Arguments given:\n\n{invalidCommandLineException.ArgumentsList}",
                             $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     else if (error is MissingTrackNodeException)
                         MessageBox.Show($"{RuntimeInfo.ProductName} detected a track section which is not present in tsection.dat and cannot continue.\n\n" +
@@ -307,14 +271,15 @@ namespace Orts.ActivityRunner.Processes
             GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(profileSelections.GameSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
             await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-            simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
+            simulator.BeforeRestore(saveState.Path, saveState.InitialLocation);
+
             await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
 
             Viewer = new Viewer(simulator, Game);
             Viewer.Initialize();
             if (MultiPlayerManager.IsMultiPlayer())
             {
-                if (saveState.ActivityType == ActivityType.Activity)
+                if (saveState.ProfileSelections.ActivityType == ActivityType.Activity)
                     simulator.SetPathAndConsist();
                 MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
             }
@@ -366,14 +331,11 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Replay the last segment of a saved game.
         /// </summary>
-        private async ValueTask ReplayFromSave(ProfileUserSettingsModel userSettings)
+        private async ValueTask ReplayFromSave(ProfileSelectionsModel profileSelections)
         {
-            // E.g. RunActivity.exe -replay_from_save "yard_two 2012-03-20 22.07.36"
-            string saveFile = GetSaveFile(data);
-
             // Find previous save file and then move commands to be replayed into replay list.
             CommandLog log = new CommandLog(null);
-            string logFile = saveFile.Replace(".save", ".replay", StringComparison.OrdinalIgnoreCase);
+            string logFile = profileSelections.GameSaveFile.Replace(".save", ".replay", StringComparison.OrdinalIgnoreCase);
             log.LoadLog(logFile);
             List<ICommand> replayCommandList = new List<ICommand>();
 
@@ -383,8 +345,7 @@ namespace Orts.ActivityRunner.Processes
             for (int i = count - 2; // -2 so we skip over the final save command
                     i >= 0; i--)
             {
-                SaveCommand saveCommand = log.CommandList[i] as SaveCommand;
-                if (saveCommand != null)
+                if (log.CommandList[i] is SaveCommand saveCommand)
                 {
                     string file = Path.Combine(RuntimeInfo.UserDataFolder, saveCommand.FileStem);
                     if (!file.EndsWith(FileNameExtensions.SaveFile, StringComparison.OrdinalIgnoreCase))
@@ -408,11 +369,9 @@ namespace Orts.ActivityRunner.Processes
                 replayCommandList.AddRange(log.CommandList);    // copy the commands before deleting them.
                 log.CommandList.Clear();
 
-                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(saveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(profileSelections.GameSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
-                actionType = ActionType.Replay;
-                data = saveState.Arguments.ToArray();
-                await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
@@ -423,11 +382,8 @@ namespace Orts.ActivityRunner.Processes
                 GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(previousSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
                 // Resume from previous SaveFile and then replay
-                activityType = saveState.ActivityType;
-                data = saveState.Arguments.ToArray();
-                actionType = ActionType.Resume;
-                await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-                simulator.BeforeRestore(saveState.PathName, saveState.InitialLocation);
+                await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                simulator.BeforeRestore(saveState.Path, saveState.InitialLocation);
                 await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
 
                 Viewer = new Viewer(simulator, Game);
@@ -449,7 +405,7 @@ namespace Orts.ActivityRunner.Processes
         /// <summary>
         /// Tests that ActivityRunner.exe can launch a specific activity or explore.
         /// </summary>
-        private async ValueTask Test(ProfileUserSettingsModel userSettings)
+        private async ValueTask TestActivity(ProfileSelectionsModel profileSelections)
         {
             DateTime startTime = DateTime.Now;
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -457,8 +413,7 @@ namespace Orts.ActivityRunner.Processes
 #pragma warning restore CA2000 // Dispose objects before losing scope
             try
             {
-                actionType = ActionType.Test;
-                await InitSimulator(userSettings, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                await InitSimulator(Game.UserSettings, profileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
                 Viewer.Initialize();
@@ -702,154 +657,7 @@ namespace Orts.ActivityRunner.Processes
             Game.UserSettings.RailDriverSettings = await raildriverSettingsTask.ConfigureAwait(false);
         }
 
-        private async ValueTask InitSimulator(ProfileUserSettingsModel userSettings, CancellationToken cancellationToken)
-        {
-            Task<ProfileKeyboardSettingsModel> keyboardSettingsTask = userSettings.Parent.LoadSettingsModel<ProfileKeyboardSettingsModel>(cancellationToken);
-            Task<ProfileRailDriverSettingsModel> raildriverSettingsTask = userSettings.Parent.LoadSettingsModel<ProfileRailDriverSettingsModel>(cancellationToken);
-
-            if (activityType == ActivityType.None)
-            {
-                // implicit processing without explicit action definition
-                switch (data.Length)
-                {
-                    case 1:
-                        activityType = ActivityType.Activity;
-                        break;
-                    case 5:
-                        activityType = ActivityType.Explorer;
-                        break;
-                }
-            }
-
-            Trace.WriteLine($"{"Mode",-12}= {actionType} {activityType}");
-            TimeSpan startTime = TimeSpan.Zero;
-            SeasonType season = SeasonType.Summer;
-            WeatherType weather = WeatherType.Clear;
-
-            FolderStructure.ContentFolder.RouteFolder route = FolderStructure.RouteFromActivity(data[0]);
-
-            RouteModel routeModel = await route.ToRouteModel(cancellationToken).ConfigureAwait(false);
-
-            switch (activityType)
-            {
-                case ActivityType.Activity:
-                    if (data.Length == 0)
-                        throw new InvalidCommandLineException("Mode 'activity' needs 1 argument: activity file.");
-                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
-                    Trace.WriteLine($"{"Activity",-12}= {GetActivityName(data[0])} ({data[0]})");
-                    break;
-
-                case ActivityType.Explorer:
-                case ActivityType.ExploreActivity:
-                    if (data.Length < 5)
-                        throw new InvalidCommandLineException("Mode 'explorer' needs 5 arguments: path file, consist file, time (hh[:mm[:ss]]), season (Spring, Summer, Autumn, Winter), weather (Clear, Rain, Snow).");
-                    Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
-                    Trace.WriteLine($"{"Path",-12}= {GetPathName(data[0])} ({data[0]})");
-                    Trace.WriteLine($"{"Consist",-12}= {GetConsistName(data[1])} ({data[1]})");
-                    Trace.WriteLine($"{"Time",-12}= {(TimeSpan.TryParse(data[2], out startTime) ? startTime.ToString() : "Unknown")} ({data[2]})");
-                    Trace.WriteLine($"{"Season",-12}= {(EnumExtension.GetValue(data[3], out season) ? season.ToString() : "Unknown")} ({data[3]})");
-                    Trace.WriteLine($"{"Weather",-12}= {(EnumExtension.GetValue(data[4], out weather) ? weather.ToString() : "Unknown")} ({data[4]})");
-                    break;
-
-                case ActivityType.TimeTable:
-                    if (data.Length < 5)
-                        throw new InvalidCommandLineException("Mode 'timetable' needs 5 arguments: timetable file, train name, day (Monday - Sunday), season (Spring, Summer, Autumn, Winter), weather (Clear, Rain, Snow), [optional] WeatherFile.");
-                    Trace.WriteLine($"{"File",-12}= {data[0]}");
-                    Trace.WriteLine($"{"Train",-12}= {data[1]}");
-                    Trace.WriteLine($"{"Day",-12}= {data[2]}");
-                    Trace.WriteLine($"{"Season",-12}= {(EnumExtension.GetValue(data[3], out season) ? season.ToString() : "Unknown")} ({data[3]})");
-                    Trace.WriteLine($"{"Weather",-12}= {(EnumExtension.GetValue(data[4], out weather) ? weather.ToString() : "Unknown")} ({data[4]})");
-                    break;
-
-                default:
-                    throw new InvalidCommandLineException($"Unexpected mode with {arguments.Length} argument(s)");
-            }
-
-            Trace.WriteLine(separatorLine);
-            if (userSettings.MultiPlayer)
-            {
-                Trace.WriteLine("Multiplayer Client");
-
-                Trace.WriteLine($"{"User",-12}= {userSettings.MultiplayerUser}");
-                Trace.WriteLine($"{"Host",-12}= {userSettings.MultiplayerHost}");
-                Trace.WriteLine($"{"Port",-12}= {userSettings.MultiplayerPort}");
-                Trace.WriteLine(separatorLine);
-            }
-
-            simulator = new Simulator(userSettings, data[0]);
-            loadingScreen ??= new LoadingScreenPrimitive(Game);
-            switch (activityType)
-            {
-                case ActivityType.Activity:
-                    simulator.SetActivity(data[0]);
-                    break;
-                case ActivityType.Explorer:
-                    simulator.SetExplore(data[0], data[1], startTime, season, weather);
-                    break;
-                case ActivityType.ExploreActivity:
-                    simulator.SetExploreThroughActivity(data[0], data[1], startTime, season, weather);
-                    break;
-                case ActivityType.TimeTable:
-                    if (actionType != ActionType.Start) // no specific action for start, handled in start_timetable
-                    {
-                        // for resume and replay : set timetable file and selected train info
-                        simulator.TimetableFileName = Path.GetFileNameWithoutExtension(data[0]);
-                        simulator.PathName = data[1];
-                    }
-                    simulator.SetTimetableOptions(data[0], data[1], season, weather, data.Length > 5 ? data[5] : string.Empty);
-
-                    break;
-            }
-
-            if (userSettings.MultiPlayer)
-            {
-                MultiPlayerManager.Start(userSettings.MultiplayerHost, userSettings.MultiplayerPort, userSettings.MultiplayerUser, "1234");
-            }
-
-            Game.UserSettings.KeyboardSettings = await keyboardSettingsTask.ConfigureAwait(false);
-            Game.UserSettings.RailDriverSettings = await raildriverSettingsTask.ConfigureAwait(false);
-        }
-
-        private static string GetActivityName(string path)
-        {
-            try
-            {
-                if (Path.GetExtension(path).Equals(".act", StringComparison.OrdinalIgnoreCase))
-                {
-                    return new ActivityFile(path).Activity.Header.Name;
-                }
-            }
-            catch (Formats.Msts.Parsers.STFException) { }
-            return null;
-        }
-
-        private static string GetPathName(string path)
-        {
-            try
-            {
-                if (Path.GetExtension(path).Equals(".pat", StringComparison.OrdinalIgnoreCase))
-                {
-                    return new PathFile(path).Name;
-                }
-            }
-            catch (Formats.Msts.Parsers.STFException) { }
-            return null;
-        }
-
-        private static string GetConsistName(string path)
-        {
-            try
-            {
-                if (Path.GetExtension(path).Equals(".con", StringComparison.OrdinalIgnoreCase))
-                {
-                    return new ConsistFile(path).Name;
-                }
-            }
-            catch (Formats.Msts.Parsers.STFException) { }
-            return null;
-        }
-
-        private async Task<ProfileSelectionsModel> ResolveSelectionsFronCommandLine(string[] args)
+        private async Task<ProfileSelectionsModel> ResolveSelectionsFromCommandLine(string[] args)
         {
             if (args.Length == 0) // just load the selections from current profile
             {
@@ -871,7 +679,7 @@ namespace Orts.ActivityRunner.Processes
             ProfileSelectionsModel NewGameFromParams(string[] parameters, GamePlayAction targetActionType, ActivityType targetActivityType)
             {
                 if (targetActionType is not (GamePlayAction.SingleplayerNewGame or GamePlayAction.SinglePlayerTimetableGame or GamePlayAction.MultiplayerClientGame))
-                    throw new InvalidCommandLineException($"Unexpected GamePlayAction {targetActionType} to start a new game.");
+                    throw new InvalidCommandLineException($"Unexpected GamePlayAction {targetActionType} to start a new game.", parameters);
 
                 ProfileSelectionsModel selectionsModel = new ProfileSelectionsModel()
                 {
@@ -933,7 +741,7 @@ namespace Orts.ActivityRunner.Processes
                             }
                             else
                                 throw new InvalidCommandLineException($"Mode '{activityType}' needs 4 argument: \"Folder\\Route\\Path\\WagonSet\" StartTime (HH:MM) Season (Spring, Summer, Autumn, Winter) Weather (Clear, Rain, Snow). " +
-                                    $"Alternatively 7 arguments with \"Folder\" \"Route\" \"Path\" \"WagonSet\" provided individually.");
+                                    $"Alternatively 7 arguments with \"Folder\" \"Route\" \"Path\" \"WagonSet\" provided individually.", parameters);
                             break;
                         case ActivityType.TimeTable:
 
@@ -945,7 +753,7 @@ namespace Orts.ActivityRunner.Processes
                             }
                             else
                                 throw new InvalidCommandLineException($"Mode '{activityType}' needs 4 (optional 5) argument: \"Folder\\Route\\Timetable\\TimetableName\\TrainName\" Day (Monday - Sunday) Season (Spring, Summer, Autumn, Winter) Weather (Clear, Rain, Snow) [optional] WeatherChanges." +
-                                    $"Alternatively 8 (optional 9) arguments with \"Folder\" \"Route\" \"Timetable\" \"TimetableName\" \"TrainName\" provided individually.");
+                                    $"Alternatively 8 (optional 9) arguments with \"Folder\" \"Route\" \"Timetable\" \"TimetableName\" \"TrainName\" provided individually.", parameters);
                             break;
                         case ActivityType.Activity:
                         case ActivityType.None:
@@ -955,15 +763,15 @@ namespace Orts.ActivityRunner.Processes
                                 profileSelections = NewGameFromParams(selectionElements, GamePlayAction.SingleplayerNewGame, ActivityType.Activity);
                             }
                             else
-                                throw new InvalidCommandLineException($"Mode '{activityType}' needs 1 argument: \"Folder\\Route\\Activity\" or 3 arguments \"Folder\" \"Route\" \"Activity\".");
+                                throw new InvalidCommandLineException($"Mode '{activityType}' needs 1 argument: \"Folder\\Route\\Activity\" or 3 arguments \"Folder\" \"Route\" \"Activity\".", parameters);
                             break;
                     }
                     break;
                 case GamePlayAction.MultiplayerClientGame:
                     break;
-                case GamePlayAction.SingleplayerResumeSave:
-                case GamePlayAction.SingleplayerReplaySave:
-                case GamePlayAction.SingleplayerReplaySaveFromSave:
+                case GamePlayAction.SingleplayerResume:
+                case GamePlayAction.SingleplayerReplay:
+                case GamePlayAction.SingleplayerReplayFromSave:
                 case GamePlayAction.SinglePlayerResumeTimetableGame:
                 case GamePlayAction.MultiplayerClientResumeSave:
                     //optional 1 parameters about save file name
@@ -974,7 +782,7 @@ namespace Orts.ActivityRunner.Processes
                     };
                     break;
                 default:
-                    throw new InvalidCommandLineException("Invalid combination of command line arguments.");
+                    throw new InvalidCommandLineException("Invalid combination of command line arguments.", parameters);
 
             }
 
@@ -993,25 +801,6 @@ namespace Orts.ActivityRunner.Processes
                     : file.FullName;
             }
             string saveFile = fileName;
-            if (!saveFile.EndsWith(FileNameExtensions.SaveFile, StringComparison.OrdinalIgnoreCase))
-            {
-                saveFile += FileNameExtensions.SaveFile;
-            }
-            return Path.Combine(RuntimeInfo.UserDataFolder, saveFile);
-        }
-
-        private static string GetSaveFile(string[] args)
-        {
-            if (args.Length == 0)
-            {
-                // return the latest save file
-                DirectoryInfo directory = new DirectoryInfo(RuntimeInfo.UserDataFolder);
-                FileInfo file = directory.EnumerateFiles("*" + FileNameExtensions.SaveFile).OrderByDescending(f => f.LastWriteTime).FirstOrDefault();
-                return file == null
-                    ? throw new FileNotFoundException($"No activity save file '*.save' not found in folder {directory}")
-                    : file.FullName;
-            }
-            string saveFile = args[0];
             if (!saveFile.EndsWith(FileNameExtensions.SaveFile, StringComparison.OrdinalIgnoreCase))
             {
                 saveFile += FileNameExtensions.SaveFile;

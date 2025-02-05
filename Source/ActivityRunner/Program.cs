@@ -16,8 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Immutable;
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -52,12 +51,15 @@ namespace Orts.ActivityRunner
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException);
 
-            ImmutableArray<string> options = args.Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
-            NameValueCollection commandLineOptions = ParseCommandLineOptions(options);
+            List<string> argumentList = args.ToList();
+            string profileName = ParseCommandLineOption(argumentList, "Profile");
 
-            ProfileModel currentProfile = await ResolveProfile(commandLineOptions).ConfigureAwait(false);
-            ProfileUserSettingsModel userSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(CancellationToken.None).ConfigureAwait(false);
-            userSettings.MultiPlayer = !string.IsNullOrEmpty(commandLineOptions["multiplayerclient"]);
+            ProfileModel profile = await (string.IsNullOrEmpty(profileName) ?
+                ((ProfileModel)null).Current(CancellationToken.None).ConfigureAwait(false) :
+                (((ProfileModel)null).Get(profileName, CancellationToken.None)).ConfigureAwait(false));
+
+            ProfileUserSettingsModel userSettings = await profile.LoadSettingsModel<ProfileUserSettingsModel>(CancellationToken.None).ConfigureAwait(false);
+            userSettings.MultiPlayer = !string.IsNullOrEmpty(ParseCommandLineOption(argumentList, "MultiplayerClient"));
 
             //enables loading of dll for specific architecture(32 or 64bit) from distinct folders, useful when both versions require same name (as for soft_oal.dll)
             string path = Path.Combine(RuntimeInfo.ApplicationFolder, "Native", (Environment.Is64BitProcess) ? "x64" : "x86");
@@ -66,39 +68,32 @@ namespace Orts.ActivityRunner
             using (GameHost game = new GameHost(userSettings))
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                game.PushState(new GameStateRunActivity(args));
+                game.PushState(new GameStateRunActivity(argumentList.ToArray()));
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 game.Run();
             }
         }
 
-        private static async Task<ProfileModel> ResolveProfile(NameValueCollection commandLineOptions)
+        private static string ParseCommandLineOption(List<string> arguments, string argumentName)
         {
-            string profileName;
-            ProfileModel profile = null;
-            if (!string.IsNullOrEmpty(profileName = commandLineOptions["Profile"]))
-            {
-                profile = (await ((ProfileModel)null).GetProfiles(CancellationToken.None).ConfigureAwait(false)).GetByName(profileName);
-            }
-            return profile ?? await ((ProfileModel)null).Current(CancellationToken.None).ConfigureAwait(false);
-        }
 
-        private static NameValueCollection ParseCommandLineOptions(ImmutableArray<string> options)
-        {
-            NameValueCollection cmdOptions = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
-            if (options.Length > 0)
-            {
-                // Pull apart the command-line options so we can find them by setting name.
-                foreach (string option in options)
-                {
-                    string[] kvp = option.Split(optionSeparators, 2);
+            string argumentValue = arguments.Where(a => a.StartsWith($"-{argumentName}", StringComparison.OrdinalIgnoreCase) || 
+            a.StartsWith($"/{argumentName}", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
-                    string k = kvp[0];
-                    string v = kvp.Length > 1 ? kvp[1] : "yes";
-                    cmdOptions[k] = v;
-                }
+            if (!string.IsNullOrEmpty(argumentValue))
+            {
+                arguments.RemoveAll(a => a.StartsWith($"-{argumentName}", StringComparison.OrdinalIgnoreCase) || 
+                a.StartsWith($"/{argumentName}", StringComparison.OrdinalIgnoreCase));
             }
-            return cmdOptions;
+
+            if (!string.IsNullOrEmpty(argumentValue))
+            {
+                string[] kvp = argumentValue.Split(optionSeparators, 2);
+
+                string v = kvp.Length > 1 ? kvp[1] : "yes";
+                return v;
+            }
+            return argumentValue;
         }
     }
 }

@@ -198,16 +198,14 @@ namespace Orts.ActivityRunner.Processes
             return new GameSaveState()
             {
                 GameVersion = VersionInfo.Version,
-                RouteName = simulator.RouteModel.Id,
-                PathName = simulator.PathName,
+                Route = simulator.RouteModel.Id,
+                Path = simulator.PathName,
                 GameTime = simulator.GameTime,
                 RealSaveTime = DateTime.UtcNow,
                 MultiplayerGame = MultiPlayerManager.IsMultiPlayer(),
                 InitialLocation = simulator.InitialLocation,
                 PlayerLocation = simulator.Trains[0].FrontTDBTraveller.WorldLocation,
-                ArgumentsSetOnly = data,
                 ProfileSelections = profileSelections,
-                ActivityType = activityType,
 
                 ActivityEvaluationState = await ActivityEvaluation.Instance.Snapshot().ConfigureAwait(false),
                 ViewerSaveState = await Viewer.Snapshot().ConfigureAwait(false),

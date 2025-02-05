@@ -524,7 +524,7 @@ namespace Orts.Simulation
                 Season = Season,
                 Weather = WeatherType,
                 WeatherFile = UserWeatherFile,
-                TimetableMode = TimetableMode,
+                TimetableFile = timeTableFile,
                 SignalEnvironmentSaveState = await SignalEnvironment.Snapshot().ConfigureAwait(false),
                 MovingTables = await MovingTables.SnapshotCollection<MovingTableSaveState, MovingTable>().ConfigureAwait(false),
                 ActiveMovingTable = MovingTables.IndexOf(activeMovingTable),
@@ -554,7 +554,8 @@ namespace Orts.Simulation
             Season = saveState.Season;
             WeatherType = saveState.Weather;
             UserWeatherFile = saveState.WeatherFile;
-            TimetableMode = saveState.TimetableMode;
+            timeTableFile = saveState.TimetableFile;
+            TimetableMode = !string.IsNullOrEmpty(timeTableFile);
 
             PoolHolder = new Poolholder();
             await PoolHolder.Pools.RestoreDictionaryCreateNewInstances(saveState.TimeTablePools, PoolHolder).ConfigureAwait(false);

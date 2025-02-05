@@ -38,8 +38,6 @@ namespace Orts.ActivityRunner.Processes
     {
         private bool disposedValue;
 
-        private protected static ActivityType activityType;
-        private protected static string[] data;
         private protected static ProfileSelectionsModel profileSelections;
 
         internal GameHost Game { get; set; }

@@ -17,15 +17,13 @@ namespace FreeTrainSimulator.Models.Imported.State
         private const string HeaderEofMarker = "9zZi9WX51VvAH25Lgi0t";
 
         public string GameVersion { get; set; }
-        public string RouteName { get; set; }
-        public string PathName { get; set; }
-        public Collection<string> Arguments { get; private set; }
+        public string Route { get; set; }
+        public string Path { get; set; }
         public bool MultiplayerGame { get; set; }
         public double GameTime { get; set; }
         public DateTime RealSaveTime { get; set; }
         public WorldLocation InitialLocation { get; set; }
         public WorldLocation PlayerLocation { get; set; }
-        public ActivityType ActivityType { get; set; }
         public SimulatorSaveState SimulatorSaveState { get; set; }
         public ViewerSaveState ViewerSaveState { get; set; }
         public ActivityEvaluationState ActivityEvaluationState { get; set; }
@@ -35,21 +33,6 @@ namespace FreeTrainSimulator.Models.Imported.State
 
         [MemoryPackIgnore]
         public bool? Valid { get; private set; }
-
-        [MemoryPackIgnore]
-        public IEnumerable<string> ArgumentsSetOnly
-        {
-            get => Arguments;
-            set
-            {
-                ArgumentNullException.ThrowIfNull(value, nameof(value));
-                Arguments = new Collection<string>();
-                foreach (string item in value)
-                {
-                    Arguments.Add(item);
-                }
-            }
-        }
 
         [MemoryPackOnDeserialized]
         public void OnDeserialized()

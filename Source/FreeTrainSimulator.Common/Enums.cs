@@ -1834,13 +1834,14 @@ namespace FreeTrainSimulator.Common
     {
         None,
         SingleplayerNewGame,
-        SingleplayerResumeSave,
-        SingleplayerReplaySave,
-        SingleplayerReplaySaveFromSave,
+        SingleplayerResume,
+        SingleplayerReplay,
+        SingleplayerReplayFromSave,
         SinglePlayerTimetableGame,
         SinglePlayerResumeTimetableGame,
         MultiplayerClientGame,
-        MultiplayerClientResumeSave
+        MultiplayerClientResumeSave,
+        TestActivity,
     }
     #endregion
 

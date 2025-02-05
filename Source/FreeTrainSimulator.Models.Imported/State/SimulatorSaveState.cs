@@ -15,7 +15,7 @@ namespace FreeTrainSimulator.Models.Imported.State
         public SeasonType Season { get; set; }
         public WeatherType Weather { get; set; }
         public string WeatherFile { get; set; }
-        public bool TimetableMode { get; set; }
+        public string TimetableFile { get; set; }
         public SignalEnvironmentSaveState SignalEnvironmentSaveState { get; set; }
 #pragma warning disable CA2227 // Collection properties should be read only
         public Collection<MovingTableSaveState> MovingTables { get; set; }

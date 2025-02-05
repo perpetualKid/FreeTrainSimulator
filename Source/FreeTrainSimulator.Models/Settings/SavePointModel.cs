@@ -14,8 +14,8 @@ namespace FreeTrainSimulator.Models.Settings
     {
         public override RouteModelCore Parent => _parent as RouteModelCore;
 
-        public string RouteName { get; init; }
-        public string PathName { get; init; }
+        public string Route { get; init; }
+        public string Path { get; init; }
         public TimeSpan GameTime { get; init; }
         public DateTime RealTime { get; init; }
         public Tile CurrentTile { get; init; }
