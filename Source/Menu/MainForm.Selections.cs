@@ -331,7 +331,7 @@ namespace FreeTrainSimulator.Menu
 
             if (radioButtonModeTimetable.Checked)
             {
-                ProfileSelections.ActivityType = timetableTrainModel != null ? ActivityType.TimeTable : ActivityType.Explorer;
+                ProfileSelections.ActivityType = ActivityType.TimeTable;
                 ProfileSelections.TimetableSet = timetableModel?.Id;
                 ProfileSelections.TimetableName = timetable?.Key;
                 ProfileSelections.TimetableTrain = timetableTrainModel?.Id;
