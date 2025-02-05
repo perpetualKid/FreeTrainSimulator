@@ -113,8 +113,6 @@ namespace FreeTrainSimulator.Menu
                 _ => throw new NotImplementedException(),
             };
 
-            pathNameDataGridViewTextBoxColumn.Visible = profileSelections.ActivityType is ActivityType.TimeTable or ActivityType.Activity;
-
             multiplayer = profileSelections.GamePlayAction == GamePlayAction.MultiplayerClient;
             if (multiplayer)
                 Text += $" - {catalog.GetString("Multiplayer")} ";
