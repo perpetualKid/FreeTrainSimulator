@@ -576,21 +576,12 @@ namespace Orts.ActivityRunner.Processes
             FolderModel folderModel = await profileSelections.SelectedFolder(Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             RouteModel routeModel = await folderModel.RouteModel(profileSelections.RouteId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
-            Trace.WriteLine($"{"Mode",-12}= -{profileSelections.GamePlayAction} -{profileSelections.ActivityType}");
-
             switch (profileSelections.ActivityType)
             {
                 case ActivityType.Explorer:
                     {
                         PathModel pathModel = await routeModel.PathModel(profileSelections.PathId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                         WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-
-                        Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
-                        Trace.WriteLine($"{"Path",-12}= {pathModel.Name}");
-                        Trace.WriteLine($"{"Consist",-12}= {wagonSetModel.Name}");
-                        Trace.WriteLine($"{"Time",-12}= {profileSelections.StartTime}");
-                        Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
-                        Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
 
                         simulator = new Simulator(userSettings, routeModel);
                         simulator.SetExplore(pathModel.SourceFile(), wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
@@ -601,13 +592,6 @@ namespace Orts.ActivityRunner.Processes
                         PathModel pathModel = await routeModel.PathModel(profileSelections.PathId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                         WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
-                        Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
-                        Trace.WriteLine($"{"Path",-12}= {pathModel.Name}");
-                        Trace.WriteLine($"{"Consist",-12}= {wagonSetModel.Name}");
-                        Trace.WriteLine($"{"Time",-12}= {profileSelections.StartTime}");
-                        Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
-                        Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
-
                         simulator = new Simulator(userSettings, routeModel);
                         simulator.SetExploreThroughActivity(pathModel.SourceFile(), wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
                         break;
@@ -616,11 +600,6 @@ namespace Orts.ActivityRunner.Processes
                     {
                         TimetableModel timetableModel = await routeModel.TimetableModel(profileSelections.TimetableSet, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
-                        Trace.WriteLine($"{"Timetable",-12}= {profileSelections.TimetableSet}:{profileSelections.TimetableName}");
-                        Trace.WriteLine($"{"Train",-12}= {profileSelections.TimetableName}:{profileSelections.TimetableTrain}");
-                        Trace.WriteLine($"{"Day",-12}= {profileSelections.TimetableDay}");
-                        Trace.WriteLine($"{"Season",-12}= {profileSelections.Season}");
-                        Trace.WriteLine($"{"Weather",-12}= {profileSelections.Weather}");
                         if (!string.IsNullOrEmpty(profileSelections.WeatherChanges))
                             Trace.WriteLine($"{"Weath Change",-12}= {profileSelections.WeatherChanges}");
 
@@ -631,9 +610,6 @@ namespace Orts.ActivityRunner.Processes
                 default:
                     {
                         ActivityModel activityModel = await routeModel.ActivityModel(profileSelections.ActivityId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-
-                        Trace.WriteLine($"{"Route",-12}= {routeModel.Name}");
-                        Trace.WriteLine($"{"Activity",-12}= {activityModel.Name}");
 
                         simulator = new Simulator(userSettings, routeModel);
                         simulator.SetActivity(activityModel.SourceFile());

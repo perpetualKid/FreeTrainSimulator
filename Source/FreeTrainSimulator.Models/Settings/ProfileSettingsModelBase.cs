@@ -24,6 +24,9 @@ namespace FreeTrainSimulator.Models.Settings
 
         public void Log()
         {
+            string modelTypeName = GetType().Name.Replace("Model", string.Empty);
+            Trace.WriteLine(modelTypeName);
+            Trace.WriteLine(new string('=', modelTypeName.Length));
             PropertyInfo[] properties = GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
             foreach (PropertyInfo property in properties.OrderBy(p => p.Name))
