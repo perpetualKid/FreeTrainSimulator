@@ -122,16 +122,9 @@ namespace Orts.ActivityRunner.Processes
             loadingBar ??= new LoadingBarPrimitive(Game);
             timetableLoadingBar ??= new TimetableLoadingBarPrimitive(Game);
 
-            //// No action, check for data; for now assume any data is good data.
-            //if (actionType == ActionType.None && data.Length != 0)
-            //{
-            //    // in multiplayer start/resume there is no "-start" or "-resume" string, so you have to discriminate
-            //    actionType = activityType != ActivityType.None || options.Length == 0 ? ActionType.Start : ActionType.Resume;
-            //}
-
             try
             {
-                InitLogging(); //TODO actionType == ActionType.Test
+                InitLogging(Game.UserSettings.Parent.Id == ProfileModel.TestingProfile);
                 profileSelections = await ResolveSelectionsFromCommandLine(arguments);
                 arguments = null;
                 await InitLoading(profileSelections).ConfigureAwait(false);
@@ -227,8 +220,8 @@ namespace Orts.ActivityRunner.Processes
         /// </summary>
         private async ValueTask Start(ProfileSelectionsModel profileSelections)
         {
+            profileSelections.Log();
             await InitSimulator(Game.UserSettings, profileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-
             switch (profileSelections.ActivityType)
             {
                 case ActivityType.TimeTable:
@@ -269,7 +262,7 @@ namespace Orts.ActivityRunner.Processes
         {
             // First use the .save file to check the validity and extract the route and activity.
             GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(profileSelections.GameSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
-
+            saveState.ProfileSelections.Log();
             await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             simulator.BeforeRestore(saveState.Path, saveState.InitialLocation);
 
@@ -298,14 +291,10 @@ namespace Orts.ActivityRunner.Processes
         /// </summary>
         private async ValueTask Replay(ProfileSelectionsModel profileSelections)
         {
-            // If "-replay" also specifies a save file then use it
-            // E.g. ActivityRunner.exe -replay "yard_two 2012-03-20 22.07.36"
-            // else use most recently changed *.save
-            // E.g. ActivityRunner.exe -replay
-
             // First use the .save file to extract the route and activity.
             GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(profileSelections.GameSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             await Restore(saveState).ConfigureAwait(false);
+            saveState.ProfileSelections.Log();
 
             await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             simulator.Start(Game.LoaderProcess.CancellationToken);
@@ -371,6 +360,7 @@ namespace Orts.ActivityRunner.Processes
 
                 GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(profileSelections.GameSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
+                saveState.ProfileSelections.Log();
                 await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
                 simulator.Start(Game.LoaderProcess.CancellationToken);
@@ -380,6 +370,7 @@ namespace Orts.ActivityRunner.Processes
             else
             {
                 GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(previousSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                saveState.ProfileSelections.Log();
 
                 // Resume from previous SaveFile and then replay
                 await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
@@ -413,6 +404,7 @@ namespace Orts.ActivityRunner.Processes
 #pragma warning restore CA2000 // Dispose objects before losing scope
             try
             {
+                profileSelections.Log();
                 await InitSimulator(Game.UserSettings, profileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(simulator, Game);
@@ -468,8 +460,8 @@ namespace Orts.ActivityRunner.Processes
                 profileSelections.TimetableSet,
                 profileSelections.TimetableName,
                 profileSelections.TimetableTrain,
-                profileSelections.GamePlayAction,
-                profileSelections.ActivityType,
+//                profileSelections.GamePlayAction,
+//                profileSelections.ActivityType,
                 profileSelections.GameSaveFile).ToUpperInvariant();
             loadingDataFilePath = RuntimeInfo.GetCacheFilePath("Load", loadingDataKey);
 
@@ -648,6 +640,8 @@ namespace Orts.ActivityRunner.Processes
                         break;
                     }
             }
+
+            loadingScreen ??= new LoadingScreenPrimitive(Game);
 
             if (userSettings.MultiPlayer)
             {

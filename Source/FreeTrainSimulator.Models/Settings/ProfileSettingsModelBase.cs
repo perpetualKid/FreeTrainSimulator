@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Models.Settings
 
                 if (property.PropertyType == typeof(int[]))  //int array
                 {
-                    value = string.Join(", ", (int[])value);
+                    value = string.Join(",", (int[])value);
                 }
                 else if (property.PropertyType == typeof(string[]))  //string array
                 {

@@ -24,7 +24,6 @@ namespace FreeTrainSimulator.Menu
 {
     public partial class TestingForm : Form
     {
-        private const string testingProfileName = "$testing";
         private const string logFileName = "TestingLog.txt";
         private CancellationTokenSource ctsTestActivityLoader;
         private CancellationTokenSource ctsTestActivityRunner;
@@ -165,12 +164,12 @@ namespace FreeTrainSimulator.Menu
 
         private async Task<TestActivityModel> RunTestTask(TestActivityModel activity, bool overrideSettings, CancellationToken cancellationToken)
         {
-            ProfileModel testingProfile = new ProfileModel(testingProfileName);
+            ProfileModel testingProfile = new ProfileModel(ProfileModel.TestingProfile);
 
             ProfileUserSettingsModel testingSettings = (overrideSettings ? new ProfileUserSettingsModel() : userSettings) with
             {
-                Id = testingProfileName,
-                Name = testingProfileName,
+                Id = ProfileModel.TestingProfile,
+                Name = ProfileModel.TestingProfile,
                 LogFileName = logFileName,
                 LogLevel = TraceEventType.Verbose,
                 ErrorDialogEnabled = false,
@@ -182,8 +181,8 @@ namespace FreeTrainSimulator.Menu
 
             ProfileSelectionsModel profileSelections = new ProfileSelectionsModel()
             {
-                Id = testingProfileName,
-                Name = testingProfileName,
+                Id = ProfileModel.TestingProfile,
+                Name = ProfileModel.TestingProfile,
                 ActivityId = activity.Id,
                 ActivityType = ActivityType.Activity,
                 FolderName = activity.Folder,
@@ -215,7 +214,7 @@ namespace FreeTrainSimulator.Menu
             using (StreamReader reader = File.OpenText(summaryFilePath))
                 summaryFilePosition = reader.BaseStream.Length;
 
-            processStartInfo.Arguments = $"/Profile={testingProfileName}";
+            processStartInfo.Arguments = $"/Profile={ProfileModel.TestingProfile}";
             bool passed = await RunProcessAsync(processStartInfo, cancellationToken).ConfigureAwait(false);
             string errors = string.Empty;
             string load = string.Empty;
