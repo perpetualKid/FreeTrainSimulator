@@ -2229,7 +2229,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (screenRenderer.control.Screens?.Count > 0 && !"all".Equals(screenRenderer.control.Screens[0], StringComparison.OrdinalIgnoreCase))
                     {
                         eligibleToCheck = false;
-                        foreach (var screen in screenRenderer.control.Screens)
+                        foreach (string screen in screenRenderer.control.Screens)
                         {
                             if (mstsLocomotiveViewer.CabRenderer3D.ActiveScreen[screenRenderer.control.Display] == screen)
                             {

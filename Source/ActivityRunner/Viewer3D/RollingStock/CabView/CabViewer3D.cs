@@ -43,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
         public Dictionary<(ControlType, int), AnimatedPartMultiState> AnimateParts { get; }
         private readonly Dictionary<(ControlType, int), CabGaugeNative3D> Gauges;
         private readonly Dictionary<(ControlType, int), AnimatedPart> onDemandAnimateParts; //like external wipers, and other parts that will be switched on by mouse in the future
-                                                                                           //Dictionary<int, DigitalDisplay> DigitParts = null;
+                                                                                            //Dictionary<int, DigitalDisplay> DigitParts = null;
         private readonly Dictionary<(ControlType, int), CabDigit3D> digitParts3D;
         private readonly Dictionary<(ControlType, int), ThreeDimCabDPI> dpiDisplays3D;
         private readonly AnimatedPart externalWipers; // setting to zero to prevent a warning. Probably this will be used later. TODO
@@ -231,7 +231,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         else if (cabRenderer is CabViewDiscreteRenderer)
                         {
                             var control = cabRenderer.control;
-                            if (control.Screens != null && control.Screens[0] != "all")
+                            if (control.Screens != null && !"all".Equals(control.Screens[0], System.StringComparison.OrdinalIgnoreCase))
                             {
                                 doShow = control.Screens.Any(screen =>
                                     locomotiveViewer.CabRenderer3D.ActiveScreen[control.Display] == screen);
@@ -248,7 +248,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             foreach (var p in digitParts3D)
             {
                 var digital = p.Value.GaugeRenderer.control;
-                if (digital.Screens != null && digital.Screens[0] != "all")
+                if (digital.Screens != null && !"all".Equals(digital.Screens[0], System.StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (var screen in digital.Screens)
                     {
@@ -265,7 +265,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             foreach (var p in dpiDisplays3D)
             {
                 var dpdisplay = p.Value.CVFR.control;
-                if (dpdisplay.Screens != null && dpdisplay.Screens[0] != "all")
+                if (dpdisplay.Screens != null && !"all".Equals(dpdisplay.Screens[0], System.StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (var screen in dpdisplay.Screens)
                     {
@@ -282,9 +282,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             foreach (var p in Gauges)
             {
                 var gauge = p.Value.GaugeRenderer.control;
-                if (gauge.Screens != null && gauge.Screens[0] != "all")
+                if (gauge.Screens != null && !"all".Equals(gauge.Screens[0], System.StringComparison.OrdinalIgnoreCase))
                 {
-                    foreach (var screen in gauge.Screens)
+                    foreach (string screen in gauge.Screens)
                     {
                         if (locomotiveViewer.CabRenderer3D.ActiveScreen[gauge.Display] == screen)
                         {

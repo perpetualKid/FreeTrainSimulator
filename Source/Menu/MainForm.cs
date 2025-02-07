@@ -538,18 +538,9 @@ namespace FreeTrainSimulator.Menu
 
         private async Task OpenResumeForm(bool multiplayer)
         {
-            if (radioButtonModeTimetable.Checked)
-            {
-                ProfileSelections.GamePlayAction = GamePlayAction.SinglePlayerTimetableGame;
-            }
-            else if (!multiplayer)
-            {
-                ProfileSelections.GamePlayAction = GamePlayAction.SingleplayerNewGame;
-            }
-            else
-            {
-                ProfileSelections.GamePlayAction = GamePlayAction.MultiplayerClientGame;
-            }
+            ProfileSelections.GamePlayAction = radioButtonModeTimetable.Checked
+                ? GamePlayAction.SinglePlayerTimetableGame
+                : !multiplayer ? GamePlayAction.SingleplayerNewGame : GamePlayAction.MultiplayerClientGame;
 
             // if timetable mode but no timetable selected - no action
             if (ProfileSelections.GamePlayAction == GamePlayAction.SinglePlayerTimetableGame && (ProfileSelections.TimetableTrain == null || multiplayer))

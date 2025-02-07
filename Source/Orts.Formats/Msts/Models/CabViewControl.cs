@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -103,7 +104,7 @@ namespace Orts.Formats.Msts.Models
         public int ControlId { get; protected set; }
         public float Parameter1 { get; set; } // Generic parameter, individually interpreted by the controls using it
         public int Display { get; protected set; }
-        public List<string> Screens { get; protected set; }
+        public Collection<string> Screens { get; private set; }
         public int CabViewpoint { get; protected set; }
 
         public ControlType ControlType { get; private protected set; }
@@ -267,8 +268,8 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatch("(");
             var newScreen = stf.ReadString();
             stf.SkipRestOfBlock();
-            Screens ??= new List<string>();
-            Screens.Add(newScreen.ToLowerInvariant());
+            Screens ??= new Collection<string>();
+            Screens.Add(newScreen);
         }
 
         private protected virtual void ParseCabViewpoint(STFReader stf)

@@ -408,11 +408,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             {
                 if (cvcr.control.CabViewpoint == location)
                 {
-                    if (cvcr.control.Screens != null && cvcr.control.Screens[0] != "all")
+                    if (cvcr.control.Screens != null && !"all".Equals(cvcr.control.Screens[0], StringComparison.OrdinalIgnoreCase))
                     {
-                        foreach (var screen in cvcr.control.Screens)
+                        foreach (string screen in cvcr.control.Screens)
                         {
-                            if (ActiveScreen[cvcr.control.Display] == screen)
+                            if (string.Equals(ActiveScreen[cvcr.control.Display], screen, StringComparison.OrdinalIgnoreCase))
                             {
                                 cvcr.PrepareFrame(frame, elapsedTime);
                                 break;
@@ -486,14 +486,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             CabRendererSaveState saveState = new CabRendererSaveState();
             foreach (string activeScreen in ActiveScreen)
             {
-                saveState.ActiveScreens.Add(activeScreen == null ? "---" : activeScreen);
+                saveState.ActiveScreens.Add(activeScreen ?? "---");
             }
             return ValueTask.FromResult(saveState);
         }
 
         public ValueTask Restore(CabRendererSaveState saveState)
         {
-            ActiveScreen = saveState.ActiveScreens.ToArray();
+            ActiveScreen = saveState?.ActiveScreens.ToArray();
             return ValueTask.CompletedTask;
         }
     }
