@@ -612,7 +612,7 @@ namespace Orts.ActivityRunner.Processes
                         ActivityModel activityModel = await routeModel.ActivityModel(profileSelections.ActivityId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
                         simulator = new Simulator(userSettings, routeModel);
-                        simulator.SetActivity(activityModel.SourceFile());
+                        simulator.SetActivity(activityModel);
                         break;
                     }
             }

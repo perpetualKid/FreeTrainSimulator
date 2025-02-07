@@ -314,91 +314,9 @@ namespace Orts.Simulation
             Log = new CommandLog(this);
         }
 
-        public Simulator(ProfileUserSettingsModel userSettings, string activityPath)
+        public void SetActivity(ActivityModel activityModel)
         {
-            Instance = this;
-            CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
-            Catalog = CatalogManager.Catalog;
-
-            TimetableMode = false;
-
-            UserSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
-            GamePaused = userSettings.PauseAtStart;
-
-            RouteFolder = FolderStructure.RouteFromActivity(activityPath);
-
-            Trace.Write("Loading");
-
-            Trace.Write(" TRK");
-            Task<RouteModel> loadRouteModelTask = RouteFolder.ToRouteModel(CancellationToken.None).AsTask();
-            if (!loadRouteModelTask.IsCompleted)
-                loadRouteModelTask.Wait();
-            RouteModel = loadRouteModelTask.Result;
-
-            Debug.Assert(RouteModel != null);
-
-            if (RouteModel.Settings.TryGetValue("OpenComputerTrainDoors", out string trainDoorsSetting) && bool.TryParse(trainDoorsSetting, out bool openComputerTrainDoors))
-                UserSettings.ComputerTrainDoors = openComputerTrainDoors;
-
-            Trace.Write(" TDB");
-            TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(RouteModel.RouteKey)).TrackDB;
-
-            Trace.Write(" SIGCFG");
-            SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.ORSignalConfigFile);
-
-            Trace.Write(" DAT");
-            TrackSectionsFile tsectionDat = new TrackSectionsFile(RouteFolder.TrackSectionFile);
-            if (File.Exists(RouteFolder.RouteTrackSectionFile))
-                tsectionDat.AddRouteTSectionDatFile(RouteFolder.RouteTrackSectionFile);
-
-            RoadTrackDB roadDatabase = null;
-            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(RouteModel.RouteKey)))
-            {
-                Trace.Write(" RDB");
-                roadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(RouteModel.RouteKey)).RoadTrackDB;
-            }
-
-            MetricUnits = userSettings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (userSettings.MeasurementUnit == MeasurementUnit.Metric || userSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            RuntimeData.Initialize(RouteModel, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
-
-            SuperElevation = new SuperElevation(this);
-
-            Trace.Write(" ACT");
-
-            string carSpawnFile = RouteFolder.CarSpawnerFile;
-            if (File.Exists(carSpawnFile))
-            {
-                Trace.Write(" CARSPAWN");
-                CarSpawnerFile csf = new CarSpawnerFile(carSpawnFile, RouteFolder.ShapesFolder);
-                CarSpawnerLists.Add(csf.CarSpawners);
-            }
-
-            if (File.Exists(carSpawnFile = RouteFolder.OpenRailsCarSpawnerFile))
-            {
-                Trace.Write(" EXTCARSPAWN");
-                ORCarSpawnerFile acsf = new ORCarSpawnerFile(carSpawnFile, RouteFolder.ShapesFolder);
-                CarSpawnerLists.AddRange(acsf.CarSpawners);
-            }
-
-            //Load OR-Clock if external file "openrails\clock.dat" exists --------------------------------------------------------
-            string clockFile = Path.Combine(RouteFolder.OpenRailsRouteFolder, "clocks.dat");
-            if (File.Exists(clockFile))
-            {
-                Trace.Write(" EXTCLOCK");
-                ClockFile cf = new ClockFile(clockFile, RouteFolder.ShapesFolder);
-                Clocks = cf.Clocks;
-            }
-
-            Confirmer = new Confirmer(this);
-            HazardManager = new HazardManager();
-            FuelManager = new FuelManager(this);
-            ScriptManager = new ScriptManager();
-            ContainerManager = new ContainerManager(this);
-            Log = new CommandLog(this);
-        }
-
-        public void SetActivity(string activityPath)
-        {
+            string activityPath = activityModel.SourceFile();
             ActivityFileName = Path.GetFileNameWithoutExtension(activityPath);
             ActivityFile = new ActivityFile(activityPath);
 
@@ -413,14 +331,15 @@ namespace Orts.Simulation
 
             ActivityRun = new Activity(ActivityFile, this);
 
-            ClockTime = ActivityFile.Activity.Header.StartTime.TotalSeconds;
-            Season = ActivityFile.Activity.Header.Season;
-            WeatherType = ActivityFile.Activity.Header.Weather;
+            ClockTime = activityModel.StartTime.ToTimeSpan().TotalSeconds;
+            Season = activityModel.Season;
+            WeatherType = activityModel.Weather;
             if (ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
             {
                 ActivityRun.AddRestrictZones(ActivityFile.Activity.ActivityRestrictedSpeedZones);
             }
             IsAutopilotMode = true;
+
         }
 
         public void SetExplore(string path, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
@@ -445,10 +364,10 @@ namespace Orts.Simulation
             IsAutopilotMode = true;
         }
 
-        public void SetTimetableOptions(string timeTableFile, string train, SeasonType season, WeatherType weather, string weatherFile)
+        public void SetTimetableOptions(string timeTableFile, string trainPath, SeasonType season, WeatherType weather, string weatherFile)
         {
             this.timeTableFile = timeTableFile;
-            PathName = train;
+            PathName = trainPath;
 
             Season = season;
             WeatherType = weather;

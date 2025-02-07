@@ -21,12 +21,16 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Logging;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 
@@ -79,125 +83,78 @@ namespace Orts.SimulatorTester
             if (userSettings.LogLevel > TraceEventType.Warning)
             {
                 Console.WriteLine("This is a log file for {0}. Please include this file in bug reports.", RuntimeInfo.ProductName);
-                LogSeparator();
+                Console.WriteLine(LoggingUtil.SeparatorLine);
 
                 SystemInfo.WriteSystemDetails();
-                LogSeparator();
+                Console.WriteLine(LoggingUtil.SeparatorLine);
 
-                Console.WriteLine("Version      = {0}", VersionInfo.Version.Length > 0 ? VersionInfo.Version : "<none>");
-                Console.WriteLine("Build        = {0}", VersionInfo.Build);
-                Console.WriteLine("Executable   = {0}", Path.GetFileName(RuntimeInfo.ApplicationFile));
-                foreach (var arg in args)
-                    Console.WriteLine("Argument     = {0}", arg);
-                LogSeparator();
+                Console.WriteLine($"{"Date/Time",-12}= {DateTime.Now} ({DateTime.UtcNow:u})");
+                Console.WriteLine($"{"Version",-12}= {VersionInfo.Version}");
+                Console.WriteLine($"{"Code Version",-12}= {VersionInfo.CodeVersion}");
+                Console.WriteLine($"{"OS",-12}= {RuntimeInformation.OSDescription} {RuntimeInformation.RuntimeIdentifier}");
+                Console.WriteLine($"{"Runtime",-12}= {RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
+                Trace.WriteLine($"{"Logging",-12}= {userSettings.LogLevel}");
+                foreach (string arg in Environment.GetCommandLineArgs())
+                    Trace.WriteLine($"{"Argument",-12}= {arg.Replace(Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
+                Console.WriteLine(LoggingUtil.SeparatorLine);
 
                 userSettings.Log();
-                LogSeparator();
+                Console.WriteLine(LoggingUtil.SeparatorLine);
             }
 
-            string saveFile = files[0];
-            using (BinaryReader inf = new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
+            GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(files[0], CancellationToken.None).ConfigureAwait(false);
+            saveState.ProfileSelections.Log();
+            
+            Console.WriteLine("Initial Pos  = {0}, {1}", saveState.InitialLocation.TileX, saveState.InitialLocation.TileZ);
+            Console.WriteLine("Expected Pos = {0}, {1}", saveState.PlayerLocation.TileX, saveState.PlayerLocation.TileZ);
+            Console.Write("Loading...   ");
+
+            StaticRandom.MakeDeterministic();
+
+            FolderModel folderModel = await saveState.ProfileSelections.SelectedFolder(CancellationToken.None).ConfigureAwait(false);
+            RouteModel routeModel = await folderModel.RouteModel(saveState.ProfileSelections.RouteId, CancellationToken.None).ConfigureAwait(false);
+            ActivityModel activityModel = await routeModel.ActivityModel(saveState.ProfileSelections.ActivityId, CancellationToken.None).ConfigureAwait(false);
+
+            DateTimeOffset startTime = DateTimeOffset.Now;
+            Simulator simulator = new Simulator(userSettings, routeModel);
+            simulator.SetActivity(activityModel);
+            simulator.Start(CancellationToken.None);
+            simulator.SetCommandReceivers();
+            simulator.Log.LoadLog(Path.ChangeExtension(files[0], "replay"));
+            simulator.ReplayCommandList = new List<ICommand>();
+            simulator.ReplayCommandList.AddRange(simulator.Log.CommandList);
+            simulator.Log.CommandList.Clear();
+
+            DateTimeOffset loadTime = DateTimeOffset.Now;
+            if (userSettings.LogLevel > TraceEventType.Warning)
             {
-                SaveData data = GetSaveData(inf);
-                string activityFile = data.Args[0];
-
-                if (userSettings.LogLevel > TraceEventType.Warning)
-                {
-                    foreach (string arg in data.Args)
-                        Console.WriteLine("Argument     = {0}", arg);
-                    Console.WriteLine("Initial Pos  = {0}, {1}", data.InitialTileX, data.InitialTileZ);
-                    Console.WriteLine("Expected Pos = {0}, {1}", data.ExpectedTileX, data.ExpectedTileZ);
-                    Console.Write("Loading...   ");
-                }
-
-                StaticRandom.MakeDeterministic();
-
-                DateTimeOffset startTime = DateTimeOffset.Now;
-                Simulator simulator = new Simulator(userSettings, activityFile);
-                simulator.SetActivity(activityFile);
-                simulator.Start(CancellationToken.None);
-                simulator.SetCommandReceivers();
-                simulator.Log.LoadLog(Path.ChangeExtension(saveFile, "replay"));
-                simulator.ReplayCommandList = new List<ICommand>();
-                simulator.ReplayCommandList.AddRange(simulator.Log.CommandList);
-                simulator.Log.CommandList.Clear();
-
-                DateTimeOffset loadTime = DateTimeOffset.Now;
-                if (userSettings.LogLevel > TraceEventType.Warning)
-                {
-                    Console.WriteLine("{0:N1} seconds", (loadTime - startTime).TotalSeconds);
-                    Console.Write("Replaying... ");
-                }
-
-                float step = 1f / userSettings.ProfilingFps;
-                for (float tick = 0f; tick < data.TimeElapsed; tick += step)
-                {
-                    simulator.Update(step);
-                    simulator.Log.Update(simulator.ReplayCommandList);
-                }
-
-                DateTimeOffset endTime = DateTimeOffset.Now;
-                double actualTileX = simulator.Trains[0].FrontTDBTraveller.Tile.X + (simulator.Trains[0].FrontTDBTraveller.X / WorldPosition.TileSize);
-                double actualTileZ = simulator.Trains[0].FrontTDBTraveller.Tile.Z + (simulator.Trains[0].FrontTDBTraveller.Z / WorldPosition.TileSize);
-                double initialToExpectedM = Math.Sqrt(Math.Pow(data.ExpectedTileX - data.InitialTileX, 2) + Math.Pow(data.ExpectedTileZ - data.InitialTileZ, 2)) * WorldPosition.TileSize;
-                double expectedToActualM = Math.Sqrt(Math.Pow(actualTileX - data.ExpectedTileX, 2) + Math.Pow(actualTileZ - data.ExpectedTileZ, 2)) * WorldPosition.TileSize;
-
-                if (userSettings.LogLevel > TraceEventType.Warning)
-                {
-                    Console.WriteLine("{0:N1} seconds ({1:F0}x speed-up)", (endTime - loadTime).TotalSeconds, data.TimeElapsed / (endTime - loadTime).TotalSeconds);
-                    Console.WriteLine("Actual Pos   = {0}, {1}", actualTileX, actualTileZ);
-                    Console.WriteLine("Distance     = {0:N3} m ({1:P1})", expectedToActualM, 1 - expectedToActualM / initialToExpectedM);
-                }
-
-                Environment.ExitCode = (int)expectedToActualM;
+                Console.WriteLine("{0:N1} seconds", (loadTime - startTime).TotalSeconds);
+                Console.Write("Replaying... ");
             }
-        }
 
-        private static void LogSeparator()
-        {
-            Console.WriteLine(new string('-', 80));
-        }
-
-        private static SaveData GetSaveData(BinaryReader inf)
-        {
-            SaveData values = new SaveData();
-
-            _ = inf.ReadString(); // e.g. 1.3.2-alpha.4
-
-            string routeName = inf.ReadString();
-            if (routeName == "$Multipl$")
+            userSettings.ProfilingFps = 10;
+            float step = 1f / userSettings.ProfilingFps;
+            for (float tick = 0f; tick < saveState.GameTime; tick += step)
             {
-                _ = inf.ReadString();  // Route name
+                simulator.Update(step);
+                simulator.Log.Update(simulator.ReplayCommandList);
             }
 
-            _ = inf.ReadString();  // Path name
-            values.TimeElapsed = inf.ReadInt32();  // Time elapsed in game (secs)
-            _ = inf.ReadInt64();  // Date and time in real world
+            DateTimeOffset endTime = DateTimeOffset.Now;
+            WorldLocation actualLocation = simulator.Trains[0].FrontTDBTraveller.WorldLocation;
 
-            values.ExpectedTileX = inf.ReadSingle();  // Current location of player train TileX
-            values.ExpectedTileZ = inf.ReadSingle();  // Current location of player train TileZ
+            double initialToExpectedM = WorldLocation.GetDistance(saveState.PlayerLocation, saveState.InitialLocation).Length();
+            double expectedToActualM = WorldLocation.GetDistance(saveState.PlayerLocation, actualLocation).Length();
 
-            values.InitialTileX = inf.ReadSingle();  // Initial location of player train TileX
-            values.InitialTileZ = inf.ReadSingle();  // Initial location of player train TileZ
+            if (userSettings.LogLevel > TraceEventType.Warning)
+            {
+                Console.WriteLine("{0:N1} seconds ({1:F0}x speed-up)", (endTime - loadTime).TotalSeconds, saveState.GameTime / (endTime - loadTime).TotalSeconds);
+                Console.WriteLine("Actual Pos   = {0}", actualLocation);
+                Console.WriteLine("Distance     = {0:N3} m ({1:P1})", expectedToActualM, 1 - expectedToActualM / initialToExpectedM);
+            }
 
-            values.Args = new string[inf.ReadInt32()];
-            for (int i = 0; i < values.Args.Length; i++)
-                values.Args[i] = inf.ReadString();
-
-            inf.ReadString();  // Activity type
-
-            return values;
+            Environment.ExitCode = (int)expectedToActualM;
         }
 #pragma warning restore CA1303 // Do not pass literals as localized parameters
-
-        private struct SaveData
-        {
-            public int TimeElapsed;
-            public float InitialTileX;
-            public float InitialTileZ;
-            public float ExpectedTileX;
-            public float ExpectedTileZ;
-            public string[] Args;
-        }
     }
 }
