@@ -213,11 +213,11 @@ namespace Orts.Simulation.Activities
             builder.AppendLine("0-Information:");
             //Activity
             builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Route",-26}= {simulator.RouteModel.Name}");
-            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Activity",-26}= {simulator.ActivityFile.Activity.Header.Name}");
-            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Difficulty",-26}= {simulator.ActivityFile.Activity.Header.Difficulty}");
-            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Start Time",-26}= {simulator.ActivityFile.Activity.Header.StartTime}");
-            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Estimated Time",-26}= {simulator.ActivityFile.Activity.Header.Duration}");
-            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Elapsed Time",-26}= {FormatStrings.FormatTime(simulator.ClockTime - simulator.ActivityFile.Activity.Header.StartTime.TotalSeconds)}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Activity",-26}= {simulator.ActivityModel?.Name}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Difficulty",-26}= {simulator.ActivityModel?.Difficulty}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Start Time",-26}= {simulator.ActivityModel?.StartTime}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Estimated Time",-26}= {simulator.ActivityModel?.Duration}");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Elapsed Time",-26}= {FormatStrings.FormatTime(simulator.ClockTime - simulator.ActivityModel.StartTime.ToTimeSpan().TotalSeconds)}");
             builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Autopilot Time",-26}= {FormatStrings.FormatTime(AutoPilotTime)}");
             builder.AppendLine(CultureInfo.InvariantCulture, $"  {"Distance Travelled",-26}= {FormatStrings.FormatDistanceDisplay(DistanceTravelled, simulator.MetricUnits)}");
 

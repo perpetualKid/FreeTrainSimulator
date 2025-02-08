@@ -1688,12 +1688,12 @@ namespace Orts.Simulation.Physics
                 {
                     if (Cars[i - 1].AuxWagonType == AuxWagonType.Tender || Cars[i - 1].AuxWagonType == AuxWagonType.Engine)  // Aux tender found in consist
                     {
-                        if (simulator.ActivityFile != null) // If an activity check to see if fuel presets are used.
+                        if (simulator.ActivityModel != null) // If an activity check to see if fuel presets are used.
                         {
                             if (!mstsSteamLocomotive.AuxTenderMoveFlag)  // If locomotive hasn't moved and Auxtender connected use fuel presets on aux tender
                             {
                                 MaxAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG;
-                                mstsSteamLocomotive.CurrentAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG * (simulator.ActivityFile.Activity.Header.FuelWater / 100.0f); // 
+                                mstsSteamLocomotive.CurrentAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG * (simulator.ActivityModel.FuelLevels[FuelType.Water] / 100.0f); // 
                                 IsAuxTenderCoupled = true;      // Flag to advise MSTSSteamLovcomotive that tender is set.
                                 auxTenderFound = true;      // Auxililary tender found in consist.
 

@@ -2693,7 +2693,7 @@ namespace Orts.Simulation.RollingStocks
                     {
                         var HotboxRandom = StaticRandom.Next(100) / simulator.UserSettings.ActivityRandomizationLevel;
                         float PerCentRandom = 0.66f; // Set so that random time is always in first 66% of activity duration
-                        var RawHotBoxTimeRandomS = StaticRandom.Next((int)simulator.ActivityFile.Activity.Header.Duration.TotalSeconds);
+                        var RawHotBoxTimeRandomS = StaticRandom.Next((int)simulator.ActivityModel?.Duration.TotalSeconds);
                         if (!Train.HotBoxSetOnTrain) // only allow one hot box to be set per train 
                         {
                             if (HotboxRandom < 10)

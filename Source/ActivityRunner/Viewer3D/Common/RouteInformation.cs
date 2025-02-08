@@ -17,7 +17,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
         {
             this["Route Name"] = RuntimeData.Instance.RouteData.Name;
             this["Metric Scale"] = RuntimeData.Instance.MetricUnits.ToString();
-            this["Activity File"] = Simulator.Instance.ActivityFileName;
+            this["Activity File"] = Simulator.Instance.ActivityModel?.Name;
             this["Consist File"] = Simulator.Instance.ConsistFileName;
             this["Path File"] = Simulator.Instance.PathFileName;
             this["Path Name"] = Simulator.Instance.PathName;

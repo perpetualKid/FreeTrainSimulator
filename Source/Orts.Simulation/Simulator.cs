@@ -139,12 +139,12 @@ namespace Orts.Simulation
         public bool MetricUnits { get; }
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
         public RouteModel RouteModel { get; private set; }
+        public ActivityModel ActivityModel { get; private set; }
 
         // Primary Simulator Data 
         // These items represent the current state of the simulator 
         // In multiplayer games, these items must be kept in sync across all players
         // These items are what are saved and loaded in a game save.
-        public string ActivityFileName { get; set; }
         public string TimetableFileName { get; set; }
         public bool TimetableMode { get; private set; }
         public bool PreUpdate { get; internal set; }
@@ -316,8 +316,10 @@ namespace Orts.Simulation
 
         public void SetActivity(ActivityModel activityModel)
         {
+            ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
+            ActivityModel = activityModel;
+
             string activityPath = activityModel.SourceFile();
-            ActivityFileName = Path.GetFileNameWithoutExtension(activityPath);
             ActivityFile = new ActivityFile(activityPath);
 
             // check for existence of activity file in OpenRails subfolder
@@ -339,7 +341,6 @@ namespace Orts.Simulation
                 ActivityRun.AddRestrictZones(ActivityFile.Activity.ActivityRestrictedSpeedZones);
             }
             IsAutopilotMode = true;
-
         }
 
         public void SetExplore(string path, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
@@ -353,7 +354,15 @@ namespace Orts.Simulation
 
         public void SetExploreThroughActivity(string path, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
         {
-            ActivityFileName = $"ea${RouteFolder.RouteName}${DateTime.Now:yyyyMMddHHmmss}";
+            DateTime timestamp = DateTime.Now;
+            ActivityModel = new ActivityModel()
+            {
+                Name = $"ea${RouteFolder.RouteName}${timestamp:yyyyMMddHHmmss}",
+                Id = $"ea${RouteFolder.RouteName}${timestamp:yyyyMMddHHmmss}",
+                StartTime = TimeOnly.FromTimeSpan(startTime),
+                Season = season,
+                Weather = weather,
+            };
             ActivityFile = new ActivityFile((int)startTime.TotalSeconds, Path.GetFileNameWithoutExtension(consist));
             ActivityRun = new Activity(ActivityFile, this);
             explorePath = Path.GetFileNameWithoutExtension(path);
@@ -1263,13 +1272,13 @@ namespace Orts.Simulation
 
                     train.Length += car.CarLengthM;
 
-                    if (ActivityFile != null && car is MSTSDieselLocomotive mstsDieselLocomotive)
-                        mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * ActivityFile.Activity.Header.FuelDiesel / 100.0f;
+                    if (ActivityModel != null && car is MSTSDieselLocomotive mstsDieselLocomotive)
+                        mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * ActivityModel.FuelLevels[FuelType.Diesel] / 100.0f;
 
-                    if (ActivityFile != null && car is MSTSSteamLocomotive mstsSteamLocomotive)
+                    if (ActivityModel != null && car is MSTSSteamLocomotive mstsSteamLocomotive)
                     {
-                        mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (float)(Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0f) * ActivityFile.Activity.Header.FuelWater / 100.0f;
-                        mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * ActivityFile.Activity.Header.FuelCoal / 100.0f;
+                        mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (float)(Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0f) * ActivityModel.FuelLevels[FuelType.Water] / 100.0f;
+                        mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * ActivityModel.FuelLevels[FuelType.Coal] / 100.0f;
                     }
                 }
                 catch (Exception error)
@@ -1990,7 +1999,7 @@ namespace Orts.Simulation
 
             logfile.Append(RouteModel.Name);
 
-            logfile.Append(string.IsNullOrEmpty(ActivityFileName) ? "_explorer" : "_" + ActivityFileName);
+            logfile.Append(ActivityModel == null ? !string.IsNullOrEmpty(TimetableFileName) ? $"{TimetableFileName}_{PlayerLocomotive.Train.Name}"  : "_explorer" : "_" + ActivityModel.Name);
 
             logfile.Append(appendix);
 
@@ -2015,7 +2024,7 @@ namespace Orts.Simulation
         // that are likely to match the previously chosen route and activity.
         // Append the current date and time, so that each file is unique.
         // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
-        public string SaveFileName => $"{(ActivityFile != null ? ActivityFileName : (!string.IsNullOrEmpty(TimetableFileName) ? $"{RouteFolder.RouteName} {TimetableFileName}" : RouteFolder.RouteName))} {(MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer() ? "$Multipl$ " : string.Empty)}{DateTime.Now:yyyy'-'MM'-'dd HH'.'mm'.'ss}";
+        public string SaveFileName => $"{(ActivityModel != null ? $"{RouteModel.Name} {ActivityModel.Name}"  : (!string.IsNullOrEmpty(TimetableFileName) ? $"{RouteModel.Name} {TimetableFileName}" : RouteFolder.RouteName))} {(MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer() ? "$Multipl$ " : string.Empty)}{DateTime.Now:yyyy'-'MM'-'dd HH'.'mm'.'ss}";
 
         internal void OnAllowedSpeedRaised(Train train)
         {

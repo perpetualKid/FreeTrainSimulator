@@ -143,12 +143,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 }
             };
             #endregion
-            if (Simulator.Instance.ActivityFile != null)
+            if (Simulator.Instance.ActivityModel != null)
             {
                 #region Activity Briefing tab
                 tabControl.TabLayouts[TabSettings.ActivityBriefing] = (layoutContainer) =>
                 {
-                    TextBox activityBriefing = new TextBox(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight, Simulator.Instance.ActivityFile.Activity?.Header?.Briefing, true);
+                    TextBox activityBriefing = new TextBox(this, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight, Simulator.Instance.ActivityModel?.Briefing, true);
                     layoutContainer.Add(activityBriefing);
                 };
                 #endregion
@@ -340,9 +340,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         {
                             evaluationLayoutContainer = evaluationLayoutContainer.AddLayoutScrollboxVertical(evaluationLayoutContainer.RemainingWidth);
                             int columnWidth = evaluationLayoutContainer.RemainingWidth / 3;
-                            AddEvaluationLine(evaluationLayoutContainer, "Activity:", Simulator.Instance.ActivityFile.Activity.Header.Name);
-                            AddEvaluationLine(evaluationLayoutContainer, "Start Time:", Simulator.Instance.ActivityFile.Activity.Header.StartTime.ToString());
-                            AddEvaluationLine(evaluationLayoutContainer, "Estimated Duration:", Simulator.Instance.ActivityFile.Activity.Header.Duration.ToString());
+                            AddEvaluationLine(evaluationLayoutContainer, "Activity:", Simulator.Instance.ActivityModel?.Name);
+                            AddEvaluationLine(evaluationLayoutContainer, "Start Time:", Simulator.Instance.ActivityModel?.StartTime.ToString());
+                            AddEvaluationLine(evaluationLayoutContainer, "Estimated Duration:", Simulator.Instance.ActivityModel?.Duration.ToString());
                             evaluationLayoutContainer.AddHorizontalSeparator();
                             AddEvaluationLine(evaluationLayoutContainer, "Timetable:", null);
                             int stationStops = Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Count();

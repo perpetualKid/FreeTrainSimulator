@@ -935,7 +935,6 @@ namespace Orts.Simulation.Timetables
 
             // set activity details
             simulator.ClockTime = reqTrain.StartTime;
-            simulator.ActivityFileName = reqTrain.TTDescription + "_" + reqTrain.Name;
 
             // if train is created before start time, create train as intended player train
             if (playerTrain.StartTime != playerTrain.ActivateTime)

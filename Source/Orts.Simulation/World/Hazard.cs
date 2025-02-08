@@ -67,9 +67,9 @@ namespace Orts.Simulation.World
                 }
                 hazards[itemID].HazardFile = hazardFile;
                 //based on act setting for frequency
-                if (Simulator.Instance.ActivityFile != null)
+                if (Simulator.Instance.ActivityModel != null)
                 {
-                    if (hazards[itemID].Animal && (StaticRandom.Next(100) > Simulator.Instance.ActivityFile.Activity.Header.Animals))
+                    if (hazards[itemID].Animal && (StaticRandom.Next(100) > Simulator.Instance.ActivityModel.HazardProbability))
                         return null;
                 }
                 else //in explore mode

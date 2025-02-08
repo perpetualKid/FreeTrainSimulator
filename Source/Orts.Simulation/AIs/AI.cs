@@ -759,15 +759,15 @@ namespace Orts.Simulation.AIs
                         else
                             car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
 
-                        if (simulator.ActivityFile != null && car is MSTSDieselLocomotive mstsDieselLocomotive)
+                        if (simulator.ActivityModel != null && car is MSTSDieselLocomotive mstsDieselLocomotive)
                         {
-                            mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * simulator.ActivityFile.Activity.Header.FuelDiesel / 100.0f;
+                            mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * simulator.ActivityModel.FuelLevels[FuelType.Diesel] / 100.0f;
                         }
 
-                        if (simulator.ActivityFile != null && car is MSTSSteamLocomotive mstsSteamLocomotive)
+                        if (simulator.ActivityModel != null && car is MSTSSteamLocomotive mstsSteamLocomotive)
                         {
-                            mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (float)((Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0) * simulator.ActivityFile.Activity.Header.FuelWater / 100.0);
-                            mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * simulator.ActivityFile.Activity.Header.FuelCoal / 100.0f;
+                            mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (float)((Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0) * simulator.ActivityModel.FuelLevels[FuelType.Water] / 100.0);
+                            mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * simulator.ActivityModel.FuelLevels[FuelType.Coal] / 100.0f;
                         }
 
                         if (train.InitialSpeed != 0)
