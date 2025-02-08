@@ -604,7 +604,7 @@ namespace Orts.ActivityRunner.Processes
                             Trace.WriteLine($"{"Weath Change",-12}= {profileSelections.WeatherChanges}");
 
                         simulator = new Simulator(userSettings, routeModel);
-                        simulator.SetTimetableOptions(timetableModel.SourceFile(), $"{profileSelections.TimetableName}:{profileSelections.TimetableTrain}", profileSelections.Season, profileSelections.Weather, profileSelections.WeatherChanges);
+                        simulator.SetTimetableOptions(timetableModel, $"{profileSelections.TimetableName}:{profileSelections.TimetableTrain}", profileSelections.Season, profileSelections.Weather, profileSelections.WeatherChanges);
                         break;
                     }
                 default:

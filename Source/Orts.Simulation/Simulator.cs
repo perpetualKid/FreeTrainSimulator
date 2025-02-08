@@ -34,6 +34,7 @@ using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Shim;
 
 using GetText;
 
@@ -140,6 +141,8 @@ namespace Orts.Simulation
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
         public RouteModel RouteModel { get; private set; }
         public ActivityModel ActivityModel { get; private set; }
+        public TimetableModel TimetableModel { get; private set; }
+        public ActivityType ActivityType { get; private set; }
 
         // Primary Simulator Data 
         // These items represent the current state of the simulator 
@@ -318,6 +321,7 @@ namespace Orts.Simulation
         {
             ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
             ActivityModel = activityModel;
+            ActivityType = activityModel.ActivityType;
 
             string activityPath = activityModel.SourceFile();
             ActivityFile = new ActivityFile(activityPath);
@@ -350,6 +354,8 @@ namespace Orts.Simulation
             ClockTime = startTime.TotalSeconds;
             Season = season;
             WeatherType = weather;
+            ActivityType = ActivityType.Explorer;
+
         }
 
         public void SetExploreThroughActivity(string path, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
@@ -363,6 +369,7 @@ namespace Orts.Simulation
                 Season = season,
                 Weather = weather,
             };
+            ActivityType = ActivityType.ExploreActivity;
             ActivityFile = new ActivityFile((int)startTime.TotalSeconds, Path.GetFileNameWithoutExtension(consist));
             ActivityRun = new Activity(ActivityFile, this);
             explorePath = Path.GetFileNameWithoutExtension(path);
@@ -373,15 +380,17 @@ namespace Orts.Simulation
             IsAutopilotMode = true;
         }
 
-        public void SetTimetableOptions(string timeTableFile, string trainPath, SeasonType season, WeatherType weather, string weatherFile)
+        public void SetTimetableOptions(TimetableModel timetableModel, string trainPath, SeasonType season, WeatherType weather, string weatherFile)
         {
-            this.timeTableFile = timeTableFile;
+            TimetableModel = timetableModel;
+            timeTableFile = timetableModel.SourceFile();
             PathName = trainPath;
 
             Season = season;
             WeatherType = weather;
             // check for user defined weather file
             UserWeatherFile = weatherFile;
+            ActivityType = ActivityType.TimeTable;
         }
 
         public void Start(CancellationToken cancellationToken)
@@ -1999,7 +2008,7 @@ namespace Orts.Simulation
 
             logfile.Append(RouteModel.Name);
 
-            logfile.Append(ActivityModel == null ? !string.IsNullOrEmpty(TimetableFileName) ? $"{TimetableFileName}_{PlayerLocomotive.Train.Name}"  : "_explorer" : "_" + ActivityModel.Name);
+            logfile.Append(ActivityModel == null ? !string.IsNullOrEmpty(TimetableFileName) ? $"{TimetableFileName}_{PlayerLocomotive.Train.Name}" : "_explorer" : "_" + ActivityModel.Name);
 
             logfile.Append(appendix);
 
@@ -2024,7 +2033,19 @@ namespace Orts.Simulation
         // that are likely to match the previously chosen route and activity.
         // Append the current date and time, so that each file is unique.
         // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
-        public string SaveFileName => $"{(ActivityModel != null ? $"{RouteModel.Name} {ActivityModel.Name}"  : (!string.IsNullOrEmpty(TimetableFileName) ? $"{RouteModel.Name} {TimetableFileName}" : RouteFolder.RouteName))} {(MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer() ? "$Multipl$ " : string.Empty)}{DateTime.Now:yyyy'-'MM'-'dd HH'.'mm'.'ss}";
+        public string SavePointName()
+        {
+            return string.Concat(ActivityType switch
+            {
+                ActivityType.Explorer => RouteModel.SavePointName(ActivityType.Explorer),
+                ActivityType.ExploreActivity => RouteModel.SavePointName(ActivityType.ExploreActivity),
+                ActivityType.Activity => RouteModel.SavePointName(ActivityModel),
+                ActivityType.TimeTable => RouteModel.SavePointName(TimetableModel),
+                _ => throw new NotImplementedException(),
+            },
+            MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer() ? " $Multipl$" : string.Empty,
+            $" {DateTime.Now:yyyy'-'MM'-'dd HH'.'mm'.'ss}");
+        }
 
         internal void OnAllowedSpeedRaised(Train train)
         {

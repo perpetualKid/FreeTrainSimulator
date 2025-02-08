@@ -165,7 +165,7 @@ namespace Orts.ActivityRunner.Processes
             // that are likely to match the previously chosen route and activity.
             // Append the current date and time, so that each file is unique.
             // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
-            string fileStem = simulator.SaveFileName;
+            string fileStem = simulator.SavePointName();
 
             instance.Viewer.PrepareSave(fileStem);
             GameSaveState saveState = await instance.Snapshot().ConfigureAwait(false);

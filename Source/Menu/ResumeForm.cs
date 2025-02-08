@@ -157,10 +157,10 @@ namespace FreeTrainSimulator.Menu
 
             prefix = profileSelectionsModel.ActivityType switch
             {
-                ActivityType.Explorer => Path.GetFileName(route.SourceFolder()),
-                ActivityType.ExploreActivity => $"ea${Path.GetFileName(route.SourceFolder())}$",
-                ActivityType.Activity => Path.GetFileNameWithoutExtension(activity.SourceFile()),
-                ActivityType.TimeTable => $"{Path.GetFileName(route.SourceFolder())} {Path.GetFileNameWithoutExtension(timeTable.SourceFile())}",
+                ActivityType.Explorer => route.SavePointName(ActivityType.Explorer),
+                ActivityType.ExploreActivity => route.SavePointName(ActivityType.ExploreActivity),
+                ActivityType.Activity => route.SavePointName(activity),
+                ActivityType.TimeTable => route.SavePointName(timeTable),
                 _ => throw new NotImplementedException(),
             };
 

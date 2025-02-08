@@ -3,6 +3,7 @@ using System.Collections.Frozen;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 
@@ -42,5 +43,25 @@ namespace FreeTrainSimulator.Models.Shim
 
         public static FrozenSet<PathModelCore> GetPaths(this RouteModelCore routeModel) => Task.Run(async () => await routeModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).Result;
 
+
+        public static string SavePointName(this RouteModelCore routeModelCore, ActivityType activityType)
+        {
+            ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));
+            return activityType == ActivityType.ExploreActivity ? $"ea${routeModelCore.Id}$" : routeModelCore.Id;
+        }
+
+        public static string SavePointName(this RouteModelCore routeModelCore, ActivityModelCore activityModel)
+        {
+            ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));
+            ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
+            return $"{routeModelCore.Id} {activityModel.Id}";
+        }
+
+        public static string SavePointName(this RouteModelCore routeModelCore, TimetableModel timetableModel)
+        {
+            ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));
+            ArgumentNullException.ThrowIfNull(timetableModel, nameof(timetableModel));
+            return $"{routeModelCore.Id} {timetableModel.Id}";
+        }
     }
 }

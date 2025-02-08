@@ -195,7 +195,7 @@ namespace Orts.Simulation.Activities
 
         public void Report()
         {
-            ReportFileName = Path.Combine(RuntimeInfo.UserDataFolder, Simulator.Instance.SaveFileName + ".eval.txt");
+            ReportFileName = Path.Combine(RuntimeInfo.UserDataFolder, Simulator.Instance.SavePointName() + ".eval.txt");
             StringBuilder builder = new StringBuilder();
             Simulator simulator = Simulator.Instance;
 
