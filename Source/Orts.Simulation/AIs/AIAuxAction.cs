@@ -127,7 +127,7 @@ namespace Orts.Simulation.AIs
         protected void SetGenAuxActions(AITrain thisTrain)  //  Add here the new Generic Action
         {
             Formats.Msts.Files.ActivityFile activity = Simulator.Instance.ActivityFile;
-            if (activity != null && activity.Activity.AIBlowsHornAtLevelCrossings && SpecAuxActions.Count == 0)
+            if (activity != null && activity.Activity.AILevelCrossingHornPattern != LevelCrossingHornPattern.None && SpecAuxActions.Count == 0)
             {
                 AuxActionHorn auxActionHorn = new AuxActionHorn(true, 2, 0, activity.Activity.AILevelCrossingHornPattern);
                 AIActionHornRef horn = new AIActionHornRef(thisTrain, auxActionHorn);

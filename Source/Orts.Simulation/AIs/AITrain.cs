@@ -285,7 +285,7 @@ namespace Orts.Simulation.AIs
                 TrainDeadlockInfo.CheckDeadlock(ValidRoutes[Direction.Forward], Number);
 
             // Set up horn blow at crossings if required
-            LevelCrossingHornPattern = Simulator.Instance.ActivityFile.Activity.AIBlowsHornAtLevelCrossings ? AILevelCrossingHornPattern.CreateInstance(Simulator.Instance.ActivityFile.Activity.AILevelCrossingHornPattern) : null;
+            LevelCrossingHornPattern = AILevelCrossingHornPattern.CreateInstance(Simulator.Instance.ActivityFile.Activity.AILevelCrossingHornPattern);
 
             // set initial position and state
 

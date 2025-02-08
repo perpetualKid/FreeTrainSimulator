@@ -22,7 +22,6 @@ namespace Orts.Formats.Msts.Models
         public Traffic Traffic { get; private set; }
         public PlatformPassengersWaiting PlatformWaitingPassengers { get; private set; }
         public RestrictedSpeedZones ActivityRestrictedSpeedZones { get; private set; }
-        public bool AIBlowsHornAtLevelCrossings { get; private set; }
         public LevelCrossingHornPattern AILevelCrossingHornPattern { get; private set; } = LevelCrossingHornPattern.Single;
 
 #pragma warning disable CA1034 // Nested types should not be visible
@@ -111,7 +110,6 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("platformnumpassengerswaiting",()=>{ PlatformWaitingPassengers = new PlatformPassengersWaiting(stf); }),  // 35 files. To test, use EUROPE1\ACTIVITIES\aftstorm.act
                 new STFReader.TokenProcessor("activityfailedsignals",()=>{ FailedSignals = new FailedSignals(stf); }),
                 new STFReader.TokenProcessor("activityrestrictedspeedzones",()=>{ ActivityRestrictedSpeedZones = new RestrictedSpeedZones(stf); }),   // 27 files. To test, use EUROPE1\ACTIVITIES\lclsrvce.act
-                new STFReader.TokenProcessor("ortsaihornatcrossings", () => { AIBlowsHornAtLevelCrossings = stf.ReadIntBlock(Convert.ToInt32(AIBlowsHornAtLevelCrossings)) > 0; }),
                 new STFReader.TokenProcessor("ortsaicrossinghornpattern", () =>{if (EnumExtension.GetValue(stf.ReadStringBlock(""), out LevelCrossingHornPattern value)) AILevelCrossingHornPattern = value; })
             });
         }
