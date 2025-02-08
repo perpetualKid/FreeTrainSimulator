@@ -14,6 +14,7 @@ using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.Shim;
 
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
@@ -84,17 +85,13 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 }
 
                 // use average of both probabilities > 0, else use only the one which is > 0, else 0
-                static int CombinedHazardProbability(int workers, int animals)
+                static int CombinedHazardProbability(int workers, int animals) => workers > 0 && animals > 0 ? (workers + animals) / 2 : workers > 0 ? workers : animals > 0 ? animals : 0;
+
+                // these setting should be used as activity specific overrides to standard values or user settings
+                Dictionary<string, string> settings = new Dictionary<string, string>()
                 {
-                    if (workers > 0 && animals > 0)
-                        return (workers + animals) / 2;
-                    else if (workers > 0)
-                        return workers;
-                    else if (animals > 0)
-                        return animals;
-                    else
-                        return 0;
-                }
+                    { "LoadStationStock",$"{activityFile.Activity.Header.LoadStationsPopulationFile}" },
+                };
 
                 ActivityModel activityModel = new ActivityModel()
                 {
@@ -120,7 +117,8 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         _ => throw new NotImplementedException(),
                     }),
                     InitialSpeed = activityFile.Activity.Header.StartingSpeed,
-                    HazardProbability = CombinedHazardProbability(activityFile.Activity.Header.Workers, activityFile.Activity.Header.Animals)
+                    HazardProbability = CombinedHazardProbability(activityFile.Activity.Header.Workers, activityFile.Activity.Header.Animals),
+                    Settings = settings.ToFrozenDictionary(),
                 };
 
                 await Create(activityModel, routeModel, cancellationToken).ConfigureAwait(false);

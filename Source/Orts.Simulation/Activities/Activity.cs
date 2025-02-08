@@ -28,6 +28,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.State;
 
 using Microsoft.Xna.Framework;
@@ -103,12 +104,13 @@ namespace Orts.Simulation.Activities
 #pragma warning restore CA1030 // Use events where appropriate
         }
 
-        public Activity(ActivityFile activityFile, Simulator simulator)
+        public Activity(ActivityFile activityFile, ActivityModel activityModel, Simulator simulator)
         {
             ArgumentNullException.ThrowIfNull(activityFile);
+            ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
 
             this.simulator = simulator;  // Save for future use.
-            StartTime = (int)activityFile.Activity.Header.StartTime.TotalSeconds;
+            StartTime = (int)activityModel.StartTime.ToTimeSpan().TotalSeconds;
             PlayerServices sd;
             sd = activityFile.Activity.PlayerServices;
             if (sd != null)

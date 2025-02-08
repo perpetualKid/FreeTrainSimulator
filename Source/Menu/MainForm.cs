@@ -475,7 +475,7 @@ namespace FreeTrainSimulator.Menu
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
                     if (existingFolders.Except(form.ContentModel.ContentFolders).Any() || form.ContentModel.ContentFolders.Except(existingFolders).Any() || // FrozenSet.SetEquals always returns false
-                         ContentModel.Version.Compare("2.0.0-dev.32") < 0)
+                         ContentModel.RefreshRequired())
                     {
                         ModelConverterProgress progressForm = null;
                         try

@@ -335,7 +335,7 @@ namespace Orts.Simulation
                 //TODO override Activity.Activity.AIHornAtCrossings from orActivitySettings
             }
 
-            ActivityRun = new Activity(ActivityFile, this);
+            ActivityRun = new Activity(ActivityFile, activityModel, this);
 
             ClockTime = activityModel.StartTime.ToTimeSpan().TotalSeconds;
             Season = activityModel.Season;
@@ -371,7 +371,7 @@ namespace Orts.Simulation
             };
             ActivityType = ActivityType.ExploreActivity;
             ActivityFile = new ActivityFile((int)startTime.TotalSeconds, Path.GetFileNameWithoutExtension(consist));
-            ActivityRun = new Activity(ActivityFile, this);
+            ActivityRun = new Activity(ActivityFile, ActivityModel, this);
             explorePath = Path.GetFileNameWithoutExtension(path);
             exploreConsist = Path.GetFileNameWithoutExtension(consist);
             ClockTime = startTime.TotalSeconds;
@@ -395,9 +395,9 @@ namespace Orts.Simulation
 
         public void Start(CancellationToken cancellationToken)
         {
-            if (ActivityFile?.Activity?.Header?.LoadStationsPopulationFile != null)
+            if (ActivityModel != null &&  ActivityModel.Settings.TryGetValue("LoadStationStock", out string loadStationStockfile) && !string.IsNullOrEmpty(loadStationStockfile))
             {
-                ContainerManager.LoadPopulationFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(ActivityFile?.Activity?.Header?.LoadStationsPopulationFile, ".load-stations-loads-or")));
+                ContainerManager.LoadPopulationFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(loadStationStockfile, ".load-stations-loads-or")));
             }
             SignalEnvironment = new SignalEnvironment(SignalConfig, UserSettings.UseLocationPassingPaths, cancellationToken);
             MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));

@@ -13,7 +13,10 @@ namespace FreeTrainSimulator.Models.Content
     public sealed partial record ContentModel : ModelBase
     {
         public override ModelBase Parent => null; // Content is root and does not implement a parent
-        
+
+        [MemoryPackIgnore]
+        public const string MinimumVersion = "2.0.1-dev.20";
+
         [MemoryPackIgnore]
         public static ContentModel None { get; } = default(ContentModel);
 
