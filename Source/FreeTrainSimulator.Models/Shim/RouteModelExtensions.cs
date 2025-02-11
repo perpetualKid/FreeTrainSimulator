@@ -43,7 +43,6 @@ namespace FreeTrainSimulator.Models.Shim
 
         public static ImmutableArray<PathModelCore> GetPaths(this RouteModelCore routeModel) => Task.Run(async () => await routeModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).Result;
 
-
         public static string SavePointName(this RouteModelCore routeModelCore, ActivityType activityType)
         {
             ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));

@@ -32,6 +32,7 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Logging;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Settings;
@@ -479,6 +480,11 @@ namespace FreeTrainSimulator.Menu
                         ModelConverterProgress progressForm = null;
                         try
                         {
+                            // adding another trace listener specifically for content messages during import
+                            string logFileName = RuntimeInfo.LogFile(ProfileUserSettings.LogFilePath, "{Product} {Application} Content Import.txt");
+                            LoggingUtil.InitLogging(logFileName, ProfileUserSettings.LogLevel, false, false);
+                            //the listener will be automatically closed at the end of import when ProfileChanged is raised
+
                             ProfileModel currentProfile = SelectedProfile;
                             SelectedProfile = null;
                             progressForm = new ModelConverterProgress();
