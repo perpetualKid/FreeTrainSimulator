@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 
@@ -20,7 +19,7 @@ namespace FreeTrainSimulator.Models.Handler
 
         public static async Task<ProfileModel> Current(CancellationToken cancellationToken)
         {
-            AllProfileSettingsModel currentProfileSettingsModel = await ProfileSettingModelHandler<AllProfileSettingsModel>.FromFile(null, cancellationToken).ConfigureAwait(false);
+            _ = await ProfileSettingModelHandler<AllProfileSettingsModel>.FromFile(null, cancellationToken).ConfigureAwait(false);
             string profileName = (await AllProfileSettingsHandler.GetCore(cancellationToken).ConfigureAwait(false))?.Profile;
             return (await GetProfiles(cancellationToken).ConfigureAwait(false)).GetByNameOrFirstByName(profileName) ?? new ProfileModel(DefaultProfile);
         }
@@ -54,9 +53,9 @@ namespace FreeTrainSimulator.Models.Handler
             return modelTask;
         }
 
-        public static Task<FrozenSet<ProfileModel>> GetProfiles(CancellationToken cancellationToken)
+        public static Task<ImmutableArray<ProfileModel>> GetProfiles(CancellationToken cancellationToken)
         {
-            if (collectionUpdateRequired.TryRemove(root, out _) || !modelSetTaskCache.TryGetValue(root, out Task<FrozenSet<ProfileModel>> modelSetTask) || modelSetTask.IsFaulted)
+            if (collectionUpdateRequired.TryRemove(root, out _) || !modelSetTaskCache.TryGetValue(root, out Task<ImmutableArray<ProfileModel>> modelSetTask) || modelSetTask.IsFaulted)
             {
                 modelSetTaskCache[root] = modelSetTask = LoadProfiles(cancellationToken);
             }
@@ -64,7 +63,7 @@ namespace FreeTrainSimulator.Models.Handler
             return modelSetTask;
         }
 
-        public static Task<FrozenSet<ProfileModel>> Create(ProfileModel profileModel, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<ProfileModel>> Create(ProfileModel profileModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             string key = profileModel.Id;
@@ -76,7 +75,7 @@ namespace FreeTrainSimulator.Models.Handler
             return GetProfiles(cancellationToken);
         }
 
-        public static Task<FrozenSet<ProfileModel>> Delete(ProfileModel profileModel, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<ProfileModel>> Delete(ProfileModel profileModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));
             string key = profileModel.Id;
@@ -94,7 +93,7 @@ namespace FreeTrainSimulator.Models.Handler
             return GetProfiles(cancellationToken);
         }
 
-        private static Task<FrozenSet<ProfileModel>> LoadProfiles(CancellationToken cancellationToken)
+        private static Task<ImmutableArray<ProfileModel>> LoadProfiles(CancellationToken cancellationToken)
         {
             string profilesFolder = ModelFileResolver<ProfileModel>.FolderPath(null);
 
@@ -116,7 +115,7 @@ namespace FreeTrainSimulator.Models.Handler
                     results.Add(GetCore(profileId, cancellationToken).Result);
                 });
             }
-            return Task.FromResult(results.ToFrozenSet());
+            return Task.FromResult(results.ToImmutableArray());
         }
     }
 }

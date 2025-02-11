@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -21,7 +21,7 @@ namespace FreeTrainSimulator.Models.Handler
         protected static readonly ConcurrentDictionary<string, bool> collectionUpdateRequired = new ConcurrentDictionary<string, bool>();
 
         protected static readonly ConcurrentDictionary<string, Task<TModel>> modelTaskCache = new ConcurrentDictionary<string, Task<TModel>>(StringComparer.OrdinalIgnoreCase);
-        protected static readonly ConcurrentDictionary<string, Task<FrozenSet<TModel>>> modelSetTaskCache = new ConcurrentDictionary<string, Task<FrozenSet<TModel>>>(StringComparer.OrdinalIgnoreCase);
+        protected static readonly ConcurrentDictionary<string, Task<ImmutableArray<TModel>>> modelSetTaskCache = new ConcurrentDictionary<string, Task<ImmutableArray<TModel>>>(StringComparer.OrdinalIgnoreCase);
 
         internal protected static async Task<TModel> FromFile<TContainer>(string name, TContainer parent, CancellationToken cancellationToken, bool resolveName = true) where TContainer : ModelBase
         {

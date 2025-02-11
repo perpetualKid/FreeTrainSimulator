@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +12,7 @@ namespace FreeTrainSimulator.Models.Handler
 {
     internal sealed class FolderModelHandler : ContentHandlerBase<FolderModel>
     {
-        public static async Task<FrozenSet<FolderModel>> ExpandFolderModels(ContentModel contentModel, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<FolderModel>> ExpandFolderModels(ContentModel contentModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
 
@@ -29,7 +29,7 @@ namespace FreeTrainSimulator.Models.Handler
                 modelTaskCache[key] = modelTask;
             }).ConfigureAwait(false);
 
-            FrozenSet<FolderModel> result = results.ToFrozenSet();
+            ImmutableArray<FolderModel> result = results.ToImmutableArray();
             string key = contentModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             return result;

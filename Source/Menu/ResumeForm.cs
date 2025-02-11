@@ -49,7 +49,7 @@ Some problems remain (see comments in the code):
 */
 
 using System;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -77,7 +77,7 @@ namespace FreeTrainSimulator.Menu
         private readonly RouteModelCore route;
         private readonly ActivityModelCore activity;
         private readonly TimetableModel timeTable;
-        private FrozenSet<SavePointModel> savePoints;
+        private ImmutableArray<SavePointModel> savePoints;
         private CancellationTokenSource ctsLoader;
         private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
 
@@ -164,7 +164,7 @@ namespace FreeTrainSimulator.Menu
                 _ => throw new NotImplementedException(),
             };
 
-            FrozenSet<RouteModelCore> globalRoutes = await route.Parent.GetRoutes(ctsLoader.Token).ConfigureAwait(false);
+            ImmutableArray<RouteModelCore> globalRoutes = await route.Parent.GetRoutes(ctsLoader.Token).ConfigureAwait(false);
 
             savePoints = await route.RefreshSavePoints(prefix, ctsLoader.Token).ConfigureAwait(true);
             savePoints = savePoints.Where(s => (!s.MultiplayerGame ^ multiplayer)).
@@ -177,13 +177,13 @@ namespace FreeTrainSimulator.Menu
                 // If so, add it with a warning.
                 Where(s => globalRoutes.Any(route => string.Equals(s.Route, route.Id, StringComparison.OrdinalIgnoreCase))).
                 OrderByDescending(s => s.RealTime).
-                ToFrozenSet();
+                ToImmutableArray();
             saveBindingSource.DataSource = savePoints;
 
             GridSaves_SelectionChanged(null, null);
             // Show warning after the list has been updated as this is more useful.
 
-            if (savePoints.Count == 0)
+            if (savePoints.Length == 0)
                 gridSaves.Rows.Clear();
 
             int invalidCount = 0;
@@ -200,7 +200,7 @@ namespace FreeTrainSimulator.Menu
             {
                 labelInvalidSaves.Text = catalog.GetString(
                      "To prevent crashes and unexpected behaviour, saved states from older versions may be invalid and fail to restore.\n") +
-                     catalog.GetString("{0} of {1} saves for this route can not be validated.", invalidCount, savePoints.Count);
+                     catalog.GetString("{0} of {1} saves for this route can not be validated.", invalidCount, savePoints.Length);
                 MessageBox.Show(warnings.ToString(), $"{RuntimeInfo.ProductName} {VersionInfo.Version}");
             }
         }

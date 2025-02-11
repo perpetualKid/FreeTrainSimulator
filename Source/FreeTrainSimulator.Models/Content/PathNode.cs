@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using FreeTrainSimulator.Common;
+﻿using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
 using MemoryPack;

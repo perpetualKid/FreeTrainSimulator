@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -45,12 +45,12 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             return modelTask;
         }
 
-        public static Task<FrozenSet<SavePointModel>> GetSavePoints(RouteModelCore routeModel, string activityPrefix, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<SavePointModel>> GetSavePoints(RouteModelCore routeModel, string activityPrefix, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(activityPrefix);
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<SavePointModel>> modelSetTask) || modelSetTask.IsFaulted)
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<SavePointModel>> modelSetTask) || modelSetTask.IsFaulted)
             {
                 modelSetTaskCache[key] = modelSetTask = ExpandSavePointModels(routeModel, activityPrefix, cancellationToken);
             }
@@ -58,7 +58,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             return modelSetTask;
         }
 
-        public static async Task<FrozenSet<SavePointModel>> ExpandSavePointModels(RouteModelCore routeModel, string activityPrefix, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<SavePointModel>> ExpandSavePointModels(RouteModelCore routeModel, string activityPrefix, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
@@ -86,7 +86,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
                 }).ConfigureAwait(false);
             }
 
-            FrozenSet<SavePointModel> result = results.ToFrozenSet();
+            ImmutableArray<SavePointModel> result = results.ToImmutableArray();
             string key = routeModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             return result;

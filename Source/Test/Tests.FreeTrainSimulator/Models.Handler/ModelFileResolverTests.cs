@@ -1,4 +1,4 @@
-﻿using System.Collections.Frozen;
+﻿using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -115,7 +115,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         [TestMethod]
         public void PathFilePathTest()
         {
-            ContentModel content = new ContentModel(FrozenSet<FolderModel>.Empty);
+            ContentModel content = new ContentModel(ImmutableArray<FolderModel>.Empty);
             FolderModel folder = new FolderModel("RouteTestFolder", "C:\\", content);
             RouteModel routeModel = new RouteModel(WorldLocation.None)
             {
@@ -134,7 +134,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         [TestMethod]
         public void PathFileFromNamePathTest()
         {
-            ContentModel content = new ContentModel(FrozenSet<FolderModel>.Empty);
+            ContentModel content = new ContentModel(ImmutableArray<FolderModel>.Empty);
             FolderModel folder = new FolderModel("RouteTestFolder", "C:\\", content);
             RouteModel routeModel = new RouteModel(WorldLocation.None)
             {
@@ -149,7 +149,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         [TestMethod]
         public void PathFolderPathTest()
         {
-            ContentModel content = new ContentModel(FrozenSet<FolderModel>.Empty);
+            ContentModel content = new ContentModel(ImmutableArray<FolderModel>.Empty);
             FolderModel folder = new FolderModel("TestFolder", "C:\\", content);
             RouteModel routeModel = new RouteModel(WorldLocation.None)
             {

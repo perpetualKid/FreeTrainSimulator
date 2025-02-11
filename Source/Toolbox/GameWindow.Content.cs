@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Frozen;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,11 +8,9 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
-using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Microsoft.Xna.Framework;
-using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Toolbox
 {
@@ -32,7 +29,7 @@ namespace FreeTrainSimulator.Toolbox
         private ContentModel contentModel;
         private FolderModel selectedFolder;
         private RouteModelCore selectedRoute;
-        private FrozenSet<RouteModelCore> routeModels;
+        private ImmutableArray<RouteModelCore> routeModels;
         private readonly SemaphoreSlim loadRouteSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsProfileLoading;
         private CancellationTokenSource ctsRouteLoading;
@@ -67,11 +64,11 @@ namespace FreeTrainSimulator.Toolbox
             }
             catch (TaskCanceledException)
             {
-                mainmenu.PopulateContentFolders(FrozenSet<FolderModel>.Empty);
+                mainmenu.PopulateContentFolders(ImmutableArray<FolderModel>.Empty);
             }
         }
 
-        internal async Task<FrozenSet<RouteModelCore>> FindRoutes(FolderModel contentFolder)
+        internal async Task<ImmutableArray<RouteModelCore>> FindRoutes(FolderModel contentFolder)
         {
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
             await loadRouteSemaphore.WaitAsync().ConfigureAwait(false);
@@ -135,7 +132,7 @@ namespace FreeTrainSimulator.Toolbox
 
                 if (!string.IsNullOrEmpty(routeId) && ToolboxSettings.RestoreLastView)
                 {
-                    RouteModelCore route = (routeModels ??= await FindRoutes(folder).ConfigureAwait(false))?.GetById(routeId);
+                    RouteModelCore route = (routeModels.IsDefaultOrEmpty ? routeModels = await FindRoutes(folder).ConfigureAwait(false) : routeModels).GetById(routeId);
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(false);

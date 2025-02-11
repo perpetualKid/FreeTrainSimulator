@@ -16,7 +16,6 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -129,7 +128,7 @@ namespace FreeTrainSimulator.Menu
 
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
-            FrozenSet<ProfileModel> profiles = await SelectedProfile.GetProfiles(ctsProfileLoading.Token).ConfigureAwait(true);
+            ImmutableArray<ProfileModel> profiles = await SelectedProfile.GetProfiles(ctsProfileLoading.Token).ConfigureAwait(true);
             SetupProfilesDropdown(profiles);
 
             ProfileModel currentProfile = await SelectedProfile.Current(ctsProfileLoading.Token).ConfigureAwait(true);
@@ -459,7 +458,7 @@ namespace FreeTrainSimulator.Menu
         private async void ButtonOptions_Click(object sender, EventArgs e)
         {
             await SaveOptions().ConfigureAwait(false);
-            await ShowOptionsForm(ContentModel.ContentFolders.Count == 0).ConfigureAwait(true);
+            await ShowOptionsForm(ContentModel.ContentFolders.Length == 0).ConfigureAwait(true);
         }
 
         private async Task ShowOptionsForm(bool initialSetup)
@@ -469,7 +468,7 @@ namespace FreeTrainSimulator.Menu
                 Invoke(ShowOptionsForm, initialSetup);
                 return;
             }
-            FrozenSet<FolderModel> existingFolders = ContentModel.ContentFolders;
+            ImmutableArray<FolderModel> existingFolders = ContentModel.ContentFolders;
             using (OptionsForm form = new OptionsForm(ProfileUserSettings, updateManager, initialSetup, ContentModel))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
@@ -670,7 +669,7 @@ namespace FreeTrainSimulator.Menu
         #endregion
 
         #region profile selections
-        private void SetupProfilesDropdown(FrozenSet<ProfileModel> profiles)
+        private void SetupProfilesDropdown(ImmutableArray<ProfileModel> profiles)
         {
             if (InvokeRequired)
             {
@@ -721,7 +720,7 @@ namespace FreeTrainSimulator.Menu
         #endregion
 
         #region Activity dropdown selections
-        private void SetupFoldersDropdown(FrozenSet<FolderModel> contentFolders)
+        private void SetupFoldersDropdown(ImmutableArray<FolderModel> contentFolders)
         {
             if (InvokeRequired)
             {
@@ -730,13 +729,13 @@ namespace FreeTrainSimulator.Menu
             }
             comboBoxFolder.EnableComboBoxItemDataSource(contentFolders.OrderBy(f => f.Name).Select(f => new ComboBoxItem<FolderModel>(f.Name, f)));
 
-            if (ContentModel.ContentFolders.Count > 0)
+            if (ContentModel.ContentFolders.Length > 0)
             {
                 _ = comboBoxFolder.Focus();
             }
         }
 
-        private void SetupRoutesDropdown(FrozenSet<RouteModelCore> routeModels)
+        private void SetupRoutesDropdown(ImmutableArray<RouteModelCore> routeModels)
         {
             if (InvokeRequired)
             {
@@ -747,7 +746,7 @@ namespace FreeTrainSimulator.Menu
             comboBoxRoute.EnableComboBoxItemDataSource(routeModels.OrderBy(r => r.Name).Select(r => new ComboBoxItem<RouteModelCore>(r.Name, r)));
         }
 
-        private void SetupActivitiesDropdown(FrozenSet<ActivityModelCore> activities)
+        private void SetupActivitiesDropdown(ImmutableArray<ActivityModelCore> activities)
         {
             if (InvokeRequired)
             {
@@ -758,7 +757,7 @@ namespace FreeTrainSimulator.Menu
             comboBoxActivity.EnableComboBoxItemDataSource(activities.OrderBy(a => a.Name).Select(a => new ComboBoxItem<ActivityModelCore>(a.Name, a)));
         }
 
-        private void SetupLocomotivesDropdown(FrozenSet<WagonSetModel> consists)
+        private void SetupLocomotivesDropdown(ImmutableArray<WagonSetModel> consists)
         {
             if (InvokeRequired)
             {
@@ -782,7 +781,7 @@ namespace FreeTrainSimulator.Menu
             comboBoxConsist.EnableComboBoxItemDataSource((comboBoxLocomotive.SelectedValue as IGrouping<string, WagonSetModel>)?.OrderBy(w => w.Name).Select(w => new ComboBoxItem<WagonSetModel>(w.Name, w)));
         }
 
-        private void SetupPathStartDropdown(FrozenSet<PathModelCore> pathModels)
+        private void SetupPathStartDropdown(ImmutableArray<PathModelCore> pathModels)
         {
             if (InvokeRequired)
             {
@@ -808,7 +807,7 @@ namespace FreeTrainSimulator.Menu
         #endregion
 
         #region Timetable dropwon selections
-        private void SetupTimetableSetDropdown(FrozenSet<TimetableModel> timetables)
+        private void SetupTimetableSetDropdown(ImmutableArray<TimetableModel> timetables)
         {
             if (InvokeRequired)
             {
@@ -843,7 +842,7 @@ namespace FreeTrainSimulator.Menu
                 Select(t => new ComboBoxItem<TimetableTrainModel>($"{t.StartTime} {t.Name}", t)));
         }
 
-        private void SetupTimetableWeatherDropdown(FrozenSet<WeatherModelCore> weatherModels)
+        private void SetupTimetableWeatherDropdown(ImmutableArray<WeatherModelCore> weatherModels)
         {
             if (InvokeRequired)
             {
@@ -1202,7 +1201,7 @@ namespace FreeTrainSimulator.Menu
             textInputControlProfileName.Visible = false;
             ProfileModel profile = new ProfileModel(textInputControlProfileName.Text);
             textInputControlProfileName.ResetText();
-            FrozenSet<ProfileModel> profiles = await profile.Create(ctsProfileLoading.Token).ConfigureAwait(false);
+            ImmutableArray<ProfileModel> profiles = await profile.Create(ctsProfileLoading.Token).ConfigureAwait(false);
             SetupProfilesDropdown(profiles);
             if (profileFromCurrent)
             {
@@ -1238,7 +1237,7 @@ namespace FreeTrainSimulator.Menu
 
         private async void ToolStripButtonProfileDelete_Click(object sender, EventArgs e)
         {
-            FrozenSet<ProfileModel> profiles = await SelectedProfile.Delete(CancellationToken.None).ConfigureAwait(false);
+            ImmutableArray<ProfileModel> profiles = await SelectedProfile.Delete(CancellationToken.None).ConfigureAwait(false);
             SelectedProfile = null;
             SetupProfilesDropdown(profiles);
             ProfileModel currentProfile = await SelectedProfile.Current(ctsProfileLoading.Token).ConfigureAwait(false);

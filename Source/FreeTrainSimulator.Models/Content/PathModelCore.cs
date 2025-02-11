@@ -1,6 +1,4 @@
-﻿using System.Collections.Frozen;
-
-using FreeTrainSimulator.Models.Base;
+﻿using FreeTrainSimulator.Models.Base;
 
 using MemoryPack;
 

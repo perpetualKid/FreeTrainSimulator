@@ -1,4 +1,4 @@
-﻿using System.Collections.Frozen;
+﻿using System.Collections.Immutable;
 using System.Linq;
 
 using FreeTrainSimulator.Models.Base;
@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Content
         public float AccelerationFactor { get; init; }
         public float Durability { get; init; }
 
-        public FrozenSet<WagonReferenceModel> TrainCars { get; init; } = FrozenSet<WagonReferenceModel>.Empty;
+        public ImmutableArray<WagonReferenceModel> TrainCars { get; init; } = ImmutableArray<WagonReferenceModel>.Empty;
         public WagonReferenceModel Locomotive => Reverse ? TrainCars.Where(c => c.TrainCarType == Common.TrainCarType.Engine).LastOrDefault() : TrainCars.Where(c => c.TrainCarType == Common.TrainCarType.Engine).FirstOrDefault();
         [MemoryPackIgnore]
         public bool Reverse { get; init; }

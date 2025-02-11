@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Handler
         {
             Id = "<unknown>",
             Name = "Missing",
-            TrainCars = FrozenSet<WagonReferenceModel>.Empty
+            TrainCars = ImmutableArray<WagonReferenceModel>.Empty
         };
 
         public static Task<WagonSetModel> GetCore(WagonSetModel wagonSetModel, CancellationToken cancellationToken)
@@ -39,12 +39,12 @@ namespace FreeTrainSimulator.Models.Handler
             return modelTask;
         }
 
-        public static Task<FrozenSet<WagonSetModel>> GetWagonSets(FolderModel folderModel, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<WagonSetModel>> GetWagonSets(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
             string key = folderModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<WagonSetModel>> modelSetTask) || modelSetTask.IsFaulted)
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<WagonSetModel>> modelSetTask) || modelSetTask.IsFaulted)
             {
                 modelSetTaskCache[key] = modelSetTask = LoadWagonSets(folderModel, cancellationToken);
             }
@@ -52,22 +52,22 @@ namespace FreeTrainSimulator.Models.Handler
             return modelSetTask;
         }
 
-        public static async ValueTask<FrozenSet<WagonReferenceModel>> GetLocomotives(FolderModel folderModel, CancellationToken cancellationToken)
+        public static async ValueTask<ImmutableArray<WagonReferenceModel>> GetLocomotives(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
             string key = folderModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<WagonSetModel>> modelSetTask) || modelSetTask.IsFaulted)
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<WagonSetModel>> modelSetTask) || modelSetTask.IsFaulted)
             {
                 modelSetTaskCache[key] = modelSetTask = LoadWagonSets(folderModel, cancellationToken);
             }
 
-            FrozenSet<WagonSetModel> wagonSets = await modelSetTask.ConfigureAwait(false);
+            ImmutableArray<WagonSetModel> wagonSets = await modelSetTask.ConfigureAwait(false);
 
-            return wagonSets.Select(w => w.Locomotive).Where(l => l != null).Append(WagonReferenceHandler.LocomotiveAny).ToFrozenSet();
+            return wagonSets.Select(w => w.Locomotive).Where(l => l != null).Append(WagonReferenceHandler.LocomotiveAny).ToImmutableArray();
         }
 
-        private static async Task<FrozenSet<WagonSetModel>> LoadWagonSets(FolderModel folderModel, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<WagonSetModel>> LoadWagonSets(FolderModel folderModel, CancellationToken cancellationToken)
         {
             string wagonsFolder = ModelFileResolver<WagonSetModel>.FolderPath(folderModel);
             string pattern = ModelFileResolver<WagonSetModel>.WildcardSavePattern;
@@ -89,7 +89,7 @@ namespace FreeTrainSimulator.Models.Handler
                         results.Add(wagonSet);
                 }).ConfigureAwait(false);
             }
-            return results.ToFrozenSet();
+            return results.ToImmutableArray();
         }
     }
 }

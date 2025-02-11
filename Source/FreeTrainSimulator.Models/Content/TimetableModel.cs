@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 
 using FreeTrainSimulator.Models.Base;
 
@@ -12,7 +13,7 @@ namespace FreeTrainSimulator.Models.Content
     {
         public override RouteModelCore Parent => _parent as RouteModelCore;
 
-        public FrozenSet<TimetableTrainModel> TimetableTrains { get; init; } = FrozenSet<TimetableTrainModel>.Empty;
+        public ImmutableArray<TimetableTrainModel> TimetableTrains { get; init; } = ImmutableArray<TimetableTrainModel>.Empty;
 
         public override void Initialize(ModelBase parent)
         {

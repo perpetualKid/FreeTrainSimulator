@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -53,12 +53,12 @@ namespace FreeTrainSimulator.Models.Handler
             return await modelTask.ConfigureAwait(false) as ActivityModel;
         }
 
-        public static Task<FrozenSet<ActivityModelCore>> GetActivities(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<ActivityModelCore>> GetActivities(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<ActivityModelCore>> modelSetTask) || modelSetTask.IsFaulted)
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<ActivityModelCore>> modelSetTask) || modelSetTask.IsFaulted)
             {
                 modelSetTaskCache[key] = modelSetTask = LoadActivities(routeModel, cancellationToken);
             }
@@ -66,7 +66,7 @@ namespace FreeTrainSimulator.Models.Handler
             return modelSetTask;
         }
 
-        private static async Task<FrozenSet<ActivityModelCore>> LoadActivities(RouteModelCore routeModel, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<ActivityModelCore>> LoadActivities(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             string activiesFolder = ModelFileResolver<ActivityModelCore>.FolderPath(routeModel);
             string pattern = ModelFileResolver<ActivityModelCore>.WildcardSavePattern;
@@ -88,7 +88,7 @@ namespace FreeTrainSimulator.Models.Handler
                         results.Add(path);
                 }).ConfigureAwait(false);
             }
-            return results.Concat(new ActivityModelCore[] { CommonModelInstances.ExploreMode, CommonModelInstances.ExploreActivityMode }).ToFrozenSet();
+            return results.Concat(new ActivityModelCore[] { CommonModelInstances.ExploreMode, CommonModelInstances.ExploreActivityMode }).ToImmutableArray();
         }
     }
 }

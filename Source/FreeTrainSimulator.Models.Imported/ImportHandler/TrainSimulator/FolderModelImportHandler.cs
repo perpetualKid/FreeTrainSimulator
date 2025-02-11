@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -18,9 +19,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
     {
         private const string importKey = "$Import";
 
-        internal static FrozenSet<FolderModel> InitialFolderImport(ContentModel contentModel)
+        internal static ImmutableArray<FolderModel> InitialFolderImport(ContentModel contentModel)
         {
-            if (!modelSetTaskCache.TryGetValue(importKey, out Task<FrozenSet<FolderModel>> modelSetTask))
+            if (!modelSetTaskCache.TryGetValue(importKey, out Task<ImmutableArray<FolderModel>> modelSetTask))
             {
 
                 List<FolderModel> folderModels = new List<FolderModel>();
@@ -39,13 +40,13 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 {
                     Trace.TraceError($"Could not import existing content folders {ex.Message}.");
                 }
-                modelSetTaskCache[importKey] = modelSetTask = Task.FromResult(folderModels.ToFrozenSet());
+                modelSetTaskCache[importKey] = modelSetTask = Task.FromResult(folderModels.ToImmutableArray());
             }
 
             return modelSetTask.Result;
         }
 
-        public static async Task<FrozenSet<FolderModel>> ExpandFolderModels(ContentModel contentModel, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<FolderModel>> ExpandFolderModels(ContentModel contentModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
 
@@ -62,7 +63,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 modelTaskCache[key] = modelTask;
             }).ConfigureAwait(false);
 
-            FrozenSet<FolderModel> result = results.ToFrozenSet();
+            ImmutableArray<FolderModel> result = results.ToImmutableArray();
             string key = contentModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             return result;

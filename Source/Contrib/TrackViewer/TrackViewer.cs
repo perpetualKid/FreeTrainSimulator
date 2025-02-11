@@ -17,7 +17,7 @@
 //
 
 using System;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
@@ -30,7 +30,6 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
-using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 
 using GetText;
@@ -1039,7 +1038,7 @@ namespace ORTS.TrackViewer
         /// </summary>
         private void FindPaths()
         {
-            FrozenSet<PathModelCore> routePaths = Task.Run(async() => await CurrentRoute.GetRoutePaths(CancellationToken.None).ConfigureAwait(false)).Result;
+            ImmutableArray<PathModelCore> routePaths = Task.Run(async() => await CurrentRoute.GetRoutePaths(CancellationToken.None).ConfigureAwait(false)).Result;
             Paths = new Collection<PathModelCore>(routePaths.OrderBy(r => r.Name).ToList());
             menuControl.PopulatePaths();
             SetPath(null);

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 
 using FreeTrainSimulator.Common;
 
@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Models.Content
         {
             Id = "<unknown>",
             Name = "Missing",
-            TrainCars = FrozenSet<WagonReferenceModel>.Empty
+            TrainCars = ImmutableArray<WagonReferenceModel>.Empty
         };
     }
 }

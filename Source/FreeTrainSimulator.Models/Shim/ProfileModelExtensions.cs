@@ -1,4 +1,4 @@
-﻿using System.Collections.Frozen;
+﻿using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,8 +18,8 @@ namespace FreeTrainSimulator.Models.Shim
         public static Task UpdateCurrent(this ProfileModel profileModel, CancellationToken cancellationToken) => AllProfileSettingsHandler.UpdateCurrent(profileModel, cancellationToken);
         public static Task<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken) => Get(null, profileModel?.Name, cancellationToken);
         public static Task<ProfileModel> Get(this ProfileModel _, string profileName, CancellationToken cancellationToken) => ProfileModelHandler.GetCore(profileName, cancellationToken);
-        public static Task<FrozenSet<ProfileModel>> GetProfiles(this ProfileModel _, CancellationToken cancellationToken) => ProfileModelHandler.GetProfiles(cancellationToken);
-        public static Task<FrozenSet<ProfileModel>> Create(this ProfileModel profileModel, CancellationToken cancellationToken) => ProfileModelHandler.Create(profileModel, cancellationToken);
-        public static Task<FrozenSet<ProfileModel>> Delete(this ProfileModel profileModel, CancellationToken cancellationToken) => ProfileModelHandler.Delete(profileModel, cancellationToken);
+        public static Task<ImmutableArray<ProfileModel>> GetProfiles(this ProfileModel _, CancellationToken cancellationToken) => ProfileModelHandler.GetProfiles(cancellationToken);
+        public static Task<ImmutableArray<ProfileModel>> Create(this ProfileModel profileModel, CancellationToken cancellationToken) => ProfileModelHandler.Create(profileModel, cancellationToken);
+        public static Task<ImmutableArray<ProfileModel>> Delete(this ProfileModel profileModel, CancellationToken cancellationToken) => ProfileModelHandler.Delete(profileModel, cancellationToken);
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,7 +15,7 @@ namespace FreeTrainSimulator.Menu
 {
     public partial class MainForm
     {
-        private static readonly WagonReferenceModel anyConsist = FrozenSet<WagonSetModel>.Empty.Any();
+        private static readonly WagonReferenceModel anyConsist = ImmutableArray<WagonSetModel>.Empty.Any();
 
         private async Task ProfileChanged(ProfileModel profileModel)
         {
@@ -47,7 +47,7 @@ namespace FreeTrainSimulator.Menu
             //Initial setup if necessary
             ContentModel = await contentModelTask.ConfigureAwait(false);
             ProfileSelections = await profileSelectionsTask.ConfigureAwait(false);
-            if (ContentModel.ContentFolders.Count == 0)
+            if (ContentModel.ContentFolders.Length == 0)
             {
                 await ShowOptionsForm(true).ConfigureAwait(false);
             }
@@ -191,9 +191,9 @@ namespace FreeTrainSimulator.Menu
 
             FolderModel contentFolder = comboBoxFolder.SetComboBoxItem((FolderModel folderItem) => string.Equals(folderItem.Name, ProfileSelections?.FolderName, StringComparison.OrdinalIgnoreCase));
 
-            FrozenSet<RouteModelCore> routeModels = null;
-            FrozenSet<WagonSetModel> consistModels = null;
-            FrozenSet<WagonReferenceModel> locomotives = null;
+            ImmutableArray<RouteModelCore> routeModels = ImmutableArray<RouteModelCore>.Empty;
+            ImmutableArray<WagonSetModel> consistModels = ImmutableArray<WagonSetModel>.Empty;
+            ImmutableArray<WagonReferenceModel> locomotives = ImmutableArray<WagonReferenceModel>.Empty;
 
             if (contentFolder != null)
             {
@@ -225,10 +225,10 @@ namespace FreeTrainSimulator.Menu
 
             ProfileSelections.RouteId = routeModel?.Id;
 
-            FrozenSet<PathModelCore> pathModels = null;
-            FrozenSet<ActivityModelCore> activityModels = null;
-            FrozenSet<WeatherModelCore> timetableWeatherFiles = null;
-            FrozenSet<TimetableModel> timetableModels = null;
+            ImmutableArray<PathModelCore> pathModels = ImmutableArray<PathModelCore>.Empty;
+            ImmutableArray<ActivityModelCore> activityModels = ImmutableArray<ActivityModelCore>.Empty;
+            ImmutableArray<WeatherModelCore> timetableWeatherFiles = ImmutableArray<WeatherModelCore>.Empty;
+            ImmutableArray<TimetableModel> timetableModels = ImmutableArray<TimetableModel>.Empty;
 
             if (routeModel != null)
             {
@@ -243,12 +243,12 @@ namespace FreeTrainSimulator.Menu
                 catch (TaskCanceledException) { }
             }
 
-            SetupActivitiesDropdown(activityModels ?? FrozenSet<ActivityModelCore>.Empty);
-            SetupPathStartDropdown(pathModels ?? FrozenSet<PathModelCore>.Empty);
+            SetupActivitiesDropdown(activityModels);
+            SetupPathStartDropdown(pathModels);
             SetupPathEndDropdown();
 
-            SetupTimetableSetDropdown(timetableModels ?? FrozenSet<TimetableModel>.Empty);
-            SetupTimetableWeatherDropdown(timetableWeatherFiles ?? FrozenSet<WeatherModelCore>.Empty);
+            SetupTimetableSetDropdown(timetableModels);
+            SetupTimetableWeatherDropdown(timetableWeatherFiles);
 
             SetupActivityFromSelection();
             SetupTimetableFromSelection();

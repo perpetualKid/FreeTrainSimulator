@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace FreeTrainSimulator.Models.Handler
 
             contentModel = (contentModel ??= new ContentModel()) with
             {
-                ContentFolders = folders != null ? folders.Select(folderModelHolder => new FolderModel(folderModelHolder.Item1, folderModelHolder.Item2, contentModel)).ToFrozenSet() : FrozenSet<FolderModel>.Empty
+                ContentFolders = folders != null ? folders.Select(folderModelHolder => new FolderModel(folderModelHolder.Item1, folderModelHolder.Item2, contentModel)).ToImmutableArray() : ImmutableArray<FolderModel>.Empty
             };
             contentModel = await Convert(contentModel, cancellationToken).ConfigureAwait(false);
 

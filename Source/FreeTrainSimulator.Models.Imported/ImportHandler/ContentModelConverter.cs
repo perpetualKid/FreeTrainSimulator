@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             {
                 contentModel = await ContentModelImportHandler.Expand(contentModel, cancellationToken).ConfigureAwait(false);
 
-                int folderCount = contentModel.ContentFolders.Count;
+                int folderCount = contentModel.ContentFolders.Length;
                 int completedCount = 0;
                 await Parallel.ForEachAsync(contentModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {
@@ -54,8 +54,8 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 
             if (VersionInfo.Compare(folderModel.Version) > 0 || refresh)
             {
-                Task<FrozenSet<RouteModelCore>> routesTask = RouteModelImportHandler.ExpandRouteModels(folderModel, cancellationToken);
-                Task<FrozenSet<WagonSetModel>> wagonSetsTask = WagonSetModelImportHandler.ExpandWagonSetModels(folderModel, cancellationToken);
+                Task<ImmutableArray<RouteModelCore>> routesTask = RouteModelImportHandler.ExpandRouteModels(folderModel, cancellationToken);
+                Task<ImmutableArray<WagonSetModel>> wagonSetsTask = WagonSetModelImportHandler.ExpandWagonSetModels(folderModel, cancellationToken);
 
                 await Task.WhenAll(wagonSetsTask, routesTask).ConfigureAwait(false);
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -11,7 +12,6 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Shim;
 
 namespace FreeTrainSimulator.Toolbox.WinForms.Controls
@@ -186,7 +186,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
                 parent.InputCaptured = true;
         }
 
-        internal void PopulateRoutes(FrozenSet<RouteModelCore> routes)
+        internal void PopulateRoutes(ImmutableArray<RouteModelCore> routes)
         {
             if (InvokeRequired)
             {
@@ -241,7 +241,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             }
         }
 
-        internal void PopulateContentFolders(FrozenSet<FolderModel> folders)
+        internal void PopulateContentFolders(ImmutableArray<FolderModel> folders)
         {
             if (InvokeRequired)
             {
@@ -368,7 +368,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 
         #region Path Methods
 
-        internal void PopulatePaths(FrozenSet<PathModelCore> paths)
+        internal void PopulatePaths(ImmutableArray<PathModelCore> paths)
         {
             if (InvokeRequired)
             {

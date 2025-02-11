@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -201,7 +202,7 @@ namespace FreeTrainSimulator.Menu
             checkDataLogStationStops.Checked = this.userSettings.EvaluationStationStops;
 
             bindingSourceContent.DataSource = initialContentSetup ? ContentModel.ImportFolderSettings().ToList() :
-                ContentModel.ContentFolders.Count == 0 ? new List<FolderModel>() { ContentModel.TrainSimulatorFolder() } :
+                ContentModel.ContentFolders.Length == 0 ? new List<FolderModel>() { ContentModel.TrainSimulatorFolder() } :
                 ContentModel.ContentFolders.OrderBy(f => f.Name).ToList();
 
             if (initialContentSetup)
@@ -248,7 +249,7 @@ namespace FreeTrainSimulator.Menu
 
             if (tabOptions.SelectedTab == tabPageContent) // inital setup?
             {
-                if (ContentModel.ImportFolderSettings().Count > 0)
+                if (ContentModel.ImportFolderSettings().Length > 0)
                 {
                     if (MessageBox.Show($"In an effort to optimize content, {RuntimeInfo.ProductName} will analyze existing content files and folders. No updates will be made to existing content." + Environment.NewLine + Environment.NewLine +
                         "Please review the current content folder settings, and confirm using \"Ok\"-Button when closing the \"Options\" dialog." + Environment.NewLine + Environment.NewLine +
@@ -367,7 +368,7 @@ namespace FreeTrainSimulator.Menu
             // Content tab
             ContentModel = ContentModel with
             {
-                ContentFolders = (bindingSourceContent.DataSource as List<FolderModel>).ToFrozenSet(),
+                ContentFolders = (bindingSourceContent.DataSource as List<FolderModel>).ToImmutableArray(),
             };
 
             // Updater tab

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,12 +31,12 @@ namespace FreeTrainSimulator.Models.Handler
             return modelTask;
         }
 
-        public static Task<FrozenSet<WeatherModelCore>> GetWeatherFiles(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<WeatherModelCore>> GetWeatherFiles(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<WeatherModelCore>> modelSetTask) || modelSetTask.IsFaulted)
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<WeatherModelCore>> modelSetTask) || modelSetTask.IsFaulted)
             {
                 modelSetTaskCache[key] = modelSetTask = LoadWeatherModels(routeModel, cancellationToken);
             }
@@ -44,7 +44,7 @@ namespace FreeTrainSimulator.Models.Handler
             return modelSetTask;
         }
 
-        private static async Task<FrozenSet<WeatherModelCore>> LoadWeatherModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<WeatherModelCore>> LoadWeatherModels(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             string weatherFolder = ModelFileResolver<WeatherModelCore>.FolderPath(routeModel);
             string pattern = ModelFileResolver<WeatherModelCore>.WildcardSavePattern;
@@ -66,7 +66,7 @@ namespace FreeTrainSimulator.Models.Handler
                         results.Add(path);
                 }).ConfigureAwait(false);
             }
-            return results.ToFrozenSet();
+            return results.ToImmutableArray();
         }
     }
 }

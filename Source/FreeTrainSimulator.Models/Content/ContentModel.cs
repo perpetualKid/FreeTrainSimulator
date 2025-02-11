@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 using FreeTrainSimulator.Models.Base;
@@ -15,13 +15,13 @@ namespace FreeTrainSimulator.Models.Content
         public override ModelBase Parent => null; // Content is root and does not implement a parent
 
         [MemoryPackIgnore]
-        public const string MinimumVersion = "2.0.1-dev.22";
+        public const string MinimumVersion = "2.0.1-dev.23";
 
         [MemoryPackIgnore]
         public static ContentModel None { get; } = default(ContentModel);
 
         [MemoryPackConstructor]
-        public ContentModel(FrozenSet<FolderModel> contentFolders): base(string.Empty, null)
+        public ContentModel(ImmutableArray<FolderModel> contentFolders): base(string.Empty, null)
         {
             ArgumentNullException.ThrowIfNull(contentFolders, nameof(contentFolders));
             ContentFolders = contentFolders;
@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Models.Content
         {
         }
 
-        public FrozenSet<FolderModel> ContentFolders { get; init; } = FrozenSet<FolderModel>.Empty;
+        public ImmutableArray<FolderModel> ContentFolders { get; init; } = ImmutableArray<FolderModel>.Empty;
 
         public override void Initialize(ModelBase parent)
         {

@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Frozen;
+using System.Collections.Immutable;
 
 using FreeTrainSimulator.Common;
 
@@ -68,7 +69,7 @@ namespace Orts.Simulation.Signalling
 
         static TunnelInfoData()
         {
-            FrozenDictionary<string, string> settings = Simulator.Instance?.RouteModel?.Settings;
+            ImmutableDictionary<string, string> settings = Simulator.Instance?.RouteModel?.Settings;
             ArgumentNullException.ThrowIfNull(settings, nameof(settings));
 
             if (settings.TryGetValue("SingleTunnelArea", out string settingValue))

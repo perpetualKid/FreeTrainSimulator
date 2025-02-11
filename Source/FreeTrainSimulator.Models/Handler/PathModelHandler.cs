@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,12 +52,12 @@ namespace FreeTrainSimulator.Models.Handler
             return await modelTask.ConfigureAwait(false) as PathModel;
         }
 
-        public static Task<FrozenSet<PathModelCore>> GetPaths(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<PathModelCore>> GetPaths(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<FrozenSet<PathModelCore>> modelSetTask) || modelSetTask.IsFaulted)
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<PathModelCore>> modelSetTask) || modelSetTask.IsFaulted)
             {
                 modelSetTaskCache[key] = modelSetTask = LoadPaths(routeModel, cancellationToken);
             }
@@ -65,7 +65,7 @@ namespace FreeTrainSimulator.Models.Handler
             return modelSetTask;
         }
 
-        private static async Task<FrozenSet<PathModelCore>> LoadPaths(RouteModelCore routeModel, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<PathModelCore>> LoadPaths(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             string pathsFolder = ModelFileResolver<PathModelCore>.FolderPath(routeModel);
             string pattern = ModelFileResolver<PathModelCore>.WildcardSavePattern;
@@ -87,7 +87,7 @@ namespace FreeTrainSimulator.Models.Handler
                         results.Add(path);
                 }).ConfigureAwait(false);
             }
-            return results.ToFrozenSet();
+            return results.ToImmutableArray();
         }
     }
 }

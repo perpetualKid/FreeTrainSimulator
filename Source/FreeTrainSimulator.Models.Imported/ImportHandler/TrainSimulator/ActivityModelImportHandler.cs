@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,7 +14,6 @@ using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.Shim;
 
 using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
@@ -22,7 +21,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
     {
         internal const string SourceNameKey = "MstsSourceActivity";
 
-        public static async Task<FrozenSet<ActivityModelCore>> ExpandActivityModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<ActivityModelCore>> ExpandActivityModels(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
@@ -48,7 +47,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 }).ConfigureAwait(false);
             }
 
-            FrozenSet<ActivityModelCore> result = results.Concat(new ActivityModelCore[] { CommonModelInstances.ExploreMode, CommonModelInstances.ExploreActivityMode }).ToFrozenSet();
+            ImmutableArray<ActivityModelCore> result = results.Concat(new ActivityModelCore[] { CommonModelInstances.ExploreMode, CommonModelInstances.ExploreActivityMode }).ToImmutableArray();
             string key = routeModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             _ = collectionUpdateRequired.TryRemove(key, out _);
@@ -118,7 +117,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     }),
                     InitialSpeed = activityFile.Activity.Header.StartingSpeed,
                     HazardProbability = CombinedHazardProbability(activityFile.Activity.Header.Workers, activityFile.Activity.Header.Animals),
-                    Settings = settings.ToFrozenDictionary(),
+                    Settings = settings.ToImmutableDictionary(),
                 };
 
                 await Create(activityModel, routeModel, cancellationToken).ConfigureAwait(false);

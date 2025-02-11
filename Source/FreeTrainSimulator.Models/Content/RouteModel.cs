@@ -1,4 +1,4 @@
-﻿using System.Collections.Frozen;
+﻿using System.Collections.Immutable;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Content
 
         public EnumArray<float, SpeedRestrictionType> SpeedRestrictions { get; init; } // global and temporary speed limit m/s
 
-        public FrozenDictionary<string, string> Settings { get; init; } = FrozenDictionary<string, string>.Empty; //arbitrary settings which are currently in route model but may not logically belong there
+        public ImmutableDictionary<string, string> Settings { get; init; } = ImmutableDictionary<string, string>.Empty; //arbitrary settings which are currently in route model but may not logically belong there
 
         public Interpolator SuperElevationRadiusSettings { get; init; }
 

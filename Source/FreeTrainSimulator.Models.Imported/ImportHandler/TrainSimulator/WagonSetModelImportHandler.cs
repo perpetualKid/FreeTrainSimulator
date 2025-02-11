@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -24,10 +24,10 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         {
             Id = "<unknown>",
             Name = "Missing",
-            TrainCars = FrozenSet<WagonReferenceModel>.Empty
+            TrainCars = ImmutableArray<WagonReferenceModel>.Empty
         };
 
-        public static async Task<FrozenSet<WagonSetModel>> ExpandWagonSetModels(FolderModel folderModel, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<WagonSetModel>> ExpandWagonSetModels(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
 
@@ -50,7 +50,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     modelTaskCache[key] = modelTask;
                 }).ConfigureAwait(false);
             }
-            FrozenSet<WagonSetModel> result = results.ToFrozenSet();
+            ImmutableArray<WagonSetModel> result = results.ToImmutableArray();
             string key = folderModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             _ = collectionUpdateRequired.TryRemove(key, out _);
@@ -106,7 +106,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     AccelerationFactor = consistFile.Train.MaxVelocity.B,
                     Durability = consistFile.Train.Durability,
                     Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
-                    TrainCars = trainCars.ToFrozenSet(),
+                    TrainCars = trainCars.ToImmutableArray(),
                 };
                 //this is the case where a file may have been renamed but not the consist id, ie. in case of copy cloning, so adopting the filename as id
                 if (string.IsNullOrEmpty(wagonSetModel.Id) || !string.Equals(wagonSetModel.Tags[SourceNameKey].Trim(), wagonSetModel.Id, StringComparison.OrdinalIgnoreCase))

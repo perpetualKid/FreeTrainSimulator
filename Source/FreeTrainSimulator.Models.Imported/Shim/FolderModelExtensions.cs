@@ -1,4 +1,4 @@
-﻿using System.Collections.Frozen;
+﻿using System.Collections.Immutable;
 
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator;
@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Imported.Shim
 
         public static FolderStructure.ContentFolder MstsContentFolder(this FolderModel folderModel) => FileResolver.ContentFolderResolver(folderModel).MstsContentFolder;
 
-        public static FrozenSet<FolderModel> ImportFolderSettings(this ContentModel contentModel)
+        public static ImmutableArray<FolderModel> ImportFolderSettings(this ContentModel contentModel)
         {
             return FolderModelImportHandler.InitialFolderImport(contentModel);
         }

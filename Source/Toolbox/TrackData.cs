@@ -1,12 +1,12 @@
-﻿using System.Collections.Frozen;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Shim;
 
 using Microsoft.Xna.Framework;
 
@@ -18,9 +18,9 @@ namespace FreeTrainSimulator.Toolbox
 {
     public class TrackData : RuntimeData
     {
-        public FrozenSet<PathModelCore> TrainPaths { get; }
+        public ImmutableArray<PathModelCore> TrainPaths { get; }
 
-        private TrackData(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, FrozenSet<PathModelCore> trainPaths) :
+        private TrackData(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, ImmutableArray<PathModelCore> trainPaths) :
             base(route, trackSections, trackDb, roadTrackDB, signalConfig, metricUnits, null)
         {
             TrainPaths = trainPaths;
@@ -63,7 +63,7 @@ namespace FreeTrainSimulator.Toolbox
                 roadTrackDB = new RoadDatabaseFile(rdbFile).RoadTrackDB;
             }, cancellationToken));
             loadTasks.Add(Task.Run(() => signalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken));
-            Task<FrozenSet<PathModelCore>> pathTask = routeModel.GetRoutePaths(cancellationToken);
+            Task<ImmutableArray<PathModelCore>> pathTask = routeModel.GetRoutePaths(cancellationToken);
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
 

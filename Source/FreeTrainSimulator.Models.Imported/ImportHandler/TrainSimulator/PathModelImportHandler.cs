@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         //    @"ROUTES\USA2\PATHS\long-haul west (blizzard).pat",
         //};
 
-        public static async Task<FrozenSet<PathModelCore>> ExpandPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<PathModelCore>> ExpandPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
@@ -67,7 +67,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     modelTaskCache[key] = modelTask;
                 }).ConfigureAwait(false);
             }
-            FrozenSet<PathModelCore> result = results.ToFrozenSet();
+            ImmutableArray<PathModelCore> result = results.ToImmutableArray();
             string key = routeModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             _ = collectionUpdateRequired.TryRemove(key, out _);
@@ -100,7 +100,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             NextMainNode = pathNode.NextMainNode,
                             NextSidingNode = pathNode.NextSidingNode,
                         }
-                    }).ToFrozenDictionary(pair => pair.index, pair => pair.pathNode),
+                    }).ToImmutableDictionary(pair => pair.index, pair => pair.pathNode),
                 };
                 //this is the case where a file may have been renamed but not the path id, ie. in case of copy cloning, so adopting the filename as path id
                 if (string.IsNullOrEmpty(pathModel.Id) || !string.Equals(pathModel.Tags[SourceNameKey].Trim(), pathModel.Id, StringComparison.OrdinalIgnoreCase))

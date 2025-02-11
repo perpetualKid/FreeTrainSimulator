@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 
@@ -278,7 +279,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             {
                 RadioButtonGroup group = new RadioButtonGroup();
                 ControlLayout line;
-                FrozenSet<PathModelCore> trainPaths = (Orts.Formats.Msts.RuntimeData.GameInstance(Owner.Game) as TrackData).TrainPaths;
+                ImmutableArray<PathModelCore> trainPaths = (Orts.Formats.Msts.RuntimeData.GameInstance(Owner.Game) as TrackData).TrainPaths;
                 foreach (PathModelCore path in trainPaths.OrderBy(p => p.Name))
                 {
                     RadioButton radioButton;

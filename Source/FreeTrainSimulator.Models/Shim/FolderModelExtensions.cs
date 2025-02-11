@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,9 +10,9 @@ namespace FreeTrainSimulator.Models.Shim
 {
     public static class FolderModelExtensions
     {
-        public static Task<FrozenSet<RouteModelCore>> GetRoutes(this FolderModel folderModel, CancellationToken cancellationToken) => RouteModelHandler.GetRoutes(folderModel, cancellationToken);
-        public static Task<FrozenSet<WagonSetModel>> GetWagonSets(this FolderModel folderModel, CancellationToken cancellationToken) => WagonSetModelHandler.GetWagonSets(folderModel, cancellationToken);
-        public static ValueTask<FrozenSet<WagonReferenceModel>> GetLocomotives(this FolderModel folderModel, CancellationToken cancellationToken) => WagonSetModelHandler.GetLocomotives(folderModel, cancellationToken);
+        public static Task<ImmutableArray<RouteModelCore>> GetRoutes(this FolderModel folderModel, CancellationToken cancellationToken) => RouteModelHandler.GetRoutes(folderModel, cancellationToken);
+        public static Task<ImmutableArray<WagonSetModel>> GetWagonSets(this FolderModel folderModel, CancellationToken cancellationToken) => WagonSetModelHandler.GetWagonSets(folderModel, cancellationToken);
+        public static ValueTask<ImmutableArray<WagonReferenceModel>> GetLocomotives(this FolderModel folderModel, CancellationToken cancellationToken) => WagonSetModelHandler.GetLocomotives(folderModel, cancellationToken);
 
         public static async ValueTask<RouteModel> RouteModel(this FolderModel folderModel, string routeId, CancellationToken cancellationToken)
         {
@@ -30,7 +30,7 @@ namespace FreeTrainSimulator.Models.Shim
             return await WagonSetModelHandler.GetCore(wagonSetId, folderModel, cancellationToken).ConfigureAwait(false);
         }
 
-        public static FrozenSet<WagonSetModel> GetWagonSets(this FolderModel folderModel) => Task.Run(async () => await folderModel.GetWagonSets(CancellationToken.None).ConfigureAwait(false)).Result;
+        public static ImmutableArray<WagonSetModel> GetWagonSets(this FolderModel folderModel) => Task.Run(async () => await folderModel.GetWagonSets(CancellationToken.None).ConfigureAwait(false)).Result;
 
     }
 }

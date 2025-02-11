@@ -1,6 +1,4 @@
-﻿using System.Collections.Frozen;
-
-using FreeTrainSimulator.Models.Content;
+﻿using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator;
 
 namespace FreeTrainSimulator.Models.Imported.Shim

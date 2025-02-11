@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
     {
         internal const string SourceNameKey = "MstsSourceRoute";
 
-        public static async Task<FrozenSet<RouteModelCore>> ExpandRouteModels(FolderModel folderModel, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<RouteModelCore>> ExpandRouteModels(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
 
@@ -51,7 +51,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 }).ConfigureAwait(false);
             }
 
-            FrozenSet<RouteModelCore> result = results.ToFrozenSet();
+            ImmutableArray<RouteModelCore> result = results.ToImmutableArray();
             string key = folderModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             return result;
@@ -122,7 +122,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         /// elements need to be in same order as listed in <see cref="SpeedRestrictionType"/>
                         route.SpeedLimit, route.TempRestrictedSpeed
                     }),
-                    Settings = settings.ToFrozenDictionary(),
+                    Settings = settings.ToImmutableDictionary(),
                     SuperElevationRadiusSettings = route.SuperElevationHgtpRadiusM,
                 };
                 await Create(routeModel, contentFolder, true, true, cancellationToken).ConfigureAwait(false);

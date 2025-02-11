@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -33,7 +33,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             Name = "- Any Locomotive -",
         };
 
-        public static async Task<FrozenSet<WagonReferenceModel>> ExpandWagonModels(FolderModel folderModel, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<WagonReferenceModel>> ExpandWagonModels(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
 
@@ -63,7 +63,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     }).ConfigureAwait(false);
             }
             string key = folderModel.Hierarchy();
-            FrozenSet<WagonReferenceModel> result = results.ToFrozenSet();
+            ImmutableArray<WagonReferenceModel> result = results.ToImmutableArray();
             modelSetTaskCache[key] = Task.FromResult(result);
             _ = collectionUpdateRequired.TryRemove(key, out _);
             return result;
