@@ -25,6 +25,8 @@ using Orts.Formats.Msts.Models;
 
 using ORTS.TrackViewer.Drawing;
 
+using PathNode = Orts.Formats.Msts.Models.PathNode;
+
 namespace ORTS.TrackViewer.Editing
 {
     /// <summary>

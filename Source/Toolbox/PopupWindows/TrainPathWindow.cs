@@ -12,7 +12,6 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Imported.Track;
 using FreeTrainSimulator.Toolbox.Settings;
 
@@ -38,16 +37,15 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         {
             public void Update(TrainPathBase path)
             {
-                if (path == null || path.PathFile == null)
+                if (path == null || path.PathModel == null)
                     Clear();
                 else
                 {
-                    this["Path ID"] = path.PathFile.PathID;
-                    this["Path Name"] = path.PathFile.Name;
-                    this["Start"] = path.PathFile.Start;
-                    this["End"] = path.PathFile.End;
-                    this["Player Path"] = path.PathFile.PlayerPath ? "Yes" : "No";
-                    this["Flags"] = path.PathFile.Flags.ToString();
+                    this["Path ID"] = path.PathModel.Id;
+                    this["Path Name"] = path.PathModel.Name;
+                    this["Start"] = path.PathModel.Start;
+                    this["End"] = path.PathModel.End;
+                    this["Player Path"] = path.PathModel.PlayerPath ? "Yes" : "No";
                 }
             }
         }
@@ -281,7 +279,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 RadioButtonGroup group = new RadioButtonGroup();
                 ControlLayout line;
                 FrozenSet<PathModelCore> trainPaths = (Orts.Formats.Msts.RuntimeData.GameInstance(Owner.Game) as TrackData).TrainPaths;
-                foreach (PathModelCore path in trainPaths)
+                foreach (PathModelCore path in trainPaths.OrderBy(p => p.Name))
                 {
                     RadioButton radioButton;
                     line = pathScrollbox.Client.AddLayoutHorizontalLineOfText();
@@ -367,7 +365,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             if (null == pathScrollbox || null == currentPath)
                 return;
 
-            WindowControl pathLine = pathScrollbox.Client.Controls.Where(c => c.Tag is PathModelCore pathModel && pathModel.SourceFile() == currentPath.FilePath).FirstOrDefault();
+            WindowControl pathLine = pathScrollbox.Client.Controls.Where(c => c.Tag is PathModelCore pathModel && pathModel.Id == currentPath.PathModel.Id).FirstOrDefault();
             foreach (WindowControl control in pathScrollbox.Client.Controls)
             {
                 if (control != pathLine)

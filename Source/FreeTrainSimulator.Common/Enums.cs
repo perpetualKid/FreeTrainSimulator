@@ -1858,4 +1858,24 @@ namespace FreeTrainSimulator.Common
         Coal,
         Diesel,
     }
+
+    public enum PathNodeType
+    {
+        /// <summary>Node is a regular node on a junction</summary>
+        Junction,
+        /// <summary>Node is an intermediate point node </summary>
+        Intermediate,
+        /// <summary>Node is the start node </summary>
+        Start,
+        /// <summary>Node is the end node (not just the last node) </summary>
+        End,
+        /// <summary>Node is a wait/stop node</summary>
+        Wait,
+        /// <summary>Node is a reversal node</summary>
+        Reversal,
+        /// <summary>Temporary node for editing purposes</summary>
+        Temporary,
+    };
+
+
 }

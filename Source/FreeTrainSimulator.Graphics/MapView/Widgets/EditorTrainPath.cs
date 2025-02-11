@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Track;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
@@ -71,7 +70,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public EditorTrainPath(PathFile pathFile, string filePath, Game game) : base(pathFile, filePath, game)
+        public EditorTrainPath(PathModel pathModel, Game game) : base(pathModel, game)
         {
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section);
         }

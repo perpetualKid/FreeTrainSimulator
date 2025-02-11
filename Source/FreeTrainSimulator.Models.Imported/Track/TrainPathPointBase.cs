@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
-
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
+using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Imported.Track
 {
@@ -36,8 +35,8 @@ namespace FreeTrainSimulator.Models.Imported.Track
             nextMainNode = node.NextMainNode;
             nextSidingNode = node.NextSidingNode;
 
-            JunctionNode = node.Junction ? trackModel.JunctionAt(Location) : null;
-            if (node.Junction && JunctionNode == null)
+            JunctionNode = node.NodeType == PathNodeType.Junction  ? trackModel.JunctionAt(Location) : null;
+            if (node.NodeType == PathNodeType.Junction && JunctionNode == null)
                 ValidationResult |= PathNodeInvalidReasons.NoJunctionNode;
 
             ConnectedSegments = GetConnectedNodes(trackModel);

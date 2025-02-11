@@ -1,11 +1,10 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Track;
-
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
@@ -54,9 +53,9 @@ namespace FreeTrainSimulator.Graphics.MapView
         }
 
         #region additional content (Paths)
-        public void InitializePath(PathFile path, string filePath)
+        protected void InitializePathModel(PathModel pathModel)
         {
-            trainPath = path != null ? new EditorTrainPath(path, filePath, ToolboxContent.ContentArea.Game) : null;
+            trainPath = pathModel != null ? new EditorTrainPath(pathModel, ToolboxContent.ContentArea.Game) : null;
             if (trainPath != null && trainPath.TopLeftBound != PointD.None && trainPath.BottomRightBound != PointD.None)
             {
                 ToolboxContent.ContentArea?.UpdateScaleToFit(trainPath.TopLeftBound, trainPath.BottomRightBound);

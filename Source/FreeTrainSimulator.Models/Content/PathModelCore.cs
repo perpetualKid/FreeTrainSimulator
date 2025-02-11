@@ -1,4 +1,6 @@
-﻿using FreeTrainSimulator.Models.Base;
+﻿using System.Collections.Frozen;
+
+using FreeTrainSimulator.Models.Base;
 
 using MemoryPack;
 
@@ -15,7 +17,5 @@ namespace FreeTrainSimulator.Models.Content
         public string End { get; init; }
         /// <summary>Is the path a player path or not</summary>
         public bool PlayerPath { get; init; }
-
-
     }
 }

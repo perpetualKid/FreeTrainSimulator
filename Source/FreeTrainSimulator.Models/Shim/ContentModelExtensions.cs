@@ -17,7 +17,7 @@ namespace FreeTrainSimulator.Models.Shim
         #region Content Model
         public static async Task<ContentModel> Get(this ContentModel _, CancellationToken cancellationToken) => await ContentModelHandler.GetCore(cancellationToken).ConfigureAwait(false) ?? await Setup(_, null, cancellationToken).ConfigureAwait(false);
         public static Task<ContentModel> Setup(this ContentModel _, IEnumerable<(string, string)> folders, CancellationToken cancellationToken) => ContentModelHandler.Setup(folders, cancellationToken);
-        public static bool RefreshRequired(this ContentModel contentModel) => contentModel.Version.Compare(ContentModel.MinimumVersion) < 0;
+        public static bool RefreshRequired(this ContentModel contentModel) => contentModel?.Version.Compare(ContentModel.MinimumVersion) < 0;
         #endregion
 
         #region common extensions

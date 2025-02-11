@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Content;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Imported.Track
 {
@@ -21,10 +22,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             PassingPath,
         }
 
-        public string FilePath { get; }
-        public bool Invalid { get; set; }
-
-        public PathFile PathFile { get; }
+        public PathModel PathModel { get; }
 
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<TrainPathPointBase> PathPoints { get; } = new List<TrainPathPointBase>();
@@ -68,20 +66,19 @@ namespace FreeTrainSimulator.Models.Imported.Track
             TrackModel = trackModel;
         }
 
-        protected TrainPathBase(PathFile pathFile, string filePath, Game game)
-            : base(PointD.FromWorldLocation(pathFile?.PathNodes.Where(n => n.NodeType == PathNodeType.Start).First().Location ?? throw new ArgumentNullException(nameof(pathFile))),
-                  PointD.FromWorldLocation(pathFile.PathNodes.Where(n => n.NodeType == PathNodeType.End).First().Location))
+        protected TrainPathBase(PathModel pathModel, Game game)
+            : base(PointD.FromWorldLocation(pathModel?.PathNodes.Values.Where(n => n.NodeType == PathNodeType.Start).First().Location ?? throw new ArgumentNullException(nameof(pathModel))),
+                  PointD.FromWorldLocation(pathModel.PathNodes.Values.Where(n => n.NodeType == PathNodeType.End).First().Location))
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
             TrackModel = TrackModel.Instance(game);
 
             List<TrainPathSectionBase> sections = new List<TrainPathSectionBase>();
 
-            PathFile = pathFile;
-            FilePath = filePath;
+            PathModel = pathModel;
 
             List<TrainPathPoint> pathItems = new List<TrainPathPoint>();
-            pathItems.AddRange(pathFile.PathNodes.Select(node => new TrainPathPoint(node, TrackModel)));
+            pathItems.AddRange(pathModel.PathNodes.OrderBy(node => node.Key).Select(node => new TrainPathPoint(node.Value, TrackModel)));
             TrainPathPointBase.LinkPathPoints(pathItems.Cast<TrainPathPointBase>().ToList());
 
             for (int i = 0; i < pathItems.Count; i++)

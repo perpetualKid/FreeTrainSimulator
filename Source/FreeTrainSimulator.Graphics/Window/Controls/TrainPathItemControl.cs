@@ -1,11 +1,10 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
-using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Graphics.Window.Controls
 {

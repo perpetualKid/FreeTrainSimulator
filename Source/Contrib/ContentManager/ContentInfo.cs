@@ -20,13 +20,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
-using Orts.Formats.Msts;
+
+using FreeTrainSimulator.Common;
+
 using Orts.ContentManager.Models;
-using Path = Orts.ContentManager.Models.Path;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
-using System.Globalization;
+
+using Path = Orts.ContentManager.Models.Path;
 
 namespace Orts.ContentManager
 {

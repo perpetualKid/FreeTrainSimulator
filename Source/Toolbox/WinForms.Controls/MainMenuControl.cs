@@ -376,7 +376,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
                 return;
             }
             List<ToolStripMenuItem> menuItems = new List<ToolStripMenuItem>();
-            foreach (PathModelCore path in paths)
+            foreach (PathModelCore path in paths.OrderBy(p => p.Name))
             {
                 ToolStripMenuItem pathItem = new ToolStripMenuItem(path.Name)
                 {

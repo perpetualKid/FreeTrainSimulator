@@ -242,14 +242,14 @@ namespace Orts.Simulation.AIs
         {
             ArgumentNullException.ThrowIfNull(tpn);
 
-            if (tpn.NodeType == Formats.Msts.PathNodeType.Reversal)
-                Type = FreeTrainSimulator.Common.TrainPathNodeType.Reverse;
-            else if (tpn.NodeType == Formats.Msts.PathNodeType.Wait)
-                Type = FreeTrainSimulator.Common.TrainPathNodeType.Stop;
+            if (tpn.NodeType == PathNodeType.Reversal)
+                Type = TrainPathNodeType.Reverse;
+            else if (tpn.NodeType == PathNodeType.Wait)
+                Type = TrainPathNodeType.Stop;
 
             if (tpn.Invalid && isTimetableMode) // not a valid point
             {
-                Type = FreeTrainSimulator.Common.TrainPathNodeType.Invalid;
+                Type = TrainPathNodeType.Invalid;
             }
 
             WaitTimeS = tpn.WaitTime;

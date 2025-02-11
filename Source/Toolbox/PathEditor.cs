@@ -1,14 +1,14 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Imported.Track;
+using FreeTrainSimulator.Models.Shim;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Toolbox
 {
@@ -40,16 +40,8 @@ namespace FreeTrainSimulator.Toolbox
         {
             try
             {
-                if (path != null)
-                {
-                    this.path = path;
-                    PathFile patFile = new PathFile(path.SourceFile());
-                    InitializePath(patFile, path.SourceFile());
-                }
-                else
-                {
-                    InitializePath(null, null);
-                }
+                this.path = path; 
+                InitializePathModel(Task.Run(async () => await path.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result);
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
             }

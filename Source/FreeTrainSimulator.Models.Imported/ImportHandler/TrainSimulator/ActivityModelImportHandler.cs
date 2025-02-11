@@ -84,7 +84,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     return null;
                 }
 
-                // use average of both probabilities > 0, else use only the one which is > 0, else 0
+                // use average if both probabilities > 0, else use only the one which is > 0, else 0
                 static int CombinedHazardProbability(int workers, int animals) => workers > 0 && animals > 0 ? (workers + animals) / 2 : workers > 0 ? workers : animals > 0 ? animals : 0;
 
                 // these setting should be used as activity specific overrides to standard values or user settings

@@ -19,7 +19,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-using Orts.Formats.Msts;
+using FreeTrainSimulator.Common;
+
 using Orts.Formats.Msts.Files;
 
 namespace Orts.ContentManager.Models
@@ -62,6 +63,7 @@ namespace Orts.ContentManager.Models
             }
         }
     }
+
     public class PathNode
     {
         public string Location { get; }

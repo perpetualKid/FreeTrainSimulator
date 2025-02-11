@@ -1,12 +1,11 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Models.Imported.Track;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
