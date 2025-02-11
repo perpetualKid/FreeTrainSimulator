@@ -24,22 +24,4 @@ namespace FreeTrainSimulator.Models.Content
             this.location = location;
         }
     }
-
-    public class NodeIndexComparer : IEqualityComparer<PathNode>
-    {
-        private NodeIndexComparer() { }
-
-        public bool Equals(PathNode x, PathNode y)
-        {
-            return x.NodeIndex == y.NodeIndex;
-        }
-
-        public int GetHashCode(PathNode obj)
-        {
-            return obj.NodeIndex;
-        }
-
-        public static NodeIndexComparer IndexComparer { get; } = new NodeIndexComparer();
-    }
-
 }
