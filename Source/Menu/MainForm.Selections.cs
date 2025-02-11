@@ -47,7 +47,7 @@ namespace FreeTrainSimulator.Menu
             //Initial setup if necessary
             ContentModel = await contentModelTask.ConfigureAwait(false);
             ProfileSelections = await profileSelectionsTask.ConfigureAwait(false);
-            if (ContentModel.ContentFolders.Length == 0)
+            if (ContentModel.ContentFolders.Length == 0 || ContentModel.RefreshRequired())
             {
                 await ShowOptionsForm(true).ConfigureAwait(false);
             }

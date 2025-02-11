@@ -53,19 +53,24 @@ namespace FreeTrainSimulator.Toolbox
 //            mainmenu.PreSelectPath(e.Path?.FilePath);
         }
 
-        internal async Task LoadFolders()
+        internal async Task<bool> LoadFolders()
         {
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
 
             try
             {
                 contentModel = await contentModel.Get(ctsProfileLoading.Token).ConfigureAwait(false);
+                if (contentModel.RefreshRequired())
+                {
+                    return false;
+                }
                 mainmenu.PopulateContentFolders(contentModel.ContentFolders);
             }
             catch (TaskCanceledException)
             {
                 mainmenu.PopulateContentFolders(ImmutableArray<FolderModel>.Empty);
             }
+            return true;
         }
 
         internal async Task<ImmutableArray<RouteModelCore>> FindRoutes(FolderModel contentFolder)

@@ -17,7 +17,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
 
         public AboutWindow(WindowManager owner, Point location, Catalog catalog = null) :
-            base(owner, (catalog ??= CatalogManager.Catalog).GetString("About"), location, new Point(180, 60), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("About"), location, new Point(200, 60), catalog)
         {
             Modal = true;
             ZOrder = 100;

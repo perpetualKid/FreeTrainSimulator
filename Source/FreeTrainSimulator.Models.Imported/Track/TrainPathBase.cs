@@ -67,8 +67,8 @@ namespace FreeTrainSimulator.Models.Imported.Track
         }
 
         protected TrainPathBase(PathModel pathModel, Game game)
-            : base(PointD.FromWorldLocation(pathModel?.PathNodes.Values.Where(n => n.NodeType == PathNodeType.Start).First().Location ?? throw new ArgumentNullException(nameof(pathModel))),
-                  PointD.FromWorldLocation(pathModel.PathNodes.Values.Where(n => n.NodeType == PathNodeType.End).First().Location))
+            : base(PointD.FromWorldLocation(pathModel?.PathNodes.Where(n => n.NodeType == PathNodeType.Start).First().Location ?? throw new ArgumentNullException(nameof(pathModel))),
+                  PointD.FromWorldLocation(pathModel.PathNodes.Where(n => n.NodeType == PathNodeType.End).First().Location))
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
             TrackModel = TrackModel.Instance(game);
@@ -78,7 +78,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             PathModel = pathModel;
 
             List<TrainPathPoint> pathItems = new List<TrainPathPoint>();
-            pathItems.AddRange(pathModel.PathNodes.OrderBy(node => node.Key).Select(node => new TrainPathPoint(node.Value, TrackModel)));
+            pathItems.AddRange(pathModel.PathNodes.Select(node => new TrainPathPoint(node, TrackModel)));
             TrainPathPointBase.LinkPathPoints(pathItems.Cast<TrainPathPointBase>().ToList());
 
             for (int i = 0; i < pathItems.Count; i++)

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
@@ -348,7 +349,7 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override async void Initialize()
         {
-            Task loadFolders = LoadFolders();
+            Task<bool> loadFolders = LoadFolders();
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -488,7 +489,13 @@ namespace FreeTrainSimulator.Toolbox
             Components.Add(windowManager);
             base.Initialize();
 
-            await loadFolders.ConfigureAwait(false);
+            if (!(await loadFolders.ConfigureAwait(false)))
+            {
+                // content may need updates
+                MessageBox.Show($"In an effort to optimize content, {RuntimeInfo.ProductName} will need to analyze existing content files and folders." + Environment.NewLine + Environment.NewLine +
+                    $"Please close {RuntimeInfo.ApplicationName}, and use the Menu-application to review current content folder settings for further analysis.", "Please read!");
+                return;
+            }
             await PreSelectRoute(ToolboxSettings.Folder, ToolboxSettings.RouteId, ToolboxSettings.PathId).ConfigureAwait(false);
             ContentArea?.PresetPosition(ToolboxSettings.ContentPosition, ToolboxSettings.ContentScale);
             if (ToolboxSettings.RestoreLastView)
