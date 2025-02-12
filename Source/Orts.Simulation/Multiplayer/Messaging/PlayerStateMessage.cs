@@ -42,7 +42,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             WeatherType = Simulator.Instance.WeatherType;
 
             ConsistFile = Path.GetRelativePath(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, Simulator.Instance.ConsistFileName);
-            PathFile = Path.GetRelativePath(Simulator.Instance.RouteFolder.PathsFolder, Simulator.Instance.PathFileName);
+            PathFile = Simulator.Instance.PlayerPath.Id;
             TrainState = new TrainStateMessage(train)
             {
                 Speed = train.TrainMaxSpeedMpS //overwriting Speed from base message as we need the Max Speed here

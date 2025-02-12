@@ -32,12 +32,12 @@ namespace Orts.Simulation.Multiplayer
 
     public class OnlinePlayer
 	{
-		public OnlinePlayer(string userName, string consistFile, string pathFile) 
+		public OnlinePlayer(string userName, string consistFile, string pathId) 
         { 
             Username = userName;
             CreatedTime = Simulator.Instance.GameTime; 
             Consist = consistFile;
-            Path = pathFile;
+            Path = pathId;
         }
 
 		public string Username { get; }

@@ -1861,6 +1861,7 @@ namespace FreeTrainSimulator.Common
 
     public enum PathNodeType
     {
+        Invalid = -1,
         /// <summary>Node is a regular node on a junction</summary>
         Junction,
         /// <summary>Node is an intermediate point node </summary>

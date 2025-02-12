@@ -99,7 +99,7 @@ namespace Orts.Simulation.Timetables
         public bool LeadLocoAntiSlip { get; private set; }                             //anti slip indication for original leading engine
 
         // detach details
-        public Dictionary<int, List<DetachInfo>> DetachDetails = new Dictionary<int, List<DetachInfo>>();
+        public Dictionary<int, List<DetachInfo>> DetachDetails { get; } = new Dictionary<int, List<DetachInfo>>();
         // key is platform reference (use -1 for detach at start or end), list is detach commands at that location
         public EnumArray<int, DetachDetailsIndex> DetachActive { get; } = new EnumArray<int, DetachDetailsIndex>(-1);// detach is activated - first index is key in DetachDetails, second index is index in valuelist
         // 2nd index = -1 indicates invalid (first index -1 is a valid index)
@@ -278,7 +278,7 @@ namespace Orts.Simulation.Timetables
 
         public override async ValueTask Restore([NotNull] TrainSaveState saveState)
         {
-            await base.Restore(saveState);
+            await base.Restore(saveState).ConfigureAwait(false);
             ArgumentNullException.ThrowIfNull(saveState.TimetableTrainSaveState, nameof(saveState.TimetableTrainSaveState));
 
             TimetableTrainSaveState timetableTrainSaveState = saveState.TimetableTrainSaveState;
@@ -335,7 +335,7 @@ namespace Orts.Simulation.Timetables
             SetStop = timetableTrainSaveState.InheritStationStop;
             FormsAtStation = timetableTrainSaveState.FormsAtStation;
 
-            DetachDetails = new Dictionary<int, List<DetachInfo>>();
+            //DetachDetails = new Dictionary<int, List<DetachInfo>>();
             if (timetableTrainSaveState.DetachInfoSaveStates != null)
                 await DetachDetails.RestoreListDictionaryCreateNewItem(timetableTrainSaveState.DetachInfoSaveStates).ConfigureAwait(false);
 
@@ -4405,7 +4405,7 @@ namespace Orts.Simulation.Timetables
         /// Calculate initial position
         /// </summary>
 
-        public TrackCircuitPartialPathRoute CalculateInitialTTTrainPosition(ref bool trackClear, List<TTTrain> nextTrains)
+        public TrackCircuitPartialPathRoute CalculateInitialTTTrainPosition(ref bool trackClear, Collection<TTTrain> nextTrains)
         {
             bool sectionAvailable = true;
 
@@ -6984,7 +6984,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="otherRoute"></param>
         /// <param name="otherRouteIndex"></param>
         /// <returns></returns>
-        public int FindCommonSectionEnd(TrackCircuitPartialPathRoute thisRoute, int thisRouteIndex, TrackCircuitPartialPathRoute otherRoute, int otherRouteIndex)
+        private int FindCommonSectionEnd(TrackCircuitPartialPathRoute thisRoute, int thisRouteIndex, TrackCircuitPartialPathRoute otherRoute, int otherRouteIndex)
         {
             int lastIndex = otherRouteIndex;
             int thisIndex = thisRouteIndex;
@@ -7020,7 +7020,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="otherRoute"></param>
         /// <param name="otherRouteIndex"></param>
         /// <returns></returns>
-        public int FindCommonSectionEndReverse(TrackCircuitPartialPathRoute thisRoute, int thisRouteIndex, TrackCircuitPartialPathRoute otherRoute, int otherRouteIndex)
+        private int FindCommonSectionEndReverse(TrackCircuitPartialPathRoute thisRoute, int thisRouteIndex, TrackCircuitPartialPathRoute otherRoute, int otherRouteIndex)
         {
             int lastIndex = otherRouteIndex;
             int thisIndex = thisRouteIndex;
@@ -7057,7 +7057,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="allowOppositeDirection"></param>
         /// <param name="singleWait"></param>
         /// <param name="newWaitItems"></param>
-        public void ProcessConnectRequest(WaitInfo reqWait, TTTrain otherTrain, ref List<WaitInfo> newWaitItems)
+        private void ProcessConnectRequest(WaitInfo reqWait, TTTrain otherTrain, ref List<WaitInfo> newWaitItems)
         {
             // find station reference
             StationStop stopStation = StationStops[reqWait.StationIndex];

@@ -125,7 +125,7 @@ namespace Orts.ActivityRunner.Processes
             try
             {
                 InitLogging(Game.UserSettings.Parent.Id == ProfileModel.TestingProfile);
-                profileSelections = await ResolveSelectionsFromCommandLine(arguments);
+                profileSelections = await ResolveSelectionsFromCommandLine(arguments).ConfigureAwait(false);
                 arguments = null;
                 await InitLoading(profileSelections).ConfigureAwait(false);
 
@@ -273,7 +273,7 @@ namespace Orts.ActivityRunner.Processes
             if (MultiPlayerManager.IsMultiPlayer())
             {
                 if (saveState.ProfileSelections.ActivityType == ActivityType.Activity)
-                    simulator.SetPathAndConsist();
+                    await simulator.SetPathAndConsist().ConfigureAwait(false);
                 MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
             }
             await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
@@ -302,7 +302,6 @@ namespace Orts.ActivityRunner.Processes
             Viewer.Initialize();
 
             // Load command log to replay
-            simulator.ReplayCommandList = new List<ICommand>();
             string replayFile = Path.ChangeExtension(profileSelections.GameSaveFile, "replay");
             simulator.Log.LoadLog(replayFile);
             foreach (ICommand command in simulator.Log.CommandList)
@@ -385,7 +384,9 @@ namespace Orts.ActivityRunner.Processes
             // Now Simulator exists, link the log to it in both directions
             simulator.Log = log;
             log.Simulator = simulator;
-            simulator.ReplayCommandList = replayCommandList;
+            simulator.ReplayCommandList.Clear();
+            foreach (ICommand item in replayCommandList)
+                simulator.ReplayCommandList.Add(item);
             CommandLog.ReportReplayCommands(simulator.ReplayCommandList);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -460,8 +461,8 @@ namespace Orts.ActivityRunner.Processes
                 profileSelections.TimetableSet,
                 profileSelections.TimetableName,
                 profileSelections.TimetableTrain,
-//                profileSelections.GamePlayAction,
-//                profileSelections.ActivityType,
+                //                profileSelections.GamePlayAction,
+                //                profileSelections.ActivityType,
                 profileSelections.GameSaveFile).ToUpperInvariant();
             loadingDataFilePath = RuntimeInfo.GetCacheFilePath("Load", loadingDataKey);
 

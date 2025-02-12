@@ -26,12 +26,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Shim;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -48,15 +52,15 @@ namespace Orts.Simulation.AIs
     public class AI
     {
         private readonly Simulator simulator;
-        public List<AITrain> AITrains { get; } = new List<AITrain>();// active AI trains
+        public Collection<AITrain> AITrains { get; } = new Collection<AITrain>();// active AI trains
 
-        public StartTrains StartList = new StartTrains(); // trains yet to be started
-        public List<AITrain> AutoGenTrains = new List<AITrain>(); // auto-generated trains
+        public StartTrains StartList { get; } = new StartTrains(); // trains yet to be started
+        public Collection<AITrain> AutoGenTrains { get; } = new Collection<AITrain>(); // auto-generated trains
         public double ClockTime { get; private set; } // clock time : local time before activity start, common time from simulator after start
         private bool localTime;  // if true : clockTime is local time
-        public List<AITrain> TrainsToRemove = new List<AITrain>();
-        public List<AITrain> TrainsToAdd = new List<AITrain>();
-        public List<AITrain> TrainsToRemoveFromAI = new List<AITrain>();
+        public Collection<AITrain> TrainsToRemove { get; } = new Collection<AITrain>();
+        public Collection<AITrain> TrainsToAdd { get; } = new Collection<AITrain>();
+        public Collection<AITrain> TrainsToRemoveFromAI { get; } = new Collection<AITrain>();
         public bool TrainListChanged { get; set; } = true; // To indicate to TrainListWindow that the list has changed;
 
         /// <summary>
@@ -66,7 +70,7 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public AI(Simulator simulator, double activityStartTime, CancellationToken cancellationToken)
         {
-            this.simulator = simulator;
+            this.simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
             if (simulator.ActivityFile != null && simulator.ActivityFile.Activity.Traffic != null)
             {
                 foreach (var sd in simulator.ActivityFile.Activity.Traffic.Services)
@@ -86,9 +90,9 @@ namespace Orts.Simulation.AIs
 
         // constructor for Timetable trains
         // trains allready have a number - must not be changed!
-        public AI(Simulator simulator, List<TTTrain> allTrains, int playerTrainOriginalTrain, TimetableFormationCommand playerTrainFormedOfType, TTTrain playerTrain, CancellationToken cancellation)
+        public AI(Simulator simulator, Collection<TTTrain> allTrains, int playerTrainOriginalTrain, TimetableFormationCommand playerTrainFormedOfType, TTTrain playerTrain, CancellationToken cancellation)
         {
-            this.simulator = simulator;
+            this.simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
 
             foreach (var train in allTrains)
             {
@@ -478,7 +482,7 @@ namespace Orts.Simulation.AIs
             float nextTrainTime = StartList.NextTime;
             if (nextTrainTime > 0 && nextTrainTime < ClockTime)
             {
-                List<AITrain> newTrains = StartList.GetTrains((float)ClockTime);
+                Collection<AITrain> newTrains = StartList.GetTrains((float)ClockTime);
                 foreach (AITrain thisTrain in newTrains)
                 {
                     simulator.StartReference.Remove(thisTrain.Number);
@@ -525,7 +529,7 @@ namespace Orts.Simulation.AIs
             float nextTrainTime = StartList.NextTime;
             if (nextTrainTime > 0 && nextTrainTime < ClockTime)
             {
-                List<TTTrain> newTrains = StartList.GetTTTrains((float)ClockTime);
+                Collection<TTTrain> newTrains = StartList.GetTTTrains((float)ClockTime);
 
                 foreach (TTTrain thisTrain in newTrains)
                 {
@@ -570,7 +574,7 @@ namespace Orts.Simulation.AIs
                         nextTrainTime = StartList.NextTime;
                         if (nextTrainTime > 0 && nextTrainTime < ClockTime)
                         {
-                            List<TTTrain> newTrains = StartList.GetTTTrains((float)ClockTime);
+                            Collection<TTTrain> newTrains = StartList.GetTTTrains((float)ClockTime);
 
                             foreach (TTTrain thisTrain in newTrains)
                             {
@@ -677,16 +681,13 @@ namespace Orts.Simulation.AIs
 
             string consistFileName = simulator.RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
             ConsistFile conFile = new ConsistFile(consistFileName);
-            string pathFileName = simulator.RouteFolder.PathFile(srvFile.PathId);
 
-            // Patch Placingproblem - JeroenP
-            // 
-            AIPath aiPath = new AIPath(pathFileName, isTimetableMode);
-            // End patch
+            PathModel pathModel = Task.Run(async() => await (await Simulator.Instance.RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(srvFile.PathId.Trim()).GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
+            AIPath aiPath = new AIPath(pathModel, isTimetableMode);
 
             if (aiPath.Nodes == null)
             {
-                Trace.TraceWarning("Invalid path " + pathFileName + " for AI train : " + srvFile.Name + " ; train not started\n");
+                Trace.TraceWarning($"Invalid path {pathModel?.Hierarchy() ?? simulator.RouteFolder.PathFile(srvFile.PathId)} for AI train : " + srvFile.Name + " ; train not started\n");
                 return null;
             }
 
@@ -886,7 +887,7 @@ namespace Orts.Simulation.AIs
             return validPosition;
         }
 
-        private bool AddToWorldTT(TTTrain thisTrain, List<TTTrain> nextTrains)
+        private bool AddToWorldTT(TTTrain thisTrain, Collection<TTTrain> nextTrains)
         {
             bool endPreRun = false;
             bool validPosition = true;
@@ -1192,9 +1193,9 @@ namespace Orts.Simulation.AIs
         // Skip trains which have a valid 'formedof' set
         //
 
-        public List<AITrain> GetTrains(float reqTime)
+        public Collection<AITrain> GetTrains(float reqTime)
         {
-            List<AITrain> itemList = new List<AITrain>();
+            Collection<AITrain> itemList = new Collection<AITrain>();
 
             bool itemsCollected = false;
             LinkedListNode<AITrain> nextNode = this.First;
@@ -1217,9 +1218,9 @@ namespace Orts.Simulation.AIs
             return (itemList);
         }
 
-        public List<TTTrain> GetTTTrains(float reqTime)
+        public Collection<TTTrain> GetTTTrains(float reqTime)
         {
-            List<TTTrain> itemList = new List<TTTrain>();
+            Collection<TTTrain> itemList = new Collection<TTTrain>();
 
             bool itemsCollected = false;
             LinkedListNode<AITrain> nextNode = this.First;

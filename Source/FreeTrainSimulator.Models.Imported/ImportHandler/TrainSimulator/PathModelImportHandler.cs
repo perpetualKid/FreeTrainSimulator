@@ -93,9 +93,10 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
                     PathNodes = patFile.PathNodes.Select(pathNode => new PathNode(pathNode.Location)
                     {
-                        NodeType = pathNode.NodeType,
+                        NodeType = pathNode.Invalid ? Common.PathNodeType.Junction : pathNode.NodeType,
                         NextMainNode = pathNode.NextMainNode,
                         NextSidingNode = pathNode.NextSidingNode,
+                        WaitInfo = pathNode.WaitTime > 0 ? new PathNodeWaitInfo() { WaitTime = pathNode.WaitTime } : null,
                     }).ToImmutableArray(),
                 };
                 //this is the case where a file may have been renamed but not the path id, ie. in case of copy cloning, so adopting the filename as path id

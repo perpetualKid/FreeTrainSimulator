@@ -104,7 +104,7 @@ namespace Orts.SimulatorTester
 
             GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(files[0], CancellationToken.None).ConfigureAwait(false);
             saveState.ProfileSelections.Log();
-            
+
             Console.WriteLine("Initial Pos  = {0}, {1}", saveState.InitialLocation.TileX, saveState.InitialLocation.TileZ);
             Console.WriteLine("Expected Pos = {0}, {1}", saveState.PlayerLocation.TileX, saveState.PlayerLocation.TileZ);
             Console.Write("Loading...   ");
@@ -121,8 +121,8 @@ namespace Orts.SimulatorTester
             simulator.Start(CancellationToken.None);
             simulator.SetCommandReceivers();
             simulator.Log.LoadLog(Path.ChangeExtension(files[0], "replay"));
-            simulator.ReplayCommandList = new List<ICommand>();
-            simulator.ReplayCommandList.AddRange(simulator.Log.CommandList);
+            foreach (ICommand item in simulator.Log.CommandList)
+                simulator.ReplayCommandList.Add(item);
             simulator.Log.CommandList.Clear();
 
             DateTimeOffset loadTime = DateTimeOffset.Now;

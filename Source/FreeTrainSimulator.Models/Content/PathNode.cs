@@ -15,6 +15,7 @@ namespace FreeTrainSimulator.Models.Content
         public int NodeIndex { get; init; }
         public int NextMainNode { get; init; }
         public int NextSidingNode { get; init; }
+        public PathNodeWaitInfo WaitInfo { get; init; }
 
         [MemoryPackConstructor]
         public PathNode(in WorldLocation location)

@@ -31,10 +31,10 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.State;
 
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.AIs
@@ -49,22 +49,22 @@ namespace Orts.Simulation.AIs
         public AIPath() { }
 
         /// <summary>
-        /// Creates an AIPath from PAT file information.
+        /// Creates an AIPath from path model information.
         /// First creates all the nodes and then links them together into a main list
         /// with optional parallel siding list.
         /// </summary>
-        public AIPath(string filePath, bool isTimetableMode)
+        public AIPath(FreeTrainSimulator.Models.Content.PathModel pathModel, bool timetableMode)
         {
-            PathFile patFile = new PathFile(filePath);
-            PathName = patFile.Name;
+            PathName = pathModel.Name;
             bool fatalerror = false;
-            if (patFile.PathNodes.Count <= 0)
+            if (pathModel.PathNodes.Length <= 0)
             {
                 Nodes = null;
                 return;
             }
-            foreach (PathNode tpn in patFile.PathNodes)
-                Nodes.Add(new AIPathNode(tpn, isTimetableMode));
+
+            foreach (FreeTrainSimulator.Models.Content.PathNode pathNode in pathModel.PathNodes)
+                Nodes.Add(new AIPathNode(pathNode, timetableMode));
             FirstNode = Nodes[0];
             //LastVisitedNode = FirstNode;            
 
@@ -73,7 +73,7 @@ namespace Orts.Simulation.AIs
             {
                 AIPathNode node = Nodes[i];
                 node.Index = i;
-                PathNode tpn = patFile.PathNodes[i];
+                FreeTrainSimulator.Models.Content.PathNode tpn = pathModel.PathNodes[i];
 
                 // find TVNindex to next main node.
                 if (tpn.NextMainNode > -1)
@@ -85,7 +85,7 @@ namespace Orts.Simulation.AIs
                     if (node.NextMainTVNIndex < 0)
                     {
                         node.NextMainNode = null;
-                        Trace.TraceWarning("Cannot find main track for node {1} in path {0}", filePath, i);
+                        Trace.TraceWarning("Cannot find main track for node {1} in path {0}", pathModel.Hierarchy(), i);
                         fatalerror = true;
                     }
                 }
@@ -100,7 +100,7 @@ namespace Orts.Simulation.AIs
                     if (node.NextSidingTVNIndex < 0)
                     {
                         node.NextSidingNode = null;
-                        Trace.TraceWarning("Cannot find siding track for node {1} in path {0}", filePath, i);
+                        Trace.TraceWarning("Cannot find siding track for node {1} in path {0}", pathModel.Hierarchy(), i);
                         fatalerror = true;
                     }
                 }
@@ -238,25 +238,28 @@ namespace Orts.Simulation.AIs
         /// Creates a single AIPathNode and initializes everything that do not depend on other nodes.
         /// The AIPath constructor will initialize the rest.
         /// </summary>
-        public AIPathNode(PathNode tpn, bool isTimetableMode)
+        public AIPathNode(FreeTrainSimulator.Models.Content.PathNode pathNode, bool timetableMode)
         {
-            ArgumentNullException.ThrowIfNull(tpn);
+            ArgumentNullException.ThrowIfNull(pathNode);
 
-            if (tpn.NodeType == PathNodeType.Reversal)
-                Type = TrainPathNodeType.Reverse;
-            else if (tpn.NodeType == PathNodeType.Wait)
-                Type = TrainPathNodeType.Stop;
+            WaitTimeS = pathNode.WaitInfo?.WaitTime ?? 0;
+            Location = pathNode.Location;
 
-            if (tpn.Invalid && isTimetableMode) // not a valid point
+            switch (pathNode.NodeType)
             {
-                Type = TrainPathNodeType.Invalid;
-            }
-
-            WaitTimeS = tpn.WaitTime;
-            Location = tpn.Location;
-            if (tpn.Junction)
-            {
-                JunctionIndex = FindJunctionOrEndIndex(Location, true);
+                case PathNodeType.Reversal:
+                    Type = TrainPathNodeType.Reverse;
+                    break;
+                case PathNodeType.Wait:
+                    Type = TrainPathNodeType.Stop;
+                    break;
+                case PathNodeType.Invalid:
+                    if (timetableMode)
+                        Type = TrainPathNodeType.Invalid;
+                    break;
+                case PathNodeType.Junction:
+                    JunctionIndex = FindJunctionOrEndIndex(Location, true);
+                    break;
             }
         }
 
@@ -285,7 +288,7 @@ namespace Orts.Simulation.AIs
         public ValueTask<AiPathNodeSaveState> Snapshot()
         {
             return ValueTask.FromResult(new AiPathNodeSaveState()
-            { 
+            {
                 Index = Index,
                 NodeType = Type,
                 WaitTime = WaitTimeS,

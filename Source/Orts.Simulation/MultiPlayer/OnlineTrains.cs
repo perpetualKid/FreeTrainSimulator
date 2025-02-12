@@ -21,8 +21,12 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Shim;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -100,7 +104,7 @@ namespace Orts.Simulation.Multiplayer
             OnlinePlayer p = new OnlinePlayer(
                 playerState.User,
                 Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, playerState.ConsistFile),
-                Path.Combine(Simulator.Instance.RouteFolder.PathsFolder, playerState.PathFile))
+                playerState.PathFile)
             {
                 LeadingLocomotiveID = playerState.PlayerLocomotive.LocomotiveId
             };
@@ -124,7 +128,8 @@ namespace Orts.Simulation.Multiplayer
             {
                 try
                 {
-                    AIPath aiPath = new AIPath(p.Path, Simulator.Instance.TimetableMode);
+                    PathModel pathModel = Task.Run(async () => await (await Simulator.Instance.RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(p.Path.Trim()).GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
+                    AIPath aiPath = new AIPath(pathModel, Simulator.Instance.TimetableMode);
                 }
                 catch (Exception)
                 {

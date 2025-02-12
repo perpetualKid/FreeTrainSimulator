@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -39,7 +40,7 @@ namespace Orts.Simulation.Commanding
     public class CommandLog
     {
 
-        public List<ICommand> CommandList = new List<ICommand>();
+        public Collection<ICommand> CommandList { get; private set; } = new Collection<ICommand>();
         public Simulator Simulator { get; set; }
         public bool ReplayComplete { get; set; }
         public double ReplayEndsAt { get; set; }
@@ -64,6 +65,7 @@ namespace Orts.Simulation.Commanding
         /// <param name="Command"></param>
         public void CommandAdd(ICommand command)
         {
+            ArgumentNullException.ThrowIfNull(command, nameof(command));
             command.Time = Simulator.ClockTime; // Note time that command was issued
             CommandList.Add(command);
         }
@@ -75,8 +77,9 @@ namespace Orts.Simulation.Commanding
         /// Assumes replayCommandList is already sorted by time.
         /// </para>
         /// </summary>
-        public void Update(List<ICommand> replayCommandList)
+        public void Update(Collection<ICommand> replayCommandList)
         {
+            ArgumentNullException.ThrowIfNull(replayCommandList, nameof(replayCommandList));
             double elapsedTime = Simulator.ClockTime;
 
             if (PauseState == ReplayPauseState.Before)
@@ -136,7 +139,7 @@ namespace Orts.Simulation.Commanding
             }
         }
 
-        private void ReplayCommand(double elapsedTime, List<ICommand> replayCommandList, ICommand c)
+        private void ReplayCommand(double elapsedTime, Collection<ICommand> replayCommandList, ICommand c)
         {
             c.Redo();                           // Action the command
             CommandList.Add(c);               // Add to the log of commands
@@ -188,7 +191,7 @@ namespace Orts.Simulation.Commanding
 #pragma warning disable SYSLIB0011 // Type or member is obsolete
                 BinaryFormatter formatter = new BinaryFormatter();
 #pragma warning restore SYSLIB0011 // Type or member is obsolete
-                CommandList = (List<ICommand>)formatter.Deserialize(stream);
+                CommandList = (Collection<ICommand>)formatter.Deserialize(stream);
             }
             catch (IOException)
             {
@@ -202,8 +205,9 @@ namespace Orts.Simulation.Commanding
             }
         }
 
-        public static void ReportReplayCommands(List<ICommand> list)
+        public static void ReportReplayCommands(Collection<ICommand> list)
         {
+            ArgumentNullException.ThrowIfNull(list, nameof(list));
             Trace.WriteLine("\nList of commands to replay:");
             foreach (ICommand c in list)
             {

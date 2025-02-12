@@ -26,12 +26,15 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Shim;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -118,7 +121,6 @@ namespace Orts.Simulation.Timetables
             filenames = GetFilenames(fileName);
 
             // get file contents as strings
-            Trace.Write("\n");
             foreach (string filePath in filenames)
             {
                 // get contents as strings
@@ -133,7 +135,7 @@ namespace Orts.Simulation.Timetables
 
             Trace.Write($" TTROUTES:{Paths.Count} ");
 
-            loadPathNoFailure = PreProcessRoutes(cancellationToken);
+            loadPathNoFailure = PreProcessTrainPaths(cancellationToken);
 
             Trace.Write($" TTTRAINS:{trainInfoList.Count} ");
 
@@ -1057,23 +1059,18 @@ namespace Orts.Simulation.Timetables
         /// <summary>
         /// Pre-process all routes : read routes and convert to AIPath structure
         /// </summary>
-        public bool PreProcessRoutes(CancellationToken cancellation)
+        public bool PreProcessTrainPaths(CancellationToken cancellation)
         {
 
             // extract names
-            List<string> routeNames = new List<string>();
-
-            foreach (KeyValuePair<string, AIPath> thisRoute in Paths)
-            {
-                routeNames.Add(thisRoute.Key);
-            }
+            List<string> pathNames = new List<string>(Paths.Keys);
 
             // clear routes - will be refilled
             Paths.Clear();
             bool allPathsLoaded = true;
 
             // create routes
-            foreach (string thisRoute in routeNames)
+            foreach (string thisRoute in pathNames)
             {
                 // read route
                 LoadPath(thisRoute, out bool pathValid);
@@ -1150,7 +1147,9 @@ namespace Orts.Simulation.Timetables
                 {
                     try
                     {
-                        outPath = new AIPath(formedpathFilefull, true);
+                        //outPath = new AIPath(formedpathFilefull, true);
+                        PathModel pathModel = Task.Run(async () => await(await simulator.RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(Path.GetFileNameWithoutExtension(formedpathFilefull)).GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
+                        outPath = new AIPath(pathModel, true);
                         validPath = outPath.Nodes != null;
 
                         if (validPath)

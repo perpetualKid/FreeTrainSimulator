@@ -663,7 +663,7 @@ namespace Orts.Simulation.Timetables
         /// Create in pool : create train in pool
         /// </summary>
 
-        override public int CreateInPool(TTTrain train, List<TTTrain> nextTrains)
+        override public int CreateInPool(TTTrain train, Collection<TTTrain> nextTrains)
         {
             train.TCRoute.TCRouteSubpaths[0] = PlaceInPool(train, out int PoolStorageState, false);
             train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);

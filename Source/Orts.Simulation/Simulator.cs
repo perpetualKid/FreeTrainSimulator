@@ -143,6 +143,7 @@ namespace Orts.Simulation
         public ActivityModel ActivityModel { get; private set; }
         public TimetableModel TimetableModel { get; private set; }
         public ActivityType ActivityType { get; private set; }
+        public PathModel PlayerPath { get; private set; }
 
         // Primary Simulator Data 
         // These items represent the current state of the simulator 
@@ -187,7 +188,6 @@ namespace Orts.Simulation
         public string UserWeatherFile { get; private set; } = string.Empty;
         public SignalConfigurationFile SignalConfig { get; }
 
-        public string PathFileName { get; private set; }
         public string ConsistFileName { get; private set; }
 
         public LevelCrossings LevelCrossings { get; private set; }
@@ -231,7 +231,7 @@ namespace Orts.Simulation
 
         // Replay functionality!
         public CommandLog Log { get; set; }
-        public List<ICommand> ReplayCommandList { get; set; }
+        public Collection<ICommand> ReplayCommandList { get; } = new Collection<ICommand>();
 
         /// <summary>
         /// True if a replay is in progress.
@@ -747,11 +747,11 @@ namespace Orts.Simulation
         /// <summary>
         /// Gets path and consist of player train in multiplayer resume in activity
         /// </summary>
-        public void SetPathAndConsist()
+        public async Task SetPathAndConsist()
         {
             ServiceFile srvFile = new ServiceFile(RouteFolder.ServiceFile(ActivityFile.Activity.PlayerServices.Name));
             ConsistFileName = RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
-            PathFileName = RouteFolder.PathFile(srvFile.PathId);
+            PlayerPath = await (await RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(srvFile.PathId.Trim()).GetExtended(CancellationToken.None).ConfigureAwait(false);
         }
 
 
@@ -1225,17 +1225,17 @@ namespace Orts.Simulation
             serviceFile = new ServiceFile(playerServiceFileName, playerServiceFileName, explorePath);
 
             ConsistFileName = RouteFolder.ContentFolder.ConsistFile(serviceFile.TrainConfig);
-            PathFileName = RouteFolder.PathFile(serviceFile.PathId);
             OriginalPlayerTrain = train;
 
             train.IsTilting = ConsistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
-            AIPath aiPath = new AIPath(PathFileName, TimetableMode);
+            PlayerPath = Task.Run(async () => await (await RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(serviceFile.PathId.Trim()).GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
+            AIPath aiPath = new AIPath(PlayerPath, TimetableMode);
             PathName = aiPath.PathName;
 
             if (aiPath.Nodes == null)
             {
-                throw new InvalidDataException($"Broken path {PathFileName} for Player train - activity cannot be started");
+                throw new InvalidDataException($"Broken path {PlayerPath?.Hierarchy() ?? RouteFolder.PathFile(serviceFile.PathId)} for Player train - activity cannot be started");
             }
 
             // place rear of train on starting location of aiPath.
@@ -1353,10 +1353,11 @@ namespace Orts.Simulation
                 srvFile = new ServiceFile(playerServiceFileName, playerServiceFileName, explorePath);
             }
             ConsistFileName = RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
-            PathFileName = RouteFolder.PathFile(srvFile.PathId);
             PlayerTraffics player_Traffic_Definition = ActivityFile.Activity.PlayerServices.PlayerTraffics;
             ServiceTraffics aPPlayer_Traffic_Definition = new ServiceTraffics(playerServiceFileName, player_Traffic_Definition);
             Services aPPlayer_Service_Definition = new Services(playerServiceFileName, player_Traffic_Definition);
+
+            PlayerPath = Task.Run(async () => await (await RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(srvFile.PathId.Trim()).GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
 
             AITrain train = new AI(this).CreateAITrainDetail(aPPlayer_Service_Definition, aPPlayer_Traffic_Definition, srvFile, TimetableMode, true);
             train.Name = "PLAYER";
