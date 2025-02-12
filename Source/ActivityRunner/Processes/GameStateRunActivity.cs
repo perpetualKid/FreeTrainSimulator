@@ -636,7 +636,7 @@ namespace Orts.ActivityRunner.Processes
                 return await Game.UserSettings.Parent.LoadSettingsModel<ProfileSelectionsModel>(Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             }
 
-            IEnumerable<IGrouping<bool, string>> groupedArguments = args.GroupBy(argumenType => argumenType.StartsWith('-') || argumenType.StartsWith('/'));
+            List<IGrouping<bool, string>> groupedArguments = args.GroupBy(argumenType => argumenType.StartsWith('-') || argumenType.StartsWith('/')).ToList();
             List<string> optionsList = groupedArguments.Where(grouping => grouping.Key).SelectMany(grouping => grouping).Select(option => option[1..]).ToList();
             string[] parameters = groupedArguments.Where(grouping => !grouping.Key).SelectMany(grouping => grouping).ToArray();
 

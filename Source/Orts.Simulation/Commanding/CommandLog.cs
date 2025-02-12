@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Orts.Simulation.Commanding
@@ -160,7 +161,7 @@ namespace Orts.Simulation.Commanding
                 BinaryFormatter formatter = new BinaryFormatter();
 #pragma warning restore SYSLIB0011 // Type or member is obsolete
                 // Re-sort based on time as tests show that some commands are deferred.
-                CommandList.Sort((x, y) => x.Time.CompareTo(y.Time));
+                CommandList = new Collection<ICommand>(CommandList.OrderBy(c => c.Time).ToList());
                 formatter.Serialize(stream, CommandList);
             }
             catch (IOException)

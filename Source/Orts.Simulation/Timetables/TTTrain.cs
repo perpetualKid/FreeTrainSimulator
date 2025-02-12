@@ -136,7 +136,7 @@ namespace Orts.Simulation.Timetables
         public AiStartMovement DelayedStartState { get; set; }               // state to start
 
         public EnumArray<DelayedStart, DelayedStartType> DelayedStartSettings { get; } = new EnumArray<DelayedStart, DelayedStartType>();
-        public float ReverseAddedDelaySperM;                          // additional delay on reversal based on train length
+        public float ReverseAddedDelaySperM { get; set; }                          // additional delay on reversal based on train length
 
         public EnumArray<float?, SpeedValueType> SpeedSettings { get; } = new EnumArray<float?, SpeedValueType>();
 
@@ -152,7 +152,7 @@ namespace Orts.Simulation.Timetables
         }
         public LastSignalStop ReqLastSignalStop { get; set; } = LastSignalStop.None;
 
-        public List<TriggerActivation> ActivatedTrainTriggers { get; } = new List<TriggerActivation>();
+        public Collection<TriggerActivation> ActivatedTrainTriggers { get; } = new Collection<TriggerActivation>();
         public string Briefing { get; set; } = string.Empty;
 
         //================================================================================================//

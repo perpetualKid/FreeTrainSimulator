@@ -573,7 +573,7 @@ namespace Orts.Simulation
 
             // Find original player train
             OriginalPlayerTrain = Trains.Find(item => item.Number == 0);
-            OriginalPlayerTrain ??= AI.AITrains.Find(item => item.Number == 0);
+            OriginalPlayerTrain ??= AI.AITrains.Where(item => item.Number == 0).FirstOrDefault();
 
             SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
             SignalEnvironment.Update(true);           // update all signals once to set proper state

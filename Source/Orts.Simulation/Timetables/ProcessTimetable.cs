@@ -112,7 +112,7 @@ namespace Orts.Simulation.Timetables
 
             bool loadPathNoFailure = true;
             List<TTTrain> trainList = new List<TTTrain>();
-            List<TTTrainInfo> trainInfoList = new List<TTTrainInfo>();
+            Collection<TTTrainInfo> trainInfoList = new Collection<TTTrainInfo>();
             TTTrainInfo playerTrain = null;
             Collection<string> filenames;
             int indexcount = 0;
@@ -314,7 +314,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="signalRef"></param>
         /// <param name="TDB"></param>
         /// <param name="trainInfoList"></param>
-        private int ConvertFileContents(TimetableReader fileContents, SignalEnvironment signalRef, ref List<TTTrainInfo> trainInfoList, int indexcount, string filePath)
+        private int ConvertFileContents(TimetableReader fileContents, SignalEnvironment signalRef, ref Collection<TTTrainInfo> trainInfoList, int indexcount, string filePath)
         {
             int consistRow = -1;
             int pathRow = -1;
@@ -677,7 +677,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="allTrains"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        private TTTrainInfo GetPlayerTrain(ref List<TTTrainInfo> allTrains, string train)
+        private TTTrainInfo GetPlayerTrain(ref Collection<TTTrainInfo> allTrains, string train)
         {
             TTTrainInfo reqTrain = null;
 
@@ -715,7 +715,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="allTrains"></param>
         /// <param name="playerTrain"></param>
         /// <param name="arguments"></param>
-        private List<TTTrain> BuildAITrains(List<TTTrainInfo> allTrains, TTTrainInfo playerTrain, out bool allPathsLoaded)
+        private List<TTTrain> BuildAITrains(Collection<TTTrainInfo> allTrains, TTTrainInfo playerTrain, out bool allPathsLoaded)
         {
             allPathsLoaded = true;
             List<TTTrain> trainList = new List<TTTrain>();
@@ -956,7 +956,7 @@ namespace Orts.Simulation.Timetables
 
         public void FinalizeActivationCommands(ref List<TTTrain> trainList, ref TTTrain reqPlayerTrain)
         {
-            List<int> activatedTrains = new List<int>();
+            Collection<int> activatedTrains = new Collection<int>();
 
             // build list of trains to be activated
             // set original AI number for player train

@@ -90,7 +90,7 @@ namespace Orts.Simulation.AIs
 
         // constructor for Timetable trains
         // trains allready have a number - must not be changed!
-        public AI(Simulator simulator, Collection<TTTrain> allTrains, int playerTrainOriginalTrain, TimetableFormationCommand playerTrainFormedOfType, TTTrain playerTrain, CancellationToken cancellation)
+        public AI(Simulator simulator, List<TTTrain> allTrains, int playerTrainOriginalTrain, TimetableFormationCommand playerTrainFormedOfType, TTTrain playerTrain, CancellationToken cancellation)
         {
             this.simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
 
