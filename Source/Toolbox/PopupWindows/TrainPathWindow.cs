@@ -366,7 +366,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             if (null == pathScrollbox || null == currentPath)
                 return;
 
-            WindowControl pathLine = pathScrollbox.Client.Controls.Where(c => c.Tag is PathModelCore pathModel && pathModel.Id == currentPath.PathModel.Id).FirstOrDefault();
+            WindowControl pathLine = pathScrollbox.Client.Controls.Where(c => c.Tag is PathModelCore pathModel && pathModel.Id == currentPath.PathModel?.Id).FirstOrDefault();
             foreach (WindowControl control in pathScrollbox.Client.Controls)
             {
                 if (control != pathLine)
