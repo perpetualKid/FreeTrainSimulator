@@ -41,8 +41,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public TrackSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex) :
-            base(trackVectorSection, trackSections, trackNodeIndex, trackVectorSectionIndex)
+        public TrackSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex, int overSizeFactor = 1) :
+            base(trackVectorSection, trackSections, trackNodeIndex, trackVectorSectionIndex, overSizeFactor)
         {
         }
 
@@ -54,7 +54,6 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             else
                 contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
-
     }
 
     internal class RoadSegment : TrackSegment

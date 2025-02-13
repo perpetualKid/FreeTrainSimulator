@@ -11,7 +11,7 @@ namespace FreeTrainSimulator.Models.Shim
 {
     public static class RouteModelExtensions
     {
-        public static ValueTask<RouteModel> Extend(this RouteModelHeader routeModel, CancellationToken cancellationToken) => RouteModelHandler.GetExtended(routeModel, cancellationToken);
+        public static ValueTask<RouteModel> GetExtended(this RouteModelHeader routeModel, CancellationToken cancellationToken) => RouteModelHandler.GetExtended(routeModel, cancellationToken);
         public static Task<ImmutableArray<PathModelHeader>> GetPaths(this RouteModelHeader routeModel, CancellationToken cancellationToken) => routeModel.GetRoutePaths(cancellationToken);
         public static Task<ImmutableArray<ActivityModelHeader>> GetActivities(this RouteModelHeader routeModel, CancellationToken cancellationToken) => routeModel.GetRouteActivities(cancellationToken);
         public static Task<ImmutableArray<TimetableModel>> GetTimetables(this RouteModelHeader routeModel, CancellationToken cancellationToken) => TimetableModelHandler.GetTimetables(routeModel, cancellationToken);
@@ -43,24 +43,24 @@ namespace FreeTrainSimulator.Models.Shim
 
         public static ImmutableArray<PathModelHeader> GetPaths(this RouteModelHeader routeModel) => Task.Run(async () => await routeModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).Result;
 
-        public static string SavePointName(this RouteModelHeader routeModelCore, ActivityType activityType)
+        public static string SavePointName(this RouteModelHeader routeModelHeader, ActivityType activityType)
         {
-            ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));
-            return activityType == ActivityType.ExploreActivity ? $"ea${routeModelCore.Id}$" : routeModelCore.Id;
+            ArgumentNullException.ThrowIfNull(routeModelHeader, nameof(routeModelHeader));
+            return activityType == ActivityType.ExploreActivity ? $"ea${routeModelHeader.Id}$" : routeModelHeader.Id;
         }
 
-        public static string SavePointName(this RouteModelHeader routeModelCore, ActivityModelHeader activityModel)
+        public static string SavePointName(this RouteModelHeader routeModelHeader, ActivityModelHeader activityModel)
         {
-            ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));
+            ArgumentNullException.ThrowIfNull(routeModelHeader, nameof(routeModelHeader));
             ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
-            return $"{routeModelCore.Id} {activityModel.Id}";
+            return $"{routeModelHeader.Id} {activityModel.Id}";
         }
 
-        public static string SavePointName(this RouteModelHeader routeModelCore, TimetableModel timetableModel)
+        public static string SavePointName(this RouteModelHeader routeModelHeader, TimetableModel timetableModel)
         {
-            ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));
+            ArgumentNullException.ThrowIfNull(routeModelHeader, nameof(routeModelHeader));
             ArgumentNullException.ThrowIfNull(timetableModel, nameof(timetableModel));
-            return $"{routeModelCore.Id} {timetableModel.Id}";
+            return $"{routeModelHeader.Id} {timetableModel.Id}";
         }
     }
 }

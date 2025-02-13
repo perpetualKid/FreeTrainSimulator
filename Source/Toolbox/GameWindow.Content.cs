@@ -102,7 +102,7 @@ namespace FreeTrainSimulator.Toolbox
             if (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
 
-            RouteModel routeModel = await route.Extend(ctsProfileLoading.Token).ConfigureAwait(false);
+            RouteModel routeModel = await route.GetExtended(ctsProfileLoading.Token).ConfigureAwait(false);
 
             await TrackData.LoadTrackData(this, routeModel, useMetricUnits, ctsProfileLoading.Token).ConfigureAwait(false);
             if (ctsProfileLoading.Token.IsCancellationRequested)

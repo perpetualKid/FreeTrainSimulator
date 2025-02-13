@@ -37,6 +37,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             try
             {
+                this.path = path;
                 InitializePathModel(path);
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;

@@ -118,15 +118,6 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
         }
 
         /// <summary>
-        /// Returns a new List<ComboBoxItem<T>> created from source enum.
-        /// Keys and values are mapped from enum values, typically keys are enum values or enum value names
-        /// </summary>
-        private static List<ComboBoxItem<T>> FromEnumCustomLookup<E, T>(Func<E, T> keyLookup, Func<E, string> valueLookup) where E : Enum
-        {
-            return EnumExtension.GetValues<E>().Select(data => new ComboBoxItem<T>(keyLookup(data), valueLookup(data))).ToList();
-        }
-
-        /// <summary>
         /// Returns a new List<ComboBoxItem<T>> created from source list.
         /// Keys are mapped from list items, display values are mapped through lookup function
         /// </summary>

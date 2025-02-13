@@ -57,7 +57,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             Direction = (float)Math.Atan2(origin.X, origin.Y) - MathHelper.PiOver2;
         }
 
-        protected TrackSegmentBase(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex)
+        protected TrackSegmentBase(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex, int oversizeFactor = 1)
         {
             ArgumentNullException.ThrowIfNull(trackVectorSection);
             ArgumentNullException.ThrowIfNull(trackSections);
@@ -79,7 +79,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 return;
             }
 
-            Size = trackSection.Width;
+            Size = trackSection.Width / oversizeFactor;
             Curved = trackSection.Curved;
             Direction = MathHelper.WrapAngle(trackVectorSection.Direction.Y - MathHelper.PiOver2);
 

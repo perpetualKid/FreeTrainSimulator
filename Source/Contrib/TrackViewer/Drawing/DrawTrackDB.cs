@@ -32,6 +32,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using System.Threading.Tasks;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -49,13 +50,10 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="routePath">Path to the route directory</param>
         /// <param name="messageDelegate">The delegate that will deal with the message we want to send to the user</param>
-        public static void Load(RouteModelHeader routeModel, MessageDelegate messageDelegate)
+        public static void Load(RouteModelHeader routeModelHeader, MessageDelegate messageDelegate)
         {
             messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
-            System.Threading.Tasks.Task<RouteModel> extendRouteTask = routeModel.Extend(CancellationToken.None).AsTask();
-            if (!extendRouteTask.IsCompleted)
-                extendRouteTask.Wait();
-            RouteModel routeModelExtended = extendRouteTask.Result;
+            RouteModel routeModel = Task.Run(async () => await (routeModelHeader.GetExtended(CancellationToken.None).ConfigureAwait(false))).Result;
 
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
             storedRoutePath = routeFolder.CurrentFolder;
@@ -65,7 +63,7 @@ namespace ORTS.TrackViewer.Drawing
             SignalConfigurationFile sigcfgFile = null;
 
             messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading track database .tdb ..."));
-            TDB = new TrackDatabaseFile(routeFolder.TrackDatabaseFile(routeModelExtended.RouteKey));
+            TDB = new TrackDatabaseFile(routeFolder.TrackDatabaseFile(routeModel.RouteKey));
 
             messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading tsection.dat ..."));
 
@@ -73,7 +71,7 @@ namespace ORTS.TrackViewer.Drawing
             if (File.Exists(routeFolder.RouteTrackSectionFile))
                 tsectionDat.AddRouteTSectionDatFile(routeFolder.RouteTrackSectionFile);
 
-            string roadTrackFileName = routeFolder.RoadTrackDatabaseFile(routeModelExtended.RouteKey);
+            string roadTrackFileName = routeFolder.RoadTrackDatabaseFile(routeModel.RouteKey);
             if (File.Exists(roadTrackFileName))
             {
                 messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading road track database .rdb ..."));
@@ -82,7 +80,7 @@ namespace ORTS.TrackViewer.Drawing
             }
             sigcfgFile = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile);
 
-            Initialize(routeModelExtended, tsectionDat, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
+            Initialize(routeModel, tsectionDat, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
         }
 
         /// <summary>
