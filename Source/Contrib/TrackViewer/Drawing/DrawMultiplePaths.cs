@@ -57,7 +57,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>
         /// Constructor
         /// </summary>
-        public DrawMultiplePaths (Collection<PathModelCore> paths)
+        public DrawMultiplePaths (Collection<PathModelHeader> paths)
         {
             trackDB = RuntimeData.Instance.TrackDB;
             tsectionDat = RuntimeData.Instance.TSectionDat;
@@ -66,7 +66,7 @@ namespace ORTS.TrackViewer.Drawing
             selectedTrainpaths = new List<Trainpath>();
             drawPaths = new Dictionary<Trainpath, DrawPath>();
 
-            foreach (PathModelCore path in paths)
+            foreach (PathModelHeader path in paths)
             {
                 string pathName = UserInterface.MenuControl.MakePathMenyEntryName(path);
                 fullPathNames[pathName] = path.SourceFile();

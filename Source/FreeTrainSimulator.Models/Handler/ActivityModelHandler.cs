@@ -10,20 +10,20 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Handler
 {
-    internal sealed class ActivityModelHandler : ContentHandlerBase<ActivityModelCore>
+    internal sealed class ActivityModelHandler : ContentHandlerBase<ActivityModelHeader>
     {
-        public static Task<ActivityModelCore> GetCore(ActivityModelCore activityModel, CancellationToken cancellationToken)
+        public static Task<ActivityModelHeader> GetCore(ActivityModelHeader activityModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
             return GetCore(activityModel.Id, activityModel.Parent, cancellationToken);
         }
 
-        public static Task<ActivityModelCore> GetCore(string activityId, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<ActivityModelHeader> GetCore(string activityId, RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(activityId);
 
-            if (!modelTaskCache.TryGetValue(key, out Task<ActivityModelCore> modelTask) || modelTask.IsFaulted)
+            if (!modelTaskCache.TryGetValue(key, out Task<ActivityModelHeader> modelTask) || modelTask.IsFaulted)
             {
                 modelTaskCache[key] = modelTask = FromFile(activityId, routeModel, cancellationToken);
                 collectionUpdateRequired[routeModel.Hierarchy()] = true;
@@ -32,33 +32,33 @@ namespace FreeTrainSimulator.Models.Handler
             return modelTask;
         }
 
-        public static ValueTask<ActivityModel> GetExtended(ActivityModelCore activityModel, CancellationToken cancellationToken)
+        public static ValueTask<ActivityModel> GetExtended(ActivityModelHeader activityModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
             return activityModel is ActivityModel activityModelExtended ? ValueTask.FromResult(activityModelExtended) : GetExtended(activityModel.Id, activityModel.Parent, cancellationToken);
         }
 
-        public static async ValueTask<ActivityModel> GetExtended(string activityId, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async ValueTask<ActivityModel> GetExtended(string activityId, RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(activityId);
 
-            if (!modelTaskCache.TryGetValue(key, out Task<ActivityModelCore> modelTask) || modelTask.IsFaulted ||
+            if (!modelTaskCache.TryGetValue(key, out Task<ActivityModelHeader> modelTask) || modelTask.IsFaulted ||
                 await modelTask.ConfigureAwait(false) is not ActivityModel)
             {
-                modelTaskCache[key] = modelTask = Cast(FromFile<ActivityModel, RouteModelCore>(activityId, routeModel, cancellationToken));
+                modelTaskCache[key] = modelTask = Cast(FromFile<ActivityModel, RouteModelHeader>(activityId, routeModel, cancellationToken));
                 collectionUpdateRequired[routeModel.Hierarchy()] = true;
             }
 
             return await modelTask.ConfigureAwait(false) as ActivityModel;
         }
 
-        public static Task<ImmutableArray<ActivityModelCore>> GetActivities(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<ActivityModelHeader>> GetActivities(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<ActivityModelCore>> modelSetTask) || modelSetTask.IsFaulted)
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<ActivityModelHeader>> modelSetTask) || modelSetTask.IsFaulted)
             {
                 modelSetTaskCache[key] = modelSetTask = LoadActivities(routeModel, cancellationToken);
             }
@@ -66,12 +66,12 @@ namespace FreeTrainSimulator.Models.Handler
             return modelSetTask;
         }
 
-        private static async Task<ImmutableArray<ActivityModelCore>> LoadActivities(RouteModelCore routeModel, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<ActivityModelHeader>> LoadActivities(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
-            string activiesFolder = ModelFileResolver<ActivityModelCore>.FolderPath(routeModel);
-            string pattern = ModelFileResolver<ActivityModelCore>.WildcardSavePattern;
+            string activiesFolder = ModelFileResolver<ActivityModelHeader>.FolderPath(routeModel);
+            string pattern = ModelFileResolver<ActivityModelHeader>.WildcardSavePattern;
 
-            ConcurrentBag<ActivityModelCore> results = new ConcurrentBag<ActivityModelCore>();
+            ConcurrentBag<ActivityModelHeader> results = new ConcurrentBag<ActivityModelHeader>();
 
             //load existing activit models, and compare if the corresponding folder still exists.
             if (Directory.Exists(activiesFolder))
@@ -83,12 +83,12 @@ namespace FreeTrainSimulator.Models.Handler
                     if (activityId.EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
                         activityId = activityId[..^fileExtension.Length];
 
-                    ActivityModelCore path = await GetCore(activityId, routeModel, token).ConfigureAwait(false);
+                    ActivityModelHeader path = await GetCore(activityId, routeModel, token).ConfigureAwait(false);
                     if (null != path)
                         results.Add(path);
                 }).ConfigureAwait(false);
             }
-            return results.Concat(new ActivityModelCore[] { CommonModelInstances.ExploreMode, CommonModelInstances.ExploreActivityMode }).ToImmutableArray();
+            return results.Concat(new ActivityModelHeader[] { CommonModelInstances.ExploreMode, CommonModelInstances.ExploreActivityMode }).ToImmutableArray();
         }
     }
 }

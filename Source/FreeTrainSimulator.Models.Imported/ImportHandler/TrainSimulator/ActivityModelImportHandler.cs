@@ -17,15 +17,15 @@ using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
-    internal sealed class ActivityModelImportHandler : ContentHandlerBase<ActivityModelCore>
+    internal sealed class ActivityModelImportHandler : ContentHandlerBase<ActivityModelHeader>
     {
         internal const string SourceNameKey = "MstsSourceActivity";
 
-        public static async Task<ImmutableArray<ActivityModelCore>> ExpandActivityModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<ActivityModelHeader>> ExpandActivityModels(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            ConcurrentBag<ActivityModelCore> results = new ConcurrentBag<ActivityModelCore>();
+            ConcurrentBag<ActivityModelHeader> results = new ConcurrentBag<ActivityModelHeader>();
 
             string sourceFolder = routeModel.MstsRouteFolder().ActivitiesFolder;
             if (Directory.Exists(sourceFolder))
@@ -36,8 +36,8 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
                 await Parallel.ForEachAsync(activityFiles, cancellationToken, async (path, token) =>
                 {
-                    Task<ActivityModelCore> modelTask = Cast(Convert(path.Value, routeModel, cancellationToken));
-                    ActivityModelCore activityModel = await modelTask.ConfigureAwait(false);
+                    Task<ActivityModelHeader> modelTask = Cast(Convert(path.Value, routeModel, cancellationToken));
+                    ActivityModelHeader activityModel = await modelTask.ConfigureAwait(false);
                     if (null != activityModel)
                     {
                         string key = activityModel.Hierarchy();
@@ -47,14 +47,14 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 }).ConfigureAwait(false);
             }
 
-            ImmutableArray<ActivityModelCore> result = results.Concat(new ActivityModelCore[] { CommonModelInstances.ExploreMode, CommonModelInstances.ExploreActivityMode }).ToImmutableArray();
+            ImmutableArray<ActivityModelHeader> result = results.Concat(new ActivityModelHeader[] { CommonModelInstances.ExploreMode, CommonModelInstances.ExploreActivityMode }).ToImmutableArray();
             string key = routeModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             _ = collectionUpdateRequired.TryRemove(key, out _);
             return result;
         }
 
-        public static async Task<ActivityModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async Task<ActivityModel> Convert(string filePath, RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(filePath, nameof(filePath));
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));

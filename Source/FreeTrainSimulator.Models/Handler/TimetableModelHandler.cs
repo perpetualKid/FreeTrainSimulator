@@ -17,7 +17,7 @@ namespace FreeTrainSimulator.Models.Handler
             return GetCore(timetableModel.Id, timetableModel.Parent, cancellationToken);
         }
 
-        public static Task<TimetableModel> GetCore(string timetableId, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<TimetableModel> GetCore(string timetableId, RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(timetableId);
@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Models.Handler
             return modelTask;
         }
 
-        public static Task<ImmutableArray<TimetableModel>> GetTimetables(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<TimetableModel>> GetTimetables(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
@@ -44,7 +44,7 @@ namespace FreeTrainSimulator.Models.Handler
             return modelSetTask;
         }
 
-        private static async Task<ImmutableArray<TimetableModel>> LoadTimetables(RouteModelCore routeModel, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<TimetableModel>> LoadTimetables(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             string timetablesFolder = ModelFileResolver<TimetableModel>.FolderPath(routeModel);
             string pattern = ModelFileResolver<TimetableModel>.WildcardSavePattern;

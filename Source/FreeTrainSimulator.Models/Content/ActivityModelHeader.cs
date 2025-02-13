@@ -9,9 +9,9 @@ namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver("Activities", ".activity")]
-    public partial record ActivityModelCore : ModelBase
+    public partial record ActivityModelHeader : ModelBase
     {
-        public override RouteModelCore Parent => _parent as RouteModelCore;
+        public override RouteModelHeader Parent => _parent as RouteModelHeader;
         public string Description { get; init; }
         public string Briefing { get; init; }
         public TimeOnly StartTime { get; init; }

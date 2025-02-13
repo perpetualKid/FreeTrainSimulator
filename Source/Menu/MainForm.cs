@@ -299,7 +299,7 @@ namespace FreeTrainSimulator.Menu
 
         private async void ComboBoxRoute_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            await RouteChanged(comboBoxRoute.SelectedValue as RouteModelCore).ConfigureAwait(true);
+            await RouteChanged(comboBoxRoute.SelectedValue as RouteModelHeader).ConfigureAwait(true);
         }
 
         private void RadioButtonMode_CheckedChanged(object sender, EventArgs e)
@@ -309,7 +309,7 @@ namespace FreeTrainSimulator.Menu
 
             ActivityType FromSelection() => radioButtonModeTimetable.Checked
                     ? ActivityType.TimeTable
-                    : (comboBoxActivity.SelectedValue as ActivityModelCore)?.ActivityType ?? ActivityType.Activity;
+                    : (comboBoxActivity.SelectedValue as ActivityModelHeader)?.ActivityType ?? ActivityType.Activity;
 
             ProfileSelections.ActivityType = FromSelection();
 
@@ -330,7 +330,7 @@ namespace FreeTrainSimulator.Menu
 
         private void ComboBoxActivity_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            ActivityChanged(comboBoxActivity.SelectedValue as ActivityModelCore);
+            ActivityChanged(comboBoxActivity.SelectedValue as ActivityModelHeader);
             ShowDetails();
         }
 
@@ -348,13 +348,13 @@ namespace FreeTrainSimulator.Menu
 
         private void ComboBoxStartAt_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            PathChanged((comboBoxStartAt.SelectedItem as ComboBoxItem<IGrouping<string, PathModelCore>>)?.Value.FirstOrDefault());
+            PathChanged((comboBoxStartAt.SelectedItem as ComboBoxItem<IGrouping<string, PathModelHeader>>)?.Value.FirstOrDefault());
             ShowDetails();
         }
 
         private void ComboBoxHeadTo_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            PathChanged((comboBoxHeadTo.SelectedItem as ComboBoxItem<PathModelCore>)?.Value);
+            PathChanged((comboBoxHeadTo.SelectedItem as ComboBoxItem<PathModelHeader>)?.Value);
             ShowDetails();
         }
         #endregion
@@ -395,7 +395,7 @@ namespace FreeTrainSimulator.Menu
 
         private void ComboBoxTimetableWeatherFile_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            TimetableWeatherChanged((comboBoxTimetableWeatherFile.SelectedItem as ComboBoxItem<WeatherModelCore>)?.Value);
+            TimetableWeatherChanged((comboBoxTimetableWeatherFile.SelectedItem as ComboBoxItem<WeatherModelHeader>)?.Value);
         }
 
         private void ComboBoxTimetableSet_SelectionChangeCommitted(object sender, EventArgs e)
@@ -741,7 +741,7 @@ namespace FreeTrainSimulator.Menu
             }
         }
 
-        private void SetupRoutesDropdown(ImmutableArray<RouteModelCore> routeModels)
+        private void SetupRoutesDropdown(ImmutableArray<RouteModelHeader> routeModels)
         {
             if (InvokeRequired)
             {
@@ -749,10 +749,10 @@ namespace FreeTrainSimulator.Menu
                 return;
             }
 
-            comboBoxRoute.EnableComboBoxItemDataSource(routeModels.OrderBy(r => r.Name).Select(r => new ComboBoxItem<RouteModelCore>(r.Name, r)));
+            comboBoxRoute.EnableComboBoxItemDataSource(routeModels.OrderBy(r => r.Name).Select(r => new ComboBoxItem<RouteModelHeader>(r.Name, r)));
         }
 
-        private void SetupActivitiesDropdown(ImmutableArray<ActivityModelCore> activities)
+        private void SetupActivitiesDropdown(ImmutableArray<ActivityModelHeader> activities)
         {
             if (InvokeRequired)
             {
@@ -760,7 +760,7 @@ namespace FreeTrainSimulator.Menu
                 return;
             }
 
-            comboBoxActivity.EnableComboBoxItemDataSource(activities.OrderBy(a => a.Name).Select(a => new ComboBoxItem<ActivityModelCore>(a.Name, a)));
+            comboBoxActivity.EnableComboBoxItemDataSource(activities.OrderBy(a => a.Name).Select(a => new ComboBoxItem<ActivityModelHeader>(a.Name, a)));
         }
 
         private void SetupLocomotivesDropdown(ImmutableArray<WagonSetModel> consists)
@@ -787,7 +787,7 @@ namespace FreeTrainSimulator.Menu
             comboBoxConsist.EnableComboBoxItemDataSource((comboBoxLocomotive.SelectedValue as IGrouping<string, WagonSetModel>)?.OrderBy(w => w.Name).Select(w => new ComboBoxItem<WagonSetModel>(w.Name, w)));
         }
 
-        private void SetupPathStartDropdown(ImmutableArray<PathModelCore> pathModels)
+        private void SetupPathStartDropdown(ImmutableArray<PathModelHeader> pathModels)
         {
             if (InvokeRequired)
             {
@@ -796,7 +796,7 @@ namespace FreeTrainSimulator.Menu
             }
 
             comboBoxStartAt.EnableComboBoxItemDataSource(pathModels.Where(p => p.PlayerPath).GroupBy(p => p.Start).OrderBy(g => g.Key).
-                Select(g => new ComboBoxItem<IGrouping<string, PathModelCore>>($"{g.Key} ({g.Count()} " + catalog.GetPluralString("train path", "train paths", g.Count()) + ")", g)));
+                Select(g => new ComboBoxItem<IGrouping<string, PathModelHeader>>($"{g.Key} ({g.Count()} " + catalog.GetPluralString("train path", "train paths", g.Count()) + ")", g)));
         }
 
         private void SetupPathEndDropdown()
@@ -807,7 +807,7 @@ namespace FreeTrainSimulator.Menu
                 return;
             }
 
-            comboBoxHeadTo.EnableComboBoxItemDataSource((comboBoxStartAt.SelectedValue as IGrouping<string, PathModelCore>)?.OrderBy(p => p.Name).Select(p => new ComboBoxItem<PathModelCore>($"{p.End} ({p.Name})", p)));
+            comboBoxHeadTo.EnableComboBoxItemDataSource((comboBoxStartAt.SelectedValue as IGrouping<string, PathModelHeader>)?.OrderBy(p => p.Name).Select(p => new ComboBoxItem<PathModelHeader>($"{p.End} ({p.Name})", p)));
         }
 
         #endregion
@@ -848,7 +848,7 @@ namespace FreeTrainSimulator.Menu
                 Select(t => new ComboBoxItem<TimetableTrainModel>($"{t.StartTime} {t.Name}", t)));
         }
 
-        private void SetupTimetableWeatherDropdown(ImmutableArray<WeatherModelCore> weatherModels)
+        private void SetupTimetableWeatherDropdown(ImmutableArray<WeatherModelHeader> weatherModels)
         {
             if (InvokeRequired)
             {
@@ -856,7 +856,7 @@ namespace FreeTrainSimulator.Menu
                 return;
             }
 
-            comboBoxTimetableWeatherFile.EnableComboBoxItemDataSource(weatherModels.OrderBy(w => w.Name).Select(w => new ComboBoxItem<WeatherModelCore>(w.Name, w)));
+            comboBoxTimetableWeatherFile.EnableComboBoxItemDataSource(weatherModels.OrderBy(w => w.Name).Select(w => new ComboBoxItem<WeatherModelHeader>(w.Name, w)));
         }
         #endregion
 
@@ -870,7 +870,7 @@ namespace FreeTrainSimulator.Menu
             }
 
             ClearDetails();
-            if (comboBoxRoute.SelectedValue is RouteModelCore routeModel)
+            if (comboBoxRoute.SelectedValue is RouteModelHeader routeModel)
             {
                 AddDetailToShow(catalog.GetString("Route: {0}", routeModel.Name), routeModel.Description);
 
@@ -880,14 +880,14 @@ namespace FreeTrainSimulator.Menu
                     {
                         AddDetailToShow(catalog.GetString("Locomotive: {0}", wagonSetModel.Locomotive.Name), wagonSetModel.Locomotive.Description);
                     }
-                    if ((comboBoxActivity.SelectedValue is ActivityModelCore activityModel && activityModel.ActivityType == ActivityType.Activity))
+                    if ((comboBoxActivity.SelectedValue is ActivityModelHeader activityModel && activityModel.ActivityType == ActivityType.Activity))
                     {
                         AddDetailToShow(catalog.GetString($"Activity: {activityModel.Name}"), activityModel.Description);
                         AddDetailToShow(catalog.GetString("Duration:"), $"{activityModel.Duration}");
                         AddDetailToShow(catalog.GetString("Difficulty:"), $"{activityModel.Difficulty}");
                         AddDetailToShow(catalog.GetString("Activity Briefing"), activityModel.Briefing);
                     }
-                    else if ((comboBoxHeadTo.SelectedValue is PathModelCore pathModel))
+                    else if ((comboBoxHeadTo.SelectedValue is PathModelHeader pathModel))
                     {
                         AddDetailToShow(catalog.GetString("Path: {0}", pathModel.Name),
                             string.Join("\n", catalog.GetString("Starting at: {0}", pathModel.Start),
@@ -921,7 +921,7 @@ namespace FreeTrainSimulator.Menu
                                 AddDetailToShow(catalog.GetString("Locomotive: {0}", wagonSetModel.Locomotive.Name), wagonSetModel.Locomotive.Description);
                             }
                         }
-                        PathModelCore pathModel = routeModel.GetPaths().GetById(timetableTrainModel.Path);
+                        PathModelHeader pathModel = routeModel.GetPaths().GetById(timetableTrainModel.Path);
                         if (pathModel != null)
                         {
                             AddDetailToShow(catalog.GetString("Path: {0}", pathModel.Name), string.Join("\n", catalog.GetString($"Start at: {pathModel.Start}"), catalog.GetString($"Heading to: {pathModel.End}")));

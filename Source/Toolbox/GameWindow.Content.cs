@@ -28,8 +28,8 @@ namespace FreeTrainSimulator.Toolbox
     {
         private ContentModel contentModel;
         private FolderModel selectedFolder;
-        private RouteModelCore selectedRoute;
-        private ImmutableArray<RouteModelCore> routeModels;
+        private RouteModelHeader selectedRoute;
+        private ImmutableArray<RouteModelHeader> routeModels;
         private readonly SemaphoreSlim loadRouteSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsProfileLoading;
         private CancellationTokenSource ctsRouteLoading;
@@ -73,7 +73,7 @@ namespace FreeTrainSimulator.Toolbox
             return true;
         }
 
-        internal async Task<ImmutableArray<RouteModelCore>> FindRoutes(FolderModel contentFolder)
+        internal async Task<ImmutableArray<RouteModelHeader>> FindRoutes(FolderModel contentFolder)
         {
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
             await loadRouteSemaphore.WaitAsync().ConfigureAwait(false);
@@ -90,7 +90,7 @@ namespace FreeTrainSimulator.Toolbox
             return routeModels;
         }
 
-        internal async Task LoadRoute(RouteModelCore route)
+        internal async Task LoadRoute(RouteModelHeader route)
         {
             (windowManager[ToolboxWindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
             windowManager[ToolboxWindowType.StatusWindow].Open();
@@ -119,7 +119,7 @@ namespace FreeTrainSimulator.Toolbox
             selectedRoute = route;
         }
 
-        internal bool LoadPath(PathModelCore path)
+        internal bool LoadPath(PathModelHeader path)
         {
             return PathEditor.InitializePath(path);
         }
@@ -137,7 +137,7 @@ namespace FreeTrainSimulator.Toolbox
 
                 if (!string.IsNullOrEmpty(routeId) && ToolboxSettings.RestoreLastView)
                 {
-                    RouteModelCore route = (routeModels.IsDefaultOrEmpty ? routeModels = await FindRoutes(folder).ConfigureAwait(false) : routeModels).GetById(routeId);
+                    RouteModelHeader route = (routeModels.IsDefaultOrEmpty ? routeModels = await FindRoutes(folder).ConfigureAwait(false) : routeModels).GetById(routeId);
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(false);
@@ -145,7 +145,7 @@ namespace FreeTrainSimulator.Toolbox
                         if (!string.IsNullOrEmpty(pathId))
                         {
                             // only restore first path for now
-                            PathModelCore path = (await route.GetRoutePaths(CancellationToken.None).ConfigureAwait(false)).GetById(pathId);
+                            PathModelHeader path = (await route.GetRoutePaths(CancellationToken.None).ConfigureAwait(false)).GetById(pathId);
                             if (null != path)
                             {
                                 if (LoadPath(path))

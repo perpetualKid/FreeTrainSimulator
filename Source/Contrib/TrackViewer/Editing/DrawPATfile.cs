@@ -60,7 +60,7 @@ namespace ORTS.TrackViewer.Editing
         /// Constructor
         /// </summary>
         /// <param name="path">Contains the information (mainly filepath) needed for loading the .pat file</param>
-        public DrawPATfile (PathModelCore path)
+        public DrawPATfile (PathModelHeader path)
         {
             FileName = System.IO.Path.GetFileName(path.SourceFile());
             patFile = new PathFile(path.SourceFile());

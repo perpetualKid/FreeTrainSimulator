@@ -9,9 +9,9 @@ namespace FreeTrainSimulator.Models.Shim
 {
     public static class PathModelExtensions
     {
-        public static Task<PathModelCore> Get(this RouteModelCore routeModel, string pathId, CancellationToken cancellationToken) => PathModelHandler.GetCore(pathId, routeModel, cancellationToken);
-        public static ValueTask<PathModel> GetExtended(this RouteModelCore routeModel, string pathId, CancellationToken cancellationToken) => PathModelHandler.GetExtended(pathId, routeModel, cancellationToken);
-        public static ValueTask<PathModel> GetExtended(this PathModelCore pathModel, CancellationToken cancellationToken) => PathModelHandler.GetExtended(pathModel, cancellationToken);
-        public static Task<ImmutableArray<PathModelCore>> GetRoutePaths(this RouteModelCore routeModel, CancellationToken cancellationToken) => PathModelHandler.GetPaths(routeModel, cancellationToken);
+        public static Task<PathModelHeader> Get(this RouteModelHeader routeModel, string pathId, CancellationToken cancellationToken) => PathModelHandler.GetCore(pathId, routeModel, cancellationToken);
+        public static ValueTask<PathModel> GetExtended(this RouteModelHeader routeModel, string pathId, CancellationToken cancellationToken) => PathModelHandler.GetExtended(pathId, routeModel, cancellationToken);
+        public static ValueTask<PathModel> GetExtended(this PathModelHeader pathModel, CancellationToken cancellationToken) => PathModelHandler.GetExtended(pathModel, cancellationToken);
+        public static Task<ImmutableArray<PathModelHeader>> GetRoutePaths(this RouteModelHeader routeModel, CancellationToken cancellationToken) => PathModelHandler.GetPaths(routeModel, cancellationToken);
     }
 }

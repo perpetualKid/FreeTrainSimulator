@@ -279,8 +279,8 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             {
                 RadioButtonGroup group = new RadioButtonGroup();
                 ControlLayout line;
-                ImmutableArray<PathModelCore> trainPaths = (Orts.Formats.Msts.RuntimeData.GameInstance(Owner.Game) as TrackData).TrainPaths;
-                foreach (PathModelCore path in trainPaths.OrderBy(p => p.Name))
+                ImmutableArray<PathModelHeader> trainPaths = (Orts.Formats.Msts.RuntimeData.GameInstance(Owner.Game) as TrackData).TrainPaths;
+                foreach (PathModelHeader path in trainPaths.OrderBy(p => p.Name))
                 {
                     RadioButton radioButton;
                     line = pathScrollbox.Client.AddLayoutHorizontalLineOfText();
@@ -303,7 +303,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 pathEditor.InitializePath(null);
                 (line.Controls[0] as RadioButton).State = false;
             }
-            else if (line?.Tag is PathModelCore path)
+            else if (line?.Tag is PathModelHeader path)
             {
                 if (!((line.Controls[0] as RadioButton).State = pathEditor.InitializePath(path)))
                 {
@@ -315,7 +315,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private void PathSelectRadioButton_OnClick(object sender, MouseClickEventArgs e)
         {
             ControlLayout line = (sender as RadioButton)?.Container;
-            if ((currentPath == null || line.BorderColor == Color.Transparent) && line?.Tag is PathModelCore path)
+            if ((currentPath == null || line.BorderColor == Color.Transparent) && line?.Tag is PathModelHeader path)
             {
                 if (!((line.Controls[0] as RadioButton).State = pathEditor.InitializePath(path)))
                 {
@@ -366,7 +366,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             if (null == pathScrollbox || null == currentPath)
                 return;
 
-            WindowControl pathLine = pathScrollbox.Client.Controls.Where(c => c.Tag is PathModelCore pathModel && pathModel.Id == currentPath.PathModel?.Id).FirstOrDefault();
+            WindowControl pathLine = pathScrollbox.Client.Controls.Where(c => c.Tag is PathModelHeader pathModel && pathModel.Id == currentPath.PathModel?.Id).FirstOrDefault();
             foreach (WindowControl control in pathScrollbox.Client.Controls)
             {
                 if (control != pathLine)

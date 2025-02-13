@@ -8,7 +8,7 @@ namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver("", ".route")]
-    public partial record RouteModelCore : ModelBase
+    public partial record RouteModelHeader : ModelBase
     {
         private readonly WorldLocation routeStart;
 
@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Models.Content
         public EnumArray<string, GraphicType> Graphics { get; init; }
 
         [MemoryPackConstructor]
-        protected RouteModelCore(in WorldLocation routeStart)
+        protected RouteModelHeader(in WorldLocation routeStart)
         {
             this.routeStart = routeStart;
         }

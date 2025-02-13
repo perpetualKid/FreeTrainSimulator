@@ -11,7 +11,7 @@ namespace FreeTrainSimulator.Models.Content
     [ModelResolver("Timetables", ".timetable")]
     public sealed partial record TimetableModel : ModelBase
     {
-        public override RouteModelCore Parent => _parent as RouteModelCore;
+        public override RouteModelHeader Parent => _parent as RouteModelHeader;
 
         public ImmutableArray<TimetableTrainModel> TimetableTrains { get; init; } = ImmutableArray<TimetableTrainModel>.Empty;
 

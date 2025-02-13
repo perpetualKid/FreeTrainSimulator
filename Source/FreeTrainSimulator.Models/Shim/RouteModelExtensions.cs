@@ -11,13 +11,13 @@ namespace FreeTrainSimulator.Models.Shim
 {
     public static class RouteModelExtensions
     {
-        public static ValueTask<RouteModel> Extend(this RouteModelCore routeModel, CancellationToken cancellationToken) => RouteModelHandler.GetExtended(routeModel, cancellationToken);
-        public static Task<ImmutableArray<PathModelCore>> GetPaths(this RouteModelCore routeModel, CancellationToken cancellationToken) => routeModel.GetRoutePaths(cancellationToken);
-        public static Task<ImmutableArray<ActivityModelCore>> GetActivities(this RouteModelCore routeModel, CancellationToken cancellationToken) => routeModel.GetRouteActivities(cancellationToken);
-        public static Task<ImmutableArray<TimetableModel>> GetTimetables(this RouteModelCore routeModel, CancellationToken cancellationToken) => TimetableModelHandler.GetTimetables(routeModel, cancellationToken);
-        public static Task<ImmutableArray<WeatherModelCore>> GetWeatherFiles(this RouteModelCore routeModel, CancellationToken cancellationToken) => WeatherModelHandler.GetWeatherFiles(routeModel, cancellationToken);
+        public static ValueTask<RouteModel> Extend(this RouteModelHeader routeModel, CancellationToken cancellationToken) => RouteModelHandler.GetExtended(routeModel, cancellationToken);
+        public static Task<ImmutableArray<PathModelHeader>> GetPaths(this RouteModelHeader routeModel, CancellationToken cancellationToken) => routeModel.GetRoutePaths(cancellationToken);
+        public static Task<ImmutableArray<ActivityModelHeader>> GetActivities(this RouteModelHeader routeModel, CancellationToken cancellationToken) => routeModel.GetRouteActivities(cancellationToken);
+        public static Task<ImmutableArray<TimetableModel>> GetTimetables(this RouteModelHeader routeModel, CancellationToken cancellationToken) => TimetableModelHandler.GetTimetables(routeModel, cancellationToken);
+        public static Task<ImmutableArray<WeatherModelHeader>> GetWeatherFiles(this RouteModelHeader routeModel, CancellationToken cancellationToken) => WeatherModelHandler.GetWeatherFiles(routeModel, cancellationToken);
 
-        public static async ValueTask<ActivityModel> ActivityModel(this RouteModelCore routeModel, string activityId, CancellationToken cancellationToken)
+        public static async ValueTask<ActivityModel> ActivityModel(this RouteModelHeader routeModel, string activityId, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             ArgumentException.ThrowIfNullOrEmpty(activityId, nameof(activityId));
@@ -25,7 +25,7 @@ namespace FreeTrainSimulator.Models.Shim
             return await ActivityModelHandler.GetExtended(activityId, routeModel, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<PathModel> PathModel(this RouteModelCore routeModel, string pathId, CancellationToken cancellationToken)
+        public static async ValueTask<PathModel> PathModel(this RouteModelHeader routeModel, string pathId, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             ArgumentException.ThrowIfNullOrEmpty(pathId, nameof(pathId));
@@ -33,7 +33,7 @@ namespace FreeTrainSimulator.Models.Shim
             return await PathModelHandler.GetExtended(pathId, routeModel, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async ValueTask<TimetableModel> TimetableModel(this RouteModelCore routeModel, string timetableId, CancellationToken cancellationToken)
+        public static async ValueTask<TimetableModel> TimetableModel(this RouteModelHeader routeModel, string timetableId, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             ArgumentException.ThrowIfNullOrEmpty(timetableId, nameof(timetableId));
@@ -41,22 +41,22 @@ namespace FreeTrainSimulator.Models.Shim
             return await TimetableModelHandler.GetCore(timetableId, routeModel, cancellationToken).ConfigureAwait(false);
         }
 
-        public static ImmutableArray<PathModelCore> GetPaths(this RouteModelCore routeModel) => Task.Run(async () => await routeModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).Result;
+        public static ImmutableArray<PathModelHeader> GetPaths(this RouteModelHeader routeModel) => Task.Run(async () => await routeModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).Result;
 
-        public static string SavePointName(this RouteModelCore routeModelCore, ActivityType activityType)
+        public static string SavePointName(this RouteModelHeader routeModelCore, ActivityType activityType)
         {
             ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));
             return activityType == ActivityType.ExploreActivity ? $"ea${routeModelCore.Id}$" : routeModelCore.Id;
         }
 
-        public static string SavePointName(this RouteModelCore routeModelCore, ActivityModelCore activityModel)
+        public static string SavePointName(this RouteModelHeader routeModelCore, ActivityModelHeader activityModel)
         {
             ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));
             ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
             return $"{routeModelCore.Id} {activityModel.Id}";
         }
 
-        public static string SavePointName(this RouteModelCore routeModelCore, TimetableModel timetableModel)
+        public static string SavePointName(this RouteModelHeader routeModelCore, TimetableModel timetableModel)
         {
             ArgumentNullException.ThrowIfNull(routeModelCore, nameof(routeModelCore));
             ArgumentNullException.ThrowIfNull(timetableModel, nameof(timetableModel));

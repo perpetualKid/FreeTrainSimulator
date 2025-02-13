@@ -6,8 +6,8 @@ namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver("Weather", ".weather")]
-    public sealed partial record WeatherModelCore : ModelBase
+    public sealed partial record WeatherModelHeader : ModelBase
     {
-        public override RouteModelCore Parent => _parent as RouteModelCore;
+        public override RouteModelHeader Parent => _parent as RouteModelHeader;
     }
 }

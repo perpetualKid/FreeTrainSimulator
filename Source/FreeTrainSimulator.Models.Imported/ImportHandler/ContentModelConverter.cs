@@ -54,7 +54,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 
             if (VersionInfo.Compare(folderModel.Version) > 0 || refresh)
             {
-                Task<ImmutableArray<RouteModelCore>> routesTask = RouteModelImportHandler.ExpandRouteModels(folderModel, cancellationToken);
+                Task<ImmutableArray<RouteModelHeader>> routesTask = RouteModelImportHandler.ExpandRouteModels(folderModel, cancellationToken);
                 Task<ImmutableArray<WagonSetModel>> wagonSetsTask = WagonSetModelImportHandler.ExpandWagonSetModels(folderModel, cancellationToken);
 
                 await Task.WhenAll(wagonSetsTask, routesTask).ConfigureAwait(false);
@@ -69,7 +69,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             return folderModel;
         }
 
-        public static async Task<RouteModelCore> ConvertContent(RouteModelCore routeModel, bool refresh, CancellationToken cancellationToken)
+        public static async Task<RouteModelHeader> ConvertContent(RouteModelHeader routeModel, bool refresh, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 

@@ -12,7 +12,7 @@ namespace FreeTrainSimulator.Models.Settings
     [ModelResolver("", ".save")]
     public sealed partial record SavePointModel : ModelBase
     {
-        public override RouteModelCore Parent => _parent as RouteModelCore;
+        public override RouteModelHeader Parent => _parent as RouteModelHeader;
 
         public string Route { get; init; }
         public string Path { get; init; }

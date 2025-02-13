@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             return GetCore(savePointModel.Id, savePointModel.Parent, cancellationToken);
         }
 
-        public static Task<SavePointModel> GetCore(string savepointId, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<SavePointModel> GetCore(string savepointId, RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(savepointId);
@@ -45,7 +45,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             return modelTask;
         }
 
-        public static Task<ImmutableArray<SavePointModel>> GetSavePoints(RouteModelCore routeModel, string activityPrefix, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<SavePointModel>> GetSavePoints(RouteModelHeader routeModel, string activityPrefix, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(activityPrefix);
@@ -58,7 +58,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             return modelSetTask;
         }
 
-        public static async Task<ImmutableArray<SavePointModel>> ExpandSavePointModels(RouteModelCore routeModel, string activityPrefix, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<SavePointModel>> ExpandSavePointModels(RouteModelHeader routeModel, string activityPrefix, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
@@ -92,7 +92,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             return result;
         }
 
-        private static async Task<SavePointModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)
+        private static async Task<SavePointModel> Convert(string filePath, RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(filePath, nameof(filePath));
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));

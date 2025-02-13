@@ -9,7 +9,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record RouteModel : RouteModelCore
+    public sealed partial record RouteModel : RouteModelHeader
     {
         public EnumArray2D<string, SeasonType, WeatherType> EnvironmentConditions { get; init; }
         public string RouteKey { get; init; }

@@ -5,7 +5,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record TestActivityModel: ActivityModelCore
+    public sealed partial record TestActivityModel: ActivityModelHeader
     {
 
         [MemoryPackIgnore]
@@ -24,11 +24,11 @@ namespace FreeTrainSimulator.Models.Content
         {
         }
 
-        public TestActivityModel(ActivityModelCore activityModel): base(activityModel)
+        public TestActivityModel(ActivityModelHeader activityModel): base(activityModel)
         {
             ArgumentNullException.ThrowIfNull(activityModel, nameof(activityModel));
 
-            RouteModelCore routeModel = activityModel.Parent;
+            RouteModelHeader routeModel = activityModel.Parent;
             FolderModel folderModel = routeModel.Parent;
             DefaultSort = $"{folderModel.Name} | {routeModel.Name} | {activityModel.Name}";
             Folder = folderModel.Name;

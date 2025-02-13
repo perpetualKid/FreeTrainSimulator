@@ -7,7 +7,7 @@ namespace FreeTrainSimulator.Models.Content
 {
     public static class CommonModelInstances
     {
-        public static readonly ActivityModelCore ExploreMode = new ActivityModelCore()
+        public static readonly ActivityModelHeader ExploreMode = new ActivityModelHeader()
         {
             ActivityType = ActivityType.Explorer,
             Name = "- Explore Route -",
@@ -17,7 +17,7 @@ namespace FreeTrainSimulator.Models.Content
             Weather = WeatherType.Clear,
         };
 
-        public static readonly ActivityModelCore ExploreActivityMode = new ActivityModelCore()
+        public static readonly ActivityModelHeader ExploreActivityMode = new ActivityModelHeader()
         {
             ActivityType = ActivityType.ExploreActivity,
             Name = "- Explore Route in Activity Mode -",

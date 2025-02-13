@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.OpenRails
     {
         internal const string SourceNameKey = "OrSourceRoute";
 
-        public static async Task<ImmutableArray<TimetableModel>> ExpandTimetableModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<TimetableModel>> ExpandTimetableModels(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
@@ -52,7 +52,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.OpenRails
             return result;
         }
 
-        private static async Task<TimetableModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)
+        private static async Task<TimetableModel> Convert(string filePath, RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(filePath, nameof(filePath));
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));

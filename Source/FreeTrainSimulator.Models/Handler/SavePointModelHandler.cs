@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Handler
             return GetCore(savePointModel.Id, savePointModel.Parent, cancellationToken);
         }
 
-        public static Task<SavePointModel> GetCore(string savepointId, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<SavePointModel> GetCore(string savepointId, RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(savepointId);

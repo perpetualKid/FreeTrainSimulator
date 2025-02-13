@@ -72,30 +72,30 @@ namespace FreeTrainSimulator.Menu
             await SetupFolderFromSelection().ConfigureAwait(false);
         }
 
-        private async ValueTask RouteChanged(RouteModelCore routeModel)
+        private async ValueTask RouteChanged(RouteModelHeader routeModel)
         {
             if (routeModel?.Id == ProfileSelections.RouteId)
                 return;
 
-            routeModel = comboBoxRoute.SetComboBoxItem((RouteModelCore routeModelItem) => string.Equals(routeModelItem.Name, routeModel?.Name, StringComparison.OrdinalIgnoreCase));
+            routeModel = comboBoxRoute.SetComboBoxItem((RouteModelHeader routeModelItem) => string.Equals(routeModelItem.Name, routeModel?.Name, StringComparison.OrdinalIgnoreCase));
 
             ProfileSelections.RouteId = routeModel?.Id;
             await SetupRouteFromSelection().ConfigureAwait(false);
         }
 
-        private void ActivityChanged(ActivityModelCore activityModel)
+        private void ActivityChanged(ActivityModelHeader activityModel)
         {
             if (activityModel?.Id == ProfileSelections.ActivityId)
                 return;
 
-            activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Id, activityModel?.Id, StringComparison.OrdinalIgnoreCase));
+            activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelHeader activityItem) => string.Equals(activityItem.Id, activityModel?.Id, StringComparison.OrdinalIgnoreCase));
 
             ProfileSelections.ActivityId = activityModel?.Id;
             ProfileSelections.ActivityType = activityModel.ActivityType;
             ProfileSelections.StartTime = activityModel.ActivityType == ActivityType.Activity ? activityModel.StartTime : comboBoxStartTime.Tag != null ? (TimeOnly)comboBoxStartTime.Tag : activityModel.StartTime;
             ProfileSelections.Season = activityModel.ActivityType == ActivityType.Activity ? activityModel.Season : (SeasonType)comboBoxStartSeason.SelectedValue;
             ProfileSelections.Weather = activityModel.ActivityType == ActivityType.Activity ? activityModel.Weather : (WeatherType)comboBoxStartWeather.SelectedValue;
-            ProfileSelections.PathId = activityModel.ActivityType == ActivityType.Activity ? activityModel.PathId : (comboBoxHeadTo.SelectedValue as PathModelCore)?.Id;
+            ProfileSelections.PathId = activityModel.ActivityType == ActivityType.Activity ? activityModel.PathId : (comboBoxHeadTo.SelectedValue as PathModelHeader)?.Id;
             ProfileSelections.WagonSetId = activityModel.ActivityType == ActivityType.Activity ? activityModel.ConsistId : (comboBoxConsist.SelectedValue as WagonSetModel)?.Id;
 
             SetupActivityFromSelection();
@@ -125,17 +125,17 @@ namespace FreeTrainSimulator.Menu
             _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => string.Equals(w.Id, wagonSetModel.Id, StringComparison.OrdinalIgnoreCase)).Any());
         }
 
-        private void PathChanged(PathModelCore pathModel)
+        private void PathChanged(PathModelHeader pathModel)
         {
             if (pathModel?.Id == ProfileSelections.PathId)
                 return;
 
-            pathModel = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Any(p => p.Id == pathModel?.Id)).FirstOrDefault(p => p.Id == pathModel?.Id);
+            pathModel = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelHeader> grouping) => grouping.Any(p => p.Id == pathModel?.Id)).FirstOrDefault(p => p.Id == pathModel?.Id);
 
             ProfileSelections.PathId = pathModel?.Id;
 
             SetupPathEndDropdown();
-            _ = comboBoxHeadTo.SetComboBoxItem((PathModelCore pathModelItem) => string.Equals(pathModelItem.Id, pathModel.Id, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxHeadTo.SetComboBoxItem((PathModelHeader pathModelItem) => string.Equals(pathModelItem.Id, pathModel.Id, StringComparison.OrdinalIgnoreCase));
         }
 
         private void TimetableSetChanged(TimetableModel timetableModel)
@@ -170,12 +170,12 @@ namespace FreeTrainSimulator.Menu
             ProfileSelections.TimetableTrain = timetableTrainModel.Id;
         }
 
-        private void TimetableWeatherChanged(WeatherModelCore weatherModel)
+        private void TimetableWeatherChanged(WeatherModelHeader weatherModel)
         {
             if (weatherModel?.Id == ProfileSelections.WeatherChanges)
                 return;
 
-            weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, weatherModel?.Id, StringComparison.OrdinalIgnoreCase));
+            weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelHeader weatherItem) => string.Equals(weatherItem.Id, weatherModel?.Id, StringComparison.OrdinalIgnoreCase));
 
             ProfileSelections.WeatherChanges = weatherModel?.Id;
         }
@@ -191,7 +191,7 @@ namespace FreeTrainSimulator.Menu
 
             FolderModel contentFolder = comboBoxFolder.SetComboBoxItem((FolderModel folderItem) => string.Equals(folderItem.Name, ProfileSelections?.FolderName, StringComparison.OrdinalIgnoreCase));
 
-            ImmutableArray<RouteModelCore> routeModels = ImmutableArray<RouteModelCore>.Empty;
+            ImmutableArray<RouteModelHeader> routeModels = ImmutableArray<RouteModelHeader>.Empty;
             ImmutableArray<WagonSetModel> consistModels = ImmutableArray<WagonSetModel>.Empty;
             ImmutableArray<WagonReferenceModel> locomotives = ImmutableArray<WagonReferenceModel>.Empty;
 
@@ -221,13 +221,13 @@ namespace FreeTrainSimulator.Menu
                 return;
             }
 
-            RouteModelCore routeModel = comboBoxRoute.SetComboBoxItem((RouteModelCore routeModelItem) => string.Equals(routeModelItem.Id, ProfileSelections?.RouteId, StringComparison.OrdinalIgnoreCase));
+            RouteModelHeader routeModel = comboBoxRoute.SetComboBoxItem((RouteModelHeader routeModelItem) => string.Equals(routeModelItem.Id, ProfileSelections?.RouteId, StringComparison.OrdinalIgnoreCase));
 
             ProfileSelections.RouteId = routeModel?.Id;
 
-            ImmutableArray<PathModelCore> pathModels = ImmutableArray<PathModelCore>.Empty;
-            ImmutableArray<ActivityModelCore> activityModels = ImmutableArray<ActivityModelCore>.Empty;
-            ImmutableArray<WeatherModelCore> timetableWeatherFiles = ImmutableArray<WeatherModelCore>.Empty;
+            ImmutableArray<PathModelHeader> pathModels = ImmutableArray<PathModelHeader>.Empty;
+            ImmutableArray<ActivityModelHeader> activityModels = ImmutableArray<ActivityModelHeader>.Empty;
+            ImmutableArray<WeatherModelHeader> timetableWeatherFiles = ImmutableArray<WeatherModelHeader>.Empty;
             ImmutableArray<TimetableModel> timetableModels = ImmutableArray<TimetableModel>.Empty;
 
             if (routeModel != null)
@@ -273,24 +273,24 @@ namespace FreeTrainSimulator.Menu
             comboBoxStartTime.Text = $"{ProfileSelections.StartTime:HH\\:mm\\:ss}";
             comboBoxStartTime.Tag = ProfileSelections.StartTime;
 
-            ActivityModelCore activityModel = null;
+            ActivityModelHeader activityModel = null;
 
             if (activity)
             {
-                activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => string.Equals(activityItem.Id, ProfileSelections.ActivityId, StringComparison.OrdinalIgnoreCase));
+                activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelHeader activityItem) => string.Equals(activityItem.Id, ProfileSelections.ActivityId, StringComparison.OrdinalIgnoreCase));
             }
             else if (exploreActivity)
             {
-                activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelCore activityItem) => activityItem.ActivityType == ProfileSelections.ActivityType);
+                activityModel = comboBoxActivity.SetComboBoxItem((ActivityModelHeader activityItem) => activityItem.ActivityType == ProfileSelections.ActivityType);
             }
 
             _ = comboBoxLocomotive.SetComboBoxItem((IGrouping<string, WagonSetModel> grouping) => grouping.Key != anyConsist.Name && grouping.Where(w => string.Equals(w.Id, ProfileSelections.WagonSetId, StringComparison.OrdinalIgnoreCase)).Any());
             SetupConsistsDropdown();
             _ = comboBoxConsist.SetComboBoxItem((ComboBoxItem<WagonSetModel> cbi) => string.Equals(cbi.Value.Id, ProfileSelections.WagonSetId, StringComparison.OrdinalIgnoreCase));
 
-            _ = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelCore> grouping) => grouping.Where(p => string.Equals(p.Id, ProfileSelections.PathId, StringComparison.OrdinalIgnoreCase)).Any());
+            _ = comboBoxStartAt.SetComboBoxItem((IGrouping<string, PathModelHeader> grouping) => grouping.Where(p => string.Equals(p.Id, ProfileSelections.PathId, StringComparison.OrdinalIgnoreCase)).Any());
             SetupPathEndDropdown();
-            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelCore> cbi) => string.Equals(ProfileSelections.PathId, cbi.Value.Id, StringComparison.OrdinalIgnoreCase));
+            _ = comboBoxHeadTo.SetComboBoxItem((ComboBoxItem<PathModelHeader> cbi) => string.Equals(ProfileSelections.PathId, cbi.Value.Id, StringComparison.OrdinalIgnoreCase));
 
             if (radioButtonModeActivity.Checked)
             {
@@ -299,7 +299,7 @@ namespace FreeTrainSimulator.Menu
                 ProfileSelections.StartTime = activityModel?.ActivityType == ActivityType.Activity ? activityModel.StartTime : comboBoxStartTime.Tag != null ? (TimeOnly)comboBoxStartTime.Tag : activityModel.StartTime;
                 ProfileSelections.Season = activityModel?.ActivityType == ActivityType.Activity ? activityModel.Season : comboBoxStartSeason.SelectedValue!= null ? (SeasonType)comboBoxStartSeason.SelectedValue : ProfileSelections.Season;
                 ProfileSelections.Weather = activityModel?.ActivityType == ActivityType.Activity ? activityModel.Weather : comboBoxStartWeather.SelectedValue!= null ? (WeatherType)comboBoxStartWeather.SelectedValue: ProfileSelections.Weather;
-                ProfileSelections.PathId = activityModel?.ActivityType == ActivityType.Activity ? activityModel.PathId : (comboBoxHeadTo.SelectedValue as PathModelCore)?.Id;
+                ProfileSelections.PathId = activityModel?.ActivityType == ActivityType.Activity ? activityModel.PathId : (comboBoxHeadTo.SelectedValue as PathModelHeader)?.Id;
                 ProfileSelections.WagonSetId = activityModel?.ActivityType == ActivityType.Activity ? activityModel.ConsistId : (comboBoxConsist.SelectedValue as WagonSetModel)?.Id;
             }
 
@@ -326,7 +326,7 @@ namespace FreeTrainSimulator.Menu
             SetupTimetableTrainsDropdown();
             TimetableTrainModel timetableTrainModel = comboBoxTimetableTrain.SetComboBoxItem((TimetableTrainModel timetableTrainItem) => string.Equals(timetableTrainItem.Id, ProfileSelections.TimetableTrain, StringComparison.OrdinalIgnoreCase));
 
-            WeatherModelCore weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelCore weatherItem) => string.Equals(weatherItem.Id, ProfileSelections.WeatherChanges, StringComparison.OrdinalIgnoreCase));
+            WeatherModelHeader weatherModel = comboBoxTimetableWeatherFile.SetComboBoxItem((WeatherModelHeader weatherItem) => string.Equals(weatherItem.Id, ProfileSelections.WeatherChanges, StringComparison.OrdinalIgnoreCase));
             comboBoxTimetableDay.SelectedIndex = (int)ProfileSelections.TimetableDay;
 
             if (radioButtonModeTimetable.Checked)

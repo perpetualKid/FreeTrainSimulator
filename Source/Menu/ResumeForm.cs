@@ -74,8 +74,8 @@ namespace FreeTrainSimulator.Menu
     {
         private readonly ProfileUserSettingsModel userSettings;
         private readonly ProfileSelectionsModel profileSelectionsModel;
-        private readonly RouteModelCore route;
-        private readonly ActivityModelCore activity;
+        private readonly RouteModelHeader route;
+        private readonly ActivityModelHeader activity;
         private readonly TimetableModel timeTable;
         private ImmutableArray<SavePointModel> savePoints;
         private CancellationTokenSource ctsLoader;
@@ -164,7 +164,7 @@ namespace FreeTrainSimulator.Menu
                 _ => throw new NotImplementedException(),
             };
 
-            ImmutableArray<RouteModelCore> globalRoutes = await route.Parent.GetRoutes(ctsLoader.Token).ConfigureAwait(false);
+            ImmutableArray<RouteModelHeader> globalRoutes = await route.Parent.GetRoutes(ctsLoader.Token).ConfigureAwait(false);
 
             savePoints = await route.RefreshSavePoints(prefix, ctsLoader.Token).ConfigureAwait(true);
             savePoints = savePoints.Where(s => (!s.MultiplayerGame ^ multiplayer)).

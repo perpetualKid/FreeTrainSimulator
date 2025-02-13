@@ -18,15 +18,15 @@ using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
-    internal sealed class RouteModelImportHandler : ContentHandlerBase<RouteModelCore>
+    internal sealed class RouteModelImportHandler : ContentHandlerBase<RouteModelHeader>
     {
         internal const string SourceNameKey = "MstsSourceRoute";
 
-        public static async Task<ImmutableArray<RouteModelCore>> ExpandRouteModels(FolderModel folderModel, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<RouteModelHeader>> ExpandRouteModels(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
 
-            ConcurrentBag<RouteModelCore> results = new ConcurrentBag<RouteModelCore>();
+            ConcurrentBag<RouteModelHeader> results = new ConcurrentBag<RouteModelHeader>();
             ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder> routeFolders = new ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder>(StringComparer.OrdinalIgnoreCase);
 
             string sourceFolder = folderModel.MstsContentFolder().RoutesFolder;
@@ -43,15 +43,15 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
                 await Parallel.ForEachAsync(routeFolders, cancellationToken, async (routeFolder, token) =>
                 {
-                    Task<RouteModelCore> modelTask = Cast(Convert(routeFolder.Value, folderModel, cancellationToken));
-                    RouteModelCore routeModel = await modelTask.ConfigureAwait(false);
+                    Task<RouteModelHeader> modelTask = Cast(Convert(routeFolder.Value, folderModel, cancellationToken));
+                    RouteModelHeader routeModel = await modelTask.ConfigureAwait(false);
                     string key = routeModel.Hierarchy();
                     results.Add(routeModel);
                     modelTaskCache[key] = modelTask;
                 }).ConfigureAwait(false);
             }
 
-            ImmutableArray<RouteModelCore> result = results.ToImmutableArray();
+            ImmutableArray<RouteModelHeader> result = results.ToImmutableArray();
             string key = folderModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             return result;

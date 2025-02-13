@@ -9,15 +9,15 @@ using FreeTrainSimulator.Models.Shim;
 
 namespace FreeTrainSimulator.Models.Handler
 {
-    internal sealed class TestActivityModelHandler : ContentHandlerBase<ActivityModelCore>
+    internal sealed class TestActivityModelHandler : ContentHandlerBase<ActivityModelHeader>
     {
-        public static Task<ImmutableArray<ActivityModelCore>> GetTestActivities(ContentModel contentModel, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<ActivityModelHeader>> GetTestActivities(ContentModel contentModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
 
             string key = contentModel.Hierarchy();
 
-            if (!modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<ActivityModelCore>> modelSetTask) || modelSetTask.IsFaulted)
+            if (!modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<ActivityModelHeader>> modelSetTask) || modelSetTask.IsFaulted)
             {
                 modelSetTaskCache[key] = modelSetTask = LoadActivities(contentModel, cancellationToken);
             }
@@ -25,19 +25,19 @@ namespace FreeTrainSimulator.Models.Handler
             return modelSetTask;
         }
 
-        private static async Task<ImmutableArray<ActivityModelCore>> LoadActivities(ContentModel contentModel, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<ActivityModelHeader>> LoadActivities(ContentModel contentModel, CancellationToken cancellationToken)
         {
             ImmutableArray<FolderModel> folders = contentModel.ContentFolders;
-            ConcurrentBag<ActivityModelCore> result = new ConcurrentBag<ActivityModelCore>();
+            ConcurrentBag<ActivityModelHeader> result = new ConcurrentBag<ActivityModelHeader>();
 
             foreach (FolderModel folder in folders)
             {
-                ImmutableArray<RouteModelCore> routes = await folder.GetRoutes(cancellationToken).ConfigureAwait(false);
-                foreach (RouteModelCore route in routes)
+                ImmutableArray<RouteModelHeader> routes = await folder.GetRoutes(cancellationToken).ConfigureAwait(false);
+                foreach (RouteModelHeader route in routes)
                 {
-                    ImmutableArray<ActivityModelCore> activities = await route.GetRouteActivities(cancellationToken).ConfigureAwait(false);
+                    ImmutableArray<ActivityModelHeader> activities = await route.GetRouteActivities(cancellationToken).ConfigureAwait(false);
 
-                    foreach (ActivityModelCore activity in activities)
+                    foreach (ActivityModelHeader activity in activities)
                     {
                         if (activity.ActivityType is not Common.ActivityType.ExploreActivity and not Common.ActivityType.Explorer)
                             result.Add(new TestActivityModel(activity));

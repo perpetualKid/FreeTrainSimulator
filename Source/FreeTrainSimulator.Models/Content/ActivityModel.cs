@@ -7,7 +7,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record ActivityModel : ActivityModelCore
+    public sealed partial record ActivityModel : ActivityModelHeader
     {
         public float InitialSpeed { get; init; }
         public EnumArray<int, FuelType> FuelLevels { get; init; }

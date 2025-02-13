@@ -16,7 +16,7 @@ using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
-    internal sealed class PathModelImportHandler : ContentHandlerBase<PathModelCore>
+    internal sealed class PathModelImportHandler : ContentHandlerBase<PathModelHeader>
     {
         internal const string SourceNameKey = "MstsSourcePath";
 
@@ -34,11 +34,11 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         //    @"ROUTES\USA2\PATHS\long-haul west (blizzard).pat",
         //};
 
-        public static async Task<ImmutableArray<PathModelCore>> ExpandPathModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<PathModelHeader>> ExpandPathModels(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            ConcurrentBag<PathModelCore> results = new ConcurrentBag<PathModelCore>();
+            ConcurrentBag<PathModelHeader> results = new ConcurrentBag<PathModelHeader>();
 
             string sourceFolder = routeModel.MstsRouteFolder().PathsFolder;
             if (Directory.Exists(sourceFolder))
@@ -59,22 +59,22 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
                 await Parallel.ForEachAsync(pathFiles, cancellationToken, async (path, token) =>
                 {
-                    Task<PathModelCore> modelTask = Cast(Convert(path, routeModel, cancellationToken));
+                    Task<PathModelHeader> modelTask = Cast(Convert(path, routeModel, cancellationToken));
 
-                    PathModelCore pathModel = await modelTask.ConfigureAwait(false);
+                    PathModelHeader pathModel = await modelTask.ConfigureAwait(false);
                     string key = pathModel.Hierarchy();
                     results.Add(pathModel);
                     modelTaskCache[key] = modelTask;
                 }).ConfigureAwait(false);
             }
-            ImmutableArray<PathModelCore> result = results.ToImmutableArray();
+            ImmutableArray<PathModelHeader> result = results.ToImmutableArray();
             string key = routeModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             _ = collectionUpdateRequired.TryRemove(key, out _);
             return result;
         }
 
-        private static async Task<PathModel> Convert(string filePath, RouteModelCore routeModel, CancellationToken cancellationToken)
+        private static async Task<PathModel> Convert(string filePath, RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(filePath, nameof(filePath));
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));

@@ -6,9 +6,9 @@ namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver("TrainPaths", ".path")]
-    public partial record PathModelCore : ModelBase
+    public partial record PathModelHeader : ModelBase
     {
-        public override RouteModelCore Parent => _parent as RouteModelCore;
+        public override RouteModelHeader Parent => _parent as RouteModelHeader;
         /// <summary>Start location of the path</summary>
         public string Start { get; init; }
         /// <summary>Destination location of the path</summary>

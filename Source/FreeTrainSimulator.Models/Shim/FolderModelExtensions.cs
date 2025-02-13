@@ -10,7 +10,7 @@ namespace FreeTrainSimulator.Models.Shim
 {
     public static class FolderModelExtensions
     {
-        public static Task<ImmutableArray<RouteModelCore>> GetRoutes(this FolderModel folderModel, CancellationToken cancellationToken) => RouteModelHandler.GetRoutes(folderModel, cancellationToken);
+        public static Task<ImmutableArray<RouteModelHeader>> GetRoutes(this FolderModel folderModel, CancellationToken cancellationToken) => RouteModelHandler.GetRoutes(folderModel, cancellationToken);
         public static Task<ImmutableArray<WagonSetModel>> GetWagonSets(this FolderModel folderModel, CancellationToken cancellationToken) => WagonSetModelHandler.GetWagonSets(folderModel, cancellationToken);
         public static ValueTask<ImmutableArray<WagonReferenceModel>> GetLocomotives(this FolderModel folderModel, CancellationToken cancellationToken) => WagonSetModelHandler.GetLocomotives(folderModel, cancellationToken);
 

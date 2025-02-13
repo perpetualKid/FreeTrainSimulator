@@ -21,7 +21,7 @@ namespace FreeTrainSimulator.Toolbox
 
     internal sealed class PathEditor : PathEditorBase
     {
-        private PathModelCore path;
+        private PathModelHeader path;
         private long lastPathClickTick;
         private bool validPointAdded;
 
@@ -33,7 +33,7 @@ namespace FreeTrainSimulator.Toolbox
 
         public PathEditor(ContentArea contentArea) : base(contentArea) { }
 
-        public bool InitializePath(PathModelCore path)
+        public bool InitializePath(PathModelHeader path)
         {
             try
             {

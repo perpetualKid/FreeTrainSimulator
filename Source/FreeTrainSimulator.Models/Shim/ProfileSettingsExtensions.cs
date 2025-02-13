@@ -64,7 +64,7 @@ namespace FreeTrainSimulator.Models.Shim
             return content.ContentFolders.GetByName(profileSelections.FolderName);
         }
 
-        public static async ValueTask<RouteModelCore> SelectedRoute(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
+        public static async ValueTask<RouteModelHeader> SelectedRoute(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
 
@@ -74,43 +74,43 @@ namespace FreeTrainSimulator.Models.Shim
                 : (await contentFolder.GetRoutes(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.RouteId);
         }
 
-        public static RouteModelCore SelectedRoute(this ProfileSelectionsModel profileSelections)
+        public static RouteModelHeader SelectedRoute(this ProfileSelectionsModel profileSelections)
         {
             return Task.Run(async () => await profileSelections.SelectedRoute(CancellationToken.None).ConfigureAwait(false)).Result;
         }
 
-        public static async ValueTask<ActivityModelCore> SelectedActivity(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
+        public static async ValueTask<ActivityModelHeader> SelectedActivity(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
 
             if (profileSelections.ActivityType != Common.ActivityType.Activity)
                 return null;
 
-            RouteModelCore routeModel = await profileSelections.SelectedRoute(cancellationToken).ConfigureAwait(false);
+            RouteModelHeader routeModel = await profileSelections.SelectedRoute(cancellationToken).ConfigureAwait(false);
             return null == routeModel
                 ? null
                 : (await routeModel.GetActivities(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.ActivityId);
         }
 
-        public static ActivityModelCore SelectedActivity(this ProfileSelectionsModel profileSelections)
+        public static ActivityModelHeader SelectedActivity(this ProfileSelectionsModel profileSelections)
         {
             return Task.Run(async () => await profileSelections.SelectedActivity(CancellationToken.None).ConfigureAwait(false)).Result;
         }
 
-        public static async ValueTask<PathModelCore> SelectedPath(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
+        public static async ValueTask<PathModelHeader> SelectedPath(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
 
             if (profileSelections.ActivityType is not (Common.ActivityType.ExploreActivity or Common.ActivityType.Explorer))
                 return null;
 
-            RouteModelCore routeModel = await profileSelections.SelectedRoute(cancellationToken).ConfigureAwait(false);
+            RouteModelHeader routeModel = await profileSelections.SelectedRoute(cancellationToken).ConfigureAwait(false);
             return null == routeModel
                 ? null
                 : (await routeModel.GetPaths(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.PathId);
         }
 
-        public static PathModelCore SelectedPath(this ProfileSelectionsModel profileSelections)
+        public static PathModelHeader SelectedPath(this ProfileSelectionsModel profileSelections)
         {
             return Task.Run(async () => await profileSelections.SelectedPath(CancellationToken.None).ConfigureAwait(false)).Result;
         }
@@ -133,17 +133,17 @@ namespace FreeTrainSimulator.Models.Shim
             return Task.Run(async () => await profileSelections.SelectedWagonSet(CancellationToken.None).ConfigureAwait(false)).Result;
         }
 
-        public static async ValueTask<WeatherModelCore> SelectedWeatherChangesModel(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
+        public static async ValueTask<WeatherModelHeader> SelectedWeatherChangesModel(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
 
-            RouteModelCore routeModel = await profileSelections.SelectedRoute(cancellationToken).ConfigureAwait(false);
+            RouteModelHeader routeModel = await profileSelections.SelectedRoute(cancellationToken).ConfigureAwait(false);
             return null == routeModel
                 ? null
                 : (await routeModel.GetWeatherFiles(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.WeatherChanges);
         }
 
-        public static WeatherModelCore SelectedWeatherChangesModel(this ProfileSelectionsModel profileSelections)
+        public static WeatherModelHeader SelectedWeatherChangesModel(this ProfileSelectionsModel profileSelections)
         {
             return Task.Run(async () => await profileSelections.SelectedWeatherChangesModel(CancellationToken.None).ConfigureAwait(false)).Result;
         }
@@ -152,7 +152,7 @@ namespace FreeTrainSimulator.Models.Shim
         {
             ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
 
-            RouteModelCore routeModel = await profileSelections.SelectedRoute(cancellationToken).ConfigureAwait(false);
+            RouteModelHeader routeModel = await profileSelections.SelectedRoute(cancellationToken).ConfigureAwait(false);
             return null == routeModel
                 ? null
                 : (await routeModel.GetTimetables(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.TimetableSet);

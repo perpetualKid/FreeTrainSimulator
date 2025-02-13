@@ -18,9 +18,9 @@ namespace FreeTrainSimulator.Toolbox
 {
     public class TrackData : RuntimeData
     {
-        public ImmutableArray<PathModelCore> TrainPaths { get; }
+        public ImmutableArray<PathModelHeader> TrainPaths { get; }
 
-        private TrackData(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, ImmutableArray<PathModelCore> trainPaths) :
+        private TrackData(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, ImmutableArray<PathModelHeader> trainPaths) :
             base(route, trackSections, trackDb, roadTrackDB, signalConfig, metricUnits, null)
         {
             TrainPaths = trainPaths;
@@ -63,7 +63,7 @@ namespace FreeTrainSimulator.Toolbox
                 roadTrackDB = new RoadDatabaseFile(rdbFile).RoadTrackDB;
             }, cancellationToken));
             loadTasks.Add(Task.Run(() => signalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken));
-            Task<ImmutableArray<PathModelCore>> pathTask = routeModel.GetRoutePaths(cancellationToken);
+            Task<ImmutableArray<PathModelHeader>> pathTask = routeModel.GetRoutePaths(cancellationToken);
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
 

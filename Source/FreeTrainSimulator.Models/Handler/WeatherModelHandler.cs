@@ -9,20 +9,20 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Handler
 {
-    internal sealed class WeatherModelHandler : ContentHandlerBase<WeatherModelCore>
+    internal sealed class WeatherModelHandler : ContentHandlerBase<WeatherModelHeader>
     {
-        public static Task<WeatherModelCore> GetCore(WeatherModelCore weatherModel, CancellationToken cancellationToken)
+        public static Task<WeatherModelHeader> GetCore(WeatherModelHeader weatherModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(weatherModel, nameof(weatherModel));
             return GetCore(weatherModel.Id, weatherModel.Parent, cancellationToken);
         }
 
-        public static Task<WeatherModelCore> GetCore(string weatherId, RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<WeatherModelHeader> GetCore(string weatherId, RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy(weatherId);
 
-            if (!modelTaskCache.TryGetValue(key, out Task<WeatherModelCore> modelTask) || modelTask.IsFaulted)
+            if (!modelTaskCache.TryGetValue(key, out Task<WeatherModelHeader> modelTask) || modelTask.IsFaulted)
             {
                 modelTaskCache[key] = modelTask = FromFile(weatherId, routeModel, cancellationToken);
                 collectionUpdateRequired[routeModel.Hierarchy()] = true;
@@ -31,12 +31,12 @@ namespace FreeTrainSimulator.Models.Handler
             return modelTask;
         }
 
-        public static Task<ImmutableArray<WeatherModelCore>> GetWeatherFiles(RouteModelCore routeModel, CancellationToken cancellationToken)
+        public static Task<ImmutableArray<WeatherModelHeader>> GetWeatherFiles(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
 
-            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<WeatherModelCore>> modelSetTask) || modelSetTask.IsFaulted)
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<WeatherModelHeader>> modelSetTask) || modelSetTask.IsFaulted)
             {
                 modelSetTaskCache[key] = modelSetTask = LoadWeatherModels(routeModel, cancellationToken);
             }
@@ -44,12 +44,12 @@ namespace FreeTrainSimulator.Models.Handler
             return modelSetTask;
         }
 
-        private static async Task<ImmutableArray<WeatherModelCore>> LoadWeatherModels(RouteModelCore routeModel, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<WeatherModelHeader>> LoadWeatherModels(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
-            string weatherFolder = ModelFileResolver<WeatherModelCore>.FolderPath(routeModel);
-            string pattern = ModelFileResolver<WeatherModelCore>.WildcardSavePattern;
+            string weatherFolder = ModelFileResolver<WeatherModelHeader>.FolderPath(routeModel);
+            string pattern = ModelFileResolver<WeatherModelHeader>.WildcardSavePattern;
 
-            ConcurrentBag<WeatherModelCore> results = new ConcurrentBag<WeatherModelCore>();
+            ConcurrentBag<WeatherModelHeader> results = new ConcurrentBag<WeatherModelHeader>();
 
             //load existing weather models, and compare if the corresponding folder still exists.
             if (Directory.Exists(weatherFolder))
@@ -61,7 +61,7 @@ namespace FreeTrainSimulator.Models.Handler
                     if (weatherId.EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
                         weatherId = weatherId[..^fileExtension.Length];
 
-                    WeatherModelCore path = await GetCore(weatherId, routeModel, token).ConfigureAwait(false);
+                    WeatherModelHeader path = await GetCore(weatherId, routeModel, token).ConfigureAwait(false);
                     if (null != path)
                         results.Add(path);
                 }).ConfigureAwait(false);

@@ -186,7 +186,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
                 parent.InputCaptured = true;
         }
 
-        internal void PopulateRoutes(ImmutableArray<RouteModelCore> routes)
+        internal void PopulateRoutes(ImmutableArray<RouteModelHeader> routes)
         {
             if (InvokeRequired)
             {
@@ -195,7 +195,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             }
             SuspendLayout();
             menuItemRoutes.DropDownItems.Clear();
-            foreach (RouteModelCore route in routes.OrderBy(r => r.Name))
+            foreach (RouteModelHeader route in routes.OrderBy(r => r.Name))
             {
                 ToolStripMenuItem routeItem = new ToolStripMenuItem(route.Name)
                 {
@@ -209,7 +209,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 
         private async void RouteItem_Click(object sender, EventArgs e)
         {
-            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is RouteModelCore route)
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is RouteModelHeader route)
             {
                 if (menuItem.Checked)
                 {
@@ -368,7 +368,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 
         #region Path Methods
 
-        internal void PopulatePaths(ImmutableArray<PathModelCore> paths)
+        internal void PopulatePaths(ImmutableArray<PathModelHeader> paths)
         {
             if (InvokeRequired)
             {
@@ -376,7 +376,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
                 return;
             }
             List<ToolStripMenuItem> menuItems = new List<ToolStripMenuItem>();
-            foreach (PathModelCore path in paths.OrderBy(p => p.Name))
+            foreach (PathModelHeader path in paths.OrderBy(p => p.Name))
             {
                 ToolStripMenuItem pathItem = new ToolStripMenuItem(path.Name)
                 {
@@ -398,7 +398,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 
         private void LoadPathToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is PathModelCore path)
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is PathModelHeader path)
             {
                 if (menuItem.Checked)
                 {
@@ -415,7 +415,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             }
         }
 
-        internal void PreSelectPath(PathModelCore path)
+        internal void PreSelectPath(PathModelHeader path)
         {
             if (path == null)
             {
@@ -428,7 +428,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             {
                 foreach (object dropdownItem in loadPathToolStripMenuItem.DropDownItems)
                 {
-                    if (dropdownItem is ToolStripMenuItem menuItem && string.Equals((menuItem.Tag as PathModelCore)?.Id, path.Id, StringComparison.OrdinalIgnoreCase))
+                    if (dropdownItem is ToolStripMenuItem menuItem && string.Equals((menuItem.Tag as PathModelHeader)?.Id, path.Id, StringComparison.OrdinalIgnoreCase))
                     {
                         UncheckOtherMenuItems(menuItem);
                         break;

@@ -56,7 +56,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         }
 
         #region additional content (Paths)
-        protected void InitializePathModel(PathModelCore pathModel)
+        protected void InitializePathModel(PathModelHeader pathModel)
         {
             trainPath = pathModel != null ? new EditorTrainPath(Task.Run(async () => await pathModel.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result, ToolboxContent.ContentArea.Game) : null;
             if (trainPath != null && trainPath.TopLeftBound != PointD.None && trainPath.BottomRightBound != PointD.None)

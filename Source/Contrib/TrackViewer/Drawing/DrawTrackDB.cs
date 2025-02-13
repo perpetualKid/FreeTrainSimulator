@@ -49,7 +49,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="routePath">Path to the route directory</param>
         /// <param name="messageDelegate">The delegate that will deal with the message we want to send to the user</param>
-        public static void Load(RouteModelCore routeModel, MessageDelegate messageDelegate)
+        public static void Load(RouteModelHeader routeModel, MessageDelegate messageDelegate)
         {
             messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
             System.Threading.Tasks.Task<RouteModel> extendRouteTask = routeModel.Extend(CancellationToken.None).AsTask();

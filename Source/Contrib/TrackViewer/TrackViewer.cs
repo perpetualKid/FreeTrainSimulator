@@ -72,13 +72,13 @@ namespace ORTS.TrackViewer
         /// <summary>Folder where MSTS is installed (or at least, where the files needed for tracks, routes and paths are stored)</summary>
         public FolderModel InstallFolder { get; private set; }
         /// <summary>List of available routes (in the install directory)</summary>
-        public Collection<RouteModelCore> Routes { get; private set; } // Collection because of FxCop
+        public Collection<RouteModelHeader> Routes { get; private set; } // Collection because of FxCop
         /// <summary>List of available paths in the current route</summary>
-        public Collection<PathModelCore> Paths { get; private set; } // Collection because of FxCop
+        public Collection<PathModelHeader> Paths { get; private set; } // Collection because of FxCop
         /// <summary>Route, ie with a path c:\program files\microsoft games\train simulator\routes\usa1  - may be different on different pc's</summary>
-        public RouteModelCore CurrentRoute { get; private set; }
+        public RouteModelHeader CurrentRoute { get; private set; }
         /// <summary>Route that was used last time</summary>
-        private RouteModelCore DefaultRoute;
+        private RouteModelHeader DefaultRoute;
         /// <summary>Width of the drawing screen in pixels</summary>
         public int ScreenW { get; private set; }
         /// <summary>Height of the drawing screen in pixels</summary>
@@ -836,7 +836,7 @@ namespace ORTS.TrackViewer
                 return;
             }
 
-            foreach (RouteModelCore route in Routes)
+            foreach (RouteModelHeader route in Routes)
             {
                 //MessageBox.Show(route.Path);
 
@@ -846,7 +846,7 @@ namespace ORTS.TrackViewer
 
                     if (!givenFileIsPat)
                     { return; }
-                    foreach (PathModelCore availablePath in Paths)
+                    foreach (PathModelHeader availablePath in Paths)
                     {
                         if (System.IO.Path.GetRelativePath(availablePath.SourceFile(), givenPathOrFile.ToUpperInvariant()) == ".")
                         {
@@ -931,7 +931,7 @@ namespace ORTS.TrackViewer
             if (newInstallFolder == null)
                 return false;
 
-            Routes = new Collection<RouteModelCore>(Task.Run(async() => await newInstallFolder.GetRoutes(CancellationToken.None).ConfigureAwait(false)).Result.ToList());
+            Routes = new Collection<RouteModelHeader>(Task.Run(async() => await newInstallFolder.GetRoutes(CancellationToken.None).ConfigureAwait(false)).Result.ToList());
 
             // set default route
             DefaultRoute = Routes.Where(r => r.Name == Properties.Settings.Default.defaultRoute).FirstOrDefault() ?? Routes.FirstOrDefault();
@@ -951,7 +951,7 @@ namespace ORTS.TrackViewer
         /// Set and load a new route
         /// </summary>
         /// <param name="newRoute">The route to load, containing amongst other the directory name of the route</param>
-        public void SetRoute(RouteModelCore newRoute)
+        public void SetRoute(RouteModelHeader newRoute)
         {
             if (newRoute == null)
                 return;
@@ -1038,8 +1038,8 @@ namespace ORTS.TrackViewer
         /// </summary>
         private void FindPaths()
         {
-            ImmutableArray<PathModelCore> routePaths = Task.Run(async() => await CurrentRoute.GetRoutePaths(CancellationToken.None).ConfigureAwait(false)).Result;
-            Paths = new Collection<PathModelCore>(routePaths.OrderBy(r => r.Name).ToList());
+            ImmutableArray<PathModelHeader> routePaths = Task.Run(async() => await CurrentRoute.GetRoutePaths(CancellationToken.None).ConfigureAwait(false)).Result;
+            Paths = new Collection<PathModelHeader>(routePaths.OrderBy(r => r.Name).ToList());
             menuControl.PopulatePaths();
             SetPath(null);
             DrawMultiplePaths = new DrawMultiplePaths(Paths);
@@ -1049,7 +1049,7 @@ namespace ORTS.TrackViewer
         /// Once a path has been selected, do the necessary loading.
         /// </summary>
         /// <param name="path">Path (with FilePath) that has to be loaded</param>
-        internal void SetPath(PathModelCore path)
+        internal void SetPath(PathModelHeader path)
         {
             if (!CanDiscardModifiedPath())
                 return;

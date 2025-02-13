@@ -352,7 +352,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             menuSelectRoute.Items.Clear();
             if (trackViewer.Routes == null) return;
-            foreach (RouteModelCore route in trackViewer.Routes.OrderBy(r => r.Name))
+            foreach (RouteModelHeader route in trackViewer.Routes.OrderBy(r => r.Name))
             {
                 MenuItem menuItem = new MenuItem
                 {
@@ -373,7 +373,7 @@ namespace ORTS.TrackViewer.UserInterface
         private void MenuSelectRoute_Click(object sender, RoutedEventArgs e)
         {
             MenuItem selectedMenuItem = sender as MenuItem;
-            foreach (RouteModelCore route in trackViewer.Routes)
+            foreach (RouteModelHeader route in trackViewer.Routes)
             {
                 if (route.Name == (string)selectedMenuItem.Header)
                 {
@@ -402,7 +402,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             if (trackViewer.Paths == null) return;
             List<string> paths = new List<string>();
-            foreach (PathModelCore path in trackViewer.Paths)
+            foreach (PathModelHeader path in trackViewer.Paths)
             {
                 paths.Add(MakePathMenyEntryName(path));
             }
@@ -509,7 +509,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             string selectedPath = menuSelectPathCombobox.SelectedItem as string;
             if (selectedPath == null) return;
-            foreach (PathModelCore path in trackViewer.Paths)
+            foreach (PathModelHeader path in trackViewer.Paths)
             {
                 if (MakePathMenyEntryName(path) == selectedPath)
                 {
@@ -533,7 +533,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             if (menuExtendPathCombobox.SelectedItem is not string selectedPath)
                 return;
-            foreach (PathModelCore path in trackViewer.Paths)
+            foreach (PathModelHeader path in trackViewer.Paths)
             {
                 if (MakePathMenyEntryName(path) == selectedPath)
                 {
@@ -551,7 +551,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         /// <param name="path">The path containing name and filepath</param>
         /// <returns>string that can be used to defined menu header</returns>
-        internal static string MakePathMenyEntryName(PathModelCore path)
+        internal static string MakePathMenyEntryName(PathModelHeader path)
         {
             return $"{path.Name} ({System.IO.Path.GetFileName(path.SourceFile())})";
         }

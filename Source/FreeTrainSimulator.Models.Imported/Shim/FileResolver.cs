@@ -24,7 +24,7 @@ namespace FreeTrainSimulator.Models.Imported.Shim
             return resolver;
         }
 
-        public static ContentRouteResolver ContentRouteResolver(RouteModelCore routeModel)
+        public static ContentRouteResolver ContentRouteResolver(RouteModelHeader routeModel)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Hierarchy();
@@ -54,11 +54,11 @@ namespace FreeTrainSimulator.Models.Imported.Shim
     public sealed class ContentRouteResolver
     {
         public FolderModel ContentFolder { get; }
-        public RouteModelCore RouteModel { get; }
+        public RouteModelHeader RouteModel { get; }
 
         public FolderStructure.ContentFolder.RouteFolder MstsRouteFolder { get; }
 
-        public ContentRouteResolver(RouteModelCore routeModel)
+        public ContentRouteResolver(RouteModelHeader routeModel)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
