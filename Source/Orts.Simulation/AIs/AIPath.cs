@@ -24,8 +24,10 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
@@ -43,7 +45,7 @@ namespace Orts.Simulation.AIs
     {
         public AIPathNode FirstNode { get; }    // path starting node
         //public AIPathNode LastVisitedNode; not used anymore
-        public List<AIPathNode> Nodes { get; } = new List<AIPathNode>();
+        public Collection<AIPathNode> Nodes { get; } = new Collection<AIPathNode>();
         public string PathName { get; } //name of the path to be able to print it.
 
         public AIPath() { }
@@ -53,8 +55,9 @@ namespace Orts.Simulation.AIs
         /// First creates all the nodes and then links them together into a main list
         /// with optional parallel siding list.
         /// </summary>
-        public AIPath(FreeTrainSimulator.Models.Content.PathModel pathModel, bool timetableMode)
+        public AIPath(PathModel pathModel, bool timetableMode)
         {
+            ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
             PathName = pathModel.Name;
             bool fatalerror = false;
             if (pathModel.PathNodes.Length <= 0)
@@ -175,7 +178,7 @@ namespace Orts.Simulation.AIs
                     node2 = node2.NextSidingNode;
                 }
                 if (node2 != null)
-                    node2.Type = FreeTrainSimulator.Common.TrainPathNodeType.SidingEnd;
+                    node2.Type = TrainPathNodeType.SidingEnd;
             }
             //foreach (KeyValuePair<int, AIPathNode> kvp in lastUse)
             //    kvp.Value.IsLastSwitchUse = true;
@@ -211,7 +214,7 @@ namespace Orts.Simulation.AIs
 
             foreach (AiPathNodeSaveState saveNode in saveState.AiPathNodeSaveStates)
             {
-                AIPathNode result = Nodes.Find(node => node.Index == saveNode.Index);
+                AIPathNode result = Nodes.Where(node => node.Index == saveNode.Index).FirstOrDefault();
                 result.NextMainNode = Nodes[saveNode.NextMainNodeIndex];
                 result.NextSidingNode = Nodes[saveNode.NextSidingNodeIndex];
             }

@@ -111,7 +111,7 @@ namespace Orts.Simulation.AIs
             Efficiency = efficiency;
             if (simulator.UserSettings.ActivityRandomizationLevel > 0 && simulator.ActivityRun != null) // randomize efficiency
             {
-                RandomizeEfficiency(ref Efficiency);
+                Efficiency = RandomizeEfficiency(Efficiency);
             }
             Name = name;
             base.trafficService = trafficService;
@@ -337,7 +337,7 @@ namespace Orts.Simulation.AIs
                         // <CScomment> gets efficiency from .act file to override TrainMaxSpeedMpS computed from .srv efficiency
                         var sectionEfficiency = ServiceDefinition[0].Efficiency;
                         if (simulator.UserSettings.ActivityRandomizationLevel > 0)
-                            RandomizeEfficiency(ref sectionEfficiency);
+                            sectionEfficiency = RandomizeEfficiency(sectionEfficiency);
                         if (sectionEfficiency > 0)
                             TrainMaxSpeedMpS = Math.Min(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], MaxVelocityA * sectionEfficiency);
                     }
@@ -425,7 +425,7 @@ namespace Orts.Simulation.AIs
         /// <summary>
         /// Get AI Movement State
         /// </summary>
-        private void RandomizeEfficiency(ref float efficiency)
+        private static float RandomizeEfficiency(float efficiency)
         {
             efficiency *= 100;
             var incOrDecEfficiency = DateTime.UtcNow.Millisecond % 2 == 0 ? true : false;
@@ -433,7 +433,7 @@ namespace Orts.Simulation.AIs
                 efficiency = Math.Min(100, efficiency + RandomizedDelayWithThreshold(20)); // increment it
             else if (efficiency > 50)
                 efficiency = Math.Max(50, efficiency - RandomizedDelayWithThreshold(20)); // decrement it
-            efficiency /= 100;
+            return efficiency /= 100;
         }
 
         /// <summary>
@@ -900,6 +900,8 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public float[] CalculateDistancesToNextStation(StationStop thisStation, float presentSpeedMpS, bool reschedule)
         {
+            ArgumentNullException.ThrowIfNull(thisStation, nameof(thisStation));
+
             TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex];
             float leftInSectionM = thisSection.Length - PresentPosition[Direction.Forward].Offset;
 
@@ -1477,7 +1479,7 @@ namespace Orts.Simulation.AIs
                 {
                     var sectionEfficiency = ServiceDefinition[actualServiceItemIdx + 1].Efficiency;
                     if (simulator.UserSettings.ActivityRandomizationLevel > 0)
-                        RandomizeEfficiency(ref sectionEfficiency);
+                        sectionEfficiency = RandomizeEfficiency(sectionEfficiency);
                     if (sectionEfficiency > 0)
                     {
                         TrainMaxSpeedMpS = Math.Min(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route], MaxVelocityA * sectionEfficiency);
@@ -2605,6 +2607,9 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public void UpdateTrainOnEnteringSection(TrackCircuitSection thisSection, Dictionary<Train, float> trainsInSection)
         {
+            ArgumentNullException.ThrowIfNull(trainsInSection, nameof(trainsInSection));
+            ArgumentNullException.ThrowIfNull(thisSection, nameof(thisSection));
+
             foreach (KeyValuePair<Train, float> trainAhead in trainsInSection) // always just one
             {
                 Train OtherTrain = trainAhead.Key;
@@ -3194,7 +3199,7 @@ namespace Orts.Simulation.AIs
                 ProcessEndOfPathReached(ref returnValue, presentTime);
             }
 
-            return (returnValue);
+            return returnValue;
         }
 
         public virtual void ProcessEndOfPathReached(ref bool[] returnValue, int presentTime)
@@ -3249,6 +3254,8 @@ namespace Orts.Simulation.AIs
 
         public virtual bool CheckCouplePosition(Train attachTrain, out bool thisTrainFront, out bool otherTrainFront)
         {
+            ArgumentNullException.ThrowIfNull(attachTrain, nameof(attachTrain));
+
             thisTrainFront = true;
             otherTrainFront = true;
 
@@ -3318,6 +3325,8 @@ namespace Orts.Simulation.AIs
 
         public void CoupleAI(Train attachTrain, bool thisTrainFront, bool attachTrainFront)
         {
+            ArgumentNullException.ThrowIfNull(attachTrain, nameof(attachTrain));
+
             // stop train
             SpeedMpS = 0;
             AdjustControlsThrottleOff();
@@ -3468,6 +3477,8 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public void CoupleAIToStatic(Train attachTrain, bool thisTrainFront, bool attachTrainFront)
         {
+            ArgumentNullException.ThrowIfNull(attachTrain, nameof(attachTrain));
+
             // check on reverse formation
             if (thisTrainFront == attachTrainFront)
             {
@@ -3561,6 +3572,7 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public void LeaveCarsToLivingTrain(Train attachTrain, bool thisTrainFront, bool attachTrainFront)
         {
+            ArgumentNullException.ThrowIfNull(attachTrain, nameof(attachTrain));
             // find set of cars between loco and attachtrain and pass them to train to attachtrain
             var passedLength = 0.0f;
             if (thisTrainFront)
@@ -3636,6 +3648,8 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public void StealCarsToLivingTrain(Train attachTrain, bool thisTrainFront, bool attachTrainFront)
         {
+            ArgumentNullException.ThrowIfNull(attachTrain, nameof(attachTrain));
+
             var stealedLength = 0.0f;
             if (attachTrainFront)
             {
@@ -3710,6 +3724,7 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public void TerminateCoupling(Train attachTrain, bool thisTrainFront, bool attachTrainFront, float passedLength)
         {
+            ArgumentNullException.ThrowIfNull(attachTrain, nameof(attachTrain));
 
             // uncouple
             UncoupledFrom = attachTrain;
@@ -3905,8 +3920,9 @@ namespace Orts.Simulation.AIs
         // Request signal permission for AI trains (triggered by WP 60002)
         public void RequestSignalPermission(TrackCircuitPartialPathRoute selectedRoute, int routeIndex)
         {
-            // check if signal at danger
+            ArgumentNullException.ThrowIfNull(selectedRoute, nameof(selectedRoute));
 
+            // check if signal at danger
             TrackCircuitRouteElement thisElement = selectedRoute[PresentPosition[Direction.Forward].RouteListIndex];
             TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
 
@@ -3940,6 +3956,8 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public virtual void SuspendTrain(Train incorporatingTrain)
         {
+            ArgumentNullException.ThrowIfNull(incorporatingTrain, nameof(incorporatingTrain));
+
             RemoveFromTrack();
             TrainDeadlockInfo.ClearDeadlocks();
             NextSignalObjects[Direction.Forward] = null;
@@ -4861,6 +4879,8 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public void RestartWaitingTrain(RestartWaitingTrain restartWaitingTrain)
         {
+            ArgumentNullException.ThrowIfNull(restartWaitingTrain, nameof(restartWaitingTrain));
+
             var delayToRestart = restartWaitingTrain.DelayToRestart;
             var matchingWPDelay = restartWaitingTrain.MatchingWPDelay;
             int presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
@@ -5037,7 +5057,7 @@ namespace Orts.Simulation.AIs
 
                     if (null != train.nextActionInfo)
                     {
-                        this["Authorization"] = train.nextActionInfo?.NextAction.ToString();
+                        this["Authorization"] = train.nextActionInfo.NextAction.ToString();
                         this["AuthDistance"] = FormatStrings.FormatDistance(train.nextActionInfo.ActivateDistanceM - train.PresentPosition[Direction.Forward].DistanceTravelled, metricData);
                     }
 
