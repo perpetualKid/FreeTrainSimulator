@@ -13,6 +13,7 @@ using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Track;
+using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.Settings;
 
 using GetText;
@@ -278,7 +279,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             {
                 RadioButtonGroup group = new RadioButtonGroup();
                 ControlLayout line;
-                ImmutableArray<PathModelHeader> trainPaths = (Orts.Formats.Msts.RuntimeData.GameInstance(Owner.Game) as TrackData).TrainPaths;
+                ImmutableArray<PathModelHeader> trainPaths = Orts.Formats.Msts.RuntimeData.GameInstance(Owner.Game).RouteData.GetPaths();
                 foreach (PathModelHeader path in trainPaths.OrderBy(p => p.Name))
                 {
                     RadioButton radioButton;
@@ -297,10 +298,10 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private void PathSelectLine_OnClick(object sender, MouseClickEventArgs e)
         {
             ControlLayout line = sender as ControlLayout;
-            if ((line.Controls[0] as RadioButton)?.State == true)
+            if (line.Controls[0] is RadioButton radioButton && radioButton.State)
             {
                 pathEditor.InitializePath(null);
-                (line.Controls[0] as RadioButton).State = false;
+                radioButton.State = false;
             }
             else if (line?.Tag is PathModelHeader path)
             {

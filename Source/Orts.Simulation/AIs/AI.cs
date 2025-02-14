@@ -682,7 +682,7 @@ namespace Orts.Simulation.AIs
             string consistFileName = simulator.RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
             ConsistFile conFile = new ConsistFile(consistFileName);
 
-            PathModel pathModel = Task.Run(async() => await (await Simulator.Instance.RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(srvFile.PathId.Trim()).GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
+            PathModel pathModel = Task.Run(async() => await Simulator.Instance.RouteModel.PathModel(srvFile.PathId.Trim(), CancellationToken.None).ConfigureAwait(false)).Result;
             AIPath aiPath = new AIPath(pathModel, isTimetableMode);
 
             if (aiPath.Nodes == null)

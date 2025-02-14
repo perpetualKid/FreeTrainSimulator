@@ -103,6 +103,7 @@ namespace FreeTrainSimulator.Toolbox
                 useMetricUnits = null;
 
             RouteModel routeModel = await route.GetExtended(ctsProfileLoading.Token).ConfigureAwait(false);
+            Task<ImmutableArray<PathModelHeader>> pathTask = routeModel.GetRoutePaths(ctsProfileLoading.Token);
 
             await TrackData.LoadTrackData(this, routeModel, useMetricUnits, ctsProfileLoading.Token).ConfigureAwait(false);
             if (ctsProfileLoading.Token.IsCancellationRequested)
@@ -114,7 +115,7 @@ namespace FreeTrainSimulator.Toolbox
             content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings);
             content.ContentArea.FontOutlineOptions = ToolboxSettings.FontOutline ? OutlineRenderOptions.Default : null;
             ContentArea = content.ContentArea;
-            mainmenu.PopulatePaths((Orts.Formats.Msts.RuntimeData.GameInstance(this) as TrackData).TrainPaths);
+            mainmenu.PopulatePaths(await pathTask.ConfigureAwait(false));
             windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
         }

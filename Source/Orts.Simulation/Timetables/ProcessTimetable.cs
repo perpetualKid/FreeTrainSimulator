@@ -1148,7 +1148,7 @@ namespace Orts.Simulation.Timetables
                     try
                     {
                         //outPath = new AIPath(formedpathFilefull, true);
-                        PathModel pathModel = Task.Run(async () => await(await simulator.RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(Path.GetFileNameWithoutExtension(formedpathFilefull)).GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
+                        PathModel pathModel = Task.Run(async () => await simulator.RouteModel.PathModel(Path.GetFileNameWithoutExtension(formedpathFilefull), CancellationToken.None).ConfigureAwait(false)).Result;
                         outPath = new AIPath(pathModel, true);
                         validPath = outPath.Nodes != null;
 

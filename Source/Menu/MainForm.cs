@@ -474,7 +474,7 @@ namespace FreeTrainSimulator.Menu
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
-                    if (existingFolders.Except(form.ContentModel.ContentFolders).Any() || form.ContentModel.ContentFolders.Except(existingFolders).Any() || // FrozenSet.SetEquals always returns false
+                    if (existingFolders.Except(form.ContentModel.ContentFolders).Any() || form.ContentModel.ContentFolders.Except(existingFolders).Any() ||
                          ContentModel.RefreshRequired())
                     {
                         ModelConverterProgress progressForm = null;

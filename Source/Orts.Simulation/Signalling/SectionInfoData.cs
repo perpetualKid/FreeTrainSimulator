@@ -18,7 +18,6 @@
 // This module covers all classes and code for signal, speed post, track occupation and track reservation control
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Immutable;
 
 using FreeTrainSimulator.Common;

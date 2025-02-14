@@ -128,7 +128,7 @@ namespace Orts.Simulation.Multiplayer
             {
                 try
                 {
-                    PathModel pathModel = Task.Run(async () => await (await Simulator.Instance.RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(p.Path.Trim()).GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
+                    PathModel pathModel = Task.Run(async () => await Simulator.Instance.RouteModel.PathModel(p.Path.Trim(), CancellationToken.None).ConfigureAwait(false)).Result;
                     AIPath aiPath = new AIPath(pathModel, Simulator.Instance.TimetableMode);
                 }
                 catch (Exception)

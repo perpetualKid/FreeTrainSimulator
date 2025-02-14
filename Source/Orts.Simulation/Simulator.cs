@@ -751,7 +751,7 @@ namespace Orts.Simulation
         {
             ServiceFile srvFile = new ServiceFile(RouteFolder.ServiceFile(ActivityFile.Activity.PlayerServices.Name));
             ConsistFileName = RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
-            PlayerPath = await (await RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(srvFile.PathId.Trim()).GetExtended(CancellationToken.None).ConfigureAwait(false);
+            PlayerPath = await RouteModel.PathModel(srvFile.PathId.Trim(), CancellationToken.None).ConfigureAwait(false);
         }
 
 
@@ -1229,7 +1229,7 @@ namespace Orts.Simulation
 
             train.IsTilting = ConsistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
-            PlayerPath = Task.Run(async () => await (await RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(serviceFile.PathId.Trim()).GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
+            PlayerPath = Task.Run(async () => await RouteModel.PathModel(serviceFile.PathId.Trim(), CancellationToken.None).ConfigureAwait(false)).Result;
             AIPath aiPath = new AIPath(PlayerPath, TimetableMode);
             PathName = aiPath.PathName;
 
@@ -1357,7 +1357,7 @@ namespace Orts.Simulation
             ServiceTraffics aPPlayer_Traffic_Definition = new ServiceTraffics(playerServiceFileName, player_Traffic_Definition);
             Services aPPlayer_Service_Definition = new Services(playerServiceFileName, player_Traffic_Definition);
 
-            PlayerPath = Task.Run(async () => await (await RouteModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).GetById(srvFile.PathId.Trim()).GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
+            PlayerPath = Task.Run(async () => await RouteModel.PathModel(srvFile.PathId.Trim(), CancellationToken.None).ConfigureAwait(false)).Result;
 
             AITrain train = new AI(this).CreateAITrainDetail(aPPlayer_Service_Definition, aPPlayer_Traffic_Definition, srvFile, TimetableMode, true);
             train.Name = "PLAYER";

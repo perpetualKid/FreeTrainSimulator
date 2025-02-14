@@ -18,14 +18,6 @@ namespace FreeTrainSimulator.Toolbox
 {
     public class TrackData : RuntimeData
     {
-        public ImmutableArray<PathModelHeader> TrainPaths { get; }
-
-        private TrackData(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, ImmutableArray<PathModelHeader> trainPaths) :
-            base(route, trackSections, trackDb, roadTrackDB, signalConfig, metricUnits, null)
-        {
-            TrainPaths = trainPaths;
-        }
-
         internal static async ValueTask LoadTrackData(Game game, RouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
@@ -70,8 +62,7 @@ namespace FreeTrainSimulator.Toolbox
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            game.Services.RemoveService(typeof(RuntimeData));
-            game.Services.AddService(typeof(RuntimeData), new TrackData(routeModel, trackSections, trackDB, roadTrackDB, signalConfig, metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits), await pathTask.ConfigureAwait(false)));
+            Initialize(routeModel, trackSections, trackDB, roadTrackDB, signalConfig, metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits));
         }
     }
 }
