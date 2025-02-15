@@ -8,8 +8,8 @@ namespace FreeTrainSimulator.Common.Input
 {
     public class KeyboardInputHandler<T> where T : Enum
     {
-        private ILookup<int, T> userCommandsLookup;
-        private ILookup<int, (T, KeyModifiers)> modifyableCommandsLookup;
+        private Lookup<int, T> userCommandsLookup;
+        private Lookup<int, (T, KeyModifiers)> modifyableCommandsLookup;
         private UserCommandController<T> userCommandController;
 
         public void Initialize(EnumArray<UserCommandInput, T> userCommands, KeyboardInputGameComponent inputGameComponent, UserCommandController<T> userCommandController)
@@ -27,7 +27,7 @@ namespace FreeTrainSimulator.Common.Input
                 foreach (KeyEventType keyEventType in EnumExtension.GetValues<KeyEventType>())
                     result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers, keyEventType), command));
                 return result;
-            }).ToLookup(i => i.keyEventCode, c => c.command);
+            }).ToLookup(i => i.keyEventCode, c => c.command) as Lookup<int, T>;
 
             modifyableCommandsLookup = EnumExtension.GetValues<T>().Where(command => userCommands[command] is UserCommandModifiableKeyInput).SelectMany(command =>
             {
@@ -45,7 +45,7 @@ namespace FreeTrainSimulator.Common.Input
                 }
                 return result;
 
-            }).ToLookup(i => i.keyEventCode, c => (c.command, c.modifiers));
+            }).ToLookup(i => i.keyEventCode, c => (c.command, c.modifiers)) as Lookup<int, (T, KeyModifiers)>;
 
             inputGameComponent.AddInputHandler(Trigger);
 

@@ -159,16 +159,6 @@ namespace FreeTrainSimulator.Toolbox
             windowManager[ToolboxWindowType.AboutWindow].Open();
         }
 
-        private void EditTrainPath(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
-        {
-            if (userCommandArgs is PointerCommandArgs mousePointCommandArgs &&
-                contentArea?.Content is ToolboxContent toolboxContent && toolboxContent.ContentMode == ToolboxContentMode.EditPath)
-            {
-                pathEditor?.MouseAction(mousePointCommandArgs.Position, modifiers);
-                userCommandArgs.Handled = true;
-            }
-        }
-
         internal void PrintScreen()
         {
             using (SaveFileDialog dialog = new SaveFileDialog())

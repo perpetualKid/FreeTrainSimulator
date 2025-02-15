@@ -36,7 +36,7 @@ namespace FreeTrainSimulator.Toolbox
     public partial class GameWindow : Game, IInputCapture
     {
         private readonly GraphicsDeviceManager graphicsDeviceManager;
-        private readonly System.Windows.Forms.Form windowForm;
+        private readonly Form windowForm;
         private readonly CommonDebugInfo debugInfo;
         private readonly GraphicsDebugInfo graphicsDebugInfo = new GraphicsDebugInfo();
 
@@ -44,7 +44,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private bool syncing;
         private ScreenMode currentScreenMode;
-        private System.Windows.Forms.Screen currentScreen;
+        private Screen currentScreen;
         private Point windowPosition;
         private System.Drawing.Size windowSize;
         private readonly Point clientRectangleOffset;
@@ -86,7 +86,7 @@ namespace FreeTrainSimulator.Toolbox
         private ProfileModel currentProfile;
 
         internal ProfileToolboxSettingsModel ToolboxSettings { get; private set; }
-        internal ProfileUserSettingsModel ToolboxUserSettings { get; private set;}
+        internal ProfileUserSettingsModel ToolboxUserSettings { get; private set; }
 
         internal string LogFileName { get; }
 
@@ -94,8 +94,9 @@ namespace FreeTrainSimulator.Toolbox
 
         internal Catalog Catalog { get; private set; }
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
-        private readonly string windowTitle
-;
+        private readonly string windowTitle;
+        private UserCommandController<UserCommand> userCommandController;
+
         public GameWindow()
         {
             ImmutableArray<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
@@ -110,10 +111,10 @@ namespace FreeTrainSimulator.Toolbox
                 ToolboxSettings.Log();
             }
 
-            windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
-            currentScreen = ToolboxSettings.WindowScreen < System.Windows.Forms.Screen.AllScreens.Length
-                ? System.Windows.Forms.Screen.AllScreens[ToolboxSettings.WindowScreen]
-                : System.Windows.Forms.Screen.PrimaryScreen;
+            windowForm = (Form)Control.FromHandle(Window.Handle);
+            currentScreen = ToolboxSettings.WindowScreen < Screen.AllScreens.Length
+                ? Screen.AllScreens[ToolboxSettings.WindowScreen]
+                : Screen.PrimaryScreen;
             FontManager.ScalingFactor = (float)WindowManager.DisplayScalingFactor(currentScreen);
 
             ApplySettings();
@@ -180,7 +181,7 @@ namespace FreeTrainSimulator.Toolbox
             if (currentScreenMode == ScreenMode.Windowed)
                 windowPosition = Window.Position;
             // if (fullscreen) gameWindow is moved to different screen we may need to refit for different screen resolution
-            System.Windows.Forms.Screen newScreen = System.Windows.Forms.Screen.FromControl(windowForm);
+            Screen newScreen = Screen.FromControl(windowForm);
             (newScreen, currentScreen) = (currentScreen, newScreen);
             if (newScreen.DeviceName != currentScreen.DeviceName && currentScreenMode != ScreenMode.Windowed)
             {
@@ -258,7 +259,7 @@ namespace FreeTrainSimulator.Toolbox
                     ToolboxSettings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
             }
 
-            ToolboxSettings.WindowScreen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
+            ToolboxSettings.WindowScreen = Screen.AllScreens.ToList().IndexOf(currentScreen);
             ToolboxSettings.ContentPosition = contentArea?.CenterPoint ?? PointD.None;
             ToolboxSettings.ContentScale = contentArea?.Scale ?? 1;
 
@@ -266,7 +267,7 @@ namespace FreeTrainSimulator.Toolbox
             ToolboxSettings.RouteId = selectedRoute?.Id;
             ToolboxSettings.PathId = PathEditor?.PathId;
 
-//            ProfileSettingModelHandler<ProfileUserSettingsModel>.SetValueByName(ToolboxUserSettings, "MultiSamplingCount", 8);
+            //            ProfileSettingModelHandler<ProfileUserSettingsModel>.SetValueByName(ToolboxUserSettings, "MultiSamplingCount", 8);
 
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
             await currentProfile.UpdateSettingsModel(ToolboxSettings, ctsProfileLoading.Token).ConfigureAwait(false);
@@ -353,8 +354,7 @@ namespace FreeTrainSimulator.Toolbox
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            UserCommandController<UserCommand> userCommandController = new UserCommandController<UserCommand>();
-
+            userCommandController = new UserCommandController<UserCommand>();
             KeyboardInputGameComponent keyboardInputGameComponent = new KeyboardInputGameComponent(this);
             Components.Add(keyboardInputGameComponent);
             KeyboardInputHandler<UserCommand> keyboardInput = new KeyboardInputHandler<UserCommand>();
@@ -384,7 +384,6 @@ namespace FreeTrainSimulator.Toolbox
             });
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
-            userCommandController.AddEvent(CommonUserCommand.PointerPressed, EditTrainPath);
             userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is not ModifiableKeyCommandArgs)

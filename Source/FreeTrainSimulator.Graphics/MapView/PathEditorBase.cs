@@ -27,6 +27,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             protected set => trainPath = value as EditorTrainPath;
         }
 
+        public bool EditMode { get; private set; }
+
         protected PathEditorBase(ContentArea contentArea)
         {
             ArgumentNullException.ThrowIfNull(contentArea);
@@ -58,6 +60,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         #region additional content (Paths)
         protected void InitializePathModel(PathModelHeader pathModel)
         {
+            EditMode = false;
             trainPath = pathModel != null ? new EditorTrainPath(Task.Run(async () => await pathModel.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result, ToolboxContent.ContentArea.Game) : null;
             if (trainPath != null && trainPath.TopLeftBound != PointD.None && trainPath.BottomRightBound != PointD.None)
             {
@@ -73,6 +76,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         protected void InitializePath()
         {
+            EditMode = true;
             ToolboxContent.ContentMode = ToolboxContentMode.EditPath;
             trainPath = new EditorTrainPath(ToolboxContent.ContentArea.Game);
             pathItem = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
@@ -86,6 +90,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                 (trainPath.PathPoints[^1] as EditorPathPoint).UpdateNodeType(PathNodeType.End);
                 pathItem = null;
                 ToolboxContent.ContentMode = ToolboxContentMode.ViewPath;
+                EditMode = false;
                 return true;
             }
             return false;

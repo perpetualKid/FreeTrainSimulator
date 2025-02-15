@@ -33,6 +33,13 @@ namespace FreeTrainSimulator.Toolbox
 
         public PathEditor(ContentArea contentArea) : base(contentArea) { }
 
+        public PathEditor(ContentArea contentArea, UserCommandController<UserCommand> userCommandController) : base(contentArea) 
+        { 
+            userCommandController.AddEvent(CommonUserCommand.PointerPressed, MousePressedLeft);
+            userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
+            userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragged);
+        }
+
         public bool InitializePath(PathModelHeader path)
         {
             try
@@ -54,18 +61,33 @@ namespace FreeTrainSimulator.Toolbox
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
-        public void MouseAction(Point screenLocation, KeyModifiers keyModifiers)
+        public void MousePressedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
-            if (Environment.TickCount64 - lastPathClickTick < 500 && validPointAdded) //considered as double click
+            if (EditMode)
             {
-                _ = AddPathEndPoint();
+                if (Environment.TickCount64 - lastPathClickTick < 500 && validPointAdded) //considered as double click
+                {
+                    _ = AddPathEndPoint();
+                }
+                else
+                {
+                    validPointAdded = AddPathPoint();
+                }
+                lastPathClickTick = Environment.TickCount64;
+                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                userCommandArgs.Handled = true;
             }
-            else
-            {
-                validPointAdded = AddPathPoint();
-            }
-            lastPathClickTick = Environment.TickCount64;
-            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
+
+        public void MouseDragged(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+
+        }
+
+        public void MouseReleasedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+
+        }
+
     }
 }

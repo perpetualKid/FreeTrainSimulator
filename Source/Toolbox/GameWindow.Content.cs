@@ -41,7 +41,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 if (null == pathEditor && contentArea != null)
                 {
-                    pathEditor = new PathEditor(contentArea);
+                    pathEditor = new PathEditor(contentArea, userCommandController);
                     pathEditor.OnPathChanged += PathEditor_OnEditorPathChanged;
                 }
                 return pathEditor;
@@ -50,7 +50,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
         {
-//            mainmenu.PreSelectPath(e.Path?.FilePath);
+            mainmenu.PreSelectPath(e.Path?.PathModel);
         }
 
         internal async Task<bool> LoadFolders()

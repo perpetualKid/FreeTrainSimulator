@@ -9,7 +9,7 @@ namespace FreeTrainSimulator.Common.Input
     public class RailDriverInputHandler<T> where T : Enum
     {
         private UserCommandController<T> userCommandController;
-        private ILookup<int, T> userCommandsLookup;
+        private Lookup<int, T> userCommandsLookup;
         private RailDriverInputGameComponent inputGameComponent;
 
         // assume the Emergency Stop Commands are never remapped
@@ -79,7 +79,7 @@ namespace FreeTrainSimulator.Common.Input
                 foreach (KeyEventType keyEventType in EnumExtension.GetValues<KeyEventType>())
                     result.Add((RailDriverInputGameComponent.KeyEventCode(userCommands[command], keyEventType), command));
                 return result;
-            }).Concat(additionalCommands).ToLookup(i => i.keyEventCode, c => c.command);
+            }).Concat(additionalCommands).ToLookup(i => i.keyEventCode, c => c.command) as Lookup<int, T>;
 
             userCommandController.AddControllerInputEvent(CommandControllerInput.Speed, ShowSpeedValue);
             userCommandController.AddControllerInputEvent(CommandControllerInput.Activate, Activate);

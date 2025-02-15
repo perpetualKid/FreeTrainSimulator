@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private bool editorUseIntermediaryPathPoint;
         #endregion
 
-        private ILookup<TrainPathPointBase, TrainPathSectionBase> pathSectionLookup;
+        private Lookup<TrainPathPointBase, TrainPathSectionBase> pathSectionLookup;
 
         public int SelectedNodeIndex { get; set; } = -1;
 
@@ -72,7 +72,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public EditorTrainPath(PathModel pathModel, Game game) : base(pathModel, game)
         {
-            pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section);
+            pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
         }
 
         public EditorTrainPath(Game game) : base(game)
@@ -98,7 +98,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             PathPoints.Add(pathItem);
             sections.Clear();
             editorUseIntermediaryPathPoint = false;
-            pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section);
+            pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
             return new EditorPathPoint(pathItem.Location, pathItem.Location, PathNodeType.Temporary);
         }
 
