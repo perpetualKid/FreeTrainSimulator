@@ -431,7 +431,9 @@ namespace Orts.Formats.Msts.Models
         /// <summary>
         /// This method returns the most restrictive aspect for this signal type.
         /// </summary>
+#pragma warning disable CA1024 // Use properties where appropriate
         public SignalAspectState GetMostRestrictiveAspect()
+#pragma warning restore CA1024 // Use properties where appropriate
         {
             SignalAspectState targetAspect = SignalAspectState.Unknown;
             for (int i = 0; i < Aspects.Count; i++)
@@ -445,7 +447,9 @@ namespace Orts.Formats.Msts.Models
         /// This method returns the least restrictive aspect for this signal type.
         /// [Rob Roeterdink] added for basic signals without script
         /// </summary>
+#pragma warning disable CA1024 // Use properties where appropriate
         public SignalAspectState GetLeastRestrictiveAspect()
+#pragma warning restore CA1024 // Use properties where appropriate
         {
             SignalAspectState targetAspect = SignalAspectState.Stop;
             for (int i = 0; i < Aspects.Count; i++)
@@ -793,7 +797,9 @@ namespace Orts.Formats.Msts.Models
         /// <summary>
         /// Describes a sub-object belonging to a signal shape
         /// </summary>
+#pragma warning disable CA1034 // Nested types should not be visible
         public class SignalSubObject
+#pragma warning restore CA1034 // Nested types should not be visible
         {
             /// <summary></summary>
             public int Index { get; private set; }

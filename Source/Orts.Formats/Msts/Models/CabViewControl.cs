@@ -601,6 +601,22 @@ namespace Orts.Formats.Msts.Models
 #pragma warning restore CA1002 // Do not expose generic lists
     }
 
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+    public readonly struct CabViewScreenData
+#pragma warning restore CA1815 // Override equals and operator equals on value types
+    {
+        public CabViewScreenData(string newScreen, int newScreenDisplay)
+        {
+#pragma warning disable CA1308 // Normalize strings to uppercase
+            NewScreen = newScreen?.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
+            NewScreenDisplay = newScreenDisplay;
+        }
+
+        public string NewScreen { get; }
+        public int NewScreenDisplay { get; }
+    }
+
     public class CabViewDiscreteControl : CabViewFramedControl
     {
 #pragma warning disable CA1002 // Do not expose generic lists
@@ -611,21 +627,7 @@ namespace Orts.Formats.Msts.Models
         private int numPositions;
         private bool canFill = true;
 
-#pragma warning disable CA1815 // Override equals and operator equals on value types
-        public readonly struct NewScreenData
-#pragma warning restore CA1815 // Override equals and operator equals on value types
-        {
-            public NewScreenData(string newScreen, int newScreenDisplay)
-            {
-                NewScreen = newScreen;
-                NewScreenDisplay = newScreenDisplay;
-            }
-
-            public string NewScreen { get; }
-            public int NewScreenDisplay { get; }
-        }
-
-        public List<NewScreenData> NewScreens { get; private set; }
+        public Collection<CabViewScreenData> NewScreens { get; private set; }
 
         internal CabViewDiscreteControl(STFReader stf, string basePath, CabViewControlDiscreteState discreteState)
         {
@@ -964,11 +966,11 @@ namespace Orts.Formats.Msts.Models
 
         protected void ParseNewScreen(STFReader stf)
         {
+            ArgumentNullException.ThrowIfNull(stf, nameof(stf));
             stf.MustMatch("(");
-            var newScreen = new NewScreenData(stf.ReadString().ToLowerInvariant(), stf.ReadInt(-1));
+            var newScreen = new CabViewScreenData(stf.ReadString(), stf.ReadInt(-1));
             stf.SkipRestOfBlock();
-            if (NewScreens == null)
-                NewScreens = new List<NewScreenData>();
+            NewScreens ??= new Collection<CabViewScreenData>();
             NewScreens.Add(newScreen);
         }
 

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -1001,7 +1002,7 @@ namespace Orts.Formats.Msts.Models
     /// Represents a pin, being the link from a tracknode to another. 
     /// </summary>
     [DebuggerDisplay("\\{MSTS.TrPin\\} Link={Link}, Dir={Direction}")]
-    public readonly struct TrackPin
+    public readonly struct TrackPin: IEquatable<TrackPin>
     {
         /// <summary>Index of the tracknode connected to the parent of this pin</summary>
         public int Link { get; }
@@ -1032,6 +1033,32 @@ namespace Orts.Formats.Msts.Models
         }
 
         public static readonly TrackPin Empty = new TrackPin(-1, (TrackDirection)(-1));
+
+        public override bool Equals([NotNullWhen(true)] object obj)
+        {
+            return obj is TrackPin pin && Equals(pin);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Link, Direction);
+        }
+
+        public bool Equals(TrackPin other)
+        {
+            return other.Link == Link && other.Direction == Direction;
+        }
+
+        public static bool operator ==(TrackPin pin1, TrackPin pin2)
+        {
+            return pin1.Equals(pin2);
+        }
+
+        public static bool operator !=(TrackPin pin1, TrackPin pin2)
+        {
+            return !pin1.Equals(pin2);
+        }
+
     }
 
     public class TrackPinComparer : IEqualityComparer<TrackPin>

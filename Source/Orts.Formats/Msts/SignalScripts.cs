@@ -36,6 +36,7 @@ using Orts.Formats.Msts.Signalling;
 
 namespace Orts.Formats.Msts
 {
+#pragma warning disable CA1034 // Nested types should not be visible
     public class SignalScripts
     {
         #region SCRExternalFunctions
@@ -1182,4 +1183,5 @@ namespace Orts.Formats.Msts
             } // class SCRBlock
         } // class Scripts
     }
+#pragma warning restore CA1034 // Nested types should not be visible
 }

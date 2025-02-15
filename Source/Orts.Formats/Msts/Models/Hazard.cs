@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+
+using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Parsers;
 
@@ -8,6 +10,7 @@ namespace Orts.Formats.Msts.Models
     {
         public Hazard(STFReader stf)
         {
+            ArgumentNullException.ThrowIfNull(stf, nameof(stf));
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("filename", ()=>{ FileName = stf.ReadStringBlock(null); }),

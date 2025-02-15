@@ -948,7 +948,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
                         ControlDiscrete.Values.Where(v => (float)v <= percent + 0.00001).Last() : ControlDiscrete.Values.Where(v => (float)v <= percent + 0.00001).First();
                     index = ControlDiscrete.Values.IndexOf(val);
                 }
-                catch
+                catch (Exception ex) when (ex is Exception)
                 {
                     var val = ControlDiscrete.Values.Min();
                     index = ControlDiscrete.Values.IndexOf(val);

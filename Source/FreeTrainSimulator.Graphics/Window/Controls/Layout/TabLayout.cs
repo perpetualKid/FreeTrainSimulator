@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls.Layout
         private class TabData
         {
             internal T Tab;
-            internal ControlLayout TabLayout;
+            internal ControlLayoutVertical TabLayout;
         }
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
