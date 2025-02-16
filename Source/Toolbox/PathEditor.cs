@@ -5,8 +5,6 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Track;
 
-using Microsoft.Xna.Framework;
-
 namespace FreeTrainSimulator.Toolbox
 {
     public class PathEditorChangedEventArgs : EventArgs

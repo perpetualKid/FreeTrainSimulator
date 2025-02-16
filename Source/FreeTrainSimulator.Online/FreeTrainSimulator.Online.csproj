@@ -9,6 +9,6 @@
 	  <PackageReference Include="MagicOnion.Abstractions" Version="6.1.6" />
 	  <PackageReference Include="MagicOnion.Client" Version="6.1.6" />
 	  <PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.2-preview" />
-	  <PackageReference Include="MemoryPack" Version="1.21.3" />
+	  <PackageReference Include="MemoryPack" Version="1.21.4" />
 	</ItemGroup>
 </Project>

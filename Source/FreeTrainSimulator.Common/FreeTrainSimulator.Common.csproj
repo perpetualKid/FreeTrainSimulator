@@ -6,12 +6,12 @@
 		<Configurations>Debug;Release;CodeAnalysis</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="MemoryPack" Version="1.21.3" />
+		<PackageReference Include="MemoryPack" Version="1.21.4" />
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.2.1105" />
 		<PackageReference Include="RailDriver" Version="7.0.2" />
-		<PackageReference Include="System.IO.Hashing" Version="9.0.1" />
-		<PackageReference Include="System.Management" Version="9.0.1" />
+		<PackageReference Include="System.IO.Hashing" Version="9.0.2" />
+		<PackageReference Include="System.Management" Version="9.0.2" />
 		<PackageReference Include="GetText.NET" Version="8.0.5" />
-		<PackageReference Include="NuGet.Versioning" Version="6.12.1" />
+		<PackageReference Include="NuGet.Versioning" Version="6.13.1" />
 	</ItemGroup>
 </Project>
