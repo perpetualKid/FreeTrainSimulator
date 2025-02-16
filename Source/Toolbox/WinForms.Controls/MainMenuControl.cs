@@ -9,6 +9,7 @@ using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
@@ -167,6 +168,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 
         private void MainMenuStrip_MenuDeactivate(object sender, EventArgs e)
         {
+            parent.Components.OfType<MouseInputGameComponent>().FirstOrDefault().Enabled = true;
             if (closingCancelled)
             {
                 closingCancelled = false;
@@ -183,6 +185,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
                 MainMenuStrip.Enabled = false;
             else
                 parent.InputCaptured = true;
+            parent.Components.OfType<MouseInputGameComponent>().FirstOrDefault().Enabled = false;
         }
 
         internal void PopulateRoutes(ImmutableArray<RouteModelHeader> routes)

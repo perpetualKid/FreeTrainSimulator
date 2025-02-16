@@ -164,7 +164,7 @@ namespace FreeTrainSimulator.Toolbox
             e.Cancel = waitOnExit;
         }
 
-        private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
+        private void WindowForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             waitOnExit = true;
             PrepareExitApplication();
