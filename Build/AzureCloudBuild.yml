@@ -98,7 +98,6 @@ steps:
     allowWarningVariance: true
     warningVariance: 20
     showStatistics: true
-    evaluateTaskWarnings: false
 
 - task: CmdLine@2
   displayName: Collecting language files
