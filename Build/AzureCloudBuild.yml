@@ -91,6 +91,15 @@ steps:
     configuration: '$(buildConfiguration)'
     runInParallel: true
 
+- task: BuildQualityChecks@9
+  inputs:
+    checkWarnings: true
+    warningFailOption: 'build'
+    allowWarningVariance: true
+    warningVariance: 20
+    showStatistics: true
+    evaluateTaskWarnings: false
+
 - task: CmdLine@2
   displayName: Collecting language files
   inputs:
