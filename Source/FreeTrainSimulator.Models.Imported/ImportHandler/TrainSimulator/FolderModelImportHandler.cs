@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +36,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         folderModels.Add(new FolderModel(folder, key.GetValue(folder) as string, contentModel));
                     }
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is SecurityException or UnauthorizedAccessException or ObjectDisposedException)
                 {
                     Trace.TraceError($"Could not import existing content folders {ex.Message}.");
                 }
