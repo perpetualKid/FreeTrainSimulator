@@ -35,8 +35,8 @@ namespace FreeTrainSimulator.Models.Imported.Track
             nextMainNode = node.NextMainNode;
             nextSidingNode = node.NextSidingNode;
 
-            JunctionNode = node.NodeType == PathNodeType.Junction  ? trackModel.JunctionAt(Location) : null;
-            if (node.NodeType == PathNodeType.Junction && JunctionNode == null)
+            JunctionNode = (node.NodeType & PathNodeType.Junction) == PathNodeType.Junction ? trackModel.JunctionAt(Location) : null;
+            if ((node.NodeType & PathNodeType.Junction) == PathNodeType.Junction && JunctionNode == null)
                 ValidationResult |= PathNodeInvalidReasons.NoJunctionNode;
 
             ConnectedSegments = GetConnectedNodes(trackModel);
@@ -123,10 +123,10 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 if (node.nextMainNode != -1)
                 {
                     node.NextMainItem = pathPoints[node.nextMainNode];
-                    if (node.NextMainItem.NodeType == PathNodeType.End)
+                    if ((node.NextMainItem.NodeType &PathNodeType.End) == PathNodeType.End)
                         beforeEndNode = node;
                 }
-                else if (node.NodeType == PathNodeType.End)
+                else if ((node.NodeType & PathNodeType.End) == PathNodeType.End)
                     node.NextMainItem = beforeEndNode;
 
                 if (node.nextSidingNode != -1)

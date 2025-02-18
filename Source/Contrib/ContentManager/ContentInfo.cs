@@ -122,7 +122,7 @@ namespace Orts.ContentManager
                             line.Append(' ');
                             for (int i = 0; i < tracks.Count; i++)
                                 line.Append(i == activeTrack ? " |" : " .");
-                            if (node.NodeType == PathNodeType.Wait)
+                            if ((node.NodeType & PathNodeType.Wait) == PathNodeType.Wait)
                                 line.AppendLine(CultureInfo.InvariantCulture, $"\t{node.Location}\t{node.NodeType} (wait for {node.WaitTime} seconds)");
                             else
                                 line.AppendLine(CultureInfo.InvariantCulture, $"\t{node.Location}\t{node.NodeType}");

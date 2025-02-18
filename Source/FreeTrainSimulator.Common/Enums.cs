@@ -1859,23 +1859,25 @@ namespace FreeTrainSimulator.Common
         Diesel,
     }
 
+    [Flags] // a path node could be a start/end right at a junction, or any node could be invalid
     public enum PathNodeType
     {
-        Invalid = -1,
+        None = 0x0,
         /// <summary>Node is a regular node on a junction</summary>
-        Junction,
+        Junction = 0x1,
         /// <summary>Node is an intermediate point node </summary>
-        Intermediate,
+        Intermediate = 0x2,
         /// <summary>Node is the start node </summary>
-        Start,
+        Start = 0x4,
         /// <summary>Node is the end node (not just the last node) </summary>
-        End,
+        End = 0x8,
         /// <summary>Node is a wait/stop node</summary>
-        Wait,
+        Wait = 0x10,
         /// <summary>Node is a reversal node</summary>
-        Reversal,
+        Reversal = 0x20,
         /// <summary>Temporary node for editing purposes</summary>
-        Temporary,
+        Temporary = 0x40,
+        Invalid = 0x1000,
     };
 
 

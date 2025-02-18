@@ -28,8 +28,6 @@ namespace Orts.Formats.Msts.Models
     public class PathNode
     {
         private readonly WorldLocation location;
-        private readonly int junctionFlag;
-        private readonly int invalidFlag;
 
         public int NextMainNode { get; private set; }
         public int NextSidingNode { get; private set; }
@@ -37,9 +35,6 @@ namespace Orts.Formats.Msts.Models
         public int WaitTime { get; }
 
         public ref readonly WorldLocation Location => ref location;
-
-        public bool Junction => junctionFlag == 2;
-        public bool Invalid => (invalidFlag & 0b1000) == 0b1000;  //When bit 3 is set for flag2 (so 8, 9, 12, 13), it seems to denote a broken (or perhaps unfinished) path. Perhaps route was changed afterwards.
 
         public PathNodeType NodeType { get; }
 
@@ -64,8 +59,8 @@ namespace Orts.Formats.Msts.Models
             stf.SkipRestOfBlock();
 
             location = pathDataPoints[pathDataPoint].Location;
-            junctionFlag = pathDataPoints[pathDataPoint].JunctionFlag;
-            invalidFlag = pathDataPoints[pathDataPoint].InvalidFlag;
+            int junctionFlag = pathDataPoints[pathDataPoint].JunctionFlag;
+            int invalidFlag = pathDataPoints[pathDataPoint].InvalidFlag;
 
             if (firstNode)
             {
@@ -89,6 +84,11 @@ namespace Orts.Formats.Msts.Models
             {
                 NodeType = PathNodeType.Intermediate;
             }
+
+            if (junctionFlag == 2)
+                NodeType |= PathNodeType.Junction;
+            if ((invalidFlag & 0b1000) == 0b1000)
+                NodeType |= PathNodeType.Invalid; //When bit 3 is set for flag2 (so 8, 9, 12, 13), it seems to denote a broken (or perhaps unfinished) path. Perhaps route was changed afterwards.
         }
     }
 }

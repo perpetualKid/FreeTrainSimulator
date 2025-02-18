@@ -17,13 +17,14 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
         {
             textureType = nodeType switch
             {
-                PathNodeType.Start => BasicTextureType.PathStart,
-                PathNodeType.End => BasicTextureType.PathEnd,
-                PathNodeType.Junction => BasicTextureType.PathNormal,
-                PathNodeType.Intermediate => BasicTextureType.PathNormal,
-                PathNodeType.Wait => BasicTextureType.PathWait,
-                PathNodeType.Reversal => BasicTextureType.PathReverse,
-                PathNodeType.Temporary => BasicTextureType.RingCrossed,
+                PathNodeType _ when (nodeType & PathNodeType.Start) == PathNodeType.Start => BasicTextureType.PathStart,
+                PathNodeType _ when (nodeType & PathNodeType.End) == PathNodeType.End => BasicTextureType.PathEnd,
+                PathNodeType _ when (nodeType & PathNodeType.Junction) == PathNodeType.Junction => BasicTextureType.PathNormal,
+                PathNodeType _ when (nodeType & PathNodeType.Intermediate) == PathNodeType.Intermediate => BasicTextureType.PathNormal,
+                PathNodeType _ when (nodeType & PathNodeType.Wait) == PathNodeType.Wait => BasicTextureType.PathWait,
+                PathNodeType _ when (nodeType & PathNodeType.Reversal) == PathNodeType.Reversal => BasicTextureType.PathReverse,
+                PathNodeType _ when (nodeType & PathNodeType.Temporary) == PathNodeType.Temporary => BasicTextureType.RingCrossed,
+                PathNodeType _ when (nodeType & PathNodeType.Invalid) == PathNodeType.Invalid => BasicTextureType.RingCrossed,
                 _ => throw new NotImplementedException(),
             };
         }

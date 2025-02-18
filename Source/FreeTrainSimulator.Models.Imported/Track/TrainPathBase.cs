@@ -67,8 +67,8 @@ namespace FreeTrainSimulator.Models.Imported.Track
         }
 
         protected TrainPathBase(PathModel pathModel, Game game)
-            : base(PointD.FromWorldLocation(pathModel?.PathNodes.Where(n => n.NodeType == PathNodeType.Start).First().Location ?? throw new ArgumentNullException(nameof(pathModel))),
-                  PointD.FromWorldLocation(pathModel.PathNodes.Where(n => n.NodeType == PathNodeType.End).First().Location))
+            : base(PointD.FromWorldLocation(pathModel?.PathNodes.Where(n => (n.NodeType & PathNodeType.Start) == PathNodeType.Start).First().Location ?? throw new ArgumentNullException(nameof(pathModel))),
+                  PointD.FromWorldLocation(pathModel.PathNodes.Where(n => (n.NodeType & PathNodeType.End) == PathNodeType.End).First().Location))
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
             TrackModel = TrackModel.Instance(game);
@@ -102,7 +102,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             sectionStart = null;
             List<TrainPathSectionBase> sections = AddSections(pathType, start, end, index);
 
-            if (start.NodeType != PathNodeType.End)
+            if ((start.NodeType & PathNodeType.End) != PathNodeType.End)
                 PathSections.AddRange(sections);
 
             TrainPathPointBase pathItem = null;
@@ -117,7 +117,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 else
                 {
                     bool reverse = sectionStart.Value.Reverse;
-                    if (start.NodeType == PathNodeType.End)
+                    if ((start.NodeType & PathNodeType.End) == PathNodeType.End)
                         reverse = !reverse;
                     PathPoints.Add(pathItem = CreateEditorPathItem(start.Location, sectionStart.Value.NodeSegment, start.NodeType, reverse));
                     pathItem.ValidationResult = start.ValidationResult;

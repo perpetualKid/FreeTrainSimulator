@@ -21,7 +21,6 @@ using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
 
 using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 
 using ORTS.TrackViewer.Drawing;
 

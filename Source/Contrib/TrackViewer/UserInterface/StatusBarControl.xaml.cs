@@ -284,7 +284,7 @@ namespace ORTS.TrackViewer.UserInterface
                 statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                     " {7}: {3}, {4} [{1} {2}] [{5} {6}] <{0}>",
                     curNode.NodeType, curNode.NextMainNode, curNode.NextSidingNode,
-                    curNode.Location.Location.X, curNode.Location.Location.Z, curNode.Junction, curNode.Invalid, trackViewer.DrawPATfile.FileName);
+                    curNode.Location.Location.X, curNode.Location.Location.Z, (curNode.NodeType & FreeTrainSimulator.Common.PathNodeType.Junction) == FreeTrainSimulator.Common.PathNodeType.Junction, (curNode.NodeType & FreeTrainSimulator.Common.PathNodeType.Invalid) == FreeTrainSimulator.Common.PathNodeType.Invalid, trackViewer.DrawPATfile.FileName);
             }
         }
 

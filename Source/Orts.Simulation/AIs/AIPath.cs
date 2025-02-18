@@ -250,17 +250,16 @@ namespace Orts.Simulation.AIs
 
             switch (pathNode.NodeType)
             {
-                case PathNodeType.Reversal:
+                case PathNodeType _ when (pathNode.NodeType & PathNodeType.Reversal) == PathNodeType.Reversal:
                     Type = TrainPathNodeType.Reverse;
                     break;
-                case PathNodeType.Wait:
+                case PathNodeType _ when (pathNode.NodeType & PathNodeType.Wait) == PathNodeType.Wait:
                     Type = TrainPathNodeType.Stop;
                     break;
-                case PathNodeType.Invalid:
-                    if (timetableMode)
-                        Type = TrainPathNodeType.Invalid;
+                case PathNodeType _ when (pathNode.NodeType & PathNodeType.Invalid) == PathNodeType.Invalid && timetableMode:
+                    Type = TrainPathNodeType.Invalid;
                     break;
-                case PathNodeType.Junction:
+                case PathNodeType _ when (pathNode.NodeType & PathNodeType.Junction) == PathNodeType.Junction:
                     JunctionIndex = FindJunctionOrEndIndex(Location, true);
                     break;
             }

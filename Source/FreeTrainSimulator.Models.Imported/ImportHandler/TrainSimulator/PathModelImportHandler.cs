@@ -93,7 +93,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
                     PathNodes = patFile.PathNodes.Select(pathNode => new PathNode(pathNode.Location)
                     {
-                        NodeType = pathNode.Invalid ? Common.PathNodeType.Junction : pathNode.NodeType,
+                        NodeType = pathNode.NodeType,
                         NextMainNode = pathNode.NextMainNode,
                         NextSidingNode = pathNode.NextSidingNode,
                         WaitInfo = pathNode.WaitTime > 0 ? new PathNodeWaitInfo() { WaitTime = pathNode.WaitTime } : null,
