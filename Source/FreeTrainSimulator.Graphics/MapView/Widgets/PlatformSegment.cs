@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
 
-    internal class PlatformSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
+    internal record PlatformSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
         public PlatformSegment(TrackSegmentBase source) : base(source)
         {

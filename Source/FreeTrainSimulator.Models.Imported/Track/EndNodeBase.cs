@@ -8,7 +8,7 @@ using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Models.Imported.Track
 {
-    public abstract class EndNodeBase : PointPrimitive, IIndexedElement
+    public abstract record EndNodeBase : PointPrimitive, IIndexedElement
     {
         public float Direction { get; }
         public int TrackNodeIndex { get; }

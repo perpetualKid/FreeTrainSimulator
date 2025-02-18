@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
 
-    internal class SidingSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
+    internal record SidingSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
         public SidingSegment(TrackSegmentBase source) : base(source)
         {

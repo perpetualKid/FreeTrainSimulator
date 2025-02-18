@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal class EditorTrainPath : TrainPathBase, IDrawable<VectorPrimitive>
+    internal record EditorTrainPath : TrainPathBase, IDrawable<VectorPrimitive>
     {
         #region active path editing
         private EditorPathPoint editorSegmentStart;
@@ -24,7 +24,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public TrainPathPointBase SelectedNode => SelectedNodeIndex >= 0 && SelectedNodeIndex < PathPoints.Count ? PathPoints[SelectedNodeIndex] : null;
 
-        private class TrainPathSection : TrainPathSectionBase, IDrawable<VectorPrimitive>
+        private record TrainPathSection : TrainPathSectionBase, IDrawable<VectorPrimitive>
         {
             public TrainPathSection(in PointD startLocation, in PointD endLocation) :
                 base(startLocation, endLocation)

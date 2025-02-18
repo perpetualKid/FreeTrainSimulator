@@ -5,7 +5,7 @@ using FreeTrainSimulator.Common.Position;
 
 namespace FreeTrainSimulator.Models.Imported.Track
 {
-    public class TrackSegmentSection : TrackSegmentSectionBase<TrackSegmentBase>
+    public record TrackSegmentSection : TrackSegmentSectionBase<TrackSegmentBase>
     {
         public TrackSegmentSection(int trackNodeIndex, IEnumerable<TrackSegmentBase> trackSegments) :
             base(trackNodeIndex, trackSegments)

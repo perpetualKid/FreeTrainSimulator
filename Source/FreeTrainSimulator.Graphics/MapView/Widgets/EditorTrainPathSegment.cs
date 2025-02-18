@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal class EditorTrainPathSegment : TrainPathSegmentBase, IDrawable<VectorPrimitive>
+    internal record EditorTrainPathSegment : TrainPathSegmentBase, IDrawable<VectorPrimitive>
     {
         public EditorTrainPathSegment(TrackSegmentBase source) : base(source)
         {

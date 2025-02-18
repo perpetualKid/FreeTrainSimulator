@@ -13,7 +13,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     /// <summary>
     /// a whole train as composition of multiple <see cref="TrainCarWidget"/> widgets
     /// </summary>
-    public class TrainWidget : VectorPrimitive, IDrawable<VectorPrimitive>
+    public record TrainWidget : VectorPrimitive, IDrawable<VectorPrimitive>
     {
         public Dictionary<int, TrainCarWidget> Cars { get; } = new Dictionary<int, TrainCarWidget>();
 
@@ -60,7 +60,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
     }
 
-    public class TrainCarWidget : PointPrimitive, IDrawable<PointPrimitive>
+    public record TrainCarWidget : PointPrimitive, IDrawable<PointPrimitive>
     {
         // maximum width for unrestricted movement in the US, Canada, and Mexico is 10 feet, 6 inches
         // Loads less than 11 feet wide can generally move without restriction as to train handling

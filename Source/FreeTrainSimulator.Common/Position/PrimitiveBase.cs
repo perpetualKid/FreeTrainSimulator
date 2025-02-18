@@ -5,7 +5,7 @@
     /// Location can be given <see cref="PointD"/> or <see cref="WorldLocation"/>
     /// Implements <see cref="ITileCoordinate{T}"/> to allow 2D-indexing with <see cref="TileIndexedList{TTileCoordinate, T}"/>
     /// </summary>
-    public abstract class CoordinatePrimitiveBase
+    public abstract record CoordinatePrimitiveBase
     {
         /// <summary>
         /// Diameter for Point Primitives
@@ -15,7 +15,7 @@
         public float Size { get; protected set; }
     }
 
-    public abstract class PointPrimitive : CoordinatePrimitiveBase, ITileCoordinate
+    public abstract record PointPrimitive : CoordinatePrimitiveBase, ITileCoordinate
     {
         protected const double ProximityTolerance = 1.0; //allow for a 1m proximity error (rounding, placement) when trying to locate points/locations along a track segment
 
@@ -54,7 +54,7 @@
         }
     }
 
-    public abstract class VectorPrimitive : PointPrimitive, ITileCoordinateVector
+    public abstract record VectorPrimitive : PointPrimitive, ITileCoordinateVector
     {
         private PointD vectorEnd;
 

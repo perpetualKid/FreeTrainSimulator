@@ -9,7 +9,7 @@ using FreeTrainSimulator.Models.Imported.Track;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal class PlatformPath : TrackSegmentPathBase<PlatformSegment>, IDrawable<VectorPrimitive>, INameValueInformationProvider
+    internal record PlatformPath : TrackSegmentPathBase<PlatformSegment>, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Item Type"] = "Platform" };
         private protected static int debugInfoHash;
@@ -35,7 +35,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         internal string PlatformName { get; }
         internal string StationName { get; }
 
-        private class PlatformSection : TrackSegmentSectionBase<PlatformSegment>, IDrawable<VectorPrimitive>
+        private record PlatformSection : TrackSegmentSectionBase<PlatformSegment>, IDrawable<VectorPrimitive>
         {
             public PlatformSection(TrackModel trackModel, int trackNodeIndex) :
                 base(trackModel, trackNodeIndex)

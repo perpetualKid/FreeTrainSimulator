@@ -12,7 +12,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
     /// Examples for partial TrackSegmentSections are i.e. Platforms along a track.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class TrackSegmentSectionBase<T> : VectorPrimitive, IIndexedElement where T : TrackSegmentBase
+    public abstract record TrackSegmentSectionBase<T> : VectorPrimitive, IIndexedElement where T : TrackSegmentBase
     {
         private PointD midPoint;
         private PointD topLeft;

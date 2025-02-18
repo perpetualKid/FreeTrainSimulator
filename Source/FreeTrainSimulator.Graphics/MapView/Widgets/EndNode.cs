@@ -11,7 +11,7 @@ using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal class EndNode : EndNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
+    internal record EndNode : EndNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "End Node" };
 
@@ -44,7 +44,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
     }
 
-    internal class RoadEndSegment : EndNode
+    internal record RoadEndSegment : EndNode
     {
         public override InformationDictionary DetailInfo
         {

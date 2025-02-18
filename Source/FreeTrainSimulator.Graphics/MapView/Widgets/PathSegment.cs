@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal class PathSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
+    internal record PathSegment : TrackSegmentBase, IDrawable<VectorPrimitive>
     {
         private protected PathSegment() : base()
         { }
@@ -26,7 +26,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
     }
 
-    internal class BrokenPathSegment : PathSegment
+    internal record BrokenPathSegment : PathSegment
     {
         public BrokenPathSegment(in WorldLocation location) : base()
         {

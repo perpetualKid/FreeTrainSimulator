@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
     /// This is a base class for derived types like rail tracks, road tracks.<br/><br/>
     /// Multiple segments will form a path as part of a <see cref="TrackSegmentSectionBase{T}"/>, for paths following a track such as train paths, platforms, sidings.
     /// </summary>
-    public abstract class TrackSegmentBase : VectorPrimitive
+    public abstract record TrackSegmentBase : VectorPrimitive
     {
         private protected PointD centerPoint;
         private protected float centerToStartDirection;
@@ -111,7 +111,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             }
         }
 
-        protected TrackSegmentBase(TrackSegmentBase source) : base(source?.Location ?? throw new ArgumentNullException(nameof(source)), source.Vector)
+        protected TrackSegmentBase(TrackSegmentBase source) : base(source ?? throw new ArgumentNullException(nameof(source)))
         {
             Size = source.Size;
             Curved = source.Curved;

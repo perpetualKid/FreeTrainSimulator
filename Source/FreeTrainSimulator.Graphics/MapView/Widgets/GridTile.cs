@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal class GridTile : VectorPrimitive, IDrawable<VectorPrimitive>
+    internal record GridTile : VectorPrimitive, IDrawable<VectorPrimitive>
     {
         private readonly PointD upperLeft;
         private readonly PointD lowerRight;

@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     /// <summary>
     /// Graphical representation of a track junction (switch)
     /// </summary>
-    internal class JunctionNode : JunctionNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
+    internal record JunctionNode : JunctionNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private const int diameter = 3;
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Junction" };
@@ -53,7 +53,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     /// <summary>
     /// Junction segment <seealso cref="JunctionNode"/> which holds a reference to an active <see cref="IJunction"> to allow for interaction/show interactive status 
     /// </summary>
-    internal class ActiveJunctionSegment : JunctionNode
+    internal record ActiveJunctionSegment : JunctionNode
     {
         private readonly float[] trackSectionAngles;
 

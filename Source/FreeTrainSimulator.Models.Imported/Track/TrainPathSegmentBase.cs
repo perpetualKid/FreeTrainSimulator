@@ -2,7 +2,7 @@
 
 namespace FreeTrainSimulator.Models.Imported.Track
 {
-    public abstract class TrainPathSegmentBase : TrackSegmentBase
+    public abstract record TrainPathSegmentBase : TrackSegmentBase
     {
         protected TrainPathSegmentBase(TrackSegmentBase source) : base(source)
         {

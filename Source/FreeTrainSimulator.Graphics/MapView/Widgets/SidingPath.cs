@@ -9,7 +9,7 @@ using FreeTrainSimulator.Models.Imported.Track;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal class SidingPath : TrackSegmentPathBase<SidingSegment>, IDrawable<VectorPrimitive>, INameValueInformationProvider
+    internal record SidingPath : TrackSegmentPathBase<SidingSegment>, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Item Type"] = "Siding" };
         private protected static int debugInfoHash;
@@ -32,7 +32,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         internal string SidingName { get; }
 
-        private class SidingSection : TrackSegmentSectionBase<SidingSegment>, IDrawable<VectorPrimitive>
+        private record SidingSection : TrackSegmentSectionBase<SidingSegment>, IDrawable<VectorPrimitive>
         {
             public SidingSection(TrackModel trackModel, int trackNodeIndex) : base(trackModel, trackNodeIndex)
             {

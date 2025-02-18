@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal abstract class NamedTrackItem : PointPrimitive, IDrawable<PointPrimitive>
+    internal abstract record NamedTrackItem : PointPrimitive, IDrawable<PointPrimitive>
     {
         private protected float direction;
 
@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public abstract void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
     }
 
-    internal class StationNameItem : NamedTrackItem
+    internal record StationNameItem : NamedTrackItem
     {
         public StationNameItem(in PointD location, string name, int count = 1) : base(location, name, count)
         {
@@ -66,7 +66,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
     }
 
-    internal class PlatformNameItem : NamedTrackItem
+    internal record PlatformNameItem : NamedTrackItem
     {
         public PlatformNameItem(PlatformPath source) : base(MidPointLocationOnSegment(source), source.PlatformName)
         {
@@ -82,7 +82,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
     }
 
-    internal class SidingNameItem : NamedTrackItem
+    internal record SidingNameItem : NamedTrackItem
     {
         public SidingNameItem(SidingPath source) : base(MidPointLocationOnSegment(source), source.SidingName)
         {

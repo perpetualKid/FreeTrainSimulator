@@ -19,7 +19,7 @@ using Orts.Formats.Msts.Models;
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     #region TrackItemBase
-    internal abstract class TrackItemWidget : TrackItemBase, IDrawable<PointPrimitive>, INameValueInformationProvider
+    internal abstract record TrackItemWidget : TrackItemBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Item Type"] = "Empty" };
         private protected static int debugInfoItemId;
@@ -159,7 +159,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #endregion
 
     #region CrossOverTrackItem
-    internal class CrossOverTrackItem : TrackItemWidget
+    internal record CrossOverTrackItem : TrackItemWidget
     {
         public CrossOverTrackItem(CrossoverItem source) : base(source)
         {
@@ -181,7 +181,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #endregion
 
     #region CarSpawnerTrackItem
-    internal class CarSpawnerTrackItem : TrackItemWidget
+    internal record CarSpawnerTrackItem : TrackItemWidget
     {
         public CarSpawnerTrackItem(RoadCarSpawnerItem source) : base(source)
         {
@@ -201,7 +201,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #endregion
 
     #region EmptyTrackItem
-    internal class EmptyTrackItem : TrackItemWidget
+    internal record EmptyTrackItem : TrackItemWidget
     {
         public EmptyTrackItem(EmptyItem source) : base(source)
         {
@@ -223,7 +223,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #endregion
 
     #region SidingTrackItem
-    internal class SidingTrackItem : TrackItemWidget
+    internal record SidingTrackItem : TrackItemWidget
     {
         internal readonly string SidingName;
         internal readonly int LinkedId;
@@ -255,7 +255,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #endregion
 
     #region PlatformTrackItem
-    internal class PlatformTrackItem : TrackItemWidget
+    internal record PlatformTrackItem : TrackItemWidget
     {
         internal readonly string PlatformName;
         internal readonly string StationName;
@@ -292,7 +292,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #endregion
 
     #region SpeedPostTrackItem
-    internal class SpeedPostTrackItem : TrackItemWidget
+    internal record SpeedPostTrackItem : TrackItemWidget
     {
         private readonly string distance;
         internal readonly bool MilePost;
@@ -332,7 +332,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #endregion
 
     #region HazardTrackItem
-    internal class HazardTrackItem : TrackItemWidget
+    internal record HazardTrackItem : TrackItemWidget
     {
         public HazardTrackItem(HazardItem source) : base(source)
         {
@@ -352,7 +352,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #endregion
 
     #region PickupTrackItem
-    internal class PickupTrackItem : TrackItemWidget
+    internal record PickupTrackItem : TrackItemWidget
     {
         public PickupTrackItem(PickupItem source) : base(source)
         {
@@ -372,7 +372,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #endregion
 
     #region LevelCrossingTrackItem
-    internal class LevelCrossingTrackItem : TrackItemWidget
+    internal record LevelCrossingTrackItem : TrackItemWidget
     {
         internal readonly bool RoadLevelCrossing;
 
@@ -400,7 +400,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #endregion
 
     #region SoundRegionTrackItem
-    internal class SoundRegionTrackItem : TrackItemWidget
+    internal record SoundRegionTrackItem : TrackItemWidget
     {
         public SoundRegionTrackItem(SoundRegionItem source) : base(source)
         {
@@ -420,7 +420,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #endregion
 
     #region SignalTrackItem
-    internal class SignalTrackItem : TrackItemWidget
+    internal record SignalTrackItem : TrackItemWidget
     {
         private readonly float angle;
         internal readonly bool Normal = true;

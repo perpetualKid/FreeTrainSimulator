@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal class EditorPathPoint : TrainPathPointBase, IDrawable<PointPrimitive>
+    internal record EditorPathPoint : TrainPathPointBase, IDrawable<PointPrimitive>
     {
         private protected BasicTextureType textureType;
         private protected float Direction;

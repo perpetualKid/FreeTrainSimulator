@@ -9,7 +9,7 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Imported.Track
 {
-    public abstract class TrainPathPointBase : PointPrimitive
+    public abstract record TrainPathPointBase : PointPrimitive
     {
         private readonly int nextMainNode;
         private readonly int nextSidingNode;
@@ -140,7 +140,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
         }
     }
 
-    internal class TrainPathPoint : TrainPathPointBase
+    internal record TrainPathPoint : TrainPathPointBase
     {
         public TrainPathPoint(PathNode node, TrackModel trackModel) : base(node, trackModel)
         {

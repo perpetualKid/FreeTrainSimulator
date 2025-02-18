@@ -15,7 +15,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
     /// Also at junctions, train could take alternatve paths, following along an alternate TrackSegmentSection
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class TrackSegmentPathBase<T> : VectorPrimitive where T : TrackSegmentBase
+    public abstract record TrackSegmentPathBase<T> : VectorPrimitive where T : TrackSegmentBase
     {
         private PointD midPoint;
         private PointD topLeft;

@@ -13,7 +13,7 @@ using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Models.Imported.Track
 {
-    public abstract class TrainPathBase : TrackSegmentPathBase<TrainPathSegmentBase>
+    public abstract record TrainPathBase : TrackSegmentPathBase<TrainPathSegmentBase>
     {
         protected enum PathType
         {
@@ -34,7 +34,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
         protected abstract TrainPathPointBase CreateEditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection);
 
-        protected abstract class TrainPathSectionBase : TrackSegmentSectionBase<TrainPathSegmentBase>
+        protected abstract record TrainPathSectionBase : TrackSegmentSectionBase<TrainPathSegmentBase>
         {
             public PathType PathType { get; internal set; }
 

@@ -13,7 +13,7 @@ using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
-    internal class TrackSegment : TrackSegmentBase, IDrawable<VectorPrimitive>, INameValueInformationProvider
+    internal record TrackSegment : TrackSegmentBase, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Vector Section" };
         private protected static int debugInfoHash;
@@ -56,7 +56,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
     }
 
-    internal class RoadSegment : TrackSegment
+    internal record RoadSegment : TrackSegment
     {
         public override InformationDictionary DetailInfo
         {
