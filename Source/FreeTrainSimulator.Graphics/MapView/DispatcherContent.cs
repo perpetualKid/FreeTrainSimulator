@@ -94,7 +94,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         internal override void UpdatePointerLocation(in PointD position, in Tile bottomLeft, in Tile topRight)
         {
             GridTile nearestGridTile = trackModel.ContentByTile[MapContentType.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
-            if (nearestGridTile != nearestItems[MapContentType.Grid])
+            if (nearestGridTile != nearestItems[MapContentType.Grid] as GridTile)
                 nearestItems[MapContentType.Grid] = nearestGridTile;
 
             double distance = 400; // max 20m (sqrt(400)

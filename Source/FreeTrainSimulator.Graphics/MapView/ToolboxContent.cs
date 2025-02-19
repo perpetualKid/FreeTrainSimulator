@@ -96,7 +96,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             nearestSegmentForStatus = (float.MaxValue, null);
             nearestItemForStatus = (float.MaxValue, null);
             GridTile nearestGridTile = trackModel.ContentByTile[MapContentType.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
-            if (nearestGridTile != nearestItems[MapContentType.Grid])
+            if (nearestGridTile != nearestItems[MapContentType.Grid] as GridTile)
                 nearestItems[MapContentType.Grid] = nearestGridTile;
 
             foreach (MapContentType viewItem in EnumExtension.GetValues<MapContentType>())
