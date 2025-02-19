@@ -79,7 +79,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
             List<TrainPathPoint> pathItems = new List<TrainPathPoint>();
             pathItems.AddRange(pathModel.PathNodes.Select(node => new TrainPathPoint(node, TrackModel)));
-            TrainPathPointBase.LinkPathPoints(pathItems.Cast<TrainPathPointBase>().ToList());
+            TrainPathPointBase.LinkPathPoints(pathItems.Cast<TrainPathPointBase>().ToList(), pathModel.PathNodes.Select(p => (p.NextMainNode, p.NextSidingNode)).ToList());
 
             for (int i = 0; i < pathItems.Count; i++)
             {
