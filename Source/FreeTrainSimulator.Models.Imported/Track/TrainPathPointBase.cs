@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
@@ -18,7 +19,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
         public JunctionNodeBase JunctionNode { get; }
 
-        public IReadOnlyList<TrackSegmentBase> ConnectedSegments { get; }
+        public ImmutableArray<TrackSegmentBase> ConnectedSegments { get; }
 
         public TrainPathPointBase NextMainItem { get; internal set; }
         public TrainPathPointBase NextSidingItem { get; internal set; }
@@ -74,7 +75,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             JunctionNode = trackModel.JunctionAt(Location);
             NodeType = JunctionNode != null ? PathNodeType.Junction : PathNodeType.Intermediate;
 
-            ConnectedSegments = trackModel.OtherSegmentsAt(location, trackSegment).Prepend(trackSegment).ToList();
+            ConnectedSegments = trackModel.OtherSegmentsAt(location, trackSegment).Prepend(trackSegment).ToImmutableArray();
             if (!ConnectedSegments.Any())
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
@@ -134,9 +135,9 @@ namespace FreeTrainSimulator.Models.Imported.Track
             }
         }
 
-        private List<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
+        private ImmutableArray<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
         {
-            return JunctionNode?.ConnectedSegments(trackModel).ToList() ?? trackModel.SegmentsAt(Location).ToList();
+            return JunctionNode?.ConnectedSegments(trackModel).ToImmutableArray() ?? trackModel.SegmentsAt(Location).ToImmutableArray();
         }
     }
 
