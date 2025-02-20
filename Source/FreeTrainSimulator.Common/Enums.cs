@@ -1863,7 +1863,7 @@ namespace FreeTrainSimulator.Common
     public enum PathNodeType
     {
         /// <summary>Temporary node for editing purposes</summary>
-        Temporary = 0x0,
+        None = 0x0,
         /// <summary>Node is a regular node on a junction</summary>
         Junction = 0x1,
         /// <summary>Node is an intermediate point node </summary>

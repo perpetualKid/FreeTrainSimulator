@@ -144,7 +144,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             sections = sections.Clear();
             editorUseIntermediaryPathPoint = false;
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
-            return editorSegmentStart with { NodeType = PathNodeType.Temporary }; // new EditorPathPoint(pathPoint.Location, pathPoint.Location, PathNodeType.Temporary);
+            return editorSegmentStart with { NodeType = PathNodeType.None }; // new EditorPathPoint(pathPoint.Location, pathPoint.Location, PathNodeType.Temporary);
         }
 
         internal EditorPathPoint RemovePathPoint(EditorPathPoint pathPoint)
@@ -160,7 +160,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 editorUseIntermediaryPathPoint = false;
                 pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
             }
-            return new EditorPathPoint(pathPoint.Location, pathPoint.Location, PathNodeType.Temporary);
+            return new EditorPathPoint(pathPoint.Location, pathPoint.Location, PathNodeType.None);
         }
 
         internal void UpdateLocation(in PointD location)

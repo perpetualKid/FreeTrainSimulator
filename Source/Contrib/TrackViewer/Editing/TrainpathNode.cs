@@ -753,7 +753,7 @@ namespace ORTS.TrackViewer.Editing
                 PathNodeType _ when (tpn.NodeType & PathNodeType.End) == PathNodeType.End => TrainpathNodeType.Other,
                 PathNodeType _ when (tpn.NodeType & PathNodeType.Wait) == PathNodeType.Wait => TrainpathNodeType.Stop,
                 PathNodeType _ when (tpn.NodeType & PathNodeType.Reversal) == PathNodeType.Reversal => TrainpathNodeType.Reverse,
-                PathNodeType _ when (tpn.NodeType & PathNodeType.Temporary) == PathNodeType.Temporary => TrainpathNodeType.Other,
+                PathNodeType _ when (tpn.NodeType & PathNodeType.None) == PathNodeType.None => TrainpathNodeType.Other,
                 _ => throw new NotImplementedException(),
             };
             ;

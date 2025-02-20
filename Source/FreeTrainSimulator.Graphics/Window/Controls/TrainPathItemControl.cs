@@ -23,7 +23,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                 PathNodeType _ when (nodeType & PathNodeType.Intermediate) == PathNodeType.Intermediate => BasicTextureType.PathNormal,
                 PathNodeType _ when (nodeType & PathNodeType.Wait) == PathNodeType.Wait => BasicTextureType.PathWait,
                 PathNodeType _ when (nodeType & PathNodeType.Reversal) == PathNodeType.Reversal => BasicTextureType.PathReverse,
-                PathNodeType _ when (nodeType & PathNodeType.Temporary) == PathNodeType.Temporary => BasicTextureType.RingCrossed,
+                PathNodeType _ when (nodeType & PathNodeType.None) == PathNodeType.None => BasicTextureType.RingCrossed,
                 PathNodeType _ when (nodeType & PathNodeType.Invalid) == PathNodeType.Invalid => BasicTextureType.RingCrossed,
                 _ => throw new NotImplementedException(),
             };
