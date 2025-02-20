@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
@@ -14,7 +15,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     {
         #region active path editing
         private EditorPathPoint editorSegmentStart;
-        private List<TrainPathSectionBase> sections = new List<TrainPathSectionBase>();
+        private ImmutableArray<TrainPathSectionBase> sections = ImmutableArray<TrainPathSectionBase>.Empty;
         private bool editorUseIntermediaryPathPoint;
         #endregion
 
@@ -96,7 +97,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 pathItem.UpdateNodeType(PathNodeType.Junction);
             }
             PathPoints.Add(pathItem);
-            sections.Clear();
+            sections = sections.Clear();
             editorUseIntermediaryPathPoint = false;
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
             return new EditorPathPoint(pathItem.Location, pathItem.Location, PathNodeType.Temporary);
@@ -108,7 +109,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             {
                 EditorPathPoint end = new EditorPathPoint(location, TrackModel);
                 editorSegmentStart.ValidationResult = PathNodeInvalidReasons.None;
-                PathSections.RemoveRange(PathSections.Count - sections.Count, sections.Count);
+                PathSections.RemoveRange(PathSections.Count - sections.Length, sections.Length);
 
                 if (editorUseIntermediaryPathPoint)
                     PathPoints.RemoveAt(PathPoints.Count - 1);
@@ -126,7 +127,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                         (PathPoints[^1] as EditorPathPoint).UpdateNodeType(PathNodeType.Junction);
                     }
                 }
-                if (sections.Count > 1)
+                if (sections.Length > 1)
                 {
                     PathPoints.Add(CreateEditorPathItem(sections[0].Vector, end.Location, PathNodeType.Junction));
                     editorUseIntermediaryPathPoint = true;
