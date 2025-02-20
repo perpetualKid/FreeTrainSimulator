@@ -105,7 +105,7 @@ namespace FreeTrainSimulator.Toolbox
             RouteModel routeModel = await route.GetExtended(ctsProfileLoading.Token).ConfigureAwait(false);
             Task<ImmutableArray<PathModelHeader>> pathTask = routeModel.GetRoutePaths(ctsProfileLoading.Token);
 
-            await TrackData.LoadTrackData(this, routeModel, useMetricUnits, ctsProfileLoading.Token).ConfigureAwait(false);
+            await TrackData.LoadTrackData(routeModel, useMetricUnits, ctsProfileLoading.Token).ConfigureAwait(false);
             if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
@@ -128,6 +128,11 @@ namespace FreeTrainSimulator.Toolbox
         internal void EditPath()
         {
             PathEditor.InitializeNewPath();
+        }
+
+        internal void SavePath()
+        {
+//            PathEditor.SavePath();
         }
 
         internal async Task PreSelectRoute(string folderName, string routeId, string pathId)

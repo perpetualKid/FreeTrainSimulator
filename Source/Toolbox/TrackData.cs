@@ -1,14 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
-using FreeTrainSimulator.Models.Shim;
-
-using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -18,7 +14,7 @@ namespace FreeTrainSimulator.Toolbox
 {
     public class TrackData : RuntimeData
     {
-        internal static async ValueTask LoadTrackData(Game game, RouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
+        internal static async ValueTask LoadTrackData(RouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
             TrackSectionsFile trackSections = null;
@@ -55,7 +51,6 @@ namespace FreeTrainSimulator.Toolbox
                 roadTrackDB = new RoadDatabaseFile(rdbFile).RoadTrackDB;
             }, cancellationToken));
             loadTasks.Add(Task.Run(() => signalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken));
-            Task<ImmutableArray<PathModelHeader>> pathTask = routeModel.GetRoutePaths(cancellationToken);
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
 
