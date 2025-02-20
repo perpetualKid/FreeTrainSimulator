@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
@@ -76,31 +75,92 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
         }
 
+        public EditorTrainPath(PathModel pathModel, ImmutableArray<TrainPathPointBase> pathPoints, Game game) : base(pathModel, pathPoints, game)
+        {
+            pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
+        }
+
         public EditorTrainPath(Game game) : base(game)
         {
         }
 
+        //public void LinkPathPoints(ImmutableArray<(int NextMainNode, int NextSidingNode)> pathPointConnections)
+        //{
+        //    if (PathPoints.Count != pathPointConnections.Length)
+        //        throw new ArgumentOutOfRangeException(nameof(pathPointConnections), pathPointConnections.Length, "Linking path points collection needs to have same size as path points");
+
+        //    int index;
+        //    int beforeEndNode = -1;
+
+        //    //for (int i = 0; i < PathPoints.Count; i++)
+        //    //{
+        //    //    if ((index = pathPointConnections[i].NextMainNode) != -1)
+        //    //    {
+        //    //        PathPoints[i].NextMainItem = PathPoints[index];
+        //    //        if ((PathPoints[i].NextMainItem.NodeType & PathNodeType.End) == PathNodeType.End)
+        //    //            beforeEndNode = i;
+        //    //    }
+        //    //    else if ((PathPoints[i].NodeType & PathNodeType.End) == PathNodeType.End)
+        //    //        PathPoints[i].NextMainItem = PathPoints[beforeEndNode];
+
+        //    //    if ((index = pathPointConnections[i].NextSidingNode) != -1)
+        //    //        PathPoints[i].NextSidingItem = PathPoints[index];
+                
+
+        //    //}
+
+        //    foreach (TrainPathPointBase item in PathPoints)
+        //    {
+
+        //    }
+        //}
+
         #region path editing
-        internal EditorPathPoint AddPathPoint(EditorPathPoint pathItem)
+        internal EditorPathPoint AddPathPoint(EditorPathPoint pathPoint)
         {
-            if (pathItem == null)
+            if (pathPoint == null)
                 return null;
 
             if (editorSegmentStart != null && editorSegmentStart.ValidationResult != PathNodeInvalidReasons.None)
-                return pathItem;
+                return pathPoint;
 
-            editorSegmentStart = new EditorPathPoint(pathItem.Location, TrackModel);
-            if (PathPoints.Count == 0)
-                pathItem.UpdateNodeType(PathNodeType.Start);
-            else
-            {
-                pathItem.UpdateNodeType(PathNodeType.Junction);
-            }
-            PathPoints.Add(pathItem);
+            editorSegmentStart = new EditorPathPoint(pathPoint.Location, TrackModel);
+
+            pathPoint = PathPoints.Count == 0
+                ? (editorSegmentStart with { NodeType = PathNodeType.Start | editorSegmentStart.NodeType })
+                : (editorSegmentStart with { });
+            pathPoint.ResetTexture();
+            //if (PathPoints.Count == 0)
+            //    pathPoint.UpdateNodeType(PathNodeType.Start);
+            //else
+            //{
+            //    pathPoint.UpdateNodeType(PathNodeType.Junction);
+            //}
+            PathPoints.Add(pathPoint);
+            //if ((pathPoint.NodeType & PathNodeType.Start) != PathNodeType.Start)
+            //{
+            //    PathPoints[^2].NextMainItem = pathPoint;
+            //}
             sections = sections.Clear();
             editorUseIntermediaryPathPoint = false;
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
-            return new EditorPathPoint(pathItem.Location, pathItem.Location, PathNodeType.Temporary);
+            return editorSegmentStart with { NodeType = PathNodeType.Temporary }; // new EditorPathPoint(pathPoint.Location, pathPoint.Location, PathNodeType.Temporary);
+        }
+
+        internal EditorPathPoint RemovePathPoint(EditorPathPoint pathPoint)
+        {
+            if (pathPoint == null)
+                return null;
+
+            if (PathPoints.Count > 0)
+            {
+                PathPoints.RemoveAt(PathPoints.Count - 1);
+                editorSegmentStart = new EditorPathPoint(PathPoints[^1].Location, TrackModel);
+                PathSections.RemoveRange(PathSections.Count - sections.Length, sections.Length  );
+                editorUseIntermediaryPathPoint = false;
+                pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
+            }
+            return new EditorPathPoint(pathPoint.Location, pathPoint.Location, PathNodeType.Temporary);
         }
 
         internal void UpdateLocation(in PointD location)
@@ -122,10 +182,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                     bool reverse = previous.SectionSegments[0].IsReverseDirectionTowards(previous.Location, previous.Vector);
                     if (sections[0].TrackNodeIndex == previous.TrackNodeIndex && reverse != sections[0].SectionSegments[0].IsReverseDirectionTowards(editorSegmentStart.Location, location))
                         (PathPoints[^1] as EditorPathPoint).UpdateNodeType(PathNodeType.Reversal);
-                    else
-                    {
-                        (PathPoints[^1] as EditorPathPoint).UpdateNodeType(PathNodeType.Junction);
-                    }
+                    //else
+                    //{
+                    //    (PathPoints[^1] as EditorPathPoint).UpdateNodeType(PathNodeType.Junction);
+                    //}
                 }
                 if (sections.Length > 1)
                 {

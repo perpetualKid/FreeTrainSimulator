@@ -12,14 +12,14 @@ namespace FreeTrainSimulator.Models.Imported.Track
 {
     public abstract record TrainPathPointBase : PointPrimitive
     {
-        public PathNodeType NodeType { get; protected set; }
+        public PathNodeType NodeType { get; set; } // protected set; }
 
         public JunctionNodeBase JunctionNode { get; }
 
         public ImmutableArray<TrackSegmentBase> ConnectedSegments { get; }
 
-        public TrainPathPointBase NextMainItem { get; internal set; }
-        public TrainPathPointBase NextSidingItem { get; internal set; }
+        public TrainPathPointBase NextMainItem { get; init; }
+        public TrainPathPointBase NextSidingItem { get; init; }
 
         public PathNodeInvalidReasons ValidationResult { get; set; }
 
@@ -98,8 +98,6 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
         internal static void LinkPathPoints(List<TrainPathPointBase> pathPoints, List<(int NextMainNode, int NextSidingNode)> pathPointConnections)
         {
-            int beforeEndNode = -1;
-
             if (pathPoints.Count != pathPointConnections.Count)
                 throw new ArgumentOutOfRangeException(nameof(pathPointConnections), pathPointConnections.Count, "Linking path points collection needs to have same size as path points");
 
@@ -110,20 +108,27 @@ namespace FreeTrainSimulator.Models.Imported.Track
             //it's assumed that passing paths will reconnct to main node, and not ending on it's own
 
             int index;
+            int beforeEndNode = -1;
 
-            for(int i = 0; i < pathPoints.Count; i++)
+            for (int i = 0; i < pathPoints.Count; i++)
             {
                 if ((index = pathPointConnections[i].NextMainNode) != -1)
                 {
-                    pathPoints[i].NextMainItem = pathPoints[index];
+                    pathPoints[i]  = pathPoints[i] with 
+                    {
+                        NextMainItem = pathPoints[index] 
+                    };
                     if ((pathPoints[i].NextMainItem.NodeType & PathNodeType.End) == PathNodeType.End)
                         beforeEndNode = i;
                 }
                 else if ((pathPoints[i].NodeType & PathNodeType.End) == PathNodeType.End)
-                    pathPoints[i].NextMainItem = pathPoints[beforeEndNode];
+                    pathPoints[i] = pathPoints[i] with
+                    {
+                        NextMainItem = pathPoints[beforeEndNode]
+                    };
 
                 if ((index = pathPointConnections[i].NextSidingNode) != -1)
-                    pathPoints[i].NextSidingItem = pathPoints[index];
+                    pathPoints[i] = pathPoints[i] with { NextSidingItem = pathPoints[index] };
             }
         }
 
@@ -135,6 +140,10 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
     internal record TrainPathPoint : TrainPathPointBase
     {
+        public TrainPathPoint(TrainPathPointBase node) : base(node)
+        {
+        }
+
         public TrainPathPoint(PathNode node, TrackModel trackModel) : base(node, trackModel)
         {
         }

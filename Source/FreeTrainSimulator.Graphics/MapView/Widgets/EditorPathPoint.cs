@@ -61,10 +61,20 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Direction = (float)Math.Atan2(origin.X, origin.Y);
         }
 
+        internal void UpdateDirection(float direction)
+        {
+            Direction = direction;
+        }
+
         internal void UpdateNodeType(PathNodeType nodeType)
         {
             NodeType = nodeType;
             textureType = TextureFromNodeType(nodeType);
+        }
+
+        internal void ResetTexture()
+        {
+            textureType = TextureFromNodeType(NodeType);
         }
 
         private static BasicTextureType TextureFromNodeType(PathNodeType nodeType)

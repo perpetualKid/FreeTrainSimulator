@@ -132,7 +132,7 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void SavePath()
         {
-//            PathEditor.SavePath();
+            PathEditor.SavePath();
         }
 
         internal async Task PreSelectRoute(string folderName, string routeId, string pathId)

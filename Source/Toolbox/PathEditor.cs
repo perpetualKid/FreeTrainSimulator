@@ -1,6 +1,7 @@
 ﻿using System;
 
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Track;
@@ -19,6 +20,7 @@ namespace FreeTrainSimulator.Toolbox
 
     internal sealed class PathEditor : PathEditorBase
     {
+        private UserCommandController<UserCommand> userCommandController;
         private PathModelHeader path;
         private long lastPathClickTick;
         private bool validPointAdded;
@@ -33,9 +35,21 @@ namespace FreeTrainSimulator.Toolbox
 
         public PathEditor(ContentArea contentArea, UserCommandController<UserCommand> userCommandController) : base(contentArea) 
         { 
+            this.userCommandController = userCommandController;
             userCommandController.AddEvent(CommonUserCommand.PointerPressed, MousePressedLeft);
             userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
+            userCommandController.AddEvent(CommonUserCommand.AlternatePointerPressed, MousePressedRight);
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragged);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            userCommandController.RemoveEvent(CommonUserCommand.PointerPressed, MousePressedLeft);
+            userCommandController.RemoveEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
+            userCommandController.RemoveEvent(CommonUserCommand.AlternatePointerPressed, MousePressedRight);
+            userCommandController.RemoveEvent(CommonUserCommand.PointerDragged, MouseDragged);
+
+            base.Dispose(disposing);
         }
 
         public bool InitializePath(PathModelHeader path)
@@ -55,8 +69,25 @@ namespace FreeTrainSimulator.Toolbox
 
         public void InitializeNewPath()
         {
+            this.path = new PathModelHeader()
+            {
+                Id = "<New Path>",
+                Name = "<New Path>",
+                Start = "Start",
+                End = "End",
+                PlayerPath = true,
+            };
             InitializePath();
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+        }
+
+        public void SavePath()
+        {
+            foreach (TrainPathPointBase item in TrainPath.PathPoints)
+            {
+                //                WorldLocation location = PointD.ToWorldLocation(item.Location, item.ConnectedSegments[0].TrackSegmentAt(item.Location).);
+                //item.ConnectedSegments[0].TrackSegmentAt(item.Location);
+            }
         }
 
         public void MousePressedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
@@ -84,8 +115,13 @@ namespace FreeTrainSimulator.Toolbox
 
         public void MouseReleasedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
-
         }
 
+        public void MousePressedRight(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+            RemovePathPoint();
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            userCommandArgs.Handled = true;
+        }
     }
 }

@@ -1862,7 +1862,8 @@ namespace FreeTrainSimulator.Common
     [Flags] // a path node could be a start/end right at a junction, or any node could be invalid
     public enum PathNodeType
     {
-        None = 0x0,
+        /// <summary>Temporary node for editing purposes</summary>
+        Temporary = 0x0,
         /// <summary>Node is a regular node on a junction</summary>
         Junction = 0x1,
         /// <summary>Node is an intermediate point node </summary>
@@ -1875,8 +1876,6 @@ namespace FreeTrainSimulator.Common
         Wait = 0x10,
         /// <summary>Node is a reversal node</summary>
         Reversal = 0x20,
-        /// <summary>Temporary node for editing purposes</summary>
-        Temporary = 0x40,
         Invalid = 0x1000,
     };
 

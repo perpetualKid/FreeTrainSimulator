@@ -445,5 +445,10 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
         }
 
         #endregion
+
+        private void SavePathToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            parent.SavePath();
+        }
     }
 }
