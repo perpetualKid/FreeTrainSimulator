@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
@@ -100,7 +101,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
         protected void AddPathPoint(PathType pathType, TrainPathPointBase start, TrainPathPointBase end, int index)
         {
             sectionStart = null;
-            List<TrainPathSectionBase> sections = AddSections(pathType, start, end, index);
+            ImmutableArray<TrainPathSectionBase> sections = AddSections(pathType, start, end, index);
 
             if ((start.NodeType & PathNodeType.End) != PathNodeType.End)
                 PathSections.AddRange(sections);
@@ -130,9 +131,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             }
         }
 
-#pragma warning disable CA1002 // Do not expose generic lists
-        protected List<TrainPathSectionBase> AddSections(PathType pathType, TrainPathPointBase start, TrainPathPointBase end, int index)
-#pragma warning restore CA1002 // Do not expose generic lists
+        protected ImmutableArray<TrainPathSectionBase> AddSections(PathType pathType, TrainPathPointBase start, TrainPathPointBase end, int index)
         {
             ArgumentNullException.ThrowIfNull(start);
             ArgumentNullException.ThrowIfNull(end);
@@ -150,35 +149,33 @@ namespace FreeTrainSimulator.Models.Imported.Track
             }
             else
             {
-                List<TrackSegmentBase> trackSegments = start.ConnectedSegments.IntersectBy(end.ConnectedSegments.Select(s => s.TrackNodeIndex), s => s.TrackNodeIndex).ToList();
-                switch (trackSegments.Count)
+                IEnumerable<TrackSegmentBase> trackSegments = start.ConnectedSegments.IntersectBy(end.ConnectedSegments.Select(s => s.TrackNodeIndex), s => s.TrackNodeIndex);
+                TrackSegmentBase nodeSegment;
+                if ((nodeSegment = trackSegments.FirstOrDefault()) == null)
                 {
-                    case 0:
-                        TrainPathPointBase intermediary = TrackModel.FindIntermediaryConnection(start, end);
-                        if (intermediary != null)
-                        {
-                            foreach (var item in AddSections(pathType, start, intermediary, index))
-                                sections.Add(item);
-                            foreach (var item in AddSections(pathType, intermediary, end, index))
-                                sections.Add(item);
-                        }
-                        else
-                        {
-                            Trace.TraceWarning($"No valid connection found for #{index}");
-                            start.ValidationResult |= PathNodeInvalidReasons.NoConnectionPossible;
-                            section = AddSection(start.Location, end.Location) as TrainPathSectionBase;
-                            section.PathType = PathType.Invalid;
-                            sections.Add(section);
-                        }
-                        break;
-                    case 1:
-                        TrackSegmentBase nodeSegment = trackSegments[0];
-                        section = AddSection(TrackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location) as TrainPathSectionBase;
-                        section.PathType = pathType;
+                    // no (0) matching track segments
+                    TrainPathPointBase intermediary = TrackModel.FindIntermediaryConnection(start, end);
+                    if (intermediary != null)
+                    {
+                        foreach (TrainPathSectionBase item in AddSections(pathType, start, intermediary, index))
+                            sections.Add(item);
+                        foreach (TrainPathSectionBase item in AddSections(pathType, intermediary, end, index))
+                            sections.Add(item);
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"No valid connection found for #{index}");
+                        start.ValidationResult |= PathNodeInvalidReasons.NoConnectionPossible;
+                        section = AddSection(start.Location, end.Location) as TrainPathSectionBase;
+                        section.PathType = PathType.Invalid;
                         sections.Add(section);
-                        sectionStart ??= (nodeSegment, nodeSegment.IsReverseDirectionTowards(start, end));
-                        break;
-                    default:
+                    }
+                }
+                else
+                {
+                    if (trackSegments.SkipLast(1).Any())
+                    {
+                        //multiple segments, there should be a junction node
                         nodeSegment = trackSegments.Where(s => s.TrackNodeIndex == (start.JunctionNode ?? end.JunctionNode).MainRoute).FirstOrDefault();
                         if (nodeSegment == null)
                         {
@@ -194,10 +191,18 @@ namespace FreeTrainSimulator.Models.Imported.Track
                             sections.Add(section);
                             sectionStart ??= (nodeSegment, nodeSegment.IsReverseDirectionTowards(start, end));
                         }
-                        break;
+                    }
+                    else
+                    {
+                        // one segment, intermediary path point
+                        section = AddSection(TrackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location) as TrainPathSectionBase;
+                        section.PathType = pathType;
+                        sections.Add(section);
+                        sectionStart ??= (nodeSegment, nodeSegment.IsReverseDirectionTowards(start, end));
+                    }
                 }
             }
-            return sections;
+            return sections.ToImmutableArray();
         }
     }
 }
