@@ -43,6 +43,23 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 {
     public class DistributedPowerInterface
     {
+        public static EnumArray<Color, EtcsColorKeys> ColorKeys { get; } = new EnumArray<Color, EtcsColorKeys>((EtcsColorKeys colorKey) => colorKey switch
+            {
+                // Color RGB values are from ETCS specification
+                EtcsColorKeys.Grey => new Color(195, 195, 195),
+                EtcsColorKeys.MediumGrey => new Color(150, 150, 150),
+                EtcsColorKeys.DarkGrey => new Color(85, 85, 85),
+                EtcsColorKeys.Yellow => new Color(223, 223, 0),
+                EtcsColorKeys.Orange => new Color(234, 145, 0),
+                EtcsColorKeys.Red => new Color(191, 0, 2),
+                EtcsColorKeys.Background => new Color(0, 0, 0, 0), // transparent
+                EtcsColorKeys.PaspLight => new Color(41, 74, 107),
+                EtcsColorKeys.PaspDark => new Color(33, 49, 74),
+                EtcsColorKeys.Shadow => new Color(8, 24, 57),
+                EtcsColorKeys.White => new Color(255, 255, 255),
+                _ => throw new NotImplementedException(),
+            });
+
         private bool active;
         private float prevScale = 1;
         private readonly int Height = 240;
@@ -61,19 +78,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public DPDefaultWindow DPDefaultWindow { get; }
 
         public DriverMachineInterfaceShader Shader { get; }
-
-        // Color RGB values are from ETCS specification
-        public static readonly Color ColorGrey = new Color(195, 195, 195);
-        public static readonly Color ColorMediumGrey = new Color(150, 150, 150);
-        public static readonly Color ColorDarkGrey = new Color(85, 85, 85);
-        public static readonly Color ColorYellow = new Color(223, 223, 0);
-        public static readonly Color ColorOrange = new Color(234, 145, 0);
-        public static readonly Color ColorRed = new Color(191, 0, 2);
-        public static readonly Color ColorBackground = new Color(0, 0, 0, 0); // transparent
-        public static readonly Color ColorPASPlight = new Color(41, 74, 107);
-        public static readonly Color ColorPASPdark = new Color(33, 49, 74);
-        public static readonly Color ColorShadow = new Color(8, 24, 57);
-        public static readonly Color ColorWhite = new Color(255, 255, 255);
 
         // Some DPIs use black for the background and white for borders, instead of blue scale
         public bool BlackWhiteTheme { get; }
@@ -294,9 +298,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             else if (Layer < 0)
             {
                 DrawIntRectangle(spriteBatch, drawPosition, 0, 0, 1, Height, Color.Black);
-                DrawIntRectangle(spriteBatch, drawPosition, Width - 1, 0, 1, Height, DistributedPowerInterface.ColorShadow);
+                DrawIntRectangle(spriteBatch, drawPosition, Width - 1, 0, 1, Height, DistributedPowerInterface.ColorKeys[EtcsColorKeys.Shadow]);
                 DrawIntRectangle(spriteBatch, drawPosition, 0, 0, Width, 1, Color.Black);
-                DrawIntRectangle(spriteBatch, drawPosition, 0, Height - 1, Width, 1, DistributedPowerInterface.ColorShadow);
+                DrawIntRectangle(spriteBatch, drawPosition, 0, Height - 1, Width, 1, DistributedPowerInterface.ColorKeys[EtcsColorKeys.Shadow]);
             }
         }
         public virtual void PrepareFrame(DPIStatus status) { }
@@ -413,7 +417,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             FullScreen = fullScreen;
             FullTable = fullTable;
             LoadUnits = loadUnits;
-            BackgroundColor = DPI.BlackWhiteTheme ? Color.Black : DistributedPowerInterface.ColorBackground;
+            BackgroundColor = DPI.BlackWhiteTheme ? Color.Black : DistributedPowerInterface.ColorKeys[EtcsColorKeys.Background];
             SetFont();
             string text = "";
             for (int iRow = 0; iRow < (fullTable ? NumberOfRowsFull : NumberOfRowsPartial); iRow++)
@@ -577,7 +581,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                 DPI.SizeTo(DrawPosition.Width, DrawPosition.Height);
                 DrawPosition.X -= 320;
                 DrawPosition.Y -= 240;
-                DPI.DPDefaultWindow.BackgroundColor = DistributedPowerInterface.ColorBackground;
+                DPI.DPDefaultWindow.BackgroundColor = DistributedPowerInterface.ColorKeys[EtcsColorKeys.Background];
             }
             else
             {
@@ -658,7 +662,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
             offset.Y = -this.size;
             var param = new string(' ', MaxDigits);
-            var color = DistributedPowerInterface.ColorYellow;
+            var color = DistributedPowerInterface.ColorKeys[EtcsColorKeys.Yellow];
             var headerIndex = 0;
             float tX, tY;
             for (int iRow = 0; iRow < DPITable.NumberOfRowsFull; iRow++)
