@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Input;
-using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Track;
+using FreeTrainSimulator.Models.Shim;
 
 namespace FreeTrainSimulator.Toolbox
 {
@@ -20,7 +21,7 @@ namespace FreeTrainSimulator.Toolbox
 
     internal sealed class PathEditor : PathEditorBase
     {
-        private UserCommandController<UserCommand> userCommandController;
+        private readonly UserCommandController<UserCommand> userCommandController;
         private PathModelHeader path;
         private long lastPathClickTick;
         private bool validPointAdded;
@@ -83,11 +84,8 @@ namespace FreeTrainSimulator.Toolbox
 
         public void SavePath()
         {
-            foreach (TrainPathPointBase item in TrainPath.PathPoints)
-            {
-                //                WorldLocation location = PointD.ToWorldLocation(item.Location, item.ConnectedSegments[0].TrackSegmentAt(item.Location).);
-                //item.ConnectedSegments[0].TrackSegmentAt(item.Location);
-            }
+            PathModel pathModel = ConvertTrainPath();
+            Task.Run(async () => pathModel = await TrackData.Instance.RouteData.Save(pathModel)).Wait();
         }
 
         public void MousePressedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)

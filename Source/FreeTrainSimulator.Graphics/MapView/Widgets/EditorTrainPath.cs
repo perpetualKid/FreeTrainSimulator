@@ -45,12 +45,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             {
                 colorVariation = PathType switch
                 {
-                    PathType.PassingPath => ColorVariation.Highlight,
+                    PathSectionType.PassingPath => ColorVariation.Highlight,
                     _ => ColorVariation.None,
                 };
                 foreach (EditorTrainPathSegment segment in SectionSegments)
                 {
-                    segment.Draw(contentArea, colorVariation, PathType == PathType.Invalid ? -scaleFactor : scaleFactor);
+                    segment.Draw(contentArea, colorVariation, PathType == PathSectionType.Invalid ? -scaleFactor : scaleFactor);
                 }
             }
 
@@ -84,36 +84,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
         }
 
-        //public void LinkPathPoints(ImmutableArray<(int NextMainNode, int NextSidingNode)> pathPointConnections)
-        //{
-        //    if (PathPoints.Count != pathPointConnections.Length)
-        //        throw new ArgumentOutOfRangeException(nameof(pathPointConnections), pathPointConnections.Length, "Linking path points collection needs to have same size as path points");
-
-        //    int index;
-        //    int beforeEndNode = -1;
-
-        //    //for (int i = 0; i < PathPoints.Count; i++)
-        //    //{
-        //    //    if ((index = pathPointConnections[i].NextMainNode) != -1)
-        //    //    {
-        //    //        PathPoints[i].NextMainItem = PathPoints[index];
-        //    //        if ((PathPoints[i].NextMainItem.NodeType & PathNodeType.End) == PathNodeType.End)
-        //    //            beforeEndNode = i;
-        //    //    }
-        //    //    else if ((PathPoints[i].NodeType & PathNodeType.End) == PathNodeType.End)
-        //    //        PathPoints[i].NextMainItem = PathPoints[beforeEndNode];
-
-        //    //    if ((index = pathPointConnections[i].NextSidingNode) != -1)
-        //    //        PathPoints[i].NextSidingItem = PathPoints[index];
-                
-
-        //    //}
-
-        //    foreach (TrainPathPointBase item in PathPoints)
-        //    {
-
-        //    }
-        //}
+        public new PathModel ToPathModel()
+        {
+            return base.ToPathModel();
+        }
 
         #region path editing
         internal EditorPathPoint AddPathPoint(EditorPathPoint pathPoint)
@@ -127,15 +101,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             editorSegmentStart = new EditorPathPoint(pathPoint.Location, TrackModel);
 
             pathPoint = PathPoints.Count == 0
-                ? (editorSegmentStart with { NodeType = PathNodeType.Start | editorSegmentStart.NodeType })
-                : (editorSegmentStart with { });
+                ? (editorSegmentStart with { NodeType = PathNodeType.Start | editorSegmentStart.NodeType, NextMainNode = 1 })
+                : (editorSegmentStart with { NextMainNode = PathPoints.Count + 1 });
             pathPoint.ResetTexture();
-            //if (PathPoints.Count == 0)
-            //    pathPoint.UpdateNodeType(PathNodeType.Start);
-            //else
-            //{
-            //    pathPoint.UpdateNodeType(PathNodeType.Junction);
-            //}
             PathPoints.Add(pathPoint);
             //if ((pathPoint.NodeType & PathNodeType.Start) != PathNodeType.Start)
             //{
@@ -144,7 +112,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             sections = sections.Clear();
             editorUseIntermediaryPathPoint = false;
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
-            return editorSegmentStart with { NodeType = PathNodeType.None }; // new EditorPathPoint(pathPoint.Location, pathPoint.Location, PathNodeType.Temporary);
+            return editorSegmentStart with { NodeType = PathNodeType.None };
         }
 
         internal EditorPathPoint RemovePathPoint(EditorPathPoint pathPoint)
@@ -156,7 +124,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             {
                 PathPoints.RemoveAt(PathPoints.Count - 1);
                 editorSegmentStart = new EditorPathPoint(PathPoints[^1].Location, TrackModel);
-                PathSections.RemoveRange(PathSections.Count - sections.Length, sections.Length  );
+                PathSections.RemoveRange(PathSections.Count - sections.Length, sections.Length);
                 editorUseIntermediaryPathPoint = false;
                 pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
             }
@@ -174,7 +142,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 if (editorUseIntermediaryPathPoint)
                     PathPoints.RemoveAt(PathPoints.Count - 1);
                 editorUseIntermediaryPathPoint = false;
-                sections = AddSections(PathType.MainPath, editorSegmentStart, end, 0);
+                sections = AddSections(PathSectionType.MainPath, editorSegmentStart, end, 0);
 
                 if (PathSections.Count > 0)
                 {

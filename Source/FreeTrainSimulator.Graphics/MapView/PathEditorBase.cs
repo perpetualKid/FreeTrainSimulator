@@ -85,25 +85,32 @@ namespace FreeTrainSimulator.Graphics.MapView
             pathPoint = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
         }
 
+        public  PathModel ConvertTrainPath()
+        {
+            return trainPath?.ToPathModel();
+        }
+
         protected bool AddPathEndPoint()
         {
             if (trainPath?.PathPoints.Count > 1 && pathPoint.ValidationResult == PathNodeInvalidReasons.None)
             {
                 pathPoint = trainPath.PathPoints[^1] as EditorPathPoint;
-
                 pathPoint.UpdateDirection(trainPath.PathPoints[^2].Location);
-                pathPoint.UpdateNodeType(pathPoint.NodeType | PathNodeType.End);
+
+                trainPath.PathPoints[^1] = pathPoint with
+                {
+                    NodeType = pathPoint.NodeType | PathNodeType.End
+                };
+                //pathPoint = trainPath.PathPoints[^1] as EditorPathPoint;
+
+                //pathPoint.UpdateDirection(trainPath.PathPoints[^2].Location);
+                //pathPoint.UpdateNodeType(pathPoint.NodeType | PathNodeType.End);
 
                 float f = trainPath.Length;
                 pathPoint = null;
                 ToolboxContent.ContentMode = ToolboxContentMode.ViewPath;
                 EditMode = false;
 
-                //trainPath = new EditorTrainPath(new PathModel()
-                //{
-                //    Id = "New",
-                //    Name = "New",
-                //}, TrainPath.PathPoints.ToImmutableArray(), ToolboxContent.ContentArea.Game);
                 return true;
             }
             return false;

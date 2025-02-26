@@ -62,5 +62,11 @@ namespace FreeTrainSimulator.Models.Shim
             ArgumentNullException.ThrowIfNull(timetableModel, nameof(timetableModel));
             return $"{routeModelHeader.Id} {timetableModel.Id}";
         }
+
+        public static Task<PathModel> Save(this RouteModel routeModel, PathModel pathModel)
+        {
+            pathModel.Initialize(routeModel);
+            return PathModelHandler.ToFile(pathModel, CancellationToken.None);
+        }
     }
 }

@@ -4,7 +4,7 @@ using FreeTrainSimulator.Models.Imported.Track;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
 
-namespace Tests.FreeTrainSimulator.Models.Track
+namespace Tests.FreeTrainSimulator.Models.Imported.Track
 {
     [TestClass]
     public class TrackSegmentBaseTests

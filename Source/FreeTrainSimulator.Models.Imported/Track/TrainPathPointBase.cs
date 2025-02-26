@@ -18,8 +18,11 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
         public ImmutableArray<TrackSegmentBase> ConnectedSegments { get; }
 
-        public TrainPathPointBase NextMainItem { get; init; }
-        public TrainPathPointBase NextSidingItem { get; init; }
+        public int NextMainNode { get; init; } = -1;
+        public int NextSidingNode { get; init; } = -1;
+
+        //public TrainPathPointBase NextMainItem { get; init; }
+        //public TrainPathPointBase NextSidingItem { get; init; }
 
         public PathNodeInvalidReasons ValidationResult { get; set; }
 
@@ -30,6 +33,8 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
             SetLocation(PointD.FromWorldLocation(node.Location));
             NodeType = node.NodeType;
+            NextMainNode = node.NextMainNode;
+            NextSidingNode = node.NextSidingNode;
 
             JunctionNode = (node.NodeType & PathNodeType.Junction) == PathNodeType.Junction ? trackModel.JunctionAt(Location) : null;
             if ((node.NodeType & PathNodeType.Junction) == PathNodeType.Junction && JunctionNode == null)
@@ -96,64 +101,45 @@ namespace FreeTrainSimulator.Models.Imported.Track
             return true;
         }
 
-        internal static void LinkPathPoints(List<TrainPathPointBase> pathPoints, List<(int NextMainNode, int NextSidingNode)> pathPointConnections)
-        {
-            if (pathPoints.Count != pathPointConnections.Count)
-                throw new ArgumentOutOfRangeException(nameof(pathPointConnections), pathPointConnections.Count, "Linking path points collection needs to have same size as path points");
+        //internal static void LinkPathPoints(List<TrainPathPointBase> pathPoints, List<(int NextMainNode, int NextSidingNode)> pathPointConnections)
+        //{
+        //    if (pathPoints.Count != pathPointConnections.Count)
+        //        throw new ArgumentOutOfRangeException(nameof(pathPointConnections), pathPointConnections.Count, "Linking path points collection needs to have same size as path points");
 
-            //linking path item nodes to their next path item node
-            //on the end node, set to the previous (inbound) node instead, required for TrainPathItem direction/alignment
-            //nb: inbound to the end node may not need to be the node just before in the list, so as we iterate the list, 
-            //we keep a reference to the one which has the end node as successor
-            //it's assumed that passing paths will reconnct to main node, and not ending on it's own
+        //    //linking path item nodes to their next path item node
+        //    //on the end node, set to the previous (inbound) node instead, required for TrainPathItem direction/alignment
+        //    //nb: inbound to the end node may not need to be the node just before in the list, so as we iterate the list, 
+        //    //we keep a reference to the one which has the end node as successor
+        //    //it's assumed that passing paths will reconnct to main node, and not ending on it's own
 
-            int index;
-            int beforeEndNode = -1;
+        //    int index;
+        //    int beforeEndNode = -1;
 
-            for (int i = 0; i < pathPoints.Count; i++)
-            {
-                if ((index = pathPointConnections[i].NextMainNode) != -1)
-                {
-                    pathPoints[i]  = pathPoints[i] with 
-                    {
-                        NextMainItem = pathPoints[index] 
-                    };
-                    if ((pathPoints[i].NextMainItem.NodeType & PathNodeType.End) == PathNodeType.End)
-                        beforeEndNode = i;
-                }
-                else if ((pathPoints[i].NodeType & PathNodeType.End) == PathNodeType.End)
-                    pathPoints[i] = pathPoints[i] with
-                    {
-                        NextMainItem = pathPoints[beforeEndNode]
-                    };
+        //    for (int i = 0; i < pathPoints.Count; i++)
+        //    {
+        //        if ((index = pathPointConnections[i].NextMainNode) != -1)
+        //        {
+        //            pathPoints[i] = pathPoints[i] with
+        //            {
+        //                NextMainItem = pathPoints[index]
+        //            };
+        //            if ((pathPoints[i].NextMainItem.NodeType & PathNodeType.End) == PathNodeType.End)
+        //                beforeEndNode = i;
+        //        }
+        //        else if ((pathPoints[i].NodeType & PathNodeType.End) == PathNodeType.End)
+        //            pathPoints[i] = pathPoints[i] with
+        //            {
+        //                NextMainItem = pathPoints[beforeEndNode]
+        //            };
 
-                if ((index = pathPointConnections[i].NextSidingNode) != -1)
-                    pathPoints[i] = pathPoints[i] with { NextSidingItem = pathPoints[index] };
-            }
-        }
+        //        if ((index = pathPointConnections[i].NextSidingNode) != -1)
+        //            pathPoints[i] = pathPoints[i] with { NextSidingItem = pathPoints[index] };
+        //    }
+        //}
 
         private ImmutableArray<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
         {
             return JunctionNode?.ConnectedSegments(trackModel).ToImmutableArray() ?? trackModel.SegmentsAt(Location).ToImmutableArray();
-        }
-    }
-
-    internal record TrainPathPoint : TrainPathPointBase
-    {
-        public TrainPathPoint(TrainPathPointBase node) : base(node)
-        {
-        }
-
-        public TrainPathPoint(PathNode node, TrackModel trackModel) : base(node, trackModel)
-        {
-        }
-
-        public TrainPathPoint(in PointD location, TrackModel trackModel) : base(location, trackModel)
-        {
-        }
-
-        public TrainPathPoint(JunctionNodeBase junction, TrackModel trackModel) : base(junction, trackModel)
-        {
         }
     }
 }
