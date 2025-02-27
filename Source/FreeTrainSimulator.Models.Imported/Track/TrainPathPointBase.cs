@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -12,7 +11,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
 {
     public abstract record TrainPathPointBase : PointPrimitive
     {
-        public PathNodeType NodeType { get; set; } // protected set; }
+        public PathNodeType NodeType { get; init; }
 
         public JunctionNodeBase JunctionNode { get; }
 
@@ -20,9 +19,6 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
         public int NextMainNode { get; init; } = -1;
         public int NextSidingNode { get; init; } = -1;
-
-        //public TrainPathPointBase NextMainItem { get; init; }
-        //public TrainPathPointBase NextSidingItem { get; init; }
 
         public PathNodeInvalidReasons ValidationResult { get; set; }
 
@@ -90,12 +86,12 @@ namespace FreeTrainSimulator.Models.Imported.Track
         {
             if (ValidationResult == PathNodeInvalidReasons.NoJunctionNode)
             {
-                Trace.TraceWarning($"Path point #{index} is marked as junction but not actually located on junction.");
+                Debug.WriteLine($"Path point #{index} is marked as junction but not actually located on junction.");
                 return true;
             }
             else if (ValidationResult != PathNodeInvalidReasons.None)
             {
-                Trace.TraceWarning($"Path item #{index} is not on track.");
+                Debug.WriteLine($"Path item #{index} is not on track.");
                 return false;
             }
             return true;

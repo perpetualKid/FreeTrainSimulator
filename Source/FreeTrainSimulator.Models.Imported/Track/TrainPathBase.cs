@@ -137,6 +137,8 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
         protected void AddPathPoint(PathSectionType pathType, IList<TrainPathPointBase> pathItems, int index, bool endNode = false)
         {
+            ArgumentNullException.ThrowIfNull(pathItems, nameof(pathItems));
+
             sectionStart = null;
 
             TrainPathPointBase pathItem = null;

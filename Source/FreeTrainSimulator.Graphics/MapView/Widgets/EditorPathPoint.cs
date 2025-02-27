@@ -32,6 +32,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
+            if (textureType == BasicTextureType.BlankPixel)
+                ResetTexture();
             Size = Math.Max(1.5f, (float)(8 / contentArea.Scale));
             Color color = ValidationResult switch
             {
@@ -66,13 +68,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Direction = direction;
         }
 
-        internal void UpdateNodeType(PathNodeType nodeType)
-        {
-            NodeType = nodeType;
-            textureType = TextureFromNodeType(nodeType);
-        }
-
-        internal void ResetTexture()
+        protected void ResetTexture() // if NodeType is set through copy constructor, the texture Type is not updated, hence we need to check
         {
             textureType = TextureFromNodeType(NodeType);
         }
