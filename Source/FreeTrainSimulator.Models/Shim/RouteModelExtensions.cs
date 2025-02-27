@@ -66,6 +66,7 @@ namespace FreeTrainSimulator.Models.Shim
         public static Task<PathModel> Save(this RouteModelHeader routeModel, PathModel pathModel)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+            ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
 
             pathModel.Initialize(routeModel);
             return PathModelHandler.ToFile(pathModel, CancellationToken.None);
