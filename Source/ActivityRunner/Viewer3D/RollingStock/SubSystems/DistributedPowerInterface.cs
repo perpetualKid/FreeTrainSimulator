@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -42,83 +43,85 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 {
     public class DistributedPowerInterface
     {
-        internal readonly MSTSLocomotive Locomotive;
-        internal readonly Viewer viewer;
-        public IList<DPIWindow> Windows { get; private set; } = new List<DPIWindow>();
-        float PrevScale = 1;
-        public DPIStatus DPIStatus = new DPIStatus();
+        public static EnumArray<Color, EtcsColorKeys> ColorKeys { get; } = new EnumArray<Color, EtcsColorKeys>((EtcsColorKeys colorKey) => colorKey switch
+            {
+                // Color RGB values are from ETCS specification
+                EtcsColorKeys.Grey => new Color(195, 195, 195),
+                EtcsColorKeys.MediumGrey => new Color(150, 150, 150),
+                EtcsColorKeys.DarkGrey => new Color(85, 85, 85),
+                EtcsColorKeys.Yellow => new Color(223, 223, 0),
+                EtcsColorKeys.Orange => new Color(234, 145, 0),
+                EtcsColorKeys.Red => new Color(191, 0, 2),
+                EtcsColorKeys.Background => new Color(0, 0, 0, 0), // transparent
+                EtcsColorKeys.PaspLight => new Color(41, 74, 107),
+                EtcsColorKeys.PaspDark => new Color(33, 49, 74),
+                EtcsColorKeys.Shadow => new Color(8, 24, 57),
+                EtcsColorKeys.White => new Color(255, 255, 255),
+                _ => throw new NotImplementedException(),
+            });
 
-        bool Active;
+        private bool active;
+        private float prevScale = 1;
+        private readonly int Height = 240;
+        private readonly int Width = 640;
+        private DPIWindow activeWindow;
+
+        public MSTSLocomotive Locomotive { get; }
+        public Viewer Viewer { get; }
+        public ImmutableArray<DPIWindow> Windows { get; private set; } = ImmutableArray<DPIWindow>.Empty;
+
+        public DPIStatus DPIStatus { get; } = new DPIStatus();
+
         public float Scale { get; private set; }
         public float MipMapScale { get; private set; }
-        readonly int Height = 240;
-        readonly int Width = 640;
 
-        public readonly DPDefaultWindow DPDefaultWindow;
+        public DPDefaultWindow DPDefaultWindow { get; }
 
-        public readonly DriverMachineInterfaceShader Shader;
-
-        // Color RGB values are from ETCS specification
-        public static readonly Color ColorGrey = new Color(195, 195, 195);
-        public static readonly Color ColorMediumGrey = new Color(150, 150, 150);
-        public static readonly Color ColorDarkGrey = new Color(85, 85, 85);
-        public static readonly Color ColorYellow = new Color(223, 223, 0);
-        public static readonly Color ColorOrange = new Color(234, 145, 0);
-        public static readonly Color ColorRed = new Color(191, 0, 2);
-        public static readonly Color ColorBackground = new Color(0, 0, 0, 0); // transparent
-        public static readonly Color ColorPASPlight = new Color(41, 74, 107);
-        public static readonly Color ColorPASPdark = new Color(33, 49, 74);
-        public static readonly Color ColorShadow = new Color(8, 24, 57);
-        public static readonly Color ColorWhite = new Color(255, 255, 255);
+        public DriverMachineInterfaceShader Shader { get; }
 
         // Some DPIs use black for the background and white for borders, instead of blue scale
-        public readonly bool BlackWhiteTheme;
+        public bool BlackWhiteTheme { get; }
 
         public Texture2D ColorTexture { get; private set; }
 
-        public float CurrentTime => (float)viewer.Simulator.ClockTime;
+        ///// <summary>
+        ///// True if the screen is sensitive
+        ///// </summary>
+        //public bool IsTouchScreen = true;
+        ///// <summary>
+        ///// Controls the layout of the DMI screen depending.
+        ///// Must be true if there are physical buttons to control the DMI, even if it is a touch screen.
+        ///// If false, the screen must be tactile.
+        ///// </summary>
+        //public bool IsSoftLayout;
 
-        /// <summary>
-        /// True if the screen is sensitive
-        /// </summary>
-        public bool IsTouchScreen = true;
-        /// <summary>
-        /// Controls the layout of the DMI screen depending.
-        /// Must be true if there are physical buttons to control the DMI, even if it is a touch screen.
-        /// If false, the screen must be tactile.
-        /// </summary>
-        public bool IsSoftLayout;
-        public DPIWindow ActiveWindow;
         public DistributedPowerInterface(float height, float width, MSTSLocomotive locomotive, Viewer viewer, CabViewControl control)
         {
-            this.viewer = viewer;
+            this.Viewer = viewer;
             Locomotive = locomotive;
             Scale = Math.Min(width / Width, height / Height);
-            if (Scale < 0.5)
-                MipMapScale = 2;
-            else
-                MipMapScale = 1;
+            MipMapScale = Scale < 0.5 ? 2 : 1;
 
-            Shader = new DriverMachineInterfaceShader(this.viewer.Game.GraphicsDevice);
+            Shader = new DriverMachineInterfaceShader(this.Viewer.Game.GraphicsDevice);
             DPDefaultWindow = new DPDefaultWindow(this, control);
             DPDefaultWindow.Visible = true;
 
             AddToLayout(DPDefaultWindow, Point.Zero);
-            ActiveWindow = DPDefaultWindow;
+            activeWindow = DPDefaultWindow;
         }
 
         public void AddToLayout(DPIWindow window, Point position)
         {
             window.Position = position;
-            window.Parent = ActiveWindow;
-            ActiveWindow = window;
-            Windows.Add(window);
+            window.Parent = activeWindow;
+            activeWindow = window;
+            Windows = Windows.Add(window);
         }
 
         public void PrepareFrame(double elapsedSeconds)
         {
-            Active = DPIStatus != null && DPIStatus.DPIActive;
-            if (!Active)
+            active = DPIStatus != null && DPIStatus.DPIActive;
+            if (!active)
                 return;
 
             foreach (var area in Windows)
@@ -130,9 +133,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         {
             Scale = Math.Min(width / Width, height / Height);
 
-            if (Math.Abs(1f - PrevScale / Scale) > 0.1f)
+            if (Math.Abs(1f - prevScale / Scale) > 0.1f)
             {
-                PrevScale = Scale;
+                prevScale = Scale;
                 if (Scale < 0.5)
                     MipMapScale = 2;
                 else
@@ -153,7 +156,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             }
             spriteBatch.End();
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.LinearWrap, null, null, null); // TODO: Handle brightness via DMI shader
-            if (!Active)
+            if (!active)
                 return;
             foreach (var area in Windows)
             {
@@ -163,15 +166,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
         public void ExitWindow(DPIWindow window)
         {
-            var windows = new List<DPIWindow>(Windows);
-            windows.Remove(window);
-            Windows = windows;
-            if (window.Parent == null)
-                ActiveWindow = DPDefaultWindow;
-            else
-                ActiveWindow = window.Parent;
+            Windows = Windows.Remove(window);
+            activeWindow = window.Parent == null ? DPDefaultWindow : window.Parent;
         }
     }
+
     public class DPDefaultWindow : DPIWindow
     {
         public bool FullTable;
@@ -299,9 +298,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             else if (Layer < 0)
             {
                 DrawIntRectangle(spriteBatch, drawPosition, 0, 0, 1, Height, Color.Black);
-                DrawIntRectangle(spriteBatch, drawPosition, Width - 1, 0, 1, Height, DistributedPowerInterface.ColorShadow);
+                DrawIntRectangle(spriteBatch, drawPosition, Width - 1, 0, 1, Height, DistributedPowerInterface.ColorKeys[EtcsColorKeys.Shadow]);
                 DrawIntRectangle(spriteBatch, drawPosition, 0, 0, Width, 1, Color.Black);
-                DrawIntRectangle(spriteBatch, drawPosition, 0, Height - 1, Width, 1, DistributedPowerInterface.ColorShadow);
+                DrawIntRectangle(spriteBatch, drawPosition, 0, Height - 1, Width, 1, DistributedPowerInterface.ColorKeys[EtcsColorKeys.Shadow]);
             }
         }
         public virtual void PrepareFrame(DPIStatus status) { }
@@ -418,7 +417,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             FullScreen = fullScreen;
             FullTable = fullTable;
             LoadUnits = loadUnits;
-            BackgroundColor = DPI.BlackWhiteTheme ? Color.Black : DistributedPowerInterface.ColorBackground;
+            BackgroundColor = DPI.BlackWhiteTheme ? Color.Black : DistributedPowerInterface.ColorKeys[EtcsColorKeys.Background];
             SetFont();
             string text = "";
             for (int iRow = 0; iRow < (fullTable ? NumberOfRowsFull : NumberOfRowsPartial); iRow++)
@@ -426,8 +425,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                 for (int iCol = 0; iCol < NumberOfColumns; iCol++)
                 {
                     //                    text = iCol.ToString() + "--" + iRow.ToString();
-                    TableText[iRow, iCol] = new TextPrimitive(dpi.viewer.Game, new Point(20 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.White, text, TableTextFont);
-                    TableSymbol[iRow, iCol] = new TextPrimitive(dpi.viewer.Game, new Point(10 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.Green, text, TableSymbolFont);
+                    TableText[iRow, iCol] = new TextPrimitive(dpi.Viewer.Game, new Point(20 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.White, text, TableTextFont);
+                    TableSymbol[iRow, iCol] = new TextPrimitive(dpi.Viewer.Game, new Point(10 + ColLength * iCol, (iRow) * (FontHeightTableText + 8)), Color.Green, text, TableSymbolFont);
                 }
             }
         }
@@ -545,7 +544,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         /// <summary>
         /// True if the DPI is active and will be shown
         /// </summary>
-        public bool DPIActive = true;
+        public bool DPIActive { get; } = true;
     }
 
     public class DistributedPowerInterfaceRenderer : CabViewControlRenderer
@@ -582,7 +581,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                 DPI.SizeTo(DrawPosition.Width, DrawPosition.Height);
                 DrawPosition.X -= 320;
                 DrawPosition.Y -= 240;
-                DPI.DPDefaultWindow.BackgroundColor = DistributedPowerInterface.ColorBackground;
+                DPI.DPDefaultWindow.BackgroundColor = DistributedPowerInterface.ColorKeys[EtcsColorKeys.Background];
             }
             else
             {
@@ -663,7 +662,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
             offset.Y = -this.size;
             var param = new string(' ', MaxDigits);
-            var color = DistributedPowerInterface.ColorYellow;
+            var color = DistributedPowerInterface.ColorKeys[EtcsColorKeys.Yellow];
             var headerIndex = 0;
             float tX, tY;
             for (int iRow = 0; iRow < DPITable.NumberOfRowsFull; iRow++)

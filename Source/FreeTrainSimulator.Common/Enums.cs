@@ -1879,5 +1879,19 @@ namespace FreeTrainSimulator.Common
         Invalid = 0x1000,
     };
 
-
+    public enum EtcsColorKeys
+    {
+        // Color values from ETCS specification
+        Grey,
+        MediumGrey,
+        DarkGrey,
+        Yellow,
+        Orange,
+        Red,
+        Background,
+        PaspLight,
+        PaspDark,
+        Shadow,
+        White,
+    }
 }
