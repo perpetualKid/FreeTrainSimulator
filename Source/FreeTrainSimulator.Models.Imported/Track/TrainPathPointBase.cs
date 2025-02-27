@@ -97,42 +97,6 @@ namespace FreeTrainSimulator.Models.Imported.Track
             return true;
         }
 
-        //internal static void LinkPathPoints(List<TrainPathPointBase> pathPoints, List<(int NextMainNode, int NextSidingNode)> pathPointConnections)
-        //{
-        //    if (pathPoints.Count != pathPointConnections.Count)
-        //        throw new ArgumentOutOfRangeException(nameof(pathPointConnections), pathPointConnections.Count, "Linking path points collection needs to have same size as path points");
-
-        //    //linking path item nodes to their next path item node
-        //    //on the end node, set to the previous (inbound) node instead, required for TrainPathItem direction/alignment
-        //    //nb: inbound to the end node may not need to be the node just before in the list, so as we iterate the list, 
-        //    //we keep a reference to the one which has the end node as successor
-        //    //it's assumed that passing paths will reconnct to main node, and not ending on it's own
-
-        //    int index;
-        //    int beforeEndNode = -1;
-
-        //    for (int i = 0; i < pathPoints.Count; i++)
-        //    {
-        //        if ((index = pathPointConnections[i].NextMainNode) != -1)
-        //        {
-        //            pathPoints[i] = pathPoints[i] with
-        //            {
-        //                NextMainItem = pathPoints[index]
-        //            };
-        //            if ((pathPoints[i].NextMainItem.NodeType & PathNodeType.End) == PathNodeType.End)
-        //                beforeEndNode = i;
-        //        }
-        //        else if ((pathPoints[i].NodeType & PathNodeType.End) == PathNodeType.End)
-        //            pathPoints[i] = pathPoints[i] with
-        //            {
-        //                NextMainItem = pathPoints[beforeEndNode]
-        //            };
-
-        //        if ((index = pathPointConnections[i].NextSidingNode) != -1)
-        //            pathPoints[i] = pathPoints[i] with { NextSidingItem = pathPoints[index] };
-        //    }
-        //}
-
         private ImmutableArray<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
         {
             return JunctionNode?.ConnectedSegments(trackModel).ToImmutableArray() ?? trackModel.SegmentsAt(Location).ToImmutableArray();
