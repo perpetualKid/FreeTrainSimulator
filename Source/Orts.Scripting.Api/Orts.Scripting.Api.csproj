@@ -6,7 +6,7 @@
     <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
 		<PackageReference Include="System.IO.Pipelines" Version="9.0.2" />
 	</ItemGroup>
 	<ItemGroup>
