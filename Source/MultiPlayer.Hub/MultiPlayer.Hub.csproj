@@ -10,7 +10,7 @@
 	<ItemGroup>
 	  <PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.2-preview" />
 	  <PackageReference Include="MagicOnion.Server" Version="6.1.6" />
-	  <PackageReference Include="System.IO.Hashing" Version="9.0.2" />
+	  <PackageReference Include="System.IO.Hashing" Version="9.0.3" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\FreeTrainSimulator.Online\FreeTrainSimulator.Online.csproj" />
