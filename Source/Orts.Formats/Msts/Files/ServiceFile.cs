@@ -15,6 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
+
+using FreeTrainSimulator.Models.Content;
+
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 
@@ -51,14 +55,16 @@ namespace Orts.Formats.Msts.Files
         }
 
         // Used for explore in activity mode
-        public ServiceFile(string name, string trainConfig, string path)
+        public ServiceFile(string name, string trainConfig, PathModelHeader pathModel)
         {
+            ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
             Name = name;
             TrainConfig = trainConfig;
-            PathId = path;
+            PathId = pathModel.Id;
             Efficiency = 0.9f;
             TimeTable = new TimeTable();
         }
-	} // SRVFile
+
+    } // SRVFile
 }
 

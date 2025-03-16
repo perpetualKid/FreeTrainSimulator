@@ -108,7 +108,7 @@ namespace Orts.Simulation
         ISaveStateRestoreApi<TrainSaveState, Train>,
         ISaveStateRestoreApi<TrainSaveState, AITrain>
     {
-        private string explorePath;
+
         private string exploreConsist;
         private string timeTableFile;
         private bool playerSwitchOngoing;
@@ -347,9 +347,11 @@ namespace Orts.Simulation
             IsAutopilotMode = true;
         }
 
-        public void SetExplore(string path, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
+        public void SetExplore(PathModel pathModel, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
         {
-            explorePath = Path.GetFileNameWithoutExtension(path);
+            ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
+
+            PlayerPath = pathModel;
             exploreConsist = Path.GetFileNameWithoutExtension(consist);
             ClockTime = startTime.TotalSeconds;
             Season = season;
@@ -358,8 +360,11 @@ namespace Orts.Simulation
 
         }
 
-        public void SetExploreThroughActivity(string path, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
+        public void SetExploreThroughActivity(PathModel pathModel, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
         {
+            ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
+
+            PlayerPath = pathModel;
             DateTime timestamp = DateTime.Now;
             ActivityModel = new ActivityModel()
             {
@@ -372,7 +377,6 @@ namespace Orts.Simulation
             ActivityType = ActivityType.ExploreActivity;
             ActivityFile = new ActivityFile((int)startTime.TotalSeconds, Path.GetFileNameWithoutExtension(consist));
             ActivityRun = new Activity(ActivityFile, ActivityModel, this);
-            explorePath = Path.GetFileNameWithoutExtension(path);
             exploreConsist = Path.GetFileNameWithoutExtension(consist);
             ClockTime = startTime.TotalSeconds;
             Season = season;
@@ -753,7 +757,6 @@ namespace Orts.Simulation
             ConsistFileName = RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
             PlayerPath = await RouteModel.PathModel(srvFile.PathId.Trim(), CancellationToken.None).ConfigureAwait(false);
         }
-
 
         /// <summary>
         /// Convert and elapsed real time into clock time based on simulator
@@ -1222,14 +1225,14 @@ namespace Orts.Simulation
             ServiceFile serviceFile;
 
             playerServiceFileName = Path.GetFileNameWithoutExtension(exploreConsist);
-            serviceFile = new ServiceFile(playerServiceFileName, playerServiceFileName, explorePath);
+            serviceFile = new ServiceFile(playerServiceFileName, playerServiceFileName, PlayerPath);
 
             ConsistFileName = RouteFolder.ContentFolder.ConsistFile(serviceFile.TrainConfig);
             OriginalPlayerTrain = train;
 
             train.IsTilting = ConsistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
-            PlayerPath = Task.Run(async () => await RouteModel.PathModel(serviceFile.PathId.Trim(), CancellationToken.None).ConfigureAwait(false)).Result;
+            PlayerPath ??= Task.Run(async () => await RouteModel.PathModel(serviceFile.PathId.Trim(), CancellationToken.None).ConfigureAwait(false)).Result;
             AIPath aiPath = new AIPath(PlayerPath, TimetableMode);
             PathName = aiPath.PathName;
 
@@ -1350,14 +1353,14 @@ namespace Orts.Simulation
             else
             {
                 playerServiceFileName = Path.GetFileNameWithoutExtension(exploreConsist);
-                srvFile = new ServiceFile(playerServiceFileName, playerServiceFileName, explorePath);
+                srvFile = new ServiceFile(playerServiceFileName, playerServiceFileName, PlayerPath);
             }
             ConsistFileName = RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
             PlayerTraffics player_Traffic_Definition = ActivityFile.Activity.PlayerServices.PlayerTraffics;
             ServiceTraffics aPPlayer_Traffic_Definition = new ServiceTraffics(playerServiceFileName, player_Traffic_Definition);
             Services aPPlayer_Service_Definition = new Services(playerServiceFileName, player_Traffic_Definition);
 
-            PlayerPath = Task.Run(async () => await RouteModel.PathModel(srvFile.PathId.Trim(), CancellationToken.None).ConfigureAwait(false)).Result;
+            PlayerPath ??= Task.Run(async () => await RouteModel.PathModel(srvFile.PathId.Trim(), CancellationToken.None).ConfigureAwait(false)).Result;
 
             AITrain train = new AI(this).CreateAITrainDetail(aPPlayer_Service_Definition, aPPlayer_Traffic_Definition, srvFile, TimetableMode, true);
             train.Name = "PLAYER";

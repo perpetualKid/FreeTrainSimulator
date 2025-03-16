@@ -585,7 +585,7 @@ namespace Orts.ActivityRunner.Processes
                         WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
                         simulator = new Simulator(userSettings, routeModel);
-                        simulator.SetExplore(pathModel.SourceFile(), wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
+                        simulator.SetExplore(pathModel, wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
                         break;
                     }
                 case ActivityType.ExploreActivity:
@@ -594,7 +594,7 @@ namespace Orts.ActivityRunner.Processes
                         WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
                         simulator = new Simulator(userSettings, routeModel);
-                        simulator.SetExploreThroughActivity(pathModel.SourceFile(), wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
+                        simulator.SetExploreThroughActivity(pathModel, wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
                         break;
                     }
                 case ActivityType.TimeTable:
