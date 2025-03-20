@@ -83,6 +83,28 @@ namespace Tests.FreeTrainSimulator.Common.Position
         }
 
         [TestMethod]
+        public void WorldLocationInterpolateAlongTileTest()
+        {
+            WorldLocation start = new WorldLocation(-2, -3, 1001, 5, 1);
+            WorldLocation end = new WorldLocation(0, -3, -999, 5, 1);
+
+            WorldLocation result = WorldLocation.InterpolateAlong(start, end, 1328f);
+
+            Assert.AreEqual(new Tile(-1, -3), result.Tile);
+        }
+
+        [TestMethod]
+        public void WorldLocationInterpolateAlongTileAtStartTest()
+        {
+            WorldLocation start = new WorldLocation(-2, -3, 1001, 5, 1);
+            WorldLocation end = new WorldLocation(0, -3, -999, 5, 1);
+
+            WorldLocation result = WorldLocation.InterpolateAlong(start, end, 0f);
+
+            Assert.AreEqual(start, result);
+        }
+
+        [TestMethod]
         public void WorldPositionCtorTest()
         {
             Assert.AreEqual(WorldPosition.None, new WorldPosition(Tile.Zero, Microsoft.Xna.Framework.Matrix.Identity));
@@ -132,6 +154,5 @@ namespace Tests.FreeTrainSimulator.Common.Position
             Assert.AreEqual(10262, position.Location.Z);
             Assert.AreEqual(-10262, position.XNAMatrix.M43);
         }
-
     }
 }

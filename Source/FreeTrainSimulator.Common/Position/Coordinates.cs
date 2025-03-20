@@ -320,6 +320,14 @@ namespace FreeTrainSimulator.Common.Position
             return Math.Abs(dx) + Math.Abs(dz);
         }
 
+        public static WorldLocation InterpolateAlong(in WorldLocation locationFrom, in WorldLocation locationTo, float distance)
+        {
+            WorldLocation normalizedLocationTo = locationTo.NormalizeTo(locationFrom.Tile);
+            float scale = (float)(distance / Math.Sqrt(GetDistanceSquared(locationFrom, locationTo)));
+
+            return new WorldLocation(locationFrom.Tile, Vector3.Lerp(locationFrom.Location, normalizedLocationTo.Location, scale), true);
+        }
+
         /// <summary>
         /// Create a nice string-representation of the world location
         /// </summary>
