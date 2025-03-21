@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
@@ -364,7 +365,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
         /// <summary>
         /// On a single track segment section (same track node index), checks if direction from start to end aligns with track direction or is reverse
         /// </summary>
-        public bool IsReverseDirectionTowards(TrainPathPointBase start, TrainPathPointBase end)
+        public TrackDirection TrackDirectionOnSegment(TrainPathPointBase start, TrainPathPointBase end)
         {
             ArgumentNullException.ThrowIfNull(start);
             ArgumentNullException.ThrowIfNull(end);
@@ -372,15 +373,15 @@ namespace FreeTrainSimulator.Models.Imported.Track
             TrackSegmentBase otherNodeSegment = end.ConnectedSegments.Where(s => s.TrackNodeIndex == TrackNodeIndex).FirstOrDefault();
             return otherNodeSegment != null && (otherNodeSegment.TrackVectorSectionIndex < TrackVectorSectionIndex ||
                 otherNodeSegment.TrackVectorSectionIndex == TrackVectorSectionIndex &&
-                start.Location.DistanceSquared(Location) > end.Location.DistanceSquared(Location));
+                start.Location.DistanceSquared(Location) > end.Location.DistanceSquared(Location)) ? TrackDirection.Reverse : TrackDirection.Ahead;
         }
 
         /// <summary>
         /// On a single track segment section (same track node index), checks if direction from start to end aligns with track direction or is reverse
         /// </summary>
-        public bool IsReverseDirectionTowards(in PointD start, in PointD end)
+        public TrackDirection TrackDirectionOnSegment(in PointD start, in PointD end)
         {
-            return start.DistanceSquared(Location) > end.DistanceSquared(Location);
+            return start.DistanceSquared(Location) > end.DistanceSquared(Location) ? TrackDirection.Reverse : TrackDirection.Ahead;
         }
 
         /// <summary>

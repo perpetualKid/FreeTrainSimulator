@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<TrainPathPointBase> PathPoints { get; } = new List<TrainPathPointBase>();
 #pragma warning restore CA1002 // Do not expose generic lists
-        private (TrackSegmentBase NodeSegment, bool Reverse)? sectionStart;
+        private (TrackSegmentBase NodeSegment, TrackDirection PathDirection)? sectionStart;
         protected TrackModel TrackModel { get; }
 
         protected abstract TrainPathPointBase CreateEditorPathItem(in PointD location, in PointD vector, PathNodeType nodeType);
@@ -160,7 +160,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 }
                 else
                 {
-                    bool reverse = sectionStart.Value.Reverse;
+                    bool reverse = sectionStart.Value.PathDirection == TrackDirection.Reverse;
                     if ((start.NodeType & PathNodeType.End) == PathNodeType.End)
                         reverse = !reverse;
                     PathPoints.Add(pathItem = CreateEditorPathItem(start.Location, sectionStart.Value.NodeSegment, start.NodeType, reverse));
@@ -218,7 +218,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
                         section = AddSection(TrackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location) as TrainPathSectionBase;
                         section.PathType = pathType;
                         sections.Add(section);
-                        sectionStart ??= (nodeSegment, nodeSegment.IsReverseDirectionTowards(start, end));
+                        sectionStart ??= (nodeSegment, nodeSegment.TrackDirectionOnSegment(start, end));
                         break;
                     default:
                         nodeSegment = trackSegments.Where(s => s.TrackNodeIndex == (start.JunctionNode ?? end.JunctionNode).MainRoute).FirstOrDefault();
@@ -234,7 +234,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
                             section = AddSection(TrackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location) as TrainPathSectionBase;
                             section.PathType = pathType;
                             sections.Add(section);
-                            sectionStart ??= (nodeSegment, nodeSegment.IsReverseDirectionTowards(start, end));
+                            sectionStart ??= (nodeSegment, nodeSegment.TrackDirectionOnSegment(start, end));
                         }
                         break;
                 }
@@ -244,7 +244,6 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
         protected PathModel ToPathModel()
         {
-//            TrainPathPointBase.LinkPathPoints(PathPoints, PathPoints.Select((p, Index) => (Index == (PathPoints.Count - 1) ? -1 : (Index + 1), -1)).ToList());
             List<PathNode> pathNodes = new List<PathNode>();
             foreach (var pathPoint in PathPoints)
             {

@@ -146,14 +146,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 if (PathSections.Count > 0)
                 {
                     TrackSegmentSectionBase<TrainPathSegmentBase> previous = PathSections[^1];
-                    bool reverse = previous.SectionSegments[0].IsReverseDirectionTowards(previous.Location, previous.Vector);
-                    if (sections[0].TrackNodeIndex == previous.TrackNodeIndex && reverse != sections[0].SectionSegments[0].IsReverseDirectionTowards(editorSegmentStart.Location, location))
+                    TrackDirection direction = previous.SectionSegments[0].TrackDirectionOnSegment(previous.Location, previous.Vector);
+                    if (sections[0].TrackNodeIndex == previous.TrackNodeIndex && direction != sections[0].SectionSegments[0].TrackDirectionOnSegment(editorSegmentStart.Location, location))
                         PathPoints[^1] = PathPoints[^1] with { NodeType = PathNodeType.Reversal};
-                    //else
-                    //{
-                    //    (PathPoints[^1] as EditorPathPoint).UpdateNodeType(PathNodeType.Junction);
-                    //}
                 }
+
                 if (sections.Length > 1)
                 {
                     PathPoints.Add(CreateEditorPathItem(sections[0].Vector, end.Location, PathNodeType.Junction));
