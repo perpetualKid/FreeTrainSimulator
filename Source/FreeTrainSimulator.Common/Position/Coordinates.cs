@@ -323,9 +323,24 @@ namespace FreeTrainSimulator.Common.Position
         public static WorldLocation InterpolateAlong(in WorldLocation locationFrom, in WorldLocation locationTo, float distance)
         {
             WorldLocation normalizedLocationTo = locationTo.NormalizeTo(locationFrom.Tile);
-            float scale = (float)(distance / Math.Sqrt(GetDistanceSquared(locationFrom, locationTo)));
+            double pointDistance = Math.Sqrt(GetDistanceSquared(locationFrom, locationTo));
+            if (pointDistance == 0)
+                return locationFrom;
+            float scale = (float)(distance / pointDistance);
 
             return new WorldLocation(locationFrom.Tile, Vector3.Lerp(locationFrom.Location, normalizedLocationTo.Location, scale), true);
+        }
+
+        public static float InterpolateElevationAlong(in WorldLocation locationFrom, in WorldLocation locationTo, float distance)
+        {
+            WorldLocation normalizedLocationTo = locationTo.NormalizeTo(locationFrom.Tile);
+            double pointDistance = Math.Sqrt(GetDistanceSquared(locationFrom, locationTo));
+            if (pointDistance == 0)
+                return locationFrom.Location.Y;
+
+            float scale = (float)(distance / pointDistance);
+
+            return Vector3.Lerp(locationFrom.Location, normalizedLocationTo.Location, scale).Y;
         }
 
         /// <summary>

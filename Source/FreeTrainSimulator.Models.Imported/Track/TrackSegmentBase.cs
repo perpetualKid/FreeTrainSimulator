@@ -321,6 +321,27 @@ namespace FreeTrainSimulator.Models.Imported.Track
         }
 
         /// <summary>
+        /// Assuming the given point is on the track segment, gets the distance along the segment from segment's starting point
+        /// </summary>
+        public float DistanceOnSegment(in PointD location)
+        {
+            if (!TrackSegmentAt(location))
+                return float.NaN;
+
+            if (Curved)
+            {
+                PointD delta = location - centerPoint;
+                float deltaAngle = (float)Math.Atan2(delta.X, delta.Y) - MathHelper.PiOver2;
+                deltaAngle = MathHelper.WrapAngle(centerToStartDirection - deltaAngle);
+                return Math.Abs(Radius * deltaAngle);
+            }
+            else
+            {
+                return (float)location.Distance(Location);
+            }
+        }
+
+        /// <summary>
         /// Direction (Heading from North) at an arbitrary point along the current track segment
         /// </summary>
         public float DirectionAt(in PointD location)
