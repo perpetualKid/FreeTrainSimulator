@@ -85,7 +85,7 @@ namespace FreeTrainSimulator.Toolbox
         public void SavePath()
         {
             PathModel pathModel = ConvertTrainPath();
-            Task.Run(async () => pathModel = await TrackData.Instance.RouteData.Save(pathModel)).Wait();
+            Task.Run(async () => pathModel = await TrackData.Instance.RouteData.Save(pathModel).ConfigureAwait(false)).Wait();
         }
 
         public void MousePressedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
