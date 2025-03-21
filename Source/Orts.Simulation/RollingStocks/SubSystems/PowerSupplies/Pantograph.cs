@@ -135,9 +135,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         #region ListManipulation
 
-        public void Add(Pantograph pantograph)
+        public void Add(Pantograph item)
         {
-            pantographs.Add(pantograph);
+            pantographs.Add(item);
         }
 
         public int IndexOf(Pantograph item) => pantographs.IndexOf(item);

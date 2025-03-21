@@ -229,15 +229,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return ValueTask.CompletedTask;
         }
 
-        public override void Initialize(bool handbrakeOn, float maxVacuumInHg, float fullServVacuumInHg, bool immediateRelease)
+        public override void Initialize(bool handbrakeOn, float maxPressurePSI, float fullServPressurePSI, bool immediateRelease)
         {
-            CylPressurePSIA = BrakeLine1PressurePSI = (float)Pressure.Vacuum.ToPressure(fullServVacuumInHg);
-            VacResPressurePSIA = (float)Pressure.Vacuum.ToPressure(maxVacuumInHg);
+            CylPressurePSIA = BrakeLine1PressurePSI = (float)Pressure.Vacuum.ToPressure(fullServPressurePSI);
+            VacResPressurePSIA = (float)Pressure.Vacuum.ToPressure(maxPressurePSI);
             HandbrakePercent = handbrakeOn ? 100 : 0;
             BrakeLine3PressurePSI = BrakeLine1PressurePSI;  // Initialise engine brake as same value on train
-            //CylVolumeM3 = MaxForcePressurePSI * MaxBrakeForceN * 0.00000059733491f; //an average volume (M3) of air used in brake cylinder for 1 N brake force.
+                                                            //CylVolumeM3 = MaxForcePressurePSI * MaxBrakeForceN * 0.00000059733491f; //an average volume (M3) of air used in brake cylinder for 1 N brake force.
             car.Train.PreviousCarCount = car.Train.Cars.Count;
-
         }
 
         public override void InitializeMoving() // used when initial speed > 0
