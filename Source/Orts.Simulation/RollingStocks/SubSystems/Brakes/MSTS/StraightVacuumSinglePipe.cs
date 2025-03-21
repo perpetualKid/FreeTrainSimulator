@@ -38,11 +38,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         }
 
-        public override void Initialize(bool handbrakeOn, float maxVacuumInHg, float fullServVacuumInHg, bool immediateRelease)
+        public override void Initialize(bool handbrakeOn, float maxPressurePSI, float fullServPressurePSI, bool immediateRelease)
         {
-            CylPressurePSIA = BrakeLine1PressurePSI = (float)Pressure.Vacuum.ToPressure(fullServVacuumInHg);
+            CylPressurePSIA = BrakeLine1PressurePSI = (float)Pressure.Vacuum.ToPressure(fullServPressurePSI);
             HandbrakePercent = handbrakeOn ? 100 : 0;
-            VacResPressurePSIA = (float)Pressure.Vacuum.ToPressure(maxVacuumInHg); // Only used if car coupled to auto braked locomotive
+            VacResPressurePSIA = (float)Pressure.Vacuum.ToPressure(maxPressurePSI); // Only used if car coupled to auto braked locomotive
         }
 
         public override void InitializeMoving() // used when initial speed > 0
