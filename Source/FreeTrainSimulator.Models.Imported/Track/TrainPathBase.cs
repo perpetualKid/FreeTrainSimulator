@@ -244,13 +244,27 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
         protected PathModel ToPathModel()
         {
+            Length = 0;
+            foreach (TrackSegmentSectionBase<TrainPathSegmentBase> section in PathSections)
+            {
+                Length += section.Length;
+            }
             List<PathNode> pathNodes = new List<PathNode>();
             foreach (var pathPoint in PathPoints)
             {
                 if (pathPoint.ConnectedSegments.Length == 0)
                     throw new InvalidOperationException("Invalid path point not on track segment");
-                Trace.WriteLine($"{pathPoint.ConnectedSegments[0].TrackNodeIndex} {pathPoint.ConnectedSegments[0].TrackVectorSectionIndex}");
-                pathNodes.Add(new PathNode((TrackModel.RuntimeData.TrackDB.TrackNodes[pathPoint.ConnectedSegments[0].TrackNodeIndex] as Orts.Formats.Msts.Models.TrackVectorNode).TrackVectorSections[pathPoint.ConnectedSegments[0].TrackVectorSectionIndex].Location)
+
+                TrackSegmentBase segment = pathPoint.ConnectedSegments[0];
+                float distance = segment.DistanceOnSegment(pathPoint.Location);
+
+                // find the approximate Elevation by doing an linear interpolation between this section's start and end point
+                ref readonly WorldLocation segmentStart = ref (TrackModel.RuntimeData.TrackDB.TrackNodes[pathPoint.ConnectedSegments[0].TrackNodeIndex] as Orts.Formats.Msts.Models.TrackVectorNode).TrackVectorSections[pathPoint.ConnectedSegments[0].TrackVectorSectionIndex].Location;
+                ref readonly WorldLocation segmentEnd = ref (TrackModel.ResolveEndNodeLocation(pathPoint.ConnectedSegments[0].TrackNodeIndex, pathPoint.ConnectedSegments[0].TrackVectorSectionIndex));
+                float elevation = WorldLocation.InterpolateElevationAlong(segmentStart, segmentEnd, distance);
+
+                WorldLocation location = PointD.ToWorldLocation(pathPoint.Location).SetElevation(elevation);
+                pathNodes.Add(new PathNode(location)
                 {
                     NodeType = pathPoint.NodeType,
                     NextMainNode = (pathPoint.NodeType & PathNodeType.End) == PathNodeType.End ? -1 : pathPoint.NextMainNode,

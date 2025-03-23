@@ -440,5 +440,31 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
             //return null;
         }
+
+        public ref readonly WorldLocation ResolveEndNodeLocation(int trackNodeIndex, int trackSectionIndex)
+        {
+            if (RuntimeData.TrackDB.TrackNodes[trackNodeIndex] is not TrackVectorNode trackVectorNode)
+                throw new InvalidCastException($"Track Node {trackNodeIndex} is not a valid TrackVectorNode");
+
+            // if this is before the end of a TrackNode, just need to use the next section on that Node
+            if (trackSectionIndex < trackVectorNode.TrackVectorSections.Length - 1)
+            {
+                return ref trackVectorNode.TrackVectorSections[trackSectionIndex + 1].Location;
+
+            }
+            // else need to find the junction or end node
+            else
+            {
+                TrackPin trackPin = trackVectorNode.TrackPins[1];
+                if (trackPin.Direction != TrackDirection.Reverse)
+                    trackPin = trackVectorNode.TrackPins[0];
+                int trackNode = trackPin.Link;
+
+                TrackNode node = RuntimeData.TrackDB.TrackNodes[trackNode];
+                if (node is not TrackEndNode and not TrackJunctionNode)
+                    throw new InvalidCastException($"Track Node {trackNodeIndex} is not a valid Track Connection Point");
+                return ref node.UiD.Location;
+            }
+        }
     }
 }
