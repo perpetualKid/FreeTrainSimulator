@@ -130,17 +130,17 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return double.NaN;
         }
 
-        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<PlatformSegment> InitializeSection(in PointD start, in PointD end)
         {
             throw new NotImplementedException();
         }
 
-        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<PlatformSegment> InitializeSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
             return new PlatformSection(trackModel, trackNodeIndex, start, end);
         }
 
-        protected override TrackSegmentSectionBase<PlatformSegment> AddSection(TrackModel trackModel, int trackNodeIndex)
+        protected override TrackSegmentSectionBase<PlatformSegment> InitializeSection(TrackModel trackModel, int trackNodeIndex)
         {
             return new PlatformSection(trackModel, trackNodeIndex);
         }

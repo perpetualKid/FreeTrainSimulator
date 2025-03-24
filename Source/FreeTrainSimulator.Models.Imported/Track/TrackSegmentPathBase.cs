@@ -68,7 +68,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
             if (startTrackNodeIndex == endTrackNodeIndex)
             {
-                PathSections.Add(AddSection(trackModel, startTrackNodeIndex, start, end));
+                PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, end));
             }
             else
             {
@@ -77,8 +77,8 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 if (trackPins.Length == 1)
                 {
                     PointD junctionLocation = PointD.FromWorldLocation((trackModel.RuntimeData.TrackDB.TrackNodes[trackPins[0].Link] as TrackJunctionNode).UiD.Location);
-                    PathSections.Add(AddSection(trackModel, startTrackNodeIndex, start, junctionLocation));
-                    PathSections.Add(AddSection(trackModel, endTrackNodeIndex, junctionLocation, end));
+                    PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, junctionLocation));
+                    PathSections.Add(InitializeSection(trackModel, endTrackNodeIndex, junctionLocation, end));
                 }
                 else
                 {
@@ -86,9 +86,9 @@ namespace FreeTrainSimulator.Models.Imported.Track
                     (int startJunction, int endJunction, int intermediaryNode)? intermediary;
                     if ((intermediary = ConnectAcrossIntermediary()) != null)
                     {
-                        PathSections.Add(AddSection(trackModel, startTrackNodeIndex, start, trackModel.Junctions[intermediary.Value.startJunction].Location));
-                        PathSections.Add(AddSection(trackModel, intermediary.Value.intermediaryNode));
-                        PathSections.Add(AddSection(trackModel, endTrackNodeIndex, trackModel.Junctions[intermediary.Value.endJunction].Location, end));
+                        PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, trackModel.Junctions[intermediary.Value.startJunction].Location));
+                        PathSections.Add(InitializeSection(trackModel, intermediary.Value.intermediaryNode));
+                        PathSections.Add(InitializeSection(trackModel, endTrackNodeIndex, trackModel.Junctions[intermediary.Value.endJunction].Location, end));
                     }
                     else
                     {
@@ -104,9 +104,9 @@ namespace FreeTrainSimulator.Models.Imported.Track
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
 
 #pragma warning disable CA1716 // Identifiers should not match keywords
-        protected abstract TrackSegmentSectionBase<T> AddSection(in PointD start, in PointD end);
-        protected abstract TrackSegmentSectionBase<T> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end);
-        protected abstract TrackSegmentSectionBase<T> AddSection(TrackModel trackModel, int trackNodeIndex);
+        protected abstract TrackSegmentSectionBase<T> InitializeSection(in PointD start, in PointD end);
+        protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end);
+        protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackModel trackModel, int trackNodeIndex);
 #pragma warning restore CA1716 // Identifiers should not match keywords
 
         public (T segment, float remainingDistance) SegmentAt(float distance)

@@ -1,5 +1,9 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
+using System.Reflection;
+using System.Xml.XPath;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -72,11 +76,56 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public EditorTrainPath(PathModel pathModel, Game game) : base(pathModel, game)
         {
-            pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
-        }
+            PathPoints.AddRange(PathModel.PathNodes.Select(node => new EditorPathPoint(node, TrackModel)));
 
-        public EditorTrainPath(PathModel pathModel, ImmutableArray<TrainPathPointBase> pathPoints, Game game) : base(pathModel, pathPoints, game)
-        {
+            for (int i = 0; i < PathPoints.Count; i++)
+            {
+                TrainPathPointBase startPoint = PathPoints[i];
+
+                void AddPathSections(PathSectionType pathType)
+                {
+                    TrainPathPointBase endPoint = (startPoint.NodeType & PathNodeType.End) == PathNodeType.End ? PathPoints.PreviousPathPoint(startPoint, pathType) : PathPoints.NextPathPoint(startPoint, pathType);
+
+                    ImmutableArray<TrainPathSectionBase> sections = InitializeSections(pathType, startPoint, endPoint, i);
+
+                    if ((startPoint.NodeType & PathNodeType.End) != PathNodeType.End)
+                    {
+                        PathSections.AddRange(sections);
+                    }
+                }
+
+                if (startPoint.NextMainNode > -1) //main path
+                {
+                    AddPathSections(PathSectionType.MainPath);
+                }
+                if (startPoint.NextSidingNode > -1) //passing path
+                {
+                    AddPathSections(PathSectionType.PassingPath);
+                }
+                if (startPoint.NextMainNode == -1 && startPoint.NextSidingNode == -1) // end node
+                {
+                    AddPathSections(PathSectionType.MainPath);
+                }
+                //bool reverse = sectionStart.Value.PathDirection == TrackDirection.Reverse;
+                //if ((start.NodeType & PathNodeType.End) == PathNodeType.End)
+                //    reverse = !reverse;
+                ////                pathItem = CreateEditorPathItem(start.Location, sectionStart.Value.NodeSegment, start.NodeType, reverse);
+
+                //if (pathPoint.NextMainNode > -1) //main path
+                //{
+                //    AddPathPoint(PathSectionType.MainPath, i);
+                //}
+                //if (pathPoint.NextSidingNode > -1) //passing path
+                //{
+                //    AddPathPoint(PathSectionType.PassingPath, i);
+                //}
+                //if (pathPoint.NextMainNode == -1 && pathPoint.NextSidingNode == -1) // end node
+                //{
+                //    AddPathPoint(PathSectionType.MainPath, i);
+                //}
+            }
+
+            SetBounds();
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
         }
 
@@ -141,14 +190,14 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 if (editorUseIntermediaryPathPoint)
                     PathPoints.RemoveAt(PathPoints.Count - 1);
                 editorUseIntermediaryPathPoint = false;
-                sections = AddSections(PathSectionType.MainPath, editorSegmentStart, end, 0);
+                sections = InitializeSections(PathSectionType.MainPath, editorSegmentStart, end, 0);
 
                 if (PathSections.Count > 0)
                 {
                     TrackSegmentSectionBase<TrainPathSegmentBase> previous = PathSections[^1];
                     TrackDirection direction = previous.SectionSegments[0].TrackDirectionOnSegment(previous.Location, previous.Vector);
                     if (sections[0].TrackNodeIndex == previous.TrackNodeIndex && direction != sections[0].SectionSegments[0].TrackDirectionOnSegment(editorSegmentStart.Location, location))
-                        PathPoints[^1] = PathPoints[^1] with { NodeType = PathNodeType.Reversal};
+                        PathPoints[^1] = PathPoints[^1] with { NodeType = PathNodeType.Reversal };
                 }
 
                 if (sections.Length > 1)
@@ -188,17 +237,17 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        protected override TrackSegmentSectionBase<TrainPathSegmentBase> AddSection(in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<TrainPathSegmentBase> InitializeSection(in PointD start, in PointD end)
         {
             return new TrainPathSection(start, end);
         }
 
-        protected override TrackSegmentSectionBase<TrainPathSegmentBase> AddSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<TrainPathSegmentBase> InitializeSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
         {
             return new TrainPathSection(trackModel, trackNodeIndex, start, end);
         }
 
-        protected override TrackSegmentSectionBase<TrainPathSegmentBase> AddSection(TrackModel trackModel, int trackNodeIndex)
+        protected override TrackSegmentSectionBase<TrainPathSegmentBase> InitializeSection(TrackModel trackModel, int trackNodeIndex)
         {
             throw new System.NotImplementedException();
         }
@@ -206,11 +255,6 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         protected override TrainPathPointBase CreateEditorPathItem(in PointD location, in PointD vector, PathNodeType nodeType)
         {
             return new EditorPathPoint(location, vector, nodeType);
-        }
-
-        protected override TrainPathPointBase CreateEditorPathItem(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection)
-        {
-            return new EditorPathPoint(location, trackSegment, nodeType, reverseDirection);
         }
     }
 }
