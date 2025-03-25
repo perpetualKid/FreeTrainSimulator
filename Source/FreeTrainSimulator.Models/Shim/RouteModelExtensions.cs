@@ -68,8 +68,7 @@ namespace FreeTrainSimulator.Models.Shim
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
 
-            pathModel.Initialize(routeModel);
-            return PathModelHandler.ToFile(pathModel, CancellationToken.None);
+            return PathModelHandler.UpdatePath(pathModel, routeModel, CancellationToken.None);
         }
     }
 }

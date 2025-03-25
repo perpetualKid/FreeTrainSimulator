@@ -52,6 +52,14 @@ namespace FreeTrainSimulator.Models.Handler
             return await modelTask.ConfigureAwait(false) as PathModel;
         }
 
+        public static Task<PathModel> UpdatePath(PathModel pathModel, RouteModelHeader routeModel, CancellationToken cancellationToken)
+        {
+            pathModel.Initialize(routeModel);
+            collectionUpdateRequired[routeModel.Hierarchy()] = true;
+            modelTaskCache.TryRemove(routeModel.Hierarchy(pathModel.Id), out _);
+            return ToFile(pathModel, CancellationToken.None);
+        }
+
         public static Task<ImmutableArray<PathModelHeader>> GetPaths(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));

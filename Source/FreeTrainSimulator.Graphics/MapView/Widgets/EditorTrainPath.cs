@@ -107,23 +107,6 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 {
                     AddPathSections(PathSectionType.MainPath);
                 }
-                //bool reverse = sectionStart.Value.PathDirection == TrackDirection.Reverse;
-                //if ((start.NodeType & PathNodeType.End) == PathNodeType.End)
-                //    reverse = !reverse;
-                ////                pathItem = CreateEditorPathItem(start.Location, sectionStart.Value.NodeSegment, start.NodeType, reverse);
-
-                //if (pathPoint.NextMainNode > -1) //main path
-                //{
-                //    AddPathPoint(PathSectionType.MainPath, i);
-                //}
-                //if (pathPoint.NextSidingNode > -1) //passing path
-                //{
-                //    AddPathPoint(PathSectionType.PassingPath, i);
-                //}
-                //if (pathPoint.NextMainNode == -1 && pathPoint.NextSidingNode == -1) // end node
-                //{
-                //    AddPathPoint(PathSectionType.MainPath, i);
-                //}
             }
 
             SetBounds();

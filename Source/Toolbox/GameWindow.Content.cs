@@ -130,9 +130,11 @@ namespace FreeTrainSimulator.Toolbox
             PathEditor.InitializeNewPath();
         }
 
-        internal void SavePath()
+        internal async void SavePath()
         {
-            PathEditor.SavePath();
+            await PathEditor.SavePath().ConfigureAwait(false);
+            Task<ImmutableArray<PathModelHeader>> pathTask = selectedRoute.GetRoutePaths(ctsProfileLoading.Token);
+            mainmenu.PopulatePaths(await pathTask.ConfigureAwait(false));
         }
 
         internal async Task PreSelectRoute(string folderName, string routeId, string pathId)
