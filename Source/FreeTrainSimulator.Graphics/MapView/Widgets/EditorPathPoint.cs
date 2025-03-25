@@ -15,15 +15,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private protected BasicTextureType textureType;
         private protected float Direction;
 
-        internal EditorPathPoint(PathNode pathNode, TrackModel trackModel): base(pathNode, trackModel)
+        internal EditorPathPoint(PathNode pathNode, TrackModel trackModel) : base(pathNode, trackModel)
         {
             textureType = TextureFromNodeType(NodeType);
 
-        }
-
-        internal EditorPathPoint(TrainPathPointBase trainPathPoint) : base(trainPathPoint)
-        {
-            textureType = TextureFromNodeType(NodeType);
         }
 
         internal EditorPathPoint(in PointD location, TrackModel trackModel) : base(location, trackModel)
@@ -75,9 +70,21 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Direction = (float)Math.Atan2(origin.X, origin.Y);
         }
 
-        internal void UpdateDirection(float direction)
+        internal void UpdateDirectionTowards(in TrainPathPointBase nextPathPoint, bool alongTrack, bool reverse)
         {
-            Direction = direction;
+            if (alongTrack)
+            {
+                TrackSegmentBase trackSegment = ConnectedSegments[0];
+                TrackDirection directionOnSegment = trackSegment.TrackDirectionOnSegment(this, nextPathPoint);
+                if (reverse)
+                    directionOnSegment = directionOnSegment.Reverse();
+                Direction = (trackSegment?.DirectionAt(Location) ?? 0) + (directionOnSegment == TrackDirection.Reverse ? MathHelper.Pi : 0) + MathHelper.PiOver2;
+            }
+            else
+            {
+                PointD origin = nextPathPoint.Location - Location;
+                Direction = (float)Math.Atan2(origin.X, origin.Y) + (reverse ? MathHelper.Pi : 0) + MathHelper.PiOver2;
+            }
         }
 
         protected void ResetTexture() // if NodeType is set through copy constructor, the texture Type is not updated, hence we need to check

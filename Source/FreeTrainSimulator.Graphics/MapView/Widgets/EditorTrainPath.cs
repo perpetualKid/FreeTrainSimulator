@@ -86,6 +86,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 {
                     TrainPathPointBase endPoint = (startPoint.NodeType & PathNodeType.End) == PathNodeType.End ? PathPoints.PreviousPathPoint(startPoint, pathType) : PathPoints.NextPathPoint(startPoint, pathType);
 
+                    (startPoint as EditorPathPoint).UpdateDirectionTowards(endPoint, true, (startPoint.NodeType & PathNodeType.End) == PathNodeType.End);
                     ImmutableArray<TrainPathSectionBase> sections = InitializeSections(pathType, startPoint, endPoint, i);
 
                     if ((startPoint.NodeType & PathNodeType.End) != PathNodeType.End)
@@ -153,10 +154,6 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 ? (editorSegmentStart with { NodeType = PathNodeType.Start | editorSegmentStart.NodeType, NextMainNode = 1 })
                 : (editorSegmentStart with { NextMainNode = PathPoints.Count + 1 });
             PathPoints.Add(pathPoint);
-            //if ((pathPoint.NodeType & PathNodeType.Start) != PathNodeType.Start)
-            //{
-            //    PathPoints[^2].NextMainItem = pathPoint;
-            //}
             sections = sections.Clear();
             editorUseIntermediaryPathPoint = false;
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
