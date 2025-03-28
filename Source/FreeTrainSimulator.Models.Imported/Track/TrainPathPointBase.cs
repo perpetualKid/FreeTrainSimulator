@@ -58,33 +58,29 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
 
-        protected TrainPathPointBase(in PointD location, TrackSegmentBase trackSegment, TrackModel trackModel) : base(location)
+        protected TrainPathPointBase(in PointD location, JunctionNodeBase junctionNode, TrackSegmentBase trackSegment, TrackModel trackModel) : base(location)
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 
-            JunctionNode = trackModel.JunctionAt(Location);
-            NodeType = JunctionNode != null ? PathNodeType.Junction : PathNodeType.Intermediate;
+            JunctionNode = junctionNode;
+            if (JunctionNode != null)
+            {
+                NodeType = PathNodeType.Junction;
+                ConnectedSegments = GetConnectedNodes(trackModel);
+            }
+            else if (trackSegment != null)
+            {
+                NodeType = PathNodeType.Intermediate;
+                ConnectedSegments = ImmutableArray.Create(trackSegment);
+            }
 
-            ConnectedSegments = trackModel.OtherSegmentsAt(location, trackSegment).Prepend(trackSegment).ToImmutableArray();
-            if (!ConnectedSegments.Any())
-                ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
-        }
-
-        protected TrainPathPointBase(JunctionNodeBase junction, TrackModel trackModel) : base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)))
-        {
-            ArgumentNullException.ThrowIfNull(trackModel);
-
-            JunctionNode = junction;
-            NodeType = JunctionNode != null ? PathNodeType.Junction : PathNodeType.Intermediate;
-
-            ConnectedSegments = GetConnectedNodes(trackModel);
-            if (!ConnectedSegments.Any())
+            if (ConnectedSegments.IsDefaultOrEmpty)
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
 
         public bool ValidatePathItem(int index)
         {
-            if (ValidationResult == PathNodeInvalidReasons.NoJunctionNode)
+            if ((ValidationResult & PathNodeInvalidReasons.NoJunctionNode) == PathNodeInvalidReasons.NoJunctionNode)
             {
                 Debug.WriteLine($"Path point #{index} is marked as junction but not actually located on junction.");
                 return true;

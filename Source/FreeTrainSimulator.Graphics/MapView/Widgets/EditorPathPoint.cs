@@ -18,16 +18,15 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         internal EditorPathPoint(PathNode pathNode, TrackModel trackModel) : base(pathNode, trackModel)
         {
             textureType = TextureFromNodeType(NodeType);
-
         }
 
         internal EditorPathPoint(in PointD location, TrackModel trackModel) : base(location, trackModel)
         { }
 
-        internal EditorPathPoint(in PointD location, TrackSegmentBase trackSegment, PathNodeType nodeType, bool reverseDirection) : base(location, nodeType)
-        {
-            textureType = TextureFromNodeType(nodeType);
-            Direction = (trackSegment?.DirectionAt(Location) ?? 0) + (reverseDirection ? MathHelper.Pi : 0) + MathHelper.PiOver2;
+        internal EditorPathPoint(in PointD location, JunctionNodeBase junctionNode, TrackSegmentBase trackSegment, TrackModel trackModel) : 
+            base(location, junctionNode, trackSegment, trackModel)
+        { 
+            Direction = trackSegment?.DirectionAt(Location) + MathHelper.PiOver2 ?? Direction;
         }
 
         internal EditorPathPoint(in PointD location, in PointD vector, PathNodeType nodeType) : base(location, nodeType)
@@ -57,11 +56,21 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             SetLocation(location);
         }
 
-        internal void UpdateLocation(in PointD location, bool onTrack)
+        internal void UpdateLocation(in PointD location, TrackSegmentBase trackSegment)
         {
             SetLocation(location);
-            ValidationResult = onTrack ? PathNodeInvalidReasons.None : PathNodeInvalidReasons.NotOnTrack;
-            textureType = onTrack ? TextureFromNodeType(PathNodeType.Intermediate) : TextureFromNodeType(PathNodeType.None);
+
+            if (null != trackSegment)
+            {
+                ValidationResult = PathNodeInvalidReasons.None;
+                textureType = TextureFromNodeType(PathNodeType.Intermediate);
+                Direction = trackSegment.DirectionAt(Location) + MathHelper.PiOver2;
+            }
+            else
+            {
+                ValidationResult = PathNodeInvalidReasons.NotOnTrack;
+                textureType = TextureFromNodeType(PathNodeType.None);
+            }
         }
 
         internal void UpdateDirection(in PointD nextLocation)
@@ -72,7 +81,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         internal void UpdateDirectionTowards(in TrainPathPointBase nextPathPoint, bool alongTrack, bool reverse)
         {
-            if (alongTrack)
+            if (alongTrack && nextPathPoint.ValidationResult == PathNodeInvalidReasons.None)
             {
                 TrackSegmentBase trackSegment = ConnectedSegments[0];
                 TrackDirection directionOnSegment = trackSegment.TrackDirectionOnSegment(this, nextPathPoint);
@@ -83,7 +92,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             else
             {
                 PointD origin = nextPathPoint.Location - Location;
-                Direction = (float)Math.Atan2(origin.X, origin.Y) + (reverse ? MathHelper.Pi : 0) + MathHelper.PiOver2;
+                Direction = (float)Math.Atan2(origin.X, origin.Y) + (reverse ? MathHelper.Pi : 0);
             }
         }
 

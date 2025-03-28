@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Diagnostics.Eventing.Reader;
+﻿using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
-using System.Xml.XPath;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -17,7 +13,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     internal record EditorTrainPath : TrainPathBase, IDrawable<VectorPrimitive>
     {
         #region active path editing
-        private EditorPathPoint editorSegmentStart;
+        private EditorPathPoint activeEditorSegmentStart;
         private ImmutableArray<TrainPathSectionBase> sections = ImmutableArray<TrainPathSectionBase>.Empty;
         private bool editorUseIntermediaryPathPoint;
         #endregion
@@ -128,19 +124,20 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (pathPoint == null)
                 return null;
 
-            if (editorSegmentStart != null && editorSegmentStart.ValidationResult != PathNodeInvalidReasons.None)
+            if (activeEditorSegmentStart != null && activeEditorSegmentStart.ValidationResult != PathNodeInvalidReasons.None)
                 return pathPoint;
 
-            editorSegmentStart = new EditorPathPoint(pathPoint.Location, TrackModel);
+            activeEditorSegmentStart = new EditorPathPoint(pathPoint.Location, TrackModel);
 
             pathPoint = PathPoints.Count == 0
-                ? (editorSegmentStart with { NodeType = PathNodeType.Start | editorSegmentStart.NodeType, NextMainNode = 1 })
-                : (editorSegmentStart with { NextMainNode = PathPoints.Count + 1 });
+                ? new EditorPathPoint(pathPoint.Location, TrackModel) { NodeType = PathNodeType.Start, NextMainNode = 1 }
+                : new EditorPathPoint(pathPoint.Location, TrackModel) { NextMainNode = PathPoints.Count + 1 };
             PathPoints.Add(pathPoint);
             sections = sections.Clear();
             editorUseIntermediaryPathPoint = false;
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
-            return editorSegmentStart with { NodeType = PathNodeType.None };
+            //return new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);// editorSegmentStart with { NodeType = PathNodeType.None };
+            return activeEditorSegmentStart with { NodeType = PathNodeType.None };
         }
 
         internal EditorPathPoint RemovePathPoint(EditorPathPoint pathPoint)
@@ -151,7 +148,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (PathPoints.Count > 0)
             {
                 PathPoints.RemoveAt(PathPoints.Count - 1);
-                editorSegmentStart = new EditorPathPoint(PathPoints[^1].Location, TrackModel);
+                activeEditorSegmentStart = new EditorPathPoint(PathPoints[^1].Location, TrackModel);
                 PathSections.RemoveRange(PathSections.Count - sections.Length, sections.Length);
                 editorUseIntermediaryPathPoint = false;
                 pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
@@ -159,30 +156,29 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return new EditorPathPoint(pathPoint.Location, pathPoint.Location, PathNodeType.None);
         }
 
-        internal void UpdateLocation(in PointD location)
+        internal void UpdatePathEndPoint(EditorPathPoint pathPoint)
         {
-            if (editorSegmentStart != null)
+            if (activeEditorSegmentStart != null)
             {
-                EditorPathPoint end = new EditorPathPoint(location, TrackModel);
-                editorSegmentStart.ValidationResult = PathNodeInvalidReasons.None;
+                activeEditorSegmentStart.ValidationResult = PathNodeInvalidReasons.None;
                 PathSections.RemoveRange(PathSections.Count - sections.Length, sections.Length);
 
                 if (editorUseIntermediaryPathPoint)
                     PathPoints.RemoveAt(PathPoints.Count - 1);
                 editorUseIntermediaryPathPoint = false;
-                sections = InitializeSections(PathSectionType.MainPath, editorSegmentStart, end, 0);
+                sections = InitializeSections(PathSectionType.MainPath, activeEditorSegmentStart, pathPoint, 0);
 
                 if (PathSections.Count > 0)
                 {
                     TrackSegmentSectionBase<TrainPathSegmentBase> previous = PathSections[^1];
                     TrackDirection direction = previous.SectionSegments[0].TrackDirectionOnSegment(previous.Location, previous.Vector);
-                    if (sections[0].TrackNodeIndex == previous.TrackNodeIndex && direction != sections[0].SectionSegments[0].TrackDirectionOnSegment(editorSegmentStart.Location, location))
+                    if (sections[0].TrackNodeIndex == previous.TrackNodeIndex && direction != sections[0].SectionSegments[0].TrackDirectionOnSegment(activeEditorSegmentStart.Location, pathPoint.Location))
                         PathPoints[^1] = PathPoints[^1] with { NodeType = PathNodeType.Reversal };
                 }
 
                 if (sections.Length > 1)
                 {
-                    PathPoints.Add(CreateEditorPathItem(sections[0].Vector, end.Location, PathNodeType.Junction));
+                    PathPoints.Add(CreateEditorPathItem(sections[0].Vector, pathPoint.Location, PathNodeType.Junction));
                     editorUseIntermediaryPathPoint = true;
                 }
                 PathSections.AddRange(sections);

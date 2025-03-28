@@ -1,4 +1,6 @@
-﻿using FreeTrainSimulator.Common.Position;
+﻿using System;
+
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Imported.Track
@@ -17,7 +19,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
         {
         }
 
-        public TrainPathPoint(JunctionNodeBase junction, TrackModel trackModel) : base(junction, trackModel)
+        public TrainPathPoint(JunctionNodeBase junction, TrackModel trackModel) : base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)), junction, null, trackModel)
         {
         }
     }

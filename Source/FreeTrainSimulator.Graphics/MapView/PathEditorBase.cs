@@ -45,12 +45,13 @@ namespace FreeTrainSimulator.Graphics.MapView
             JunctionNodeBase junction;
             if ((junction = TrackModel.JunctionAt(snapLocation)) != null) //if within junction proximity, snap to the junction
                 snapLocation = junction.Location;
-            pathPoint.UpdateLocation(snapLocation, nearestSegment != null);
-            trainPath.UpdateLocation(snapLocation);
+            pathPoint = new EditorPathPoint(snapLocation, junction, nearestSegment, TrackModel);
+            
+            trainPath.UpdatePathEndPoint(pathPoint);
+
             if (trainPath.PathPoints.Count > 0)
             {
-                (trainPath.PathPoints[^1] as EditorPathPoint).UpdateDirection(snapLocation);
-                //pathPoint.UpdateDirection(nearestSegment?.DirectionAt(pathPoint.Location) + MathHelper.PiOver2 ?? 0); //TODO 2025-02-19 correctly show path direction on track away from last path point
+                (trainPath.PathPoints[^1] as EditorPathPoint).UpdateDirectionTowards(pathPoint, nearestSegment != null, false);
             }
         }
 

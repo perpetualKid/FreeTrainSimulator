@@ -384,7 +384,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
         }
 
         /// <summary>
-        /// On a single track segment section (same track node index), checks if direction from start to end aligns with track direction or is reverse
+        /// On a single track segment (same track node index), checks if direction between start to end, aligns with track direction or is reverse
         /// </summary>
         public TrackDirection TrackDirectionOnSegment(TrainPathPointBase start, TrainPathPointBase end)
         {
@@ -398,7 +398,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
         }
 
         /// <summary>
-        /// On a single track segment section (same track node index), checks if direction from start to end aligns with track direction or is reverse
+        /// On a single track segment (same track node index), checks if direction from start to end aligns with track direction or is reverse
         /// </summary>
         public TrackDirection TrackDirectionOnSegment(in PointD start, in PointD end)
         {
