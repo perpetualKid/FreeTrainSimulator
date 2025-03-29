@@ -11,7 +11,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
 {
     public abstract record TrainPathPointBase : PointPrimitive
     {
-        public PathNodeType NodeType { get; init; }
+        public virtual PathNodeType NodeType { get; init; }
 
         public JunctionNodeBase JunctionNode { get; }
 

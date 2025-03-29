@@ -45,14 +45,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             JunctionNodeBase junction;
             if ((junction = TrackModel.JunctionAt(snapLocation)) != null) //if within junction proximity, snap to the junction
                 snapLocation = junction.Location;
-            pathPoint = new EditorPathPoint(snapLocation, junction, nearestSegment, TrackModel);
-            
-            trainPath.UpdatePathEndPoint(pathPoint);
 
-            if (trainPath.PathPoints.Count > 0)
-            {
-                (trainPath.PathPoints[^1] as EditorPathPoint).UpdateDirectionTowards(pathPoint, nearestSegment != null, false);
-            }
+            pathPoint = trainPath.UpdatePathEndPoint(snapLocation, junction, nearestSegment);
         }
 
         internal void Draw()
@@ -86,7 +80,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             pathPoint = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
         }
 
-        public  PathModel ConvertTrainPath()
+        public PathModel ConvertTrainPath()
         {
             return trainPath?.ToPathModel();
         }

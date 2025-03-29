@@ -28,8 +28,6 @@ namespace FreeTrainSimulator.Models.Imported.Track
 #pragma warning restore CA1002 // Do not expose generic lists
         protected TrackModel TrackModel { get; }
 
-        protected abstract TrainPathPointBase CreateEditorPathItem(in PointD location, in PointD vector, PathNodeType nodeType);
-
         protected abstract record TrainPathSectionBase : TrackSegmentSectionBase<TrainPathSegmentBase>
         {
             public PathSectionType PathType { get; internal set; }
@@ -70,12 +68,13 @@ namespace FreeTrainSimulator.Models.Imported.Track
             PathModel = pathModel;
         }
 
-        protected ImmutableArray<TrainPathSectionBase> InitializeSections(PathSectionType pathType, TrainPathPointBase start, TrainPathPointBase end, int index)
+        protected (ImmutableArray<TrainPathSectionBase> Sections, TrainPathPointBase JunctionNode) InitializeSections(PathSectionType pathType, TrainPathPointBase start, TrainPathPointBase end, int index)
         {
             ArgumentNullException.ThrowIfNull(start);
             ArgumentNullException.ThrowIfNull(end);
 
             List<TrainPathSectionBase> sections = new List<TrainPathSectionBase>();
+            TrainPathPointBase intermediary = null;
             TrainPathSectionBase section;
 
             if (!start.ValidatePathItem(index) || !end.ValidatePathItem(index))
@@ -92,11 +91,11 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 switch (trackSegments.Count)
                 {
                     case 0:
-                        TrainPathPointBase intermediary = TrackModel.FindIntermediaryConnection(start, end);
+                        intermediary = TrackModel.FindIntermediaryConnection(start, end);
                         if (intermediary != null)
                         {
-                            sections.AddRange(InitializeSections(pathType, start, intermediary, index));
-                            sections.AddRange(InitializeSections(pathType, intermediary, end, index));
+                            sections.AddRange(InitializeSections(pathType, start, intermediary, index).Item1);
+                            sections.AddRange(InitializeSections(pathType, intermediary, end, index).Item1);
                         }
                         else
                         {
@@ -131,7 +130,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
                         break;
                 }
             }
-            return sections.ToImmutableArray();
+            return (sections.ToImmutableArray(), intermediary);
         }
 
         protected PathModel ToPathModel()
@@ -142,7 +141,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 Length += section.Length;
             }
             List<PathNode> pathNodes = new List<PathNode>();
-            foreach (var pathPoint in PathPoints)
+            foreach (TrainPathPointBase pathPoint in PathPoints)
             {
                 if (pathPoint.ConnectedSegments.Length == 0)
                     throw new InvalidOperationException("Invalid path point not on track segment");
@@ -173,92 +172,5 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 PathNodes = pathNodes.ToImmutableArray(),
             };
         }
-    }
-
-    public static class PathNodeExtensions
-    {
-        public static PathNode NodeOfType(this IList<PathNode> pathNodes, PathNodeType targetType)
-        {
-            ArgumentNullException.ThrowIfNull(pathNodes, nameof(pathNodes));
-
-            if (targetType == PathNodeType.End)
-            {
-                for (int i = pathNodes.Count - 1; i >= 0; i--)
-                {
-                    if ((pathNodes[i].NodeType & targetType) == targetType)
-                        return pathNodes[i];
-                }
-            }
-            else
-            {
-                for (int i = 0; i < pathNodes.Count; i++)
-                {
-                    if ((pathNodes[i].NodeType & targetType) == targetType)
-                        return pathNodes[i];
-                }
-            }
-            return null;
-        }
-
-        public static TrainPathPointBase NodeOfType(this IList<TrainPathPointBase> pathNodes, PathNodeType targetType)
-        {
-            ArgumentNullException.ThrowIfNull(pathNodes, nameof(pathNodes));
-
-            if (targetType == PathNodeType.End)
-            {
-                for (int i = pathNodes.Count - 1; i >= 0; i--)
-                {
-                    if ((pathNodes[i].NodeType & targetType) == targetType)
-                        return pathNodes[i];
-                }
-            }
-            else
-            {
-                for (int i = 0; i < pathNodes.Count; i++)
-                {
-                    if ((pathNodes[i].NodeType & targetType) == targetType)
-                        return pathNodes[i];
-                }
-            }
-            return null;
-        }
-
-        public static TrainPathPointBase NextPathPoint(this IList<TrainPathPointBase> pathPoints, TrainPathPointBase currentPathPoint, PathSectionType pathType)
-        {
-            ArgumentNullException.ThrowIfNull(pathPoints, nameof(pathPoints));
-            ArgumentNullException.ThrowIfNull(currentPathPoint, nameof(currentPathPoint));
-
-            return pathType switch
-            {
-                PathSectionType.MainPath => (currentPathPoint.NextMainNode > -1 && pathPoints.Count > currentPathPoint.NextMainNode) ?
-                pathPoints[currentPathPoint.NextMainNode] : null,
-                PathSectionType.PassingPath => (currentPathPoint.NextSidingNode > -1 && pathPoints.Count > currentPathPoint.NextSidingNode) ?
-                    pathPoints[currentPathPoint.NextSidingNode] : null,
-                _ => null,
-            };
-        }
-
-        public static TrainPathPointBase PreviousPathPoint(this IList<TrainPathPointBase> pathPoints, TrainPathPointBase currentPathPoint, PathSectionType pathType)
-        {
-            ArgumentNullException.ThrowIfNull(pathPoints, nameof(pathPoints));
-            ArgumentNullException.ThrowIfNull(currentPathPoint, nameof(currentPathPoint));
-
-            int currentPathPointIndex = -1;
-            for (int i = pathPoints.Count - 1; i >= 0; i--)
-            {
-                if (currentPathPointIndex == -1 && pathPoints[i] == currentPathPoint)
-                {
-                    currentPathPointIndex = i;
-                }
-                else
-                {
-                    if ((pathType == PathSectionType.PassingPath && pathPoints[i].NextSidingNode == currentPathPointIndex) ||
-                        (pathType == PathSectionType.MainPath && pathPoints[i].NextMainNode == currentPathPointIndex))
-                        return pathPoints[i];
-                }
-            }
-            return null;
-        }
-
     }
 }

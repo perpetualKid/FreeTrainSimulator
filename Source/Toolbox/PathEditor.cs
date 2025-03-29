@@ -31,6 +31,7 @@ namespace FreeTrainSimulator.Toolbox
         internal event EventHandler<PathEditorChangedEventArgs> OnPathChanged;
 
         internal event EventHandler<PathEditorChangedEventArgs> OnPathUpdated;
+        private readonly int doubleClickInterval = System.Windows.Forms.SystemInformation.DoubleClickTime;
 
         public PathEditor(ContentArea contentArea) : base(contentArea) { }
 
@@ -93,7 +94,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (EditMode)
             {
-                if (Environment.TickCount64 - lastPathClickTick < 500 && validPointAdded) //considered as double click
+                if (Environment.TickCount64 - lastPathClickTick < doubleClickInterval && validPointAdded) //considered as double click
                 {
                     _ = AddPathEndPoint();
                 }
