@@ -77,7 +77,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             TrainPathPointBase intermediary = null;
             TrainPathSectionBase section;
 
-            if (!start.ValidatePathItem(index) || !end.ValidatePathItem(index))
+            if (start.ValidationResult != PathNodeInvalidReasons.None || end.ValidationResult != PathNodeInvalidReasons.None)
             {
                 // either start or end are invalid in a sense they are not on track or no way to connect the ends
                 // so we draw an "invalid" path section shown as straight dotted line on the map
@@ -94,12 +94,11 @@ namespace FreeTrainSimulator.Models.Imported.Track
                         intermediary = TrackModel.FindIntermediaryConnection(start, end);
                         if (intermediary != null)
                         {
-                            sections.AddRange(InitializeSections(pathType, start, intermediary, index).Item1);
-                            sections.AddRange(InitializeSections(pathType, intermediary, end, index).Item1);
+                            sections.AddRange(InitializeSections(pathType, start, intermediary, index).Sections);
+                            sections.AddRange(InitializeSections(pathType, intermediary, end, index).Sections);
                         }
                         else
                         {
-                            Debug.WriteLine($"No valid connection found for #{index}");
                             start.ValidationResult |= PathNodeInvalidReasons.NoConnectionPossible;
                             section = InitializeSection(start.Location, end.Location) as TrainPathSectionBase;
                             section.PathType = PathSectionType.Invalid;

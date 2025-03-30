@@ -90,7 +90,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             if (trainPath?.PathPoints.Count > 1 && pathPoint.ValidationResult == PathNodeInvalidReasons.None)
             {
                 pathPoint = trainPath.PathPoints[^1] as EditorPathPoint;
-//                pathPoint.UpdateDirection(trainPath.PathPoints[^2].Location);
+                pathPoint.UpdateDirectionTowards(trainPath.PathPoints[^2], true, true);
+                trainPath.PathPoints[^1] = pathPoint with { NodeType = PathNodeType.End };
 
                 trainPath.PathPoints[^1] = pathPoint with
                 {

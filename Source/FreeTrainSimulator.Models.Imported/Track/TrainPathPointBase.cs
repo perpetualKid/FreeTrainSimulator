@@ -78,21 +78,6 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
 
-        public bool ValidatePathItem(int index)
-        {
-            if ((ValidationResult & PathNodeInvalidReasons.NoJunctionNode) == PathNodeInvalidReasons.NoJunctionNode)
-            {
-                Debug.WriteLine($"Path point #{index} is marked as junction but not actually located on junction.");
-                return true;
-            }
-            else if (ValidationResult != PathNodeInvalidReasons.None)
-            {
-                Debug.WriteLine($"Path item #{index} is not on track.");
-                return false;
-            }
-            return true;
-        }
-
         private ImmutableArray<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
         {
             return JunctionNode?.ConnectedSegments(trackModel).ToImmutableArray() ?? trackModel.SegmentsAt(Location).ToImmutableArray();
