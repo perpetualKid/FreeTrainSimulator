@@ -25,6 +25,7 @@ namespace FreeTrainSimulator.Toolbox
         private PathModelHeader path;
         private long lastPathClickTick;
         private bool validPointAdded;
+        private bool editorDragged;
 
         public string PathId => path?.Id;
 
@@ -35,20 +36,18 @@ namespace FreeTrainSimulator.Toolbox
 
         public PathEditor(ContentArea contentArea) : base(contentArea) { }
 
-        public PathEditor(ContentArea contentArea, UserCommandController<UserCommand> userCommandController) : base(contentArea) 
-        { 
+        public PathEditor(ContentArea contentArea, UserCommandController<UserCommand> userCommandController) : base(contentArea)
+        {
             this.userCommandController = userCommandController;
-            userCommandController.AddEvent(CommonUserCommand.PointerPressed, MousePressedLeft);
             userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
-            userCommandController.AddEvent(CommonUserCommand.AlternatePointerPressed, MousePressedRight);
+            userCommandController.AddEvent(CommonUserCommand.AlternatePointerReleased, MouseReleasedRight);
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragged);
         }
 
         protected override void Dispose(bool disposing)
         {
-            userCommandController.RemoveEvent(CommonUserCommand.PointerPressed, MousePressedLeft);
             userCommandController.RemoveEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
-            userCommandController.RemoveEvent(CommonUserCommand.AlternatePointerPressed, MousePressedRight);
+            userCommandController.RemoveEvent(CommonUserCommand.AlternatePointerReleased, MouseReleasedRight);
             userCommandController.RemoveEvent(CommonUserCommand.PointerDragged, MouseDragged);
 
             base.Dispose(disposing);
@@ -90,9 +89,14 @@ namespace FreeTrainSimulator.Toolbox
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
-        public void MousePressedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        public void MouseDragged(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
-            if (EditMode)
+            editorDragged = true;
+        }
+
+        public void MouseReleasedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+            if (EditMode & !editorDragged)
             {
                 if (Environment.TickCount64 - lastPathClickTick < doubleClickInterval && validPointAdded) //considered as double click
                 {
@@ -106,18 +110,10 @@ namespace FreeTrainSimulator.Toolbox
                 OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 userCommandArgs.Handled = true;
             }
+            editorDragged = false;
         }
 
-        public void MouseDragged(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
-        {
-
-        }
-
-        public void MouseReleasedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
-        {
-        }
-
-        public void MousePressedRight(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        public void MouseReleasedRight(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
             RemovePathPoint();
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
