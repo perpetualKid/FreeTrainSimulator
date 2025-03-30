@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -77,7 +78,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
             if (alongTrack && nextPathPoint.ValidationResult == PathNodeInvalidReasons.None)
             {
-                TrackSegmentBase trackSegment = ConnectedSegments[0];
+                TrackSegmentBase trackSegment = ConnectedSegments.Length == 1 ? ConnectedSegments[0] :
+                    ConnectedSegments.IntersectBy(nextPathPoint.ConnectedSegments.Select(s => s.TrackNodeIndex), s => s.TrackNodeIndex).First();
                 TrackDirection directionOnSegment = trackSegment.TrackDirectionOnSegment(this, nextPathPoint);
                 if (reverse)
                     directionOnSegment = directionOnSegment.Reverse();

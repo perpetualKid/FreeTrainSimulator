@@ -90,16 +90,12 @@ namespace FreeTrainSimulator.Graphics.MapView
             if (trainPath?.PathPoints.Count > 1 && pathPoint.ValidationResult == PathNodeInvalidReasons.None)
             {
                 pathPoint = trainPath.PathPoints[^1] as EditorPathPoint;
-                pathPoint.UpdateDirection(trainPath.PathPoints[^2].Location);
+//                pathPoint.UpdateDirection(trainPath.PathPoints[^2].Location);
 
                 trainPath.PathPoints[^1] = pathPoint with
                 {
-                    NodeType = pathPoint.NodeType | PathNodeType.End
+                    NodeType = PathNodeType.End
                 };
-                //pathPoint = trainPath.PathPoints[^1] as EditorPathPoint;
-
-                //pathPoint.UpdateDirection(trainPath.PathPoints[^2].Location);
-                //pathPoint.UpdateNodeType(pathPoint.NodeType | PathNodeType.End);
 
                 float f = trainPath.Length;
                 pathPoint = null;

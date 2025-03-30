@@ -253,11 +253,6 @@ namespace FreeTrainSimulator.Models.Imported.Track
         {
             double distanceSquared;
 
-            //if ((distanceSquared = point.DistanceSquared(Location)) < ProximityTolerance)
-            //    return distanceSquared;
-            //else if ((distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance)
-            //    return distanceSquared;
-
             if (Curved)
             {
                 PointD delta = point - centerPoint;
@@ -272,11 +267,6 @@ namespace FreeTrainSimulator.Models.Imported.Track
                     return distanceSquared;
                 else if ((distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance)
                     return distanceSquared;
-
-                //if (Angle > 0 && ((angle < centerToStartDirection) || (centerToStartDirection > centerToEndDirection && (angle > centerToStartDirection || angle < centerToEndDirection))))
-                //    return (distanceSquared = point.DistanceSquared(Location)) > ProximityTolerance ? double.NaN : distanceSquared;
-                //if (Angle < 0 && ((angle < centerToEndDirection) || (centerToEndDirection > centerToStartDirection && (angle > centerToEndDirection || angle < centerToStartDirection))))
-                //    return (distanceSquared = point.DistanceSquared(Vector)) > ProximityTolerance ? double.NaN : distanceSquared;
 
                 return double.NaN;
             }
@@ -294,8 +284,6 @@ namespace FreeTrainSimulator.Models.Imported.Track
                     return (distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance ? distanceSquared : double.NaN;
                 else
                     return point.DistanceSquared(Location + (Vector - Location) * t);
-                //return (t < 0 || t > 1 || (distanceSquared = point.DistanceSquared(Location + (Vector - Location) * t)) > ProximityTolerance) ? double.NaN : distanceSquared;
-                //return (t < 0 || t > 1) ? double.NaN : point.DistanceSquared(Location + (Vector - Location) * t);
             }
         }
         #endregion
