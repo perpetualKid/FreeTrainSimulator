@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
@@ -21,9 +22,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
         private PointD topLeft;
         private PointD bottomRight;
 
-#pragma warning disable CA1002 // Do not expose generic lists
-        protected List<TrackSegmentSectionBase<T>> PathSections { get; } = new List<TrackSegmentSectionBase<T>>();
-#pragma warning restore CA1002 // Do not expose generic lists
+        protected ImmutableArray<TrackSegmentSectionBase<T>> PathSections { get; private set; } = ImmutableArray<TrackSegmentSectionBase<T>>.Empty;
 
         public ref readonly PointD TopLeftBound => ref topLeft;
         public ref readonly PointD BottomRightBound => ref bottomRight;
@@ -41,7 +40,6 @@ namespace FreeTrainSimulator.Models.Imported.Track
             Length = (float)Vector.Distance(Location);
         }
 
-#pragma warning disable CA2214 // Do not call overridable methods in constructors
         protected TrackSegmentPathBase(TrackModel trackModel, in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex) :
             base(start, end)
         {
@@ -68,7 +66,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
             if (startTrackNodeIndex == endTrackNodeIndex)
             {
-                PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, end));
+                PathSections = PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, end));
             }
             else
             {
@@ -77,8 +75,8 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 if (trackPins.Length == 1)
                 {
                     PointD junctionLocation = PointD.FromWorldLocation((trackModel.RuntimeData.TrackDB.TrackNodes[trackPins[0].Link] as TrackJunctionNode).UiD.Location);
-                    PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, junctionLocation));
-                    PathSections.Add(InitializeSection(trackModel, endTrackNodeIndex, junctionLocation, end));
+                    PathSections = PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, junctionLocation));
+                    PathSections = PathSections.Add(InitializeSection(trackModel, endTrackNodeIndex, junctionLocation, end));
                 }
                 else
                 {
@@ -86,9 +84,9 @@ namespace FreeTrainSimulator.Models.Imported.Track
                     (int startJunction, int endJunction, int intermediaryNode)? intermediary;
                     if ((intermediary = ConnectAcrossIntermediary()) != null)
                     {
-                        PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, trackModel.Junctions[intermediary.Value.startJunction].Location));
-                        PathSections.Add(InitializeSection(trackModel, intermediary.Value.intermediaryNode));
-                        PathSections.Add(InitializeSection(trackModel, endTrackNodeIndex, trackModel.Junctions[intermediary.Value.endJunction].Location, end));
+                        PathSections = PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, trackModel.Junctions[intermediary.Value.startJunction].Location));
+                        PathSections = PathSections.Add(InitializeSection(trackModel, intermediary.Value.intermediaryNode));
+                        PathSections = PathSections.Add(InitializeSection(trackModel, endTrackNodeIndex, trackModel.Junctions[intermediary.Value.endJunction].Location, end));
                     }
                     else
                     {
@@ -101,13 +99,28 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 Length += section.Length;
             }
         }
-#pragma warning restore CA2214 // Do not call overridable methods in constructors
 
-#pragma warning disable CA1716 // Identifiers should not match keywords
         protected abstract TrackSegmentSectionBase<T> InitializeSection(in PointD start, in PointD end);
         protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end);
         protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackModel trackModel, int trackNodeIndex);
-#pragma warning restore CA1716 // Identifiers should not match keywords
+
+        protected void AddSections(IReadOnlyCollection<TrackSegmentSectionBase<T>> sections)
+        {
+            PathSections = PathSections.AddRange(sections);
+            foreach (TrackSegmentSectionBase<T> section in sections)
+            {
+                Length += section.Length;
+            }
+        }
+
+        protected void RemoveSections(IReadOnlyCollection<TrackSegmentSectionBase<T>> sections)
+        {
+            foreach (TrackSegmentSectionBase<T> section in sections)
+            {
+                Length -= section.Length;
+            }
+            PathSections = PathSections.RemoveRange(PathSections.Length - sections.Count, sections.Count);
+        }
 
         public (T segment, float remainingDistance) SegmentAt(float distance)
         {

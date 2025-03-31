@@ -23,9 +23,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
     {
         public PathModel PathModel { get; }
 
-#pragma warning disable CA1002 // Do not expose generic lists
         public List<TrainPathPointBase> PathPoints { get; } = new List<TrainPathPointBase>();
-#pragma warning restore CA1002 // Do not expose generic lists
         protected TrackModel TrackModel { get; }
 
         protected abstract record TrainPathSectionBase : TrackSegmentSectionBase<TrainPathSegmentBase>
@@ -68,7 +66,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             PathModel = pathModel;
         }
 
-        protected (ImmutableArray<TrainPathSectionBase> Sections, TrainPathPointBase JunctionNode) InitializeSections(PathSectionType pathType, TrainPathPointBase start, TrainPathPointBase end, int index)
+        protected (List<TrainPathSectionBase> Sections, TrainPathPointBase JunctionNode) InitializeSections(PathSectionType pathType, TrainPathPointBase start, TrainPathPointBase end)
         {
             ArgumentNullException.ThrowIfNull(start);
             ArgumentNullException.ThrowIfNull(end);
@@ -94,8 +92,8 @@ namespace FreeTrainSimulator.Models.Imported.Track
                         intermediary = TrackModel.FindIntermediaryConnection(start, end);
                         if (intermediary != null)
                         {
-                            sections.AddRange(InitializeSections(pathType, start, intermediary, index).Sections);
-                            sections.AddRange(InitializeSections(pathType, intermediary, end, index).Sections);
+                            sections.AddRange(InitializeSections(pathType, start, intermediary).Sections);
+                            sections.AddRange(InitializeSections(pathType, intermediary, end).Sections);
                         }
                         else
                         {
@@ -129,16 +127,11 @@ namespace FreeTrainSimulator.Models.Imported.Track
                         break;
                 }
             }
-            return (sections.ToImmutableArray(), intermediary);
+            return (sections, intermediary);
         }
 
         protected PathModel ToPathModel()
         {
-            Length = 0;
-            foreach (TrackSegmentSectionBase<TrainPathSegmentBase> section in PathSections)
-            {
-                Length += section.Length;
-            }
             List<PathNode> pathNodes = new List<PathNode>();
             foreach (TrainPathPointBase pathPoint in PathPoints)
             {

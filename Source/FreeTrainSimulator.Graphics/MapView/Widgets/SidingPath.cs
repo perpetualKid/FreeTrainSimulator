@@ -71,7 +71,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
-            if (PathSections.Count == 0)
+            if (PathSections.Length == 0)
                 Trace.TraceWarning($"Siding items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.TrackVectorNode.Index} and {end.TrackVectorNode.Index}. This may indicate an error or inconsistency in the route data.");
         }
 

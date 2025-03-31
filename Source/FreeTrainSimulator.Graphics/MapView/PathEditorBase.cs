@@ -93,11 +93,6 @@ namespace FreeTrainSimulator.Graphics.MapView
                 pathPoint.UpdateDirectionTowards(trainPath.PathPoints[^2], true, true);
                 trainPath.PathPoints[^1] = pathPoint with { NodeType = PathNodeType.End };
 
-                trainPath.PathPoints[^1] = pathPoint with
-                {
-                    NodeType = PathNodeType.End
-                };
-
                 float f = trainPath.Length;
                 pathPoint = null;
                 ToolboxContent.ContentMode = ToolboxContentMode.ViewPath;

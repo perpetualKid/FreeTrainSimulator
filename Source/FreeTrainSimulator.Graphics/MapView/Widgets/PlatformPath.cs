@@ -80,7 +80,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (PlatformName?.Length > StationName?.Length && PlatformName.StartsWith(StationName, StringComparison.OrdinalIgnoreCase))
                 PlatformName = PlatformName[(StationName.Length + 1)..];
 
-            if (PathSections.Count == 0)
+            if (PathSections.Length == 0)
                 Trace.TraceWarning($"Platform items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.TrackVectorNode.Index} and {end.TrackVectorNode.Index}. This may indicate an error or inconsistency in the route data.");
         }
 
