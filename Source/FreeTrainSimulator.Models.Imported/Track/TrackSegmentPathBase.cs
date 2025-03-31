@@ -40,6 +40,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             Length = (float)Vector.Distance(Location);
         }
 
+#pragma warning disable CA2214 // Do not call overridable methods in constructors
         protected TrackSegmentPathBase(TrackModel trackModel, in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex) :
             base(start, end)
         {
@@ -99,13 +100,17 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 Length += section.Length;
             }
         }
+#pragma warning restore CA2214 // Do not call overridable methods in constructors
 
+#pragma warning disable CA1716 // Identifiers should not match keywords
         protected abstract TrackSegmentSectionBase<T> InitializeSection(in PointD start, in PointD end);
         protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end);
         protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackModel trackModel, int trackNodeIndex);
+#pragma warning restore CA1716 // Identifiers should not match keywords
 
         protected void AddSections(IReadOnlyCollection<TrackSegmentSectionBase<T>> sections)
         {
+            ArgumentNullException.ThrowIfNull(sections, nameof(sections));
             PathSections = PathSections.AddRange(sections);
             foreach (TrackSegmentSectionBase<T> section in sections)
             {
@@ -115,6 +120,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
         protected void RemoveSections(IReadOnlyCollection<TrackSegmentSectionBase<T>> sections)
         {
+            ArgumentNullException.ThrowIfNull(sections, nameof(sections));
             foreach (TrackSegmentSectionBase<T> section in sections)
             {
                 Length -= section.Length;
