@@ -110,7 +110,7 @@ namespace FreeTrainSimulator.Graphics.Xna
                     else
                         paddingWidth += (int)(actual.Width / font.Height * outlineOptions.OutlineWidth);
                 }
-                size = new Size((int)Math.Ceiling(actual.Width + paddingWidth), (int)Math.Ceiling(actual.Height + (padding / 2)));
+                size = new Size((int)Math.Ceiling(actual.Width + paddingWidth + 1), (int)Math.Ceiling(actual.Height + (padding / 2)));
             }
             measureGraphicsHolder.Enqueue(measureContainer);
             return size;

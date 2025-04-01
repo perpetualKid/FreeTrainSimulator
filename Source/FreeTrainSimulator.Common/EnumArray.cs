@@ -20,13 +20,32 @@ namespace FreeTrainSimulator.Common
         private readonly T[] array;
         [MemoryPackInclude]
         private readonly int lowBound;
+        private static EnumArray<T, TEnum> defaultInstance;
+
+        #region MemoryPack serialization
+        /// <summary> On Deserializing over a default instance, Memorypack replaces the full array, instead just the array items
+        /// therefore, grabbing the array of the default instance, and reapply in the MemoryPack constructor call
+        [MemoryPackOnDeserializing]
+        private static void OnDeserializingStoreDefault(ref MemoryPackReader _, ref EnumArray<T, TEnum> value)
+        {
+            defaultInstance = value;
+        }
 
         [MemoryPackConstructor]
         private EnumArray(T[] array, int lowBound)
         {
-            this.array = array;
+            if (array.Length < defaultInstance?.array.Length)
+            {
+                this.array = defaultInstance.array;
+                for (int i = 0; i < array.Length; i++)
+                    this.array[i] = array[i];
+            }
+            else
+                this.array = array;
             this.lowBound = lowBound;
+            defaultInstance = null;
         }
+        #endregion
 
         public EnumArray()
         {
