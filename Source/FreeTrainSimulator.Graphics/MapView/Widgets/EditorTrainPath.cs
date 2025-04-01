@@ -70,7 +70,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public EditorTrainPath(PathModel pathModel, Game game) : base(pathModel, game)
+        public EditorTrainPath(PathModel pathModel, Game game) : base(pathModel, game) 
         {
             PathPoints.AddRange(PathModel.PathNodes.Select(node => new EditorPathPoint(node, TrackModel)));
 
@@ -107,10 +107,6 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
             SetBounds();
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
-        }
-
-        public EditorTrainPath(Game game) : base(game)
-        {
         }
 
         public new PathModel ToPathModel()

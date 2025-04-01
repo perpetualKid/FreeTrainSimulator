@@ -70,7 +70,7 @@ namespace FreeTrainSimulator.Toolbox
 
         public void InitializeNewPath()
         {
-            this.path = new PathModelHeader()
+            this.path = new PathModel()
             {
                 Id = "<New Path>",
                 Name = "<New Path>",
@@ -78,7 +78,7 @@ namespace FreeTrainSimulator.Toolbox
                 End = "End",
                 PlayerPath = true,
             };
-            InitializePath();
+            InitializePathEdit(path as PathModel);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 

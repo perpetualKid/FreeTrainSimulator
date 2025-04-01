@@ -20,6 +20,8 @@ using GetText;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Formats.Msts;
+
 namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     internal sealed class TrainPathWindow : WindowBase
@@ -36,6 +38,13 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         private sealed class TrainPathMetadataInformation : DetailInfoBase
         {
+            private readonly bool metricUnits;
+
+            public TrainPathMetadataInformation(bool metricUnits)
+            { 
+                this.metricUnits = metricUnits;
+            }
+
             public void Update(TrainPathBase path)
             {
                 if (path == null || path.PathModel == null)
@@ -47,6 +56,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                     this["Start"] = path.PathModel.Start;
                     this["End"] = path.PathModel.End;
                     this["Player Path"] = path.PathModel.PlayerPath ? "Yes" : "No";
+                    this["Path Length"] = FormatStrings.FormatDistanceDisplay(path.Length, metricUnits);
                 }
             }
         }
@@ -66,12 +76,13 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private NameValueTextGrid metadataGrid;
         private readonly ProfileToolboxSettingsModel toolboxSettings;
-        private readonly TrainPathMetadataInformation metadataInformationProvider = new TrainPathMetadataInformation();
+        private readonly TrainPathMetadataInformation metadataInformationProvider;
         private PathEditor pathEditor;
 
         public TrainPathWindow(WindowManager owner, ProfileToolboxSettingsModel settings, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Path Details"), relativeLocation, new Point(360, 300), catalog)
         {
+            metadataInformationProvider = new TrainPathMetadataInformation(RuntimeData.GameInstance(owner.Game).MetricUnits);
             toolboxSettings = settings;
             contentUpdated = true;
             pathEditor = (Owner.Game as GameWindow)?.PathEditor;

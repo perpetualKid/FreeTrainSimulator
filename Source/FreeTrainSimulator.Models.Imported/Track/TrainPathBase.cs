@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
@@ -50,19 +49,11 @@ namespace FreeTrainSimulator.Models.Imported.Track
             }
         }
 
-        protected TrainPathBase(Game game) : base(PointD.None, PointD.None)
-        {
-            TrackModel = TrackModel.Instance(game);
-        }
-
-        protected TrainPathBase(TrackModel trackModel) : base(PointD.None, PointD.None)
-        {
-            TrackModel = trackModel;
-        }
-
         protected TrainPathBase(PathModel pathModel, Game game)
-            : base(PointD.FromWorldLocation(pathModel?.PathNodes.NodeOfType(PathNodeType.Start).Location ?? throw new ArgumentNullException(nameof(pathModel))),
-                  PointD.FromWorldLocation(pathModel.PathNodes.NodeOfType(PathNodeType.End).Location))
+            :   base(pathModel.PathNodes.IsDefaultOrEmpty ? PointD.None :
+                    PointD.FromWorldLocation(pathModel?.PathNodes.NodeOfType(PathNodeType.Start)?.Location ?? throw new ArgumentNullException(nameof(pathModel))),
+                  pathModel.PathNodes.IsDefaultOrEmpty ? PointD.None : 
+                    PointD.FromWorldLocation(pathModel.PathNodes.NodeOfType(PathNodeType.End)?.Location ?? throw new ArgumentNullException(nameof(pathModel))))
         {
             TrackModel = TrackModel.Instance(game);
             PathModel = pathModel;

@@ -94,7 +94,7 @@ namespace FreeTrainSimulator.Common
         public static string FormatSpeed(double speed, bool metric)
         {
             return string.Format(CultureInfo.CurrentCulture,
-                "{0:F1}{1}", Speed.MeterPerSecond.FromMpS(speed, metric), metric ? kmph : mph);
+                "{0:F1} {1}", Speed.MeterPerSecond.FromMpS(speed, metric), metric ? kmph : mph);
         }
 
         /// <summary>
@@ -127,33 +127,31 @@ namespace FreeTrainSimulator.Common
         /// <summary>
         /// Formatted unlocalized distance string, used in reports and logs.
         /// </summary>
-        public static string FormatDistance(double distance, bool metric)
+        public static string FormatDistance(double distance, bool metric, int breakPoint = 100)
         {
             if (metric)
                 // <0.1 kilometres, show metres.
-                return Math.Abs(distance) < 100
-                    ? string.Format(CultureInfo.CurrentCulture,
-                        "{0:N0}m", distance)
-                    : string.Format(CultureInfo.CurrentCulture,
-                    "{0:F1}km", Size.Length.ToKM(distance));
+                return Math.Abs(distance) < breakPoint
+                    ? string.Format(CultureInfo.CurrentCulture, "{0:N0} m", distance)
+                    : string.Format(CultureInfo.CurrentCulture, "{0:F1} km", Size.Length.ToKM(distance));
             // <0.1 miles, show yards.
-            return Math.Abs(distance) < Size.Length.FromMi(0.1)
-                ? string.Format(CultureInfo.CurrentCulture, "{0:N0}yd", Size.Length.ToYd(distance))
-                : string.Format(CultureInfo.CurrentCulture, "{0:F1}mi", Size.Length.ToMi(distance));
+            return Math.Abs(distance) < Size.Length.FromMi(breakPoint / 1000)
+                ? string.Format(CultureInfo.CurrentCulture, "{0:N0} yd", Size.Length.ToYd(distance))
+                : string.Format(CultureInfo.CurrentCulture, "{0:F1} mi", Size.Length.ToMi(distance));
         }
 
         /// <summary>
         /// Formatted localized distance string, as displayed in in-game windows
         /// </summary>
-        public static string FormatDistanceDisplay(double distance, bool metric)
+        public static string FormatDistanceDisplay(double distance, bool metric, int breakPoint = 100)
         {
             if (metric)
-                // <0.1 kilometres, show metres.
-                return Math.Abs(distance) < 100
+                // if < breakPoint/1000 kilometres, show metres.
+                return Math.Abs(distance) < breakPoint
                     ? string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", distance, m)
                     : string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToKM(distance), km);
-            // <0.1 miles, show yards.
-            return Math.Abs(distance) < Size.Length.FromMi(0.1)
+            // if < breakPoint/1000 miles, show yards.
+            return Math.Abs(distance) < Size.Length.FromMi(breakPoint / 1000)
                 ? string.Format(CultureInfo.CurrentCulture, "{0:N0} {1}", Size.Length.ToYd(distance), yd)
                 : string.Format(CultureInfo.CurrentCulture, "{0:F1} {1}", Size.Length.ToMi(distance), mi);
         }

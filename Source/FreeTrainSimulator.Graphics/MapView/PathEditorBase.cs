@@ -72,11 +72,11 @@ namespace FreeTrainSimulator.Graphics.MapView
             }
         }
 
-        protected void InitializePath()
+        protected void InitializePathEdit(PathModel pathModel)
         {
             EditMode = true;
             ToolboxContent.ContentMode = ToolboxContentMode.EditPath;
-            trainPath = new EditorTrainPath(ToolboxContent.ContentArea.Game);
+            trainPath = new EditorTrainPath(pathModel, ToolboxContent.ContentArea.Game);
             pathPoint = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
         }
 
