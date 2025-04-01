@@ -50,10 +50,11 @@ namespace FreeTrainSimulator.Models.Imported.Track
         }
 
         protected TrainPathBase(PathModel pathModel, Game game)
-            :   base(pathModel.PathNodes.IsDefaultOrEmpty ? PointD.None :
-                    PointD.FromWorldLocation(pathModel?.PathNodes.NodeOfType(PathNodeType.Start)?.Location ?? throw new ArgumentNullException(nameof(pathModel))),
+            :   base(pathModel == null ? throw new ArgumentNullException(nameof(pathModel)) :
+                    pathModel.PathNodes.IsDefaultOrEmpty ? PointD.None :
+                    PointD.FromWorldLocation(pathModel.PathNodes.NodeOfType(PathNodeType.Start)?.Location ?? throw new ArgumentOutOfRangeException(nameof(pathModel), "Path has no Start node")),
                   pathModel.PathNodes.IsDefaultOrEmpty ? PointD.None : 
-                    PointD.FromWorldLocation(pathModel.PathNodes.NodeOfType(PathNodeType.End)?.Location ?? throw new ArgumentNullException(nameof(pathModel))))
+                    PointD.FromWorldLocation(pathModel.PathNodes.NodeOfType(PathNodeType.End)?.Location ?? throw new ArgumentOutOfRangeException(nameof(pathModel), "Path has no End node")))
         {
             TrackModel = TrackModel.Instance(game);
             PathModel = pathModel;
