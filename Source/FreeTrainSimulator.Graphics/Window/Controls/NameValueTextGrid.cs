@@ -49,7 +49,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                     return Array.Empty<int>();
                 int[] width = new int[columnClippingRectangles.Length];
                 for (int i = 0; i < columnClippingRectangles.Length; i++)
-                    width[i] = (int)(columnClippingRectangles[i].Value.Width / Window.Owner.DpiScaling);
+                    width[i] = (columnClippingRectangles[i].Value.Width);
                 return width;
             }
             set
@@ -62,7 +62,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                     for (int i = 0; i < value.Length; i++)
                     {
                         if (value[i] > 0)
-                            columnClippingRectangles[i] = new Rectangle(0, 0, (int)Math.Ceiling(value[i] * Window.Owner.DpiScaling), heigth);
+                            columnClippingRectangles[i] = new Rectangle(0, 0, (int)Math.Ceiling((double)value[i]), heigth);
                     }
                 }
             }
@@ -137,7 +137,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                     {
                         textures = new Texture2D[1] { textureHolder.PrepareResource(InformationProvider.DetailInfo[identifier], currentFont, OutlineRenderOptions) };
                     }
-                    prepareItems.Add((new Vector2(0, lineOffset), texture, new Vector2(columnClippingRectangles[0]?.Width ?? defaultColumnSize * Window.Owner.DpiScaling, lineOffset), textures, formatOption?.TextColor ?? TextColor));
+                    prepareItems.Add((new Vector2(0, lineOffset), texture, new Vector2(columnClippingRectangles[0]?.Width ?? defaultColumnSize, lineOffset), textures, formatOption?.TextColor ?? TextColor));
                     lineOffset += (int)Math.Ceiling(font.Height * LineSpacing);
                 }
                 Column = Math.Clamp(Column, 0, maxColumn);

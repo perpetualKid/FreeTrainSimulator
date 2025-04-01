@@ -70,7 +70,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private TextInput searchBox;
         private int selectedPathNodeLine;
         private long keyRepeatTick;
-        private int columnWidth;
+        private int pathNodesColumnWidth;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private TabControl<TabSettings> tabControl;
 #pragma warning restore CA2213 // Disposable fields should be disposed
@@ -108,11 +108,11 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             tabControl = new TabControl<TabSettings>(this, layout.RemainingWidth, layout.RemainingHeight);
             tabControl.TabLayouts[TabSettings.PathNodes] = (layoutContainer) =>
             {
-                columnWidth = layoutContainer.RemainingWidth / 8;
+                pathNodesColumnWidth = layoutContainer.RemainingWidth / 8;
                 ControlLayout headerLine = layoutContainer.AddLayoutHorizontalLineOfText();
-                headerLine.Add(new Label(this, columnWidth, headerLine.RemainingHeight, Catalog.GetString("Idx")));
-                headerLine.Add(new Label(this, columnWidth * 2, headerLine.RemainingHeight, Catalog.GetString("Type")));
-                headerLine.Add(new Label(this, columnWidth, headerLine.RemainingHeight, Catalog.GetString("Valid")));
+                headerLine.Add(new Label(this, pathNodesColumnWidth, headerLine.RemainingHeight, Catalog.GetString("Idx")));
+                headerLine.Add(new Label(this, pathNodesColumnWidth * 2, headerLine.RemainingHeight, Catalog.GetString("Type")));
+                headerLine.Add(new Label(this, pathNodesColumnWidth, headerLine.RemainingHeight, Catalog.GetString("Valid")));
                 layoutContainer.AddHorizontalSeparator();
                 layoutContainer = layoutContainer.AddLayoutHorizontal();
 
@@ -121,15 +121,15 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             };
             tabControl.TabLayouts[TabSettings.MetaData] = (layoutContainer) =>
             {
-                columnWidth = layoutContainer.RemainingWidth / 4;
+                int pathDataColumnWidth = layoutContainer.RemainingWidth / 4;
                 ControlLayout headerLine = layoutContainer.AddLayoutHorizontalLineOfText();
-                headerLine.Add(new Label(this, columnWidth, headerLine.RemainingHeight, Catalog.GetString("Setting")));
-                headerLine.Add(new Label(this, columnWidth * 3, headerLine.RemainingHeight, Catalog.GetString("Value")));
+                headerLine.Add(new Label(this, pathDataColumnWidth, headerLine.RemainingHeight, Catalog.GetString("Setting")));
+                headerLine.Add(new Label(this, pathDataColumnWidth * 3, headerLine.RemainingHeight, Catalog.GetString("Value")));
                 layoutContainer.AddHorizontalSeparator();
                 metadataGrid = new NameValueTextGrid(this, 0, 0, layoutContainer.RemainingWidth, layoutContainer.RemainingHeight)
                 {
                     InformationProvider = metadataInformationProvider,
-                    ColumnWidth = new int[] { columnWidth, columnWidth * 3 },
+                    ColumnWidth = new int[] { pathDataColumnWidth, pathDataColumnWidth * 3 },
                 };
                 layoutContainer.Add(metadataGrid);
             };
@@ -358,9 +358,9 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 {
                     TrainPathPointBase item = currentPath.PathPoints[i];
                     line = pathNodeScrollbox.Client.AddLayoutHorizontalLineOfText();
-                    line.Add(new Label(this, columnWidth, Owner.TextFontDefault.Height, $"{i:D2}"));
+                    line.Add(new Label(this, pathNodesColumnWidth, Owner.TextFontDefault.Height, $"{i:D2}"));
                     line.Add(new TrainPathItemControl(this, item.NodeType));
-                    line.Add(new Label(this, columnWidth * 2, Owner.TextFontDefault.Height, item.NodeType.ToString()));
+                    line.Add(new Label(this, pathNodesColumnWidth * 2, Owner.TextFontDefault.Height, item.NodeType.ToString()));
                     line.Add(new Checkbox(this, false, CheckMarkStyle.Marks, true) { State = item.ValidationResult == PathNodeInvalidReasons.None, ReadOnly = true });
                     line.OnClick += PathNodeLine_OnClick;
                     line.Tag = i;
