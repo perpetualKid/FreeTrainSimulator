@@ -56,7 +56,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                     this["Start"] = path.PathModel.Start;
                     this["End"] = path.PathModel.End;
                     this["Player Path"] = path.PathModel.PlayerPath ? "Yes" : "No";
-                    this["Path Length"] = FormatStrings.FormatDistanceDisplay(path.Length, metricUnits);
+                    this["Path Length"] = FormatStrings.FormatDistanceDisplay(path.Length, metricUnits, 1000);
                 }
             }
         }
