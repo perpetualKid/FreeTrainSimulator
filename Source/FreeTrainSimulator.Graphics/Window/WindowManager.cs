@@ -522,6 +522,8 @@ namespace FreeTrainSimulator.Graphics.Window
 
         public bool WindowOpened(TWindowType window) => (lazyWindows[window]?.IsValueCreated ?? false) && WindowOpen(windows[window]);
 
+        public bool WindowModal(TWindowType window) => (lazyWindows[window]?.IsValueCreated ?? false) && windows[window].Modal;
+
         public void SetLazyWindows(TWindowType window, Lazy<FormBase> lazyWindow)
         {
             lazyWindows[window] = lazyWindow;
