@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
 
         public QuitWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
-            base(owner, (catalog ??= CatalogManager.Catalog).GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation, new Point(340, 82), catalog)
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation, new Point(380, 82), catalog)
         {
             Modal = true;
             ZOrder = 100;
