@@ -131,15 +131,15 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                     int soundSourceID = -1;
                     int i = -1;
-                    if (selectedSoundSource.SoundStreams.Count > 0)
-                        while (++i < selectedSoundSource.SoundStreams.Count)
+                    if (selectedSoundSource.SoundStreams.Length > 0)
+                        while (++i < selectedSoundSource.SoundStreams.Length)
                         {
                             soundSourceID = selectedSoundSource.SoundStreams[i].ALSoundSource.SoundSourceID;
                             if (soundSourceID != -1)
                                 break;
                         }
 
-                    if (selectedSoundSource.WorldLocation != WorldLocation.None && selectedSoundSource.SoundStreams.Count > 0)
+                    if (selectedSoundSource.WorldLocation != WorldLocation.None && selectedSoundSource.SoundStreams.Length > 0)
                     {
                         //Source distance:
                         distance.Text = $"{Math.Sqrt(selectedSoundSource.DistanceSquared):F1}";

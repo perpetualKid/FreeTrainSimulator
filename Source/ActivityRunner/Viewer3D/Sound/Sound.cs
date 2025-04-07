@@ -51,13 +51,11 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 
-using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
-using Orts.Simulation.Track;
 
 namespace Orts.ActivityRunner.Viewer3D.Sound
 {
@@ -122,1037 +120,6 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
             }
             if (CurveSwitchSmsNumber != -1)
                 AutoTrackSound = true;
-        }
-    }
-
-    /////////////////////////////////////////////////////////
-    // SOUND SOURCE
-    /////////////////////////////////////////////////////////
-
-    /// <summary>
-    /// Represents an sms file,
-    /// may have a physical location in the world,
-    /// may be attached to a railcar in which case it moves with the car,
-    /// owns one or more SoundStreams
-    /// </summary>
-    public abstract class SoundSourceBase : IDisposable
-    {
-        public abstract void InitInitials();
-        public abstract void Uninitialize();
-        public abstract bool Update();
-
-        /// <summary>
-        /// The sound may be from a train car
-        /// </summary>
-        public MSTSWagon Car { get; set; }
-        public TrainCarViewer TrainCar { get; }
-
-        private protected static readonly Viewer viewer = Program.Viewer;
-        /// <summary>
-        /// Volume of the ScalabiltyGroup
-        /// </summary>
-        public float Volume { get; set; } = 1;
-        /// <summary>
-        /// If needs active management or can be left to OpenAL to deal with sound properties
-        /// </summary>
-        public bool NeedsFrequentUpdate { get; protected set; }
-        private bool disposedValue;
-
-        protected SoundSourceBase()
-        {
-        }
-
-        protected SoundSourceBase(TrainCarViewer trainCar)
-        {
-            TrainCar = trainCar;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
-    }
-
-    public class TrackSoundSource : SoundSourceBase
-    {
-        private int prevTrackSoundType = -1;
-        private int curTrackSoundType = -1;
-        public SoundSource ActiveInSource { get; private set; }
-        public SoundSource ActiveOutSource { get; private set; }
-        private readonly List<SoundSource> inSources;
-        private readonly List<SoundSource> outSources;
-
-        // data to evaluate if ttype selection is needed or not
-        private float nextDist = -1; // initial distance to sound region forward
-        private float prevDist = -1; // initial distance to sond region backward
-        private float initDist = -1; // initial distance run when last ttype selected
-        private int initTrackSection = -1; // track section when last ttype selected
-        private MSTSWagon initCar; // initial leading car (to accommodate in case of change of direction)
-        private bool carOnSwitch;
-        private bool carOnCurve;
-        private readonly MSTSWagonViewer wagonViewer;
-
-        public TrackSoundSource(MSTSWagonViewer carViewer) :
-            base(carViewer)
-        {
-            wagonViewer = TrainCar as MSTSWagonViewer ?? throw new InvalidCastException(nameof(carViewer));
-            Car = TrainCar.Car as MSTSWagon ?? throw new InvalidCastException(nameof(carViewer));
-            inSources = new List<SoundSource>();
-            outSources = new List<SoundSource>();
-
-            foreach (TrackType ttdf in viewer.TrackTypes)
-            {
-                MSTSLocomotive loco = Car as MSTSLocomotive;
-
-                if (!string.IsNullOrEmpty(Car.InteriorShapeFileName) || loco != null && (loco.HasFrontCab || loco.HasRearCab || loco.HasFront3DCab || loco.HasRear3DCab))
-                    LoadTrackSound(ttdf.InsideSound, true);
-
-                LoadTrackSound(ttdf.OutsideSound, false);
-            }
-        }
-
-        private void LoadTrackSound(string filename, bool insideSound)
-        {
-            if (filename == null)
-                return;
-
-            ImmutableArray<string> pathArray = ImmutableArray.Create(
-                viewer.Simulator.RouteFolder.SoundFolder, viewer.Simulator.RouteFolder.ContentFolder.SoundFolder);
-            var fullPath = FolderStructure.FindFileFromFolders(pathArray, filename);
-            if (fullPath == null)
-            {
-                Trace.TraceWarning("Skipped missing track sound {0}", filename);
-                return;
-            }
-            if (insideSound)
-                inSources.Add(new SoundSource(Car, TrainCar, fullPath));
-            else
-                outSources.Add(new SoundSource(Car, TrainCar, fullPath));
-        }
-
-        public override void Uninitialize()
-        {
-            if (ActiveInSource != null)
-                ActiveInSource.Uninitialize();
-            if (ActiveOutSource != null)
-                ActiveOutSource.Uninitialize();
-        }
-
-        public override void InitInitials()
-        {
-            if (inSources != null && inSources.Count > 0)
-                ActiveInSource = inSources[0];
-
-            if (outSources != null && outSources.Count > 0)
-                ActiveOutSource = outSources[0];
-
-            curTrackSoundType = 0;
-            prevTrackSoundType = 0;
-        }
-
-        public void UpdateTType(bool stateChange)
-        {
-            if (prevTrackSoundType == -1)
-            {
-                InitInitials();
-            }
-
-            if (Car != null && Car.Train != null)
-            {
-                int carIncrement;
-                int carLeading;
-                if (Car.Train.SpeedMpS > 0.1f)
-                {
-                    carIncrement = 1;
-                    carLeading = 0;
-                }
-                else if (Car.Train.SpeedMpS < -0.1f)
-                {
-                    carIncrement = -1;
-                    carLeading = Car.Train.Cars.Count - 1;
-                }
-                else
-                    return;
-
-                int carIndex = Car.Train.Cars.IndexOf(Car);
-
-                if (carIndex == carLeading)
-                {
-                    bool reSelect = stateChange;
-                    if (!reSelect)
-                    {
-                        if (nextDist == -1 || initCar != Car.Train.Cars[carLeading] ||
-                            carLeading == 0 && Car.Train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex != initTrackSection ||
-                            carLeading != 0 && Car.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex != initTrackSection ||
-                            carLeading == 0 && (Car.Train.DistanceTravelledM - initDist > nextDist || initDist - Car.Train.DistanceTravelledM > prevDist) ||
-                            carLeading != 0 && (Car.Train.DistanceTravelledM - Car.Train.Length - initDist > nextDist || initDist - Car.Train.DistanceTravelledM + Car.Train.Length > prevDist))
-                        {
-                            reSelect = true;
-                        }
-                    }
-                    if (reSelect)
-                    {
-                        initCar = Car;
-                        initTrackSection = carLeading == 0 ? Car.Train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex : Car.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
-                        initDist = carLeading == 0 ? Car.Train.DistanceTravelledM : Car.Train.DistanceTravelledM - Car.Train.Length;
-                        wagonViewer.TrackSoundType = viewer.World.Sounds.GetTType(Car.Train, out prevDist, out nextDist);
-                        if (wagonViewer.TrackSoundType != int.MaxValue)
-                            if (wagonViewer.TrackSoundType < viewer.TrackTypes.Count)
-                                curTrackSoundType = wagonViewer.TrackSoundType;
-                            else
-                            {
-                                // Track type out of range
-                                curTrackSoundType = 0;
-                                Trace.TraceWarning("Sound region {0} out of range in tile {1}", wagonViewer.TrackSoundType,
-                                    Car.WorldPosition.WorldLocation.Tile);
-                                wagonViewer.TrackSoundType = 0;
-                            }
-                        else
-                            if (!SharedSMSFileManager.AutoTrackSound || 
-                                curTrackSoundType != SharedSMSFileManager.SwitchSmsNumber &&
-                                curTrackSoundType != SharedSMSFileManager.CurveSmsNumber &&
-                                curTrackSoundType != SharedSMSFileManager.CurveSwitchSmsNumber)
-                            wagonViewer.TrackSoundType = curTrackSoundType;
-                        else
-                        {
-                            wagonViewer.TrackSoundType = 0;
-                            curTrackSoundType = 0;
-                        }
-                    }
-                    else
-                        wagonViewer.TrackSoundType = curTrackSoundType;
-                }
-                else
-                {
-                    if (viewer.World.Trains.Cars.TryGetValue(Car.Train.Cars[carIndex - carIncrement], out TrainCarViewer carAhead) && carAhead.TrackSoundLocation != WorldLocation.None)
-                    {
-                        if ((curTrackSoundType == wagonViewer.TrackSoundType || stateChange) && wagonViewer.TrackSoundType != carAhead.TrackSoundType)
-                        {
-                            wagonViewer.TrackSoundType = carAhead.TrackSoundType;
-                            wagonViewer.TrackSoundLocation = carAhead.TrackSoundLocation;
-                            wagonViewer.TrackSoundDistSquared = (float)WorldLocation.GetDistanceSquared(Car.WorldPosition.WorldLocation, wagonViewer.TrackSoundLocation);
-                            if (stateChange)
-                            {
-                                curTrackSoundType = wagonViewer.TrackSoundType;
-                            }
-                        }
-
-                        if (wagonViewer.TrackSoundLocation != WorldLocation.None)
-                        {
-                            float trackSoundDistSquared = (float)WorldLocation.GetDistanceSquared(Car.WorldPosition.WorldLocation, wagonViewer.TrackSoundLocation);
-                            if (trackSoundDistSquared > 9 && trackSoundDistSquared - 2 <= wagonViewer.TrackSoundDistSquared)
-                                wagonViewer.TrackSoundDistSquared = trackSoundDistSquared;
-                            else
-                            {
-                                curTrackSoundType = wagonViewer.TrackSoundType;
-                            }
-                        }
-                    }
-                }
-
-                if (curTrackSoundType != prevTrackSoundType)
-                {
-                    if (ActiveInSource != null)
-                    {
-                        ActiveInSource.Uninitialize();
-                        if (0 <= curTrackSoundType && curTrackSoundType < inSources.Count)
-                            ActiveInSource = inSources[curTrackSoundType];
-                        else
-                            Trace.TraceWarning("Could not change inside sound region to {0}", curTrackSoundType);
-                    }
-
-                    if (ActiveOutSource != null)
-                    {
-                        ActiveOutSource.Uninitialize();
-                        if (0 <= curTrackSoundType && curTrackSoundType < outSources.Count)
-                            ActiveOutSource = outSources[curTrackSoundType];
-                        else
-                            Trace.TraceWarning("Could not change outside sound region to {0}", curTrackSoundType);
-                    }
-                    if (carIndex == carLeading)
-                        wagonViewer.TrackSoundLocation = Car.WorldPosition.WorldLocation;
-                    prevTrackSoundType = curTrackSoundType;
-                }
-            }
-        }
-
-        public override bool Update()
-        {
-            bool stateChange = false;
-            if (SharedSMSFileManager.AutoTrackSound)
-                stateChange = UpdateCarOnSwitchAndCurve();
-            if (!carOnSwitch && !carOnCurve || !SharedSMSFileManager.AutoTrackSound)
-                UpdateTType(stateChange);
-            bool retval = true;
-            NeedsFrequentUpdate = false;
-
-            if (ActiveInSource != null)
-            {
-                retval &= ActiveInSource.Update();
-                NeedsFrequentUpdate |= ActiveInSource.NeedsFrequentUpdate;
-            }
-
-            if (ActiveOutSource != null)
-            {
-                retval &= ActiveOutSource.Update();
-                NeedsFrequentUpdate |= ActiveOutSource.NeedsFrequentUpdate;
-            }
-
-            return retval;
-        }
-
-        // To detect redundant calls
-        private bool disposedValue;
-        protected override void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    foreach (SoundSource soundSource in inSources ?? Enumerable.Empty<SoundSource>())
-                        soundSource.Dispose();
-                    inSources.Clear();
-                    foreach (SoundSource s in outSources ?? Enumerable.Empty<SoundSource>())
-                        s.Dispose();
-                    outSources.Clear();
-                    Car = null;
-                }
-                disposedValue = true;
-            }
-            base.Dispose(disposing);
-        }
-
-        //Checks whether car on switch or on curve or both and selects related .sms file;
-        // returns true if state has changed
-        public bool UpdateCarOnSwitchAndCurve()
-        {
-            bool stateChange = false;
-            if (Car?.Train != null)
-            {
-                if (Car.Train.SpeedMpS > 0.1f || Car.Train.SpeedMpS < -0.1f)
-                {
-                    int carNo = Car.Train.Cars.IndexOf(Car);
-                    int carIncrement = 0;
-                    if (Car.Train.SpeedMpS > 0.1f && carNo != Car.Train.Cars.Count - 1)
-                        carIncrement = 1;
-                    if (Car.Train.SpeedMpS < 0.1f && carNo != 0)
-                        carIncrement = -1;
-
-                    TrainCar CarBehind = Car.Train.Cars[carNo + carIncrement];
-                    bool carPreviouslyOnSwitch = carOnSwitch;
-                    carOnSwitch = false;
-                    if (Car.Train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex != Car.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex)
-                    {
-                        foreach (TrackCircuitSection section in Car.Train.OccupiedTrack)
-                        {
-                            if (section.CircuitType == TrackCircuitType.Junction || section.CircuitType == TrackCircuitType.Crossover)
-                            {
-                                // train is on a switch; let's see if car is on a switch too
-                                WorldLocation switchLocation = RuntimeData.Instance.TrackDB.TrackNodes[section.OriginalIndex].UiD.Location;
-                                var distanceFromSwitch = WorldLocation.GetDistanceSquared(Car.WorldPosition.WorldLocation, switchLocation);
-                                if (distanceFromSwitch < Car.CarLengthM * Car.CarLengthM + Math.Min(Car.SpeedMpS * 3, 150))
-                                {
-                                    carOnSwitch = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    // here check for curve
-                    var carPreviouslyOnCurve = carOnCurve;
-                    carOnCurve = false;
-                    if (Car.CurrentCurveRadius > 0 && (Car.CurrentCurveRadius < 301
-                         || Car.CurrentCurveRadius < 350 && Car.WagonType == WagonType.Freight) ||
-                        CarBehind.CurrentCurveRadius > 0 && (CarBehind.CurrentCurveRadius < 301
-                         || CarBehind.CurrentCurveRadius < 350 && Car.WagonType == WagonType.Freight))
-                    {
-                        carOnCurve = true;
-                    }
-
-                    // resume results and select sound if change
-                    if (carPreviouslyOnSwitch ^ carOnSwitch || carPreviouslyOnCurve ^ carOnCurve)
-                    {
-                        stateChange = true;
-                    }
-                    if (stateChange && (carOnSwitch || carOnCurve))
-                    {
-                        wagonViewer.TrackSoundLocation = Car.WorldPosition.WorldLocation;
-                        if (carOnSwitch && carOnCurve && SharedSMSFileManager.CurveSwitchSmsNumber != -1)
-                        {
-                            curTrackSoundType = SharedSMSFileManager.CurveSwitchSmsNumber;
-                        }
-                        else if (carOnCurve && SharedSMSFileManager.CurveSmsNumber != -1)
-                        {
-                            curTrackSoundType = SharedSMSFileManager.CurveSmsNumber;
-                        }
-                        else if (carOnSwitch && SharedSMSFileManager.SwitchSmsNumber != -1)
-                        // car on switch
-                        {
-                            curTrackSoundType = SharedSMSFileManager.SwitchSmsNumber;
-                        }
-                        else
-                            stateChange = false;
-                    }
-                }
-                else
-                    return stateChange;
-
-                if (curTrackSoundType != prevTrackSoundType)
-                {
-                    if (ActiveInSource != null)
-                    {
-                        ActiveInSource.Uninitialize();
-                        ActiveInSource = inSources[curTrackSoundType];
-                        if (0 <= curTrackSoundType && curTrackSoundType < inSources.Count)
-                            ActiveInSource = inSources[curTrackSoundType];
-                        else
-                            Trace.TraceWarning("Could not change inside sound region to {0}", curTrackSoundType);
-                    }
-
-                    if (ActiveOutSource != null)
-                    {
-                        ActiveOutSource.Uninitialize();
-                        ActiveOutSource = outSources[curTrackSoundType];
-                        if (0 <= curTrackSoundType && curTrackSoundType < outSources.Count)
-                            ActiveInSource = inSources[curTrackSoundType];
-                        else
-                            Trace.TraceWarning("Could not change outside sound region to {0}", curTrackSoundType);
-                    }
-                    prevTrackSoundType = curTrackSoundType;
-                }
-            }
-            return stateChange;
-        }
-    }
-
-    /// <summary>
-    /// Represents an sms file
-    /// </summary>
-    public class SoundSource : SoundSourceBase
-    {
-        /// <summary>
-        /// Squared cutoff distance. No sound is audible above that, except for the actual player train,
-        /// where cutoff occurs at a distance wich is higher than the train length plus offset to 
-        /// approximately take into account distance from camera to car
-        /// </summary>
-        private int CutOffDistanceM2
-        {
-            get
-            {
-                const int staticDistanceM2 = 4000000;
-                var isPlayer = Car?.Train?.IsActualPlayerTrain ?? false;
-                var correctedLength = isPlayer ? Car.Train.Length + 50 : 0;
-                return (int)Math.Max(staticDistanceM2, correctedLength * correctedLength);
-            }
-        }
-        /// <summary>
-        /// Max distance for OpenAL inverse distance model. Equals to Math.Sqrt(CUTOFFDISTANCE)
-        /// </summary>
-        public const float MaxDistanceM = 2000f;
-        /// <summary>
-        /// Desired max gain at max distance for OpenAL inverse distance model
-        /// </summary>
-        public const float GainAtMaxDistance = 0.025f;
-        /// <summary>
-        /// Below this distance there is no attenuation. Used by OpenAL inverse distance model
-        /// </summary>
-        public const float ReferenceDistanceM = 8f;
-        /// <summary>
-        /// Sound attenuation factor. Calculated to achieve goal set by <see cref="GainAtMaxDistance"/>
-        /// </summary>
-        public float RolloffFactor;
-        /// <summary>
-        /// Used for InGame sounds and activity sounds of type "Overall"
-        /// </summary>
-        public bool IsUnattenuated;
-        /// <summary>
-        /// Used for Horns
-        /// </summary>
-        public float HornRolloffFactor = 0.05f;
-
-        /// <summary>
-        /// Construct a SoundSource attached to a train car.
-        /// </summary>
-        /// <param name="viewer"></param>
-        /// <param name="car"></param>
-        /// <param name="smsFilePath"></param>
-        public SoundSource(MSTSWagon car, TrainCarViewer carViewer, string smsFilePath) :
-            base(carViewer)
-        {
-            Car = car;
-            Initialize(car.WorldPosition.WorldLocation, SoundEventSource.Car, smsFilePath);
-        }
-
-        /// <summary>
-        /// Initializes a SoundSource which has no specific location - like ingame.sms
-        /// </summary>
-        /// <param name="viewer"></param>
-        /// <param name="eventSource"></param>
-        /// <param name="smsFilePath"></param>
-        public SoundSource(SoundEventSource eventSource, string smsFilePath, bool isUnattenuated)
-        {
-            IsUnattenuated = isUnattenuated;
-            Initialize(WorldLocation.None, eventSource, smsFilePath);
-        }
-
-        /// <summary>
-        /// Construct a SoundSource stationary at the specified worldLocation
-        /// </summary>
-        /// <param name="viewer"></param>
-        /// <param name="worldLocation"></param>
-        /// <param name="eventSource"></param>
-        /// <param name="smsFilePath"></param>
-        public SoundSource(in WorldLocation worldLocation, SoundEventSource eventSource, string smsFilePath)
-        {
-            IsEnvSound = true;
-            Initialize(worldLocation, eventSource, smsFilePath);
-        }
-
-        /// <summary>
-        /// Construct a SoundSource stationary at the specified worldLocation
-        /// </summary>
-        /// <param name="viewer"></param>
-        /// <param name="worldLocation"></param>
-        /// <param name="eventSource"></param>
-        /// <param name="smsFilePath"></param>
-        /// <param name="slowRolloff"></param>
-        public SoundSource(in WorldLocation worldLocation, SoundEventSource eventSource, string smsFilePath, bool slowRolloff)
-        {
-            IsEnvSound = true;
-            SlowRolloff = slowRolloff;
-            Initialize(worldLocation, eventSource, smsFilePath);
-        }
-
-        /// <summary>
-        /// Construct a SoundSource attached to a train car, with predefined parameters (activity sound).
-        /// </summary>
-        /// <param name="viewer"></param>
-        /// <param name="car"></param>
-        /// <param name="smsFilePath"></param>
-        public SoundSource(MSTSWagon car, string wavFilePath, OrtsActivitySoundFileType ORTSActSoundFileType, bool preCompiled)
-        {
-            Car = car;
-            Initialize(car.WorldPosition.WorldLocation, SoundEventSource.Car, wavFilePath, ORTSActSoundFileType, preCompiled);
-        }
-
-        /// <summary>
-        /// Construct a SoundSource which has no specific location - like ingame.sms, with predefined parameters (activity sound)
-        /// </summary>
-        /// <param name="viewer"></param>
-        /// <param name="eventSource"></param>
-        /// <param name="smsFilePath"></param>
-        public SoundSource(SoundEventSource eventSource, string wavFilePath, OrtsActivitySoundFileType ORTSActSoundFileType, bool isUnattenuated, bool preCompiled)
-        {
-            IsUnattenuated = isUnattenuated;
-            Initialize(WorldLocation.None, eventSource, wavFilePath, ORTSActSoundFileType, preCompiled);
-        }
-
-        /// <summary>
-        /// Construct a SoundSource stationary at the specified worldLocation, with predefined parameters (activity sound)
-        /// </summary>
-        /// <param name="viewer"></param>
-        /// <param name="worldLocation"></param>
-        /// <param name="eventSource"></param>
-        /// <param name="smsFilePath"></param>
-        /// <param name="slowRolloff"></param>
-        public SoundSource(in WorldLocation worldLocation, SoundEventSource eventSource, string wavFilePath, bool slowRolloff, OrtsActivitySoundFileType ORTSActSoundFileType, bool preCompiled)
-        {
-            IsEnvSound = true;
-            SlowRolloff = slowRolloff;
-            Initialize(worldLocation, eventSource, wavFilePath, ORTSActSoundFileType, preCompiled);
-        }
-
-        /// <summary>
-        /// Construct a SoundSource that has no specific location and a set of programmatically defined <see cref="SoundStream"/>s.
-        /// </summary>
-        /// <param name="viewer">The <see cref="Viewer"/> to attach this SoundSource to.</param>
-        /// <param name="makeStreams">A generator function to create the attached SoundStreams.</param>
-        public SoundSource(Func<SoundSource, IEnumerable<SoundStream>> makeStreams)
-        {
-            IsUnattenuated = true;
-            Initialize();
-            SoundStreams.AddRange(makeStreams(this));
-        }
-
-        /// <summary>
-        /// Stop the streams, free up OpenAL sound source IDs and try to unload wave data from memory
-        /// </summary>
-        public override void Uninitialize()
-        {
-            foreach (SoundStream ss in SoundStreams)
-            {
-                ss.Stop();
-                ss.HardDeactivate();
-                WasOutOfDistance = true;
-                NeedsFrequentUpdate = false;
-            }
-        }
-
-        /// <summary>
-        /// Current location of the sound source
-        /// </summary>
-        public WorldLocation WorldLocation;
-
-        /// <summary>
-        /// The wave files will be relative to this folder
-        /// </summary>
-        public string SMSFolder;
-        public string SMSFileName;
-        public string WavFolder;
-        public string WavFileName;
-        public bool Active;
-        private SoundActivationCondition ActivationConditions;
-        private SoundActivationCondition DeactivationConditions;
-        public bool IsEnvSound;
-        public bool IsExternal = true;
-        public bool Ignore3D;
-        /// <summary>
-        /// MSTS treats Stereo() tagged mono wav files specially. This is a flag
-        /// indicating if this treatment should be applied here
-        /// </summary>
-        public bool MstsMonoTreatment;
-
-        /// <summary>
-        /// Current distance to camera, squared meter. Is used for comparision to <see cref="CutOffDistanceM2"/>, to determine if is out-of-scope
-        /// </summary>
-        public float DistanceSquared = float.MaxValue;
-        /// <summary>
-        /// Out-of-scope state in previous <see cref="Update"/> loop
-        /// </summary>
-        private bool WasOutOfDistance = true;
-        /// <summary>
-        /// Different rolloff factor is used for track sounds not to attenuate so fast. As a bargain they are not silenced at cutoff distance
-        /// </summary>
-        private bool SlowRolloff;
-
-        /// <summary>
-        /// List of Streams in sms
-        /// </summary>
-        public List<SoundStream> SoundStreams = new List<SoundStream>();
-
-        /// <summary>
-        /// Set properties of this SoundSource based on parsing the sms file, and generate SoundStreams
-        /// </summary>
-        /// <param name="viewer">Current <see cref="Viewer3D"/></param>
-        /// <param name="worldLocation">World location of <see cref="SoundSource"/></param>
-        /// <param name="eventSource">Type of game part sms belongs to, to determine how to interpret discrete trigger numbers</param>
-        /// <param name="smsFilePath">Full path for sms file</param>
-        public void Initialize(in WorldLocation worldLocation, SoundEventSource eventSource, string smsFilePath)
-        {
-            WorldLocation = worldLocation;
-
-            if (smsFilePath == null)
-                return;
-
-            SMSFolder = Path.GetDirectoryName(smsFilePath);
-            SMSFileName = Path.GetFileName(smsFilePath);
-            SoundManagmentFile smsFile = SharedSMSFileManager.Get(smsFilePath);
-
-
-            // find correct ScalabiltyGroup
-            int iSG = 0;
-            while (iSG < smsFile.ScalabiltyGroups.Count)
-            {
-
-                if (smsFile.ScalabiltyGroups[iSG].DetailLevel <= viewer.UserSettings.SoundDetailLevel)
-                    break;
-                ++iSG;
-            }
-            if (iSG < smsFile.ScalabiltyGroups.Count && smsFile.ScalabiltyGroups[iSG].Streams != null)  // else we want less sound so don't provide any
-            {
-                ScalabilityGroup mstsScalabiltyGroup = smsFile.ScalabiltyGroups[iSG];
-
-                ActivationConditions = mstsScalabiltyGroup.Activation;
-                DeactivationConditions = mstsScalabiltyGroup.Deactivation;
-                Volume = mstsScalabiltyGroup.Volume;
-                Ignore3D = mstsScalabiltyGroup.Ignore3D | mstsScalabiltyGroup.Stereo;
-                MstsMonoTreatment = mstsScalabiltyGroup.Stereo;
-                IsExternal = ActivationConditions.ExternalCam;
-
-                SetRolloffFactor();
-
-                foreach (SmsStream mstsStream in mstsScalabiltyGroup.Streams)
-                {
-                    SoundStreams.Add(new SoundStream(mstsStream, eventSource, this));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Set properties of this SoundSource with default precompiled parameters, and generate SoundStreams
-        /// </summary>
-        /// <param name="viewer">Current <see cref="Viewer3D"/></param>
-        /// <param name="worldLocation">World location of <see cref="SoundSource"/></param>
-        /// <param name="eventSource">Type of game part sound source belongs to, to determine how to interpret discrete trigger numbers</param>
-        /// <param name="smsFilePath">Full path for sms file</param>
-        public void Initialize(in WorldLocation worldLocation, SoundEventSource eventSource, string wavFilePath, OrtsActivitySoundFileType ORTSActSoundFileType, bool preCompiled)
-        {
-            WorldLocation = worldLocation;
-
-            if (wavFilePath == null)
-                return;
-
-            WavFolder = Path.GetDirectoryName(wavFilePath);
-            WavFileName = Path.GetFileName(wavFilePath);
-            SMSFolder = WavFolder;
-            SMSFileName = WavFileName;
-
-            if (viewer.UserSettings.SoundDetailLevel >= 3)
-            {
-                // base initializations
-                ActivationConditions = new SoundActivationCondition(ORTSActSoundFileType, ActivationType.Activate);
-                DeactivationConditions = new SoundActivationCondition(ORTSActSoundFileType, ActivationType.Deactivate);
-                switch (ORTSActSoundFileType)
-                {
-                    case OrtsActivitySoundFileType.Everywhere:
-                        Ignore3D = true;
-                        IsExternal = true;
-                        break;
-                    default:
-                    case OrtsActivitySoundFileType.Cab:
-                    case OrtsActivitySoundFileType.Pass:
-                        Ignore3D = true;
-                        IsExternal = false;
-                        break;
-                    case OrtsActivitySoundFileType.Ground:
-                    case OrtsActivitySoundFileType.Location:
-                        Ignore3D = false;
-                        IsExternal = true;
-                        break;
-                }
-                Volume = 1.0f;
-                SetRolloffFactor();
-
-                // initialization of the only one sound stream
-                SoundStreams.Add(new SoundStream(WavFileName, eventSource, this));
-            }
-        }
-
-        private void Initialize()
-        {
-            WorldLocation = WorldLocation.None;
-
-            ActivationConditions = new SoundActivationCondition(OrtsActivitySoundFileType.Everywhere, ActivationType.Activate);
-            DeactivationConditions = new SoundActivationCondition(OrtsActivitySoundFileType.Everywhere, ActivationType.Deactivate);
-
-            Volume = 1.0f;
-            SetRolloffFactor();
-        }
-
-        private void SetRolloffFactor()
-        {
-            var deactivationDistance = DeactivationConditions != null && DeactivationConditions.Distance != 0 ? DeactivationConditions.Distance : MaxDistanceM;
-            var maxDistanceM = Math.Min(MaxDistanceM, deactivationDistance);
-
-            // OpenAL inverse distance model is based on formula
-            // Gain = AL_REFERENCE_DISTANCE / ( AL_REFERENCE_DISTANCE + AL_ROLLOFF_FACTOR * ( Distance - AL_REFERENCE_DISTANCE ) )
-            RolloffFactor = SlowRolloff ? 0.4f : ReferenceDistanceM * (1f / GainAtMaxDistance - 1f) / (maxDistanceM - ReferenceDistanceM);
-        }
-
-        /// <summary>
-        /// Check if an event needs action from one of discrete triggers
-        /// </summary>
-        /// <param name="eventID">Occured event</param>
-        public void HandleEvent(TrainEvent eventID)
-        {
-            foreach (SoundStream ss in SoundStreams)
-            {
-                foreach (ORTSTrigger trg in ss.Triggers)
-                {
-                    if (trg is ORTSDiscreteTrigger discreteTrigger)
-                        discreteTrigger.OnCarSoundEvent(null, new SoundSourceEventArgs(eventID, null));
-                }
-            }
-        }
-
-        public override void InitInitials()
-        {
-            if (Car != null)
-            {
-                WorldLocation = Car.WorldPosition.WorldLocation;
-            }
-
-            if (OutOfDistance())
-            {
-                if (!WasOutOfDistance)
-                {
-                    if (!viewer.Simulator.UpdaterWorking)
-                    {
-                        foreach (SoundStream stream in SoundStreams)
-                            stream.HardDeactivate();
-                        WasOutOfDistance = true;
-                    }
-                }
-                NeedsFrequentUpdate = false;
-            }
-            else
-            {
-                if (WasOutOfDistance)
-                {
-                    var ignore3D = WorldLocation == WorldLocation.None | Ignore3D | !IsExternal;
-                    foreach (SoundStream stream in SoundStreams)
-                    {
-                        stream.HardActivate(ignore3D);
-
-                        bool released = false;
-                        // run the initial triggers
-                        foreach (ORTSTrigger trigger in stream.Triggers)
-                        {
-                            trigger.Initialize();
-                            trigger.TryTrigger();
-
-                            released |= trigger.Signaled &&
-                                (trigger.SoundCommand is ORTSReleaseLoopRelease || trigger.SoundCommand is ORTSReleaseLoopReleaseWithJump);
-                            if (trigger is ORTSDiscreteTrigger)
-                                trigger.Signaled = false;
-                        }
-
-                        if (!released && !stream.ALSoundSource.IsPlaying)
-                        {
-                            foreach (ORTSTrigger trigger in stream.Triggers)
-                            {
-                                if (trigger.Signaled && trigger.Enabled && (trigger.SoundCommand is ORTSStartLoop || trigger.SoundCommand is ORTSStartLoopRelease))
-                                    trigger.SoundCommand.Run();
-                            }
-                        }
-                    }
-                }
-                WasOutOfDistance = false;
-            }
-        }
-
-        public override bool Update()
-        {
-            if (Car != null && !Car.IsPartOfActiveTrain)
-                return false;
-
-            InitInitials();
-
-            if (WasOutOfDistance)
-            {
-                // It is still needed to try out-of-distance variable triggers, to handle their start and release events, so they will be in
-                // correct state when get into scope again. Discrete triggers have their HandleEvent() function to achieve this,
-                // but there is no such thing for variable triggers.
-                foreach (var stream in SoundStreams)
-                    foreach (var trigger in stream.VariableTriggers)
-                        trigger.TryTrigger();
-
-                return true;
-            }
-
-            if (!Active)
-            {
-                if (Activate())
-                {
-                    Active = true;
-
-                    // restore any looping sounds
-                    foreach (SoundStream stream in SoundStreams)
-                        stream.Activate();
-                }
-            }
-            else
-            {
-                if (DeActivate())
-                {
-                    foreach (SoundStream stream in SoundStreams)
-                        stream.Deactivate();
-
-                    Active = false;
-                }
-            }
-
-            bool needsFrequentUpdate = false;
-
-            if (Car == null && WorldLocation != WorldLocation.None && !Ignore3D && IsExternal)
-            {
-                WorldLocation = WorldLocation.NormalizeTo(Camera.SoundBaseTile);
-                float[] position = new float[] {
-                    WorldLocation.Location.X,
-                    WorldLocation.Location.Y,
-                    WorldLocation.Location.Z};
-
-                foreach (SoundStream stream in SoundStreams)
-                {
-                    stream.Update(position);
-                    needsFrequentUpdate |= stream.NeedsFrequentUpdate;
-                }
-            }
-            else
-            {
-                foreach (SoundStream stream in SoundStreams)
-                {
-                    stream.Update();
-                    needsFrequentUpdate |= stream.NeedsFrequentUpdate;
-                }
-            }
-            NeedsFrequentUpdate = needsFrequentUpdate;
-
-            return true;
-        } // Update
-
-        /// <summary>
-        /// Calculate current distance to camera, and compare it to <see cref="CutOffDistanceM2"/>
-        /// </summary>
-        /// <returns>True, if is now out-of-scope</returns>
-        public bool OutOfDistance()
-        {
-            if (WorldLocation == WorldLocation.None)
-            {
-                DistanceSquared = 0;
-                return false;
-            }
-
-            if (float.IsNaN(WorldLocation.Location.X) ||
-                float.IsNaN(WorldLocation.Location.Y) ||
-                float.IsNaN(WorldLocation.Location.Z))
-            {
-                DistanceSquared = float.MaxValue;
-                return true;
-            }
-
-            DistanceSquared = (float)WorldLocation.GetDistanceSquared(WorldLocation, viewer.Camera.CameraWorldLocation);
-
-            return DistanceSquared > CutOffDistanceM2;
-        }
-
-        /// <summary>
-        /// Check if activation conditions are met,
-        /// ie PassengerCam, CabCam, Distance etc
-        /// </summary>
-        /// <returns>True, if conditions were met</returns>
-        public bool Activate()
-        {
-            if (ActivationConditions == null)
-                return false;
-
-            if (ConditionsMet(ActivationConditions))
-            {
-                if (WorldLocation != WorldLocation.None)
-                {
-                    // (ActivationConditions.Distance == 0) means distance checking disabled
-                    if ((ActivationConditions.Distance == 0 || DistanceSquared < ActivationConditions.Distance * ActivationConditions.Distance) &&
-                        DistanceSquared < CutOffDistanceM2)
-                        return true;
-                }
-                else
-                    return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Check if deactivation conditions are met
-        /// ie PassengerCam, CabCam, Distance etc
-        /// </summary>
-        /// <returns>True, if conditions were met</returns>
-        public bool DeActivate()
-        {
-            if (DeactivationConditions == null)
-                return false;
-
-            if (ConditionsMet(DeactivationConditions))
-                return true;
-
-            if (WorldLocation != WorldLocation.None)
-            {
-                if (DeactivationConditions.Distance != 0 && DistanceSquared > DeactivationConditions.Distance * DeactivationConditions.Distance ||
-                    DistanceSquared > CutOffDistanceM2)
-                    return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Returns true if SoundSource belongs to a cabview of a vehicle not currently watched. Used at <see cref="ConditionsMet"/> check
-        /// </summary>
-        private bool IsntThisCabView
-        {
-            get
-            {
-                return (viewer.Camera.Style == CameraStyle.Cab || viewer.Camera.Style == CameraStyle.Cab3D || viewer.Camera.Style == CameraStyle.Passenger) && viewer.Camera.AttachedCar != Car;
-            }
-        }
-
-        /// <summary>
-        /// Returns true if SoundSource is a weather sound. Used at <see cref="ConditionsMet"/> check
-        /// </summary>
-        private bool WeatherSound { get { return viewer.World.WeatherControl.IsWeatherSound(this); } }
-
-        /// <summary>
-        /// Hack for enabling additional cab sounds (like radio sounds) of an attached (maybe invisible) car. Used at <see cref="ConditionsMet"/> check
-        /// </summary>
-        /// <returns></returns>
-        private bool IsInvisibleSoundCar
-        {
-            get
-            {
-                return !IsEnvSound && !IsExternal && (viewer.Camera.Style == CameraStyle.Cab || viewer.Camera.Style == CameraStyle.Cab3D)
-                    && Car != null && viewer.Camera.AttachedCar != null && !(Car is MSTSLocomotive) && !Car.HasInsideView && Car.PassengerViewpoints == null
-                    && (Car.Train == viewer.Camera.AttachedCar.Train || Car.Train.TrainType == TrainType.Static || Car.Train.TrainType == TrainType.AiNotStarted);
-            }
-        }
-
-        /// <summary>
-        /// Return true of the ViewPoint matches any of the ones specified in the conditions
-        /// for activation or deactivation.
-        /// </summary>
-        /// <param name="conditions"></param>
-        /// <returns></returns>
-        private bool ConditionsMet(SoundActivationCondition conditions)
-        {
-            if (conditions == null)
-                return false;
-
-            CameraStyle viewpoint = viewer.Camera.Style;
-
-            if (IsEnvSound || !IsEnvSound && IsntThisCabView && !IsInvisibleSoundCar && !WeatherSound)
-            {
-                viewpoint = CameraStyle.External;
-            }
-
-            if (conditions.CabCam && (viewpoint == CameraStyle.Cab || viewpoint == CameraStyle.Cab3D))
-                return true;
-            if (conditions.PassengerCam && viewpoint == CameraStyle.Passenger)
-                return true;
-            if (conditions.ExternalCam && viewpoint == CameraStyle.External)
-                return true;
-
-            return false;
-        }
-
-        // To detect redundant calls
-        private bool disposedValue;
-        protected override void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    foreach (SoundStream soundStream in SoundStreams ?? Enumerable.Empty<SoundStream>())
-                        soundStream.Dispose();
-                    SoundStreams.Clear();
-                    Car = null;
-                }
-                disposedValue = true;
-            }
-            base.Dispose(disposing);
         }
     }
 
@@ -1240,7 +207,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                     }
             }
 
-            ALSoundSource = new ALSoundSource(soundSource.IsEnvSound, rolloffFactor);
+            ALSoundSource = new ALSoundSource(soundSource.EnvironmentSound, rolloffFactor);
 
             if (mstsStream.Triggers != null)
                 foreach (Trigger trigger in mstsStream.Triggers)
@@ -1262,7 +229,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                     {
                         Triggers.Add(new ORTSRandomTrigger(this, randomTrigger));
                     }
-                    else if (trigger is VariableTrigger variableTrigger && (soundSource.Car != null || soundSource.IsEnvSound))
+                    else if (trigger is VariableTrigger variableTrigger && (soundSource.Car != null || soundSource.EnvironmentSound))
                     {
                         Triggers.Add(new ORTSVariableTrigger(this, variableTrigger));
                     }
@@ -1279,7 +246,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         Triggers.Add(new ORTSTrigger()); // null trigger
                         if (SoundSource.SMSFileName != "ingame.sms")
                             Trace.TraceWarning("Trigger type of trigger number {2} in stream number {1} in file {0} is not existent or not applicable",
-SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
+SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Count - 1);
                     }
                     IsReleasedWithJump |= Triggers.Last().SoundCommand is ORTSReleaseLoopReleaseWithJump;
                 }  // for each mstsStream.Trigger
@@ -1292,7 +259,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             SoundSource = soundSource;
             Volume = 1.0f;
 
-            ALSoundSource = new ALSoundSource(soundSource.IsEnvSound, soundSource.RolloffFactor);
+            ALSoundSource = new ALSoundSource(soundSource.EnvironmentSound, soundSource.RolloffFactor);
 
             _InitialTrigger = new ORTSInitialTrigger(this, wavFileName);
             Triggers.Add(_InitialTrigger);
@@ -1309,7 +276,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             SoundSource = soundSource;
             Volume = 1.0f;
 
-            ALSoundSource = new ALSoundSource(soundSource.IsEnvSound, soundSource.RolloffFactor);
+            ALSoundSource = new ALSoundSource(soundSource.EnvironmentSound, soundSource.RolloffFactor);
             Triggers.AddRange(makeTriggers(this));
         }
 
@@ -1414,7 +381,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                     volume *= Interpolate(x, MSTSStream.VolumeCurves[i]);
                 }
 
-            if (SoundSource.IsExternal && Program.Viewer.Camera.Style != CameraStyle.External && !SoundSource.IsUnattenuated)
+            if (SoundSource.ExternalSource && Program.Viewer.Camera.Style != CameraStyle.External && !SoundSource.Unattenuated)
             {
                 if (Program.Viewer.Camera.AttachedCar == null || ((MSTSWagon)Program.Viewer.Camera.AttachedCar).ExternalSoundPassThruPercent == -1)
                     volume *= Program.Viewer.UserSettings.ExternalSoundPassThruPercent * 0.01f;
@@ -1568,7 +535,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             foreach (var trigger in Triggers)
                 if (trigger.SoundCommand is ORTSSoundPlayCommand)
                     foreach (var name in (trigger.SoundCommand as ORTSSoundPlayCommand).Files)
-                        SoundItem.Sweep(name, SoundSource.IsExternal, IsReleasedWithJump);
+                        SoundItem.Sweep(name, SoundSource.ExternalSource, IsReleasedWithJump);
         }
 
     } // class ORTSStream
@@ -2013,7 +980,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             if (!string.IsNullOrEmpty(p))
             {
                 if (ORTSStream != null && ORTSStream.ALSoundSource != null)
-                    ORTSStream.ALSoundSource.Queue(p, PlayMode.OneShot, ORTSStream.SoundSource.IsExternal, ORTSStream.RepeatedTrigger);
+                    ORTSStream.ALSoundSource.Queue(p, PlayMode.OneShot, ORTSStream.SoundSource.ExternalSource, ORTSStream.RepeatedTrigger);
             }
         }
     }
@@ -2034,7 +1001,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             if (!string.IsNullOrEmpty(p))
             {
                 if (ORTSStream != null && ORTSStream.ALSoundSource != null)
-                    ORTSStream.ALSoundSource.Queue(p, PlayMode.Loop, ORTSStream.SoundSource.IsExternal, false);
+                    ORTSStream.ALSoundSource.Queue(p, PlayMode.Loop, ORTSStream.SoundSource.ExternalSource, false);
             }
         }
     }
@@ -2052,7 +1019,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
         public override void Run()
         {
             if (ORTSStream != null && ORTSStream.ALSoundSource != null)
-                ORTSStream.ALSoundSource.Queue("", PlayMode.Release, ORTSStream.SoundSource.IsExternal, false);
+                ORTSStream.ALSoundSource.Queue("", PlayMode.Release, ORTSStream.SoundSource.ExternalSource, false);
         }
     }
 
@@ -2073,7 +1040,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             if (!string.IsNullOrEmpty(p))
             {
                 if (ORTSStream != null && ORTSStream.ALSoundSource != null)
-                    ORTSStream.ALSoundSource.Queue(p, PlayMode.LoopRelease, ORTSStream.SoundSource.IsExternal, ORTSStream.IsReleasedWithJump);
+                    ORTSStream.ALSoundSource.Queue(p, PlayMode.LoopRelease, ORTSStream.SoundSource.ExternalSource, ORTSStream.IsReleasedWithJump);
             }
         }
     }
@@ -2091,7 +1058,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
         public override void Run()
         {
             if (ORTSStream != null && ORTSStream.ALSoundSource != null)
-                ORTSStream.ALSoundSource.Queue("", PlayMode.ReleaseWithJump, ORTSStream.SoundSource.IsExternal, true);
+                ORTSStream.ALSoundSource.Queue("", PlayMode.ReleaseWithJump, ORTSStream.SoundSource.ExternalSource, true);
         }
     }
 
@@ -2583,19 +1550,19 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                     switch (ORTSActSoundFileType)
                     {
                         case OrtsActivitySoundFileType.Everywhere:
-                            ActivitySounds = new SoundSource(SoundEventSource.InGame, ORTSActSoundFile, ORTSActSoundFileType, true, true);
+                            ActivitySounds = new SoundSource(SoundEventSource.InGame, ORTSActSoundFile, ORTSActSoundFileType, true);
                             Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         case OrtsActivitySoundFileType.Cab:
                             var playerLoco = (MSTSWagon)Program.Viewer.Simulator.PlayerLocomotive;
-                            ActivitySounds = new SoundSource(playerLoco, ORTSActSoundFile, ORTSActSoundFileType, true);
+                            ActivitySounds = new SoundSource(playerLoco, ORTSActSoundFile, ORTSActSoundFileType);
                             Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         case OrtsActivitySoundFileType.Pass:
                             if (Program.Viewer.Camera.Style == CameraStyle.Passenger && Program.Viewer.Camera.AttachedCar != null)
                             {
                                 var selectedWagon = (MSTSWagon)Program.Viewer.Camera.AttachedCar;
-                                ActivitySounds = new SoundSource(selectedWagon, ORTSActSoundFile, ORTSActSoundFileType, true);
+                                ActivitySounds = new SoundSource(selectedWagon, ORTSActSoundFile, ORTSActSoundFileType);
                                 Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             }
                             break;
@@ -2603,11 +1570,11 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                             var loco = train == Program.Viewer.Simulator.PlayerLocomotive.Train ?
                                 Program.Viewer.Simulator.PlayerLocomotive : train.Cars[0];
                             //                           string wsName = Program.Viewer.Simulator.RoutePath + @"\WORLD\" + WorldFile.WorldFileNameFromTileCoordinates(worldLocation.TileX, worldLocation.TileZ) + "s";
-                            ActivitySounds = new SoundSource(loco.WorldPosition.WorldLocation.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true, ORTSActSoundFileType, true);// Sound does not come from earth!
+                            ActivitySounds = new SoundSource(loco.WorldPosition.WorldLocation.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true, ORTSActSoundFileType);// Sound does not come from earth!
                             Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         case OrtsActivitySoundFileType.Location:
-                            ActivitySounds = new SoundSource(activitySound.Location.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true, ORTSActSoundFileType, true);// Sound does not come from earth!
+                            ActivitySounds = new SoundSource(activitySound.Location.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true, ORTSActSoundFileType);// Sound does not come from earth!
                             Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         default:

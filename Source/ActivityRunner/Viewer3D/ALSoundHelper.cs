@@ -634,8 +634,8 @@ namespace Orts.ActivityRunner.Viewer3D
             wasPlaying = false;
             stoppedAt = double.MaxValue;
 
-            OpenAL.Sourcef(soundSourceID, OpenAL.AL_MAX_DISTANCE, SoundSource.MaxDistanceM);
-            OpenAL.Sourcef(soundSourceID, OpenAL.AL_REFERENCE_DISTANCE, SoundSource.ReferenceDistanceM);
+            OpenAL.Sourcef(soundSourceID, OpenAL.AL_MAX_DISTANCE, SoundSource.MaxDistance);
+            OpenAL.Sourcef(soundSourceID, OpenAL.AL_REFERENCE_DISTANCE, SoundSource.ReferenceDistance);
             OpenAL.Sourcef(soundSourceID, OpenAL.AL_MAX_GAIN, 1f);
             OpenAL.Sourcef(soundSourceID, OpenAL.AL_ROLLOFF_FACTOR, rolloffFactor);
             OpenAL.Sourcef(soundSourceID, OpenAL.AL_PITCH, PlaybackSpeed);
