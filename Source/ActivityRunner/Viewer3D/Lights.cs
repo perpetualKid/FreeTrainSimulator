@@ -557,7 +557,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var indexData = new short[] {
                     0, 1, 2, 3, 4, 5
                 };
-                IndexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
+                IndexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, IndexElementSize.SixteenBits, indexData.Length, BufferUsage.WriteOnly);
                 IndexBuffer.SetData(indexData);
             }
 
@@ -674,7 +674,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     indexData[6 * i + 4] = (short)i2;
                     indexData[6 * i + 5] = (short)(CircleSegments + 1);
                 }
-                IndexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
+                IndexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, IndexElementSize.SixteenBits, indexData.Length, BufferUsage.WriteOnly);
                 IndexBuffer.SetData(indexData);
             }
             if (BlendState_SourceZeroDestOne == null)

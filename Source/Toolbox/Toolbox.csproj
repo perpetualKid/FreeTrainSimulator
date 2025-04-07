@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="GetText.NET" Version="8.0.5" />
     <PackageReference Include="GetText.NET.WindowsForms" Version="8.0.5" />
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.2.1105" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />

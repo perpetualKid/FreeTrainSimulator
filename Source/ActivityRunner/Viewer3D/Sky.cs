@@ -350,7 +350,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), VertexList.Length, BufferUsage.WriteOnly);
             VertexBuffer.SetData(VertexList);
-            IndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), IndexCount, BufferUsage.WriteOnly);
+            IndexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, IndexCount, BufferUsage.WriteOnly);
             IndexBuffer.SetData(IndexList);
         }
     }

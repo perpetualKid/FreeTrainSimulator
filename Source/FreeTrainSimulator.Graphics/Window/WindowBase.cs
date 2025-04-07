@@ -243,7 +243,7 @@ namespace FreeTrainSimulator.Graphics.Window
                     11, 6, 10, 5, 9, 4, 8,
                     12, 9, 13, 10, 14, 11, 15,
                 };
-                windowIndexBuffer = new IndexBuffer(Owner.GraphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
+                windowIndexBuffer = new IndexBuffer(Owner.GraphicsDevice, IndexElementSize.SixteenBits, indexData.Length, BufferUsage.WriteOnly);
                 windowIndexBuffer.SetData(indexData);
             }
             xnaWorld = Matrix.CreateWorld(new Vector3(borderRect.X, borderRect.Y, 0), -Vector3.UnitZ, Vector3.UnitY);

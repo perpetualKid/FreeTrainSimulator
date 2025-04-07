@@ -543,8 +543,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             VertexPositionNormalTexture[] newVList = new VertexPositionNormalTexture[numberVertices];
             for (i = 0; i < numberVertices; i++)
                 newVList[i] = vertices[i];
-            IndexBuffer indexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, typeof(short),
-                                                            numberIndices, BufferUsage.WriteOnly);
+            IndexBuffer indexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, IndexElementSize.SixteenBits, numberIndices, BufferUsage.WriteOnly);
             indexBuffer.SetData(newTList);
             shapePrimitive = new ShapePrimitive(viewer.Game.GraphicsDevice, material, new SharedShape.VertexBufferSet(newVList, viewer.Game.GraphicsDevice), indexBuffer, 0, numberVertices, numberIndices / 3, new[] { -1 }, 0);
 

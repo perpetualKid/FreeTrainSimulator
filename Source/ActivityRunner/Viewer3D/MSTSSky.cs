@@ -460,7 +460,7 @@ namespace Orts.ActivityRunner.Viewer3D
             MSTSSkyVertexBuffer.SetData(vertexList);
             if (MSTSSkyIndexBuffer == null)
             {
-                MSTSSkyIndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), indexCount, BufferUsage.WriteOnly);
+                MSTSSkyIndexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, indexCount, BufferUsage.WriteOnly);
                 MSTSSkyIndexBuffer.SetData(triangleListIndices);
             }
         }

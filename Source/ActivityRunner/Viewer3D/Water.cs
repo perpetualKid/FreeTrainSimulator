@@ -125,7 +125,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                 }
             }
-            indexBuffer = new IndexBuffer(graphicsDevice, typeof(short), indexData.Count, BufferUsage.WriteOnly);
+            indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, indexData.Count, BufferUsage.WriteOnly);
             indexBuffer.SetData(indexData.ToArray());
             var vertexData = new List<VertexPositionNormalTexture>(17 * 17);
             for (var z = 0; z < 17; ++z)

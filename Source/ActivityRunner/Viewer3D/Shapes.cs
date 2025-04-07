@@ -77,7 +77,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public ShapePrimitive(Material material, SharedShape.VertexBufferSet vertexBufferSet, List<ushort> indexData, GraphicsDevice graphicsDevice, int[] hierarchy, int hierarchyIndex)
             : this(graphicsDevice, material, vertexBufferSet, null, indexData.Min(), indexData.Max() - indexData.Min() + 1, indexData.Count / 3, hierarchy, hierarchyIndex)
         {
-            IndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), indexData.Count, BufferUsage.WriteOnly);
+            IndexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, indexData.Count, BufferUsage.WriteOnly);
             IndexBuffer.SetData(indexData.ToArray());
         }
 
@@ -231,7 +231,7 @@ namespace Orts.ActivityRunner.Viewer3D
             for (var i = 0; i < indexData.Count; i++)
                 for (var j = 0; j < SharedShape.VertexBufferSet.DebugNormalsVertexPerVertex; j++)
                     debugNormalsIndexBuffer.Add((ushort)(indexData[i] * SharedShape.VertexBufferSet.DebugNormalsVertexPerVertex + j));
-            IndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), debugNormalsIndexBuffer.Count, BufferUsage.WriteOnly);
+            IndexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, debugNormalsIndexBuffer.Count, BufferUsage.WriteOnly);
             IndexBuffer.SetData(debugNormalsIndexBuffer.ToArray());
             MinVertexIndex = indexData.Min() * SharedShape.VertexBufferSet.DebugNormalsVertexPerVertex;
             NumVerticies = (indexData.Max() - indexData.Min() + 1) * SharedShape.VertexBufferSet.DebugNormalsVertexPerVertex;

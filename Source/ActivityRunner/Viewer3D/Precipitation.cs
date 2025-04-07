@@ -192,7 +192,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 index += VerticiesPerParticle;
             }
-            var indexBuffer = new IndexBuffer(graphicsDevice, typeof(uint), numIndicies, BufferUsage.WriteOnly);
+            var indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, numIndicies, BufferUsage.WriteOnly);
             indexBuffer.SetData(indices);
             return indexBuffer;
         }

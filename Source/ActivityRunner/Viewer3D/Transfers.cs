@@ -133,7 +133,7 @@ namespace Orts.ActivityRunner.Viewer3D
             VertexBuffer.SetData(verticies);
             VertexCount = verticies.Length;
 
-            IndexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, typeof(short), indicies.Length, BufferUsage.WriteOnly);
+            IndexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, IndexElementSize.SixteenBits, indicies.Length, BufferUsage.WriteOnly);
             IndexBuffer.SetData(indicies);
             PrimitiveCount = indicies.Length / 3;
         }

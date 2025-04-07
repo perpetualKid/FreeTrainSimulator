@@ -414,7 +414,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (i == bufferSize) //16 * 16 * 6
                 return null;
 
-            IndexBuffer result = new IndexBuffer(Viewer.Game.GraphicsDevice, typeof(short), i, BufferUsage.WriteOnly);
+            IndexBuffer result = new IndexBuffer(Viewer.Game.GraphicsDevice, IndexElementSize.SixteenBits, i, BufferUsage.WriteOnly);
             result.SetData(indexBuffer, 0, i);
             return result;
         }
@@ -498,7 +498,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-            SharedPatchIndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), i, BufferUsage.WriteOnly);
+            SharedPatchIndexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, i, BufferUsage.WriteOnly);
             SharedPatchIndexBuffer.SetData(indexBuffer, 0, i);
 
         }

@@ -454,7 +454,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 var primitiveIndex = 0;
                 foreach (var index in indexes)
                 {
-                    var indexBuffer = new IndexBuffer(sharedShape.Viewer.Game.GraphicsDevice, typeof(short), index.Value.Count, BufferUsage.WriteOnly);
+                    var indexBuffer = new IndexBuffer(sharedShape.Viewer.Game.GraphicsDevice, IndexElementSize.SixteenBits, index.Value.Count, BufferUsage.WriteOnly);
                     indexBuffer.SetData(index.Value.ToArray());
                     var primitiveMaterial = primitiveMaterials.First(d => d.Key == index.Key);
                     ShapePrimitives[primitiveIndex] = new ShapePrimitive(primitiveMaterial.Material, vertexBufferSet, indexBuffer, index.Value.Min(), index.Value.Max() - index.Value.Min() + 1, index.Value.Count / 3, hierarchy, primitiveMaterial.HierachyIndex);
