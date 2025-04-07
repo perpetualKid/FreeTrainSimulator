@@ -13,5 +13,6 @@
         SettingsWindow,
         LogWindow,
         TrainPathWindow,
+        TrainPathSaveWindow,
     }
 }

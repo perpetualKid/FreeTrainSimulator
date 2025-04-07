@@ -124,7 +124,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             return (sections, intermediary);
         }
 
-        protected PathModel ToPathModel()
+        protected PathModel ToPathModel(PathModelHeader pathDetails)
         {
             List<PathNode> pathNodes = new List<PathNode>();
             foreach (TrainPathPointBase pathPoint in PathPoints)
@@ -148,13 +148,8 @@ namespace FreeTrainSimulator.Models.Imported.Track
                     NextSidingNode = -1,
                 });
             }
-            return new PathModel()
+            return new PathModel(pathDetails)
             {
-                Id = "New Path",
-                Name = "New Path",
-                PlayerPath = true,
-                Start = "Start",
-                End = "End",
                 PathNodes = pathNodes.ToImmutableArray(),
             };
         }

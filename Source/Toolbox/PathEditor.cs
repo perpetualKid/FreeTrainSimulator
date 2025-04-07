@@ -82,9 +82,9 @@ namespace FreeTrainSimulator.Toolbox
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
-        public async Task SavePath()
+        public async Task SavePath(PathModelHeader pathDetails)
         {
-            PathModel pathModel = ConvertTrainPath();
+            PathModel pathModel = ConvertTrainPath(pathDetails);
             pathModel = await TrackData.Instance.RouteData.Save(pathModel).ConfigureAwait(false);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }

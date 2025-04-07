@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
@@ -7,7 +8,8 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
-using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Microsoft.Xna.Framework;
@@ -56,11 +58,11 @@ namespace FreeTrainSimulator.Toolbox
         {
         }
 
-        private void QuitWindow_OnQuitGame(object sender, EventArgs e)
+        private async void QuitWindow_OnQuitGame(object sender, EventArgs e)
         {
             if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
                 ctsRouteLoading.Cancel();
-            Task.Run(SaveSettings).Wait();
+            await SaveSettings().ConfigureAwait(false);
             waitOnExit = false;
             Exit();
         }
@@ -183,5 +185,15 @@ namespace FreeTrainSimulator.Toolbox
                 }
             }
         }
+
+        private async void TrainPathSaveWindow_OnSavePath(object sender, TrainPathSaveEventArgs e)
+        {
+            PathModelHeader pathDetails = e.PathDetails;
+            await PathEditor.SavePath(pathDetails).ConfigureAwait(false);
+            Task<ImmutableArray<PathModelHeader>> pathTask = selectedRoute.GetRoutePaths(ctsProfileLoading.Token);
+            mainmenu.PopulatePaths(await pathTask.ConfigureAwait(false));
+        }
+
+
     }
 }

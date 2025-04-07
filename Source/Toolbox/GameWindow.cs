@@ -254,9 +254,12 @@ namespace FreeTrainSimulator.Toolbox
                 if (windowManager.WindowInitialized(windowType))
                 {
                     ToolboxSettings.PopupLocations[windowType] = windowManager[windowType].RelativeLocation.FromPoint();
+                    ToolboxSettings.PopupStatus[windowType] = windowManager.WindowOpened(windowType) && !windowManager.WindowModal(windowType);
                 }
-                if (windowType != ToolboxWindowType.QuitWindow)
-                    ToolboxSettings.PopupStatus[windowType] = windowManager.WindowOpened(windowType);
+                else
+                {
+                    ToolboxSettings.PopupStatus[windowType] = false;
+                }
             }
 
             ToolboxSettings.WindowScreen = Screen.AllScreens.ToList().IndexOf(currentScreen);
@@ -270,8 +273,8 @@ namespace FreeTrainSimulator.Toolbox
             //            ProfileSettingModelHandler<ProfileUserSettingsModel>.SetValueByName(ToolboxUserSettings, "MultiSamplingCount", 8);
 
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
-            await currentProfile.UpdateSettingsModel(ToolboxSettings, ctsProfileLoading.Token).ConfigureAwait(false);
-            await currentProfile.UpdateSettingsModel(ToolboxUserSettings, ctsProfileLoading.Token).ConfigureAwait(false);
+            ToolboxSettings = await currentProfile.UpdateSettingsModel(ToolboxSettings, ctsProfileLoading.Token).ConfigureAwait(false);
+            ToolboxUserSettings = await currentProfile.UpdateSettingsModel(ToolboxUserSettings, ctsProfileLoading.Token).ConfigureAwait(false);
 
         }
 
@@ -482,6 +485,12 @@ namespace FreeTrainSimulator.Toolbox
                 OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
                 return trainPathDetailWindow;
             }));
+            windowManager.SetLazyWindows(ToolboxWindowType.TrainPathSaveWindow, new Lazy<FormBase>(() =>
+            {
+                TrainPathSaveWindow trainPathSaveWindow = new TrainPathSaveWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathSaveWindow].ToPoint());
+                trainPathSaveWindow.OnSavePath += TrainPathSaveWindow_OnSavePath;
+                return trainPathSaveWindow;
+            }));
             #endregion
 
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
@@ -509,6 +518,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {
+            windowForm.ActiveControl = null;
             mainmenu.Enabled = !e.ModalWindowOpen;
 
             if (null != ContentArea)

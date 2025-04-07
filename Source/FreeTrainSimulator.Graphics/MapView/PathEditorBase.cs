@@ -80,9 +80,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             pathPoint = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
         }
 
-        public PathModel ConvertTrainPath()
+        public PathModel ConvertTrainPath(PathModelHeader pathModelHeader)
         {
-            return trainPath?.ToPathModel();
+            return trainPath?.ToPathModel(pathModelHeader);
         }
 
         protected bool AddPathEndPoint()

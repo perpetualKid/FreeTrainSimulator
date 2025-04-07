@@ -109,9 +109,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
         }
 
-        public new PathModel ToPathModel()
+        public new PathModel ToPathModel(PathModelHeader pathModelHeader)
         {
-            return base.ToPathModel();
+            return base.ToPathModel(pathModelHeader);
         }
 
         #region path editing

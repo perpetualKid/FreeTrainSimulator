@@ -67,6 +67,7 @@ namespace FreeTrainSimulator.Toolbox.Settings
             ToolboxWindowType.SettingsWindow => (70, 70),
             ToolboxWindowType.LogWindow => (30, 30),
             ToolboxWindowType.TrainPathWindow => (10, 10),
+            ToolboxWindowType.TrainPathSaveWindow => (50, 50),
             _ => throw new System.NotImplementedException(),
         });
 
@@ -83,6 +84,7 @@ namespace FreeTrainSimulator.Toolbox.Settings
             ToolboxWindowType.SettingsWindow => true,
             ToolboxWindowType.LogWindow => false,
             ToolboxWindowType.TrainPathWindow => false,
+            ToolboxWindowType.TrainPathSaveWindow => false,
             _ => throw new System.NotImplementedException(),
         });
 
