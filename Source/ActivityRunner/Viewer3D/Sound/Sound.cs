@@ -52,7 +52,6 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
-using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -60,9 +59,7 @@ using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Track;
 
-using static Swan.Terminal;
-
-namespace Orts.ActivityRunner.Viewer3D
+namespace Orts.ActivityRunner.Viewer3D.Sound
 {
 
     /// <summary>
@@ -222,7 +219,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 MSTSLocomotive loco = Car as MSTSLocomotive;
 
-                if (!string.IsNullOrEmpty(Car.InteriorShapeFileName) || (loco != null && (loco.HasFrontCab || loco.HasRearCab || loco.HasFront3DCab || loco.HasRear3DCab)))
+                if (!string.IsNullOrEmpty(Car.InteriorShapeFileName) || loco != null && (loco.HasFrontCab || loco.HasRearCab || loco.HasFront3DCab || loco.HasRear3DCab))
                     LoadTrackSound(ttdf.InsideSound, true);
 
                 LoadTrackSound(ttdf.OutsideSound, false);
@@ -300,10 +297,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (!reSelect)
                     {
                         if (nextDist == -1 || initCar != Car.Train.Cars[carLeading] ||
-                            (carLeading == 0 && Car.Train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex != initTrackSection) ||
-                            (carLeading != 0 && Car.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex != initTrackSection) ||
-                            (carLeading == 0 && (Car.Train.DistanceTravelledM - initDist > nextDist || initDist - Car.Train.DistanceTravelledM > prevDist)) ||
-                            (carLeading != 0 && (Car.Train.DistanceTravelledM - Car.Train.Length - initDist > nextDist || initDist - Car.Train.DistanceTravelledM + Car.Train.Length > prevDist)))
+                            carLeading == 0 && Car.Train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex != initTrackSection ||
+                            carLeading != 0 && Car.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex != initTrackSection ||
+                            carLeading == 0 && (Car.Train.DistanceTravelledM - initDist > nextDist || initDist - Car.Train.DistanceTravelledM > prevDist) ||
+                            carLeading != 0 && (Car.Train.DistanceTravelledM - Car.Train.Length - initDist > nextDist || initDist - Car.Train.DistanceTravelledM + Car.Train.Length > prevDist))
                         {
                             reSelect = true;
                         }
@@ -326,10 +323,10 @@ namespace Orts.ActivityRunner.Viewer3D
                                 wagonViewer.TrackSoundType = 0;
                             }
                         else
-                            if (!SharedSMSFileManager.AutoTrackSound || (
+                            if (!SharedSMSFileManager.AutoTrackSound || 
                                 curTrackSoundType != SharedSMSFileManager.SwitchSmsNumber &&
                                 curTrackSoundType != SharedSMSFileManager.CurveSmsNumber &&
-                                curTrackSoundType != SharedSMSFileManager.CurveSwitchSmsNumber))
+                                curTrackSoundType != SharedSMSFileManager.CurveSwitchSmsNumber)
                             wagonViewer.TrackSoundType = curTrackSoundType;
                         else
                         {
@@ -358,7 +355,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         if (wagonViewer.TrackSoundLocation != WorldLocation.None)
                         {
                             float trackSoundDistSquared = (float)WorldLocation.GetDistanceSquared(Car.WorldPosition.WorldLocation, wagonViewer.TrackSoundLocation);
-                            if (trackSoundDistSquared > 9 && (trackSoundDistSquared - 2) <= wagonViewer.TrackSoundDistSquared)
+                            if (trackSoundDistSquared > 9 && trackSoundDistSquared - 2 <= wagonViewer.TrackSoundDistSquared)
                                 wagonViewer.TrackSoundDistSquared = trackSoundDistSquared;
                             else
                             {
@@ -399,7 +396,7 @@ namespace Orts.ActivityRunner.Viewer3D
             bool stateChange = false;
             if (SharedSMSFileManager.AutoTrackSound)
                 stateChange = UpdateCarOnSwitchAndCurve();
-            if ((!carOnSwitch && !carOnCurve) || !SharedSMSFileManager.AutoTrackSound)
+            if (!carOnSwitch && !carOnCurve || !SharedSMSFileManager.AutoTrackSound)
                 UpdateTType(stateChange);
             bool retval = true;
             NeedsFrequentUpdate = false;
@@ -479,10 +476,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     // here check for curve
                     var carPreviouslyOnCurve = carOnCurve;
                     carOnCurve = false;
-                    if ((Car.CurrentCurveRadius > 0 && (Car.CurrentCurveRadius < 301
-                         || (Car.CurrentCurveRadius < 350 && Car.WagonType == WagonType.Freight))) ||
-                        (CarBehind.CurrentCurveRadius > 0 && (CarBehind.CurrentCurveRadius < 301
-                         || (CarBehind.CurrentCurveRadius < 350 && Car.WagonType == WagonType.Freight))))
+                    if (Car.CurrentCurveRadius > 0 && (Car.CurrentCurveRadius < 301
+                         || Car.CurrentCurveRadius < 350 && Car.WagonType == WagonType.Freight) ||
+                        CarBehind.CurrentCurveRadius > 0 && (CarBehind.CurrentCurveRadius < 301
+                         || CarBehind.CurrentCurveRadius < 350 && Car.WagonType == WagonType.Freight))
                     {
                         carOnCurve = true;
                     }
@@ -1089,7 +1086,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             get
             {
-                return (viewer.Camera.Style == CameraStyle.Cab || viewer.Camera.Style == CameraStyle.Cab3D || viewer.Camera.Style == CameraStyle.Passenger) && (viewer.Camera.AttachedCar != Car);
+                return (viewer.Camera.Style == CameraStyle.Cab || viewer.Camera.Style == CameraStyle.Cab3D || viewer.Camera.Style == CameraStyle.Passenger) && viewer.Camera.AttachedCar != Car;
             }
         }
 
@@ -1106,9 +1103,9 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             get
             {
-                return (!IsEnvSound && !IsExternal && (viewer.Camera.Style == CameraStyle.Cab || viewer.Camera.Style == CameraStyle.Cab3D)
+                return !IsEnvSound && !IsExternal && (viewer.Camera.Style == CameraStyle.Cab || viewer.Camera.Style == CameraStyle.Cab3D)
                     && Car != null && viewer.Camera.AttachedCar != null && !(Car is MSTSLocomotive) && !Car.HasInsideView && Car.PassengerViewpoints == null
-                    && (Car.Train == viewer.Camera.AttachedCar.Train || Car.Train.TrainType == TrainType.Static || Car.Train.TrainType == TrainType.AiNotStarted));
+                    && (Car.Train == viewer.Camera.AttachedCar.Train || Car.Train.TrainType == TrainType.Static || Car.Train.TrainType == TrainType.AiNotStarted);
             }
         }
 
@@ -1284,7 +1281,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             Trace.TraceWarning("Trigger type of trigger number {2} in stream number {1} in file {0} is not existent or not applicable",
 SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                     }
-                    IsReleasedWithJump |= (Triggers.Last().SoundCommand is ORTSReleaseLoopReleaseWithJump);
+                    IsReleasedWithJump |= Triggers.Last().SoundCommand is ORTSReleaseLoopReleaseWithJump;
                 }  // for each mstsStream.Trigger
 
             VariableTriggers = Triggers.OfType<ORTSVariableTrigger>().ToList();
@@ -1747,7 +1744,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
             }
             else
             {
-                triggerDistance = car.DistanceTravelled + ((float)StaticRandom.NextDouble() * (SMS.MinimumDistance) + SMS.MinimumDistance);
+                triggerDistance = car.DistanceTravelled + ((float)StaticRandom.NextDouble() * SMS.MinimumDistance + SMS.MinimumDistance);
             }
         }
 
@@ -2522,8 +2519,8 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
         public void Update()
         {
             if (Simulator.Instance.ActivityRun == null || Simulator.Instance.ActivityRun.TriggeredActivityEvent == null ||
-                (Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.SoundFile == null && (Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.Outcomes == null
-                || Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.Outcomes.ActivitySound == null)))
+                Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.SoundFile == null && (Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.Outcomes == null
+                || Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.Outcomes.ActivitySound == null))
                 return;
             var localEventID = Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.ID;
             string ORTSActSoundFile;
@@ -2568,7 +2565,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                             }
                             break;
                         case OrtsActivitySoundFileType.Ground:
-                            var loco = (train == Program.Viewer.Simulator.PlayerLocomotive.Train) ?
+                            var loco = train == Program.Viewer.Simulator.PlayerLocomotive.Train ?
                                 Program.Viewer.Simulator.PlayerLocomotive : train.Cars[0];
                             //                            string wsName = Program.Viewer.Simulator.RoutePath + @"\WORLD\" + WorldFile.WorldFileNameFromTileCoordinates(worldLocation.TileX, worldLocation.TileZ) + "s";
                             ActivitySounds = new SoundSource(loco.WorldPosition.WorldLocation.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true);
@@ -2603,7 +2600,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Count, Triggers.Count - 1);
                             }
                             break;
                         case OrtsActivitySoundFileType.Ground:
-                            var loco = (train == Program.Viewer.Simulator.PlayerLocomotive.Train) ?
+                            var loco = train == Program.Viewer.Simulator.PlayerLocomotive.Train ?
                                 Program.Viewer.Simulator.PlayerLocomotive : train.Cars[0];
                             //                           string wsName = Program.Viewer.Simulator.RoutePath + @"\WORLD\" + WorldFile.WorldFileNameFromTileCoordinates(worldLocation.TileX, worldLocation.TileZ) + "s";
                             ActivitySounds = new SoundSource(loco.WorldPosition.WorldLocation.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true, ORTSActSoundFileType, true);// Sound does not come from earth!

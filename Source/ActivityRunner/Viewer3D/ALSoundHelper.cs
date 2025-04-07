@@ -24,6 +24,7 @@ using System.Globalization;
 using System.Linq;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
+using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 

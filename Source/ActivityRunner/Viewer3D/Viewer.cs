@@ -52,6 +52,7 @@ using Orts.ActivityRunner.Viewer3D.PopupWindows;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.RollingStock.CabView;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;

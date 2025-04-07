@@ -33,6 +33,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock.CabView;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
+using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;

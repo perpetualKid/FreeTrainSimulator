@@ -25,6 +25,7 @@ using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
+using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Debugging
