@@ -206,7 +206,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         public SoundSource(MSTSWagon car, string wavFilePath, OrtsActivitySoundFileType ORTSActSoundFileType)
         {
             Car = car ?? throw new ArgumentNullException(nameof(car));
-            Initialize(car.WorldPosition.WorldLocation, SoundEventSource.Car, wavFilePath, ORTSActSoundFileType);
+            Initialize(car.WorldPosition.WorldLocation, wavFilePath, ORTSActSoundFileType);
         }
 
         /// <summary>
@@ -215,10 +215,10 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <param name="viewer"></param>
         /// <param name="eventSource"></param>
         /// <param name="smsFilePath"></param>
-        public SoundSource(SoundEventSource eventSource, string wavFilePath, OrtsActivitySoundFileType activitySoundFileType, bool unattenuated)
+        public SoundSource(string wavFilePath, OrtsActivitySoundFileType activitySoundFileType, bool unattenuated)
         {
             Unattenuated = unattenuated;
-            Initialize(WorldLocation.None, eventSource, wavFilePath, activitySoundFileType);
+            Initialize(WorldLocation.None, wavFilePath, activitySoundFileType);
         }
 
         /// <summary>
@@ -229,11 +229,11 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <param name="eventSource"></param>
         /// <param name="smsFilePath"></param>
         /// <param name="slowRolloff"></param>
-        public SoundSource(in WorldLocation worldLocation, SoundEventSource eventSource, string wavFilePath, bool slowRolloff, OrtsActivitySoundFileType activitySoundFileType)
+        public SoundSource(in WorldLocation worldLocation, string wavFilePath, bool slowRolloff, OrtsActivitySoundFileType activitySoundFileType)
         {
             EnvironmentSound = true;
             this.slowRolloff = slowRolloff;
-            Initialize(worldLocation, eventSource, wavFilePath, activitySoundFileType);
+            Initialize(worldLocation, wavFilePath, activitySoundFileType);
         }
 
         /// <summary>
@@ -318,7 +318,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <param name="worldLocation">World location of <see cref="SoundSource"/></param>
         /// <param name="eventSource">Type of game part sound source belongs to, to determine how to interpret discrete trigger numbers</param>
         /// <param name="smsFilePath">Full path for sms file</param>
-        public void Initialize(in WorldLocation worldLocation, SoundEventSource eventSource, string wavFilePath, OrtsActivitySoundFileType activitySoundFileType)
+        public void Initialize(in WorldLocation worldLocation, string wavFilePath, OrtsActivitySoundFileType activitySoundFileType)
         {
             this.worldLocation = worldLocation;
 
@@ -357,7 +357,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                 SetRolloffFactor();
 
                 // initialization of the only one sound stream
-                SoundStreams = SoundStreams.Add(new SoundStream(WavFileName, eventSource, this));
+                SoundStreams = SoundStreams.Add(new SoundStream(WavFileName, this));
             }
         }
 

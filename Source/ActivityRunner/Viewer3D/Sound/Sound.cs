@@ -45,7 +45,6 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
@@ -122,423 +121,6 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                 AutoTrackSound = true;
         }
     }
-
-    /////////////////////////////////////////////////////////
-    // SOUND STREAM
-    /////////////////////////////////////////////////////////
-
-    /// <summary>
-    /// Owned by a <see cref="SoundSource"/>,
-    /// can play only one sound at a time,
-    /// the sound played is controlled by the various triggers
-    /// </summary>
-    public class SoundStream : IDisposable
-    {
-        /// <summary>
-        /// Owner SoundSource
-        /// </summary>
-        public SoundSource SoundSource;
-        /// <summary>
-        /// Stream's volume can be controlled independently of the SoundSource's
-        /// </summary>
-        public float Volume;
-        /// <summary>
-        /// List of triggers controlling this stream
-        /// </summary>
-        public List<ORTSTrigger> Triggers = new List<ORTSTrigger>();
-        /// <summary>
-        /// OpenAL compatible representation of SoundStream.
-        /// By OpenAL terminilogy our SoundStream is called as "SoundSource"
-        /// </summary>
-        public ALSoundSource ALSoundSource { get; private set; }
-        /// <summary>
-        /// A stream as is represented in sms file
-        /// </summary>
-        protected SmsStream MSTSStream;
-        /// <summary>
-        /// Each stream can contain only one initial trigger, which should be audible
-        /// in case the SoundSource is in scope, and no other variable trigger is active
-        /// </summary>
-        private ORTSInitialTrigger _InitialTrigger;
-        /// <summary>
-        /// If soundstream needs active management by sound process, or can be left to OpenAL
-        /// </summary>
-        public bool NeedsFrequentUpdate;
-        /// <summary>
-        /// If stream contains a release trigger with jump, looping cannot be handled fully by OpenAL.
-        /// Sound process needs to watch carefully for jump command
-        /// </summary>
-        public bool IsReleasedWithJump;
-        /// <summary>
-        /// Store trigger used last time for being able to check if trigger got repeated
-        /// </summary>
-        public ORTSTrigger LastTriggered = new ORTSTrigger();
-        /// <summary>
-        /// True if the same trigger was used repeatedly.
-        /// Needs for avoiding to queue same sound multiple times
-        /// in case the player keeps hitting the keyboard
-        /// </summary>
-        public bool RepeatedTrigger;
-        /// <summary>
-        /// List of owned variable triggers. Used at determining if initial trigger is to be audible
-        /// </summary>
-        public List<ORTSVariableTrigger> VariableTriggers = new List<ORTSVariableTrigger>();
-
-        /// <summary>
-        /// Helper object for determining if initial trigger is to be audible
-        /// </summary>
-        private IEnumerable<ORTSTrigger> TriggersList;
-
-        public SoundStream(SmsStream mstsStream, SoundEventSource eventSource, SoundSource soundSource)
-        {
-            SoundSource = soundSource;
-            MSTSStream = mstsStream;
-            Volume = MSTSStream.Volume;
-            var rolloffFactor = SoundSource.RolloffFactor;
-
-            // Insert lower RollOff for horns
-            if (mstsStream.Triggers != null)
-            {
-                foreach (Trigger trigger in mstsStream.Triggers)
-                    if (trigger is DiscreteTrigger && soundSource.Car != null && (trigger as DiscreteTrigger).TriggerId == 8)
-                    {
-                        rolloffFactor = SoundSource.HornRolloffFactor;
-                        break;
-                    }
-            }
-
-            ALSoundSource = new ALSoundSource(soundSource.EnvironmentSound, rolloffFactor);
-
-            if (mstsStream.Triggers != null)
-                foreach (Trigger trigger in mstsStream.Triggers)
-                {
-                    if (trigger.SoundCommand == null) // ignore improperly formed SMS files
-                    {
-                        Triggers.Add(new ORTSTrigger()); // null trigger
-                    }
-                    else if (trigger is DistanceTravelledTrigger distanceTrigger && soundSource.Car != null)
-                    {
-                        Triggers.Add(new ORTSDistanceTravelledTrigger(this, distanceTrigger));
-                    }
-                    else if (trigger is InitialTrigger initialTrigger)
-                    {
-                        _InitialTrigger = new ORTSInitialTrigger(this, initialTrigger);
-                        Triggers.Add(_InitialTrigger);
-                    }
-                    else if (trigger is RandomTrigger randomTrigger)
-                    {
-                        Triggers.Add(new ORTSRandomTrigger(this, randomTrigger));
-                    }
-                    else if (trigger is VariableTrigger variableTrigger && (soundSource.Car != null || soundSource.EnvironmentSound))
-                    {
-                        Triggers.Add(new ORTSVariableTrigger(this, variableTrigger));
-                    }
-                    else if (trigger is DiscreteTrigger discreteTrigger)
-                    {
-                        ORTSDiscreteTrigger ortsTrigger = new ORTSDiscreteTrigger(this, eventSource, discreteTrigger);
-                        Triggers.Add(ortsTrigger);  // list them here so we can enable and disable
-                        if (SoundSource.Car != null)
-                            SoundSource.Car.OnCarSound += ortsTrigger.OnCarSoundEvent; // tell the simulator to call us when the event occurs
-                    }
-                    // unapplicable trigger type
-                    else
-                    {
-                        Triggers.Add(new ORTSTrigger()); // null trigger
-                        if (SoundSource.SMSFileName != "ingame.sms")
-                            Trace.TraceWarning("Trigger type of trigger number {2} in stream number {1} in file {0} is not existent or not applicable",
-SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Count - 1);
-                    }
-                    IsReleasedWithJump |= Triggers.Last().SoundCommand is ORTSReleaseLoopReleaseWithJump;
-                }  // for each mstsStream.Trigger
-
-            VariableTriggers = Triggers.OfType<ORTSVariableTrigger>().ToList();
-        }
-
-        public SoundStream(string wavFileName, SoundEventSource eventSource, SoundSource soundSource)
-        {
-            SoundSource = soundSource;
-            Volume = 1.0f;
-
-            ALSoundSource = new ALSoundSource(soundSource.EnvironmentSound, soundSource.RolloffFactor);
-
-            _InitialTrigger = new ORTSInitialTrigger(this, wavFileName);
-            Triggers.Add(_InitialTrigger);
-
-        }
-
-        /// <summary>
-        /// Create a sound stream with an arbitrary set of triggers.
-        /// </summary>
-        /// <param name="soundSource">The parent sound source.</param>
-        /// <param name="makeTriggers">A generator function to create the triggers.</param>
-        public SoundStream(SoundSource soundSource, Func<SoundStream, IEnumerable<ORTSTrigger>> makeTriggers)
-        {
-            SoundSource = soundSource;
-            Volume = 1.0f;
-
-            ALSoundSource = new ALSoundSource(soundSource.EnvironmentSound, soundSource.RolloffFactor);
-            Triggers.AddRange(makeTriggers(this));
-        }
-
-        /// <summary>
-        /// Update OpenAL sound source position, then calls the main <see cref="Update()"/> function
-        /// Position is relative to camera tile's center
-        /// </summary>
-        /// <param name="position"></param>
-        public void Update(float[] position)
-        {
-            OpenAL.Sourcefv(ALSoundSource.SoundSourceID, OpenAL.AL_POSITION, position);
-            Update();
-        }
-
-        /// <summary>
-        /// Try triggers, update frequency and volume according to curves, call queue management
-        /// </summary>
-        public void Update()
-        {
-            if (ALSoundSource == null)
-            {
-                return;
-            }
-
-            foreach (ORTSTrigger trigger in Triggers)
-                trigger.TryTrigger();
-
-            if (_InitialTrigger != null)
-            {
-                // If no triggers active, Initialize the Initial
-                if (!ALSoundSource.IsPlaying)
-                {
-                    if (VariableTriggers.Count > 0 || Triggers.Count == 1)
-                    {
-                        TriggersList = from ORTSVariableTrigger t in VariableTriggers
-                                       where t.IsBellow
-                                       select t as ORTSTrigger;
-                        if (TriggersList.Count() == VariableTriggers.Count && _InitialTrigger.SoundCommand is ORTSSoundPlayCommand
-                            && !(_InitialTrigger.SoundCommand is ORTSPlayOneShot && _InitialTrigger.Signaled))
-                        {
-                            _InitialTrigger.Initialize();
-                        }
-                    }
-                }
-                // If triggers are active, reset the Initial
-                else
-                {
-                    TriggersList = from t in Triggers
-                                   where t.Signaled &&
-                                   (t.SoundCommand is ORTSStartLoop || t.SoundCommand is ORTSStartLoopRelease)
-                                   select t;
-                    if (TriggersList.Count() > 1 && _InitialTrigger.Signaled)
-                        _InitialTrigger.Signaled = false;
-                }
-            }
-
-            SetFreqAndVolume();
-
-            ALSoundSource.Update();
-            NeedsFrequentUpdate |= ALSoundSource.NeedsFrequentUpdate;
-        }
-
-        /// <summary>
-        /// Calculate frequency and volume according to curves defined in sms file
-        /// </summary>
-        private void SetFreqAndVolume()
-        {
-            if (ALSoundSource == null)
-                return;
-
-            if (MSTSStream != null && MSTSStream.FrequencyCurve != null)
-            {
-                if (SoundSource.Car != null || Program.Viewer.Camera.AttachedCar != null)
-                {
-                    float x = 0;
-                    if (SoundSource.Car != null)
-                        x = ReadValue(MSTSStream.FrequencyCurve.Mode, SoundSource.Car);
-                    else if (Program.Viewer.Camera.AttachedCar != null)
-                        x = ReadValue(MSTSStream.FrequencyCurve.Mode, (MSTSWagon)Program.Viewer.Camera.AttachedCar);
-                    float y = Interpolate(x, MSTSStream.FrequencyCurve);
-                    if (SoundSource.MstsMonoTreatment && ALSoundSource.MstsMonoTreatment)
-                        y *= 2;
-
-                    ALSoundSource.PlaybackSpeed = y / ALSoundSource.SampleRate;
-                    NeedsFrequentUpdate = x != 0;
-                }
-            }
-
-            float volume = SoundSource.Volume * Volume;
-
-            if (MSTSStream != null && MSTSStream.VolumeCurves.Count > 0)
-                for (int i = 0; i < MSTSStream.VolumeCurves.Count; i++)
-                {
-                    float x;
-                    if (SoundSource.Car != null)
-                        x = ReadValue(MSTSStream.VolumeCurves[i].Mode, SoundSource.Car);
-                    else if (Program.Viewer.Camera.AttachedCar != null)
-                        x = ReadValue(MSTSStream.VolumeCurves[i].Mode, (MSTSWagon)Program.Viewer.Camera.AttachedCar);
-                    else
-                        x = SoundSource.DistanceSquared;
-
-                    volume *= Interpolate(x, MSTSStream.VolumeCurves[i]);
-                }
-
-            if (SoundSource.ExternalSource && Program.Viewer.Camera.Style != CameraStyle.External && !SoundSource.Unattenuated)
-            {
-                if (Program.Viewer.Camera.AttachedCar == null || ((MSTSWagon)Program.Viewer.Camera.AttachedCar).ExternalSoundPassThruPercent == -1)
-                    volume *= Program.Viewer.UserSettings.ExternalSoundPassThruPercent * 0.01f;
-                else
-                    volume *= ((MSTSWagon)Program.Viewer.Camera.AttachedCar).ExternalSoundPassThruPercent * 0.01f;
-            }
-
-            ALSoundSource.Volume = volume;
-        }
-
-        /// <summary>
-        /// There must be at least two points in the curve
-        /// // TODO do we need to implement support for Granularity()
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="Curve"></param>
-        /// <returns></returns>
-        private static float Interpolate(float x, Curve Curve)
-        {
-            if (Curve.CurvePoints.Length < 2)
-                return Curve.CurvePoints[0].Y;
-
-            CurvePoint[] curvePoints = Curve.CurvePoints;
-
-            if (x < curvePoints[0].X)
-                return curvePoints[0].Y;
-            if (x > curvePoints[curvePoints.Length - 1].X)
-                return curvePoints[curvePoints.Length - 1].Y;
-
-            int i = 1;
-            while (i < curvePoints.Length - 1
-                && curvePoints[i].X < x)
-                ++i;
-            // i points to the point equal to or above x, or to the last point in the table
-
-            x -= curvePoints[i - 1].X;
-            float rx = x / (curvePoints[i].X - curvePoints[i - 1].X);
-
-            float dy = curvePoints[i].Y - curvePoints[i - 1].Y;
-
-            float y = curvePoints[i - 1].Y + rx * dy;
-
-            return y;
-        }
-
-        /// <summary>
-        /// Read a variable from the attached TrainCar data
-        /// </summary>
-        /// <param name="control"></param>
-        /// <param name="car"></param>
-        /// <returns></returns>
-        private float ReadValue(Curve.ControlMode control, MSTSWagon car)
-        {
-            switch (control)
-            {
-                case Curve.ControlMode.Distance:
-                    return SoundSource.DistanceSquared;
-                case Curve.ControlMode.Speed:
-                    return car.AbsSpeedMpS;
-                case Curve.ControlMode.Variable1:
-                    return car.SoundValues.X;
-                case Curve.ControlMode.Variable2:
-                    return car.SoundValues.Y;
-                case Curve.ControlMode.Variable3:
-                    return car.SoundValues.Z;
-                case Curve.ControlMode.BrakeCylinder:
-                    return car.BrakeSystem.GetCylPressurePSI();
-                case Curve.ControlMode.CurveForce:
-                    return (float)car.CurveForceFiltered;
-                default:
-                    return 0;
-            }
-        }
-
-        /// <summary>
-        /// Stop OpenAL playing this stream, and flush buffers
-        /// </summary>
-        public void Stop()
-        {
-            if (ALSoundSource != null)
-            {
-                ALSoundSource.Stop();
-            }
-        }
-
-        /// <summary>
-        /// Restore any previously playing sounds
-        /// </summary>
-        public void Activate()
-        {
-            if (ALSoundSource != null)
-            {
-                // Precalc volume to avoid glitches
-                SetFreqAndVolume();
-                ALSoundSource.Active = true;
-            }
-        }
-
-        /// <summary>
-        /// Deactivates a previously active sound
-        /// </summary>
-        public void Deactivate()
-        {
-            if (ALSoundSource != null)
-            {
-                ALSoundSource.Active = false;
-                ALSoundSource.HardDeactivate();
-            }
-        }
-
-        /// <summary>
-        /// Allocates a new sound source ID in OpenAL, if one is not allocated yet.
-        /// </summary>
-        /// <param name="ignore3D">Whether the stream's world position should be ignored</param>
-        public void HardActivate(bool ignore3D)
-        {
-            if (ALSoundSource != null)
-            {
-                ALSoundSource.HardActivate(ignore3D, SoundSource.TrainCar);
-            }
-        }
-
-        /// <summary>
-        /// Frees up the allocated sound source ID, and tries to unload wave file data from memory, if it is not used by an other stream
-        /// </summary>
-        public void HardDeactivate()
-        {
-            if (ALSoundSource != null)
-            {
-                ALSoundSource.HardDeactivate();
-            }
-            Sweep();
-        }
-
-        public void Dispose()
-        {
-            if (ALSoundSource != null)
-            {
-                ALSoundSource.HardDeactivate();
-                ALSoundSource.Dispose();
-                ALSoundSource = null;
-            }
-            Sweep();
-        }
-
-        /// <summary>
-        /// Tries to unload wave file data from memory, if it is not used by an other stream
-        /// </summary>
-        private void Sweep()
-        {
-            foreach (var trigger in Triggers)
-                if (trigger.SoundCommand is ORTSSoundPlayCommand)
-                    foreach (var name in (trigger.SoundCommand as ORTSSoundPlayCommand).Files)
-                        SoundItem.Sweep(name, SoundSource.ExternalSource, IsReleasedWithJump);
-        }
-
-    } // class ORTSStream
 
     /////////////////////////////////////////////////////////
     // SOUND TRIGGERS
@@ -1077,7 +659,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Count - 1);
 
         public override void Run()
         {
-            if (TriggerIndex >= 0 && TriggerIndex < ORTSStream.Triggers.Count)
+            if (TriggerIndex >= 0 && TriggerIndex < ORTSStream.Triggers.Length)
                 ORTSStream.Triggers[TriggerIndex].Enabled = false;
         }
     }
@@ -1097,7 +679,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Count - 1);
 
         public override void Run()
         {
-            if (TriggerIndex >= 0 && TriggerIndex < ORTSStream.Triggers.Count)
+            if (TriggerIndex >= 0 && TriggerIndex < ORTSStream.Triggers.Length)
                 ORTSStream.Triggers[TriggerIndex].Enabled = true;
         }
     }
@@ -1550,7 +1132,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Count - 1);
                     switch (ORTSActSoundFileType)
                     {
                         case OrtsActivitySoundFileType.Everywhere:
-                            ActivitySounds = new SoundSource(SoundEventSource.InGame, ORTSActSoundFile, ORTSActSoundFileType, true);
+                            ActivitySounds = new SoundSource(ORTSActSoundFile, ORTSActSoundFileType, true);
                             Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         case OrtsActivitySoundFileType.Cab:
@@ -1570,11 +1152,11 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Count - 1);
                             var loco = train == Program.Viewer.Simulator.PlayerLocomotive.Train ?
                                 Program.Viewer.Simulator.PlayerLocomotive : train.Cars[0];
                             //                           string wsName = Program.Viewer.Simulator.RoutePath + @"\WORLD\" + WorldFile.WorldFileNameFromTileCoordinates(worldLocation.TileX, worldLocation.TileZ) + "s";
-                            ActivitySounds = new SoundSource(loco.WorldPosition.WorldLocation.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true, ORTSActSoundFileType);// Sound does not come from earth!
+                            ActivitySounds = new SoundSource(loco.WorldPosition.WorldLocation.ChangeElevation(3.0f), ORTSActSoundFile, true, ORTSActSoundFileType);// Sound does not come from earth!
                             Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         case OrtsActivitySoundFileType.Location:
-                            ActivitySounds = new SoundSource(activitySound.Location.ChangeElevation(3.0f), SoundEventSource.None, ORTSActSoundFile, true, ORTSActSoundFileType);// Sound does not come from earth!
+                            ActivitySounds = new SoundSource(activitySound.Location.ChangeElevation(3.0f), ORTSActSoundFile, true, ORTSActSoundFileType);// Sound does not come from earth!
                             Program.Viewer.SoundProcess.AddSoundSource(localEventID, ActivitySounds);
                             break;
                         default:

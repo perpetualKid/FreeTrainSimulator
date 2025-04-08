@@ -24,324 +24,284 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
 
         public static TrainEvent From(SoundEventSource source, int eventID)
         {
-            switch (source)
+            return source switch
             {
-                case SoundEventSource.Car:
-                    switch (eventID)
-                    {
-                        // Calculated from inspection of existing engine .sms files and extensive testing.
-                        // Event 1 is unused in MSTS.
-                        case 2: return TrainEvent.DynamicBrakeIncrease;
-                        case 3: return TrainEvent.DynamicBrakeOff;
-                        case 4: return TrainEvent.SanderOn;
-                        case 5: return TrainEvent.SanderOff;
-                        case 6: return TrainEvent.WiperOn;
-                        case 7: return TrainEvent.WiperOff;
-                        case 8: return TrainEvent.HornOn;
-                        case 9: return TrainEvent.HornOff;
-                        case 10: return TrainEvent.BellOn;
-                        case 11: return TrainEvent.BellOff;
-                        case 12: return TrainEvent.CompressorOn;
-                        case 13: return TrainEvent.CompressorOff;
-                        case 14: return TrainEvent.TrainBrakePressureIncrease;
-                        case 15: return TrainEvent.ReverserChange;
-                        case 16: return TrainEvent.ThrottleChange;
-                        case 17: return TrainEvent.TrainBrakeChange; // Event 17 only works first time in MSTS.
-                        case 18: return TrainEvent.EngineBrakeChange; // Event 18 only works first time in MSTS; MSTSBin fixes this.
-                        // Event 19 is unused in MSTS.
-                        case 20: return TrainEvent.DynamicBrakeChange;
-                        case 21: return TrainEvent.EngineBrakePressureIncrease; // Event 21 is defined in sound files but never used in MSTS.
-                        case 22: return TrainEvent.EngineBrakePressureDecrease; // Event 22 is defined in sound files but never used in MSTS.
-                                                                                // Event 23 is unused in MSTS.
-                                                                                // Event 24 is unused in MSTS.
-                                                                                // MSTSBin codes (documented at http://mstsbin.uktrainsim.com/)
-                        case 23: return TrainEvent.EnginePowerOn;
-                        case 24: return TrainEvent.EnginePowerOff;
-                        // Event 25 is possibly a vigilance reset in MSTS sound files but is never used.
-                        // Event 26 is a sander toggle in MSTS sound files but is never used.
-                        case 27: return TrainEvent.WaterInjector2On;
-                        case 28: return TrainEvent.WaterInjector2Off;
-                        // Event 29 is unused in MSTS.
-                        case 30: return TrainEvent.WaterInjector1On;
-                        case 31: return TrainEvent.WaterInjector1Off;
-                        case 32: return TrainEvent.DamperChange;
-                        case 33: return TrainEvent.BlowerChange;
-                        case 34: return TrainEvent.CylinderCocksToggle;
-                        // Event 35 is unused in MSTS.
-                        case 36: return TrainEvent.FireboxDoorChange;
-                        case 37: return TrainEvent.LightSwitchToggle;
-                        case 38: return TrainEvent.WaterScoopDown;
-                        case 39: return TrainEvent.WaterScoopUp;
-                        case 40: return TrainEvent.FireboxDoorOpen; // Used in default steam locomotives (Scotsman and 380)
-                        case 41: return TrainEvent.FireboxDoorClose;
-                        case 42: return TrainEvent.SteamSafetyValveOn;
-                        case 43: return TrainEvent.SteamSafetyValveOff;
-                        case 44: return TrainEvent.SteamHeatChange; // Event 44 only works first time in MSTS.
-                        case 45: return TrainEvent.Pantograph1Up;
-                        case 46: return TrainEvent.Pantograph1Down;
-                        case 47: return TrainEvent.PantographToggle;
-                        case 48: return TrainEvent.VigilanceAlarmReset;
-                        // Event 49 is unused in MSTS.
-                        // Event 50 is unused in MSTS.
-                        // Event 51 is an engine brake of some kind in MSTS sound files but is never used.
-                        // Event 52 is unused in MSTS.
-                        // Event 53 is a train brake normal apply in MSTS sound files but is never used.
-                        case 54: return TrainEvent.TrainBrakePressureDecrease; // Event 54 is a train brake emergency apply in MSTS sound files but is actually a train brake pressure decrease.
-                        // Event 55 is unused in MSTS.
-                        case 56: return TrainEvent.VigilanceAlarmOn;
-                        case 57: return TrainEvent.VigilanceAlarmOff; // Event 57 is triggered constantly in MSTS when the vigilance alarm is off.
-                        case 58: return TrainEvent.Couple;
-                        case 59: return TrainEvent.CoupleB;
-                        case 60: return TrainEvent.CoupleC;
-                        case 61: return TrainEvent.Uncouple;
-                        case 62: return TrainEvent.UncoupleB;
-                        case 63: return TrainEvent.UncoupleC;
-                        // Event 64 is unused in MSTS.
-                        // MSTSBin codes (documented at http://mstsbin.uktrainsim.com/)
-                        case 66: return TrainEvent.Pantograph2Up;
-                        case 67: return TrainEvent.Pantograph2Down;
-                        // ORTS only Events
-                        case 101: return TrainEvent.GearUp; // for gearbox based engines
-                        case 102: return TrainEvent.GearDown; // for gearbox based engines
-                        case 103: return TrainEvent.ReverserToForwardBackward; // reverser moved to forward or backward position
-                        case 104: return TrainEvent.ReverserToNeutral; // reversed moved to neutral
-                        case 105: return TrainEvent.DoorOpen; // door opened; propagated to all locos and wagons of the consist
-                        case 106: return TrainEvent.DoorClose; // door closed; propagated to all locos and wagons of the consist
-                        case 107: return TrainEvent.MirrorOpen;
-                        case 108: return TrainEvent.MirrorClose;
-                        case 109: return TrainEvent.TrainControlSystemInfo1;
-                        case 110: return TrainEvent.TrainControlSystemInfo2;
-                        case 111: return TrainEvent.TrainControlSystemActivate;
-                        case 112: return TrainEvent.TrainControlSystemDeactivate;
-                        case 113: return TrainEvent.TrainControlSystemPenalty1;
-                        case 114: return TrainEvent.TrainControlSystemPenalty2;
-                        case 115: return TrainEvent.TrainControlSystemWarning1;
-                        case 116: return TrainEvent.TrainControlSystemWarning2;
-                        case 117: return TrainEvent.TrainControlSystemAlert1;
-                        case 118: return TrainEvent.TrainControlSystemAlert2;
-                        case 119: return TrainEvent.CylinderCompoundToggle; // Locomotive switched to compound
-
-                        case 120: return TrainEvent.BlowdownValveToggle;
-                        case 121: return TrainEvent.SteamPulse1;
-                        case 122: return TrainEvent.SteamPulse2;
-                        case 123: return TrainEvent.SteamPulse3;
-                        case 124: return TrainEvent.SteamPulse4;
-                        case 125: return TrainEvent.SteamPulse5;
-                        case 126: return TrainEvent.SteamPulse6;
-                        case 127: return TrainEvent.SteamPulse7;
-                        case 128: return TrainEvent.SteamPulse8;
-                        case 129: return TrainEvent.SteamPulse9;
-                        case 130: return TrainEvent.SteamPulse10;
-                        case 131: return TrainEvent.SteamPulse11;
-                        case 132: return TrainEvent.SteamPulse12;
-                        case 133: return TrainEvent.SteamPulse13;
-                        case 134: return TrainEvent.SteamPulse14;
-                        case 135: return TrainEvent.SteamPulse15;
-                        case 136: return TrainEvent.SteamPulse16;
-
-                        case 137: return TrainEvent.CylinderCocksOpen;
-                        case 138: return TrainEvent.CylinderCocksClose;
-                        case 139: return TrainEvent.TrainBrakePressureStoppedChanging;
-                        case 140: return TrainEvent.EngineBrakePressureStoppedChanging;
-                        case 141: return TrainEvent.BrakePipePressureIncrease;
-                        case 142: return TrainEvent.BrakePipePressureDecrease;
-                        case 143: return TrainEvent.BrakePipePressureStoppedChanging;
-
-                        case 145: return TrainEvent.WaterScoopRaiseLower;
-                        case 146: return TrainEvent.WaterScoopBroken;
-
-                        case 147: return TrainEvent.SteamGearLeverToggle;
-                        case 148: return TrainEvent.AIFiremanSoundOn;
-                        case 149: return TrainEvent.AIFiremanSoundOff;
-
-                        case 150: return TrainEvent.CircuitBreakerOpen;
-                        case 151: return TrainEvent.CircuitBreakerClosing;
-                        case 152: return TrainEvent.CircuitBreakerClosed;
-                        case 153: return TrainEvent.CircuitBreakerClosingOrderOn;
-                        case 154: return TrainEvent.CircuitBreakerClosingOrderOff;
-                        case 155: return TrainEvent.CircuitBreakerOpeningOrderOn;
-                        case 156: return TrainEvent.CircuitBreakerOpeningOrderOff;
-                        case 157: return TrainEvent.CircuitBreakerClosingAuthorizationOn;
-                        case 158: return TrainEvent.CircuitBreakerClosingAuthorizationOff;
-
-                        case 159: return TrainEvent.LargeEjectorChange;
-                        case 160: return TrainEvent.SmallEjectorChange;
-
-                        case 161: return TrainEvent.CabLightSwitchToggle;
-                        case 162: return TrainEvent.CabRadioOn;
-                        case 163: return TrainEvent.CabRadioOff;
-
-                        case 164: return TrainEvent.BrakesStuck;
-
-                        case 165: return TrainEvent.VacuumExhausterOn;
-                        case 166: return TrainEvent.VacuumExhausterOff;
-                        case 167: return TrainEvent.SecondEnginePowerOn;
-                        case 168: return TrainEvent.SecondEnginePowerOff;
-
-                        case 169: return TrainEvent.Pantograph3Up;
-                        case 170: return TrainEvent.Pantograph3Down;
-                        case 171: return TrainEvent.Pantograph4Up;
-                        case 172: return TrainEvent.Pantograph4Down;
-
-                        case 173: return TrainEvent.HotBoxBearingOn;
-                        case 174: return TrainEvent.HotBoxBearingOff;
-
-                        case 175: return TrainEvent.BoilerBlowdownOn;
-                        case 176: return TrainEvent.BoilerBlowdownOff;
-
-                        case 181: return TrainEvent.GenericEvent1;
-                        case 182: return TrainEvent.GenericEvent2;
-                        case 183: return TrainEvent.GenericEvent3;
-                        case 184: return TrainEvent.GenericEvent4;
-                        case 185: return TrainEvent.GenericEvent5;
-                        case 186: return TrainEvent.GenericEvent6;
-                        case 187: return TrainEvent.GenericEvent7;
-                        case 188: return TrainEvent.GenericEvent8;
-
-                        case 189: return TrainEvent.BatterySwitchOn;
-                        case 190: return TrainEvent.BatterySwitchOff;
-                        case 191: return TrainEvent.BatterySwitchCommandOn;
-                        case 192: return TrainEvent.BatterySwitchCommandOff;
-
-                        case 193: return TrainEvent.MasterKeyOn;
-                        case 194: return TrainEvent.MasterKeyOff;
-
-                        case 195: return TrainEvent.ServiceRetentionButtonOn;
-                        case 196: return TrainEvent.ServiceRetentionButtonOff;
-                        case 197: return TrainEvent.ServiceRetentionCancellationButtonOn;
-                        case 198: return TrainEvent.ServiceRetentionCancellationButtonOff;
-
-                        case 200: return TrainEvent.GearPosition0;
-                        case 201: return TrainEvent.GearPosition1;
-                        case 202: return TrainEvent.GearPosition2;
-                        case 203: return TrainEvent.GearPosition3;
-                        case 204: return TrainEvent.GearPosition4;
-                        case 205: return TrainEvent.GearPosition5;
-                        case 206: return TrainEvent.GearPosition6;
-                        case 207: return TrainEvent.GearPosition7;
-                        case 208: return TrainEvent.GearPosition8;
-
-                        case 210: return TrainEvent.LargeEjectorOn;
-                        case 211: return TrainEvent.LargeEjectorOff;
-                        case 212: return TrainEvent.SmallEjectorOn;
-                        case 213: return TrainEvent.SmallEjectorOff;
-
-                        case 214: return TrainEvent.TractionCutOffRelayOpen;
-                        case 215: return TrainEvent.TractionCutOffRelayClosing;
-                        case 216: return TrainEvent.TractionCutOffRelayClosed;
-                        case 217: return TrainEvent.TractionCutOffRelayClosingOrderOn;
-                        case 218: return TrainEvent.TractionCutOffRelayClosingOrderOff;
-                        case 219: return TrainEvent.TractionCutOffRelayOpeningOrderOn;
-                        case 220: return TrainEvent.TractionCutOffRelayOpeningOrderOff;
-                        case 221: return TrainEvent.TractionCutOffRelayClosingAuthorizationOn;
-                        case 222: return TrainEvent.TractionCutOffRelayClosingAuthorizationOff;
-
-                        case 223: return TrainEvent.ElectricTrainSupplyOn;
-                        case 224: return TrainEvent.ElectricTrainSupplyOff;
-                        case 225: return TrainEvent.ElectricTrainSupplyCommandOn;
-                        case 226: return TrainEvent.ElectricTrainSupplyCommandOff;
-
-                        case 227: return TrainEvent.PowerConverterOn;
-                        case 228: return TrainEvent.PowerConverterOff;
-                        case 229: return TrainEvent.VentilationHigh;
-                        case 230: return TrainEvent.VentilationLow;
-                        case 231: return TrainEvent.VentilationOff;
-                        case 232: return TrainEvent.HeatingOn;
-                        case 233: return TrainEvent.HeatingOff;
-                        case 234: return TrainEvent.AirConditioningOn;
-                        case 235: return TrainEvent.AirConditioningOff;
-
-                        case 240: return TrainEvent.GenericItem1On;
-                        case 241: return TrainEvent.GenericItem1Off;
-                        case 242: return TrainEvent.GenericItem2On;
-                        case 243: return TrainEvent.GenericItem2Off;
-
-                        case 250: return TrainEvent.OverchargeBrakingOn;
-                        case 251: return TrainEvent.OverchargeBrakingOff;
-
-                        // Cruise Control
-                        case 298: return TrainEvent.LeverFromZero;
-                        case 299: return TrainEvent.LeverToZero;
-                        case 300: return TrainEvent.CruiseControlSpeedRegulator;
-                        case 301: return TrainEvent.CruiseControlSpeedSelector;
-                        case 302: return TrainEvent.CruiseControlMaxForce;
-                        case 303: return TrainEvent.CruiseControlAlert;
-                        case 304: return TrainEvent.CruiseControlAlert1;
-
-                        //
-                        default: return TrainEvent.None;
-                    }
-                case SoundEventSource.Crossing:
-                    switch (eventID)
-                    {
-                        // Calculated from inspection of existing crossing.sms files.
-                        case 3: return TrainEvent.CrossingClosing;
-                        case 4: return TrainEvent.CrossingOpening;
-                        default: return TrainEvent.None;
-                    }
-                case SoundEventSource.FuelTower:
-                    switch (eventID)
-                    {
-                        // Calculated from inspection of existing *tower.sms files.
-                        case 6: return TrainEvent.FuelTowerDown;
-                        case 7: return TrainEvent.FuelTowerUp;
-                        case 9: return TrainEvent.FuelTowerTransferStart;
-                        case 10: return TrainEvent.FuelTowerTransferEnd;
-                        default: return TrainEvent.None;
-                    }
-                case SoundEventSource.InGame:
-                    switch (eventID)
-                    {
-                        // Calculated from inspection of existing ingame.sms files.
-                        case 10: return TrainEvent.ControlError;
-                        case 20: return TrainEvent.Derail1;
-                        case 21: return TrainEvent.Derail2;
-                        case 22: return TrainEvent.Derail3;
-                        case 25: return 0; // TODO: What is this event?
-                        case 60: return TrainEvent.PermissionToDepart;
-                        case 61: return TrainEvent.PermissionGranted;
-                        case 62: return TrainEvent.PermissionDenied;
-                        default: return TrainEvent.None;
-                    }
-                case SoundEventSource.Signal:
-                    switch (eventID)
-                    {
-                        // Calculated from inspection of existing signal.sms files.
-                        case 1: return TrainEvent.SemaphoreArm;
-                        default: return TrainEvent.None;
-                    }
-                case SoundEventSource.Turntable:
-                    switch (eventID)
-                    {
-                        // related file is turntable.sms
-                        case 1: return TrainEvent.MovingTableMovingEmpty;
-                        case 2: return TrainEvent.MovingTableMovingLoaded;
-                        case 3: return TrainEvent.MovingTableStopped;
-                        default: return TrainEvent.None;
-                    }
-                case SoundEventSource.ContainerCrane:
-                    switch (eventID)
-                    {
-                        // Can be different from crane to crane
-                        case 1:
-                            return TrainEvent.CraneXAxisMove;
-                        case 2:
-                            return TrainEvent.CraneXAxisSlowDown;
-                        case 3:
-                            return TrainEvent.CraneYAxisMove;
-                        case 4:
-                            return TrainEvent.CraneYAxisSlowDown;
-                        case 5:
-                            return TrainEvent.CraneZAxisMove;
-                        case 6:
-                            return TrainEvent.CraneZAxisSlowDown;
-                        case 7:
-                            return TrainEvent.CraneYAxisDown;
-                        default:
-                            return 0;
-                    }
-                default: return TrainEvent.None;
-            }
+                SoundEventSource.Car => eventID switch
+                {
+                    // Calculated from inspection of existing engine .sms files and extensive testing.
+                    // Event 1 is unused in MSTS.
+                    2 => TrainEvent.DynamicBrakeIncrease,
+                    3 => TrainEvent.DynamicBrakeOff,
+                    4 => TrainEvent.SanderOn,
+                    5 => TrainEvent.SanderOff,
+                    6 => TrainEvent.WiperOn,
+                    7 => TrainEvent.WiperOff,
+                    8 => TrainEvent.HornOn,
+                    9 => TrainEvent.HornOff,
+                    10 => TrainEvent.BellOn,
+                    11 => TrainEvent.BellOff,
+                    12 => TrainEvent.CompressorOn,
+                    13 => TrainEvent.CompressorOff,
+                    14 => TrainEvent.TrainBrakePressureIncrease,
+                    15 => TrainEvent.ReverserChange,
+                    16 => TrainEvent.ThrottleChange,
+                    17 => TrainEvent.TrainBrakeChange,// Event 17 only works first time in MSTS.
+                    18 => TrainEvent.EngineBrakeChange,// Event 18 only works first time in MSTS; MSTSBin fixes this.
+                                                       // Event 19 is unused in MSTS.
+                    20 => TrainEvent.DynamicBrakeChange,
+                    21 => TrainEvent.EngineBrakePressureIncrease,// Event 21 is defined in sound files but never used in MSTS.
+                    22 => TrainEvent.EngineBrakePressureDecrease,// Event 22 is defined in sound files but never used in MSTS.
+                                                                 // Event 23 is unused in MSTS.
+                                                                 // Event 24 is unused in MSTS.
+                                                                 // MSTSBin codes (documented at http://mstsbin.uktrainsim.com/)
+                    23 => TrainEvent.EnginePowerOn,
+                    24 => TrainEvent.EnginePowerOff,
+                    // Event 25 is possibly a vigilance reset in MSTS sound files but is never used.
+                    // Event 26 is a sander toggle in MSTS sound files but is never used.
+                    27 => TrainEvent.WaterInjector2On,
+                    28 => TrainEvent.WaterInjector2Off,
+                    // Event 29 is unused in MSTS.
+                    30 => TrainEvent.WaterInjector1On,
+                    31 => TrainEvent.WaterInjector1Off,
+                    32 => TrainEvent.DamperChange,
+                    33 => TrainEvent.BlowerChange,
+                    34 => TrainEvent.CylinderCocksToggle,
+                    // Event 35 is unused in MSTS.
+                    36 => TrainEvent.FireboxDoorChange,
+                    37 => TrainEvent.LightSwitchToggle,
+                    38 => TrainEvent.WaterScoopDown,
+                    39 => TrainEvent.WaterScoopUp,
+                    40 => TrainEvent.FireboxDoorOpen,// Used in default steam locomotives (Scotsman and 380)
+                    41 => TrainEvent.FireboxDoorClose,
+                    42 => TrainEvent.SteamSafetyValveOn,
+                    43 => TrainEvent.SteamSafetyValveOff,
+                    44 => TrainEvent.SteamHeatChange,// Event 44 only works first time in MSTS.
+                    45 => TrainEvent.Pantograph1Up,
+                    46 => TrainEvent.Pantograph1Down,
+                    47 => TrainEvent.PantographToggle,
+                    48 => TrainEvent.VigilanceAlarmReset,
+                    // Event 49 is unused in MSTS.
+                    // Event 50 is unused in MSTS.
+                    // Event 51 is an engine brake of some kind in MSTS sound files but is never used.
+                    // Event 52 is unused in MSTS.
+                    // Event 53 is a train brake normal apply in MSTS sound files but is never used.
+                    54 => TrainEvent.TrainBrakePressureDecrease,// Event 54 is a train brake emergency apply in MSTS sound files but is actually a train brake pressure decrease.
+                                                                // Event 55 is unused in MSTS.
+                    56 => TrainEvent.VigilanceAlarmOn,
+                    57 => TrainEvent.VigilanceAlarmOff,// Event 57 is triggered constantly in MSTS when the vigilance alarm is off.
+                    58 => TrainEvent.Couple,
+                    59 => TrainEvent.CoupleB,
+                    60 => TrainEvent.CoupleC,
+                    61 => TrainEvent.Uncouple,
+                    62 => TrainEvent.UncoupleB,
+                    63 => TrainEvent.UncoupleC,
+                    // Event 64 is unused in MSTS.
+                    // MSTSBin codes (documented at http://mstsbin.uktrainsim.com/)
+                    66 => TrainEvent.Pantograph2Up,
+                    67 => TrainEvent.Pantograph2Down,
+                    // ORTS only Events
+                    101 => TrainEvent.GearUp,// for gearbox based engines
+                    102 => TrainEvent.GearDown,// for gearbox based engines
+                    103 => TrainEvent.ReverserToForwardBackward,// reverser moved to forward or backward position
+                    104 => TrainEvent.ReverserToNeutral,// reversed moved to neutral
+                    105 => TrainEvent.DoorOpen,// door opened; propagated to all locos and wagons of the consist
+                    106 => TrainEvent.DoorClose,// door closed; propagated to all locos and wagons of the consist
+                    107 => TrainEvent.MirrorOpen,
+                    108 => TrainEvent.MirrorClose,
+                    109 => TrainEvent.TrainControlSystemInfo1,
+                    110 => TrainEvent.TrainControlSystemInfo2,
+                    111 => TrainEvent.TrainControlSystemActivate,
+                    112 => TrainEvent.TrainControlSystemDeactivate,
+                    113 => TrainEvent.TrainControlSystemPenalty1,
+                    114 => TrainEvent.TrainControlSystemPenalty2,
+                    115 => TrainEvent.TrainControlSystemWarning1,
+                    116 => TrainEvent.TrainControlSystemWarning2,
+                    117 => TrainEvent.TrainControlSystemAlert1,
+                    118 => TrainEvent.TrainControlSystemAlert2,
+                    119 => TrainEvent.CylinderCompoundToggle,// Locomotive switched to compound
+                    120 => TrainEvent.BlowdownValveToggle,
+                    121 => TrainEvent.SteamPulse1,
+                    122 => TrainEvent.SteamPulse2,
+                    123 => TrainEvent.SteamPulse3,
+                    124 => TrainEvent.SteamPulse4,
+                    125 => TrainEvent.SteamPulse5,
+                    126 => TrainEvent.SteamPulse6,
+                    127 => TrainEvent.SteamPulse7,
+                    128 => TrainEvent.SteamPulse8,
+                    129 => TrainEvent.SteamPulse9,
+                    130 => TrainEvent.SteamPulse10,
+                    131 => TrainEvent.SteamPulse11,
+                    132 => TrainEvent.SteamPulse12,
+                    133 => TrainEvent.SteamPulse13,
+                    134 => TrainEvent.SteamPulse14,
+                    135 => TrainEvent.SteamPulse15,
+                    136 => TrainEvent.SteamPulse16,
+                    137 => TrainEvent.CylinderCocksOpen,
+                    138 => TrainEvent.CylinderCocksClose,
+                    139 => TrainEvent.TrainBrakePressureStoppedChanging,
+                    140 => TrainEvent.EngineBrakePressureStoppedChanging,
+                    141 => TrainEvent.BrakePipePressureIncrease,
+                    142 => TrainEvent.BrakePipePressureDecrease,
+                    143 => TrainEvent.BrakePipePressureStoppedChanging,
+                    145 => TrainEvent.WaterScoopRaiseLower,
+                    146 => TrainEvent.WaterScoopBroken,
+                    147 => TrainEvent.SteamGearLeverToggle,
+                    148 => TrainEvent.AIFiremanSoundOn,
+                    149 => TrainEvent.AIFiremanSoundOff,
+                    150 => TrainEvent.CircuitBreakerOpen,
+                    151 => TrainEvent.CircuitBreakerClosing,
+                    152 => TrainEvent.CircuitBreakerClosed,
+                    153 => TrainEvent.CircuitBreakerClosingOrderOn,
+                    154 => TrainEvent.CircuitBreakerClosingOrderOff,
+                    155 => TrainEvent.CircuitBreakerOpeningOrderOn,
+                    156 => TrainEvent.CircuitBreakerOpeningOrderOff,
+                    157 => TrainEvent.CircuitBreakerClosingAuthorizationOn,
+                    158 => TrainEvent.CircuitBreakerClosingAuthorizationOff,
+                    159 => TrainEvent.LargeEjectorChange,
+                    160 => TrainEvent.SmallEjectorChange,
+                    161 => TrainEvent.CabLightSwitchToggle,
+                    162 => TrainEvent.CabRadioOn,
+                    163 => TrainEvent.CabRadioOff,
+                    164 => TrainEvent.BrakesStuck,
+                    165 => TrainEvent.VacuumExhausterOn,
+                    166 => TrainEvent.VacuumExhausterOff,
+                    167 => TrainEvent.SecondEnginePowerOn,
+                    168 => TrainEvent.SecondEnginePowerOff,
+                    169 => TrainEvent.Pantograph3Up,
+                    170 => TrainEvent.Pantograph3Down,
+                    171 => TrainEvent.Pantograph4Up,
+                    172 => TrainEvent.Pantograph4Down,
+                    173 => TrainEvent.HotBoxBearingOn,
+                    174 => TrainEvent.HotBoxBearingOff,
+                    175 => TrainEvent.BoilerBlowdownOn,
+                    176 => TrainEvent.BoilerBlowdownOff,
+                    181 => TrainEvent.GenericEvent1,
+                    182 => TrainEvent.GenericEvent2,
+                    183 => TrainEvent.GenericEvent3,
+                    184 => TrainEvent.GenericEvent4,
+                    185 => TrainEvent.GenericEvent5,
+                    186 => TrainEvent.GenericEvent6,
+                    187 => TrainEvent.GenericEvent7,
+                    188 => TrainEvent.GenericEvent8,
+                    189 => TrainEvent.BatterySwitchOn,
+                    190 => TrainEvent.BatterySwitchOff,
+                    191 => TrainEvent.BatterySwitchCommandOn,
+                    192 => TrainEvent.BatterySwitchCommandOff,
+                    193 => TrainEvent.MasterKeyOn,
+                    194 => TrainEvent.MasterKeyOff,
+                    195 => TrainEvent.ServiceRetentionButtonOn,
+                    196 => TrainEvent.ServiceRetentionButtonOff,
+                    197 => TrainEvent.ServiceRetentionCancellationButtonOn,
+                    198 => TrainEvent.ServiceRetentionCancellationButtonOff,
+                    200 => TrainEvent.GearPosition0,
+                    201 => TrainEvent.GearPosition1,
+                    202 => TrainEvent.GearPosition2,
+                    203 => TrainEvent.GearPosition3,
+                    204 => TrainEvent.GearPosition4,
+                    205 => TrainEvent.GearPosition5,
+                    206 => TrainEvent.GearPosition6,
+                    207 => TrainEvent.GearPosition7,
+                    208 => TrainEvent.GearPosition8,
+                    210 => TrainEvent.LargeEjectorOn,
+                    211 => TrainEvent.LargeEjectorOff,
+                    212 => TrainEvent.SmallEjectorOn,
+                    213 => TrainEvent.SmallEjectorOff,
+                    214 => TrainEvent.TractionCutOffRelayOpen,
+                    215 => TrainEvent.TractionCutOffRelayClosing,
+                    216 => TrainEvent.TractionCutOffRelayClosed,
+                    217 => TrainEvent.TractionCutOffRelayClosingOrderOn,
+                    218 => TrainEvent.TractionCutOffRelayClosingOrderOff,
+                    219 => TrainEvent.TractionCutOffRelayOpeningOrderOn,
+                    220 => TrainEvent.TractionCutOffRelayOpeningOrderOff,
+                    221 => TrainEvent.TractionCutOffRelayClosingAuthorizationOn,
+                    222 => TrainEvent.TractionCutOffRelayClosingAuthorizationOff,
+                    223 => TrainEvent.ElectricTrainSupplyOn,
+                    224 => TrainEvent.ElectricTrainSupplyOff,
+                    225 => TrainEvent.ElectricTrainSupplyCommandOn,
+                    226 => TrainEvent.ElectricTrainSupplyCommandOff,
+                    227 => TrainEvent.PowerConverterOn,
+                    228 => TrainEvent.PowerConverterOff,
+                    229 => TrainEvent.VentilationHigh,
+                    230 => TrainEvent.VentilationLow,
+                    231 => TrainEvent.VentilationOff,
+                    232 => TrainEvent.HeatingOn,
+                    233 => TrainEvent.HeatingOff,
+                    234 => TrainEvent.AirConditioningOn,
+                    235 => TrainEvent.AirConditioningOff,
+                    240 => TrainEvent.GenericItem1On,
+                    241 => TrainEvent.GenericItem1Off,
+                    242 => TrainEvent.GenericItem2On,
+                    243 => TrainEvent.GenericItem2Off,
+                    250 => TrainEvent.OverchargeBrakingOn,
+                    251 => TrainEvent.OverchargeBrakingOff,
+                    // Cruise Control
+                    298 => TrainEvent.LeverFromZero,
+                    299 => TrainEvent.LeverToZero,
+                    300 => TrainEvent.CruiseControlSpeedRegulator,
+                    301 => TrainEvent.CruiseControlSpeedSelector,
+                    302 => TrainEvent.CruiseControlMaxForce,
+                    303 => TrainEvent.CruiseControlAlert,
+                    304 => TrainEvent.CruiseControlAlert1,
+                    //
+                    _ => TrainEvent.None,
+                },
+                SoundEventSource.Crossing => eventID switch
+                {
+                    // Calculated from inspection of existing crossing.sms files.
+                    3 => TrainEvent.CrossingClosing,
+                    4 => TrainEvent.CrossingOpening,
+                    _ => TrainEvent.None,
+                },
+                SoundEventSource.FuelTower => eventID switch
+                {
+                    // Calculated from inspection of existing *tower.sms files.
+                    6 => TrainEvent.FuelTowerDown,
+                    7 => TrainEvent.FuelTowerUp,
+                    9 => TrainEvent.FuelTowerTransferStart,
+                    10 => TrainEvent.FuelTowerTransferEnd,
+                    _ => TrainEvent.None,
+                },
+                SoundEventSource.InGame => eventID switch
+                {
+                    // Calculated from inspection of existing ingame.sms files.
+                    10 => TrainEvent.ControlError,
+                    20 => TrainEvent.Derail1,
+                    21 => TrainEvent.Derail2,
+                    22 => TrainEvent.Derail3,
+                    25 => 0,// TODO: What is this event?
+                    60 => TrainEvent.PermissionToDepart,
+                    61 => TrainEvent.PermissionGranted,
+                    62 => TrainEvent.PermissionDenied,
+                    _ => TrainEvent.None,
+                },
+                SoundEventSource.Signal => eventID switch
+                {
+                    // Calculated from inspection of existing signal.sms files.
+                    1 => TrainEvent.SemaphoreArm,
+                    _ => TrainEvent.None,
+                },
+                SoundEventSource.Turntable => eventID switch
+                {
+                    // related file is turntable.sms
+                    1 => TrainEvent.MovingTableMovingEmpty,
+                    2 => TrainEvent.MovingTableMovingLoaded,
+                    3 => TrainEvent.MovingTableStopped,
+                    _ => TrainEvent.None,
+                },
+                SoundEventSource.ContainerCrane => eventID switch
+                {
+                    // Can be different from crane to crane
+                    1 => TrainEvent.CraneXAxisMove,
+                    2 => TrainEvent.CraneXAxisSlowDown,
+                    3 => TrainEvent.CraneYAxisMove,
+                    4 => TrainEvent.CraneYAxisSlowDown,
+                    5 => TrainEvent.CraneZAxisMove,
+                    6 => TrainEvent.CraneZAxisSlowDown,
+                    7 => TrainEvent.CraneYAxisDown,
+                    _ => 0,
+                },
+                _ => TrainEvent.None,
+            };
         }
     }
 }
