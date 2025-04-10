@@ -390,9 +390,9 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         {
             foreach (SoundStream soundStream in SoundStreams)
             {
-                foreach (ORTSTrigger trigger in soundStream.Triggers)
+                foreach (SoundTrigger trigger in soundStream.Triggers)
                 {
-                    if (trigger is ORTSDiscreteTrigger discreteTrigger)
+                    if (trigger is DiscreteSoundTrigger discreteTrigger)
                         discreteTrigger.OnCarSoundEvent(null, new SoundSourceEventArgs(eventID, null));
                 }
             }
@@ -429,20 +429,20 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
 
                         bool released = false;
                         // run the initial triggers
-                        foreach (ORTSTrigger trigger in stream.Triggers)
+                        foreach (SoundTrigger trigger in stream.Triggers)
                         {
                             trigger.Initialize();
-                            trigger.TryTrigger();
+                            trigger.CheckTrigger();
 
                             released |= trigger.Signaled &&
                                 (trigger.SoundCommand is ORTSReleaseLoopRelease || trigger.SoundCommand is ORTSReleaseLoopReleaseWithJump);
-                            if (trigger is ORTSDiscreteTrigger)
+                            if (trigger is DiscreteSoundTrigger)
                                 trigger.Signaled = false;
                         }
 
                         if (!released && !stream.ALSoundSource.IsPlaying)
                         {
-                            foreach (ORTSTrigger trigger in stream.Triggers)
+                            foreach (SoundTrigger trigger in stream.Triggers)
                             {
                                 if (trigger.Signaled && trigger.Enabled && (trigger.SoundCommand is ORTSStartLoop || trigger.SoundCommand is ORTSStartLoopRelease))
                                     trigger.SoundCommand.Run();
@@ -468,7 +468,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                 // but there is no such thing for variable triggers.
                 foreach (var stream in SoundStreams)
                     foreach (var trigger in stream.VariableTriggers)
-                        trigger.TryTrigger();
+                        trigger.CheckTrigger();
 
                 return true;
             }

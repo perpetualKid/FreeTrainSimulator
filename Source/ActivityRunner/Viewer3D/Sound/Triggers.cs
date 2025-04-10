@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
+
 using Orts.Formats.Msts.Models;
-using Orts.Simulation.RollingStocks;
 using Orts.Simulation;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Sound
 {
@@ -21,55 +18,62 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
     /// They are activated by various events.
     /// When triggered, executes a SoundCommand
     /// </summary>
-    public class ORTSTrigger
+    public class SoundTrigger
     {
         /// <summary>
         /// Set by the DisableTrigger, EnableTrigger sound commands
         /// </summary>
-        public bool Enabled = true;
+        public bool Enabled { get; set; } = true;
         /// <summary>
         /// True if trigger activation conditions are met
         /// </summary>
-        public bool Signaled;
+        public bool Signaled { get; set; }
         /// <summary>
         /// Represents a sound command to be executed, when trigger is activated
         /// </summary>
-        public ORTSSoundCommand SoundCommand;
+        public ORTSSoundCommand SoundCommand { get; }
 
         /// <summary>
         /// Check in every update loop whether to activate the trigger
         /// </summary>
-        public virtual void TryTrigger() { }
+        public virtual void CheckTrigger() { }
         /// <summary>
         /// Executed in constructors, or when sound source gets into scope, or for InitialTrigger when other VariableTriggers stop working
         /// </summary>
         public virtual void Initialize() { }
-    }
 
+        public SoundTrigger() { }
+
+        protected SoundTrigger(ORTSSoundCommand soundCommand)
+        {
+            SoundCommand = soundCommand;
+        }
+    }
 
     /// <summary>
     /// Play this sound when a discrete TrainCar event occurs in the simulator
     /// </summary>
-    public class ORTSDiscreteTrigger : ORTSTrigger
+    public class DiscreteSoundTrigger : SoundTrigger
     {
-        /// <summary>
-        /// Event this trigger listens to
-        /// </summary>
-        public TrainEvent TriggerID;
         /// <summary>
         /// Store the owning SoundStream
         /// </summary>
-        private SoundStream SoundStream;
+        private readonly SoundStream soundStream;
         /// <summary>
         /// This flag is set by Updater process, and is used by Sound process to activate the trigger
         /// </summary>
         private bool Triggered;
 
-        public ORTSDiscreteTrigger(SoundStream soundStream, SoundEventSource eventSound, DiscreteTrigger smsData)
+        /// <summary>
+        /// Event this trigger listens to
+        /// </summary>
+        public TrainEvent TriggerId { get; set; }
+
+        public DiscreteSoundTrigger(SoundStream soundStream, SoundEventSource eventSound, DiscreteTrigger smsData) :
+            base(ORTSSoundCommand.FromMSTS(smsData?.SoundCommand, soundStream))
         {
-            TriggerID = SoundEvent.From(eventSound, smsData.TriggerId);
-            SoundCommand = ORTSSoundCommand.FromMSTS(smsData.SoundCommand, soundStream);
-            SoundStream = soundStream;
+            TriggerId = SoundEvent.From(eventSound, smsData.TriggerId);
+            this.soundStream = soundStream;
         }
 
         /// <summary>
@@ -78,11 +82,11 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <param name="soundStream">The parent sound stream.</param>
         /// <param name="triggerID">The trigger to activate this event.</param>
         /// <param name="soundCommand">The command to run when activated.</param>
-        public ORTSDiscreteTrigger(SoundStream soundStream, TrainEvent triggerID, ORTSSoundCommand soundCommand)
+        public DiscreteSoundTrigger(SoundStream soundStream, TrainEvent triggerID, ORTSSoundCommand soundCommand) :
+            base((soundCommand))
         {
-            TriggerID = triggerID;
-            SoundCommand = soundCommand;
-            SoundStream = soundStream;
+            TriggerId = triggerID;
+            this.soundStream = soundStream;
         }
 
         /// <summary>
@@ -92,53 +96,46 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <param name="viewer">Object the event belongs to</param>
         internal void OnCarSoundEvent(object sender, SoundSourceEventArgs e)
         {
-            if (e.SoundEvent == TriggerID)
+            if (e.SoundEvent == TriggerId)
             {
-                Triggered = e.Owner == null || Program.Viewer.SoundProcess.IsSoundSourceOwnedBy(e.Owner, SoundStream.SoundSource);
+                Triggered = e.Owner == null || Program.Viewer.SoundProcess.IsSoundSourceOwnedBy(e.Owner, soundStream.SoundSource);
             }
         }
 
-        public override void TryTrigger()
+        public override void CheckTrigger()
         {
             Triggered &= Enabled;
             if (Triggered)
             {
                 Triggered = false;
-                SoundStream.RepeatedTrigger = this == SoundStream.LastTriggered;
+                soundStream.RepeatedTrigger = this == soundStream.LastTriggered;
                 SoundCommand.Run();
-                SoundStream.LastTriggered = this;
+                soundStream.LastTriggered = this;
                 Signaled = true;
-#if DEBUGSCR
-                if (SoundCommand is ORTSSoundPlayCommand && !string.IsNullOrEmpty((SoundCommand as ORTSSoundPlayCommand).Files[(SoundCommand as ORTSSoundPlayCommand).iFile]))
-                    Trace.WriteLine("({0})DiscreteTrigger: {1}:{2}", SoundStream.ALSoundSource.SoundSourceID, TriggerID, (SoundCommand as ORTSSoundPlayCommand).Files[(SoundCommand as ORTSSoundPlayCommand).iFile]);
-                else
-                    Trace.WriteLine("({0})DiscreteTrigger: {1}", SoundStream.ALSoundSource.SoundSourceID, TriggerID);
-#endif
             }
             // If the SoundSource is not active, should deactivate the SoundStream also
             //   preventing the hearing when not should be audible
-            if (!SoundStream.SoundSource.Active)
-                SoundStream.Deactivate();
+            if (!soundStream.SoundSource.Active)
+                soundStream.Deactivate();
         }
-
-    } // class ORTSDiscreteTrigger
+    }
 
     /// <summary>
     /// Play this sound controlled by the distance a TrainCar has travelled
     /// </summary>
-    public sealed class ORTSDistanceTravelledTrigger : ORTSTrigger
+    public sealed class DistanceTravelledSoundTrigger : SoundTrigger
     {
-        private DistanceTravelledTrigger SMS;
+        private readonly DistanceTravelledTrigger soundStreamData;
         private float triggerDistance;
-        private TrainCar car;
-        private SoundStream SoundStream;
+        private readonly TrainCar car;
+        private readonly SoundStream soundStream;
 
-        public ORTSDistanceTravelledTrigger(SoundStream soundStream, DistanceTravelledTrigger smsData)
+        public DistanceTravelledSoundTrigger(SoundStream soundStream, DistanceTravelledTrigger smsData) :
+            base(ORTSSoundCommand.FromMSTS(smsData?.SoundCommand, soundStream))
         {
-            SoundStream = soundStream;
+            this.soundStream = soundStream ?? throw new ArgumentNullException(nameof(soundStream));
             car = soundStream.SoundSource.Car;
-            SMS = smsData;
-            SoundCommand = ORTSSoundCommand.FromMSTS(SMS.SoundCommand, soundStream);
+            soundStreamData = smsData;
             Initialize();
         }
 
@@ -147,24 +144,20 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
             UpdateTriggerDistance();
         }
 
-        public override void TryTrigger()
+        public override void CheckTrigger()
         {
             if (car.DistanceTravelled > triggerDistance)
             {
                 Signaled = true;
                 if (Enabled)
                 {
-                    SoundStream.RepeatedTrigger = this == SoundStream.LastTriggered;
+                    soundStream.RepeatedTrigger = this == soundStream.LastTriggered;
                     SoundCommand.Run();
-                    float volume = (float)StaticRandom.NextDouble() * (SMS.MaximumVolume - SMS.MinimumVolume) + SMS.MinimumVolume;
-                    SoundStream.Volume = volume;
-                    SoundStream.LastTriggered = this;
+                    float volume = (float)StaticRandom.NextDouble() * (soundStreamData.MaximumVolume - soundStreamData.MinimumVolume) + soundStreamData.MinimumVolume;
+                    soundStream.Volume = volume;
+                    soundStream.LastTriggered = this;
                 }
                 UpdateTriggerDistance();
-#if DEBUGSCR
-                Trace.WriteLine("({0})DistanceTravelledTrigger: Current:{1}, Next:{2}", SoundStream.ALSoundSource.SoundSourceID, car.DistanceM, triggerDistance);
-#endif
-
             }
             else
             {
@@ -177,13 +170,13 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// </summary>
         private void UpdateTriggerDistance()
         {
-            if (SMS.MaximumDistance != SMS.MinimumDistance)
+            if (soundStreamData.MaximumDistance != soundStreamData.MinimumDistance)
             {
-                triggerDistance = car.DistanceTravelled + ((float)StaticRandom.NextDouble() * (SMS.MaximumDistance - SMS.MinimumDistance) + SMS.MinimumDistance);
+                triggerDistance = car.DistanceTravelled + ((float)StaticRandom.NextDouble() * (soundStreamData.MaximumDistance - soundStreamData.MinimumDistance) + soundStreamData.MinimumDistance);
             }
             else
             {
-                triggerDistance = car.DistanceTravelled + ((float)StaticRandom.NextDouble() * SMS.MinimumDistance + SMS.MinimumDistance);
+                triggerDistance = car.DistanceTravelled + ((float)StaticRandom.NextDouble() * soundStreamData.MinimumDistance + soundStreamData.MinimumDistance);
             }
         }
 
@@ -192,55 +185,49 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
     /// <summary>
     /// Play this sound immediately when this SoundSource becomes active, or in case no other VariableTriggers are active
     /// </summary>
-    public class ORTSInitialTrigger : ORTSTrigger
+    public class InitialSoundTrigger : SoundTrigger
     {
-        private SoundStream SoundStream;
+        private readonly SoundStream soundStream;
 
-        public ORTSInitialTrigger(SoundStream soundStream, InitialTrigger smsData)
+        public InitialSoundTrigger(SoundStream soundStream, InitialTrigger smsData) :
+            base(ORTSSoundCommand.FromMSTS(smsData?.SoundCommand, soundStream))
         {
-            SoundCommand = ORTSSoundCommand.FromMSTS(smsData.SoundCommand, soundStream);
-            SoundStream = soundStream;
+            this.soundStream = soundStream;
         }
 
         // For pre-compiled activity sound
-        public ORTSInitialTrigger(SoundStream soundStream, string wavFileName)
+        public InitialSoundTrigger(SoundStream soundStream, string wavFileName) : base(ORTSSoundCommand.Precompiled(wavFileName, soundStream))
         {
-            SoundCommand = ORTSSoundCommand.Precompiled(wavFileName, soundStream);
-            SoundStream = soundStream;
+            this.soundStream = soundStream;
         }
 
         public override void Initialize()
         {
             if (Enabled)
             {
-                SoundStream.RepeatedTrigger = this == SoundStream.LastTriggered;
+                soundStream.RepeatedTrigger = this == soundStream.LastTriggered;
                 SoundCommand.Run();
-                SoundStream.LastTriggered = this;
-#if DEBUGSCR
-                if (SoundCommand is ORTSSoundPlayCommand && !string.IsNullOrEmpty((SoundCommand as ORTSSoundPlayCommand).Files[(SoundCommand as ORTSSoundPlayCommand).iFile]))
-                    Trace.WriteLine("({0})InitialTrigger: {1}", SoundStream.ALSoundSource.SoundSourceID, (SoundCommand as ORTSSoundPlayCommand).Files[(SoundCommand as ORTSSoundPlayCommand).iFile]);
-#endif
+                soundStream.LastTriggered = this;
             }
 
             Signaled = true;
         }
-
     }
 
     /// <summary>
     /// Play the sound at random times
     /// </summary>
-    public sealed class ORTSRandomTrigger : ORTSTrigger
+    public sealed class RandomSoundTrigger : SoundTrigger
     {
-        private RandomTrigger SMS;
+        private readonly RandomTrigger soundstreamData;
         private double triggerAtSeconds;
-        private SoundStream SoundStream;
+        private readonly SoundStream soundStream;
 
-        public ORTSRandomTrigger(SoundStream soundStream, RandomTrigger smsData)
+        public RandomSoundTrigger(SoundStream soundStream, RandomTrigger smsData) :
+            base(ORTSSoundCommand.FromMSTS(smsData?.SoundCommand, soundStream))
         {
-            SoundStream = soundStream;
-            SMS = smsData;
-            SoundCommand = ORTSSoundCommand.FromMSTS(smsData.SoundCommand, soundStream);
+            this.soundStream = soundStream;
+            soundstreamData = smsData;
             Initialize();
         }
 
@@ -249,18 +236,18 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
             UpdateTriggerAtSeconds();
         }
 
-        public override void TryTrigger()
+        public override void CheckTrigger()
         {
             if (Simulator.Instance.ClockTime > triggerAtSeconds)
             {
                 Signaled = true;
                 if (Enabled)
                 {
-                    SoundStream.RepeatedTrigger = this == SoundStream.LastTriggered;
+                    soundStream.RepeatedTrigger = this == soundStream.LastTriggered;
                     SoundCommand.Run();
-                    float volume = (float)StaticRandom.NextDouble() * (SMS.MaximumVolume - SMS.MinimumVolume) + SMS.MinimumVolume;
-                    SoundStream.Volume = volume;
-                    SoundStream.LastTriggered = this;
+                    float volume = (float)StaticRandom.NextDouble() * (soundstreamData.MaximumVolume - soundstreamData.MinimumVolume) + soundstreamData.MinimumVolume;
+                    soundStream.Volume = volume;
+                    soundStream.LastTriggered = this;
                 }
                 UpdateTriggerAtSeconds();
             }
@@ -275,7 +262,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// </summary>
         private void UpdateTriggerAtSeconds()
         {
-            double interval = StaticRandom.NextDouble() * (SMS.MaximumDelay - SMS.MinimumDelay) + SMS.MinimumDelay;
+            double interval = StaticRandom.NextDouble() * (soundstreamData.MaximumDelay - soundstreamData.MinimumDelay) + soundstreamData.MinimumDelay;
             triggerAtSeconds = Simulator.Instance.ClockTime + interval;
         }
 
@@ -284,26 +271,26 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
     /// <summary>
     /// Control sounds based on TrainCar variables in the simulator 
     /// </summary>
-    public sealed class ORTSVariableTrigger : ORTSTrigger
+    public sealed class VariableSoundTrigger : SoundTrigger
     {
-        private VariableTrigger SMS;
-        private MSTSWagon car;
-        private SoundStream SoundStream;
-        private float StartValue;
-        public bool IsBellow;
+        private VariableTrigger soundStreamData;
+        private readonly MSTSWagon car;
+        private readonly SoundStream soundStream;
+        private float startValue;
+        public bool BelowThreshold { get; private set; }
 
-        public ORTSVariableTrigger(SoundStream soundStream, VariableTrigger smsData)
+        public VariableSoundTrigger(SoundStream soundStream, VariableTrigger smsData) :
+            base(ORTSSoundCommand.FromMSTS(smsData?.SoundCommand, soundStream))
         {
-            SMS = smsData;
+            soundStreamData = smsData;
+            this.soundStream = soundStream ?? throw new ArgumentNullException(nameof(soundStream));
             car = soundStream.SoundSource.Car ?? (MSTSWagon)Program.Viewer.Camera.AttachedCar;
-            SoundStream = soundStream;
-            SoundCommand = ORTSSoundCommand.FromMSTS(smsData.SoundCommand, soundStream);
             Initialize();
         }
 
         public override void Initialize()
         {
-            StartValue = SMS.Event == VariableTrigger.TriggerEvent.DistanceDecrease ? float.MaxValue : 0;
+            startValue = soundStreamData.Event == VariableTrigger.TriggerEvent.DistanceDecrease ? float.MaxValue : 0;
 
             /*if ((new Variable_Trigger.Events[] { Variable_Trigger.Events.Variable1_Dec_Past,
                 Variable_Trigger.Events.Variable1_Inc_Past, Variable_Trigger.Events.Variable2_Dec_Past, 
@@ -312,16 +299,16 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
             {
                 SMS.Threshold /= 100f;
             }*/
-            IsBellow = StartValue < SMS.Threshold;
+            BelowThreshold = startValue < soundStreamData.Threshold;
         }
 
-        public override void TryTrigger()
+        public override void CheckTrigger()
         {
             float newValue = ReadValue();
             bool triggered = false;
             Signaled = false;
 
-            switch (SMS.Event)
+            switch (soundStreamData.Event)
             {
                 case VariableTrigger.TriggerEvent.DistanceDecrease:
                 case VariableTrigger.TriggerEvent.SpeedDecrease:
@@ -330,10 +317,10 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                 case VariableTrigger.TriggerEvent.Variable3Decrease:
                 case VariableTrigger.TriggerEvent.BrakeCylinderDecrease:
                 case VariableTrigger.TriggerEvent.CurveForceDecrease:
-                    if (newValue < SMS.Threshold)
+                    if (newValue < soundStreamData.Threshold)
                     {
                         Signaled = true;
-                        if (SMS.Threshold <= StartValue)
+                        if (soundStreamData.Threshold <= startValue)
                             triggered = true;
                     }
                     break;
@@ -344,10 +331,10 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                 case VariableTrigger.TriggerEvent.Variable3Increase:
                 case VariableTrigger.TriggerEvent.BrakeCylinderIncrease:
                 case VariableTrigger.TriggerEvent.CurveForceIncrease:
-                    if (newValue > SMS.Threshold)
+                    if (newValue > soundStreamData.Threshold)
                     {
                         Signaled = true;
-                        if (SMS.Threshold >= StartValue)
+                        if (soundStreamData.Threshold >= startValue)
                             triggered = true;
                     }
                     break;
@@ -355,37 +342,14 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
 
             //Signaled = triggered;
 
-            StartValue = newValue;
-            IsBellow = newValue < SMS.Threshold;
+            startValue = newValue;
+            BelowThreshold = newValue < soundStreamData.Threshold;
 
             if (triggered && Enabled)
             {
-                SoundStream.RepeatedTrigger = this == SoundStream.LastTriggered;
+                soundStream.RepeatedTrigger = this == soundStream.LastTriggered;
                 SoundCommand.Run();
-                SoundStream.LastTriggered = this;
-
-#if DEBUGSCR
-                ORTSStartLoop sl = SoundCommand as ORTSStartLoop;
-                if (sl != null)
-                {
-                    Trace.WriteLine("({0})StartLoop ({1} {2}): {3} ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString(), sl.Files[sl.iFile]);
-                }
-                ORTSStartLoopRelease slr = SoundCommand as ORTSStartLoopRelease;
-                if (slr != null)
-                {
-                    Trace.WriteLine("({0})StartLoopRelease ({1} {2}): {3} ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString(), slr.Files[slr.iFile]);
-                }
-                ORTSReleaseLoopRelease rlr = SoundCommand as ORTSReleaseLoopRelease;
-                if (rlr != null)
-                {
-                    Trace.WriteLine("({0})ReleaseLoopRelease ({1} {2}) ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString());
-                }
-                ORTSReleaseLoopReleaseWithJump rlrwj = SoundCommand as ORTSReleaseLoopReleaseWithJump;
-                if (rlrwj != null)
-                {
-                    Trace.WriteLine("({0})ReleaseLoopReleaseWithJump ({1} {2}) ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString());
-                }
-#endif
+                soundStream.LastTriggered = this;
             }
         }
 
@@ -395,34 +359,17 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <returns></returns>
         private float ReadValue()
         {
-            switch (SMS.Event)
+            return soundStreamData.Event switch
             {
-                case VariableTrigger.TriggerEvent.DistanceDecrease:
-                case VariableTrigger.TriggerEvent.DistanceIncrease:
-                    return SoundStream.SoundSource.DistanceSquared;
-                case VariableTrigger.TriggerEvent.SpeedDecrease:
-                case VariableTrigger.TriggerEvent.SpeedIncrease:
-                    return car.AbsSpeedMpS;
-                case VariableTrigger.TriggerEvent.Variable1Decrease:
-                case VariableTrigger.TriggerEvent.Variable1Increase:
-                    return car.SoundValues.X;
-                case VariableTrigger.TriggerEvent.Variable2Decrease:
-                case VariableTrigger.TriggerEvent.Variable2Increase:
-                    return car.SoundValues.Y;
-                case VariableTrigger.TriggerEvent.Variable3Decrease:
-                case VariableTrigger.TriggerEvent.Variable3Increase:
-                    return car.SoundValues.Z;
-                case VariableTrigger.TriggerEvent.BrakeCylinderDecrease:
-                case VariableTrigger.TriggerEvent.BrakeCylinderIncrease:
-                    return car.BrakeSystem.GetCylPressurePSI();
-                case VariableTrigger.TriggerEvent.CurveForceDecrease:
-                case VariableTrigger.TriggerEvent.CurveForceIncrease:
-                    return (float)car.CurveForceFiltered;
-                default:
-                    return 0;
-            }
+                VariableTrigger.TriggerEvent.DistanceDecrease or VariableTrigger.TriggerEvent.DistanceIncrease => soundStream.SoundSource.DistanceSquared,
+                VariableTrigger.TriggerEvent.SpeedDecrease or VariableTrigger.TriggerEvent.SpeedIncrease => car.AbsSpeedMpS,
+                VariableTrigger.TriggerEvent.Variable1Decrease or VariableTrigger.TriggerEvent.Variable1Increase => car.SoundValues.X,
+                VariableTrigger.TriggerEvent.Variable2Decrease or VariableTrigger.TriggerEvent.Variable2Increase => car.SoundValues.Y,
+                VariableTrigger.TriggerEvent.Variable3Decrease or VariableTrigger.TriggerEvent.Variable3Increase => car.SoundValues.Z,
+                VariableTrigger.TriggerEvent.BrakeCylinderDecrease or VariableTrigger.TriggerEvent.BrakeCylinderIncrease => car.BrakeSystem.GetCylPressurePSI(),
+                VariableTrigger.TriggerEvent.CurveForceDecrease or VariableTrigger.TriggerEvent.CurveForceIncrease => (float)car.CurveForceFiltered,
+                _ => 0,
+            };
         }
-
-    }  // class VariableTrigger
-
+    }
 }

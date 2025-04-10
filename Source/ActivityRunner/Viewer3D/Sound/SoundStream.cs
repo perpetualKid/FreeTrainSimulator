@@ -69,7 +69,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// Each stream can contain only one initial trigger, which should be audible
         /// in case the SoundSource is in scope, and no other variable trigger is active
         /// </summary>
-        private readonly ORTSInitialTrigger initialTrigger;
+        private readonly InitialSoundTrigger initialTrigger;
 
         /// <summary>
         /// Owner SoundSource
@@ -82,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <summary>
         /// List of triggers controlling this stream
         /// </summary>
-        public ImmutableArray<ORTSTrigger> Triggers { get; } = ImmutableArray<ORTSTrigger>.Empty;
+        public ImmutableArray<SoundTrigger> Triggers { get; } = ImmutableArray<SoundTrigger>.Empty;
         /// <summary>
         /// OpenAL compatible representation of SoundStream.
         /// By OpenAL terminilogy our SoundStream is called as "SoundSource"
@@ -104,7 +104,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <summary>
         /// Store trigger used last time for being able to check if trigger got repeated
         /// </summary>
-        public ORTSTrigger LastTriggered { get; set; } = new ORTSTrigger();
+        public SoundTrigger LastTriggered { get; set; } = new SoundTrigger();
         /// <summary>
         /// True if the same trigger was used repeatedly.
         /// Needs for avoiding to queue same sound multiple times
@@ -114,7 +114,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <summary>
         /// List of owned variable triggers. Used at determining if initial trigger is to be audible
         /// </summary>
-        public ImmutableArray<ORTSVariableTrigger> VariableTriggers { get; } = ImmutableArray<ORTSVariableTrigger>.Empty;
+        public ImmutableArray<VariableSoundTrigger> VariableTriggers { get; } = ImmutableArray<VariableSoundTrigger>.Empty;
 
         private bool disposedValue;
 
@@ -146,28 +146,28 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                 {
                     if (trigger.SoundCommand == null) // ignore improperly formed SMS files
                     {
-                        Triggers = Triggers.Add(new ORTSTrigger()); // null trigger
+                        Triggers = Triggers.Add(new SoundTrigger()); // null trigger
                     }
                     else if (trigger is DistanceTravelledTrigger distanceTrigger && soundSource.Car != null)
                     {
-                        Triggers = Triggers.Add(new ORTSDistanceTravelledTrigger(this, distanceTrigger));
+                        Triggers = Triggers.Add(new DistanceTravelledSoundTrigger(this, distanceTrigger));
                     }
                     else if (trigger is InitialTrigger initialTrigger)
                     {
-                        this.initialTrigger = new ORTSInitialTrigger(this, initialTrigger);
+                        this.initialTrigger = new InitialSoundTrigger(this, initialTrigger);
                         Triggers = Triggers.Add(this.initialTrigger);
                     }
                     else if (trigger is RandomTrigger randomTrigger)
                     {
-                        Triggers = Triggers.Add(new ORTSRandomTrigger(this, randomTrigger));
+                        Triggers = Triggers.Add(new RandomSoundTrigger(this, randomTrigger));
                     }
                     else if (trigger is VariableTrigger variableTrigger && (soundSource.Car != null || soundSource.EnvironmentSound))
                     {
-                        Triggers = Triggers.Add(new ORTSVariableTrigger(this, variableTrigger));
+                        Triggers = Triggers.Add(new VariableSoundTrigger(this, variableTrigger));
                     }
                     else if (trigger is DiscreteTrigger discreteTrigger)
                     {
-                        ORTSDiscreteTrigger ortsTrigger = new ORTSDiscreteTrigger(this, eventSource, discreteTrigger);
+                        DiscreteSoundTrigger ortsTrigger = new DiscreteSoundTrigger(this, eventSource, discreteTrigger);
                         Triggers = Triggers.Add(ortsTrigger);  // list them here so we can enable and disable
                         if (SoundSource.Car != null)
                             SoundSource.Car.OnCarSound += ortsTrigger.OnCarSoundEvent; // tell the simulator to call us when the event occurs
@@ -175,7 +175,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                     // unapplicable trigger type
                     else
                     {
-                        Triggers = Triggers.Add(new ORTSTrigger()); // null trigger
+                        Triggers = Triggers.Add(new SoundTrigger()); // null trigger
                         if (SoundSource.SMSFileName != "ingame.sms")
                             Trace.TraceWarning("Trigger type of trigger number {2} in stream number {1} in file {0} is not existent or not applicable",
 SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Length - 1);
@@ -183,7 +183,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Length - 1);
                     IsReleasedWithJump |= Triggers.Last().SoundCommand is ORTSReleaseLoopReleaseWithJump;
                 }  // for each mstsStream.Trigger
 
-            VariableTriggers = Triggers.OfType<ORTSVariableTrigger>().ToImmutableArray();
+            VariableTriggers = Triggers.OfType<VariableSoundTrigger>().ToImmutableArray();
         }
 
         public SoundStream(string wavFileName, SoundSource soundSource)
@@ -195,7 +195,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Length - 1);
 
             ALSoundSource = new ALSoundSource(soundSource.EnvironmentSound, soundSource.RolloffFactor);
 
-            initialTrigger = new ORTSInitialTrigger(this, wavFileName);
+            initialTrigger = new InitialSoundTrigger(this, wavFileName);
             Triggers = Triggers.Add(initialTrigger);
         }
 
@@ -204,7 +204,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Length - 1);
         /// </summary>
         /// <param name="soundSource">The parent sound source.</param>
         /// <param name="triggerGenerator">A generator function to create the triggers.</param>
-        public SoundStream(SoundSource soundSource, Func<SoundStream, IEnumerable<ORTSTrigger>> triggerGenerator)
+        public SoundStream(SoundSource soundSource, Func<SoundStream, IEnumerable<SoundTrigger>> triggerGenerator)
         {
             ArgumentNullException.ThrowIfNull(soundSource, nameof(soundSource));
             ArgumentNullException.ThrowIfNull(triggerGenerator, nameof(triggerGenerator));
@@ -237,8 +237,8 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Length - 1);
                 return;
             }
 
-            foreach (ORTSTrigger trigger in Triggers)
-                trigger.TryTrigger();
+            foreach (SoundTrigger trigger in Triggers)
+                trigger.CheckTrigger();
 
             if (initialTrigger != null)
             {
@@ -247,7 +247,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Length - 1);
                 {
                     if (VariableTriggers.Length > 0 || Triggers.Length == 1)
                     {
-                        int activeTriggers = VariableTriggers.Where(t => t.IsBellow).Cast<ORTSTrigger>().Count();
+                        int activeTriggers = VariableTriggers.Where(t => t.BelowThreshold).Cast<SoundTrigger>().Count();
 
                         if (activeTriggers == VariableTriggers.Length && initialTrigger.SoundCommand is ORTSSoundPlayCommand
                             && !(initialTrigger.SoundCommand is ORTSPlayOneShot && initialTrigger.Signaled))
@@ -436,7 +436,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Length - 1);
         /// </summary>
         private void Sweep()
         {
-            foreach (ORTSTrigger trigger in Triggers)
+            foreach (SoundTrigger trigger in Triggers)
             {
                 if (trigger.SoundCommand is ORTSSoundPlayCommand soundPlayCommand)
                 {

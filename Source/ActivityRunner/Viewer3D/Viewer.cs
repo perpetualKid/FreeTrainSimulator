@@ -512,7 +512,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 new SoundStream(soundSource, soundStream => new[]
                 {
-                    new ORTSDiscreteTrigger(soundStream, TrainEvent.TakeScreenshot, ORTSSoundCommand.Precompiled(Path.Combine(ContentPath, "TakeScreenshot.wav"), soundStream)),
+                    new DiscreteSoundTrigger(soundStream, TrainEvent.TakeScreenshot, ORTSSoundCommand.Precompiled(Path.Combine(ContentPath, "TakeScreenshot.wav"), soundStream)),
                 }),
             });
             SoundProcess.AddSoundSource(this, ViewerSounds);
