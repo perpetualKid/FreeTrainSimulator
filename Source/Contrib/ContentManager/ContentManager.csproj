@@ -12,7 +12,7 @@
     <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
-	<PackageReference Include="System.Resources.Extensions" Version="9.0.3" />
+	<PackageReference Include="System.Resources.Extensions" Version="9.0.4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
