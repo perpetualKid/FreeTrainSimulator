@@ -31,7 +31,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <summary>
         /// Represents a sound command to be executed, when trigger is activated
         /// </summary>
-        public ORTSSoundCommand SoundCommand { get; }
+        public SoundCommand SoundCommand { get; }
 
         /// <summary>
         /// Check in every update loop whether to activate the trigger
@@ -44,7 +44,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
 
         public SoundTrigger() { }
 
-        protected SoundTrigger(ORTSSoundCommand soundCommand)
+        protected SoundTrigger(SoundCommand soundCommand)
         {
             SoundCommand = soundCommand;
         }
@@ -70,7 +70,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         public TrainEvent TriggerId { get; set; }
 
         public DiscreteSoundTrigger(SoundStream soundStream, SoundEventSource eventSound, DiscreteTrigger smsData) :
-            base(ORTSSoundCommand.FromMSTS(smsData?.SoundCommand, soundStream))
+            base(Sound.SoundCommand.FromMsts(smsData?.SoundCommand, soundStream))
         {
             TriggerId = SoundEvent.From(eventSound, smsData.TriggerId);
             this.soundStream = soundStream;
@@ -82,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <param name="soundStream">The parent sound stream.</param>
         /// <param name="triggerID">The trigger to activate this event.</param>
         /// <param name="soundCommand">The command to run when activated.</param>
-        public DiscreteSoundTrigger(SoundStream soundStream, TrainEvent triggerID, ORTSSoundCommand soundCommand) :
+        public DiscreteSoundTrigger(SoundStream soundStream, TrainEvent triggerID, SoundCommand soundCommand) :
             base((soundCommand))
         {
             TriggerId = triggerID;
@@ -131,7 +131,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         private readonly SoundStream soundStream;
 
         public DistanceTravelledSoundTrigger(SoundStream soundStream, DistanceTravelledTrigger smsData) :
-            base(ORTSSoundCommand.FromMSTS(smsData?.SoundCommand, soundStream))
+            base(Sound.SoundCommand.FromMsts(smsData?.SoundCommand, soundStream))
         {
             this.soundStream = soundStream ?? throw new ArgumentNullException(nameof(soundStream));
             car = soundStream.SoundSource.Car;
@@ -190,13 +190,13 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         private readonly SoundStream soundStream;
 
         public InitialSoundTrigger(SoundStream soundStream, InitialTrigger smsData) :
-            base(ORTSSoundCommand.FromMSTS(smsData?.SoundCommand, soundStream))
+            base(Sound.SoundCommand.FromMsts(smsData?.SoundCommand, soundStream))
         {
             this.soundStream = soundStream;
         }
 
         // For pre-compiled activity sound
-        public InitialSoundTrigger(SoundStream soundStream, string wavFileName) : base(ORTSSoundCommand.Precompiled(wavFileName, soundStream))
+        public InitialSoundTrigger(SoundStream soundStream, string wavFileName) : base(SoundCommand.Precompiled(wavFileName, soundStream))
         {
             this.soundStream = soundStream;
         }
@@ -224,7 +224,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         private readonly SoundStream soundStream;
 
         public RandomSoundTrigger(SoundStream soundStream, RandomTrigger smsData) :
-            base(ORTSSoundCommand.FromMSTS(smsData?.SoundCommand, soundStream))
+            base(Sound.SoundCommand.FromMsts(smsData?.SoundCommand, soundStream))
         {
             this.soundStream = soundStream;
             soundstreamData = smsData;
@@ -280,7 +280,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         public bool BelowThreshold { get; private set; }
 
         public VariableSoundTrigger(SoundStream soundStream, VariableTrigger smsData) :
-            base(ORTSSoundCommand.FromMSTS(smsData?.SoundCommand, soundStream))
+            base(Sound.SoundCommand.FromMsts(smsData?.SoundCommand, soundStream))
         {
             soundStreamData = smsData;
             this.soundStream = soundStream ?? throw new ArgumentNullException(nameof(soundStream));

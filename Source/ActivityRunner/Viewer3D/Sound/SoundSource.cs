@@ -435,7 +435,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                             trigger.CheckTrigger();
 
                             released |= trigger.Signaled &&
-                                (trigger.SoundCommand is ORTSReleaseLoopRelease || trigger.SoundCommand is ORTSReleaseLoopReleaseWithJump);
+                                (trigger.SoundCommand is ReleaseLoopSoundCommand || trigger.SoundCommand is ReleaseLoopReleaseWithJumpSoundCommand);
                             if (trigger is DiscreteSoundTrigger)
                                 trigger.Signaled = false;
                         }
@@ -444,7 +444,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         {
                             foreach (SoundTrigger trigger in stream.Triggers)
                             {
-                                if (trigger.Signaled && trigger.Enabled && (trigger.SoundCommand is ORTSStartLoop || trigger.SoundCommand is ORTSStartLoopRelease))
+                                if (trigger.Signaled && trigger.Enabled && (trigger.SoundCommand is StartLoopSoundCommand || trigger.SoundCommand is StartLoopReleaseSoundCommand))
                                     trigger.SoundCommand.Run();
                             }
                         }

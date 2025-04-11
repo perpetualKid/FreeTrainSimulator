@@ -53,16 +53,16 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
     /// A base class for all sound commands
     /// Defines that they all have a stream and a 'Run()' function
     /// </summary>
-    public abstract class ORTSSoundCommand
+    public abstract class SoundCommand
     {
         /// <summary>
         /// The Stream in .sms file it belongs to
         /// </summary>
-        protected SoundStream ORTSStream;
+        protected SoundStream SoundStream { get; }
 
-        protected ORTSSoundCommand(SoundStream ortsStream)
+        protected SoundCommand(SoundStream ortsStream)
         {
-            ORTSStream = ortsStream;
+            SoundStream = ortsStream;
         }
 
         /// <summary>
@@ -77,49 +77,45 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <param name="mstsSoundCommand"></param>
         /// <param name="soundStream"></param>
         /// <returns></returns>
-        public static ORTSSoundCommand FromMSTS(SoundCommand mstsSoundCommand, SoundStream soundStream)
+        public static SoundCommand FromMsts(Orts.Formats.Msts.Models.SoundCommand mstsSoundCommand, SoundStream soundStream)
         {
-            if (mstsSoundCommand == null)
+            switch (mstsSoundCommand)
             {
-                return new ORTSNoOp();
+                case null:
+                    return new NoOpSoundCommand();
+                case SoundPlayCommand playCommand:
+                    switch (playCommand.CommandType)
+                    {
+                        case SoundPlayCommand.SoundCommandType.PlayOneShot:
+                            return new PlayOneShotSoundCommand(soundStream, playCommand);
+                        case SoundPlayCommand.SoundCommandType.StartLoop:
+                            return new StartLoopSoundCommand(soundStream, playCommand);
+                        case SoundPlayCommand.SoundCommandType.StartLoopRelease:
+                            return new StartLoopReleaseSoundCommand(soundStream, playCommand);
+                    }
+                    break;
+                case LoopRelease releaseCommand:
+                    switch (releaseCommand.ReleaseMode)
+                    {
+                        case LoopRelease.ReleaseType.Release:
+                            return new ReleaseLoopSoundCommand(soundStream);
+                        case LoopRelease.ReleaseType.ReleaseWithJump:
+                            return new ReleaseLoopReleaseWithJumpSoundCommand(soundStream);
+                    }
+                    break;
+                case StreamVolumeCommand:
+                    return new SetStreamVolumeSoundCommand(soundStream, (StreamVolumeCommand)mstsSoundCommand);
+                case TriggerCommand triggerCommand:
+                    switch (triggerCommand.Trigger)
+                    {
+                        case TriggerCommand.TriggerType.Disable:
+                            return new DisableTriggerSoundCommand(soundStream, triggerCommand);
+                        case TriggerCommand.TriggerType.Enable:
+                            return new EnableTriggerSoundCommand(soundStream, triggerCommand);
+                    }
+                    break;
             }
-            else if (mstsSoundCommand is SoundPlayCommand playCommand)
-            {
-                switch (playCommand.CommandType)
-                {
-                    case SoundPlayCommand.SoundCommandType.PlayOneShot:
-                        return new ORTSPlayOneShot(soundStream, playCommand);
-                    case SoundPlayCommand.SoundCommandType.StartLoop:
-                        return new ORTSStartLoop(soundStream, playCommand);
-                    case SoundPlayCommand.SoundCommandType.StartLoopRelease:
-                        return new ORTSStartLoopRelease(soundStream, playCommand);
-                }
-            }
-            else if (mstsSoundCommand is LoopRelease releaseCommand)
-            {
-                switch (releaseCommand.ReleaseMode)
-                {
-                    case LoopRelease.ReleaseType.Release:
-                        return new ORTSReleaseLoopRelease(soundStream);
-                    case LoopRelease.ReleaseType.ReleaseWithJump:
-                        return new ORTSReleaseLoopReleaseWithJump(soundStream);
-                }
-            }
-            else if (mstsSoundCommand is StreamVolumeCommand)
-            {
-                return new ORTSSetStreamVolume(soundStream, (StreamVolumeCommand)mstsSoundCommand);
-            }
-            else if (mstsSoundCommand is TriggerCommand triggerCommand)
-            {
-                switch (triggerCommand.Trigger)
-                {
-                    case TriggerCommand.TriggerType.Disable:
-                        return new ORTSDisableTrigger(soundStream, triggerCommand);
-                    case TriggerCommand.TriggerType.Enable:
-                        return new ORTSEnableTrigger(soundStream, triggerCommand);
-                }
-            }
-            throw new ArgumentException("Unexpected soundCommand type " + mstsSoundCommand.GetType().ToString() + " in " + soundStream.SoundSource.SMSFolder, nameof(mstsSoundCommand));
+            throw new ArgumentException($"Unexpected soundCommand type {mstsSoundCommand.GetType().FullName} in {soundStream?.SoundSource.SMSFolder}", nameof(mstsSoundCommand));
         }
 
 
@@ -129,191 +125,9 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// <param name="wavFilePath"></param>
         /// <param name="soundStream"></param>
         /// <returns></returns>
-        public static ORTSSoundCommand Precompiled(string wavFileName, SoundStream soundStream)
+        public static SoundCommand Precompiled(string wavFileName, SoundStream soundStream)
         {
-            return new ORTSPlayOneShot(soundStream, wavFileName);
-        }
-
-    }// ORTSSoundCommand
-
-    /////////////////////////////////////////////////////////
-    // SOUND COMMANDS
-    /////////////////////////////////////////////////////////
-
-
-    /// <summary>
-    /// Start playing the whole sound stream once, then stop
-    /// </summary>
-    public class ORTSPlayOneShot : ORTSSoundPlayCommand
-    {
-        public ORTSPlayOneShot(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
-            : base(ortsStream, mstsSoundPlayCommand)
-        {
-        }
-        // precompiled version for activity sounds
-        public ORTSPlayOneShot(SoundStream ortsStream, string wavFileName)
-            : base(ortsStream, wavFileName)
-        {
-        }
-
-        public override void Run()
-        {
-            string p = GetNextFile();
-            if (!string.IsNullOrEmpty(p))
-            {
-                if (ORTSStream != null && ORTSStream.ALSoundSource != null)
-                    ORTSStream.ALSoundSource.Queue(p, PlayMode.OneShot, ORTSStream.SoundSource.ExternalSource, ORTSStream.RepeatedTrigger);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Start looping the whole stream, release it only at the end
-    /// </summary>
-    public class ORTSStartLoop : ORTSSoundPlayCommand
-    {
-        public ORTSStartLoop(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
-            : base(ortsStream, mstsSoundPlayCommand)
-        {
-        }
-        public override void Run()
-        {
-            // Support for Loop functions - by GeorgeS
-            string p = GetNextFile();
-            if (!string.IsNullOrEmpty(p))
-            {
-                if (ORTSStream != null && ORTSStream.ALSoundSource != null)
-                    ORTSStream.ALSoundSource.Queue(p, PlayMode.Loop, ORTSStream.SoundSource.ExternalSource, false);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Release the sound by playing the looped sustain part till its end, then play the last part
-    /// </summary>
-    public class ORTSReleaseLoopRelease : ORTSSoundCommand
-    {
-        public ORTSReleaseLoopRelease(SoundStream ortsStream)
-            : base(ortsStream)
-        {
-        }
-
-        public override void Run()
-        {
-            if (ORTSStream != null && ORTSStream.ALSoundSource != null)
-                ORTSStream.ALSoundSource.Queue("", PlayMode.Release, ORTSStream.SoundSource.ExternalSource, false);
-        }
-    }
-
-    /// <summary>
-    /// Start by playing the first part, then start looping the sustain part of the stream
-    /// </summary>
-    public class ORTSStartLoopRelease : ORTSSoundPlayCommand
-    {
-        public ORTSStartLoopRelease(SoundStream ortsStream, SoundPlayCommand mstsStartLoopRelease)
-            : base(ortsStream, mstsStartLoopRelease)
-        {
-        }
-
-        // Support for Loop functions - by GeorgeS
-        public override void Run()
-        {
-            string p = GetNextFile();
-            if (!string.IsNullOrEmpty(p))
-            {
-                if (ORTSStream != null && ORTSStream.ALSoundSource != null)
-                    ORTSStream.ALSoundSource.Queue(p, PlayMode.LoopRelease, ORTSStream.SoundSource.ExternalSource, ORTSStream.IsReleasedWithJump);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Release the sound by playing the looped sustain part till the next cue point, then jump to the last part and play that  
-    /// </summary>
-    public class ORTSReleaseLoopReleaseWithJump : ORTSSoundCommand
-    {
-        public ORTSReleaseLoopReleaseWithJump(SoundStream ortsStream)
-            : base(ortsStream)
-        {
-        }
-
-        public override void Run()
-        {
-            if (ORTSStream != null && ORTSStream.ALSoundSource != null)
-                ORTSStream.ALSoundSource.Queue("", PlayMode.ReleaseWithJump, ORTSStream.SoundSource.ExternalSource, true);
-        }
-    }
-
-    /// <summary>
-    /// Shut down this stream trigger 
-    /// </summary>
-    public class ORTSDisableTrigger : ORTSSoundCommand
-    {
-        private int TriggerIndex;  // index into the stream's trigger list 
-
-        public ORTSDisableTrigger(SoundStream ortsStream, TriggerCommand smsData)
-            : base(ortsStream)
-        {
-            TriggerIndex = smsData.TriggerId - 1;
-        }
-
-        public override void Run()
-        {
-            if (TriggerIndex >= 0 && TriggerIndex < ORTSStream.Triggers.Length)
-                ORTSStream.Triggers[TriggerIndex].Enabled = false;
-        }
-    }
-
-    /// <summary>
-    /// Re-enable this stream trigger
-    /// </summary>
-    public class ORTSEnableTrigger : ORTSSoundCommand
-    {
-        private int TriggerIndex;
-
-        public ORTSEnableTrigger(SoundStream ortsStream, TriggerCommand smsData)
-            : base(ortsStream)
-        {
-            TriggerIndex = smsData.TriggerId - 1;
-        }
-
-        public override void Run()
-        {
-            if (TriggerIndex >= 0 && TriggerIndex < ORTSStream.Triggers.Length)
-                ORTSStream.Triggers[TriggerIndex].Enabled = true;
-        }
-    }
-
-    /// <summary>
-    /// Set Volume of Stream
-    /// </summary>
-    public class ORTSSetStreamVolume : ORTSSoundCommand
-    {
-        private float Volume;
-
-        public ORTSSetStreamVolume(SoundStream ortsStream, StreamVolumeCommand smsData)
-            : base(ortsStream)
-        {
-            Volume = smsData.Volume;
-        }
-
-        public override void Run()
-        {
-            ORTSStream.Volume = Volume;
-        }
-    }
-
-    /// <summary>
-    /// Used when the SMS file sound command is missing or malformed
-    /// </summary>
-    public class ORTSNoOp : ORTSSoundCommand
-    {
-        public ORTSNoOp()
-            : base(null)
-        {
-        }
-        public override void Run()
-        {
+            return new PlayOneShotSoundCommand(soundStream, wavFileName);
         }
     }
 
@@ -322,12 +136,12 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
     /// Provides for selecting the sound from multiple files
     /// using a random or sequential selection strategy.
     /// </summary>
-    public abstract class ORTSSoundPlayCommand : ORTSSoundCommand
+    public abstract class PlaySoundCommand : SoundCommand
     {
         /// <summary>
         /// File names to select from for playing
         /// </summary>
-        public IList<string> Files { get; private set; }
+        public ImmutableArray<string> Files { get; }
         /// <summary>
         /// How to select from available files
         /// </summary>
@@ -337,18 +151,18 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         /// </summary>
         private int fileIndex;
 
-        protected ORTSSoundPlayCommand(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
+        protected PlaySoundCommand(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
             : base(ortsStream)
         {
-            Files = mstsSoundPlayCommand?.Files;
+            Files = mstsSoundPlayCommand?.Files.ToImmutableArray() ?? ImmutableArray<string>.Empty;
             selectionMethod = mstsSoundPlayCommand.SelectionMethod;
         }
 
         // precompiled version for activity sounds
-        protected ORTSSoundPlayCommand(SoundStream ortsStream, string wavFileName)
+        protected PlaySoundCommand(SoundStream ortsStream, string wavFileName)
             : base(ortsStream)
         {
-            Files = new List<string>() { wavFileName };
+            Files = ImmutableArray.Create(wavFileName);
             selectionMethod = SoundPlayCommand.Selection.Sequential;
         }
 
@@ -361,22 +175,201 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
             if (selectionMethod == SoundPlayCommand.Selection.Sequential)
             {
                 ++fileIndex;
-                if (fileIndex >= Files.Count)
+                if (fileIndex >= Files.Length)
                     fileIndex = 0;
             }
             else if (selectionMethod == SoundPlayCommand.Selection.Random)
             {
-                fileIndex = StaticRandom.Next(Files.Count);
+                fileIndex = StaticRandom.Next(Files.Length);
             }
 
             ImmutableArray<string> pathArray = ImmutableArray.Create(
                 Simulator.Instance.RouteFolder.SoundFolder,
-                ORTSStream.SoundSource.SMSFolder,
+                SoundStream.SoundSource.SMSFolder,
                 Simulator.Instance.RouteFolder.ContentFolder.SoundFolder);
             return FolderStructure.FindFileFromFolders(pathArray, Files[fileIndex]) ?? string.Empty;
         }
     }
 
+    /// <summary>
+    /// Start playing the whole sound stream once, then stop
+    /// </summary>
+    public class PlayOneShotSoundCommand : PlaySoundCommand
+    {
+        public PlayOneShotSoundCommand(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
+            : base(ortsStream, mstsSoundPlayCommand)
+        {
+        }
 
+        // precompiled version for activity sounds
+        public PlayOneShotSoundCommand(SoundStream ortsStream, string wavFileName)
+            : base(ortsStream, wavFileName)
+        {
+        }
+
+        public override void Run()
+        {
+            string path = GetNextFile();
+            if (!string.IsNullOrEmpty(path))
+            {
+                if (SoundStream != null && SoundStream.ALSoundSource != null)
+                    SoundStream.ALSoundSource.Queue(path, PlayMode.OneShot, SoundStream.SoundSource.ExternalSource, SoundStream.RepeatedTrigger);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Start looping the whole stream, release it only at the end
+    /// </summary>
+    public class StartLoopSoundCommand : PlaySoundCommand
+    {
+        public StartLoopSoundCommand(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
+            : base(ortsStream, mstsSoundPlayCommand)
+        {
+        }
+        public override void Run()
+        {
+            // Support for Loop functions - by GeorgeS
+            string path = GetNextFile();
+            if (!string.IsNullOrEmpty(path))
+            {
+                if (SoundStream != null && SoundStream.ALSoundSource != null)
+                    SoundStream.ALSoundSource.Queue(path, PlayMode.Loop, SoundStream.SoundSource.ExternalSource, false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Release the sound by playing the looped sustain part till its end, then play the last part
+    /// </summary>
+    public class ReleaseLoopSoundCommand : SoundCommand
+    {
+        public ReleaseLoopSoundCommand(SoundStream ortsStream)
+            : base(ortsStream)
+        {
+        }
+
+        public override void Run()
+        {
+            if (SoundStream != null && SoundStream.ALSoundSource != null)
+                SoundStream.ALSoundSource.Queue("", PlayMode.Release, SoundStream.SoundSource.ExternalSource, false);
+        }
+    }
+
+    /// <summary>
+    /// Start by playing the first part, then start looping the sustain part of the stream
+    /// </summary>
+    public class StartLoopReleaseSoundCommand : PlaySoundCommand
+    {
+        public StartLoopReleaseSoundCommand(SoundStream ortsStream, SoundPlayCommand mstsStartLoopRelease)
+            : base(ortsStream, mstsStartLoopRelease)
+        {
+        }
+
+        // Support for Loop functions - by GeorgeS
+        public override void Run()
+        {
+            string path = GetNextFile();
+            if (!string.IsNullOrEmpty(path))
+            {
+                if (SoundStream != null && SoundStream.ALSoundSource != null)
+                    SoundStream.ALSoundSource.Queue(path, PlayMode.LoopRelease, SoundStream.SoundSource.ExternalSource, SoundStream.IsReleasedWithJump);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Release the sound by playing the looped sustain part till the next cue point, then jump to the last part and play that  
+    /// </summary>
+    public class ReleaseLoopReleaseWithJumpSoundCommand : SoundCommand
+    {
+        public ReleaseLoopReleaseWithJumpSoundCommand(SoundStream ortsStream)
+            : base(ortsStream)
+        {
+        }
+
+        public override void Run()
+        {
+            if (SoundStream != null && SoundStream.ALSoundSource != null)
+                SoundStream.ALSoundSource.Queue("", PlayMode.ReleaseWithJump, SoundStream.SoundSource.ExternalSource, true);
+        }
+    }
+
+    /// <summary>
+    /// Shut down this stream trigger 
+    /// </summary>
+    public class DisableTriggerSoundCommand : SoundCommand
+    {
+        private readonly int triggerIndex;  // index into the stream's trigger list 
+
+        public DisableTriggerSoundCommand(SoundStream ortsStream, TriggerCommand smsData)
+            : base(ortsStream)
+        {
+            ArgumentNullException.ThrowIfNull(smsData, nameof(smsData));
+            triggerIndex = smsData.TriggerId - 1;
+        }
+
+        public override void Run()
+        {
+            if (triggerIndex >= 0 && triggerIndex < SoundStream.Triggers.Length)
+                SoundStream.Triggers[triggerIndex].Enabled = false;
+        }
+    }
+
+    /// <summary>
+    /// Re-enable this stream trigger
+    /// </summary>
+    public class EnableTriggerSoundCommand : SoundCommand
+    {
+        private readonly int triggerIndex;
+
+        public EnableTriggerSoundCommand(SoundStream ortsStream, TriggerCommand smsData)
+            : base(ortsStream)
+        {
+            ArgumentNullException.ThrowIfNull(smsData, nameof(smsData));
+            triggerIndex = smsData.TriggerId - 1;
+        }
+
+        public override void Run()
+        {
+            if (triggerIndex >= 0 && triggerIndex < SoundStream.Triggers.Length)
+                SoundStream.Triggers[triggerIndex].Enabled = true;
+        }
+    }
+
+    /// <summary>
+    /// Set Volume of Stream
+    /// </summary>
+    public class SetStreamVolumeSoundCommand : SoundCommand
+    {
+        private readonly float volume;
+
+        public SetStreamVolumeSoundCommand(SoundStream ortsStream, StreamVolumeCommand smsData)
+            : base(ortsStream)
+        {
+            ArgumentNullException.ThrowIfNull(smsData, nameof(smsData));
+            volume = smsData.Volume;
+        }
+
+        public override void Run()
+        {
+            SoundStream.Volume = volume;
+        }
+    }
+
+    /// <summary>
+    /// Used when the SMS file sound command is missing or malformed
+    /// </summary>
+    public class NoOpSoundCommand : SoundCommand
+    {
+        public NoOpSoundCommand()
+            : base(null)
+        {
+        }
+
+        public override void Run()
+        {
+        }
+    }
 }
 

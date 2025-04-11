@@ -508,13 +508,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
             World = new World(this, Simulator.ClockTime);
 
-            ViewerSounds = new SoundSource(soundSource => new[]
+            ViewerSounds = new SoundSource(soundSource => (new[]
             {
-                new SoundStream(soundSource, soundStream => new[]
+                new SoundStream(soundSource, soundStream => (new[]
                 {
-                    new DiscreteSoundTrigger(soundStream, TrainEvent.TakeScreenshot, ORTSSoundCommand.Precompiled(Path.Combine(ContentPath, "TakeScreenshot.wav"), soundStream)),
-                }),
-            });
+                    new DiscreteSoundTrigger(soundStream, TrainEvent.TakeScreenshot, Sound.SoundCommand.Precompiled(Path.Combine(ContentPath, "TakeScreenshot.wav"), soundStream)),
+                })),
+            }));
             SoundProcess.AddSoundSource(this, ViewerSounds);
             Simulator.Confirmer.PlayErrorSound += (s, e) =>
             {

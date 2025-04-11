@@ -180,7 +180,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                             Trace.TraceWarning("Trigger type of trigger number {2} in stream number {1} in file {0} is not existent or not applicable",
 SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Length - 1);
                     }
-                    IsReleasedWithJump |= Triggers.Last().SoundCommand is ORTSReleaseLoopReleaseWithJump;
+                    IsReleasedWithJump |= Triggers.Last().SoundCommand is ReleaseLoopReleaseWithJumpSoundCommand;
                 }  // for each mstsStream.Trigger
 
             VariableTriggers = Triggers.OfType<VariableSoundTrigger>().ToImmutableArray();
@@ -249,8 +249,8 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Length - 1);
                     {
                         int activeTriggers = VariableTriggers.Where(t => t.BelowThreshold).Cast<SoundTrigger>().Count();
 
-                        if (activeTriggers == VariableTriggers.Length && initialTrigger.SoundCommand is ORTSSoundPlayCommand
-                            && !(initialTrigger.SoundCommand is ORTSPlayOneShot && initialTrigger.Signaled))
+                        if (activeTriggers == VariableTriggers.Length && initialTrigger.SoundCommand is PlaySoundCommand
+                            && !(initialTrigger.SoundCommand is PlayOneShotSoundCommand && initialTrigger.Signaled))
                         {
                             initialTrigger.Initialize();
                         }
@@ -259,7 +259,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Length - 1);
                 // If triggers are active, reset the Initial
                 else
                 {
-                    int activeTriggers = Triggers.Where(t => t.Signaled && (t.SoundCommand is ORTSStartLoop || t.SoundCommand is ORTSStartLoopRelease)).Count();
+                    int activeTriggers = Triggers.Where(t => t.Signaled && (t.SoundCommand is StartLoopSoundCommand || t.SoundCommand is StartLoopReleaseSoundCommand)).Count();
                     if (activeTriggers > 1 && initialTrigger.Signaled)
                         initialTrigger.Signaled = false;
                 }
@@ -438,7 +438,7 @@ SoundSource.SMSFileName, SoundSource.SoundStreams.Length, Triggers.Length - 1);
         {
             foreach (SoundTrigger trigger in Triggers)
             {
-                if (trigger.SoundCommand is ORTSSoundPlayCommand soundPlayCommand)
+                if (trigger.SoundCommand is PlaySoundCommand soundPlayCommand)
                 {
                     foreach (var name in soundPlayCommand.Files)
                         SoundItem.Sweep(name, SoundSource.ExternalSource, IsReleasedWithJump);
