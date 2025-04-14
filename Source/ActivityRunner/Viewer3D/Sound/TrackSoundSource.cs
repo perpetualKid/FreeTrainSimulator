@@ -175,7 +175,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         initCar = Car;
                         initTrackSection = carLeading == 0 ? Car.Train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex : Car.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
                         initDist = carLeading == 0 ? Car.Train.DistanceTravelledM : Car.Train.DistanceTravelledM - Car.Train.Length;
-                        wagonViewer.TrackSoundType = viewer.World.Sounds.GetTType(Car.Train, out prevDist, out nextDist);
+                        wagonViewer.TrackSoundType = viewer.World.Sounds.GetTrackSoundType(Car.Train, out prevDist, out nextDist);
                         if (wagonViewer.TrackSoundType != int.MaxValue)
                             if (wagonViewer.TrackSoundType < viewer.TrackTypes.Count)
                                 curTrackSoundType = wagonViewer.TrackSoundType;
