@@ -2,9 +2,9 @@
 
 ## Features
 
+- Toolbox Path Editor allows to create and save new train paths. This is still work in progres.
 - Game will be started based on profile-selections, not passing commandline arguments (still possible though for debugging purposes)
 - Multiple configuration profiles, available through Menu application, allow to have all settings profile-dependent
-- Initialize Testing with user profile settings
 - Log files are stored in the user's application data folder (i.e. C:\Users\USERNAME\AppData\Roaming\Free Train Simulator\Logs). 
 - New Menu-toolbar to manage user profiles and access the Log file folder
 - Existing content folder settings are imported from OpenRails
@@ -18,6 +18,8 @@
 - Fixing a race condition in FolderStructure
 
 ## Maintenance
+
+- Update to Monogame 3.8.3
 
 ## Known Issues
 
