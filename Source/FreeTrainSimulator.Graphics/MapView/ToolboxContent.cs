@@ -34,6 +34,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private readonly InsetComponent insetComponent;
         private ToolboxContentMode contentMode;
+        private readonly int trackWidthRatio;
 
         internal PathEditorBase PathEditor { get; set; }
 
@@ -52,13 +53,14 @@ namespace FreeTrainSimulator.Graphics.MapView
             }
         }
 
-        public ToolboxContent(Game game) :
+        public ToolboxContent(Game game, int trackWidthRatio) :
             base(game)
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);
             DetailInfo["Route Name"] = RuntimeData.GameInstance(game).RouteData.Name;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
+            this.trackWidthRatio = Math.Clamp(trackWidthRatio, 1, 16);
         }
 
         public override async Task Initialize()
@@ -244,7 +246,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                         int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
-                            trackSegments.Add(new TrackSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++));
+                            trackSegments.Add(new TrackSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++, trackWidthRatio));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
@@ -275,7 +277,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                         int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
-                            roadSegments.Add(new RoadSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++));
+                            roadSegments.Add(new RoadSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++, trackWidthRatio));
                         }
                         break;
                 }

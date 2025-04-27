@@ -69,8 +69,12 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 chkRestoreView.OnClick += (object sender, MouseClickEventArgs e) => toolboxSettings.RestoreLastView = (sender as Checkbox).State.Value;
                 chkRestoreView.State = toolboxSettings.RestoreLastView;
                 line.Add(chkRestoreView);
-
-                line = layoutContainer.AddLayoutHorizontalLineOfText();
+            };
+            tabControl.TabLayouts[TabSettings.Graphics] = (layoutContainer) =>
+            {
+                layoutContainer = layoutContainer.AddLayoutScrollboxVertical(layoutContainer.RemainingWidth);
+                ControlLayoutHorizontal line = layoutContainer.AddLayoutHorizontalLineOfText();
+                int width = (int)(line.RemainingWidth * 0.8);
                 line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Use Font Outline")));
                 Checkbox chkOutlineFont = new Checkbox(this);
                 chkOutlineFont.OnClick += (object sender, MouseClickEventArgs e) =>
@@ -82,6 +86,13 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 };
                 chkOutlineFont.State = toolboxSettings.FontOutline;
                 line.Add(chkOutlineFont);
+
+                line = layoutContainer.AddLayoutHorizontalLineOfText();
+                line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Use real track width")));
+                Checkbox trackWidthRatio = new Checkbox(this);
+                trackWidthRatio.OnClick += (object sender, MouseClickEventArgs e) => toolboxSettings.TrackWidthRatio = (sender as Checkbox).State.Value ? 1 : 8;
+                trackWidthRatio.State = toolboxSettings.TrackWidthRatio == 1;
+                line.Add(trackWidthRatio);
             };
             layout.Add(tabControl);
 

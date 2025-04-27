@@ -109,7 +109,7 @@ namespace FreeTrainSimulator.Toolbox
             if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
-            ToolboxContent content = new ToolboxContent(this);
+            ToolboxContent content = new ToolboxContent(this, ToolboxSettings.TrackWidthRatio);
             await content.Initialize().ConfigureAwait(false);
             content.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
             content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings);

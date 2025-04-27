@@ -68,8 +68,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public RoadSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex) :
-            base(trackVectorSection, trackSections, trackNodeIndex, trackVectorSectionIndex)
+        public RoadSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex, int overSizeFactor = 1) :
+            base(trackVectorSection, trackSections, trackNodeIndex, trackVectorSectionIndex, overSizeFactor)
         {
         }
 

@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "End Node" };
 
         private const int width = 3;
-        protected const int Length = 2;
+        protected const float Length = 0.5f;
 
         public EndNode(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections) :
             base(trackEndNode, connectedVectorNode, trackSections)

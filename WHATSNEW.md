@@ -10,6 +10,9 @@
 - Existing content folder settings are imported from OpenRails
 
 ## Updates
+- Visual enhancements in Toolbox views:
+  - Track segments in Toolbox view are drawn narrower, giving better track overview, but can be changed in toolbox settings (requires reloading the current route if changed to become visible)
+  - Track end nodes rendered narrower
 
 ## Bug Fixes
 
