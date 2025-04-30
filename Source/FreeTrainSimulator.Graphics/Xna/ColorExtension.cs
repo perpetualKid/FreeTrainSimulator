@@ -27,6 +27,16 @@ namespace FreeTrainSimulator.Graphics.Xna
             return FromHSLA(h, s, l, color.A / 255.0);
         }
 
+        public static Color ContrastColor(in this Color color)
+        {
+            //https://stackoverflow.com/questions/1855884/determine-font-color-based-on-background-color
+            // Counting the perceptive luminance - human eye favors green color...      
+            double luminance = (0.299 * color.R + 0.587 * color.G + 0.114 * color.B) / 255;
+
+            // Return black for bright colors, white for dark colors
+            return luminance > 0.5 ? Color.Black : Color.White;
+        }
+
         // return a color which is complement, i.e. to use as Foreground/Background combination
         public static Color ComplementColor(in this Color color)
         {

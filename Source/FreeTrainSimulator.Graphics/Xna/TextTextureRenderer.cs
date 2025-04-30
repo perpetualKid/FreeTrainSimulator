@@ -19,6 +19,7 @@ namespace FreeTrainSimulator.Graphics.Xna
         internal readonly Brush FillBrush;
 
         private bool disposedValue;
+        private readonly int hash;
 
         public float OutlineWidth => Pen.Width;
         public Color OutlineColor => Pen.Color;
@@ -33,6 +34,13 @@ namespace FreeTrainSimulator.Graphics.Xna
             };
             fillColor = Color.FromArgb(fillColor.A, fillColor.B, fillColor.G, fillColor.R);
             FillBrush = new SolidBrush(fillColor);
+
+            hash = HashCode.Combine(Pen, FillBrush);
+        }
+
+        public override int GetHashCode()
+        {
+            return hash;
         }
 
         protected virtual void Dispose(bool disposing)
