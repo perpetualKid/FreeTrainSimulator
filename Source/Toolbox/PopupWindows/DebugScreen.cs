@@ -27,6 +27,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly ProfileToolboxSettingsModel toolboxSettings;
         private DebugScreenInformation currentDebugScreen;
+        private OutlineRenderOptions outlineRenderOptions;
 
         public DebugScreen(WindowManager owner, ProfileToolboxSettingsModel settings, Color backgroundColor) :
             base(owner, CatalogManager.Catalog)
@@ -65,7 +66,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         public void UpdateBackgroundColor(Color backgroundColor)
         {
             bool outlineFont = toolboxSettings.FontOutline;
-            OutlineRenderOptions outlineRenderOptions = outlineFont ? new OutlineRenderOptions(2.0f, backgroundColor.ContrastColor(), backgroundColor) : null;
+            outlineRenderOptions = outlineFont ? new OutlineRenderOptions(2.0f, backgroundColor.ContrastColor(), backgroundColor) : null;
 
             foreach (NameValueTextGrid item in currentProvider)
             {
@@ -96,6 +97,12 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 currentProvider[currentDebugScreen].Visible = true;
                 toolboxSettings.PopupSettings[ToolboxWindowType.DebugScreen] = currentDebugScreen.ToString();
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            outlineRenderOptions?.Dispose();
+            base.Dispose(disposing);
         }
     }
 }
