@@ -2,6 +2,7 @@
 using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Imported.Track;
 
 using Microsoft.Xna.Framework;
@@ -41,8 +42,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color fontColor = this.GetColor<StationNameItem>(colorVariation);
+            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<StationNameItem>();
             if ((Count > 2 && contentArea.Scale < 0.3) || (Count > 1 && contentArea.Scale < 0.1) || contentArea.Scale >= 0.02)
-                contentArea.DrawText(Location, fontColor, Name, contentArea.ConstantSizeFont, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Top);
+                contentArea.DrawText(Location, fontColor, Name, contentArea.ConstantSizeFont, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Top, outlineRenderOptions);
         }
 
         public static IEnumerable<StationNameItem> CreateStationItems(IEnumerable<IGrouping<string, PlatformPath>> stationPlatforms)
@@ -77,8 +79,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = this.GetColor<PlatformPath>(colorVariation);
-            contentArea.DrawText(Location, fontColor, Name, contentArea.CurrentFont, Vector2.One, direction, HorizontalAlignment.Center, VerticalAlignment.Center);
+            Color fontColor = this.GetColor<PlatformPath>(ColorVariation.None);
+            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<PlatformPath>();
+            contentArea.DrawText(Location, fontColor, Name, contentArea.CurrentFont, Vector2.One, direction, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
         }
     }
 
@@ -93,8 +96,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = this.GetColor<SidingPath>(colorVariation);
-            contentArea.DrawText(Location, fontColor, Name, contentArea.CurrentFont, Vector2.One, direction, HorizontalAlignment.Center, VerticalAlignment.Center);
+            Color fontColor = this.GetColor<SidingPath>(ColorVariation.None);
+            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<SidingPath>();
+            contentArea.DrawText(Location, fontColor, Name, contentArea.CurrentFont, Vector2.One, direction, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
         }
     }
 

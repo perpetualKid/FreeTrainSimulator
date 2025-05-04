@@ -65,10 +65,12 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         public void UpdateBackgroundColor(Color backgroundColor)
         {
             bool outlineFont = toolboxSettings.FontOutline;
+            OutlineRenderOptions outlineRenderOptions = outlineFont ? new OutlineRenderOptions(2.0f, backgroundColor.ContrastColor(), backgroundColor) : null;
+
             foreach (NameValueTextGrid item in currentProvider)
             {
-                item.OutlineRenderOptions = !outlineFont ? OutlineRenderOptions.Default : null;
-                item.TextColor = outlineFont ? backgroundColor.ComplementColor() : Color.White;
+                item.OutlineRenderOptions = outlineRenderOptions;
+                item.TextColor = Color.White;
             }
         }
 

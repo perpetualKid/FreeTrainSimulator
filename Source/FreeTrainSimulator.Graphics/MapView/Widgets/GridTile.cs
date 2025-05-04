@@ -12,7 +12,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         static GridTile()
         {
-            WidgetColorCache.SetColors<GridTile>(Color.Black);
+            WidgetColorCache.SetColors<GridTile>(Color.Black, false);
         }
 
         public GridTile(Tile tile) : base(WorldLocationFromTile(tile, -1024, -1024), WorldLocationFromTile(tile, 1024, 1024))

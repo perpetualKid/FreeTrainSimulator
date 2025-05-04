@@ -24,6 +24,11 @@ namespace FreeTrainSimulator.Graphics.Xna
         public float OutlineWidth => Pen.Width;
         public Color OutlineColor => Pen.Color;
 
+        public OutlineRenderOptions(float width, Microsoft.Xna.Framework.Color outlineColor, Microsoft.Xna.Framework.Color fillColor):
+            this (width, outlineColor.ToSystemDrawingColor(), fillColor.ToSystemDrawingColor())
+        {
+        }
+
         public OutlineRenderOptions(float width, Color outlineColor, Color fillColor)
         {
             //changing Color format from ARGB to Monogame ABGR

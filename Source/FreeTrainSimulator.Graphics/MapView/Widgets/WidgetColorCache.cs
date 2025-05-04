@@ -11,6 +11,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     internal static class WidgetColorCache
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static OutlineRenderOptions GetOutlineColorOptions<T>(this IDrawable<PointPrimitive> _) where T: PointPrimitive
+        {
+            return WidgetTextOutlineCache<T>.OutlineRenderOptions;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Color GetColor<T>(this IDrawable<PointPrimitive> _, ColorVariation colorVariation) where T : PointPrimitive
         {
             return WidgetColorCache<T>.Colors[colorVariation];
@@ -22,17 +28,14 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return WidgetColorCache<T>.Colors[colorVariation];
         }
 
-        internal static void SetColors<T>(Color color) where T : PointPrimitive
+        internal static void SetColors<T>(Color color, bool fontOutlining) where T : PointPrimitive
         {
             WidgetColorCache<T>.Colors[ColorVariation.None] = color;
             WidgetColorCache<T>.Colors[ColorVariation.Highlight] = color.HighlightColor(0.6);
             WidgetColorCache<T>.Colors[ColorVariation.Complement] = color.ComplementColor();
             WidgetColorCache<T>.Colors[ColorVariation.ComplementHighlight] = WidgetColorCache<T>.Colors[ColorVariation.Complement].HighlightColor(0.6);
-        }
 
-        internal static void UpdateColor<T>(Color color) where T : PointPrimitive
-        {
-            SetColors<T>(color);
+            WidgetTextOutlineCache<T>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color.ContrastColor(), color) : null;
         }
     }
 
@@ -44,5 +47,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
             return Colors[colorVariation];
         }
+    }
+
+    internal static class WidgetTextOutlineCache<T>
+    {
+        internal static OutlineRenderOptions OutlineRenderOptions;
     }
 }

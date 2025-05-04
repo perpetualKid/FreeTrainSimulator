@@ -83,13 +83,13 @@ namespace FreeTrainSimulator.Graphics.MapView
             DetailInfo["Tiles"] = $"{trackModel.ContentByTile[MapContentType.Grid].Count}";
         }
 
-        public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)
+        public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences, bool fontOutlining)
         {
             ArgumentNullException.ThrowIfNull(colorPreferences);
 
             foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
             {
-                ContentArea.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]));
+                ContentArea.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]), fontOutlining);
             }
         }
 

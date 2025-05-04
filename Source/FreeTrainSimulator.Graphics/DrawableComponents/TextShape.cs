@@ -14,8 +14,6 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
         private readonly SpriteBatch spriteBatch;
         private readonly TextTextureRenderer textRenderer;
 
-        public OutlineRenderOptions OutlineRenderOptions { get; set; }
-
         private TextShape(Game game, SpriteBatch spriteBatch) : base(game)
         {
             this.spriteBatch = spriteBatch;
@@ -35,15 +33,16 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
         /// <summary>
         /// Draw a text message (string) with transparent background
         /// to support redraw, compiled textures are cached for a short while <seealso cref="SweepInterval"/>
+        /// Outlined text will use the color from <paramref name="outlineRenderOptions"/>, and <paramref name="color"/> is ignored
         /// </summary>
         public void DrawString(Vector2 point, Color color, string message, System.Drawing.Font font, Vector2 scale, float angle,
             HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left, VerticalAlignment verticalAlignment = VerticalAlignment.Bottom,
-            SpriteEffects effects = SpriteEffects.None, SpriteBatch spriteBatch = null)
+            SpriteEffects effects = SpriteEffects.None, SpriteBatch spriteBatch = null, OutlineRenderOptions outlineRenderOptions = null)
         {
-            int identifier = HashCode.Combine(font, message, OutlineRenderOptions);
+            int identifier = HashCode.Combine(font, message, outlineRenderOptions);
             Texture2D texture = Get(identifier, () =>
             {
-                return textRenderer.RenderText(message, font, OutlineRenderOptions);
+                return textRenderer.RenderText(message, font, outlineRenderOptions);
             });
             Vector2 center = point;
             point -= new Vector2(texture.Width * ((int)horizontalAlignment / 2f), texture.Height * ((int)verticalAlignment / 2f));
@@ -53,7 +52,7 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             point = center + new Vector2(x, y);
             //p'x = cos(theta) * (px-ox) - sin(theta) * (py-oy) + ox
             //p'y = sin(theta) * (px-ox) + cos(theta) * (py-oy) + oy
-            (spriteBatch ?? this.spriteBatch).Draw(texture, point, null, color, angle, Vector2.Zero, scale, effects, 0);
+            (spriteBatch ?? this.spriteBatch).Draw(texture, point, null, outlineRenderOptions == null ? color : Color.White, angle, Vector2.Zero, scale, effects, 0);
         }
     }
 }

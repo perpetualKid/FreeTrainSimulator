@@ -80,8 +80,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 chkOutlineFont.OnClick += (object sender, MouseClickEventArgs e) =>
                 {
                     toolboxSettings.FontOutline = (sender as Checkbox).State.Value;
-                    if (null != contentArea)
-                        contentArea.FontOutlineOptions = (sender as Checkbox).State.Value ? OutlineRenderOptions.Default : null;
+                    contentArea?.UpdateColorSettings(toolboxSettings.ColorSettings, toolboxSettings.FontOutline);
                     ((Owner as WindowManager<ToolboxWindowType>)[ToolboxWindowType.DebugScreen] as DebugScreen).UpdateBackgroundColor(ColorExtension.FromName(toolboxSettings.ColorSettings[ColorSetting.Background]));
                 };
                 chkOutlineFont.State = toolboxSettings.FontOutline;

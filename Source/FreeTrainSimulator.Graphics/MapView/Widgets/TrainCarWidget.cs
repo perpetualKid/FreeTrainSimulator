@@ -56,7 +56,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         internal void DrawName(ContentArea contentArea)
         {
             Color fontColor = Color.Red;
-            contentArea.DrawText(Location, fontColor, $"{Train.Number} - {Train.Name}", contentArea.ConstantSizeFont, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Top);
+            contentArea.DrawText(Location, fontColor, $"{Train.Number} - {Train.Name}", contentArea.ConstantSizeFont, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Top, null);
         }
     }
 

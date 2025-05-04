@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
@@ -69,12 +70,6 @@ namespace FreeTrainSimulator.Graphics.MapView
         public System.Drawing.Font CurrentFont { get; private set; }
         public System.Drawing.Font ConstantSizeFont { get; private set; }
 
-        public OutlineRenderOptions FontOutlineOptions
-        {
-            get => contentText.OutlineRenderOptions;
-            set => contentText.OutlineRenderOptions = value;
-        }
-
         internal ContentArea(Game game, ContentBase content) :
             base(game)
         {
@@ -99,7 +94,17 @@ namespace FreeTrainSimulator.Graphics.MapView
             CenterAround(new PointD((TopLeftBound.X + BottomRightBound.X) / 2, (TopLeftBound.Y + BottomRightBound.Y) / 2));
         }
 
-        public void UpdateColor(ColorSetting setting, Color color)
+        public void UpdateColorSettings(EnumArray<string, ColorSetting> colorPreferences, bool fontOutlining)
+        {
+            ArgumentNullException.ThrowIfNull(colorPreferences);
+
+            foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
+            {
+                UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]), fontOutlining);
+            }
+        }
+
+        public void UpdateColor(ColorSetting setting, Color color, bool fontOutlining)
         {
             switch (setting)
             {
@@ -107,48 +112,48 @@ namespace FreeTrainSimulator.Graphics.MapView
                     insetComponent?.UpdateColor(color);
                     break;
                 case ColorSetting.RailTrack:
-                    WidgetColorCache.UpdateColor<TrackSegment>(color);
+                    WidgetColorCache.SetColors<TrackSegment>(color, fontOutlining);
                     break;
                 case ColorSetting.RailTrackEnd:
-                    WidgetColorCache.UpdateColor<EndNode>(color);
+                    WidgetColorCache.SetColors<EndNode>(color, fontOutlining);
                     break;
                 case ColorSetting.RailTrackJunction:
-                    WidgetColorCache.UpdateColor<JunctionNode>(color);
+                    WidgetColorCache.SetColors<JunctionNode>(color, fontOutlining);
                     break;
                 case ColorSetting.RailTrackCrossing:
-                    WidgetColorCache.UpdateColor<CrossOverTrackItem>(color);
+                    WidgetColorCache.SetColors<CrossOverTrackItem>(color, fontOutlining);
                     break;
                 case ColorSetting.RailLevelCrossing:
-                    WidgetColorCache.UpdateColor<LevelCrossingTrackItem>(color);
+                    WidgetColorCache.SetColors<LevelCrossingTrackItem>(color, fontOutlining);
                     break;
                 case ColorSetting.RoadTrack:
-                    WidgetColorCache.UpdateColor<RoadSegment>(color);
+                    WidgetColorCache.SetColors<RoadSegment>(color, fontOutlining);
                     break;
                 case ColorSetting.RoadTrackEnd:
-                    WidgetColorCache.UpdateColor<RoadEndSegment>(color);
+                    WidgetColorCache.SetColors<RoadEndSegment>(color, fontOutlining);
                     break;
                 case ColorSetting.PathTrack:
-                    WidgetColorCache.UpdateColor<PathSegment>(color);
-                    WidgetColorCache.UpdateColor<EditorTrainPathSegment>(color);
-                    WidgetColorCache.UpdateColor<EditorTrainPath>(color);
+                    WidgetColorCache.SetColors<PathSegment>(color, fontOutlining);
+                    WidgetColorCache.SetColors<EditorTrainPathSegment>(color, fontOutlining);
+                    WidgetColorCache.SetColors<EditorTrainPath>(color, fontOutlining);
                     break;
                 case ColorSetting.StationItem:
-                    WidgetColorCache.UpdateColor<StationNameItem>(color);
+                    WidgetColorCache.SetColors<StationNameItem>(color, fontOutlining);
                     break;
                 case ColorSetting.PlatformItem:
-                    WidgetColorCache.UpdateColor<PlatformTrackItem>(color);
-                    WidgetColorCache.UpdateColor<PlatformPath>(color);
+                    WidgetColorCache.SetColors<PlatformTrackItem>(color, fontOutlining);
+                    WidgetColorCache.SetColors<PlatformPath>(color, fontOutlining);
                     color.A = 160;
-                    WidgetColorCache.UpdateColor<PlatformSegment>(color);
+                    WidgetColorCache.SetColors<PlatformSegment>(color, fontOutlining);
                     break;
                 case ColorSetting.SidingItem:
-                    WidgetColorCache.UpdateColor<SidingTrackItem>(color);
-                    WidgetColorCache.UpdateColor<SidingPath>(color);
+                    WidgetColorCache.SetColors<SidingTrackItem>(color, fontOutlining);
+                    WidgetColorCache.SetColors<SidingPath>(color, fontOutlining);
                     color.A = 160;
-                    WidgetColorCache.UpdateColor<SidingSegment>(color);
+                    WidgetColorCache.SetColors<SidingSegment>(color, fontOutlining);
                     break;
                 case ColorSetting.SpeedPostItem:
-                    WidgetColorCache.UpdateColor<SpeedPostTrackItem>(color);
+                    WidgetColorCache.SetColors<SpeedPostTrackItem>(color, fontOutlining);
                     break;
             }
         }
@@ -471,9 +476,10 @@ namespace FreeTrainSimulator.Graphics.MapView
             TrackItemWidget.SetFont(CurrentFont);
         }
 
-        public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, float angle, HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment)
+        public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, float angle, 
+            HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, OutlineRenderOptions outlineRenderOptions)
         {
-            contentText.DrawString(WorldToScreenCoordinates(location), color, text, font, scale, angle, horizontalAlignment, verticalAlignment, SpriteEffects.None, SpriteBatch);
+            contentText.DrawString(WorldToScreenCoordinates(location), color, text, font, scale, angle, horizontalAlignment, verticalAlignment, SpriteEffects.None, SpriteBatch, outlineRenderOptions);
         }
 
         protected override void Dispose(bool disposing)

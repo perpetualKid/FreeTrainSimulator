@@ -8,6 +8,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
+using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Imported.Track;
 
 using Microsoft.Xna.Framework;
@@ -241,8 +242,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = this.GetColor<SidingTrackItem>(colorVariation);
+            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<SidingTrackItem>();
             contentArea.BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(in Location, drawColor, SidingName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top);
+            contentArea.DrawText(in Location, drawColor, SidingName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top, outlineRenderOptions);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -276,9 +278,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = this.GetColor<PlatformTrackItem>(colorVariation);
+            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<PlatformTrackItem>();
             contentArea.BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(Location, drawColor, PlatformName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top);
-            contentArea.DrawText(Location, drawColor, StationName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Bottom);
+            contentArea.DrawText(Location, drawColor, PlatformName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top, outlineRenderOptions);
+            contentArea.DrawText(Location, drawColor, StationName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Bottom, outlineRenderOptions);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -319,9 +322,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 fontColor = this.GetColor<SpeedPostTrackItem>(colorVariation.Next());
                 drawColor = this.GetColor<SpeedPostTrackItem>(colorVariation);
             }
+            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<SpeedPostTrackItem>();
             // TODO 20210117 show more of the SpeedPostItem properties (direction, number/dot)
             contentArea.BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(Location, fontColor, distance, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center);
+            contentArea.DrawText(Location, fontColor, distance, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)

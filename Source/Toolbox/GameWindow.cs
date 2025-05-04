@@ -201,7 +201,7 @@ namespace FreeTrainSimulator.Toolbox
         internal void UpdateColorPreference(ColorSetting setting, string colorName)
         {
             ToolboxSettings.ColorSettings[setting] = colorName;
-            contentArea?.UpdateColor(setting, ColorExtension.FromName(colorName));
+            contentArea?.UpdateColor(setting, ColorExtension.FromName(colorName), ToolboxSettings.FontOutline);
             if (setting == ColorSetting.Background)
             {
                 backgroundColor = ColorExtension.FromName(colorName);

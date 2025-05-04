@@ -112,8 +112,7 @@ namespace FreeTrainSimulator.Toolbox
             ToolboxContent content = new ToolboxContent(this, ToolboxSettings.TrackWidthRatio);
             await content.Initialize().ConfigureAwait(false);
             content.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
-            content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings);
-            content.ContentArea.FontOutlineOptions = ToolboxSettings.FontOutline ? OutlineRenderOptions.Default : null;
+            content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline);
             ContentArea = content.ContentArea;
             mainmenu.PopulatePaths(await pathTask.ConfigureAwait(false));
             windowManager[ToolboxWindowType.StatusWindow].Close();

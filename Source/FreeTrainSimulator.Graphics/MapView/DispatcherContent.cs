@@ -181,7 +181,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
             {
-                ContentArea.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]));
+                ContentArea.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]), false);
             }
         }
 
