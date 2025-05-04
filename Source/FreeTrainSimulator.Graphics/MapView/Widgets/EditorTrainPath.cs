@@ -82,7 +82,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 {
                     TrainPathPointBase endPoint = (startPoint.NodeType & PathNodeType.End) == PathNodeType.End ? PathPoints.PreviousPathPoint(startPoint, pathType) : PathPoints.NextPathPoint(startPoint, pathType);
 
-                    (startPoint as EditorPathPoint).UpdateDirectionTowards(endPoint, true, (startPoint.NodeType & PathNodeType.End) == PathNodeType.End);
+                    (startPoint as EditorPathPoint).UpdateDirectionTowards(endPoint, startPoint.ValidationResult == PathNodeInvalidReasons.None, (startPoint.NodeType & PathNodeType.End) == PathNodeType.End);
                     List<TrainPathSectionBase> sections = InitializeSections(pathType, startPoint, endPoint).Sections;
 
                     if ((startPoint.NodeType & PathNodeType.End) != PathNodeType.End)

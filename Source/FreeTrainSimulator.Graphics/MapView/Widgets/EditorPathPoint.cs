@@ -43,7 +43,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
 
         internal EditorPathPoint(TrainPathPointBase trainPathPoint) : base(trainPathPoint)
-        { 
+        {
         }
 
         internal EditorPathPoint(in PointD location, in PointD vector, PathNodeType nodeType) : base(location, nodeType)
