@@ -18,13 +18,14 @@
 ## Bug Fixes
 
 - Fixing regression in Toolbox to also show invalid Paths (where path nodes are not on track)
-- Fixing an issue when resuming from Timetable-Save states
-- Fixing a race condition when profiles are saved, ie when switching profiles
-- Fixing a race condition in FolderStructure
 
 ## Maintenance
 
 - Update to Monogame 3.8.3
+- Removing support for contributed software
+  - Contrib.DataCollector
+  - Contrib.DataConverter
+  - Contrib.DataValidator
 
 ## Known Issues
 
