@@ -30,7 +30,7 @@ namespace FreeTrainSimulator.Common.Info
         /// <summary>
         /// "1.3.21-dev.6+631091b0" returns FullVersion: "1.3.21-dev.6+631091b0"
         /// </summary>
-        public static string FullVersion => CurrentVersion.ToFullString();
+        public static string FullVersion => CurrentVersion.OriginalVersion;
 
         /// <summary>
         /// "1.3.21-dev.6+631091b0" returns Version: "1.3.21-dev.6"
