@@ -2339,7 +2339,7 @@ namespace Orts.Simulation.RollingStocks
             m.M41 = p0.A[0];
             m.M42 = p0.A[1] + 0.275f;
             m.M43 = -p0.A[2];
-            worldPosition = new WorldPosition(traveller.Tile, m);
+            worldPosition = new WorldPosition(start, m);
 
             UpdatedTraveller(traveller, elapsedTimeS, distance, speed);
 
