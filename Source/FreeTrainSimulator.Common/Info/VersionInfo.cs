@@ -23,33 +23,17 @@ namespace FreeTrainSimulator.Common.Info
         //VersionInfo.FullVersion: "1.3.21-dev.6+631091b0"
         //VersionInfo.Version: "1.3.21-dev.6"
         //VersionInfo.FileVersion: "1.3.21.0"
-        //VersionInfo.Channel: "dev"
-        //VersionInfo.Build: "6"
         //VersionInfo.CodeVersion: "631091b0"
 
         /// <summary>
         /// "1.3.21-dev.6+631091b0" returns FullVersion: "1.3.21-dev.6+631091b0"
         /// </summary>
-        public static string FullVersion => CurrentVersion.ToFullString();
+        public static string FullVersion => CurrentVersion.OriginalVersion;
 
         /// <summary>
         /// "1.3.21-dev.6+631091b0" returns Version: "1.3.21-dev.6"
         /// </summary>
         public static string Version => CurrentVersion.ToNormalizedString();
-
-        /// <summary>
-        /// "1.3.21-dev.6+631091b0" returns Channel: "dev"
-        /// "1.3.21-rc.2" returns Channel: "rc"
-        /// "1.3.21" returns Channel: "release"
-        /// </summary>
-        public static string Channel => CurrentVersion.IsPrerelease ? CurrentVersion.ReleaseLabels?.ToArray()[0] : "release";
-
-        /// <summary>
-        /// "1.3.21-dev.6+631091b0" returns Build: 6
-        /// "1.3.21-rc.2" returns Build: 2
-        /// "1.3.21" returns Build: 0
-        /// </summary>
-        public static string Build => CurrentVersion.IsPrerelease ? CurrentVersion.ReleaseLabels?.ToArray()[1] : $"{CurrentVersion.Revision}";
 
         /// <summary>
         /// "1.3.21-dev.6+631091b0" returns CodeVersion: 631091b0
