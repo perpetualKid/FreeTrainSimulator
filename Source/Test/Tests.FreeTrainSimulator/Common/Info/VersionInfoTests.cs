@@ -53,9 +53,9 @@ namespace Tests.FreeTrainSimulator.Common.Info
                 VersionInfo.CurrentVersion.Revision,
 #pragma warning disable CS0436 // Type conflicts with imported type
                 ThisAssembly.IsPublicRelease ? VersionInfo.CurrentVersion.ReleaseLabels :
-#pragma warning restore CS0436 // Type conflicts with imported type
                 VersionInfo.CurrentVersion.ReleaseLabels.Concat(new string[] { "g" + VersionInfo.CurrentVersion.Metadata }), string.Empty);
-            Assert.IsNull(VersionInfo.GetBestAvailableVersion(new NuGetVersion[] { currentVersion }, true));
+            Assert.IsNull(VersionInfo.GetBestAvailableVersion(new NuGetVersion[] { currentVersion }, ThisAssembly.IsPrerelease));
+#pragma warning restore CS0436 // Type conflicts with imported type
         }
 
         [TestMethod()]
