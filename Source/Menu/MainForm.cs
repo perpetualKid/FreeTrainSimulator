@@ -124,9 +124,6 @@ namespace FreeTrainSimulator.Menu
 
         private async void MainForm_Shown(object sender, EventArgs e)
         {
-            ImmutableArray<string> options = Environment.GetCommandLineArgs().
-                Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
-
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
             ImmutableArray<ProfileModel> profiles = await SelectedProfile.GetProfiles(ctsProfileLoading.Token).ConfigureAwait(true);
