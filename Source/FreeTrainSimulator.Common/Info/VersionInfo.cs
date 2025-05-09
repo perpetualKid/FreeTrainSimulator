@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Common.Info
 
         public static readonly NuGetVersion CurrentVersion = GetVersion();
 
-        private static readonly NuGetVersion packageVersion = NuGetVersion.Parse(ThisAssembly.AssemblyInformationalVersion);
+        private static readonly NuGetVersion packageVersion = NuGetVersion.Parse(ThisAssembly.NuGetPackageVersion);
 
         //VersionInfo.FullVersion: "1.3.21-dev.6+631091b0"
         //VersionInfo.Version: "1.3.21-dev.6"
