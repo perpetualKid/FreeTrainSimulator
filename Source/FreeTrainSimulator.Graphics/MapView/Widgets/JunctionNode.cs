@@ -21,7 +21,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     /// </summary>
     internal record JunctionNode : JunctionNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
-        private const int diameter = 3;
+        private const int diameter = 1;
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Junction" };
 
         public JunctionNode(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections) :
@@ -46,7 +46,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Size = Math.Max(2.5f, (float)(4 / contentArea.Scale));
 
             Color drawColor = this.GetColor<JunctionNode>(colorVariation);
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+//            contentArea.BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            contentArea.BasicShapes.DrawTexture(BasicTextureType.Ring, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
     }
 
