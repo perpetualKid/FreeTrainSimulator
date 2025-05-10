@@ -35,7 +35,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             WidgetColorCache<T>.Colors[ColorVariation.Complement] = color.ComplementColor();
             WidgetColorCache<T>.Colors[ColorVariation.ComplementHighlight] = WidgetColorCache<T>.Colors[ColorVariation.Complement].HighlightColor(0.6);
 
-            WidgetTextOutlineCache<T>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color.ContrastColor(), color) : null;
+//            WidgetTextOutlineCache<T>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color.ContrastColor(), color) : null;
+            WidgetTextOutlineCache<T>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
         }
     }
 
