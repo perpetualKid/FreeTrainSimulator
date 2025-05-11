@@ -79,11 +79,19 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (alongTrack && nextPathPoint.ValidationResult == PathNodeInvalidReasons.None)
             {
                 TrackSegmentBase trackSegment = ConnectedSegments.Length == 1 ? ConnectedSegments[0] :
-                    ConnectedSegments.IntersectBy(nextPathPoint.ConnectedSegments.Select(s => s.TrackNodeIndex), s => s.TrackNodeIndex).First();
-                TrackDirection directionOnSegment = trackSegment.TrackDirectionOnSegment(this, nextPathPoint);
-                if (reverse)
-                    directionOnSegment = directionOnSegment.Reverse();
-                Direction = (trackSegment?.DirectionAt(Location) ?? 0) + (directionOnSegment == TrackDirection.Reverse ? MathHelper.Pi : 0) + MathHelper.PiOver2;
+                    ConnectedSegments.IntersectBy(nextPathPoint.ConnectedSegments.Select(s => s.TrackNodeIndex), s => s.TrackNodeIndex).FirstOrDefault();
+                if (trackSegment == null)
+                {
+                    PointD origin = nextPathPoint.Location - Location;
+                    Direction = (float)Math.Atan2(origin.X, origin.Y) + (reverse ? MathHelper.Pi : 0);
+                }
+                else
+                {
+                    TrackDirection directionOnSegment = trackSegment.TrackDirectionOnSegment(this, nextPathPoint);
+                    if (reverse)
+                        directionOnSegment = directionOnSegment.Reverse();
+                    Direction = (trackSegment?.DirectionAt(Location) ?? 0) + (directionOnSegment == TrackDirection.Reverse ? MathHelper.Pi : 0) + MathHelper.PiOver2;
+                }
             }
             else
             {
