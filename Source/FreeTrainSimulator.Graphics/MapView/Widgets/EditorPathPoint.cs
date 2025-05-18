@@ -90,7 +90,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                     TrackDirection directionOnSegment = trackSegment.TrackDirectionOnSegment(this, nextPathPoint);
                     if (reverse)
                         directionOnSegment = directionOnSegment.Reverse();
-                    Direction = (trackSegment?.DirectionAt(Location) ?? 0) + (directionOnSegment == TrackDirection.Reverse ? MathHelper.Pi : 0) + MathHelper.PiOver2;
+                    Direction = trackSegment.DirectionAt(Location) + (directionOnSegment == TrackDirection.Reverse ? MathHelper.Pi : 0) + MathHelper.PiOver2;
                 }
             }
             else
