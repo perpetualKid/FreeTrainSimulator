@@ -585,6 +585,7 @@ namespace FreeTrainSimulator.Menu
                     (bindingSourceContent.DataSource as List<FolderModel>)[index] = current with
                     {
                         Name = textBoxContentName.Text + suffix,
+                        Id = textBoxContentName.Text + suffix,
                     };
                 }
                 bindingSourceContent.ResetCurrentItem();
