@@ -116,7 +116,7 @@ namespace Orts.Simulation.Signalling
                 // check for any backfacing heads in signals
                 // if found, split signal
                 SplitBackfacing(trackDB.TrackItems, trackDB.TrackNodes);
-                Signals.RemoveAll(signal => signal == null);
+//                Signals.RemoveAll(signal => signal == null);
             }
 
             SetNumSignalHeads();
@@ -144,7 +144,9 @@ namespace Orts.Simulation.Signalling
 
             ProcessTroughs();
 
-            Signals.RemoveAll(signal => !signal.ValidateSignal());
+            //Signals.RemoveAll(signal => signal.SignalHeads.Count <= 0);
+            //Signals.RemoveAll(signal => !signal.ValidateSignal());
+            //Signals.RemoveAll(signal => signal == null);
             //re-index the elements
             for (int i = 0; i < Signals.Count; i++)
             {
@@ -535,7 +537,7 @@ namespace Orts.Simulation.Signalling
                 }
             }
             // remove existings signals heads remain
-            Signals.RemoveAll(signal => signal.SignalHeads.Count <= 0);
+//            Signals.RemoveAll(signal => signal.SignalHeads.Count <= 0);
             Signals.AddRange(backfacingSignals);
         }
 
