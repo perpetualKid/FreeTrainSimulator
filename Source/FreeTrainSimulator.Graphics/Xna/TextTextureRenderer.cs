@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -166,9 +167,17 @@ namespace FreeTrainSimulator.Graphics.Xna
                     {
                         using (GraphicsPath path = new GraphicsPath())
                         {
-                            path.AddString(text, font.FontFamily, (int)font.Style, graphics.DpiY * font.SizeInPoints / 72, Point.Empty, null);
-                            graphics.DrawPath(outlineOptions.Pen, path);
-                            graphics.FillPath(outlineOptions.FillBrush, path);
+                            try
+                            {
+                                path.AddString(text, font.FontFamily, (int)font.Style, graphics.DpiY * font.SizeInPoints / 72, Point.Empty, null);
+                                graphics.DrawPath(outlineOptions.Pen, path);
+                                graphics.FillPath(outlineOptions.FillBrush, path);
+                            }
+                            catch 
+                            {
+                                Trace.WriteLine($"Text: {text}, Font Family: {font.FontFamily}, Name: {font.Name} Style: {font.Style}, EmSize: {graphics.DpiY * font.SizeInPoints / 72}");
+                                throw;
+                            }
                         }
                     }
                     else
