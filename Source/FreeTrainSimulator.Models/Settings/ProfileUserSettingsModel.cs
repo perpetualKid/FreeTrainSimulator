@@ -92,7 +92,7 @@ namespace FreeTrainSimulator.Models.Settings
         {
             ViewerWindowType.QuitWindow => false,
             ViewerWindowType.HelpWindow => false,
-            ViewerWindowType.DebugOverlay => true,
+            ViewerWindowType.DebugOverlay => false,
             ViewerWindowType.ActivityWindow => false,
             ViewerWindowType.CompassWindow => false,
             ViewerWindowType.SwitchWindow => false,
