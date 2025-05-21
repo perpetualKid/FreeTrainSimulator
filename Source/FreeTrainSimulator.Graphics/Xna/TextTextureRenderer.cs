@@ -25,8 +25,8 @@ namespace FreeTrainSimulator.Graphics.Xna
         public float OutlineWidth => Pen.Width;
         public Color OutlineColor => Pen.Color;
 
-        public OutlineRenderOptions(float width, Microsoft.Xna.Framework.Color outlineColor, Microsoft.Xna.Framework.Color fillColor):
-            this (width, outlineColor.ToSystemDrawingColor(), fillColor.ToSystemDrawingColor())
+        public OutlineRenderOptions(float width, Microsoft.Xna.Framework.Color outlineColor, Microsoft.Xna.Framework.Color fillColor) :
+            this(width, outlineColor.ToSystemDrawingColor(), fillColor.ToSystemDrawingColor())
         {
         }
 
@@ -167,17 +167,9 @@ namespace FreeTrainSimulator.Graphics.Xna
                     {
                         using (GraphicsPath path = new GraphicsPath())
                         {
-                            try
-                            {
-                                path.AddString(text, font.FontFamily, (int)font.Style, graphics.DpiY * font.SizeInPoints / 72, Point.Empty, null);
-                                graphics.DrawPath(outlineOptions.Pen, path);
-                                graphics.FillPath(outlineOptions.FillBrush, path);
-                            }
-                            catch 
-                            {
-                                Trace.WriteLine($"Text: {text}, Font Family: {font.FontFamily}, Name: {font.Name} Style: {font.Style}, EmSize: {graphics.DpiY * font.SizeInPoints / 72}");
-                                throw;
-                            }
+                            path.AddString(text, font.FontFamily, (int)font.Style, graphics.DpiY * font.SizeInPoints / 72, Point.Empty, null);
+                            graphics.DrawPath(outlineOptions.Pen, path);
+                            graphics.FillPath(outlineOptions.FillBrush, path);
                         }
                     }
                     else
