@@ -43,7 +43,7 @@ namespace FreeTrainSimulator.Common.Info
             {
                 WriteEnvironment(builder);
             }
-            catch (Exception ex) when (ex is TypeInitializationException || ex is System.ComponentModel.Win32Exception)
+            catch (Exception ex) when (ex is TypeInitializationException || ex is System.ComponentModel.Win32Exception || ex is InvalidOperationException)
             {
                 builder.Append("Hardware information not available on this platform.");
             }
@@ -62,7 +62,7 @@ namespace FreeTrainSimulator.Common.Info
             }
             catch (ManagementException error)
             {
-                Trace.WriteLine(error);
+                Trace.WriteLine(error.Message);
             }
             try
             {
@@ -75,7 +75,7 @@ namespace FreeTrainSimulator.Common.Info
             }
             catch (ManagementException error)
             {
-                Trace.WriteLine(error);
+                Trace.WriteLine(error.Message);
             }
             output.AppendLine(CultureInfo.InvariantCulture, $"{"Memory",-12}= {buffer.TotalPhysical / 1024f / 1024 / 1024:F1} GB");
             try
@@ -86,7 +86,7 @@ namespace FreeTrainSimulator.Common.Info
             }
             catch (ManagementException error)
             {
-                Trace.WriteLine(error);
+                Trace.WriteLine(error.Message);
             }
 
             foreach (GraphicsAdapter adapter in GraphicsAdapter.Adapters)
@@ -103,7 +103,7 @@ namespace FreeTrainSimulator.Common.Info
             }
             catch (ManagementException error)
             {
-                Trace.WriteLine(error);
+                Trace.WriteLine(error.Message);
             }
             try
             {
@@ -116,7 +116,7 @@ namespace FreeTrainSimulator.Common.Info
             }
             catch (ManagementException error)
             {
-                Trace.WriteLine(error);
+                Trace.WriteLine(error.Message);
             }
             try
             {
@@ -126,7 +126,7 @@ namespace FreeTrainSimulator.Common.Info
             }
             catch (ManagementException error)
             {
-                Trace.WriteLine(error);
+                Trace.WriteLine(error.Message);
             }
         }
 
