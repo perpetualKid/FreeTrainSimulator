@@ -164,13 +164,15 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     {
         public CrossOverTrackItem(CrossoverItem source) : base(source)
         {
-            Size = 5f;
+            Size = 4f;
         }
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = WidgetDrawingOptions<CrossOverTrackItem>.Colors[colorVariation];
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.Ring, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            scaleFactor *= WidgetDrawingOptions<JunctionNode>.ScaleFactor;
+
+            contentArea.BasicShapes.DrawTexture(contentArea.Scale > 4 ? BasicTextureType.Ring : BasicTextureType.RingBold, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)

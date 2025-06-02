@@ -59,6 +59,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public static void UpdateTrackWidthRatio(bool downscale)
         {
             WidgetDrawingOptions<TrackSegment>.ScaleFactor = downscale ? 1.0 / 8 : 1;
+            WidgetDrawingOptions<RoadSegment>.ScaleFactor = downscale ? 1.0 / 8 : 1;
         }
     }
 
@@ -82,6 +83,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = WidgetDrawingOptions<RoadSegment>.Colors[colorVariation];
+            scaleFactor *= WidgetDrawingOptions<TrackSegment>.ScaleFactor;
             if (Curved)
                 contentArea.BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
