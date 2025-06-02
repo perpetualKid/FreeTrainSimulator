@@ -136,8 +136,8 @@ namespace FreeTrainSimulator.Toolbox.Settings
         public string PathId { get; set; }
 
         /// <summary>
-        /// Factor to narrow tracks (and roads), 1 for original width
+        /// Downscale Track width for easier overview of track schema
         /// </summary>
-        public int TrackWidthRatio { get; set; } = 8;
+        public bool LimitTrackWidth { get; set; } = true;
     }
 }

@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = this.GetColor<PathSegment>(colorVariation);
+            Color drawColor = WidgetDrawingOptions<PathSegment>.Colors[colorVariation];
             if (Curved)
                 contentArea.BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
@@ -35,7 +35,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = this.GetColor<PathSegment>(colorVariation);
+            Color drawColor = WidgetDrawingOptions<PathSegment>.Colors[colorVariation];
             Size = contentArea.Scale switch
             {
                 double i when i < 0.5 => 40,

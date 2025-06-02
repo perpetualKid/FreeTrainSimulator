@@ -41,8 +41,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = this.GetColor<StationNameItem>(colorVariation);
-            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<StationNameItem>();
+            Color fontColor = WidgetDrawingOptions<StationNameItem>.Colors[colorVariation];
+            OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<StationNameItem>.OutlineRenderOptions;
             if ((Count > 2 && contentArea.Scale < 0.3) || (Count > 1 && contentArea.Scale < 0.1) || contentArea.Scale >= 0.02)
                 contentArea.DrawText(Location, fontColor, Name, contentArea.ConstantSizeFont, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Top, outlineRenderOptions);
         }
@@ -79,8 +79,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = this.GetColor<PlatformPath>(ColorVariation.None);
-            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<PlatformPath>();
+            Color fontColor = WidgetDrawingOptions<PlatformNameItem>.Colors[ColorVariation.None];
+            OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<PlatformNameItem>.OutlineRenderOptions;
             contentArea.DrawText(Location, fontColor, Name, contentArea.CurrentFont, Vector2.One, direction, HorizontalAlignment.Center, VerticalAlignment.Bottom, outlineRenderOptions);
         }
     }
@@ -96,8 +96,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor = this.GetColor<SidingPath>(ColorVariation.None);
-            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<SidingPath>();
+            Color fontColor = WidgetDrawingOptions<SidingNameItem>.Colors[ColorVariation.None];
+            OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<SidingNameItem>.OutlineRenderOptions;
             contentArea.DrawText(Location, fontColor, Name, contentArea.CurrentFont, Vector2.One, direction, HorizontalAlignment.Center, VerticalAlignment.Bottom, outlineRenderOptions);
         }
     }

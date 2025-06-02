@@ -60,7 +60,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
                 Color color = ColorExtension.FromName(colorName);
                 backgroundBrush.Color = System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B);
                 e.Graphics.FillRectangle(backgroundBrush, e.Bounds);
-                fontBrush.Color = color.ToComplementSystemDrawingColor();
+                fontBrush.Color = color.ContrastColor().ToSystemDrawingColor();
                 e.Graphics.DrawString(colorName, e.Font, fontBrush, e.Bounds, System.Drawing.StringFormat.GenericDefault);
                 // If the ListBox has focus, draw a focus rectangle around the selected item.
                 e.DrawFocusRectangle();

@@ -1,5 +1,4 @@
-﻿
-using FreeTrainSimulator.Common.Position;
+﻿using FreeTrainSimulator.Common.Position;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {

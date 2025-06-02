@@ -34,7 +34,6 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private readonly InsetComponent insetComponent;
         private ToolboxContentMode contentMode;
-        private readonly int trackWidthRatio;
 
         internal PathEditorBase PathEditor { get; set; }
 
@@ -53,14 +52,13 @@ namespace FreeTrainSimulator.Graphics.MapView
             }
         }
 
-        public ToolboxContent(Game game, int trackWidthRatio) :
+        public ToolboxContent(Game game) :
             base(game)
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);
             DetailInfo["Route Name"] = RuntimeData.GameInstance(game).RouteData.Name;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
-            this.trackWidthRatio = Math.Clamp(trackWidthRatio, 1, 16);
         }
 
         public override async Task Initialize()
@@ -83,7 +81,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             DetailInfo["Tiles"] = $"{trackModel.ContentByTile[MapContentType.Grid].Count}";
         }
 
-        public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences, bool fontOutlining)
+        public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences, bool fontOutlining, bool limitTrackWidth)
         {
             ArgumentNullException.ThrowIfNull(colorPreferences);
 
@@ -91,6 +89,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             {
                 ContentArea.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]), fontOutlining);
             }
+            ContentArea.UpdateTrackWidthSettings(limitTrackWidth);
         }
 
         internal override void UpdatePointerLocation(in PointD position, in Tile bottomLeft, in Tile topRight)
@@ -246,7 +245,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                         int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
-                            trackSegments.Add(new TrackSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++, trackWidthRatio));
+                            trackSegments.Add(new TrackSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
@@ -277,7 +276,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                         int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
-                            roadSegments.Add(new RoadSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++, trackWidthRatio));
+                            roadSegments.Add(new RoadSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++));
                         }
                         break;
                 }

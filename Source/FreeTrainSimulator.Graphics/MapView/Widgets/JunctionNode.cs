@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 
 using FreeTrainSimulator.Common;
@@ -21,7 +20,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     /// </summary>
     internal record JunctionNode : JunctionNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
-        private const int diameter = 1;
+        private const int diameter = 4;
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Junction" };
 
         public JunctionNode(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections) :
@@ -43,11 +42,15 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Size = Math.Max(2.5f, (float)(4 / contentArea.Scale));
+            scaleFactor *= WidgetDrawingOptions<JunctionNode>.ScaleFactor;
 
-            Color drawColor = this.GetColor<JunctionNode>(colorVariation);
-//            contentArea.BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.Ring, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            Color drawColor = WidgetDrawingOptions<JunctionNode>.Colors[colorVariation];
+            contentArea.BasicShapes.DrawTexture(contentArea.Scale > 4 ? BasicTextureType.Ring : BasicTextureType.RingBold, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+        }
+
+        public static void UpdateTrackWidthRatio(bool downscale)
+        {
+            WidgetDrawingOptions<JunctionNode>.ScaleFactor = downscale ? 2.0 / 3 : 1;
         }
     }
 
@@ -102,7 +105,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 _ => 3,
             };
 
-            Color drawColor = this.GetColor<JunctionNode>(Junction.State == SwitchState.MainRoute ? ColorVariation.Complement : ColorVariation.None);
+            Color drawColor = WidgetDrawingOptions<JunctionNode>.Colors[Junction.State == SwitchState.MainRoute ? ColorVariation.Complement : ColorVariation.None];
             contentArea.BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), trackSectionAngles[(int)Junction.State], contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
 

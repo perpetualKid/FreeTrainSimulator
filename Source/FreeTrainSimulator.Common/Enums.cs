@@ -1088,9 +1088,6 @@ namespace FreeTrainSimulator.Common
         EndNodes,
         JunctionNodes,
         Crossovers,
-        SidingNames,
-        PlatformNames,
-        StationNames,
         SpeedPosts,
         MilePosts,
         Signals,
@@ -1100,6 +1097,9 @@ namespace FreeTrainSimulator.Common
         SoundRegions,
         Paths,
         Empty,
+        SidingNames,
+        PlatformNames,
+        StationNames,
         TrainNames,
     }
 

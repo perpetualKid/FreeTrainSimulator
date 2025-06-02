@@ -169,7 +169,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = this.GetColor<CrossOverTrackItem>(colorVariation);
+            Color drawColor = WidgetDrawingOptions<CrossOverTrackItem>.Colors[colorVariation];
             contentArea.BasicShapes.DrawTexture(BasicTextureType.Ring, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
         }
 
@@ -241,8 +241,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = this.GetColor<SidingTrackItem>(colorVariation);
-            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<SidingTrackItem>();
+            Color drawColor = WidgetDrawingOptions<SidingTrackItem>.Colors[colorVariation];
+            OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<SidingTrackItem>.OutlineRenderOptions;
             contentArea.BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
             contentArea.DrawText(in Location, drawColor, SidingName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top, outlineRenderOptions);
         }
@@ -277,8 +277,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = this.GetColor<PlatformTrackItem>(colorVariation);
-            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<PlatformTrackItem>();
+            Color drawColor = WidgetDrawingOptions<PlatformTrackItem>.Colors[colorVariation];
+            OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<PlatformTrackItem>.OutlineRenderOptions;
             contentArea.BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
             contentArea.DrawText(Location, drawColor, PlatformName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top, outlineRenderOptions);
             contentArea.DrawText(Location, drawColor, StationName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Bottom, outlineRenderOptions);
@@ -313,16 +313,16 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Color drawColor;
             if (MilePost)
             {
-                fontColor = this.GetColor<SpeedPostTrackItem>(colorVariation.Next());
-                drawColor = this.GetColor<SpeedPostTrackItem>(colorVariation);
+                fontColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation.Next()];
+                drawColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation];
 
             }
             else
             {
-                fontColor = this.GetColor<SpeedPostTrackItem>(colorVariation.Next());
-                drawColor = this.GetColor<SpeedPostTrackItem>(colorVariation);
+                fontColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation.Next()];
+                drawColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation];
             }
-            OutlineRenderOptions outlineRenderOptions = this.GetOutlineColorOptions<SpeedPostTrackItem>();
+            OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions;
             // TODO 20210117 show more of the SpeedPostItem properties (direction, number/dot)
             contentArea.BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
             contentArea.DrawText(Location, fontColor, distance, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);

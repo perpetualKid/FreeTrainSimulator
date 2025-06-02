@@ -27,6 +27,7 @@
 		<EmbeddedResource Include="Resources\Pickup.png" />
 		<EmbeddedResource Include="Resources\Platform.png" />
 		<EmbeddedResource Include="Resources\Ring.png" />
+		<EmbeddedResource Include="Resources\RingBold.png" />
 		<EmbeddedResource Include="Resources\RingCrossed.png" />
 		<EmbeddedResource Include="Resources\Signal.png" />
 		<EmbeddedResource Include="Resources\SignalDotGreen.png" />

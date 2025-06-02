@@ -41,18 +41,24 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public TrackSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex, int overSizeFactor = 1) :
-            base(trackVectorSection, trackSections, trackNodeIndex, trackVectorSectionIndex, overSizeFactor)
+        public TrackSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex) :
+            base(trackVectorSection, trackSections, trackNodeIndex, trackVectorSectionIndex)
         {
         }
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = this.GetColor<TrackSegment>(colorVariation);
+            Color drawColor = WidgetDrawingOptions<TrackSegment>.Colors[colorVariation];
+            scaleFactor *= WidgetDrawingOptions<TrackSegment>.ScaleFactor;
             if (Curved)
                 contentArea.BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else
                 contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+        }
+
+        public static void UpdateTrackWidthRatio(bool downscale)
+        {
+            WidgetDrawingOptions<TrackSegment>.ScaleFactor = downscale ? 1.0 / 8 : 1;
         }
     }
 
@@ -68,14 +74,14 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public RoadSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex, int overSizeFactor = 1) :
-            base(trackVectorSection, trackSections, trackNodeIndex, trackVectorSectionIndex, overSizeFactor)
+        public RoadSegment(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex) :
+            base(trackVectorSection, trackSections, trackNodeIndex, trackVectorSectionIndex)
         {
         }
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = this.GetColor<RoadSegment>(colorVariation);
+            Color drawColor = WidgetDrawingOptions<RoadSegment>.Colors[colorVariation];
             if (Curved)
                 contentArea.BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
             else

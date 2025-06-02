@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color drawColor = this.GetColor<EditorTrainPathSegment>(colorVariation);
+            Color drawColor = WidgetDrawingOptions<EditorTrainPathSegment>.Colors[colorVariation];
             Size = MathHelper.Max(0.5f, (float)(2 / contentArea.Scale));
 
             // this is bit of a hack to visualize invalid path segments, using a negative scaleFactor as flag to mark them invalid

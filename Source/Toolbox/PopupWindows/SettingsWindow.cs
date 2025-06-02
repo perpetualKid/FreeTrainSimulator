@@ -59,7 +59,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 int width = (int)(line.RemainingWidth * 0.8);
                 line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Enable Logging")));
                 Checkbox chkLoggingEnabled = new Checkbox(this);
-                chkLoggingEnabled.OnClick += (object sender, MouseClickEventArgs e) => userSettings.LogLevel = (sender as Checkbox).State.Value ? System.Diagnostics.TraceEventType.Verbose: System.Diagnostics.TraceEventType.Critical;
+                chkLoggingEnabled.OnClick += (object sender, MouseClickEventArgs e) => userSettings.LogLevel = (sender as Checkbox).State.Value ? System.Diagnostics.TraceEventType.Verbose : System.Diagnostics.TraceEventType.Critical;
                 chkLoggingEnabled.State = userSettings.LogLevel != System.Diagnostics.TraceEventType.Critical;
                 line.Add(chkLoggingEnabled);
 
@@ -80,7 +80,10 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 chkOutlineFont.OnClick += (object sender, MouseClickEventArgs e) =>
                 {
                     toolboxSettings.FontOutline = (sender as Checkbox).State.Value;
-                    contentArea?.UpdateColorSettings(toolboxSettings.ColorSettings, toolboxSettings.FontOutline);
+                    foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
+                    {
+                        contentArea.UpdateColor(setting, ColorExtension.FromName(toolboxSettings.ColorSettings[setting]), toolboxSettings.FontOutline);
+                    }
                     ((Owner as WindowManager<ToolboxWindowType>)[ToolboxWindowType.DebugScreen] as DebugScreen).UpdateBackgroundColor(ColorExtension.FromName(toolboxSettings.ColorSettings[ColorSetting.Background]));
                 };
                 chkOutlineFont.State = toolboxSettings.FontOutline;
@@ -89,8 +92,12 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 line = layoutContainer.AddLayoutHorizontalLineOfText();
                 line.Add(new Label(this, width, line.RemainingHeight, Catalog.GetString("Use real track width")));
                 Checkbox trackWidthRatio = new Checkbox(this);
-                trackWidthRatio.OnClick += (object sender, MouseClickEventArgs e) => toolboxSettings.TrackWidthRatio = (sender as Checkbox).State.Value ? 1 : 8;
-                trackWidthRatio.State = toolboxSettings.TrackWidthRatio == 1;
+                trackWidthRatio.OnClick += (object sender, MouseClickEventArgs e) =>
+                {
+                    toolboxSettings.LimitTrackWidth = !(sender as Checkbox).State.Value;
+                    ContentArea.UpdateTrackWidthSettings(toolboxSettings.LimitTrackWidth);
+                };
+                trackWidthRatio.State = !toolboxSettings.LimitTrackWidth;
                 line.Add(trackWidthRatio);
             };
             layout.Add(tabControl);

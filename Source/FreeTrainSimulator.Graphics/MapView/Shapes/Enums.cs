@@ -7,6 +7,7 @@
         Circle,
         Disc,
         Ring,
+        RingBold,
         RingCrossed,
         ActiveBrokenNode,
         ActiveNode,

@@ -12,7 +12,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         static GridTile()
         {
-            WidgetColorCache.SetColors<GridTile>(Color.Black, false);
+            WidgetDrawingOptions<GridTile>.SetColors(Color.Black);
         }
 
         public GridTile(Tile tile) : base(WorldLocationFromTile(tile, -1024, -1024), WorldLocationFromTile(tile, 1024, 1024))
@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color color = this.GetColor<GridTile>(colorVariation);
+            Color color = WidgetDrawingOptions<GridTile>.Colors[colorVariation];
             contentArea.BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenCoordinates(lowerRight), contentArea.SpriteBatch);
             contentArea.BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(lowerRight), contentArea.WorldToScreenCoordinates(Vector), contentArea.SpriteBatch);
             contentArea.BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenCoordinates(upperLeft), contentArea.SpriteBatch);

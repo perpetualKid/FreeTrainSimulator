@@ -109,10 +109,10 @@ namespace FreeTrainSimulator.Toolbox
             if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
-            ToolboxContent content = new ToolboxContent(this, ToolboxSettings.TrackWidthRatio);
+            ToolboxContent content = new ToolboxContent(this);
             await content.Initialize().ConfigureAwait(false);
             content.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
-            content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline);
+            content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
             ContentArea = content.ContentArea;
             mainmenu.PopulatePaths(await pathTask.ConfigureAwait(false));
             windowManager[ToolboxWindowType.StatusWindow].Close();
