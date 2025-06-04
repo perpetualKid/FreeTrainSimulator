@@ -119,7 +119,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                         result.Add(new PlatformTrackItem(platformItem, trackItemNodes));
                         break;
                     case SpeedPostItem speedPostItem:
-                        result.Add(new SpeedPostTrackItem(speedPostItem));
+                        result.Add(speedPostItem.IsMilePost ? new MilePostTrackItem(speedPostItem) : new SpeedPostTrackItem(speedPostItem));
                         break;
                     case HazardItem hazardItem:
                         result.Add(new HazardTrackItem(hazardItem));
@@ -299,40 +299,56 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #region SpeedPostTrackItem
     internal record SpeedPostTrackItem : TrackItemWidget
     {
-        private readonly string distance;
-        internal readonly bool MilePost;
+        private readonly string speed;
 
         public SpeedPostTrackItem(SpeedPostItem source) : base(source)
         {
+            speed = source.Distance.ToString(CultureInfo.CurrentCulture);
+            Size = 5f;
+
+        }
+
+        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        {
+            Color drawColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation];
+            Color fontColor = drawColor.ContrastColor();
+            OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions;
+            contentArea.BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            contentArea.DrawText(Location, fontColor, speed, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
+        }
+
+        protected override void AddInfoDetails(InformationDictionary infoHolder)
+        {
+            infoHolder["Item Type"] = "Speed Post";
+            // TODO 20250603 show more of the SpeedPostItem properties (direction, number/dot)
+            infoHolder["Speed"] = speed;
+        }
+    }
+    #endregion
+
+    #region SpeedPostTrackItem
+    internal record MilePostTrackItem : TrackItemWidget
+    {
+        private readonly string distance;
+
+        public MilePostTrackItem(SpeedPostItem source) : base(source)
+        {
             distance = source.Distance.ToString(CultureInfo.CurrentCulture);
-            MilePost = source.IsMilePost;
             Size = 5f;
         }
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Color fontColor;
-            Color drawColor;
-            if (MilePost)
-            {
-                fontColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation.Next()];
-                drawColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation];
-
-            }
-            else
-            {
-                fontColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation.Next()];
-                drawColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation];
-            }
-            OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions;
-            // TODO 20210117 show more of the SpeedPostItem properties (direction, number/dot)
+            Color drawColor = WidgetDrawingOptions<MilePostTrackItem>.Colors[colorVariation];
+            Color fontColor = drawColor.ContrastColor();
+            OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<MilePostTrackItem>.OutlineRenderOptions;
             contentArea.BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
             contentArea.DrawText(Location, fontColor, distance, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
         {
-            infoHolder["Item Type"] = MilePost ? "Mile Post" : "Speed Post";
+            infoHolder["Item Type"] = "Mile Post";
         }
     }
     #endregion

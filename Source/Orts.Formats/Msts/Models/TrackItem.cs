@@ -210,7 +210,7 @@ namespace Orts.Formats.Msts.Models
     }
 
     /// <summary>
-    /// Describes SpeedPost of MilePost (could be Kilometer post as well)
+    /// Describes SpeedPost or MilePost (could be Kilometer post as well)
     /// </summary>
     public class SpeedPostItem : TrackItem
     {
@@ -235,7 +235,7 @@ namespace Orts.Formats.Msts.Models
         public bool ShowNumber => ((flags & (1 << 4)) != 0);
         /// <summary>if ShowNumber is true and this is set, will show 1.5 as for 15KMH</summary>
         public bool ShowDot => ShowNumber && ((flags & (1 << 9)) != 0);
-        /// <summary>Or distance if mile post.</summary>
+        /// <summary>Speed for speed post, or distance if mile post.</summary>
         public float Distance { get; protected set; }
 
         /// <summary>index to Signal Object Table</summary>
