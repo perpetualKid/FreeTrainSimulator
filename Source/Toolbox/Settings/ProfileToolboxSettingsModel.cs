@@ -59,7 +59,7 @@ namespace FreeTrainSimulator.Toolbox.Settings
             ColorSetting.StationItem => nameof(Color.Firebrick),
             ColorSetting.PlatformItem => nameof(Color.Navy),
             ColorSetting.SidingItem => nameof(Color.ForestGreen),
-            ColorSetting.SpeedPostItem => nameof(Color.RoyalBlue),
+            ColorSetting.SpeedPostItem => nameof(Color.Gold),
             ColorSetting.HazardItem => nameof(Color.White),
             ColorSetting.PickupItem => nameof(Color.White),
             ColorSetting.SoundRegionItem => nameof(Color.White),

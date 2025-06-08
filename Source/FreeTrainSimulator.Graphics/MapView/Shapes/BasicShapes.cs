@@ -72,6 +72,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Shapes
             textureOffsets[BasicTextureType.Hazard] = Vector2.Zero;
             textureOffsets[BasicTextureType.Pickup] = Vector2.Zero;
             textureOffsets[BasicTextureType.CarSpawner] = Vector2.Zero;
+            textureOffsets[BasicTextureType.ArrowedIndicator] = Vector2.Zero;
         }
 
         #region Drawing

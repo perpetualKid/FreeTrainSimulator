@@ -212,7 +212,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             trackCrossverNodesVisibleToolStripMenuItem.CheckOnClick = true;
             trackCrossverNodesVisibleToolStripMenuItem.Name = "trackCrossverNodesVisibleToolStripMenuItem";
             trackCrossverNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
-            trackCrossverNodesVisibleToolStripMenuItem.Text = "Crossver Nodes";
+            trackCrossverNodesVisibleToolStripMenuItem.Text = "Crossover Nodes";
             // 
             // trackLevelCrossingsVisibleToolStripMenuItem
             // 
@@ -585,7 +585,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             speedpostColorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { speedpostColorToolStripComboBoxMenuItem });
             speedpostColorToolStripMenuItem.Name = "speedpostColorToolStripMenuItem";
             speedpostColorToolStripMenuItem.Size = new System.Drawing.Size(214, 22);
-            speedpostColorToolStripMenuItem.Text = "SpeedPost Text Color";
+            speedpostColorToolStripMenuItem.Text = "SpeedPost Color";
             // 
             // speedpostColorToolStripComboBoxMenuItem
             // 

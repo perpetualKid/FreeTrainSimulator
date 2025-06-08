@@ -9,6 +9,7 @@
         Ring,
         RingBold,
         RingCrossed,
+        ArrowedIndicator,
         ActiveBrokenNode,
         ActiveNode,
         ActiveNormalNode,

@@ -14,6 +14,7 @@
 		<EmbeddedResource Include="Resources\ActiveNode.png" />
 		<EmbeddedResource Include="Resources\ActiveNormalNode.png" />
 		<EmbeddedResource Include="Resources\ActiveTrackNode.png" />
+		<EmbeddedResource Include="Resources\ArrowedIndicator.png" />
 		<EmbeddedResource Include="Resources\CarSpawner.png" />
 		<EmbeddedResource Include="Resources\Circle.png" />
 		<EmbeddedResource Include="Resources\Disc.png" />

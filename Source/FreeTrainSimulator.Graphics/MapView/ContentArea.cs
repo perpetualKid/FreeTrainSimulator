@@ -97,6 +97,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             TrackSegment.UpdateTrackWidthRatio(limitTrackWidth);
             JunctionNode.UpdateTrackWidthRatio(limitTrackWidth);
+            SpeedPostTrackItem.UpdateTrackWidthRatio(limitTrackWidth);
         }
 
         public void UpdateColor(ColorSetting setting, Color color, bool fontOutlining)
@@ -152,7 +153,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                     break;
                 case ColorSetting.SpeedPostItem:
                     WidgetDrawingOptions<SpeedPostTrackItem>.SetColors(color);
-                    WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
+                    WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color.ContrastColor(), color) : null;
                     WidgetDrawingOptions<MilePostTrackItem>.SetColors(color);
                     break;
             }

@@ -119,7 +119,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                         result.Add(new PlatformTrackItem(platformItem, trackItemNodes));
                         break;
                     case SpeedPostItem speedPostItem:
-                        result.Add(speedPostItem.IsMilePost ? new MilePostTrackItem(speedPostItem) : new SpeedPostTrackItem(speedPostItem));
+                        result.Add(speedPostItem.IsMilePost ? new MilePostTrackItem(speedPostItem) : new SpeedPostTrackItem(speedPostItem, trackNodeSegments[trackItemNodes[speedPostItem.TrackItemId].Index]));
                         break;
                     case HazardItem hazardItem:
                         result.Add(new HazardTrackItem(hazardItem));
@@ -300,21 +300,41 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     internal record SpeedPostTrackItem : TrackItemWidget
     {
         private readonly string speed;
+        private readonly float angle;
+        private readonly PointD textLocation;
 
-        public SpeedPostTrackItem(SpeedPostItem source) : base(source)
+        public SpeedPostTrackItem(SpeedPostItem source, TrackSegmentSection segmentSection) : base(source)
         {
-            speed = source.Distance.ToString(CultureInfo.CurrentCulture);
-            Size = 5f;
+            speed = source.ToString();
+            Size = 3f;
+            TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segmentSection.SectionSegments);
+            angle = segment.DirectionAt(Location);
+            bool reverse = Math.Abs(angle + source.Angle) > MathHelper.PiOver2;
 
+            angle += reverse ? -MathHelper.PiOver2 : MathHelper.PiOver2;
+            textLocation = Location + (new PointD(1f* (float)Math.Cos(angle), -1*(float)Math.Sin(angle)));
         }
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
+            Size = contentArea.Scale switch
+            {
+                double i when i < 0.5 => 30,
+                double i when i < 0.75 => 15,
+                double i when i < 1 => 12,
+                double i when i < 5 => 8,
+                double i when i < 10 => 5,
+                double i when i < 20 => 2,
+                _ => 1f,
+            };
+
+            scaleFactor *= WidgetDrawingOptions<SpeedPostTrackItem>.ScaleFactor;
+
             Color drawColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation];
-            Color fontColor = drawColor.ContrastColor();
+            Color fontColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation];
             OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions;
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(Location, fontColor, speed, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
+            contentArea.BasicShapes.DrawTexture(BasicTextureType.ArrowedIndicator, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            contentArea.DrawText(textLocation, fontColor, speed, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -323,6 +343,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             // TODO 20250603 show more of the SpeedPostItem properties (direction, number/dot)
             infoHolder["Speed"] = speed;
         }
+
+        public static void UpdateTrackWidthRatio(bool downscale)
+        {
+            WidgetDrawingOptions<SpeedPostTrackItem>.ScaleFactor = downscale ? 1 : 2;
+        }
+
     }
     #endregion
 

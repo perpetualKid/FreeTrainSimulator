@@ -42,6 +42,18 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
+            Size = contentArea.Scale switch
+            {
+                double i when i < 0.5 => 30,
+                double i when i < 0.75 => 15,
+                double i when i < 1 => 12,
+                double i when i < 5 => 8,
+                double i when i < 10 => 6,
+                double i when i < 20 => 4,
+                _ => 2f,
+            };
+
+
             scaleFactor *= WidgetDrawingOptions<JunctionNode>.ScaleFactor;
 
             Color drawColor = WidgetDrawingOptions<JunctionNode>.Colors[colorVariation];

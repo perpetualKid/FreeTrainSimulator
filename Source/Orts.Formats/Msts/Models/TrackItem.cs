@@ -242,13 +242,8 @@ namespace Orts.Formats.Msts.Models
         public int SignalObject { get; set; }
         /// <summary>speedpost (normalized) angle</summary>
         public float Angle { get; protected set; }
-        /// <summary>derived direction relative to track</summary>
-        public int Direction { get; protected set; }
         /// <summary>number to be displayed if ShowNumber is true</summary>
         public int NumberShown { get; protected set; }
-
-        /// <summary>Get the direction the signal is NOT facing</summary>
-        public int ReverseDirection => Direction == 0 ? 1 : 0;
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -279,13 +274,14 @@ namespace Orts.Formats.Msts.Models
                         }
                     }
 
-                    //  The number of parameters depends on the flags seeting
-                    //  To do: Check flags seetings and parse accordingly.
+                    //  The number of parameters depends on the flags setting
+                    //  To do: Check flags settings and parse accordingly.
 		            if (!IsResume)
                     {
                         //SpeedInd = stf.ReadFloat(STFReader.Units.None, null);
-                        if (IsMilePost && ((flags & (1 << 9)) == 0)) Distance = (float)Math.Truncate(stf.ReadDouble(null));
-                        else Distance = stf.ReadFloat(STFReader.Units.None, null);
+                        Distance = IsMilePost && ((flags & (1 << 9)) == 0)
+                            ? (float)Math.Truncate(stf.ReadDouble(null))
+                            : stf.ReadFloat(STFReader.Units.None, null);
                     }
 
                     if (ShowNumber)
@@ -303,6 +299,28 @@ namespace Orts.Formats.Msts.Models
         // used as base for TempSpeedPostItem
         protected SpeedPostItem()
         { }
+
+        public override string ToString()
+        {
+            string result = string.Empty;
+            //determine what to show: speed or number used in German routes
+            if (ShowNumber)
+            {
+                result += NumberShown;
+            }
+            else
+            {
+                //determine if the speed is for passenger or freight
+                if (IsFreight && !IsPassenger)
+                    result += "F";
+                else if (!IsFreight && IsPassenger)
+                    result += "P";
+                result += Distance;
+            }
+            if (!ShowDot)
+                result = result.Replace(".", "", StringComparison.OrdinalIgnoreCase);
+            return result;
+        }
     }
 
     public class TempSpeedPostItem : SpeedPostItem
