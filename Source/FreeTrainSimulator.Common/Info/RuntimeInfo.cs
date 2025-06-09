@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Common.Info
         public const string WhatsNewLinkTemplate = "https://github.com/perpetualKid/FreeTrainSimulator/blob/gitcodeversion/WHATSNEW.md";
 
         /// <summary>
-        /// returns the Application as part of the product family, like (Family), like "Free Train Simulator"
+        /// returns the Application as part of the product family, like "Free Train Simulator"
         /// </summary>
         public static string ApplicationName { get; } = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileDescription;
 

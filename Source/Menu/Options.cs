@@ -553,11 +553,12 @@ namespace FreeTrainSimulator.Menu
         {
             if (bindingSourceContent.Current is FolderModel current && current.Name != textBoxContentName.Text)
             {
-                if (!Path.GetRelativePath(RuntimeInfo.ProgramRoot, current.ContentPath).StartsWith("..", StringComparison.OrdinalIgnoreCase))
+                string commonRoot;
+                if (!((commonRoot = Path.GetRelativePath(RuntimeInfo.ProgramRoot, current.ContentPath)) == current.ContentPath || commonRoot.StartsWith("..", StringComparison.OrdinalIgnoreCase)))
                 {
                     // Block added because a succesful Update operation will empty the Open Rails folder and lose any content stored within it.
                     MessageBox.Show(catalog.GetString
-                        ($"Cannot use content from any folder inside the Open Rails folder {RuntimeInfo.ProgramRoot}\n\n")
+                        ($"Cannot use content from any folder inside the {RuntimeInfo.ApplicationName} folder {RuntimeInfo.ProgramRoot}\n\n")
                         , "Invalid content location"
                         , MessageBoxButtons.OK
                         , MessageBoxIcon.Error);
