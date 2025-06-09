@@ -86,7 +86,8 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             "Firebrick",    // StationItem
             "Navy",         // PlatformItem
             "ForestGreen",  // SidingItem
-            "RoyalBlue",    // SpeedPostItem
+            "Gold",         // SpeedPostItem
+            "Black",        // MilePostItem
             "White",        // HazardItem
             "White",        // PickupItem
             "White",        // SoundRegionItem

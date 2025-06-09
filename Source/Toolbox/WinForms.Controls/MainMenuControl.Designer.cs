@@ -103,10 +103,12 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             loadPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             newPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            savePathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            savePathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            milepostColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            milepostColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             MainMenuStrip.SuspendLayout();
             SuspendLayout();
             // 
@@ -190,35 +192,35 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             // 
             trackSegmentsVisibleToolStripMenuItem.CheckOnClick = true;
             trackSegmentsVisibleToolStripMenuItem.Name = "trackSegmentsVisibleToolStripMenuItem";
-            trackSegmentsVisibleToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            trackSegmentsVisibleToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             trackSegmentsVisibleToolStripMenuItem.Text = "Track Segments";
             // 
             // trackEndNodesVisibleToolStripMenuItem
             // 
             trackEndNodesVisibleToolStripMenuItem.CheckOnClick = true;
             trackEndNodesVisibleToolStripMenuItem.Name = "trackEndNodesVisibleToolStripMenuItem";
-            trackEndNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            trackEndNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             trackEndNodesVisibleToolStripMenuItem.Text = "End Nodes";
             // 
             // trackJunctionNodesVisibleToolStripMenuItem
             // 
             trackJunctionNodesVisibleToolStripMenuItem.CheckOnClick = true;
             trackJunctionNodesVisibleToolStripMenuItem.Name = "trackJunctionNodesVisibleToolStripMenuItem";
-            trackJunctionNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            trackJunctionNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             trackJunctionNodesVisibleToolStripMenuItem.Text = "Junction Nodes";
             // 
             // trackCrossverNodesVisibleToolStripMenuItem
             // 
             trackCrossverNodesVisibleToolStripMenuItem.CheckOnClick = true;
             trackCrossverNodesVisibleToolStripMenuItem.Name = "trackCrossverNodesVisibleToolStripMenuItem";
-            trackCrossverNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            trackCrossverNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             trackCrossverNodesVisibleToolStripMenuItem.Text = "Crossover Nodes";
             // 
             // trackLevelCrossingsVisibleToolStripMenuItem
             // 
             trackLevelCrossingsVisibleToolStripMenuItem.CheckOnClick = true;
             trackLevelCrossingsVisibleToolStripMenuItem.Name = "trackLevelCrossingsVisibleToolStripMenuItem";
-            trackLevelCrossingsVisibleToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            trackLevelCrossingsVisibleToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             trackLevelCrossingsVisibleToolStripMenuItem.Text = "Level Crossings";
             // 
             // viewRoadItemsToolStripMenuItem
@@ -381,7 +383,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             // 
             // preferencesToolStripMenuItem
             // 
-            preferencesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { restoreLastViewMenuItem, selectLanguageMenuItem, toolStripSeparator3, backgroundColorToolStripMenuItem, railTrackColorToolStripMenuItem, railEndColorToolStripMenuItem, railJunctionColorToolStripMenuItem, railCrossingColorToolStripMenuItem, railLevelCrossingColorToolStripMenuItem, roadTrackColorToolStripMenuItem, roadTrackEndColorToolStripMenuItem, pathTrackColorToolStripMenuItem, stationColorToolStripMenuItem, platformColorToolStripMenuItem, sidingColorToolStripMenuItem, speedpostColorToolStripMenuItem, toolStripSeparator4 });
+            preferencesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { restoreLastViewMenuItem, selectLanguageMenuItem, toolStripSeparator3, backgroundColorToolStripMenuItem, railTrackColorToolStripMenuItem, railEndColorToolStripMenuItem, railJunctionColorToolStripMenuItem, railCrossingColorToolStripMenuItem, railLevelCrossingColorToolStripMenuItem, roadTrackColorToolStripMenuItem, roadTrackEndColorToolStripMenuItem, pathTrackColorToolStripMenuItem, stationColorToolStripMenuItem, platformColorToolStripMenuItem, sidingColorToolStripMenuItem, speedpostColorToolStripMenuItem, milepostColorToolStripMenuItem, toolStripSeparator4 });
             preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
             preferencesToolStripMenuItem.Size = new System.Drawing.Size(80, 20);
             preferencesToolStripMenuItem.Text = "Preferences";
@@ -609,21 +611,28 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             // loadPathToolStripMenuItem
             // 
             loadPathToolStripMenuItem.Name = "loadPathToolStripMenuItem";
-            loadPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            loadPathToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
             loadPathToolStripMenuItem.Text = "Load Path";
             loadPathToolStripMenuItem.Click += LoadPathToolStripMenuItem_Click;
             // 
             // toolStripSeparator7
             // 
             toolStripSeparator7.Name = "toolStripSeparator7";
-            toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
+            toolStripSeparator7.Size = new System.Drawing.Size(124, 6);
             // 
             // newPathToolStripMenuItem
             // 
             newPathToolStripMenuItem.Name = "newPathToolStripMenuItem";
-            newPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            newPathToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
             newPathToolStripMenuItem.Text = "New Path";
             newPathToolStripMenuItem.Click += EnableEditToolStripMenuItem_Click;
+            // 
+            // savePathToolStripMenuItem
+            // 
+            savePathToolStripMenuItem.Name = "savePathToolStripMenuItem";
+            savePathToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+            savePathToolStripMenuItem.Text = "Save Path";
+            savePathToolStripMenuItem.Click += SavePathToolStripMenuItem_Click;
             // 
             // helpToolStripMenuItem
             // 
@@ -646,12 +655,19 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             aboutToolStripMenuItem.Text = "About";
             aboutToolStripMenuItem.Click += AboutToolStripMenuItem_Click;
             // 
-            // savePathToolStripMenuItem
+            // milepostColorToolStripMenuItem
             // 
-            savePathToolStripMenuItem.Name = "savePathToolStripMenuItem";
-            savePathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            savePathToolStripMenuItem.Text = "Save Path";
-            savePathToolStripMenuItem.Click += SavePathToolStripMenuItem_Click;
+            milepostColorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { milepostColorToolStripComboBoxMenuItem });
+            milepostColorToolStripMenuItem.Name = "milepostColorToolStripMenuItem";
+            milepostColorToolStripMenuItem.Size = new System.Drawing.Size(214, 22);
+            milepostColorToolStripMenuItem.Text = "Mile Post Color";
+            // 
+            // milepostColorToolStripComboBoxMenuItem
+            // 
+            milepostColorToolStripComboBoxMenuItem.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            milepostColorToolStripComboBoxMenuItem.MaxDropDownItems = 24;
+            milepostColorToolStripComboBoxMenuItem.Name = "milepostColorToolStripComboBoxMenuItem";
+            milepostColorToolStripComboBoxMenuItem.Size = new System.Drawing.Size(224, 23);
             // 
             // MainMenuControl
             // 
@@ -749,5 +765,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
         private System.Windows.Forms.ToolStripMenuItem newPathToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem savePathToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem milepostColorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripComboBox milepostColorToolStripComboBoxMenuItem;
     }
 }

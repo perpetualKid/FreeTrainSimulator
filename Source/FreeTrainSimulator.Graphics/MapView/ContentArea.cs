@@ -154,7 +154,10 @@ namespace FreeTrainSimulator.Graphics.MapView
                 case ColorSetting.SpeedPostItem:
                     WidgetDrawingOptions<SpeedPostTrackItem>.SetColors(color);
                     WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color.ContrastColor(), color) : null;
+                    break;
+                case ColorSetting.MilePostItem:
                     WidgetDrawingOptions<MilePostTrackItem>.SetColors(color);
+                    WidgetDrawingOptions<MilePostTrackItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
                     break;
             }
         }

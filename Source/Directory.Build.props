@@ -46,5 +46,6 @@
 		<NeutralLanguage>en</NeutralLanguage>
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+		<ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
 	</PropertyGroup>
 </Project>

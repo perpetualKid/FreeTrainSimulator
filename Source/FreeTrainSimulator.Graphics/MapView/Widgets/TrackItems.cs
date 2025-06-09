@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
@@ -119,7 +120,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                         result.Add(new PlatformTrackItem(platformItem, trackItemNodes));
                         break;
                     case SpeedPostItem speedPostItem:
-                        result.Add(speedPostItem.IsMilePost ? new MilePostTrackItem(speedPostItem) : new SpeedPostTrackItem(speedPostItem, trackNodeSegments[trackItemNodes[speedPostItem.TrackItemId].Index]));
+                        result.Add(speedPostItem.IsMilePost ? new MilePostTrackItem(speedPostItem, trackNodeSegments[trackItemNodes[speedPostItem.TrackItemId].Index]) : 
+                            new SpeedPostTrackItem(speedPostItem, trackNodeSegments[trackItemNodes[speedPostItem.TrackItemId].Index]));
                         break;
                     case HazardItem hazardItem:
                         result.Add(new HazardTrackItem(hazardItem));
@@ -306,7 +308,6 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public SpeedPostTrackItem(SpeedPostItem source, TrackSegmentSection segmentSection) : base(source)
         {
             speed = source.ToString();
-            Size = 3f;
             TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segmentSection.SectionSegments);
             angle = segment.DirectionAt(Location);
             bool reverse = Math.Abs(angle + source.Angle) > MathHelper.PiOver2;
@@ -331,10 +332,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             scaleFactor *= WidgetDrawingOptions<SpeedPostTrackItem>.ScaleFactor;
 
             Color drawColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation];
-            Color fontColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation];
             OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions;
             contentArea.BasicShapes.DrawTexture(BasicTextureType.ArrowedIndicator, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(textLocation, fontColor, speed, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
+            contentArea.DrawText(textLocation, drawColor, speed, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -352,29 +352,45 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     }
     #endregion
 
-    #region SpeedPostTrackItem
+    #region MilePostTrackItem
     internal record MilePostTrackItem : TrackItemWidget
     {
         private readonly string distance;
+        private readonly float angle;
+        private readonly PointD textLocation;
 
-        public MilePostTrackItem(SpeedPostItem source) : base(source)
+        private static readonly Vector2 fontScale = new Vector2(0.9f, 0.9f);
+
+        public MilePostTrackItem(SpeedPostItem source, TrackSegmentSection segmentSection) : base(source)
         {
+            Size = 1f;
             distance = source.Distance.ToString(CultureInfo.CurrentCulture);
-            Size = 5f;
+            TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segmentSection.SectionSegments);
+            angle = segment.DirectionAt(Location);
+
+            if (Math.Abs(angle) > MathHelper.PiOver2)
+                angle -= MathHelper.Pi;
+
+            textLocation = Location + (new PointD(-1f * (float)Math.Cos(angle), -1 * (float)Math.Sin(angle)));
         }
 
         public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
+
+            scaleFactor *= WidgetDrawingOptions<MilePostTrackItem>.ScaleFactor;
+
             Color drawColor = WidgetDrawingOptions<MilePostTrackItem>.Colors[colorVariation];
-            Color fontColor = drawColor.ContrastColor();
             OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<MilePostTrackItem>.OutlineRenderOptions;
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(Location, fontColor, distance, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
+
+            contentArea.BasicShapes.DrawLine(4, drawColor, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenSize(Size * scaleFactor), angle + MathHelper.PiOver2, contentArea.SpriteBatch);
+            contentArea.BasicShapes.DrawLine(4, drawColor, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenSize(Size * scaleFactor), angle + MathHelper.PiOver2 + MathHelper.Pi, contentArea.SpriteBatch);
+            contentArea.DrawText(textLocation, drawColor, distance, font, fontScale, angle, HorizontalAlignment.Center, VerticalAlignment.Bottom, outlineRenderOptions);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
         {
             infoHolder["Item Type"] = "Mile Post";
+            infoHolder["Distance"] = distance;
         }
     }
     #endregion

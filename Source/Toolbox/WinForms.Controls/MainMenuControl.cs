@@ -45,6 +45,7 @@ namespace FreeTrainSimulator.Toolbox.WinForms.Controls
             SetupColorComboBoxMenuItem(platformColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.PlatformItem], ColorSetting.PlatformItem);
             SetupColorComboBoxMenuItem(sidingColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.SidingItem], ColorSetting.SidingItem);
             SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.SpeedPostItem], ColorSetting.SpeedPostItem);
+            SetupColorComboBoxMenuItem(milepostColorToolStripComboBoxMenuItem, game.ToolboxSettings.ColorSettings[ColorSetting.MilePostItem], ColorSetting.MilePostItem);
 
             SetupVisibilityMenuItem(trackSegmentsVisibleToolStripMenuItem, MapContentType.Tracks);
             SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, MapContentType.EndNodes);

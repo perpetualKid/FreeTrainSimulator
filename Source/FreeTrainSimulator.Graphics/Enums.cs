@@ -32,6 +32,7 @@
         PlatformItem,
         SidingItem,
         SpeedPostItem,
+        MilePostItem,
         HazardItem,
         PickupItem,
         SoundRegionItem,
