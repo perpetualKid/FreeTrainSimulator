@@ -1,25 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <Description>Free Train Simulator Simulation Library</Description>
-    <AssemblyTitle>Free Train Simulator Simulation Library</AssemblyTitle>
-    <OutputPath>..\..\Program</OutputPath>
-    <Configurations>Debug;Release;CodeAnalysis</Configurations>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Common\**" />
-    <EmbeddedResource Remove="Common\**" />
-    <None Remove="Common\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.4" />
-    <PackageReference Include="System.IO.Pipelines" Version="9.0.5" />
+	<PropertyGroup>
+		<Description>Free Train Simulator Simulation Library</Description>
+		<AssemblyTitle>Free Train Simulator Simulation Library</AssemblyTitle>
+		<OutputPath>..\..\Program</OutputPath>
+		<Configurations>Debug;Release;CodeAnalysis</Configurations>
+	</PropertyGroup>
+	<ItemGroup>
+		<Compile Remove="Common\**" />
+		<EmbeddedResource Remove="Common\**" />
+		<None Remove="Common\**" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.4" />
+		<PackageReference Include="System.IO.Pipelines" Version="9.0.6" />
 		<PackageReference Include="MagicOnion.Client" Version="6.1.6" />
 		<PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="6.1.2-preview" />
 	</ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
-    <ProjectReference Include="..\FreeTrainSimulator.Online\FreeTrainSimulator.Online.csproj" />
-    <ProjectReference Include="..\Orts.Scripting.Api\Orts.Scripting.Api.csproj" />
-    <PackageReference Include="GetText.NET" Version="8.0.5" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
+		<ProjectReference Include="..\FreeTrainSimulator.Online\FreeTrainSimulator.Online.csproj" />
+		<ProjectReference Include="..\Orts.Scripting.Api\Orts.Scripting.Api.csproj" />
+		<PackageReference Include="GetText.NET" Version="8.0.5" />
+	</ItemGroup>
 </Project>
