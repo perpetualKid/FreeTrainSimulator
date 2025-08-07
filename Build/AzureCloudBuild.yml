@@ -91,7 +91,7 @@ steps:
     configuration: '$(buildConfiguration)'
     runInParallel: true
 
-- task: BuildQualityChecks@9
+- task: BuildQualityChecks@10
   inputs:
     checkWarnings: true
     warningFailOption: 'build'
