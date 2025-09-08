@@ -27,7 +27,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             Assert.AreEqual(-1, Tile.TileFromAbs(-3071.99));
             Assert.AreEqual(-2, Tile.TileFromAbs(-3072));
 
-            Assert.ThrowsException<OverflowException>(() => Tile.TileFromAbs(double.MaxValue));
+            Assert.ThrowsExactly<OverflowException>(() => Tile.TileFromAbs(double.MaxValue));
         }
 
         [TestMethod]

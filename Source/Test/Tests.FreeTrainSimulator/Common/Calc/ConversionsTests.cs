@@ -353,14 +353,14 @@ namespace Tests.FreeTrainSimulator.Common.Calc
             Assert.AreEqual(1.2, Pressure.Standard.FromInHg(Pressure.Standard.FromKPa(1.2, Pressure.Unit.InHg)), EqualityPrecisionDelta.DoublePrecisionDelta);
             Assert.AreEqual(1.2, Pressure.Standard.FromKgfpCm2(Pressure.Standard.FromKPa(1.2, Pressure.Unit.KgfpCm2)), EqualityPrecisionDelta.DoublePrecisionDelta);
             Assert.AreEqual(1.2, Pressure.Standard.FromPSI(Pressure.Standard.FromKPa(1.2, Pressure.Unit.PSI)), EqualityPrecisionDelta.DoublePrecisionDelta);
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Pressure.Standard.FromKPa(1.2, Pressure.Unit.None));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => Pressure.Standard.FromKPa(1.2, Pressure.Unit.None));
 
             Assert.AreEqual(1.2, Pressure.Standard.ToKPa(1.2, Pressure.Unit.KPa), EqualityPrecisionDelta.DoublePrecisionDelta);
             Assert.AreEqual(1.2, Pressure.Standard.ToBar(Pressure.Standard.ToKPa(1.2, Pressure.Unit.Bar)), EqualityPrecisionDelta.DoublePrecisionDelta);
             Assert.AreEqual(1.2, Pressure.Standard.ToInHg(Pressure.Standard.ToKPa(1.2, Pressure.Unit.InHg)), EqualityPrecisionDelta.DoublePrecisionDelta);
             Assert.AreEqual(1.2, Pressure.Standard.ToKgfpCm2(Pressure.Standard.ToKPa(1.2, Pressure.Unit.KgfpCm2)), EqualityPrecisionDelta.DoublePrecisionDelta);
             Assert.AreEqual(1.2, Pressure.Standard.ToPSI(Pressure.Standard.ToKPa(1.2, Pressure.Unit.PSI)), EqualityPrecisionDelta.DoublePrecisionDelta);
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Pressure.Standard.ToKPa(1.2, Pressure.Unit.None));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => Pressure.Standard.ToKPa(1.2, Pressure.Unit.None));
         }
 
 

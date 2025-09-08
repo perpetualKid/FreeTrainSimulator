@@ -18,7 +18,7 @@ namespace Tests.FreeTrainSimulator.Online
         public void ConnectivityClientTest()
         {
             ConnectivityClient client;
-            _ = Assert.ThrowsException<ArgumentNullException>(() => client = new ConnectivityClient(null, CancellationToken.None));
+            _ = Assert.ThrowsExactly<ArgumentNullException>(() => client = new ConnectivityClient(null, CancellationToken.None));
         }
 
         [TestMethod]

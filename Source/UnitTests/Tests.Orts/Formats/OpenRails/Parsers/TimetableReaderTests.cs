@@ -32,7 +32,7 @@ namespace Tests.Orts.Formats.OpenRails.Parsers
             }
             using (TestFile file = new TestFile(":"))
             {
-                Assert.ThrowsException<InvalidDataException>(() =>
+                Assert.ThrowsExactly<InvalidDataException>(() =>
                 {
                     TimetableReader tr = new TimetableReader(file.FileName);
                 });

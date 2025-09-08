@@ -1760,9 +1760,6 @@ namespace Orts.Formats.Msts.Parsers
             return c;
         }
 
-        public bool EOF() { return PeekChar() == -1; }
-
-
         /// <summary>
         /// This is really a local variable in the function ReadItem(...) but it is a class member to stop unnecessary memory re-allocations.
         /// </summary>

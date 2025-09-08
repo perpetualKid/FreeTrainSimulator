@@ -32,7 +32,7 @@ namespace FreeTrainSimulator.Models.Shim
         }
 
         /// <summary>
-        /// Only some user settings which are changed at runtime should be persisted, while others are kept with the configired profile settings
+        /// Only some user settings which are changed at runtime should be persisted, while others are kept with the configured profile settings
         /// Since the whole settingsmodel is stored at once, a copy is used and updated specifically with the settings to be persisted
         /// Only use this from ActivityViewer runtime when stored user settings model
         /// </summary>

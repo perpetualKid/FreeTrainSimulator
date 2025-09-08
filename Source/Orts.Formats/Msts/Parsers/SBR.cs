@@ -341,7 +341,7 @@ namespace Orts.Formats.Msts.Parsers
         /// <returns></returns>
         public override bool EndOfBlock()
         {
-            return endOfBlockReached || stf.PeekPastWhitespace() == ')' || stf.EOF();
+            return endOfBlockReached || stf.PeekPastWhitespace() == ')' || stf.Eof;
         }
 
         public override void VerifyEndOfBlock()

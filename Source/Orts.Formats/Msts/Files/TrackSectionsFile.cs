@@ -25,13 +25,15 @@ namespace Orts.Formats.Msts.Files
     // GLOBAL TSECTION DAT
 
     public class TrackSectionsFile
-	{
+    {
         public TrackSections TrackSections { get; private set; }
         public TrackShapes TrackShapes { get; private set; }
         public TrackPaths TrackSectionIndex { get; private set; } //route's tsection.dat
 
-        public void AddRouteTSectionDatFile( string fileName )
-		{
+        public int Version { get; init; }
+
+        public void AddRouteTSectionDatFile(string fileName)
+        {
             using (STFReader stf = new STFReader(fileName, false))
             {
                 if (stf.SimisSignature != "SIMISA@@@@@@@@@@JINX0T0t______")
@@ -45,28 +47,38 @@ namespace Orts.Formats.Msts.Files
                     // todo read in SectionIdx part of RouteTSectionDat
                 });
             }
-		}
+        }
 
         public TrackSectionsFile(string fileName)
         {
             using (STFReader stf = new STFReader(fileName, false))
             {
+                string signature = stf.ReadString();
+                if (signature == "_INFO")
+                {
+                    stf.MustMatchBlockStart();
+                    if (stf.ReadString().Equals("Build", System.StringComparison.OrdinalIgnoreCase))
+                        Version = stf.ReadInt(0);
+                }
+
                 stf.ParseFile(new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("tracksections", ()=>{ 
+                    new STFReader.TokenProcessor("tracksections", ()=>{
                         if (TrackSections == null)
                             TrackSections = new TrackSections(stf);
                         else
                             TrackSections.AddRouteStandardTrackSections(stf);}),
-                    new STFReader.TokenProcessor("trackshapes", ()=>{ 
-                        if (TrackShapes == null) 
+                    new STFReader.TokenProcessor("trackshapes", ()=>{
+                        if (TrackShapes == null)
                             TrackShapes = new TrackShapes(stf);
                         else
                             TrackShapes.AddRouteTrackShapes(stf);}),
                 });
                 //TODO This should be changed to STFException.TraceError() with defaults values created
-                if (TrackSections == null) throw new STFException(stf, "Missing TrackSections");
-                if (TrackShapes == null) throw new STFException(stf, "Missing TrackShapes");
+                if (TrackSections == null)
+                    throw new STFException(stf, "Missing TrackSections");
+                if (TrackShapes == null)
+                    throw new STFException(stf, "Missing TrackShapes");
             }
         }
-	}
+    }
 }

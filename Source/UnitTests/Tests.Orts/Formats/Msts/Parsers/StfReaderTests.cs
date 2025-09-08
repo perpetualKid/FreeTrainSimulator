@@ -65,7 +65,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
         [TestMethod]
         public void ThrowInConstructorOnMissingFileTest()
         {
-            Assert.ThrowsException<FileNotFoundException>(() => new STFReader("somenonexistingfile", false));
+            Assert.ThrowsExactly<FileNotFoundException>(() => new STFReader("somenonexistingfile", false));
         }
 
         [TestMethod]
@@ -90,7 +90,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
             {
                 reader.ReadItem();
 #if DEBUG
-                Assert.ThrowsException<AssertFailedException>(() => { _ = reader.Tree; });
+                Assert.ThrowsExactly<AssertFailedException>(() => { _ = reader.Tree; });
 #else
                 Assert.ThrowsException<NullReferenceException>(() => { _ = reader.Tree; });
 #endif
@@ -576,7 +576,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
             AssertWarnings.NotExpected();
             using (STFReader reader = Create.Reader("a"))
             {
-                Assert.ThrowsException<STFException>(() => reader.SkipBlock(), "expected an open block");
+                Assert.ThrowsExactly<STFException>(() => reader.SkipBlock(), "expected an open block");
             }
         }
 
@@ -743,7 +743,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
             string someotherToken = "b";
             using (STFReader reader = Create.Reader(someotherToken + " " + someotherToken))
             {
-                Assert.ThrowsException<STFException>(() => reader.MustMatch(tokenToMatch), "not found.*instead");
+                Assert.ThrowsExactly<STFException>(() => reader.MustMatch(tokenToMatch), "not found.*instead");
             }
         }
 
@@ -1879,7 +1879,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
             using (STFReader reader = new STFReader(new MemoryStream(Encoding.ASCII.GetBytes("")), "EmptyFile.stf", Encoding.ASCII, false))
             {
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
-                Assert.IsTrue(reader.EOF(), "STFReader.EOF()");
+                Assert.IsTrue(reader.Eof, "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual("EmptyFile.stf", reader.FileName);
                 Assert.AreEqual(1, reader.LineNumber);
@@ -1887,7 +1887,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 // Note, the Debug.Assert() in reader.Tree is already captured by AssertWarnings.Expected.
                 // For the rest, we do not care which exception is being thrown.
 #if DEBUG
-                Assert.ThrowsException<AssertFailedException>(() => reader.Tree);
+                Assert.ThrowsExactly<AssertFailedException>(() => reader.Tree);
 #else
                 Assert.ThrowsException<NullReferenceException>(() => reader.Tree);
 #endif
@@ -1929,29 +1929,25 @@ namespace Tests.Orts.Formats.Msts.Parsers
             using (STFReader reader = new STFReader(new MemoryStream(Encoding.Unicode.GetBytes("TheBlock()")), "EmptyBlock.stf", Encoding.Unicode, false))
             {
                 Assert.IsFalse(reader.Eof, "STFReader.Eof");
-                Assert.IsFalse(reader.EOF(), "STFReader.EOF()");
                 Assert.IsFalse(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual("EmptyBlock.stf", reader.FileName);
                 Assert.AreEqual(1, reader.LineNumber);
                 Assert.AreEqual(null, reader.SimisSignature);
-                Assert.ThrowsException<STFException>(() => reader.MustMatch("Something Else"));
+                Assert.ThrowsExactly<STFException>(() => reader.MustMatch("Something Else"));
                 // We can't rewind the STFReader and it has advanced forward now. :(
             }
             using (STFReader reader = new STFReader(new MemoryStream(Encoding.Unicode.GetBytes("TheBlock()")), "", Encoding.Unicode, false))
             {
                 reader.MustMatch("TheBlock");
                 Assert.IsFalse(reader.Eof, "STFReader.Eof");
-                Assert.IsFalse(reader.EOF(), "STFReader.EOF()");
                 Assert.IsFalse(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
                 reader.MustMatchBlockStart(); // Same as reader.MustMatch("(");
                 Assert.IsFalse(reader.Eof, "STFReader.Eof");
-                Assert.IsFalse(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
                 reader.MustMatchBlockEnd();
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
-                Assert.IsTrue(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
             }
@@ -1968,7 +1964,6 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.IsTrue(not_called == 0, "TokenProcessor for TheBlock must not be called: not_called = " + not_called);
 #pragma warning restore CA1508 // Avoid dead conditional code
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
-                Assert.IsTrue(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
             }
@@ -1977,7 +1972,6 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 reader.MustMatch("TheBlock");
                 reader.SkipBlock();
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
-                Assert.IsTrue(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
             }
@@ -1999,7 +1993,6 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.AreEqual(-123456, reader.ReadInt(null));
                 Assert.AreEqual(234567U, reader.ReadUInt(null));
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
-                Assert.IsTrue(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
             }
@@ -2017,7 +2010,6 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.AreEqual("String2", reader.ReadString());
                 Assert.AreEqual("String3", reader.ReadString());
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
-                Assert.IsTrue(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
             }
@@ -2041,7 +2033,6 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.AreEqual(-123456, reader.ReadIntBlock(null));
                 Assert.AreEqual(234567U, reader.ReadUIntBlock(null));
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
-                Assert.IsTrue(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
             }
@@ -2056,7 +2047,6 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.AreEqual("String2", reader.ReadStringBlock(null));
                 Assert.AreEqual("String3", reader.ReadStringBlock(null));
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
-                Assert.IsTrue(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
             }
@@ -2077,7 +2067,6 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 reader.ReadVector4Block(STFReader.Units.None, ref vector4);
                 Assert.AreEqual(new Vector4(1.1f, 1.2f, 1.3f, 1.4f), vector4);
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
-                Assert.IsTrue(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
             }
@@ -2581,7 +2570,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
         {
             string filename = "somefile";
             string message = "some message";
-            Assert.ThrowsException<STFException>(() => throw new STFException(new STFReader(new MemoryStream(), filename, Encoding.ASCII, true), message), message);
+            Assert.ThrowsExactly<STFException>(() => throw new STFException(new STFReader(new MemoryStream(), filename, Encoding.ASCII, true), message), message);
         }
 
     }

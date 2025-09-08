@@ -83,7 +83,7 @@ namespace Tests.FreeTrainSimulator.Common.Calc
             Assert.AreEqual(3, data.SmoothedValue);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         // FPS-like tests
         [DataRow(5, 3, 0.353)]
         [DataRow(10, 3, 0.353)]
