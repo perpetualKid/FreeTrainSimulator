@@ -145,11 +145,12 @@ namespace Orts.Formats.Msts
                         else if (File.Exists(tsectionFile = Path.Combine(CurrentFolder, Global, tsection)))   // doesn't seem to be a valid option, but might have been used so keep for now
                             return tsectionFile;
                         else
-                            return Path.Combine(ContentFolder.Folder, Global, tsection);
+                            return GlobalTrackSectionFile;
                     }
                 }
 
                 public string RouteTrackSectionFile => Path.Combine(CurrentFolder, tsection);
+                public string GlobalTrackSectionFile => Path.Combine(ContentFolder.Folder, Global, tsection);
 
                 public string SignalConfigurationFile
                 {
