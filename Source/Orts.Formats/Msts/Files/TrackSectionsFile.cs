@@ -80,5 +80,21 @@ namespace Orts.Formats.Msts.Files
                     throw new STFException(stf, "Missing TrackShapes");
             }
         }
+
+        public static int TrackSectionVersion(string fileName)
+        {
+            int version = 0;
+            using (STFReader stf = new STFReader(fileName, false))
+            {
+                string signature = stf.ReadString();
+                if (signature == "_INFO")
+                {
+                    stf.MustMatchBlockStart();
+                    if (stf.ReadString().Equals("Build", System.StringComparison.OrdinalIgnoreCase))
+                        version = stf.ReadInt(0);
+                }
+            }
+            return version;
+        }
     }
 }
