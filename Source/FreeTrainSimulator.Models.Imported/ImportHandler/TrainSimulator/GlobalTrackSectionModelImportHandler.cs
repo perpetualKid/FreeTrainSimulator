@@ -21,25 +21,29 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             FolderStructure.ContentFolder contentFolder = folderModel.MstsContentFolder();
 
             int trackSectionVersion = TrackSectionsFile.TrackSectionVersion(contentFolder.TrackSectionFile);
-            
-            TrackSectionsFile trackSectionsFile = new TrackSectionsFile(contentFolder.TrackSectionFile);
 
-            GlobalTrackSectionModel trackSectionModel = new GlobalTrackSectionModel()
+            GlobalTrackSectionModel trackSectionModel = await folderModel.Parent.TrackSectionByVersion(trackSectionVersion, cancellationToken).ConfigureAwait(false);
+            if (trackSectionModel == null)
             {
-                Id = TrackSectionModelExtensions.GlobalTrackSectionId(trackSectionVersion),
-                BuildVersion = trackSectionsFile.Version,
-                TrackSections = trackSectionsFile.TrackSections.Select(trackSection => new TrackSection()
-                {
-                    SectionIndex = trackSection.Key,
-                    Angle = trackSection.Value.Angle,
-                    Radius = trackSection.Value.Radius,
-                    Curved = trackSection.Value.Curved,
-                    Length = trackSection.Value.Length,
-                    Gauge = trackSection.Value.Width,
-                }).ToImmutableArray(),
-            };
+                TrackSectionsFile trackSectionsFile = new TrackSectionsFile(contentFolder.TrackSectionFile);
 
-            await Create(trackSectionModel, folderModel, true, false, cancellationToken).ConfigureAwait(false);
+                trackSectionModel = new GlobalTrackSectionModel()
+                {
+                    Id = TrackSectionModelExtensions.GlobalTrackSectionId(trackSectionVersion),
+                    BuildVersion = trackSectionsFile.Version,
+                    TrackSections = trackSectionsFile.TrackSections.Select(trackSection => new TrackSection()
+                    {
+                        SectionIndex = trackSection.Key,
+                        Angle = trackSection.Value.Angle,
+                        Radius = trackSection.Value.Radius,
+                        Curved = trackSection.Value.Curved,
+                        Length = trackSection.Value.Length,
+                        Gauge = trackSection.Value.Width,
+                    }).ToImmutableArray(),
+                };
+
+                await Create(trackSectionModel, folderModel, true, false, cancellationToken).ConfigureAwait(false);
+            }
 
             return trackSectionModel;
         }

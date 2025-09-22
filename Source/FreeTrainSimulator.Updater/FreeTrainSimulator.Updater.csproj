@@ -3,7 +3,7 @@
     <Description>Free Train Simulator Updater Library</Description>
     <AssemblyTitle>Free Train Simulator Updater Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
-    <Configurations>Debug;Release;CodeAnalysis</Configurations>
+    <Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Protocol" Version="6.14.0" />

@@ -13,6 +13,8 @@ namespace FreeTrainSimulator.Models.Shim
         public static string GlobalTrackSectionId(int version) => $"{version:D5}";
 
         public static Task<bool> ContainsTrackSectionVersion(this ContentModel _, int version) => GlobalTrackSectionModelHandler.Contains(GlobalTrackSectionId(version), CancellationToken.None);
+        public static async Task<GlobalTrackSectionModel> TrackSectionByVersion(this ContentModel _, int version, CancellationToken cancellationToken) => 
+            (await GlobalTrackSectionModelHandler.GetTrackSectionModels(cancellationToken).ConfigureAwait(false)).GetById(GlobalTrackSectionId(version));
         public static Task<ImmutableArray<GlobalTrackSectionModel>> GetTrackSectionModels(this ContentModel _, CancellationToken cancellationToken) => GlobalTrackSectionModelHandler.GetTrackSectionModels(cancellationToken);
 
         public static async ValueTask<GlobalTrackSectionModel> Get(this RouteModelHeader routeModel, CancellationToken cancellationToken)

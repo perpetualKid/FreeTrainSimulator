@@ -54,7 +54,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             return result;
         }
 
-        public static async Task<ActivityModel> Convert(string filePath, RouteModelHeader routeModel, CancellationToken cancellationToken)
+        private static async Task<ActivityModel> Convert(string filePath, RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrEmpty(filePath, nameof(filePath));
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));

@@ -3,7 +3,7 @@
     <Description>Free Train Simulator Scripting API Library</Description>
     <AssemblyTitle>Free Train Simulator Scripting API Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
-    <Configurations>Debug;Release;CodeAnalysis</Configurations>
+    <Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
   </PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
