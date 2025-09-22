@@ -32,7 +32,8 @@ namespace FreeTrainSimulator.Models.Handler
 
         public static Task<GlobalTrackSectionModel> GetCore(int version, CancellationToken cancellationToken)
         {
-            string key = $"{version}";
+
+            string key = TrackSectionModelExtensions.GlobalTrackSectionId(version);
 
             if (!modelTaskCache.TryGetValue(key, out Task<GlobalTrackSectionModel> modelTask) || modelTask.IsFaulted)
             {

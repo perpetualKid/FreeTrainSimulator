@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 
             if (refresh = VersionInfo.Compare(contentModel.Version) > 0 || refresh)
             {
-                contentModel = await ContentModelImportHandler.Expand(contentModel, cancellationToken).ConfigureAwait(false);
+                contentModel = await ContentModelImportHandler.ExpandContentModel(contentModel, cancellationToken).ConfigureAwait(false);
 
                 int folderCount = contentModel.ContentFolders.Length;
                 int completedCount = 0;
@@ -38,7 +38,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 
             if (refresh = VersionInfo.Compare(contentModel.Version) > 0 || refresh)
             {
-                contentModel = await ContentModelImportHandler.Expand(contentModel, cancellationToken).ConfigureAwait(false);
+                contentModel = await ContentModelImportHandler.ExpandContentModel(contentModel, cancellationToken).ConfigureAwait(false);
 
                 await Parallel.ForEachAsync(contentModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {

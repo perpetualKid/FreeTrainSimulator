@@ -13,7 +13,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         private const string root = "root";
         private const string keyName = "content";
 
-        public static Task<ContentModel> Expand(ContentModel contentModel, CancellationToken cancellationToken)
+        public static Task<ContentModel> ExpandContentModel(ContentModel contentModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
 

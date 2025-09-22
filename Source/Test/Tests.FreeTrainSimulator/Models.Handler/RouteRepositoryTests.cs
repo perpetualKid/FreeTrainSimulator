@@ -65,7 +65,8 @@ namespace Tests.FreeTrainSimulator.Models.Handler
             ContentModel contentModel = await ContentModel.None.Get(CancellationToken.None).ConfigureAwait(false);
             FolderModel folder = contentModel.ContentFolders.GetByName("Demo");
 
-//            System.Collections.Immutable.ImmutableArray<GlobalTrackSectionModel> trackSections = await contentModel.GetTrackSectionModels(CancellationToken.None);
+            GlobalTrackSectionModel globalTrackSectionModel = await GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None).ConfigureAwait(false);
+
             bool contains = await contentModel.ContainsTrackSectionVersion(32).ConfigureAwait(false);
             contains = await contentModel.ContainsTrackSectionVersion(38).ConfigureAwait(false);
 
@@ -75,7 +76,6 @@ namespace Tests.FreeTrainSimulator.Models.Handler
 
             System.Collections.Immutable.ImmutableArray<GlobalTrackSectionModel> result = await GlobalTrackSectionModelHandler.GetTrackSectionModels(CancellationToken.None).ConfigureAwait(false);
 
-            GlobalTrackSectionModel globalTrackSectionModel = await GlobalTrackSectionModelImportHandler.ConvertGlobal(folder, CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

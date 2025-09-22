@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,15 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
     internal class GlobalTrackSectionModelImportHandler : ContentHandlerBase<GlobalTrackSectionModel>
     {
-        public static async Task<GlobalTrackSectionModel> ConvertGlobal(FolderModel folderModel, CancellationToken cancellationToken)
+        public static Task<GlobalTrackSectionModel> ExpandTrackSectionModel(FolderModel folderModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
+
+            return Convert(folderModel, cancellationToken);
+        }
+
+
+        private static async Task<GlobalTrackSectionModel> Convert(FolderModel folderModel, CancellationToken cancellationToken)
         {
             FolderStructure.ContentFolder contentFolder = folderModel.MstsContentFolder();
 
@@ -43,6 +52,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 };
 
                 await Create(trackSectionModel, folderModel, true, false, cancellationToken).ConfigureAwait(false);
+
+                string keyName = trackSectionModel.Id;
+                modelTaskCache[keyName] = Task.FromResult(trackSectionModel);
             }
 
             return trackSectionModel;
