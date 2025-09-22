@@ -66,16 +66,16 @@ namespace Tests.FreeTrainSimulator.Models.Handler
             FolderModel folder = contentModel.ContentFolders.GetByName("Demo");
 
 //            System.Collections.Immutable.ImmutableArray<GlobalTrackSectionModel> trackSections = await contentModel.GetTrackSectionModels(CancellationToken.None);
-            bool contains = await contentModel.ContainsTrackSectionVersion(32);
-            contains = await contentModel.ContainsTrackSectionVersion(38);
+            bool contains = await contentModel.ContainsTrackSectionVersion(32).ConfigureAwait(false);
+            contains = await contentModel.ContainsTrackSectionVersion(38).ConfigureAwait(false);
 
-            GlobalTrackSectionModel globalTrackSection = await GlobalTrackSectionModelHandler.GetGlobal(CancellationToken.None);
+            GlobalTrackSectionModel globalTrackSection = await GlobalTrackSectionModelHandler.GetGlobal(CancellationToken.None).ConfigureAwait(false);
 
-            await GlobalTrackSectionModelHandler.GetCore(37, CancellationToken.None);
+            await GlobalTrackSectionModelHandler.GetCore(37, CancellationToken.None).ConfigureAwait(false);
 
-            System.Collections.Immutable.ImmutableArray<GlobalTrackSectionModel> result = await GlobalTrackSectionModelHandler.GetTrackSectionModels(CancellationToken.None);
+            System.Collections.Immutable.ImmutableArray<GlobalTrackSectionModel> result = await GlobalTrackSectionModelHandler.GetTrackSectionModels(CancellationToken.None).ConfigureAwait(false);
 
-            GlobalTrackSectionModel globalTrackSectionModel = await GlobalTrackSectionModelImportHandler.ConvertGlobal(folder, CancellationToken.None);
+            GlobalTrackSectionModel globalTrackSectionModel = await GlobalTrackSectionModelImportHandler.ConvertGlobal(folder, CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

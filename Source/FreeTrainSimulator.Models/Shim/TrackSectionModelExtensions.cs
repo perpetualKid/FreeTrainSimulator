@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Models.Shim
 
         public static async ValueTask<GlobalTrackSectionModel> Get(this RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
-            GlobalTrackSectionModel trackSectionModel = await GlobalTrackSectionModelHandler.GetGlobal(cancellationToken);
+            GlobalTrackSectionModel trackSectionModel = await GlobalTrackSectionModelHandler.GetGlobal(cancellationToken).ConfigureAwait(false);
 
             return null;
         }

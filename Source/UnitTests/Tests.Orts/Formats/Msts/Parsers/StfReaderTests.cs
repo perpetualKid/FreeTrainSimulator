@@ -92,7 +92,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
 #if DEBUG
                 Assert.ThrowsExactly<AssertFailedException>(() => { _ = reader.Tree; });
 #else
-                Assert.ThrowsException<NullReferenceException>(() => { _ = reader.Tree; });
+                Assert.ThrowsExactly<NullReferenceException>(() => { _ = reader.Tree; });
 #endif
             }
         }
@@ -1889,7 +1889,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
 #if DEBUG
                 Assert.ThrowsExactly<AssertFailedException>(() => reader.Tree);
 #else
-                Assert.ThrowsException<NullReferenceException>(() => reader.Tree);
+                Assert.ThrowsExactly<NullReferenceException>(() => reader.Tree);
 #endif
                 // All of the following will execute successfully at EOF..., although they might give warnings.
                 reader.MustMatch("ANYTHING GOES");
