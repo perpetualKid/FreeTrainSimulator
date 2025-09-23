@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Models.Track;
 
@@ -45,7 +46,7 @@ namespace FreeTrainSimulator.Models.Handler
 
         public static Task<ImmutableArray<GlobalTrackSectionModel>> GetTrackSectionModels(CancellationToken cancellationToken)
         {
-            if (!modelSetTaskCache.TryGetValue(hierarchyKey, out Task<ImmutableArray<GlobalTrackSectionModel>> modelSetTask) || modelSetTask.IsFaulted)
+            if (collectionUpdateRequired.TryRemove(hierarchyKey, out _) || !modelSetTaskCache.TryGetValue(hierarchyKey, out Task<ImmutableArray<GlobalTrackSectionModel>> modelSetTask) || modelSetTask.IsFaulted)
             {
                 modelSetTaskCache[hierarchyKey] = modelSetTask = LoadTrackSectionModels(false, cancellationToken);
             }

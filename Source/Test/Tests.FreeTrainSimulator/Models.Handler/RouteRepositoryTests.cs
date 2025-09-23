@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -65,7 +66,19 @@ namespace Tests.FreeTrainSimulator.Models.Handler
             ContentModel contentModel = await ContentModel.None.Get(CancellationToken.None).ConfigureAwait(false);
             FolderModel folder = contentModel.ContentFolders.GetByName("Demo");
 
-            GlobalTrackSectionModel globalTrackSectionModel = await GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None).ConfigureAwait(false);
+            List<Task<GlobalTrackSectionModel>> tasks = new List<Task<GlobalTrackSectionModel>>()
+            {
+                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
+                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
+                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
+                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
+                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
+                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
+                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
+            };
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+//            GlobalTrackSectionModel globalTrackSectionModel = await GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None).ConfigureAwait(false);
 
             bool contains = await contentModel.ContainsTrackSectionVersion(32).ConfigureAwait(false);
             contains = await contentModel.ContainsTrackSectionVersion(38).ConfigureAwait(false);

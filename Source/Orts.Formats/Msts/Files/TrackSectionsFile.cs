@@ -93,6 +93,8 @@ namespace Orts.Formats.Msts.Files
                     if (stf.ReadString().Equals("Build", System.StringComparison.OrdinalIgnoreCase))
                         version = stf.ReadInt(0);
                 }
+                stf.SkipRestOfBlock();
+                stf.SkipRestOfBlock();
             }
             return version;
         }

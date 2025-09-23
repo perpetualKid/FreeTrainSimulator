@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +19,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
     internal class GlobalTrackSectionModelImportHandler : ContentHandlerBase<GlobalTrackSectionModel>
     {
+        private const string hierarchyKey = "Global";
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> currentWriters = new ConcurrentDictionary<string, SemaphoreSlim>();
+
         public static Task<GlobalTrackSectionModel> ExpandTrackSectionModel(FolderModel folderModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
@@ -29,32 +34,51 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         {
             FolderStructure.ContentFolder contentFolder = folderModel.MstsContentFolder();
 
-            int trackSectionVersion = TrackSectionsFile.TrackSectionVersion(contentFolder.TrackSectionFile);
+            string trackSectionVersion = TrackSectionModelExtensions.GlobalTrackSectionId(TrackSectionsFile.TrackSectionVersion(contentFolder.TrackSectionFile));
 
-            GlobalTrackSectionModel trackSectionModel = await folderModel.Parent.TrackSectionByVersion(trackSectionVersion, cancellationToken).ConfigureAwait(false);
+            GlobalTrackSectionModel trackSectionModel = (await folderModel.Parent.GetTrackSectionModels(cancellationToken).ConfigureAwait(false)).GetById(trackSectionVersion);
             if (trackSectionModel == null)
             {
-                TrackSectionsFile trackSectionsFile = new TrackSectionsFile(contentFolder.TrackSectionFile);
-
-                trackSectionModel = new GlobalTrackSectionModel()
+                if (!currentWriters.TryGetValue(trackSectionVersion, out SemaphoreSlim semaphoreSlim))
                 {
-                    Id = TrackSectionModelExtensions.GlobalTrackSectionId(trackSectionVersion),
-                    BuildVersion = trackSectionsFile.Version,
-                    TrackSections = trackSectionsFile.TrackSections.Select(trackSection => new TrackSection()
+                    _ = currentWriters.TryAdd(trackSectionVersion, new SemaphoreSlim(1));
+                    semaphoreSlim = currentWriters[trackSectionVersion];
+                }
+
+                try
+                {
+                    await semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    // after acquiring the lock, check if someone else in the meanwhile may have added the file, and return early
+                    trackSectionModel = (await folderModel.Parent.GetTrackSectionModels(cancellationToken).ConfigureAwait(false)).GetById(trackSectionVersion);
+                    if (trackSectionModel != null)
+                        return trackSectionModel;
+
+                    TrackSectionsFile trackSectionsFile = new TrackSectionsFile(contentFolder.TrackSectionFile);
+
+                    trackSectionModel = new GlobalTrackSectionModel()
                     {
-                        SectionIndex = trackSection.Key,
-                        Angle = trackSection.Value.Angle,
-                        Radius = trackSection.Value.Radius,
-                        Curved = trackSection.Value.Curved,
-                        Length = trackSection.Value.Length,
-                        Gauge = trackSection.Value.Width,
-                    }).ToImmutableArray(),
-                };
+                        Id = trackSectionVersion,
+                        BuildVersion = trackSectionsFile.Version,
+                        TrackSections = trackSectionsFile.TrackSections.Select(trackSection => new TrackSection()
+                        {
+                            SectionIndex = trackSection.Key,
+                            Angle = trackSection.Value.Angle,
+                            Radius = trackSection.Value.Radius,
+                            Curved = trackSection.Value.Curved,
+                            Length = trackSection.Value.Length,
+                            Gauge = trackSection.Value.Width,
+                        }).ToImmutableArray(),
+                    };
 
-                await Create(trackSectionModel, folderModel, true, false, cancellationToken).ConfigureAwait(false);
+                    await Create(trackSectionModel, folderModel, true, false, cancellationToken).ConfigureAwait(false);
 
-                string keyName = trackSectionModel.Id;
-                modelTaskCache[keyName] = Task.FromResult(trackSectionModel);
+                    modelTaskCache[trackSectionVersion] = Task.FromResult(trackSectionModel);
+                    collectionUpdateRequired[hierarchyKey] = true;
+                }
+                finally
+                {
+                    semaphoreSlim.Release();
+                }
             }
 
             return trackSectionModel;
