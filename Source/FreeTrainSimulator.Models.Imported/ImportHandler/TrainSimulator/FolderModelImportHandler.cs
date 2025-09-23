@@ -38,7 +38,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 }
                 catch (Exception ex) when (ex is SecurityException or UnauthorizedAccessException or ObjectDisposedException)
                 {
-                    Trace.TraceError($"Could not import existing content folders {ex.Message}.");
+                    Trace.TraceWarning($"Could not import existing content folders {ex.Message}.");
                 }
                 modelSetTaskCache[importKey] = modelSetTask = Task.FromResult(folderModels.ToImmutableArray());
             }

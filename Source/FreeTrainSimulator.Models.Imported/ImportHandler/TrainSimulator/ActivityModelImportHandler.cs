@@ -66,6 +66,11 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 {
                     activityFile = new ActivityFile(filePath);
                 }
+                catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+                {
+                    Trace.TraceWarning($"Could not read activity file {filePath} with reason {ex.Message}.");
+                    return null;
+                }
                 catch (Exception ex) when (ex is SystemException)
                 {
                     Trace.TraceError($"Could not read activity file {filePath} with reason {ex.Message}.");
@@ -77,9 +82,14 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 {
                     srvFile = new ServiceFile(routeModel.MstsRouteFolder().ServiceFile(activityFile.Activity.PlayerServices.Name));
                 }
+                catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+                {
+                    Trace.TraceWarning($"Could not read service file {filePath} for activity {activityFile.Activity.Header.Name} with reason {ex.Message}.");
+                    return null;
+                }
                 catch (Exception ex) when (ex is SystemException)
                 {
-                    Trace.TraceError($"Could not read service file {filePath}  for activity {activityFile.Activity.Header.Name} with reason {ex.Message}.");
+                    Trace.TraceError($"Could not read service file {filePath} for activity {activityFile.Activity.Header.Name} with reason {ex.Message}.");
                     return null;
                 }
 

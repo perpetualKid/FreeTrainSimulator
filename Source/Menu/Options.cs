@@ -251,8 +251,8 @@ namespace FreeTrainSimulator.Menu
                 if (ContentModel.ImportFolderSettings().Length > 0)
                 {
                     if (MessageBox.Show($"In an effort to optimize content, {RuntimeInfo.ProductName} will analyze existing content files and folders. No updates will be made to existing content." + Environment.NewLine + Environment.NewLine +
-                        "Please review the current content folder settings, and confirm using \"Ok\"-Button when closing the \"Options\" dialog." + Environment.NewLine + Environment.NewLine +
-                        $"Further information can be found online {RuntimeInfo.WikiLink}, click \"Yes\" to open in browser.", "Please read!", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                        "Please review the current content folder settings, and confirm using \"OK\"-Button when closing the \"Options\" dialog." + Environment.NewLine + Environment.NewLine +
+                        $"Further information can be found online {RuntimeInfo.WikiLink}, click \"OK\" to open in browser.", "Please read!", MessageBoxButtons.OKCancel) == DialogResult.OK)
                     {
                         SystemInfo.OpenBrowser(RuntimeInfo.WikiLink + "/Content-Storage#route-content-store");
                     }

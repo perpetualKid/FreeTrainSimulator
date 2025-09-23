@@ -84,6 +84,10 @@ namespace Orts.Formats.Msts.Files
         public static int TrackSectionVersion(string fileName)
         {
             int version = 0;
+
+            if (!System.IO.File.Exists(fileName))
+                return version;
+
             using (STFReader stf = new STFReader(fileName, false))
             {
                 string signature = stf.ReadString();

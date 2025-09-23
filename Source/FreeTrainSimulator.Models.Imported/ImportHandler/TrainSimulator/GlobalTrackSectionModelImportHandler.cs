@@ -36,6 +36,12 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             string trackSectionVersion = TrackSectionModelExtensions.GlobalTrackSectionId(TrackSectionsFile.TrackSectionVersion(contentFolder.TrackSectionFile));
 
+            if (trackSectionVersion == TrackSectionModelExtensions.GlobalTrackSectionId(0))
+            {
+                Trace.TraceWarning($"Cannot determine version for Global TrackSection in file {contentFolder.TrackSectionFile}.");
+                return null;
+            }
+
             GlobalTrackSectionModel trackSectionModel = (await folderModel.Parent.GetTrackSectionModels(cancellationToken).ConfigureAwait(false)).GetById(trackSectionVersion);
             if (trackSectionModel == null)
             {

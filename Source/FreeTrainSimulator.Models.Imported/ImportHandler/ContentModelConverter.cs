@@ -7,6 +7,7 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.ImportHandler.OpenRails;
 using FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator;
+using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler
 {
@@ -48,16 +49,17 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             return contentModel;
         }
 
-        public static async Task<FolderModel> ConvertContent(FolderModel folderModel, bool refresh, CancellationToken cancellationToken)
+        private static async Task<FolderModel> ConvertContent(FolderModel folderModel, bool refresh, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
 
             if (VersionInfo.Compare(folderModel.Version) > 0 || refresh)
             {
+                Task<GlobalTrackSectionModel> globalTrackSectionTask = GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folderModel, cancellationToken);
                 Task<ImmutableArray<RouteModelHeader>> routesTask = RouteModelImportHandler.ExpandRouteModels(folderModel, cancellationToken);
                 Task<ImmutableArray<WagonSetModel>> wagonSetsTask = WagonSetModelImportHandler.ExpandWagonSetModels(folderModel, cancellationToken);
 
-                await Task.WhenAll(wagonSetsTask, routesTask).ConfigureAwait(false);
+                await Task.WhenAll(globalTrackSectionTask, wagonSetsTask, routesTask).ConfigureAwait(false);
 
 #pragma warning disable CA1849 // Call async methods when in an async method
                 await Parallel.ForEachAsync(routesTask.Result, async (routeModel, cancellationToken) =>
@@ -69,7 +71,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             return folderModel;
         }
 
-        public static async Task<RouteModelHeader> ConvertContent(RouteModelHeader routeModel, bool refresh, CancellationToken cancellationToken)
+        private static async Task<RouteModelHeader> ConvertContent(RouteModelHeader routeModel, bool refresh, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
