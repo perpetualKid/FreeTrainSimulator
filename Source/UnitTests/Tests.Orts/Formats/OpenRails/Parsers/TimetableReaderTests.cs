@@ -15,20 +15,20 @@ namespace Tests.Orts.Formats.OpenRails.Parsers
             using (TestFile file = new TestFile(";"))
             {
                 TimetableReader tr = new TimetableReader(file.FileName);
-                Assert.AreEqual(1, tr.Strings.Count);
-                Assert.AreEqual(2, tr.Strings[0].Length);
+                Assert.HasCount(1, tr.Strings);
+                Assert.HasCount(2, tr.Strings[0]);
             }
             using (TestFile file = new TestFile(","))
             {
                 TimetableReader tr = new TimetableReader(file.FileName);
-                Assert.AreEqual(1, tr.Strings.Count);
-                Assert.AreEqual(2, tr.Strings[0].Length);
+                Assert.HasCount(1, tr.Strings);
+                Assert.HasCount(2, tr.Strings[0]);
             }
             using (TestFile file = new TestFile("\t"))
             {
                 TimetableReader tr = new TimetableReader(file.FileName);
-                Assert.AreEqual(1, tr.Strings.Count);
-                Assert.AreEqual(2, tr.Strings[0].Length);
+                Assert.HasCount(1, tr.Strings);
+                Assert.HasCount(2, tr.Strings[0]);
             }
             using (TestFile file = new TestFile(":"))
             {
@@ -45,10 +45,10 @@ namespace Tests.Orts.Formats.OpenRails.Parsers
             using (TestFile file = new TestFile(";b;c;d\n1;2;3\nA;B;C;D;E"))
             {
                 TimetableReader tr = new TimetableReader(file.FileName);
-                Assert.AreEqual(3, tr.Strings.Count);
-                Assert.AreEqual(4, tr.Strings[0].Length);
-                Assert.AreEqual(3, tr.Strings[1].Length);
-                Assert.AreEqual(5, tr.Strings[2].Length);
+                Assert.HasCount(3, tr.Strings);
+                Assert.HasCount(4, tr.Strings[0]);
+                Assert.HasCount(3, tr.Strings[1]);
+                Assert.HasCount(5, tr.Strings[2]);
 #pragma warning disable CA1861 // Avoid constant arrays as arguments
                 CollectionAssert.AreEqual(new[] { "", "b", "c", "d" }, tr.Strings[0]);
                 CollectionAssert.AreEqual(new[] { "1", "2", "3" }, tr.Strings[1]);

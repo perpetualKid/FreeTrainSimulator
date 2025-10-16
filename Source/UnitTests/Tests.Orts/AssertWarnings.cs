@@ -108,19 +108,19 @@ namespace Tests.Orts
         public override void Write(string message)
         {
             //Not sure what this is needed for exactly, calling a fail until we know something better
-            Assert.IsTrue(false, "Unexpected TraceListener.Write(string) call");
+            Assert.Fail("Unexpected TraceListener.Write(string) call");
         }
 
         public override void WriteLine(string message)
         {
             //Not sure what this is needed for exactly, calling a fail until we know something better
-            Assert.IsTrue(false, "Unexpected TraceListener.WriteLine(string) call");
+            Assert.Fail("Unexpected TraceListener.WriteLine(string) call");
         }
 
         public override void WriteLine(object o)
         {
             //Not sure what this is needed for exactly, calling a fail until we know something better
-            Assert.IsTrue(false, "Unexpected TraceListener.WriteLine(object) call");
+            Assert.Fail("Unexpected TraceListener.WriteLine(object) call");
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id)

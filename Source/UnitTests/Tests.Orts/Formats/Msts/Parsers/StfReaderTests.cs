@@ -75,7 +75,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
             string firstToken = "firsttoken";
             using (STFReader reader = Create.Reader(firstToken))
             {
-                Assert.IsNull(null, reader.SimisSignature);
+                Assert.IsNull(reader.SimisSignature);
                 reader.SkipRestOfBlock();
             }
         }
@@ -140,8 +140,8 @@ namespace Tests.Orts.Formats.Msts.Parsers
         {   //testing only what is really needed right now.
             using (STFReader reader = Create.Reader("a  )  "))
             {
-                Assert.IsFalse(')' == reader.PeekPastWhitespace());
-                Assert.IsFalse(-1 == reader.PeekPastWhitespace());
+                Assert.AreNotEqual(')', reader.PeekPastWhitespace());
+                Assert.AreNotEqual(-1, reader.PeekPastWhitespace());
 
                 reader.ReadItem();
                 Assert.AreEqual(')', reader.PeekPastWhitespace());
@@ -1883,7 +1883,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual("EmptyFile.stf", reader.FileName);
                 Assert.AreEqual(1, reader.LineNumber);
-                Assert.AreEqual(null, reader.SimisSignature);
+                Assert.IsNull(reader.SimisSignature);
                 // Note, the Debug.Assert() in reader.Tree is already captured by AssertWarnings.Expected.
                 // For the rest, we do not care which exception is being thrown.
 #if DEBUG
@@ -1896,7 +1896,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 reader.ParseBlock(Array.Empty<STFReader.TokenProcessor>());
                 reader.ParseFile(Array.Empty<STFReader.TokenProcessor>());
                 Assert.AreEqual(-1, reader.PeekPastWhitespace());
-                Assert.AreEqual(false, reader.ReadBoolBlock(false));
+                Assert.IsFalse(reader.ReadBoolBlock(false));
                 Assert.AreEqual(0, reader.ReadDouble(null));
                 Assert.AreEqual(0, reader.ReadDoubleBlock(null));
                 Assert.AreEqual(0, reader.ReadFloat(STFReader.Units.None, null));
@@ -1907,7 +1907,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.AreEqual(0, reader.ReadIntBlock(null));
                 Assert.AreEqual("", reader.ReadItem());
                 Assert.AreEqual("", reader.ReadString());
-                Assert.AreEqual(null, reader.ReadStringBlock(null));
+                Assert.IsNull(reader.ReadStringBlock(null));
                 Assert.AreEqual(0U, reader.ReadUInt(null));
                 Assert.AreEqual(0U, reader.ReadUIntBlock(null));
                 Vector2 vector2 = Vector2.Zero;
@@ -1932,7 +1932,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.IsFalse(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual("EmptyBlock.stf", reader.FileName);
                 Assert.AreEqual(1, reader.LineNumber);
-                Assert.AreEqual(null, reader.SimisSignature);
+                Assert.IsNull(reader.SimisSignature);
                 Assert.ThrowsExactly<STFException>(() => reader.MustMatch("Something Else"));
                 // We can't rewind the STFReader and it has advanced forward now. :(
             }
@@ -1960,8 +1960,8 @@ namespace Tests.Orts.Formats.Msts.Parsers
                     new STFReader.TokenProcessor("TheBlock", () => { not_called++; })
                 });
 #pragma warning disable CA1508 // Avoid dead conditional code  - False Positive
-                Assert.IsTrue(called == 1, "TokenProcessor for theblock must be called exactly once: called = " + called);
-                Assert.IsTrue(not_called == 0, "TokenProcessor for TheBlock must not be called: not_called = " + not_called);
+                Assert.AreEqual(1, called, "TokenProcessor for theblock must be called exactly once: called = " + called);
+                Assert.AreEqual(0, not_called, "TokenProcessor for TheBlock must not be called: not_called = " + not_called);
 #pragma warning restore CA1508 // Avoid dead conditional code
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
@@ -2020,8 +2020,8 @@ namespace Tests.Orts.Formats.Msts.Parsers
         {
             using (STFReader reader = new STFReader(new MemoryStream(Encoding.Unicode.GetBytes("(true ignored) (false ignored) (1.123456789 ignored) (1e9 ignored) (1.1e9 ignored) (2.123456 ignored) (2e9 ignored) (2.1e9 ignored) (00ABCDEF ignored) (123456 ignored) (-123456 ignored) (234567 ignored)")), "", Encoding.Unicode, false))
             {
-                Assert.AreEqual(true, reader.ReadBoolBlock(false));
-                Assert.AreEqual(false, reader.ReadBoolBlock(true));
+                Assert.IsTrue(reader.ReadBoolBlock(false));
+                Assert.IsFalse(reader.ReadBoolBlock(true));
                 Assert.AreEqual(1.123456789, reader.ReadDoubleBlock(null));
                 Assert.AreEqual(1e9, reader.ReadDoubleBlock(null));
                 Assert.AreEqual(1.1e9, reader.ReadDoubleBlock(null));
