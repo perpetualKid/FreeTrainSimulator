@@ -91,6 +91,21 @@ steps:
     configuration: '$(buildConfiguration)'
     runInParallel: true
 
+- task: VSTest@3
+  condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+  displayName: Testing the solution
+  inputs:
+    testSelector: 'testAssemblies'
+    testAssemblyVer2: |
+      **\bin\**\*test.dll
+      **\bin\**\*tests.dll
+    searchFolder: '$(System.DefaultWorkingDirectory)'
+    runInParallel: true
+    codeCoverageEnabled: true
+    otherConsoleOptions: '/platform:x64'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
 - task: BuildQualityChecks@10
   inputs:
     checkWarnings: true
