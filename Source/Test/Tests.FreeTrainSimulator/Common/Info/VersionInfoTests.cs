@@ -26,7 +26,7 @@ namespace Tests.FreeTrainSimulator.Common.Info
 
             Assert.AreEqual(FileVersionInfo.GetVersionInfo(Assembly.GetAssembly(typeof(VersionInfo)).Location).ProductVersion, VersionInfo.FullVersion);
 
-            Assert.IsTrue(VersionInfo.FullVersion.IndexOf('+', System.StringComparison.OrdinalIgnoreCase) >= 5);    // there should be a + sign for product metadata
+            Assert.IsGreaterThanOrEqualTo(5, VersionInfo.FullVersion.IndexOf('+', System.StringComparison.OrdinalIgnoreCase));    // there should be a + sign for product metadata
             Assert.IsFalse(string.IsNullOrEmpty(VersionInfo.CodeVersion));
         }
 
