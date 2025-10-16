@@ -18,8 +18,8 @@ namespace Tests.Orts.Formats.OpenRails.Parsers
             else
                 AssertWarnings.NotExpected();
             (int Warning, int Information) = JsonReader.ReadTest(text, $"{memberName}.json", tryParse);
-            Assert.IsTrue(expectedWarning == Warning, $"Expected {expectedWarning} warning log messages; got {Warning}");
-            Assert.IsTrue(expectedInformation == Information, $"Expected {expectedInformation} information log messages; got {Information}");
+            Assert.AreEqual(expectedWarning, Warning, $"Expected {expectedWarning} warning log messages; got {Warning}");
+            Assert.AreEqual(expectedInformation, Information, $"Expected {expectedInformation} information log messages; got {Information}");
         }
 
         [TestMethod]
