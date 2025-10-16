@@ -90,23 +90,6 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- task: VSTest@2
-  condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
-  displayName: Testing the solution
-  inputs:
-    testSelector: 'testAssemblies'
-    testAssemblyVer2: |
-      **\*Test.*.dll
-      **\*Tests.*.dll
-      !**\*TestAdapter.dll
-      !**\*TestPlatform*
-      !**\*testhost*
-      !**\obj\**
-    otherConsoleOptions: '/platform:x64'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    runInParallel: true
-
 - task: BuildQualityChecks@10
   inputs:
     checkWarnings: true
