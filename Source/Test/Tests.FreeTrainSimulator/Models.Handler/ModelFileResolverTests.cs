@@ -158,7 +158,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
             routeModel.Initialize(folder);
             string targetRouteFolderName = ModelFileResolver<RouteModelHeader>.FolderPath(routeModel);
             string targetPathFolderName = ModelFileResolver<PathModelHeader>.FolderPath(routeModel);
-            Assert.IsTrue(Path.GetRelativePath(targetPathFolderName, targetRouteFolderName) == "..");
+            Assert.AreEqual("..", Path.GetRelativePath(targetPathFolderName, targetRouteFolderName));
             Assert.IsTrue(targetPathFolderName.EndsWith(Path.Combine("Content", content.Name, folder.Name, routeModel.Id, "TrainPaths"), System.StringComparison.OrdinalIgnoreCase));
         }
 
