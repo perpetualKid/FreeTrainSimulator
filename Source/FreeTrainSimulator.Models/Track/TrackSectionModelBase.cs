@@ -18,13 +18,6 @@ namespace FreeTrainSimulator.Models.Track
     [ModelResolver("Global", ".tsection")]
     public partial record GlobalTrackSectionModel: TrackSectionModelBase
     {
-        public override TrackSectionModelBase Parent => null;
-    }
-
-    [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    [ModelResolver("", ".tsection")]
-    public partial record RouteTrackSectionModel : TrackSectionModelBase
-    {
-        public override RouteModelHeader Parent => _parent as RouteModelHeader;
+        public override FolderModel Parent => _parent as FolderModel;
     }
 }

@@ -34,15 +34,16 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         {
             FolderStructure.ContentFolder contentFolder = folderModel.MstsContentFolder();
 
-            string trackSectionVersion = TrackSectionModelExtensions.GlobalTrackSectionId(TrackSectionsFile.TrackSectionVersion(contentFolder.TrackSectionFile));
-
-            if (trackSectionVersion == TrackSectionModelExtensions.GlobalTrackSectionId(0))
-            {
-                Trace.TraceWarning($"Cannot determine version for Global TrackSection in file {contentFolder.TrackSectionFile}.");
+            int trackSectionVersionInt = TrackSectionsFile.TrackSectionVersion(contentFolder.TrackSectionFile);
+            if (trackSectionVersionInt < 0)
                 return null;
-            }
 
-            GlobalTrackSectionModel trackSectionModel = (await folderModel.Parent.GetTrackSectionModels(cancellationToken).ConfigureAwait(false)).GetById(trackSectionVersion);
+            string trackSectionVersion = TrackSectionModelExtensions.GlobalTrackSectionId(trackSectionVersionInt);
+
+            if (trackSectionVersion == TrackSectionModelExtensions.TrackSectionIdEmpty)
+                trackSectionVersion = folderModel.Id;
+
+            GlobalTrackSectionModel trackSectionModel = (await folderModel.GetTrackSectionModels(cancellationToken).ConfigureAwait(false)).GetById(trackSectionVersion);
             if (trackSectionModel == null)
             {
                 if (!currentWriters.TryGetValue(trackSectionVersion, out SemaphoreSlim semaphoreSlim))
@@ -55,7 +56,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 {
                     await semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
                     // after acquiring the lock, check if someone else in the meanwhile may have added the file, and return early
-                    trackSectionModel = (await folderModel.Parent.GetTrackSectionModels(cancellationToken).ConfigureAwait(false)).GetById(trackSectionVersion);
+                    trackSectionModel = (await folderModel.GetTrackSectionModels(cancellationToken).ConfigureAwait(false)).GetById(trackSectionVersion);
                     if (trackSectionModel != null)
                         return trackSectionModel;
 
@@ -76,7 +77,15 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         }).ToImmutableArray(),
                     };
 
-                    await Create(trackSectionModel, folderModel, true, false, cancellationToken).ConfigureAwait(false);
+                    if (trackSectionVersion == folderModel.Id)
+                    {
+                        Trace.TraceInformation($"Cannot determine version for Global TrackSection in file {contentFolder.TrackSectionFile}. Creating a route-local tsection.dat");
+                        await Create(trackSectionModel, folderModel, true, false, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await Create(trackSectionModel, (FolderModel)null, true, false, cancellationToken).ConfigureAwait(false);
+                    }
 
                     modelTaskCache[trackSectionVersion] = Task.FromResult(trackSectionModel);
                     collectionUpdateRequired[hierarchyKey] = true;

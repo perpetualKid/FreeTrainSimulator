@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Diagnostics;
 
 using Orts.Formats.Msts.Models;
@@ -53,13 +54,10 @@ namespace Orts.Formats.Msts.Files
         {
             using (STFReader stf = new STFReader(fileName, false))
             {
-                string signature = stf.ReadString();
-                if (signature == "_INFO")
-                {
-                    stf.MustMatchBlockStart();
-                    if (stf.ReadString().Equals("Build", System.StringComparison.OrdinalIgnoreCase))
-                        Version = stf.ReadInt(0);
-                }
+                Version = TrackSectionVersion(stf);
+
+                if (Version == 0)
+                    stf.StepBackOneItem();
 
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("tracksections", ()=>{
@@ -86,19 +84,29 @@ namespace Orts.Formats.Msts.Files
             int version = 0;
 
             if (!System.IO.File.Exists(fileName))
-                return version;
+                return -1;
 
             using (STFReader stf = new STFReader(fileName, false))
             {
-                string signature = stf.ReadString();
-                if (signature == "_INFO")
-                {
-                    stf.MustMatchBlockStart();
-                    if (stf.ReadString().Equals("Build", System.StringComparison.OrdinalIgnoreCase))
-                        version = stf.ReadInt(0);
-                }
+                version = TrackSectionVersion(stf);
                 stf.SkipRestOfBlock();
                 stf.SkipRestOfBlock();
+            }
+            return version;
+        }
+
+        private static int TrackSectionVersion(STFReader stfReader)
+        {
+            ArgumentNullException.ThrowIfNull(stfReader);
+
+            int version = 0;
+
+            string signature = stfReader.ReadString();
+            if (signature == "_INFO")
+            {
+                stfReader.MustMatchBlockStart();
+                if (stfReader.ReadString().Equals("Build", System.StringComparison.OrdinalIgnoreCase))
+                    version = stfReader.ReadInt(0);
             }
             return version;
         }
