@@ -162,13 +162,12 @@ namespace FreeTrainSimulator.Menu
                         }
                         if (toolIsConsole)
                         {
-                            if (toolName.Equals("MultiPlayer Hub", StringComparison.OrdinalIgnoreCase))
-                                Process.Start("cmd", $"/k \"{toolPath}\" {ProfileUserSettings.MultiplayerPort}");
-                            else
-                                Process.Start("cmd", $"/k \"{toolPath}\"");
+                            _ = toolName.Equals("MultiPlayer Hub", StringComparison.OrdinalIgnoreCase)
+                                ? Process.Start("cmd", $"/k \"{toolPath}\" {ProfileUserSettings.MultiplayerPort}")
+                                : Process.Start("cmd", $"/k \"{toolPath}\"");
                         }
                         else
-                            Process.Start(toolPath);
+                            _ = Process.Start(toolPath);
                     }
                     )
                     { Tag = fileName };
@@ -189,7 +188,7 @@ namespace FreeTrainSimulator.Menu
                         return new ToolStripMenuItem(Path.GetFileName(fileName), null, (object sender2, EventArgs e2) =>
                         {
                             string docPath = (sender2 as ToolStripItem).Tag as string;
-                            Process.Start(new ProcessStartInfo { FileName = docPath, UseShellExecute = true });
+                            _ = Process.Start(new ProcessStartInfo { FileName = docPath, UseShellExecute = true });
                         })
                         { Tag = fileName };
                     }).Where(d => d != null)
@@ -200,7 +199,7 @@ namespace FreeTrainSimulator.Menu
         {
             contextMenuStripTools.Items.Clear();
             contextMenuStripDocuments.Items.Clear();
-            contextMenuStripTools.Items.Add(testingToolStripMenuItem);
+            _ = contextMenuStripTools.Items.Add(testingToolStripMenuItem);
             contextMenuStripTools.Items.AddRange(LoadTools().OrderBy(tool => tool.Text).ToArray());
             contextMenuStripDocuments.Items.AddRange(LoadDocuments().OrderBy(doc => doc.Text).ToArray());
             // Documents button will be disabled if Documentation folder is not present.
@@ -426,7 +425,7 @@ namespace FreeTrainSimulator.Menu
             Match match = RegexUserName().Match(text);
             if (!match.Success)
             {
-                MessageBox.Show(CatalogManager.Catalog.GetString("User name must be 4-10 characters (chars, digits, _) long, cannot contain space, ', \" or - and must not start with a digit."), RuntimeInfo.ProductName);
+                _ = MessageBox.Show(CatalogManager.Catalog.GetString("User name must be 4-10 characters (chars, digits, _) long, cannot contain space, ', \" or - and must not start with a digit."), RuntimeInfo.ProductName);
                 return false;
             }
             return true;
@@ -463,7 +462,7 @@ namespace FreeTrainSimulator.Menu
         {
             if (InvokeRequired)
             {
-                Invoke(ShowOptionsForm, initialSetup);
+                _ = Invoke(ShowOptionsForm, initialSetup);
                 return;
             }
             ImmutableArray<FolderModel> existingFolders = ContentModel.ContentFolders;
@@ -579,7 +578,7 @@ namespace FreeTrainSimulator.Menu
 
             ConnectivityClient client = new ConnectivityClient(ProfileUserSettings.MultiplayerHost, ProfileUserSettings.MultiplayerPort, CancellationToken.None, true);
             bool result = await client.Ping().ConfigureAwait(true);
-            MessageBox.Show($"Connectivity test {(result ? "succeeded" : "failed")}!", "Multiplayer Connection", MessageBoxButtons.OK, result ? MessageBoxIcon.Information : MessageBoxIcon.Exclamation);
+            _ = MessageBox.Show($"Connectivity test {(result ? "succeeded" : "failed")}!", "Multiplayer Connection", MessageBoxButtons.OK, result ? MessageBoxIcon.Information : MessageBoxIcon.Exclamation);
         }
 
         #endregion
@@ -608,14 +607,7 @@ namespace FreeTrainSimulator.Menu
 
             string[] mpHost = textBoxMPHost.Text.Split(':');
             ProfileUserSettings.MultiplayerHost = mpHost[0];
-            if (mpHost.Length > 1 && int.TryParse(mpHost[1], out int port))
-            {
-                ProfileUserSettings.MultiplayerPort = port;
-            }
-            else
-            {
-                ProfileUserSettings.MultiplayerPort = ProfileUserSettingsModel.Default.MultiplayerPort;
-            }
+            ProfileUserSettings.MultiplayerPort = mpHost.Length > 1 && int.TryParse(mpHost[1], out int port) ? port : ProfileUserSettingsModel.Default.MultiplayerPort;
 
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(semaphoreSlim, true).ConfigureAwait(false);
 
@@ -688,7 +680,7 @@ namespace FreeTrainSimulator.Menu
                     Tag = profile,
                 };
                 profileItem.Click += ProfileItem_Click;
-                toolStripDropDownButton1.DropDownItems.Add(profileItem);
+                _ = toolStripDropDownButton1.DropDownItems.Add(profileItem);
             }
         }
 
@@ -705,7 +697,7 @@ namespace FreeTrainSimulator.Menu
 
             if (InvokeRequired)
             {
-                Invoke(UpdateProfilesDropdown, profileModel);
+                _ = Invoke(UpdateProfilesDropdown, profileModel);
                 return;
             }
             foreach (ToolStripMenuItem toolStripMenuItem in toolStripDropDownButton1.DropDownItems.OfType<ToolStripMenuItem>())
@@ -814,7 +806,7 @@ namespace FreeTrainSimulator.Menu
         {
             if (InvokeRequired)
             {
-                Invoke(SetupTimetableSetDropdown, timetables);
+                _ = Invoke(SetupTimetableSetDropdown, timetables);
                 return;
             }
 
@@ -849,7 +841,7 @@ namespace FreeTrainSimulator.Menu
         {
             if (InvokeRequired)
             {
-                Invoke(SetupTimetableWeatherDropdown, weatherModels);
+                _ = Invoke(SetupTimetableWeatherDropdown, weatherModels);
                 return;
             }
 
@@ -1105,32 +1097,32 @@ namespace FreeTrainSimulator.Menu
                 long baseOffset = stream.BaseStream.Position;
 
                 // WORD IMAGE_DOS_HEADER.e_magic = 0x4D5A (MZ)
-                stream.BaseStream.Seek(baseOffset + 0, SeekOrigin.Begin);
+                _ = stream.BaseStream.Seek(baseOffset + 0, SeekOrigin.Begin);
                 ushort dosMagic = stream.ReadUInt16();
                 if (dosMagic != 0x5A4D)
                     return ImageSubsystem.Unknown;
 
                 // LONG IMAGE_DOS_HEADER.e_lfanew
-                stream.BaseStream.Seek(baseOffset + 60, SeekOrigin.Begin);
+                _ = stream.BaseStream.Seek(baseOffset + 60, SeekOrigin.Begin);
                 uint ntHeaderOffset = stream.ReadUInt32();
                 if (ntHeaderOffset == 0)
                     return ImageSubsystem.Unknown;
 
                 // DWORD IMAGE_NT_HEADERS.Signature = 0x00004550 (PE..)
-                stream.BaseStream.Seek(baseOffset + ntHeaderOffset, SeekOrigin.Begin);
+                _ = stream.BaseStream.Seek(baseOffset + ntHeaderOffset, SeekOrigin.Begin);
                 uint ntMagic = stream.ReadUInt32();
                 if (ntMagic != 0x00004550)
                     return ImageSubsystem.Unknown;
 
                 // WORD IMAGE_OPTIONAL_HEADER.Magic = 0x010A (32bit header) or 0x020B (64bit header)
-                stream.BaseStream.Seek(baseOffset + ntHeaderOffset + 24, SeekOrigin.Begin);
+                _ = stream.BaseStream.Seek(baseOffset + ntHeaderOffset + 24, SeekOrigin.Begin);
                 ushort optionalMagic = stream.ReadUInt16();
                 if (optionalMagic != 0x010B && optionalMagic != 0x020B)
                     return ImageSubsystem.Unknown;
 
                 // WORD IMAGE_OPTIONAL_HEADER.Subsystem
                 // Note: There might need to be an adjustment for ImageBase being ULONGLONG in the 64bit header though this doesn't actually seem to be true.
-                stream.BaseStream.Seek(baseOffset + ntHeaderOffset + 92, SeekOrigin.Begin);
+                _ = stream.BaseStream.Seek(baseOffset + ntHeaderOffset + 92, SeekOrigin.Begin);
                 ushort peSubsystem = stream.ReadUInt16();
 
                 return (ImageSubsystem)peSubsystem;
@@ -1151,7 +1143,7 @@ namespace FreeTrainSimulator.Menu
         {
             if (updateManager.LastCheckError != null)
             {
-                MessageBox.Show(catalog.GetString($"The update check failed due to an error:\n\n{updateManager.LastCheckError.Message} {updateManager.LastCheckError.InnerException?.Message}"), RuntimeInfo.ProductName);
+                _ = MessageBox.Show(catalog.GetString($"The update check failed due to an error:\n\n{updateManager.LastCheckError.Message} {updateManager.LastCheckError.InnerException?.Message}"), RuntimeInfo.ProductName);
                 return;
             }
 
@@ -1161,7 +1153,7 @@ namespace FreeTrainSimulator.Menu
             }
             catch (Exception exception)
             {
-                MessageBox.Show(catalog.GetString($"The update failed due to an error:\n\n{exception.Message} {exception.InnerException?.Message}"), RuntimeInfo.ProductName);
+                _ = MessageBox.Show(catalog.GetString($"The update failed due to an error:\n\n{exception.Message} {exception.InnerException?.Message}"), RuntimeInfo.ProductName);
                 return;
                 throw;
             }
@@ -1189,7 +1181,7 @@ namespace FreeTrainSimulator.Menu
         {
             textInputControlProfileName.Bounds = toolStripDropDownButton1.Bounds;
             textInputControlProfileName.Visible = true;
-            textInputControlProfileName.Focus();
+            _ = textInputControlProfileName.Focus();
             await SaveOptions().ConfigureAwait(false);
         }
 

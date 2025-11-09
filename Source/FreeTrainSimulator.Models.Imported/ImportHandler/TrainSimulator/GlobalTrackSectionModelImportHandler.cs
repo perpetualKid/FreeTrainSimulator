@@ -92,7 +92,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 }
                 finally
                 {
-                    semaphoreSlim.Release();
+                    _ = semaphoreSlim.Release();
                 }
             }
 

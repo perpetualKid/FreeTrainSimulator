@@ -25,8 +25,8 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
                 int completedCount = 0;
                 await Parallel.ForEachAsync(contentModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {
-                    await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
-                    Interlocked.Increment(ref completedCount);
+                    _ = await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
+                    _ = Interlocked.Increment(ref completedCount);
                     progressClient?.Report(completedCount * 100 / folderCount);
                 }).ConfigureAwait(false);
             }
@@ -43,7 +43,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 
                 await Parallel.ForEachAsync(contentModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {
-                    await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
+                    _ = await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
             return contentModel;
@@ -61,11 +61,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 
                 await Task.WhenAll(globalTrackSectionTask, wagonSetsTask, routesTask).ConfigureAwait(false);
 
-#pragma warning disable CA1849 // Call async methods when in an async method
                 await Parallel.ForEachAsync(routesTask.Result, async (routeModel, cancellationToken) =>
-#pragma warning restore CA1849 // Call async methods when in an async method
                 {
-                    await ConvertContent(routeModel, refresh, cancellationToken).ConfigureAwait(false);
+                    _ = await ConvertContent(routeModel, refresh, cancellationToken).ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
             return folderModel;
