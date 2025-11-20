@@ -29,7 +29,6 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             return Convert(folderModel, cancellationToken);
         }
 
-
         private static async Task<GlobalTrackSectionModel> Convert(FolderModel folderModel, CancellationToken cancellationToken)
         {
             FolderStructure.ContentFolder contentFolder = folderModel.MstsContentFolder();
