@@ -63,9 +63,9 @@ namespace Orts.ContentChecker
             AddAdditionalSMS(routeFile.Route.DefaultTurntableSMS);
             AddAdditionalSMS(routeFile.Route.DefaultWaterTowerSMS);
 
-            foreach (SeasonType season in Enum.GetValues(typeof(SeasonType)))
+            foreach (SeasonType season in Enum.GetValues<SeasonType>())
             {
-                foreach (WeatherType weather in Enum.GetValues(typeof(WeatherType)))
+                foreach (WeatherType weather in Enum.GetValues<WeatherType>())
                 {
                     string environmentFile = routeFile.Route.Environment.GetEnvironmentFileName(season, weather);
                     string envFileFull = Path.Combine(Path.Combine(routePath, "ENVFILES"), environmentFile);

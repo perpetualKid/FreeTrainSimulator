@@ -15,7 +15,6 @@
     <PackageReference Include="GetText.NET" Version="8.0.5" />
     <PackageReference Include="GetText.NET.WindowsForms" Version="8.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="System.Resources.Extensions" Version="9.0.10" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj" />

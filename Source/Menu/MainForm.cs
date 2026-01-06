@@ -468,7 +468,7 @@ namespace FreeTrainSimulator.Menu
             ImmutableArray<FolderModel> existingFolders = ContentModel.ContentFolders;
             using (OptionsForm form = new OptionsForm(ProfileUserSettings, updateManager, initialSetup, ContentModel))
             {
-                if (form.ShowDialog(this) == DialogResult.OK)
+                if (await form.ShowDialogAsync(this).ConfigureAwait(false) == DialogResult.OK)
                 {
                     if (existingFolders.Except(form.ContentModel.ContentFolders).Any() || form.ContentModel.ContentFolders.Except(existingFolders).Any() ||
                          ContentModel.RefreshRequired())
@@ -485,7 +485,7 @@ namespace FreeTrainSimulator.Menu
                             SelectedProfile = null;
                             progressForm = new ModelConverterProgress();
                             {
-                                progressForm.Show(this);
+                                await progressForm.ShowAsync(this).ConfigureAwait(false);
                                 Enabled = false;
                                 ContentModel = await form.ContentModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(true);
                                 await ProfileChanged(currentProfile).ConfigureAwait(true);
@@ -551,7 +551,7 @@ namespace FreeTrainSimulator.Menu
 
             using (ResumeForm form = new ResumeForm(ProfileUserSettings, ProfileSelections))
             {
-                if (form.ShowDialog(this) == DialogResult.OK)
+                if (await form.ShowDialogAsync(this).ConfigureAwait(false) == DialogResult.OK)
                 {
                     ProfileSelections.GamePlayAction = form.SelectedAction;
                     ProfileSelections.GameSaveFile = form.SelectedSaveFile;

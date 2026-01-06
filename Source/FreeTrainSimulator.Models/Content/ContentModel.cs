@@ -23,7 +23,6 @@ namespace FreeTrainSimulator.Models.Content
         [MemoryPackConstructor]
         public ContentModel(ImmutableArray<FolderModel> contentFolders): base(string.Empty, null)
         {
-            ArgumentNullException.ThrowIfNull(contentFolders, nameof(contentFolders));
             ContentFolders = contentFolders;
         }
 

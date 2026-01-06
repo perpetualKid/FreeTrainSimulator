@@ -23,7 +23,7 @@ namespace FreeTrainSimulator.Common.Input
 
         public static string GetScanCodeKeyName(int scanCode)
         {
-            string xnaName = Enum.GetName(typeof(Keys), GetScanCodeKeys(scanCode));
+            string xnaName = Enum.GetName(GetScanCodeKeys(scanCode));
             StringBuilder keyNameBuilder = new StringBuilder();
             _ = NativeMethods.GetKeyNameText(scanCode << 16, keyNameBuilder, 256);
             string keyName = keyNameBuilder.ToString();

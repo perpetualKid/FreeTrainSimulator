@@ -334,7 +334,6 @@ namespace Orts.Formats.Msts
         /// <returns>null or the full file path of the first file found</returns>
         public static string FindFileFromFolders(in ImmutableArray<string> paths, string fileRelative)
         {
-            ArgumentNullException.ThrowIfNull(paths);
             if (string.IsNullOrEmpty(fileRelative))
                 return string.Empty;
 

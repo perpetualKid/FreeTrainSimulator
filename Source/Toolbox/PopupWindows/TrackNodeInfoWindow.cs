@@ -26,7 +26,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private ContentArea contentArea;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private NameValueTextGrid trackNodeInfoGrid;
-        private ControlLayout searchBoxLine;
+        private ControlLayoutHorizontal searchBoxLine;
         private TextInput searchBox;
         private Label headerLabel;
         private RadioButtonGroup searchTypeButtons;

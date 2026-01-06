@@ -12,9 +12,6 @@
     <Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
   </PropertyGroup>
   <ItemGroup>
-	<PackageReference Include="System.Resources.Extensions" Version="9.0.10" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
     <ProjectReference Include="..\..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
     <ProjectReference Include="..\..\Orts.Formats\Orts.Formats.csproj" />

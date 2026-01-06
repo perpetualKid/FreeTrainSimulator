@@ -587,7 +587,6 @@ namespace Orts.Scripting.Api
 
             public override ValueTask Restore(ReadOnlySequence<byte> saveState)
             {
-                ArgumentNullException.ThrowIfNull(saveState, nameof(saveState));
                 SaveState = MemoryPackSerializer.Deserialize<T>(saveState);
 
                 trainControlSystem.OnRestore();

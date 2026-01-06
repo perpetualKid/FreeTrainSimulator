@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.ComponentModel;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common.Native;
@@ -28,6 +29,7 @@ namespace Orts.ContentManager
 
         private string cueText;
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public string Cue
         {
             get => cueText;
@@ -38,6 +40,7 @@ namespace Orts.ContentManager
             }
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public bool ShowCueWhenFocused { get; set; }
 
         private void UpdateCueText()

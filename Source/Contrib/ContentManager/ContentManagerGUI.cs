@@ -74,7 +74,7 @@ namespace Orts.ContentManager
             {
                 return Task.FromCanceled<IEnumerable<TreeNode>>(token);
             }
-            IEnumerable<TreeNode> linkChildren = contentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => CreateContentNode(content, linkMatch.Groups[1].Value, (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value)));
+            IEnumerable<TreeNode> linkChildren = contentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => CreateContentNode(content, linkMatch.Groups[1].Value, Enum.Parse<ContentType>(linkMatch.Groups[2].Value)));
             Debug.Assert(!childNodes.Any() || !linkChildren.Any(), "Content item should not return items from Get(ContentType) and Get(string, ContentType)");
             childNodes = childNodes.Concat(linkChildren);
 
@@ -205,7 +205,7 @@ namespace Orts.ContentManager
             string[] link = e.LinkText.Split('\u0001', StringSplitOptions.RemoveEmptyEntries);
             if (content != null && link.Length == 2)
             {
-                pendingSelection = content.GetContent(link[0], (ContentType)Enum.Parse(typeof(ContentType), link[1]));
+                pendingSelection = content.GetContent(link[0], Enum.Parse<ContentType>(link[1]));
                 if (treeViewContent.SelectedNode.IsExpanded)
                 {
                     TreeNode pendingSelectionNode = treeViewContent.SelectedNode.Nodes.Cast<TreeNode>().FirstOrDefault(node => (ContentBase)node.Tag == pendingSelection);
@@ -246,7 +246,7 @@ namespace Orts.ContentManager
                 });
 
                 Parallel.ForEach(contentLinkRTF.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => content.GetContent(linkMatch.Groups[1].Value,
-                    (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value))).Where(linkContent => linkContent != null),
+                    Enum.Parse<ContentType>(linkMatch.Groups[2].Value))).Where(linkContent => linkContent != null),
                     new ParallelOptions() { CancellationToken = token },
                     async (child) =>
                     {

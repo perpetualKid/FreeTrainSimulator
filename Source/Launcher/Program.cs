@@ -13,7 +13,7 @@ namespace FreeTrainSimulator.Launcher
         /// </summary>
         private static void Main()
         {
-            _ = Process.Start(Path.Combine(AppContext.BaseDirectory, "net8.0-windows", "Menu.exe"));
+            _ = Process.Start(Path.Combine(AppContext.BaseDirectory, "net10.0-windows", "Menu.exe"));
         }
     }
 }

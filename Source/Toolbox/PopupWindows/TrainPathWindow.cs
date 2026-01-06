@@ -109,7 +109,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             tabControl.TabLayouts[TabSettings.PathNodes] = (layoutContainer) =>
             {
                 pathNodesColumnWidth = layoutContainer.RemainingWidth / 8;
-                ControlLayout headerLine = layoutContainer.AddLayoutHorizontalLineOfText();
+                ControlLayoutHorizontal headerLine = layoutContainer.AddLayoutHorizontalLineOfText();
                 headerLine.Add(new Label(this, pathNodesColumnWidth, headerLine.RemainingHeight, Catalog.GetString("Idx")));
                 headerLine.Add(new Label(this, pathNodesColumnWidth * 2, headerLine.RemainingHeight, Catalog.GetString("Type")));
                 headerLine.Add(new Label(this, pathNodesColumnWidth, headerLine.RemainingHeight, Catalog.GetString("Valid")));
@@ -122,7 +122,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             tabControl.TabLayouts[TabSettings.MetaData] = (layoutContainer) =>
             {
                 int pathDataColumnWidth = layoutContainer.RemainingWidth / 4;
-                ControlLayout headerLine = layoutContainer.AddLayoutHorizontalLineOfText();
+                ControlLayoutHorizontal headerLine = layoutContainer.AddLayoutHorizontalLineOfText();
                 headerLine.Add(new Label(this, pathDataColumnWidth, headerLine.RemainingHeight, Catalog.GetString("Setting")));
                 headerLine.Add(new Label(this, pathDataColumnWidth * 3, headerLine.RemainingHeight, Catalog.GetString("Value")));
                 layoutContainer.AddHorizontalSeparator();
@@ -135,7 +135,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             };
             tabControl.TabLayouts[TabSettings.Paths] = (layoutContainer) =>
             {
-                ControlLayout headerLine = layoutContainer.AddLayoutHorizontalLineOfText();
+                ControlLayoutHorizontal headerLine = layoutContainer.AddLayoutHorizontalLineOfText();
                 Label headerLabel;
                 headerLine.Add(headerLabel = new Label(this, layoutContainer.RemainingWidth, headerLine.RemainingHeight, Catalog.GetString("Available Train Paths") + TextInput.SearchIcon) { Alignment = HorizontalAlignment.Center });
                 headerLabel.OnClick += PathSearchHeaderLabel_OnClick;
@@ -289,7 +289,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             if (null != pathEditor)
             {
                 RadioButtonGroup group = new RadioButtonGroup();
-                ControlLayout line;
+                ControlLayoutHorizontal line;
                 ImmutableArray<PathModelHeader> trainPaths = Orts.Formats.Msts.RuntimeData.GameInstance(Owner.Game).RouteData.GetPaths();
                 foreach (PathModelHeader path in trainPaths.OrderBy(p => p.Name))
                 {
