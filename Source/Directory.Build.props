@@ -40,11 +40,11 @@
 		<Product>Free Train Simulator</Product>
 		<Company>Free Train Simulator Team</Company>
 		<Description>Free Train Simulator</Description>
-		<Copyright>Copyright © 2024</Copyright>
+		<Copyright>Copyright © 2026</Copyright>
 		<NoWin32Manifest>true</NoWin32Manifest>
 		<TieredCompilation>true</TieredCompilation>
 		<NeutralLanguage>en</NeutralLanguage>
-		<TargetFramework>net8.0-windows</TargetFramework>
+		<TargetFramework>net10.0-windows</TargetFramework>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 		<ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
 	</PropertyGroup>
