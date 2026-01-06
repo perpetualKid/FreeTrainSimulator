@@ -13,11 +13,8 @@
 	</PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.4.1" />
-    <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
-    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="GetText.NET" Version="8.0.5" />
     <PackageReference Include="GetText.NET.WindowsForms" Version="8.0.5" />
-    <PackageReference Include="System.Resources.Extensions" Version="9.0.10" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
