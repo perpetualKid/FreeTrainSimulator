@@ -118,8 +118,6 @@ namespace FreeTrainSimulator.Common.Position
 
         public IEnumerable<TTileCoordinate> BoundingBox(Tile center, int tileRadius = 0)
         {
-            ArgumentNullException.ThrowIfNull(center);
-
             Tile bottomLeft = new Tile(center.X - tileRadius, center.Z - tileRadius);
             Tile topRight = new Tile(center.X + tileRadius, center.Z + tileRadius);
             return BoundingBox(bottomLeft, topRight);
@@ -127,8 +125,6 @@ namespace FreeTrainSimulator.Common.Position
 
         public IEnumerable<TTileCoordinate> BoundingBox(Tile bottomLeft, Tile topRight)
         {
-            ArgumentNullException.ThrowIfNull(bottomLeft);
-            ArgumentNullException.ThrowIfNull(topRight);
             if (bottomLeft.CompareTo(topRight) > 0)
                 throw new ArgumentOutOfRangeException(nameof(bottomLeft), $"{nameof(bottomLeft)} can not be larger than {nameof(topRight)}");
 

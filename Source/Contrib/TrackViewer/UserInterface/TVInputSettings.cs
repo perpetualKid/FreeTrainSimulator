@@ -144,7 +144,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// Array of commands that have been defined and for which a key-combination can and should be defined below
         /// </summary>
 #pragma warning disable CA1819 // Properties should not return arrays
-        public static UserCommandInput[] Commands { get; } = new UserCommandInput[Enum.GetNames(typeof(TVUserCommands)).Length];
+        public static UserCommandInput[] Commands { get; } = new UserCommandInput[Enum.GetNames<TVUserCommands>().Length];
 #pragma warning restore CA1819 // Properties should not return arrays
 
         //static readonly string[] KeyboardLayout = new[] {

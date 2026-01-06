@@ -119,10 +119,10 @@ namespace FreeTrainSimulator.Updater
                 string targetVersion = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.VersionCommandLine, StringComparison.OrdinalIgnoreCase));
                 targetVersion = targetVersion?[UpdateManager.VersionCommandLine.Length..]?.Trim('\"');
 
-                Invoke(() =>
+                await InvokeAsync(() =>
                 {
                     progressBarUpdater.Value = 5;
-                });
+                }).ConfigureAwait(false);
                 Application.DoEvents();
 
                 await updateManager.ApplyUpdateAsync(targetVersion, cts.Token).ConfigureAwait(false);
@@ -131,11 +131,11 @@ namespace FreeTrainSimulator.Updater
             {
                 if (!IsDisposed)
                 {
-                    Invoke(() =>
+                    await InvokeAsync(() =>
                     {
                         _ = MessageBox.Show(catalog.GetString($"Error: {exception.Message} {exception.InnerException?.Message}"),
                             $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    });
+                    }).ConfigureAwait(false);
                 }
                 return;
                 throw;

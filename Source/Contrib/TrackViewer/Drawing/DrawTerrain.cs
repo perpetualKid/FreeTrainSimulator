@@ -807,7 +807,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <returns>The texture name</returns>
         private string CreateVerticesFromPatch(TileSample tile, Patch patch)
         {
-            IList<TextureSlot> ts = tile.Shaders[patch.ShaderIndex].Textureslots;
+            List<TextureSlot> ts = tile.Shaders[patch.ShaderIndex].Textureslots;
             string textureName = ts[0].FileName;
 
             if (!textureManager.TextureIsLoaded(textureName))

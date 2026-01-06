@@ -44,19 +44,19 @@ namespace Orts.Formats.Msts.Parsers
             Stream fileStream = new MemoryStream(File.ReadAllBytes(fileName));
 
             byte[] buffer = new byte[34];
-            fileStream.Read(buffer, 0, 2);
+            fileStream.ReadExactly(buffer, 0, 2);
 
             bool unicode = (buffer[0] == 0xFF && buffer[1] == 0xFE);  // unicode header
 
             string headerString;
             if (unicode)
             {
-                fileStream.Read(buffer, 0, 32);
+                fileStream.ReadExactly(buffer, 0, 32);
                 headerString = Encoding.Unicode.GetString(buffer, 0, 16);
             }
             else
             {
-                fileStream.Read(buffer, 2, 14);
+                fileStream.ReadExactly(buffer, 2, 14);
                 headerString = Encoding.ASCII.GetString(buffer, 0, 8);
             }
 
@@ -79,7 +79,7 @@ namespace Orts.Formats.Msts.Parsers
             {
                 // ie us1rd2l1000r10d.s, we are going to allow this but warn
                 Trace.TraceError("Improper header in " + fileName);
-                fileStream.Read(buffer, 0, 4);
+                fileStream.ReadExactly(buffer, 0, 4);
             }
             else if (!headerString.StartsWith("SIMISA@@", StringComparison.Ordinal))
             {
@@ -90,12 +90,12 @@ namespace Orts.Formats.Msts.Parsers
             string subHeader;
             if (unicode)
             {
-                fileStream.Read(buffer, 0, 32);
+                fileStream.ReadExactly(buffer, 0, 32);
                 subHeader = Encoding.Unicode.GetString(buffer, 0, 16);
             }
             else
             {
-                fileStream.Read(buffer, 0, 16);
+                fileStream.ReadExactly(buffer, 0, 16);
                 subHeader = Encoding.ASCII.GetString(buffer, 0, 8);
             }
 

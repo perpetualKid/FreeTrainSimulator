@@ -157,7 +157,7 @@ namespace Orts.Simulation
                 , new string [] { GetString("Cab Radio"), GetString("off"), null, GetString("on") }
 
             };
-            Debug.Assert(ConfirmText.Length == Enum.GetNames(typeof(CabControl)).Length, "Number of entries indexer ConfirmText must match values in CabControl enum.");
+            Debug.Assert(ConfirmText.Length == Enum.GetNames<CabControl>().Length, "Number of entries indexer ConfirmText must match values in CabControl enum.");
         }
 
         #region Control confirmation

@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls.Layout
         }
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private readonly ControlLayout tabHeader;
+        private readonly ControlLayoutHorizontal tabHeader;
         private readonly Label tabLabel;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly bool hideEmptyTabs;

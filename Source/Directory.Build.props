@@ -22,7 +22,7 @@
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 	</PropertyGroup>
 	<PropertyGroup>
-		<NoWarn>$(NoWarn);NETSDK1206</NoWarn>
+		<NoWarn>$(NoWarn);CA1515</NoWarn>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<PlatformTarget>AnyCPU</PlatformTarget>
