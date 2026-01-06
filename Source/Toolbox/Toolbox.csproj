@@ -10,8 +10,8 @@
     <Configurations>Debug;Release;CodeAnalysis</Configurations>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GetText.NET" Version="8.0.5" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="8.0.5" />
+    <PackageReference Include="GetText.NET" Version="10.0.1" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="10.0.1" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.4.1" />
   </ItemGroup>
   <ItemGroup>
