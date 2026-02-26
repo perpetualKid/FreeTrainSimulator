@@ -9,8 +9,8 @@ FTS is running on .NET 8, based on the [Monogame patch](http://www.elvastower.co
 
 In addition to features from OpenRails, Free Train Simulator includes:  
 
-- Most recent version of Monogame (3.8.2)
-- build on .NET 8, which generally allows for cross platform use (see [wiki](https://github.com/perpetualKid/FreeTrainSimulator/wiki/Linux-Wine) for Linux support)
+- Most recent version of Monogame (3.8.4.1)
+- build on .NET 10, which generally allows for cross platform use (see [wiki](https://github.com/perpetualKid/FreeTrainSimulator/wiki/Linux-Wine) for Linux support)
 - full 64bit support, removing out-of-memory situations and allows to use all available system memory also beyond 3GB/4GB barrier as with 32bit software
 - rewritten SignalScript parsing engine for faster loading time
 - [Standalone Multiplayer server](https://github.com/perpetualKid/FreeTrainSimulator/wiki#2021-12-05-multiplayer-standalone-server) simplifying multi-player games
@@ -52,7 +52,7 @@ Anyone is welcome to contribute, and this is not limited to programmers writing 
 
 ## Installation Requirements
 
-Running on Windows 10 with recent patch status (version 1809 or higher), the only separate download needed may be [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).  
+Running on Windows 10 with recent patch status (version 1809 or higher), the only separate download needed may be [.NET 1.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).  
 If not installed already, trying to start the program will guide through necessary downloads. Please also see [this article](https://github.com/perpetualKid/FreeTrainSimulator/wiki/.NET-Framework) in our [wiki](https://github.com/perpetualKid/FreeTrainSimulator/Wiki).  
 
 You will need to have an DirectX 11.0 compatible graphics adapter (GPU).

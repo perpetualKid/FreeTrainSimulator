@@ -21,7 +21,7 @@
 
 ## Maintenance
 
-- Update to Monogame 3.8.3
+- Update to Monogame 3.8.4.1
 - Removing support for contributed software
   - Contrib.DataCollector
   - Contrib.DataConverter
