@@ -55,11 +55,10 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 
             if (VersionInfo.Compare(folderModel.Version) > 0 || refresh)
             {
-                Task<GlobalTrackSectionModel> globalTrackSectionTask = GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folderModel, cancellationToken);
                 Task<ImmutableArray<RouteModelHeader>> routesTask = RouteModelImportHandler.ExpandRouteModels(folderModel, cancellationToken);
                 Task<ImmutableArray<WagonSetModel>> wagonSetsTask = WagonSetModelImportHandler.ExpandWagonSetModels(folderModel, cancellationToken);
 
-                await Task.WhenAll(globalTrackSectionTask, wagonSetsTask, routesTask).ConfigureAwait(false);
+                await Task.WhenAll(wagonSetsTask, routesTask).ConfigureAwait(false);
 
                 await Parallel.ForEachAsync(routesTask.Result, async (routeModel, cancellationToken) =>
                 {
@@ -76,6 +75,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             if (VersionInfo.Compare(routeModel.Version) > 0 || refresh)
             {
                 await Task.WhenAll(
+                    TrackSectionModelImportHandler.ExpandTrackSectionModel(routeModel, cancellationToken),
                     PathModelImportHandler.ExpandPathModels(routeModel, cancellationToken),
                     ActivityModelImportHandler.ExpandActivityModels(routeModel, cancellationToken),
                     TimetableModelHandler.ExpandTimetableModels(routeModel, cancellationToken),

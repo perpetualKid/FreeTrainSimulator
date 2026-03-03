@@ -12,7 +12,7 @@ namespace Orts.Formats.Msts
     public class RuntimeData
     {
         public RouteModel RouteData { get; }
-        public GlobalTrackSectionModel GlobalTrackSection { get; }
+        public TrackSectionModel TrackSections { get; }
         /// <summary>Track Section Data, public such that other classes have access as well</summary>
         public TrackSectionsFile TSectionDat { get; }
         /// <summary>Track database, public such that other classes have access as well</summary>

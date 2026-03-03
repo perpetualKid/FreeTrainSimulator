@@ -7,7 +7,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    [ModelResolver("", ".route")]
+    [ModelResolver(".route")]
     public partial record RouteModelHeader : ModelBase
     {
         private readonly WorldLocation routeStart;

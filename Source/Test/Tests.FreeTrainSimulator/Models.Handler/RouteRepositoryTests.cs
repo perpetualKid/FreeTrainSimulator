@@ -56,39 +56,5 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         //    }
 
         //}
-
-        [TestMethod]
-        public async ValueTask ImportTSection()
-        {
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TF_BUILD")))
-                return;
-
-            ContentModel contentModel = await ContentModel.None.Get(CancellationToken.None).ConfigureAwait(false);
-            FolderModel folder = contentModel.ContentFolders.GetByName("Demo");
-
-            List<Task<GlobalTrackSectionModel>> tasks = new List<Task<GlobalTrackSectionModel>>()
-            {
-                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
-                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
-                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
-                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
-                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
-                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
-                GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None),
-            };
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-//            GlobalTrackSectionModel globalTrackSectionModel = await GlobalTrackSectionModelImportHandler.ExpandTrackSectionModel(folder, CancellationToken.None).ConfigureAwait(false);
-
-            bool contains = await contentModel.ContainsTrackSectionVersion(32).ConfigureAwait(false);
-            contains = await contentModel.ContainsTrackSectionVersion(38).ConfigureAwait(false);
-
-            GlobalTrackSectionModel globalTrackSection = await GlobalTrackSectionModelHandler.GetGlobal(CancellationToken.None).ConfigureAwait(false);
-
-            await GlobalTrackSectionModelHandler.GetCore(37, CancellationToken.None).ConfigureAwait(false);
-
-            System.Collections.Immutable.ImmutableArray<GlobalTrackSectionModel> result = await GlobalTrackSectionModelHandler.GetTrackSectionModels(CancellationToken.None).ConfigureAwait(false);
-
-        }
     }
 }

@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
 using System.Diagnostics;
+using System.IO;
 
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
@@ -31,22 +31,23 @@ namespace Orts.Formats.Msts.Files
         public TrackShapes TrackShapes { get; private set; }
         public TrackPaths TrackSectionIndex { get; private set; } //route's tsection.dat
 
-        public int Version { get; init; }
-
         public void AddRouteTSectionDatFile(string fileName)
         {
-            using (STFReader stf = new STFReader(fileName, false))
+            if (File.Exists(fileName))
             {
-                if (stf.SimisSignature != "SIMISA@@@@@@@@@@JINX0T0t______")
+                using (STFReader stf = new STFReader(fileName, false))
                 {
-                    Trace.TraceWarning("Skipped invalid TSECTION.DAT in route folder");
-                    return;
-                }
-                stf.ParseFile(new STFReader.TokenProcessor[] {
+                    if (stf.SimisSignature != "SIMISA@@@@@@@@@@JINX0T0t______")
+                    {
+                        Trace.TraceWarning("Skipped invalid TSECTION.DAT in route folder");
+                        return;
+                    }
+                    stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("tracksections", ()=>{ TrackSections.AddRouteTrackSections(stf); }),
                     new STFReader.TokenProcessor("sectionidx", ()=>{ TrackSectionIndex = new TrackPaths(stf); }),
                     // todo read in SectionIdx part of RouteTSectionDat
                 });
+                }
             }
         }
 
@@ -54,11 +55,6 @@ namespace Orts.Formats.Msts.Files
         {
             using (STFReader stf = new STFReader(fileName, false))
             {
-                Version = TrackSectionVersion(stf);
-
-                if (Version == 0)
-                    stf.StepBackOneItem();
-
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("tracksections", ()=>{
                         if (TrackSections == null)
@@ -77,38 +73,6 @@ namespace Orts.Formats.Msts.Files
                 if (TrackShapes == null)
                     throw new STFException(stf, "Missing TrackShapes");
             }
-        }
-
-        public static int TrackSectionVersion(string fileName)
-        {
-            int version = 0;
-
-            if (!System.IO.File.Exists(fileName))
-                return -1;
-
-            using (STFReader stf = new STFReader(fileName, false))
-            {
-                version = TrackSectionVersion(stf);
-                stf.SkipRestOfBlock();
-                stf.SkipRestOfBlock();
-            }
-            return version;
-        }
-
-        private static int TrackSectionVersion(STFReader stfReader)
-        {
-            ArgumentNullException.ThrowIfNull(stfReader);
-
-            int version = 0;
-
-            string signature = stfReader.ReadString();
-            if (signature == "_INFO")
-            {
-                stfReader.MustMatchBlockStart();
-                if (stfReader.ReadString().Equals("Build", System.StringComparison.OrdinalIgnoreCase))
-                    version = stfReader.ReadInt(0);
-            }
-            return version;
         }
     }
 }

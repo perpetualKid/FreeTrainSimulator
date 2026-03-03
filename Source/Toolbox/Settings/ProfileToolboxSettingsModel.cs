@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework;
 namespace FreeTrainSimulator.Toolbox.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    [ModelResolver("", ".toolboxsettings")]
+    [ModelResolver(".toolboxsettings")]
     public sealed partial record ProfileToolboxSettingsModel : ProfileSettingsModelBase
     {
         /// <summary>

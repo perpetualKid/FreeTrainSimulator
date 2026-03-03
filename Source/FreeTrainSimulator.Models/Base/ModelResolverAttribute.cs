@@ -9,10 +9,16 @@ namespace FreeTrainSimulator.Models.Base
 
         public string Folder { get; }
         public string FileExtension { get; }
+
+        public ModelResolverAttribute(string fileExtension): this (string.Empty, fileExtension)
+        {
+        }
+
         public ModelResolverAttribute(string folder, string fileExtension)
         {
             Folder = folder;
             FileExtension = fileExtension;
         }
+
     }
 }

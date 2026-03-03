@@ -37,8 +37,7 @@ namespace FreeTrainSimulator.Toolbox
             loadTasks.Add(Task.Run(() =>
             {
                 trackSections = new TrackSectionsFile(routeFolder.TrackSectionFile);
-                if (System.IO.File.Exists(routeFolder.RouteTrackSectionFile))
-                    trackSections.AddRouteTSectionDatFile(routeFolder.RouteTrackSectionFile);
+                trackSections.AddRouteTSectionDatFile(routeFolder.RouteTrackSectionFile);
             }, cancellationToken));
             loadTasks.Add(Task.Run(() =>
             {

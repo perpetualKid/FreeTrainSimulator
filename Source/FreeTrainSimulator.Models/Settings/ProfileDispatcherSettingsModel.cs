@@ -6,7 +6,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    [ModelResolver("", ".dispatchersettings")]
+    [ModelResolver(".dispatchersettings")]
     public sealed partial record ProfileDispatcherSettingsModel : ProfileSettingsModelBase
     {
         public override ProfileModel Parent => base.Parent as ProfileModel;
