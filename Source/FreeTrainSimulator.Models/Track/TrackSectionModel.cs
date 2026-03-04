@@ -11,7 +11,9 @@ namespace FreeTrainSimulator.Models.Track
     [ModelResolver(".tsection")]
     public partial record TrackSectionModel: ModelBase
     {
-        public ImmutableArray<TrackSection> TrackSections { get; init; } = ImmutableArray<TrackSection>.Empty;
+        public ImmutableDictionary<int, TrackSection> TrackSections { get; init; } = ImmutableDictionary<int, TrackSection>.Empty;
+        public ImmutableDictionary<int, TrackShape> TrackShapes { get; init; } = ImmutableDictionary<int, TrackShape>.Empty;
+        public ImmutableDictionary<int, DynamicTrackSection> DynamicTrackSections { get; init; } = ImmutableDictionary<int, DynamicTrackSection>.Empty;
         public override RouteModel Parent => _parent as RouteModel;
     }
 }

@@ -15,11 +15,15 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
     internal class TrackSectionModelImportHandler : ContentHandlerBase<TrackSectionModel>
     {
+        private const string keyName = "tsection";
+
         public static Task<TrackSectionModel> ExpandTrackSectionModel(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            return Convert(routeModel, cancellationToken);
+            Task<TrackSectionModel> modelTask = Convert(routeModel, cancellationToken);
+            modelTaskCache[keyName] = modelTask;
+            return modelTask;
         }
 
         private static async Task<TrackSectionModel> Convert(RouteModelHeader routeModel, CancellationToken cancellationToken)
@@ -30,7 +34,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             TrackSectionModel trackSectionModel = new TrackSectionModel()
             {
                 Id = routeModel.Id,
-                TrackSections = trackSectionsFile.TrackSections.Select(trackSection => new TrackSection()
+                TrackSections = trackSectionsFile.TrackSections?.Where(t => t.Value.Length > 0 || t.Value.Angle > 0).Select(trackSection => new TrackSection()
                 {
                     SectionIndex = trackSection.Key,
                     Angle = trackSection.Value.Angle,
@@ -38,10 +42,28 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     Curved = trackSection.Value.Curved,
                     Length = trackSection.Value.Length,
                     Gauge = trackSection.Value.Width,
-                }).ToImmutableArray(),
+                }).ToImmutableDictionary((trackSection) => trackSection.SectionIndex),
+                TrackShapes = trackSectionsFile.TrackShapes?.Where(t => !string.IsNullOrEmpty(t.Value.FileName)).Select(trackShape => new TrackShape()
+                {
+                    ShapeIndex = trackShape.Key,
+                    FileName = trackShape.Value.FileName,
+                    ClearanceDistance = (float)trackShape.Value.ClearanceDistance,
+                    MainRoute = trackShape.Value.MainRoute,
+                    ShapeType = trackShape.Value.TunnelShape ? ShapeType.Tunnel : trackShape.Value.RoadShape ? ShapeType.Road : ShapeType.None,
+                    SectionIndices = trackShape.Value.SectionIndices.Select(index => new TrackSectionIndex(index.Offset)
+                    {
+                        AngularOffset = index.AngularOffset,
+                        TrackSections = index.TrackSections.ToImmutableArray(),
+                    }).ToImmutableArray(),
+                }).ToImmutableDictionary((trackShape) => trackShape.ShapeIndex),
+                DynamicTrackSections = trackSectionsFile.TrackSectionIndex?.Where(t => t.Value.TrackSections?.Length > 0).Select(dynamicTrackSection => new DynamicTrackSection()
+                {
+                    DynamicSectionIndex = dynamicTrackSection.Key,
+                    TrackSections = dynamicTrackSection.Value.TrackSections.ToImmutableArray(),
+                }).ToImmutableDictionary((dynamicTrackSection) => dynamicTrackSection.DynamicSectionIndex),
             };
 
-            await Create(trackSectionModel, routeModel, true, false, cancellationToken).ConfigureAwait(false);
+            await Create(trackSectionModel, routeModel, cancellationToken).ConfigureAwait(false);
 
             return trackSectionModel;
         }

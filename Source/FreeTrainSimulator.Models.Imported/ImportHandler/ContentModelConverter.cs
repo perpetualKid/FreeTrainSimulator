@@ -7,7 +7,6 @@ using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.ImportHandler.OpenRails;
 using FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator;
-using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler
 {
