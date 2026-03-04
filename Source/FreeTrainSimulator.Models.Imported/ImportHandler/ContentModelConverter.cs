@@ -18,14 +18,14 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 
             if (refresh = VersionInfo.Compare(contentModel.Version) > 0 || refresh)
             {
-                contentModel = await ContentModelImportHandler.Expand(contentModel, cancellationToken).ConfigureAwait(false);
+                contentModel = await ContentModelImportHandler.ExpandContentModel(contentModel, cancellationToken).ConfigureAwait(false);
 
                 int folderCount = contentModel.ContentFolders.Length;
                 int completedCount = 0;
                 await Parallel.ForEachAsync(contentModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {
-                    await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
-                    Interlocked.Increment(ref completedCount);
+                    _ = await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
+                    _ = Interlocked.Increment(ref completedCount);
                     progressClient?.Report(completedCount * 100 / folderCount);
                 }).ConfigureAwait(false);
             }
@@ -38,17 +38,17 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 
             if (refresh = VersionInfo.Compare(contentModel.Version) > 0 || refresh)
             {
-                contentModel = await ContentModelImportHandler.Expand(contentModel, cancellationToken).ConfigureAwait(false);
+                contentModel = await ContentModelImportHandler.ExpandContentModel(contentModel, cancellationToken).ConfigureAwait(false);
 
                 await Parallel.ForEachAsync(contentModel.ContentFolders, async (folderModel, cancellationToken) =>
                 {
-                    await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
+                    _ = await ConvertContent(folderModel, refresh, cancellationToken).ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
             return contentModel;
         }
 
-        public static async Task<FolderModel> ConvertContent(FolderModel folderModel, bool refresh, CancellationToken cancellationToken)
+        private static async Task<FolderModel> ConvertContent(FolderModel folderModel, bool refresh, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
 
@@ -59,23 +59,22 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
 
                 await Task.WhenAll(wagonSetsTask, routesTask).ConfigureAwait(false);
 
-#pragma warning disable CA1849 // Call async methods when in an async method
                 await Parallel.ForEachAsync(routesTask.Result, async (routeModel, cancellationToken) =>
-#pragma warning restore CA1849 // Call async methods when in an async method
                 {
-                    await ConvertContent(routeModel, refresh, cancellationToken).ConfigureAwait(false);
+                    _ = await ConvertContent(routeModel, refresh, cancellationToken).ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
             return folderModel;
         }
 
-        public static async Task<RouteModelHeader> ConvertContent(RouteModelHeader routeModel, bool refresh, CancellationToken cancellationToken)
+        private static async Task<RouteModelHeader> ConvertContent(RouteModelHeader routeModel, bool refresh, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
             if (VersionInfo.Compare(routeModel.Version) > 0 || refresh)
             {
                 await Task.WhenAll(
+                    TrackSectionModelImportHandler.ExpandTrackSectionModel(routeModel, cancellationToken),
                     PathModelImportHandler.ExpandPathModels(routeModel, cancellationToken),
                     ActivityModelImportHandler.ExpandActivityModels(routeModel, cancellationToken),
                     TimetableModelHandler.ExpandTimetableModels(routeModel, cancellationToken),

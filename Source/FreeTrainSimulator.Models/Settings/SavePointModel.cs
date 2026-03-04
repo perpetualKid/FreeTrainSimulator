@@ -9,7 +9,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    [ModelResolver("", ".save")]
+    [ModelResolver(".save")]
     public sealed partial record SavePointModel : ModelBase
     {
         public override RouteModelHeader Parent => _parent as RouteModelHeader;

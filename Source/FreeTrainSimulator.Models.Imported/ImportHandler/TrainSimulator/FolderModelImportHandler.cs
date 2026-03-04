@@ -18,6 +18,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
     internal sealed class FolderModelImportHandler : ContentHandlerBase<FolderModel>
     {
         private const string importKey = "$Import";
+        private const string ortsFoldersKey = "SOFTWARE\\OpenRails\\ORTS\\Folders";
 
         internal static ImmutableArray<FolderModel> InitialFolderImport(ContentModel contentModel)
         {
@@ -26,10 +27,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
                 List<FolderModel> folderModels = new List<FolderModel>();
 
-                string location = "SOFTWARE\\OpenRails\\ORTS\\Folders";
                 try
                 {
-                    RegistryKey key = Registry.CurrentUser.OpenSubKey(location);
+                    RegistryKey key = Registry.CurrentUser.OpenSubKey(ortsFoldersKey);
 
                     foreach (string folder in key.GetValueNames())
                     {
@@ -38,7 +38,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 }
                 catch (Exception ex) when (ex is SecurityException or UnauthorizedAccessException or ObjectDisposedException)
                 {
-                    Trace.TraceError($"Could not import existing content folders {ex.Message}.");
+                    Trace.TraceWarning($"Could not import existing content folders {ex.Message}.");
                 }
                 modelSetTaskCache[importKey] = modelSetTask = Task.FromResult(folderModels.ToImmutableArray());
             }

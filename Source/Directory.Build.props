@@ -36,6 +36,12 @@
 		<DebugSymbols>false</DebugSymbols>
 		<DefineConstants>TRACE</DefineConstants>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UpdateContentVersion|AnyCPU'">
+		<DefineConstants>TRACE;DEBUG;UPGRADECONTENT</DefineConstants>
+		<DebugSymbols>true</DebugSymbols>
+		<DebugType>full</DebugType>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
 	<PropertyGroup>
 		<Product>Free Train Simulator</Product>
 		<Company>Free Train Simulator Team</Company>

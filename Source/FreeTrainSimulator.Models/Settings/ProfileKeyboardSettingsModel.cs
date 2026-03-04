@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Input;
 namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    [ModelResolver("", ".keyboardsettings")]
+    [ModelResolver(".keyboardsettings")]
     public sealed partial record ProfileKeyboardSettingsModel : ProfileSettingsModelBase
     {
         private static ProfileKeyboardSettingsModel defaultModel;

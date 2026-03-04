@@ -273,10 +273,6 @@ namespace Orts.Simulation
 
             SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.ORSignalConfigFile);
 
-            TrackSectionsFile tsectionDat = new TrackSectionsFile(RouteFolder.TrackSectionFile);
-            if (File.Exists(RouteFolder.RouteTrackSectionFile))
-                tsectionDat.AddRouteTSectionDatFile(RouteFolder.RouteTrackSectionFile);
-
             RoadTrackDB roadDatabase = null;
             if (File.Exists(RouteFolder.RoadTrackDatabaseFile(RouteModel.RouteKey)))
             {
@@ -284,7 +280,7 @@ namespace Orts.Simulation
             }
 
             MetricUnits = userSettings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (userSettings.MeasurementUnit == MeasurementUnit.Metric || userSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            RuntimeData.Initialize(RouteModel, tsectionDat, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
+            RuntimeData.Initialize(RouteModel, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
 
             SuperElevation = new SuperElevation(this);
 
@@ -399,7 +395,7 @@ namespace Orts.Simulation
 
         public void Start(CancellationToken cancellationToken)
         {
-            if (ActivityModel != null &&  ActivityModel.Settings.TryGetValue("LoadStationStock", out string loadStationStockfile) && !string.IsNullOrEmpty(loadStationStockfile))
+            if (ActivityModel != null && ActivityModel.Settings.TryGetValue("LoadStationStock", out string loadStationStockfile) && !string.IsNullOrEmpty(loadStationStockfile))
             {
                 ContainerManager.LoadPopulationFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(loadStationStockfile, ".load-stations-loads-or")));
             }

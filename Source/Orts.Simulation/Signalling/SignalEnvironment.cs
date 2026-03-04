@@ -3233,7 +3233,6 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void ProcessTunnels()
         {
-            TrackSectionsFile tsectiondat = RuntimeData.Instance.TSectionDat;
             // loop through tracknodes
             foreach (TrackNode node in trackDB.TrackNodes)
             {
@@ -3249,22 +3248,18 @@ namespace Orts.Simulation.Signalling
                     // loop through all sections in node
                     foreach (TrackVectorSection section in tvn.TrackVectorSections)
                     {
-                        if (!tsectiondat.TrackSections.ContainsKey(section.SectionIndex))
-                        {
+                        if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(section.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
                             continue;  // missing track section
-                        }
-
-                        TrackSection TS = tsectiondat.TrackSections[section.SectionIndex];
 
                         // check tunnel shape
 
                         bool tunnelShape = false;
                         int shapePaths = 0;
 
-                        if (tsectiondat.TrackShapes.TryGetValue(section.ShapeIndex, out TrackShape shape))
+                        if (RuntimeData.Instance.TrackModel.TrackShapes.TryGetValue(section.ShapeIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
                         {
-                            tunnelShape = shape.TunnelShape;
-                            shapePaths = shape.PathsNumber;
+                            tunnelShape = shape.ShapeType == FreeTrainSimulator.Models.Track.ShapeType.Tunnel;
+                            shapePaths = shape.TrackShapePaths.Length;
                         }
 
                         if (tunnelShape)
@@ -3272,13 +3267,13 @@ namespace Orts.Simulation.Signalling
                             numPaths = numPaths < 0 ? shapePaths : Math.Min(numPaths, shapePaths);
                             if (inTunnel)
                             {
-                                lastTunnel[1] += TS.Length;
+                                lastTunnel[1] += trackSection.Length;
                             }
                             else
                             {
                                 lastTunnel = new float[2];
                                 lastTunnel[0] = totalLength;
-                                lastTunnel[1] = TS.Length;
+                                lastTunnel[1] = trackSection.Length;
                                 inTunnel = true;
                             }
                         }
@@ -3289,7 +3284,7 @@ namespace Orts.Simulation.Signalling
                             inTunnel = false;
                             numPaths = -1;
                         }
-                        totalLength += TS.Length;
+                        totalLength += trackSection.Length;
                     }
 
                     // add last tunnel item
@@ -3375,7 +3370,6 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void ProcessTroughs()
         {
-            TrackSectionsFile tsectiondat = RuntimeData.Instance.TSectionDat;
             // loop through tracknodes
             foreach (TrackVectorNode tvn in trackDB.TrackNodes.VectorNodes)
             {
@@ -3389,24 +3383,20 @@ namespace Orts.Simulation.Signalling
                 // loop through all sections in node
                 foreach (TrackVectorSection section in tvn.TrackVectorSections)
                 {
-                    if (!tsectiondat.TrackSections.ContainsKey(section.SectionIndex))
-                    {
+                    if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(section.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
                         continue;  // missing track section
-                    }
-
-                    TrackSection trackSection = tsectiondat.TrackSections[section.SectionIndex];
 
                     // check trough shape
 
                     bool troughShape = false;
                     int shapePaths = 0;
 
-                    if (tsectiondat.TrackShapes.TryGetValue(section.ShapeIndex, out TrackShape shape))
+                    if (RuntimeData.Instance.TrackModel.TrackShapes.TryGetValue(section.ShapeIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
                     {
                         if (shape.FileName != null)
                         {
                             troughShape = shape.FileName.EndsWith("wtr.s", StringComparison.OrdinalIgnoreCase);
-                            shapePaths = shape.PathsNumber;
+                            shapePaths = shape.TrackShapePaths.Length;
                         }
                     }
 

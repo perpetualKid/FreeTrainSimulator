@@ -45,7 +45,7 @@ namespace Orts.Formats.Msts
         private float trackVectorSectionOffset; // Offset into track (vector) section; meters for straight sections, radians for curved sections.
         private TrackNode trackNode;
         private TrackVectorSection trackVectorSection;
-        private TrackSection trackSection;
+        private FreeTrainSimulator.Models.Track.TrackSection trackSection;
 
         // Location and directionVector are only valid if locationSet == true.
         private bool locationSet;
@@ -303,7 +303,7 @@ namespace Orts.Formats.Msts
             {
                 TrackVectorSectionIndex = saveState.TrackVectorSectionIndex;
                 trackVectorSection = (trackNode as TrackVectorNode).TrackVectorSections[TrackVectorSectionIndex];
-                trackSection = RuntimeData.Instance.TSectionDat.TrackSections[trackVectorSection.SectionIndex];
+                trackSection = RuntimeData.Instance.TrackModel.TrackSections[trackVectorSection.SectionIndex];
             }
             return ValueTask.CompletedTask;
         }
@@ -497,8 +497,7 @@ namespace Orts.Formats.Msts
         {
             TrackVectorSectionIndex = trackVectorSectionIndex;
             trackVectorSection = (trackNode as TrackVectorNode).TrackVectorSections[TrackVectorSectionIndex];
-            trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(trackVectorSection.SectionIndex);
-            if (trackSection == null)
+            if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out trackSection))
                 return false;
             locationSet = lengthSet = false;
             trackVectorSectionOffset = direction == Direction.Forward ? 0 : trackSection.Curved ? Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
@@ -513,7 +512,7 @@ namespace Orts.Formats.Msts
             locationSet = true;
 
             TrackVectorSection tvs = trackVectorSection;
-            TrackSection ts = trackSection;
+            FreeTrainSimulator.Models.Track.TrackSection ts = trackSection;
             float to = trackVectorSectionOffset;
             if (tvs == null)
             {
@@ -523,8 +522,7 @@ namespace Orts.Formats.Msts
                     return;
                 TrackVectorNode tvn = trackNodes[pin.Link] as TrackVectorNode;
                 tvs = tvn.TrackVectorSections[pin.Direction > 0 ? 0 : tvn.TrackVectorSections.Length - 1];
-                ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tvs.SectionIndex);
-                if (ts == null)
+                if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs.SectionIndex, out ts))
                     return; // This is really bad and we'll have unknown data in the Traveller when the code reads the location and direction!
                 to = pin.Direction > 0 ? -trackVectorSectionOffset : ts.Length + trackVectorSectionOffset;
             }
@@ -574,14 +572,14 @@ namespace Orts.Formats.Msts
             TrackVectorSection[] tvs = tvn.TrackVectorSections;
             for (int i = 0; i < tvs.Length; i++)
             {
-                TrackSection ts = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(tvs[i].SectionIndex);
-                if (ts == null)
+                if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs[i].SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
+                if (trackSection == null)
                     continue; // This is bad and we'll have potentially bogus data in the Traveller when the code reads the length!
-                trackNodeLength += ts.Length;
+                trackNodeLength += trackSection.Length;
                 if (i < TrackVectorSectionIndex)
-                    trackNodeOffset += ts.Length;
+                    trackNodeOffset += trackSection.Length;
                 else if (i == TrackVectorSectionIndex)
-                    trackNodeOffset += trackVectorSectionOffset * (ts.Curved ? ts.Radius : 1);
+                    trackNodeOffset += trackVectorSectionOffset * (trackSection.Curved ? trackSection.Radius : 1);
             }
             if (Direction == Direction.Backward)
                 trackNodeOffset = trackNodeLength - trackNodeOffset;
@@ -660,7 +658,7 @@ namespace Orts.Formats.Msts
             if (!(trackNode is TrackVectorNode))
                 return 0f;
             TrackVectorSection tvs = trackVectorSection;
-            TrackSection ts = trackSection;
+            FreeTrainSimulator.Models.Track.TrackSection ts = trackSection;
             float desiredZ;
             if (tvs == null)
             {

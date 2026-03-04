@@ -7,7 +7,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    [ModelResolver("", "timetabletrain")]
+    [ModelResolver("timetabletrain")]
     public sealed partial record TimetableTrainModel : ModelBase
     {
         public override TimetableModel Parent => _parent as TimetableModel;

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
+using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Models.Shim
 {
@@ -16,6 +17,7 @@ namespace FreeTrainSimulator.Models.Shim
         public static Task<ImmutableArray<ActivityModelHeader>> GetActivities(this RouteModelHeader routeModel, CancellationToken cancellationToken) => routeModel.GetRouteActivities(cancellationToken);
         public static Task<ImmutableArray<TimetableModel>> GetTimetables(this RouteModelHeader routeModel, CancellationToken cancellationToken) => TimetableModelHandler.GetTimetables(routeModel, cancellationToken);
         public static Task<ImmutableArray<WeatherModelHeader>> GetWeatherFiles(this RouteModelHeader routeModel, CancellationToken cancellationToken) => WeatherModelHandler.GetWeatherFiles(routeModel, cancellationToken);
+        public static Task<TrackSectionModel> GetTrackSectionModel(this RouteModelHeader routeModel, CancellationToken cancellationToken) => TrackSectionModelHandler.GetCore(routeModel, cancellationToken);
 
         public static async ValueTask<ActivityModel> ActivityModel(this RouteModelHeader routeModel, string activityId, CancellationToken cancellationToken)
         {

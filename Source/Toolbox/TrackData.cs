@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Models.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -17,13 +19,14 @@ namespace FreeTrainSimulator.Toolbox
         internal static async ValueTask LoadTrackData(RouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
-            TrackSectionsFile trackSections = null;
+            TrackSectionModel trackSectionModel = null;
             TrackDB trackDB = null;
             RoadTrackDB roadTrackDB = null;
             SignalConfigurationFile signalConfig = null;
 
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
 
+            loadTasks.Add(Task.Run(async () => trackSectionModel = await routeModel.GetTrackSectionModel(cancellationToken).ConfigureAwait(false)));
             loadTasks.Add(Task.Run(() =>
             {
                 string tdbFile = routeFolder.TrackDatabaseFile(routeModel.RouteKey);
@@ -33,12 +36,6 @@ namespace FreeTrainSimulator.Toolbox
                     return;
                 }
                 trackDB = new TrackDatabaseFile(tdbFile).TrackDB;
-            }, cancellationToken));
-            loadTasks.Add(Task.Run(() =>
-            {
-                trackSections = new TrackSectionsFile(routeFolder.TrackSectionFile);
-                if (System.IO.File.Exists(routeFolder.RouteTrackSectionFile))
-                    trackSections.AddRouteTSectionDatFile(routeFolder.RouteTrackSectionFile);
             }, cancellationToken));
             loadTasks.Add(Task.Run(() =>
             {
@@ -57,7 +54,7 @@ namespace FreeTrainSimulator.Toolbox
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            Initialize(routeModel, trackSections, trackDB, roadTrackDB, signalConfig, metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits));
+            Initialize(routeModel, trackSectionModel, trackDB, roadTrackDB, signalConfig, metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits));
         }
     }
 }

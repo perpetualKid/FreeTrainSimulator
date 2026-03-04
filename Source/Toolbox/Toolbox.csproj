@@ -7,7 +7,7 @@
     <OutputPath>..\..\Program</OutputPath>
     <ApplicationIcon>..\FTS.ico</ApplicationIcon>
     <RootNamespace>FreeTrainSimulator.Toolbox</RootNamespace>
-    <Configurations>Debug;Release;CodeAnalysis</Configurations>
+    <Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="GetText.NET" Version="10.0.1" />

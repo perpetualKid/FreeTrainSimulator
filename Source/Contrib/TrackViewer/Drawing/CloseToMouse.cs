@@ -22,7 +22,7 @@ using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Drawing
@@ -228,7 +228,6 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>Distance (squared) between mouse and closest track location</summary>
         public override float ClosestMouseDistanceSquared { get { CalcRealDistances(); return (float)sortedTrackCandidates.Last().Key; } }
 
-        private readonly TrackSectionsFile tsectionDat;
         private WorldLocation storedMouseLocation;
         private bool realDistancesAreCalculated;
 
@@ -246,10 +245,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>
         /// Constructor, because we need to store the TsectionDatFile
         /// </summary>
-        /// <param name="tsectionDat">The track section Dat file that we can use to calculate the distance to the track</param>
-        public CloseToMouseTrack(TrackSectionsFile tsectionDat)
+        public CloseToMouseTrack()
         {
-            this.tsectionDat = tsectionDat;
         }
 
         /// <summary>
@@ -267,10 +264,8 @@ namespace ORTS.TrackViewer.Drawing
         /// Constructor that immediately sets the closest item (and distance)
         /// </summary>
         /// <param name="tn">Tracknode that will be stored as closest item</param>
-        /// <param name="tsectionDat">The track section Dat file that we can use to calculate the distance to the track</param>
-        public CloseToMouseTrack(TrackSectionsFile tsectionDat, TrackNode tn)
+        public CloseToMouseTrack(TrackNode tn)
         {
-            this.tsectionDat = tsectionDat;
             sortedTrackCandidates = new SortedList<double, TrackCandidate>(new ReverseDoubleComparer())
             {
                 { 0, new TrackCandidate(tn, null, 0, 0) }
@@ -340,7 +335,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 TrackCandidate trackCandidate = sortedTrackCandidates[distanceKey];
                 if (trackCandidate.trackNode == null) continue;
-                TrackSection trackSection = tsectionDat.TrackSections.TryGet(trackCandidate.vectorSection.SectionIndex);
+                RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(trackCandidate.vectorSection.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
                 DistanceLon distanceLon = CalcRealDistanceSquared(trackCandidate.vectorSection, trackSection);
                 double realDistanceSquared = (double)distanceLon.distanceSquared;
                 
@@ -365,7 +360,7 @@ namespace ORTS.TrackViewer.Drawing
         /// The math here is not perfect (it is quite difficult to calculate the distances to a curved line 
         /// for all possibilities) but good enough. The math was designed (in Traveller.cs) to work well for close distances.
         /// Math is modified to prevent NaN and to combine straight and curved tracks.</remarks>
-        private DistanceLon CalcRealDistanceSquared(TrackVectorSection trackVectorSection, TrackSection trackSection)
+        private DistanceLon CalcRealDistanceSquared(TrackVectorSection trackVectorSection, FreeTrainSimulator.Models.Track.TrackSection trackSection)
         {
             //Calculate the vector from start of track to the mouse
             Vector3 vectorToMouse = (storedMouseLocation.Location - trackVectorSection.Location.Location) + (storedMouseLocation.Tile - trackVectorSection.Location.Tile).TileVector();

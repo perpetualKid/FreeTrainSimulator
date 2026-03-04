@@ -15,9 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
-
-using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Editing
@@ -36,7 +34,6 @@ namespace ORTS.TrackViewer.Editing
         private static int[] sidingRouteIndex;
 
         private static TrackNodes trackNodes;
-        private static TrackSectionsFile tsectionDat;
 
         /// <summary>
         /// Find the indices we need to use for TrPins in the various junction nodes in case we want to use either main
@@ -44,10 +41,9 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="trackNodesIn">The tracknodes</param>
         /// <param name="tsectionDatIn">Track section Data</param>
-        public static void Initialize(TrackNodes trackNodesIn, TrackSectionsFile tsectionDatIn)
+        public static void Initialize(TrackNodes trackNodesIn)
         {
             trackNodes = trackNodesIn;
-            tsectionDat = tsectionDatIn;
             
             mainRouteIndex = new int[trackNodes.Count];
             sidingRouteIndex = new int[trackNodes.Count];
@@ -61,7 +57,7 @@ namespace ORTS.TrackViewer.Editing
                 int trackShapeIndex = tn.ShapeIndex;
                 try
                 {
-                    TrackShape trackShape = tsectionDat.TrackShapes[trackShapeIndex];
+                    FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackModel.TrackShapes[trackShapeIndex];
                     mainRoute = trackShape.MainRoute;
                 }
                 catch (System.IO.InvalidDataException exception)

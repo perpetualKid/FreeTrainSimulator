@@ -1,10 +1,11 @@
 ﻿using System;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Models.Imported.Track
 {
@@ -17,11 +18,9 @@ namespace FreeTrainSimulator.Models.Imported.Track
         int IIndexedElement.Index => TrackNodeIndex;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
 
-        protected EndNodeBase(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections) :
+        protected EndNodeBase(Orts.Formats.Msts.Models.TrackEndNode trackEndNode, Orts.Formats.Msts.Models.TrackVectorNode connectedVectorNode) :
             base(trackEndNode?.UiD.Location ?? throw new ArgumentNullException(nameof(trackEndNode)))
         {
-            ArgumentNullException.ThrowIfNull(trackSections);
-
             TrackNodeIndex = trackEndNode.Index;
 
             if (null == connectedVectorNode)
@@ -29,17 +28,16 @@ namespace FreeTrainSimulator.Models.Imported.Track
             if (connectedVectorNode.TrackPins[0].Link == trackEndNode.Index)
             {
                 //find angle at beginning of vector node
-                TrackVectorSection tvs = connectedVectorNode.TrackVectorSections[0];
+                Orts.Formats.Msts.Models.TrackVectorSection tvs = connectedVectorNode.TrackVectorSections[0];
                 Direction = tvs.Direction.Y;
             }
             else
             {
                 //find angle at end of vector node
-                TrackVectorSection trackVectorSection = connectedVectorNode.TrackVectorSections[^1];
+                Orts.Formats.Msts.Models.TrackVectorSection trackVectorSection = connectedVectorNode.TrackVectorSections[^1];
                 Direction = trackVectorSection.Direction.Y;
                 // try to get even better in case the last section is curved
-                TrackSection trackSection = trackSections.TryGet(trackVectorSection.SectionIndex);
-                if (null == trackSection)
+                if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out TrackSection trackSection))
                     throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat");
                 if (trackSection.Curved)
                 {

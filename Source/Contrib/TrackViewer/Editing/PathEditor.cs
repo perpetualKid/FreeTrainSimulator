@@ -91,7 +91,6 @@ namespace ORTS.TrackViewer.Editing
         #region Private members
         private readonly DrawTrackDB drawTrackDB; // We need to know what has been drawn, especially to get track closest to mouse
         private readonly TrackDB trackDB;
-        private readonly TrackSectionsFile tsectionDat;
         private readonly DrawPath drawPath;      // drawing of the path itself
 
         private TrainpathNode activeNode;           // active Node (if present) for which actions can be performed
@@ -141,13 +140,12 @@ namespace ORTS.TrackViewer.Editing
 
             this.drawTrackDB = drawTrackDB;
             trackDB = RuntimeData.Instance.TrackDB;
-            tsectionDat = RuntimeData.Instance.TSectionDat;
 
-            TrackExtensions.Initialize(trackDB.TrackNodes, tsectionDat); // we might be calling this more than once, but so be it.
+            TrackExtensions.Initialize(trackDB.TrackNodes); // we might be calling this more than once, but so be it.
 
             enableMouseUpdate = true;
 
-            drawPath = new DrawPath(trackDB, tsectionDat);
+            drawPath = new DrawPath(trackDB);
 
             CreateNonMenuActions();
             CreateDirectActions();
@@ -157,7 +155,7 @@ namespace ORTS.TrackViewer.Editing
 
         private void CreateNonMenuActions()
         {
-            activeTrackLocation = new TrainpathVectorNode(trackDB, tsectionDat);
+            activeTrackLocation = new TrainpathVectorNode(trackDB);
             nonInteractiveAction = new EditorActionNonInteractive();
         }
 
@@ -170,7 +168,7 @@ namespace ORTS.TrackViewer.Editing
         public PathEditor(DrawTrackDB drawTrackDB, string pathsDirectory)
             :this(drawTrackDB)
         {
-            CurrentTrainPath = new Trainpath(trackDB, tsectionDat);
+            CurrentTrainPath = new Trainpath(trackDB);
             FileName = CurrentTrainPath.PathId + ".pat";
             CurrentTrainPath.FilePath = System.IO.Path.Combine(pathsDirectory, FileName);
             EditingIsActive = true;
@@ -187,7 +185,7 @@ namespace ORTS.TrackViewer.Editing
             :this(drawTrackDB)
         {
             FileName = System.IO.Path.GetFileName(path.SourceFile());
-            CurrentTrainPath = new Trainpath(trackDB, tsectionDat, path.SourceFile());
+            CurrentTrainPath = new Trainpath(trackDB, path.SourceFile());
             EditingIsActive = false;
             OnPathChanged();
         }
@@ -761,7 +759,7 @@ namespace ORTS.TrackViewer.Editing
             // * Reconnect tail
 
             FileName = System.IO.Path.GetFileName(path.SourceFile());
-            Trainpath newPath = new Trainpath(trackDB, tsectionDat, path.SourceFile());
+            Trainpath newPath = new Trainpath(trackDB, path.SourceFile());
 
             // We have a current path and a new path.
             // First check if the new path is usable

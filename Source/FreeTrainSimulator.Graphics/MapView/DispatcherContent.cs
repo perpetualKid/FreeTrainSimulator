@@ -11,6 +11,7 @@ using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Imported.Track;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -192,7 +193,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void AddTrackSegments()
         {
             TrackDB trackDB = RuntimeData.GameInstance(game).TrackDB;
-            TrackSectionsFile trackSectionsFile = RuntimeData.GameInstance(game).TSectionDat;
+            TrackSectionModel trackSections = RuntimeData.GameInstance(game).TrackModel;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<EndNode> endSegments = new ConcurrentBag<EndNode>();
@@ -202,20 +203,17 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             Parallel.ForEach(trackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>(), trackNode =>
             {
-                if (null == trackSectionsFile)
-                    throw new ArgumentNullException(nameof(trackSectionsFile));
-
                 switch (trackNode)
                 {
                     case TrackEndNode trackEndNode:
                         TrackVectorNode connectedVectorNode = trackDB.TrackNodes.VectorNodes[trackEndNode.TrackPins[0].Link];
-                        endSegments.Add(new EndNode(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
+                        endSegments.Add(new EndNode(trackEndNode, connectedVectorNode));
                         break;
                     case TrackVectorNode trackVectorNode:
                         int i = 0;
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
-                            trackSegments.Add(new TrackSegment(trackVectorSection, trackSectionsFile.TrackSections, trackVectorNode.Index, i++));
+                            trackSegments.Add(new TrackSegment(trackVectorSection, trackVectorNode.Index, i++));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
@@ -224,7 +222,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                         {
                             vectorNodes.Add(trackDB.TrackNodes[pin.Link] as TrackVectorNode);
                         }
-                        junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode, trackSectionsFile.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute, vectorNodes, trackSectionsFile.TrackSections));
+                        junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute, vectorNodes));
                         break;
                 }
             });

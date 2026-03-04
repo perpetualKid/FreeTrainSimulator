@@ -22,6 +22,7 @@ using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -48,7 +49,6 @@ namespace ORTS.TrackViewer.Editing
         public TrainpathNode CurrentMainNode { get; private set; }
 
         private readonly TrackDB trackDB;
-        private readonly TrackSectionsFile tsectionDat;
         internal ColorScheme ColorSchemeSiding { get; set; }
         internal ColorScheme ColorSchemeMain { get; set; }
         internal ColorScheme ColorSchemeLast { get; set; }
@@ -56,10 +56,9 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>
         /// Constructor
         /// </summary>
-        public DrawPath (TrackDB trackDB, TrackSectionsFile tsectionDat)
+        public DrawPath (TrackDB trackDB)
         {
             this.trackDB = trackDB;
-            this.tsectionDat = tsectionDat;
             ColorSchemeMain = DrawColors.colorsPathMain;
             ColorSchemeSiding = DrawColors.colorsPathSiding;
             ColorSchemeLast = DrawColors.ShadeColor(DrawColors.otherPathsReferenceColor, 0, 1);
@@ -390,7 +389,7 @@ namespace ORTS.TrackViewer.Editing
         private void DrawTrackSection(DrawArea drawArea, TrackVectorSection tvs, ColorScheme colors,
             float startOffset, float stopOffset)
         {
-            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
+            RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
             if (trackSection == null) return;
 
             ref readonly WorldLocation thisLocation = ref tvs.Location;
@@ -403,14 +402,14 @@ namespace ORTS.TrackViewer.Editing
                 float angleStart = sign*MathHelper.ToDegrees(startOffset / radius);
                 angleLength -= angleStart;
 
-                drawArea.DrawArc(trackSection.Width, colors.TrackCurved, thisLocation,
+                drawArea.DrawArc(trackSection.Gauge, colors.TrackCurved, thisLocation,
                     radius, tvs.Direction.Y, angleLength, angleStart);
             }
             else
             {   // straight section
                 float length = (stopOffset < 0) ? trackSection.Length : stopOffset;
                 length -= startOffset;
-                drawArea.DrawLine(trackSection.Width, colors.TrackStraight, thisLocation,
+                drawArea.DrawLine(trackSection.Gauge, colors.TrackStraight, thisLocation,
                     length, tvs.Direction.Y, startOffset);
             }
         }

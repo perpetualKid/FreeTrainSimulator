@@ -8,7 +8,7 @@
     <OutputPath>..\..\Program</OutputPath>
     <RootNamespace>FreeTrainSimulator.Updater</RootNamespace>
     <ApplicationIcon>..\FTS.ico</ApplicationIcon>
-    <Configurations>Debug;Release;CodeAnalysis</Configurations>
+    <Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
 		<ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
 	</PropertyGroup>
   <ItemGroup>

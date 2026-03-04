@@ -24,6 +24,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -109,13 +110,13 @@ namespace Orts.Simulation.World
 
         private void InitializeAnglesAndTrackNodes()
         {
-            TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[TrackShapeIndex];
-            uint nSections = RuntimeData.Instance.TSectionDat.TrackShapes[TrackShapeIndex].SectionIndices[0].SectionsCount;
-            trackNodesIndex = new int[RuntimeData.Instance.TSectionDat.TrackShapes[TrackShapeIndex].SectionIndices.Length];
+            FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackModel.TrackShapes[TrackShapeIndex];
+            int nSections = trackShape.TrackShapePaths[0].TrackSections.Length;
+            trackNodesIndex = new int[trackShape.TrackShapePaths.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];
             trackVectorSectionsIndex = new int[trackNodesIndex.Length];
             int i = 0;
-            foreach (SectionIndex sectionIdx in trackShape.SectionIndices)
+            foreach (TrackShapePath sectionIdx in trackShape.TrackShapePaths)
             {
                 angles.Add(MathHelper.ToRadians((float)sectionIdx.AngularOffset));
                 trackNodesIndex[i] = -1;

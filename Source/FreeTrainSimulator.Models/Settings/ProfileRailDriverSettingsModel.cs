@@ -7,7 +7,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Settings
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    [ModelResolver("", ".raildriversettings")]
+    [ModelResolver(".raildriversettings")]
     public sealed partial record ProfileRailDriverSettingsModel : ProfileSettingsModelBase
     {
         private static ProfileRailDriverSettingsModel defaultModel;

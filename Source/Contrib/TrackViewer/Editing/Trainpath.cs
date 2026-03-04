@@ -148,7 +148,6 @@ namespace ORTS.TrackViewer.Editing
         #region private members
 
         private readonly TrackDB trackDB;
-        private readonly TrackSectionsFile tsectionDat;
         private readonly List<TrainPathData> trainPaths;
         private int currentIndex; // trainPaths are indexed
         private int currentIndexUnmodified; // The index of the last saved path.
@@ -160,10 +159,9 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="trackDB"></param>
         /// <param name="tsectionDat"></param>
-        public Trainpath(TrackDB trackDB, TrackSectionsFile tsectionDat)
+        public Trainpath(TrackDB trackDB)
         {
             this.trackDB = trackDB;
-            this.tsectionDat = tsectionDat;
             trainPaths = new List<TrainPathData>
             {
                 new TrainPathData()
@@ -176,10 +174,9 @@ namespace ORTS.TrackViewer.Editing
         /// with optional parallel siding list.
         /// </summary>
         /// <param name="trackDB"></param>
-        /// <param name="tsectionDat"></param>
         /// <param name="filePath">file name including path of the .pat file</param>
-        public Trainpath(TrackDB trackDB, TrackSectionsFile tsectionDat, string filePath)
-            : this(trackDB, tsectionDat)
+        public Trainpath(TrackDB trackDB, string filePath)
+            : this(trackDB)
         {
             FilePath = filePath;
 
@@ -229,7 +226,7 @@ namespace ORTS.TrackViewer.Editing
         private void CreateNodes(PathFile patFile, List<TrainpathNode> Nodes)
         {
             foreach (PathNode tpn in patFile.PathNodes)
-                Nodes.Add(TrainpathNode.CreatePathNode(tpn, trackDB, tsectionDat));
+                Nodes.Add(TrainpathNode.CreatePathNode(tpn, trackDB));
             FirstNode = Nodes[0];
             FirstNode.NodeType = TrainpathNodeType.Start;
         }

@@ -10,12 +10,15 @@ using System.Linq;
 
 using Microsoft.Win32;
 
+using static System.Collections.Specialized.BitVector32;
+
 namespace Orts.Formats.Msts
 {
     public static class FolderStructure
     {
         public const string OpenRailsSpecificFolder = "OpenRails";
         private const string Global = "Global";
+        private const string tsection = "tsection.dat";
 
 #pragma warning disable CA1034 // Nested types should not be visible
         public class ContentFolder
@@ -24,8 +27,6 @@ namespace Orts.Formats.Msts
             public class RouteFolder
             {
 #pragma warning restore CA1034 // Nested types should not be visible
-
-                private const string tsection = "tsection.dat";
 
                 internal RouteFolder(string route, ContentFolder parent)
                 {
@@ -145,12 +146,11 @@ namespace Orts.Formats.Msts
                         else if (File.Exists(tsectionFile = Path.Combine(CurrentFolder, Global, tsection)))   // doesn't seem to be a valid option, but might have been used so keep for now
                             return tsectionFile;
                         else
-                            return GlobalTrackSectionFile;
+                            return ContentFolder.TrackSectionFile;
                     }
                 }
 
                 public string RouteTrackSectionFile => Path.Combine(CurrentFolder, tsection);
-                public string GlobalTrackSectionFile => Path.Combine(ContentFolder.Folder, Global, tsection);
 
                 public string SignalConfigurationFile
                 {
@@ -183,6 +183,8 @@ namespace Orts.Formats.Msts
             }
 
             public string Folder { get; }
+
+            public string TrackSectionFile => Path.Combine(Folder, Global, tsection);
 
             public string RoutesFolder => Path.Combine(Folder, "Routes");
 

@@ -65,18 +65,13 @@ namespace Orts.ActivityRunner.Viewer3D
             WorldPosition wcopy = nextRoot;
             Vector3 sectionOrigin = worldMatrixInput.XNAMatrix.Translation; // Save root position
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
-            try
-            {
-                if (RuntimeData.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex].RoadShape == true)
-                    return 1;
-            }
-            catch (Exception)
-            {
-                return 0;
-            }
-            SectionIndex[] SectionIdxs = RuntimeData.Instance.TSectionDat.TrackShapes[trackObj.SectionIndex].SectionIndices;
 
-            foreach (SectionIndex id in SectionIdxs)
+            if (!RuntimeData.Instance.TrackModel.TrackShapes.TryGetValue(trackObj.SectionIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
+                return 0;
+            if (shape.ShapeType == FreeTrainSimulator.Models.Track.ShapeType.Road)
+                return 1;
+
+            foreach (FreeTrainSimulator.Models.Track.TrackShapePath id in shape.TrackShapePaths)
             {
                 nextRoot = wcopy; // Will become initial root
                 sectionOrigin = nextRoot.XNAMatrix.Translation;
@@ -90,13 +85,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 heading = Vector3.Transform(heading, trackRot); // Heading change
                 nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
-                int[] sections = id.TrackSections;
 
-                for (int i = 0; i < sections.Length; i++)
+                for (int i = 0; i < id.TrackSections.Length; i++)
                 {
                     float length, radius;
                     int sid = id.TrackSections[i];
-                    TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
+                    FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackModel.TrackSections[sid];
                     WorldPosition root = nextRoot;
                     nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
@@ -158,16 +152,8 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 sectionOrigin = worldMatrixInput.XNAMatrix.Translation; // Save root position
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
 
-            TrackPath path;
-
-            try
-            {
-                path = RuntimeData.Instance.TSectionDat.TrackSectionIndex[trackObj.SectionIndex];
-            }
-            catch (Exception)
-            {
+            if (!RuntimeData.Instance.TrackModel.DynamicTrackSections.TryGetValue(trackObj.SectionIndex, out FreeTrainSimulator.Models.Track.DynamicTrackSection path))
                 return; //cannot find the path for the dynamic track
-            }
 
             nextRoot = wcopy; // Will become initial root
             sectionOrigin = nextRoot.XNAMatrix.Translation;
@@ -181,13 +167,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
             //heading = Vector3.Transform(heading, trackRot); // Heading change
             nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
-            int[] sections = path.TrackSections;
 
-            for (int i = 0; i < sections.Length; i++)
+            for (int i = 0; i < path.TrackSections.Length; i++)
             {
                 float length, radius;
                 int sid = path.TrackSections[i];
-                TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
+                FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackModel.TrackSections[sid];
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 

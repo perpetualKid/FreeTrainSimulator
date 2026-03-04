@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System.Diagnostics;
+using System.IO;
 
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
@@ -30,22 +31,23 @@ namespace Orts.Formats.Msts.Files
         public TrackShapes TrackShapes { get; private set; }
         public TrackPaths TrackSectionIndex { get; private set; } //route's tsection.dat
 
-        public int Version { get; init; }
-
         public void AddRouteTSectionDatFile(string fileName)
         {
-            using (STFReader stf = new STFReader(fileName, false))
+            if (File.Exists(fileName))
             {
-                if (stf.SimisSignature != "SIMISA@@@@@@@@@@JINX0T0t______")
+                using (STFReader stf = new STFReader(fileName, false))
                 {
-                    Trace.TraceWarning("Skipped invalid TSECTION.DAT in route folder");
-                    return;
-                }
-                stf.ParseFile(new STFReader.TokenProcessor[] {
+                    if (stf.SimisSignature != "SIMISA@@@@@@@@@@JINX0T0t______")
+                    {
+                        Trace.TraceWarning("Skipped invalid TSECTION.DAT in route folder");
+                        return;
+                    }
+                    stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("tracksections", ()=>{ TrackSections.AddRouteTrackSections(stf); }),
                     new STFReader.TokenProcessor("sectionidx", ()=>{ TrackSectionIndex = new TrackPaths(stf); }),
                     // todo read in SectionIdx part of RouteTSectionDat
                 });
+                }
             }
         }
 
@@ -53,14 +55,6 @@ namespace Orts.Formats.Msts.Files
         {
             using (STFReader stf = new STFReader(fileName, false))
             {
-                string signature = stf.ReadString();
-                if (signature == "_INFO")
-                {
-                    stf.MustMatchBlockStart();
-                    if (stf.ReadString().Equals("Build", System.StringComparison.OrdinalIgnoreCase))
-                        Version = stf.ReadInt(0);
-                }
-
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("tracksections", ()=>{
                         if (TrackSections == null)
