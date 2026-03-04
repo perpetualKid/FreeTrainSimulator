@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
@@ -72,7 +73,10 @@ namespace FreeTrainSimulator.Models.Imported.Track
             TrackVectorSectionIndex = trackVectorSectionIndex;
 
             if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out TrackSection trackSection))
-                throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat for section index {trackVectorSectionIndex} in track node {trackNodeIndex}");
+            {
+                Trace.TraceError($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat for section index {trackVectorSectionIndex} in track node {trackNodeIndex}");
+                return;
+            }
 
             Size = trackSection.Gauge;
             Curved = trackSection.Curved;
