@@ -916,7 +916,7 @@ namespace Orts.ActivityRunner.Viewer3D
             this = v;
             // Checks for required member variables
             // No way to check for missing Position.
-            if (Normal == Vector3.Zero) throw new ArgumentOutOfRangeException("improper Normal");
+            if (Normal == Vector3.Zero) throw new ArgumentOutOfRangeException(nameof(Normal), "improper Normal");
             // No way to check for missing TexCoord
         }
     }

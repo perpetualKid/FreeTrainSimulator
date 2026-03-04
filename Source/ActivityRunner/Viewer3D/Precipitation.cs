@@ -166,13 +166,13 @@ namespace Orts.ActivityRunner.Viewer3D
             // Checking if graphics device is 16bit.
             Vertices = new ParticleVertex[MaxParticles * VerticiesPerParticle];
             VertexDeclaration = new VertexDeclaration(ParticleVertex.SizeInBytes, ParticleVertex.VertexElements);
-            VertexStride = Marshal.SizeOf(typeof(ParticleVertex));
+            VertexStride = Marshal.SizeOf<ParticleVertex>();
             VertexBuffer = new DynamicVertexBuffer(graphicsDevice, VertexDeclaration, MaxParticles * VerticiesPerParticle, BufferUsage.WriteOnly);
             // Processing either 32bit or 16bit InitIndexBuffer depending on GraphicsDeviceCapabilities.
             IndexBuffer = InitIndexBuffer(graphicsDevice, MaxParticles * IndiciesPerParticle);
             heights = new HeightCache(8);
             // This Trace command is used to show how much memory is used.
-            Trace.TraceInformation(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Allocation for {0:N0} particles:\n\n  {1,13:N0} B RAM vertex data\n  {2,13:N0} B RAM index data (temporary)\n  {1,13:N0} B VRAM DynamicVertexBuffer\n  {2,13:N0} B VRAM IndexBuffer", MaxParticles, Marshal.SizeOf(typeof(ParticleVertex)) * MaxParticles * VerticiesPerParticle, sizeof(uint) * MaxParticles * IndiciesPerParticle));
+            Trace.TraceInformation(string.Format(System.Globalization.CultureInfo.CurrentCulture, "Allocation for {0:N0} particles:\n\n  {1,13:N0} B RAM vertex data\n  {2,13:N0} B RAM index data (temporary)\n  {1,13:N0} B VRAM DynamicVertexBuffer\n  {2,13:N0} B VRAM IndexBuffer", MaxParticles, Marshal.SizeOf<ParticleVertex>() * MaxParticles * VerticiesPerParticle, sizeof(uint) * MaxParticles * IndiciesPerParticle));
         }
 
         // IndexBuffer for 32bit process.

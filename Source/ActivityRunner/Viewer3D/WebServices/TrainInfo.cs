@@ -44,7 +44,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// <returns></returns>
         public static TrainInfo GetWebTrainInfo(this Viewer viewer) => new TrainInfo
         {
-            ControlMode = Enum.GetName(typeof(TrainControlMode), viewer.PlayerTrain.ControlMode),
+            ControlMode = Enum.GetName(viewer.PlayerTrain.ControlMode),
         };
     }
 }

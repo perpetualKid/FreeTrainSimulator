@@ -26,7 +26,7 @@ namespace FreeTrainSimulator.Toolbox
 
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
 
-            loadTasks.Add(Task.Run(async () => trackSectionModel = await routeModel.GetTrackSectionModel(cancellationToken)));
+            loadTasks.Add(Task.Run(async () => trackSectionModel = await routeModel.GetTrackSectionModel(cancellationToken).ConfigureAwait(false)));
             loadTasks.Add(Task.Run(() =>
             {
                 string tdbFile = routeFolder.TrackDatabaseFile(routeModel.RouteKey);

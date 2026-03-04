@@ -38,7 +38,7 @@ namespace Orts.Formats.Msts
 
             Task.Run(async () =>
             {
-                trackSectionModel = await route.GetTrackSectionModel(System.Threading.CancellationToken.None);
+                trackSectionModel = await route.GetTrackSectionModel(System.Threading.CancellationToken.None).ConfigureAwait(false);
             }).Wait();
             Instance = new RuntimeData(route, trackSectionModel, trackDb, roadTrackDB, signalConfig, metricUnits, runtimeReferenceResolver);
         }
