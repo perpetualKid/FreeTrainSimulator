@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -187,10 +188,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     position.XNAMatrix, out Vector3 xnaTreePosition);
 
                 bool onTrack = false;
-                var scale = MathHelper.Lerp(forest.ScaleRange.LowerLimit, forest.ScaleRange.UpperLimit, (float)random.NextDouble());
+                float scale = MathHelper.Lerp(forest.ScaleRange.LowerLimit, forest.ScaleRange.UpperLimit, (float)random.NextDouble());
 #pragma warning restore CA5394 // Do not use insecure randomness
-                var treeSize = new Vector3(forest.TreeSize.Width * scale, forest.TreeSize.Height * scale, 1);
-                var heightComputed = false;
+                Vector3 treeSize = new Vector3(forest.TreeSize.Width * scale, forest.TreeSize.Height * scale, 1);
+                bool heightComputed = false;
                 if (maximumCenterlineOffset > 0 && sections != null && sections.Count > 0)
                 {
                     foreach (var section in sections)
@@ -200,8 +201,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             try
                             {
-                                var trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[section.ShapeIndex];
-                                if (trackShape != null && trackShape.TunnelShape)
+                                FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackModel.TrackShapes[section.ShapeIndex];
+                                if (trackShape != null && trackShape.ShapeType == FreeTrainSimulator.Models.Track.ShapeType.Tunnel)
                                 {
                                     xnaTreePosition.Y = tiles.LoadAndGetElevation(position.Tile, xnaTreePosition.X, -xnaTreePosition.Z, false);
                                     heightComputed = true;
@@ -282,18 +283,15 @@ namespace Orts.ActivityRunner.Viewer3D
             return SectionMap.TryGetValue(targetKey, out List<TrackVectorSection> value) ? value : null;
         }
 
-        private TrackSection trackSection;
+        private FreeTrainSimulator.Models.Track.TrackSection trackSection;
 
         private bool InitTrackSection(TrackVectorSection section, Vector3 xnaTreePosition, in Tile tile, float treeWidth)
         {
-            trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(section.SectionIndex);
-            if (trackSection == null)
+            if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(section.SectionIndex, out trackSection))
                 return false;
-            if (trackSection.Curved)
-            {
-                return InitTrackSectionCurved(tile, xnaTreePosition.X, -xnaTreePosition.Z, section, treeWidth);
-            }
-            return InitTrackSectionStraight(tile, xnaTreePosition.X, -xnaTreePosition.Z, section, treeWidth);
+            return trackSection.Curved
+                ? InitTrackSectionCurved(tile, xnaTreePosition.X, -xnaTreePosition.Z, section, treeWidth)
+                : InitTrackSectionStraight(tile, xnaTreePosition.X, -xnaTreePosition.Z, section, treeWidth);
         }
 
         // don't consider track sections outside the forest boundaries
@@ -311,8 +309,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                     sectPosToForest = Vector3.Transform(sectPosition, invForestXNAMatrix);
                     sectPosToForest.Z *= -1;
-                    trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(section.SectionIndex);
-                    if (trackSection == null)
+                    if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(section.SectionIndex, out trackSection))
                         continue;
                     if (Math.Abs(sectPosToForest.X) > trackSection.Length + toAddX)
                         continue;

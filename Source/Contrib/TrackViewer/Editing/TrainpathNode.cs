@@ -135,23 +135,21 @@ namespace ORTS.TrackViewer.Editing
 
         /// <summary>Reference to the track database to be able to search it</summary>
         protected TrackDB TrackDB { get; private set; }
-        /// <summary>Reference to the track section data to be able to search it</summary>
-        protected TrackSectionsFile TsectionDat { get; private set; }
 
         /// <summary>
         /// Sort of constructor. But it creates the right sub-class
         /// </summary>
         /// <returns>A sub-class object properly initialized</returns>
-        public static TrainpathNode CreatePathNode(PathNode tpn, TrackDB trackDB, TrackSectionsFile tsectionDat)
+        public static TrainpathNode CreatePathNode(PathNode tpn, TrackDB trackDB)
         {
             if ((tpn.NodeType & PathNodeType.Junction) == PathNodeType.Junction)
             {
                 // we do not use tpn: this means we do not interpret the flags
-                return new TrainpathJunctionNode(tpn, trackDB, tsectionDat);
+                return new TrainpathJunctionNode(tpn, trackDB);
             }
             else
             {
-                return new TrainpathVectorNode(tpn, trackDB, tsectionDat);
+                return new TrainpathVectorNode(tpn, trackDB);
             }
 
         }
@@ -159,10 +157,9 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>
         /// basic constructor, in case node is not created from PAT file, and only some parts are needed
         /// </summary>
-        protected TrainpathNode(TrackDB trackDB, TrackSectionsFile tsectionDat)
+        protected TrainpathNode(TrackDB trackDB)
         {
             TrackDB = trackDB;
-            TsectionDat = tsectionDat;
             HasSidingPath = false;
             NextMainTvnIndex = 0;
             NextSidingTvnIndex = 0;
@@ -173,7 +170,7 @@ namespace ORTS.TrackViewer.Editing
         /// constructor, in case node is not created from PAT file.
         /// </summary>
         protected TrainpathNode(TrainpathNode otherNode)
-            : this(otherNode.TrackDB, otherNode.TsectionDat)
+            : this(otherNode.TrackDB)
         {
         }
 
@@ -182,8 +179,8 @@ namespace ORTS.TrackViewer.Editing
         /// Creates a single trainpathNode and initializes everything that do not depend on other nodes.
         /// The trainpath constructor will initialize the rest.
         /// </summary>
-        protected TrainpathNode(PathNode tpn, TrackDB trackDB, TrackSectionsFile tsectionDat)
-            : this(trackDB, tsectionDat)
+        protected TrainpathNode(PathNode tpn, TrackDB trackDB)
+            : this(trackDB)
         {
             Location = tpn.Location;
             if ((tpn.NodeType & PathNodeType.Invalid) == PathNodeType.Invalid) // not a valid point
@@ -334,8 +331,8 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="pdp">Corresponding PDP in the .patfile</param>
         /// <param name="trackDB"></param>
         /// <param name="tsectionDat"></param>
-        public TrainpathJunctionNode(PathNode tpn, TrackDB trackDB, TrackSectionsFile tsectionDat)
-            : base(tpn, trackDB, tsectionDat)
+        public TrainpathJunctionNode(PathNode tpn, TrackDB trackDB)
+            : base(tpn, trackDB)
         {
             JunctionIndex = FindJunctionOrEndIndex(true);
         }
@@ -671,8 +668,8 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="trackDB"></param>
         /// <param name="tsectionDat"></param>
-        public TrainpathVectorNode(TrackDB trackDB, TrackSectionsFile tsectionDat)
-            : base(trackDB, tsectionDat)
+        public TrainpathVectorNode(TrackDB trackDB)
+            : base(trackDB)
         {
             TvnIndex = 0;
         }
@@ -728,8 +725,8 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="pdp">TrackPDP from .pat file</param>
         /// <param name="trackDB"></param>
         /// <param name="tsectionDat"></param>
-        public TrainpathVectorNode(PathNode tpn, TrackDB trackDB, TrackSectionsFile tsectionDat)
-            : base(tpn, trackDB, tsectionDat)
+        public TrainpathVectorNode(PathNode tpn, TrackDB trackDB)
+            : base(tpn, trackDB)
         {
             try
             {
@@ -795,7 +792,7 @@ namespace ORTS.TrackViewer.Editing
             for (int tvsi = 0; tvsi < TrackVectorSectionIndex; tvsi++)
             {
                 TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
-                TrackSection trackSection = TsectionDat.TrackSections.TryGet(tvs.SectionIndex);
+                RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
                 if (trackSection != null)  // if trackSection is missing somehow, well, do without.
                 {
                     distanceFromStart += trackSection.Length;

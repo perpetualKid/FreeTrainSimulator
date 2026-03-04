@@ -75,8 +75,6 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <summary>Maximum of all Curvature in PathChartPoints</summary>
         private float MaxCurvature;
 
-
-        private readonly TrackSectionsFile tsectionDat;
         private readonly TrackDB trackDB;
         private readonly TrackItemManager trackItems;
         #endregion
@@ -88,7 +86,6 @@ namespace ORTS.TrackViewer.Editing.Charts
         public PathChartData()
         {
             trackDB = RuntimeData.Instance.TrackDB;
-            tsectionDat = RuntimeData.Instance.TSectionDat;
             trackItems = new TrackItemManager();
         }
 
@@ -336,7 +333,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         private float GetCurvature(TrackVectorNode vectorNode, int tvsi, bool isForward)
         {
             TrackVectorSection tvs = vectorNode.TrackVectorSections[tvsi];
-            TrackSection trackSection = tsectionDat.TrackSections.TryGet(tvs.SectionIndex);
+            RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
 
             float curvature = 0;
             if (trackSection?.Curved ?? false) // if it is null, something is wrong but we do not want to crash
@@ -395,7 +392,9 @@ namespace ORTS.TrackViewer.Editing.Charts
         private float SectionLengthAlongTrack(TrackVectorNode tn, int tvsi)
         {
             TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
-            return tsectionDat.TrackSections.TryGet(tvs.SectionIndex)?.Length ?? 100; // need to return something. Not easy to recover
+            RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
+
+            return trackSection?.Length ?? 100; // need to return something. Not easy to recover
         }
         #endregion
     }

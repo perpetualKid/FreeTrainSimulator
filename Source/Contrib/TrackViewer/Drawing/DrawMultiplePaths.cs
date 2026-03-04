@@ -52,7 +52,6 @@ namespace ORTS.TrackViewer.Drawing
         private readonly List<Trainpath> selectedTrainpaths;
     
         private readonly TrackDB trackDB;
-        private readonly TrackSectionsFile tsectionDat;
 
         /// <summary>
         /// Constructor
@@ -60,7 +59,6 @@ namespace ORTS.TrackViewer.Drawing
         public DrawMultiplePaths (Collection<PathModelHeader> paths)
         {
             trackDB = RuntimeData.Instance.TrackDB;
-            tsectionDat = RuntimeData.Instance.TSectionDat;
             fullPathNames = new Dictionary<string, string>();
             loadedPaths = new Dictionary<string, Trainpath>();
             selectedTrainpaths = new List<Trainpath>();
@@ -89,9 +87,9 @@ namespace ORTS.TrackViewer.Drawing
         {
             if (!loadedPaths.TryGetValue(pathName, out Trainpath newTrainpath))
             {
-                newTrainpath = new Trainpath(trackDB, tsectionDat, fullPathNames[pathName]);
+                newTrainpath = new Trainpath(trackDB, fullPathNames[pathName]);
                 loadedPaths[pathName] = newTrainpath;
-                drawPaths[newTrainpath] = new DrawPath(trackDB, tsectionDat);
+                drawPaths[newTrainpath] = new DrawPath(trackDB);
             }
             return newTrainpath;
 

@@ -24,6 +24,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -108,13 +109,13 @@ namespace Orts.Simulation.World
 
         protected void InitializeOffsetsAndTrackNodes()
         {
-            TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[TrackShapeIndex];
-            uint nSections = trackShape.SectionIndices[0].SectionsCount;
-            trackNodesIndex = new int[trackShape.SectionIndices.Length];
+            FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackModel.TrackShapes[TrackShapeIndex];
+            int nSections = trackShape.TrackShapePaths[0].TrackSections.Length;
+            trackNodesIndex = new int[trackShape.TrackShapePaths.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];
             trackVectorSectionsIndex = new int[trackNodesIndex.Length];
             int i = 0;
-            foreach (SectionIndex sectionIdx in trackShape.SectionIndices)
+            foreach (TrackShapePath sectionIdx in trackShape.TrackShapePaths)
             {
                 offsets.Add(verticalTransfer ? sectionIdx.Offset.Y : sectionIdx.Offset.X);
                 trackNodesIndex[i] = -1;
@@ -129,7 +130,7 @@ namespace Orts.Simulation.World
                     int trackVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection => trVectorSection.Location.Tile == WorldPosition.Tile && trVectorSection.WorldFileUiD == UID);
                     if (trackVectorSection >= 0)
                     {
-                        if (tvn.TrackVectorSections.Length > (int)nSections)
+                        if (tvn.TrackVectorSections.Length > nSections)
                         {
                             i = tvn.TrackVectorSections[trackVectorSection].Flag1 / 2;
                             trackNodesIndex[i] = tvn.Index;
@@ -143,12 +144,12 @@ namespace Orts.Simulation.World
             if (verticalTransfer)
             {
                 OffsetPos = CenterOffset.Y;
-                Span = trackShape.SectionIndices[^1].Offset.Y - trackShape.SectionIndices[0].Offset.Y;
+                Span = trackShape.TrackShapePaths[^1].Offset.Y - trackShape.TrackShapePaths[0].Offset.Y;
             }
             else
             {
                 OffsetPos = CenterOffset.X;
-                Span = trackShape.SectionIndices[^1].Offset.X - trackShape.SectionIndices[0].Offset.X;
+                Span = trackShape.TrackShapePaths[^1].Offset.X - trackShape.TrackShapePaths[0].Offset.X;
             }
         }
 

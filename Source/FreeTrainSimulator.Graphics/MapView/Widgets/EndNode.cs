@@ -18,8 +18,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private const int width = 3;
         protected const float Length = 0.5f;
 
-        public EndNode(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections trackSections) :
-            base(trackEndNode, connectedVectorNode, trackSections)
+        public EndNode(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode) :
+            base(trackEndNode, connectedVectorNode)
         {
             Size = width;
         }
@@ -56,8 +56,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public RoadEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections sections) :
-            base(trackEndNode, connectedVectorNode, sections)
+        public RoadEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode) :
+            base(trackEndNode, connectedVectorNode)
         {
         }
 

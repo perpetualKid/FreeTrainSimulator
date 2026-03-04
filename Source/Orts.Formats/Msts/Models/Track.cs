@@ -889,19 +889,17 @@ namespace Orts.Formats.Msts.Models
                 if (!float.IsNaN(angle))
                     return angle;
 
-                TrackShape trackShape = RuntimeData.Instance.TSectionDat.TrackShapes[ShapeIndex];
-                SectionIndex[] sectionIndices = trackShape.SectionIndices;
+                FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackModel.TrackShapes[ShapeIndex];
 
-                for (int index = 0; index < sectionIndices.Length; index++)
+                for (int index = 0; index < trackShape.TrackShapePaths.Length; index++)
                 {
                     if (index == trackShape.MainRoute)
                         continue;
-                    int[] sections = sectionIndices[index].TrackSections;
 
-                    for (int i = 0; i < sections.Length; i++)
+                    for (int i = 0; i < trackShape.TrackShapePaths[index].TrackSections.Length; i++)
                     {
-                        int sid = sectionIndices[index].TrackSections[i];
-                        TrackSection section = RuntimeData.Instance.TSectionDat.TrackSections[sid];
+                        int sid = trackShape.TrackShapePaths[index].TrackSections[i];
+                        FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackModel.TrackSections[sid];
 
                         if (section.Curved)
                         {

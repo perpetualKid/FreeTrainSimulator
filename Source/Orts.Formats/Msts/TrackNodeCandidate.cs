@@ -45,12 +45,12 @@ namespace Orts.Formats.Msts
         public TrackNode TrackNode { get; private set; }     // the trackNode object
         public TrackVectorSection TrackVectorSection { get; private set; } // the trackvectorSection within the tracknode
         public int TrackVectorSectionIndex { get; private set; } = -1;   // the corresponding index of the trackvectorsection
-        public TrackSection TrackSection { get; }          // the tracksection within the trackvectorsection
+        public FreeTrainSimulator.Models.Track.TrackSection TrackSection { get; }          // the tracksection within the trackvectorsection
 
         /// <summary>
         /// Constructor will only be called deep into a section, where the actual lon(gitude) and lat(itude) are being calculated.
         /// </summary>
-        private TrackNodeCandidate(float distanceToTrack, float lon, TrackSection trackSection)
+        private TrackNodeCandidate(float distanceToTrack, float lon, FreeTrainSimulator.Models.Track.TrackSection trackSection)
         {
             Longitude = lon;
             DistanceToTrack = distanceToTrack;
@@ -93,8 +93,7 @@ namespace Orts.Formats.Msts
         {
             TrackVectorSection trackVectorSection = trackNode.TrackVectorSections[tvsi];
 
-            TrackSection trackSection = RuntimeData.Instance.TSectionDat.TrackSections.TryGet(trackVectorSection.SectionIndex);
-            if (trackSection == null)
+            if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
                 return null;
 
             TrackNodeCandidate candidate = TryTrackSection(location, trackVectorSection, trackSection);
@@ -113,7 +112,7 @@ namespace Orts.Formats.Msts
         /// <param name="location">The location for which we want to see if it is on the tracksection</param>
         /// <param name="trackVectorSection">The parent track vector section</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        internal static TrackNodeCandidate TryTrackSection(in WorldLocation location, TrackVectorSection trackVectorSection, TrackSection trackSection)
+        internal static TrackNodeCandidate TryTrackSection(in WorldLocation location, TrackVectorSection trackVectorSection, FreeTrainSimulator.Models.Track.TrackSection trackSection)
         {
             if (trackSection == null || trackVectorSection == null)
                 return null;
@@ -129,7 +128,7 @@ namespace Orts.Formats.Msts
         /// <param name="trackVectorSection">The trackvector section that is parent of the tracksection</param>
         /// <param name="trackSection">the specific tracksection we want to try</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        private static TrackNodeCandidate TryTrackSectionCurved(in WorldLocation location, TrackVectorSection trackVectorSection, TrackSection trackSection)
+        private static TrackNodeCandidate TryTrackSectionCurved(in WorldLocation location, TrackVectorSection trackVectorSection, FreeTrainSimulator.Models.Track.TrackSection trackSection)
         {
             // TODO: Consider adding y component.
             // We're working relative to the track section, so offset as needed.
@@ -181,7 +180,7 @@ namespace Orts.Formats.Msts
         /// <param name="trackVectorSection">The trackvector section that is parent of the tracksection</param>
         /// <param name="trackSection">the specific tracksection we want to try</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        private static TrackNodeCandidate TryTrackSectionStraight(in WorldLocation location, TrackVectorSection trackVectorSection, TrackSection trackSection)
+        private static TrackNodeCandidate TryTrackSectionStraight(in WorldLocation location, TrackVectorSection trackVectorSection, FreeTrainSimulator.Models.Track.TrackSection trackSection)
         {
             // TODO: Consider adding y component.
             // We're working relative to the track section, so offset as needed.

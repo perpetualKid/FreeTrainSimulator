@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Models.Imported.Track
 {
@@ -58,10 +58,9 @@ namespace FreeTrainSimulator.Models.Imported.Track
             Direction = (float)Math.Atan2(origin.X, origin.Y) - MathHelper.PiOver2;
         }
 
-        protected TrackSegmentBase(TrackVectorSection trackVectorSection, TrackSections trackSections, int trackNodeIndex, int trackVectorSectionIndex)
+        protected TrackSegmentBase(Orts.Formats.Msts.Models.TrackVectorSection trackVectorSection, int trackNodeIndex, int trackVectorSectionIndex)
         {
             ArgumentNullException.ThrowIfNull(trackVectorSection);
-            ArgumentNullException.ThrowIfNull(trackSections);
 
             ref readonly WorldLocation location = ref trackVectorSection.Location;
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
@@ -72,15 +71,10 @@ namespace FreeTrainSimulator.Models.Imported.Track
             TrackNodeIndex = trackNodeIndex;
             TrackVectorSectionIndex = trackVectorSectionIndex;
 
-            TrackSection trackSection = trackSections.TryGet(trackVectorSection.SectionIndex);
+            if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out TrackSection trackSection))
+                throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat for section index {trackVectorSectionIndex} in track node {trackNodeIndex}");
 
-            if (null == trackSection)
-            {
-                Trace.TraceError($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat for section index {trackVectorSectionIndex} in track node {trackNodeIndex}.");
-                return;
-            }
-
-            Size = trackSection.Width;
+            Size = trackSection.Gauge;
             Curved = trackSection.Curved;
             Direction = MathHelper.WrapAngle(trackVectorSection.Direction.Y - MathHelper.PiOver2);
 

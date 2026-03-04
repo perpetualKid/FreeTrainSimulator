@@ -20,6 +20,7 @@ using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -189,7 +190,7 @@ namespace ORTS.TrackViewer.UserInterface
                 try
                 {
                     // Try to find a fixed track
-                    TrackShape shape = RuntimeData.Instance.TSectionDat.TrackShapes[shapeIndex];
+                    FreeTrainSimulator.Models.Track.TrackShape shape = RuntimeData.Instance.TrackModel.TrackShapes[shapeIndex];
                     shapeName = shape.FileName;
                 }
 #pragma warning disable CA1031 // Do not catch general exception types
@@ -199,7 +200,7 @@ namespace ORTS.TrackViewer.UserInterface
                     // try to find a dynamic track
                     try
                     {
-                        TrackPath trackPath = RuntimeData.Instance.TSectionDat.TrackSectionIndex[tvs.ShapeIndex];
+                        DynamicTrackSection trackPath = RuntimeData.Instance.TrackModel.DynamicTrackSections[tvs.ShapeIndex];
                         shapeName = "<dynamic ?>";
                         foreach (int trackSection in trackPath.TrackSections)
                         {

@@ -1,5 +1,8 @@
-﻿using FreeTrainSimulator.Common;
+﻿using System.Threading.Tasks;
+
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
@@ -12,9 +15,7 @@ namespace Orts.Formats.Msts
     public class RuntimeData
     {
         public RouteModel RouteData { get; }
-        public TrackSectionModel TrackSections { get; }
-        /// <summary>Track Section Data, public such that other classes have access as well</summary>
-        public TrackSectionsFile TSectionDat { get; }
+        public TrackSectionModel TrackModel { get; init; }
         /// <summary>Track database, public such that other classes have access as well</summary>
         public TrackDB TrackDB { get; }
         /// <summary>Road track database</summary>
@@ -31,15 +32,26 @@ namespace Orts.Formats.Msts
             return game?.Services.GetService<RuntimeData>() ?? Instance;
         }
 
-        public static void Initialize(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
+        public static void Initialize(RouteModel route, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
-            Instance = new RuntimeData(route, trackSections, trackDb, roadTrackDB, signalConfig, metricUnits, runtimeReferenceResolver);
+            TrackSectionModel trackSectionModel = null;
+
+            Task.Run(async () =>
+            {
+                trackSectionModel = await route.GetTrackSectionModel(System.Threading.CancellationToken.None);
+            }).Wait();
+            Instance = new RuntimeData(route, trackSectionModel, trackDb, roadTrackDB, signalConfig, metricUnits, runtimeReferenceResolver);
         }
 
-        protected RuntimeData(RouteModel route, TrackSectionsFile trackSections, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver)
+        public static void Initialize(RouteModel route, TrackSectionModel trackSectionModel, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
+        {
+            Instance = new RuntimeData(route, trackSectionModel, trackDb, roadTrackDB, signalConfig, metricUnits, runtimeReferenceResolver);
+        }
+
+        protected RuntimeData(RouteModel route, TrackSectionModel trackSectionModel, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver)
         {
             RouteData = route;
-            TSectionDat = trackSections;
+            TrackModel = trackSectionModel;
             TrackDB = trackDb;
             RoadTrackDB = roadTrackDB;
             SignalConfigFile = signalConfig;

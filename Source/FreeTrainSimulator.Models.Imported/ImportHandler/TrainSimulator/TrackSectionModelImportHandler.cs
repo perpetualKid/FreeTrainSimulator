@@ -15,14 +15,12 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
     internal class TrackSectionModelImportHandler : ContentHandlerBase<TrackSectionModel>
     {
-        private const string keyName = "tsection";
-
         public static Task<TrackSectionModel> ExpandTrackSectionModel(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
             Task<TrackSectionModel> modelTask = Convert(routeModel, cancellationToken);
-            modelTaskCache[keyName] = modelTask;
+            modelTaskCache[routeModel.Id] = modelTask;
             return modelTask;
         }
 
@@ -50,7 +48,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     ClearanceDistance = (float)trackShape.Value.ClearanceDistance,
                     MainRoute = trackShape.Value.MainRoute,
                     ShapeType = trackShape.Value.TunnelShape ? ShapeType.Tunnel : trackShape.Value.RoadShape ? ShapeType.Road : ShapeType.None,
-                    SectionIndices = trackShape.Value.SectionIndices.Select(index => new TrackSectionIndex(index.Offset)
+                    TrackShapePaths = trackShape.Value.SectionIndices.Select(index => new TrackShapePath(index.Offset)
                     {
                         AngularOffset = index.AngularOffset,
                         TrackSections = index.TrackSections.ToImmutableArray(),

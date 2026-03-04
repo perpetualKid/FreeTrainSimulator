@@ -223,7 +223,7 @@ namespace FreeTrainSimulator.Menu
             {
                 reader.BaseStream.Seek(summaryFilePosition, SeekOrigin.Begin);
                 string line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
-                if (!string.IsNullOrEmpty(line) && reader.EndOfStream)
+                if (!string.IsNullOrEmpty(line))// && reader.EndOfStream)
                 {
                     string[] csv = line.Split(',');
                     errors = $"{int.Parse(csv[3], CultureInfo.InvariantCulture)}/{int.Parse(csv[4], CultureInfo.InvariantCulture)}/{int.Parse(csv[5], CultureInfo.InvariantCulture)}";

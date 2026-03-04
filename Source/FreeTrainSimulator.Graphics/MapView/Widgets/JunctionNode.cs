@@ -23,8 +23,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private const int diameter = 4;
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Junction" };
 
-        public JunctionNode(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections) :
-            base(junctionNode, mainRoute, vectorNodes, trackSections)
+        public JunctionNode(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes) :
+            base(junctionNode, mainRoute, vectorNodes)
         {
             Size = diameter;
         }
@@ -75,8 +75,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public IJunction Junction { get; }
 
-        public ActiveJunctionSegment(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes, TrackSections trackSections) :
-            base(junctionNode, mainRoute, vectorNodes, trackSections)
+        public ActiveJunctionSegment(TrackJunctionNode junctionNode, int mainRoute, List<TrackVectorNode> vectorNodes) :
+            base(junctionNode, mainRoute, vectorNodes)
         {
             trackSectionAngles = new float[vectorNodes.Count - 1];
             Junction = RuntimeData.Instance.RuntimeReferenceResolver?.SwitchById(junctionNode.TrackCircuitCrossReferences[0].Index);
@@ -86,7 +86,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             {
                 for (int i = 1; i < vectorNodes.Count; i++)
                 {
-                    float direction = GetOutboundSectionDirection(vectorNodes[i], junctionNode.TrackPins[i].Direction == TrackDirection.Reverse, trackSections, trial);
+                    float direction = GetOutboundSectionDirection(vectorNodes[i], junctionNode.TrackPins[i].Direction == TrackDirection.Reverse, trial);
                     if (float.IsNaN(direction))
                         break;
                     trackSectionAngles[i - 1] = MathHelper.WrapAngle(direction);
