@@ -74,7 +74,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
             if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out TrackSection trackSection))
             {
-                Trace.TraceError($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat for section index {trackVectorSectionIndex} in track node {trackNodeIndex}");
+                Trace.TraceError($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TrackSectionModel for section index {trackVectorSectionIndex} in track node {trackNodeIndex}");
                 return;
             }
 
