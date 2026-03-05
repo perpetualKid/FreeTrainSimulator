@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -889,16 +890,17 @@ namespace Orts.Formats.Msts.Models
                 if (!float.IsNaN(angle))
                     return angle;
 
+                ImmutableArray<FreeTrainSimulator.Models.Track.TrackSectionIndex> trackSections = RuntimeData.Instance.TrackModel.TrackSectionIndices[ShapeIndex];
                 FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackModel.TrackShapes[ShapeIndex];
 
-                for (int index = 0; index < trackShape.TrackShapePaths.Length; index++)
+                for (int index = 0; index < trackSections.Length; index++)
                 {
                     if (index == trackShape.MainRoute)
                         continue;
 
-                    for (int i = 0; i < trackShape.TrackShapePaths[index].TrackSections.Length; i++)
+                    for (int i = 0; i < trackSections[index].TrackSections.Length; i++)
                     {
-                        int sid = trackShape.TrackShapePaths[index].TrackSections[i];
+                        int sid = trackSections[index].TrackSections[i];
                         FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackModel.TrackSections[sid];
 
                         if (section.Curved)

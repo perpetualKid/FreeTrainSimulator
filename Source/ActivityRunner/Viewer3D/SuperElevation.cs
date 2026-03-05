@@ -19,12 +19,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -51,16 +53,18 @@ namespace Orts.ActivityRunner.Viewer3D
         public static bool DecomposeStaticSuperElevation(Viewer viewer, List<DynamicTrackViewer> trackList, TrackObject trackObj, in WorldPosition worldMatrixInput, in Tile tile, string shapeFilePath)
         {
             if (!RuntimeData.Instance.TrackModel.TrackShapes.TryGetValue(trackObj.SectionIndex, out FreeTrainSimulator.Models.Track.TrackShape shape)
-            || shape.ShapeType == FreeTrainSimulator.Models.Track.ShapeType.Road)
+            || shape.ShapeType == ShapeType.Road)
+                return false;
+
+            if (!RuntimeData.Instance.TrackModel.TrackSectionIndices.TryGetValue(trackObj.SectionIndex, out ImmutableArray<TrackSectionIndex> sections))
                 return false;
 
             int count = -1;
             int drawn = 0;
-            bool isTunnel = shape.ShapeType == FreeTrainSimulator.Models.Track.ShapeType.Tunnel;
 
             List<TrackVectorSection> sectionsinShape = new List<TrackVectorSection>();
             //List<DynamicTrackViewer> tmpTrackList = new List<DynamicTrackViewer>();
-            foreach (FreeTrainSimulator.Models.Track.TrackShapePath id in shape.TrackShapePaths)
+            foreach (TrackSectionIndex id in sections)
             {
                 for (int i = 0; i < id.TrackSections.Length; i++)
                 {
@@ -75,20 +79,17 @@ namespace Orts.ActivityRunner.Viewer3D
                         continue;
                         //with strait track, will remove all related sections later
                     }
-                    TrackVectorSection tmp = null;
-                    tmp = FindSectionValue(shape, section, tile, trackObj.UiD);
 
-                    if (tmp == null) //cannot find the track for super elevation, will return 0;
+                    TrackVectorSection trackVectorSection = FindSectionValue(section, tile, trackObj.UiD);
+                    if (trackVectorSection != null) //cannot find the track for super elevation, will return 0;
                     {
-                        continue;
+                        sectionsinShape.Add(trackVectorSection);
+                        drawn++;
                     }
-                    sectionsinShape.Add(tmp);
-
-                    drawn++;
                 }
             }
 
-            if (drawn <= count || isTunnel)//tunnel or not every section is in SE, will remove all sections in the shape out
+            if (drawn <= count || shape.ShapeType == ShapeType.Tunnel)//tunnel or not every section is in SE, will remove all sections in the shape out
             {
                 if (sectionsinShape.Count > 0)
                     RemoveTracks(sectionsinShape);
@@ -165,7 +166,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private static float sv, ev, mv, dir;
         //a function to find the elevation of a section ,by searching the TDB database
-        public static TrackVectorSection FindSectionValue(FreeTrainSimulator.Models.Track.TrackShape shape, FreeTrainSimulator.Models.Track.TrackSection section, in Tile tile, uint UID)
+        public static TrackVectorSection FindSectionValue(FreeTrainSimulator.Models.Track.TrackSection section, in Tile tile, uint UID)
         {
             if (!section.Curved)
                 return null;
@@ -241,7 +242,8 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 sectionOrigin = worldMatrixInput.XNAMatrix.Translation; // Save root position
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only            
 
-            if (!RuntimeData.Instance.TrackModel.DynamicTrackSections.TryGetValue(dTrackObj.SectionIndex, out FreeTrainSimulator.Models.Track.DynamicTrackSection path))
+            if (!RuntimeData.Instance.TrackModel.TrackSectionIndices.TryGetValue(dTrackObj.SectionIndex, out ImmutableArray<TrackSectionIndex> path) ||
+                path.Length == 0)
                 return; //cannot find the path for the dynamic track
 
             nextRoot = wcopy; // Will become initial root
@@ -258,11 +260,11 @@ namespace Orts.ActivityRunner.Viewer3D
             nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
 
             int count = -1;
-            for (int i = 0; i < path.TrackSections.Length; i++)
+            for (int i = 0; i < path[0].TrackSections.Length; i++)
             {
                 count++;
                 float length, radius;
-                int sid = path.TrackSections[i];
+                int sid = path[0].TrackSections[i];
                 FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackModel.TrackSections[sid];
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);

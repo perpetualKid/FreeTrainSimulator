@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 
@@ -51,7 +52,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             InitializeComponent();
 
-            StatusbarHeight = (int) tvStatusbar.Height;
+            StatusbarHeight = (int)tvStatusbar.Height;
 
             //ElementHost object helps us to connect a WPF User Control.
             elementHost = new ElementHost
@@ -72,7 +73,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="yBottom">Y-value in screen pixels at the bottom of the statusbar</param>
         public void SetScreenSize(int width, int height, int yBottom)
         {
-            elementHost.Location = new System.Drawing.Point(0, yBottom-height);
+            elementHost.Location = new System.Drawing.Point(0, yBottom - height);
             elementHost.Size = new System.Drawing.Size(width, height);
         }
 
@@ -105,9 +106,11 @@ namespace ORTS.TrackViewer.UserInterface
         private void SetTrackIndexStatus(TrackViewer trackViewer)
         {
             Drawing.CloseToMouseTrack closestTrack = trackViewer.DrawTrackDB.ClosestTrack;
-            if (closestTrack == null) return;
+            if (closestTrack == null)
+                return;
             TrackNode tn = closestTrack.TrackNode;
-            if (tn == null) return;
+            if (tn == null)
+                return;
             statusTrIndex.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture,
                 "{0} ", tn.Index);
             //debug: statusAdditional.Text += Math.Sqrt((double)trackViewer.drawTrackDB.closestTrack.ClosestMouseDistanceSquared);
@@ -184,40 +187,31 @@ namespace ORTS.TrackViewer.UserInterface
             if (Properties.Settings.Default.statusShowVectorSections)
             {
                 TrackVectorSection tvs = trackViewer.DrawTrackDB.ClosestTrack.VectorSection;
-                if (tvs == null) return;
+                if (tvs == null)
+                    return;
                 int shapeIndex = tvs.ShapeIndex;
-                string shapeName = "Unknown:" + shapeIndex.ToString(System.Globalization.CultureInfo.CurrentCulture);
-                try
-                {
-                    // Try to find a fixed track
-                    FreeTrainSimulator.Models.Track.TrackShape shape = RuntimeData.Instance.TrackModel.TrackShapes[shapeIndex];
+                string shapeName;
+
+                if (RuntimeData.Instance.TrackModel.TrackShapes.TryGetValue(shapeIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
+                    {
                     shapeName = shape.FileName;
                 }
-#pragma warning disable CA1031 // Do not catch general exception types
-                catch
-#pragma warning restore CA1031 // Do not catch general exception types
+                else if (RuntimeData.Instance.TrackModel.TrackSectionIndices.TryGetValue(tvs.ShapeIndex, out ImmutableArray<TrackSectionIndex> trackPath) && trackPath.Length == 1)
                 {
-                    // try to find a dynamic track
-                    try
+                    shapeName = "<dynamic ?>";
+                    foreach (int trackSection in trackPath[0].TrackSections)
                     {
-                        DynamicTrackSection trackPath = RuntimeData.Instance.TrackModel.DynamicTrackSections[tvs.ShapeIndex];
-                        shapeName = "<dynamic ?>";
-                        foreach (int trackSection in trackPath.TrackSections)
+                        if (trackSection == tvs.SectionIndex)
                         {
-                            if (trackSection == tvs.SectionIndex)
-                            {
-                                shapeName = "<dynamic>";
-                            }
-                            // For some reason I do not undestand the (route) section.tdb. trackpaths are not consistent tracksections
-                            // so this foreach loop will not always find a combination
+                            shapeName = "<dynamic>";
                         }
-                    }
-#pragma warning disable CA1031 // Do not catch general exception types
-                    catch
-#pragma warning restore CA1031 // Do not catch general exception types
-                    {
+                        // For some reason I do not undestand the (route) section.tdb. trackpaths are not consistent tracksections
+                        // so this foreach loop will not always find a combination
                     }
                 }
+                else
+                    shapeName = "Unknown:" + shapeIndex.ToString(System.Globalization.CultureInfo.CurrentCulture);
+
                 statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                     " VectorSection ({3}/{4}) filename={2} Index={0} shapeIndex={1}",
                     tvs.SectionIndex, shapeIndex, shapeName,
@@ -238,16 +232,20 @@ namespace ORTS.TrackViewer.UserInterface
                 {
                     //gather some info on path status
                     List<string> statusItems = new List<string>();
-                    
-                    if (trackViewer.PathEditor.HasEndingPath) statusItems.Add("good end");
-                    if (trackViewer.PathEditor.HasBrokenPath) statusItems.Add("broken");
-                    if (trackViewer.PathEditor.HasModifiedPath) statusItems.Add("modified");
-                    if (trackViewer.PathEditor.HasStoredTail) statusItems.Add("stored tail");
-                    
+
+                    if (trackViewer.PathEditor.HasEndingPath)
+                        statusItems.Add("good end");
+                    if (trackViewer.PathEditor.HasBrokenPath)
+                        statusItems.Add("broken");
+                    if (trackViewer.PathEditor.HasModifiedPath)
+                        statusItems.Add("modified");
+                    if (trackViewer.PathEditor.HasStoredTail)
+                        statusItems.Add("stored tail");
+
                     string pathStatus = string.Join(", ", statusItems.ToArray());
-                    
+
                     ORTS.TrackViewer.Editing.TrainpathNode curNode = trackViewer.PathEditor.CurrentNode;
-                    
+
                     statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                         " {0} ({4}): TVNs=[{1} {2}] (type={3})",
                         trackViewer.PathEditor.FileName, curNode.NextMainTvnIndex, curNode.NextSidingTvnIndex,
@@ -321,9 +319,9 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="index">The index of the item to show</param>
         private void AddSignalStatus(string description, int index)
         {
-            if (!Properties.Settings.Default.statusShowSignal) 
+            if (!Properties.Settings.Default.statusShowSignal)
                 return;
-            if (!string.Equals(description, "signal", StringComparison.OrdinalIgnoreCase)) 
+            if (!string.Equals(description, "signal", StringComparison.OrdinalIgnoreCase))
                 return;
             statusAdditional.Text += "signal shape = ";
             statusAdditional.Text += RouteData.GetSignalFilename(index);
@@ -337,9 +335,9 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="index">The index of the item to show</param>
         private void AddNamesStatus(string description, int index)
         {
-            if (!Properties.Settings.Default.statusShowNames) 
+            if (!Properties.Settings.Default.statusShowNames)
                 return;
-            if (!string.Equals(description, "platform", StringComparison.OrdinalIgnoreCase)) 
+            if (!string.Equals(description, "platform", StringComparison.OrdinalIgnoreCase))
                 return;
 
             if (!(RuntimeData.Instance.TrackDB.TrackItems[index] is PlatformItem platform))

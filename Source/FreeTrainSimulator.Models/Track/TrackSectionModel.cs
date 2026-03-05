@@ -13,7 +13,7 @@ namespace FreeTrainSimulator.Models.Track
     {
         public ImmutableDictionary<int, TrackSection> TrackSections { get; init; } = ImmutableDictionary<int, TrackSection>.Empty;
         public ImmutableDictionary<int, TrackShape> TrackShapes { get; init; } = ImmutableDictionary<int, TrackShape>.Empty;
-        public ImmutableDictionary<int, DynamicTrackSection> DynamicTrackSections { get; init; } = ImmutableDictionary<int, DynamicTrackSection>.Empty;
+        public ImmutableDictionary<int, ImmutableArray<TrackSectionIndex>> TrackSectionIndices { get; init; } = ImmutableDictionary<int, ImmutableArray<TrackSectionIndex>>.Empty;
         public override RouteModel Parent => _parent as RouteModel;
     }
 }

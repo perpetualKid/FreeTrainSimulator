@@ -116,7 +116,7 @@ namespace Orts.Simulation.Signalling
                 // check for any backfacing heads in signals
                 // if found, split signal
                 SplitBackfacing(trackDB.TrackItems, trackDB.TrackNodes);
-//                Signals.RemoveAll(signal => signal == null);
+                //                Signals.RemoveAll(signal => signal == null);
             }
 
             SetNumSignalHeads();
@@ -537,7 +537,7 @@ namespace Orts.Simulation.Signalling
                 }
             }
             // remove existings signals heads remain
-//            Signals.RemoveAll(signal => signal.SignalHeads.Count <= 0);
+            //            Signals.RemoveAll(signal => signal.SignalHeads.Count <= 0);
             Signals.AddRange(backfacingSignals);
         }
 
@@ -3259,7 +3259,8 @@ namespace Orts.Simulation.Signalling
                         if (RuntimeData.Instance.TrackModel.TrackShapes.TryGetValue(section.ShapeIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
                         {
                             tunnelShape = shape.ShapeType == FreeTrainSimulator.Models.Track.ShapeType.Tunnel;
-                            shapePaths = shape.TrackShapePaths.Length;
+                            if (RuntimeData.Instance.TrackModel.TrackSectionIndices.TryGetValue(section.ShapeIndex, out var sectionIndex))
+                                shapePaths = sectionIndex.Length;
                         }
 
                         if (tunnelShape)
@@ -3396,7 +3397,8 @@ namespace Orts.Simulation.Signalling
                         if (shape.FileName != null)
                         {
                             troughShape = shape.FileName.EndsWith("wtr.s", StringComparison.OrdinalIgnoreCase);
-                            shapePaths = shape.TrackShapePaths.Length;
+                            if (RuntimeData.Instance.TrackModel.TrackSectionIndices.TryGetValue(section.ShapeIndex, out var sectionIndex))
+                                shapePaths = sectionIndex.Length;
                         }
                     }
 

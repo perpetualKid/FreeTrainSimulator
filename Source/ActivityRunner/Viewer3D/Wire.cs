@@ -23,8 +23,17 @@
  * 
  */
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -33,13 +42,6 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -68,10 +70,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (!RuntimeData.Instance.TrackModel.TrackShapes.TryGetValue(trackObj.SectionIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
                 return 0;
-            if (shape.ShapeType == FreeTrainSimulator.Models.Track.ShapeType.Road)
+            if (!RuntimeData.Instance.TrackModel.TrackSectionIndices.TryGetValue(trackObj.SectionIndex, out ImmutableArray<TrackSectionIndex> sections))
+                return 0;
+            if (shape.ShapeType == ShapeType.Road)
                 return 1;
 
-            foreach (FreeTrainSimulator.Models.Track.TrackShapePath id in shape.TrackShapePaths)
+            foreach (TrackSectionIndex id in sections)
             {
                 nextRoot = wcopy; // Will become initial root
                 sectionOrigin = nextRoot.XNAMatrix.Translation;
@@ -80,8 +84,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 localV = Vector3.Zero; // Local position (in x-z plane)
 
 
-                ref readonly Vector3 trackLoc = ref id.Offset;
-                Matrix trackRot = Matrix.CreateRotationY(-MathHelper.ToRadians(id.AngularOffset));
+                ref readonly Vector3 trackLoc = ref id.ShapeOffset.Offset;
+                Matrix trackRot = Matrix.CreateRotationY(-MathHelper.ToRadians(id.ShapeOffset.AngularOffset));
 
                 heading = Vector3.Transform(heading, trackRot); // Heading change
                 nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
@@ -152,7 +156,8 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 sectionOrigin = worldMatrixInput.XNAMatrix.Translation; // Save root position
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
 
-            if (!RuntimeData.Instance.TrackModel.DynamicTrackSections.TryGetValue(trackObj.SectionIndex, out FreeTrainSimulator.Models.Track.DynamicTrackSection path))
+            if (!RuntimeData.Instance.TrackModel.TrackSectionIndices.TryGetValue(trackObj.SectionIndex, out ImmutableArray<TrackSectionIndex> path) ||
+                path.Length == 0)
                 return; //cannot find the path for the dynamic track
 
             nextRoot = wcopy; // Will become initial root
@@ -168,10 +173,10 @@ namespace Orts.ActivityRunner.Viewer3D
             //heading = Vector3.Transform(heading, trackRot); // Heading change
             nextRoot = new WorldPosition(nextRoot.Tile, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
 
-            for (int i = 0; i < path.TrackSections.Length; i++)
+            for (int i = 0; i < path[0].TrackSections.Length; i++)
             {
                 float length, radius;
-                int sid = path.TrackSections[i];
+                int sid = path[0].TrackSections[i];
                 FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackModel.TrackSections[sid];
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);

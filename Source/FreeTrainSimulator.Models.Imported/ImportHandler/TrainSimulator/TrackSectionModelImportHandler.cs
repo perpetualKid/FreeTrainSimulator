@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -48,17 +49,21 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     ClearanceDistance = (float)trackShape.Value.ClearanceDistance,
                     MainRoute = trackShape.Value.MainRoute,
                     ShapeType = trackShape.Value.TunnelShape ? ShapeType.Tunnel : trackShape.Value.RoadShape ? ShapeType.Road : ShapeType.None,
-                    TrackShapePaths = trackShape.Value.SectionIndices.Select(index => new TrackShapePath(index.Offset)
-                    {
-                        AngularOffset = index.AngularOffset,
-                        TrackSections = index.TrackSections.ToImmutableArray(),
-                    }).ToImmutableArray(),
                 }).ToImmutableDictionary((trackShape) => trackShape.ShapeIndex),
-                DynamicTrackSections = trackSectionsFile.TrackSectionIndex?.Where(t => t.Value.TrackSections?.Length > 0).Select(dynamicTrackSection => new DynamicTrackSection()
-                {
-                    DynamicSectionIndex = dynamicTrackSection.Key,
-                    TrackSections = dynamicTrackSection.Value.TrackSections.ToImmutableArray(),
-                }).ToImmutableDictionary((dynamicTrackSection) => dynamicTrackSection.DynamicSectionIndex),
+                TrackSectionIndices = trackSectionsFile.TrackShapes?.Where(t => !string.IsNullOrEmpty(t.Value.FileName)).
+                        ToDictionary(trackShape => trackShape.Key, trackShape => trackShape.Value.SectionIndices.Select(sectionIndex => new TrackSectionIndex()
+                        {
+                            TrackSections = sectionIndex.TrackSections.ToImmutableArray(),
+                            ShapeOffset = new TrackShapeOffset(sectionIndex.Offset, sectionIndex.AngularOffset)
+                        }).ToImmutableArray()).
+                Concat(
+                    trackSectionsFile.TrackSectionIndex?.Where(t => t.Value.TrackSections?.Length > 0).
+                        ToDictionary(dynamicTrackSection => dynamicTrackSection.Key, dynamicTrackSection => ImmutableArray.Create(new TrackSectionIndex()
+                        {
+                            TrackSections = dynamicTrackSection.Value.TrackSections.ToImmutableArray(),
+                        })) ??
+                        ImmutableDictionary<int, ImmutableArray<TrackSectionIndex>>.Empty.ToDictionary()
+                        ).ToImmutableDictionary(),
             };
 
             await Create(trackSectionModel, routeModel, cancellationToken).ConfigureAwait(false);

@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
@@ -109,15 +110,15 @@ namespace Orts.Simulation.World
 
         protected void InitializeOffsetsAndTrackNodes()
         {
-            FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackModel.TrackShapes[TrackShapeIndex];
-            int nSections = trackShape.TrackShapePaths[0].TrackSections.Length;
-            trackNodesIndex = new int[trackShape.TrackShapePaths.Length];
+            ImmutableArray<TrackSectionIndex> sectionIndex = RuntimeData.Instance.TrackModel.TrackSectionIndices[TrackShapeIndex];
+            int nSections = sectionIndex[0].TrackSections.Length;
+            trackNodesIndex = new int[sectionIndex.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];
             trackVectorSectionsIndex = new int[trackNodesIndex.Length];
             int i = 0;
-            foreach (TrackShapePath sectionIdx in trackShape.TrackShapePaths)
+            foreach (TrackSectionIndex sectionIdx in sectionIndex)
             {
-                offsets.Add(verticalTransfer ? sectionIdx.Offset.Y : sectionIdx.Offset.X);
+                offsets.Add(verticalTransfer ? sectionIdx.ShapeOffset?.Offset.Y ?? 0 : sectionIdx.ShapeOffset?.Offset.X ?? 0);
                 trackNodesIndex[i] = -1;
                 trackVectorSectionsIndex[i] = -1;
                 i++;
@@ -144,12 +145,12 @@ namespace Orts.Simulation.World
             if (verticalTransfer)
             {
                 OffsetPos = CenterOffset.Y;
-                Span = trackShape.TrackShapePaths[^1].Offset.Y - trackShape.TrackShapePaths[0].Offset.Y;
+                Span = sectionIndex[^1].ShapeOffset?.Offset.Y ?? 0 - sectionIndex[0].ShapeOffset?.Offset.Y ?? 0;
             }
             else
             {
                 OffsetPos = CenterOffset.X;
-                Span = trackShape.TrackShapePaths[^1].Offset.X - trackShape.TrackShapePaths[0].Offset.X;
+                Span = sectionIndex[^1].ShapeOffset?.Offset.X ?? 0 - sectionIndex[0].ShapeOffset?.Offset.X ?? 0;
             }
         }
 
