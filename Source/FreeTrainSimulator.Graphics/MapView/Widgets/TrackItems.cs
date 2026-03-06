@@ -309,10 +309,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
             speed = source.ToString();
             TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segmentSection.SectionSegments);
-            angle = segment.DirectionAt(Location);
-            bool reverse = Math.Abs(angle + source.Angle) > MathHelper.PiOver2;
+            if (segment != null)
+            {
+                angle = segment.DirectionAt(Location);
+                bool reverse = Math.Abs(angle + source.Angle) > MathHelper.PiOver2;
 
-            angle += reverse ? -MathHelper.PiOver2 : MathHelper.PiOver2;
+                angle += reverse ? -MathHelper.PiOver2 : MathHelper.PiOver2;
+            }
             textLocation = Location + (new PointD(1f* (float)Math.Cos(angle), -1*(float)Math.Sin(angle)));
         }
 
@@ -366,11 +369,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Size = 1f;
             distance = source.Distance.ToString(CultureInfo.CurrentCulture);
             TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segmentSection.SectionSegments);
-            angle = segment.DirectionAt(Location);
+            if (segment != null)
+            {
+                angle = segment.DirectionAt(Location);
 
-            if (Math.Abs(angle) > MathHelper.PiOver2)
-                angle -= MathHelper.Pi;
-
+                if (Math.Abs(angle) > MathHelper.PiOver2)
+                    angle -= MathHelper.Pi;
+            }
             textLocation = Location + (new PointD(-1f * (float)Math.Cos(angle), -1 * (float)Math.Sin(angle)));
         }
 

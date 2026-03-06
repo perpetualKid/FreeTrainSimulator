@@ -419,7 +419,7 @@ namespace Orts.Simulation.Activities
                 traveller.Move(distanceOfWarningPost);
                 WorldPosition worldPosition3 = WorldPosition.None;
                 TempSpeedPostItem speedWarningPostItem = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.StartPosition, false, worldPosition3, true);
-                SpeedPostPosition(speedWarningPostItem, ref traveller);
+                SpeedPostPosition(speedWarningPostItem, traveller);
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                     speedWarningPostItem.Flip();
                 ((TempSpeedPostItem)newSpeedPostItems[0]).ComputeTablePosition();
@@ -444,7 +444,7 @@ namespace Orts.Simulation.Activities
             if (traveller.TrackNode is TrackVectorNode trackVectorNode)
             {
                 offset = traveller.TrackNodeOffset;
-                SpeedPostPosition((TempSpeedPostItem)newTrItem, ref traveller);
+                SpeedPostPosition((TempSpeedPostItem)newTrItem, traveller);
                 InsertTrackItemRef(trackVectorNode, (int)newTrItem.TrackItemId, (float)offset);
             }
             return offset;
@@ -456,7 +456,7 @@ namespace Orts.Simulation.Activities
         /// <param name="restrSpeedPost">The Id of the new restricted speed post to position</param>
         /// <param name="traveller">The traveller to the speedPost position</param>
         /// 
-        private static void SpeedPostPosition(TempSpeedPostItem restrSpeedPost, ref Traveller traveller)
+        private static void SpeedPostPosition(TempSpeedPostItem restrSpeedPost, Traveller traveller)
         {
             restrSpeedPost.Update(traveller.Y, -traveller.RotY + (float)Math.PI / 2, new WorldPosition(traveller.Tile, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.RotY, 0, 0), traveller.X, traveller.Y, -traveller.Z)));
         }
