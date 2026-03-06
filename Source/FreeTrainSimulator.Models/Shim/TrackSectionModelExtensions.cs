@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Content;
@@ -11,6 +12,7 @@ namespace FreeTrainSimulator.Models.Shim
     {
         public static async ValueTask<TrackSectionModel> Get(this RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             return await TrackSectionModelHandler.GetCore(routeModel, cancellationToken).ConfigureAwait(false);
         }
     }

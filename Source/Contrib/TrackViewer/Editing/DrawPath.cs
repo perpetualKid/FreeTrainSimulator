@@ -349,7 +349,7 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="sectionOffsetStart">start-offset in the first track section to draw</param>
         /// <param name="sectionOffsetStop">stop-offset in the last track section to draw</param>
         /// <remarks>Very similar to DrawVectorNode in class DrawTrackDB, but this one allows to draw partial vector nodes.</remarks>
-        private void DrawVectorNode(DrawArea drawArea, TrackVectorNode trackVectorNode, ColorScheme colors, int tvsiStart, int tvsiStop,
+        private static void DrawVectorNode(DrawArea drawArea, TrackVectorNode trackVectorNode, ColorScheme colors, int tvsiStart, int tvsiStop,
                 float sectionOffsetStart, float sectionOffsetStop)
         {
             TrackVectorSection tvs;
@@ -386,7 +386,7 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="startOffset">Do not draw the first startOffset meters in the section</param>
         /// <param name="stopOffset">Do not draw past stopOffset meters (draw all if stopOffset less than 0)</param>
         /// <remarks>Note that his is very similar to DrawTrackSection in class DrawTrackDB, but this one allows to draw partial sections</remarks>
-        private void DrawTrackSection(DrawArea drawArea, TrackVectorSection tvs, ColorScheme colors,
+        private static void DrawTrackSection(DrawArea drawArea, TrackVectorSection tvs, ColorScheme colors,
             float startOffset, float stopOffset)
         {
             RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);

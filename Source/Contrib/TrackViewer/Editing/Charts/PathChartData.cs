@@ -275,7 +275,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="tvsi">The section index in the track vector node</param>
         /// <param name="sectionOffsetStart">Offset of the start of this section (in forward direction of track, not of path)</param>
         /// <param name="sectionOffsetEnd">Offset of the end of this section (in forward direction of track, not of path)</param>
-        private void AddPointAndTrackItems(List<PathChartPoint> newPoints, TrackVectorNode vectorNode, IEnumerable<ChartableTrackItem> trackItems,
+        private static void AddPointAndTrackItems(List<PathChartPoint> newPoints, TrackVectorNode vectorNode, IEnumerable<ChartableTrackItem> trackItems,
             bool isForward, float height, int tvsi, float sectionOffsetStart, float sectionOffsetEnd)
         {
             //Note, we are adding points in in reverse direction
@@ -330,7 +330,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="vectorNode">The vector track node</param>
         /// <param name="tvsi">The tracknode vector section index in the given verctor track node</param>
         /// <param name="isForward">Is the path in the same direction as the vector track node?</param>
-        private float GetCurvature(TrackVectorNode vectorNode, int tvsi, bool isForward)
+        private static float GetCurvature(TrackVectorNode vectorNode, int tvsi, bool isForward)
         {
             TrackVectorSection tvs = vectorNode.TrackVectorSections[tvsi];
             RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
@@ -357,7 +357,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="isForward">Output: whether going from startNode to nextNode is in the forward direction of the track</param>
         /// <param name="tvsiStart">Output: the track vector section index of where the startNode is</param>
         /// <param name="sectionOffsetStart">Output: the offset in the section (in the direction of the tracknode, not necessarily in the direction from startNode to nextNode)</param>
-        private void DetermineSectionDetails(TrainpathNode startNode, TrainpathNode nextNode, TrackNode tn, out bool isForward, out int tvsiStart, out float sectionOffsetStart)
+        private static void DetermineSectionDetails(TrainpathNode startNode, TrainpathNode nextNode, TrackNode tn, out bool isForward, out int tvsiStart, out float sectionOffsetStart)
         {
             TrainpathVectorNode currentNodeAsVector = startNode as TrainpathVectorNode;
             TrainpathJunctionNode currentNodeAsJunction = startNode as TrainpathJunctionNode;
@@ -389,7 +389,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="tn">The current tracknode, which needs to be a vector node</param>
         /// <param name="tvsi">The track vector section index</param>
-        private float SectionLengthAlongTrack(TrackVectorNode tn, int tvsi)
+        private static float SectionLengthAlongTrack(TrackVectorNode tn, int tvsi)
         {
             TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
             RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
