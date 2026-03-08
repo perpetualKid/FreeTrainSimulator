@@ -649,7 +649,7 @@ namespace Orts.Simulation.Timetables
             {
                 TrackVectorSection thisVector = vectors[iVector];
 
-                if (RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(thisVector.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
+                if (RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(thisVector.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
                 {
                     returnLength += trackSection.Length;
                 }

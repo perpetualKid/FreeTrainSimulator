@@ -157,7 +157,7 @@ namespace Orts.Simulation.Track
             {
                 foreach (TrackVectorSection section in tvn.TrackVectorSections)
                 {
-                    if (RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(section.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
+                    if (RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
                     {
                         Length += trackSection.Length;
                     }
@@ -171,7 +171,7 @@ namespace Orts.Simulation.Track
             {
                 SignalsPassingRoutes = new List<int>();
                 int trackShapeIndex = (node as TrackJunctionNode).ShapeIndex;
-                if (!RuntimeData.Instance.TrackModel.TrackShapes.TryGetValue(trackShapeIndex, out FreeTrainSimulator.Models.Track.TrackShape trackShape))
+                if (!RuntimeData.Instance.TrackSections.TrackShapes.TryGetValue(trackShapeIndex, out FreeTrainSimulator.Models.Track.TrackShape trackShape))
                 {
                     Trace.TraceWarning("Missing TrackShape from tsection.dat : " + trackShapeIndex);
                 }
@@ -2044,7 +2044,7 @@ namespace Orts.Simulation.Track
             JnSection.Pins[TrackDirection.Reverse, SignalLocation.FarEnd] = new TrackPin(trailSectionIndex1, TrackDirection.Reverse);
 
             JnSection.Overlap = 0;
-            if (RuntimeData.Instance.TrackModel.TrackShapes.TryGetValue(crossOver.TrackShape, out FreeTrainSimulator.Models.Track.TrackShape overlapShape))
+            if (RuntimeData.Instance.TrackSections.TrackShapes.TryGetValue(crossOver.TrackShape, out FreeTrainSimulator.Models.Track.TrackShape overlapShape))
             {
                 JnSection.Overlap = overlapShape.ClearanceDistance;
             }

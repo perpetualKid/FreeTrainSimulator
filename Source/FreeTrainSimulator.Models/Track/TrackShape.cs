@@ -4,13 +4,6 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Track
 {
-    public enum ShapeType
-    {
-        None,
-        Tunnel,
-        Road,
-    }
-
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record TrackShape
     {

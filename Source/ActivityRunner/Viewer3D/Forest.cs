@@ -201,7 +201,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             try
                             {
-                                FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackModel.TrackShapes[section.ShapeIndex];
+                                FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackSections.TrackShapes[section.ShapeIndex];
                                 if (trackShape != null && trackShape.ShapeType == FreeTrainSimulator.Models.Track.ShapeType.Tunnel)
                                 {
                                     xnaTreePosition.Y = tiles.LoadAndGetElevation(position.Tile, xnaTreePosition.X, -xnaTreePosition.Z, false);
@@ -287,7 +287,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private bool InitTrackSection(TrackVectorSection section, Vector3 xnaTreePosition, in Tile tile, float treeWidth)
         {
-            if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(section.SectionIndex, out trackSection))
+            if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out trackSection))
                 return false;
             return trackSection.Curved
                 ? InitTrackSectionCurved(tile, xnaTreePosition.X, -xnaTreePosition.Z, section, treeWidth)
@@ -309,7 +309,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                     sectPosToForest = Vector3.Transform(sectPosition, invForestXNAMatrix);
                     sectPosToForest.Z *= -1;
-                    if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(section.SectionIndex, out trackSection))
+                    if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out trackSection))
                         continue;
                     if (Math.Abs(sectPosToForest.X) > trackSection.Length + toAddX)
                         continue;

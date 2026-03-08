@@ -890,8 +890,8 @@ namespace Orts.Formats.Msts.Models
                 if (!float.IsNaN(angle))
                     return angle;
 
-                ImmutableArray<FreeTrainSimulator.Models.Track.TrackSectionIndex> trackSections = RuntimeData.Instance.TrackModel.TrackSectionIndices[ShapeIndex];
-                FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackModel.TrackShapes[ShapeIndex];
+                ImmutableArray<FreeTrainSimulator.Models.Track.TrackSectionIndex> trackSections = RuntimeData.Instance.TrackSections.TrackSectionIndices[ShapeIndex];
+                FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackSections.TrackShapes[ShapeIndex];
 
                 for (int index = 0; index < trackSections.Length; index++)
                 {
@@ -901,7 +901,7 @@ namespace Orts.Formats.Msts.Models
                     for (int i = 0; i < trackSections[index].TrackSections.Length; i++)
                     {
                         int sid = trackSections[index].TrackSections[i];
-                        FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackModel.TrackSections[sid];
+                        FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackSections.TrackSections[sid];
 
                         if (section.Curved)
                         {
@@ -1088,8 +1088,10 @@ namespace Orts.Formats.Msts.Models
     public class UiD
     {
         private readonly WorldLocation location;
+        private readonly Tile tile;
         public ref readonly WorldLocation Location => ref location;
 
+        public ref readonly Tile WorldTile => ref tile;
         ///// <summary>Angle around X-axis for describing initial direction of the node</summary>
         //public float AX { get; set; }
         ///// <summary>Angle around Y-axis for describing initial direction of the node</summary>
@@ -1113,6 +1115,7 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatchBlockStart();
             int worldTileX = stf.ReadInt(null);
             int worldTileZ = stf.ReadInt(null);
+            tile = new Tile(worldTileX, worldTileZ);
             WorldId = stf.ReadInt(null);
             stf.ReadInt(null);
             location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
@@ -1136,9 +1139,11 @@ namespace Orts.Formats.Msts.Models
     {
         private readonly WorldLocation location;
         private readonly Vector3 direction;
+        private readonly Tile worldTile;
 
         public ref readonly WorldLocation Location => ref location;
         public ref readonly Vector3 Direction => ref direction;
+        public ref readonly Tile WorldTile => ref worldTile;
         /// <summary>First flag. Not completely clear, usually 0, - may point to the connecting pin entry in a junction. Sometimes 2</summary>
         public int Flag1 { get; }
         /// <summary>Second flag. Not completely clear, usually 1, but set to 0 when curve track is flipped around. Sometimes 2</summary>
@@ -1168,6 +1173,7 @@ namespace Orts.Formats.Msts.Models
             ShapeIndex = stf.ReadInt(null);
             int worldTileX = stf.ReadInt(null);// worldfilenamex
             int worldTileZ = stf.ReadInt(null);// worldfilenamez
+            worldTile = new Tile(worldTileX, worldTileZ);
             WorldFileUiD = stf.ReadUInt(null); // UID in worldfile
             Flag1 = stf.ReadInt(null); // 0
             Flag2 = stf.ReadInt(null); // 1

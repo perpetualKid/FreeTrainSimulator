@@ -792,7 +792,7 @@ namespace ORTS.TrackViewer.Editing
             for (int tvsi = 0; tvsi < TrackVectorSectionIndex; tvsi++)
             {
                 TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
-                RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
+                RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
                 if (trackSection != null)  // if trackSection is missing somehow, well, do without.
                 {
                     distanceFromStart += trackSection.Length;

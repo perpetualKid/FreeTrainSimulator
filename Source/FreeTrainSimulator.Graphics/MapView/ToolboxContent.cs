@@ -10,13 +10,12 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Imported.Track;
 using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Models.Imported.Track;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Graphics.MapView
@@ -222,24 +221,24 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void AddTrackSegments()
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
-            TrackSectionModel trackSections = RuntimeData.GameInstance(game).TrackModel;
+            TrackSectionsModel trackSections = RuntimeData.GameInstance(game).TrackSections;
 
             TrackDB trackDB = runtimeData.TrackDB;
             RoadTrackDB roadTrackDB = runtimeData.RoadTrackDB;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
-            ConcurrentBag<EndNode> endSegments = new ConcurrentBag<EndNode>();
-            ConcurrentBag<JunctionNode> junctionSegments = new ConcurrentBag<JunctionNode>();
+            ConcurrentBag<Widgets.EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
+            ConcurrentBag<Widgets.JunctionNode> junctionSegments = new ConcurrentBag<Widgets.JunctionNode>();
             ConcurrentBag<RoadSegment> roadSegments = new ConcurrentBag<RoadSegment>();
             ConcurrentBag<RoadEndSegment> roadEndSegments = new ConcurrentBag<RoadEndSegment>();
 
-            Parallel.ForEach(trackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>(), trackNode =>
+            Parallel.ForEach(trackDB?.TrackNodes ?? Enumerable.Empty<Orts.Formats.Msts.Models.TrackNode>(), trackNode =>
             {
                 switch (trackNode)
                 {
                     case TrackEndNode trackEndNode:
                         TrackVectorNode connectedVectorNode = trackDB.TrackNodes.VectorNodes[trackEndNode.TrackPins[0].Link];
-                        endSegments.Add(new EndNode(trackEndNode, connectedVectorNode));
+                        endSegments.Add(new Widgets.EndNode(trackEndNode, connectedVectorNode));
                         break;
                     case TrackVectorNode trackVectorNode:
                         int i = 0;
@@ -254,17 +253,17 @@ namespace FreeTrainSimulator.Graphics.MapView
                         {
                             vectorNodes.Add(trackDB.TrackNodes.VectorNodes[pin.Link]);
                         }
-                        junctionSegments.Add(new JunctionNode(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute, vectorNodes));
+                        junctionSegments.Add(new Widgets.JunctionNode(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute, vectorNodes));
                         break;
                 }
             });
 
             insetComponent?.SetTrackSegments(trackSegments);
 
-            trackModel = TrackModel.Reset(game, runtimeData);
+            trackModel = Models.Imported.Track.TrackModel.Reset(game, runtimeData);
             trackModel.InitializeRailTrack(trackSegments, junctionSegments, endSegments);
 
-            Parallel.ForEach(roadTrackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>(), trackNode =>
+            Parallel.ForEach(roadTrackDB?.TrackNodes ?? Enumerable.Empty<Orts.Formats.Msts.Models.TrackNode>(), trackNode =>
             {
                 switch (trackNode)
                 {

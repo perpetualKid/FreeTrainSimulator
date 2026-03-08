@@ -9,11 +9,11 @@ namespace FreeTrainSimulator.Models.Track
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver(".tsection")]
-    public partial record TrackSectionModel: ModelBase
+    public partial record TrackSectionsModel: ModelBase
     {
+        public override RouteModel Parent => _parent as RouteModel;
         public ImmutableDictionary<int, TrackSection> TrackSections { get; init; } = ImmutableDictionary<int, TrackSection>.Empty;
         public ImmutableDictionary<int, TrackShape> TrackShapes { get; init; } = ImmutableDictionary<int, TrackShape>.Empty;
         public ImmutableDictionary<int, ImmutableArray<TrackSectionIndex>> TrackSectionIndices { get; init; } = ImmutableDictionary<int, ImmutableArray<TrackSectionIndex>>.Empty;
-        public override RouteModel Parent => _parent as RouteModel;
     }
 }

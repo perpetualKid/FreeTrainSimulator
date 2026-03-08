@@ -303,7 +303,7 @@ namespace Orts.Formats.Msts
             {
                 TrackVectorSectionIndex = saveState.TrackVectorSectionIndex;
                 trackVectorSection = (trackNode as TrackVectorNode).TrackVectorSections[TrackVectorSectionIndex];
-                trackSection = RuntimeData.Instance.TrackModel.TrackSections[trackVectorSection.SectionIndex];
+                trackSection = RuntimeData.Instance.TrackSections.TrackSections[trackVectorSection.SectionIndex];
             }
             return ValueTask.CompletedTask;
         }
@@ -497,7 +497,7 @@ namespace Orts.Formats.Msts
         {
             TrackVectorSectionIndex = trackVectorSectionIndex;
             trackVectorSection = (trackNode as TrackVectorNode).TrackVectorSections[TrackVectorSectionIndex];
-            if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out trackSection))
+            if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out trackSection))
                 return false;
             locationSet = lengthSet = false;
             trackVectorSectionOffset = direction == Direction.Forward ? 0 : trackSection.Curved ? Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
@@ -522,7 +522,7 @@ namespace Orts.Formats.Msts
                     return;
                 TrackVectorNode tvn = trackNodes[pin.Link] as TrackVectorNode;
                 tvs = tvn.TrackVectorSections[pin.Direction > 0 ? 0 : tvn.TrackVectorSections.Length - 1];
-                if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs.SectionIndex, out ts))
+                if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(tvs.SectionIndex, out ts))
                     return; // This is really bad and we'll have unknown data in the Traveller when the code reads the location and direction!
                 to = pin.Direction > 0 ? -trackVectorSectionOffset : ts.Length + trackVectorSectionOffset;
             }
@@ -572,7 +572,7 @@ namespace Orts.Formats.Msts
             TrackVectorSection[] tvs = tvn.TrackVectorSections;
             for (int i = 0; i < tvs.Length; i++)
             {
-                if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs[i].SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
+                if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(tvs[i].SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
                 if (trackSection == null)
                     continue; // This is bad and we'll have potentially bogus data in the Traveller when the code reads the length!
                 trackNodeLength += trackSection.Length;

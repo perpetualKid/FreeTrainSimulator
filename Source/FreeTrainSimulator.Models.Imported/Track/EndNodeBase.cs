@@ -37,7 +37,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 Orts.Formats.Msts.Models.TrackVectorSection trackVectorSection = connectedVectorNode.TrackVectorSections[^1];
                 Direction = trackVectorSection.Direction.Y;
                 // try to get even better in case the last section is curved
-                if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out TrackSection trackSection))
+                if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out TrackSection trackSection))
                     throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat");
                 if (trackSection.Curved)
                 {

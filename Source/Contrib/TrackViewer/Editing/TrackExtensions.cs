@@ -57,7 +57,7 @@ namespace ORTS.TrackViewer.Editing
                 int trackShapeIndex = tn.ShapeIndex;
                 try
                 {
-                    FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackModel.TrackShapes[trackShapeIndex];
+                    FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackSections.TrackShapes[trackShapeIndex];
                     mainRoute = trackShape.MainRoute;
                 }
                 catch (System.IO.InvalidDataException exception)

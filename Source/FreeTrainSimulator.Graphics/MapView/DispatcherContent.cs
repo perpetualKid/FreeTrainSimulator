@@ -11,12 +11,10 @@ using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Imported.Track;
-using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Graphics.MapView
@@ -193,10 +191,10 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void AddTrackSegments()
         {
             TrackDB trackDB = RuntimeData.GameInstance(game).TrackDB;
-            TrackSectionModel trackSections = RuntimeData.GameInstance(game).TrackModel;
+            Models.Track.TrackSectionsModel trackSections = RuntimeData.GameInstance(game).TrackSections;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
-            ConcurrentBag<EndNode> endSegments = new ConcurrentBag<EndNode>();
+            ConcurrentBag<Widgets.EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
             ConcurrentBag<JunctionNode> junctionSegments = new ConcurrentBag<JunctionNode>();
             ConcurrentBag<RoadSegment> roadSegments = new ConcurrentBag<RoadSegment>();
             ConcurrentBag<RoadEndSegment> roadEndSegments = new ConcurrentBag<RoadEndSegment>();
@@ -207,7 +205,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                 {
                     case TrackEndNode trackEndNode:
                         TrackVectorNode connectedVectorNode = trackDB.TrackNodes.VectorNodes[trackEndNode.TrackPins[0].Link];
-                        endSegments.Add(new EndNode(trackEndNode, connectedVectorNode));
+                        endSegments.Add(new Widgets.EndNode(trackEndNode, connectedVectorNode));
                         break;
                     case TrackVectorNode trackVectorNode:
                         int i = 0;
@@ -229,7 +227,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             insetComponent?.SetTrackSegments(trackSegments);
 
-            trackModel = TrackModel.Reset(game, RuntimeData.GameInstance(game));
+            trackModel = Models.Imported.Track.TrackModel.Reset(game, RuntimeData.GameInstance(game));
             trackModel.InitializeRailTrack(trackSegments, junctionSegments, endSegments);
 
             trackModel.ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile>(

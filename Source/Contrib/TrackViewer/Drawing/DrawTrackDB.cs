@@ -33,7 +33,6 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using System.Threading.Tasks;
-using FreeTrainSimulator.Models.Track;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -203,7 +202,7 @@ namespace ORTS.TrackViewer.Drawing
 
         #region private members
         /// <summary>Track Section Data</summary>
-        private readonly TrackSectionModel trackSections;
+        private readonly FreeTrainSimulator.Models.Track.TrackSectionsModel trackSections;
         /// <summary>Track database</summary>
         private readonly TrackDB trackDB;
         /// <summary>Road track database</summary>
@@ -239,7 +238,7 @@ namespace ORTS.TrackViewer.Drawing
         public DrawTrackDB(MessageDelegate messageDelegate)
         {
             RuntimeData routeData = RuntimeData.Instance;
-            trackSections = routeData.TrackModel;
+            trackSections = routeData.TrackSections;
             trackDB = routeData.TrackDB;
             roadTrackDB = routeData.RoadTrackDB;
             sigcfgFile = routeData.SignalConfigFile;

@@ -49,7 +49,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             else
             {
                 // else we'll need to find the angle at the other end, which is same for straight tracks, but changes for curved tracks
-                return !RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(vectorNode.TrackVectorSections[^1].SectionIndex, out TrackSection trackSection)
+                return !RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(vectorNode.TrackVectorSections[^1].SectionIndex, out TrackSection trackSection)
                     ? throw new System.IO.InvalidDataException($"TrackVectorSection {vectorNode.TrackVectorSections[^1].SectionIndex} not found in TSection.dat")
                     : trackSection.Curved
                     ? vectorNode.TrackVectorSections[^1].Direction.Y + MathHelper.ToRadians(trackSection.Angle)
@@ -71,7 +71,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             if (reverse)
             {
                 // if the attached track is reverse, we'll need to find the angle at the other end, which is same for straight tracks, but changes for curved tracks
-                return !RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(vectorNode.TrackVectorSections[0].SectionIndex, out TrackSection trackSection)
+                return !RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(vectorNode.TrackVectorSections[0].SectionIndex, out TrackSection trackSection)
                     ? throw new System.IO.InvalidDataException($"TrackVectorSection {vectorNode.TrackVectorSections[0].SectionIndex} not found in TSection.dat")
                     : trackSection.Curved
                     ? vectorNode.TrackVectorSections[index].Direction.Y + MathHelper.ToRadians(trackSection.Angle)

@@ -68,9 +68,9 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 sectionOrigin = worldMatrixInput.XNAMatrix.Translation; // Save root position
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
 
-            if (!RuntimeData.Instance.TrackModel.TrackShapes.TryGetValue(trackObj.SectionIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
+            if (!RuntimeData.Instance.TrackSections.TrackShapes.TryGetValue(trackObj.SectionIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
                 return 0;
-            if (!RuntimeData.Instance.TrackModel.TrackSectionIndices.TryGetValue(trackObj.SectionIndex, out ImmutableArray<TrackSectionIndex> sections))
+            if (!RuntimeData.Instance.TrackSections.TrackSectionIndices.TryGetValue(trackObj.SectionIndex, out ImmutableArray<TrackSectionIndex> sections))
                 return 0;
             if (shape.ShapeType == ShapeType.Road)
                 return 1;
@@ -94,7 +94,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     float length, radius;
                     int sid = id.TrackSections[i];
-                    FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackModel.TrackSections[sid];
+                    FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackSections.TrackSections[sid];
                     WorldPosition root = nextRoot;
                     nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
@@ -156,7 +156,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 sectionOrigin = worldMatrixInput.XNAMatrix.Translation; // Save root position
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
 
-            if (!RuntimeData.Instance.TrackModel.TrackSectionIndices.TryGetValue(trackObj.SectionIndex, out ImmutableArray<TrackSectionIndex> path) ||
+            if (!RuntimeData.Instance.TrackSections.TrackSectionIndices.TryGetValue(trackObj.SectionIndex, out ImmutableArray<TrackSectionIndex> path) ||
                 path.Length == 0)
                 return; //cannot find the path for the dynamic track
 
@@ -177,7 +177,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 float length, radius;
                 int sid = path[0].TrackSections[i];
-                FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackModel.TrackSections[sid];
+                FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackSections.TrackSections[sid];
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 

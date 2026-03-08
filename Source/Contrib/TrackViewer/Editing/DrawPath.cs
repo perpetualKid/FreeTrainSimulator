@@ -389,7 +389,7 @@ namespace ORTS.TrackViewer.Editing
         private static void DrawTrackSection(DrawArea drawArea, TrackVectorSection tvs, ColorScheme colors,
             float startOffset, float stopOffset)
         {
-            RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
+            RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
             if (trackSection == null) return;
 
             ref readonly WorldLocation thisLocation = ref tvs.Location;

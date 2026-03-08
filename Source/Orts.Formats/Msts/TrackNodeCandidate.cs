@@ -93,7 +93,7 @@ namespace Orts.Formats.Msts
         {
             TrackVectorSection trackVectorSection = trackNode.TrackVectorSections[tvsi];
 
-            if (!RuntimeData.Instance.TrackModel.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
+            if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
                 return null;
 
             TrackNodeCandidate candidate = TryTrackSection(location, trackVectorSection, trackSection);

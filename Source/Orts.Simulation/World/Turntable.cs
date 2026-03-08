@@ -111,7 +111,7 @@ namespace Orts.Simulation.World
 
         private void InitializeAnglesAndTrackNodes()
         {
-            ImmutableArray<TrackSectionIndex> sectionIndex = RuntimeData.Instance.TrackModel.TrackSectionIndices[TrackShapeIndex];
+            ImmutableArray<TrackSectionIndex> sectionIndex = RuntimeData.Instance.TrackSections.TrackSectionIndices[TrackShapeIndex];
             int nSections = sectionIndex[0].TrackSections.Length;
             trackNodesIndex = new int[sectionIndex.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];

@@ -19,7 +19,8 @@ namespace FreeTrainSimulator.Toolbox
         internal static async ValueTask LoadTrackData(RouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
-            TrackSectionModel trackSectionModel = null;
+            TrackSectionsModel trackSectionModel = null;
+            TrackModel trackModel = null;
             TrackDB trackDB = null;
             RoadTrackDB roadTrackDB = null;
             SignalConfigurationFile signalConfig = null;
@@ -27,6 +28,7 @@ namespace FreeTrainSimulator.Toolbox
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
 
             loadTasks.Add(Task.Run(async () => trackSectionModel = await routeModel.GetTrackSectionModel(cancellationToken).ConfigureAwait(false)));
+            loadTasks.Add(Task.Run(async () => trackModel = await routeModel.GetTrackModel(cancellationToken).ConfigureAwait(false)));
             loadTasks.Add(Task.Run(() =>
             {
                 string tdbFile = routeFolder.TrackDatabaseFile(routeModel.RouteKey);
@@ -54,7 +56,7 @@ namespace FreeTrainSimulator.Toolbox
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            Initialize(routeModel, trackSectionModel, trackDB, roadTrackDB, signalConfig, metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits));
+            Initialize(routeModel, trackSectionModel, trackModel, trackDB, roadTrackDB, signalConfig, metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits));
         }
     }
 }
