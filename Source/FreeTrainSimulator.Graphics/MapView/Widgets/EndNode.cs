@@ -3,11 +3,10 @@ using System.Globalization;
 
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Imported.Track;
+using FreeTrainSimulator.Models.Imported.Runtime;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
@@ -18,8 +17,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private const int width = 3;
         protected const float Length = 0.5f;
 
-        public EndNode(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode) :
-            base(trackEndNode, connectedVectorNode)
+        public EndNode(Models.Track.EndNode trackEndNode) :
+            base(trackEndNode)
         {
             Size = width;
         }
@@ -56,8 +55,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public RoadEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode) :
-            base(trackEndNode, connectedVectorNode)
+        public RoadEndSegment(Models.Track.EndNode trackEndNode) :
+            base(trackEndNode)
         {
         }
 

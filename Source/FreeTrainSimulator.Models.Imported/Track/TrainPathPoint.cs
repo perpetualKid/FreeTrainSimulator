@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
         {
         }
 
-        public TrainPathPoint(JunctionNodeBase junction, TrackModel trackModel) : base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)), junction, null, trackModel)
+        public TrainPathPoint(Runtime.JunctionNodeBase junction, TrackModel trackModel) : base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)), junction, null, trackModel)
         {
         }
     }

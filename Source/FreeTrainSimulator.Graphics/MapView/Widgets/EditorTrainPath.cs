@@ -152,7 +152,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return new EditorPathPoint(pathPoint.Location, pathPoint.Location, PathNodeType.None);
         }
 
-        internal EditorPathPoint UpdatePathEndPoint(in PointD location, JunctionNodeBase junctionNode, TrackSegmentBase trackSegment)
+        internal EditorPathPoint UpdatePathEndPoint(in PointD location, FreeTrainSimulator.Models.Imported.Runtime.JunctionNodeBase junctionNode, TrackSegmentBase trackSegment)
         {
             bool startPoint = PathPoints.Count == 0;
 

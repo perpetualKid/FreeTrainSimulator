@@ -102,10 +102,10 @@ namespace FreeTrainSimulator.Models.Imported.Track
         private readonly List<IIndexedElement> railTrackItems = new List<IIndexedElement>();
 
         public RuntimeData RuntimeData { get; }
-        public IReadOnlyList<JunctionNodeBase> Junctions { get; }
-        public IReadOnlyList<EndNodeBase> EndNodes { get; }
+        public IReadOnlyList<Runtime.JunctionNodeBase> Junctions { get; }
+        public IReadOnlyList<Runtime.EndNodeBase> EndNodes { get; }
         public IReadOnlyList<TrackSegmentSection> SegmentSections { get; }
-        public IReadOnlyList<EndNodeBase> RoadEndNodes { get; }
+        public IReadOnlyList<Runtime.EndNodeBase> RoadEndNodes { get; }
         public IReadOnlyList<TrackSegmentSection> RoadSegmentSections { get; }
 
         public EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
@@ -113,10 +113,10 @@ namespace FreeTrainSimulator.Models.Imported.Track
         private TrackModel(RuntimeData runtimeData)
         {
             RuntimeData = runtimeData;
-            Junctions = new PartialTrackElementList<JunctionNodeBase>(railTrackElements);
-            EndNodes = new PartialTrackElementList<EndNodeBase>(railTrackElements);
+            Junctions = new PartialTrackElementList<Runtime.JunctionNodeBase>(railTrackElements);
+            EndNodes = new PartialTrackElementList<Runtime.EndNodeBase>(railTrackElements);
             SegmentSections = new PartialTrackElementList<TrackSegmentSection>(railTrackElements);
-            RoadEndNodes = new PartialTrackElementList<EndNodeBase>(roadTrackElements);
+            RoadEndNodes = new PartialTrackElementList<Runtime.EndNodeBase>(roadTrackElements);
             RoadSegmentSections = new PartialTrackElementList<TrackSegmentSection>(roadTrackElements);
         }
 
@@ -133,7 +133,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             return instance;
         }
 
-        public void InitializeRailTrack(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes)
+        public void InitializeRailTrack(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<Runtime.JunctionNodeBase> junctionNodes, IEnumerable<Runtime.EndNodeBase> endNodes)
         {
             ArgumentNullException.ThrowIfNull(trackSegments);
             ArgumentNullException.ThrowIfNull(junctionNodes);
@@ -150,15 +150,15 @@ namespace FreeTrainSimulator.Models.Imported.Track
             railTrackElements.Sort((t1, t2) => t1.Index.CompareTo(t2.Index));
             railTrackElements.Insert(0, null);
 
-            (Junctions as PartialTrackElementList<JunctionNodeBase>).AddRange(junctionNodes);
-            (EndNodes as PartialTrackElementList<EndNodeBase>).AddRange(endNodes);
+            (Junctions as PartialTrackElementList<Runtime.JunctionNodeBase>).AddRange(junctionNodes);
+            (EndNodes as PartialTrackElementList<Runtime.EndNodeBase>).AddRange(endNodes);
 
             ContentByTile[MapContentType.Tracks] = new TileIndexedList<TrackSegmentBase>(trackSegments);
-            ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase>(Junctions);
-            ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNodeBase>(EndNodes);
+            ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<Runtime.JunctionNodeBase>(Junctions);
+            ContentByTile[MapContentType.EndNodes] = new TileIndexedList<Runtime.EndNodeBase>(EndNodes);
         }
 
-        public void InitializeRoadTrack(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<EndNodeBase> endNodes)
+        public void InitializeRoadTrack(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<Runtime.EndNodeBase> endNodes)
         {
             ArgumentNullException.ThrowIfNull(trackSegments);
             ArgumentNullException.ThrowIfNull(endNodes);
@@ -173,10 +173,10 @@ namespace FreeTrainSimulator.Models.Imported.Track
             roadTrackElements.Sort((t1, t2) => t1.Index.CompareTo(t2.Index));
             roadTrackElements.Insert(0, null);
 
-            (RoadEndNodes as PartialTrackElementList<EndNodeBase>).AddRange(endNodes);
+            (RoadEndNodes as PartialTrackElementList<Runtime.EndNodeBase>).AddRange(endNodes);
 
             ContentByTile[MapContentType.Roads] = new TileIndexedList<TrackSegmentBase>(trackSegments);
-            ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNodeBase>(RoadEndNodes);
+            ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<Runtime.EndNodeBase>(RoadEndNodes);
         }
 
         public void InitializeTrackItems(IEnumerable<TrackItemBase> trackItems)
@@ -190,8 +190,8 @@ namespace FreeTrainSimulator.Models.Imported.Track
         public void Reset()
         {
             railTrackElements.Clear();
-            (Junctions as PartialTrackElementList<JunctionNodeBase>).Clear();
-            (EndNodes as PartialTrackElementList<EndNodeBase>).Clear();
+            (Junctions as PartialTrackElementList<Runtime.JunctionNodeBase>).Clear();
+            (EndNodes as PartialTrackElementList<Runtime.EndNodeBase>).Clear();
             (SegmentSections as PartialTrackElementList<TrackSegmentSection>).Clear();
         }
 
@@ -304,15 +304,15 @@ namespace FreeTrainSimulator.Models.Imported.Track
         }
 
         /// <summary>
-        /// returns the <see cref="JunctionNodeBase" junction at this location (within Proximity tolerance)
+        /// returns the <see cref="Runtime.JunctionNodeBase" junction at this location (within Proximity tolerance)
         /// If no junction in this place, returns null.
         /// </summary>
-        public JunctionNodeBase JunctionAt(in PointD location, int tileRadius = 0)
+        public Runtime.JunctionNodeBase JunctionAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
             double distanceSquared = double.PositiveInfinity;
-            JunctionNodeBase result = null;
-            foreach (JunctionNodeBase junctionNode in ContentByTile[MapContentType.JunctionNodes].BoundingBox(tile, tileRadius))
+            Runtime.JunctionNodeBase result = null;
+            foreach (Runtime.JunctionNodeBase junctionNode in ContentByTile[MapContentType.JunctionNodes].BoundingBox(tile, tileRadius))
             {
                 double current;
                 if ((current = junctionNode.DistanceSquared(location)) < distanceSquared)
@@ -325,15 +325,15 @@ namespace FreeTrainSimulator.Models.Imported.Track
         }
 
         /// <summary>
-        /// returns the <see cref="EndNodeBase" end node at this location (within Proximity tolerance)
+        /// returns the <see cref="Runtime.EndNodeBase" end node at this location (within Proximity tolerance)
         /// If no junction in this place, returns null.
         /// </summary>
-        public EndNodeBase EndNodeAt(in PointD location, int tileRadius = 0)
+        public Runtime.EndNodeBase EndNodeAt(in PointD location, int tileRadius = 0)
         {
             Tile tile = PointD.ToTile(location);
             double distanceSquared = double.PositiveInfinity;
-            EndNodeBase result = null;
-            foreach (EndNodeBase endNode in ContentByTile[MapContentType.EndNodes].BoundingBox(tile, tileRadius))
+            Runtime.EndNodeBase result = null;
+            foreach (Runtime.EndNodeBase endNode in ContentByTile[MapContentType.EndNodes].BoundingBox(tile, tileRadius))
             {
                 double current;
                 if ((current = endNode.DistanceSquared(location)) < distanceSquared)
@@ -345,24 +345,24 @@ namespace FreeTrainSimulator.Models.Imported.Track
             return result != null && result.EndNodeAt(location) ? result : null;
         }
 
-        public JunctionNodeBase TrackNodeJunction(int trackNodeIndex, bool end)
+        public Runtime.JunctionNodeBase TrackNodeJunction(int trackNodeIndex, bool end)
         {
             TrackPin[] trackPins = RuntimeData.TrackDB.TrackNodes[trackNodeIndex].TrackPins;
             return Junctions[end ? trackPins[1].Link : trackPins[0].Link];
         }
 
-        public JunctionNodeBase TrackNodeJunction(int trackNodeIndex, TrackDirection trackDirection)
+        public Runtime.JunctionNodeBase TrackNodeJunction(int trackNodeIndex, TrackDirection trackDirection)
         {
             TrackPin[] trackPins = RuntimeData.TrackDB.TrackNodes[trackNodeIndex].TrackPins;
             return Junctions[trackDirection == TrackDirection.Reverse ? trackPins[1].Link : trackPins[0].Link];
         }
 
-        public JunctionNodeBase TrackNodeJunction(in PointD location, int trackNodeIndex)
+        public Runtime.JunctionNodeBase TrackNodeJunction(in PointD location, int trackNodeIndex)
         {
             TrackPin[] trackPins = RuntimeData.TrackDB.TrackNodes[trackNodeIndex].TrackPins;
             if (SegmentSections[trackNodeIndex].Length > 2)
             {
-                JunctionNodeBase junction;
+                Runtime.JunctionNodeBase junction;
                 if ((junction = Junctions[trackPins[0].Link])?.JunctionNodeAt(location) ?? false)
                     return junction;
                 else if ((junction = Junctions[trackPins[1].Link])?.JunctionNodeAt(location) ?? false)
@@ -370,7 +370,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             }
             else
             {
-                JunctionNodeBase junction;
+                Runtime.JunctionNodeBase junction;
                 double startDistance = (junction = Junctions[trackPins[0].Link])?.DistanceSquared(location) ?? double.MaxValue;
                 double endDistance = Junctions[trackPins[1].Link]?.DistanceSquared(location) ?? double.MaxValue;
                 if (startDistance < endDistance && startDistance < 10 && junction.JunctionNodeAt(location))
@@ -405,7 +405,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
                     { endSet = true; }
                 }
                 if (startSet ^ endSet)
-                    return new TrainPathPoint(Junctions[junction.Index], this);
+                    return new TrainPathPoint(Junctions[junction.Index].Location, this);
             }
             return null;
 

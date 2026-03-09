@@ -1,5 +1,6 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Window;

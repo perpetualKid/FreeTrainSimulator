@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
@@ -13,7 +12,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
     {
         public virtual PathNodeType NodeType { get; init; }
 
-        public JunctionNodeBase JunctionNode { get; }
+        public Runtime.JunctionNodeBase JunctionNode { get; }
 
         public ImmutableArray<TrackSegmentBase> ConnectedSegments { get; }
 
@@ -58,7 +57,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
 
-        protected TrainPathPointBase(in PointD location, JunctionNodeBase junctionNode, TrackSegmentBase trackSegment, TrackModel trackModel) : base(location)
+        protected TrainPathPointBase(in PointD location, Runtime.JunctionNodeBase junctionNode, TrackSegmentBase trackSegment, TrackModel trackModel) : base(location)
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 

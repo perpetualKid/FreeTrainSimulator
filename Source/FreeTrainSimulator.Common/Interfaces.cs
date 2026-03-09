@@ -10,6 +10,11 @@ namespace FreeTrainSimulator.Common
         IJunction SwitchById(int switchId);
     }
 
+    public interface IIndexedElement
+    {
+        int Index { get; }
+    }
+
     public enum SignalState
     {
         Clear,

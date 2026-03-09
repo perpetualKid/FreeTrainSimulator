@@ -1,5 +1,6 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Track;
 
@@ -7,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 
-namespace FreeTrainSimulator.Models.Imported.Track
+namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     public abstract record EndNodeBase : PointPrimitive, IIndexedElement
     {
@@ -18,27 +19,31 @@ namespace FreeTrainSimulator.Models.Imported.Track
         int IIndexedElement.Index => TrackNodeIndex;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
 
-        protected EndNodeBase(Orts.Formats.Msts.Models.TrackEndNode trackEndNode, Orts.Formats.Msts.Models.TrackVectorNode connectedVectorNode) :
-            base(trackEndNode?.UiD.Location ?? throw new ArgumentNullException(nameof(trackEndNode)))
+        protected EndNodeBase(EndNode trackEndNode) :
+            base(trackEndNode?.Location ?? throw new ArgumentNullException(nameof(trackEndNode)))
         {
-            TrackNodeIndex = trackEndNode.Index;
+            TrackModel trackModel = RuntimeData.Instance.TrackModel;
+            TrackNodeIndex = trackEndNode.NodeIndex;
 
+
+            VectorNode connectedVectorNode = trackModel.TrackDatabase.TrackNodes[trackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex][0].Link] as VectorNode;
             if (null == connectedVectorNode)
                 return;
-            if (connectedVectorNode.TrackPins[0].Link == trackEndNode.Index)
+            
+            if (trackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex][0].Link == TrackNodeIndex)
             {
                 //find angle at beginning of vector node
-                Orts.Formats.Msts.Models.TrackVectorSection tvs = connectedVectorNode.TrackVectorSections[0];
-                Direction = tvs.Direction.Y;
+                VectorSectionNode vectorSection = connectedVectorNode.VectorSections[0];
+                Direction = vectorSection.Direction.Y;
             }
             else
             {
                 //find angle at end of vector node
-                Orts.Formats.Msts.Models.TrackVectorSection trackVectorSection = connectedVectorNode.TrackVectorSections[^1];
-                Direction = trackVectorSection.Direction.Y;
+                VectorSectionNode vectorSection = connectedVectorNode.VectorSections[^1];
+                Direction = vectorSection.Direction.Y;
                 // try to get even better in case the last section is curved
-                if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out TrackSection trackSection))
-                    throw new System.IO.InvalidDataException($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TSection.dat");
+                if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(vectorSection.NodeIndex, out TrackSection trackSection))
+                    throw new System.IO.InvalidDataException($"TrackVectorSection {vectorSection.NodeIndex} not found in TSection.dat");
                 if (trackSection.Curved)
                 {
                     Direction += MathHelper.ToRadians(trackSection.Angle);

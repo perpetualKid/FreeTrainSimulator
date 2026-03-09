@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 using MemoryPack;
@@ -45,14 +46,25 @@ namespace FreeTrainSimulator.Models.Track
         {
             if (trackDatabase == null)
                 return;
+            TrackNode[] trackNodes = new TrackNode[trackDatabase.endNodes.Length + trackDatabase.junctionNodes.Length + trackDatabase.vectorNodes.Length + 1];
+            foreach(var node in trackDatabase.endNodes)
+            {
+                trackNodes[node.NodeIndex] = node;
+            }
+            foreach (JunctionNode node in trackDatabase.junctionNodes)
+            {
+                trackNodes[node.NodeIndex] = node;
+            }
+            foreach (VectorNode node in trackDatabase.vectorNodes)
+            {
+                trackNodes[node.NodeIndex] = node;
+            }
             trackDatabase = new TrackDatabase()
             {
                 TrackDataBaseType = trackDatabase.TrackDataBaseType,
                 TrackItems = trackDatabase.TrackItems,
                 TrackNodeConnectors = trackDatabase.TrackNodeConnectors,
-                TrackNodes = trackDatabase.endNodes.Cast<TrackNode>().
-                    Concat(trackDatabase.junctionNodes).
-                    Concat(trackDatabase.vectorNodes).ToImmutableArray(),
+                TrackNodes = trackNodes.ToImmutableArray(),
             };
         }
 

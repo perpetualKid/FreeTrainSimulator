@@ -42,7 +42,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             // if a tracksegment is nearby, snap to the segment
             PointD snapLocation = nearestSegment?.SnapToSegment(location) ?? location;
-            JunctionNodeBase junction;
+            FreeTrainSimulator.Models.Imported.Runtime.JunctionNodeBase junction;
             if ((junction = TrackModel.JunctionAt(snapLocation)) != null) //if within junction proximity, snap to the junction
                 snapLocation = junction.Location;
 

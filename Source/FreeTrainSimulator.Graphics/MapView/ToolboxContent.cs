@@ -232,13 +232,36 @@ namespace FreeTrainSimulator.Graphics.MapView
             ConcurrentBag<RoadSegment> roadSegments = new ConcurrentBag<RoadSegment>();
             ConcurrentBag<RoadEndSegment> roadEndSegments = new ConcurrentBag<RoadEndSegment>();
 
+            if (runtimeData.TrackModel.TrackDatabase != null)
+            {
+                Parallel.ForEach(runtimeData.TrackModel.TrackDatabase.TrackNodes, trackNode =>
+                {
+                    switch (trackNode)
+                    {
+                        case Models.Track.EndNode endNode:
+                            endSegments.Add(new Widgets.EndNode(endNode));
+                            break;
+                        case VectorNode trackVectorNode:
+                            //int i = 0;
+                            //foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
+                            //{
+                            //    trackSegments.Add(new TrackSegment(trackVectorSection, trackVectorNode.Index, i++));
+                            //}
+                            break;
+                        case Models.Track.JunctionNode trackJunctionNode:
+                            junctionSegments.Add(new Widgets.JunctionNode(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute));
+                            break;
+                    }
+                });
+            }
+
             Parallel.ForEach(trackDB?.TrackNodes ?? Enumerable.Empty<Orts.Formats.Msts.Models.TrackNode>(), trackNode =>
             {
                 switch (trackNode)
                 {
                     case TrackEndNode trackEndNode:
-                        TrackVectorNode connectedVectorNode = trackDB.TrackNodes.VectorNodes[trackEndNode.TrackPins[0].Link];
-                        endSegments.Add(new Widgets.EndNode(trackEndNode, connectedVectorNode));
+                        //TrackVectorNode connectedVectorNode = trackDB.TrackNodes.VectorNodes[trackEndNode.TrackPins[0].Link];
+                        //endSegments.Add(new Widgets.EndNode(trackEndNode, connectedVectorNode));
                         break;
                     case TrackVectorNode trackVectorNode:
                         int i = 0;
@@ -248,12 +271,12 @@ namespace FreeTrainSimulator.Graphics.MapView
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
-                        List<TrackVectorNode> vectorNodes = new List<TrackVectorNode>();
-                        foreach (TrackPin pin in trackJunctionNode.TrackPins)
-                        {
-                            vectorNodes.Add(trackDB.TrackNodes.VectorNodes[pin.Link]);
-                        }
-                        junctionSegments.Add(new Widgets.JunctionNode(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute, vectorNodes));
+                        //List<TrackVectorNode> vectorNodes = new List<TrackVectorNode>();
+                        //foreach (TrackPin pin in trackJunctionNode.TrackPins)
+                        //{
+                        //    vectorNodes.Add(trackDB.TrackNodes.VectorNodes[pin.Link]);
+                        //}
+                        //junctionSegments.Add(new Widgets.JunctionNode(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute, vectorNodes));
                         break;
                 }
             });
@@ -268,8 +291,8 @@ namespace FreeTrainSimulator.Graphics.MapView
                 switch (trackNode)
                 {
                     case TrackEndNode trackEndNode:
-                        TrackVectorNode connectedVectorNode = roadTrackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
-                        roadEndSegments.Add(new RoadEndSegment(trackEndNode, connectedVectorNode));
+                        //TrackVectorNode connectedVectorNode = roadTrackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
+                        //roadEndSegments.Add(new RoadEndSegment(trackEndNode, connectedVectorNode));
                         break;
                     case TrackVectorNode trackVectorNode:
                         int i = 0;
