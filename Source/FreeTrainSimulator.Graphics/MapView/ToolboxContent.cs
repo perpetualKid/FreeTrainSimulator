@@ -16,7 +16,6 @@ using FreeTrainSimulator.Models.Track;
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
@@ -222,9 +221,6 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
             TrackSectionsModel trackSections = RuntimeData.GameInstance(game).TrackSections;
-
-            TrackDB trackDB = runtimeData.TrackDB;
-            RoadTrackDB roadTrackDB = runtimeData.RoadTrackDB;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<Widgets.EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();

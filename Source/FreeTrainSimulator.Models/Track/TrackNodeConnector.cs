@@ -23,12 +23,12 @@ namespace FreeTrainSimulator.Models.Track
 
         public bool Equals(TrackNodeConnector x, TrackNodeConnector y)
         {
-            return x.Link == y.Link;
+            return x?.Link == y?.Link;
         }
 
         public int GetHashCode(TrackNodeConnector obj)
         {
-            return obj.Link;
+            return obj?.Link ?? -1;
         }
 
         public static TrackNodeConnectorComparer LinkOnlyComparer { get; } = new TrackNodeConnectorComparer();

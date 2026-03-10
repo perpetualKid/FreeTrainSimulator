@@ -30,7 +30,7 @@ namespace FreeTrainSimulator.Models.Track
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record VectorNode : TrackNode
     {
-        public ImmutableArray<VectorSectionNode> VectorSections { get; init; } = new ImmutableArray<VectorSectionNode>();
+        public ImmutableArray<VectorSectionNode> VectorSections { get; init; } = ImmutableArray<VectorSectionNode>.Empty;
 
         [MemoryPackConstructor]
         public VectorNode(in WorldLocation location, in Tile worldTile) : base(location, worldTile)
@@ -44,7 +44,7 @@ namespace FreeTrainSimulator.Models.Track
         private readonly Vector3 direction;
 
         public ref readonly Vector3 Direction => ref direction;
-        public ImmutableArray<int> Vectors { get; init; } = new ImmutableArray<int>();
+        public ImmutableArray<int> Vectors { get; init; } = ImmutableArray<int>.Empty;
 
         public int Flag1 { get; }
         public int Flag2 { get; }
