@@ -10,8 +10,8 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Imported.Runtime;
 using FreeTrainSimulator.Models.Track;
-using FreeTrainSimulator.Models.Imported.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -242,11 +242,11 @@ namespace FreeTrainSimulator.Graphics.MapView
                             endSegments.Add(new Widgets.EndNode(endNode));
                             break;
                         case VectorNode trackVectorNode:
-                            //int i = 0;
-                            //foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
-                            //{
-                            //    trackSegments.Add(new TrackSegment(trackVectorSection, trackVectorNode.Index, i++));
-                            //}
+                            int i = 0;
+                            foreach (VectorSectionNode trackVectorSection in trackVectorNode.VectorSections)
+                            {
+                                trackSegments.Add(new TrackSegment(trackVectorSection, trackVectorNode.NodeIndex, i++));
+                            }
                             break;
                         case Models.Track.JunctionNode trackJunctionNode:
                             junctionSegments.Add(new Widgets.JunctionNode(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute));
@@ -255,54 +255,30 @@ namespace FreeTrainSimulator.Graphics.MapView
                 });
             }
 
-            Parallel.ForEach(trackDB?.TrackNodes ?? Enumerable.Empty<Orts.Formats.Msts.Models.TrackNode>(), trackNode =>
-            {
-                switch (trackNode)
-                {
-                    case TrackEndNode trackEndNode:
-                        //TrackVectorNode connectedVectorNode = trackDB.TrackNodes.VectorNodes[trackEndNode.TrackPins[0].Link];
-                        //endSegments.Add(new Widgets.EndNode(trackEndNode, connectedVectorNode));
-                        break;
-                    case TrackVectorNode trackVectorNode:
-                        int i = 0;
-                        foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
-                        {
-                            trackSegments.Add(new TrackSegment(trackVectorSection, trackVectorNode.Index, i++));
-                        }
-                        break;
-                    case TrackJunctionNode trackJunctionNode:
-                        //List<TrackVectorNode> vectorNodes = new List<TrackVectorNode>();
-                        //foreach (TrackPin pin in trackJunctionNode.TrackPins)
-                        //{
-                        //    vectorNodes.Add(trackDB.TrackNodes.VectorNodes[pin.Link]);
-                        //}
-                        //junctionSegments.Add(new Widgets.JunctionNode(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute, vectorNodes));
-                        break;
-                }
-            });
-
             insetComponent?.SetTrackSegments(trackSegments);
 
-            trackModel = Models.Imported.Track.TrackModel.Reset(game, runtimeData);
+            trackModel = Models.Imported.Runtime.TrackModel.Reset(game, runtimeData);
             trackModel.InitializeRailTrack(trackSegments, junctionSegments, endSegments);
 
-            Parallel.ForEach(roadTrackDB?.TrackNodes ?? Enumerable.Empty<Orts.Formats.Msts.Models.TrackNode>(), trackNode =>
+            if (runtimeData.TrackModel.RoadDatabase != null)
             {
-                switch (trackNode)
+                Parallel.ForEach(runtimeData.TrackModel.RoadDatabase.TrackNodes, trackNode =>
                 {
-                    case TrackEndNode trackEndNode:
-                        //TrackVectorNode connectedVectorNode = roadTrackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
-                        //roadEndSegments.Add(new RoadEndSegment(trackEndNode, connectedVectorNode));
-                        break;
-                    case TrackVectorNode trackVectorNode:
-                        int i = 0;
-                        foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
-                        {
-                            roadSegments.Add(new RoadSegment(trackVectorSection, trackVectorNode.Index, i++));
-                        }
-                        break;
-                }
-            });
+                    switch (trackNode)
+                    {
+                        case Models.Track.EndNode trackEndNode:
+                            roadEndSegments.Add(new Widgets.RoadEndSegment(trackEndNode));
+                            break;
+                        case VectorNode trackVectorNode:
+                            int i = 0;
+                            foreach (VectorSectionNode trackVectorSection in trackVectorNode.VectorSections)
+                            {
+                                roadSegments.Add(new RoadSegment(trackVectorSection, trackVectorNode.NodeIndex, i++));
+                            }
+                            break;
+                    }
+                });
+            }
 
             trackModel.InitializeRoadTrack(roadSegments, roadEndSegments);
 

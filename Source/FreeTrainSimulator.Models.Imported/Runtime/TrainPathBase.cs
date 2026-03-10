@@ -9,7 +9,7 @@ using FreeTrainSimulator.Models.Content;
 
 using Microsoft.Xna.Framework;
 
-namespace FreeTrainSimulator.Models.Imported.Track
+namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     public enum PathSectionType
     {

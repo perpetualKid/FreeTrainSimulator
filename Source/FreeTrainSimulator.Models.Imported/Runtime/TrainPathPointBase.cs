@@ -6,7 +6,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 
-namespace FreeTrainSimulator.Models.Imported.Track
+namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     public abstract record TrainPathPointBase : PointPrimitive
     {
@@ -57,7 +57,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
 
-        protected TrainPathPointBase(in PointD location, Runtime.JunctionNodeBase junctionNode, TrackSegmentBase trackSegment, TrackModel trackModel) : base(location)
+        protected TrainPathPointBase(in PointD location, JunctionNodeBase junctionNode, TrackSegmentBase trackSegment, TrackModel trackModel) : base(location)
         {
             ArgumentNullException.ThrowIfNull(trackModel);
 
@@ -79,7 +79,10 @@ namespace FreeTrainSimulator.Models.Imported.Track
 
         private ImmutableArray<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
         {
-            return JunctionNode?.ConnectedSegments(trackModel).ToImmutableArray() ?? trackModel.SegmentsAt(Location).ToImmutableArray();
+            ImmutableArray<TrackSegmentBase> result;
+            if (JunctionNode == null || (result = JunctionNode.ConnectedSegments(trackModel).ToImmutableArray()).IsDefaultOrEmpty)
+                result = trackModel.SegmentsAt(Location).ToImmutableArray();
+            return result;
         }
     }
 }

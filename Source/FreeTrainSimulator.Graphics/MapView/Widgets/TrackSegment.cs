@@ -5,11 +5,10 @@ using System.Globalization;
 
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Imported.Track;
+using FreeTrainSimulator.Models.Imported.Runtime;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
@@ -41,7 +40,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public TrackSegment(TrackVectorSection trackVectorSection, int trackNodeIndex, int trackVectorSectionIndex) :
+        public TrackSegment(VectorSectionNode trackVectorSection, int trackNodeIndex, int trackVectorSectionIndex) :
             base(trackVectorSection, trackNodeIndex, trackVectorSectionIndex)
         {
         }
@@ -75,7 +74,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public RoadSegment(TrackVectorSection trackVectorSection, int trackNodeIndex, int trackVectorSectionIndex) :
+        public RoadSegment(VectorSectionNode trackVectorSection, int trackNodeIndex, int trackVectorSectionIndex) :
             base(trackVectorSection, trackNodeIndex, trackVectorSectionIndex)
         {
         }

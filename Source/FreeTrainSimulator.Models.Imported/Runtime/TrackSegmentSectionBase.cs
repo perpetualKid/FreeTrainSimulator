@@ -5,11 +5,11 @@ using System.Diagnostics;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
-namespace FreeTrainSimulator.Models.Imported.Track
+namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     /// <summary>
     /// A collection of multiple <see cref="TrackSegmentBase"></see> segments along a track, covering all or 
-    /// some <see cref="Formats.Msts.TrackVectorSection"/> of a <see cref="Formats.Msts.TrackNode"/>. 
+    /// some <see cref="Track.VectorSectionNode"/> of a <see cref="Track.TrackNode"/>. 
     /// Examples for partial TrackSegmentSections are i.e. Platforms along a track.
     /// </summary>
     /// <typeparam name="T"></typeparam>

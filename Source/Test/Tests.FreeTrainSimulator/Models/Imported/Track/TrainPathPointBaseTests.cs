@@ -2,7 +2,7 @@
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Imported.Track;
+using FreeTrainSimulator.Models.Imported.Runtime;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

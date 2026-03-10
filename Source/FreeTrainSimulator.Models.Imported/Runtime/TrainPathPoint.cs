@@ -3,7 +3,7 @@
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 
-namespace FreeTrainSimulator.Models.Imported.Track
+namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     internal record TrainPathPoint : TrainPathPointBase
     {
@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
         {
         }
 
-        public TrainPathPoint(Runtime.JunctionNodeBase junction, TrackModel trackModel) : base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)), junction, null, trackModel)
+        public TrainPathPoint(JunctionNodeBase junction, TrackModel trackModel) : base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)), junction, null, trackModel)
         {
         }
     }

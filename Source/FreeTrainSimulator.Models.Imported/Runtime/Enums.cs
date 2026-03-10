@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FreeTrainSimulator.Models.Imported.Track
+namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     [Flags]
     public enum PathNodeInvalidReasons

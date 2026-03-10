@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
         protected EndNodeBase(EndNode trackEndNode) :
             base(trackEndNode?.Location ?? throw new ArgumentNullException(nameof(trackEndNode)))
         {
-            TrackModel trackModel = RuntimeData.Instance.TrackModel;
+            Models.Track.TrackModel trackModel = RuntimeData.Instance.TrackModel;
             TrackNodeIndex = trackEndNode.NodeIndex;
 
 

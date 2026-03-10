@@ -6,7 +6,6 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Imported.Track;
 
 using GetText;
 

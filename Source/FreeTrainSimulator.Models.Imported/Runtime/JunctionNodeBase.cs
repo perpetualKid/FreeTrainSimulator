@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
         {
             TrackNodeIndex = junctionNode.NodeIndex;
 
-            TrackModel trackModel = RuntimeData.Instance.TrackModel;
+            Models.Track.TrackModel trackModel = RuntimeData.Instance.TrackModel;
 
             ImmutableArray<TrackNodeConnector> connectors = trackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex];
             int inbound = 0;
@@ -101,15 +101,16 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
             return location.DistanceSquared(Location) <= ProximityTolerance;
         }
 
-        internal IEnumerable<Track.TrackSegmentBase> ConnectedSegments(Track.TrackModel trackModel)
+        internal IEnumerable<TrackSegmentBase> ConnectedSegments(TrackModel trackModel)
         {
-            ImmutableArray<TrackNodeConnector> connectors = RuntimeData.Instance.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex];
+            return null;
+            //ImmutableArray<TrackNodeConnector> connectors = RuntimeData.Instance.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex];
 
-            foreach (TrackNodeConnector connector in connectors)
-            {
-                Track.TrackSegmentSection segment = trackModel.SegmentSections[connector.Link];
-                yield return segment.SectionSegments[connector.Direction == TrackDirection.Reverse ? 0 : ^1];
-            }
+            //foreach (TrackNodeConnector connector in connectors)
+            //{
+            //    TrackSegmentSection segment = trackModel.SegmentSections[connector.Link];
+            //    yield return segment.SectionSegments[connector.Direction == TrackDirection.Reverse ? 0 : ^1];
+            //}
         }
     }
 }

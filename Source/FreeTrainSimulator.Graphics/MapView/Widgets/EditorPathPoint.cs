@@ -6,7 +6,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Imported.Track;
+using FreeTrainSimulator.Models.Imported.Runtime;
 
 using Microsoft.Xna.Framework;
 

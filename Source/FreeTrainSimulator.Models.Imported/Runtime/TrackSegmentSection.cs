@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using FreeTrainSimulator.Common.Position;
 
-namespace FreeTrainSimulator.Models.Imported.Track
+namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     public record TrackSegmentSection : TrackSegmentSectionBase<TrackSegmentBase>
     {

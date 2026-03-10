@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 
-namespace FreeTrainSimulator.Models.Imported.Track
+namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     public static class PathNodeExtensions
     {

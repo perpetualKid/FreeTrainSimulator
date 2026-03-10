@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 
-namespace FreeTrainSimulator.Models.Imported.Track
+namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     /// <summary>
     /// A single segment along a track, covering a single <see cref="TrackVectorSection"/> as part of a <see cref="TrackNode"/><br/>
@@ -59,7 +59,7 @@ namespace FreeTrainSimulator.Models.Imported.Track
             Direction = (float)Math.Atan2(origin.X, origin.Y) - MathHelper.PiOver2;
         }
 
-        protected TrackSegmentBase(Orts.Formats.Msts.Models.TrackVectorSection trackVectorSection, int trackNodeIndex, int trackVectorSectionIndex)
+        protected TrackSegmentBase(VectorSectionNode trackVectorSection, int trackNodeIndex, int trackVectorSectionIndex)
         {
             ArgumentNullException.ThrowIfNull(trackVectorSection);
 
@@ -72,9 +72,9 @@ namespace FreeTrainSimulator.Models.Imported.Track
             TrackNodeIndex = trackNodeIndex;
             TrackVectorSectionIndex = trackVectorSectionIndex;
 
-            if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(trackVectorSection.SectionIndex, out TrackSection trackSection))
+            if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(trackVectorSection.NodeIndex, out TrackSection trackSection))
             {
-                Trace.TraceError($"TrackVectorSection {trackVectorSection.SectionIndex} not found in TrackSectionModel for section index {trackVectorSectionIndex} in track node {trackNodeIndex}");
+                Trace.TraceError($"TrackVectorSection {trackVectorSection.NodeIndex} not found in TrackSectionModel for section index {trackVectorSectionIndex} in track node {trackNodeIndex}");
                 return;
             }
 
