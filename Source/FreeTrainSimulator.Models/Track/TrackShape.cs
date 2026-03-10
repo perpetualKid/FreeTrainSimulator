@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-
-using MemoryPack;
+﻿using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Track
 {

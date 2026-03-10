@@ -69,13 +69,15 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 {
                     TrackDataBaseType = TrackDataBaseType.Track,
                     TrackNodeConnectors = ConvertTrackNodeConnectors(trackDB.TrackNodes, routeModelExtended, TrackDataBaseType.Track),
-                    TrackNodes =ConvertTrackNodes(trackDB.TrackNodes, routeModelExtended, TrackDataBaseType.Track),
+                    TrackNodes = ConvertTrackNodes(trackDB.TrackNodes, routeModelExtended, TrackDataBaseType.Track),
+                    TrackItemsSelectors = ConvertTrackSelectors(trackDB.TrackNodes, routeModelExtended, TrackDataBaseType.Track),
                 },
                 RoadDatabase = roadTrackDB?.TrackNodes != null ? new TrackDatabase()
                 {
                     TrackDataBaseType = TrackDataBaseType.Road,
                     TrackNodeConnectors = ConvertTrackNodeConnectors(roadTrackDB.TrackNodes, routeModelExtended, TrackDataBaseType.Road),
                     TrackNodes = ConvertTrackNodes(roadTrackDB.TrackNodes, routeModelExtended, TrackDataBaseType.Road),
+                    TrackItemsSelectors = ConvertTrackSelectors(roadTrackDB.TrackNodes, routeModelExtended, TrackDataBaseType.Road),
                 } : null,
             };
 
@@ -110,9 +112,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             return result;
         }
 
-        private static ImmutableArray<Models.Track.TrackNode> ConvertTrackNodes(TrackNodes trackNodes, RouteModel routeModel, TrackDataBaseType trackDataBaseType)
+        private static ImmutableArray<Track.TrackNode> ConvertTrackNodes(TrackNodes trackNodes, RouteModel routeModel, TrackDataBaseType trackDataBaseType)
         {
-            ImmutableArray<Models.Track.TrackNode> result = trackNodes.Select(trackNode =>
+            ImmutableArray<Track.TrackNode> result = trackNodes.Select(trackNode =>
             {
                 return trackNode switch
                 {
@@ -121,12 +123,12 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         NodeIndex = junctionNode.Index,
                         WorldId = junctionNode.UiD.WorldId,
                         ShapeIndex = junctionNode.ShapeIndex,
-                    } as Models.Track.TrackNode,
+                    } as Track.TrackNode,
                     TrackEndNode endNode => new EndNode(endNode.UiD.Location, endNode.UiD.WorldTile)
                     {
                         NodeIndex = endNode.Index,
                         WorldId = endNode.UiD.WorldId,
-                    } as Models.Track.TrackNode,
+                    } as Track.TrackNode,
                     TrackVectorNode vectorNode => new VectorNode(WorldLocation.None, Tile.Zero)
                     {
                         NodeIndex = vectorNode.Index,
@@ -137,11 +139,10 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             ShapeIndex = tvs.ShapeIndex,
                             WorldId = (int)tvs.WorldFileUiD,
                         }).ToImmutableArray(),
-                    } as Models.Track.TrackNode,
+                    } as Track.TrackNode,
                     _ => null,
                 };
             }).ToImmutableArray();
-
 
             if (result.Length <= result[^1].NodeIndex)
             {
@@ -156,6 +157,14 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 }
             }
             return result;
+        }
+
+        private static ImmutableDictionary<int, TrackItemIndex> ConvertTrackSelectors(TrackNodes trackNodes, RouteModel routeModel, TrackDataBaseType trackDataBaseType)
+        {
+            return trackNodes.Where(tn => tn is TrackVectorNode).Cast<TrackVectorNode>().Select(tvn => (tvn.Index, new TrackItemIndex()
+            {
+                TrackItems = tvn.TrackItemIndices.ToImmutableArray(),
+            })).ToImmutableDictionary(item => item.Index, item => item.Item2);
         }
     }
 }

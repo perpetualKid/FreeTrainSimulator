@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 
 using MemoryPack;
@@ -7,7 +6,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Track
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial class TrackDatabase
+    public sealed partial record TrackDatabase
     {
         [MemoryPackInclude]
         private ImmutableArray<EndNode> endNodes = ImmutableArray<EndNode>.Empty;
@@ -19,7 +18,7 @@ namespace FreeTrainSimulator.Models.Track
         public TrackDataBaseType TrackDataBaseType { get; init; }
         [MemoryPackIgnore]
         public ImmutableArray<TrackNode> TrackNodes { get; init; } = ImmutableArray<TrackNode>.Empty;
-        public ImmutableDictionary<int, int> TrackItems { get; init; } = ImmutableDictionary<int, int>.Empty;
+        public ImmutableDictionary<int, TrackItemIndex> TrackItemsSelectors { get; init; } = ImmutableDictionary<int, TrackItemIndex>.Empty;
         public ImmutableArray<ImmutableArray<TrackNodeConnector>> TrackNodeConnectors { get; init; } = ImmutableArray<ImmutableArray<TrackNodeConnector>>.Empty;
 
         [MemoryPackConstructor]
@@ -59,11 +58,8 @@ namespace FreeTrainSimulator.Models.Track
             {
                 trackNodes[node.NodeIndex] = node;
             }
-            trackDatabase = new TrackDatabase()
+            trackDatabase = trackDatabase with
             {
-                TrackDataBaseType = trackDatabase.TrackDataBaseType,
-                TrackItems = trackDatabase.TrackItems,
-                TrackNodeConnectors = trackDatabase.TrackNodeConnectors,
                 TrackNodes = trackNodes.ToImmutableArray(),
             };
         }

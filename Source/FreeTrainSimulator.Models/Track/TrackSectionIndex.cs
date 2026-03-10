@@ -9,6 +9,5 @@ namespace FreeTrainSimulator.Models.Track
     {
         public ImmutableArray<int> TrackSections { get; init; } = ImmutableArray<int>.Empty; // section indices in order
         public TrackShapeOffset ShapeOffset { get; init; }
-
     }
 }
