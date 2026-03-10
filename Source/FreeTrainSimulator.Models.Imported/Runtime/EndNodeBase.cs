@@ -19,18 +19,17 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
         int IIndexedElement.Index => TrackNodeIndex;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
 
-        protected EndNodeBase(EndNode trackEndNode) :
+        protected EndNodeBase(EndNode trackEndNode, TrackDatabase trackDatabase) :
             base(trackEndNode?.Location ?? throw new ArgumentNullException(nameof(trackEndNode)))
         {
-            Models.Track.TrackModel trackModel = RuntimeData.Instance.TrackModel;
+            ArgumentNullException.ThrowIfNull(trackDatabase);
             TrackNodeIndex = trackEndNode.NodeIndex;
 
-
-            VectorNode connectedVectorNode = trackModel.TrackDatabase.TrackNodes[trackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex][0].Link] as VectorNode;
+            VectorNode connectedVectorNode = trackDatabase.TrackNodes[trackDatabase.TrackNodeConnectors[TrackNodeIndex][0].Link] as VectorNode;
             if (null == connectedVectorNode)
                 return;
             
-            if (trackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex][0].Link == TrackNodeIndex)
+            if (trackDatabase.TrackNodeConnectors[TrackNodeIndex][0].Link == TrackNodeIndex)
             {
                 //find angle at beginning of vector node
                 VectorSectionNode vectorSection = connectedVectorNode.VectorSections[0];

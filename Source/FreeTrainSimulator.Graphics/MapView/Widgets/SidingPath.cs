@@ -68,7 +68,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
 
         public SidingPath(TrackModel trackModel, SidingTrackItem start, SidingTrackItem end) :
-            base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
+            base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackModel.RuntimeData.TrackModel.TrackDatabase)
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
             if (PathSections.Length == 0)

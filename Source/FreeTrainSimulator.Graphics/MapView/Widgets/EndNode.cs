@@ -4,6 +4,7 @@ using System.Globalization;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Imported.Runtime;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -16,8 +17,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private const int width = 3;
         protected const float Length = 0.5f;
 
-        public EndNode(Models.Track.EndNode trackEndNode) :
-            base(trackEndNode)
+        public EndNode(Models.Track.EndNode trackEndNode, TrackDatabase trackDatabase = null) :
+            base(trackEndNode, trackDatabase ?? Orts.Formats.Msts.RuntimeData.Instance.TrackModel.TrackDatabase)
         {
             Size = width;
         }
@@ -55,7 +56,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
 
         public RoadEndSegment(Models.Track.EndNode trackEndNode) :
-            base(trackEndNode)
+            base(trackEndNode, Orts.Formats.Msts.RuntimeData.Instance.TrackModel.RoadDatabase)
         {
         }
 

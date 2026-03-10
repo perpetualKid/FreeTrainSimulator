@@ -7,6 +7,8 @@ using System.Linq;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Track;
 
+using Microsoft.Xna.Framework;
+
 namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     /// <summary>
@@ -40,14 +42,14 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-        protected TrackSegmentPathBase(TrackModel trackModel, in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex) :
+        protected TrackSegmentPathBase(TrackModel trackModel, in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, TrackDatabase trackDatabase) :
             base(start, end)
         {
-            ArgumentNullException.ThrowIfNull(trackModel);
+            ArgumentNullException.ThrowIfNull(trackDatabase);
 
             midPoint = Location + (Vector - Location) / 2.0;
-            ImmutableArray<TrackNodeConnector> startNodeConnectors = trackModel.RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[startTrackNodeIndex];
-            ImmutableArray<TrackNodeConnector> endNodeConnectors = trackModel.RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[endTrackNodeIndex];
+            ImmutableArray<TrackNodeConnector> startNodeConnectors = trackDatabase.TrackNodeConnectors[startTrackNodeIndex];
+            ImmutableArray<TrackNodeConnector> endNodeConnectors = trackDatabase.TrackNodeConnectors[endTrackNodeIndex];
 
             (int startJunction, int endJunction, int intermediaryNode)? ConnectAcrossIntermediary()
             {
@@ -55,8 +57,8 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
                 {
                     foreach(TrackNodeConnector endConnector in endNodeConnectors)
                     {
-                        IEnumerable<TrackNodeConnector> connections = trackModel.RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[startConnector.Link].
-                            Intersect(trackModel.RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[endConnector.Link], TrackNodeConnectorComparer.LinkOnlyComparer);
+                        IEnumerable<TrackNodeConnector> connections = trackDatabase.TrackNodeConnectors[startConnector.Link].
+                            Intersect(trackDatabase.TrackNodeConnectors[endConnector.Link], TrackNodeConnectorComparer.LinkOnlyComparer);
                         if (connections.Count() == 1)
                             return (startConnector.Link, endConnector.Link, connections.First().Link);
                     }
@@ -74,7 +76,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
                 IEnumerable<TrackNodeConnector> trackPins = startNodeConnectors.Intersect(endNodeConnectors, TrackNodeConnectorComparer.LinkOnlyComparer);
                 if (trackPins.Count() == 1)
                 {
-                    PointD junctionLocation = PointD.FromWorldLocation((trackModel.RuntimeData.TrackModel.TrackDatabase.TrackNodes[trackPins.First().Link] as JunctionNode).Location);
+                    PointD junctionLocation = PointD.FromWorldLocation((trackDatabase.TrackNodes[trackPins.First().Link] as JunctionNode).Location);
                     PathSections = PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, junctionLocation));
                     PathSections = PathSections.Add(InitializeSection(trackModel, endTrackNodeIndex, junctionLocation, end));
                 }

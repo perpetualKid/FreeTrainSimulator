@@ -12,8 +12,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
 
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     public sealed class TrackModel

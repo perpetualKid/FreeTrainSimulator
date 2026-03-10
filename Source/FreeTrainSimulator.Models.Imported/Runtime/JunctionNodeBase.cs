@@ -23,14 +23,13 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
         int IIndexedElement.Index => TrackNodeIndex;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
 
-        protected JunctionNodeBase(JunctionNode junctionNode, int mainRouteIndex) :
+        protected JunctionNodeBase(JunctionNode junctionNode, int mainRouteIndex, TrackDatabase trackDatabase) :
             base(junctionNode?.Location ?? throw new ArgumentNullException(nameof(junctionNode)))
         {
+            ArgumentNullException.ThrowIfNull(trackDatabase);
             TrackNodeIndex = junctionNode.NodeIndex;
 
-            Models.Track.TrackModel trackModel = RuntimeData.Instance.TrackModel;
-
-            ImmutableArray<TrackNodeConnector> connectors = trackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex];
+            ImmutableArray<TrackNodeConnector> connectors = trackDatabase.TrackNodeConnectors[TrackNodeIndex];
             int inbound = 0;
             foreach (TrackNodeConnector connector in connectors)
             {
@@ -38,10 +37,10 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
                     inbound++;
             }
 
-            VectorNode inboundVector = trackModel.TrackDatabase.TrackNodes[connectors[0].Link] as VectorNode;
+            VectorNode inboundVector = trackDatabase.TrackNodes[connectors[0].Link] as VectorNode;
 
             Direction = MathHelper.WrapAngle(GetInboundSectionDirection(inboundVector, connectors[0].Direction == TrackDirection.Reverse));
-            MainRoute = trackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex][inbound + mainRouteIndex].Link;
+            MainRoute = trackDatabase.TrackNodeConnectors[TrackNodeIndex][inbound + mainRouteIndex].Link;
         }
 
         // find the direction angle of the facing (in) track 
@@ -103,14 +102,13 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
 
         internal IEnumerable<TrackSegmentBase> ConnectedSegments(TrackModel trackModel)
         {
-            return null;
-            //ImmutableArray<TrackNodeConnector> connectors = RuntimeData.Instance.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex];
+            ImmutableArray<TrackNodeConnector> connectors = trackModel.RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex];
 
-            //foreach (TrackNodeConnector connector in connectors)
-            //{
-            //    TrackSegmentSection segment = trackModel.SegmentSections[connector.Link];
-            //    yield return segment.SectionSegments[connector.Direction == TrackDirection.Reverse ? 0 : ^1];
-            //}
+            foreach (TrackNodeConnector connector in connectors)
+            {
+                TrackSegmentSection segment = trackModel.SegmentSections[connector.Link];
+                yield return segment.SectionSegments[connector.Direction == TrackDirection.Reverse ? 0 : ^1];
+            }
         }
     }
 }

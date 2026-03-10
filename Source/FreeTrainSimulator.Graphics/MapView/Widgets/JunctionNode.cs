@@ -6,6 +6,7 @@ using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Models.Imported.Runtime;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -19,8 +20,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private const int diameter = 4;
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Junction" };
 
-        public JunctionNode(Models.Track.JunctionNode junctionNode, int mainRoute) :
-            base(junctionNode, mainRoute)
+        public JunctionNode(Models.Track.JunctionNode junctionNode, int mainRoute, TrackDatabase trackDatabase = null) :
+            base(junctionNode, mainRoute, trackDatabase ?? Orts.Formats.Msts.RuntimeData.Instance.TrackModel.TrackDatabase)
         {
             Size = diameter;
         }

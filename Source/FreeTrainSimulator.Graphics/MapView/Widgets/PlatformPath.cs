@@ -72,7 +72,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
 
         public PlatformPath(TrackModel trackModel, PlatformTrackItem start, PlatformTrackItem end) :
-            base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index)
+            base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackModel.RuntimeData.TrackModel.TrackDatabase)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
             StationName = (string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName)?.Trim();
