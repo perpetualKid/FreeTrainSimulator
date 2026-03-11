@@ -124,7 +124,7 @@ namespace Orts.Formats.Msts.Models
     public class SignalItem : TrackItem
     {
         /// <summary>Set to  00000001 if junction link set</summary>
-        public uint Flags1 { get; private set; }
+        public string Flags1 { get; private set; }
         /// <summary>0 or 1 depending on which way signal is facing</summary>
         public TrackDirection Direction { get; private set; }
         /// <summary>index to Sigal Object Table</summary>
@@ -154,7 +154,7 @@ namespace Orts.Formats.Msts.Models
 
                 new STFReader.TokenProcessor("trsignaltype", ()=>{
                     stf.MustMatchBlockStart();
-                    Flags1 = stf.ReadUInt(null);
+                    Flags1 = stf.ReadString();
                     Direction = (TrackDirection)stf.ReadUInt(null);
                     SignalData = stf.ReadFloat(STFReader.Units.None, null);
                     SignalType = stf.ReadString();
@@ -173,6 +173,7 @@ namespace Orts.Formats.Msts.Models
                                 STFException.TraceWarning(stf, $"Adding extra TrSignalDirs in SignalItem {TrackItemId}");
                             }
                             SignalDirections.Add(new TrackItemSignalDirection(stf));
+                            i++;
                         }),
                     });
                     if (i < signalDirs)

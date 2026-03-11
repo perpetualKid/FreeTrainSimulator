@@ -242,6 +242,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             IEnumerable<TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
                 runtimeData.TrackDB?.TrackItems,
                 runtimeData.SignalConfigFile,
+                runtimeData.TrackModel.TrackDatabase,
                 runtimeData.TrackDB,
                 trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(runtimeData.RoadTrackDB?.TrackItems));
 

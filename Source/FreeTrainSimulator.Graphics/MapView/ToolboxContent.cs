@@ -297,30 +297,32 @@ namespace FreeTrainSimulator.Graphics.MapView
             IEnumerable<TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
                 runtimeData.TrackDB?.TrackItems,
                 runtimeData.SignalConfigFile,
-                runtimeData.TrackDB, trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(runtimeData.RoadTrackDB?.TrackItems));
+                runtimeData.TrackModel.TrackDatabase,
+                runtimeData.TrackDB, 
+                trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(runtimeData.RoadTrackDB?.TrackItems));
 
             trackModel.InitializeTrackItems(trackItems);
 
-            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<PlatformTrackItem>());
+            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<Widgets.PlatformTrackItem>());
             trackModel.ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);
 
-            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackModel, trackItems.OfType<SidingTrackItem>());
+            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackModel, trackItems.OfType<Widgets.SidingTrackItem>());
             trackModel.ContentByTile[MapContentType.Sidings] = new TileIndexedList<SidingPath>(sidings);
 
-            IEnumerable<SignalTrackItem> signals = trackItems.OfType<SignalTrackItem>();
+            IEnumerable<Widgets.SignalTrackItem> signals = trackItems.OfType<Widgets.SignalTrackItem>();
 
-            trackModel.ContentByTile[MapContentType.Signals] = new TileIndexedList<SignalTrackItem>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
-            trackModel.ContentByTile[MapContentType.OtherSignals] = new TileIndexedList<SignalTrackItem>(trackItems.OfType<SignalTrackItem>().Where(s => !s.Normal));
+            trackModel.ContentByTile[MapContentType.Signals] = new TileIndexedList<Widgets.SignalTrackItem>(trackItems.OfType<Widgets.SignalTrackItem>().Where(s => s.Normal));
+            trackModel.ContentByTile[MapContentType.OtherSignals] = new TileIndexedList<Widgets.SignalTrackItem>(trackItems.OfType<Widgets.SignalTrackItem>().Where(s => !s.Normal));
             trackModel.ContentByTile[MapContentType.MilePosts] = new TileIndexedList<SpeedPostTrackItem>(trackItems.OfType<SpeedPostTrackItem>());
             trackModel.ContentByTile[MapContentType.SpeedPosts] = new TileIndexedList<MilePostTrackItem>(trackItems.OfType<MilePostTrackItem>());
             trackModel.ContentByTile[MapContentType.Crossovers] = new TileIndexedList<CrossOverTrackItem>(trackItems.OfType<CrossOverTrackItem>());
-            trackModel.ContentByTile[MapContentType.RoadCrossings] = new TileIndexedList<LevelCrossingTrackItem>(trackItems.OfType<LevelCrossingTrackItem>().Where(s => s.RoadLevelCrossing));
-            trackModel.ContentByTile[MapContentType.LevelCrossings] = new TileIndexedList<LevelCrossingTrackItem>(trackItems.OfType<LevelCrossingTrackItem>().Where(s => !s.RoadLevelCrossing));
-            trackModel.ContentByTile[MapContentType.Hazards] = new TileIndexedList<HazardTrackItem>(trackItems.OfType<HazardTrackItem>());
-            trackModel.ContentByTile[MapContentType.Pickups] = new TileIndexedList<PickupTrackItem>(trackItems.OfType<PickupTrackItem>());
-            trackModel.ContentByTile[MapContentType.SoundRegions] = new TileIndexedList<SoundRegionTrackItem>(trackItems.OfType<SoundRegionTrackItem>());
-            trackModel.ContentByTile[MapContentType.CarSpawners] = new TileIndexedList<CarSpawnerTrackItem>(trackItems.OfType<CarSpawnerTrackItem>());
-            trackModel.ContentByTile[MapContentType.Empty] = new TileIndexedList<EmptyTrackItem>(trackItems.OfType<EmptyTrackItem>());
+            trackModel.ContentByTile[MapContentType.RoadCrossings] = new TileIndexedList<Widgets.LevelCrossingTrackItem>(trackItems.OfType<Widgets.LevelCrossingTrackItem>().Where(s => s.RoadLevelCrossing));
+            trackModel.ContentByTile[MapContentType.LevelCrossings] = new TileIndexedList<Widgets.LevelCrossingTrackItem>(trackItems.OfType<Widgets.LevelCrossingTrackItem>().Where(s => !s.RoadLevelCrossing));
+            trackModel.ContentByTile[MapContentType.Hazards] = new TileIndexedList<Widgets.HazardTrackItem>(trackItems.OfType<Widgets.HazardTrackItem>());
+            trackModel.ContentByTile[MapContentType.Pickups] = new TileIndexedList<Widgets.PickupTrackItem>(trackItems.OfType<Widgets.PickupTrackItem>());
+            trackModel.ContentByTile[MapContentType.SoundRegions] = new TileIndexedList<Widgets.SoundRegionTrackItem>(trackItems.OfType<Widgets.SoundRegionTrackItem>());
+            trackModel.ContentByTile[MapContentType.CarSpawners] = new TileIndexedList<Widgets.CarSpawnerTrackItem>(trackItems.OfType<Widgets.CarSpawnerTrackItem>());
+            trackModel.ContentByTile[MapContentType.Empty] = new TileIndexedList<Widgets.EmptyTrackItem>(trackItems.OfType<Widgets.EmptyTrackItem>());
 
             IEnumerable<IGrouping<string, PlatformPath>> stations = platforms.GroupBy(p => p.StationName, StringComparer.OrdinalIgnoreCase);
             trackModel.ContentByTile[MapContentType.StationNames] = new TileIndexedList<StationNameItem>(StationNameItem.CreateStationItems(stations));

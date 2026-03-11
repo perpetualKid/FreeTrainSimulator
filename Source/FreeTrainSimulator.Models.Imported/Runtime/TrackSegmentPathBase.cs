@@ -7,8 +7,6 @@ using System.Linq;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Track;
 
-using Microsoft.Xna.Framework;
-
 namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     /// <summary>

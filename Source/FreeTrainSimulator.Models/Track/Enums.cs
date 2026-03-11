@@ -1,4 +1,6 @@
-﻿namespace FreeTrainSimulator.Models.Track
+﻿using System;
+
+namespace FreeTrainSimulator.Models.Track
 {
     public enum TrackDataBaseType
     {
@@ -17,5 +19,19 @@
         None,
         Tunnel,
         Road,
+    }
+
+    [Flags]
+    public enum SpeedpostType
+    {
+        None = 0,
+        Warning,
+        Limit,
+        Resume,
+        Passenger,
+        Freight,
+        Metric,
+        ShowNumber,
+        ShowDot,
     }
 }

@@ -10,6 +10,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Imported.Runtime;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -87,12 +88,23 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return result;
         }
 
-        public static List<TrackItemWidget> CreateTrackItems(IReadOnlyList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, IReadOnlyList<TrackSegmentSection> trackNodeSegments)
+        public static List<TrackItemWidget> CreateTrackItems(IReadOnlyList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDatabase trackDatabase, TrackDB trackDb, IReadOnlyList<TrackSegmentSection> trackNodeSegments)
         {
             List<TrackItemWidget> result = new List<TrackItemWidget>();
             if (trackItems == null)
                 return result;
             TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Count];
+
+            VectorNode[] trackNodes = new VectorNode[trackItems.Count];
+
+            //temporary map reverse-linking TrackItems to TrackNodes
+            foreach (KeyValuePair<int, TrackItemIndex> item in trackDatabase.TrackItemsSelectors)
+            {
+                foreach(int itemIndex in item.Value.TrackItems)
+                {
+                    trackNodes[itemIndex] = trackDatabase.TrackNodes[item.Key] as VectorNode;
+                }
+            }
 
             //linking TrackItems to TrackNodes
             foreach (TrackVectorNode trackVectorNode in trackDb.TrackNodes.VectorNodes)
@@ -233,6 +245,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         internal readonly int LinkedId;
 
         internal TrackVectorNode TrackVectorNode;
+        internal VectorNode VectorNode;
 
         public SidingTrackItem(SidingItem source, TrackVectorNode[] trackItemNodes) : base(source)
         {
