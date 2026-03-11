@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 
@@ -13,10 +14,6 @@ using FreeTrainSimulator.Models.Imported.Runtime;
 using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
@@ -49,10 +46,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public abstract void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
 
-        public TrackItemWidget(TrackItem source) : base(source.Location)
+        public TrackItemWidget(Models.Track.TrackItemModel source) : base(source.Location)
         {
             Size = 3;
-            TrackItemId = source.TrackItemId;
+            TrackItemId = source.TrackItemIndex;
         }
 
         internal static void SetFont(System.Drawing.Font font)
@@ -60,23 +57,23 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             TrackItemWidget.font = font;
         }
 
-        public static List<TrackItemWidget> CreateRoadItems(IList<TrackItem> trackItems)
+        public static ImmutableArray<TrackItemWidget> CreateRoadItems(TrackDatabase trackDatabase)
         {
             List<TrackItemWidget> result = new List<TrackItemWidget>();
-            if (trackItems == null)
-                return result;
+            if (trackDatabase?.TrackItems == null)
+                return result.ToImmutableArray();
 
-            foreach (TrackItem trackItem in trackItems)
+            foreach (TrackItemModel trackItem in trackDatabase.TrackItems)
             {
                 switch (trackItem)
                 {
-                    case RoadLevelCrossingItem roadLevelCrossingItem:
+                    case Models.Track.RoadLevelCrossingTrackItem roadLevelCrossingItem:
                         result.Add(new LevelCrossingTrackItem(roadLevelCrossingItem));
                         break;
-                    case RoadCarSpawnerItem carSpawner:
+                    case Models.Track.CarSpawnerTrackItem carSpawner:
                         result.Add(new CarSpawnerTrackItem(carSpawner));
                         break;
-                    case EmptyItem emptyItem:
+                    case Models.Track.EmptyTrackItem emptyItem:
                         result.Add(new EmptyTrackItem(emptyItem));
                         break;
                     default:
@@ -85,81 +82,60 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 }
             }
 
-            return result;
+            return result.ToImmutableArray();
         }
 
-        public static List<TrackItemWidget> CreateTrackItems(IReadOnlyList<TrackItem> trackItems, SignalConfigurationFile signalConfig, TrackDatabase trackDatabase, TrackDB trackDb, IReadOnlyList<TrackSegmentSection> trackNodeSegments)
+        public static ImmutableArray<TrackItemWidget> CreateTrackItems(TrackDatabase trackDatabase, Orts.Formats.Msts.Files.SignalConfigurationFile signalConfig, IReadOnlyList<TrackSegmentSection> trackNodeSegments)
         {
             List<TrackItemWidget> result = new List<TrackItemWidget>();
-            if (trackItems == null)
-                return result;
-            TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Count];
+            if (trackDatabase?.TrackItems == null)
+                return result.ToImmutableArray();
 
-            VectorNode[] trackNodes = new VectorNode[trackItems.Count];
-
-            //temporary map reverse-linking TrackItems to TrackNodes
-            foreach (KeyValuePair<int, TrackItemIndex> item in trackDatabase.TrackItemsSelectors)
-            {
-                foreach(int itemIndex in item.Value.TrackItems)
-                {
-                    trackNodes[itemIndex] = trackDatabase.TrackNodes[item.Key] as VectorNode;
-                }
-            }
-
-            //linking TrackItems to TrackNodes
-            foreach (TrackVectorNode trackVectorNode in trackDb.TrackNodes.VectorNodes)
-            {
-                if (trackVectorNode.TrackItemIndices?.Length > 0)
-                {
-                    foreach (int trackItemIndex in trackVectorNode.TrackItemIndices)
-                    {
-                        trackItemNodes[trackItemIndex] = trackVectorNode;
-                    }
-                }
-            }
-            foreach (TrackItem trackItem in trackItems)
+            foreach (TrackItemModel trackItem in trackDatabase.TrackItems)
             {
                 if (trackItem.Location == WorldLocation.None)
                     continue;
 
                 switch (trackItem)
                 {
-                    case SidingItem sidingItem:
-                        result.Add(new SidingTrackItem(sidingItem, trackItemNodes));
+                    case Models.Track.SidingTrackItem sidingItem:
+                        result.Add(new SidingTrackItem(sidingItem, trackDatabase));
                         break;
-                    case PlatformItem platformItem:
-                        result.Add(new PlatformTrackItem(platformItem, trackItemNodes));
+                    case Models.Track.PlatformTrackItem platformItem:
+                        result.Add(new PlatformTrackItem(platformItem, trackDatabase));
                         break;
-                    case SpeedPostItem speedPostItem:
-                        result.Add(speedPostItem.IsMilePost ? new MilePostTrackItem(speedPostItem, trackNodeSegments[trackItemNodes[speedPostItem.TrackItemId].Index]) : 
-                            new SpeedPostTrackItem(speedPostItem, trackNodeSegments[trackItemNodes[speedPostItem.TrackItemId].Index]));
+                    case Models.Track.MilepostTrackItem milePostItem:
+                        result.Add(new MilePostTrackItem(milePostItem, trackNodeSegments[milePostItem.NodeIndex]));
                         break;
-                    case HazardItem hazardItem:
+                    case Models.Track.SpeedpostTrackItem speedPostItem:
+                        result.Add(new SpeedPostTrackItem(speedPostItem, trackNodeSegments[speedPostItem.NodeIndex]));
+                        break;
+                    case Models.Track.HazardTrackItem hazardItem:
                         result.Add(new HazardTrackItem(hazardItem));
                         break;
-                    case PickupItem pickupItem:
+                    case Models.Track.PickupTrackItem pickupItem:
                         result.Add(new PickupTrackItem(pickupItem));
                         break;
-                    case LevelCrossingItem levelCrossingItem:
+                    case Models.Track.LevelCrossingTrackItem levelCrossingItem:
                         result.Add(new LevelCrossingTrackItem(levelCrossingItem));
                         break;
-                    case RoadLevelCrossingItem roadLevelCrossingItem: // road level crossings are not really useful and no route seems to contain them, but we'll just treat them as LevelCrossings
+                    case Models.Track.RoadLevelCrossingTrackItem roadLevelCrossingItem: // road level crossings are not really useful and no route seems to contain them, but we'll just treat them as LevelCrossings
                         result.Add(new LevelCrossingTrackItem(roadLevelCrossingItem));
                         break;
-                    case SoundRegionItem soundRegionItem:
+                    case Models.Track.SoundRegionTrackItem soundRegionItem:
                         result.Add(new SoundRegionTrackItem(soundRegionItem));
                         break;
-                    case SignalItem signalItem:
-                        bool normalSignal = signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out SignalType signalType) && signalType.FunctionType == SignalFunction.Normal;
-                        result.Add(new SignalTrackItem(signalItem, trackNodeSegments[trackItemNodes[signalItem.TrackItemId].Index], normalSignal));
+                    case Models.Track.SignalTrackItem signalItem:
+                        bool normalSignal = signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out Orts.Formats.Msts.Models.SignalType signalType) && signalType.FunctionType == Orts.Formats.Msts.SignalFunction.Normal;
+                        result.Add(new SignalTrackItem(signalItem, trackNodeSegments[signalItem.NodeIndex], normalSignal));
                         break;
-                    case CrossoverItem crossOverItem:
+                    case Models.Track.CrossoverTrackItem crossOverItem:
                         result.Add(new CrossOverTrackItem(crossOverItem));
                         break;
-                    case RoadCarSpawnerItem carSpawner:
+                    case Models.Track.CarSpawnerTrackItem carSpawner:
                         result.Add(new CarSpawnerTrackItem(carSpawner));
                         break;
-                    case EmptyItem emptyItem:
+                    case Models.Track.EmptyTrackItem emptyItem:
                         result.Add(new EmptyTrackItem(emptyItem));
                         break;
                     default:
@@ -167,7 +143,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                         break;
                 }
             }
-            return result;
+            return result.ToImmutableArray();
         }
     }
     #endregion
@@ -175,7 +151,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #region CrossOverTrackItem
     internal record CrossOverTrackItem : TrackItemWidget
     {
-        public CrossOverTrackItem(CrossoverItem source) : base(source)
+        public CrossOverTrackItem(Models.Track.CrossoverTrackItem source) : base(source)
         {
             Size = 4f;
         }
@@ -199,7 +175,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #region CarSpawnerTrackItem
     internal record CarSpawnerTrackItem : TrackItemWidget
     {
-        public CarSpawnerTrackItem(RoadCarSpawnerItem source) : base(source)
+        public CarSpawnerTrackItem(Models.Track.CarSpawnerTrackItem source) : base(source)
         {
             Size = 5f;
         }
@@ -219,7 +195,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #region EmptyTrackItem
     internal record EmptyTrackItem : TrackItemWidget
     {
-        public EmptyTrackItem(EmptyItem source) : base(source)
+        public EmptyTrackItem(Models.Track.EmptyTrackItem source) : base(source)
         {
             Size = 5f;
         }
@@ -244,14 +220,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         internal readonly string SidingName;
         internal readonly int LinkedId;
 
-        internal TrackVectorNode TrackVectorNode;
         internal VectorNode VectorNode;
 
-        public SidingTrackItem(SidingItem source, TrackVectorNode[] trackItemNodes) : base(source)
+        public SidingTrackItem(Models.Track.SidingTrackItem source, TrackDatabase trackDatabase) : base(source)
         {
-            TrackVectorNode = trackItemNodes[source.TrackItemId];
-            SidingName = source.ItemName;
-            LinkedId = source.LinkedSidingId;
+            VectorNode = trackDatabase.TrackNodes[source.NodeIndex] as VectorNode;
+            SidingName = source.SidingName;
+            LinkedId = source.LinkedSidingItem;
             Size = 5f;
         }
 
@@ -279,15 +254,15 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         internal readonly string StationName;
         internal readonly int LinkedId;
 
-        internal TrackVectorNode TrackVectorNode;
+        internal VectorNode VectorNode;
 
-        public PlatformTrackItem(PlatformItem source, TrackVectorNode[] trackItemNodes) :
+        public PlatformTrackItem(Models.Track.PlatformTrackItem source, TrackDatabase trackDatabase) :
             base(source)
         {
-            TrackVectorNode = trackItemNodes[source.TrackItemId];
-            PlatformName = source.ItemName;
-            StationName = source.Station;
-            LinkedId = source.LinkedPlatformItemId;
+            VectorNode = trackDatabase.TrackNodes[source.NodeIndex] as VectorNode;
+            PlatformName = source.PlatformName;
+            StationName = source.StationName;
+            LinkedId = source.LinkedPlatformItem;
             Size = 7f;
         }
 
@@ -317,7 +292,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private readonly float angle;
         private readonly PointD textLocation;
 
-        public SpeedPostTrackItem(SpeedPostItem source, TrackSegmentSection segmentSection) : base(source)
+        public SpeedPostTrackItem(Models.Track.SpeedpostTrackItem source, TrackSegmentSection segmentSection) : base(source)
         {
             speed = source.ToString();
             TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segmentSection.SectionSegments);
@@ -376,10 +351,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         private static readonly Vector2 fontScale = new Vector2(0.9f, 0.9f);
 
-        public MilePostTrackItem(SpeedPostItem source, TrackSegmentSection segmentSection) : base(source)
+        public MilePostTrackItem(Models.Track.MilepostTrackItem source, TrackSegmentSection segmentSection) : base(source)
         {
             Size = 1f;
-            distance = source.Distance.ToString(CultureInfo.CurrentCulture);
+            distance = source.DistanceValue.ToString(CultureInfo.CurrentCulture);
             TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segmentSection.SectionSegments);
             if (segment != null)
             {
@@ -415,7 +390,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #region HazardTrackItem
     internal record HazardTrackItem : TrackItemWidget
     {
-        public HazardTrackItem(HazardItem source) : base(source)
+        public HazardTrackItem(Models.Track.HazardTrackItem source) : base(source)
         {
             Size = 7f;
         }
@@ -435,7 +410,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #region PickupTrackItem
     internal record PickupTrackItem : TrackItemWidget
     {
-        public PickupTrackItem(PickupItem source) : base(source)
+        public PickupTrackItem(Models.Track.PickupTrackItem source) : base(source)
         {
             Size = 7f;
         }
@@ -457,12 +432,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     {
         internal readonly bool RoadLevelCrossing;
 
-        public LevelCrossingTrackItem(LevelCrossingItem source) : base(source)
+        public LevelCrossingTrackItem(Models.Track.LevelCrossingTrackItem source) : base(source)
         {
             Size = 5f;
         }
 
-        public LevelCrossingTrackItem(RoadLevelCrossingItem source) : base(source)
+        public LevelCrossingTrackItem(Models.Track.RoadLevelCrossingTrackItem source) : base(source)
         {
             RoadLevelCrossing = true;
             Size = 5f;
@@ -483,7 +458,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #region SoundRegionTrackItem
     internal record SoundRegionTrackItem : TrackItemWidget
     {
-        public SoundRegionTrackItem(SoundRegionItem source) : base(source)
+        public SoundRegionTrackItem(Models.Track.SoundRegionTrackItem source) : base(source)
         {
             Size = 5f;
         }
@@ -509,10 +484,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public ISignal Signal { get; }
 
-        public SignalTrackItem(SignalItem source, TrackSegmentSection segments, bool normalSignal) : base(source)
+        public SignalTrackItem(Models.Track.SignalTrackItem source, TrackSegmentSection segments, bool normalSignal) : base(source)
         {
-            if (source.SignalObject > -1)
-                Signal = RuntimeData.Instance.RuntimeReferenceResolver?.SignalById(source.SignalObject);
+            //if (source.SignalObject > -1)
+            //    Signal = RuntimeData.Instance.RuntimeReferenceResolver?.SignalById(source.SignalObject);
+
             signalType = source.SignalType;
             Size = 2f;
 

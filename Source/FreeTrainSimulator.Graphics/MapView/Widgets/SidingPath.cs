@@ -68,11 +68,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
 
         public SidingPath(TrackModel trackModel, SidingTrackItem start, SidingTrackItem end) :
-            base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackModel.RuntimeData.TrackModel.TrackDatabase)
+            base(trackModel, start.Location, start.VectorNode.NodeIndex, end.Location, end.VectorNode.NodeIndex, trackModel.RuntimeData.TrackModel.TrackDatabase)
         {
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
             if (PathSections.Length == 0)
-                Trace.TraceWarning($"Siding items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.TrackVectorNode.Index} and {end.TrackVectorNode.Index}. This may indicate an error or inconsistency in the route data.");
+                Trace.TraceWarning($"Siding items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.VectorNode.NodeIndex} and {end.VectorNode.NodeIndex}. This may indicate an error or inconsistency in the route data.");
         }
 
         public static List<SidingPath> CreateSidings(TrackModel trackModel, IEnumerable<SidingTrackItem> sidingItems)

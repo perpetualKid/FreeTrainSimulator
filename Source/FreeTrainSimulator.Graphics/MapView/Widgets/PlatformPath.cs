@@ -72,7 +72,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
 
         public PlatformPath(TrackModel trackModel, PlatformTrackItem start, PlatformTrackItem end) :
-            base(trackModel, start.Location, start.TrackVectorNode.Index, end.Location, end.TrackVectorNode.Index, trackModel.RuntimeData.TrackModel.TrackDatabase)
+            base(trackModel, start.Location, start.VectorNode.NodeIndex, end.Location, end.VectorNode.NodeIndex, trackModel.RuntimeData.TrackModel.TrackDatabase)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
             StationName = (string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName)?.Trim();
@@ -81,7 +81,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 PlatformName = PlatformName[(StationName.Length + 1)..];
 
             if (PathSections.Length == 0)
-                Trace.TraceWarning($"Platform items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.TrackVectorNode.Index} and {end.TrackVectorNode.Index}. This may indicate an error or inconsistency in the route data.");
+                Trace.TraceWarning($"Platform items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.VectorNode.NodeIndex} and {end.VectorNode.NodeIndex}. This may indicate an error or inconsistency in the route data.");
         }
 
         public static List<PlatformPath> CreatePlatforms(TrackModel trackModel, IEnumerable<PlatformTrackItem> platformItems)

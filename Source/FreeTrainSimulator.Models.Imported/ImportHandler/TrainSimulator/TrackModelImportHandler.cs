@@ -54,7 +54,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     string rdbFile = routeModel.MstsRouteFolder().RoadTrackDatabaseFile(routeModelExtended.RouteKey);
                     if (!System.IO.File.Exists(rdbFile))
                     {
-                        Trace.TraceWarning($"Road Database File not found in {rdbFile}");
+                        Trace.TraceInformation($"Road Database File not found in {rdbFile}");
                         return;
                     }
                     roadTrackDB = new RoadDatabaseFile(rdbFile).RoadTrackDB;

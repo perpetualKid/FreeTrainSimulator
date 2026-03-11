@@ -66,6 +66,28 @@ namespace FreeTrainSimulator.Models.Track
         public SpeedpostTrackItem(in WorldLocation location) : base(location)
         {
         }
+
+        public override string ToString()
+        {
+            string result = string.Empty;
+            //determine what to show: speed or number used in German routes
+            if (SpeedpostType.HasFlag(SpeedpostType.ShowNumber))
+            {
+                result += AlternativeSpeedValue;
+            }
+            else
+            {
+                //determine if the speed is for passenger or freight
+                if (SpeedpostType.HasFlag(SpeedpostType.Freight) && !SpeedpostType.HasFlag(SpeedpostType.Passenger))
+                    result += "F";
+                else if (!SpeedpostType.HasFlag(SpeedpostType.Freight) && SpeedpostType.HasFlag(SpeedpostType.Passenger))
+                    result += "P";
+                result += SpeedValue;
+            }
+            if (!SpeedpostType.HasFlag(SpeedpostType.ShowDot))
+                result = result.Replace(".", "", StringComparison.OrdinalIgnoreCase);
+            return result;
+        }
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]

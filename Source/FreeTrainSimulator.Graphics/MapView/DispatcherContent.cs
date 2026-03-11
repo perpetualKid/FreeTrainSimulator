@@ -240,11 +240,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
 
             IEnumerable<TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
-                runtimeData.TrackDB?.TrackItems,
-                runtimeData.SignalConfigFile,
                 runtimeData.TrackModel.TrackDatabase,
-                runtimeData.TrackDB,
-                trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(runtimeData.RoadTrackDB?.TrackItems));
+                runtimeData.SignalConfigFile,
+                trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(runtimeData.TrackModel.RoadDatabase));
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<PlatformTrackItem>());
             trackModel.ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);
