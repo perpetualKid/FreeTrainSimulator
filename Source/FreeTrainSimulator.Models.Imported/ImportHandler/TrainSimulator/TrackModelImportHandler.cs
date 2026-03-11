@@ -282,7 +282,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case RoadLevelCrossingItem roadLevelCrossingItem: // road level crossings are not really useful and no route seems to contain them, but we'll just treat them as LevelCrossings
-                        result.Add(new LevelCrossingTrackItem(roadLevelCrossingItem.Location)
+                        result.Add(new RoadLevelCrossingTrackItem(roadLevelCrossingItem.Location)
                         {
                             NodeIndex = trackNodeReferences[roadLevelCrossingItem.TrackItemId],
                             SectionDistance = roadLevelCrossingItem.SData1,
