@@ -11,38 +11,38 @@ namespace FreeTrainSimulator.Models.Track
         #region Serialized fields
         //these fields are used for type-safe serialization, and will be converted to TrackNodes and TrackItems after deserialization
         [MemoryPackInclude]
-        private ImmutableArray<EndNode> endNodes = ImmutableArray<EndNode>.Empty;
+        private ImmutableArray<EndNode>? endNodes;
         [MemoryPackInclude]
-        private ImmutableArray<VectorNode> vectorNodes = ImmutableArray<VectorNode>.Empty;
+        private ImmutableArray<VectorNode>? vectorNodes;
         [MemoryPackInclude]
-        private ImmutableArray<JunctionNode> junctionNodes = ImmutableArray<JunctionNode>.Empty;
+        private ImmutableArray<JunctionNode>? junctionNodes;
 
         [MemoryPackInclude]
-        private ImmutableArray<SidingTrackItem> sidingTrackItems = ImmutableArray<SidingTrackItem>.Empty;
+        private ImmutableArray<SidingTrackItem>? sidingTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<PlatformTrackItem> platformTrackItems = ImmutableArray<PlatformTrackItem>.Empty;
+        private ImmutableArray<PlatformTrackItem>? platformTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<SpeedpostTrackItem> speedpostTrackItems = ImmutableArray<SpeedpostTrackItem>.Empty;
+        private ImmutableArray<SpeedpostTrackItem>? speedpostTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<MilepostTrackItem> milepostTrackItems = ImmutableArray<MilepostTrackItem>.Empty;
+        private ImmutableArray<MilepostTrackItem>? milepostTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<HazardTrackItem> hazardTrackItems = ImmutableArray<HazardTrackItem>.Empty;
+        private ImmutableArray<HazardTrackItem>? hazardTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<PickupTrackItem> pickupTrackItems = ImmutableArray<PickupTrackItem>.Empty;
+        private ImmutableArray<PickupTrackItem>? pickupTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<LevelCrossingTrackItem> levelCrossingTrackItems = ImmutableArray<LevelCrossingTrackItem>.Empty;
+        private ImmutableArray<LevelCrossingTrackItem>? levelCrossingTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<RoadLevelCrossingTrackItem> roadLevelCrossingTrackItems = ImmutableArray<RoadLevelCrossingTrackItem>.Empty;
+        private ImmutableArray<RoadLevelCrossingTrackItem>? roadLevelCrossingTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<SoundRegionTrackItem> soundRegionTrackItems = ImmutableArray<SoundRegionTrackItem>.Empty;
+        private ImmutableArray<SoundRegionTrackItem>? soundRegionTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<SignalTrackItem> signalTrackItems = ImmutableArray<SignalTrackItem>.Empty;
+        private ImmutableArray<SignalTrackItem>? signalTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<CrossoverTrackItem> crossoverTrackItems = ImmutableArray<CrossoverTrackItem>.Empty;
+        private ImmutableArray<CrossoverTrackItem>? crossoverTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<CarSpawnerTrackItem> carSpawnerTrackItems = ImmutableArray<CarSpawnerTrackItem>.Empty;
+        private ImmutableArray<CarSpawnerTrackItem>? carSpawnerTrackItems;
         [MemoryPackInclude]
-        private ImmutableArray<EmptyTrackItem> emptyTrackItems = ImmutableArray<EmptyTrackItem>.Empty;
+        private ImmutableArray<EmptyTrackItem>? emptyTrackItems;
         #endregion
 
         public TrackDataBaseType TrackDataBaseType { get; init; }
@@ -82,23 +82,23 @@ namespace FreeTrainSimulator.Models.Track
         private void OnSerialized()
         {
             //clear the node arrays after serialization to reduce memory
-            endNodes = ImmutableArray<EndNode>.Empty;
-            junctionNodes = ImmutableArray<JunctionNode>.Empty;
-            vectorNodes = ImmutableArray<VectorNode>.Empty;
+            endNodes = null;
+            junctionNodes = null;
+            vectorNodes = null;
 
-            sidingTrackItems = ImmutableArray<SidingTrackItem>.Empty;
-            platformTrackItems = ImmutableArray<PlatformTrackItem>.Empty;
-            speedpostTrackItems = ImmutableArray<SpeedpostTrackItem>.Empty;
-            milepostTrackItems = ImmutableArray<MilepostTrackItem>.Empty;
-            hazardTrackItems = ImmutableArray<HazardTrackItem>.Empty;
-            pickupTrackItems = ImmutableArray<PickupTrackItem>.Empty;
-            levelCrossingTrackItems = ImmutableArray<LevelCrossingTrackItem>.Empty;
-            roadLevelCrossingTrackItems = ImmutableArray<RoadLevelCrossingTrackItem>.Empty;
-            soundRegionTrackItems = ImmutableArray<SoundRegionTrackItem>.Empty;
-            signalTrackItems = ImmutableArray<SignalTrackItem>.Empty;
-            crossoverTrackItems = ImmutableArray<CrossoverTrackItem>.Empty;
-            carSpawnerTrackItems = ImmutableArray<CarSpawnerTrackItem>.Empty;
-            emptyTrackItems = ImmutableArray<EmptyTrackItem>.Empty;
+            sidingTrackItems = null;
+            platformTrackItems = null;
+            speedpostTrackItems = null;
+            milepostTrackItems = null;
+            hazardTrackItems = null;
+            pickupTrackItems = null;
+            levelCrossingTrackItems = null;
+            roadLevelCrossingTrackItems = null;
+            soundRegionTrackItems = null;
+            signalTrackItems = null;
+            crossoverTrackItems = null;
+            carSpawnerTrackItems = null;
+            emptyTrackItems = null;
         }
 
         [MemoryPackOnDeserialized]
@@ -107,7 +107,8 @@ namespace FreeTrainSimulator.Models.Track
             if (trackDatabase == null)
                 return;
 
-            TrackNode[] trackNodes = new TrackNode[trackDatabase.endNodes.Length + trackDatabase.junctionNodes.Length + trackDatabase.vectorNodes.Length + 1];
+            TrackNode[] trackNodes = new TrackNode[(trackDatabase.endNodes?.Length ?? 0) + (trackDatabase.junctionNodes?.Length ?? 0) + 
+                (trackDatabase.vectorNodes?.Length ?? 0) + 1];
             foreach (EndNode node in trackDatabase.endNodes)
             {
                 trackNodes[node.NodeIndex] = node;
@@ -121,11 +122,11 @@ namespace FreeTrainSimulator.Models.Track
                 trackNodes[node.NodeIndex] = node;
             }
 
-            TrackItemModel[] trackItems = new TrackItemModel[trackDatabase.sidingTrackItems.Length + trackDatabase.platformTrackItems.Length + 
-                trackDatabase.speedpostTrackItems.Length + trackDatabase.milepostTrackItems.Length + trackDatabase.hazardTrackItems.Length + 
-                trackDatabase.pickupTrackItems.Length + trackDatabase.levelCrossingTrackItems.Length + trackDatabase.roadLevelCrossingTrackItems.Length + 
-                trackDatabase.soundRegionTrackItems.Length + trackDatabase.signalTrackItems.Length + trackDatabase.crossoverTrackItems.Length + 
-                trackDatabase.carSpawnerTrackItems.Length + trackDatabase.emptyTrackItems.Length];
+            TrackItemModel[] trackItems = new TrackItemModel[(trackDatabase.sidingTrackItems?.Length ?? 0) + (trackDatabase.platformTrackItems?.Length ?? 0) +
+                (trackDatabase.speedpostTrackItems?.Length ?? 0) + (trackDatabase.milepostTrackItems?.Length ?? 0) + (trackDatabase.hazardTrackItems?.Length ?? 0) +
+                (trackDatabase.pickupTrackItems?.Length ?? 0) + (trackDatabase.levelCrossingTrackItems?.Length ?? 0) + (trackDatabase.roadLevelCrossingTrackItems?.Length ?? 0) +
+                (trackDatabase.soundRegionTrackItems?.Length ?? 0) + (trackDatabase.signalTrackItems?.Length ?? 0) + (trackDatabase.crossoverTrackItems?.Length ?? 0) +
+                (trackDatabase.carSpawnerTrackItems?.Length ?? 0) + (trackDatabase.emptyTrackItems?.Length ?? 0)];
             foreach (SidingTrackItem trackItem in trackDatabase.sidingTrackItems)
             {
                 trackItems[trackItem.TrackItemIndex] = trackItem;
@@ -183,6 +184,23 @@ namespace FreeTrainSimulator.Models.Track
             {
                 TrackNodes = trackNodes.ToImmutableArray(),
                 TrackItems = trackItems.ToImmutableArray(),
+
+                carSpawnerTrackItems = null,
+                crossoverTrackItems = null,
+                emptyTrackItems = null,
+                endNodes = null,
+                hazardTrackItems = null,
+                junctionNodes = null,
+                levelCrossingTrackItems = null,
+                milepostTrackItems = null,
+                pickupTrackItems = null,
+                platformTrackItems = null,
+                roadLevelCrossingTrackItems = null,
+                sidingTrackItems = null,
+                signalTrackItems = null,
+                soundRegionTrackItems = null,
+                speedpostTrackItems = null,
+                vectorNodes = null
             };
         }
 
