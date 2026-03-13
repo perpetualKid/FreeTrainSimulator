@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -25,17 +26,18 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
             ArgumentNullException.ThrowIfNull(trackDatabase);
             TrackNodeIndex = trackEndNode.NodeIndex;
 
-            VectorNode connectedVectorNode = trackDatabase.TrackNodes[trackDatabase.TrackNodeConnectors[TrackNodeIndex][0].Link] as VectorNode;
+            TrackNodeConnector connector = trackDatabase.TrackNodeConnectors[TrackNodeIndex][0];
+            VectorNode connectedVectorNode = trackDatabase.TrackNodes[connector.Link] as VectorNode;
             if (null == connectedVectorNode)
                 return;
             
-            if (trackDatabase.TrackNodeConnectors[TrackNodeIndex][0].Link == TrackNodeIndex)
+            if (trackDatabase.TrackNodeConnectors[connector.Link][0].Link == TrackNodeIndex)
             {
                 //find angle at beginning of vector node
                 VectorSectionNode vectorSection = connectedVectorNode.VectorSections[0];
                 Direction = vectorSection.Direction.Y;
             }
-            else
+            else if (trackDatabase.TrackNodeConnectors[connector.Link][1].Link == TrackNodeIndex)
             {
                 //find angle at end of vector node
                 VectorSectionNode vectorSection = connectedVectorNode.VectorSections[^1];
@@ -47,6 +49,10 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
                 {
                     Direction += MathHelper.ToRadians(trackSection.Angle);
                 }
+            }
+            else
+            {
+                Trace.TraceWarning($"Inconsistent Linking between track nodes {TrackNodeIndex} and {connector.Link}");
             }
             Direction -= MathHelper.PiOver2;
         }
