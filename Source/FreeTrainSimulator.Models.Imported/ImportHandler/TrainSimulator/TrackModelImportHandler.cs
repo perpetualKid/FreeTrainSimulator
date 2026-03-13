@@ -36,12 +36,14 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             TrackDB trackDB = null;
             RoadTrackDB roadTrackDB = null;
+            string tdbFile = string.Empty;
+            string rdbFile = string.Empty;
 
             List<Task> loadTasks = new List<Task>
             {
                 Task.Run(() =>
                 {
-                    string tdbFile = routeModel.MstsRouteFolder().TrackDatabaseFile(routeModelExtended.RouteKey);
+                    tdbFile = routeModel.MstsRouteFolder().TrackDatabaseFile(routeModelExtended.RouteKey);
                     if (!System.IO.File.Exists(tdbFile))
                     {
                         Trace.TraceError($"Track Database File not found in {tdbFile}");
@@ -51,7 +53,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 }, cancellationToken),
                 Task.Run(() =>
                 {
-                    string rdbFile = routeModel.MstsRouteFolder().RoadTrackDatabaseFile(routeModelExtended.RouteKey);
+                    rdbFile = routeModel.MstsRouteFolder().RoadTrackDatabaseFile(routeModelExtended.RouteKey);
                     if (!System.IO.File.Exists(rdbFile))
                     {
                         Trace.TraceInformation($"Road Database File not found in {rdbFile}");
@@ -63,10 +65,10 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
 
-            ImmutableArray<Track.TrackNode> trackNodes = ConvertTrackNodes(trackDB.TrackNodes, routeModelExtended, TrackDataBaseType.Track);
-            ImmutableArray<Track.TrackNode> roadNodes = ConvertTrackNodes(roadTrackDB?.TrackNodes, routeModelExtended, TrackDataBaseType.Road);
-            ImmutableDictionary<int, TrackItemIndex> trackItemSelectors = ConvertTrackSelectors(trackDB.TrackNodes, routeModelExtended, TrackDataBaseType.Track);
-            ImmutableDictionary<int, TrackItemIndex> roadItemSelectors = ConvertTrackSelectors(roadTrackDB?.TrackNodes, routeModelExtended, TrackDataBaseType.Road);
+            ImmutableArray<Track.TrackNode> trackNodes = ConvertTrackNodes(trackDB.TrackNodes, tdbFile);
+            ImmutableArray<Track.TrackNode> roadNodes = ConvertTrackNodes(roadTrackDB?.TrackNodes, rdbFile);
+            ImmutableDictionary<int, TrackItemIndex> trackItemSelectors = ConvertTrackSelectors(trackDB.TrackNodes, tdbFile);
+            ImmutableDictionary<int, TrackItemIndex> roadItemSelectors = ConvertTrackSelectors(roadTrackDB?.TrackNodes, rdbFile);
 
             TrackModel trackModel = new TrackModel()
             {
@@ -74,18 +76,18 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 TrackDatabase = new TrackDatabase()
                 {
                     TrackDataBaseType = TrackDataBaseType.Track,
-                    TrackNodeConnectors = ConvertTrackNodeConnectors(trackDB.TrackNodes, routeModelExtended, TrackDataBaseType.Track),
+                    TrackNodeConnectors = ConvertTrackNodeConnectors(trackDB.TrackNodes, tdbFile),
                     TrackNodes = trackNodes,
                     TrackItemsSelectors = trackItemSelectors,
-                    TrackItems = ConvertTrackItems(trackDB.TrackItems, trackNodes, trackItemSelectors, routeModelExtended),
+                    TrackItems = ConvertTrackItems(trackDB.TrackItems, trackNodes, trackItemSelectors, tdbFile),
                 },
                 RoadDatabase = roadTrackDB?.TrackNodes != null ? new TrackDatabase()
                 {
                     TrackDataBaseType = TrackDataBaseType.Road,
-                    TrackNodeConnectors = ConvertTrackNodeConnectors(roadTrackDB.TrackNodes, routeModelExtended, TrackDataBaseType.Road),
+                    TrackNodeConnectors = ConvertTrackNodeConnectors(roadTrackDB.TrackNodes, rdbFile),
                     TrackNodes = roadNodes,
                     TrackItemsSelectors = roadItemSelectors,
-                    TrackItems = ConvertTrackItems(roadTrackDB.TrackItems, roadNodes, roadItemSelectors, routeModelExtended),
+                    TrackItems = ConvertTrackItems(roadTrackDB.TrackItems, roadNodes, roadItemSelectors, rdbFile),
                 } : null,
             };
 
@@ -93,7 +95,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             return trackModel;
         }
 
-        private static ImmutableArray<ImmutableArray<TrackNodeConnector>> ConvertTrackNodeConnectors(TrackNodes trackNodes, RouteModel routeModel, TrackDataBaseType trackDataBaseType)
+        private static ImmutableArray<ImmutableArray<TrackNodeConnector>> ConvertTrackNodeConnectors(TrackNodes trackNodes, string trackdatabaseFile)
         {
             if (trackNodes == null)
                 return ImmutableArray<ImmutableArray<TrackNodeConnector>>.Empty;
@@ -109,21 +111,13 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             if (result.Length <= result[^1][0].NodeIndex)
             {
-                switch (trackDataBaseType)
-                {
-                    case TrackDataBaseType.Road:
-                        Trace.TraceError($"Non-consecutive tracknode indexes found in road database {routeModel.MstsRouteFolder().RoadTrackDatabaseFile(routeModel.RouteKey)}");
-                        break;
-                    case TrackDataBaseType.Track:
-                        Trace.TraceError($"Non-consecutive tracknode indexes found in track database {routeModel.MstsRouteFolder().TrackDatabaseFile(routeModel.RouteKey)}");
-                        break;
-                }
+                Trace.TraceError($"Non-consecutive tracknode indexes found in track database {trackdatabaseFile}");
             }
 
             return result;
         }
 
-        private static ImmutableArray<Track.TrackNode> ConvertTrackNodes(TrackNodes trackNodes, RouteModel routeModel, TrackDataBaseType trackDataBaseType)
+        private static ImmutableArray<Track.TrackNode> ConvertTrackNodes(TrackNodes trackNodes, string trackdatabaseFile)
         {
             if (trackNodes == null)
                 return ImmutableArray<Track.TrackNode>.Empty;
@@ -160,31 +154,23 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             if (result.Length <= result[^1].NodeIndex)
             {
-                switch (trackDataBaseType)
-                {
-                    case TrackDataBaseType.Road:
-                        Trace.TraceError($"Non-consecutive tracknode indexes found in road database {routeModel.MstsRouteFolder().RoadTrackDatabaseFile(routeModel.RouteKey)}");
-                        break;
-                    case TrackDataBaseType.Track:
-                        Trace.TraceError($"Non-consecutive tracknode indexes found in track database {routeModel.MstsRouteFolder().TrackDatabaseFile(routeModel.RouteKey)}");
-                        break;
-                }
+                Trace.TraceError($"Non-consecutive tracknode indexes found in track database {trackdatabaseFile}");
             }
             return result;
         }
 
-        private static ImmutableDictionary<int, TrackItemIndex> ConvertTrackSelectors(TrackNodes trackNodes, RouteModel routeModel, TrackDataBaseType trackDataBaseType)
+        private static ImmutableDictionary<int, TrackItemIndex> ConvertTrackSelectors(TrackNodes trackNodes, string trackdatabaseFile)
         {
             return trackNodes == null
                 ? ImmutableDictionary<int, TrackItemIndex>.Empty
                 : trackNodes.OfType<TrackVectorNode>().Select(tvn => (tvn.Index, new TrackItemIndex()
-            {
-                TrackItems = tvn.TrackItemIndices.ToImmutableArray(),
-            })).ToImmutableDictionary(item => item.Index, item => item.Item2);
+                {
+                    TrackItems = tvn.TrackItemIndices.ToImmutableArray(),
+                })).ToImmutableDictionary(item => item.Index, item => item.Item2);
         }
 
         private static ImmutableArray<TrackItemModel> ConvertTrackItems(List<TrackItem> trackItems, ImmutableArray<Track.TrackNode> trackNodes, ImmutableDictionary<int, TrackItemIndex> trackItemSelectors,
-            RouteModel routeModel)
+            string trackdatabaseFile)
         {
             if (trackItems == null)
                 return ImmutableArray<TrackItemModel>.Empty;
@@ -205,6 +191,16 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             foreach (TrackItem trackItem in trackItems)
             {
+                if (trackItem.Location == WorldLocation.None && trackItem is not EmptyItem && trackNodeReferences[trackItem.TrackItemId] == 0)
+                {
+                    result.Add(new EmptyTrackItem(trackItem.Location)
+                    {
+                        TrackItemIndex = trackItem.TrackItemId,
+                    });
+                    Trace.TraceWarning($"Track {trackItem.GetType().Name} #{trackItem.TrackItemId} in track database {trackdatabaseFile} has no (valid) location nor is related to a track vector.");
+                    continue;
+                }
+
                 switch (trackItem)
                 {
                     case SidingItem sidingItem:
@@ -313,9 +309,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             SignalFlags = uint.TryParse(signalItem.Flags1, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out flags) ? flags : 0,
                             SignalType = signalItem.SignalType,
                             Direction = signalItem.Direction,
-                            SignalDirection = signalItem.SignalDirections?.Count > 0 ? 
-                                new SignalDirection() 
-                                { 
+                            SignalDirection = signalItem.SignalDirections?.Count > 0 ?
+                                new SignalDirection()
+                                {
                                     JunctionPath = signalItem.SignalDirections[0].LinkLRPath,
                                 } : null,
                         });
@@ -342,18 +338,101 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     case EmptyItem emptyItem:
                         result.Add(new EmptyTrackItem(emptyItem.Location)
                         {
-                            NodeIndex = trackNodeReferences[emptyItem.TrackItemId],
-                            SectionDistance = emptyItem.SData1,
-                            Flags = uint.TryParse(emptyItem.SData2, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out flags) ? flags : 0,
                             TrackItemIndex = emptyItem.TrackItemId,
                         });
                         break;
                     default:
-                        Trace.TraceWarning($"{trackItem.GetType().Name} Index #{trackItem.TrackItemId} not supported for Track Items in track database {routeModel.MstsRouteFolder().TrackDatabaseFile(routeModel.RouteKey)}");
+                        Trace.TraceWarning($"{trackItem.GetType().Name} Index #{trackItem.TrackItemId} not supported for Track Items in track database {trackdatabaseFile}");
                         break;
                 }
             }
+            LinkSidingItems(result.OfType<SidingTrackItem>(), trackdatabaseFile);
+            LinkPlatformItems(result.OfType<PlatformTrackItem>(), trackdatabaseFile);
             return result.ToImmutableArray();
+        }
+
+        private static void LinkSidingItems(IEnumerable<SidingTrackItem> sidingTrackItems, string trackdatabaseFile)
+        {
+            Dictionary<int, SidingTrackItem> sidingItemMappings = sidingTrackItems.ToDictionary(p => p.TrackItemIndex);
+
+            foreach (SidingTrackItem start in sidingTrackItems)
+            {
+                if (sidingItemMappings.TryGetValue(start.LinkedSidingItem, out SidingTrackItem end))
+                {
+                    if (end.LinkedSidingItem == start.TrackItemIndex && end.SidingName == start.SidingName)
+                    {
+                        _ = sidingItemMappings.Remove(end.TrackItemIndex);
+                        _ = sidingItemMappings.Remove(start.TrackItemIndex);
+                    }
+                    else
+                    {
+                        Trace.TraceWarning($"Siding Item pair in track database {trackdatabaseFile} has inconsistent linking " +
+                            $"from Source Id {start.TrackItemIndex} to target {start.LinkedSidingItem} vs Target id {end.TrackItemIndex} to source {end.LinkedSidingItem}.");
+                    }
+                }
+            }
+            while (sidingItemMappings.Count > 0)
+            {
+                bool match = false;
+                int sourceId = sidingItemMappings.Keys.First();
+                SidingTrackItem start = sidingItemMappings[sourceId];
+                _ = sidingItemMappings.Remove(sourceId);
+
+                foreach (KeyValuePair<int, SidingTrackItem> item in sidingItemMappings)
+                {
+                    if (item.Value.SidingName == start.SidingName)
+                    {
+                        _ = sidingItemMappings.Remove(item.Value.TrackItemIndex);
+                        Trace.TraceWarning($"Matching Siding Items in track database {trackdatabaseFile} by Name {start.SidingName} Id {start.TrackItemIndex} to target {start.LinkedSidingItem} vs Target id {item.Value.TrackItemIndex} to source {item.Value.LinkedSidingItem}.");
+                        match = true;
+                        break;
+                    }
+                }
+                if (!match)
+                    Trace.TraceWarning($"Linked Siding Item {start.LinkedSidingItem} for Siding Item {start.TrackItemIndex} not found in track database {trackdatabaseFile}.");
+            }
+        }
+
+        private static void LinkPlatformItems(IEnumerable<PlatformTrackItem> platformTrackItems, string trackdatabaseFile)
+        {
+            Dictionary<int, PlatformTrackItem> platformItemMappings = platformTrackItems.ToDictionary(p => p.TrackItemIndex);
+
+            foreach (PlatformTrackItem start in platformTrackItems)
+            {
+                if (platformItemMappings.TryGetValue(start.LinkedPlatformItem, out PlatformTrackItem end))
+                {
+                    if (end.LinkedPlatformItem == start.TrackItemIndex && end.PlatformName == start.PlatformName && end.StationName == start.StationName)
+                    {
+                        _ = platformItemMappings.Remove(end.TrackItemIndex);
+                        _ = platformItemMappings.Remove(start.TrackItemIndex);
+                    }
+                    else
+                    {
+                        Trace.TraceWarning($"Platform Item pair in track database {trackdatabaseFile} has inconsistent linking " +
+                            $"from Source Id {start.TrackItemIndex} to target {start.LinkedPlatformItem} vs Target id {end.TrackItemIndex} to source {end.LinkedPlatformItem}.");
+                    }
+                }
+            }
+            while (platformItemMappings.Count > 0)
+            {
+                bool match = false;
+                int sourceId = platformItemMappings.Keys.First();
+                PlatformTrackItem start = platformItemMappings[sourceId];
+                _ = platformItemMappings.Remove(sourceId);
+
+                foreach (KeyValuePair<int, PlatformTrackItem> item in platformItemMappings)
+                {
+                    if (item.Value.PlatformName == start.PlatformName && item.Value.StationName == start.StationName)
+                    {
+                        _ = platformItemMappings.Remove(item.Value.TrackItemIndex);
+                        Trace.TraceWarning($"Matching Platforms in track database {trackdatabaseFile}  by Name {start.PlatformName} Id {start.TrackItemIndex} to target {start.LinkedPlatformItem} vs Target id {item.Value.TrackItemIndex} to source {item.Value.LinkedPlatformItem}.");
+                        match = true;
+                        break;
+                    }
+                }
+                if (!match)
+                    Trace.TraceWarning($"Linked Platform Item {start.LinkedPlatformItem} for Platform Item {start.TrackItemIndex} not found in track database {trackdatabaseFile}.");
+            }
         }
 
         private static SpeedpostType GetSpeedpostType(SpeedPostItem speedPostItem)

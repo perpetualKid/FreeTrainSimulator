@@ -110,7 +110,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            foreach (PlatformSection segmentSection in PathSections)
+            foreach (PlatformSection segmentSection in PathSections.Cast<PlatformSection>())
             {
                 segmentSection.Draw(contentArea, colorVariation, scaleFactor);
             }
@@ -118,7 +118,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public override double DistanceSquared(in PointD point)
         {
-            foreach (PlatformSection section in PathSections)
+            foreach (PlatformSection section in PathSections.Cast<PlatformSection>())
             {
                 foreach (PlatformSegment segment in section.SectionSegments)
                 {
