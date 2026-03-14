@@ -146,6 +146,8 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             NodeIndex = tvs.SectionIndex,
                             ShapeIndex = tvs.ShapeIndex,
                             WorldId = (int)tvs.WorldFileUiD,
+                            Flag1 = tvs.Flag1,
+                            Flag2 = tvs.Flag2,
                         }).ToImmutableArray(),
                     } as Track.TrackNode,
                     _ => null,

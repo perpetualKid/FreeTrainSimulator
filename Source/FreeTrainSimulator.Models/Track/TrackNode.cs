@@ -44,10 +44,9 @@ namespace FreeTrainSimulator.Models.Track
         private readonly Vector3 direction;
 
         public ref readonly Vector3 Direction => ref direction;
-        public ImmutableArray<int> Vectors { get; init; } = ImmutableArray<int>.Empty;
 
-        public int Flag1 { get; }
-        public int Flag2 { get; }
+        public int Flag1 { get; init; }
+        public int Flag2 { get; init; }
         public int ShapeIndex { get; init; }
 
         [MemoryPackConstructor]
