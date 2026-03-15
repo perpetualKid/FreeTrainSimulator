@@ -29,7 +29,8 @@ namespace FreeTrainSimulator.Toolbox
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            Initialize(routeModel, await tracksectionModelTask, await trackModelTask, await signalConfigTask, metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits));
+            Initialize(routeModel, await tracksectionModelTask.ConfigureAwait(false), await trackModelTask.ConfigureAwait(false), await signalConfigTask.ConfigureAwait(false), 
+                metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits));
         }
     }
 }

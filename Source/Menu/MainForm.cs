@@ -476,8 +476,8 @@ namespace FreeTrainSimulator.Menu
                         ModelConverterProgress progressForm = null;
                         try
                         {
-                            // adding another trace listener specifically for content messages during import
-                            string logFileName = RuntimeInfo.LogFile(ProfileUserSettings.LogFilePath, "{Product} {Application} Content Import.txt");
+                            // adding another trace listener specifically for content import messages
+                            string logFileName = RuntimeInfo.LogFile(ProfileUserSettings.LogFilePath, "{Product} Content Import.txt");
                             LoggingUtil.InitLogging(logFileName, ProfileUserSettings.LogLevel, false, false);
                             //the listener will be automatically closed at the end of import when ProfileChanged is raised
 
