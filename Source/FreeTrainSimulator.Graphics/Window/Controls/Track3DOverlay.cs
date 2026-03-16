@@ -50,7 +50,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                 Vector3 line2d = end2d - start2d;
                 line2d.Normalize();
 
-                float distance = WorldLocation.GetDistance(Start, CameraView.Location).Length();
+                float distance = WorldLocation.GetDistanceVector(Start, CameraView.Location).Length();
 
                 if (distance < ViewDistance && start2d.Z >= 0 && start2d.Z <= 1 && end2d.Z >= 0 && end2d.Z <= 1)
                 {

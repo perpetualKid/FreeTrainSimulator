@@ -93,7 +93,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
 
             labelLocation = new Vector2(lineLocation2DStart.X - (texture.Width / 2) - 2, lineLocation2DEndY - texture.Height);
 
-            float distance = WorldLocation.GetDistance(positionSource.WorldPosition.WorldLocation, viewProjection.Location).Length();
+            float distance = WorldLocation.GetDistanceVector(positionSource.WorldPosition.WorldLocation, viewProjection.Location).Length();
             float distanceRatio = (MathHelper.Clamp(distance, settings[labelType].MinimumDistance, settings[labelType].MaximumDistance) - settings[labelType].MinimumDistance) / (settings[labelType].MaximumDistance - settings[labelType].MinimumDistance);
             textAlpha.A = fill.A = outline.A = (byte)MathHelper.Lerp(255, 0, distanceRatio);
 

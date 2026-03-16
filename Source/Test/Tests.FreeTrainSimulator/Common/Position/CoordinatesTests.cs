@@ -53,7 +53,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
 
             Assert.IsTrue(WorldLocation.Within(location1, location2, 0));
             Assert.AreEqual(0, WorldLocation.GetDistanceSquared(location1, location2));
-            Assert.AreEqual(Microsoft.Xna.Framework.Vector3.Zero, WorldLocation.GetDistance(location1, location2));
+            Assert.AreEqual(Microsoft.Xna.Framework.Vector3.Zero, WorldLocation.GetDistanceVector(location1, location2));
             Assert.AreEqual(Microsoft.Xna.Framework.Vector2.Zero, WorldLocation.GetDistance2D(location1, location2));
         }
 
@@ -66,7 +66,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             Assert.AreEqual((2048 * 2048) + (2048 * 2048), WorldLocation.GetDistanceSquared(location1, location2));
             Assert.IsTrue(WorldLocation.Within(location1, location2, (float)Math.Sqrt(2048 * 2048 * 2) + 1));
 
-            Assert.AreEqual(new Microsoft.Xna.Framework.Vector3(2048, 0, -2048), WorldLocation.GetDistance(location1, location2));
+            Assert.AreEqual(new Microsoft.Xna.Framework.Vector3(2048, 0, -2048), WorldLocation.GetDistanceVector(location1, location2));
             Assert.AreEqual(new Microsoft.Xna.Framework.Vector2(2048, -2048), WorldLocation.GetDistance2D(location1, location2));
         }
 

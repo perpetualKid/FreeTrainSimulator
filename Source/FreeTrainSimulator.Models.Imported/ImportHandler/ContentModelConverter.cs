@@ -75,11 +75,13 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             {
                 await Task.WhenAll(
                     TrackSectionsModelImportHandler.ExpandTrackSectionModel(routeModel, cancellationToken),
-                    TrackModelImportHandler.ExpandTrackSectionModel(routeModel, cancellationToken),
                     PathModelImportHandler.ExpandPathModels(routeModel, cancellationToken),
                     ActivityModelImportHandler.ExpandActivityModels(routeModel, cancellationToken),
                     TimetableModelHandler.ExpandTimetableModels(routeModel, cancellationToken),
                     WeatherModelHandler.ExpandPathModels(routeModel, cancellationToken)
+                    ).ConfigureAwait(false);
+                await Task.WhenAll(
+                    TrackModelImportHandler.ExpandTrackModel(routeModel, cancellationToken)
                     ).ConfigureAwait(false);
             }
 

@@ -2832,7 +2832,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             tdb.Move(MaximumDistance * 0.75f);
             trackCameraLocation = tdb.WorldLocation;
-            var directionForward = WorldLocation.GetDistance((trainForwards ? train.FirstCar : train.LastCar).WorldPosition.WorldLocation, trackCameraLocation);
+            var directionForward = WorldLocation.GetDistanceVector((trainForwards ? train.FirstCar : train.LastCar).WorldPosition.WorldLocation, trackCameraLocation);
             if (StaticRandom.Next(2) == 0)
             {
                 // Use swapped -X and Z to move to the left of the track.

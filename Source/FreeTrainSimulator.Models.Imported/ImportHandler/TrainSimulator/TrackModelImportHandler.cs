@@ -14,6 +14,8 @@ using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Models.Track;
 
+using Microsoft.Xna.Framework;
+
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -21,7 +23,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
     internal class TrackModelImportHandler : ContentHandlerBase<TrackModel>
     {
-        public static Task<TrackModel> ExpandTrackSectionModel(RouteModelHeader routeModel, CancellationToken cancellationToken)
+        public static Task<TrackModel> ExpandTrackModel(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
@@ -65,30 +67,34 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
 
-            ImmutableArray<Track.TrackNode> trackNodes = ConvertTrackNodes(trackDB.TrackNodes, tdbFile);
-            ImmutableArray<Track.TrackNode> roadNodes = ConvertTrackNodes(roadTrackDB?.TrackNodes, rdbFile);
-            ImmutableDictionary<int, TrackItemIndex> trackItemSelectors = ConvertTrackSelectors(trackDB.TrackNodes, tdbFile);
-            ImmutableDictionary<int, TrackItemIndex> roadItemSelectors = ConvertTrackSelectors(roadTrackDB?.TrackNodes, rdbFile);
+            TrackDatabase trackDatabase = new TrackDatabase()
+            {
+                TrackDataBaseType = TrackDataBaseType.Track,
+                TrackNodeConnectors = ConvertTrackNodeConnectors(trackDB.TrackNodes, tdbFile),
+                TrackNodes = ConvertTrackNodes(trackDB.TrackNodes, tdbFile),
+                TrackItemsSelectors = ConvertTrackSelectors(trackDB.TrackNodes, tdbFile),
+            };
+            TrackDatabase roadDatabase = roadTrackDB?.TrackNodes == null ? null : new TrackDatabase()
+            {
+                TrackDataBaseType = TrackDataBaseType.Road,
+                TrackNodeConnectors = ConvertTrackNodeConnectors(roadTrackDB.TrackNodes, rdbFile),
+                TrackNodes = ConvertTrackNodes(roadTrackDB?.TrackNodes, rdbFile),
+                TrackItemsSelectors = ConvertTrackSelectors(roadTrackDB?.TrackNodes, rdbFile),
+            };
+
+            TrackSectionsModel trackSections = await routeModel.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
 
             TrackModel trackModel = new TrackModel()
             {
                 Id = routeModel.Id,
-                TrackDatabase = new TrackDatabase()
+                TrackDatabase = trackDatabase with
+                 {
+                     TrackItems = ConvertTrackItems(trackDB.TrackItems, trackDatabase, trackSections, routeModelExtended, tdbFile),
+                 },
+                RoadDatabase = roadDatabase == null ? null : roadDatabase with
                 {
-                    TrackDataBaseType = TrackDataBaseType.Track,
-                    TrackNodeConnectors = ConvertTrackNodeConnectors(trackDB.TrackNodes, tdbFile),
-                    TrackNodes = trackNodes,
-                    TrackItemsSelectors = trackItemSelectors,
-                    TrackItems = ConvertTrackItems(trackDB.TrackItems, trackNodes, trackItemSelectors, tdbFile),
+                    TrackItems = ConvertTrackItems(roadTrackDB.TrackItems, roadDatabase, trackSections, routeModelExtended, rdbFile),
                 },
-                RoadDatabase = roadTrackDB?.TrackNodes != null ? new TrackDatabase()
-                {
-                    TrackDataBaseType = TrackDataBaseType.Road,
-                    TrackNodeConnectors = ConvertTrackNodeConnectors(roadTrackDB.TrackNodes, rdbFile),
-                    TrackNodes = roadNodes,
-                    TrackItemsSelectors = roadItemSelectors,
-                    TrackItems = ConvertTrackItems(roadTrackDB.TrackItems, roadNodes, roadItemSelectors, rdbFile),
-                } : null,
             };
 
             await Create(trackModel, routeModel, cancellationToken).ConfigureAwait(false);
@@ -171,19 +177,19 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 })).ToImmutableDictionary(item => item.Index, item => item.Item2);
         }
 
-        private static ImmutableArray<TrackItemModel> ConvertTrackItems(List<TrackItem> trackItems, ImmutableArray<Track.TrackNode> trackNodes, 
-            ImmutableDictionary<int, TrackItemIndex> trackItemSelectors, string trackdatabaseFile)
+        private static ImmutableArray<TrackItemModel> ConvertTrackItems(List<TrackItem> trackItems, TrackDatabase trackDatabase, TrackSectionsModel trackSections,
+            RouteModel routeModel, string trackdatabaseFile)
         {
             if (trackItems == null)
                 return ImmutableArray<TrackItemModel>.Empty;
 
             //temporary map reverse-linking TrackItems to TrackNodes
             int[] trackNodeReferences = new int[trackItems.Count];
-            foreach (KeyValuePair<int, TrackItemIndex> item in trackItemSelectors)
+            foreach (KeyValuePair<int, TrackItemIndex> item in trackDatabase.TrackItemsSelectors)
             {
                 foreach (int itemIndex in item.Value.TrackItems)
                 {
-                    trackNodeReferences[itemIndex] = trackNodes[item.Key].NodeIndex;
+                    trackNodeReferences[itemIndex] = trackDatabase.TrackNodes[item.Key].NodeIndex;
                 }
             }
 
@@ -211,6 +217,31 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         // Use the related TrackNode, assuming it's a VectorNode, and the TrackItem.SectionDistance to determine the location of the TrackItem, as some
                         // items have been found to have an invalid location but a valid related TrackNode and SectionDistance that can be used to determine the correct location.
                         itemLocation = WorldLocation.None;
+                        if (trackDatabase.TrackNodes[trackNodeIndex] is not VectorNode vectorNode)
+                            continue; // again, nothing we can do with this, but we'll add an empty item to at least preserve the index
+                        float distance = trackItem.SData1;
+                        for (int i = 0; i < vectorNode.VectorSections.Length; i++)
+                        {
+                            VectorSectionNode sectionNode = vectorNode.VectorSections[i];
+                            if (!trackSections.TrackSections.TryGetValue(sectionNode.NodeIndex, out Track.TrackSection trackSection))
+                                break;
+
+                            if (distance > trackSection.Length)
+                            {
+                                distance -= trackSection.Length;
+                                continue;
+                            }
+                            else
+                            {
+                                ref readonly WorldLocation endLocation = ref (i + 1 < vectorNode.VectorSections.Length) ? ref vectorNode.VectorSections[i + 1].Location :
+                                    ref trackDatabase.TrackNodes[trackDatabase.TrackNodeConnectors[vectorNode.NodeIndex][1].Link].Location;
+
+                                itemLocation = trackSection.Curved
+                                    ? WorldLocation.PointAlongArc(sectionNode.Location, endLocation, MathHelper.ToRadians(trackSection.Angle), trackSection.Radius, distance / trackSection.Radius)
+                                    : WorldLocation.PointAlongDirection(sectionNode.Location, endLocation, distance);
+                                break;
+                            }
+                        }
                     }
                 }
 
