@@ -105,6 +105,45 @@ namespace Tests.FreeTrainSimulator.Common.Position
         }
 
         [TestMethod]
+        public void WorldLocationPointAlongDirectionVectorTest()
+        {
+            WorldLocation start = new WorldLocation(0, 0, 0, 0, 0);
+
+            WorldLocation result = WorldLocation.PointAlongDirection(start, new Microsoft.Xna.Framework.Vector3(2, 0, 0), 10f);
+
+            Assert.AreEqual(new WorldLocation(0, 0, 10, 0, 0), result);
+        }
+
+        [TestMethod]
+        public void WorldLocationPointAlongDirectionLocationTest()
+        {
+            WorldLocation start = new WorldLocation(0, 0, 2040, 0, 0);
+            WorldLocation end = new WorldLocation(1, 0, 0, 0, 0);
+
+            WorldLocation result = WorldLocation.PointAlongDirection(start, end, 16f);
+
+            Assert.AreEqual(new WorldLocation(1, 0, 8, 0, 0), result);
+        }
+
+        [TestMethod]
+        public void WorldLocationPointAlongDirectionNegativeDistanceThrowsTest()
+        {
+            WorldLocation start = new WorldLocation(0, 0, 0, 0, 0);
+
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => WorldLocation.PointAlongDirection(start, Microsoft.Xna.Framework.Vector3.UnitX, -1f));
+        }
+
+        [TestMethod]
+        public void WorldLocationPointAlongDirectionZeroDistanceWithZeroVectorReturnsStartTest()
+        {
+            WorldLocation start = new WorldLocation(1, -2, 12, 3, -44);
+
+            WorldLocation result = WorldLocation.PointAlongDirection(start, Microsoft.Xna.Framework.Vector3.Zero, 0f);
+
+            Assert.AreEqual(start, result);
+        }
+
+        [TestMethod]
         public void WorldPositionCtorTest()
         {
             Assert.AreEqual(WorldPosition.None, new WorldPosition(Tile.Zero, Microsoft.Xna.Framework.Matrix.Identity));
