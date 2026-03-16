@@ -84,28 +84,28 @@ namespace FreeTrainSimulator.Updater
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = CancellationToken.None;
 
-            using (SourceCacheContext cache = new SourceCacheContext
+            SourceCacheContext cache = null;
+            try
             {
-                DirectDownload = true,
-                NoCache = true
-            })
+                cache = new SourceCacheContext
+                {
+                    DirectDownload = true,
+                    NoCache = true
+                };
+                SourceRepository repository = Repository.Factory.GetCoreV3(UpdateUrl);
+                FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>().ConfigureAwait(false);
+                availableVersions = resource.GetAllVersionsAsync(VersionInfo.PackageId, cache, logger, cancellationToken);
+                return await availableVersions.ConfigureAwait(false);
+            }
+            catch (NuGetProtocolException exception)
             {
-                try
-                {
-                    SourceRepository repository = Repository.Factory.GetCoreV3(UpdateUrl);
-                    FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>().ConfigureAwait(false);
-                    availableVersions = resource.GetAllVersionsAsync(VersionInfo.PackageId, cache, logger, cancellationToken);
-                    return await availableVersions.ConfigureAwait(false);
-                }
-                catch (NuGetProtocolException exception)
-                {
-                    Trace.WriteLine(exception);
-                    LastCheckError = exception;
-                }
-                finally
-                {
-                    updateVersions.Release();
-                }
+                Trace.WriteLine(exception);
+                LastCheckError = exception;
+            }
+            finally
+            {
+                updateVersions.Release();
+                cache?.Dispose();
             }
             return Enumerable.Empty<NuGetVersion>();
         }
@@ -239,7 +239,8 @@ namespace FreeTrainSimulator.Updater
                 try
                 { File.Delete(file); }
                 catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
-                { Trace.TraceWarning($"{path} :: {ex.Message}"); };
+                { Trace.TraceWarning($"{path} :: {ex.Message}"); }
+                ;
             }
             if (token.IsCancellationRequested)
                 return Task.FromCanceled(token);
@@ -248,14 +249,16 @@ namespace FreeTrainSimulator.Updater
                 try
                 { Directory.Delete(directory, true); }
                 catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
-                { Trace.TraceWarning($"{path} :: {ex.Message}"); };
+                { Trace.TraceWarning($"{path} :: {ex.Message}"); }
+                ;
             }
             if (token.IsCancellationRequested)
                 return Task.FromCanceled(token);
             try
             { Directory.Delete(path, true); }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
-            { Trace.TraceWarning($"{path} :: {ex.Message}"); };
+            { Trace.TraceWarning($"{path} :: {ex.Message}"); }
+            ;
             return Task.CompletedTask;
         }
 
@@ -268,27 +271,35 @@ namespace FreeTrainSimulator.Updater
 
             SourceRepository repository = Repository.Factory.GetCoreV3(UpdateUrl);
             FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>(token).ConfigureAwait(false);
-            using (SourceCacheContext cacheContext = new SourceCacheContext { DirectDownload = true, NoCache = true })
+
+            ProgressMemoryStream packageStream = null;
+            SourceCacheContext cacheContext = null;
+            try
             {
-                using (ProgressMemoryStream packageStream = new ProgressMemoryStream())
+                cacheContext = new SourceCacheContext { DirectDownload = true, NoCache = true };
+                packageStream = new ProgressMemoryStream();
+                packageStream.ProgressChanged += (sender, e) =>
                 {
-                    packageStream.ProgressChanged += (sender, e) =>
-                    {
-                        TriggerApplyProgressChanged(progressMin + progressLength * e.ProgressPercentage / 100);
-                    };
-                    Task<bool> downloadTask = resource.CopyNupkgToStreamAsync(VersionInfo.PackageId, targetVersion, packageStream, cacheContext, NullLogger.Instance, token);
-                    packageStream.ExpectedLength = await repository.PackageSize(new PackageIdentity(VersionInfo.PackageId, targetVersion), token).ConfigureAwait(false);
-                    if (await downloadTask.ConfigureAwait(false))
-                    {
-                        TriggerApplyProgressChanged(progressMin + progressLength);
-                        packageStream.Position = 0;
-                        progressMin = 60;
-                        progressLength = 20;
-                        PackagePathResolver packagePathResolver = new PackagePathResolver(Path.GetFullPath(PathUpdateStage));
-                        PackageExtractionContext extractionContext = new PackageExtractionContext(PackageSaveMode.Files, XmlDocFileSaveMode.Skip, null, NullLogger.Instance);
-                        IEnumerable<string> files = await PackageExtractor.ExtractPackageAsync(UpdateUrl, packageStream, packagePathResolver, extractionContext, token).ConfigureAwait(false);
-                    }
+                    TriggerApplyProgressChanged(progressMin + progressLength * e.ProgressPercentage / 100);
+                };
+                Task<bool> downloadTask = resource.CopyNupkgToStreamAsync(VersionInfo.PackageId, targetVersion, packageStream, cacheContext, NullLogger.Instance, token);
+                packageStream.ExpectedLength = await repository.PackageSize(new PackageIdentity(VersionInfo.PackageId, targetVersion), token).ConfigureAwait(false);
+                if (await downloadTask.ConfigureAwait(false))
+                {
+                    TriggerApplyProgressChanged(progressMin + progressLength);
+                    packageStream.Position = 0;
+                    progressMin = 60;
+                    progressLength = 20;
+                    PackagePathResolver packagePathResolver = new PackagePathResolver(Path.GetFullPath(PathUpdateStage));
+                    PackageExtractionContext extractionContext = new PackageExtractionContext(PackageSaveMode.Files, XmlDocFileSaveMode.Skip, null, NullLogger.Instance);
+                    IEnumerable<string> files = await PackageExtractor.ExtractPackageAsync(UpdateUrl, packageStream, packagePathResolver, extractionContext, token).ConfigureAwait(false);
                 }
+            }
+            finally
+            {
+                if (null != packageStream)
+                    await packageStream.DisposeAsync().ConfigureAwait(false);
+                cacheContext?.Dispose();
             }
         }
 
@@ -395,7 +406,8 @@ namespace FreeTrainSimulator.Updater
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException || ex is DirectoryNotFoundException)
             {
                 Trace.TraceWarning($"{sourceDirName} :: {ex.Message} {ex.InnerException?.Message}");
-            };
+            }
+            ;
             return Task.CompletedTask;
         }
 

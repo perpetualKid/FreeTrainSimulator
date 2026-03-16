@@ -80,6 +80,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
                     TimetableModelHandler.ExpandTimetableModels(routeModel, cancellationToken),
                     WeatherModelHandler.ExpandPathModels(routeModel, cancellationToken)
                     ).ConfigureAwait(false);
+                // Expanding track model needs the track sections expanded before
                 await Task.WhenAll(
                     TrackModelImportHandler.ExpandTrackModel(routeModel, cancellationToken)
                     ).ConfigureAwait(false);
