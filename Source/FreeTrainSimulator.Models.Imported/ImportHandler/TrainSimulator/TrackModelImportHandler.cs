@@ -171,14 +171,14 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 })).ToImmutableDictionary(item => item.Index, item => item.Item2);
         }
 
-        private static ImmutableArray<TrackItemModel> ConvertTrackItems(List<TrackItem> trackItems, ImmutableArray<Track.TrackNode> trackNodes, ImmutableDictionary<int, TrackItemIndex> trackItemSelectors,
-            string trackdatabaseFile)
+        private static ImmutableArray<TrackItemModel> ConvertTrackItems(List<TrackItem> trackItems, ImmutableArray<Track.TrackNode> trackNodes, 
+            ImmutableDictionary<int, TrackItemIndex> trackItemSelectors, string trackdatabaseFile)
         {
             if (trackItems == null)
                 return ImmutableArray<TrackItemModel>.Empty;
 
-            int[] trackNodeReferences = new int[trackItems.Count];
             //temporary map reverse-linking TrackItems to TrackNodes
+            int[] trackNodeReferences = new int[trackItems.Count];
             foreach (KeyValuePair<int, TrackItemIndex> item in trackItemSelectors)
             {
                 foreach (int itemIndex in item.Value.TrackItems)
@@ -193,20 +193,31 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             foreach (TrackItem trackItem in trackItems)
             {
-                if (trackItem.Location == WorldLocation.None && trackItem is not EmptyItem && trackNodeReferences[trackItem.TrackItemId] == 0)
+                WorldLocation? itemLocation = null;
+                if (trackItem.Location == WorldLocation.None && trackItem is not EmptyItem)
                 {
-                    result.Add(new EmptyTrackItem(trackItem.Location)
+                    int trackNodeIndex;
+                    if ((trackNodeIndex = trackNodeReferences[trackItem.TrackItemId]) == 0)
+                    {   // nothing we can do with this, but we'll add an empty item to at least preserve the index
+                        result.Add(new EmptyTrackItem()
+                        {
+                            TrackItemIndex = trackItem.TrackItemId,
+                        });
+                        //Trace.TraceWarning($"Track {trackItem.GetType().Name} #{trackItem.TrackItemId} in track database {trackdatabaseFile} has no (valid) location nor is related to a track vector.");
+                        continue;
+                    }
+                    else
                     {
-                        TrackItemIndex = trackItem.TrackItemId,
-                    });
-                    Trace.TraceWarning($"Track {trackItem.GetType().Name} #{trackItem.TrackItemId} in track database {trackdatabaseFile} has no (valid) location nor is related to a track vector.");
-                    continue;
+                        // Use the related TrackNode, assuming it's a VectorNode, and the TrackItem.SectionDistance to determine the location of the TrackItem, as some
+                        // items have been found to have an invalid location but a valid related TrackNode and SectionDistance that can be used to determine the correct location.
+                        itemLocation = WorldLocation.None;
+                    }
                 }
 
                 switch (trackItem)
                 {
                     case SidingItem sidingItem:
-                        result.Add(new SidingTrackItem(sidingItem.Location)
+                        result.Add(new SidingTrackItem(itemLocation ?? sidingItem.Location)
                         {
                             NodeIndex = trackNodeReferences[sidingItem.TrackItemId],
                             SectionDistance = sidingItem.SData1,
@@ -218,7 +229,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case PlatformItem platformItem:
-                        result.Add(new PlatformTrackItem(platformItem.Location)
+                        result.Add(new PlatformTrackItem(itemLocation ?? platformItem.Location)
                         {
                             NodeIndex = trackNodeReferences[platformItem.TrackItemId],
                             SectionDistance = platformItem.SData1,
@@ -233,14 +244,14 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case SpeedPostItem speedPostItem:
-                        result.Add(speedPostItem.IsMilePost ? new MilepostTrackItem(speedPostItem.Location)
+                        result.Add(speedPostItem.IsMilePost ? new MilepostTrackItem(itemLocation ?? speedPostItem.Location)
                         {
                             NodeIndex = trackNodeReferences[speedPostItem.TrackItemId],
                             SectionDistance = speedPostItem.SData1,
                             Flags = uint.TryParse(speedPostItem.SData2, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out flags) ? flags : 0,
                             TrackItemIndex = speedPostItem.TrackItemId,
                             DistanceValue = speedPostItem.Distance,
-                        } : new SpeedpostTrackItem(speedPostItem.Location)
+                        } : new SpeedpostTrackItem(itemLocation ?? speedPostItem.Location)
                         {
                             NodeIndex = trackNodeReferences[speedPostItem.TrackItemId],
                             SectionDistance = speedPostItem.SData1,
@@ -253,7 +264,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case HazardItem hazardItem:
-                        result.Add(new HazardTrackItem(hazardItem.Location)
+                        result.Add(new HazardTrackItem(itemLocation ?? hazardItem.Location)
                         {
                             NodeIndex = trackNodeReferences[hazardItem.TrackItemId],
                             SectionDistance = hazardItem.SData1,
@@ -262,7 +273,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case PickupItem pickupItem:
-                        result.Add(new PickupTrackItem(pickupItem.Location)
+                        result.Add(new PickupTrackItem(itemLocation ?? pickupItem.Location)
                         {
                             NodeIndex = trackNodeReferences[pickupItem.TrackItemId],
                             SectionDistance = pickupItem.SData1,
@@ -271,7 +282,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case LevelCrossingItem levelCrossingItem:
-                        result.Add(new LevelCrossingTrackItem(levelCrossingItem.Location)
+                        result.Add(new LevelCrossingTrackItem(itemLocation ?? levelCrossingItem.Location)
                         {
                             NodeIndex = trackNodeReferences[levelCrossingItem.TrackItemId],
                             SectionDistance = levelCrossingItem.SData1,
@@ -280,7 +291,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case RoadLevelCrossingItem roadLevelCrossingItem: // road level crossings are not really useful and no route seems to contain them, but we'll just treat them as LevelCrossings
-                        result.Add(new RoadLevelCrossingTrackItem(roadLevelCrossingItem.Location)
+                        result.Add(new RoadLevelCrossingTrackItem(itemLocation ?? roadLevelCrossingItem.Location)
                         {
                             NodeIndex = trackNodeReferences[roadLevelCrossingItem.TrackItemId],
                             SectionDistance = roadLevelCrossingItem.SData1,
@@ -289,7 +300,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case SoundRegionItem soundRegionItem:
-                        result.Add(new SoundRegionTrackItem(soundRegionItem.Location)
+                        result.Add(new SoundRegionTrackItem(itemLocation ?? soundRegionItem.Location)
                         {
                             NodeIndex = trackNodeReferences[soundRegionItem.TrackItemId],
                             SectionDistance = soundRegionItem.SData1,
@@ -301,7 +312,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case SignalItem signalItem:
-                        result.Add(new SignalTrackItem(signalItem.Location)
+                        result.Add(new SignalTrackItem(itemLocation ?? signalItem.Location)
                         {
                             NodeIndex = trackNodeReferences[signalItem.TrackItemId],
                             SectionDistance = signalItem.SData1,
@@ -319,7 +330,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case CrossoverItem crossOverItem:
-                        result.Add(new CrossoverTrackItem(crossOverItem.Location)
+                        result.Add(new CrossoverTrackItem(itemLocation ?? crossOverItem.Location)
                         {
                             NodeIndex = trackNodeReferences[crossOverItem.TrackItemId],
                             SectionDistance = crossOverItem.SData1,
@@ -329,7 +340,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case RoadCarSpawnerItem carSpawner:
-                        result.Add(new CarSpawnerTrackItem(carSpawner.Location)
+                        result.Add(new CarSpawnerTrackItem(itemLocation ?? carSpawner.Location)
                         {
                             NodeIndex = trackNodeReferences[carSpawner.TrackItemId],
                             SectionDistance = carSpawner.SData1,
@@ -338,7 +349,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     case EmptyItem emptyItem:
-                        result.Add(new EmptyTrackItem(emptyItem.Location)
+                        result.Add(new EmptyTrackItem()
                         {
                             TrackItemIndex = emptyItem.TrackItemId,
                         });

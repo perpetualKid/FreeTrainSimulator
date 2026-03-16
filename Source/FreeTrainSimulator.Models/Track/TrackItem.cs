@@ -196,7 +196,7 @@ namespace FreeTrainSimulator.Models.Track
     public sealed partial record EmptyTrackItem : TrackItemModel
     {
         [MemoryPackConstructor]
-        public EmptyTrackItem(in WorldLocation location) : base(location)
+        public EmptyTrackItem() : base(WorldLocation.None)
         {
         }
     }

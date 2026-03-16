@@ -302,6 +302,42 @@ namespace FreeTrainSimulator.Common.Position
         }
 
         /// <summary>
+        /// Calculates a world location at a given distance from the start location in the specified direction.
+        /// </summary>
+        /// <param name="start">Starting world location.</param>
+        /// <param name="direction">Direction vector in world space; does not need to be normalized.</param>
+        /// <param name="distance">Distance in meters; must be non-negative.</param>
+        /// <returns>The calculated world location, normalized across tile boundaries.</returns>
+        public static WorldLocation PointAlongDirection(in WorldLocation start, in Vector3 direction, float distance)
+        {
+            if (distance < 0)
+                throw new ArgumentOutOfRangeException(nameof(distance), "Distance must be non-negative.");
+
+            if (distance == 0)
+                return start;
+
+            double directionLength = Math.Sqrt((direction.X * direction.X) + (direction.Y * direction.Y) + (direction.Z * direction.Z));
+            double scale = distance / directionLength;
+            Vector3 point = new Vector3(
+                (float)(start.Location.X + direction.X * scale),
+                (float)(start.Location.Y + direction.Y * scale),
+                (float)(start.Location.Z + direction.Z * scale));
+            return new WorldLocation(start.Tile, point, true);
+        }
+
+        /// <summary>
+        /// Calculates a world location at a given distance from the start location in the direction from start to end.
+        /// </summary>
+        /// <param name="start">Starting world location.</param>
+        /// <param name="end">World location defining the travel direction.</param>
+        /// <param name="distance">Distance in meters; must be non-negative.</param>
+        /// <returns>The calculated world location, normalized across tile boundaries.</returns>
+        public static WorldLocation PointAlongDirection(in WorldLocation start, in WorldLocation end, float distance)
+        {
+            return PointAlongDirection(start, GetDistance(start, end), distance);
+        }
+
+        /// <summary>
         /// Get a (2D) vector pointing from locationFrom to locationTo, neglecting elevation (y) information
         /// </summary>
         public static Vector2 GetDistance2D(in WorldLocation locationFrom, in WorldLocation locationTo)
