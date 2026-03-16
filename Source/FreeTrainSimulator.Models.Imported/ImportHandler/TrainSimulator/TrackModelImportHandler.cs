@@ -88,9 +88,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             {
                 Id = routeModel.Id,
                 TrackDatabase = trackDatabase with
-                 {
-                     TrackItems = ConvertTrackItems(trackDB.TrackItems, trackDatabase, trackSections, tdbFile),
-                 },
+                {
+                    TrackItems = ConvertTrackItems(trackDB.TrackItems, trackDatabase, trackSections, tdbFile),
+                },
                 RoadDatabase = roadDatabase == null ? null : roadDatabase with
                 {
                     TrackItems = ConvertTrackItems(roadTrackDB.TrackItems, roadDatabase, trackSections, rdbFile),
@@ -388,25 +388,56 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     default:
                         Trace.TraceWarning($"{trackItem.GetType().Name} Index #{trackItem.TrackItemId} not supported for Track Items in track database {trackdatabaseFile}");
                         break;
-                }
+                }            
             }
-            LinkSidingItems(result.OfType<SidingTrackItem>(), trackdatabaseFile);
+
+            LinkSidingItems(result, trackdatabaseFile);
+
             LinkPlatformItems(result.OfType<PlatformTrackItem>(), trackdatabaseFile);
             return result.ToImmutableArray();
         }
 
-        private static void LinkSidingItems(IEnumerable<SidingTrackItem> sidingTrackItems, string trackdatabaseFile)
+        private static void LinkSidingItems(List<TrackItemModel> trackItems, string trackdatabaseFile)
         {
-            Dictionary<int, SidingTrackItem> sidingItemMappings = sidingTrackItems.ToDictionary(p => p.TrackItemIndex);
+            List<TrackItemModel> result = new List<TrackItemModel>();
+            Dictionary<int, SidingTrackItem> sidingItemMappings = trackItems.OfType<SidingTrackItem>().ToDictionary(p => p.TrackItemIndex);
 
-            foreach (SidingTrackItem start in sidingTrackItems)
+            for (int i = 0; i < trackItems.Count; i++)
             {
+                if (trackItems[i] is not SidingTrackItem start)
+                    continue;
+
                 if (sidingItemMappings.TryGetValue(start.LinkedSidingItem, out SidingTrackItem end))
                 {
-                    if (end.LinkedSidingItem == start.TrackItemIndex && end.SidingName == start.SidingName)
+                    if (end.LinkedSidingItem == start.TrackItemIndex)
                     {
                         _ = sidingItemMappings.Remove(end.TrackItemIndex);
                         _ = sidingItemMappings.Remove(start.TrackItemIndex);
+
+                        if (end.SidingName != start.SidingName)
+                        {
+                            string endName = end.SidingName.Trim();
+                            string startName = start.SidingName.Trim();
+                            switch (endName.Length.CompareTo(startName.Length))
+                            {
+                                case int n when n < 0:
+                                    endName = startName;
+                                    Trace.TraceWarning($"Siding Item pair in track database {trackdatabaseFile} has inconsistent naming " +
+                                        $"from Source Id {start.TrackItemIndex} name \"{start.SidingName}\" to Target id {end.TrackItemIndex} name \"{end.SidingName}\". Using {startName}");
+                                    break;
+                                case int n when n > 0:
+                                    Trace.TraceWarning($"Siding Item pair in track database {trackdatabaseFile} has inconsistent naming " +
+                                        $"from Source Id {start.TrackItemIndex} name \"{start.SidingName}\" to Target id {end.TrackItemIndex} name \"{end.SidingName}\". Using {endName}");
+                                    startName = endName;
+                                    break;
+                                case 0:
+                                    break;
+                            }
+                            {
+                                trackItems[start.TrackItemIndex] = start with { SidingName = startName };
+                                trackItems[end.TrackItemIndex] = end with { SidingName = endName };
+                            }
+                        }
                     }
                     else
                     {
@@ -415,6 +446,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     }
                 }
             }
+
             while (sidingItemMappings.Count > 0)
             {
                 bool match = false;
@@ -426,6 +458,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 {
                     if (item.Value.SidingName == start.SidingName)
                     {
+                        SidingTrackItem end = sidingItemMappings[item.Value.TrackItemIndex];
                         _ = sidingItemMappings.Remove(item.Value.TrackItemIndex);
                         Trace.TraceWarning($"Matching Siding Items in track database {trackdatabaseFile} by Name {start.SidingName} Id {start.TrackItemIndex} to target {start.LinkedSidingItem} vs Target id {item.Value.TrackItemIndex} to source {item.Value.LinkedSidingItem}.");
                         match = true;
@@ -433,7 +466,10 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     }
                 }
                 if (!match)
+                {
                     Trace.TraceWarning($"Linked Siding Item {start.LinkedSidingItem} for Siding Item {start.TrackItemIndex} not found in track database {trackdatabaseFile}.");
+                    trackItems[start.TrackItemIndex] = new EmptyTrackItem() { TrackItemIndex = start.TrackItemIndex };
+                }
             }
         }
 
