@@ -81,8 +81,7 @@ steps:
   inputs:
     testSelector: 'testAssemblies'
     testAssemblyVer2: |
-      **\bin\**\*test.dll
-      **\bin\**\*tests.dll
+      **\bin\**\Tests.*.dll
     searchFolder: '$(System.DefaultWorkingDirectory)'
     runInParallel: true
     codeCoverageEnabled: true

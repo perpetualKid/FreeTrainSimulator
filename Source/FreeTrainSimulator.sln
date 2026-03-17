@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31912.275
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11605.240 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Menu", "Menu\Menu.csproj", "{5EA53243-5C52-4F9C-A730-C35F6C68FB74}"
 EndProject
@@ -27,8 +27,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ActivityRunner", "ActivityR
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContentChecker", "Contrib\ContentChecker\ContentChecker.csproj", "{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Orts", "UnitTests\Tests.Orts\Tests.Orts.csproj", "{401939A5-9CFD-42DA-8F47-766AE68F2CE5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Scripting.Api", "Orts.Scripting.Api\Orts.Scripting.Api.csproj", "{2B4CBBD5-2EEA-4149-9DA1-9CBB2625A474}"
 EndProject
@@ -64,6 +62,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeTrainSimulator.Models", "FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj", "{6F352DD6-0EEB-4EAF-A285-7015DB238352}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orts.Formats", "Orts.Formats\Orts.Formats.csproj", "{DAFC28FE-E5A6-4528-B7B8-0A304680A642}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Orts", "Test\Tests.Orts\Tests.Orts.csproj", "{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -145,14 +145,6 @@ Global
 		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}.UpdateContentVersion|Any CPU.ActiveCfg = UpdateContentVersion|Any CPU
 		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}.UpdateContentVersion|Any CPU.Build.0 = UpdateContentVersion|Any CPU
-		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.CodeAnalysis|Any CPU.ActiveCfg = CodeAnalysis|Any CPU
-		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.CodeAnalysis|Any CPU.Build.0 = CodeAnalysis|Any CPU
-		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.UpdateContentVersion|Any CPU.ActiveCfg = UpdateContentVersion|Any CPU
-		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.UpdateContentVersion|Any CPU.Build.0 = UpdateContentVersion|Any CPU
 		{2B4CBBD5-2EEA-4149-9DA1-9CBB2625A474}.CodeAnalysis|Any CPU.ActiveCfg = CodeAnalysis|Any CPU
 		{2B4CBBD5-2EEA-4149-9DA1-9CBB2625A474}.CodeAnalysis|Any CPU.Build.0 = CodeAnalysis|Any CPU
 		{2B4CBBD5-2EEA-4149-9DA1-9CBB2625A474}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -241,6 +233,14 @@ Global
 		{DAFC28FE-E5A6-4528-B7B8-0A304680A642}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DAFC28FE-E5A6-4528-B7B8-0A304680A642}.UpdateContentVersion|Any CPU.ActiveCfg = UpdateContentVersion|Any CPU
 		{DAFC28FE-E5A6-4528-B7B8-0A304680A642}.UpdateContentVersion|Any CPU.Build.0 = UpdateContentVersion|Any CPU
+		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}.CodeAnalysis|Any CPU.ActiveCfg = CodeAnalysis|Any CPU
+		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}.CodeAnalysis|Any CPU.Build.0 = CodeAnalysis|Any CPU
+		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}.UpdateContentVersion|Any CPU.ActiveCfg = UpdateContentVersion|Any CPU
+		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}.UpdateContentVersion|Any CPU.Build.0 = UpdateContentVersion|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -249,9 +249,9 @@ Global
 		{E3E04859-2734-46EA-99B6-8A9721E85D3F} = {1A54D0F8-1A42-43D2-A366-B1542EB3C4CE}
 		{79C3A70B-7535-40CB-8448-91AB87CBAE44} = {1A54D0F8-1A42-43D2-A366-B1542EB3C4CE}
 		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8} = {1A54D0F8-1A42-43D2-A366-B1542EB3C4CE}
-		{401939A5-9CFD-42DA-8F47-766AE68F2CE5} = {C42BE9F9-199A-4AAA-ACF6-C0E4A32263A8}
 		{FDF85DD6-8414-42B7-A510-20EF87035307} = {1A54D0F8-1A42-43D2-A366-B1542EB3C4CE}
 		{D1D8E34A-FF64-4532-8C7A-5249F63F81A2} = {C42BE9F9-199A-4AAA-ACF6-C0E4A32263A8}
+		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC} = {C42BE9F9-199A-4AAA-ACF6-C0E4A32263A8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C78EAEEC-B64D-44BB-AA6C-C0177ECC2802}
