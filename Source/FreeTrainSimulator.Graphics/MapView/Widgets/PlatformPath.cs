@@ -7,8 +7,6 @@ using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Imported.Runtime;
 
-using Orts.Formats.Msts.Models;
-
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal record PlatformPath : TrackSegmentPathBase<PlatformSegment>, IDrawable<VectorPrimitive>, INameValueInformationProvider

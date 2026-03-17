@@ -124,12 +124,12 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             return result;
         }
 
-        private static ImmutableArray<Track.TrackNode> ConvertTrackNodes(TrackNodes trackNodes, string trackdatabaseFile)
+        private static ImmutableArray<Track.TrackNodeBase> ConvertTrackNodes(TrackNodes trackNodes, string trackdatabaseFile)
         {
             if (trackNodes == null)
-                return ImmutableArray<Track.TrackNode>.Empty;
+                return ImmutableArray<Track.TrackNodeBase>.Empty;
 
-            ImmutableArray<Track.TrackNode> result = trackNodes.Select(trackNode =>
+            ImmutableArray<Track.TrackNodeBase> result = trackNodes.Select(trackNode =>
             {
                 return trackNode switch
                 {
@@ -138,12 +138,12 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         NodeIndex = junctionNode.Index,
                         WorldId = junctionNode.UiD.WorldId,
                         ShapeIndex = junctionNode.ShapeIndex,
-                    } as Track.TrackNode,
+                    } as Track.TrackNodeBase,
                     TrackEndNode endNode => new EndNode(endNode.UiD.Location, endNode.UiD.WorldTile)
                     {
                         NodeIndex = endNode.Index,
                         WorldId = endNode.UiD.WorldId,
-                    } as Track.TrackNode,
+                    } as Track.TrackNodeBase,
                     TrackVectorNode vectorNode => new VectorNode(WorldLocation.None, Tile.Zero)
                     {
                         NodeIndex = vectorNode.Index,
@@ -156,7 +156,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             Flag1 = tvs.Flag1,
                             Flag2 = tvs.Flag2,
                         }).ToImmutableArray(),
-                    } as Track.TrackNode,
+                    } as Track.TrackNodeBase,
                     _ => null,
                 };
             }).ToImmutableArray();

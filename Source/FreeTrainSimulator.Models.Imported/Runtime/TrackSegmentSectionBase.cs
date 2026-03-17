@@ -9,7 +9,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     /// <summary>
     /// A collection of multiple <see cref="TrackSegmentBase"></see> segments along a track, covering all or 
-    /// some <see cref="Track.VectorSectionNode"/> of a <see cref="Track.TrackNode"/>. 
+    /// some <see cref="Track.VectorSectionNode"/> of a <see cref="Track.TrackNodeBase"/>. 
     /// Examples for partial TrackSegmentSections are i.e. Platforms along a track.
     /// </summary>
     /// <typeparam name="T"></typeparam>

@@ -14,7 +14,7 @@ using Orts.Formats.Msts;
 namespace FreeTrainSimulator.Models.Imported.Runtime
 {
     /// <summary>
-    /// A single segment along a track, covering a single <see cref="TrackVectorSection"/> as part of a <see cref="TrackNode"/><br/>
+    /// A single segment along a track, covering a single <see cref="TrackVectorSection"/> as part of a <see cref="TrackNodeBase"/><br/>
     /// Main properties are Length, Orientation (Heading) at starting point, the endpoint
     /// and if this is a curved segment, Radius and the Angle (angular size).<br/>
     /// This is a base class for derived types like rail tracks, road tracks.<br/><br/>

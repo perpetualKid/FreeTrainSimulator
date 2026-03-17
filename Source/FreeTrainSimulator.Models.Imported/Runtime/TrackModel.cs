@@ -435,7 +435,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
                     nodeConnector = nodeConnectors[0];
                 int trackNode = nodeConnector.Link;
 
-                TrackNode node = RuntimeData.TrackModel.TrackDatabase.TrackNodes[trackNode];
+                TrackNodeBase node = RuntimeData.TrackModel.TrackDatabase.TrackNodes[trackNode];
                 if (node is not EndNode and not JunctionNode)
                     throw new InvalidCastException($"Track Node {trackNodeIndex} is not a valid Track Connection Point");
                 return ref node.Location;

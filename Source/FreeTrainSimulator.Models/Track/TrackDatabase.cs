@@ -47,7 +47,7 @@ namespace FreeTrainSimulator.Models.Track
 
         public TrackDataBaseType TrackDataBaseType { get; init; }
         [MemoryPackIgnore]
-        public ImmutableArray<TrackNode> TrackNodes { get; init; } = ImmutableArray<TrackNode>.Empty;
+        public ImmutableArray<TrackNodeBase> TrackNodes { get; init; } = ImmutableArray<TrackNodeBase>.Empty;
         public ImmutableDictionary<int, TrackItemIndex> TrackItemsSelectors { get; init; } = ImmutableDictionary<int, TrackItemIndex>.Empty;
         public ImmutableArray<ImmutableArray<TrackNodeConnector>> TrackNodeConnectors { get; init; } = ImmutableArray<ImmutableArray<TrackNodeConnector>>.Empty;
         [MemoryPackIgnore]
@@ -107,7 +107,7 @@ namespace FreeTrainSimulator.Models.Track
             if (trackDatabase == null)
                 return;
 
-            TrackNode[] trackNodes = new TrackNode[(trackDatabase.endNodes?.Length ?? 0) + (trackDatabase.junctionNodes?.Length ?? 0) + 
+            TrackNodeBase[] trackNodes = new TrackNodeBase[(trackDatabase.endNodes?.Length ?? 0) + (trackDatabase.junctionNodes?.Length ?? 0) + 
                 (trackDatabase.vectorNodes?.Length ?? 0) + 1];
             foreach (EndNode node in trackDatabase.endNodes)
             {
