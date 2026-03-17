@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -388,18 +389,17 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     default:
                         Trace.TraceWarning($"{trackItem.GetType().Name} Index #{trackItem.TrackItemId} not supported for Track Items in track database {trackdatabaseFile}");
                         break;
-                }            
+                }
             }
 
+            //Validate linked platforms and sidings, and convert invalid linked items to empty items
             LinkSidingItems(result, trackdatabaseFile);
-
-            LinkPlatformItems(result.OfType<PlatformTrackItem>(), trackdatabaseFile);
+            LinkPlatformItems(result, trackdatabaseFile);
             return result.ToImmutableArray();
         }
 
         private static void LinkSidingItems(List<TrackItemModel> trackItems, string trackdatabaseFile)
         {
-            List<TrackItemModel> result = new List<TrackItemModel>();
             Dictionary<int, SidingTrackItem> sidingItemMappings = trackItems.OfType<SidingTrackItem>().ToDictionary(p => p.TrackItemIndex);
 
             for (int i = 0; i < trackItems.Count; i++)
@@ -426,17 +426,15 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                                         $"from Source Id {start.TrackItemIndex} name \"{start.SidingName}\" to Target id {end.TrackItemIndex} name \"{end.SidingName}\". Using {startName}");
                                     break;
                                 case int n when n > 0:
+                                    startName = endName;
                                     Trace.TraceWarning($"Siding Item pair in track database {trackdatabaseFile} has inconsistent naming " +
                                         $"from Source Id {start.TrackItemIndex} name \"{start.SidingName}\" to Target id {end.TrackItemIndex} name \"{end.SidingName}\". Using {endName}");
-                                    startName = endName;
                                     break;
                                 case 0:
                                     break;
                             }
-                            {
-                                trackItems[start.TrackItemIndex] = start with { SidingName = startName };
-                                trackItems[end.TrackItemIndex] = end with { SidingName = endName };
-                            }
+                            trackItems[start.TrackItemIndex] = start with { SidingName = startName };
+                            trackItems[end.TrackItemIndex] = end with { SidingName = endName };
                         }
                     }
                     else
@@ -456,10 +454,12 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
                 foreach (KeyValuePair<int, SidingTrackItem> item in sidingItemMappings)
                 {
-                    if (item.Value.SidingName == start.SidingName)
+                    SidingTrackItem end = item.Value;
+                    if (end.SidingName == start.SidingName)
                     {
-                        SidingTrackItem end = sidingItemMappings[item.Value.TrackItemIndex];
-                        _ = sidingItemMappings.Remove(item.Value.TrackItemIndex);
+                        _ = sidingItemMappings.Remove(end.TrackItemIndex);
+                        trackItems[start.TrackItemIndex] = start with { LinkedSidingItem = end.TrackItemIndex };
+                        trackItems[end.TrackItemIndex] = end with { LinkedSidingItem = start.TrackItemIndex };
                         Trace.TraceWarning($"Matching Siding Items in track database {trackdatabaseFile} by Name {start.SidingName} Id {start.TrackItemIndex} to target {start.LinkedSidingItem} vs Target id {item.Value.TrackItemIndex} to source {item.Value.LinkedSidingItem}.");
                         match = true;
                         break;
@@ -473,18 +473,75 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             }
         }
 
-        private static void LinkPlatformItems(IEnumerable<PlatformTrackItem> platformTrackItems, string trackdatabaseFile)
+        private static void LinkPlatformItems(List<TrackItemModel> trackItems, string trackdatabaseFile)
         {
-            Dictionary<int, PlatformTrackItem> platformItemMappings = platformTrackItems.ToDictionary(p => p.TrackItemIndex);
+            Dictionary<int, PlatformTrackItem> platformItemMappings = trackItems.OfType<PlatformTrackItem>().ToDictionary(p => p.TrackItemIndex);
 
-            foreach (PlatformTrackItem start in platformTrackItems)
+            for (int i = 0; i < trackItems.Count; i++)
             {
+                if (trackItems[i] is not PlatformTrackItem start)
+                    continue;
+
                 if (platformItemMappings.TryGetValue(start.LinkedPlatformItem, out PlatformTrackItem end))
                 {
-                    if (end.LinkedPlatformItem == start.TrackItemIndex && end.PlatformName == start.PlatformName && end.StationName == start.StationName)
+                    if (end.LinkedPlatformItem == start.TrackItemIndex)
                     {
                         _ = platformItemMappings.Remove(end.TrackItemIndex);
                         _ = platformItemMappings.Remove(start.TrackItemIndex);
+
+                        if (end.StationName != start.StationName || end.PlatformName != start.PlatformName)
+                        {
+                            if (end.StationName != start.StationName)
+                            {
+                                string endName = end.StationName.Trim();
+                                string startName = start.StationName.Trim();
+                                switch (endName.Length.CompareTo(startName.Length))
+                                {
+                                    case int n when n < 0:
+                                        endName = startName;
+                                        end = end with { StationName = endName };
+                                        Trace.TraceWarning($"Platform Item pair in track database {trackdatabaseFile} has inconsistent naming " +
+                                            $"from Source Id {start.TrackItemIndex} name \"{start.PlatformName}\" at station \"{start.StationName}\" " +
+                                            $"to Target id {end.TrackItemIndex} name \"{end.PlatformName}\" at station \"{end.StationName}\". Using {startName}");
+                                        break;
+                                    case int n when n > 0:
+                                        startName = endName;
+                                        start = start with { StationName = startName };
+                                        Trace.TraceWarning($"Platform Item pair in track database {trackdatabaseFile} has inconsistent naming " +
+                                            $"from Source Id {start.TrackItemIndex} name \"{start.PlatformName}\" at station \"{start.StationName}\" " +
+                                            $"to Target id {end.TrackItemIndex} name \"{end.PlatformName}\" at station \"{end.StationName}\". Using {endName}");
+                                        break;
+                                    case 0:
+                                        break;
+                                }
+                            }
+                            else if (end.PlatformName != start.PlatformName)
+                            {
+                                string endName = end.PlatformName.Trim();
+                                string startName = start.PlatformName.Trim();
+                                switch (endName.Length.CompareTo(startName.Length))
+                                {
+                                    case int n when n < 0:
+                                        endName = startName;
+                                        end = end with { StationName = endName };
+                                        Trace.TraceWarning($"Platform Item pair in track database {trackdatabaseFile} has inconsistent naming " +
+                                            $"from Source Id {start.TrackItemIndex} name \"{start.PlatformName}\" at station \"{start.StationName}\" " +
+                                            $"to Target id {end.TrackItemIndex} name \"{end.PlatformName}\" at station \"{end.StationName}\". Using {startName}");
+                                        break;
+                                    case int n when n > 0:
+                                        startName = endName;
+                                        start = start with { StationName = startName };
+                                        Trace.TraceWarning($"Platform Item pair in track database {trackdatabaseFile} has inconsistent naming " +
+                                            $"from Source Id {start.TrackItemIndex} name \"{start.PlatformName}\" at station \"{start.StationName}\" " +
+                                            $"to Target id {end.TrackItemIndex} name \"{end.PlatformName}\" at station \"{end.StationName}\". Using {endName}");
+                                        break;
+                                    case 0:
+                                        break;
+                                }
+                            }
+                            trackItems[start.TrackItemIndex] = start;
+                            trackItems[end.TrackItemIndex] = end;
+                        }
                     }
                     else
                     {
@@ -493,6 +550,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     }
                 }
             }
+
             while (platformItemMappings.Count > 0)
             {
                 bool match = false;
@@ -502,16 +560,24 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
                 foreach (KeyValuePair<int, PlatformTrackItem> item in platformItemMappings)
                 {
-                    if (item.Value.PlatformName == start.PlatformName && item.Value.StationName == start.StationName)
+                    PlatformTrackItem end = item.Value;
+                    if (end.PlatformName == start.PlatformName && item.Value.StationName == start.StationName)
                     {
-                        _ = platformItemMappings.Remove(item.Value.TrackItemIndex);
-                        Trace.TraceWarning($"Matching Platforms in track database {trackdatabaseFile}  by Name {start.PlatformName} Id {start.TrackItemIndex} to target {start.LinkedPlatformItem} vs Target id {item.Value.TrackItemIndex} to source {item.Value.LinkedPlatformItem}.");
+                        _ = platformItemMappings.Remove(end.TrackItemIndex);
+                        trackItems[start.TrackItemIndex] = start with { LinkedPlatformItem = end.TrackItemIndex };
+                        trackItems[end.TrackItemIndex] = end with { LinkedPlatformItem = start.TrackItemIndex };
+                        Trace.TraceWarning($"Matching Platform Items in track database {trackdatabaseFile} by Name "+
+                                            $"from Source Id {start.TrackItemIndex} name \"{start.PlatformName}\" at station \"{start.StationName}\" " +
+                                            $"to Target id {end.TrackItemIndex} name \"{end.PlatformName}\" at station \"{end.StationName}\".");
                         match = true;
                         break;
                     }
                 }
                 if (!match)
+                {
                     Trace.TraceWarning($"Linked Platform Item {start.LinkedPlatformItem} for Platform Item {start.TrackItemIndex} not found in track database {trackdatabaseFile}.");
+                    trackItems[start.TrackItemIndex] = new EmptyTrackItem() { TrackItemIndex = start.TrackItemIndex };
+                }
             }
         }
 
