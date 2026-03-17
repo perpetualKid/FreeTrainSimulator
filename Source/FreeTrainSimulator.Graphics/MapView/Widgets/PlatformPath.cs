@@ -7,6 +7,8 @@ using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Imported.Runtime;
 
+using Orts.Formats.Msts.Models;
+
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal record PlatformPath : TrackSegmentPathBase<PlatformSegment>, IDrawable<VectorPrimitive>, INameValueInformationProvider
@@ -88,22 +90,14 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
             List<PlatformPath> result = new List<PlatformPath>();
             Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.TrackItemId);
-            while (platformItemMappings.Count > 0)
+
+            foreach (PlatformTrackItem start in platformItems)
             {
-                int sourceId = platformItemMappings.Keys.First();
-                PlatformTrackItem start = platformItemMappings[sourceId];
-                _ = platformItemMappings.Remove(sourceId);
-                if (platformItemMappings.TryGetValue(start.LinkedId, out PlatformTrackItem end))
+                if (!platformItemMappings.TryGetValue(start.LinkedId, out PlatformTrackItem end))
                 {
-                    if (end.LinkedId != start.TrackItemId)
-                        Trace.TraceWarning($"Platform Item Pair has inconsistent linking from Source Id {start.TrackItemId} to target {start.LinkedId} vs Target id {end.TrackItemId} to source {end.LinkedId}.");
-                    _ = platformItemMappings.Remove(end.TrackItemId);
-                    result.Add(new PlatformPath(trackModel, start, end));
+                    Trace.TraceError($"Platform Item pair not found for Source Id {start.TrackItemId} to target {start.LinkedId}");
                 }
-                else
-                {
-                    Trace.TraceWarning($"Linked Platform Item {start.LinkedId} for Platform Item {start.TrackItemId} not found.");
-                }
+                result.Add(new PlatformPath(trackModel, start, end));
             }
             return result;
         }

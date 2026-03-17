@@ -82,53 +82,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
             foreach (SidingTrackItem start in sidingItems)
             {
-                if (sidingItemMappings.TryGetValue(start.LinkedId, out SidingTrackItem end))
+                if (!sidingItemMappings.TryGetValue(start.LinkedId, out SidingTrackItem end))
                 {
-                    if (end.LinkedId == start.TrackItemId && end.SidingName == start.SidingName)
-                    {
-                        _ = sidingItemMappings.Remove(end.TrackItemId);
-                        _ = sidingItemMappings.Remove(start.TrackItemId);
-                        result.Add(new SidingPath(trackModel, start, end));
-                    }
-                    else
-                    {
-                        Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {start.TrackItemId} to target {start.LinkedId} vs Target id {end.TrackItemId} to source {end.LinkedId}.");
-                    }
+                    Trace.TraceError($"Siding Item pair not found for Source Id {start.TrackItemId} to target {start.LinkedId}");
                 }
-            }
-
-
-            while (sidingItemMappings.Count > 0)
-            {
-                bool match = false;
-                int sourceId = sidingItemMappings.Keys.First();
-                SidingTrackItem start = sidingItemMappings[sourceId];
-                _ = sidingItemMappings.Remove(sourceId);
-
-                foreach (KeyValuePair<int, SidingTrackItem> item in sidingItemMappings)
-                {
-                    if (item.Value.SidingName == start.SidingName)
-                    {
-                        _ = sidingItemMappings.Remove(item.Value.TrackItemId);
-                        result.Add(new SidingPath(trackModel, start, item.Value));
-                        Trace.TraceWarning($"Matching Siding Items by Name {start.SidingName} Id {start.TrackItemId} to target {start.LinkedId} vs Target id {item.Value.TrackItemId} to source {item.Value.LinkedId}.");
-                        match = true;
-                        break;
-                    }
-                }
-                if (!match)
-                    Trace.TraceWarning($"Linked Siding Item {start.LinkedId} for Siding Item {start.TrackItemId} not found.");
-                //if (sidingItemMappings.TryGetValue(start.LinkedId, out SidingTrackItem end))
-                //{
-                //    if (end.LinkedId != start.TrackItemId)
-                //        Trace.TraceWarning($"Siding Item Pair has inconsistent linking from Source Id {start.TrackItemId} to target {start.LinkedId} vs Target id {end.TrackItemId} to source {end.LinkedId}.");
-                //    _ = sidingItemMappings.Remove(end.TrackItemId);
-                //    result.Add(new SidingPath(trackModel, start, end));
-                //}
-                //else
-                //{
-                //    Trace.TraceWarning($"Linked Siding Item {start.LinkedId} for Siding Item {start.TrackItemId} not found.");
-                //}
+                result.Add(new SidingPath(trackModel, start, end));
             }
             return result;
         }

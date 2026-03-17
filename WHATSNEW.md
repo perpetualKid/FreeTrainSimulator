@@ -2,6 +2,7 @@
 
 ## Features
 
+- Importing Track Sections (tsection.dat) and Track Database (*.tdb and *.rdb). Used in Toolbox, other applications will follow
 - Toolbox Path Editor allows to create and save new train paths. This is still work in progres.
 - Game will be started based on profile-selections, not passing commandline arguments (still possible though for debugging purposes)
 - Multiple configuration profiles, available through Menu application, allow to have all settings profile-dependent
