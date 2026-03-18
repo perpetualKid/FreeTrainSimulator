@@ -100,11 +100,11 @@ namespace FreeTrainSimulator.Runtime.Track
             }
         }
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
-
+#pragma warning disable CA1716 // Identifiers should not match keywords
         protected abstract TrackSegmentSectionBase<T> InitializeSection(in PointD start, in PointD end);
         protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end);
         protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackModel trackModel, int trackNodeIndex);
-
+#pragma warning restore CA1716 // Identifiers should not match keywords
         protected void AddSections(IReadOnlyCollection<TrackSegmentSectionBase<T>> sections)
         {
             ArgumentNullException.ThrowIfNull(sections, nameof(sections));

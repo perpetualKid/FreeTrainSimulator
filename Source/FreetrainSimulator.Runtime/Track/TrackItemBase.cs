@@ -8,7 +8,9 @@ namespace FreeTrainSimulator.Runtime.Track
     #region TrackItemBase
     public abstract record TrackItemBase : PointPrimitive, IIndexedElement
     {
+#pragma warning disable CA1033 // Interface methods should be callable by child types
         public int TrackItemIndex { get; }
+#pragma warning restore CA1033 // Interface methods should be callable by child types
 
         int IIndexedElement.Index => TrackItemIndex;
 

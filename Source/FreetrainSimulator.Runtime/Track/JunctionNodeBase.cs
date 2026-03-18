@@ -17,7 +17,9 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public int MainRoute { get; }
 
+#pragma warning disable CA1033 // Interface methods should be callable by child types
         int IIndexedElement.Index => TrackNodeIndex;
+#pragma warning restore CA1033 // Interface methods should be callable by child types
 
         protected JunctionNodeBase(JunctionNode junctionNode, int mainRouteIndex, TrackDatabase trackDatabase) :
             base(junctionNode?.Location ?? throw new ArgumentNullException(nameof(junctionNode)))

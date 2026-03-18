@@ -32,7 +32,9 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public int TrackNodeIndex { get; }
 
+#pragma warning disable CA1033 // Interface methods should be callable by child types
         int IIndexedElement.Index => TrackNodeIndex;
+#pragma warning restore CA1033 // Interface methods should be callable by child types
 
         private protected TrackSegmentSectionBase(int trackNodeIndex, IEnumerable<T> trackSegments) : base()
         {
