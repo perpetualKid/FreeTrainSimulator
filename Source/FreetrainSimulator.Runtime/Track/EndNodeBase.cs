@@ -14,9 +14,7 @@ namespace FreeTrainSimulator.Runtime.Track
         public float Direction { get; }
         public int TrackNodeIndex { get; }
 
-#pragma warning disable CA1033 // Interface methods should be callable by child types
         int IIndexedElement.Index => TrackNodeIndex;
-#pragma warning restore CA1033 // Interface methods should be callable by child types
 
         protected EndNodeBase(EndNode trackEndNode, TrackDatabase trackDatabase) :
             base(trackEndNode?.Location ?? throw new ArgumentNullException(nameof(trackEndNode)))

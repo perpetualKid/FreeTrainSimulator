@@ -116,7 +116,7 @@ namespace FreeTrainSimulator.Toolbox
 
         public void MouseReleasedRight(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
-            RemovePathPoint();
+            _ = RemovePathPoint();
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             userCommandArgs.Handled = true;
         }

@@ -78,6 +78,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public static List<SidingPath> CreateSidings(TrackModel trackModel, IEnumerable<SidingTrackItem> sidingItems)
         {
             List<SidingPath> result = new List<SidingPath>();
+            if (sidingItems is not IList<SidingTrackItem>)
+                sidingItems = sidingItems.ToList();
             Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.TrackItemId);
 
             foreach (SidingTrackItem start in sidingItems)

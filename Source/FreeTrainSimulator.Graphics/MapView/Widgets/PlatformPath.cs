@@ -87,6 +87,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public static List<PlatformPath> CreatePlatforms(TrackModel trackModel, IEnumerable<PlatformTrackItem> platformItems)
         {
             List<PlatformPath> result = new List<PlatformPath>();
+            if (platformItems is not IList<PlatformTrackItem>)
+                platformItems = platformItems.ToList();
             Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.TrackItemId);
 
             foreach (PlatformTrackItem start in platformItems)

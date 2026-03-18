@@ -311,14 +311,14 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             ControlLayout line = sender as ControlLayout;
             if (line.Controls[0] is RadioButton radioButton && radioButton.State)
             {
-                pathEditor.InitializePath(null);
+                _ = pathEditor.InitializePath(null);
                 radioButton.State = false;
             }
             else if (line?.Tag is PathModelHeader path)
             {
                 if (!((line.Controls[0] as RadioButton).State = pathEditor.InitializePath(path)))
                 {
-                    System.Windows.Forms.MessageBox.Show("Invalid path data");
+                    _ = System.Windows.Forms.MessageBox.Show("Invalid path data");
                 }
             }
         }
@@ -330,12 +330,12 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             {
                 if (!((line.Controls[0] as RadioButton).State = pathEditor.InitializePath(path)))
                 {
-                    System.Windows.Forms.MessageBox.Show("Invalid path data");
+                    _ = System.Windows.Forms.MessageBox.Show("Invalid path data");
                 }
             }
             else
             {
-                pathEditor.InitializePath(null);
+                _ = pathEditor.InitializePath(null);
                 (sender as RadioButton).State = false;
             }
         }
@@ -438,12 +438,12 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
             if (string.IsNullOrEmpty(searchText))
             {
-                foreach (ControlLayoutHorizontal line in pathControls)
+                foreach (ControlLayoutHorizontal line in pathControls.Cast<ControlLayoutHorizontal>())
                     pathScrollbox.Client.Add(line);
             }
             else
             {
-                foreach (ControlLayoutHorizontal line in pathControls)
+                foreach (ControlLayoutHorizontal line in pathControls.Cast<ControlLayoutHorizontal>())
                 {
                     if ((line.Controls[1] as Label)?.Text?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false)
                         pathScrollbox.Client.Add(line);

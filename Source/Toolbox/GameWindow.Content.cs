@@ -77,24 +77,30 @@ namespace FreeTrainSimulator.Toolbox
         internal async Task<ImmutableArray<RouteModelHeader>> FindRoutes(FolderModel contentFolder)
         {
             ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
-            await loadRouteSemaphore.WaitAsync().ConfigureAwait(false);
-            if (contentFolder != selectedFolder)
+            try
             {
-                try
+                await loadRouteSemaphore.WaitAsync().ConfigureAwait(false);
+                if (contentFolder != selectedFolder)
                 {
-                    routeModels = await contentFolder.GetRoutes(ctsProfileLoading.Token).ConfigureAwait(false);
+                    try
+                    {
+                        routeModels = await contentFolder.GetRoutes(ctsProfileLoading.Token).ConfigureAwait(false);
+                    }
+                    catch (TaskCanceledException) { }
+                    selectedFolder = contentFolder;
                 }
-                catch (TaskCanceledException) { }
-                selectedFolder = contentFolder;
             }
-            loadRouteSemaphore.Release();
+            finally
+            {
+                _ = loadRouteSemaphore.Release();
+            }
             return routeModels;
         }
 
         internal async Task LoadRoute(RouteModelHeader route)
         {
             (windowManager[ToolboxWindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
-            windowManager[ToolboxWindowType.StatusWindow].Open();
+            _ = windowManager[ToolboxWindowType.StatusWindow].Open();
             UnloadRoute();
 
             ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
@@ -117,7 +123,7 @@ namespace FreeTrainSimulator.Toolbox
             content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
             ContentArea = content.ContentArea;
             mainmenu.PopulatePaths(await pathTask.ConfigureAwait(false));
-            windowManager[ToolboxWindowType.StatusWindow].Close();
+            _ = windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
         }
 
@@ -134,7 +140,7 @@ namespace FreeTrainSimulator.Toolbox
         internal void SavePath()
         {
             windowForm.ActiveControl = null;
-            windowManager[ToolboxWindowType.TrainPathSaveWindow].Open();
+            _ = windowManager[ToolboxWindowType.TrainPathSaveWindow].Open();
         }
 
         internal async Task PreSelectRoute(string folderName, string routeId, string pathId)
@@ -176,7 +182,7 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void UnloadPath()
         {
-            PathEditor.InitializePath(null);
+            _ = PathEditor.InitializePath(null);
         }
     }
 }
