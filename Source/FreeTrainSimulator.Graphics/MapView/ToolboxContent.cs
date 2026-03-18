@@ -220,7 +220,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void AddTrackSegments()
         {
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
-            TrackSectionsModel trackSections = RuntimeData.GameInstance(game).TrackSections;
+            TrackSectionModel trackSections = RuntimeData.GameInstance(game).TrackSections;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<Widgets.EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();

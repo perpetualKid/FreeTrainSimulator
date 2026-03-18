@@ -8,6 +8,8 @@ using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Formats.Msts;
+
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal record EndNode : EndNodeBase, IDrawable<PointPrimitive>, INameValueInformationProvider
@@ -18,7 +20,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         protected const float Length = 0.5f;
 
         public EndNode(Models.Track.EndNode trackEndNode, TrackDatabase trackDatabase = null) :
-            base(trackEndNode, trackDatabase ?? Orts.Formats.Msts.RuntimeData.Instance.TrackModel.TrackDatabase)
+            base(trackEndNode, trackDatabase ?? RuntimeData.Instance.TrackModel.TrackDatabase)
         {
             Size = width;
         }

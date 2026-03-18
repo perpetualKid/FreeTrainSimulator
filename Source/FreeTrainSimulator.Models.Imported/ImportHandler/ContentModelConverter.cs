@@ -74,7 +74,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
             if (VersionInfo.Compare(routeModel.Version) > 0 || refresh)
             {
                 await Task.WhenAll(
-                    TrackSectionsModelImportHandler.ExpandTrackSectionModel(routeModel, cancellationToken),
+                    TrackSectionModelImportHandler.ExpandTrackSectionModel(routeModel, cancellationToken),
                     PathModelImportHandler.ExpandPathModels(routeModel, cancellationToken),
                     ActivityModelImportHandler.ExpandActivityModels(routeModel, cancellationToken),
                     TimetableModelHandler.ExpandTimetableModels(routeModel, cancellationToken),

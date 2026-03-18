@@ -10,7 +10,7 @@ namespace FreeTrainSimulator.Models.Shim
 {
     public static class TrackSectionModelExtensions
     {
-        public static async ValueTask<TrackSectionsModel> Get(this RouteModelHeader routeModel, CancellationToken cancellationToken)
+        public static async ValueTask<TrackSectionModel> Get(this RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             return await TrackSectionsModelHandler.GetCore(routeModel, cancellationToken).ConfigureAwait(false);

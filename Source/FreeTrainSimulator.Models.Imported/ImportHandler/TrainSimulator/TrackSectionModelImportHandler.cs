@@ -13,23 +13,23 @@ using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
-    internal class TrackSectionsModelImportHandler : ContentHandlerBase<TrackSectionsModel>
+    internal class TrackSectionModelImportHandler : ContentHandlerBase<TrackSectionModel>
     {
-        public static Task<TrackSectionsModel> ExpandTrackSectionModel(RouteModelHeader routeModel, CancellationToken cancellationToken)
+        public static Task<TrackSectionModel> ExpandTrackSectionModel(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            Task<TrackSectionsModel> modelTask = Convert(routeModel, cancellationToken);
+            Task<TrackSectionModel> modelTask = Convert(routeModel, cancellationToken);
             modelTaskCache[routeModel.Id] = modelTask;
             return modelTask;
         }
 
-        private static async Task<TrackSectionsModel> Convert(RouteModelHeader routeModel, CancellationToken cancellationToken)
+        private static async Task<TrackSectionModel> Convert(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             TrackSectionsFile trackSectionsFile = new TrackSectionsFile(routeModel.MstsRouteFolder().TrackSectionFile);
             trackSectionsFile.AddRouteTSectionDatFile(routeModel.MstsRouteFolder().RouteTrackSectionFile);
 
-            TrackSectionsModel trackSectionModel = new TrackSectionsModel()
+            TrackSectionModel trackSectionModel = new TrackSectionModel()
             {
                 Id = routeModel.Id,
                 TrackSections = trackSectionsFile.TrackSections?.Where(t => t.Value.Length > 0 || t.Value.Angle > 0).Select(trackSection => new TrackSection()

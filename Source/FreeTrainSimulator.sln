@@ -65,6 +65,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orts.Formats", "Orts.Format
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Orts", "Test\Tests.Orts\Tests.Orts.csproj", "{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreetrainSimulator.Runtime", "FreetrainSimulator.Runtime\FreetrainSimulator.Runtime.csproj", "{4D3E6D89-8CD6-4B9B-991F-F9430935AED3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CodeAnalysis|Any CPU = CodeAnalysis|Any CPU
@@ -241,6 +243,14 @@ Global
 		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}.UpdateContentVersion|Any CPU.ActiveCfg = UpdateContentVersion|Any CPU
 		{AE5FAC36-9C44-B604-518C-BC9F4B0427DC}.UpdateContentVersion|Any CPU.Build.0 = UpdateContentVersion|Any CPU
+		{4D3E6D89-8CD6-4B9B-991F-F9430935AED3}.CodeAnalysis|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D3E6D89-8CD6-4B9B-991F-F9430935AED3}.CodeAnalysis|Any CPU.Build.0 = Debug|Any CPU
+		{4D3E6D89-8CD6-4B9B-991F-F9430935AED3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D3E6D89-8CD6-4B9B-991F-F9430935AED3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D3E6D89-8CD6-4B9B-991F-F9430935AED3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D3E6D89-8CD6-4B9B-991F-F9430935AED3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D3E6D89-8CD6-4B9B-991F-F9430935AED3}.UpdateContentVersion|Any CPU.ActiveCfg = Release|Any CPU
+		{4D3E6D89-8CD6-4B9B-991F-F9430935AED3}.UpdateContentVersion|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

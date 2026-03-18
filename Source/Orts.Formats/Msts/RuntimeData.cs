@@ -16,7 +16,7 @@ namespace Orts.Formats.Msts
     public class RuntimeData
     {
         public RouteModel RouteData { get; }
-        public TrackSectionsModel TrackSections { get; init; }
+        public TrackSectionModel TrackSections { get; init; }
         public TrackModel TrackModel { get; init; }
         /// <summary>Track database, public such that other classes have access as well</summary>
         public TrackDB TrackDB { get; }
@@ -36,7 +36,7 @@ namespace Orts.Formats.Msts
 
         public static void Initialize(RouteModel route, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
-            TrackSectionsModel trackSectionModel = null;
+            TrackSectionModel trackSectionModel = null;
             TrackModel trackModel = null;
 
             Task.Run(async () =>
@@ -47,12 +47,12 @@ namespace Orts.Formats.Msts
             Instance = new RuntimeData(route, trackSectionModel, trackModel, trackDb, roadTrackDB, signalConfig, metricUnits, runtimeReferenceResolver);
         }
 
-        public static void Initialize(RouteModel route, TrackSectionsModel trackSectionModel, TrackModel trackModel, SignalConfigurationFile signalConfig, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
+        public static void Initialize(RouteModel route, TrackSectionModel trackSectionModel, TrackModel trackModel, SignalConfigurationFile signalConfig, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
             Instance = new RuntimeData(route, trackSectionModel, trackModel, null, null, signalConfig, metricUnits, runtimeReferenceResolver);
         }
 
-        protected RuntimeData(RouteModel route, TrackSectionsModel trackSectionModel, TrackModel trackModel,
+        protected RuntimeData(RouteModel route, TrackSectionModel trackSectionModel, TrackModel trackModel,
             TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver)
         {
             RouteData = route;

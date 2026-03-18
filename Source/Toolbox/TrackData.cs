@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Toolbox
 
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
 
-            Task<TrackSectionsModel> tracksectionModelTask = routeModel.GetTrackSectionModel(cancellationToken);
+            Task<TrackSectionModel> tracksectionModelTask = routeModel.GetTrackSectionModel(cancellationToken);
             Task<TrackModel> trackModelTask = routeModel.GetTrackModel(cancellationToken);
             Task<SignalConfigurationFile> signalConfigTask = Task.Run(() => new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken);
 

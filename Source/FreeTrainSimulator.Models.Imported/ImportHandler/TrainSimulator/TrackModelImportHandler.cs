@@ -83,7 +83,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 TrackItemsSelectors = ConvertTrackSelectors(roadTrackDB?.TrackNodes),
             };
 
-            TrackSectionsModel trackSections = await routeModel.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
+            TrackSectionModel trackSections = await routeModel.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
 
             TrackModel trackModel = new TrackModel()
             {
@@ -178,7 +178,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 })).ToImmutableDictionary(item => item.Index, item => item.Item2);
         }
 
-        private static ImmutableArray<TrackItemModel> ConvertTrackItems(List<TrackItem> trackItems, TrackDatabase trackDatabase, TrackSectionsModel trackSections,
+        private static ImmutableArray<TrackItemModel> ConvertTrackItems(List<TrackItem> trackItems, TrackDatabase trackDatabase, TrackSectionModel trackSections,
             string trackdatabaseFile)
         {
             if (trackItems == null)

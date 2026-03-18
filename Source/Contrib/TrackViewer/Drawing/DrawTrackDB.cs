@@ -202,7 +202,7 @@ namespace ORTS.TrackViewer.Drawing
 
         #region private members
         /// <summary>Track Section Data</summary>
-        private readonly FreeTrainSimulator.Models.Track.TrackSectionsModel trackSections;
+        private readonly FreeTrainSimulator.Models.Track.TrackSectionModel trackSections;
         /// <summary>Track database</summary>
         private readonly TrackDB trackDB;
         /// <summary>Road track database</summary>

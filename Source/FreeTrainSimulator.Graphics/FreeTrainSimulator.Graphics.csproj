@@ -48,6 +48,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
+		<ProjectReference Include="..\FreetrainSimulator.Runtime\FreetrainSimulator.Runtime.csproj" />
 		<PackageReference Include="System.Drawing.Common" Version="10.0.1" />
 		<PackageReference Include="System.Resources.Extensions" Version="10.0.1" />
 	</ItemGroup>

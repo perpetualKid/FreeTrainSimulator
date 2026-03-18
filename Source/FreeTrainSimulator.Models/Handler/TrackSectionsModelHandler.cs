@@ -7,14 +7,14 @@ using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Models.Handler
 {
-    internal class TrackSectionsModelHandler : ContentHandlerBase<TrackSectionsModel>
+    internal class TrackSectionsModelHandler : ContentHandlerBase<TrackSectionModel>
     {
-        public static Task<TrackSectionsModel> GetCore(RouteModelHeader routeModel, CancellationToken cancellationToken)
+        public static Task<TrackSectionModel> GetCore(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             string key = routeModel.Id;
 
-            if (!modelTaskCache.TryGetValue(key, out Task<TrackSectionsModel> modelTask) || modelTask.IsFaulted)
+            if (!modelTaskCache.TryGetValue(key, out Task<TrackSectionModel> modelTask) || modelTask.IsFaulted)
             {
                 modelTaskCache[key] = modelTask = FromFile(key, routeModel, cancellationToken);
             }

@@ -12,7 +12,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
     {
         public virtual PathNodeType NodeType { get; init; }
 
-        public Runtime.JunctionNodeBase JunctionNode { get; }
+        public JunctionNodeBase JunctionNode { get; }
 
         public ImmutableArray<TrackSegmentBase> ConnectedSegments { get; }
 

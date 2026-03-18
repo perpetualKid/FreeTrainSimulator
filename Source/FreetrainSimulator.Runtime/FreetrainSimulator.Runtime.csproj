@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+		<Description>Free Train Simulator Runtime Models and Behaviors Library</Description>
+		<AssemblyTitle>Free Train Simulator Runtime Models and Behaviors Library</AssemblyTitle>
+		<OutputPath>..\..\Program</OutputPath>
+		<AssemblyName>FreeTrainSimulator.Runtime</AssemblyName>
+		<RootNamespace>FreeTrainSimulator.Runtime</RootNamespace>
+		<Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
+    <ProjectReference Include="..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
+  </ItemGroup>
+
+</Project>
