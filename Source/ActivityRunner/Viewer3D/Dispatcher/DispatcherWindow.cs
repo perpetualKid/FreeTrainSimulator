@@ -18,9 +18,9 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Imported.Runtime;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
 using GetText.WindowsForms;

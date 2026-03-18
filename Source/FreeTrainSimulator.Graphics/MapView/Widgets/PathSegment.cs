@@ -1,7 +1,7 @@
 ﻿
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
-using FreeTrainSimulator.Models.Imported.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 

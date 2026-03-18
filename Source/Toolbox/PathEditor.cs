@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Imported.Runtime;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 namespace FreeTrainSimulator.Toolbox
 {
@@ -85,7 +86,7 @@ namespace FreeTrainSimulator.Toolbox
         public async Task SavePath(PathModelHeader pathDetails)
         {
             PathModel pathModel = ConvertTrainPath(pathDetails);
-            pathModel = await TrackData.Instance.RouteData.Save(pathModel).ConfigureAwait(false);
+            pathModel = await RuntimeDataResolver.Instance.RouteData.Save(pathModel).ConfigureAwait(false);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 

@@ -3,7 +3,7 @@
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 
-namespace FreeTrainSimulator.Models.Imported.Runtime
+namespace FreeTrainSimulator.Runtime.Track
 {
     internal record TrainPathPoint : TrainPathPointBase
     {

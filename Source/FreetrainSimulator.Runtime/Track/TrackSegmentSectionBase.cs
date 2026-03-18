@@ -5,7 +5,7 @@ using System.Diagnostics;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
-namespace FreeTrainSimulator.Models.Imported.Runtime
+namespace FreeTrainSimulator.Runtime.Track
 {
     /// <summary>
     /// A collection of multiple <see cref="TrackSegmentBase"></see> segments along a track, covering all or 

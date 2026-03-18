@@ -10,8 +10,9 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Imported.Runtime;
 using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -219,8 +220,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         #region build content database
         private void AddTrackSegments()
         {
-            RuntimeData runtimeData = RuntimeData.GameInstance(game);
-            TrackSectionModel trackSections = RuntimeData.GameInstance(game).TrackSections;
+            RuntimeDataResolver runtimeData = RuntimeDataResolver.GameInstance(game);
+            TrackSectionModel trackSections = runtimeData.TrackSections;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<Widgets.EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
@@ -253,7 +254,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             insetComponent?.SetTrackSegments(trackSegments);
 
-            trackModel = Models.Imported.Runtime.TrackModel.Reset(game, runtimeData);
+            trackModel = Runtime.Track.TrackModel.Reset(game, runtimeData);
             trackModel.InitializeRailTrack(trackSegments, junctionSegments, endSegments);
 
             if (runtimeData.TrackModel.RoadDatabase != null)

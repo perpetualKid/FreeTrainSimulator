@@ -9,9 +9,7 @@ using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts;
-
-namespace FreeTrainSimulator.Models.Imported.Runtime
+namespace FreeTrainSimulator.Runtime.Track
 {
     /// <summary>
     /// A single segment along a track, covering a single <see cref="TrackVectorSection"/> as part of a <see cref="TrackNodeBase"/><br/>
@@ -72,7 +70,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
             TrackNodeIndex = trackNodeIndex;
             TrackVectorSectionIndex = trackVectorSectionIndex;
 
-            if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(trackVectorSection.NodeIndex, out TrackSection trackSection))
+            if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(trackVectorSection.NodeIndex, out TrackSection trackSection))
             {
                 Trace.TraceError($"TrackVectorSection {trackVectorSection.NodeIndex} not found in TrackSectionModel for section index {trackVectorSectionIndex} in track node {trackNodeIndex}");
                 return;

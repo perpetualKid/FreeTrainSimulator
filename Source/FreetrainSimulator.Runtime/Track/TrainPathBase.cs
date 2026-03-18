@@ -10,15 +10,8 @@ using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
-namespace FreeTrainSimulator.Models.Imported.Runtime
+namespace FreeTrainSimulator.Runtime.Track
 {
-    public enum PathSectionType
-    {
-        Invalid,
-        MainPath,
-        PassingPath,
-    }
-
     public abstract record TrainPathBase : TrackSegmentPathBase<TrainPathSegmentBase>
     {
         public PathModel PathModel { get; }

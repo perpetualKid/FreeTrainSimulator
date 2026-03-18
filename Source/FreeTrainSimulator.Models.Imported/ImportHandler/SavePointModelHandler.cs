@@ -116,7 +116,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
                         MultiplayerGame = saveState.MultiplayerGame,
                         //Debrief Eval
                         DebriefEvaluation = saveState.ActivityEvaluationState != null,
-                        Tags = new Dictionary<string, string> { { SourceNameKey, filePath } },
+                        Tags = new Dictionary<string, string> { { SourceNameKey, filePath } }.ToImmutableDictionary(),
                     };
                     return result;
                 }
@@ -151,7 +151,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
                         MultiplayerGame = false,
                         //Debrief Eval
                         DebriefEvaluation = false,
-                        Tags = new Dictionary<string, string> { { SourceNameKey, filePath } },
+                        Tags = new Dictionary<string, string> { { SourceNameKey, filePath } }.ToImmutableDictionary(),
                     };
                 }
             }

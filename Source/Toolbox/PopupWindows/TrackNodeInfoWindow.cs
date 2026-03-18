@@ -7,7 +7,7 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
-using FreeTrainSimulator.Models.Imported.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
 

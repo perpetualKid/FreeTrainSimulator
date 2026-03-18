@@ -12,8 +12,8 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Imported.Runtime;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.Settings;
 
 using GetText;

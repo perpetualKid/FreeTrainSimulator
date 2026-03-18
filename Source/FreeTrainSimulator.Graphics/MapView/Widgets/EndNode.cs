@@ -3,8 +3,8 @@ using System.Globalization;
 
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Imported.Runtime;
 using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 

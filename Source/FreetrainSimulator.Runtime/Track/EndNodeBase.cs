@@ -7,9 +7,7 @@ using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts;
-
-namespace FreeTrainSimulator.Models.Imported.Runtime
+namespace FreeTrainSimulator.Runtime.Track
 {
     public abstract record EndNodeBase : PointPrimitive, IIndexedElement
     {
@@ -43,7 +41,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
                 VectorSectionNode vectorSection = connectedVectorNode.VectorSections[^1];
                 Direction = vectorSection.Direction.Y;
                 // try to get even better in case the last section is curved
-                if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(vectorSection.NodeIndex, out TrackSection trackSection))
+                if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(vectorSection.NodeIndex, out TrackSection trackSection))
                     throw new System.IO.InvalidDataException($"TrackVectorSection {vectorSection.NodeIndex} not found in TSection.dat");
                 if (trackSection.Curved)
                 {

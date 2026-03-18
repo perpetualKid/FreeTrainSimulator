@@ -3,7 +3,7 @@ using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Imported.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 

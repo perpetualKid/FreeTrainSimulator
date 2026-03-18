@@ -8,9 +8,7 @@ using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts;
-
-namespace FreeTrainSimulator.Models.Imported.Runtime
+namespace FreeTrainSimulator.Runtime.Track
 {
     public abstract record JunctionNodeBase : PointPrimitive, IIndexedElement
     {
@@ -60,7 +58,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
             else
             {
                 // else we'll need to find the angle at the other end, which is same for straight tracks, but changes for curved tracks
-                return !RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(vectorNode.VectorSections[^1].NodeIndex, out TrackSection trackSection)
+                return !RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(vectorNode.VectorSections[^1].NodeIndex, out TrackSection trackSection)
                     ? throw new System.IO.InvalidDataException($"TrackVectorSection {vectorNode.VectorSections[^1].NodeIndex} not found in TSection.dat")
                     : trackSection.Curved
                     ? vectorNode.VectorSections[^1].Direction.Y + MathHelper.ToRadians(trackSection.Angle)
@@ -82,7 +80,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
             if (reverse)
             {
                 // if the attached track is reverse, we'll need to find the angle at the other end, which is same for straight tracks, but changes for curved tracks
-                return !RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(vectorNode.VectorSections[0].NodeIndex, out TrackSection trackSection)
+                return !RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(vectorNode.VectorSections[0].NodeIndex, out TrackSection trackSection)
                     ? throw new System.IO.InvalidDataException($"TrackVectorSection {vectorNode.VectorSections[0].NodeIndex} not found in TSection.dat")
                     : trackSection.Curved
                     ? vectorNode.VectorSections[index].Direction.Y + MathHelper.ToRadians(trackSection.Angle)

@@ -4,7 +4,7 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Imported.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -152,7 +152,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return new EditorPathPoint(pathPoint.Location, pathPoint.Location, PathNodeType.None);
         }
 
-        internal EditorPathPoint UpdatePathEndPoint(in PointD location, FreeTrainSimulator.Models.Imported.Runtime.JunctionNodeBase junctionNode, TrackSegmentBase trackSegment)
+        internal EditorPathPoint UpdatePathEndPoint(in PointD location, Runtime.Track.JunctionNodeBase junctionNode, TrackSegmentBase trackSegment)
         {
             bool startPoint = PathPoints.Count == 0;
 

@@ -89,7 +89,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.OpenRails
                         Id = Path.GetFileNameWithoutExtension(filePath),
                         Name = groupFile.Description,
                         TimetableTrains = groupFile.TimeTables.SelectMany(timetable => BuildTrains(timetable.Trains, timetable.Description))?.ToImmutableArray() ?? ImmutableArray<TimetableTrainModel>.Empty,
-                        Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileName(filePath) } },
+                        Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileName(filePath) } }.ToImmutableDictionary(),
                     };
                 }
                 else
@@ -101,7 +101,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.OpenRails
                         Id = Path.GetFileNameWithoutExtension(filePath),
                         Name = timetableFile.Description,
                         TimetableTrains = BuildTrains(timetableFile.Trains, timetableFile.Description)?.ToImmutableArray() ?? ImmutableArray<TimetableTrainModel>.Empty,
-                        Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileName(filePath) } },
+                        Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileName(filePath) } }.ToImmutableDictionary(),
                     };
                 }
 

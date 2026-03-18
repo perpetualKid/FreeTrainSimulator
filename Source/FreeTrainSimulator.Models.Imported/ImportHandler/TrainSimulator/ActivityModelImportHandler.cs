@@ -117,7 +117,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     ActivityType = ActivityType.Activity,
                     PathId = activityFile.Activity.Header.PathID,
                     ConsistId = srvFile.TrainConfig,
-                    Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
+                    Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } }.ToImmutableDictionary(),
                     FuelLevels = new EnumArray<int, FuelType>((FuelType fuelType) => fuelType switch
                     {
                         FuelType.Water => activityFile.Activity.Header.FuelWater,

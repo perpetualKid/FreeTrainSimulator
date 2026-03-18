@@ -10,9 +10,7 @@ using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts;
-
-namespace FreeTrainSimulator.Models.Imported.Runtime
+namespace FreeTrainSimulator.Runtime.Track
 {
     public sealed class TrackModel
     {
@@ -102,7 +100,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
         private readonly List<IIndexedElement> roadTrackElements = new List<IIndexedElement>();
         private readonly List<IIndexedElement> railTrackItems = new List<IIndexedElement>();
 
-        public RuntimeData RuntimeData { get; }
+        public RuntimeDataResolver RuntimeData { get; }
         public IReadOnlyList<JunctionNodeBase> Junctions { get; }
         public IReadOnlyList<EndNodeBase> EndNodes { get; }
         public IReadOnlyList<TrackSegmentSection> SegmentSections { get; }
@@ -111,7 +109,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
 
         public EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
 
-        private TrackModel(RuntimeData runtimeData)
+        private TrackModel(RuntimeDataResolver runtimeData)
         {
             RuntimeData = runtimeData;
             Junctions = new PartialTrackElementList<JunctionNodeBase>(railTrackElements);
@@ -126,7 +124,7 @@ namespace FreeTrainSimulator.Models.Imported.Runtime
             return game?.Services.GetService<TrackModel>();
         }
 
-        public static TrackModel Reset(Game game, RuntimeData runtimeData)
+        public static TrackModel Reset(Game game, RuntimeDataResolver runtimeData)
         {
             game?.Services.RemoveService(typeof(TrackModel));
             TrackModel instance = new TrackModel(runtimeData);

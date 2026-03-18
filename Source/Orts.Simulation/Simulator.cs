@@ -35,6 +35,7 @@ using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime;
 
 using GetText;
 
@@ -281,6 +282,7 @@ namespace Orts.Simulation
 
             MetricUnits = userSettings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (userSettings.MeasurementUnit == MeasurementUnit.Metric || userSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             RuntimeData.Initialize(RouteModel, trackDatabase, roadDatabase, SignalConfig, MetricUnits, new RuntimeResolver());
+            Task.Run(async () => await RuntimeDataResolver.Initialize(routeModel, MetricUnits).ConfigureAwait(false));
 
             SuperElevation = new SuperElevation(this);
 

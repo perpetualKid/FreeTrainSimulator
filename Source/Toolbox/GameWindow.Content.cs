@@ -8,6 +8,7 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Microsoft.Xna.Framework;
@@ -98,14 +99,15 @@ namespace FreeTrainSimulator.Toolbox
 
             ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
 
-            bool? useMetricUnits = ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            if (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route)
-                useMetricUnits = null;
-
             RouteModel routeModel = await route.GetExtended(ctsProfileLoading.Token).ConfigureAwait(false);
             Task<ImmutableArray<PathModelHeader>> pathTask = routeModel.GetRoutePaths(ctsProfileLoading.Token);
 
+            bool useMetricUnits = ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            if (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route)
+                useMetricUnits = routeModel.MetricUnits;
+
             await TrackData.LoadTrackData(routeModel, useMetricUnits, ctsProfileLoading.Token).ConfigureAwait(false);
+            await RuntimeDataResolver.Initialize(routeModel, useMetricUnits).ConfigureAwait(false);
             if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 

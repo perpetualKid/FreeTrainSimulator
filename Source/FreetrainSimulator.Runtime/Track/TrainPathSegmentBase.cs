@@ -1,6 +1,6 @@
 ﻿using FreeTrainSimulator.Common.Position;
 
-namespace FreeTrainSimulator.Models.Imported.Runtime
+namespace FreeTrainSimulator.Runtime.Track
 {
     public abstract record TrainPathSegmentBase : TrackSegmentBase
     {

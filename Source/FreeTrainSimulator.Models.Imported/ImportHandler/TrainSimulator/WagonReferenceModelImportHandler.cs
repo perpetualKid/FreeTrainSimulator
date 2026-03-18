@@ -88,7 +88,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             Name = wagon.Name.Trim(),
                             Id = wagon.Name.Trim(),
                             TrainCarType = Common.TrainCarType.Wagon,
-                            Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
+                            Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } }.ToImmutableDictionary(),
                         };
                         break;
                     case ".ENG":
@@ -99,7 +99,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             Name = engine.Name.Trim(),
                             Id = engine.Name.Trim(),
                             TrainCarType = Common.TrainCarType.Engine,
-                            Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
+                            Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } }.ToImmutableDictionary(),
                         };
                         break;
                 }

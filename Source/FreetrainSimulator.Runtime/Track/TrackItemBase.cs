@@ -3,7 +3,7 @@
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 
-namespace FreeTrainSimulator.Models.Imported.Runtime
+namespace FreeTrainSimulator.Runtime.Track
 {
     #region TrackItemBase
     public abstract record TrackItemBase : PointPrimitive, IIndexedElement

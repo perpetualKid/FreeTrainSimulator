@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Immutable;
 using System.Text;
 
 using FreeTrainSimulator.Common.Info;
@@ -50,7 +50,7 @@ namespace FreeTrainSimulator.Models.Base
         /// <summary>
         /// Tag property to persist arbitrary additional information
         /// </summary>
-        public Dictionary<string, string> Tags { get; init; }
+        public ImmutableDictionary<string, string> Tags { get; init; }
 
         protected ModelBase()
         {

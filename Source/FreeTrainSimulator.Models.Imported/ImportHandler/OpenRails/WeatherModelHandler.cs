@@ -61,7 +61,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.OpenRails
                 {
                     Name = id,
                     Id = id,
-                    Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileName(filePath) } },
+                    Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileName(filePath) } }.ToImmutableDictionary(),
                 };
                 await Create(weatherModel, routeModel, cancellationToken).ConfigureAwait(false);
                 return weatherModel;

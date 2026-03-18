@@ -10,7 +10,8 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Imported.Runtime;
+using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -224,7 +225,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             insetComponent?.SetTrackSegments(trackSegments);
 
-            trackModel = TrackModel.Reset(game, RuntimeData.GameInstance(game));
+            trackModel = TrackModel.Reset(game, RuntimeDataResolver.GameInstance(game));
             trackModel.InitializeRailTrack(trackSegments, junctionSegments, endSegments);
 
             trackModel.ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile>(

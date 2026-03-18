@@ -7,7 +7,7 @@ using System.Linq;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Track;
 
-namespace FreeTrainSimulator.Models.Imported.Runtime
+namespace FreeTrainSimulator.Runtime.Track
 {
     /// <summary>
     /// A collection of one or more <see cref="TrackSegmentSectionBase{T}"/> forming a train's path.

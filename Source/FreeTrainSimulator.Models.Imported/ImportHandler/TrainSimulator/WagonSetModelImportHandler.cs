@@ -105,7 +105,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     MaximumSpeed = consistFile.Train.MaxVelocity.A,
                     AccelerationFactor = consistFile.Train.MaxVelocity.B,
                     Durability = consistFile.Train.Durability,
-                    Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
+                    Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } }.ToImmutableDictionary(),
                     TrainCars = trainCars.ToImmutableArray(),
                 };
                 //this is the case where a file may have been renamed but not the consist id, ie. in case of copy cloning, so adopting the filename as id

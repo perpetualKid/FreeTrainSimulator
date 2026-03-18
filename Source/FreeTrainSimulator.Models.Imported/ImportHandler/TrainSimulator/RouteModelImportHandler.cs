@@ -88,7 +88,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     Description = route.Description,
                     MetricUnits = route.MilepostUnitsMetric,
                     Id = route.RouteID,    // ie JAPAN1  - used for TRK file and route folder name
-                    Tags = new Dictionary<string, string> { { SourceNameKey, routeFolder.RouteName } },    //store the route folder name
+                    Tags = new Dictionary<string, string> { { SourceNameKey, routeFolder.RouteName } }.ToImmutableDictionary(),    //store the route folder name
                     EnvironmentConditions = new EnumArray2D<string, SeasonType, WeatherType>(route.Environment.GetEnvironmentFileName),
                     RouteKey = route.FileName,  // ie OdakyuSE - used for MKR,RDB,REF,RIT,TDB,TIT
                     RouteSounds = new EnumArray<string, DefaultSoundType>(new string[]

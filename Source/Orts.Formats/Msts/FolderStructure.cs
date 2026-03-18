@@ -10,8 +10,6 @@ using System.Linq;
 
 using Microsoft.Win32;
 
-using static System.Collections.Specialized.BitVector32;
-
 namespace Orts.Formats.Msts
 {
     public static class FolderStructure

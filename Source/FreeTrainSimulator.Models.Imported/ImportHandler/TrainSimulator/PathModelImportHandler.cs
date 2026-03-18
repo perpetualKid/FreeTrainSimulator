@@ -90,7 +90,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     PlayerPath = patFile.PlayerPath,
                     Start = string.IsNullOrEmpty(patFile.Start) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.Start.Trim(),
                     End = string.IsNullOrEmpty(patFile.End) ? $"unnamed (@ {Path.GetFileNameWithoutExtension(filePath)})" : patFile.End.Trim(),
-                    Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } },
+                    Tags = new Dictionary<string, string> { { SourceNameKey, Path.GetFileNameWithoutExtension(filePath) } }.ToImmutableDictionary(),
                     PathNodes = patFile.PathNodes.Select(pathNode => new PathNode(pathNode.Location)
                     {
                         NodeType = pathNode.NodeType,

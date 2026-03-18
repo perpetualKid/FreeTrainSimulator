@@ -6,8 +6,8 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Imported.Runtime;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime.Track;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
@@ -42,7 +42,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             // if a tracksegment is nearby, snap to the segment
             PointD snapLocation = nearestSegment?.SnapToSegment(location) ?? location;
-            FreeTrainSimulator.Models.Imported.Runtime.JunctionNodeBase junction;
+            Runtime.Track.JunctionNodeBase junction;
             if ((junction = TrackModel.JunctionAt(snapLocation)) != null) //if within junction proximity, snap to the junction
                 snapLocation = junction.Location;
 
