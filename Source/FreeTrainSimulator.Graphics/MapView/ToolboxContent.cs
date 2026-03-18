@@ -57,7 +57,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);
-            DetailInfo["Route Name"] = RuntimeData.GameInstance(game).RouteData.Name;
+            DetailInfo["Route Name"] = RuntimeDataResolver.GameInstance(game).RouteData.Name;
             insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
         }
 
@@ -70,7 +70,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             //just put an empty list so the draw method does not skip the paths
             trackModel.ContentByTile[MapContentType.Paths] = new TileIndexedList<EditorTrainPath>(new List<EditorTrainPath>() { });
 
-            DetailInfo["Metric Scale"] = RuntimeData.GameInstance(game).MetricUnits.ToString();
+            DetailInfo["Metric Scale"] = RuntimeDataResolver.GameInstance(game).MetricUnits.ToString();
             DetailInfo["Track Nodes"] = $"{trackModel.SegmentSections.Count}";
             DetailInfo["Track Segments"] = $"{trackModel.ContentByTile[MapContentType.Tracks].ItemCount}";
             DetailInfo["Track End Segments"] = $"{trackModel.ContentByTile[MapContentType.EndNodes].ItemCount}";
@@ -296,9 +296,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
 
             IEnumerable<TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
-                runtimeData.TrackModel.TrackDatabase,
+                RuntimeDataResolver.GameInstance(game).TrackModel.TrackDatabase,
                 runtimeData.SignalConfigFile,
-                trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(runtimeData.TrackModel.RoadDatabase));
+                trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackModel.RoadDatabase));
 
             trackModel.InitializeTrackItems(trackItems);
 

@@ -16,20 +16,17 @@ namespace FreeTrainSimulator.Toolbox
     {
         internal static async ValueTask LoadTrackData(RouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
         {
-            List<Task> loadTasks = new List<Task>();
-
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
 
             Task<TrackSectionModel> tracksectionModelTask = routeModel.GetTrackSectionModel(cancellationToken);
-            Task<TrackModel> trackModelTask = routeModel.GetTrackModel(cancellationToken);
             Task<SignalConfigurationFile> signalConfigTask = Task.Run(() => new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken);
 
-            await Task.WhenAll(tracksectionModelTask, trackModelTask, signalConfigTask).ConfigureAwait(false);
+            await Task.WhenAll(tracksectionModelTask, signalConfigTask).ConfigureAwait(false);
 
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            Initialize(routeModel, await tracksectionModelTask.ConfigureAwait(false), await trackModelTask.ConfigureAwait(false), await signalConfigTask.ConfigureAwait(false), 
+            Initialize(routeModel, await tracksectionModelTask.ConfigureAwait(false), await signalConfigTask.ConfigureAwait(false), 
                 metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits));
         }
     }

@@ -191,8 +191,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void AddTrackSegments()
         {
-            Models.Track.TrackDatabase trackDatabase = RuntimeData.GameInstance(game).TrackModel.TrackDatabase;
-            Models.Track.TrackSectionModel trackSections = RuntimeData.GameInstance(game).TrackSections;
+            Models.Track.TrackDatabase trackDatabase = RuntimeDataResolver.GameInstance(game).TrackModel.TrackDatabase;
+            Models.Track.TrackSectionModel trackSections = RuntimeDataResolver.GameInstance(game).TrackSections;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<Widgets.EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
@@ -217,7 +217,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                             }
                             break;
                         case Models.Track.JunctionNode trackJunctionNode:
-                            junctionSegments.Add(new Widgets.JunctionNode(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute));
+                            junctionSegments.Add(new Widgets.ActiveJunctionSegment(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute));
                             break;
                     }
                 });
@@ -241,9 +241,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             RuntimeData runtimeData = RuntimeData.GameInstance(game);
 
             IEnumerable<TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
-                runtimeData.TrackModel.TrackDatabase,
+                RuntimeDataResolver.GameInstance(game).TrackModel.TrackDatabase,
                 runtimeData.SignalConfigFile,
-                trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(runtimeData.TrackModel.RoadDatabase));
+                trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackModel.RoadDatabase));
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<PlatformTrackItem>());
             trackModel.ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);

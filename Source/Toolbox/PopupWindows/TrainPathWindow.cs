@@ -13,14 +13,13 @@ using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.Settings;
 
 using GetText;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
@@ -82,7 +81,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         public TrainPathWindow(WindowManager owner, ProfileToolboxSettingsModel settings, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Path Details"), relativeLocation, new Point(360, 300), catalog)
         {
-            metadataInformationProvider = new TrainPathMetadataInformation(RuntimeData.GameInstance(owner.Game).MetricUnits);
+            metadataInformationProvider = new TrainPathMetadataInformation(RuntimeDataResolver.GameInstance(owner.Game).MetricUnits);
             toolboxSettings = settings;
             contentUpdated = true;
             pathEditor = (Owner.Game as GameWindow)?.PathEditor;
@@ -290,7 +289,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             {
                 RadioButtonGroup group = new RadioButtonGroup();
                 ControlLayoutHorizontal line;
-                ImmutableArray<PathModelHeader> trainPaths = Orts.Formats.Msts.RuntimeData.GameInstance(Owner.Game).RouteData.GetPaths();
+                ImmutableArray<PathModelHeader> trainPaths = RuntimeDataResolver.GameInstance(Owner.Game).RouteData.GetPaths();
                 foreach (PathModelHeader path in trainPaths.OrderBy(p => p.Name))
                 {
                     RadioButton radioButton;

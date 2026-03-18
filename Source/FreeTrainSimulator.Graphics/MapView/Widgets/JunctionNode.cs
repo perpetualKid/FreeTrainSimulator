@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
@@ -21,7 +24,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Junction" };
 
         public JunctionNode(Models.Track.JunctionNode junctionNode, int mainRoute, TrackDatabase trackDatabase = null) :
-            base(junctionNode, mainRoute, trackDatabase ?? Orts.Formats.Msts.RuntimeData.Instance.TrackModel.TrackDatabase)
+            base(junctionNode, mainRoute, trackDatabase ?? RuntimeDataResolver.Instance.TrackModel.TrackDatabase)
         {
             Size = diameter;
         }
@@ -75,28 +78,32 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public ActiveJunctionSegment(Models.Track.JunctionNode junctionNode, int mainRoute) :
             base(junctionNode, mainRoute)
         {
-            //trackSectionAngles = new float[vectorNodes.Count - 1];
-            //Junction = RuntimeData.Instance.RuntimeReferenceResolver?.SwitchById(junctionNode.TrackCircuitCrossReferences[0].Index);
 
-            //int trial = 0;
-            //while (trial < 3)
-            //{
-            //    for (int i = 1; i < vectorNodes.Count; i++)
-            //    {
-            //        float direction = GetOutboundSectionDirection(vectorNodes[i], junctionNode.TrackPins[i].Direction == TrackDirection.Reverse, trial);
-            //        if (float.IsNaN(direction))
-            //            break;
-            //        trackSectionAngles[i - 1] = MathHelper.WrapAngle(direction);
-            //    }
-            //    if (trackSectionAngles[0].AlmostEqual(trackSectionAngles[1], 0.001f))
-            //        trial++;
-            //    else
-            //        break;
-            //}
+            Junction = Orts.Formats.Msts.RuntimeData.Instance.RuntimeReferenceResolver?.SwitchById(Orts.Formats.Msts.RuntimeData.Instance.TrackDB.TrackNodes[junctionNode.NodeIndex].TrackCircuitCrossReferences[0].Index);
+            ImmutableArray<TrackNodeConnector> connectors = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex];
+            trackSectionAngles = new float[connectors.Length - 1];
 
-            ////if main route is not in OutPin[0] but OutPin[1], swap the both
-            //if ((int)Junction.State != junctionNode.SelectedRoute)
-            //    (trackSectionAngles[0], trackSectionAngles[1]) = (trackSectionAngles[1], trackSectionAngles[0]);
+            int trial = 0;
+            while (trial < 3)
+            {
+                for (int i = 1; i < connectors.Length; i++)
+                {
+                    TrackNodeConnector connector = connectors[i];
+                    VectorNode vectorNode = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodes[connector.Link] as VectorNode;
+                    float direction = GetOutboundSectionDirection(vectorNode, connectors[i].Direction == TrackDirection.Reverse, trial);
+                    if (float.IsNaN(direction))
+                        break;
+                    trackSectionAngles[i - 1] = MathHelper.WrapAngle(direction);
+                }
+                if (trackSectionAngles[0].AlmostEqual(trackSectionAngles[1], 0.001f))
+                    trial++;
+                else
+                    break;
+            }
+
+            //if main route is not in OutPin[0] but OutPin[1], swap the both
+            if ((int)Junction.State != (Orts.Formats.Msts.RuntimeData.Instance.TrackDB.TrackNodes[junctionNode.NodeIndex] as Orts.Formats.Msts.Models.TrackJunctionNode).SelectedRoute)
+                (trackSectionAngles[0], trackSectionAngles[1]) = (trackSectionAngles[1], trackSectionAngles[0]);
 
         }
 
