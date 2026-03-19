@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,13 +28,15 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
         private static async Task<TrackSectionModel> Convert(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
-            TrackSectionsFile trackSectionsFile = new TrackSectionsFile(routeModel.MstsRouteFolder().TrackSectionFile);
+            string trackSectionsFilePath = routeModel.MstsRouteFolder().TrackSectionFile;
+            TrackSectionsFile trackSectionsFile = new TrackSectionsFile(trackSectionsFilePath);
             trackSectionsFile.AddRouteTSectionDatFile(routeModel.MstsRouteFolder().RouteTrackSectionFile);
 
             TrackSectionModel trackSectionModel = new TrackSectionModel()
             {
                 Id = routeModel.Id,
-                TrackSections = trackSectionsFile.TrackSections?.Where(t => t.Value.Length > 0 || t.Value.Angle > 0).Select(trackSection => new TrackSection()
+                //                TrackSections = trackSectionsFile.TrackSections?.Where(t => t.Value.Length > 0 || t.Value.Angle > 0).Select(trackSection => new TrackSection()
+                TrackSections = trackSectionsFile.TrackSections?.Select(trackSection => new TrackSection()
                 {
                     SectionIndex = trackSection.Key,
                     Angle = trackSection.Value.Angle,
@@ -56,14 +60,21 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             ShapeOffset = new TrackShapeOffset(sectionIndex.Offset, sectionIndex.AngularOffset)
                         }).ToImmutableArray()).
                 Concat(
-                    trackSectionsFile.TrackSectionIndex?.Where(t => t.Value.TrackSections?.Length > 0).
-                        ToDictionary(dynamicTrackSection => dynamicTrackSection.Key, dynamicTrackSection => ImmutableArray.Create(new TrackSectionIndex()
-                        {
-                            TrackSections = dynamicTrackSection.Value.TrackSections.ToImmutableArray(),
-                        })) ??
+                    //                    trackSectionsFile.TrackSectionIndex?.Where(t => t.Value.TrackSections?.Length > 0).
+                    trackSectionsFile.TrackSectionIndex?.ToDictionary(dynamicTrackSection => dynamicTrackSection.Key, dynamicTrackSection => ImmutableArray.Create(new TrackSectionIndex()
+                    {
+                        TrackSections = dynamicTrackSection.Value.TrackSections.ToImmutableArray(),
+                    })) ??
                         ImmutableDictionary<int, ImmutableArray<TrackSectionIndex>>.Empty.ToDictionary()
                         ).ToImmutableDictionary(),
             };
+
+            IEnumerable<int> items = trackSectionsFile.TrackSections?.Values.Where(t => t.Length == 0 && t.Angle == 0).Select(t => t.SectionIndex);
+            if (items?.Any() ?? false)
+                Trace.TraceWarning($"Added track sections from {trackSectionsFilePath} with Length and Angle being 0 [{string.Join(", ", items)}]");
+            items = trackSectionsFile.TrackSectionIndex?.Where(t => t.Value.TrackSections?.Length == 0).Select(t => t.Key);
+            if (items?.Any() ?? false)
+                Trace.TraceWarning($"Added track paths from {trackSectionsFilePath} with no elements [{string.Join(", ", items)}]");
 
             await Create(trackSectionModel, routeModel, cancellationToken).ConfigureAwait(false);
 

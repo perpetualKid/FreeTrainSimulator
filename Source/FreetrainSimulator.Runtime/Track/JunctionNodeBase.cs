@@ -47,8 +47,6 @@ namespace FreeTrainSimulator.Runtime.Track
             if (null == vectorNode)
                 return 0;
 
-            if (vectorNode.VectorSections.Length < 1)
-                throw new System.IO.InvalidDataException($"TrackVectorNode {vectorNode.NodeIndex} has no TrackVectorSections attached.");
             // find the direction angle of the facing (in) track 
             if (reverse)
             {
@@ -72,8 +70,6 @@ namespace FreeTrainSimulator.Runtime.Track
             if (null == vectorNode)
                 return 0;
 
-            if (vectorNode.VectorSections.Length < 1)
-                throw new System.IO.InvalidDataException($"TrackVectorNode {vectorNode.NodeIndex} has no TrackVectorSections attached.");
             if (vectorNode.VectorSections.Length < 1 + index)
                 return float.NaN;
             // find the direction angle of the trailing (out) track 

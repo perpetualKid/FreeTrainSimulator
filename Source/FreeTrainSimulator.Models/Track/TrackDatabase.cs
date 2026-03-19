@@ -48,7 +48,7 @@ namespace FreeTrainSimulator.Models.Track
         public TrackDataBaseType TrackDataBaseType { get; init; }
         [MemoryPackIgnore]
         public ImmutableArray<TrackNodeBase> TrackNodes { get; init; } = ImmutableArray<TrackNodeBase>.Empty;
-        public ImmutableDictionary<int, TrackItemIndex> TrackItemsSelectors { get; init; } = ImmutableDictionary<int, TrackItemIndex>.Empty;
+        public ImmutableDictionary<int, TrackItemIndex> TrackItemSelectors { get; init; } = ImmutableDictionary<int, TrackItemIndex>.Empty;
         public ImmutableArray<ImmutableArray<TrackNodeConnector>> TrackNodeConnectors { get; init; } = ImmutableArray<ImmutableArray<TrackNodeConnector>>.Empty;
         [MemoryPackIgnore]
         public ImmutableArray<TrackItemModel> TrackItems { get; init; } = ImmutableArray<TrackItemModel>.Empty;

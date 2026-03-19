@@ -68,22 +68,22 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
 
+            TrackSectionModel trackSections = await routeModel.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
+
             TrackDatabase trackDatabase = new TrackDatabase()
             {
                 TrackDataBaseType = TrackDataBaseType.Track,
                 TrackNodeConnectors = ConvertTrackNodeConnectors(trackDB.TrackNodes, tdbFile),
-                TrackNodes = ConvertTrackNodes(trackDB.TrackNodes, tdbFile),
-                TrackItemsSelectors = ConvertTrackSelectors(trackDB.TrackNodes),
+                TrackNodes = ConvertTrackNodes(trackDB.TrackNodes, trackSections, tdbFile),
+                TrackItemSelectors = ConvertTrackSelectors(trackDB.TrackNodes),
             };
             TrackDatabase roadDatabase = roadTrackDB?.TrackNodes == null ? null : new TrackDatabase()
             {
                 TrackDataBaseType = TrackDataBaseType.Road,
                 TrackNodeConnectors = ConvertTrackNodeConnectors(roadTrackDB.TrackNodes, rdbFile),
-                TrackNodes = ConvertTrackNodes(roadTrackDB?.TrackNodes, rdbFile),
-                TrackItemsSelectors = ConvertTrackSelectors(roadTrackDB?.TrackNodes),
+                TrackNodes = ConvertTrackNodes(roadTrackDB?.TrackNodes, trackSections, rdbFile),
+                TrackItemSelectors = ConvertTrackSelectors(roadTrackDB?.TrackNodes),
             };
-
-            TrackSectionModel trackSections = await routeModel.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
 
             TrackModel trackModel = new TrackModel()
             {
@@ -124,12 +124,12 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             return result;
         }
 
-        private static ImmutableArray<Track.TrackNodeBase> ConvertTrackNodes(TrackNodes trackNodes, string trackdatabaseFile)
+        private static ImmutableArray<TrackNodeBase> ConvertTrackNodes(TrackNodes trackNodes, TrackSectionModel trackSections, string trackdatabaseFile)
         {
             if (trackNodes == null)
-                return ImmutableArray<Track.TrackNodeBase>.Empty;
+                return ImmutableArray<TrackNodeBase>.Empty;
 
-            ImmutableArray<Track.TrackNodeBase> result = trackNodes.Select(trackNode =>
+            ImmutableArray<TrackNodeBase> result = trackNodes.Select(trackNode =>
             {
                 return trackNode switch
                 {
@@ -138,12 +138,12 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         NodeIndex = junctionNode.Index,
                         WorldId = junctionNode.UiD.WorldId,
                         ShapeIndex = junctionNode.ShapeIndex,
-                    } as Track.TrackNodeBase,
+                    } as TrackNodeBase,
                     TrackEndNode endNode => new EndNode(endNode.UiD.Location, endNode.UiD.WorldTile)
                     {
                         NodeIndex = endNode.Index,
                         WorldId = endNode.UiD.WorldId,
-                    } as Track.TrackNodeBase,
+                    } as TrackNodeBase,
                     TrackVectorNode vectorNode => new VectorNode(WorldLocation.None, Tile.Zero)
                     {
                         NodeIndex = vectorNode.Index,
@@ -156,10 +156,36 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             Flag1 = tvs.Flag1,
                             Flag2 = tvs.Flag2,
                         }).ToImmutableArray(),
-                    } as Track.TrackNodeBase,
+                    } as TrackNodeBase,
                     _ => null,
                 };
             }).ToImmutableArray();
+
+            foreach (TrackNodeBase trackNode in result)
+            {
+                switch (trackNode)
+                {
+                    case JunctionNode junctionNode:
+                        break;
+                    case EndNode endNode:
+                        break;
+                    case VectorNode vectorNode:
+                        if (vectorNode.VectorSections.Length == 0)
+                        {
+                            Trace.TraceWarning($"Vector Node #{vectorNode.NodeIndex} in track database {trackdatabaseFile} has no vector sections.");
+                        }
+                        else
+                        {
+                            for (int i = 0; i < vectorNode.VectorSections.Length; i++)
+                            {
+                                if (!trackSections.TrackSections.ContainsKey(vectorNode.VectorSections[i].NodeIndex))
+                                    Trace.TraceWarning($"Vector Node #{vectorNode.NodeIndex} Section {i} SectionIndex {vectorNode.VectorSections[i].NodeIndex} in track database {trackdatabaseFile} not found.");
+                            }
+                        }
+                        break;
+                }
+
+            }
 
             if (result.Length <= result[^1].NodeIndex)
             {
@@ -186,7 +212,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             //temporary map reverse-linking TrackItems to TrackNodes
             int[] trackNodeReferences = new int[trackItems.Count];
-            foreach (KeyValuePair<int, TrackItemIndex> item in trackDatabase.TrackItemsSelectors)
+            foreach (KeyValuePair<int, TrackItemIndex> item in trackDatabase.TrackItemSelectors)
             {
                 foreach (int itemIndex in item.Value.TrackItems)
                 {
@@ -566,7 +592,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         _ = platformItemMappings.Remove(end.TrackItemIndex);
                         trackItems[start.TrackItemIndex] = start with { LinkedPlatformItem = end.TrackItemIndex };
                         trackItems[end.TrackItemIndex] = end with { LinkedPlatformItem = start.TrackItemIndex };
-                        Trace.TraceWarning($"Matching Platform Items in track database {trackdatabaseFile} by Name "+
+                        Trace.TraceWarning($"Matching Platform Items in track database {trackdatabaseFile} by Name " +
                                             $"from Source Id {start.TrackItemIndex} name \"{start.PlatformName}\" at station \"{start.StationName}\" " +
                                             $"to Target id {end.TrackItemIndex} name \"{end.PlatformName}\" at station \"{end.StationName}\".");
                         match = true;
