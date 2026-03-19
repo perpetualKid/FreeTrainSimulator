@@ -34,6 +34,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
 
@@ -649,7 +650,7 @@ namespace Orts.Simulation.Timetables
             {
                 TrackVectorSection thisVector = vectors[iVector];
 
-                if (RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(thisVector.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
+                if (RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(thisVector.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
                 {
                     returnLength += trackSection.Length;
                 }

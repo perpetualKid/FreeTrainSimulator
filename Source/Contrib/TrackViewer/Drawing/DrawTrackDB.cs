@@ -20,11 +20,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
 
@@ -32,7 +34,6 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
-using System.Threading.Tasks;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -64,8 +65,6 @@ namespace ORTS.TrackViewer.Drawing
             messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading track database .tdb ..."));
             TDB = new TrackDatabaseFile(routeFolder.TrackDatabaseFile(routeModel.RouteKey));
 
-            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading tsection.dat ..."));
-
             string roadTrackFileName = routeFolder.RoadTrackDatabaseFile(routeModel.RouteKey);
             if (File.Exists(roadTrackFileName))
             {
@@ -73,9 +72,11 @@ namespace ORTS.TrackViewer.Drawing
 
                 RDB = new RoadDatabaseFile(roadTrackFileName);
             }
+            messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading sigcfg.dat ..."));
             sigcfgFile = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile);
 
             Initialize(routeModel, TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile, true);
+            Task.Run(async () => await RuntimeDataResolver.Initialize(routeModel, true).ConfigureAwait(false)).Wait();
         }
 
         /// <summary>
@@ -238,7 +239,7 @@ namespace ORTS.TrackViewer.Drawing
         public DrawTrackDB(MessageDelegate messageDelegate)
         {
             RuntimeData routeData = RuntimeData.Instance;
-            trackSections = routeData.TrackSections;
+            trackSections = RuntimeDataResolver.Instance.TrackSections;
             trackDB = routeData.TrackDB;
             roadTrackDB = routeData.RoadTrackDB;
             sigcfgFile = routeData.SignalConfigFile;

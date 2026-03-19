@@ -6,6 +6,7 @@ using System.IO;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -359,7 +360,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             : base(path, positionSource, ShapeFlags.AutoZBias)
         {
             this.trackJunctionNode = trackJunctionNode;
-            mainRoute = RuntimeData.Instance.TrackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute;
+            mainRoute = RuntimeDataResolver.Instance.TrackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute;
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)

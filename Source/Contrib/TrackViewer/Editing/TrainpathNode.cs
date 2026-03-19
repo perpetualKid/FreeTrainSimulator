@@ -41,6 +41,7 @@ using System;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Runtime;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -792,7 +793,7 @@ namespace ORTS.TrackViewer.Editing
             for (int tvsi = 0; tvsi < TrackVectorSectionIndex; tvsi++)
             {
                 TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
-                RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
+                RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
                 if (trackSection != null)  // if trackSection is missing somehow, well, do without.
                 {
                     distanceFromStart += trackSection.Length;

@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
 
@@ -335,7 +336,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 TrackCandidate trackCandidate = sortedTrackCandidates[distanceKey];
                 if (trackCandidate.trackNode == null) continue;
-                RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(trackCandidate.vectorSection.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
+                RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(trackCandidate.vectorSection.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
                 DistanceLon distanceLon = CalcRealDistanceSquared(trackCandidate.vectorSection, trackSection);
                 double realDistanceSquared = (double)distanceLon.distanceSquared;
                 

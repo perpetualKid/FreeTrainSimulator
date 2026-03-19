@@ -20,6 +20,7 @@ using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
+using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
 
@@ -56,7 +57,7 @@ namespace Orts.Simulation
                 foreach (TrackVectorSection section in trackVectorNode.TrackVectorSections)//loop all curves
                 {
                     i++;
-                    if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection sec))
+                    if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection sec))
                         continue;
                     if (Math.Abs(sec.Gauge - (simulator.UserSettings.TrackGauge / 1000f)) > 0.2)
                         continue;//the main route has a gauge different than mine
@@ -109,7 +110,7 @@ namespace Orts.Simulation
             //if (Len < simulator.Settings.SuperElevationMinLen || SectionList.Count == 0) 
             if (SectionList.Count == 0)
                 return;//too short a curve or the list is empty
-            if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(SectionList[0].SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection sectionData))
+            if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(SectionList[0].SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection sectionData))
                 return;
             //loop all section to determine the max elevation for the whole track
             double Curvature = sectionData.Angle * SectionList.Count * 33 / Len;//average radius in degree/100feet

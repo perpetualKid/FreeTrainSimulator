@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using FreeTrainSimulator.Runtime;
+
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
@@ -57,7 +59,7 @@ namespace ORTS.TrackViewer.Editing
                 int trackShapeIndex = tn.ShapeIndex;
                 try
                 {
-                    FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackSections.TrackShapes[trackShapeIndex];
+                    FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeDataResolver.Instance.TrackSections.TrackShapes[trackShapeIndex];
                     mainRoute = trackShape.MainRoute;
                 }
                 catch (System.IO.InvalidDataException exception)

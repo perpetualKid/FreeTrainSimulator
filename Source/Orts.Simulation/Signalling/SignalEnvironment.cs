@@ -30,6 +30,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
 
@@ -3248,7 +3249,7 @@ namespace Orts.Simulation.Signalling
                     // loop through all sections in node
                     foreach (TrackVectorSection section in tvn.TrackVectorSections)
                     {
-                        if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
+                        if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
                             continue;  // missing track section
 
                         // check tunnel shape
@@ -3256,10 +3257,10 @@ namespace Orts.Simulation.Signalling
                         bool tunnelShape = false;
                         int shapePaths = 0;
 
-                        if (RuntimeData.Instance.TrackSections.TrackShapes.TryGetValue(section.ShapeIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
+                        if (RuntimeDataResolver .Instance.TrackSections.TrackShapes.TryGetValue(section.ShapeIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
                         {
                             tunnelShape = shape.ShapeType == FreeTrainSimulator.Models.Track.ShapeType.Tunnel;
-                            if (RuntimeData.Instance.TrackSections.TrackSectionIndices.TryGetValue(section.ShapeIndex, out var sectionIndex))
+                            if (RuntimeDataResolver.Instance.TrackSections.TrackSectionIndices.TryGetValue(section.ShapeIndex, out var sectionIndex))
                                 shapePaths = sectionIndex.Length;
                         }
 
@@ -3384,7 +3385,7 @@ namespace Orts.Simulation.Signalling
                 // loop through all sections in node
                 foreach (TrackVectorSection section in tvn.TrackVectorSections)
                 {
-                    if (!RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
+                    if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
                         continue;  // missing track section
 
                     // check trough shape
@@ -3392,12 +3393,12 @@ namespace Orts.Simulation.Signalling
                     bool troughShape = false;
                     int shapePaths = 0;
 
-                    if (RuntimeData.Instance.TrackSections.TrackShapes.TryGetValue(section.ShapeIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
+                    if (RuntimeDataResolver.Instance.TrackSections.TrackShapes.TryGetValue(section.ShapeIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
                     {
                         if (shape.FileName != null)
                         {
                             troughShape = shape.FileName.EndsWith("wtr.s", StringComparison.OrdinalIgnoreCase);
-                            if (RuntimeData.Instance.TrackSections.TrackSectionIndices.TryGetValue(section.ShapeIndex, out var sectionIndex))
+                            if (RuntimeDataResolver.Instance.TrackSections.TrackSectionIndices.TryGetValue(section.ShapeIndex, out var sectionIndex))
                                 shapePaths = sectionIndex.Length;
                         }
                     }

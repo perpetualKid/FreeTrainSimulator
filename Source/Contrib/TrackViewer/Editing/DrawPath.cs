@@ -19,6 +19,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
 
@@ -389,7 +390,7 @@ namespace ORTS.TrackViewer.Editing
         private static void DrawTrackSection(DrawArea drawArea, TrackVectorSection tvs, ColorScheme colors,
             float startOffset, float stopOffset)
         {
-            RuntimeData.Instance.TrackSections.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
+            RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
             if (trackSection == null) return;
 
             ref readonly WorldLocation thisLocation = ref tvs.Location;
