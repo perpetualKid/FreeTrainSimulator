@@ -46,8 +46,8 @@ namespace FreeTrainSimulator.Runtime.Track
             ArgumentNullException.ThrowIfNull(trackDatabase);
 
             midPoint = Location + (Vector - Location) / 2.0;
-            ImmutableArray<TrackNodeConnector> startNodeConnectors = trackDatabase.TrackNodeConnectors[startTrackNodeIndex];
-            ImmutableArray<TrackNodeConnector> endNodeConnectors = trackDatabase.TrackNodeConnectors[endTrackNodeIndex];
+            ImmutableArray<TrackNodeConnector> startNodeConnectors = trackDatabase.TrackNodeConnectors[startTrackNodeIndex].TrackNodeConnectors;
+            ImmutableArray<TrackNodeConnector> endNodeConnectors = trackDatabase.TrackNodeConnectors[endTrackNodeIndex].TrackNodeConnectors;
 
             (int startJunction, int endJunction, int intermediaryNode)? ConnectAcrossIntermediary()
             {
@@ -55,8 +55,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 {
                     foreach(TrackNodeConnector endConnector in endNodeConnectors)
                     {
-                        IEnumerable<TrackNodeConnector> connections = trackDatabase.TrackNodeConnectors[startConnector.Link].
-                            Intersect(trackDatabase.TrackNodeConnectors[endConnector.Link], TrackNodeConnectorComparer.LinkOnlyComparer);
+                        IEnumerable<TrackNodeConnector> connections = trackDatabase.TrackNodeConnectors[startConnector.Link].TrackNodeConnectors.
+                            Intersect(trackDatabase.TrackNodeConnectors[endConnector.Link].TrackNodeConnectors, TrackNodeConnectorComparer.LinkOnlyComparer);
                         if (connections.Count() == 1)
                             return (startConnector.Link, endConnector.Link, connections.First().Link);
                     }

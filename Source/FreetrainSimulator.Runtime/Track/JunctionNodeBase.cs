@@ -27,18 +27,11 @@ namespace FreeTrainSimulator.Runtime.Track
             ArgumentNullException.ThrowIfNull(trackDatabase);
             TrackNodeIndex = junctionNode.NodeIndex;
 
-            ImmutableArray<TrackNodeConnector> connectors = trackDatabase.TrackNodeConnectors[TrackNodeIndex];
-            int inbound = 0;
-            foreach (TrackNodeConnector connector in connectors)
-            {
-                if (connector.ConnectorType == ConnectorType.InPin)
-                    inbound++;
-            }
+            TrackNodeConnector connector = trackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors[0];
+            VectorNode inboundVector = trackDatabase.TrackNodes[connector.Link] as VectorNode;
 
-            VectorNode inboundVector = trackDatabase.TrackNodes[connectors[0].Link] as VectorNode;
-
-            Direction = MathHelper.WrapAngle(GetInboundSectionDirection(inboundVector, connectors[0].Direction == TrackDirection.Reverse));
-            MainRoute = trackDatabase.TrackNodeConnectors[TrackNodeIndex][inbound + mainRouteIndex].Link;
+            Direction = MathHelper.WrapAngle(GetInboundSectionDirection(inboundVector, connector.Direction == TrackDirection.Reverse));
+            MainRoute = trackDatabase.TrackNodeConnectors[TrackNodeIndex].OutConnectors[mainRouteIndex].Link;
         }
 
         // find the direction angle of the facing (in) track 
@@ -96,7 +89,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         internal IEnumerable<TrackSegmentBase> ConnectedSegments(TrackModel trackModel)
         {
-            ImmutableArray<TrackNodeConnector> connectors = trackModel.RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex];
+            ImmutableArray<TrackNodeConnector> connectors = trackModel.RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
 
             foreach (TrackNodeConnector connector in connectors)
             {

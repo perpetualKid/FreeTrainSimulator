@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace FreeTrainSimulator.Common.Calc
 {
@@ -12,7 +13,7 @@ namespace FreeTrainSimulator.Common.Calc
     public static class StaticRandom
     {
         private static Random random = new Random();
-        private static readonly object lockObj = new object();
+        private static readonly Lock lockObj = new Lock();
 
         public static void MakeDeterministic()
         {

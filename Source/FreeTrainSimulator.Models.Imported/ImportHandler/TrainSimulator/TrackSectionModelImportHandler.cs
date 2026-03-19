@@ -35,7 +35,6 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             TrackSectionModel trackSectionModel = new TrackSectionModel()
             {
                 Id = routeModel.Id,
-                //                TrackSections = trackSectionsFile.TrackSections?.Where(t => t.Value.Length > 0 || t.Value.Angle > 0).Select(trackSection => new TrackSection()
                 TrackSections = trackSectionsFile.TrackSections?.Select(trackSection => new TrackSection()
                 {
                     SectionIndex = trackSection.Key,
@@ -60,7 +59,6 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             ShapeOffset = new TrackShapeOffset(sectionIndex.Offset, sectionIndex.AngularOffset)
                         }).ToImmutableArray()).
                 Concat(
-                    //                    trackSectionsFile.TrackSectionIndex?.Where(t => t.Value.TrackSections?.Length > 0).
                     trackSectionsFile.TrackSectionIndex?.ToDictionary(dynamicTrackSection => dynamicTrackSection.Key, dynamicTrackSection => ImmutableArray.Create(new TrackSectionIndex()
                     {
                         TrackSections = dynamicTrackSection.Value.TrackSections.ToImmutableArray(),

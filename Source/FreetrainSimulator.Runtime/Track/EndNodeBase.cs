@@ -24,18 +24,18 @@ namespace FreeTrainSimulator.Runtime.Track
             ArgumentNullException.ThrowIfNull(trackDatabase);
             TrackNodeIndex = trackEndNode.NodeIndex;
 
-            TrackNodeConnector connector = trackDatabase.TrackNodeConnectors[TrackNodeIndex][0];
+            TrackNodeConnector connector = trackDatabase.TrackNodeConnectors[TrackNodeIndex].InConnectors[0];
             VectorNode connectedVectorNode = trackDatabase.TrackNodes[connector.Link] as VectorNode;
             if (null == connectedVectorNode)
                 return;
             
-            if (trackDatabase.TrackNodeConnectors[connector.Link][0].Link == TrackNodeIndex)
+            if (trackDatabase.TrackNodeConnectors[connector.Link].InConnectors[0].Link == TrackNodeIndex)
             {
                 //find angle at beginning of vector node
                 VectorSectionNode vectorSection = connectedVectorNode.VectorSections[0];
                 Direction = vectorSection.Direction.Y;
             }
-            else if (trackDatabase.TrackNodeConnectors[connector.Link][1].Link == TrackNodeIndex)
+            else if (trackDatabase.TrackNodeConnectors[connector.Link].OutConnectors[0].Link == TrackNodeIndex)
             {
                 //find angle at end of vector node
                 VectorSectionNode vectorSection = connectedVectorNode.VectorSections[^1];

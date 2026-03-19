@@ -4,7 +4,7 @@ namespace FreeTrainSimulator.Models.Track
 {
     public enum TrackDataBaseType
     {
-        Track,
+        Rail,
         Road,
     }
 

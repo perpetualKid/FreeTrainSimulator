@@ -12,12 +12,6 @@ namespace FreeTrainSimulator.Runtime.Track
         Invalid = 0x8,
     }
 
-    public enum TrackElementType
-    {
-        RailTrack,
-        RoadTrack,
-    }
-
     public enum PathSectionType
     {
         Invalid,

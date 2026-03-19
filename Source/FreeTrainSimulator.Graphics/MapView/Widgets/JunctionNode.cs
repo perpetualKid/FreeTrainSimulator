@@ -80,7 +80,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
 
             Junction = Orts.Formats.Msts.RuntimeData.Instance.RuntimeReferenceResolver?.SwitchById(Orts.Formats.Msts.RuntimeData.Instance.TrackDB.TrackNodes[junctionNode.NodeIndex].TrackCircuitCrossReferences[0].Index);
-            ImmutableArray<TrackNodeConnector> connectors = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex];
+            ImmutableArray<TrackNodeConnector> connectors = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
             trackSectionAngles = new float[connectors.Length - 1];
 
             int trial = 0;

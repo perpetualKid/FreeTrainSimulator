@@ -72,7 +72,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             TrackDatabase trackDatabase = new TrackDatabase()
             {
-                TrackDataBaseType = TrackDataBaseType.Track,
+                TrackDataBaseType = TrackDataBaseType.Rail,
                 TrackNodeConnectors = ConvertTrackNodeConnectors(trackDB.TrackNodes, tdbFile),
                 TrackNodes = ConvertTrackNodes(trackDB.TrackNodes, trackSections, tdbFile),
                 TrackItemSelectors = ConvertTrackSelectors(trackDB.TrackNodes),
@@ -102,25 +102,27 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             return trackModel;
         }
 
-        private static ImmutableArray<ImmutableArray<TrackNodeConnector>> ConvertTrackNodeConnectors(TrackNodes trackNodes, string trackdatabaseFile)
+        private static ImmutableArray<TrackNodeConnectorIndex> ConvertTrackNodeConnectors(TrackNodes trackNodes, string trackdatabaseFile)
         {
             if (trackNodes == null)
-                return ImmutableArray<ImmutableArray<TrackNodeConnector>>.Empty;
+                return ImmutableArray<TrackNodeConnectorIndex>.Empty;
 
-            ImmutableArray<ImmutableArray<TrackNodeConnector>> result = trackNodes.Select(node => node?.TrackPins.Select((pin, index) => new TrackNodeConnector()
+            ImmutableArray<TrackNodeConnectorIndex> result = trackNodes.Select(node => node == null ?  new TrackNodeConnectorIndex() : new TrackNodeConnectorIndex()
             {
+                InboundCount = node.InPins,
                 NodeIndex = node.Index,
-                ConnectorType = index < node.InPins ? ConnectorType.InPin : ConnectorType.OutPin,
-                Direction = pin.Direction,
-                Link = pin.Link,
-            }).ToImmutableArray() ?? ImmutableArray<TrackNodeConnector>.Empty).
-            ToImmutableArray();
+                TrackNodeConnectors = node?.TrackPins.Select((pin, index) => new TrackNodeConnector()
+                {
+                    ConnectorType = index < node.InPins ? ConnectorType.InPin : ConnectorType.OutPin,
+                    Direction = pin.Direction,
+                    Link = pin.Link,
+                }).ToImmutableArray() ?? ImmutableArray<TrackNodeConnector>.Empty,
+            }).ToImmutableArray();
 
-            if (result.Length <= result[^1][0].NodeIndex)
+            if (result.Length <= result[^1].NodeIndex)
             {
                 Trace.TraceError($"Non-consecutive tracknode indexes found in track database {trackdatabaseFile}");
             }
-
             return result;
         }
 
@@ -261,7 +263,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             else
                             {
                                 ref readonly WorldLocation endLocation = ref (i + 1 < vectorNode.VectorSections.Length) ? ref vectorNode.VectorSections[i + 1].Location :
-                                    ref trackDatabase.TrackNodes[trackDatabase.TrackNodeConnectors[vectorNode.NodeIndex][1].Link].Location;
+                                    ref trackDatabase.TrackNodes[trackDatabase.TrackNodeConnectors[vectorNode.NodeIndex].TrackNodeConnectors[1].Link].Location;
 
                                 itemLocation = trackSection.Curved
                                     ? WorldLocation.PointAlongArc(sectionNode.Location, endLocation, MathHelper.ToRadians(trackSection.Angle), trackSection.Radius, distance / trackSection.Radius)
