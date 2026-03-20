@@ -187,6 +187,23 @@ namespace Tests.FreeTrainSimulator.Common.Position
             Assert.AreEqual(1, list[new Tile(2, 0)].Count());
         }
 
+        // A diagonal vector spanning a 3×3 tile bounding box is indexed only in its start and end tiles;
+        // intermediate tiles the vector geometrically crosses are not indexed
+        [TestMethod]
+        public void DiagonalVectorAcrossMultipleTilesIndexedOnlyInStartAndEndTiles()
+        {
+            // Start at Tile(1,0) (bottom-left corner) and end at Tile(3,2) (top-right corner) —
+            // opposite corners of a 3×3 tile square. The midpoint (4096, 2048) lies in Tile(2,1).
+            TestVector v = new TestVector(new PointD(2048, 0), new PointD(6144, 4096));
+            TileIndexedList<TestVector> list = new TileIndexedList<TestVector>([v]);
+
+            Assert.HasCount(2, list);           // only start and end tiles are indexed
+            Assert.AreEqual(1, list.ItemCount); // one source item
+            Assert.AreEqual(1, list[new Tile(1, 0)].Count()); // start tile indexed
+            Assert.AreEqual(1, list[new Tile(3, 2)].Count()); // end tile indexed
+            Assert.AreEqual(0, list[new Tile(2, 1)].Count()); // geometrically crossed tile is not indexed
+        }
+
         // BoundingBox throws ArgumentOutOfRangeException when bottomLeft is greater than topRight
         [TestMethod]
         public void BoundingBoxThrowsWhenBottomLeftExceedsTopRight()
