@@ -67,7 +67,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             ];
             TileIndexedList<TestPoint> list = new TileIndexedList<TestPoint>(points);
 
-            Assert.HasCount(2, list);
+            Assert.AreEqual(2, list.Count);
             Assert.AreEqual(3, list.ItemCount);
         }
 
