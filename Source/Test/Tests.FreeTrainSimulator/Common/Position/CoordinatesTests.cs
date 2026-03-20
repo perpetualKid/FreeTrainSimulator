@@ -143,6 +143,69 @@ namespace Tests.FreeTrainSimulator.Common.Position
             Assert.AreEqual(start, result);
         }
 
+        // start=(10,0,0), end=(0,0,10), arcAngle=-π/2, radius=10 → center=(0,0,0)
+        // Verified: midpoint=(5,0,5), perp=(1/√2,0,1/√2), offset=(-5,0,-5)
+        [TestMethod]
+        public void WorldLocationFindArcCenterQuarterCircleCounterClockwiseTest()
+        {
+            WorldLocation start = new WorldLocation(0, 0, 10, 0, 0);
+            WorldLocation end = new WorldLocation(0, 0, 0, 0, 10);
+
+            WorldLocation center = WorldLocation.ArcCenterPoint(start, end, -MathF.PI / 2, 10f);
+
+            Assert.AreEqual(0, center.Tile.X);
+            Assert.AreEqual(0, center.Tile.Z);
+            Assert.AreEqual(0f, center.Location.X, EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(0f, center.Location.Y, EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(0f, center.Location.Z, EqualityPrecisionDelta.FloatPrecisionDelta);
+        }
+
+        // start=(10,0,0), end=(0,0,10), arcAngle=+π/2, radius=10 → center=(10,0,10)
+        // Verified: midpoint=(5,0,5), perp=(1/√2,0,1/√2), offset=(5,0,5)
+        [TestMethod]
+        public void WorldLocationFindArcCenterQuarterCircleClockwiseTest()
+        {
+            WorldLocation start = new WorldLocation(0, 0, 10, 0, 0);
+            WorldLocation end = new WorldLocation(0, 0, 0, 0, 10);
+
+            WorldLocation center = WorldLocation.ArcCenterPoint(start, end, MathF.PI / 2, 10f);
+
+            Assert.AreEqual(0, center.Tile.X);
+            Assert.AreEqual(0, center.Tile.Z);
+            Assert.AreEqual(10f, center.Location.X, EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(0f, center.Location.Y, EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(10f, center.Location.Z, EqualityPrecisionDelta.FloatPrecisionDelta);
+        }
+
+        // start=(-10,0,0), end=(10,0,0), arcAngle=π, radius=10 → center=(0,0,0) (midpoint, cos(π/2)=0)
+        [TestMethod]
+        public void WorldLocationFindArcCenterSemicircleTest()
+        {
+            WorldLocation start = new WorldLocation(0, 0, -10, 0, 0);
+            WorldLocation end = new WorldLocation(0, 0, 10, 0, 0);
+
+            WorldLocation center = WorldLocation.ArcCenterPoint(start, end, MathF.PI, 10f);
+
+            Assert.AreEqual(0, center.Tile.X);
+            Assert.AreEqual(0, center.Tile.Z);
+            Assert.AreEqual(0f, center.Location.X, EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(0f, center.Location.Y, EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(0f, center.Location.Z, EqualityPrecisionDelta.FloatPrecisionDelta);
+        }
+
+        [TestMethod]
+        public void WorldLocationFindArcCenterEquidistantFromBothEndpointsTest()
+        {
+            WorldLocation start = new WorldLocation(0, 0, 10, 0, 0);
+            WorldLocation end = new WorldLocation(0, 0, 0, 0, 10);
+            float radius = 10f;
+
+            WorldLocation center = WorldLocation.ArcCenterPoint(start, end, -MathF.PI / 2, radius);
+
+            Assert.AreEqual((double)radius * radius, WorldLocation.GetDistanceSquared(center, start), EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual((double)radius * radius, WorldLocation.GetDistanceSquared(center, end), EqualityPrecisionDelta.FloatPrecisionDelta);
+        }
+
         [TestMethod]
         public void WorldPositionCtorTest()
         {

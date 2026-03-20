@@ -338,6 +338,33 @@ namespace FreeTrainSimulator.Common.Position
         }
 
         /// <summary>
+        /// Calculates the center point of the arc defined by the given endpoints and arc parameters.
+        /// Uses the same arc geometry as <see cref="PointAlongArc"/>.
+        /// </summary>
+        /// <param name="start">Start world location on the arc.</param>
+        /// <param name="end">End world location on the arc.</param>
+        /// <param name="arcAngle">Total arc angle between start and end in radians.
+        /// Positive = clockwise, negative = counterclockwise.</param>
+        /// <param name="radius">Radius of the circle.</param>
+        /// <returns>The world location of the arc center, normalized across tile boundaries.</returns>
+        public static WorldLocation ArcCenterPoint(in WorldLocation start, in WorldLocation end, float arcAngle, float radius)
+        {
+            WorldLocation normalizedEnd = end.NormalizeTo(start.Tile);
+
+            ref readonly Vector3 startLocation = ref start.Location;
+            ref readonly Vector3 endLocation = ref normalizedEnd.Location;
+
+            Vector3 chord = endLocation - startLocation;
+            Vector3 perp = Vector3.Cross(Vector3.UnitY, chord);
+            if (perp.LengthSquared() < 1e-12f)
+                perp = Vector3.UnitX;
+            perp = Vector3.Normalize(perp);
+
+            Vector3 center = (startLocation + endLocation) / 2f + MathF.Sign(arcAngle) * radius * MathF.Cos(arcAngle / 2f) * perp;
+            return new WorldLocation(start.Tile, center, true);
+        }
+
+        /// <summary>
         /// Returns the world location on the arc at a given angular distance from start.
         /// Uses the same inputs as FindCircleCenter, plus a travel angle along the arc.
         /// </summary>
