@@ -60,31 +60,50 @@ namespace FreeTrainSimulator.Common.Position
 
         public TileIndexedList(IEnumerable<TTileCoordinate> data)
         {
-            data = data is IList ? data : data.ToList();
+            int itemCount = 0;
             if (data is IEnumerable<ITileCoordinateVector> vectorData)
             {
-                IEnumerable<ITileCoordinateVector> singleTile = vectorData.Where(d => d.Tile.Equals(d.OtherTile)).ToList();
-                IEnumerable<ITileCoordinateVector> multiTile = vectorData.Where(d => !d.Tile.Equals(d.OtherTile)).ToList();
-
+                Dictionary<Tile, List<TTileCoordinate>> tileDict = [];
+                foreach (ITileCoordinateVector item in vectorData)
+                {
+                    itemCount++;
+                    TTileCoordinate tileItem = (TTileCoordinate)item;
+                    if (!tileDict.TryGetValue(item.Tile, out List<TTileCoordinate> list))
+                        tileDict[item.Tile] = list = [];
+                    list.Add(tileItem);
+                    if (!item.Tile.Equals(item.OtherTile))
+                    {
+                        if (!tileDict.TryGetValue(item.OtherTile, out list))
+                            tileDict[item.OtherTile] = list = [];
+                        list.Add(tileItem);
+                    }
+                }
                 tiles = new SortedList<Tile, ImmutableArray<TTileCoordinate>>(
-                    singleTile.Select(d => new { Segment = d, Tile = d.Tile }).
-                    Concat(multiTile.Select(d => new { Segment = d, Tile = d.Tile })).
-                    Concat(multiTile.Select(d => new { Segment = d, Tile = d.OtherTile })).GroupBy(d => d.Tile).
-                    ToDictionary(g => g.Key, g => ImmutableArray.Create(g.Select(f => f.Segment).Cast<TTileCoordinate>().ToArray())));
+                    tileDict.ToDictionary(kvp => kvp.Key, kvp => ImmutableArray.CreateRange(kvp.Value)));
             }
             else
             {
-                tiles = new SortedList<Tile, ImmutableArray<TTileCoordinate>>(data.GroupBy(d => d.Tile).ToDictionary(g => g.Key, g => ImmutableArray.Create(g.ToArray())));
+                data = data is IList ? data : data.ToList();
+                Dictionary<Tile, List<TTileCoordinate>> tileDict = [];
+                foreach (TTileCoordinate item in data)
+                {
+                    itemCount++;
+                    if (!tileDict.TryGetValue(item.Tile, out List<TTileCoordinate> list))
+                        tileDict[item.Tile] = list = [];
+                    list.Add(item);
+                }
+                tiles = new SortedList<Tile, ImmutableArray<TTileCoordinate>>(
+                    tileDict.ToDictionary(kvp => kvp.Key, kvp => ImmutableArray.CreateRange(kvp.Value)));
             }
 
-            sortedIndexes = ImmutableArray.Create(tiles.Keys.ToArray());
+            sortedIndexes = ImmutableArray.CreateRange(tiles.Keys);
 
             if (sortedIndexes.Length > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[^1]))
             {
                 sortedIndexes = sortedIndexes.Remove(Tile.Zero);
                 tiles.Remove(Tile.Zero);
             }
-            ItemCount = data.Count();
+            ItemCount = itemCount;
         }
 
         public IEnumerator<TTileCoordinate> GetEnumerator()
@@ -131,14 +150,14 @@ namespace FreeTrainSimulator.Common.Position
             if (sortedIndexes.Length == 0)
                 yield break;
 
-            int tileLookupIndex = FindNearestIndexFloor(bottomLeft);
-            Tile end = sortedIndexes[FindNearestIndexCeiling(topRight)];
+            int tileLookupIndex = FindTileIndexCeiling(bottomLeft);
+            Tile end = sortedIndexes[FindTileIndexFloor(topRight)];
 
             Tile key = sortedIndexes[tileLookupIndex];
 
             while (key.Z < bottomLeft.Z && key.CompareTo(end) < 0)
             {
-                tileLookupIndex = FindNearestIndexFloor(new Tile(key.X, bottomLeft.Z));
+                tileLookupIndex = FindTileIndexCeiling(new Tile(key.X, bottomLeft.Z));
                 key = sortedIndexes[tileLookupIndex];
 
                 if (key.CompareTo(end) > 0)
@@ -147,7 +166,7 @@ namespace FreeTrainSimulator.Common.Position
 
             while (key.CompareTo(end) <= 0)
             {
-                foreach (TTileCoordinate item in tiles[key])
+                foreach (TTileCoordinate item in tiles.Values[tileLookupIndex])
                     yield return item;
 
                 tileLookupIndex++;
@@ -157,7 +176,7 @@ namespace FreeTrainSimulator.Common.Position
 
                 while (key.Z < bottomLeft.Z && key.CompareTo(end) < 0)
                 {
-                    tileLookupIndex = FindNearestIndexFloor(new Tile(key.X, bottomLeft.Z));
+                    tileLookupIndex = FindTileIndexCeiling(new Tile(key.X, bottomLeft.Z));
                     key = sortedIndexes[tileLookupIndex];
 
                     if (key.CompareTo(end) > 0)
@@ -169,15 +188,15 @@ namespace FreeTrainSimulator.Common.Position
         public IEnumerable<TTileCoordinate> FindNearest(PointD position)
         {
             Tile current = Tile.TileFromAbs(position.X, position.Y);
-            Tile key = sortedIndexes[FindNearestIndexCeiling(current)];
+            Tile key = sortedIndexes[FindTileIndexFloor(current)];
             double minDistance = double.MaxValue;
             if (current != key)
             {
                 int tileDistance = Math.Abs(current.X - key.X) + Math.Abs(current.Z - key.Z);
                 Tile tileMin = new Tile(current.X - tileDistance, current.Z - tileDistance);
                 Tile tileMax = new Tile(current.X + tileDistance, current.Z + tileDistance);
-                int tileMaxIndex = FindNearestIndexCeiling(tileMax);
-                for (int i = FindNearestIndexFloor(tileMin); i < tileMaxIndex; i++)
+                int tileMaxIndex = FindTileIndexFloor(tileMax);
+                for (int i = FindTileIndexCeiling(tileMin); i <= tileMaxIndex; i++)
                 {
                     double currentDistance;
                     if ((currentDistance = position.DistanceSquared(PointD.TileCenter(sortedIndexes[i]))) < minDistance)
@@ -193,7 +212,7 @@ namespace FreeTrainSimulator.Common.Position
         public IEnumerable<TTileCoordinate> FindNearest(PointD position, Tile bottomLeft, Tile topRight)
         {
             Tile current = Tile.TileFromAbs(position.X, position.Y);
-            Tile key = sortedIndexes[FindNearestIndexCeiling(current)];
+            Tile key = sortedIndexes[FindTileIndexFloor(current)];
             double minDistance = double.MaxValue;
             if (current != key)
             {
@@ -204,8 +223,8 @@ namespace FreeTrainSimulator.Common.Position
                 Tile tileMax = new Tile(current.X + tileDistance, current.Z + tileDistance);
                 if (tileMax.CompareTo(topRight) > 0)
                     tileMax = topRight;
-                int tileMaxIndex = FindNearestIndexCeiling(tileMax);
-                for (int i = FindNearestIndexFloor(tileMin); i < tileMaxIndex; i++)
+                int tileMaxIndex = FindTileIndexFloor(tileMax);
+                for (int i = FindTileIndexCeiling(tileMin); i <= tileMaxIndex; i++)
                 {
                     double currentDistance;
                     if ((currentDistance = position.DistanceSquared(PointD.TileCenter(sortedIndexes[i]))) < minDistance)
@@ -223,7 +242,8 @@ namespace FreeTrainSimulator.Common.Position
             return GetEnumerator();
         }
 
-        private int FindNearestIndexFloor(in Tile possibleKey)
+        // Returns the index of the first tile >= possibleKey (ceiling)
+        private int FindTileIndexCeiling(in Tile possibleKey)
         {
             int keyIndex = sortedIndexes.BinarySearch(possibleKey);
             if (keyIndex < 0)
@@ -235,7 +255,8 @@ namespace FreeTrainSimulator.Common.Position
             return keyIndex;
         }
 
-        private int FindNearestIndexCeiling(in Tile possibleKey)
+        // Returns the index of the last tile <= possibleKey (floor)
+        private int FindTileIndexFloor(in Tile possibleKey)
         {
             int keyIndex = sortedIndexes.BinarySearch(possibleKey);
             if (keyIndex < 0)
