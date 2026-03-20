@@ -106,16 +106,58 @@ namespace FreeTrainSimulator.Common.Position
             ItemCount = itemCount;
         }
 
-        public IEnumerator<TTileCoordinate> GetEnumerator()
+        /// <summary>
+        /// Allocation-free enumerator used by <see langword="foreach"/> on the concrete type via duck typing.
+        /// </summary>
+        public struct Enumerator : IEnumerator<TTileCoordinate>
         {
-            foreach (ImmutableArray<TTileCoordinate> tileValues in tiles.Values)
+            private readonly IList<ImmutableArray<TTileCoordinate>> tileValues;
+            private readonly int tileCount;
+            private int tileIndex;
+            private int itemIndex;
+
+            internal Enumerator(SortedList<Tile, ImmutableArray<TTileCoordinate>> tiles)
             {
-                foreach (TTileCoordinate item in tileValues)
-                {
-                    yield return item;
-                }
+                tileValues = tiles.Values;
+                tileCount = tiles.Count;
+                tileIndex = 0;
+                itemIndex = -1;
             }
+
+            public TTileCoordinate Current => tileValues[tileIndex][itemIndex];
+
+            object IEnumerator.Current => Current!;
+
+            public bool MoveNext()
+            {
+                itemIndex++;
+                while (tileIndex < tileCount)
+                {
+                    if (itemIndex < tileValues[tileIndex].Length)
+                        return true;
+                    tileIndex++;
+                    itemIndex = 0;
+                }
+                return false;
+            }
+
+            public void Reset()
+            {
+                tileIndex = 0;
+                itemIndex = -1;
+            }
+
+            public readonly void Dispose() { }
         }
+
+        /// <summary>
+        /// Returns a struct <see cref="Enumerator"/>. Used by <see langword="foreach"/> via duck typing — no heap allocation.
+        /// </summary>
+        public Enumerator GetEnumerator() => new Enumerator(tiles);
+
+        IEnumerator<TTileCoordinate> IEnumerable<TTileCoordinate>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
         public IEnumerable<TTileCoordinate> this[Tile tile]
@@ -235,11 +277,6 @@ namespace FreeTrainSimulator.Common.Position
                 }
             }
             return tiles[key];
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
 
         // Returns the index of the first tile >= possibleKey (ceiling)
