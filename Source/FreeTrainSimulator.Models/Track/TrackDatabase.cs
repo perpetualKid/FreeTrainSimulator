@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Linq;
 
 using MemoryPack;
 
@@ -45,9 +44,22 @@ namespace FreeTrainSimulator.Models.Track
         private ImmutableArray<EmptyTrackItem>? emptyTrackItems;
         #endregion
 
+        #region non-serialized fields
+        private ImmutableArray<int> endNodeIndices;
+        private ImmutableArray<int> vectorNodeIndices;
+        private ImmutableArray<int> junctionNodeIndices;
+        #endregion
+
         public TrackDataBaseType TrackDataBaseType { get; init; }
         [MemoryPackIgnore]
         public ImmutableArray<TrackNodeBase> TrackNodes { get; init; } = ImmutableArray<TrackNodeBase>.Empty;
+        [MemoryPackIgnore]
+        public TrackNodeEnumerable<EndNode> EndNodes => new TrackNodeEnumerable<EndNode>(TrackNodes, endNodeIndices);
+        [MemoryPackIgnore]
+        public TrackNodeEnumerable<VectorNode> VectorNodes => new TrackNodeEnumerable<VectorNode>(TrackNodes, vectorNodeIndices);
+        [MemoryPackIgnore]
+        public TrackNodeEnumerable<JunctionNode> JunctionNodes => new TrackNodeEnumerable<JunctionNode>(TrackNodes, junctionNodeIndices);
+
         public ImmutableDictionary<int, TrackItemIndex> TrackItemSelectors { get; init; } = ImmutableDictionary<int, TrackItemIndex>.Empty;
         public ImmutableArray<TrackNodeConnectorIndex> TrackNodeConnectors { get; init; } = ImmutableArray<TrackNodeConnectorIndex>.Empty;
         [MemoryPackIgnore]
@@ -81,6 +93,26 @@ namespace FreeTrainSimulator.Models.Track
         [MemoryPackOnSerialized]
         private void OnSerialized()
         {
+            ImmutableArray<int>.Builder endNodesBuilder = ImmutableArray.CreateBuilder<int>();
+            ImmutableArray<int>.Builder vectorNodesBuilder = ImmutableArray.CreateBuilder<int>();
+            ImmutableArray<int>.Builder junctionNodesBuilder = ImmutableArray.CreateBuilder<int>();
+
+            foreach (EndNode node in endNodes)
+            {
+                endNodesBuilder.Add(node.NodeIndex);
+            }
+            foreach (JunctionNode node in junctionNodes)
+            {
+                junctionNodesBuilder.Add(node.NodeIndex);
+            }
+            foreach (VectorNode node in vectorNodes)
+            {
+                vectorNodesBuilder.Add(node.NodeIndex);
+            }
+            endNodeIndices = endNodesBuilder.ToImmutable();
+            vectorNodeIndices = vectorNodesBuilder.ToImmutable();
+            junctionNodeIndices = junctionNodesBuilder.ToImmutable();
+
             //clear the node arrays after serialization to reduce memory
             endNodes = null;
             junctionNodes = null;
@@ -109,18 +141,30 @@ namespace FreeTrainSimulator.Models.Track
 
             TrackNodeBase[] trackNodes = new TrackNodeBase[(trackDatabase.endNodes?.Length ?? 0) + (trackDatabase.junctionNodes?.Length ?? 0) + 
                 (trackDatabase.vectorNodes?.Length ?? 0) + 1];
+
+            ImmutableArray<int>.Builder endNodesBuilder = ImmutableArray.CreateBuilder<int>();
+            ImmutableArray<int>.Builder vectorNodesBuilder = ImmutableArray.CreateBuilder<int>();
+            ImmutableArray<int>.Builder junctionNodesBuilder = ImmutableArray.CreateBuilder<int>();
+
             foreach (EndNode node in trackDatabase.endNodes)
             {
                 trackNodes[node.NodeIndex] = node;
+                endNodesBuilder.Add(node.NodeIndex);
             }
             foreach (JunctionNode node in trackDatabase.junctionNodes)
             {
                 trackNodes[node.NodeIndex] = node;
+                junctionNodesBuilder.Add(node.NodeIndex);
             }
             foreach (VectorNode node in trackDatabase.vectorNodes)
             {
                 trackNodes[node.NodeIndex] = node;
+                vectorNodesBuilder.Add(node.NodeIndex);
             }
+
+            trackDatabase.endNodeIndices = endNodesBuilder.ToImmutable();
+            trackDatabase.vectorNodeIndices = vectorNodesBuilder.ToImmutable();
+            trackDatabase.junctionNodeIndices = junctionNodesBuilder.ToImmutable();
 
             TrackItemBase[] trackItems = new TrackItemBase[(trackDatabase.sidingTrackItems?.Length ?? 0) + (trackDatabase.platformTrackItems?.Length ?? 0) +
                 (trackDatabase.speedpostTrackItems?.Length ?? 0) + (trackDatabase.milepostTrackItems?.Length ?? 0) + (trackDatabase.hazardTrackItems?.Length ?? 0) +
