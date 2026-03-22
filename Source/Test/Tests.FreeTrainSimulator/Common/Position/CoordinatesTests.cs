@@ -528,5 +528,38 @@ namespace Tests.FreeTrainSimulator.Common.Position
             Assert.AreEqual(10262, position.Location.Z);
             Assert.AreEqual(-10262, position.XNAMatrix.M43);
         }
+
+        // ComputeEndLocation straight: PointAlongDirection(start, end, trackSection.Length) where
+        // trackSection.Length equals the 3D distance start→end must return exactly end.
+        // start=(0,0,0,0,0), end=(0,0,0,0,100), distance=100 → result matches end.
+        [TestMethod]
+        public void WorldLocationPointAlongDirectionAtFullLengthReachesEndOnLevelSectionTest()
+        {
+            WorldLocation start = new WorldLocation(0, 0, 0, 0, 0);
+            WorldLocation end = new WorldLocation(0, 0, 0, 0, 100);
+            float length = (float)Math.Sqrt(WorldLocation.GetDistanceSquared(start, end));
+
+            WorldLocation result = WorldLocation.PointAlongDirection(start, end, length);
+
+            Assert.AreEqual(end.Location.X, result.Location.X, EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(end.Location.Y, result.Location.Y, EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(end.Location.Z, result.Location.Z, EqualityPrecisionDelta.FloatPrecisionDelta);
+        }
+
+        // ComputeEndLocation curved: PointAlongArc(start, end, arcAngle, radius, |arcAngle|) at distance==|arcAngle|
+        // must return end including its elevation. Elevated CCW quarter-circle (r=10, Y=20):
+        // center.Y=(20+20)/2=20; perp=Cross(UnitY, chord) is horizontal → u,v have no Y → all arc points keep Y=20.
+        [TestMethod]
+        public void WorldLocationPointAlongArcAtFullArcAngleReturnsEndAtElevationTest()
+        {
+            WorldLocation start = new WorldLocation(0, 0, 10, 20, 0);
+            WorldLocation end = new WorldLocation(0, 0, 0, 20, 10);
+
+            WorldLocation result = WorldLocation.PointAlongArc(start, end, -MathF.PI / 2, 10f, MathF.PI / 2);
+
+            Assert.AreEqual(end.Location.X, result.Location.X, EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(end.Location.Y, result.Location.Y, EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(end.Location.Z, result.Location.Z, EqualityPrecisionDelta.FloatPrecisionDelta);
+        }
     }
 }

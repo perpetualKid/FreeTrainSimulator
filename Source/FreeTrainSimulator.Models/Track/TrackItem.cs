@@ -7,12 +7,14 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Track
 {
-    public abstract partial record TrackItemModel
+    public abstract partial record TrackItemModel : ITileCoordinate
     {
         private readonly WorldLocation location;
         public ref readonly WorldLocation Location => ref location;
 
         public ref readonly Tile WorldTile => ref location.Tile;
+
+        ref readonly Tile ITileCoordinate.Tile => ref location.Tile;
 
         public int TrackItemIndex { get; init; }
         public int NodeIndex { get; init; }
@@ -24,6 +26,7 @@ namespace FreeTrainSimulator.Models.Track
             this.location = location;
         }
     }
+
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record SidingTrackItem : TrackItemModel
     {
@@ -151,7 +154,7 @@ namespace FreeTrainSimulator.Models.Track
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record SignalTrackItem : TrackItemModel
-    {        
+    {
         public uint SignalFlags { get; init; } // Set to  00000001 if junction link set
         public TrackDirection Direction { get; init; }
         public float SignalData { get; init; }
@@ -166,7 +169,7 @@ namespace FreeTrainSimulator.Models.Track
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record SignalDirection
-    { 
+    {
         public int NodeIndex { get; init; }
         /// <summary>Used with junction signals, appears to be either 1 or 0</summary>
         public int JunctionPath { get; init; }

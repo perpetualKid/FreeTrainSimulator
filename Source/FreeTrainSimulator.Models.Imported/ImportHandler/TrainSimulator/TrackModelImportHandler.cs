@@ -148,8 +148,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     TrackVectorNode vectorNode => new VectorNode(WorldLocation.None, Tile.Zero)
                     {
                         NodeIndex = vectorNode.Index,
-                        VectorSections = vectorNode.TrackVectorSections.Select(tvs =>
-                        new VectorSectionNode(tvs.Location, tvs.WorldTile, tvs.Direction)
+                        VectorSections = vectorNode.TrackVectorSections.Select((tvs, i) =>
+                        new VectorSectionNode(tvs.Location, tvs.WorldTile, tvs.Direction, 
+                        ComputeEndLocation(vectorNode.TrackVectorSections, i, vectorNode, trackNodes, trackSections, trackdatabaseFile))
                         {
                             NodeIndex = tvs.SectionIndex,
                             ShapeIndex = tvs.ShapeIndex,
@@ -606,6 +607,67 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     trackItems[start.TrackItemIndex] = new EmptyTrackItem() { TrackItemIndex = start.TrackItemIndex };
                 }
             }
+        }
+
+        /// <summary>
+        /// Computes the 3D world location of the far end of a track vector section.
+        /// The direction is determined by the start location of the next section (or the connected node for the last section).
+        /// Falls back to <paramref name="nextLocation"/> when the section index is not found in <paramref name="trackSections"/>.
+        /// </summary>
+        private static WorldLocation ComputeEndLocation(TrackVectorSection[] sections, int index, TrackVectorNode vectorNode, TrackNodes trackNodes, TrackSectionModel trackSections, string trackdatabaseFile)
+        {
+            // The far end of this section is the start of the next one, or the connected node's location for the last section.
+            WorldLocation nextLocation = index + 1 < sections.Length
+                ? sections[index + 1].Location
+                : trackNodes[vectorNode.TrackPins[vectorNode.InPins].Link]?.UiD?.Location ?? WorldLocation.None;
+
+            if (!trackSections.TrackSections.TryGetValue(sections[index].SectionIndex, out Track.TrackSection trackSection))
+            {
+                return nextLocation;
+            }
+            if (WorldLocation.GetDistanceSquared(sections[index].Location, nextLocation) < 0.001)
+            {
+                Trace.TraceWarning($"Vector Node {vectorNode.Index} section index {index} from {trackdatabaseFile} has degenerate next location - computing end position from direction and geometry");
+                return ComputeEndLocationFromDirection(sections[index], trackSection);
+            }
+
+            return trackSection.Curved
+                ? WorldLocation.PointAlongArc(sections[index].Location, nextLocation,
+                    MathHelper.ToRadians(trackSection.Angle), trackSection.Radius, Math.Abs(MathHelper.ToRadians(trackSection.Angle)))
+                : WorldLocation.PointAlongDirection(sections[index].Location, nextLocation, trackSection.Length);
+        }
+
+        /// <summary>
+        /// Computes the end location of a track vector section using only its start position, heading direction, and section geometry.
+        /// Used as a fallback when the next section's start location coincides with this section's start (degenerate graph data).
+        /// Assumes the section lies in a horizontal plane — elevation (Y) is preserved from the start location.
+        /// Mirrors the endpoint formulas used in <see cref="FreetrainSimulator.Runtime.Track.TrackSegmentBase"/>.
+        /// </summary>
+        private static WorldLocation ComputeEndLocationFromDirection(TrackVectorSection section, Track.TrackSection trackSection)
+        {
+            double cosA = Math.Cos(section.Direction.Y);
+            double sinA = Math.Sin(section.Direction.Y);
+            ref readonly WorldLocation start = ref section.Location;
+            float endX, endZ;
+
+            if (trackSection.Curved)
+            {
+                float arcAngle = MathHelper.ToRadians(trackSection.Angle);
+                int sign = -Math.Sign(trackSection.Angle);
+                double cosArotated = Math.Cos(section.Direction.Y + arcAngle);
+                double sinArotated = Math.Sin(section.Direction.Y + arcAngle);
+                double deltaX = sign * trackSection.Radius * (cosA - cosArotated);
+                double deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
+                endX = start.Location.X - (float)deltaX;
+                endZ = start.Location.Z + (float)deltaZ;
+            }
+            else
+            {
+                endX = start.Location.X + (float)(sinA * trackSection.Length);
+                endZ = start.Location.Z + (float)(cosA * trackSection.Length);
+            }
+
+            return new WorldLocation(start.Tile, new Vector3(endX, start.Location.Y, endZ), true);
         }
 
         private static SpeedpostType GetSpeedpostType(SpeedPostItem speedPostItem)
