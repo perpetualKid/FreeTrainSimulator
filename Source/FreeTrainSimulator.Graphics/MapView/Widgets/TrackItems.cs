@@ -18,7 +18,7 @@ using Microsoft.Xna.Framework;
 namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     #region TrackItemBase
-    internal abstract record TrackItemWidget : TrackItemBase, IDrawable<PointPrimitive>, INameValueInformationProvider
+    internal abstract record TrackItemWidget : Runtime.Track.TrackItemBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Item Type"] = "Empty" };
         private protected static int debugInfoItemId;
@@ -46,7 +46,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public abstract void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
 
-        public TrackItemWidget(Models.Track.TrackItemModel source) : base(source.Location)
+        public TrackItemWidget(Models.Track.TrackItemBase source) : base(source.Location)
         {
             Size = 3;
             TrackItemId = source.TrackItemIndex;
@@ -63,7 +63,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (trackDatabase?.TrackItems == null)
                 return result.ToImmutableArray();
 
-            foreach (TrackItemModel trackItem in trackDatabase.TrackItems)
+            foreach (Models.Track.TrackItemBase trackItem in trackDatabase.TrackItems)
             {
                 switch (trackItem)
                 {
@@ -91,7 +91,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (trackDatabase?.TrackItems == null)
                 return result.ToImmutableArray();
 
-            foreach (TrackItemModel trackItem in trackDatabase.TrackItems)
+            foreach (Models.Track.TrackItemBase trackItem in trackDatabase.TrackItems)
             {
                 if (trackItem.Location == WorldLocation.None)
                     continue;

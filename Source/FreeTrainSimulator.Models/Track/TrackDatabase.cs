@@ -51,7 +51,7 @@ namespace FreeTrainSimulator.Models.Track
         public ImmutableDictionary<int, TrackItemIndex> TrackItemSelectors { get; init; } = ImmutableDictionary<int, TrackItemIndex>.Empty;
         public ImmutableArray<TrackNodeConnectorIndex> TrackNodeConnectors { get; init; } = ImmutableArray<TrackNodeConnectorIndex>.Empty;
         [MemoryPackIgnore]
-        public ImmutableArray<TrackItemModel> TrackItems { get; init; } = ImmutableArray<TrackItemModel>.Empty;
+        public ImmutableArray<TrackItemBase> TrackItems { get; init; } = ImmutableArray<TrackItemBase>.Empty;
 
         [MemoryPackConstructor]
         public TrackDatabase() { }
@@ -122,7 +122,7 @@ namespace FreeTrainSimulator.Models.Track
                 trackNodes[node.NodeIndex] = node;
             }
 
-            TrackItemModel[] trackItems = new TrackItemModel[(trackDatabase.sidingTrackItems?.Length ?? 0) + (trackDatabase.platformTrackItems?.Length ?? 0) +
+            TrackItemBase[] trackItems = new TrackItemBase[(trackDatabase.sidingTrackItems?.Length ?? 0) + (trackDatabase.platformTrackItems?.Length ?? 0) +
                 (trackDatabase.speedpostTrackItems?.Length ?? 0) + (trackDatabase.milepostTrackItems?.Length ?? 0) + (trackDatabase.hazardTrackItems?.Length ?? 0) +
                 (trackDatabase.pickupTrackItems?.Length ?? 0) + (trackDatabase.levelCrossingTrackItems?.Length ?? 0) + (trackDatabase.roadLevelCrossingTrackItems?.Length ?? 0) +
                 (trackDatabase.soundRegionTrackItems?.Length ?? 0) + (trackDatabase.signalTrackItems?.Length ?? 0) + (trackDatabase.crossoverTrackItems?.Length ?? 0) +

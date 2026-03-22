@@ -7,28 +7,8 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Track
 {
-    public abstract partial record TrackItemModel : ITileCoordinate
-    {
-        private readonly WorldLocation location;
-        public ref readonly WorldLocation Location => ref location;
-
-        public ref readonly Tile WorldTile => ref location.Tile;
-
-        ref readonly Tile ITileCoordinate.Tile => ref location.Tile;
-
-        public int TrackItemIndex { get; init; }
-        public int NodeIndex { get; init; }
-        public float SectionDistance { get; init; }
-        public uint Flags { get; init; }
-
-        protected TrackItemModel(in WorldLocation location)
-        {
-            this.location = location;
-        }
-    }
-
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record SidingTrackItem : TrackItemModel
+    public sealed partial record SidingTrackItem : TrackItemBase
     {
         public uint SidingFlags { get; init; }
         public int LinkedSidingItem { get; init; }
@@ -41,7 +21,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record PlatformTrackItem : TrackItemModel
+    public sealed partial record PlatformTrackItem : TrackItemBase
     {
         public uint PlatformFlags { get; init; }
         public int LinkedPlatformItem { get; init; }
@@ -57,7 +37,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record SpeedpostTrackItem : TrackItemModel
+    public sealed partial record SpeedpostTrackItem : TrackItemBase
     {
         public float SpeedValue { get; init; }
         public int AlternativeSpeedValue { get; init; }
@@ -93,7 +73,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record MilepostTrackItem : TrackItemModel
+    public sealed partial record MilepostTrackItem : TrackItemBase
     {
         public float DistanceValue { get; init; }
 
@@ -104,7 +84,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record HazardTrackItem : TrackItemModel
+    public sealed partial record HazardTrackItem : TrackItemBase
     {
         [MemoryPackConstructor]
         public HazardTrackItem(in WorldLocation location) : base(location)
@@ -113,7 +93,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record PickupTrackItem : TrackItemModel
+    public sealed partial record PickupTrackItem : TrackItemBase
     {
         [MemoryPackConstructor]
         public PickupTrackItem(in WorldLocation location) : base(location)
@@ -122,7 +102,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record LevelCrossingTrackItem : TrackItemModel
+    public sealed partial record LevelCrossingTrackItem : TrackItemBase
     {
         [MemoryPackConstructor]
         public LevelCrossingTrackItem(in WorldLocation location) : base(location)
@@ -131,7 +111,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record RoadLevelCrossingTrackItem : TrackItemModel
+    public sealed partial record RoadLevelCrossingTrackItem : TrackItemBase
     {
         [MemoryPackConstructor]
         public RoadLevelCrossingTrackItem(in WorldLocation location) : base(location)
@@ -140,7 +120,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record SoundRegionTrackItem : TrackItemModel
+    public sealed partial record SoundRegionTrackItem : TrackItemBase
     {
         public int SoundRegionData1 { get; init; }
         public int SoundRegionData2 { get; init; }
@@ -153,7 +133,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record SignalTrackItem : TrackItemModel
+    public sealed partial record SignalTrackItem : TrackItemBase
     {
         public uint SignalFlags { get; init; } // Set to  00000001 if junction link set
         public TrackDirection Direction { get; init; }
@@ -176,7 +156,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record CrossoverTrackItem : TrackItemModel
+    public sealed partial record CrossoverTrackItem : TrackItemBase
     {
         public int ShapeIndex { get; init; }
 
@@ -187,7 +167,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record CarSpawnerTrackItem : TrackItemModel
+    public sealed partial record CarSpawnerTrackItem : TrackItemBase
     {
         [MemoryPackConstructor]
         public CarSpawnerTrackItem(in WorldLocation location) : base(location)
@@ -196,7 +176,7 @@ namespace FreeTrainSimulator.Models.Track
     }
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public sealed partial record EmptyTrackItem : TrackItemModel
+    public sealed partial record EmptyTrackItem : TrackItemBase
     {
         [MemoryPackConstructor]
         public EmptyTrackItem() : base(WorldLocation.None)

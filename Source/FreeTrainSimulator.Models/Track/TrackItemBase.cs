@@ -2,25 +2,23 @@
 
 namespace FreeTrainSimulator.Models.Track
 {
-    public abstract partial record TrackNodeBase: ITileCoordinate
+    public abstract partial record TrackItemBase : ITileCoordinate
     {
         private readonly WorldLocation location;
-        private readonly Tile worldTile;
-
         public ref readonly WorldLocation Location => ref location;
 
-        public ref readonly Tile WorldTile => ref worldTile;
+        public ref readonly Tile WorldTile => ref location.Tile;
 
         public ref readonly Tile Tile => ref location.Tile;
 
+        public int TrackItemIndex { get; init; }
         public int NodeIndex { get; init; }
+        public float SectionDistance { get; init; }
+        public uint Flags { get; init; }
 
-        public int WorldId { get; init; }
-
-        protected TrackNodeBase(in WorldLocation location, in Tile worldTile) 
+        protected TrackItemBase(in WorldLocation location)
         {
             this.location = location;
-            this.worldTile = worldTile;
         }
     }
 }

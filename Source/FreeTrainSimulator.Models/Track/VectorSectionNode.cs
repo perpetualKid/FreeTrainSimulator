@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Models.Track
         /// </summary>
         public ref readonly WorldLocation EndLocation => ref endLocation;
 
-        ref readonly Tile ITileCoordinateVector.OtherTile => ref endLocation.Tile;
+        public ref readonly Tile OtherTile => ref endLocation.Tile;
 
         public int Flag1 { get; init; }
         public int Flag2 { get; init; }

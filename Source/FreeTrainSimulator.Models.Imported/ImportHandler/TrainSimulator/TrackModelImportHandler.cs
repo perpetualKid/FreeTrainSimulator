@@ -206,11 +206,11 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 })).ToImmutableDictionary(item => item.Index, item => item.Item2);
         }
 
-        private static ImmutableArray<TrackItemModel> ConvertTrackItems(List<TrackItem> trackItems, TrackDatabase trackDatabase, TrackSectionModel trackSections,
+        private static ImmutableArray<TrackItemBase> ConvertTrackItems(List<TrackItem> trackItems, TrackDatabase trackDatabase, TrackSectionModel trackSections,
             string trackdatabaseFile)
         {
             if (trackItems == null)
-                return ImmutableArray<TrackItemModel>.Empty;
+                return ImmutableArray<TrackItemBase>.Empty;
 
             //temporary map reverse-linking TrackItems to TrackNodes
             int[] trackNodeReferences = new int[trackItems.Count];
@@ -222,7 +222,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 }
             }
 
-            List<TrackItemModel> result = new List<TrackItemModel>();
+            List<TrackItemBase> result = new List<TrackItemBase>();
 
             uint flags;
 
@@ -426,7 +426,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             return result.ToImmutableArray();
         }
 
-        private static void LinkSidingItems(List<TrackItemModel> trackItems, string trackdatabaseFile)
+        private static void LinkSidingItems(List<TrackItemBase> trackItems, string trackdatabaseFile)
         {
             Dictionary<int, SidingTrackItem> sidingItemMappings = trackItems.OfType<SidingTrackItem>().ToDictionary(p => p.TrackItemIndex);
 
@@ -501,7 +501,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             }
         }
 
-        private static void LinkPlatformItems(List<TrackItemModel> trackItems, string trackdatabaseFile)
+        private static void LinkPlatformItems(List<TrackItemBase> trackItems, string trackdatabaseFile)
         {
             Dictionary<int, PlatformTrackItem> platformItemMappings = trackItems.OfType<PlatformTrackItem>().ToDictionary(p => p.TrackItemIndex);
 
