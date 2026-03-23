@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Track;
 
@@ -16,7 +17,7 @@ namespace FreeTrainSimulator.Runtime.Track
         // Linear equivalent of ProximityToleranceSquared, used to detect proximity to tile borders
         private const double ProximityTolerance = 1.0; // = Math.Sqrt(ProximityToleranceSquared)
 
-        private TileIndexedList<Models.Track.TrackItemBase> trackItems = new TileIndexedList<Models.Track.TrackItemBase>(Array.Empty<Models.Track.TrackItemBase>());
+        public EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
 
         public RuntimeDataResolver RuntimeData { get; }
 
@@ -42,10 +43,10 @@ namespace FreeTrainSimulator.Runtime.Track
         /// Builds the spatial index from <paramref name="database"/>'s track items.
         /// <see cref="Models.Track.TrackItemBase"/> entries are excluded — they carry no valid world location.
         /// </summary>
-        public void Initialize(TrackDatabase database)
+        public void Initialize(Models.Track.TrackModel trackModel)
         {
-            ArgumentNullException.ThrowIfNull(database);
-            trackItems = new TileIndexedList<Models.Track.TrackItemBase>(database.TrackItems.Where(item => item is not EmptyTrackItem));
+            ArgumentNullException.ThrowIfNull(trackModel);
+            ContentByTile[MapContentType.Empty] = new TileIndexedList<Models.Track.TrackItemBase>(trackModel.TrackDatabase.TrackItems.Where(item => item is not EmptyTrackItem));
         }
 
         /// <summary>
@@ -53,12 +54,12 @@ namespace FreeTrainSimulator.Runtime.Track
         /// or <see langword="null"/> if no candidate exists in that tile bucket within the threshold.
         /// Adjacent tile buckets are also searched when <paramref name="location"/> is within the tolerance of a tile border.
         /// </summary>
-        public Models.Track.TrackItemBase TrackItemAt(in WorldLocation location)
+        public Models.Track.TrackItemBase TrackItemAt(in WorldLocation location, MapContentType contentType)
         {
             Models.Track.TrackItemBase nearest = null;
             double nearestDistance = ProximityToleranceSquared;
 
-            SearchTileBucket(location.Tile, in location, ref nearest, ref nearestDistance);
+            SearchTileBucket(location.Tile, in location, contentType, ref nearest, ref nearestDistance);
 
             // When the query point is within ProximityTolerance of a tile border, items in the adjacent tile
             // may also be within tolerance — check those buckets too.
@@ -69,26 +70,26 @@ namespace FreeTrainSimulator.Runtime.Track
 
             if (location.Location.X > Tile.TileSizeOver2 - ProximityTolerance)
             {
-                SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z), in location, ref nearest, ref nearestDistance);
-                if (nearPosZ) SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z + 1), in location, ref nearest, ref nearestDistance);
-                else if (nearNegZ) SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z - 1), in location, ref nearest, ref nearestDistance);
+                SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z), in location, contentType, ref nearest, ref nearestDistance);
+                if (nearPosZ) SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z + 1), in location, contentType, ref nearest, ref nearestDistance);
+                else if (nearNegZ) SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z - 1), in location, contentType, ref nearest, ref nearestDistance);
             }
             else if (location.Location.X < -(Tile.TileSizeOver2 - ProximityTolerance))
             {
-                SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z), in location, ref nearest, ref nearestDistance);
-                if (nearPosZ) SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z + 1), in location, ref nearest, ref nearestDistance);
-                else if (nearNegZ) SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z - 1), in location, ref nearest, ref nearestDistance);
+                SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z), in location, contentType, ref nearest, ref nearestDistance);
+                if (nearPosZ) SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z + 1), in location, contentType, ref nearest, ref nearestDistance);
+                else if (nearNegZ) SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z - 1), in location, contentType, ref nearest, ref nearestDistance);
             }
 
-            if (nearPosZ) SearchTileBucket(new Tile(location.Tile.X, location.Tile.Z + 1), in location, ref nearest, ref nearestDistance);
-            else if (nearNegZ) SearchTileBucket(new Tile(location.Tile.X, location.Tile.Z - 1), in location, ref nearest, ref nearestDistance);
+            if (nearPosZ) SearchTileBucket(new Tile(location.Tile.X, location.Tile.Z + 1), in location, contentType, ref nearest, ref nearestDistance);
+            else if (nearNegZ) SearchTileBucket(new Tile(location.Tile.X, location.Tile.Z - 1), in location, contentType, ref nearest, ref nearestDistance);
 
             return nearest;
         }
 
-        private void SearchTileBucket(in Tile tile, in WorldLocation location, ref Models.Track.TrackItemBase nearest, ref double nearestDistance)
+        private void SearchTileBucket(in Tile tile, in WorldLocation location, MapContentType contentType, ref Models.Track.TrackItemBase nearest, ref double nearestDistance)
         {
-            foreach (Models.Track.TrackItemBase item in trackItems[tile])
+            foreach (Models.Track.TrackItemBase item in ContentByTile[contentType][tile])
             {
                 double distance = WorldLocation.GetDistanceSquared(item.Location, location);
                 if (distance <= nearestDistance)
