@@ -23,7 +23,6 @@ namespace Orts.Formats.Msts
         public RoadTrackDB RoadTrackDB { get; }
         /// <summary>The signal config file containing i.e. the information to distinguish normal and non-normal signals</summary>
         public SignalConfigurationFile SignalConfigFile { get; }
-        public bool MetricUnits { get; }
         public IRuntimeReferenceResolver RuntimeReferenceResolver { get; }
 
         public static RuntimeData Instance { get; private set; }
@@ -33,7 +32,7 @@ namespace Orts.Formats.Msts
             return game?.Services.GetService<RuntimeData>() ?? Instance;
         }
 
-        public static void Initialize(RouteModel route, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
+        public static void Initialize(RouteModel route, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
             TrackSectionModel trackSectionModel = null;
 
@@ -41,23 +40,22 @@ namespace Orts.Formats.Msts
             {
                 trackSectionModel = await route.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
             }).Wait();
-            Instance = new RuntimeData(route, trackSectionModel, trackDb, roadTrackDB, signalConfig, metricUnits, runtimeReferenceResolver);
+            Instance = new RuntimeData(route, trackSectionModel, trackDb, roadTrackDB, signalConfig, runtimeReferenceResolver);
         }
 
-        public static void Initialize(RouteModel route, TrackSectionModel trackSectionModel, SignalConfigurationFile signalConfig, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
+        public static void Initialize(RouteModel route, TrackSectionModel trackSectionModel, SignalConfigurationFile signalConfig, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
-            Instance = new RuntimeData(route, trackSectionModel, null, null, signalConfig, metricUnits, runtimeReferenceResolver);
+            Instance = new RuntimeData(route, trackSectionModel, null, null, signalConfig, runtimeReferenceResolver);
         }
 
         protected RuntimeData(RouteModel route, TrackSectionModel trackSectionModel, TrackDB trackDb, RoadTrackDB roadTrackDB, 
-            SignalConfigurationFile signalConfig, bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver)
+            SignalConfigurationFile signalConfig, IRuntimeReferenceResolver runtimeReferenceResolver)
         {
             RouteData = route;
             TrackSections = trackSectionModel;
             TrackDB = trackDb;
             RoadTrackDB = roadTrackDB;
             SignalConfigFile = signalConfig;
-            MetricUnits = useMetricUnits;
             RuntimeReferenceResolver = runtimeReferenceResolver;
         }
 

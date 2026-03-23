@@ -224,7 +224,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public SidingTrackItem(Models.Track.SidingTrackItem source, TrackDatabase trackDatabase) : base(source)
         {
-            VectorNode = trackDatabase.TrackNodes[source.NodeIndex] as VectorNode;
+            VectorNode = trackDatabase.VectorNodes[source.NodeIndex];
             SidingName = source.SidingName;
             LinkedId = source.LinkedSidingItem;
             Size = 5f;
@@ -259,7 +259,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public PlatformTrackItem(Models.Track.PlatformTrackItem source, TrackDatabase trackDatabase) :
             base(source)
         {
-            VectorNode = trackDatabase.TrackNodes[source.NodeIndex] as VectorNode;
+            VectorNode = trackDatabase.VectorNodes[source.NodeIndex];
             PlatformName = source.PlatformName;
             StationName = source.StationName;
             LinkedId = source.LinkedPlatformItem;

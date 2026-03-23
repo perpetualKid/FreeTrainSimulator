@@ -235,7 +235,7 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             ArgumentNullException.ThrowIfNull(source);
 
-            VectorNode vectorNode = RuntimeData.TrackModel.TrackDatabase.TrackNodes[source.TrackNodeIndex] as VectorNode;
+            VectorNode vectorNode = RuntimeData.TrackModel.TrackDatabase.VectorNodes[source.TrackNodeIndex];
             ImmutableArray<TrackNodeConnector> nodeConnectors = RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[source.TrackNodeIndex].TrackNodeConnectors;
             foreach (TrackNodeConnector nodeConnector in nodeConnectors)
             {
@@ -414,8 +414,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public ref readonly WorldLocation ResolveEndNodeLocation(int trackNodeIndex, int trackSectionIndex)
         {
-            if (RuntimeData.TrackModel.TrackDatabase.TrackNodes[trackNodeIndex] is not VectorNode trackVectorNode)
-                throw new InvalidCastException($"Track Node {trackNodeIndex} is not a valid TrackVectorNode");
+            VectorNode trackVectorNode = RuntimeData.TrackModel.TrackDatabase.VectorNodes[trackNodeIndex];
 
             // if this is before the end of a TrackNode, just need to use the next section on that Node
             if (trackSectionIndex < trackVectorNode.VectorSections.Length - 1)

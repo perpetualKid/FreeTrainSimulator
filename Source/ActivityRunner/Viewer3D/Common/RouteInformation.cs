@@ -1,9 +1,9 @@
 ﻿using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.Multiplayer;
 
@@ -15,8 +15,8 @@ namespace Orts.ActivityRunner.Viewer3D.Common
 
         public RouteInformation()
         {
-            this["Route Name"] = RuntimeData.Instance.RouteData.Name;
-            this["Metric Scale"] = RuntimeData.Instance.MetricUnits.ToString();
+            this["Route Name"] = RuntimeDataResolver.Instance.RouteData.Name;
+            this["Metric Scale"] = RuntimeDataResolver.Instance.MetricUnits.ToString();
             this["Activity Name"] = Simulator.Instance.ActivityModel?.Name;
             this["Consist File"] = Simulator.Instance.ConsistFileName;
             this["Path Name"] = Simulator.Instance.PathName;

@@ -59,6 +59,7 @@ using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime;
 
 using GetText;
 
@@ -2048,12 +2049,12 @@ namespace Orts.Simulation.Physics
                 bool moveForward = (Math.Sign(SpeedMpS) >= 0);
                 if ((evaluationContent & EvaluationLogContents.Speed) == EvaluationLogContents.Speed)
                 {
-                    builder.Append(FormattableString.Invariant($"{Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), RuntimeData.Instance.MetricUnits):0000.0}{Separator}"));
+                    builder.Append(FormattableString.Invariant($"{Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), RuntimeDataResolver.Instance.MetricUnits):0000.0}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.MaxSpeed) == EvaluationLogContents.MaxSpeed)
                 {
-                    builder.Append(FormattableString.Invariant($"{Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, RuntimeData.Instance.MetricUnits):0000.0}{Separator}"));
+                    builder.Append(FormattableString.Invariant($"{Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, RuntimeDataResolver.Instance.MetricUnits):0000.0}{Separator}"));
                 }
 
                 if ((evaluationContent & EvaluationLogContents.SignalAspect) == EvaluationLogContents.SignalAspect)
@@ -11771,7 +11772,7 @@ namespace Orts.Simulation.Physics
             {
                 this.train = train;
                 this.catalog = Simulator.Catalog as Catalog;
-                metricData = RuntimeData.Instance.MetricUnits;
+                metricData = RuntimeDataResolver.Instance.MetricUnits;
             }
 
             private void Initialize()

@@ -74,7 +74,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 IEnumerable<TrackNodeConnector> trackPins = startNodeConnectors.Intersect(endNodeConnectors, TrackNodeConnectorComparer.LinkOnlyComparer);
                 if (trackPins.Count() == 1)
                 {
-                    PointD junctionLocation = PointD.FromWorldLocation((trackDatabase.TrackNodes[trackPins.First().Link] as JunctionNode).Location);
+                    PointD junctionLocation = PointD.FromWorldLocation((trackDatabase.JunctionNodes[trackPins.First().Link]).Location);
                     PathSections = PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, junctionLocation));
                     PathSections = PathSections.Add(InitializeSection(trackModel, endTrackNodeIndex, junctionLocation, end));
                 }

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Content;
@@ -14,7 +13,7 @@ namespace FreeTrainSimulator.Toolbox
 {
     public class TrackData : RuntimeData
     {
-        internal static async ValueTask LoadTrackData(RouteModel routeModel, bool? metricUnitPreference, CancellationToken cancellationToken)
+        internal static async ValueTask LoadTrackData(RouteModel routeModel, CancellationToken cancellationToken)
         {
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
 
@@ -26,8 +25,7 @@ namespace FreeTrainSimulator.Toolbox
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            Initialize(routeModel, await tracksectionModelTask.ConfigureAwait(false), await signalConfigTask.ConfigureAwait(false), 
-                metricUnitPreference.GetValueOrDefault(routeModel.MetricUnits));
+            Initialize(routeModel, await tracksectionModelTask.ConfigureAwait(false), await signalConfigTask.ConfigureAwait(false));
         }
     }
 }

@@ -16,7 +16,15 @@ namespace FreeTrainSimulator.Models.Track
 
         public int Count => indices.Length;
 
-        public T this[int i] => (T)nodes[indices[i]];
+        /// <summary>
+        /// Returns the track node at the specified index in the enumerable. 
+        /// Note that this is not necessarily the track node at the same index in the underlying track node array
+        /// as the enumerable may be a filtered view of the track nodes.
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public T this[int i] => (T)nodes[i];
+        //        public T this[int i] => (T)nodes[indices[i]];
 
         public TrackNodeEnumerator<T> GetEnumerator() => new(nodes, indices);
 
