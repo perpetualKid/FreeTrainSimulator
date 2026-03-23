@@ -9,7 +9,6 @@ namespace FreeTrainSimulator.Models.Track
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record VectorSectionNode : TrackNodeBase, ITileCoordinateVector
     {
-        private readonly Vector3 direction;
         private readonly WorldLocation endLocation;
 
         /// <summary>

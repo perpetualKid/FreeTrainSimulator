@@ -1126,6 +1126,26 @@ namespace Orts.Formats.Msts.Models
         {
             return Location == other.Location && Direction == other.Direction && WorldTile == other.WorldTile && WorldId == other.WorldId;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is UiD uid && Equals(uid);
+        }
+
+        public static bool operator ==(UiD left, UiD right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(UiD left, UiD right)
+        {
+            return !(left == right);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Location, Direction, WorldTile, WorldId);
+        }
     }
     #endregion
 

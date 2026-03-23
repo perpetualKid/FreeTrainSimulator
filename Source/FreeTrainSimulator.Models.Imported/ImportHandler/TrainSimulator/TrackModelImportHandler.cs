@@ -145,20 +145,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         NodeIndex = endNode.Index,
                         WorldId = endNode.UiD.WorldId,                        
                     } as TrackNodeBase,
-                    TrackVectorNode vectorNode => new VectorNode(WorldLocation.None, Tile.Zero)
-                    {
-                        NodeIndex = vectorNode.Index,
-                        VectorSections = vectorNode.TrackVectorSections.Select((tvs, i) =>
-                        new VectorSectionNode(tvs.Location, tvs.WorldTile, tvs.Direction, 
-                        ComputeEndLocation(vectorNode.TrackVectorSections, i, vectorNode, trackNodes, trackSections, trackdatabaseFile))
-                        {
-                            NodeIndex = tvs.SectionIndex,
-                            ShapeIndex = tvs.ShapeIndex,
-                            WorldId = (int)tvs.WorldFileUiD,
-                            Flag1 = tvs.Flag1,
-                            Flag2 = tvs.Flag2,                            
-                        }).ToImmutableArray(),
-                    } as TrackNodeBase,
+                    TrackVectorNode vectorNode => ConvertVectorNode(vectorNode, trackNodes, trackSections, trackdatabaseFile),
                     _ => null,
                 };
             }).ToImmutableArray();
@@ -194,6 +181,30 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 Trace.TraceError($"Non-consecutive tracknode indexes found in track database {trackdatabaseFile}");
             }
             return result;
+        }
+
+        private static VectorNode ConvertVectorNode(TrackVectorNode vectorNode, TrackNodes trackNodes, TrackSectionModel trackSections, string trackdatabaseFile)
+        {
+            ImmutableArray<VectorSectionNode> sections = vectorNode.TrackVectorSections.Select((tvs, i) =>
+                new VectorSectionNode(tvs.Location, tvs.WorldTile, tvs.Direction,
+                    ComputeEndLocation(vectorNode.TrackVectorSections, i, vectorNode, trackNodes, trackSections, trackdatabaseFile))
+                {
+                    NodeIndex = tvs.SectionIndex,
+                    ShapeIndex = tvs.ShapeIndex,
+                    WorldId = (int)tvs.WorldFileUiD,
+                    Flag1 = tvs.Flag1,
+                    Flag2 = tvs.Flag2,
+                }).ToImmutableArray();
+
+            WorldLocation startLocation = sections.Length > 0 ? sections[0].Location : WorldLocation.None;
+            Tile worldTile = sections.Length > 0 ? sections[0].WorldTile : Tile.Zero;
+            WorldLocation endLocation = sections.Length > 0 ? sections[^1].EndLocation : WorldLocation.None;
+
+            return new VectorNode(startLocation, worldTile, endLocation)
+            {
+                NodeIndex = vectorNode.Index,
+                VectorSections = sections,
+            };
         }
 
         private static ImmutableDictionary<int, TrackItemIndex> ConvertTrackSelectors(TrackNodes trackNodes)
