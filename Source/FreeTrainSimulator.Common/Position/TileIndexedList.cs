@@ -69,12 +69,12 @@ namespace FreeTrainSimulator.Common.Position
                     itemCount++;
                     TTileCoordinate tileItem = (TTileCoordinate)item;
                     if (!tileDict.TryGetValue(item.Tile, out List<TTileCoordinate> list))
-                        tileDict[item.Tile] = list = [];
+                        tileDict[item.Tile] = list = new List<TTileCoordinate>();
                     list.Add(tileItem);
                     if (!item.Tile.Equals(item.OtherTile))
                     {
                         if (!tileDict.TryGetValue(item.OtherTile, out list))
-                            tileDict[item.OtherTile] = list = [];
+                            tileDict[item.OtherTile] = list = new List<TTileCoordinate>();
                         list.Add(tileItem);
                     }
                 }
@@ -89,7 +89,7 @@ namespace FreeTrainSimulator.Common.Position
                 {
                     itemCount++;
                     if (!tileDict.TryGetValue(item.Tile, out List<TTileCoordinate> list))
-                        tileDict[item.Tile] = list = [];
+                        tileDict[item.Tile] = list = new List<TTileCoordinate>();
                     list.Add(item);
                 }
                 tiles = new SortedList<Tile, ImmutableArray<TTileCoordinate>>(
