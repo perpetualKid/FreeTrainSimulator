@@ -1085,26 +1085,20 @@ namespace Orts.Formats.Msts.Models
 /// </summary>
 //[DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldID}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}, AX={AX}, AY={AY}, AZ={AZ}, WorldX={WorldTileX}, WorldZ={WorldTileZ}")]
 [DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldId}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}")]
-    public class UiD
+    public readonly struct UiD: IEquatable<UiD>
     {
-        private readonly WorldLocation location;
-        private readonly Tile tile;
-        public ref readonly WorldLocation Location => ref location;
+        private static readonly UiD none;
 
-        public ref readonly Tile WorldTile => ref tile;
-        ///// <summary>Angle around X-axis for describing initial direction of the node</summary>
-        //public float AX { get; set; }
-        ///// <summary>Angle around Y-axis for describing initial direction of the node</summary>
-        //public float AY { get; set; }
-        ///// <summary>Angle around Z-axis for describing initial direction of the node</summary>
-        //public float AZ { get; set; }
+        public static ref readonly UiD None => ref none;
 
-        ///// <summary>Cross-reference to worldFile: X-value of the tile</summary>
-        //public int WorldTileX { get; set; }
-        ///// <summary>Cross-reference to worldFile: Y-value of the tile</summary>
-        //public int WorldTileZ { get; set; }
-        /// <summary>Cross-reference to worldFile: World ID</summary>
-        public int WorldId { get; set; }
+        public WorldLocation Location { get; init; }
+
+        public Vector3 Direction { get; init; }
+
+        /// Cross-reference to worldFile
+        public Tile WorldTile { get; init; }
+
+        public int WorldId { get; init; }
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -1115,18 +1109,22 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatchBlockStart();
             int worldTileX = stf.ReadInt(null);
             int worldTileZ = stf.ReadInt(null);
-            tile = new Tile(worldTileX, worldTileZ);
+            WorldTile = new Tile(worldTileX, worldTileZ);
             WorldId = stf.ReadInt(null);
             stf.ReadInt(null);
-            location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
+            Location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
 
             //if (worldTileX != location.TileX || worldTileZ != location.TileZ)
             //    STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldId}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
 
-            //AX = stf.ReadFloat(STFReader.Units.None, null);
-            //AY = stf.ReadFloat(STFReader.Units.None, null);
-            //AZ = stf.ReadFloat(STFReader.Units.None, null);
+            Direction = new Vector3(stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
+
             stf.SkipRestOfBlock();
+        }
+
+        public bool Equals(UiD other)
+        {
+            return Location == other.Location && Direction == other.Direction && WorldTile == other.WorldTile && WorldId == other.WorldId;
         }
     }
     #endregion
@@ -1144,6 +1142,7 @@ namespace Orts.Formats.Msts.Models
         public ref readonly WorldLocation Location => ref location;
         public ref readonly Vector3 Direction => ref direction;
         public ref readonly Tile WorldTile => ref worldTile;
+
         /// <summary>First flag. Not completely clear, usually 0, - may point to the connecting pin entry in a junction. Sometimes 2</summary>
         public int Flag1 { get; }
         /// <summary>Second flag. Not completely clear, usually 1, but set to 0 when curve track is flipped around. Sometimes 2</summary>

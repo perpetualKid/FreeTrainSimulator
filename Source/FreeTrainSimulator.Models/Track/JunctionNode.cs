@@ -2,6 +2,8 @@
 
 using MemoryPack;
 
+using Microsoft.Xna.Framework;
+
 namespace FreeTrainSimulator.Models.Track
 {
 
@@ -11,7 +13,7 @@ namespace FreeTrainSimulator.Models.Track
         public int ShapeIndex { get; init; }
 
         [MemoryPackConstructor]
-        public JunctionNode(in WorldLocation location, in Tile worldTile) : base(location, worldTile)
+        public JunctionNode(in WorldLocation location, in Tile worldTile, Vector3 direction) : base(location, worldTile, direction)
         {
         }
     }

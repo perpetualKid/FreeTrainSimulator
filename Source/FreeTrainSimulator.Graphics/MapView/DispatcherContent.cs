@@ -195,8 +195,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             Models.Track.TrackSectionModel trackSections = RuntimeDataResolver.GameInstance(game).TrackSections;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
-            ConcurrentBag<Widgets.EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
-            ConcurrentBag<Widgets.JunctionNode> junctionSegments = new ConcurrentBag<Widgets.JunctionNode>();
+            ConcurrentBag<EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
+            ConcurrentBag<JunctionNode> junctionSegments = new ConcurrentBag<Widgets.JunctionNode>();
             ConcurrentBag<RoadSegment> roadSegments = new ConcurrentBag<RoadSegment>();
             ConcurrentBag<RoadEndSegment> roadEndSegments = new ConcurrentBag<RoadEndSegment>();
 
@@ -207,7 +207,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                     switch (trackNode)
                     {
                         case Models.Track.EndNode endNode:
-                            endSegments.Add(new Widgets.EndNode(endNode));
+                            endSegments.Add(new EndNode(endNode));
                             break;
                         case Models.Track.VectorNode trackVectorNode:
                             int i = 0;
@@ -217,7 +217,8 @@ namespace FreeTrainSimulator.Graphics.MapView
                             }
                             break;
                         case Models.Track.JunctionNode trackJunctionNode:
-                            junctionSegments.Add(new Widgets.ActiveJunctionSegment(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute));
+                            junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode, 
+                                trackDatabase.TrackNodeConnectors[trackJunctionNode.NodeIndex].OutConnectors[trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute].Link));
                             break;
                     }
                 });

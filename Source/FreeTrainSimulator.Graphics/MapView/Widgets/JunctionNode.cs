@@ -23,8 +23,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private const int diameter = 4;
         private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Junction" };
 
-        public JunctionNode(Models.Track.JunctionNode junctionNode, int mainRoute, TrackDatabase trackDatabase = null) :
-            base(junctionNode, mainRoute, trackDatabase ?? RuntimeDataResolver.Instance.TrackModel.TrackDatabase)
+        public JunctionNode(Models.Track.JunctionNode junctionNode, int mainRouteNode) :
+            base(junctionNode, mainRouteNode)
         {
             Size = diameter;
         }
@@ -75,8 +75,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public IJunction Junction { get; }
 
-        public ActiveJunctionSegment(Models.Track.JunctionNode junctionNode, int mainRoute) :
-            base(junctionNode, mainRoute)
+        public ActiveJunctionSegment(Models.Track.JunctionNode junctionNode, int mainRouteNode) :
+            base(junctionNode, mainRouteNode)
         {
 
             Junction = Orts.Formats.Msts.RuntimeData.Instance.RuntimeReferenceResolver?.SwitchById(Orts.Formats.Msts.RuntimeData.Instance.TrackDB.TrackNodes[junctionNode.NodeIndex].TrackCircuitCrossReferences[0].Index);

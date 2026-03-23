@@ -2661,7 +2661,7 @@ namespace Orts.Simulation.RollingStocks
                     if (section.CircuitType == TrackCircuitType.Junction || section.CircuitType == TrackCircuitType.Crossover)
                     {
                         // train is on a switch; let's see if car is on a switch too
-                        ref readonly WorldLocation switchLocation = ref RuntimeData.Instance.TrackDB.TrackNodes[section.OriginalIndex].UiD.Location;
+                        WorldLocation switchLocation = RuntimeData.Instance.TrackDB.TrackNodes[section.OriginalIndex].UiD.Location;
                         double distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
                         if (distanceFromSwitch < CarLengthM * CarLengthM + Math.Min(SpeedMpS * 3, 150))
                         {

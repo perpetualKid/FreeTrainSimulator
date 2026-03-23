@@ -182,12 +182,12 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             {
                 if (trackNode != null)
                 {
-                    if (trackNode.UiD != null)
+                    if (!trackNode.UiD.Equals(UiD.None))
                     {
                         AddToPointOnApiMap(trackNode.UiD.Location, "red", TypeOfPointOnApiMap.Track, "track");
                     }
 
-                    if ((trackNode is TrackJunctionNode junctionNode && junctionNode.UiD != null))
+                    if ((trackNode is TrackJunctionNode junctionNode && !junctionNode.UiD.Equals(UiD.None)))
                     {
                         AddToPointOnApiMap(junctionNode.UiD.Location, "red", TypeOfPointOnApiMap.Track, "track");
                     }

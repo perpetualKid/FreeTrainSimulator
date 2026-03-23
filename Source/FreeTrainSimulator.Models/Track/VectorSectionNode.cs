@@ -12,8 +12,6 @@ namespace FreeTrainSimulator.Models.Track
         private readonly Vector3 direction;
         private readonly WorldLocation endLocation;
 
-        public ref readonly Vector3 Direction => ref direction;
-
         /// <summary>
         /// 3D world location of the far end of this vector section, computed at import time.
         /// </summary>
@@ -26,9 +24,9 @@ namespace FreeTrainSimulator.Models.Track
         public int ShapeIndex { get; init; }
 
         [MemoryPackConstructor]
-        public VectorSectionNode(in WorldLocation location, in Tile worldTile, in Vector3 direction, in WorldLocation endLocation) : base(location, worldTile)
+        public VectorSectionNode(in WorldLocation location, in Tile worldTile, in Vector3 direction, in WorldLocation endLocation) : 
+            base(location, worldTile, direction)
         {
-            this.direction = direction;
             this.endLocation = endLocation;
         }
     }

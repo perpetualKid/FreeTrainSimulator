@@ -221,6 +221,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void AddTrackSegments()
         {
             RuntimeDataResolver runtimeData = RuntimeDataResolver.GameInstance(game);
+            TrackDatabase trackDatabase = runtimeData.TrackModel.TrackDatabase;
             TrackSectionModel trackSections = runtimeData.TrackSections;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
@@ -246,7 +247,8 @@ namespace FreeTrainSimulator.Graphics.MapView
                             }
                             break;
                         case Models.Track.JunctionNode trackJunctionNode:
-                            junctionSegments.Add(new Widgets.JunctionNode(trackJunctionNode, trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute));
+                            junctionSegments.Add(new Widgets.JunctionNode(trackJunctionNode,
+                                trackDatabase.TrackNodeConnectors[trackJunctionNode.NodeIndex].OutConnectors[trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute].Link));
                             break;
                     }
                 });

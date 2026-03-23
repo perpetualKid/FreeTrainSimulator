@@ -21,17 +21,13 @@ namespace FreeTrainSimulator.Runtime.Track
         int IIndexedElement.Index => TrackNodeIndex;
 #pragma warning restore CA1033 // Interface methods should be callable by child types
 
-        protected JunctionNodeBase(JunctionNode junctionNode, int mainRouteIndex, TrackDatabase trackDatabase) :
+        protected JunctionNodeBase(JunctionNode junctionNode, int mainRouteNode) :
             base(junctionNode?.Location ?? throw new ArgumentNullException(nameof(junctionNode)))
         {
-            ArgumentNullException.ThrowIfNull(trackDatabase);
             TrackNodeIndex = junctionNode.NodeIndex;
 
-            TrackNodeConnector connector = trackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors[0];
-            VectorNode inboundVector = trackDatabase.TrackNodes[connector.Link] as VectorNode;
-
-            Direction = MathHelper.WrapAngle(GetInboundSectionDirection(inboundVector, connector.Direction == TrackDirection.Reverse));
-            MainRoute = trackDatabase.TrackNodeConnectors[TrackNodeIndex].OutConnectors[mainRouteIndex].Link;
+            Direction = MathHelper.WrapAngle(junctionNode.Direction.Y + MathHelper.Pi);
+            MainRoute = mainRouteNode;
         }
 
         // find the direction angle of the facing (in) track 

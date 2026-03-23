@@ -134,16 +134,16 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             {
                 return trackNode switch
                 {
-                    TrackJunctionNode junctionNode => new JunctionNode(junctionNode.UiD.Location, junctionNode.UiD.WorldTile)
+                    TrackJunctionNode junctionNode => new JunctionNode(junctionNode.UiD.Location, junctionNode.UiD.WorldTile, junctionNode.UiD.Direction)
                     {
                         NodeIndex = junctionNode.Index,
                         WorldId = junctionNode.UiD.WorldId,
                         ShapeIndex = junctionNode.ShapeIndex,
                     } as TrackNodeBase,
-                    TrackEndNode endNode => new EndNode(endNode.UiD.Location, endNode.UiD.WorldTile)
+                    TrackEndNode endNode => new EndNode(endNode.UiD.Location, endNode.UiD.WorldTile, endNode.UiD.Direction)
                     {
                         NodeIndex = endNode.Index,
-                        WorldId = endNode.UiD.WorldId,
+                        WorldId = endNode.UiD.WorldId,                        
                     } as TrackNodeBase,
                     TrackVectorNode vectorNode => new VectorNode(WorldLocation.None, Tile.Zero)
                     {
@@ -156,7 +156,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             ShapeIndex = tvs.ShapeIndex,
                             WorldId = (int)tvs.WorldFileUiD,
                             Flag1 = tvs.Flag1,
-                            Flag2 = tvs.Flag2,
+                            Flag2 = tvs.Flag2,                            
                         }).ToImmutableArray(),
                     } as TrackNodeBase,
                     _ => null,
@@ -619,7 +619,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             // The far end of this section is the start of the next one, or the connected node's location for the last section.
             WorldLocation nextLocation = index + 1 < sections.Length
                 ? sections[index + 1].Location
-                : trackNodes[vectorNode.TrackPins[vectorNode.InPins].Link]?.UiD?.Location ?? WorldLocation.None;
+                : trackNodes[vectorNode.TrackPins[vectorNode.InPins].Link]?.UiD.Location ?? WorldLocation.None;
 
             if (!trackSections.TrackSections.TryGetValue(sections[index].SectionIndex, out Track.TrackSection trackSection))
             {
