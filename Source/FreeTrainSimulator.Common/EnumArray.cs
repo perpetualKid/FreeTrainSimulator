@@ -94,8 +94,8 @@ namespace FreeTrainSimulator.Common
         public EnumArray(T source) : this()
         {
             ArgumentNullException.ThrowIfNull(source);
-            if (source is not ValueType)
-                throw new InvalidOperationException($"Cannot use reference type input to initialize multipe instances.");
+            if (!typeof(T).IsValueType)
+                throw new InvalidOperationException($"Cannot use reference type input to initialize multiple instances.");
 
             for (int i = 0; i < array.Length; i++)
                 array[i] = source;
@@ -144,7 +144,7 @@ namespace FreeTrainSimulator.Common
                         foreach (dynamic arrayItem in (Array)(dynamic)this[item])
                         {
                             builder.Append(arrayItem);
-                        builder.Append(',');
+                            builder.Append(',');
                         }
                         if (builder[^1] == ',')
                             builder.Length--;
@@ -201,8 +201,8 @@ namespace FreeTrainSimulator.Common
         public EnumArray2D(T source) : this()
         {
             ArgumentNullException.ThrowIfNull(source);
-            if (source is not ValueType)
-                throw new InvalidOperationException($"Cannot use reference type input to initialize multipe instances.");
+            if (!typeof(T).IsValueType)
+                throw new InvalidOperationException($"Cannot use reference type input to initialize multiple instances.");
 
             for (int col = 0; col < array.GetLength(0); col++)
                 for (int row = 0; row < array.GetLength(1); row++)
@@ -241,7 +241,7 @@ namespace FreeTrainSimulator.Common
 
             for (int col = 0; col < columns; col++)
                 for (int row = 0; row < rows; row++)
-                    array[col, row] = source[col * columns + row];
+                    array[col, row] = source[col * rows + row];
         }
 
         public EnumArray2D(T[,] source) : this()
