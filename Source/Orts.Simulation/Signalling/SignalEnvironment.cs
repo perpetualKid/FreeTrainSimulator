@@ -3260,7 +3260,7 @@ namespace Orts.Simulation.Signalling
                         if (RuntimeDataResolver .Instance.TrackSections.TrackShapes.TryGetValue(section.ShapeIndex, out FreeTrainSimulator.Models.Track.TrackShape shape))
                         {
                             tunnelShape = shape.ShapeType == FreeTrainSimulator.Models.Track.ShapeType.Tunnel;
-                            if (RuntimeDataResolver.Instance.TrackSections.TrackSectionIndices.TryGetValue(section.ShapeIndex, out var sectionIndex))
+                            if (RuntimeDataResolver.Instance.TrackSections.TrackShapePaths.TryGetValue(section.ShapeIndex, out var sectionIndex))
                                 shapePaths = sectionIndex.Length;
                         }
 
@@ -3398,7 +3398,7 @@ namespace Orts.Simulation.Signalling
                         if (shape.FileName != null)
                         {
                             troughShape = shape.FileName.EndsWith("wtr.s", StringComparison.OrdinalIgnoreCase);
-                            if (RuntimeDataResolver.Instance.TrackSections.TrackSectionIndices.TryGetValue(section.ShapeIndex, out var sectionIndex))
+                            if (RuntimeDataResolver.Instance.TrackSections.TrackShapePaths.TryGetValue(section.ShapeIndex, out var sectionIndex))
                                 shapePaths = sectionIndex.Length;
                         }
                     }

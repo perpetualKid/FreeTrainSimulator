@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -863,9 +862,6 @@ namespace Orts.Formats.Msts.Models
         /// </summary>
         public int ShapeIndex { get; private set; }
 
-        /// <summary>The angle of this junction</summary>
-        private float angle = float.NaN;
-
         internal TrackJunctionNode(STFReader stf, int index, int maxTrackNode) :
             base(stf, index, maxTrackNode, 3)
         {
@@ -877,41 +873,6 @@ namespace Orts.Formats.Msts.Models
             stf.ReadString();
             ShapeIndex = stf.ReadInt(null);
             stf.SkipRestOfBlock();
-        }
-
-        /// <summary>
-        /// Calculate the angle (direction in 2D) of the current junction (result will be cached).
-        /// </summary>
-        /// <returns>The angle calculated</returns>
-        public float Angle
-        {
-            get
-            {
-                if (!float.IsNaN(angle))
-                    return angle;
-
-                ImmutableArray<FreeTrainSimulator.Models.Track.TrackSectionIndex> trackSections = RuntimeData.Instance.TrackSections.TrackSectionIndices[ShapeIndex];
-                FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeData.Instance.TrackSections.TrackShapes[ShapeIndex];
-
-                for (int index = 0; index < trackSections.Length; index++)
-                {
-                    if (index == trackShape.MainRoute)
-                        continue;
-
-                    for (int i = 0; i < trackSections[index].TrackSections.Length; i++)
-                    {
-                        int sid = trackSections[index].TrackSections[i];
-                        FreeTrainSimulator.Models.Track.TrackSection section = RuntimeData.Instance.TrackSections.TrackSections[sid];
-
-                        if (section.Curved)
-                        {
-                            angle = section.Angle;
-                            break;
-                        }
-                    }
-                }
-                return angle;
-            }
         }
     }
 

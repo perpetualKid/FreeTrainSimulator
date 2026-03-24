@@ -112,13 +112,13 @@ namespace Orts.Simulation.World
 
         private void InitializeAnglesAndTrackNodes()
         {
-            ImmutableArray<TrackSectionIndex> sectionIndex = RuntimeDataResolver.Instance.TrackSections.TrackSectionIndices[TrackShapeIndex];
+            ImmutableArray<TrackShapePath> sectionIndex = RuntimeDataResolver.Instance.TrackSections.TrackShapePaths[TrackShapeIndex];
             int nSections = sectionIndex[0].TrackSections.Length;
             trackNodesIndex = new int[sectionIndex.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];
             trackVectorSectionsIndex = new int[trackNodesIndex.Length];
             int i = 0;
-            foreach (TrackSectionIndex sectionIdx in sectionIndex)
+            foreach (TrackShapePath sectionIdx in sectionIndex)
             {
                 angles.Add(MathHelper.ToRadians(sectionIdx.ShapeOffset?.AngularOffset ?? 0));
                 trackNodesIndex[i] = -1;

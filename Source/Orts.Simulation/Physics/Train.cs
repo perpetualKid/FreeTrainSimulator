@@ -9840,8 +9840,7 @@ namespace Orts.Simulation.Physics
                             {
                                 // diverging 
                                 diverging = true;
-                                float junctionAngle = junctionNode.Angle;
-                                if (junctionAngle < 0)
+                                if (RuntimeDataResolver.Instance.TrackModel.TrackDatabase.JunctionNodes[junctionNode.Index].OpeningAngle < 0)
                                     rightSwitch = false;
                             }
                             if (diverging)
@@ -9857,8 +9856,7 @@ namespace Orts.Simulation.Physics
                                 (section.ActivePins[sectionDirection.Reverse(), SignalLocation.NearEnd].Link > 0 && section.JunctionDefaultRoute > 0))
                             {
                                 // trailing diverging
-                                float junctionAngle = junctionNode.Angle;
-                                if (junctionAngle < 0)
+                                if (RuntimeDataResolver.Instance.TrackModel.TrackDatabase.JunctionNodes[junctionNode.Index].OpeningAngle < 0)
                                     rightSwitch = false; // FIXME: or the opposite? untested...
 
                                 trainPathItem = new TrainPathItem(rightSwitch, sectionDistanceToTrainM, TrainPathItemType.TrailingSwitch);

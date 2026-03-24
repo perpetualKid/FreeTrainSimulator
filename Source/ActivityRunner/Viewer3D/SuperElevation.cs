@@ -57,7 +57,7 @@ namespace Orts.ActivityRunner.Viewer3D
             || shape.ShapeType == ShapeType.Road)
                 return false;
 
-            if (!RuntimeDataResolver.Instance.TrackSections.TrackSectionIndices.TryGetValue(trackObj.SectionIndex, out ImmutableArray<TrackSectionIndex> sections))
+            if (!RuntimeDataResolver.Instance.TrackSections.TrackShapePaths.TryGetValue(trackObj.SectionIndex, out ImmutableArray<TrackShapePath> sections))
                 return false;
 
             int count = -1;
@@ -65,7 +65,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             List<TrackVectorSection> sectionsinShape = new List<TrackVectorSection>();
             //List<DynamicTrackViewer> tmpTrackList = new List<DynamicTrackViewer>();
-            foreach (TrackSectionIndex id in sections)
+            foreach (TrackShapePath id in sections)
             {
                 for (int i = 0; i < id.TrackSections.Length; i++)
                 {
@@ -243,7 +243,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 sectionOrigin = worldMatrixInput.XNAMatrix.Translation; // Save root position
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only            
 
-            if (!RuntimeDataResolver.Instance.TrackSections.TrackSectionIndices.TryGetValue(dTrackObj.SectionIndex, out ImmutableArray<TrackSectionIndex> path) ||
+            if (!RuntimeDataResolver.Instance.TrackSections.TrackShapePaths.TryGetValue(dTrackObj.SectionIndex, out ImmutableArray<TrackShapePath> path) ||
                 path.Length == 0)
                 return; //cannot find the path for the dynamic track
 

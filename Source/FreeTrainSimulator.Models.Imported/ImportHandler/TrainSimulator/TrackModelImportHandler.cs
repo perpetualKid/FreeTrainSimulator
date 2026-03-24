@@ -180,15 +180,38 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
         private static JunctionNode ConvertJunctionNode(TrackJunctionNode junctionNode, TrackSectionModel trackSections, string trackdatabaseFile)
         {
-            if (!trackSections.TrackShapes.TryGetValue(junctionNode.ShapeIndex, out Track.TrackShape trackShape))
+            if (!trackSections.TrackShapes.TryGetValue(junctionNode.ShapeIndex, out Track.TrackShape trackShape) ||
+                !trackSections.TrackShapePaths.TryGetValue(junctionNode.ShapeIndex, out ImmutableArray<TrackShapePath> shapePaths))
             {
                 Trace.TraceWarning($"Track Shape Node #{junctionNode.ShapeIndex} not found for Junction Node {junctionNode.Index} in track database {trackdatabaseFile}, can not determine switch characteristics.");
+                shapePaths = ImmutableArray<TrackShapePath>.Empty;
+            }
+
+            float angle = 0;
+            /// Get the angle (direction in 2D) of the current junction diverging from main route
+            for (int index = 0; index < shapePaths.Length; index++)
+            {
+                // The main route is considered the straight direction, so we look for the first diverging path to determine the angle of the junction.
+                if (index == trackShape?.MainRoute)
+                    continue;
+
+                foreach (int sid in shapePaths[index].TrackSections)
+                {
+                    Track.TrackSection section = trackSections.TrackSections[sid];
+
+                    if (section.Curved)
+                    {
+                        angle = section.Angle;
+                        break;
+                    }
+                }
             }
 
             return new JunctionNode(junctionNode.UiD.Location, junctionNode.UiD.WorldTile, junctionNode.UiD.Direction)
             {
                 NodeIndex = junctionNode.Index,
                 WorldId = junctionNode.UiD.WorldId,
+                OpeningAngle = angle,
                 MainRoute = trackShape?.MainRoute ?? 0,
                 ClearanceDistance = trackShape?.ClearanceDistance ?? 0,
                 ShapeIndex = junctionNode.ShapeIndex,

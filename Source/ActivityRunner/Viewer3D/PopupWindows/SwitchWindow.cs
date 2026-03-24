@@ -4,6 +4,7 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Runtime;
 
 using GetText;
 
@@ -121,7 +122,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     return;
                 int switchPreviousNodeId = previousNode.Index;
                 bool switchBranchesAwayFromUs = switchNode.TrackPins[0].Link == switchPreviousNodeId;
-                bool switchMainRouteIsLeft = switchNode.Angle > 0;  // align the switch
+                
+                bool switchMainRouteIsLeft = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.JunctionNodes[switchNode.Index].OpeningAngle > 0;  // align the switch
 
                 switchSection.X = ((switchBranchesAwayFromUs == front ? 1 : 3) + (switchMainRouteIsLeft ? 1 : 0)) * SwitchImageSize;
                 switchSection.Y = switchNode.SelectedRoute * SwitchImageSize;

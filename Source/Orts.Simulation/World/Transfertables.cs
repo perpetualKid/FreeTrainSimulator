@@ -111,13 +111,13 @@ namespace Orts.Simulation.World
 
         protected void InitializeOffsetsAndTrackNodes()
         {
-            ImmutableArray<TrackSectionIndex> sectionIndex = RuntimeDataResolver.Instance.TrackSections.TrackSectionIndices[TrackShapeIndex];
+            ImmutableArray<TrackShapePath> sectionIndex = RuntimeDataResolver.Instance.TrackSections.TrackShapePaths[TrackShapeIndex];
             int nSections = sectionIndex[0].TrackSections.Length;
             trackNodesIndex = new int[sectionIndex.Length];
             trackNodesOrientation = new bool[trackNodesIndex.Length];
             trackVectorSectionsIndex = new int[trackNodesIndex.Length];
             int i = 0;
-            foreach (TrackSectionIndex sectionIdx in sectionIndex)
+            foreach (TrackShapePath sectionIdx in sectionIndex)
             {
                 offsets.Add(verticalTransfer ? sectionIdx.ShapeOffset?.Offset.Y ?? 0 : sectionIdx.ShapeOffset?.Offset.X ?? 0);
                 trackNodesIndex[i] = -1;

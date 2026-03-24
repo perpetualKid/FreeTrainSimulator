@@ -196,7 +196,7 @@ namespace ORTS.TrackViewer.UserInterface
                     {
                     shapeName = shape.FileName;
                 }
-                else if (RuntimeDataResolver.Instance.TrackSections.TrackSectionIndices.TryGetValue(tvs.ShapeIndex, out ImmutableArray<FreeTrainSimulator.Models.Track.TrackSectionIndex> trackPath) && trackPath.Length == 1)
+                else if (RuntimeDataResolver.Instance.TrackSections.TrackShapePaths.TryGetValue(tvs.ShapeIndex, out ImmutableArray<FreeTrainSimulator.Models.Track.TrackShapePath> trackPath) && trackPath.Length == 1)
                 {
                     shapeName = "<dynamic ?>";
                     foreach (int trackSection in trackPath[0].TrackSections)

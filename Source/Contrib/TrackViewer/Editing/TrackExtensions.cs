@@ -17,7 +17,6 @@
 
 using FreeTrainSimulator.Runtime;
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Editing

@@ -360,7 +360,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             : base(path, positionSource, ShapeFlags.AutoZBias)
         {
             this.trackJunctionNode = trackJunctionNode;
-            mainRoute = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.JunctionNodes[trackJunctionNode.ShapeIndex].MainRoute;
+            mainRoute = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.JunctionNodes[trackJunctionNode.Index].MainRoute;
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)

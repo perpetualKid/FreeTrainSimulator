@@ -10,6 +10,8 @@ namespace FreeTrainSimulator.Models.Track
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record JunctionNode : TrackNodeBase
     {
+        public float OpeningAngle { get; init; }
+
         public int MainRoute { get; init; }
 
         public float ClearanceDistance { get; init; }

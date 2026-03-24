@@ -14,6 +14,6 @@ namespace FreeTrainSimulator.Models.Track
         public override RouteModel Parent => _parent as RouteModel;
         public ImmutableDictionary<int, TrackSection> TrackSections { get; init; } = ImmutableDictionary<int, TrackSection>.Empty;
         public ImmutableDictionary<int, TrackShape> TrackShapes { get; init; } = ImmutableDictionary<int, TrackShape>.Empty;
-        public ImmutableDictionary<int, ImmutableArray<TrackSectionIndex>> TrackSectionIndices { get; init; } = ImmutableDictionary<int, ImmutableArray<TrackSectionIndex>>.Empty;
+        public ImmutableDictionary<int, ImmutableArray<TrackShapePath>> TrackShapePaths { get; init; } = ImmutableDictionary<int, ImmutableArray<TrackShapePath>>.Empty;
     }
 }

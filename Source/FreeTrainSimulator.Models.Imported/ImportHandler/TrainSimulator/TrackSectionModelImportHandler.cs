@@ -52,18 +52,18 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     MainRoute = trackShape.Value.MainRoute,
                     ShapeType = trackShape.Value.TunnelShape ? ShapeType.Tunnel : trackShape.Value.RoadShape ? ShapeType.Road : ShapeType.None,
                 }).ToImmutableDictionary((trackShape) => trackShape.ShapeIndex),
-                TrackSectionIndices = trackSectionsFile.TrackShapes?.Where(t => !string.IsNullOrEmpty(t.Value.FileName)).
-                        ToDictionary(trackShape => trackShape.Key, trackShape => trackShape.Value.SectionIndices.Select(sectionIndex => new TrackSectionIndex()
+                TrackShapePaths = trackSectionsFile.TrackShapes?.Where(t => !string.IsNullOrEmpty(t.Value.FileName)).
+                        ToDictionary(trackShape => trackShape.Key, trackShape => trackShape.Value.SectionIndices.Select(sectionIndex => new TrackShapePath()
                         {
                             TrackSections = sectionIndex.TrackSections.ToImmutableArray(),
                             ShapeOffset = new TrackShapeOffset(sectionIndex.Offset, sectionIndex.AngularOffset)
                         }).ToImmutableArray()).
                 Concat(
-                    trackSectionsFile.TrackSectionIndex?.ToDictionary(dynamicTrackSection => dynamicTrackSection.Key, dynamicTrackSection => ImmutableArray.Create(new TrackSectionIndex()
+                    trackSectionsFile.TrackSectionIndex?.ToDictionary(dynamicTrackSection => dynamicTrackSection.Key, dynamicTrackSection => ImmutableArray.Create(new TrackShapePath()
                     {
                         TrackSections = dynamicTrackSection.Value.TrackSections.ToImmutableArray(),
                     })) ??
-                        ImmutableDictionary<int, ImmutableArray<TrackSectionIndex>>.Empty.ToDictionary()
+                        ImmutableDictionary<int, ImmutableArray<TrackShapePath>>.Empty.ToDictionary()
                         ).ToImmutableDictionary(),
             };
 
