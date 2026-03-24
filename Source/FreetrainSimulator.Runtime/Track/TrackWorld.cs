@@ -20,6 +20,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         private ImmutableArray<TrackNodeBase> railTrackNodes = ImmutableArray<TrackNodeBase>.Empty;
         private ImmutableArray<TrackNodeBase> roadTrackNodes = ImmutableArray<TrackNodeBase>.Empty;
+        private Models.Track.TrackModel trackModel;
 
         public EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
 
@@ -49,37 +50,36 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         public void Initialize(Models.Track.TrackModel trackModel)
         {
-            ArgumentNullException.ThrowIfNull(trackModel);
-            InitializeRailTrack(trackModel.TrackDatabase);
-            InitializeRoadTrack(trackModel.RoadDatabase);
-            ContentByTile[MapContentType.Empty] = new TileIndexedList<Models.Track.TrackItemBase>(trackModel.TrackDatabase.TrackItems.Where(item => item is not EmptyTrackItem));
-        }
+            this.trackModel = trackModel ?? throw new ArgumentNullException(nameof(trackModel));
+            /// Builds the rail track 3D spatial index
+            if (null != trackModel.TrackDatabase)
+            {
+                railTrackNodes = trackModel.TrackDatabase.TrackNodes;
+                ContentByTile[MapContentType.Tracks] = new TileIndexedList<VectorSectionNode>(trackModel.TrackDatabase.VectorNodes.SelectMany(v => v.VectorSections));
+                ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNode>(trackModel.TrackDatabase.JunctionNodes);
+                ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNode>(trackModel.TrackDatabase.EndNodes);
+            }
+            else
+            {
+                railTrackNodes = ImmutableArray<TrackNodeBase>.Empty;
+                ContentByTile[MapContentType.Tracks] = new TileIndexedList<VectorSectionNode>(ImmutableArray<VectorSectionNode>.Empty);
+                ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNode>(ImmutableArray<JunctionNode>.Empty);
+                ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNode>(ImmutableArray<EndNode>.Empty);
+            }
 
-        /// <summary>
-        /// Builds the rail track 3D spatial index from <paramref name="trackDatabase"/>'s nodes,
-        /// populating <see cref="ContentByTile"/> for <see cref="MapContentType.Tracks"/>,
-        /// <see cref="MapContentType.JunctionNodes"/>, and <see cref="MapContentType.EndNodes"/>.
-        /// </summary>
-        public void InitializeRailTrack(TrackDatabase trackDatabase)
-        {
-            ArgumentNullException.ThrowIfNull(trackDatabase);
-            railTrackNodes = trackDatabase.TrackNodes;
-            ContentByTile[MapContentType.Tracks] = new TileIndexedList<VectorSectionNode>(trackDatabase.VectorNodes.SelectMany(v => v.VectorSections));
-            ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNode>(trackDatabase.JunctionNodes);
-            ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNode>(trackDatabase.EndNodes);
-        }
-
-        /// <summary>
-        /// Builds the road track 3D spatial index from <paramref name="trackDatabase"/>'s nodes,
-        /// populating <see cref="ContentByTile"/> for <see cref="MapContentType.Roads"/> and
-        /// <see cref="MapContentType.RoadEndNodes"/>.
-        /// </summary>
-        public void InitializeRoadTrack(TrackDatabase trackDatabase)
-        {
-            ArgumentNullException.ThrowIfNull(trackDatabase);
-            roadTrackNodes = trackDatabase.TrackNodes;
-            ContentByTile[MapContentType.Roads] = new TileIndexedList<VectorSectionNode>(trackDatabase.VectorNodes.SelectMany(v => v.VectorSections));
-            ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNode>(trackDatabase.EndNodes);
+            /// Builds the road track 3D spatial index
+            if (null != trackModel.RoadDatabase)
+            {
+                roadTrackNodes = trackModel.RoadDatabase.TrackNodes;
+                ContentByTile[MapContentType.Roads] = new TileIndexedList<VectorSectionNode>(trackModel.RoadDatabase.VectorNodes.SelectMany(v => v.VectorSections));
+                ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNode>(trackModel.RoadDatabase.EndNodes);
+            }
+            else
+            {
+                roadTrackNodes = ImmutableArray<TrackNodeBase>.Empty;
+                ContentByTile[MapContentType.Roads] = new TileIndexedList<VectorSectionNode>(ImmutableArray<VectorSectionNode>.Empty);
+                ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNode>(ImmutableArray<EndNode>.Empty);
+            }
         }
 
         /// <summary>
@@ -187,11 +187,9 @@ namespace FreeTrainSimulator.Runtime.Track
             JunctionNode endJunction = railTrackNodes[nodeConnectors[1].Link] as JunctionNode;
             double startDistance = startJunction != null ? WorldLocation.GetDistanceSquared(startJunction.Location, location) : double.MaxValue;
             double endDistance = endJunction != null ? WorldLocation.GetDistanceSquared(endJunction.Location, location) : double.MaxValue;
-            if (startDistance <= ProximityToleranceSquared && startDistance <= endDistance)
-                return startJunction;
-            if (endDistance <= ProximityToleranceSquared)
-                return endJunction;
-            return null;
+            return startDistance <= ProximityToleranceSquared && startDistance <= endDistance
+                ? startJunction
+                : endDistance <= ProximityToleranceSquared ? endJunction : null;
         }
 
         /// <summary>
@@ -241,18 +239,24 @@ namespace FreeTrainSimulator.Runtime.Track
             if (location.Location.X > Tile.TileSizeOver2 - ProximityTolerance)
             {
                 SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z), in location, contentType, ref nearest, ref nearestDistance);
-                if (nearPosZ) SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z + 1), in location, contentType, ref nearest, ref nearestDistance);
-                else if (nearNegZ) SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z - 1), in location, contentType, ref nearest, ref nearestDistance);
+                if (nearPosZ)
+                    SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z + 1), in location, contentType, ref nearest, ref nearestDistance);
+                else if (nearNegZ)
+                    SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z - 1), in location, contentType, ref nearest, ref nearestDistance);
             }
             else if (location.Location.X < -(Tile.TileSizeOver2 - ProximityTolerance))
             {
                 SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z), in location, contentType, ref nearest, ref nearestDistance);
-                if (nearPosZ) SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z + 1), in location, contentType, ref nearest, ref nearestDistance);
-                else if (nearNegZ) SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z - 1), in location, contentType, ref nearest, ref nearestDistance);
+                if (nearPosZ)
+                    SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z + 1), in location, contentType, ref nearest, ref nearestDistance);
+                else if (nearNegZ)
+                    SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z - 1), in location, contentType, ref nearest, ref nearestDistance);
             }
 
-            if (nearPosZ) SearchTileBucket(new Tile(location.Tile.X, location.Tile.Z + 1), in location, contentType, ref nearest, ref nearestDistance);
-            else if (nearNegZ) SearchTileBucket(new Tile(location.Tile.X, location.Tile.Z - 1), in location, contentType, ref nearest, ref nearestDistance);
+            if (nearPosZ)
+                SearchTileBucket(new Tile(location.Tile.X, location.Tile.Z + 1), in location, contentType, ref nearest, ref nearestDistance);
+            else if (nearNegZ)
+                SearchTileBucket(new Tile(location.Tile.X, location.Tile.Z - 1), in location, contentType, ref nearest, ref nearestDistance);
 
             return nearest;
         }

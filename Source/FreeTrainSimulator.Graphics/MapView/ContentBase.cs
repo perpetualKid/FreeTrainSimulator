@@ -11,8 +11,6 @@ using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts;
-
 namespace FreeTrainSimulator.Graphics.MapView
 {
     public abstract class ContentBase : INameValueInformationProvider
@@ -23,6 +21,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private protected readonly EnumArray<ITileCoordinate, MapContentType> nearestItems = new EnumArray<ITileCoordinate, MapContentType>();
 
         private protected TrackModel trackModel;
+        private protected TrackWorld trackWorld;
 
         public bool UseMetricUnits { get; }
 
