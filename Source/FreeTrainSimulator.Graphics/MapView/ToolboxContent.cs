@@ -314,8 +314,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             trackModel.ContentByTile[MapContentType.Signals] = new TileIndexedList<Widgets.SignalTrackItem>(trackItems.OfType<Widgets.SignalTrackItem>().Where(s => s.Normal));
             trackModel.ContentByTile[MapContentType.OtherSignals] = new TileIndexedList<Widgets.SignalTrackItem>(trackItems.OfType<Widgets.SignalTrackItem>().Where(s => !s.Normal));
-            trackModel.ContentByTile[MapContentType.MilePosts] = new TileIndexedList<SpeedPostTrackItem>(trackItems.OfType<SpeedPostTrackItem>());
-            trackModel.ContentByTile[MapContentType.SpeedPosts] = new TileIndexedList<MilePostTrackItem>(trackItems.OfType<MilePostTrackItem>());
+            trackModel.ContentByTile[MapContentType.SpeedPosts] = new TileIndexedList<SpeedPostTrackItem>(trackItems.OfType<SpeedPostTrackItem>());
+            trackModel.ContentByTile[MapContentType.MilePosts] = new TileIndexedList<MilePostTrackItem>(trackItems.OfType<MilePostTrackItem>());
             trackModel.ContentByTile[MapContentType.Crossovers] = new TileIndexedList<CrossOverTrackItem>(trackItems.OfType<CrossOverTrackItem>());
             trackModel.ContentByTile[MapContentType.RoadCrossings] = new TileIndexedList<Widgets.LevelCrossingTrackItem>(trackItems.OfType<Widgets.LevelCrossingTrackItem>().Where(s => s.RoadLevelCrossing));
             trackModel.ContentByTile[MapContentType.LevelCrossings] = new TileIndexedList<Widgets.LevelCrossingTrackItem>(trackItems.OfType<Widgets.LevelCrossingTrackItem>().Where(s => !s.RoadLevelCrossing));
