@@ -218,7 +218,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                             break;
                         case Models.Track.JunctionNode trackJunctionNode:
                             junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode, 
-                                trackDatabase.TrackNodeConnectors[trackJunctionNode.NodeIndex].OutConnectors[trackSections.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute].Link));
+                                trackDatabase.TrackNodeConnectors[trackJunctionNode.NodeIndex].OutConnectors[trackJunctionNode.MainRoute].Link));
                             break;
                     }
                 });

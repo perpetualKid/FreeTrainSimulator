@@ -46,36 +46,18 @@ namespace ORTS.TrackViewer.Editing
         public static void Initialize(TrackNodes trackNodesIn)
         {
             trackNodes = trackNodesIn;
-            
+
             mainRouteIndex = new int[trackNodes.Count];
             sidingRouteIndex = new int[trackNodes.Count];
             for (int tni = 0; tni < trackNodes.Count; tni++)
             {
-                if (!(trackNodes[tni] is TrackJunctionNode tn))
+                if (trackNodes[tni] is not TrackJunctionNode tn)
                     continue;
 
-                int mainRoute = 0;
-
-                int trackShapeIndex = tn.ShapeIndex;
-                try
-                {
-                    FreeTrainSimulator.Models.Track.TrackShape trackShape = RuntimeDataResolver.Instance.TrackSections.TrackShapes[trackShapeIndex];
-                    mainRoute = trackShape.MainRoute;
-                }
-                catch (System.IO.InvalidDataException exception)
-                {
-                    exception.ToString(); 
-                }
+                int mainRoute = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.JunctionNodes[tn.Index].MainRoute;
 
                 mainRouteIndex[tni] = tn.InPins + mainRoute;
-                if (mainRoute == 0)
-                {   // sidingRouteIndex is simply the next
-                    sidingRouteIndex[tni] = tn.InPins + 1;
-                }
-                else
-                {   // sidingRouteIndex is the first
-                    sidingRouteIndex[tni] = tn.InPins;
-                }
+                sidingRouteIndex[tni] = mainRoute == 0 ? tn.InPins + 1 : tn.InPins;
             }
         }
 
@@ -93,7 +75,7 @@ namespace ORTS.TrackViewer.Editing
 
         /// <summary>Return the tracknode corresponding the given index</summary>
         public static TrackNode TrackNode(int tvnIndex) { return trackNodes[tvnIndex]; }
-       
+
         /// <summary>
         /// Get the index of the junction node at the other side of the linking track vector node.
         /// This uses only the track database, no trainpath nodes.
@@ -103,10 +85,12 @@ namespace ORTS.TrackViewer.Editing
         /// <returns>The index of the junction node at the other end, or 0 in case of trouble</returns>
         public static int GetNextJunctionIndex(int junctionIndex, int linkingTrackNodeIndex)
         {
-            if (linkingTrackNodeIndex <= 0) return 0; // link is not well-defined
+            if (linkingTrackNodeIndex <= 0)
+                return 0; // link is not well-defined
 
             TrackNode linkingTrackNode = trackNodes[linkingTrackNodeIndex];
-            if (linkingTrackNode == null) return 0;
+            if (linkingTrackNode == null)
+                return 0;
 
             if (junctionIndex == linkingTrackNode.JunctionIndexAtStart())
             {
@@ -128,10 +112,12 @@ namespace ORTS.TrackViewer.Editing
         /// <returns>index of the leaving vector node or 0 if none found.</returns>
         public static int GetLeavingTvnIndex(int junctionIndex, int incomingTvnIndex)
         {
-            if (junctionIndex <= 0) return 0; // something wrong in database
+            if (junctionIndex <= 0)
+                return 0; // something wrong in database
 
             TrackNode junctionTrackNode = trackNodes[junctionIndex];
-            if (junctionTrackNode == null) {
+            if (junctionTrackNode == null)
+            {
                 return 0;
             }
 
@@ -145,7 +131,7 @@ namespace ORTS.TrackViewer.Editing
             }
             return junctionTrackNode.TrailingTvn();
         }
-        
+
     }
 
 }

@@ -106,7 +106,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             if (trackNodes == null)
                 return ImmutableArray<TrackNodeConnectorIndex>.Empty;
 
-            ImmutableArray<TrackNodeConnectorIndex> result = trackNodes.Select(node => node == null ?  new TrackNodeConnectorIndex() : new TrackNodeConnectorIndex()
+            ImmutableArray<TrackNodeConnectorIndex> result = trackNodes.Select(node => node == null ? new TrackNodeConnectorIndex() : new TrackNodeConnectorIndex()
             {
                 InboundCount = node.InPins,
                 NodeIndex = node.Index,
@@ -134,16 +134,11 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             {
                 return trackNode switch
                 {
-                    TrackJunctionNode junctionNode => new JunctionNode(junctionNode.UiD.Location, junctionNode.UiD.WorldTile, junctionNode.UiD.Direction)
-                    {
-                        NodeIndex = junctionNode.Index,
-                        WorldId = junctionNode.UiD.WorldId,
-                        ShapeIndex = junctionNode.ShapeIndex,
-                    } as TrackNodeBase,
+                    TrackJunctionNode junctionNode => ConvertJunctionNode(junctionNode, trackSections, trackdatabaseFile),
                     TrackEndNode endNode => new EndNode(endNode.UiD.Location, endNode.UiD.WorldTile, endNode.UiD.Direction)
                     {
                         NodeIndex = endNode.Index,
-                        WorldId = endNode.UiD.WorldId,                        
+                        WorldId = endNode.UiD.WorldId,
                     } as TrackNodeBase,
                     TrackVectorNode vectorNode => ConvertVectorNode(vectorNode, trackNodes, trackSections, trackdatabaseFile),
                     _ => null,
@@ -181,6 +176,23 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 Trace.TraceError($"Non-consecutive tracknode indexes found in track database {trackdatabaseFile}");
             }
             return result;
+        }
+
+        private static JunctionNode ConvertJunctionNode(TrackJunctionNode junctionNode, TrackSectionModel trackSections, string trackdatabaseFile)
+        {
+            if (!trackSections.TrackShapes.TryGetValue(junctionNode.ShapeIndex, out Track.TrackShape trackShape))
+            {
+                Trace.TraceWarning($"Track Shape Node #{junctionNode.ShapeIndex} not found for Junction Node {junctionNode.Index} in track database {trackdatabaseFile}, can not determine switch characteristics.");
+            }
+
+            return new JunctionNode(junctionNode.UiD.Location, junctionNode.UiD.WorldTile, junctionNode.UiD.Direction)
+            {
+                NodeIndex = junctionNode.Index,
+                WorldId = junctionNode.UiD.WorldId,
+                MainRoute = trackShape?.MainRoute ?? 0,
+                ClearanceDistance = trackShape?.ClearanceDistance ?? 0,
+                ShapeIndex = junctionNode.ShapeIndex,
+            };
         }
 
         private static VectorNode ConvertVectorNode(TrackVectorNode vectorNode, TrackNodes trackNodes, TrackSectionModel trackSections, string trackdatabaseFile)

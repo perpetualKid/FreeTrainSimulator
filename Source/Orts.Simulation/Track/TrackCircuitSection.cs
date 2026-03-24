@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 
 using Orts.Formats.Msts;
@@ -171,13 +172,9 @@ namespace Orts.Simulation.Track
             if (CircuitType == TrackCircuitType.Junction)
             {
                 SignalsPassingRoutes = new List<int>();
-                int trackShapeIndex = (node as TrackJunctionNode).ShapeIndex;
-                if (!RuntimeDataResolver.Instance.TrackSections.TrackShapes.TryGetValue(trackShapeIndex, out FreeTrainSimulator.Models.Track.TrackShape trackShape))
-                {
-                    Trace.TraceWarning("Missing TrackShape from tsection.dat : " + trackShapeIndex);
-                }
-                JunctionDefaultRoute = trackShape.MainRoute;
-                Overlap = trackShape.ClearanceDistance;
+                JunctionNode junctionNode = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.JunctionNodes[(node as TrackJunctionNode).Index];
+                JunctionDefaultRoute = junctionNode.MainRoute;
+                Overlap = junctionNode.ClearanceDistance;
 
                 JunctionLastRoute = JunctionDefaultRoute;
                 signals.SetSwitch(OriginalIndex, JunctionLastRoute, this);
