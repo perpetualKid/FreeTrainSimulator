@@ -15,7 +15,7 @@ trigger:
     - CONTRIBUTING.md
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'windows-2025-vs2026' #'windows-latest'
 
 variables:
   solution: 'Source/FreeTrainSimulator.sln'
