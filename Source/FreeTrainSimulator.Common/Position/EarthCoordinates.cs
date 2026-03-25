@@ -17,9 +17,23 @@ namespace FreeTrainSimulator.Common.Position
             * adapted from code written by Dan Steinwand.
         */
 
-        private const double piRad = 180 / Math.PI;
-        private const int earthRadius = 6370997; // Average radius of the earth, meters
-        private const double epsilon = 0.0000000001; // Error factor (arbitrary)
+        private const double RadiansToDegrees = 180 / Math.PI;
+        private const double PiOverTwo = Math.PI / 2;
+        private const double EarthRadius = 6370997; // Average radius of the earth, meters
+        private const double Epsilon = 0.0000000001; // Error factor (arbitrary)
+
+        // Goode projection region boundary angles (radians)
+        private const double UpperLatBoundary = 0.710987989993;    // 40°44'11.8" — boundary between sinusoidal and Mollweide zones
+        private const double LonBoundaryMinus40 = -0.698131700798; // -40 degrees
+        private const double LonBoundaryMinus100 = -1.74532925199; // -100 degrees
+        private const double LonBoundaryMinus20 = -0.349065850399; // -20 degrees
+        private const double LonBoundary80 = 1.3962634016;         //  80 degrees
+
+        // Mollweide projection constants
+        private const double MollweideOffset = 0.0528035274542; // Mollweide latitude offset constant
+        private const double Sqrt2 = 1.4142135623731;           // √2
+        private const double MollweideScale = 0.900316316158;   // Mollweide x-scale factor
+
         private static readonly double[] centralMeridians = new double[12]
         {
             // Initialize central meridians for each of the 12 regions
@@ -40,106 +54,95 @@ namespace FreeTrainSimulator.Common.Position
         private static readonly double[] falseEast = new double[12]
         {
             // Initialize false easting for each of the 12 regions
-            earthRadius * -1.74532925199,
-            earthRadius * -1.74532925199,
-            earthRadius * 0.523598775598,
-            earthRadius * 0.523598775598,
-            earthRadius * -2.79252680319,
-            earthRadius * -1.0471975512,
-            earthRadius * -2.79252680319,
-            earthRadius * -1.0471975512,
-            earthRadius * 0.349065850399,
-            earthRadius * 2.44346095279,
-            earthRadius * 0.349065850399,
-            earthRadius * 2.44346095279,
+            EarthRadius * -1.74532925199,
+            EarthRadius * -1.74532925199,
+            EarthRadius * 0.523598775598,
+            EarthRadius * 0.523598775598,
+            EarthRadius * -2.79252680319,
+            EarthRadius * -1.0471975512,
+            EarthRadius * -2.79252680319,
+            EarthRadius * -1.0471975512,
+            EarthRadius * 0.349065850399,
+            EarthRadius * 2.44346095279,
+            EarthRadius * 0.349065850399,
+            EarthRadius * 2.44346095279,
         };
 
-        // The upper left corner of the Goode projection is ul_x,ul_y
-        // The bottom right corner of the Goode projection is -ul_x,-ul_y
-        private const int ul_x = -20013965; // -180 deg in Goode projection
-        private const int ul_y = 8674008; // +90 deg lat in Goode projection
+        // The upper left corner of the Goode projection is UpperLeftX, UpperLeftY
+        // The bottom right corner of the Goode projection is -UpperLeftX, -UpperLeftY
+        private const int UpperLeftX = -20013965; // -180 deg in Goode projection
+        private const int UpperLeftY = 8674008;   // +90 deg lat in Goode projection
 
         // Offsets to convert Goode raster coordinates to MSTS world tile coordinates
-        private const int wt_ew_offset = -16385;
-        private const int wt_ns_offset = 16385;
+        private const int WorldTileEastWestOffset = -16385;
+        private const int WorldTileNorthSouthOffset = 16385;
 
         /// <summary>
-        /// Entry point to this series of methods
-        /// Gets Longitude, Latitude from Goode X, Y
-        /// </summary>        
+        /// Gets latitude and longitude from a world location using the Goode homolosine projection.
+        /// Returns default if the location falls in an interrupted area or is mathematically invalid.
+        /// </summary>
         public static (double latitude, double longitude) ConvertWTC(in WorldLocation location)
         {
             // Decimal degrees is assumed
-            int gsamp = location.Tile.X - wt_ew_offset;  // Gsamp is Goode world tile x
-            int gline = wt_ns_offset - location.Tile.Z;  // Gline is Goode world tile Y
-            int y = ul_y - (gline - 1) * (int)WorldPosition.TileSize + (int)location.Location.Z;   // Actual Goode X
-            int x = ul_x + (gsamp - 1) * (int)WorldPosition.TileSize + (int)location.Location.X;   // Actual Goode Y
+            int gsamp = location.Tile.X - WorldTileEastWestOffset;    // Gsamp is Goode world tile x
+            int gline = WorldTileNorthSouthOffset - location.Tile.Z;  // Gline is Goode world tile Y
+            int y = UpperLeftY - (gline - 1) * (int)WorldPosition.TileSize + (int)location.Location.Z;  // Actual Goode Y
+            int x = UpperLeftX + (gsamp - 1) * (int)WorldPosition.TileSize + (int)location.Location.X;  // Actual Goode X
 
-            // Return error code: 1 = success; -1 = math error; -2 = XY is in interrupted area of projection
-            // Return latitude and longitude by reference
-            return Goode_Inverse(x, y);
+            return GoodeInverse(x, y);
         }
 
         /// <summary>
-        /// Entry point to this series of methods
-        /// Gets Longitude, Latitude from Goode X, Y
-        /// </summary>        
+        /// Gets latitude and longitude from a tile location using the Goode homolosine projection.
+        /// Returns 1 on success, -1 on math error, -2 if the location falls in an interrupted area.
+        /// </summary>
         public static int ConvertWTC(in Tile tile, in Vector3 tileLocation, out double latitude, out double longitude)
         {
             // Decimal degrees is assumed
-            int gsamp = tile.X - wt_ew_offset;  // Gsamp is Goode world tile x
-            int gline = wt_ns_offset - tile.Z;  // Gline is Goode world tile Y
-            int y = ul_y - (gline - 1) * (int)WorldPosition.TileSize + (int)tileLocation.Z;   // Actual Goode X
-            int x = ul_x + (gsamp - 1) * (int)WorldPosition.TileSize + (int)tileLocation.X;   // Actual Goode Y
+            int gsamp = tile.X - WorldTileEastWestOffset;              // Gsamp is Goode world tile x
+            int gline = WorldTileNorthSouthOffset - tile.Z;            // Gline is Goode world tile Y
+            int y = UpperLeftY - (gline - 1) * (int)WorldPosition.TileSize + (int)tileLocation.Z;  // Actual Goode Y
+            int x = UpperLeftX + (gsamp - 1) * (int)WorldPosition.TileSize + (int)tileLocation.X;  // Actual Goode X
 
-            // Return error code: 1 = success; -1 = math error; -2 = XY is in interrupted area of projection
-            // Return latitude and longitude by reference
-            return Goode_Inverse(x, y, out latitude, out longitude);
+            return GoodeInverse(x, y, out latitude, out longitude);
         }
 
         /// <summary>
-        /// Convert Goode XY coordinates to latitude and longitude
-        /// </summary>        
-        private static int Goode_Inverse(double gx, double gy, out double latitude, out double longitude)
+        /// Converts Goode XY coordinates to latitude and longitude.
+        /// Returns 1 on success, -1 on math error, -2 if in interrupted area.
+        /// </summary>
+        private static int GoodeInverse(double gx, double gy, out double latitude, out double longitude)
         {
-            // Goode Homolosine inverse equations
-            // Mapping GX, GY to Lat, Lon
+            // Goode Homolosine inverse equations: mapping GX, GY to Lat, Lon.
             // GX and GY must be offset in order to be in raw Goode coordinates.
-            // This may alter lon and lat values.
 
-            latitude = longitude = 0f;
+            latitude = longitude = 0;
 
             int region;
 
-            // Inverse equations
-            if (gy >= earthRadius * 0.710987989993)             // On or above 40 44' 11.8"
-                if (gx <= earthRadius * -0.698131700798)        // To the left of -40
-                    region = 0;
-                else
-                    region = 2;
-            else if (gy >= 0)                                   // Between 0.0 and 40 44' 11.8"
-                if (gx <= earthRadius * -0.698131700798)        // To the left of -40
-                    region = 1;
-                else
-                    region = 3;
-            else if (gy >= earthRadius * -0.710987989993)       // Between 0.0 and -40 44' 11.8"
-                if (gx <= earthRadius * -1.74532925199)         // Between -180 and -100
+            // Determine which of the 12 projection regions the point falls in
+            if (gy >= EarthRadius * UpperLatBoundary)               // On or above 40°44'11.8"
+                region = gx <= EarthRadius * LonBoundaryMinus40 ? 0 : 2;
+            else if (gy >= 0)                                        // Between 0° and 40°44'11.8"
+                region = gx <= EarthRadius * LonBoundaryMinus40 ? 1 : 3;
+            else if (gy >= EarthRadius * -UpperLatBoundary)         // Between 0° and -40°44'11.8"
+                if (gx <= EarthRadius * LonBoundaryMinus100)        // Between -180° and -100°
                     region = 4;
-                else if (gx <= earthRadius * -0.349065850399)   // Between -100 and -20
+                else if (gx <= EarthRadius * LonBoundaryMinus20)    // Between -100° and -20°
                     region = 5;
-                else if (gx <= earthRadius * 1.3962634016)      // Between -20 and 80
+                else if (gx <= EarthRadius * LonBoundary80)         // Between -20° and 80°
                     region = 8;
-                else                                            // Between 80 and 180
+                else                                                 // Between 80° and 180°
                     region = 9;
-            else
-                if (gx <= earthRadius * -1.74532925199)
-                region = 6;                                  // Between -180 and -100
-            else if (gx <= earthRadius * -0.349065850399)
-                region = 5;                                  // Between -100 and -20
-            else if (gx <= earthRadius * 1.3962634016)
-                region = 10;                                 // Between -20 and 80
-            else
-                region = 11;                                 // Between 80 and 180
+            else                                                     // Below -40°44'11.8"
+                if (gx <= EarthRadius * LonBoundaryMinus100)
+                    region = 6;                                          // Between -180° and -100°
+                else if (gx <= EarthRadius * LonBoundaryMinus20)
+                    region = 5;                                          // Between -100° and -20°
+                else if (gx <= EarthRadius * LonBoundary80)
+                    region = 10;                                         // Between -20° and 80°
+                else
+                    region = 11;                                         // Between 80° and 180°
 
             gx -= falseEast[region];
 
@@ -151,203 +154,90 @@ namespace FreeTrainSimulator.Common.Position
                 case 5:
                 case 8:
                 case 9:
-                    latitude = gy / earthRadius;
-                    if (Math.Abs(latitude) > MathHelper.PiOver2)
-                        // Return error: math error
-                        return -1;
-                    double temp = Math.Abs(latitude) - MathHelper.PiOver2;
-                    if (Math.Abs(temp) > epsilon)
+                    // Sinusoidal zone
+                    latitude = gy / EarthRadius;
+                    if (Math.Abs(latitude) > PiOverTwo)
+                        return -1; // math error
+                    double temp = Math.Abs(latitude) - PiOverTwo;
+                    if (Math.Abs(temp) > Epsilon)
                     {
-                        temp = centralMeridians[region] + gx / (earthRadius * Math.Cos(latitude));
-                        longitude = Adjust_Lon(temp);
+                        temp = centralMeridians[region] + gx / (EarthRadius * Math.Cos(latitude));
+                        longitude = AdjustLon(temp);
                     }
                     else
                         longitude = centralMeridians[region];
                     break;
                 default:
-                    double arg = (gy + 0.0528035274542 * earthRadius * Math.Sign(gy)) / (1.4142135623731 * earthRadius);
+                    // Mollweide zone
+                    double arg = (gy + MollweideOffset * EarthRadius * Math.Sign(gy)) / (Sqrt2 * EarthRadius);
                     if (Math.Abs(arg) > 1)
-                        // Return error: in interrupred area
-                        return -2;
-
+                        return -2; // in interrupted area
                     double theta = Math.Asin(arg);
-                    longitude = centralMeridians[region] + gx / (0.900316316158 * earthRadius * Math.Cos(theta));
-                    if (longitude < -MathHelper.Pi)
-                        // Return error: in interrupred area
-                        return -2;
-                    arg = (2 * theta + Math.Sin(2 * theta)) / MathHelper.Pi;
+                    longitude = centralMeridians[region] + gx / (MollweideScale * EarthRadius * Math.Cos(theta));
+                    if (longitude < -Math.PI)
+                        return -2; // in interrupted area
+                    arg = (2 * theta + Math.Sin(2 * theta)) / Math.PI;
                     if (Math.Abs(arg) > 1)
-                        // Return error: in interrupred area
-                        return -2;
+                        return -2; // in interrupted area
                     latitude = Math.Asin(arg);
                     break;
-            } // switch
+            }
 
-            // Are we in a interrupted area? if so, return status code on in_break
+            // Verify the result falls within the valid longitude range for this region
             switch (region)
             {
                 case 0:
-                    if (longitude < -MathHelper.Pi || longitude > -0.698131700798)
-                        // Return error: in interrupred area
-                        return -2;
-                    break;
                 case 1:
-                    if (longitude < -MathHelper.Pi || longitude > -0.698131700798)
-                        // Return error: in interrupred area
+                    if (longitude < -Math.PI || longitude > LonBoundaryMinus40)
                         return -2;
                     break;
                 case 2:
-                    if (longitude < -0.698131700798 || longitude > MathHelper.Pi)
-                        // Return error: in interrupred area
-                        return -2;
-                    break;
                 case 3:
-                    if (longitude < -0.698131700798 || longitude > MathHelper.Pi)
-                        // Return error: in interrupred area
+                    if (longitude < LonBoundaryMinus40 || longitude > Math.PI)
                         return -2;
                     break;
                 case 4:
-                    if (longitude < -MathHelper.Pi || longitude > -1.74532925199)
-                        // Return error: in interrupred area
+                case 6:
+                    if (longitude < -Math.PI || longitude > LonBoundaryMinus100)
                         return -2;
                     break;
                 case 5:
-                    if (longitude < -1.74532925199 || longitude > -0.349065850399)
-                        // Return error: in interrupred area
-                        return -2;
-                    break;
-                case 6:
-                    if (longitude < -MathHelper.Pi || longitude > -1.74532925199)
-                        // Return error: in interrupred area
-                        return -2;
-                    break;
                 case 7:
-                    if (longitude < -1.74532925199 || longitude > -0.349065850399)
-                        // Return error: in interrupred area
+                    if (longitude < LonBoundaryMinus100 || longitude > LonBoundaryMinus20)
                         return -2;
                     break;
                 case 8:
-                    if (longitude < -0.349065850399 || longitude > 1.3962634016)
-                        // Return error: in interrupred area
+                case 10:
+                    if (longitude < LonBoundaryMinus20 || longitude > LonBoundary80)
                         return -2;
                     break;
                 case 9:
-                    if (longitude < 1.3962634016 || longitude > MathHelper.Pi)
-                        // Return error: in interrupred area
-                        return -2;
-                    break;
-                case 10:
-                    if (longitude < -0.349065850399 || longitude > 1.3962634016)
-                        // Return error: in interrupred area
-                        return -2;
-                    break;
                 case 11:
-                    if (longitude < 1.3962634016 || longitude > MathHelper.Pi)
-                        // Return error: in interrupred area
+                    if (longitude < LonBoundary80 || longitude > Math.PI)
                         return -2;
                     break;
-            } // switch
+            }
 
             return 1; // Success
         }
 
         /// <summary>
-        /// Convert Goode XY coordinates to latitude and longitude
-        /// </summary>        
-        private static (double latitude, double longitude) Goode_Inverse(double gx, double gy)
+        /// Converts Goode XY coordinates to latitude and longitude.
+        /// Returns default if the location is invalid or in an interrupted area.
+        /// </summary>
+        private static (double latitude, double longitude) GoodeInverse(double gx, double gy)
         {
-            // Goode Homolosine inverse equations
-            // Mapping GX, GY to Lat, Lon
-            // GX and GY must be offset in order to be in raw Goode coordinates.
-            // This may alter lon and lat values.
-
-            (double latitude, double longitude) result = default;
-
-            int region;
-
-            // Inverse equations
-            if (gy >= earthRadius * 0.710987989993)             // On or above 40 44' 11.8"
-                if (gx <= earthRadius * -0.698131700798)        // To the left of -40
-                    region = 0;
-                else
-                    region = 2;
-            else if (gy >= 0)                                   // Between 0.0 and 40 44' 11.8"
-                if (gx <= earthRadius * -0.698131700798)        // To the left of -40
-                    region = 1;
-                else
-                    region = 3;
-            else if (gy >= earthRadius * -0.710987989993)       // Between 0.0 and -40 44' 11.8"
-                if (gx <= earthRadius * -1.74532925199)         // Between -180 and -100
-                    region = 4;
-                else if (gx <= earthRadius * -0.349065850399)   // Between -100 and -20
-                    region = 5;
-                else if (gx <= earthRadius * 1.3962634016)      // Between -20 and 80
-                    region = 8;
-                else                                            // Between 80 and 180
-                    region = 9;
-            else
-                if (gx <= earthRadius * -1.74532925199)
-                region = 6;                                  // Between -180 and -100
-            else if (gx <= earthRadius * -0.349065850399)
-                region = 5;                                  // Between -100 and -20
-            else if (gx <= earthRadius * 1.3962634016)
-                region = 10;                                 // Between -20 and 80
-            else
-                region = 11;                                 // Between 80 and 180
-
-            gx -= falseEast[region];
-
-            switch (region)
-            {
-                case 1:
-                case 3:
-                case 4:
-                case 5:
-                case 8:
-                case 9:
-                    result.latitude = gy / earthRadius;
-                    if (Math.Abs(result.latitude) > MathHelper.PiOver2)
-                        // Return error: math error
-                        return default;
-                    double temp = Math.Abs(result.latitude) - MathHelper.PiOver2;
-                    if (Math.Abs(temp) > epsilon)
-                    {
-                        temp = centralMeridians[region] + gx / (earthRadius * Math.Cos(result.latitude));
-                        result.longitude = Adjust_Lon(temp);
-                    }
-                    else
-                        result.longitude = centralMeridians[region];
-                    break;
-                default:
-                    double arg = (gy + 0.0528035274542 * earthRadius * Math.Sign(gy)) / (1.4142135623731 * earthRadius);
-                    if (Math.Abs(arg) > 1)
-                        // Return error: in interrupred area
-                        return default;
-                    double theta = Math.Asin(arg);
-                    result.longitude = centralMeridians[region] + gx / (0.900316316158 * earthRadius * Math.Cos(theta));
-                    if (result.longitude < -MathHelper.Pi)
-                        // Return error: in interrupred area
-                        return default;
-                    arg = (2 * theta + Math.Sin(2 * theta)) / MathHelper.Pi;
-                    if (Math.Abs(arg) > 1)
-                        // Return error: in interrupred area
-                        return default;
-                    result.latitude = Math.Asin(arg);
-                    break;
-            } // switch
-
-            return result;
+            return GoodeInverse(gx, gy, out double latitude, out double longitude) == 1
+                ? (latitude, longitude)
+                : default;
         }
 
         /// <summary>
-        /// Checks for Pi overshoot
-        /// </summary>        
-        private static double Adjust_Lon(double value)
+        /// Adjusts a longitude value to stay within [-π, π].
+        /// </summary>
+        private static double AdjustLon(double value)
         {
-            if (Math.Abs(value) > MathHelper.Pi)
-                return value - Math.Sign(value) * MathHelper.TwoPi;
-            else
-                return value;
+            return Math.Abs(value) > Math.PI ? value - Math.Sign(value) * 2 * Math.PI : value;
         }
 
         /// <summary>
@@ -384,8 +274,8 @@ namespace FreeTrainSimulator.Common.Position
 
         public static (string latitude, string longitude) ToString(double latitude, double longitude)
         {
-            longitude *= piRad; // E/W
-            latitude *= piRad;  // N/S
+            longitude *= RadiansToDegrees; // E/W
+            latitude *= RadiansToDegrees;  // N/S
             char hemisphere = latitude >= 0 ? 'N' : 'S';
             char direction = longitude >= 0 ? 'E' : 'W';
             longitude = Math.Abs(longitude);
