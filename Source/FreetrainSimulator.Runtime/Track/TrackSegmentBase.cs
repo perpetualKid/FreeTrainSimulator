@@ -259,9 +259,9 @@ namespace FreeTrainSimulator.Runtime.Track
                     || centerToStartDirection > centerToEndDirection && (angle > centerToStartDirection || angle < centerToEndDirection)))
                     return (distanceSquared = centerPoint.Distance(point) - Radius) * distanceSquared;
 
-                if ((distanceSquared = point.DistanceSquared(Location)) < ProximityTolerance)
+                if ((distanceSquared = point.DistanceSquared(Location)) < WorldLocation.ProximityTolerance)
                     return distanceSquared;
-                else if ((distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance)
+                else if ((distanceSquared = point.DistanceSquared(Vector)) < WorldLocation.ProximityTolerance)
                     return distanceSquared;
 
                 return double.NaN;
@@ -275,9 +275,9 @@ namespace FreeTrainSimulator.Runtime.Track
                 // if t < 0 or > 1 the point is basically not perpendicular to the line, so we return NaN if this is even beyond the tolerance
                 // (else if needed could return the distance from either start or end point)
                 if (t < 0)
-                    return (distanceSquared = point.DistanceSquared(Location)) < ProximityTolerance ? distanceSquared : double.NaN;
+                    return (distanceSquared = point.DistanceSquared(Location)) < WorldLocation.ProximityTolerance ? distanceSquared : double.NaN;
                 else if (t > 1)
-                    return (distanceSquared = point.DistanceSquared(Vector)) < ProximityTolerance ? distanceSquared : double.NaN;
+                    return (distanceSquared = point.DistanceSquared(Vector)) < WorldLocation.ProximityTolerance ? distanceSquared : double.NaN;
                 else
                     return point.DistanceSquared(Location + (Vector - Location) * t);
             }
@@ -291,7 +291,7 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             foreach (TrackSegmentBase segment in segments ?? Enumerable.Empty<TrackSegmentBase>())
             {
-                if (segment.DistanceSquared(location) <= ProximityTolerance)
+                if (segment.DistanceSquared(location) <= WorldLocation.ProximityTolerance)
                 {
                     return segment;
                 }
@@ -301,7 +301,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public bool TrackSegmentAt(in PointD location)
         {
-            return DistanceSquared(location) <= ProximityTolerance;
+            return DistanceSquared(location) <= WorldLocation.ProximityTolerance;
         }
 
         /// <summary>

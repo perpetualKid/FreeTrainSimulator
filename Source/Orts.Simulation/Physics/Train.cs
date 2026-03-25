@@ -413,7 +413,7 @@ namespace Orts.Simulation.Physics
         /// returns the first wagon in this train (wagon is not an engine car or tender)
         /// May be <see langword="null"/> if this is an individual car (locomotive) only
         /// </summary>
-        public TrainCar FirstWagonCar => Cars.Where((car => car.WagonType is not WagonType.Engine or WagonType.Tender)).FirstOrDefault();
+        public TrainCar FirstWagonCar => Cars.Where(car => car.WagonType is not WagonType.Engine and not WagonType.Tender).FirstOrDefault();
 
         // Get the UiD value of the first wagon - searches along train, and gets the integer UiD of the first wagon that is not an engine or tender
         public virtual int GetFirstWagonUiD()

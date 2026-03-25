@@ -165,7 +165,8 @@ namespace FreeTrainSimulator.Common.Position
         public const double TileSize = Tile.TileSize;
 
         /// <summary>
-        /// Maximum distance in metres from a reference point used for proximity tests throughout the runtime.
+        /// Maximum distance in metres from a reference point used for proximity tests throughout the runtime
+        /// allowing for a 1m proximity error (rounding, placement) when trying to locate points/locations along a track segment
         /// </summary>
         public const double ProximityTolerance = 1.0;
 

@@ -38,7 +38,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 double current = car.DistanceSquared(point);
                 if (current < distance)
                     distance = current;
-                if (distance <= ProximityTolerance)
+                if (distance <= WorldLocation.ProximityTolerance)
                     break;
             }
             return distance;
@@ -123,9 +123,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             // if t < 0 or > 1 the point is basically not perpendicular to the line, so we return NaN if this is even beyond the tolerance
             // (else if needed could return the distance from either start or end point)
             if (t < 0)
-                return (distanceSquared = point.DistanceSquared(Location)) > ProximityTolerance ? double.NaN : distanceSquared;
+                return (distanceSquared = point.DistanceSquared(Location)) > WorldLocation.ProximityTolerance ? double.NaN : distanceSquared;
             else if (t > 1)
-                return (distanceSquared = point.DistanceSquared(vectorEnd)) > ProximityTolerance ? double.NaN : distanceSquared;
+                return (distanceSquared = point.DistanceSquared(vectorEnd)) > WorldLocation.ProximityTolerance ? double.NaN : distanceSquared;
             return point.DistanceSquared(Location + ((vectorEnd - Location) * t));
         }
         #endregion

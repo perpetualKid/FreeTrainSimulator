@@ -17,8 +17,6 @@
 
     public abstract record PointPrimitive : CoordinatePrimitiveBase, ITileCoordinate
     {
-        protected const double ProximityTolerance = 1.0; //allow for a 1m proximity error (rounding, placement) when trying to locate points/locations along a track segment
-
         private PointD location;
 
         private Tile tile;

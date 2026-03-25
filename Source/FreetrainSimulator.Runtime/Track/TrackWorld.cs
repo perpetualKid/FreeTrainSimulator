@@ -14,9 +14,7 @@ namespace FreeTrainSimulator.Runtime.Track
     public sealed class TrackWorld
     {
         // 1 m² — consistent with PointPrimitive.ProximityTolerance used elsewhere in the runtime
-        private const double ProximityToleranceSquared = 1.0;
-        // Linear equivalent of ProximityToleranceSquared, used to detect proximity to tile borders
-        private const double ProximityTolerance = 1.0; // = Math.Sqrt(ProximityToleranceSquared)
+        private const double ProximityToleranceSquared = WorldLocation.ProximityTolerance;
 
         private ImmutableArray<TrackNodeBase> railTrackNodes = ImmutableArray<TrackNodeBase>.Empty;
         private ImmutableArray<TrackNodeBase> roadTrackNodes = ImmutableArray<TrackNodeBase>.Empty;
@@ -233,10 +231,10 @@ namespace FreeTrainSimulator.Runtime.Track
             // may also be within tolerance — check those buckets too.
             // nearPosX and nearNegX are mutually exclusive (tile is 2048 m wide); same for the Z pair.
             // Corner tiles are nested inside the X branch to avoid redundant conjunction checks.
-            bool nearPosZ = location.Location.Z > Tile.TileSizeOver2 - ProximityTolerance;
-            bool nearNegZ = location.Location.Z < -(Tile.TileSizeOver2 - ProximityTolerance);
+            bool nearPosZ = location.Location.Z > Tile.TileSizeOver2 - WorldLocation.ProximityTolerance;
+            bool nearNegZ = location.Location.Z < -(Tile.TileSizeOver2 - WorldLocation.ProximityTolerance);
 
-            if (location.Location.X > Tile.TileSizeOver2 - ProximityTolerance)
+            if (location.Location.X > Tile.TileSizeOver2 - WorldLocation.ProximityTolerance)
             {
                 SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z), in location, contentType, ref nearest, ref nearestDistance);
                 if (nearPosZ)
@@ -244,7 +242,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 else if (nearNegZ)
                     SearchTileBucket(new Tile(location.Tile.X + 1, location.Tile.Z - 1), in location, contentType, ref nearest, ref nearestDistance);
             }
-            else if (location.Location.X < -(Tile.TileSizeOver2 - ProximityTolerance))
+            else if (location.Location.X < -(Tile.TileSizeOver2 - WorldLocation.ProximityTolerance))
             {
                 SearchTileBucket(new Tile(location.Tile.X - 1, location.Tile.Z), in location, contentType, ref nearest, ref nearestDistance);
                 if (nearPosZ)

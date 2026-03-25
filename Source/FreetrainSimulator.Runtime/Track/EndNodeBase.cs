@@ -25,7 +25,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public bool EndNodeAt(in PointD location)
         {
-            return location.DistanceSquared(Location) <= ProximityTolerance;
+            return location.DistanceSquared(Location) <= WorldLocation.ProximityTolerance;
         }
 
     }

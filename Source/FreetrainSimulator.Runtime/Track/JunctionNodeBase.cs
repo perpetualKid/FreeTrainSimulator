@@ -80,7 +80,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public bool JunctionNodeAt(in PointD location)
         {
-            return location.DistanceSquared(Location) <= ProximityTolerance;
+            return location.DistanceSquared(Location) <= WorldLocation.ProximityTolerance;
         }
 
         internal IEnumerable<TrackSegmentBase> ConnectedSegments(TrackModel trackModel)
