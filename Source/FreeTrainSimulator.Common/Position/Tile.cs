@@ -19,11 +19,6 @@ namespace FreeTrainSimulator.Common.Position
 
         public readonly short Z;
 
-        public Tile(Tile source)
-        {
-            this = source;
-        }
-
         public Tile(short x, short z)
         {
             X = x;
@@ -59,9 +54,9 @@ namespace FreeTrainSimulator.Common.Position
             return HashCode.Combine(X, Z);
         }
 
-        public static bool operator ==(in Tile left, in Tile right) => Equals(left, right);
+        public static bool operator ==(in Tile left, in Tile right) => left.Equals(right);
 
-        public static bool operator !=(in Tile left, in Tile right) => !Equals(left, right);
+        public static bool operator !=(in Tile left, in Tile right) => !left.Equals(right);
 
         public static bool operator <(in Tile left, in Tile right) => left.CompareTo(right) < 0;
 
@@ -75,23 +70,23 @@ namespace FreeTrainSimulator.Common.Position
         public static Tile Add(in Tile left, in Tile right) => left + right;
 
         public static Tile operator -(in Tile left, in Tile right) => new Tile(left.X - right.X, left.Z - right.Z);
-        public static Tile Subtract(in Tile left, in Tile right) => new Tile(left.X - right.X, left.Z - right.Z);
+        public static Tile Subtract(in Tile left, in Tile right) => left - right;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short TileFromAbs(double value)
         {
-            return Convert.ToInt16(Math.Round((int)(value / 1024) / 2.0, MidpointRounding.AwayFromZero));
+            return Convert.ToInt16(Math.Round(value / TileSize, MidpointRounding.AwayFromZero));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Tile TileFromAbs(double x, double y)
         {
             return new Tile(
-                Convert.ToInt16(Math.Round((int)(x / 1024) / 2.0, MidpointRounding.AwayFromZero)), 
-                Convert.ToInt16(Math.Round((int)(y / 1024) / 2.0, MidpointRounding.AwayFromZero)));
+                Convert.ToInt16(Math.Round(x / TileSize, MidpointRounding.AwayFromZero)),
+                Convert.ToInt16(Math.Round(y / TileSize, MidpointRounding.AwayFromZero)));
         }
 
-        public Vector3 TileVector() => new Vector3(X * 2048, 0, Z * 2048);
+        public Vector3 TileVector() => new Vector3(X * TileSize, 0, Z * TileSize);
 
         public Tile North => new Tile(X, Z + 1);
         public Tile South => new Tile(X, Z - 1);
