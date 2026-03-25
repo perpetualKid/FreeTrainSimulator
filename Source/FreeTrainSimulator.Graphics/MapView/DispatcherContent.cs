@@ -10,6 +10,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
@@ -210,10 +211,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                             endSegments.Add(new EndNode(endNode));
                             break;
                         case Models.Track.VectorNode trackVectorNode:
-                            int i = 0;
-                            foreach (Models.Track.VectorSectionNode trackVectorSection in trackVectorNode.VectorSections)
+                            foreach ((Models.Track.VectorSectionNode section, int index) in trackVectorNode.IndexedSections())
                             {
-                                trackSegments.Add(new TrackSegment(trackVectorSection, trackVectorNode.NodeIndex, i++));
+                                trackSegments.Add(new TrackSegment(section, trackVectorNode.NodeIndex, index));
                             }
                             break;
                         case Models.Track.JunctionNode trackJunctionNode:

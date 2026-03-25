@@ -5,7 +5,7 @@ using FreeTrainSimulator.Models.Handler;
 
 namespace FreeTrainSimulator.Models.Shim
 {
-    public static class WagonSetModelExtension
+    public static class WagonSetModelExtensions
     {
         public static WagonReferenceModel Any(this ImmutableArray<WagonSetModel> _) => WagonReferenceHandler.LocomotiveAny;
     }

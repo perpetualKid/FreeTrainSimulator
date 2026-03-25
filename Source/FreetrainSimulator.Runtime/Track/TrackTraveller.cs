@@ -4,6 +4,7 @@ using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
@@ -220,8 +221,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// Projects <paramref name="query"/> onto the section geometry, returning the snapped
         /// <see cref="WorldLocation"/> and the offset in metres from the section start.
         /// </summary>
-        private static (WorldLocation snapped, double offset) SnapToSection(
-            in WorldLocation query, VectorSectionNode section, TrackSection ts)
+        private static (WorldLocation snapped, double offset) SnapToSection(in WorldLocation query, VectorSectionNode section, TrackSection ts)
         {
             if (ts.Curved)
             {
@@ -234,8 +234,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Snaps <paramref name="query"/> onto the straight line segment [<paramref name="start"/>, <paramref name="end"/>].
         /// </summary>
-        private static (WorldLocation snapped, double offset) SnapToStraightSection(
-            in WorldLocation start, in WorldLocation end, in WorldLocation query)
+        private static (WorldLocation snapped, double offset) SnapToStraightSection(in WorldLocation start, in WorldLocation end, in WorldLocation query)
         {
             Vector3 d = WorldLocation.GetDistanceVector(start, end);   // end − start
             Vector3 q = WorldLocation.GetDistanceVector(start, query); // query − start
@@ -252,8 +251,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <paramref name="arcAngle"/> and <paramref name="radius"/>.
         /// Uses the same arc basis vectors as <see cref="WorldLocation.PointAlongArc"/> to ensure consistency.
         /// </summary>
-        private static (WorldLocation snapped, double offset) SnapToCurvedSection(
-            in WorldLocation start, in WorldLocation end, double arcAngle, double radius, in WorldLocation query)
+        private static (WorldLocation snapped, double offset) SnapToCurvedSection(in WorldLocation start, in WorldLocation end, double arcAngle, double radius, in WorldLocation query)
         {
             WorldLocation center = WorldLocation.ArcCenterPoint(start, end, (float)arcAngle, (float)radius);
 
@@ -285,15 +283,15 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         private static Dictionary<VectorSectionNode, (VectorNode, int)> BuildSectionOwnership(TrackWorld trackWorld)
         {
-            var map = new Dictionary<VectorSectionNode, (VectorNode, int)>(ReferenceEqualityComparer.Instance);
+            Dictionary<VectorSectionNode, (VectorNode, int)> map = new Dictionary<VectorSectionNode, (VectorNode, int)>(ReferenceEqualityComparer.Instance);
             TrackDatabase db = trackWorld.RuntimeData.TrackModel?.TrackDatabase;
             if (db == null)
                 return map;
 
             foreach (VectorNode vn in db.VectorNodes)
             {
-                for (int i = 0; i < vn.VectorSections.Length; i++)
-                    map[vn.VectorSections[i]] = (vn, i);
+                foreach ((VectorSectionNode section, int index) in vn.IndexedSections())
+                    map[section] = (vn, index);
             }
             return map;
         }

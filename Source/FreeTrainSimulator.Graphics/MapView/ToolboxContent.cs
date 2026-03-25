@@ -10,6 +10,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
@@ -240,10 +241,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                             endSegments.Add(new Widgets.EndNode(endNode));
                             break;
                         case VectorNode trackVectorNode:
-                            int i = 0;
-                            foreach (VectorSectionNode trackVectorSection in trackVectorNode.VectorSections)
+                            foreach ((VectorSectionNode section, int index) in trackVectorNode.IndexedSections())
                             {
-                                trackSegments.Add(new TrackSegment(trackVectorSection, trackVectorNode.NodeIndex, i++));
+                                trackSegments.Add(new TrackSegment(section, trackVectorNode.NodeIndex, index));
                             }
                             break;
                         case Models.Track.JunctionNode trackJunctionNode:
@@ -269,10 +269,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                             roadEndSegments.Add(new Widgets.RoadEndSegment(trackEndNode));
                             break;
                         case VectorNode trackVectorNode:
-                            int i = 0;
-                            foreach (VectorSectionNode trackVectorSection in trackVectorNode.VectorSections)
+                            foreach ((VectorSectionNode section, int index) in trackVectorNode.IndexedSections())
                             {
-                                roadSegments.Add(new RoadSegment(trackVectorSection, trackVectorNode.NodeIndex, i++));
+                                roadSegments.Add(new RoadSegment(section, trackVectorNode.NodeIndex, index));
                             }
                             break;
                     }
