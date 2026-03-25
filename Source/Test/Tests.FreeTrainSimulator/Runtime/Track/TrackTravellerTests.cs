@@ -34,7 +34,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// This verifies the property responds correctly to state changes.
         /// </summary>
         [TestMethod]
-        public void CurrentSection_WhenTransitioningOffTrack_ReturnsNull()
+        public void CurrentSectionWhenTransitioningOffTrackReturnsNull()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -56,7 +56,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// This verifies correct indexing into the VectorSections array for boundary case.
         /// </summary>
         [TestMethod]
-        public void CurrentSection_WhenSectionIndexIsZero_ReturnsFirstSection()
+        public void CurrentSectionWhenSectionIndexIsZeroReturnsFirstSection()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -98,7 +98,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// This verifies correct indexing into the VectorSections array for upper boundary case.
         /// </summary>
         [TestMethod]
-        public void CurrentSection_WhenSectionIndexIsLast_ReturnsLastSection()
+        public void CurrentSectionWhenSectionIndexIsLastReturnsLastSection()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -141,7 +141,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// Expected: Returns false, currentNode remains null, OnTrack is false.
         /// </summary>
         [TestMethod]
-        public void TrySnapToTrack_WhenBucketIsNull_ReturnsFalse()
+        public void TrySnapToTrackWhenBucketIsNullReturnsFalse()
         {
             // Arrange
             // When Initialize() is not called, ContentByTile[Tracks] remains null
@@ -164,7 +164,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// Expected: Returns false, currentNode is set to null, OnTrack is false.
         /// </summary>
         [TestMethod]
-        public void TrySnapToTrack_WhenNoSectionsInBoundingBox_ReturnsFalse()
+        public void TrySnapToTrackWhenNoSectionsInBoundingBoxReturnsFalse()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -189,7 +189,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// Expected: Returns false, currentNode is set to null, OnTrack is false.
         /// </summary>
         [TestMethod]
-        public void TrySnapToTrack_WhenNoValidTrackSections_ReturnsFalse()
+        public void TrySnapToTrackWhenNoValidTrackSectionsReturnsFalse()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -215,7 +215,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// Expected: Returns false, currentNode is explicitly set to null, OnTrack is false.
         /// </summary>
         [TestMethod]
-        public void TrySnapToTrack_WhenSectionNotInOwnershipMap_ReturnsFalseAndSetsCurrentNodeNull()
+        public void TrySnapToTrackWhenSectionNotInOwnershipMapReturnsFalseAndSetsCurrentNodeNull()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -236,7 +236,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// Expected: Returns true, snaps to the section with minimum distance.
         /// </summary>
         [TestMethod]
-        public void TrySnapToTrack_WithMultipleSectionsInTolerance_SnapsToNearest()
+        public void TrySnapToTrackWithMultipleSectionsInToleranceSnapsToNearest()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -263,7 +263,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// Expected: BoundingBox is called with tileRadius=1.
         /// </summary>
         [TestMethod]
-        public void TrySnapToTrack_WhenLocationNearTileBoundary_UsesTileRadiusOne()
+        public void TrySnapToTrackWhenLocationNearTileBoundaryUsesTileRadiusOne()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -291,7 +291,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// Expected: BoundingBox is called with tileRadius=0.
         /// </summary>
         [TestMethod]
-        public void TrySnapToTrack_WhenLocationNotNearTileBoundary_UsesTileRadiusZero()
+        public void TrySnapToTrackWhenLocationNotNearTileBoundaryUsesTileRadiusZero()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -319,7 +319,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// Expected: Returns false, currentNode is set to null, OnTrack is false.
         /// </summary>
         [TestMethod]
-        public void TrySnapToTrack_WhenAllSectionsOutsideTolerance_ReturnsFalse()
+        public void TrySnapToTrackWhenAllSectionsOutsideToleranceReturnsFalse()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -343,7 +343,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// Expected: Section at exactly ProximityTolerance distance should be accepted (distance² &lt; tolerance²).
         /// </summary>
         [TestMethod]
-        public void TrySnapToTrack_WhenDistanceExactlyAtTolerance_AcceptsSection()
+        public void TrySnapToTrackWhenDistanceExactlyAtToleranceAcceptsSection()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -373,7 +373,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [DataRow(short.MaxValue, short.MaxValue)]
         [DataRow(0, 0)]
         [DataRow(-1, -1)]
-        public void TrySnapToTrack_WithExtremeTileCoordinates_HandlesGracefully(int tileX, int tileZ)
+        public void TrySnapToTrackWithExtremeTileCoordinatesHandlesGracefully(int tileX, int tileZ)
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -399,7 +399,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [DataRow(float.MaxValue, float.MaxValue, float.MaxValue)]
         [DataRow(float.MinValue, float.MinValue, float.MinValue)]
         [DataRow(0f, 0f, 0f)]
-        public void TrySnapToTrack_WithExtremeLocationVectors_HandlesGracefully(float x, float y, float z)
+        public void TrySnapToTrackWithExtremeLocationVectorsHandlesGracefully(float x, float y, float z)
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -422,7 +422,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// Expected: Location property should match bestSnapped after successful snap.
         /// </summary>
         [TestMethod]
-        public void TrySnapToTrack_WhenSuccessful_UpdatesLocationProperty()
+        public void TrySnapToTrackWhenSuccessfulUpdatesLocationProperty()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
@@ -469,7 +469,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         /// Expected: currentNode, sectionIndex, sectionOffset should be updated from ownership map and snap result.
         /// </summary>
         [TestMethod]
-        public void TrySnapToTrack_WhenSuccessful_UpdatesInternalStateFields()
+        public void TrySnapToTrackWhenSuccessfulUpdatesInternalStateFields()
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
