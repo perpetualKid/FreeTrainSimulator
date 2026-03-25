@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Common.Calc
         /// <returns>A 32-bit signed integer greater than or equal to zero and less than Int32.MaxValue.</returns>
         public static int Next()
         {
-            var r = random;
+            Random r = random;
             if (r == Random.Shared)
                 return r.Next();
             lock (lockObj)
@@ -45,7 +45,7 @@ namespace FreeTrainSimulator.Common.Calc
         /// <exception cref="ArgumentOutOfRangeException">maxValue is less than zero.</exception>
         public static int Next(int max)
         {
-            var r = random;
+            Random r = random;
             if (r == Random.Shared)
                 return r.Next(max);
             lock (lockObj)
@@ -68,7 +68,7 @@ namespace FreeTrainSimulator.Common.Calc
         /// <exception cref="ArgumentOutOfRangeException">minValue is greater than maxValue.</exception>
         public static int Next(int min, int max)
         {
-            var r = random;
+            Random r = random;
             if (r == Random.Shared)
                 return r.Next(min, max);
             lock (lockObj)
@@ -81,7 +81,7 @@ namespace FreeTrainSimulator.Common.Calc
         /// <returns>A double-precision floating point number greater than or equal to 0.0, and less than 1.0.</returns>
         public static double NextDouble()
         {
-            var r = random;
+            Random r = random;
             if (r == Random.Shared)
                 return r.NextDouble();
             lock (lockObj)
@@ -95,7 +95,7 @@ namespace FreeTrainSimulator.Common.Calc
         /// <exception cref="ArgumentNullException">buffer is a null reference (Nothing in Visual Basic).</exception>
         public static void NextBytes(byte[] buffer)
         {
-            var r = random;
+            Random r = random;
             if (r == Random.Shared)
             {
                 r.NextBytes(buffer);
