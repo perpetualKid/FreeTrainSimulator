@@ -14,7 +14,8 @@ namespace FreeTrainSimulator.Common.Calc
 
         public SmoothedData(double smoothPeriod)
         {
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(smoothPeriod);
+            // smoothPeriod must exceed one frame at 60 FPS to keep log(1 - 1/(60*sp)) well-defined
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(smoothPeriod, 1.0 / 60);
             SmoothPeriod = smoothPeriod;
             // Convert the input assuming 60 FPS (arbitrary)
             rate = -60.0 * Math.Log(1 - 1 / (60 * smoothPeriod));
@@ -99,9 +100,9 @@ namespace FreeTrainSimulator.Common.Calc
                 samples.AddRange(longHistory);
                 samples.Sort();
 
-                P50 = samples[(int)(samples.Count * 0.50)];
-                P95 = samples[(int)(samples.Count * 0.95)];
-                P99 = samples[(int)(samples.Count * 0.99)];
+                P50 = samples[(int)((samples.Count - 1) * 0.50)];
+                P95 = samples[(int)((samples.Count - 1) * 0.95)];
+                P99 = samples[(int)((samples.Count - 1) * 0.99)];
 
                 SmoothedP50 = SmoothValue(SmoothedP50, position, P50);
                 SmoothedP95 = SmoothValue(SmoothedP95, position, P95);
