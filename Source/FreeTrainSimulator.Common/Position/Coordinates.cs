@@ -163,6 +163,12 @@ namespace FreeTrainSimulator.Common.Position
     public readonly struct WorldLocation : IEquatable<WorldLocation>
     {
         public const double TileSize = Tile.TileSize;
+
+        /// <summary>
+        /// Maximum distance in metres from a reference point used for proximity tests throughout the runtime.
+        /// </summary>
+        public const double ProximityTolerance = 1.0;
+
         private static readonly WorldLocation none;
 
         /// <summary>
@@ -471,6 +477,17 @@ namespace FreeTrainSimulator.Common.Position
         public bool Equals(WorldLocation other)
         {
             return this == other;
+        }
+
+        /// <summary>
+        /// Returns <see langword="true"/> when <paramref name="location"/> is within
+        /// <see cref="ProximityTolerance"/> metres of any tile boundary, meaning that
+        /// a proximity search may need to extend into adjacent tiles.
+        /// </summary>
+        public static bool IsNearTileBoundary(in WorldLocation location)
+        {
+            return Math.Abs(location.Location.X) > Tile.TileSizeOver2 - ProximityTolerance
+                || Math.Abs(location.Location.Z) > Tile.TileSizeOver2 - ProximityTolerance;
         }
     }
 }
