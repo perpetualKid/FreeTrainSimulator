@@ -14,8 +14,9 @@ namespace FreeTrainSimulator.Common.Calc
 
         public SmoothedData(double smoothPeriod)
         {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(smoothPeriod);
             SmoothPeriod = smoothPeriod;
-            // Convert the input assuming 60 FPS (arbitary)
+            // Convert the input assuming 60 FPS (arbitrary)
             rate = -60.0 * Math.Log(1 - 1 / (60 * smoothPeriod));
         }
 
@@ -23,7 +24,7 @@ namespace FreeTrainSimulator.Common.Calc
         {
             Value = value;
 
-            if (elapsed < double.Epsilon)
+            if (elapsed <= 0)
             {
                 if (double.IsNaN(SmoothedValue) || double.IsInfinity(SmoothedValue))
                     SmoothedValue = Value;
@@ -107,11 +108,11 @@ namespace FreeTrainSimulator.Common.Calc
                 SmoothedP99 = SmoothValue(SmoothedP99, position, P99);
 
                 historyCount.Enqueue(count);
-                count = historyCount.Dequeue();
-                while (count-- > 0)
+                int dequeueCount = historyCount.Dequeue();
+                while (dequeueCount-- > 0)
                     longHistory.Dequeue();
                 count = 0;
-                position = 0;
+                position -= historyStepSize;
             }
         }
     }
