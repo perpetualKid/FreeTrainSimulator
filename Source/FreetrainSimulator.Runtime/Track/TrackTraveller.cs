@@ -19,9 +19,11 @@ namespace FreeTrainSimulator.Runtime.Track
     /// </summary>
     public class TrackTraveller
     {
-        private readonly TrackWorld trackWorld;
+        private static TrackWorld trackWorld;
+        private readonly TrackDataBaseType trackDataBaseType;
         // Reference-equality map: VectorSectionNode instance → parent VectorNode and index within VectorSections
-        private readonly Dictionary<VectorSectionNode, (VectorNode node, int sectionIndex)> sectionOwnership;
+        private static Dictionary<VectorSectionNode, (VectorNode node, int sectionIndex)> sectionOwnership
+            = new Dictionary<VectorSectionNode, (VectorNode, int)>(ReferenceEqualityComparer.Instance);
 
         private VectorNode currentNode;
         private int sectionIndex;
@@ -43,22 +45,36 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary><see langword="true"/> when the traveller is positioned on a track section.</summary>
         public bool OnTrack => currentNode != null;
 
+        /// <summary>The kind of track database (<see cref="TrackDataBaseType.Rail"/> or <see cref="TrackDataBaseType.Road"/>) this traveller operates on.</summary>
+        public TrackDataBaseType TrackDataBaseType => trackDataBaseType;
+
         /// <summary>
-        /// Creates a new <see cref="TrackTraveller"/> bound to <paramref name="trackWorld"/>.
-        /// Builds an internal ownership map from <see cref="VectorSectionNode"/> to parent <see cref="VectorNode"/>
-        /// on construction.
+        /// Builds (or rebuilds) the shared ownership map from every <see cref="VectorSectionNode"/> instance
+        /// to its parent <see cref="VectorNode"/> and section index, covering both the rail
+        /// (<see cref="TrackModel.TrackDatabase"/>) and road (<see cref="TrackModel.RoadDatabase"/>) databases.
+        /// Must be called once after <see cref="TrackWorld.Initialize"/> before any <see cref="TrackTraveller"/> is used.
         /// </summary>
-        public TrackTraveller(TrackWorld trackWorld)
+        public static void Initialize(TrackWorld trackWorld)
         {
             ArgumentNullException.ThrowIfNull(trackWorld);
-            this.trackWorld = trackWorld;
+            TrackTraveller.trackWorld = trackWorld;
             sectionOwnership = BuildSectionOwnership(trackWorld);
         }
 
         /// <summary>
-        /// Places the traveller on the nearest rail track section within <see cref="ProximityTolerance"/> metres
-        /// of <paramref name="location"/>. When a section is found, <see cref="Location"/> is snapped to the
-        /// projected point on that section's geometry.
+        /// Creates a new <see cref="TrackTraveller"/>.
+        /// </summary>
+        /// <param name="trackDataBaseType">Whether the traveller operates on rail (<see cref="TrackDataBaseType.Rail"/>, default)
+        /// or road (<see cref="TrackDataBaseType.Road"/>) geometry.</param>
+        public TrackTraveller(TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        {
+            this.trackDataBaseType = trackDataBaseType;
+        }
+
+        /// <summary>
+        /// Places the traveller on the nearest track section within <see cref="ProximityTolerance"/> metres
+        /// of <paramref name="location"/>, searching the database that matches <see cref="TrackDataBaseType"/>.
+        /// When a section is found, <see cref="Location"/> is snapped to the projected point on that section's geometry.
         /// </summary>
         /// <returns><see langword="true"/> if a section was found and the traveller was placed; <see langword="false"/> otherwise.</returns>
         public bool TrySnapToTrack(in WorldLocation location)
@@ -68,7 +84,8 @@ namespace FreeTrainSimulator.Runtime.Track
             double bestOffset = 0.0;
             double bestDistSq = WorldLocation.ProximityTolerance * WorldLocation.ProximityTolerance;
 
-            ITileIndexedList<ITileCoordinate> bucket = trackWorld.ContentByTile[MapContentType.Tracks];
+            MapContentType contentType = trackDataBaseType == TrackDataBaseType.Road ? MapContentType.Roads : MapContentType.Tracks;
+            ITileIndexedList<ITileCoordinate> bucket = trackWorld.ContentByTile[contentType];
             if (bucket == null)
                 return false;
 
@@ -195,7 +212,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 : section.Location;
         }
 
-        private bool TryGetTrackSection(VectorSectionNode section, out TrackSection trackSection)
+        private static bool TryGetTrackSection(VectorSectionNode section, out TrackSection trackSection)
         {
             return trackWorld.RuntimeData.TrackSections.TrackSections.TryGetValue(section.NodeIndex, out trackSection);
         }
@@ -275,7 +292,7 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
-        ///
+        /// Builds a reference-equality map from every <see cref="VectorSectionNode"/> instance to its parent
         /// <see cref="VectorNode"/> and its index within <see cref="VectorNode.VectorSections"/>.
         /// The instances in <see cref="TrackWorld.ContentByTile"/> and <see cref="VectorNode.VectorSections"/>
         /// are the same object references (both come from the same <see cref="TrackDatabase"/>), so reference
@@ -284,16 +301,22 @@ namespace FreeTrainSimulator.Runtime.Track
         private static Dictionary<VectorSectionNode, (VectorNode, int)> BuildSectionOwnership(TrackWorld trackWorld)
         {
             Dictionary<VectorSectionNode, (VectorNode, int)> map = new Dictionary<VectorSectionNode, (VectorNode, int)>(ReferenceEqualityComparer.Instance);
-            TrackDatabase db = trackWorld.RuntimeData.TrackModel?.TrackDatabase;
-            if (db == null)
+            Models.Track.TrackModel trackModel = trackWorld.RuntimeData.TrackModel;
+            if (trackModel == null)
                 return map;
 
-            foreach (VectorNode vn in db.VectorNodes)
-            {
-                foreach ((VectorSectionNode section, int index) in vn.IndexedSections())
-                    map[section] = (vn, index);
-            }
+            AddDatabase(trackModel.TrackDatabase);
+            AddDatabase(trackModel.RoadDatabase);
             return map;
+
+            void AddDatabase(TrackDatabase db)
+            {
+                if (db == null)
+                    return;
+                foreach (VectorNode vn in db.VectorNodes)
+                    foreach ((VectorSectionNode section, int index) in vn.IndexedSections())
+                        map[section] = (vn, index);
+            }
         }
     }
 }
