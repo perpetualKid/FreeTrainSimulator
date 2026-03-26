@@ -25,12 +25,9 @@ namespace Orts.Formats.Msts
         public SignalConfigurationFile SignalConfigFile { get; }
         public IRuntimeReferenceResolver RuntimeReferenceResolver { get; }
 
-        public static RuntimeData Instance { get; private set; }
+        public static RuntimeData Instance => GameService<RuntimeData>.Instance;
 
-        public static RuntimeData GameInstance(Game game)
-        {
-            return game?.Services.GetService<RuntimeData>() ?? Instance;
-        }
+        public static RuntimeData GameInstance(Game game) => GameService<RuntimeData>.Get(game);
 
         public static void Initialize(RouteModel route, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
@@ -40,12 +37,12 @@ namespace Orts.Formats.Msts
             {
                 trackSectionModel = await route.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
             }).Wait();
-            Instance = new RuntimeData(route, trackSectionModel, trackDb, roadTrackDB, signalConfig, runtimeReferenceResolver);
+            GameService<RuntimeData>.Set(null, new RuntimeData(route, trackSectionModel, trackDb, roadTrackDB, signalConfig, runtimeReferenceResolver));
         }
 
         public static void Initialize(RouteModel route, TrackSectionModel trackSectionModel, SignalConfigurationFile signalConfig, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
-            Instance = new RuntimeData(route, trackSectionModel, null, null, signalConfig, runtimeReferenceResolver);
+            GameService<RuntimeData>.Set(null, new RuntimeData(route, trackSectionModel, null, null, signalConfig, runtimeReferenceResolver));
         }
 
         protected RuntimeData(RouteModel route, TrackSectionModel trackSectionModel, TrackDB trackDb, RoadTrackDB roadTrackDB, 

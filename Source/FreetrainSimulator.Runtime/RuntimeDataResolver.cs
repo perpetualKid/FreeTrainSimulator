@@ -19,19 +19,16 @@ namespace FreeTrainSimulator.Runtime
         public bool MetricUnits { get; }
         public IRuntimeReferenceResolver RuntimeReferenceResolver { get; }
 
-        public static RuntimeDataResolver Instance { get; private set; }
+        public static RuntimeDataResolver Instance => GameService<RuntimeDataResolver>.Instance;
 
-        public static RuntimeDataResolver GameInstance(Game game)
-        {
-            return game?.Services.GetService<RuntimeDataResolver>() ?? Instance;
-        }
+        public static RuntimeDataResolver GameInstance(Game game) => GameService<RuntimeDataResolver>.Get(game);
 
         public static async Task Initialize(RouteModel route, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
             TrackSectionModel trackSectionModel = await route.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
             TrackModel trackModel = await route.GetTrackModel(CancellationToken.None).ConfigureAwait(false);
 
-            Instance = new RuntimeDataResolver(route, trackSectionModel, trackModel, metricUnits, runtimeReferenceResolver);
+            GameService<RuntimeDataResolver>.Set(null, new RuntimeDataResolver(route, trackSectionModel, trackModel, metricUnits, runtimeReferenceResolver));
         }
 
         protected RuntimeDataResolver(RouteModel route, TrackSectionModel trackSectionModel, TrackModel trackModel,

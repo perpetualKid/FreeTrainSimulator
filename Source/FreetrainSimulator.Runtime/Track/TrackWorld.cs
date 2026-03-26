@@ -28,20 +28,15 @@ namespace FreeTrainSimulator.Runtime.Track
             TrackModel = trackModel;
         }
 
-        public static TrackWorld Instance { get; private set; }
+        public static TrackWorld Instance => GameService<TrackWorld>.Instance;
 
-        public static TrackWorld GameInstance(Game game)
-        {
-            return game?.Services.GetService<TrackWorld>() ?? Instance;
-        }
+        public static TrackWorld GameInstance(Game game) => GameService<TrackWorld>.Get(game);
 
         public static TrackWorld Initialize(Game game, Models.Track.TrackModel trackModel)
         {
-            game?.Services.RemoveService(typeof(TrackWorld));
-            Instance = new TrackWorld(trackModel);
-            Instance.Initialize();
-            game.Services.AddService(Instance);
-            return Instance;
+            TrackWorld world = new TrackWorld(trackModel);
+            world.Initialize();
+            return GameService<TrackWorld>.Set(game, world);
         }
 
         /// <summary>
