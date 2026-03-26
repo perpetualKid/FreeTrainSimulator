@@ -119,17 +119,13 @@ namespace FreeTrainSimulator.Runtime.Track
             RoadSegmentSections = new PartialTrackElementList<TrackSegmentSection>(roadTrackElements);
         }
 
-        public static TrackModel GameInstance(Game game)
-        {
-            return game?.Services.GetService<TrackModel>();
-        }
+        public static TrackModel Instance => GameService<TrackModel>.Instance;
+
+        public static TrackModel GameInstance(Game game) => GameService<TrackModel>.Get(game);
 
         public static TrackModel Reset(Game game, RuntimeDataResolver runtimeData)
         {
-            game?.Services.RemoveService(typeof(TrackModel));
-            TrackModel instance = new TrackModel(runtimeData);
-            game.Services.AddService(instance);
-            return instance;
+            return GameService<TrackModel>.Set(game, new TrackModel(runtimeData));
         }
 
         public void InitializeRailTrack(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<JunctionNodeBase> junctionNodes, IEnumerable<EndNodeBase> endNodes)
