@@ -41,7 +41,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation testLocation = new WorldLocation(0, 0, 0, 0, 0);
 
             // Act - Attempt to snap to track with no track data configured, simulating failure to find track
-            bool snapResult = traveller.TrySnapToTrack(testLocation);
+            bool snapResult = traveller.PlaceOnTrack(testLocation);
             VectorSectionNode result = traveller.CurrentSection;
 
             // Assert
@@ -149,7 +149,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(0, 0, 0, 0, 0);
 
             // Act
-            bool result = traveller.TrySnapToTrack(location);
+            bool result = traveller.PlaceOnTrack(location);
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when ContentByTile[Tracks] is null");
@@ -171,7 +171,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.TrySnapToTrack(location);
+            bool result = traveller.PlaceOnTrack(location);
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when no sections are in bounding box");
@@ -196,7 +196,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.TrySnapToTrack(location);
+            bool result = traveller.PlaceOnTrack(location);
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when no valid track sections exist");
@@ -222,7 +222,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.TrySnapToTrack(location);
+            bool result = traveller.PlaceOnTrack(location);
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when section not in ownership map");
@@ -243,7 +243,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.TrySnapToTrack(location);
+            bool result = traveller.PlaceOnTrack(location);
 
             // Assert
             // Note: With empty TrackWorld (no track sections), TrySnapToTrack should return false
@@ -273,7 +273,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(1020, 0, 5));
 
             // Act
-            bool result = traveller.TrySnapToTrack(location);
+            bool result = traveller.PlaceOnTrack(location);
 
             // Assert
             // With empty TrackWorld, should return false but handle near-boundary location correctly
@@ -301,7 +301,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(512, 0, 512));
 
             // Act
-            bool result = traveller.TrySnapToTrack(location);
+            bool result = traveller.PlaceOnTrack(location);
 
             // Assert
             // With empty TrackWorld, should return false but handle non-boundary location correctly
@@ -326,7 +326,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.TrySnapToTrack(location);
+            bool result = traveller.PlaceOnTrack(location);
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when all sections are outside tolerance");
@@ -350,7 +350,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.TrySnapToTrack(location);
+            bool result = traveller.PlaceOnTrack(location);
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when no track sections exist");
@@ -380,7 +380,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(tileX, tileZ), Vector3.Zero);
 
             // Act
-            bool result = traveller.TrySnapToTrack(location);
+            bool result = traveller.PlaceOnTrack(location);
 
             // Assert
             // With empty TrackWorld (no track sections), TrySnapToTrack should return false
@@ -406,7 +406,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(x, y, z));
 
             // Act
-            bool result = traveller.TrySnapToTrack(location);
+            bool result = traveller.PlaceOnTrack(location);
 
             // Assert
             // With empty TrackWorld (no track sections), TrySnapToTrack should return false

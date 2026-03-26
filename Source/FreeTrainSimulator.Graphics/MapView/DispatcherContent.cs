@@ -10,7 +10,6 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
