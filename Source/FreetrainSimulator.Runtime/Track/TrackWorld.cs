@@ -22,24 +22,27 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
 
-        public RuntimeDataResolver RuntimeData { get; }
+        private readonly RuntimeDataResolver runtimeData;
 
         private TrackWorld(RuntimeDataResolver runtimeData)
         {
-            RuntimeData = runtimeData;
+            this.runtimeData = runtimeData;
         }
 
-        public static TrackWorld Instance(Game game)
+        public static TrackWorld Instance { get; private set; }
+
+        public static TrackWorld GameInstance(Game game)
         {
-            return game?.Services.GetService<TrackWorld>();
+            return game?.Services.GetService<TrackWorld>() ?? Instance;
         }
 
-        public static TrackWorld Reset(Game game, RuntimeDataResolver runtimeData)
+        public static TrackWorld Initialize(Game game, RuntimeDataResolver runtimeData, Models.Track.TrackModel trackModel)
         {
             game?.Services.RemoveService(typeof(TrackWorld));
-            TrackWorld instance = new TrackWorld(runtimeData);
-            game.Services.AddService(instance);
-            return instance;
+            Instance = new TrackWorld(runtimeData);
+            Instance.Initialize(trackModel);
+            game.Services.AddService(Instance);
+            return Instance;
         }
 
         /// <summary>
@@ -119,14 +122,14 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         public IEnumerable<VectorSectionNode> OtherVectorSectionNodesAt(WorldLocation location, int trackNodeIndex)
         {
-            ImmutableArray<TrackNodeConnector> nodeConnectors = RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
+            ImmutableArray<TrackNodeConnector> nodeConnectors = runtimeData.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
 
             foreach (TrackNodeConnector nodeConnector in nodeConnectors)
             {
-                if (RuntimeData.TrackModel.TrackDatabase.TrackNodes[nodeConnector.Link] is JunctionNode junctionNode &&
+                if (runtimeData.TrackModel.TrackDatabase.TrackNodes[nodeConnector.Link] is JunctionNode junctionNode &&
                     WorldLocation.GetDistanceSquared(junctionNode.Location, location) <= ProximityToleranceSquared)
                 {
-                    foreach (TrackNodeConnector pin in RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[junctionNode.NodeIndex].TrackNodeConnectors)
+                    foreach (TrackNodeConnector pin in runtimeData.TrackModel.TrackDatabase.TrackNodeConnectors[junctionNode.NodeIndex].TrackNodeConnectors)
                     {
                         if (pin.Link == trackNodeIndex)
                             continue;
@@ -159,7 +162,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         public JunctionNode TrackNodeJunction(int trackNodeIndex, bool end)
         {
-            ImmutableArray<TrackNodeConnector> nodeConnectors = RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
+            ImmutableArray<TrackNodeConnector> nodeConnectors = runtimeData.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
             return railTrackNodes[end ? nodeConnectors[1].Link : nodeConnectors[0].Link] as JunctionNode;
         }
 
@@ -169,7 +172,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         public JunctionNode TrackNodeJunction(int trackNodeIndex, TrackDirection trackDirection)
         {
-            ImmutableArray<TrackNodeConnector> nodeConnectors = RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
+            ImmutableArray<TrackNodeConnector> nodeConnectors = runtimeData.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
             return railTrackNodes[trackDirection == TrackDirection.Reverse ? nodeConnectors[1].Link : nodeConnectors[0].Link] as JunctionNode;
         }
 
@@ -180,7 +183,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         public JunctionNode TrackNodeJunction(in WorldLocation location, int trackNodeIndex)
         {
-            ImmutableArray<TrackNodeConnector> nodeConnectors = RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
+            ImmutableArray<TrackNodeConnector> nodeConnectors = runtimeData.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
             JunctionNode startJunction = railTrackNodes[nodeConnectors[0].Link] as JunctionNode;
             JunctionNode endJunction = railTrackNodes[nodeConnectors[1].Link] as JunctionNode;
             double startDistance = startJunction != null ? WorldLocation.GetDistanceSquared(startJunction.Location, location) : double.MaxValue;
@@ -204,7 +207,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (trackSectionIndex < vectorNode.VectorSections.Length - 1)
                 return ref vectorNode.VectorSections[trackSectionIndex + 1].Location;
 
-            ImmutableArray<TrackNodeConnector> nodeConnectors = RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
+            ImmutableArray<TrackNodeConnector> nodeConnectors = runtimeData.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
             TrackNodeConnector nodeConnector = nodeConnectors[1];
             if (nodeConnector.Direction != TrackDirection.Reverse)
                 nodeConnector = nodeConnectors[0];

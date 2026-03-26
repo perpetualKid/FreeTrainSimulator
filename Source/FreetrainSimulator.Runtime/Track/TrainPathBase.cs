@@ -50,7 +50,7 @@ namespace FreeTrainSimulator.Runtime.Track
                   pathModel.PathNodes.IsDefaultOrEmpty ? PointD.None : 
                     PointD.FromWorldLocation(pathModel.PathNodes.NodeOfType(PathNodeType.End)?.Location ?? throw new ArgumentOutOfRangeException(nameof(pathModel), "Path has no End node")))
         {
-            TrackModel = TrackModel.Instance(game);
+            TrackModel = TrackModel.GameInstance(game);
             PathModel = pathModel;
         }
 

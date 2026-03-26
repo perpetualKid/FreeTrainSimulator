@@ -15,6 +15,7 @@ namespace FreeTrainSimulator.Runtime
         public RouteModel RouteData { get; }
         public TrackSectionModel TrackSections { get; }
         public TrackModel TrackModel { get; }
+        public Track.TrackWorld TrackWorld { get; }
         public bool MetricUnits { get; }
         public IRuntimeReferenceResolver RuntimeReferenceResolver { get; }
 

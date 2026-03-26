@@ -69,7 +69,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         {
             if (int.TryParse((sender as TextInput).Text, out int nodeIndex))
             {
-                IIndexedElement item = TrackModel.Instance(Owner.Game).TrackItemByIndex(nodeIndex);
+                IIndexedElement item = TrackModel.GameInstance(Owner.Game).TrackItemByIndex(nodeIndex);
                 if (item is TrackItemBase trackItem)
                 {
                     //                    contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);

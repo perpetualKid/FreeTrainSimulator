@@ -119,7 +119,7 @@ namespace FreeTrainSimulator.Runtime.Track
             RoadSegmentSections = new PartialTrackElementList<TrackSegmentSection>(roadTrackElements);
         }
 
-        public static TrackModel Instance(Game game)
+        public static TrackModel GameInstance(Game game)
         {
             return game?.Services.GetService<TrackModel>();
         }

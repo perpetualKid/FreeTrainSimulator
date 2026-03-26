@@ -33,7 +33,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             ArgumentNullException.ThrowIfNull(contentArea);
 
-            TrackModel = TrackModel.Instance(contentArea.Game);
+            TrackModel = TrackModel.GameInstance(contentArea.Game);
             ToolboxContent = contentArea?.Content as ToolboxContent ?? throw new ArgumentNullException(nameof(contentArea));
             ToolboxContent.PathEditor = this;
         }

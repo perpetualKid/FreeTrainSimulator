@@ -86,6 +86,7 @@ namespace FreeTrainSimulator.Toolbox
         public async Task SavePath(PathModelHeader pathDetails)
         {
             PathModel pathModel = ConvertTrainPath(pathDetails);
+            //TODO 2026-03-26 This needs to be a GameInstance, not just Instance
             pathModel = await RuntimeDataResolver.Instance.RouteData.Save(pathModel).ConfigureAwait(false);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }

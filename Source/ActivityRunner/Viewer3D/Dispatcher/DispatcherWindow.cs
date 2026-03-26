@@ -212,7 +212,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         protected override async void LoadContent()
         {
-            TrackModel.Instance(this)?.Reset();
+            TrackModel.GameInstance(this)?.Reset();
 
             Simulator simulator = Simulator.Instance;
             base.LoadContent();

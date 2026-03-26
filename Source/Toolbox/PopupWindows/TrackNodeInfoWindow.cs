@@ -80,7 +80,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                     switch ((SearchType)searchTypeButtons.Selected.Tag)
                     {
                         case SearchType.Track:
-                            IIndexedElement node = TrackModel.Instance(Owner.Game).TrackNodeByIndex(nodeIndex, Models.Track.TrackDataBaseType.Rail);
+                            IIndexedElement node = TrackModel.GameInstance(Owner.Game).TrackNodeByIndex(nodeIndex, Models.Track.TrackDataBaseType.Rail);
                             if (node is TrackSegmentSection segmentSection)
                             {
                                 contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
@@ -89,7 +89,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                             }
                             break;
                         case SearchType.Road:
-                            IIndexedElement roadNode = TrackModel.Instance(Owner.Game).TrackNodeByIndex(nodeIndex, Models.Track.TrackDataBaseType.Road);
+                            IIndexedElement roadNode = TrackModel.GameInstance(Owner.Game).TrackNodeByIndex(nodeIndex, Models.Track.TrackDataBaseType.Road);
                             if (roadNode is TrackSegmentSection roadSegmentSection)
                             {
                                 contentArea?.UpdateScaleToFit(roadSegmentSection.TopLeftBound, roadSegmentSection.BottomRightBound);

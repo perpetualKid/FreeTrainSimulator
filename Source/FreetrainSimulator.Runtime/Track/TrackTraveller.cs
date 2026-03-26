@@ -214,7 +214,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         private static bool TryGetTrackSection(VectorSectionNode section, out TrackSection trackSection)
         {
-            return trackWorld.RuntimeData.TrackSections.TrackSections.TryGetValue(section.NodeIndex, out trackSection);
+            return RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(section.NodeIndex, out trackSection);
         }
 
         /// <summary>
@@ -301,7 +301,7 @@ namespace FreeTrainSimulator.Runtime.Track
         private static Dictionary<VectorSectionNode, (VectorNode, int)> BuildSectionOwnership(TrackWorld trackWorld)
         {
             Dictionary<VectorSectionNode, (VectorNode, int)> map = new Dictionary<VectorSectionNode, (VectorNode, int)>(ReferenceEqualityComparer.Instance);
-            Models.Track.TrackModel trackModel = trackWorld.RuntimeData.TrackModel;
+            Models.Track.TrackModel trackModel = RuntimeDataResolver.Instance.TrackModel;
             if (trackModel == null)
                 return map;
 
