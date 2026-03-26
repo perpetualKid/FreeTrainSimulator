@@ -12,7 +12,11 @@ namespace FreeTrainSimulator.Models.Shim
         /// its zero-based array index, avoiding the need for a manual counter at every call site.
         /// </summary>
         public static IEnumerable<(VectorSectionNode Section, int Index)> IndexedSections(this VectorNode vectorNode)
-            => vectorNode?.VectorSections.Select((section, index) => (section, index));
-
+        {
+            for (int i = 0; i < vectorNode?.VectorSections.Length; i++)
+            {
+                yield return (vectorNode.VectorSections[i], i);
+            }
+        }
     }
 }
