@@ -674,12 +674,14 @@ namespace Orts.Simulation.Signalling
 
             Traveller traveller = new Traveller(tvn, sigItem.Location, (Direction)sigItem.Direction);
 
+            TrackTraveller trackTraveller = new TrackTraveller();
+            trackTraveller.TrySnapToTrack(sigItem.Location);
+
             Signal signal = new Signal(Signals.Count, SignalCategory.Signal, traveller)
             {
                 TrackDirection = sigItem.Direction,
                 TrackNode = trackNode,
                 TrackItemRefIndex = nodeIndex
-
             };
             signal.AddHead(nodeIndex, tdbRef, sigItem);
 
@@ -1761,6 +1763,7 @@ namespace Orts.Simulation.Signalling
                 return;
             TrackJunctionNode node = trackDB.TrackNodes[nodeIndex] as TrackJunctionNode;
             node.SelectedRoute = switchPos;
+            RuntimeDataResolver.Instance.TrackWorld.SwitchStates[nodeIndex] = switchPos;
             section.JunctionLastRoute = switchPos;
 
             // update any linked signals - perform state update only (to avoid problems with route setting)
@@ -3577,6 +3580,7 @@ namespace Orts.Simulation.Signalling
             {
                 switchSection.JunctionSetManual = targetState == SwitchState.SideRoute ? 1 - switchSection.JunctionDefaultRoute : switchSection.JunctionDefaultRoute;
                 (trackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual;
+                RuntimeDataResolver.Instance.TrackWorld.SwitchStates[switchSection.OriginalIndex] = switchSection.JunctionSetManual;
                 switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
                 switchSet = true;
 

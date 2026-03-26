@@ -28,6 +28,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -1125,7 +1126,7 @@ namespace Orts.Simulation.Signalling
 
                         if (section.ActivePins[TrackDirection.Reverse, SignalLocation.NearEnd].Link == -1 && section.ActivePins[TrackDirection.Reverse, SignalLocation.FarEnd].Link == -1)
                         {
-                            SignalLocation selectedLocation = (SignalLocation)(trackNodes[section.OriginalIndex] as TrackJunctionNode).SelectedRoute;
+                            SignalLocation selectedLocation = (SignalLocation)RuntimeDataResolver.Instance.TrackWorld.SwitchStates[section.OriginalIndex];                            
                             newDirection = section.Pins[TrackDirection.Reverse, selectedLocation].Direction;
                             sectionIndex = section.Pins[TrackDirection.Reverse, selectedLocation].Link;
                         }

@@ -366,7 +366,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // ie, with 2 frames of animation, the key will advance from 0 to 1
-            if (trackJunctionNode.SelectedRoute == mainRoute)
+            if (RuntimeDataResolver.Instance.TrackWorld.SwitchStates[trackJunctionNode.Index] == mainRoute)
             {
                 if (animationKey > 0.001)
                     animationKey -= 0.002 * elapsedTime.ClockSeconds * 1000.0;

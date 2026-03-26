@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
 
+using FreeTrainSimulator.Runtime;
+
 using MemoryPack;
 
 using Orts.Formats.Msts;
@@ -22,11 +24,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
         {
             if (initialize)
             {
-                SwitchStates = new Collection<(int JunctionIndex, int SwitchState)>();
-                foreach (TrackJunctionNode trackJunctionNode in RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes)
-                {
-                    SwitchStates.Add((trackJunctionNode.Index, trackJunctionNode.SelectedRoute));
-                }
+                SwitchStates = new Collection<(int JunctionIndex, int SwitchState)>
+                    (RuntimeDataResolver.Instance.TrackWorld.SwitchStates.Select(switchState => (switchState.Key, switchState.Value)).ToList());
             }
         }
 
@@ -40,13 +39,14 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
         private static void SetSwitch(int junctionNodeIndex, int desiredState)
         {
-            TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[junctionNodeIndex];
-            if (junctionNode.SelectedRoute != desiredState)
+            if (RuntimeDataResolver.Instance.TrackWorld.SwitchStates[junctionNodeIndex] != desiredState)
             {
+                TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[junctionNodeIndex];
                 if (!SwitchOccupiedByPlayerTrain(junctionNode))
                 {
                     TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[junctionNode.TrackCircuitCrossReferences[0].Index];
                     RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[switchSection.OriginalIndex].SelectedRoute = switchSection.JunctionSetManual = desiredState;
+                    RuntimeDataResolver.Instance.TrackWorld.SwitchStates[junctionNodeIndex] = desiredState;
                     switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
                     // update linked signals

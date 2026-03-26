@@ -28,15 +28,18 @@ namespace FreeTrainSimulator.Runtime
             TrackSectionModel trackSectionModel = await route.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
             TrackModel trackModel = await route.GetTrackModel(CancellationToken.None).ConfigureAwait(false);
 
-            GameService<RuntimeDataResolver>.Set(null, new RuntimeDataResolver(route, trackSectionModel, trackModel, metricUnits, runtimeReferenceResolver));
+            Track.TrackWorld trackWorld = Track.TrackWorld.Initialize(null, trackModel);
+
+            _ = GameService<RuntimeDataResolver>.Set(null, new RuntimeDataResolver(route, trackSectionModel, trackModel, trackWorld, metricUnits, runtimeReferenceResolver));
         }
 
-        protected RuntimeDataResolver(RouteModel route, TrackSectionModel trackSectionModel, TrackModel trackModel,
+        protected RuntimeDataResolver(RouteModel route, TrackSectionModel trackSectionModel, TrackModel trackModel, Track.TrackWorld trackWorld,
             bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver)
         {
             RouteData = route;
             TrackSections = trackSectionModel;
             TrackModel = trackModel;
+            TrackWorld = trackWorld;
             MetricUnits = useMetricUnits;
             RuntimeReferenceResolver = runtimeReferenceResolver;
         }

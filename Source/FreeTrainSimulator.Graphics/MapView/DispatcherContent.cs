@@ -166,7 +166,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                         TrackJunctionNode junctionNode = traveller.TrackNode as TrackJunctionNode;
                         //check on trailing switches (previous pathnode is linked to an outpin) have correct selection set
                         Debug.Assert(junctionNode.InPins == 1);
-                        if (junctionNode.TrackPins[0].Link != PathSegments[^1].TrackNodeIndex && junctionNode.TrackPins[junctionNode.InPins + junctionNode.SelectedRoute].Link != PathSegments[^1].TrackNodeIndex)
+                        if (junctionNode.TrackPins[0].Link != PathSegments[^1].TrackNodeIndex && junctionNode.TrackPins[junctionNode.InPins + RuntimeDataResolver.Instance.TrackWorld.SwitchStates[junctionNode.Index]].Link != PathSegments[^1].TrackNodeIndex)
                         {
                             PathSegments.Add(new BrokenPathSegment(junctionNode.UiD.Location));
                             return;

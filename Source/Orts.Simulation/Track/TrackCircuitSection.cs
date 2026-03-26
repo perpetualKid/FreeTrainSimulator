@@ -107,7 +107,7 @@ namespace Orts.Simulation.Track
             {
                 return CircuitType != TrackCircuitType.Junction
                     ? SwitchState.Invalid
-                    : (RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[OriginalIndex]).SelectedRoute == JunctionDefaultRoute ? SwitchState.MainRoute : SwitchState.SideRoute;
+                    : RuntimeDataResolver.Instance.TrackWorld.SwitchStates[OriginalIndex] == JunctionDefaultRoute ? SwitchState.MainRoute : SwitchState.SideRoute;
             }
         }
 

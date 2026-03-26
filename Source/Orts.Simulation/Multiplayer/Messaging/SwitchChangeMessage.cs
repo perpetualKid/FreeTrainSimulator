@@ -2,6 +2,7 @@
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Runtime;
 
 using GetText;
 
@@ -56,6 +57,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[JunctionNodeIndex];
                 TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[junctionNode.TrackCircuitCrossReferences[0].Index];
                 RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[switchSection.OriginalIndex].SelectedRoute = switchSection.JunctionSetManual = (int)SwitchState;
+                RuntimeDataResolver.Instance.TrackWorld.SwitchStates[switchSection.OriginalIndex] = (int)SwitchState;
                 switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
                 // update linked signals

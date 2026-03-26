@@ -124,9 +124,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 bool switchBranchesAwayFromUs = switchNode.TrackPins[0].Link == switchPreviousNodeId;
                 
                 bool switchMainRouteIsLeft = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.JunctionNodes[switchNode.Index].OpeningAngle > 0;  // align the switch
-
+                
                 switchSection.X = ((switchBranchesAwayFromUs == front ? 1 : 3) + (switchMainRouteIsLeft ? 1 : 0)) * SwitchImageSize;
-                switchSection.Y = switchNode.SelectedRoute * SwitchImageSize;
+                switchSection.Y = RuntimeDataResolver.Instance.TrackWorld.SwitchStates[switchNode.Index] * SwitchImageSize;
                 TrackCircuitSection switchCircuitSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
                 if (switchCircuitSection.CircuitState.Occupied() || switchCircuitSection.CircuitState.SignalReserved >= 0 ||
                     (switchCircuitSection.CircuitState.TrainReserved != null && switchCircuitSection.CircuitState.TrainReserved.Train.ControlMode != TrainControlMode.Manual))

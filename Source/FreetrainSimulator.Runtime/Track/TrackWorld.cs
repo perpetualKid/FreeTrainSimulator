@@ -23,6 +23,8 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
 
+        public Dictionary<int, int> SwitchStates { get; private set; } = new Dictionary<int, int>();
+
         private TrackWorld(Models.Track.TrackModel trackModel)
         {
             TrackModel = trackModel;
@@ -52,6 +54,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 ContentByTile[MapContentType.Tracks] = new TileIndexedList<VectorSectionNode>(TrackModel.TrackDatabase.VectorNodes.SelectMany(v => v.VectorSections));
                 ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNode>(TrackModel.TrackDatabase.JunctionNodes);
                 ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNode>(TrackModel.TrackDatabase.EndNodes);
+
+                SwitchStates = TrackModel.TrackDatabase.JunctionNodes.ToDictionary(j => j.NodeIndex, j => j.MainRoute);
             }
             else
             {

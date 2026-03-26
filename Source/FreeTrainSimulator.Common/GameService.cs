@@ -11,6 +11,7 @@ namespace FreeTrainSimulator.Common
     /// </summary>
     public static class GameService<T> where T : class
     {
+#pragma warning disable CA1000 // Do not declare static members on generic types
         /// <summary>
         /// The process-wide fallback singleton. Always set by <see cref="Set"/>, regardless of whether a
         /// <see cref="Game"/> was supplied.
@@ -40,5 +41,6 @@ namespace FreeTrainSimulator.Common
             }
             return value;
         }
+#pragma warning restore CA1000 // Do not declare static members on generic types
     }
 }

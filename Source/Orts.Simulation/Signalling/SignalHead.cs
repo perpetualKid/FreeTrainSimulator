@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
+using FreeTrainSimulator.Runtime;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -523,7 +524,7 @@ namespace Orts.Simulation.Signalling
                         return 0;
                     for (int pin = junctionNode.InPins; pin < junctionNode.InPins + junctionNode.OutPins; pin++)
                     {
-                        if (junctionNode.TrackPins[pin].Link == MainSignal.TrackNode && pin - junctionNode.InPins != junctionNode.SelectedRoute)
+                        if (junctionNode.TrackPins[pin].Link == MainSignal.TrackNode && pin - junctionNode.InPins != RuntimeDataResolver.Instance.TrackWorld.SwitchStates[MainSignal.TrackNode])
                         {
                             return 0;
                         }

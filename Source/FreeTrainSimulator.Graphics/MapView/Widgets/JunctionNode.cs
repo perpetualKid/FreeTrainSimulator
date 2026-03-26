@@ -102,7 +102,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
 
             //if main route is not in OutPin[0] but OutPin[1], swap the both
-            if ((int)Junction.State != (Orts.Formats.Msts.RuntimeData.Instance.TrackDB.TrackNodes[junctionNode.NodeIndex] as Orts.Formats.Msts.Models.TrackJunctionNode).SelectedRoute)
+            if ((int)Junction.State != RuntimeDataResolver.Instance.TrackWorld.SwitchStates[junctionNode.NodeIndex])
                 (trackSectionAngles[0], trackSectionAngles[1]) = (trackSectionAngles[1], trackSectionAngles[0]);
 
         }
