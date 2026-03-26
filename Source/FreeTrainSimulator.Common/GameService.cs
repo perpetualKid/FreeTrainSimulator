@@ -11,19 +11,17 @@ namespace FreeTrainSimulator.Common
     /// </summary>
     public static class GameService<T> where T : class
     {
-        private static T instance;
-
         /// <summary>
         /// The process-wide fallback singleton. Always set by <see cref="Set"/>, regardless of whether a
         /// <see cref="Game"/> was supplied.
         /// </summary>
-        public static T Instance => instance;
+        public static T Instance { get; private set; }
 
         /// <summary>
         /// Returns the game-scoped instance when <paramref name="game"/> has a registered <typeparamref name="T"/>,
         /// otherwise returns the process-wide <see cref="Instance"/>.
         /// </summary>
-        public static T Get(Game game) => game?.Services.GetService<T>() ?? instance;
+        public static T Get(Game game) => game?.Services.GetService<T>() ?? Instance;
 
         /// <summary>
         /// Registers <paramref name="value"/> as the current service instance.
@@ -34,7 +32,7 @@ namespace FreeTrainSimulator.Common
         /// <returns><paramref name="value"/>, for convenient chaining.</returns>
         public static T Set(Game game, T value)
         {
-            instance = value;
+            Instance = value;
             if (game != null)
             {
                 game.Services.RemoveService(typeof(T));

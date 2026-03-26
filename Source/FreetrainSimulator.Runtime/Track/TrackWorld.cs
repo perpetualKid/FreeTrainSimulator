@@ -74,6 +74,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 ContentByTile[MapContentType.Roads] = new TileIndexedList<VectorSectionNode>(ImmutableArray<VectorSectionNode>.Empty);
                 ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNode>(ImmutableArray<EndNode>.Empty);
             }
+
+            TrackTraveller.Initialize(this);
         }
 
         /// <summary>
