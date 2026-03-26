@@ -314,7 +314,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 if (db == null)
                     return;
                 foreach (VectorNode vn in db.VectorNodes)
-                    foreach ((VectorSectionNode section, int index) in vn.IndexedSections())
+                    foreach ((VectorSectionNode section, int index) in vn.VectorSections.IndexedSelect())
                         map[section] = (vn, index);
             }
         }

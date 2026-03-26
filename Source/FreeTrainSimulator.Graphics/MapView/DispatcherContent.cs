@@ -211,7 +211,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                             endSegments.Add(new EndNode(endNode));
                             break;
                         case Models.Track.VectorNode trackVectorNode:
-                            foreach ((Models.Track.VectorSectionNode section, int index) in trackVectorNode.IndexedSections())
+                            foreach ((Models.Track.VectorSectionNode section, int index) in trackVectorNode.VectorSections.IndexedSelect())
                             {
                                 trackSegments.Add(new TrackSegment(section, trackVectorNode.NodeIndex, index));
                             }

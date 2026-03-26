@@ -241,7 +241,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                             endSegments.Add(new Widgets.EndNode(endNode));
                             break;
                         case VectorNode trackVectorNode:
-                            foreach ((VectorSectionNode section, int index) in trackVectorNode.IndexedSections())
+                            foreach ((VectorSectionNode section, int index) in trackVectorNode.VectorSections.IndexedSelect())
                             {
                                 trackSegments.Add(new TrackSegment(section, trackVectorNode.NodeIndex, index));
                             }
@@ -269,7 +269,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                             roadEndSegments.Add(new Widgets.RoadEndSegment(trackEndNode));
                             break;
                         case VectorNode trackVectorNode:
-                            foreach ((VectorSectionNode section, int index) in trackVectorNode.IndexedSections())
+                            foreach ((VectorSectionNode section, int index) in trackVectorNode.VectorSections.IndexedSelect())
                             {
                                 roadSegments.Add(new RoadSegment(section, trackVectorNode.NodeIndex, index));
                             }
