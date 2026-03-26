@@ -301,7 +301,7 @@ namespace FreeTrainSimulator.Runtime.Track
         private static Dictionary<VectorSectionNode, (VectorNode, int)> BuildSectionOwnership(TrackWorld trackWorld)
         {
             Dictionary<VectorSectionNode, (VectorNode, int)> map = new Dictionary<VectorSectionNode, (VectorNode, int)>(ReferenceEqualityComparer.Instance);
-            Models.Track.TrackModel trackModel = RuntimeDataResolver.Instance.TrackModel;
+            Models.Track.TrackModel trackModel = trackWorld.TrackModel;
             if (trackModel == null)
                 return map;
 

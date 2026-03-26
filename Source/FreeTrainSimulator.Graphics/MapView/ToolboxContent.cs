@@ -280,10 +280,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             trackModel.InitializeRoadTrack(roadSegments, roadEndSegments);
 
-            trackWorld = TrackWorld.Initialize(game, runtimeData, runtimeData.TrackModel);
-
-            TrackWorld instance = TrackWorld.Instance;
-            TrackWorld gameInstance = TrackWorld.GameInstance(game);
+            trackWorld = TrackWorld.Initialize(game, runtimeData.TrackModel);
 
             // identify all tiles by looking at tracks and roads and their respective end segments
             trackModel.ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile>(

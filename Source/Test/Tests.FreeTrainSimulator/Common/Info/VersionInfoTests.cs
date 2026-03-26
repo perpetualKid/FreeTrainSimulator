@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -37,6 +38,8 @@ namespace Tests.FreeTrainSimulator.Common.Info
             Assert.AreEqual(1, VersionInfo.Compare(MinVersion().ToNormalizedString()));
             Assert.AreEqual(0, VersionInfo.Compare(VersionInfo.CurrentVersion.ToNormalizedString()));
             Assert.AreEqual(-1, VersionInfo.Compare(NextVersion().ToNormalizedString()));
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TF_BUILD")))  // only if running in Azure Pipelines, the version is expected to be the same as the one of the assembly,                                                                                        // so we can check that as well
+                return;
 #pragma warning disable CS0436 // Type conflicts with imported type
             Assert.AreEqual(ThisAssembly.AssemblyInformationalVersion, VersionInfo.FullVersion);
 #pragma warning restore CS0436 // Type conflicts with imported type

@@ -23,11 +23,9 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 typeof(TrackWorld),
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
                 null,
-                new object[] { new TestRuntimeDataResolver() },
+                new object[] { null },
                 null);
         }
-
-        private sealed class TestRuntimeDataResolver : RuntimeDataResolver { }
 
         /// <summary>
         /// Tests that CurrentSection returns null when OnTrack becomes false after initially being on track.
@@ -38,7 +36,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            
+            TrackTraveller traveller = new TrackTraveller();
             WorldLocation testLocation = new WorldLocation(0, 0, 0, 0, 0);
 
             // Act - Attempt to snap to track with no track data configured, simulating failure to find track
