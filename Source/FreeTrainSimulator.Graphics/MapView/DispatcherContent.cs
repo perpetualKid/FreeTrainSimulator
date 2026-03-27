@@ -142,35 +142,73 @@ namespace FreeTrainSimulator.Graphics.MapView
             PathSegments.Clear();
             if (trackModel == null || trackModel.SegmentSections.Count == 0)
                 return;
+
+            TrackDirection initialDirection = trainTraveller.Direction == Direction.Backward ? TrackDirection.Reverse : TrackDirection.Ahead;
+
             Traveller traveller = new Traveller(trainTraveller);
-            IReadOnlyList<TrackSegmentBase> trackSegments;
-            if (traveller.TrackNodeType == TrackNodeType.Track && (trackSegments = trackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments) != null)
+            TrackTraveller trackTraveller = TrackTraveller.InitializeTraveller(trainTraveller.WorldLocation, initialDirection);
+
+            IReadOnlyList<TrackSegmentBase> trackSegments = trackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments;
+
+            //if (traveller.TrackNodeType == TrackNodeType.Track && (trackSegments = trackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments) != null)
+            //{
+            //    PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, traveller.TrackSectionOffset, traveller.Direction == Direction.Backward));
+            //    remainingPathLength -= PathSegments[^1].Length;
+            //}
+            //while (traveller.TrackNodeType != TrackNodeType.End && remainingPathLength > 0)
+            //{
+            //    traveller.NextSection();
+            //    switch (traveller.TrackNodeType)
+            //    {
+            //        case TrackNodeType.Track:
+            //            if ((trackSegments = trackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments) != null)
+            //            {
+            //                PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, 0, traveller.Direction == Direction.Backward));
+            //                remainingPathLength -= PathSegments[^1].Length;
+            //            }
+            //            break;
+            //        case TrackNodeType.Junction:
+            //            TrackJunctionNode junctionNode = traveller.TrackNode as TrackJunctionNode;
+            //            //check on trailing switches (previous pathnode is linked to an outpin) have correct selection set
+            //            Debug.Assert(junctionNode.InPins == 1);
+            //            if (junctionNode.TrackPins[0].Link != PathSegments[^1].TrackNodeIndex && junctionNode.TrackPins[junctionNode.InPins + RuntimeDataResolver.Instance.TrackWorld.SwitchStates[junctionNode.Index]].Link != PathSegments[^1].TrackNodeIndex)
+            //            {
+            //                PathSegments.Add(new BrokenPathSegment(junctionNode.UiD.Location));
+            //                return;
+            //            }
+            //            break;
+            //    }
+            //}
+
+            remainingPathLength = 2000;
+            trackSegments = trackModel.SegmentSections[trackTraveller.TrackNodeIndex]?.SectionSegments;
+            if (trackTraveller == null)
+                return;
+
+            Models.Track.TrackSection section = RuntimeDataResolver.Instance.TrackSections.TrackSections[trackTraveller.CurrentSection.NodeIndex];
+            double sectionOffset = trackTraveller.SectionOffset;
+            if (section.Curved)
             {
-                PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, traveller.TrackSectionOffset, traveller.Direction == Direction.Backward));
+                sectionOffset = sectionOffset / section.Radius;
+            }
+
+            if (trackSegments != null && trackTraveller.SectionIndex < trackSegments.Count)
+            {
+                PathSegments.Add(new PathSegment(trackSegments[trackTraveller.SectionIndex], remainingPathLength, (float)sectionOffset, trackTraveller.Direction == TrackDirection.Reverse));
                 remainingPathLength -= PathSegments[^1].Length;
             }
-            while (traveller.TrackNodeType != TrackNodeType.End && remainingPathLength > 0)
+
+            while (remainingPathLength > 0)
             {
-                traveller.NextSection();
-                switch (traveller.TrackNodeType)
+                trackTraveller = trackTraveller.AdvanceToNextSection();
+                if (trackTraveller == null)
+                    break;
+
+                trackSegments = trackModel.SegmentSections[trackTraveller.TrackNodeIndex]?.SectionSegments;
+                if (trackSegments != null && trackTraveller.SectionIndex < trackSegments.Count)
                 {
-                    case TrackNodeType.Track:
-                        if ((trackSegments = trackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments) != null)
-                        {
-                            PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, 0, traveller.Direction == Direction.Backward));
-                            remainingPathLength -= PathSegments[^1].Length;
-                        }
-                        break;
-                    case TrackNodeType.Junction:
-                        TrackJunctionNode junctionNode = traveller.TrackNode as TrackJunctionNode;
-                        //check on trailing switches (previous pathnode is linked to an outpin) have correct selection set
-                        Debug.Assert(junctionNode.InPins == 1);
-                        if (junctionNode.TrackPins[0].Link != PathSegments[^1].TrackNodeIndex && junctionNode.TrackPins[junctionNode.InPins + RuntimeDataResolver.Instance.TrackWorld.SwitchStates[junctionNode.Index]].Link != PathSegments[^1].TrackNodeIndex)
-                        {
-                            PathSegments.Add(new BrokenPathSegment(junctionNode.UiD.Location));
-                            return;
-                        }
-                        break;
+                    PathSegments.Add(new PathSegment(trackSegments[trackTraveller.SectionIndex], remainingPathLength, 0, trackTraveller.Direction == TrackDirection.Reverse));
+                    remainingPathLength -= PathSegments[^1].Length;
                 }
             }
         }

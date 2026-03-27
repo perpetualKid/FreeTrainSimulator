@@ -30,8 +30,8 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>The <see cref="VectorNode"/> (track node) the traveller is currently on, or <see langword="null"/> if not on track.</summary>
         public VectorNode CurrentNode { get; private init; }
 
-        // Index of the active VectorSectionNode within CurrentNode.VectorSections.
-        private int SectionIndex { get; init; }
+        /// <summary>The zero-based index of the current <see cref="VectorSectionNode"/> within <see cref="CurrentNode.VectorSections"/>.</summary>
+        public int SectionIndex { get; private init; }
 
         /// <summary>The individual <see cref="VectorSectionNode"/> within <see cref="CurrentNode"/> that the traveller occupies,
         /// or <see langword="null"/> if not on track.</summary>
@@ -98,6 +98,11 @@ namespace FreeTrainSimulator.Runtime.Track
         public override int GetHashCode()
         {
             return HashCode.Combine(TrackDataBaseType, CurrentNode, SectionIndex, SectionOffset, Direction);
+        }
+
+        public override string ToString()
+        {
+            return $"{{TrackNode Index={TrackNodeIndex} TrackVectorSection Index={SectionIndex} Offset={SectionOffset:F6}}}";
         }
 
         /// <summary>
@@ -194,6 +199,56 @@ namespace FreeTrainSimulator.Runtime.Track
 
             return MoveInternal(distance, forward);
         }
+
+        /// <summary>
+        /// Returns a new <see cref="TrackTraveller"/> positioned at the start of the next
+        /// <see cref="VectorSectionNode"/> in the current direction of travel.
+        /// Advances within the same <see cref="VectorNode"/> when possible; otherwise crosses the
+        /// node boundary through any intervening <see cref="JunctionNode"/>, following the active
+        /// switch state from <see cref="TrackWorld.SwitchStates"/>.
+        /// This instance is not modified.
+        /// </summary>
+        /// <returns>
+        /// A new <see cref="TrackTraveller"/> at the start of the next section, or
+        /// <see langword="null"/> when an <see cref="EndNode"/> is reached or the topology is inconsistent.
+        /// </returns>
+        public TrackTraveller AdvanceToNextSection()
+        {
+            if (!OnTrack)
+                return null;
+
+            bool forward = Direction == TrackDirection.Ahead;
+
+            if (forward && SectionIndex < CurrentNode.VectorSections.Length - 1)
+            {
+                int next = SectionIndex + 1;
+                return this with { SectionIndex = next, SectionOffset = 0, Location = ComputeLocation(CurrentNode, next, 0) };
+            }
+
+            if (!forward && SectionIndex > 0)
+            {
+                int next = SectionIndex - 1;
+                double offset = TryGetTrackSection(CurrentNode.VectorSections[next], out TrackSection ts) ? ts.Length : 0.0;
+                return this with { SectionIndex = next, SectionOffset = offset, Location = ComputeLocation(CurrentNode, next, offset) };
+            }
+
+            // At a node boundary — attempt to cross it.
+            VectorNode node = CurrentNode;
+            int idx = SectionIndex;
+            double sectionOffset = forward
+                ? (TryGetTrackSection(CurrentSection, out TrackSection fwdTs) ? fwdTs.Length : 0.0)
+                : 0.0;
+            double dummy = 0.0;
+
+            bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref idx, ref sectionOffset, atEnd: forward, ref dummy);
+            if (!newForward.HasValue)
+                return null;
+
+            TrackDirection newDirection = newForward.Value ? TrackDirection.Ahead : TrackDirection.Reverse;
+            WorldLocation newLocation = ComputeLocation(node, idx, sectionOffset);
+            return this with { CurrentNode = node, SectionIndex = idx, SectionOffset = sectionOffset, Location = newLocation, Direction = newDirection };
+        }
+
 
         // Moves remaining metres using mutable locals; forward=true advances through VectorSections, false retreats.
         // Returns a new record at the final position and the unconsumed distance (>0 only when halted at an EndNode).

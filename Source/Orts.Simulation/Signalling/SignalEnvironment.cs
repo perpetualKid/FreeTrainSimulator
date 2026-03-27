@@ -674,8 +674,6 @@ namespace Orts.Simulation.Signalling
 
             Traveller traveller = new Traveller(tvn, sigItem.Location, (Direction)sigItem.Direction);
 
-            TrackTraveller trackTraveller = TrackTraveller.InitializeTraveller(sigItem.Location);
-
             Signal signal = new Signal(Signals.Count, SignalCategory.Signal, traveller)
             {
                 TrackDirection = sigItem.Direction,
