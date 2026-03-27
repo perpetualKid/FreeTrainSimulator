@@ -87,7 +87,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Use reflection to set the private init properties (init restriction is compile-time only; reflection bypasses it)
             System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
             System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
             currentNodeProp.SetValue(traveller, vectorNode);
             sectionIndexProp.SetValue(traveller, 0); // First index
@@ -128,7 +128,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Use reflection to set the private init properties (init restriction is compile-time only; reflection bypasses it)
             System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
             System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
             currentNodeProp.SetValue(traveller, vectorNode);
             sectionIndexProp.SetValue(traveller, vectorNode.VectorSections.Length - 1); // Last index
@@ -452,7 +452,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Use reflection to set private init properties (init restriction is compile-time only; reflection bypasses it)
             System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
             System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             System.Reflection.PropertyInfo sectionOffsetProp = typeof(TrackTraveller).GetProperty("SectionOffset");
             System.Reflection.PropertyInfo locationProperty = typeof(TrackTraveller).GetProperty("Location");
 
@@ -496,7 +496,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Use reflection to set private init properties (init restriction is compile-time only; reflection bypasses it)
             System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
             System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
             currentNodeProp.SetValue(traveller, vectorNode);
             sectionIndexProp.SetValue(traveller, 1); // Set to second section
