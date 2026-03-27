@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2013 by the Open Rails project.
+// COPYRIGHT 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -674,8 +674,7 @@ namespace Orts.Simulation.Signalling
 
             Traveller traveller = new Traveller(tvn, sigItem.Location, (Direction)sigItem.Direction);
 
-            TrackTraveller trackTraveller = new TrackTraveller();
-            trackTraveller.PlaceOnTrack(sigItem.Location);
+            TrackTraveller trackTraveller = TrackTraveller.InitializeTraveller(sigItem.Location);
 
             Signal signal = new Signal(Signals.Count, SignalCategory.Signal, traveller)
             {

@@ -27,6 +27,16 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 null);
         }
 
+        private static TrackTraveller CreateTraveller(TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        {
+            return (TrackTraveller)Activator.CreateInstance(
+                typeof(TrackTraveller),
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+                null,
+                new object[] { trackDataBaseType },
+                null);
+        }
+
         /// <summary>
         /// Tests that CurrentSection returns null when OnTrack becomes false after initially being on track.
         /// This verifies the property responds correctly to state changes.
@@ -37,11 +47,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
             TrackTraveller.Initialize(trackWorld);            
-            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller traveller = CreateTraveller();
             WorldLocation testLocation = new WorldLocation(0, 0, 0, 0, 0);
 
             // Act - Attempt to snap to track with no track data configured, simulating failure to find track
-            bool snapResult = traveller.PlaceOnTrack(testLocation) is not null;
+            bool snapResult = TrackTraveller.InitializeTraveller(testLocation) is not null;
             VectorSectionNode result = traveller.CurrentSection;
 
             // Assert
@@ -59,7 +69,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
 
             // Create multiple VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
@@ -100,7 +110,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
 
             // Create multiple VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
@@ -143,11 +153,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Arrange
             // When Initialize() is not called, ContentByTile[Tracks] remains null
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(0, 0, 0, 0, 0);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location) is not null;
+            bool result = TrackTraveller.InitializeTraveller(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when ContentByTile[Tracks] is null");
@@ -165,11 +175,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location) is not null;
+            bool result = TrackTraveller.InitializeTraveller(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when no sections are in bounding box");
@@ -190,11 +200,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location) is not null;
+            bool result = TrackTraveller.InitializeTraveller(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when no valid track sections exist");
@@ -216,11 +226,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location) is not null;
+            bool result = TrackTraveller.InitializeTraveller(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when section not in ownership map");
@@ -237,11 +247,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location) is not null;
+            bool result = TrackTraveller.InitializeTraveller(location) is not null;
 
             // Assert
             // Note: With empty TrackWorld (no track sections), TrySnapToTrack should return false
@@ -264,14 +274,14 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
             
             // Create a location near tile boundary (e.g., at tile edge coordinates)
             // WorldLocation with Location.X or Location.Z close to tile boundary (near 1024 or 0)
             WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(1020, 0, 5));
 
             // Act
-            bool result = traveller.PlaceOnTrack(location) is not null;
+            bool result = TrackTraveller.InitializeTraveller(location) is not null;
 
             // Assert
             // With empty TrackWorld, should return false but handle near-boundary location correctly
@@ -292,14 +302,14 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
             
             // Create a location NOT near tile boundary (in the middle of tile, far from edges)
             // WorldLocation with Location.X and Location.Z far from tile boundaries (not near 0 or 1024)
             WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(512, 0, 512));
 
             // Act
-            bool result = traveller.PlaceOnTrack(location) is not null;
+            bool result = TrackTraveller.InitializeTraveller(location) is not null;
 
             // Assert
             // With empty TrackWorld, should return false but handle non-boundary location correctly
@@ -320,11 +330,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location) is not null;
+            bool result = TrackTraveller.InitializeTraveller(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when all sections are outside tolerance");
@@ -344,11 +354,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location) is not null;
+            bool result = TrackTraveller.InitializeTraveller(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when no track sections exist");
@@ -374,11 +384,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(tileX, tileZ), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location) is not null;
+            bool result = TrackTraveller.InitializeTraveller(location) is not null;
 
             // Assert
             // With empty TrackWorld (no track sections), TrySnapToTrack should return false
@@ -400,11 +410,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(x, y, z));
 
             // Act
-            bool result = traveller.PlaceOnTrack(location) is not null;
+            bool result = TrackTraveller.InitializeTraveller(location) is not null;
 
             // Assert
             // With empty TrackWorld (no track sections), TrySnapToTrack should return false
@@ -423,7 +433,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
 
             // Create VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
@@ -468,7 +478,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = new TrackTraveller();
+            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
 
             // Create VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);

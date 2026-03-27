@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Runtime.Track
     /// track geometry, crossing <see cref="VectorSectionNode"/> boundaries within the same <see cref="VectorNode"/>.
     /// Geometry is computed directly from <see cref="VectorSectionNode"/> and <see cref="TrackSection"/> data
     /// using <see cref="WorldLocation"/> math methods.
-    /// Each instance is immutable; <see cref="Move"/> and <see cref="PlaceOnTrack"/> return new instances
+    /// Each instance is immutable; <see cref="Move"/> and <see cref="InitializeTraveller"/> return new instances
     /// rather than mutating state, enabling snapshot and look-ahead semantics.
     /// </summary>
     public record TrackTraveller
@@ -52,6 +52,11 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>Offset in metres from the start of <see cref="CurrentSection"/> to the traveller's position.</summary>
         public double SectionOffset { get; private init; }
 
+        /// <summary>Direction of travel on <see cref="CurrentNode"/>: <see cref="TrackDirection.Ahead"/> advances from
+        /// section 0 toward the last section; <see cref="TrackDirection.Reverse"/> retreats toward section 0.
+        /// Updated automatically when <see cref="Move"/> crosses a <see cref="VectorNode"/> boundary.</summary>
+        public TrackDirection Direction { get; private init; }
+
         /// <summary>
         /// Builds (or rebuilds) the shared ownership map from every <see cref="VectorSectionNode"/> instance
         /// to its parent <see cref="VectorNode"/> and section index, covering both the rail
@@ -70,7 +75,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         /// <param name="trackDataBaseType">Whether the traveller operates on rail (<see cref="TrackDataBaseType.Rail"/>, default)
         /// or road (<see cref="TrackDataBaseType.Road"/>) geometry.</param>
-        public TrackTraveller(TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        private TrackTraveller(TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
         {
             TrackDataBaseType = trackDataBaseType;
         }
@@ -86,29 +91,47 @@ namespace FreeTrainSimulator.Runtime.Track
             return TrackDataBaseType == other.TrackDataBaseType
                 && ReferenceEquals(CurrentNode, other.CurrentNode)
                 && SectionIndex == other.SectionIndex
-                && SectionOffset == other.SectionOffset;
+                && SectionOffset == other.SectionOffset
+                && Direction == other.Direction;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(TrackDataBaseType, CurrentNode, SectionIndex, SectionOffset);
+            return HashCode.Combine(TrackDataBaseType, CurrentNode, SectionIndex, SectionOffset, Direction);
         }
 
         /// <summary>
         /// Returns a new <see cref="TrackTraveller"/> placed on the nearest track section within
         /// <see cref="WorldLocation.ProximityTolerance"/> metres of <paramref name="location"/>,
-        /// searching the database that matches <see cref="TrackDataBaseType"/>.
+        /// oriented <see cref="TrackDirection.Ahead"/> on the found node.
         /// The returned traveller's <see cref="Location"/> is snapped to the projected point on that section's geometry.
         /// </summary>
+        /// <param name="location">The world location to search from.</param>
+        /// <param name="trackDataBaseType">Whether to search rail (<see cref="TrackDataBaseType.Rail"/>, default)
+        /// or road (<see cref="TrackDataBaseType.Road"/>) geometry.</param>
         /// <returns>A new <see cref="TrackTraveller"/> on the found section, or <see langword="null"/> if none was found.</returns>
-        public TrackTraveller PlaceOnTrack(in WorldLocation location)
+        public static TrackTraveller InitializeTraveller(in WorldLocation location, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+            => InitializeTraveller(location, TrackDirection.Ahead, trackDataBaseType);
+
+        /// <summary>
+        /// Returns a new <see cref="TrackTraveller"/> placed on the nearest track section within
+        /// <see cref="WorldLocation.ProximityTolerance"/> metres of <paramref name="location"/>,
+        /// oriented in <paramref name="direction"/> on the found node.
+        /// The returned traveller's <see cref="Location"/> is snapped to the projected point on that section's geometry.
+        /// </summary>
+        /// <param name="location">The world location to search from.</param>
+        /// <param name="direction">The initial direction of travel on the found <see cref="VectorNode"/>.</param>
+        /// <param name="trackDataBaseType">Whether to search rail (<see cref="TrackDataBaseType.Rail"/>, default)
+        /// or road (<see cref="TrackDataBaseType.Road"/>) geometry.</param>
+        /// <returns>A new <see cref="TrackTraveller"/> on the found section, or <see langword="null"/> if none was found.</returns>
+        public static TrackTraveller InitializeTraveller(in WorldLocation location, TrackDirection direction, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
         {
             VectorSectionNode bestSection = null;
             WorldLocation bestSnapped = WorldLocation.None;
             double bestOffset = 0.0;
             double bestDistSq = WorldLocation.ProximityTolerance * WorldLocation.ProximityTolerance;
 
-            MapContentType contentType = TrackDataBaseType == TrackDataBaseType.Road ? MapContentType.Roads : MapContentType.Tracks;
+            MapContentType contentType = trackDataBaseType == TrackDataBaseType.Road ? MapContentType.Roads : MapContentType.Tracks;
             ITileIndexedList<ITileCoordinate> bucket = trackWorld.ContentByTile[contentType];
             if (bucket == null)
                 return null;
@@ -133,40 +156,43 @@ namespace FreeTrainSimulator.Runtime.Track
             if (bestSection == null || !sectionOwnership.TryGetValue(bestSection, out (VectorNode node, int idx) owner))
                 return null;
 
-            return this with
+            return new TrackTraveller(trackDataBaseType)
             {
                 CurrentNode = owner.node,
                 SectionIndex = owner.idx,
                 SectionOffset = bestOffset,
                 Location = bestSnapped,
+                Direction = direction,
             };
         }
 
         /// <summary>
-        /// Returns a new <see cref="TrackTraveller"/> moved <paramref name="distance"/> metres along the track
-        /// in <paramref name="direction"/>, crossing <see cref="VectorSectionNode"/> and <see cref="VectorNode"/>
-        /// boundaries as needed. This instance is not modified.
+        /// Returns a new <see cref="TrackTraveller"/> moved <paramref name="distance"/> metres along the track,
+        /// crossing <see cref="VectorSectionNode"/> and <see cref="VectorNode"/> boundaries as needed.
+        /// This instance is not modified.
+        /// The direction of travel is taken from this traveller's <see cref="Direction"/> property;
+        /// a negative <paramref name="distance"/> reverses the effective direction.
         /// At a <see cref="JunctionNode"/> boundary, the active path from <see cref="TrackWorld.SwitchStates"/> is followed.
         /// At an <see cref="EndNode"/> boundary, movement halts and any unspent distance is returned.
         /// </summary>
         /// <param name="distance">Distance in metres. A negative value reverses the effective direction of travel.</param>
-        /// <param name="direction">Direction of travel along the track. A negative <paramref name="distance"/> flips this direction.</param>
         /// <returns>
         /// A new <see cref="TrackTraveller"/> at the resulting position, and the unconsumed distance in metres:
         /// <c>0</c> when the full distance was travelled, or a positive value when stopped early at an <see cref="EndNode"/>.
         /// </returns>
-        public (TrackTraveller result, float unconsumed) Move(float distance, TrackDirection direction = TrackDirection.Ahead)
+        public (TrackTraveller result, float unconsumed) Move(float distance)
         {
             if (!OnTrack)
-                throw new InvalidOperationException("Traveller is not on a track. Call PlaceOnTrack first.");
+                throw new InvalidOperationException("Traveller is not on a track. Call InitializeTraveller first.");
 
+            bool forward = Direction == TrackDirection.Ahead;
             if (distance < 0)
             {
-                direction = direction == TrackDirection.Ahead ? TrackDirection.Reverse : TrackDirection.Ahead;
+                forward = !forward;
                 distance = -distance;
             }
 
-            return MoveInternal(distance, forward: direction == TrackDirection.Ahead);
+            return MoveInternal(distance, forward);
         }
 
         // Moves remaining metres using mutable locals; forward=true advances through VectorSections, false retreats.
@@ -239,7 +265,8 @@ namespace FreeTrainSimulator.Runtime.Track
             }
 
             WorldLocation newLocation = ComputeLocation(node, idx, offset);
-            return (this with { CurrentNode = node, SectionIndex = idx, SectionOffset = offset, Location = newLocation }, (float)remaining);
+            TrackDirection newDirection = forward ? TrackDirection.Ahead : TrackDirection.Reverse;
+            return (this with { CurrentNode = node, SectionIndex = idx, SectionOffset = offset, Location = newLocation, Direction = newDirection }, (float)remaining);
         }
 
         private static WorldLocation ComputeLocation(VectorNode node, int sectionIndex, double sectionOffset)
