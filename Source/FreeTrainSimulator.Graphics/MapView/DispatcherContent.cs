@@ -189,7 +189,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             double sectionOffset = trackTraveller.SectionOffset;
             if (section.Curved)
             {
-                sectionOffset = sectionOffset / section.Radius;
+                sectionOffset /= section.Radius;
             }
 
             if (trackSegments != null && trackTraveller.SectionIndex < trackSegments.Count)
