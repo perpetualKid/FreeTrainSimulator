@@ -41,7 +41,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation testLocation = new WorldLocation(0, 0, 0, 0, 0);
 
             // Act - Attempt to snap to track with no track data configured, simulating failure to find track
-            bool snapResult = traveller.PlaceOnTrack(testLocation);
+            bool snapResult = traveller.PlaceOnTrack(testLocation) is not null;
             VectorSectionNode result = traveller.CurrentSection;
 
             // Assert
@@ -74,14 +74,13 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 VectorSections = ImmutableArray.Create(section1, section2)
             };
 
-            // Use reflection to set the private currentNode and sectionIndex fields
-            System.Reflection.FieldInfo currentNodeField = typeof(TrackTraveller).GetField("currentNode", 
+            // Use reflection to set the private init properties (init restriction is compile-time only; reflection bypasses it)
+            System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
+            System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            System.Reflection.FieldInfo sectionIndexField = typeof(TrackTraveller).GetField("sectionIndex", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            
-            currentNodeField.SetValue(traveller, vectorNode);
-            sectionIndexField.SetValue(traveller, 0); // First index
+
+            currentNodeProp.SetValue(traveller, vectorNode);
+            sectionIndexProp.SetValue(traveller, 0); // First index
 
             // Act
             VectorSectionNode result = traveller.CurrentSection;
@@ -116,14 +115,13 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 VectorSections = ImmutableArray.Create(section1, section2)
             };
 
-            // Use reflection to set the private currentNode and sectionIndex fields
-            System.Reflection.FieldInfo currentNodeField = typeof(TrackTraveller).GetField("currentNode", 
+            // Use reflection to set the private init properties (init restriction is compile-time only; reflection bypasses it)
+            System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
+            System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            System.Reflection.FieldInfo sectionIndexField = typeof(TrackTraveller).GetField("sectionIndex", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            
-            currentNodeField.SetValue(traveller, vectorNode);
-            sectionIndexField.SetValue(traveller, vectorNode.VectorSections.Length - 1); // Last index
+
+            currentNodeProp.SetValue(traveller, vectorNode);
+            sectionIndexProp.SetValue(traveller, vectorNode.VectorSections.Length - 1); // Last index
 
             // Act
             VectorSectionNode result = traveller.CurrentSection;
@@ -149,7 +147,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(0, 0, 0, 0, 0);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location);
+            bool result = traveller.PlaceOnTrack(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when ContentByTile[Tracks] is null");
@@ -171,7 +169,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location);
+            bool result = traveller.PlaceOnTrack(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when no sections are in bounding box");
@@ -196,7 +194,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location);
+            bool result = traveller.PlaceOnTrack(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when no valid track sections exist");
@@ -222,7 +220,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location);
+            bool result = traveller.PlaceOnTrack(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when section not in ownership map");
@@ -243,7 +241,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location);
+            bool result = traveller.PlaceOnTrack(location) is not null;
 
             // Assert
             // Note: With empty TrackWorld (no track sections), TrySnapToTrack should return false
@@ -273,7 +271,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(1020, 0, 5));
 
             // Act
-            bool result = traveller.PlaceOnTrack(location);
+            bool result = traveller.PlaceOnTrack(location) is not null;
 
             // Assert
             // With empty TrackWorld, should return false but handle near-boundary location correctly
@@ -301,7 +299,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(512, 0, 512));
 
             // Act
-            bool result = traveller.PlaceOnTrack(location);
+            bool result = traveller.PlaceOnTrack(location) is not null;
 
             // Assert
             // With empty TrackWorld, should return false but handle non-boundary location correctly
@@ -326,7 +324,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location);
+            bool result = traveller.PlaceOnTrack(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when all sections are outside tolerance");
@@ -350,7 +348,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location);
+            bool result = traveller.PlaceOnTrack(location) is not null;
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when no track sections exist");
@@ -380,7 +378,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(tileX, tileZ), Vector3.Zero);
 
             // Act
-            bool result = traveller.PlaceOnTrack(location);
+            bool result = traveller.PlaceOnTrack(location) is not null;
 
             // Assert
             // With empty TrackWorld (no track sections), TrySnapToTrack should return false
@@ -406,7 +404,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(x, y, z));
 
             // Act
-            bool result = traveller.PlaceOnTrack(location);
+            bool result = traveller.PlaceOnTrack(location) is not null;
 
             // Assert
             // With empty TrackWorld (no track sections), TrySnapToTrack should return false
@@ -441,18 +439,16 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Expected snapped location (e.g., 5 metres along the section)
             WorldLocation expectedLocation = new WorldLocation(new Tile(0, 0), new Vector3(5, 0, 0));
 
-            // Use reflection to set the private internal state fields to simulate successful TrySnapToTrack
-            System.Reflection.FieldInfo currentNodeField = typeof(TrackTraveller).GetField("currentNode", 
+            // Use reflection to set private init properties (init restriction is compile-time only; reflection bypasses it)
+            System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
+            System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            System.Reflection.FieldInfo sectionIndexField = typeof(TrackTraveller).GetField("sectionIndex", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            System.Reflection.FieldInfo sectionOffsetField = typeof(TrackTraveller).GetField("sectionOffset", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            System.Reflection.PropertyInfo sectionOffsetProp = typeof(TrackTraveller).GetProperty("SectionOffset");
             System.Reflection.PropertyInfo locationProperty = typeof(TrackTraveller).GetProperty("Location");
-            
-            currentNodeField.SetValue(traveller, vectorNode);
-            sectionIndexField.SetValue(traveller, 0);
-            sectionOffsetField.SetValue(traveller, 5.0);
+
+            currentNodeProp.SetValue(traveller, vectorNode);
+            sectionIndexProp.SetValue(traveller, 0);
+            sectionOffsetProp.SetValue(traveller, 5.0);
             locationProperty.SetValue(traveller, expectedLocation);
 
             // Act
@@ -487,14 +483,13 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 VectorSections = ImmutableArray.Create(section1, section2)
             };
 
-            // Use reflection to set the private internal state fields to simulate successful TrySnapToTrack
-            System.Reflection.FieldInfo currentNodeField = typeof(TrackTraveller).GetField("currentNode", 
+            // Use reflection to set private init properties (init restriction is compile-time only; reflection bypasses it)
+            System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
+            System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            System.Reflection.FieldInfo sectionIndexField = typeof(TrackTraveller).GetField("sectionIndex", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            
-            currentNodeField.SetValue(traveller, vectorNode);
-            sectionIndexField.SetValue(traveller, 1); // Set to second section
+
+            currentNodeProp.SetValue(traveller, vectorNode);
+            sectionIndexProp.SetValue(traveller, 1); // Set to second section
 
             // Act - Verify the internal state was updated correctly
             VectorNode resultNode = traveller.CurrentNode;
