@@ -451,13 +451,11 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             if (ts.Curved)
             {
-                double arcAngle = Math.PI / 180.0 * ts.Angle;
-                double angular = ts.Radius > 0.0
-                    ? Math.Clamp(offset / ts.Radius, 0.0, Math.Abs(arcAngle))
-                    : 0.0;
-                return WorldLocation.PointAlongArc(section.Location, section.EndLocation, (float)arcAngle, ts.Radius, (float)angular);
+                double arcAngle = MathHelper.ToRadians(ts.Angle);
+                double clampedOffset = Math.Clamp(offset, 0.0, ts.Length);
+                return WorldLocation.PointAlongArc(section.Location, section.EndLocation, arcAngle, ts.Radius, clampedOffset);
             }
-            return WorldLocation.InterpolateAlong(section.Location, section.EndLocation, (float)offset);
+            return WorldLocation.InterpolateAlong(section.Location, section.EndLocation, offset);
         }
 
         /// <summary>
@@ -486,7 +484,7 @@ namespace FreeTrainSimulator.Runtime.Track
             double dot = (double)q.X * dX + (double)q.Y * dY + (double)q.Z * dZ;
             double t = lenSq > 0.0 ? Math.Clamp(dot / lenSq, 0.0, 1.0) : 0.0;
             double offset = t * Math.Sqrt(lenSq);
-            return (WorldLocation.InterpolateAlong(start, end, (float)offset), offset);
+            return (WorldLocation.InterpolateAlong(start, end, offset), offset);
         }
 
         /// <summary>
@@ -496,7 +494,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         private static (WorldLocation snapped, double offset) SnapToCurvedSection(in WorldLocation start, in WorldLocation end, double arcAngle, double radius, in WorldLocation query)
         {
-            WorldLocation center = WorldLocation.ArcCenterPoint(start, end, (float)arcAngle, (float)radius);
+            WorldLocation center = WorldLocation.ArcCenterPoint(start, end, arcAngle, radius);
 
             // Arc basis: u = unit vector from center to start; v = tangent at start toward end
             // These match the internal basis of WorldLocation.PointAlongArc
@@ -514,7 +512,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 ? Math.Clamp(Math.Atan2(dotV, dotU), 0.0, Math.Abs(arcAngle))
                 : 0.0;
 
-            return (WorldLocation.PointAlongArc(start, end, (float)arcAngle, (float)radius, (float)angular), angular * radius);
+            double arcLengthMetres = angular * radius;
+            return (WorldLocation.PointAlongArc(start, end, arcAngle, radius, arcLengthMetres), arcLengthMetres);
         }
 
         /// <summary>

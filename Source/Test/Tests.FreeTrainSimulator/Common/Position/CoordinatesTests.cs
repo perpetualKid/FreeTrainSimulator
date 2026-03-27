@@ -433,14 +433,14 @@ namespace Tests.FreeTrainSimulator.Common.Position
         }
 
         // CCW (arcAngle=-π/2): center=(0,0,0), u=(1,0,0), v=(0,0,1).
-        // At t=π/2: cos(π/2)·u+sin(π/2)·v = (0,0,1) → point = center+10·(0,0,1) = (0,0,10) = end.
+        // Arc length = radius × |arcAngle| = 10 × π/2 metres.
         [TestMethod]
         public void WorldLocationPointAlongArcCounterClockwiseAtFullArcAngleReturnsEndTest()
         {
             WorldLocation start = new WorldLocation(0, 0, 10, 0, 0);
             WorldLocation end = new WorldLocation(0, 0, 0, 0, 10);
 
-            WorldLocation result = WorldLocation.PointAlongArc(start, end, -MathF.PI / 2, 10f, MathF.PI / 2);
+            WorldLocation result = WorldLocation.PointAlongArc(start, end, -MathF.PI / 2, 10f, 10f * MathF.PI / 2);
 
             Assert.AreEqual(end.Location.X, result.Location.X, EqualityPrecisionDelta.FloatPrecisionDelta);
             Assert.AreEqual(end.Location.Y, result.Location.Y, EqualityPrecisionDelta.FloatPrecisionDelta);
@@ -448,14 +448,14 @@ namespace Tests.FreeTrainSimulator.Common.Position
         }
 
         // CW (arcAngle=+π/2): center=(10,0,10), u=(0,0,-1), v=(-1,0,0).
-        // At t=π/2: 0·u+1·v = (-1,0,0) → point = center+10·(-1,0,0) = (0,0,10) = end.
+        // Arc length = radius × |arcAngle| = 10 × π/2 metres.
         [TestMethod]
         public void WorldLocationPointAlongArcClockwiseAtFullArcAngleReturnsEndTest()
         {
             WorldLocation start = new WorldLocation(0, 0, 10, 0, 0);
             WorldLocation end = new WorldLocation(0, 0, 0, 0, 10);
 
-            WorldLocation result = WorldLocation.PointAlongArc(start, end, MathF.PI / 2, 10f, MathF.PI / 2);
+            WorldLocation result = WorldLocation.PointAlongArc(start, end, MathF.PI / 2, 10f, 10f * MathF.PI / 2);
 
             Assert.AreEqual(end.Location.X, result.Location.X, EqualityPrecisionDelta.FloatPrecisionDelta);
             Assert.AreEqual(end.Location.Y, result.Location.Y, EqualityPrecisionDelta.FloatPrecisionDelta);
@@ -473,7 +473,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             float radius = 10f;
 
             WorldLocation center = WorldLocation.ArcCenterPoint(start, end, arcAngle, radius);
-            WorldLocation midpoint = WorldLocation.PointAlongArc(start, end, arcAngle, radius, MathF.Abs(arcAngle) / 2f);
+            WorldLocation midpoint = WorldLocation.PointAlongArc(start, end, arcAngle, radius, radius * MathF.Abs(arcAngle) / 2f);
 
             Assert.AreEqual((double)radius * radius, WorldLocation.GetDistanceSquared(center, midpoint), EqualityPrecisionDelta.FloatPrecisionDelta);
         }
@@ -546,7 +546,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             Assert.AreEqual(end.Location.Z, result.Location.Z, EqualityPrecisionDelta.FloatPrecisionDelta);
         }
 
-        // ComputeEndLocation curved: PointAlongArc(start, end, arcAngle, radius, |arcAngle|) at distance==|arcAngle|
+        // ComputeEndLocation curved: PointAlongArc(start, end, arcAngle, radius, radius·|arcAngle|) at full arc length
         // must return end including its elevation. Elevated CCW quarter-circle (r=10, Y=20):
         // center.Y=(20+20)/2=20; perp=Cross(UnitY, chord) is horizontal → u,v have no Y → all arc points keep Y=20.
         [TestMethod]
@@ -555,7 +555,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             WorldLocation start = new WorldLocation(0, 0, 10, 20, 0);
             WorldLocation end = new WorldLocation(0, 0, 0, 20, 10);
 
-            WorldLocation result = WorldLocation.PointAlongArc(start, end, -MathF.PI / 2, 10f, MathF.PI / 2);
+            WorldLocation result = WorldLocation.PointAlongArc(start, end, -MathF.PI / 2, 10f, 10f * MathF.PI / 2);
 
             Assert.AreEqual(end.Location.X, result.Location.X, EqualityPrecisionDelta.FloatPrecisionDelta);
             Assert.AreEqual(end.Location.Y, result.Location.Y, EqualityPrecisionDelta.FloatPrecisionDelta);

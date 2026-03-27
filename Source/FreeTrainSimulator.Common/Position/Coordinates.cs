@@ -315,7 +315,7 @@ namespace FreeTrainSimulator.Common.Position
         /// <param name="direction">Direction vector in world space; does not need to be normalized.</param>
         /// <param name="distance">Distance in meters; must be non-negative.</param>
         /// <returns>The calculated world location, normalized across tile boundaries.</returns>
-        public static WorldLocation PointAlongDirection(in WorldLocation start, in Vector3 direction, float distance)
+        public static WorldLocation PointAlongDirection(in WorldLocation start, in Vector3 direction, double distance)
         {
             if (distance < 0)
                 throw new ArgumentOutOfRangeException(nameof(distance), "Distance must be non-negative.");
@@ -339,7 +339,7 @@ namespace FreeTrainSimulator.Common.Position
         /// <param name="end">World location defining the travel direction.</param>
         /// <param name="distance">Distance in meters; must be non-negative.</param>
         /// <returns>The calculated world location, normalized across tile boundaries.</returns>
-        public static WorldLocation PointAlongDirection(in WorldLocation start, in WorldLocation end, float distance)
+        public static WorldLocation PointAlongDirection(in WorldLocation start, in WorldLocation end, double distance)
         {
             return PointAlongDirection(start, GetDistanceVector(start, end), distance);
         }
@@ -354,7 +354,7 @@ namespace FreeTrainSimulator.Common.Position
         /// Positive = clockwise, negative = counterclockwise.</param>
         /// <param name="radius">Radius of the circle.</param>
         /// <returns>The world location of the arc center, normalized across tile boundaries.</returns>
-        public static WorldLocation ArcCenterPoint(in WorldLocation start, in WorldLocation end, float arcAngle, float radius)
+        public static WorldLocation ArcCenterPoint(in WorldLocation start, in WorldLocation end, double arcAngle, double radius)
         {
             WorldLocation normalizedEnd = end.NormalizeTo(start.Tile);
 
@@ -367,23 +367,23 @@ namespace FreeTrainSimulator.Common.Position
                 perp = Vector3.UnitX;
             perp = Vector3.Normalize(perp);
 
-            Vector3 center = (startLocation + endLocation) / 2f + MathF.Sign(arcAngle) * radius * MathF.Cos(arcAngle / 2f) * perp;
+            Vector3 center = (startLocation + endLocation) / 2f + (float)(Math.Sign(arcAngle) * radius * Math.Cos(arcAngle / 2.0)) * perp;
             return new WorldLocation(start.Tile, center, true);
         }
 
         /// <summary>
-        /// Returns the world location on the arc at a given angular distance from start.
-        /// Uses the same inputs as FindCircleCenter, plus a travel angle along the arc.
+        /// Returns the world location on the arc at a given arc length from start.
+        /// Uses the same inputs as FindCircleCenter, plus a travel distance along the arc.
         /// </summary>
         /// <param name="start">Start world location on the arc.</param>
         /// <param name="end">End world location on the arc.</param>
         /// <param name="arcAngle">Total arc angle between start and end in radians.
         /// Positive = clockwise, negative = counterclockwise.</param>
-        /// <param name="radius">Radius of the circle.</param>
-        /// <param name="distance">Angular distance from start along the arc, in radians (always positive).
-        /// 0 returns start, |arcAngle| returns end. Direction follows arcAngle sign.</param>
+        /// <param name="radius">Radius of the circle in metres.</param>
+        /// <param name="distance">Arc length from start along the arc, in metres (always non-negative).
+        /// 0 returns start, radius·|arcAngle| returns end. Direction follows arcAngle sign.</param>
         /// <returns>The world location of the point on the arc, normalized across tile boundaries.</returns>
-        public static WorldLocation PointAlongArc(in WorldLocation start, in WorldLocation end, float arcAngle, float radius, float distance)
+        public static WorldLocation PointAlongArc(in WorldLocation start, in WorldLocation end, double arcAngle, double radius, double distance)
         {
             WorldLocation normalizedEnd = end.NormalizeTo(start.Tile);
 
@@ -396,11 +396,13 @@ namespace FreeTrainSimulator.Common.Position
                 perp = Vector3.UnitX;
             perp = Vector3.Normalize(perp);
 
-            Vector3 center = (startLocation + endLocation) / 2f + MathF.Sign(arcAngle) * radius * MathF.Cos(arcAngle / 2f) * perp;
+            Vector3 center = (startLocation + endLocation) / 2f + (float)(Math.Sign(arcAngle) * radius * Math.Cos(arcAngle / 2.0)) * perp;
             Vector3 u = Vector3.Normalize(startLocation - center);
             Vector3 v = Vector3.Cross(Vector3.Normalize(Vector3.Cross(startLocation - center, endLocation - center)), u);
 
-            Vector3 point = center + radius * (MathF.Cos(distance) * u + MathF.Sin(distance) * v);
+            // Convert arc length (metres) to angular distance (radians) for the trigonometric parameterisation.
+            double angularDist = radius > 0f ? distance / radius : 0f;
+            Vector3 point = center + (float)(radius) * ((float)Math.Cos(angularDist) * u + (float)Math.Sin(angularDist) * v);
             return new WorldLocation(start.Tile, point, true);
 
         }
@@ -424,7 +426,7 @@ namespace FreeTrainSimulator.Common.Position
             return Math.Abs(dx) + Math.Abs(dz);
         }
 
-        public static WorldLocation InterpolateAlong(in WorldLocation locationFrom, in WorldLocation locationTo, float distance)
+        public static WorldLocation InterpolateAlong(in WorldLocation locationFrom, in WorldLocation locationTo, double distance)
         {
             WorldLocation normalizedLocationTo = locationTo.NormalizeTo(locationFrom.Tile);
             double pointDistance = Math.Sqrt(GetDistanceSquared(locationFrom, locationTo));

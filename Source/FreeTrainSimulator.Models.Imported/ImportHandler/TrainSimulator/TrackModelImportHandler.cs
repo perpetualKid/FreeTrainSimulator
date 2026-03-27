@@ -312,7 +312,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                                     ref trackDatabase.TrackNodes[trackDatabase.TrackNodeConnectors[vectorNode.NodeIndex].TrackNodeConnectors[1].Link].Location;
 
                                 itemLocation = trackSection.Curved
-                                    ? WorldLocation.PointAlongArc(sectionNode.Location, endLocation, MathHelper.ToRadians(trackSection.Angle), trackSection.Radius, distance / trackSection.Radius)
+                                    ? WorldLocation.PointAlongArc(sectionNode.Location, endLocation, MathHelper.ToRadians(trackSection.Angle), trackSection.Radius, distance)
                                     : WorldLocation.PointAlongDirection(sectionNode.Location, endLocation, distance);
                                 break;
                             }
@@ -679,7 +679,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
             return trackSection.Curved
                 ? WorldLocation.PointAlongArc(sections[index].Location, nextLocation,
-                    MathHelper.ToRadians(trackSection.Angle), trackSection.Radius, Math.Abs(MathHelper.ToRadians(trackSection.Angle)))
+                    MathHelper.ToRadians(trackSection.Angle), trackSection.Radius, trackSection.Length)
                 : WorldLocation.PointAlongDirection(sections[index].Location, nextLocation, trackSection.Length);
         }
 

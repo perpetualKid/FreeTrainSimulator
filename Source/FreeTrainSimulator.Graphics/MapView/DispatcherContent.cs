@@ -138,6 +138,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         // TODO 20220311 PoC code
         public void UpdateTrainPath(Traveller trainTraveller)
         {
+            ArgumentNullException.ThrowIfNull(trainTraveller, nameof(trainTraveller));
+
             float remainingPathLength = 2000;
             PathSegments.Clear();
             if (trackModel == null || trackModel.SegmentSections.Count == 0)
@@ -145,10 +147,12 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             TrackDirection initialDirection = trainTraveller.Direction == Direction.Backward ? TrackDirection.Reverse : TrackDirection.Ahead;
 
-            Traveller traveller = new Traveller(trainTraveller);
             TrackTraveller trackTraveller = TrackTraveller.InitializeTraveller(trainTraveller.WorldLocation, initialDirection);
+            if (trackTraveller == null)
+                return;
+            IReadOnlyList<TrackSegmentBase> trackSegments = trackModel.SegmentSections[trackTraveller.CurrentNode.NodeIndex]?.SectionSegments;
 
-            IReadOnlyList<TrackSegmentBase> trackSegments = trackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments;
+            //Traveller traveller = new Traveller(trainTraveller);
 
             //if (traveller.TrackNodeType == TrackNodeType.Track && (trackSegments = trackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments) != null)
             //{
@@ -180,10 +184,6 @@ namespace FreeTrainSimulator.Graphics.MapView
             //    }
             //}
 
-            remainingPathLength = 2000;
-            trackSegments = trackModel.SegmentSections[trackTraveller.TrackNodeIndex]?.SectionSegments;
-            if (trackTraveller == null)
-                return;
 
             Models.Track.TrackSection section = RuntimeDataResolver.Instance.TrackSections.TrackSections[trackTraveller.CurrentSection.NodeIndex];
             double sectionOffset = trackTraveller.SectionOffset;
