@@ -253,7 +253,9 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </returns>
         public float? DistanceTo(in TrackTraveller other, float maxDistance = float.MaxValue)
         {
-            return !OnTrack || !other.OnTrack ? null : DistanceToTravellerInternal(other, Direction == TrackDirection.Ahead, maxDistance);
+            return !OnTrack || !other.OnTrack || other.TrackDataBaseType != TrackDataBaseType
+                ? null
+                : DistanceToTravellerInternal(other, Direction == TrackDirection.Ahead, maxDistance);
         }
 
         /// <summary>
@@ -289,12 +291,15 @@ namespace FreeTrainSimulator.Runtime.Track
             }
 
             // At a node boundary — attempt to cross it.
+            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
+                ? trackWorld.TrackModel.RoadDatabase
+                : trackWorld.TrackModel.TrackDatabase;
+
             VectorNode node = CurrentNode;
             int index = SectionIndex;
-            double sectionOffset = forward ? trackWorld.SectionLength(CurrentSection) : 0.0;
+            double sectionOffset = 0.0;
 
-            double dummy = 0.0;
-            bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref index, ref sectionOffset, atEnd: forward, ref dummy);
+            bool? newForward = TryCrossNodeBoundary(trackDatabase, ref node, ref index, ref sectionOffset, atEnd: forward);
             if (!newForward.HasValue)
                 return null;
 
@@ -308,6 +313,11 @@ namespace FreeTrainSimulator.Runtime.Track
         // Returns a new record at the final position and the unconsumed distance (>0 only when halted at an EndNode).
         private (TrackTraveller result, float unconsumed) MoveInternal(double remaining, bool forward)
         {
+            // Resolve once — TryCrossNodeBoundary is called on every node boundary crossing.
+            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
+                ? trackWorld.TrackModel.RoadDatabase
+                : trackWorld.TrackModel.TrackDatabase;
+
             VectorNode node = CurrentNode;
             int index = SectionIndex;
             double offset = SectionOffset;
@@ -335,7 +345,7 @@ namespace FreeTrainSimulator.Runtime.Track
                         else
                         {
                             offset = sectionLength;
-                            bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref index, ref offset, atEnd: true, ref remaining);
+                            bool? newForward = TryCrossNodeBoundary(trackDatabase, ref node, ref index, ref offset, atEnd: true);
                             if (!newForward.HasValue)
                                 break;
                             forward = newForward.Value;
@@ -362,7 +372,7 @@ namespace FreeTrainSimulator.Runtime.Track
                         else
                         {
                             offset = 0.0;
-                            bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref index, ref offset, atEnd: false, ref remaining);
+                            bool? newForward = TryCrossNodeBoundary(trackDatabase, ref node, ref index, ref offset, atEnd: false);
                             if (!newForward.HasValue)
                                 break;
                             forward = newForward.Value;
@@ -380,6 +390,11 @@ namespace FreeTrainSimulator.Runtime.Track
         // Avoids geometry snapping; uses the other traveller's exact SectionOffset for the distance computation.
         private float? DistanceToTravellerInternal(in TrackTraveller other, bool forward, float maxDistance)
         {
+            // Resolve once — TryCrossNodeBoundary is called on every node boundary crossing.
+            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
+                ? trackWorld.TrackModel.RoadDatabase
+                : trackWorld.TrackModel.TrackDatabase;
+
             VectorNode node = CurrentNode;
             int index = SectionIndex;
             double entryOffset = SectionOffset;
@@ -391,12 +406,14 @@ namespace FreeTrainSimulator.Runtime.Track
                 {
                     // Verify the target's offset is ahead of our entry point in the current direction.
                     bool ahead = forward ? other.SectionOffset >= entryOffset : other.SectionOffset <= entryOffset;
-                    return !ahead ? null : (float)(accumulated + Math.Abs(other.SectionOffset - entryOffset));
+                    if (!ahead)
+                        return null;
+                    float distance = (float)(accumulated + Math.Abs(other.SectionOffset - entryOffset));
+                    return distance <= maxDistance ? distance : null;
                 }
 
                 // Accumulate the remaining distance in the current section and advance.
-                VectorSectionNode section = node.VectorSections[index];
-                double sectionLength = trackWorld.SectionLength(section);
+                double sectionLength = trackWorld.SectionLength(node, index);
                 if (sectionLength > 0.0)
                     accumulated += forward ? sectionLength - entryOffset : entryOffset;
 
@@ -409,8 +426,7 @@ namespace FreeTrainSimulator.Runtime.Track
                     }
                     else
                     {
-                        double dummy = 0.0;
-                        bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref index, ref entryOffset, atEnd: true, ref dummy);
+                        bool? newForward = TryCrossNodeBoundary(trackDatabase, ref node, ref index, ref entryOffset, atEnd: true);
                         if (!newForward.HasValue)
                             return null;
                         forward = newForward.Value;
@@ -425,8 +441,7 @@ namespace FreeTrainSimulator.Runtime.Track
                     }
                     else
                     {
-                        double dummy = 0.0;
-                        bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref index, ref entryOffset, atEnd: false, ref dummy);
+                        bool? newForward = TryCrossNodeBoundary(trackDatabase, ref node, ref index, ref entryOffset, atEnd: false);
                         if (!newForward.HasValue)
                             return null;
                         forward = newForward.Value;
@@ -448,17 +463,10 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <see langword="false"/> to continue in reverse, or <see langword="null"/> when movement must halt
         /// (an <see cref="EndNode"/> was reached or the topology is inconsistent).
         /// </returns>
-        private static bool? TryCrossNodeBoundary(TrackDataBaseType dbType, ref VectorNode node, ref int sectionIndex, ref double sectionOffset, bool atEnd, ref double remaining)
+        private static bool? TryCrossNodeBoundary(TrackDatabase trackDatabase, ref VectorNode node, ref int sectionIndex, ref double sectionOffset, bool atEnd)
         {
-            TrackDatabase trackDatabase = dbType == TrackDataBaseType.Road
-                ? trackWorld.TrackModel.RoadDatabase
-                : trackWorld.TrackModel.TrackDatabase;
-
             if (trackDatabase == null)
-            {
-                remaining = 0.0;
                 return null;
-            }
 
             // VectorNode owns exactly two connectors: [0] = start end, [1] = finish end.
             ImmutableArray<TrackNodeConnector> ownConnectors = trackDatabase.TrackNodeConnectors[node.NodeIndex].TrackNodeConnectors;
@@ -466,17 +474,10 @@ namespace FreeTrainSimulator.Runtime.Track
             TrackNodeBase neighbor = trackDatabase.TrackNodes[exitConnector.Link];
 
             if (neighbor is EndNode)
-            {
-                // sectionOffset already pinned to the boundary by the caller.
-                remaining = 0.0;
-                return null;
-            }
+                return null;    // sectionOffset already pinned to the boundary by the caller; remaining is preserved for the caller to return as unconsumed.
 
             if (neighbor is not JunctionNode junctionNode)
-            {
-                remaining = 0.0;
                 return null;
-            }
 
             // Find which connector of the junction links back to our current VectorNode.
             TrackNodeConnectorIndex jConns = trackDatabase.TrackNodeConnectors[junctionNode.NodeIndex];
@@ -491,10 +492,7 @@ namespace FreeTrainSimulator.Runtime.Track
             }
 
             if (incomingIdx < 0)
-            {
-                remaining = 0.0;
                 return null;
-            }
 
             TrackNodeConnector outgoing;
             if (incomingIdx < jConns.InboundCount)
@@ -511,18 +509,12 @@ namespace FreeTrainSimulator.Runtime.Track
                 // Arrived from a branch → always exit through the stem.
                 ReadOnlySpan<TrackNodeConnector> inPins = jConns.InConnectors;
                 if (inPins.IsEmpty)
-                {
-                    remaining = 0.0;
                     return null;
-                }
                 outgoing = inPins[0];
             }
 
             if (trackDatabase.TrackNodes[outgoing.Link] is not VectorNode nextNode)
-            {
-                remaining = 0.0;
                 return null;
-            }
 
             node = nextNode;
 
@@ -562,9 +554,14 @@ namespace FreeTrainSimulator.Runtime.Track
             Vector3 q = WorldLocation.GetDistanceVector(start, query); // query − start
             double dX = d.X, dY = d.Y, dZ = d.Z;
             double lenSq = dX * dX + dY * dY + dZ * dZ;
+            if (lenSq <= 0.0)
+                return (start, 0.0);
             double dot = (double)q.X * dX + (double)q.Y * dY + (double)q.Z * dZ;
-            double t = lenSq > 0.0 ? Math.Clamp(dot / lenSq, 0.0, 1.0) : 0.0;
-            double offset = t * Math.Sqrt(lenSq);
+            if (dot <= 0.0)
+                return (start, 0.0);
+            if (dot >= lenSq)
+                return (end, Math.Sqrt(lenSq));
+            double offset = dot / Math.Sqrt(lenSq);
             return (WorldLocation.PointAlongDirection(start, end, offset), offset);
         }
 
@@ -573,8 +570,7 @@ namespace FreeTrainSimulator.Runtime.Track
             Vector3 qFromCenter = WorldLocation.GetDistanceVector(geom.ArcCenter, query);
             double dotU = (double)qFromCenter.X * geom.U.X + (double)qFromCenter.Y * geom.U.Y + (double)qFromCenter.Z * geom.U.Z;
             double dotV = (double)qFromCenter.X * geom.V.X + (double)qFromCenter.Y * geom.V.Y + (double)qFromCenter.Z * geom.V.Z;
-            double lenSq = (double)qFromCenter.X * qFromCenter.X + (double)qFromCenter.Y * qFromCenter.Y + (double)qFromCenter.Z * qFromCenter.Z;
-            double angular = lenSq > 0.0 ? Math.Clamp(Math.Atan2(dotV, dotU), 0.0, Math.Abs(geom.ArcAngle)) : 0.0;
+            double angular = Math.Clamp(Math.Atan2(dotV, dotU), 0.0, Math.Abs(geom.ArcAngle));
             double arcLengthMetres = angular * geom.Radius;
             return (WorldLocation.PointAlongArc(section.Location, section.EndLocation, geom.ArcAngle, geom.Radius, arcLengthMetres), arcLengthMetres);
         }

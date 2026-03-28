@@ -122,12 +122,14 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         public WorldLocation ComputeSectionLocation(VectorSectionNode section, double sectionOffset)
         {
-            if (!SectionGeometry.TryGetValue(section, out SectionGeometry geom) || !geom.HasGeometry)
+            ArgumentNullException.ThrowIfNull(section);
+
+            if (!SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry) || !sectionGeometry.HasGeometry)
                 return section.Location;
-            if (geom.Curved)
+            if (sectionGeometry.Curved)
             {
-                double clampedOffset = Math.Clamp(sectionOffset, 0.0, geom.Length);
-                return WorldLocation.PointAlongArc(section.Location, section.EndLocation, geom.ArcAngle, geom.Radius, clampedOffset);
+                double clampedOffset = Math.Clamp(sectionOffset, 0.0, sectionGeometry.Length);
+                return WorldLocation.PointAlongArc(section.Location, section.EndLocation, sectionGeometry.ArcAngle, sectionGeometry.Radius, clampedOffset);
             }
             return WorldLocation.PointAlongDirection(section.Location, section.EndLocation, sectionOffset);
         }
@@ -144,8 +146,8 @@ namespace FreeTrainSimulator.Runtime.Track
         /// or <c>0.0</c> when no geometry template is registered for the section.
         /// </summary>
         public double SectionLength(VectorSectionNode section)
-            => SectionGeometry.TryGetValue(section, out SectionGeometry geom) && geom.HasGeometry
-                ? geom.Length : 0.0;
+            => SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry) && sectionGeometry.HasGeometry
+                ? sectionGeometry.Length : 0.0;
 
         /// <summary>
         /// Returns the pre-computed arc or straight length in metres for the section at
@@ -153,7 +155,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// or <c>0.0</c> when no geometry template is registered.
         /// </summary>
         public double SectionLength(VectorNode node, int sectionIndex)
-            => SectionLength(node.VectorSections[sectionIndex]);
+            => SectionLength(node?.VectorSections[sectionIndex] ?? null);
 
         /// <summary>
         /// Returns the <see cref="JunctionNode"/> closest to
