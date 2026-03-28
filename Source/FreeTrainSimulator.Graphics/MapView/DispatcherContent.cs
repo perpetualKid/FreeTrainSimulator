@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,9 +13,6 @@ using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
@@ -50,8 +46,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public override async Task Initialize()
         {
-            await Task.Run(() => AddTrackSegments()).ConfigureAwait(false);
-            await Task.Run(() => AddTrackItems()).ConfigureAwait(false);
+            await Task.Run(AddTrackSegments).ConfigureAwait(false);
+            await Task.Run(AddTrackItems).ConfigureAwait(false);
 
             ContentArea.Initialize();
         }
@@ -99,7 +95,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             double distance = 400; // max 20m (sqrt(400)
             nearestDispatchItem = null;
-            foreach (JunctionNode junction in trackModel.ContentByTile[MapContentType.JunctionNodes][nearestGridTile.Tile])
+            foreach (JunctionNode junction in trackModel.ContentByTile[MapContentType.JunctionNodes][nearestGridTile.Tile].Cast<JunctionNode>())
             {
                 double itemDistance = junction.Location.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -108,7 +104,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                     distance = itemDistance;
                 }
             }
-            foreach (SignalTrackItem signal in trackModel.ContentByTile[MapContentType.Signals][nearestGridTile.Tile])
+            foreach (SignalTrackItem signal in trackModel.ContentByTile[MapContentType.Signals][nearestGridTile.Tile].Cast<SignalTrackItem>())
             {
                 double itemDistance = signal.Location.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -135,61 +131,21 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentArea.SetTrackingPosition(location);
         }
 
-        // TODO 20220311 PoC code
-        public void UpdateTrainPath(Traveller trainTraveller)
+        public void UpdateTrainPath(TrackTraveller trackTraveller)
         {
-            ArgumentNullException.ThrowIfNull(trainTraveller, nameof(trainTraveller));
-
             float remainingPathLength = 2000;
             PathSegments.Clear();
-            if (trackModel == null || trackModel.SegmentSections.Count == 0)
+            if (!trackTraveller.OnTrack || trackModel.SegmentSections.Count == 0)
                 return;
 
-            TrackDirection initialDirection = trainTraveller.Direction == Direction.Backward ? TrackDirection.Reverse : TrackDirection.Ahead;
-
-            if (TrackTraveller.InitializeTraveller(trainTraveller.WorldLocation, initialDirection) is not TrackTraveller trackTraveller)
-                return;
             IReadOnlyList<TrackSegmentBase> trackSegments = trackModel.SegmentSections[trackTraveller.CurrentNode.NodeIndex]?.SectionSegments;
 
-            //Traveller traveller = new Traveller(trainTraveller);
-
-            //if (traveller.TrackNodeType == TrackNodeType.Track && (trackSegments = trackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments) != null)
-            //{
-            //    PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, traveller.TrackSectionOffset, traveller.Direction == Direction.Backward));
-            //    remainingPathLength -= PathSegments[^1].Length;
-            //}
-            //while (traveller.TrackNodeType != TrackNodeType.End && remainingPathLength > 0)
-            //{
-            //    traveller.NextSection();
-            //    switch (traveller.TrackNodeType)
-            //    {
-            //        case TrackNodeType.Track:
-            //            if ((trackSegments = trackModel.SegmentSections[traveller.TrackNode.Index]?.SectionSegments) != null)
-            //            {
-            //                PathSegments.Add(new PathSegment(trackSegments[traveller.TrackVectorSectionIndex], remainingPathLength, 0, traveller.Direction == Direction.Backward));
-            //                remainingPathLength -= PathSegments[^1].Length;
-            //            }
-            //            break;
-            //        case TrackNodeType.Junction:
-            //            TrackJunctionNode junctionNode = traveller.TrackNode as TrackJunctionNode;
-            //            //check on trailing switches (previous pathnode is linked to an outpin) have correct selection set
-            //            Debug.Assert(junctionNode.InPins == 1);
-            //            if (junctionNode.TrackPins[0].Link != PathSegments[^1].TrackNodeIndex && junctionNode.TrackPins[junctionNode.InPins + RuntimeDataResolver.Instance.TrackWorld.SwitchStates[junctionNode.Index]].Link != PathSegments[^1].TrackNodeIndex)
-            //            {
-            //                PathSegments.Add(new BrokenPathSegment(junctionNode.UiD.Location));
-            //                return;
-            //            }
-            //            break;
-            //    }
-            //}
-
-
-            Models.Track.TrackSection section = RuntimeDataResolver.Instance.TrackSections.TrackSections[trackTraveller.CurrentSection.NodeIndex];
+            // PathSegment startOffset is in metres for straight sections and radians for curved sections,
+            // while TrackTraveller.SectionOffset is always in metres — convert curved sections here.
+            Models.Track.TrackSection section = RuntimeDataResolver.Instance.TrackSections.TrackSections.GetValueOrDefault(trackTraveller.CurrentSection.NodeIndex);
             double sectionOffset = trackTraveller.SectionOffset;
-            if (section.Curved)
-            {
+            if (section?.Curved == true)
                 sectionOffset /= section.Radius;
-            }
 
             if (trackSegments != null && trackTraveller.SectionIndex < trackSegments.Count)
             {
@@ -199,6 +155,12 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             while (remainingPathLength > 0)
             {
+                if (trackTraveller.IsTrailingMisalignedSwitch(out Models.Track.JunctionNode junctionNode))
+                {
+                    PathSegments.Add(new BrokenPathSegment(junctionNode.Location));
+                    break;
+                }
+
                 if (trackTraveller.AdvanceToNextSection() is not TrackTraveller next)
                     break;
                 trackTraveller = next;
@@ -229,7 +191,6 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void AddTrackSegments()
         {
             Models.Track.TrackDatabase trackDatabase = RuntimeDataResolver.GameInstance(game).TrackModel.TrackDatabase;
-            Models.Track.TrackSectionModel trackSections = RuntimeDataResolver.GameInstance(game).TrackSections;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
@@ -275,7 +236,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void AddTrackItems()
         {
-            RuntimeData runtimeData = RuntimeData.GameInstance(game);
+            Orts.Formats.Msts.RuntimeData runtimeData = Orts.Formats.Msts.RuntimeData.GameInstance(game);
 
             IEnumerable<TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
                 RuntimeDataResolver.GameInstance(game).TrackModel.TrackDatabase,

@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Runtime
             TrackSectionModel trackSectionModel = await route.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
             TrackModel trackModel = await route.GetTrackModel(CancellationToken.None).ConfigureAwait(false);
 
-            Track.TrackWorld trackWorld = Track.TrackWorld.Initialize(null, trackModel);
+            Track.TrackWorld trackWorld = Track.TrackWorld.Initialize(null, trackModel, trackSectionModel);
 
             _ = GameService<RuntimeDataResolver>.Set(null, new RuntimeDataResolver(route, trackSectionModel, trackModel, trackWorld, metricUnits, runtimeReferenceResolver));
         }

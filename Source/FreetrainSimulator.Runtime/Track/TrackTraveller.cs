@@ -354,6 +354,74 @@ namespace FreeTrainSimulator.Runtime.Track
             }
         }
 
+        /// <summary>
+        /// Tests whether the traveller is about to cross a <see cref="VectorNode"/> boundary in its direction of travel
+        /// into a <see cref="JunctionNode"/> that is a trailing switch whose active route is not the current approach branch.
+        /// A trailing switch is one where this traveller arrives from a branch connector (out-pin), not the stem (in-pin).
+        /// If the branch index does not match <see cref="TrackWorld.SwitchStates"/> for that junction, the switch is set against.
+        /// </summary>
+        /// <param name="misalignedJunction">
+        /// When the method returns <see langword="true"/>, the <see cref="JunctionNode"/> whose switch state
+        /// does not align with the current approach branch; otherwise <see langword="null"/>.
+        /// </param>
+        /// <returns>
+        /// <see langword="true"/> when the traveller is at the last section boundary in its direction of travel,
+        /// the boundary connects to a <see cref="JunctionNode"/>, and the approach branch index does not match
+        /// the active switch route; otherwise <see langword="false"/>.
+        /// </returns>
+        public bool IsTrailingMisalignedSwitch(out JunctionNode misalignedJunction)
+        {
+            misalignedJunction = null;
+            if (!OnTrack)
+                return false;
+
+            bool forward = Direction == TrackDirection.Ahead;
+            bool atNodeBoundary = forward
+                ? SectionIndex == CurrentNode.VectorSections.Length - 1
+                : SectionIndex == 0;
+
+            if (!atNodeBoundary)
+                return false;
+
+            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
+                ? trackWorld.TrackModel.RoadDatabase
+                : trackWorld.TrackModel.TrackDatabase;
+
+            if (trackDatabase == null)
+                return false;
+
+            // Connector[0] = start end, Connector[1] = finish end of a VectorNode.
+            ImmutableArray<TrackNodeConnector> ownConnectors = trackDatabase.TrackNodeConnectors[CurrentNode.NodeIndex].TrackNodeConnectors;
+            TrackNodeConnector exitConnector = forward ? ownConnectors[1] : ownConnectors[0];
+
+            if (trackDatabase.TrackNodes[exitConnector.Link] is not JunctionNode junctionNode)
+                return false;
+
+            TrackNodeConnectorIndex jConns = trackDatabase.TrackNodeConnectors[junctionNode.NodeIndex];
+            int incomingIdx = -1;
+            for (int i = 0; i < jConns.TrackNodeConnectors.Length; i++)
+            {
+                if (jConns.TrackNodeConnectors[i].Link == CurrentNode.NodeIndex)
+                {
+                    incomingIdx = i;
+                    break;
+                }
+            }
+
+            // Stem approach (facing switch): the switch state selects the outgoing branch — no misalignment possible.
+            if (incomingIdx < 0 || incomingIdx < jConns.InboundCount)
+                return false;
+
+            // Trailing switch: check whether this branch is the active switch route.
+            int branchIndex = incomingIdx - jConns.InboundCount;
+            int switchState = trackWorld.SwitchStates.TryGetValue(junctionNode.NodeIndex, out int state) ? state : 0;
+            if (branchIndex == switchState)
+                return false;
+
+            misalignedJunction = junctionNode;
+            return true;
+        }
+
         // Moves remaining metres using mutable locals; forward=true advances through VectorSections, false retreats.
         // Halts silently at an EndNode; the caller receives the pinned boundary position.
         private TrackTraveller MoveInternal(double remaining, bool forward)

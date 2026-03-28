@@ -43,10 +43,10 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public static TrackWorld GameInstance(Game game) => GameService<TrackWorld>.Get(game);
 
-        public static TrackWorld Initialize(Game game, Models.Track.TrackModel trackModel)
+        public static TrackWorld Initialize(Game game, Models.Track.TrackModel trackModel, TrackSectionModel trackSectionModel)
         {
             TrackWorld world = new TrackWorld(trackModel);
-            world.Initialize();
+            world.Initialize(trackSectionModel);
             return GameService<TrackWorld>.Set(game, world);
         }
 
@@ -54,7 +54,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// Builds the 3D spatial index from <paramref name="trackModel"/>'s rail track, road track, and track items.
         /// <see cref="EmptyTrackItem"/> entries are excluded — they carry no valid world location.
         /// </summary>
-        private void Initialize()
+        private void Initialize(TrackSectionModel trackSectionModel)
         {
             /// Builds the rail track 3D spatial index
             if (null != TrackModel.TrackDatabase)
@@ -88,14 +88,14 @@ namespace FreeTrainSimulator.Runtime.Track
                 ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNode>(ImmutableArray<EndNode>.Empty);
             }
 
-            SectionGeometry = BuildSectionGeometry();
+            SectionGeometry = BuildSectionGeometry(trackSectionModel);
             TrackTraveller.Initialize(this);
         }
 
-        private FrozenDictionary<VectorSectionNode, SectionGeometry> BuildSectionGeometry()
+        private FrozenDictionary<VectorSectionNode, SectionGeometry> BuildSectionGeometry(TrackSectionModel trackSectionModel)
         {
             Dictionary<VectorSectionNode, SectionGeometry> map = new Dictionary<VectorSectionNode, SectionGeometry>(ReferenceEqualityComparer.Instance);
-            ImmutableDictionary<int, TrackSection> trackSections = RuntimeDataResolver.Instance.TrackSections.TrackSections;
+            ImmutableDictionary<int, TrackSection> trackSections = trackSectionModel.TrackSections;
 
             BuildFor(TrackModel.TrackDatabase);
             BuildFor(TrackModel.RoadDatabase);

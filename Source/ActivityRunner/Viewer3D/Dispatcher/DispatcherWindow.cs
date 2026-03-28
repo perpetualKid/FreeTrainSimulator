@@ -318,7 +318,12 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             foreach (int trainNumber in trackedTrains)
                 content.Trains.Remove(trainNumber);
 
-            content.UpdateTrainPath(Simulator.Instance.Trains[0].FrontTDBTraveller);
+                Traveller frontTraveller = Simulator.Instance.Trains[0].FrontTDBTraveller;
+                if (frontTraveller != null &&
+                    TrackTraveller.InitializeTraveller(frontTraveller.WorldLocation,
+                        frontTraveller.Direction == Direction.Backward ? TrackDirection.Reverse : TrackDirection.Ahead)
+                        is TrackTraveller trackTraveller)
+                    content.UpdateTrainPath(trackTraveller);
             if (followTrain)
                 content.UpdateTrainTrackingPoint(Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation);
             base.Update(gameTime);
