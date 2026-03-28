@@ -217,14 +217,11 @@ namespace FreeTrainSimulator.Runtime.Track
         /// The direction of travel is taken from this traveller's <see cref="Direction"/> property;
         /// a negative <paramref name="distance"/> reverses the effective direction.
         /// At a <see cref="JunctionNode"/> boundary, the active path from <see cref="TrackWorld.SwitchStates"/> is followed.
-        /// At an <see cref="EndNode"/> boundary, movement halts and any unspent distance is returned.
+        /// At an <see cref="EndNode"/> boundary, movement halts at the end-of-track position.
         /// </summary>
         /// <param name="distance">Distance in metres. A negative value reverses the effective direction of travel.</param>
-        /// <returns>
-        /// A new <see cref="TrackTraveller"/> at the resulting position, and the unconsumed distance in metres:
-        /// <c>0</c> when the full distance was travelled, or a positive value when stopped early at an <see cref="EndNode"/>.
-        /// </returns>
-        public (TrackTraveller result, float unconsumed) Move(float distance)
+        /// <returns>A new <see cref="TrackTraveller"/> at the resulting position.</returns>
+        public TrackTraveller Move(float distance)
         {
             if (!OnTrack)
                 throw new InvalidOperationException("Traveller is not on a track. Call InitializeTraveller first.");
@@ -358,8 +355,8 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         // Moves remaining metres using mutable locals; forward=true advances through VectorSections, false retreats.
-        // Returns a new record at the final position and the unconsumed distance (>0 only when halted at an EndNode).
-        private (TrackTraveller result, float unconsumed) MoveInternal(double remaining, bool forward)
+        // Halts silently at an EndNode; the caller receives the pinned boundary position.
+        private TrackTraveller MoveInternal(double remaining, bool forward)
         {
             // Resolve once — TryCrossNodeBoundary is called on every node boundary crossing.
             TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
@@ -431,7 +428,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             WorldLocation newLocation = trackWorld.ComputeSectionLocation(node, index, offset);
             TrackDirection newDirection = forward ? TrackDirection.Ahead : TrackDirection.Reverse;
-            return (this with { CurrentNode = node, SectionIndex = index, SectionOffset = offset, Location = newLocation, Direction = newDirection }, (float)remaining);
+            return this with { CurrentNode = node, SectionIndex = index, SectionOffset = offset, Location = newLocation, Direction = newDirection };
         }
 
         // Walks sections in the given direction, matching the target traveller by node reference and section index.
