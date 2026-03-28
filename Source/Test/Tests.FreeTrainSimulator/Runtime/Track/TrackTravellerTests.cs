@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Track;
-using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -69,7 +68,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            TrackTraveller.Initialize(trackWorld);
 
             // Create multiple VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
@@ -77,20 +76,26 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation loc3 = new WorldLocation(new Tile(0, 0), new Vector3(20, 0, 0));
             VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), Vector3.UnitX, loc2);
             VectorSectionNode section2 = new VectorSectionNode(loc2, new Tile(0, 0), Vector3.UnitX, loc3);
-            
+
             // Create VectorNode with multiple sections
             VectorNode vectorNode = new VectorNode(loc1, new Tile(0, 0), loc3)
             {
                 VectorSections = ImmutableArray.Create(section1, section2)
             };
 
-            // Use reflection to set the private init properties (init restriction is compile-time only; reflection bypasses it)
+            // Keep the struct boxed until all mutations are complete — SetValue on a local value-type variable
+            // boxes it, modifies the box, then discards it, leaving the original unchanged.
+            object boxedTraveller = Activator.CreateInstance(
+                typeof(TrackTraveller),
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+                null, new object[] { TrackDataBaseType.Rail }, null);
             System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
             System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
-            currentNodeProp.SetValue(traveller, vectorNode);
-            sectionIndexProp.SetValue(traveller, 0); // First index
+            currentNodeProp.SetValue(boxedTraveller, vectorNode);
+            sectionIndexProp.SetValue(boxedTraveller, 0); // First index
+            TrackTraveller traveller = (TrackTraveller)boxedTraveller; // Unbox after all mutations
 
             // Act
             VectorSectionNode result = traveller.CurrentSection;
@@ -110,7 +115,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            TrackTraveller.Initialize(trackWorld);
 
             // Create multiple VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
@@ -118,20 +123,26 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation loc3 = new WorldLocation(new Tile(0, 0), new Vector3(20, 0, 0));
             VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), Vector3.UnitX, loc2);
             VectorSectionNode section2 = new VectorSectionNode(loc2, new Tile(0, 0), Vector3.UnitX, loc3);
-            
+
             // Create VectorNode with multiple sections
             VectorNode vectorNode = new VectorNode(loc1, new Tile(0, 0), loc3)
             {
                 VectorSections = ImmutableArray.Create(section1, section2)
             };
 
-            // Use reflection to set the private init properties (init restriction is compile-time only; reflection bypasses it)
+            // Keep the struct boxed until all mutations are complete — SetValue on a local value-type variable
+            // boxes it, modifies the box, then discards it, leaving the original unchanged.
+            object boxedTraveller = Activator.CreateInstance(
+                typeof(TrackTraveller),
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+                null, new object[] { TrackDataBaseType.Rail }, null);
             System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
             System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
-            currentNodeProp.SetValue(traveller, vectorNode);
-            sectionIndexProp.SetValue(traveller, vectorNode.VectorSections.Length - 1); // Last index
+            currentNodeProp.SetValue(boxedTraveller, vectorNode);
+            sectionIndexProp.SetValue(boxedTraveller, vectorNode.VectorSections.Length - 1); // Last index
+            TrackTraveller traveller = (TrackTraveller)boxedTraveller; // Unbox after all mutations
 
             // Act
             VectorSectionNode result = traveller.CurrentSection;
@@ -433,13 +444,13 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            TrackTraveller.Initialize(trackWorld);
 
             // Create VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
             WorldLocation loc2 = new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 0));
             VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), Vector3.UnitX, loc2);
-            
+
             // Create VectorNode with section
             VectorNode vectorNode = new VectorNode(loc1, new Tile(0, 0), loc2)
             {
@@ -449,17 +460,23 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Expected snapped location (e.g., 5 metres along the section)
             WorldLocation expectedLocation = new WorldLocation(new Tile(0, 0), new Vector3(5, 0, 0));
 
-            // Use reflection to set private init properties (init restriction is compile-time only; reflection bypasses it)
+            // Keep the struct boxed until all mutations are complete — SetValue on a local value-type variable
+            // boxes it, modifies the box, then discards it, leaving the original unchanged.
+            object boxedTraveller = Activator.CreateInstance(
+                typeof(TrackTraveller),
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+                null, new object[] { TrackDataBaseType.Rail }, null);
             System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
             System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
             System.Reflection.PropertyInfo sectionOffsetProp = typeof(TrackTraveller).GetProperty("SectionOffset");
             System.Reflection.PropertyInfo locationProperty = typeof(TrackTraveller).GetProperty("Location");
 
-            currentNodeProp.SetValue(traveller, vectorNode);
-            sectionIndexProp.SetValue(traveller, 0);
-            sectionOffsetProp.SetValue(traveller, 5.0);
-            locationProperty.SetValue(traveller, expectedLocation);
+            currentNodeProp.SetValue(boxedTraveller, vectorNode);
+            sectionIndexProp.SetValue(boxedTraveller, 0);
+            sectionOffsetProp.SetValue(boxedTraveller, 5.0);
+            locationProperty.SetValue(boxedTraveller, expectedLocation);
+            TrackTraveller traveller = (TrackTraveller)boxedTraveller; // Unbox after all mutations
 
             // Act
             WorldLocation actualLocation = traveller.Location;
@@ -478,7 +495,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            TrackTraveller.Initialize(trackWorld);
 
             // Create VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
@@ -486,20 +503,26 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation loc3 = new WorldLocation(new Tile(0, 0), new Vector3(20, 0, 0));
             VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), Vector3.UnitX, loc2);
             VectorSectionNode section2 = new VectorSectionNode(loc2, new Tile(0, 0), Vector3.UnitX, loc3);
-            
+
             // Create VectorNode with multiple sections
             VectorNode vectorNode = new VectorNode(loc1, new Tile(0, 0), loc3)
             {
                 VectorSections = ImmutableArray.Create(section1, section2)
             };
 
-            // Use reflection to set private init properties (init restriction is compile-time only; reflection bypasses it)
+            // Keep the struct boxed until all mutations are complete — SetValue on a local value-type variable
+            // boxes it, modifies the box, then discards it, leaving the original unchanged.
+            object boxedTraveller = Activator.CreateInstance(
+                typeof(TrackTraveller),
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+                null, new object[] { TrackDataBaseType.Rail }, null);
             System.Reflection.PropertyInfo currentNodeProp = typeof(TrackTraveller).GetProperty("CurrentNode");
             System.Reflection.PropertyInfo sectionIndexProp = typeof(TrackTraveller).GetProperty("SectionIndex",
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
-            currentNodeProp.SetValue(traveller, vectorNode);
-            sectionIndexProp.SetValue(traveller, 1); // Set to second section
+            currentNodeProp.SetValue(boxedTraveller, vectorNode);
+            sectionIndexProp.SetValue(boxedTraveller, 1); // Set to second section
+            TrackTraveller traveller = (TrackTraveller)boxedTraveller; // Unbox after all mutations
 
             // Act - Verify the internal state was updated correctly
             VectorNode resultNode = traveller.CurrentNode;

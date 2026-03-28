@@ -147,8 +147,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             TrackDirection initialDirection = trainTraveller.Direction == Direction.Backward ? TrackDirection.Reverse : TrackDirection.Ahead;
 
-            TrackTraveller trackTraveller = TrackTraveller.InitializeTraveller(trainTraveller.WorldLocation, initialDirection);
-            if (trackTraveller == null)
+            if (TrackTraveller.InitializeTraveller(trainTraveller.WorldLocation, initialDirection) is not TrackTraveller trackTraveller)
                 return;
             IReadOnlyList<TrackSegmentBase> trackSegments = trackModel.SegmentSections[trackTraveller.CurrentNode.NodeIndex]?.SectionSegments;
 
@@ -200,9 +199,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             while (remainingPathLength > 0)
             {
-                trackTraveller = trackTraveller.AdvanceToNextSection();
-                if (trackTraveller == null)
+                if (trackTraveller.AdvanceToNextSection() is not TrackTraveller next)
                     break;
+                trackTraveller = next;
 
                 trackSegments = trackModel.SegmentSections[trackTraveller.TrackNodeIndex]?.SectionSegments;
                 if (trackSegments != null && trackTraveller.SectionIndex < trackSegments.Count)

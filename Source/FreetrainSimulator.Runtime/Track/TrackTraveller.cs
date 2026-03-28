@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Runtime.Track
     /// Each instance is immutable; <see cref="Move"/> and <see cref="InitializeTraveller"/> return new instances
     /// rather than mutating state, enabling snapshot and look-ahead semantics.
     /// </summary>
-    public record TrackTraveller
+    public readonly record struct TrackTraveller
     {
         private static TrackWorld trackWorld;
 
@@ -78,19 +78,15 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         /// <param name="trackDataBaseType">Whether the traveller operates on rail (<see cref="TrackDataBaseType.Rail"/>, default)
         /// or road (<see cref="TrackDataBaseType.Road"/>) geometry.</param>
-        private TrackTraveller(TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        private TrackTraveller(TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail) : this()
         {
             TrackDataBaseType = trackDataBaseType;
         }
 
         // Equals and GetHashCode are overridden to include SectionIndex (private, excluded from synthesised record equality)
         // and to use reference equality for CurrentNode (correct for database object identity).
-        public virtual bool Equals(TrackTraveller other)
+        public readonly bool Equals(TrackTraveller other)
         {
-            if (other is null)
-                return false;
-            if (ReferenceEquals(this, other))
-                return true;
             return TrackDataBaseType == other.TrackDataBaseType
                 && ReferenceEquals(CurrentNode, other.CurrentNode)
                 && SectionIndex == other.SectionIndex
@@ -118,7 +114,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <param name="trackDataBaseType">Whether to search rail (<see cref="TrackDataBaseType.Rail"/>, default)
         /// or road (<see cref="TrackDataBaseType.Road"/>) geometry.</param>
         /// <returns>A new <see cref="TrackTraveller"/> on the found section, or <see langword="null"/> if none was found.</returns>
-        public static TrackTraveller InitializeTraveller(in WorldLocation location, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        public static TrackTraveller? InitializeTraveller(in WorldLocation location, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
             => InitializeTraveller(location, TrackDirection.Ahead, trackDataBaseType);
 
         /// <summary>
@@ -132,7 +128,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <param name="trackDataBaseType">Whether to search rail (<see cref="TrackDataBaseType.Rail"/>, default)
         /// or road (<see cref="TrackDataBaseType.Road"/>) geometry.</param>
         /// <returns>A new <see cref="TrackTraveller"/> on the found section, or <see langword="null"/> if none was found.</returns>
-        public static TrackTraveller InitializeTraveller(in WorldLocation location, TrackDirection direction, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        public static TrackTraveller? InitializeTraveller(in WorldLocation location, TrackDirection direction, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
         {
             VectorSectionNode bestSection = null;
             WorldLocation bestSnapped = WorldLocation.None;
@@ -185,7 +181,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <param name="trackDataBaseType">Whether to search rail (<see cref="TrackDataBaseType.Rail"/>, default)
         /// or road (<see cref="TrackDataBaseType.Road"/>) geometry.</param>
         /// <returns>A new <see cref="TrackTraveller"/> on the found section, or <see langword="null"/> if none was found.</returns>
-        public static TrackTraveller InitializeTraveller(in WorldLocation location, VectorNode node, TrackDirection direction = TrackDirection.Ahead, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        public static TrackTraveller? InitializeTraveller(in WorldLocation location, VectorNode node, TrackDirection direction = TrackDirection.Ahead, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
         {
             ArgumentNullException.ThrowIfNull(node);
 
@@ -263,9 +259,8 @@ namespace FreeTrainSimulator.Runtime.Track
         /// The track distance in metres if <paramref name="other"/> is reachable within <paramref name="maxDistance"/>
         /// in the current direction; otherwise <see langword="null"/>.
         /// </returns>
-        public float? DistanceTo(TrackTraveller other, float maxDistance = float.MaxValue)
+        public float? DistanceTo(in TrackTraveller other, float maxDistance = float.MaxValue)
         {
-            ArgumentNullException.ThrowIfNull(other);
             return !OnTrack || !other.OnTrack ? null : DistanceToTravellerInternal(other, Direction == TrackDirection.Ahead, maxDistance);
         }
 
@@ -281,7 +276,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// A new <see cref="TrackTraveller"/> at the start of the next section, or
         /// <see langword="null"/> when an <see cref="EndNode"/> is reached or the topology is inconsistent.
         /// </returns>
-        public TrackTraveller AdvanceToNextSection()
+        public TrackTraveller? AdvanceToNextSection()
         {
             if (!OnTrack)
                 return null;
@@ -395,7 +390,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         // Walks sections in the given direction, matching the target traveller by node reference and section index.
         // Avoids geometry snapping; uses the other traveller's exact SectionOffset for the distance computation.
-        private float? DistanceToTravellerInternal(TrackTraveller other, bool forward, float maxDistance)
+        private float? DistanceToTravellerInternal(in TrackTraveller other, bool forward, float maxDistance)
         {
             VectorNode node = CurrentNode;
             int index = SectionIndex;
