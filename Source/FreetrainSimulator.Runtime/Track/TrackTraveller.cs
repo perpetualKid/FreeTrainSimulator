@@ -593,11 +593,11 @@ namespace FreeTrainSimulator.Runtime.Track
                 return null;
 
             // Find which connector of the junction links back to our current VectorNode.
-            TrackNodeConnectorIndex jConns = trackDatabase.TrackNodeConnectors[junctionNode.NodeIndex];
+            TrackNodeConnectorIndex junctionConnectors = trackDatabase.TrackNodeConnectors[junctionNode.NodeIndex];
             int incomingIdx = -1;
-            for (int i = 0; i < jConns.TrackNodeConnectors.Length; i++)
+            for (int i = 0; i < junctionConnectors.TrackNodeConnectors.Length; i++)
             {
-                if (jConns.TrackNodeConnectors[i].Link == node.NodeIndex)
+                if (junctionConnectors.TrackNodeConnectors[i].Link == node.NodeIndex)
                 {
                     incomingIdx = i;
                     break;
@@ -608,11 +608,11 @@ namespace FreeTrainSimulator.Runtime.Track
                 return null;
 
             TrackNodeConnector outgoing;
-            if (incomingIdx < jConns.InboundCount)
+            if (incomingIdx < junctionConnectors.InboundCount)
             {
                 // Arrived from the stem → select the active branch (OutPin).
                 int switchState = trackWorld.SwitchStates.TryGetValue(junctionNode.NodeIndex, out int state) ? state : 0;
-                ReadOnlySpan<TrackNodeConnector> outPins = jConns.OutConnectors;
+                ReadOnlySpan<TrackNodeConnector> outPins = junctionConnectors.OutConnectors;
                 if ((uint)switchState >= (uint)outPins.Length)
                     switchState = 0;
                 outgoing = outPins[switchState];
@@ -620,7 +620,7 @@ namespace FreeTrainSimulator.Runtime.Track
             else
             {
                 // Arrived from a branch → always exit through the stem.
-                ReadOnlySpan<TrackNodeConnector> inPins = jConns.InConnectors;
+                ReadOnlySpan<TrackNodeConnector> inPins = junctionConnectors.InConnectors;
                 if (inPins.IsEmpty)
                     return null;
                 outgoing = inPins[0];

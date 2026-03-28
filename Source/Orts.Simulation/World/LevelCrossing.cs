@@ -18,12 +18,16 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -34,26 +38,33 @@ namespace Orts.Simulation.World
 {
     public class LevelCrossings
     {
-        public Dictionary<int, LevelCrossingItem> TrackCrossingItems { get; }
-        public Dictionary<int, LevelCrossingItem> RoadCrossingItems { get; }
+        public FrozenDictionary<int, LevelCrossingItem> TrackCrossingItems { get; }
+        public FrozenDictionary<int, LevelCrossingItem> RoadCrossingItems { get; }
         public Dictionary<LevelCrossingItem, LevelCrossingItem> RoadToTrackCrossingItems { get; } = new Dictionary<LevelCrossingItem, LevelCrossingItem>();
 
         public LevelCrossings()
         {
-            TrackCrossingItems = RuntimeData.Instance.TrackDB?.TrackNodes != null && RuntimeData.Instance.TrackDB.TrackItems != null
-                ? GetLevelCrossingsFromDB(RuntimeData.Instance.TrackDB.TrackNodes, RuntimeData.Instance.TrackDB.TrackItems) : new Dictionary<int, LevelCrossingItem>();
-            RoadCrossingItems = RuntimeData.Instance.RoadTrackDB?.TrackNodes != null && RuntimeData.Instance.RoadTrackDB.TrackItems != null
-                ? GetLevelCrossingsFromDB(RuntimeData.Instance.RoadTrackDB.TrackNodes, RuntimeData.Instance.RoadTrackDB.TrackItems) : new Dictionary<int, LevelCrossingItem>();
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance?.TrackModel.TrackDatabase;
+            TrackDatabase roadDatabase = RuntimeDataResolver.Instance?.TrackModel.RoadDatabase;
+
+            TrackCrossingItems = trackDatabase != null
+                ? GetLevelCrossingsFromDB(trackDatabase) : FrozenDictionary<int, LevelCrossingItem>.Empty;
+            RoadCrossingItems = roadDatabase != null
+                ? GetLevelCrossingsFromDB(roadDatabase) : FrozenDictionary<int, LevelCrossingItem>.Empty;
+
+            foreach (LevelCrossingItem item in TrackCrossingItems.Values)
+                item.SnapToTrack(TrackDataBaseType.Rail);
+            foreach (LevelCrossingItem item in RoadCrossingItems.Values)
+                item.SnapToTrack(TrackDataBaseType.Road);
         }
 
-        private static Dictionary<int, LevelCrossingItem> GetLevelCrossingsFromDB(IEnumerable<TrackNode> trackNodes, IList<TrackItem> trItemTable)
+        private static FrozenDictionary<int, LevelCrossingItem> GetLevelCrossingsFromDB(TrackDatabase trackDatabase)
         {
-            return (from trackNode in trackNodes
-                    where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
-                    from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
-                    where trItemTable[itemRef] != null && (trItemTable[itemRef] is Formats.Msts.Models.LevelCrossingItem || trItemTable[itemRef] is RoadLevelCrossingItem)
-                    select new KeyValuePair<int, LevelCrossingItem>(itemRef, new LevelCrossingItem(trackNode, trItemTable[itemRef])))
-                    .ToDictionary((_) => _.Key, (_) => _.Value);
+            return trackDatabase.TrackItems
+                .Where(item => item is LevelCrossingTrackItem or RoadLevelCrossingTrackItem)
+                .Select(item => (item, node: trackDatabase.TrackNodes[item.NodeIndex] as VectorNode))
+                .Where(pair => pair.node != null)
+                .ToFrozenDictionary(pair => pair.item.TrackItemIndex, pair => new LevelCrossingItem(pair.node, pair.item));
         }
 
         /// <summary>
@@ -290,7 +301,8 @@ namespace Orts.Simulation.World
 
     public class LevelCrossingItem
     {
-        private readonly TrackNode TrackNode;
+        private readonly VectorNode vectorNode;
+        private TrackTraveller? crossingTraveller;
 
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
@@ -299,15 +311,15 @@ namespace Orts.Simulation.World
         internal List<Train> StaticConsists = new List<Train>();
         public ref readonly WorldLocation Location => ref trackItem.Location;
         public LevelCrossing CrossingGroup { get; internal set; }
-        public int TrackIndex => TrackNode.Index;
-        private readonly TrackItem trackItem;
+        public int TrackIndex => vectorNode?.NodeIndex ?? -1;
+        private readonly FreeTrainSimulator.Models.Track.TrackItemBase trackItem;
 
         public static LevelCrossingItem None { get; } = new LevelCrossingItem();
 
 
-        public LevelCrossingItem(TrackNode trackNode, TrackItem trItem)
+        public LevelCrossingItem(VectorNode node, FreeTrainSimulator.Models.Track.TrackItemBase trItem)
         {
-            TrackNode = trackNode;
+            vectorNode = node;
             trackItem = trItem;
         }
 
@@ -375,6 +387,32 @@ namespace Orts.Simulation.World
                 }
         }
 
+        /// <summary>
+        /// Snaps this item's <see cref="Location"/> onto the corresponding <see cref="FreeTrainSimulator.Models.Track.VectorNode"/>
+        /// in the new track model, storing a pre-computed <see cref="TrackTraveller"/> for use in
+        /// <see cref="DistanceTo(in TrackTraveller, float)"/>.
+        /// Called once during <see cref="LevelCrossings"/> construction, after <see cref="TrackTraveller"/> is initialized.
+        /// </summary>
+        internal void SnapToTrack(TrackDataBaseType trackDataBaseType)
+        {
+            if (vectorNode == null)
+                return;
+            crossingTraveller = TrackTraveller.InitializeTraveller(trackItem.Location, vectorNode, TrackDirection.Ahead, trackDataBaseType);
+        }
+
+        /// <summary>
+        /// Returns the track distance in metres from <paramref name="traveller"/>'s current position
+        /// to this crossing, travelling in <paramref name="traveller"/>'s current direction.
+        /// Returns <c>-1</c> when the crossing is not reachable within <paramref name="maxDistance"/>
+        /// or when the crossing could not be snapped to a track section at initialisation.
+        /// </summary>
+        public float DistanceTo(in TrackTraveller traveller, float maxDistance = float.MaxValue)
+        {
+            return crossingTraveller.HasValue
+                ? traveller.DistanceTo(crossingTraveller.Value, maxDistance) ?? -1f
+                : -1f;
+        }
+
         public float DistanceTo(Traveller traveller)
         {
             return DistanceTo(traveller, float.MaxValue);
@@ -382,7 +420,12 @@ namespace Orts.Simulation.World
 
         public float DistanceTo(Traveller traveller, float maxDistance)
         {
-            return traveller?.DistanceTo(TrackNode, Location, maxDistance) ?? throw new ArgumentNullException(nameof(traveller));
+            ArgumentNullException.ThrowIfNull(traveller);
+            if (vectorNode == null)
+                return -1f;
+            TrackNodes nodes = RuntimeData.Instance?.TrackDB?.TrackNodes;
+            TrackNode trackNode = nodes != null && vectorNode.NodeIndex < nodes.Count ? nodes[vectorNode.NodeIndex] : null;
+            return trackNode != null ? traveller.DistanceTo(trackNode, Location, maxDistance) : -1f;
         }
     }
 
