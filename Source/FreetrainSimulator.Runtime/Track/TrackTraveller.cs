@@ -23,9 +23,11 @@ namespace FreeTrainSimulator.Runtime.Track
     {
         private static TrackWorld trackWorld;
 
-        // Reference-equality map: VectorSectionNode instance → parent VectorNode and index within VectorSections
-        private static Dictionary<VectorSectionNode, (VectorNode node, int sectionIndex)> sectionOwnership
-            = new Dictionary<VectorSectionNode, (VectorNode, int)>(ReferenceEqualityComparer.Instance);
+        // Reference-equality map: VectorSectionNode instance → parent VectorNode, index within VectorSections,
+        // and the resolved TrackSection (null for sections with no matching geometry template).
+        // Populated once by BuildSectionOwnership; avoids per-traversal RuntimeDataResolver lookups.
+        private static Dictionary<VectorSectionNode, (VectorNode node, int sectionIndex, TrackSection trackSection)> sectionOwnership
+            = new Dictionary<VectorSectionNode, (VectorNode, int, TrackSection)>(ReferenceEqualityComparer.Instance);
 
         /// <summary>The <see cref="VectorNode"/> (track node) the traveller is currently on, or <see langword="null"/> if not on track.</summary>
         public VectorNode CurrentNode { get; private init; }
@@ -59,8 +61,9 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>
         /// Builds (or rebuilds) the shared ownership map from every <see cref="VectorSectionNode"/> instance
-        /// to its parent <see cref="VectorNode"/> and section index, covering both the rail
-        /// (<see cref="TrackModel.TrackDatabase"/>) and road (<see cref="TrackModel.RoadDatabase"/>) databases.
+        /// to its parent <see cref="VectorNode"/>, section index, and resolved <see cref="TrackSection"/>,
+        /// covering both the rail (<see cref="TrackModel.TrackDatabase"/>) and road
+        /// (<see cref="TrackModel.RoadDatabase"/>) databases.
         /// Must be called once after <see cref="TrackWorld.Initialize"/> before any <see cref="TrackTraveller"/> is used.
         /// </summary>
         public static void Initialize(TrackWorld trackWorld)
@@ -144,10 +147,10 @@ namespace FreeTrainSimulator.Runtime.Track
             int tileRadius = WorldLocation.IsNearTileBoundary(location) ? 1 : 0;
             foreach (VectorSectionNode section in bucket.BoundingBox(location.Tile, tileRadius).Cast<VectorSectionNode>())
             {
-                if (!TryGetTrackSection(section, out TrackSection ts))
+                if (!TryGetTrackSection(section, out TrackSection trackSection))
                     continue;
 
-                (WorldLocation snapped, double offset) = SnapToSection(location, section, ts);
+                (WorldLocation snapped, double offset) = SnapToSection(location, section, trackSection);
                 double distSq = WorldLocation.GetDistanceSquared(location, snapped);
                 if (distSq < bestDistSq)
                 {
@@ -158,13 +161,61 @@ namespace FreeTrainSimulator.Runtime.Track
                 }
             }
 
-            if (bestSection == null || !sectionOwnership.TryGetValue(bestSection, out (VectorNode node, int idx) owner))
-                return null;
-
-            return new TrackTraveller(trackDataBaseType)
+            return bestSection == null || !sectionOwnership.TryGetValue(bestSection, out var owner)
+                ? null
+                : new TrackTraveller(trackDataBaseType)
             {
                 CurrentNode = owner.node,
-                SectionIndex = owner.idx,
+                SectionIndex = owner.sectionIndex,
+                SectionOffset = bestOffset,
+                Location = bestSnapped,
+                Direction = direction,
+            };
+        }
+
+        /// <summary>
+        /// Returns a new <see cref="TrackTraveller"/> placed on the nearest track section within
+        /// <see cref="WorldLocation.ProximityTolerance"/> metres of <paramref name="location"/>
+        /// restricted to the specified <paramref name="node"/>, oriented in <paramref name="direction"/>.
+        /// The returned traveller's <see cref="Location"/> is snapped to the projected point on that section's geometry.
+        /// </summary>
+        /// <param name="location">The world location to search from.</param>
+        /// <param name="node">The <see cref="VectorNode"/> to restrict the section search to.</param>
+        /// <param name="direction">The initial direction of travel on <paramref name="node"/>.</param>
+        /// <param name="trackDataBaseType">Whether to search rail (<see cref="TrackDataBaseType.Rail"/>, default)
+        /// or road (<see cref="TrackDataBaseType.Road"/>) geometry.</param>
+        /// <returns>A new <see cref="TrackTraveller"/> on the found section, or <see langword="null"/> if none was found.</returns>
+        public static TrackTraveller InitializeTraveller(in WorldLocation location, VectorNode node, TrackDirection direction = TrackDirection.Ahead, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        {
+            ArgumentNullException.ThrowIfNull(node);
+
+            int bestIndex = -1;
+            WorldLocation bestSnapped = WorldLocation.None;
+            double bestOffset = 0.0;
+            double bestDistSq = WorldLocation.ProximityTolerance * WorldLocation.ProximityTolerance;
+
+            foreach ((VectorSectionNode section, int idx) in node.VectorSections.IndexedSelect())
+            {
+                if (!TryGetTrackSection(section, out TrackSection trackSection))
+                    continue;
+
+                (WorldLocation snapped, double offset) = SnapToSection(location, section, trackSection);
+                double distSq = WorldLocation.GetDistanceSquared(location, snapped);
+                if (distSq < bestDistSq)
+                {
+                    bestDistSq = distSq;
+                    bestIndex = idx;
+                    bestSnapped = snapped;
+                    bestOffset = offset;
+                }
+            }
+
+            return bestIndex < 0
+                ? null
+                : new TrackTraveller(trackDataBaseType)
+            {
+                CurrentNode = node,
+                SectionIndex = bestIndex,
                 SectionOffset = bestOffset,
                 Location = bestSnapped,
                 Direction = direction,
@@ -201,6 +252,24 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Calculates the distance in metres along the track from this traveller's current position
+        /// to <paramref name="other"/>'s position, travelling in the current <see cref="Direction"/>.
+        /// Uses the exact node, section index, and offset of <paramref name="other"/> — no geometry snapping.
+        /// Junction switch states from <see cref="TrackWorld.SwitchStates"/> are respected.
+        /// </summary>
+        /// <param name="other">The target traveller to measure to.</param>
+        /// <param name="maxDistance">Maximum track distance to search. Defaults to <see cref="float.MaxValue"/>.</param>
+        /// <returns>
+        /// The track distance in metres if <paramref name="other"/> is reachable within <paramref name="maxDistance"/>
+        /// in the current direction; otherwise <see langword="null"/>.
+        /// </returns>
+        public float? DistanceTo(TrackTraveller other, float maxDistance = float.MaxValue)
+        {
+            ArgumentNullException.ThrowIfNull(other);
+            return !OnTrack || !other.OnTrack ? null : DistanceToTravellerInternal(other, Direction == TrackDirection.Ahead, maxDistance);
+        }
+
+        /// <summary>
         /// Returns a new <see cref="TrackTraveller"/> positioned at the start of the next
         /// <see cref="VectorSectionNode"/> in the current direction of travel.
         /// Advances within the same <see cref="VectorNode"/> when possible; otherwise crosses the
@@ -234,19 +303,19 @@ namespace FreeTrainSimulator.Runtime.Track
 
             // At a node boundary — attempt to cross it.
             VectorNode node = CurrentNode;
-            int idx = SectionIndex;
+            int index = SectionIndex;
             double sectionOffset = forward
-                ? (TryGetTrackSection(CurrentSection, out TrackSection fwdTs) ? fwdTs.Length : 0.0)
+                ? (TryGetTrackSection(CurrentSection, out TrackSection trackSection) ? trackSection.Length : 0.0)
                 : 0.0;
-            double dummy = 0.0;
 
-            bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref idx, ref sectionOffset, atEnd: forward, ref dummy);
+            double dummy = 0.0;
+            bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref index, ref sectionOffset, atEnd: forward, ref dummy);
             if (!newForward.HasValue)
                 return null;
 
             TrackDirection newDirection = newForward.Value ? TrackDirection.Ahead : TrackDirection.Reverse;
-            WorldLocation newLocation = ComputeLocation(node, idx, sectionOffset);
-            return this with { CurrentNode = node, SectionIndex = idx, SectionOffset = sectionOffset, Location = newLocation, Direction = newDirection };
+            WorldLocation newLocation = ComputeLocation(node, index, sectionOffset);
+            return this with { CurrentNode = node, SectionIndex = index, SectionOffset = sectionOffset, Location = newLocation, Direction = newDirection };
         }
 
 
@@ -255,15 +324,15 @@ namespace FreeTrainSimulator.Runtime.Track
         private (TrackTraveller result, float unconsumed) MoveInternal(double remaining, bool forward)
         {
             VectorNode node = CurrentNode;
-            int idx = SectionIndex;
+            int index = SectionIndex;
             double offset = SectionOffset;
 
             while (remaining > 0.0)
             {
                 if (forward)
                 {
-                    double sectionLength = TryGetTrackSection(node.VectorSections[idx], out TrackSection ts)
-                        ? ts.Length : 0.0;
+                    double sectionLength = TryGetTrackSection(node.VectorSections[index], out TrackSection trackSection)
+                        ? trackSection.Length : 0.0;
                     double available = sectionLength - offset;
 
                     if (remaining <= available)
@@ -274,15 +343,15 @@ namespace FreeTrainSimulator.Runtime.Track
                     else
                     {
                         remaining -= available;
-                        if (idx < node.VectorSections.Length - 1)
+                        if (index < node.VectorSections.Length - 1)
                         {
-                            idx++;
+                            index++;
                             offset = 0.0;
                         }
                         else
                         {
                             offset = sectionLength;
-                            bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref idx, ref offset, atEnd: true, ref remaining);
+                            bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref index, ref offset, atEnd: true, ref remaining);
                             if (!newForward.HasValue)
                                 break;
                             forward = newForward.Value;
@@ -301,16 +370,16 @@ namespace FreeTrainSimulator.Runtime.Track
                     else
                     {
                         remaining -= available;
-                        if (idx > 0)
+                        if (index > 0)
                         {
-                            idx--;
-                            offset = TryGetTrackSection(node.VectorSections[idx], out TrackSection ts)
+                            index--;
+                            offset = TryGetTrackSection(node.VectorSections[index], out TrackSection ts)
                                 ? ts.Length : 0.0;
                         }
                         else
                         {
                             offset = 0.0;
-                            bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref idx, ref offset, atEnd: false, ref remaining);
+                            bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref index, ref offset, atEnd: false, ref remaining);
                             if (!newForward.HasValue)
                                 break;
                             forward = newForward.Value;
@@ -319,17 +388,86 @@ namespace FreeTrainSimulator.Runtime.Track
                 }
             }
 
-            WorldLocation newLocation = ComputeLocation(node, idx, offset);
+            WorldLocation newLocation = ComputeLocation(node, index, offset);
             TrackDirection newDirection = forward ? TrackDirection.Ahead : TrackDirection.Reverse;
-            return (this with { CurrentNode = node, SectionIndex = idx, SectionOffset = offset, Location = newLocation, Direction = newDirection }, (float)remaining);
+            return (this with { CurrentNode = node, SectionIndex = index, SectionOffset = offset, Location = newLocation, Direction = newDirection }, (float)remaining);
+        }
+
+        // Walks sections in the given direction, matching the target traveller by node reference and section index.
+        // Avoids geometry snapping; uses the other traveller's exact SectionOffset for the distance computation.
+        private float? DistanceToTravellerInternal(TrackTraveller other, bool forward, float maxDistance)
+        {
+            VectorNode node = CurrentNode;
+            int index = SectionIndex;
+            double entryOffset = SectionOffset;
+            double accumulated = 0.0;
+
+            while (accumulated < maxDistance)
+            {
+                if (ReferenceEquals(node, other.CurrentNode) && index == other.SectionIndex)
+                {
+                    // Verify the target's offset is ahead of our entry point in the current direction.
+                    bool ahead = forward ? other.SectionOffset >= entryOffset : other.SectionOffset <= entryOffset;
+                    return !ahead ? null : (float)(accumulated + Math.Abs(other.SectionOffset - entryOffset));
+                }
+
+                // Accumulate the remaining distance in the current section and advance.
+                VectorSectionNode section = node.VectorSections[index];
+                if (TryGetTrackSection(section, out TrackSection trackSection))
+                {
+                    double sectionRemaining = forward ? trackSection.Length - entryOffset : entryOffset;
+                    accumulated += sectionRemaining;
+                }
+
+                if (forward)
+                {
+                    if (index < node.VectorSections.Length - 1)
+                    {
+                        index++;
+                        entryOffset = 0.0;
+                    }
+                    else
+                    {
+                        double dummy = 0.0;
+                        bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref index, ref entryOffset, atEnd: true, ref dummy);
+                        if (!newForward.HasValue)
+                            return null;
+                        forward = newForward.Value;
+                    }
+                }
+                else
+                {
+                    if (index > 0)
+                    {
+                        index--;
+                        entryOffset = TryGetTrackSection(node.VectorSections[index], out TrackSection prevTs) ? prevTs.Length : 0.0;
+                    }
+                    else
+                    {
+                        double dummy = 0.0;
+                        bool? newForward = TryCrossNodeBoundary(TrackDataBaseType, ref node, ref index, ref entryOffset, atEnd: false, ref dummy);
+                        if (!newForward.HasValue)
+                            return null;
+                        forward = newForward.Value;
+                    }
+                }
+            }
+
+            return null;
         }
 
         private static WorldLocation ComputeLocation(VectorNode node, int sectionIndex, double sectionOffset)
         {
             VectorSectionNode section = node.VectorSections[sectionIndex];
-            return TryGetTrackSection(section, out TrackSection ts)
-                ? LocationAtOffset(section, ts, sectionOffset)
-                : section.Location;
+            if (!TryGetTrackSection(section, out TrackSection ts))
+                return section.Location;
+            if (ts.Curved)
+            {
+                double arcAngle = MathHelper.ToRadians(ts.Angle);
+                double clampedOffset = Math.Clamp(sectionOffset, 0.0, ts.Length);
+                return WorldLocation.PointAlongArc(section.Location, section.EndLocation, arcAngle, ts.Radius, clampedOffset);
+            }
+            return WorldLocation.PointAlongDirection(section.Location, section.EndLocation, sectionOffset);
         }
 
         /// <summary>
@@ -345,20 +483,20 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </returns>
         private static bool? TryCrossNodeBoundary(TrackDataBaseType dbType, ref VectorNode node, ref int sectionIndex, ref double sectionOffset, bool atEnd, ref double remaining)
         {
-            TrackDatabase db = dbType == TrackDataBaseType.Road
+            TrackDatabase trackDatabase = dbType == TrackDataBaseType.Road
                 ? trackWorld.TrackModel.RoadDatabase
                 : trackWorld.TrackModel.TrackDatabase;
 
-            if (db == null)
+            if (trackDatabase == null)
             {
                 remaining = 0.0;
                 return null;
             }
 
             // VectorNode owns exactly two connectors: [0] = start end, [1] = finish end.
-            ImmutableArray<TrackNodeConnector> ownConnectors = db.TrackNodeConnectors[node.NodeIndex].TrackNodeConnectors;
+            ImmutableArray<TrackNodeConnector> ownConnectors = trackDatabase.TrackNodeConnectors[node.NodeIndex].TrackNodeConnectors;
             TrackNodeConnector exitConnector = atEnd ? ownConnectors[1] : ownConnectors[0];
-            TrackNodeBase neighbor = db.TrackNodes[exitConnector.Link];
+            TrackNodeBase neighbor = trackDatabase.TrackNodes[exitConnector.Link];
 
             if (neighbor is EndNode)
             {
@@ -374,7 +512,7 @@ namespace FreeTrainSimulator.Runtime.Track
             }
 
             // Find which connector of the junction links back to our current VectorNode.
-            TrackNodeConnectorIndex jConns = db.TrackNodeConnectors[junctionNode.NodeIndex];
+            TrackNodeConnectorIndex jConns = trackDatabase.TrackNodeConnectors[junctionNode.NodeIndex];
             int incomingIdx = -1;
             for (int i = 0; i < jConns.TrackNodeConnectors.Length; i++)
             {
@@ -413,7 +551,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 outgoing = inPins[0];
             }
 
-            if (db.TrackNodes[outgoing.Link] is not VectorNode nextNode)
+            if (trackDatabase.TrackNodes[outgoing.Link] is not VectorNode nextNode)
             {
                 remaining = 0.0;
                 return null;
@@ -440,34 +578,25 @@ namespace FreeTrainSimulator.Runtime.Track
 
         private static bool TryGetTrackSection(VectorSectionNode section, out TrackSection trackSection)
         {
-            return RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(section.NodeIndex, out trackSection);
-        }
-
-        /// <summary>
-        /// Returns the <see cref="WorldLocation"/> at <paramref name="offset"/> metres from the start of
-        /// <paramref name="section"/>, following the section's straight or curved geometry.
-        /// </summary>
-        private static WorldLocation LocationAtOffset(VectorSectionNode section, TrackSection ts, double offset)
-        {
-            if (ts.Curved)
+            if (sectionOwnership.TryGetValue(section, out (VectorNode node, int sectionIndex, TrackSection trackSection) entry))
             {
-                double arcAngle = MathHelper.ToRadians(ts.Angle);
-                double clampedOffset = Math.Clamp(offset, 0.0, ts.Length);
-                return WorldLocation.PointAlongArc(section.Location, section.EndLocation, arcAngle, ts.Radius, clampedOffset);
+                trackSection = entry.trackSection;
+                return trackSection != null;
             }
-            return WorldLocation.InterpolateAlong(section.Location, section.EndLocation, offset);
+            trackSection = null;
+            return false;
         }
 
         /// <summary>
         /// Projects <paramref name="query"/> onto the section geometry, returning the snapped
         /// <see cref="WorldLocation"/> and the offset in metres from the section start.
         /// </summary>
-        private static (WorldLocation snapped, double offset) SnapToSection(in WorldLocation query, VectorSectionNode section, TrackSection ts)
+        private static (WorldLocation snapped, double offset) SnapToSection(in WorldLocation query, VectorSectionNode section, TrackSection trackSection)
         {
-            if (ts.Curved)
+            if (trackSection.Curved)
             {
-                double arcAngle = Math.PI / 180.0 * ts.Angle;
-                return SnapToCurvedSection(section.Location, section.EndLocation, arcAngle, ts.Radius, query);
+                double arcAngle = Math.PI / 180.0 * trackSection.Angle;
+                return SnapToCurvedSection(section.Location, section.EndLocation, arcAngle, trackSection.Radius, query);
             }
             return SnapToStraightSection(section.Location, section.EndLocation, query);
         }
@@ -484,7 +613,7 @@ namespace FreeTrainSimulator.Runtime.Track
             double dot = (double)q.X * dX + (double)q.Y * dY + (double)q.Z * dZ;
             double t = lenSq > 0.0 ? Math.Clamp(dot / lenSq, 0.0, 1.0) : 0.0;
             double offset = t * Math.Sqrt(lenSq);
-            return (WorldLocation.InterpolateAlong(start, end, offset), offset);
+            return (WorldLocation.PointAlongDirection(start, end, offset), offset);
         }
 
         /// <summary>
@@ -518,29 +647,38 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>
         /// Builds a reference-equality map from every <see cref="VectorSectionNode"/> instance to its parent
-        /// <see cref="VectorNode"/> and its index within <see cref="VectorNode.VectorSections"/>.
+        /// <see cref="VectorNode"/>, its index within <see cref="VectorNode.VectorSections"/>, and the resolved
+        /// <see cref="TrackSection"/> (or <see langword="null"/> for sections with no matching geometry template).
         /// The instances in <see cref="TrackWorld.ContentByTile"/> and <see cref="VectorNode.VectorSections"/>
         /// are the same object references (both come from the same <see cref="TrackDatabase"/>), so reference
         /// equality gives an exact, unambiguous lookup.
+        /// Resolving <see cref="TrackSection"/> here avoids repeated per-traversal dictionary lookups
+        /// through <see cref="RuntimeDataResolver"/> on every call to <see cref="TryGetTrackSection"/>.
         /// </summary>
-        private static Dictionary<VectorSectionNode, (VectorNode, int)> BuildSectionOwnership(TrackWorld trackWorld)
+        private static Dictionary<VectorSectionNode, (VectorNode node, int sectionIndex, TrackSection trackSection)> BuildSectionOwnership(TrackWorld trackWorld)
         {
-            Dictionary<VectorSectionNode, (VectorNode, int)> map = new Dictionary<VectorSectionNode, (VectorNode, int)>(ReferenceEqualityComparer.Instance);
+            Dictionary<VectorSectionNode, (VectorNode, int, TrackSection)> map
+                = new Dictionary<VectorSectionNode, (VectorNode, int, TrackSection)>(ReferenceEqualityComparer.Instance);
             Models.Track.TrackModel trackModel = trackWorld.TrackModel;
             if (trackModel == null)
                 return map;
+
+            var sections = RuntimeDataResolver.Instance.TrackSections.TrackSections;
 
             AddDatabase(trackModel.TrackDatabase);
             AddDatabase(trackModel.RoadDatabase);
             return map;
 
-            void AddDatabase(TrackDatabase db)
+            void AddDatabase(TrackDatabase trackDatabase)
             {
-                if (db == null)
+                if (trackDatabase == null)
                     return;
-                foreach (VectorNode vn in db.VectorNodes)
+                foreach (VectorNode vn in trackDatabase.VectorNodes)
                     foreach ((VectorSectionNode section, int index) in vn.VectorSections.IndexedSelect())
-                        map[section] = (vn, index);
+                    {
+                        _ = sections.TryGetValue(section.NodeIndex, out TrackSection ts);
+                        map[section] = (vn, index, ts);
+                    }
             }
         }
     }

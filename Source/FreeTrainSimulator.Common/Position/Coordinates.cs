@@ -320,7 +320,7 @@ namespace FreeTrainSimulator.Common.Position
             if (distance < 0)
                 throw new ArgumentOutOfRangeException(nameof(distance), "Distance must be non-negative.");
 
-            if (distance == 0)
+            if (distance == 0 || direction.LengthSquared() == 0)
                 return start;
 
             double directionLength = Math.Sqrt((direction.X * direction.X) + (direction.Y * direction.Y) + (direction.Z * direction.Z));
@@ -424,19 +424,6 @@ namespace FreeTrainSimulator.Common.Position
             dx += (a.Tile.X - b.Tile.X) * TileSize;
             dz += (a.TileZ - b.Tile.Z) * TileSize;
             return Math.Abs(dx) + Math.Abs(dz);
-        }
-
-        public static WorldLocation InterpolateAlong(in WorldLocation locationFrom, in WorldLocation locationTo, double distance)
-        {
-            Vector3 direction = GetDistanceVector(locationFrom, locationTo);
-            if (direction.LengthSquared() == 0)
-                return locationFrom;
-            return PointAlongDirection(locationFrom, direction, distance);
-        }
-
-        public static float InterpolateElevationAlong(in WorldLocation locationFrom, in WorldLocation locationTo, float distance)
-        {
-            return InterpolateAlong(locationFrom, locationTo, distance).Location.Y;
         }
 
         /// <summary>

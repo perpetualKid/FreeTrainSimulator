@@ -132,7 +132,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 // find the approximate Elevation by doing an linear interpolation between this section's start and end point
                 ref readonly WorldLocation segmentStart = ref (TrackModel.RuntimeData.TrackModel.TrackDatabase.TrackNodes[pathPoint.ConnectedSegments[0].TrackNodeIndex] as VectorNode).VectorSections[pathPoint.ConnectedSegments[0].TrackVectorSectionIndex].Location;
                 ref readonly WorldLocation segmentEnd = ref (TrackModel.ResolveEndNodeLocation(pathPoint.ConnectedSegments[0].TrackNodeIndex, pathPoint.ConnectedSegments[0].TrackVectorSectionIndex));
-                float elevation = WorldLocation.InterpolateElevationAlong(segmentStart, segmentEnd, distance);
+                float elevation = WorldLocation.PointAlongDirection(segmentStart, segmentEnd, distance).Location.Y;
 
                 WorldLocation location = PointD.ToWorldLocation(pathPoint.Location).SetElevation(elevation);
                 pathNodes.Add(new PathNode(location)

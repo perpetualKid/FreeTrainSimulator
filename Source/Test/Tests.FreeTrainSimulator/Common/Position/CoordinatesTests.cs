@@ -98,7 +98,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             WorldLocation start = new WorldLocation(-2, -3, 1001, 5, 1);
             WorldLocation end = new WorldLocation(0, -3, -999, 5, 1);
 
-            WorldLocation result = WorldLocation.InterpolateAlong(start, end, 1328f);
+            WorldLocation result = WorldLocation.PointAlongDirection(start, end, 1328f);
 
             Assert.AreEqual(new Tile(-1, -3), result.Tile);
         }
@@ -110,7 +110,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             WorldLocation start = new WorldLocation(-2, -3, 1001, 5, 1);
             WorldLocation end = new WorldLocation(0, -3, -999, 5, 1);
 
-            WorldLocation result = WorldLocation.InterpolateAlong(start, end, 0f);
+            WorldLocation result = WorldLocation.PointAlongDirection(start, end, 0f);
 
             Assert.AreEqual(start, result);
         }
@@ -346,7 +346,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             WorldLocation from = new WorldLocation(0, 0, 0, 0, 0);
             WorldLocation to = new WorldLocation(0, 0, 10, 0, 0);
 
-            WorldLocation result = WorldLocation.InterpolateAlong(from, to, 5f);
+            WorldLocation result = WorldLocation.PointAlongDirection(from, to, 5f);
 
             Assert.AreEqual(new WorldLocation(0, 0, 5, 0, 0), result);
         }
@@ -359,7 +359,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             WorldLocation from = new WorldLocation(0, 0, 0, 0, 0);
             WorldLocation to = new WorldLocation(0, 0, 10, 0, 0);
 
-            WorldLocation result = WorldLocation.InterpolateAlong(from, to, 10f);
+            WorldLocation result = WorldLocation.PointAlongDirection(from, to, 10f);
 
             Assert.AreEqual(to, result);
         }
@@ -373,7 +373,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             WorldLocation from = new WorldLocation(0, 0, 0, 5, 0);
             WorldLocation to = new WorldLocation(0, 0, 0, 5, 0);
 
-            float elevation = WorldLocation.InterpolateElevationAlong(from, to, 0f);
+            float elevation = WorldLocation.PointAlongDirection(from, to, 0f).Location.Y;
 
             Assert.AreEqual(5f, elevation);
         }
@@ -386,7 +386,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             WorldLocation from = new WorldLocation(0, 0, 0, 3, 0);
             WorldLocation to = new WorldLocation(0, 0, 0, 9, 0);
 
-            float elevation = WorldLocation.InterpolateElevationAlong(from, to, 0f);
+            float elevation = WorldLocation.PointAlongDirection(from, to, 0f).Location.Y;
 
             Assert.AreEqual(3f, elevation, EqualityPrecisionDelta.FloatPrecisionDelta);
         }
@@ -399,7 +399,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             WorldLocation from = new WorldLocation(0, 0, 0, 0, 0);
             WorldLocation to = new WorldLocation(0, 0, 0, 10, 0);
 
-            float elevation = WorldLocation.InterpolateElevationAlong(from, to, 5f);
+            float elevation = WorldLocation.PointAlongDirection(from, to, 5f).Location.Y;
 
             Assert.AreEqual(5f, elevation, EqualityPrecisionDelta.FloatPrecisionDelta);
         }
@@ -412,7 +412,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             WorldLocation from = new WorldLocation(0, 0, 0, 0, 0);
             WorldLocation to = new WorldLocation(0, 0, 0, 10, 0);
 
-            float elevation = WorldLocation.InterpolateElevationAlong(from, to, 10f);
+            float elevation = WorldLocation.PointAlongDirection(from, to, 10f).Location.Y;
 
             Assert.AreEqual(10f, elevation, EqualityPrecisionDelta.FloatPrecisionDelta);
         }
