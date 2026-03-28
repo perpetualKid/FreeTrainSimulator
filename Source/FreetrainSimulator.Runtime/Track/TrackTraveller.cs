@@ -308,6 +308,54 @@ namespace FreeTrainSimulator.Runtime.Track
             return this with { CurrentNode = node, SectionIndex = index, SectionOffset = sectionOffset, Location = newLocation, Direction = newDirection };
         }
 
+        /// <summary>
+        /// Walks in the current direction of travel until the first <see cref="JunctionNode"/> boundary is reached,
+        /// returning the junction and the <see cref="VectorNode"/> that immediately precedes it.
+        /// Sections within the same <see cref="VectorNode"/> are traversed freely;
+        /// this method stops at the junction rather than crossing it.
+        /// </summary>
+        /// <returns>
+        /// A tuple of the found <see cref="JunctionNode"/> and its immediately preceding <see cref="VectorNode"/>,
+        /// or <see langword="null"/> when an <see cref="EndNode"/> is reached before any junction.
+        /// </returns>
+        public (JunctionNode Junction, VectorNode ApproachNode)? NextJunction()
+        {
+            if (!OnTrack)
+                return null;
+
+            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
+                ? trackWorld.TrackModel.RoadDatabase
+                : trackWorld.TrackModel.TrackDatabase;
+
+            if (trackDatabase == null)
+                return null;
+
+            TrackTraveller current = this;
+
+            while (true)
+            {
+                bool forward = current.Direction == TrackDirection.Ahead;
+                bool atNodeBoundary = forward
+                    ? current.SectionIndex == current.CurrentNode.VectorSections.Length - 1
+                    : current.SectionIndex == 0;
+
+                if (atNodeBoundary)
+                {
+                    TrackNodeBase neighbor = trackDatabase.TrackNodes[
+                        trackDatabase.TrackNodeConnectors[current.CurrentNode.NodeIndex].TrackNodeConnectors[forward ? 1 : 0].Link];
+                    if (neighbor is JunctionNode junctionNode)
+                        return (junctionNode, current.CurrentNode);
+                    if (neighbor is EndNode)
+                        return null;
+                }
+
+                TrackTraveller? next = current.AdvanceToNextSection();
+                if (!next.HasValue)
+                    return null;
+
+                current = next.Value;
+            }
+        }
 
         // Moves remaining metres using mutable locals; forward=true advances through VectorSections, false retreats.
         // Returns a new record at the final position and the unconsumed distance (>0 only when halted at an EndNode).

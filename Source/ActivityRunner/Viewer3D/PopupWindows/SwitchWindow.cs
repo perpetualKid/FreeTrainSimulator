@@ -1,10 +1,14 @@
-﻿using FreeTrainSimulator.Common;
+﻿using System;
+
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
 
@@ -106,31 +110,37 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             void UpdateSwitch(bool front)
             {
                 switchSection.Location = Point.Zero;
-                Traveller traveller = front ? new Traveller(Simulator.Instance.PlayerLocomotive.Train.FrontTDBTraveller) : new Traveller(Simulator.Instance.PlayerLocomotive.Train.RearTDBTraveller, true);
-                TrackNode previousNode = traveller.TrackNode;
-                TrackJunctionNode switchNode = null;
-                while (traveller.NextSection())
-                {
-                    if (traveller.TrackNode is TrackJunctionNode junctionNode)
-                    {
-                        switchNode = junctionNode;
-                        break;
-                    }
-                    previousNode = traveller.TrackNode;
-                }
-                if (switchNode == null)
+                Traveller oldTraveller = front
+                    ? Simulator.Instance.PlayerLocomotive.Train.FrontTDBTraveller
+                    : Simulator.Instance.PlayerLocomotive.Train.RearTDBTraveller;
+
+                // For rear, the old code reversed direction (new Traveller(rear, reverseDirection: true));
+                // map: front==true keeps direction, front==false flips it
+                bool goAhead = front == (oldTraveller.Direction == Direction.Forward);
+                TrackTraveller? nullableTraveller = TrackTraveller.InitializeTraveller(
+                    oldTraveller.WorldLocation, goAhead ? TrackDirection.Ahead : TrackDirection.Reverse);
+                if (!nullableTraveller.HasValue)
                     return;
-                int switchPreviousNodeId = previousNode.Index;
-                bool switchBranchesAwayFromUs = switchNode.TrackPins[0].Link == switchPreviousNodeId;
-                
-                bool switchMainRouteIsLeft = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.JunctionNodes[switchNode.Index].OpeningAngle > 0;  // align the switch
-                
+
+                (JunctionNode Junction, VectorNode ApproachNode)? junctionResult = nullableTraveller.Value.NextJunction();
+                if (!junctionResult.HasValue)
+                    return;
+
+                JunctionNode switchNode = junctionResult.Value.Junction;
+                TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackModel.TrackDatabase;
+                ReadOnlySpan<TrackNodeConnector> inConnectors = trackDatabase.TrackNodeConnectors[switchNode.NodeIndex].InConnectors;
+                bool switchBranchesAwayFromUs = !inConnectors.IsEmpty && inConnectors[0].Link == junctionResult.Value.ApproachNode.NodeIndex;
+                bool switchMainRouteIsLeft = switchNode.OpeningAngle > 0;  // align the switch
+
                 switchSection.X = ((switchBranchesAwayFromUs == front ? 1 : 3) + (switchMainRouteIsLeft ? 1 : 0)) * SwitchImageSize;
-                switchSection.Y = RuntimeDataResolver.Instance.TrackWorld.SwitchStates[switchNode.Index] * SwitchImageSize;
-                TrackCircuitSection switchCircuitSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
-                if (switchCircuitSection.CircuitState.Occupied() || switchCircuitSection.CircuitState.SignalReserved >= 0 ||
-                    (switchCircuitSection.CircuitState.TrainReserved != null && switchCircuitSection.CircuitState.TrainReserved.Train.ControlMode != TrainControlMode.Manual))
-                    switchSection.Y += 2 * SwitchImageSize;
+                switchSection.Y = RuntimeDataResolver.Instance.TrackWorld.SwitchStates[switchNode.NodeIndex] * SwitchImageSize;
+                if (RuntimeData.Instance.TrackDB.TrackNodes[switchNode.NodeIndex] is TrackJunctionNode oldSwitchNode)
+                {
+                    TrackCircuitSection switchCircuitSection = TrackCircuitSection.TrackCircuitList[oldSwitchNode.TrackCircuitCrossReferences[0].Index];
+                    if (switchCircuitSection.CircuitState.Occupied() || switchCircuitSection.CircuitState.SignalReserved >= 0 ||
+                        (switchCircuitSection.CircuitState.TrainReserved != null && switchCircuitSection.CircuitState.TrainReserved.Train.ControlMode != TrainControlMode.Manual))
+                        switchSection.Y += 2 * SwitchImageSize;
+                }
             }
             UpdateSwitch(true);
             forwardSwitch.ClippingRectangle = switchSection;
