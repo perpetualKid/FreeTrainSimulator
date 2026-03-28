@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -24,6 +25,14 @@ namespace FreeTrainSimulator.Runtime.Track
         public EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
 
         public Dictionary<int, int> SwitchStates { get; private set; } = new Dictionary<int, int>();
+
+        /// <summary>
+        /// Pre-computed geometric data for every <see cref="VectorSectionNode"/> in both rail and road databases,
+        /// keyed by <see cref="VectorSectionNode"/> reference identity.
+        /// Built once during <see cref="Initialize"/> before <see cref="TrackTraveller"/> is used.
+        /// </summary>
+        public FrozenDictionary<VectorSectionNode, SectionGeometry> SectionGeometry { get; private set; }
+            = FrozenDictionary<VectorSectionNode, SectionGeometry>.Empty;
 
         private TrackWorld(Models.Track.TrackModel trackModel)
         {
@@ -79,11 +88,75 @@ namespace FreeTrainSimulator.Runtime.Track
                 ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNode>(ImmutableArray<EndNode>.Empty);
             }
 
+            SectionGeometry = BuildSectionGeometry();
             TrackTraveller.Initialize(this);
         }
 
+        private FrozenDictionary<VectorSectionNode, SectionGeometry> BuildSectionGeometry()
+        {
+            Dictionary<VectorSectionNode, SectionGeometry> map = new Dictionary<VectorSectionNode, SectionGeometry>(ReferenceEqualityComparer.Instance);
+            ImmutableDictionary<int, TrackSection> trackSections = RuntimeDataResolver.Instance.TrackSections.TrackSections;
+
+            BuildFor(TrackModel.TrackDatabase);
+            BuildFor(TrackModel.RoadDatabase);
+            return map.ToFrozenDictionary(ReferenceEqualityComparer.Instance);
+
+            void BuildFor(TrackDatabase trackDatabase)
+            {
+                if (trackDatabase == null)
+                    return;
+                foreach (VectorNode vectorNode in trackDatabase.VectorNodes)
+                {
+                    foreach ((VectorSectionNode section, int index) in vectorNode.VectorSections.IndexedSelect())
+                    {
+                        _ = trackSections.TryGetValue(section.NodeIndex, out TrackSection trackSection);
+                        map[section] = new SectionGeometry(vectorNode, index, trackSection, section);
+                    }
+                }
+            }
+        }
+
         /// <summary>
-        /// Returns the <see cref="JunctionNode"/> closest to <paramref name="location"/> within the proximity threshold,
+        /// Computes the world position at <paramref name="sectionOffset"/> metres from the start of <paramref name="section"/>.
+        /// Falls back to <see cref="TrackNodeBase.Location"/> when no geometry template is registered for the section.
+        /// </summary>
+        public WorldLocation ComputeSectionLocation(VectorSectionNode section, double sectionOffset)
+        {
+            if (!SectionGeometry.TryGetValue(section, out SectionGeometry geom) || !geom.HasGeometry)
+                return section.Location;
+            if (geom.Curved)
+            {
+                double clampedOffset = Math.Clamp(sectionOffset, 0.0, geom.Length);
+                return WorldLocation.PointAlongArc(section.Location, section.EndLocation, geom.ArcAngle, geom.Radius, clampedOffset);
+            }
+            return WorldLocation.PointAlongDirection(section.Location, section.EndLocation, sectionOffset);
+        }
+
+        /// <summary>
+        /// Computes the world position at <paramref name="sectionOffset"/> metres from the start of the section at
+        /// <paramref name="sectionIndex"/> within <paramref name="node"/>.
+        /// </summary>
+        public WorldLocation ComputeSectionLocation(VectorNode node, int sectionIndex, double sectionOffset)
+            => ComputeSectionLocation(node.VectorSections[sectionIndex], sectionOffset);
+
+        /// <summary>
+        /// Returns the pre-computed arc or straight length in metres for <paramref name="section"/>,
+        /// or <c>0.0</c> when no geometry template is registered for the section.
+        /// </summary>
+        public double SectionLength(VectorSectionNode section)
+            => SectionGeometry.TryGetValue(section, out SectionGeometry geom) && geom.HasGeometry
+                ? geom.Length : 0.0;
+
+        /// <summary>
+        /// Returns the pre-computed arc or straight length in metres for the section at
+        /// <paramref name="sectionIndex"/> within <paramref name="node"/>,
+        /// or <c>0.0</c> when no geometry template is registered.
+        /// </summary>
+        public double SectionLength(VectorNode node, int sectionIndex)
+            => SectionLength(node.VectorSections[sectionIndex]);
+
+        /// <summary>
+        /// Returns the <see cref="JunctionNode"/> closest to
         /// or <see langword="null"/> if none exists within the threshold.
         /// Pass a positive <paramref name="tileRadius"/> to widen the search area beyond the home tile.
         /// </summary>
