@@ -583,11 +583,11 @@ namespace FreeTrainSimulator.Runtime.Track
         /// Projects <paramref name="query"/> onto the section geometry
         /// <see cref="WorldLocation"/> and the offset in metres from the section start.
         /// </summary>
-        private static (WorldLocation snapped, double offset) SnapToSection(in WorldLocation query, VectorSectionNode section, SectionGeometry geom)
+        private static (WorldLocation snapped, double offset) SnapToSection(in WorldLocation query, VectorSectionNode section, SectionGeometry sectionGeometry)
         {
-            if (geom.Curved)
-                return SnapToCurvedSection(section, geom, query);
-            return SnapToStraightSection(section.Location, section.EndLocation, query);
+            return sectionGeometry.Curved
+                ? SnapToCurvedSection(section, sectionGeometry, query)
+                : SnapToStraightSection(section.Location, section.EndLocation, query);
         }
 
         /// <summary>

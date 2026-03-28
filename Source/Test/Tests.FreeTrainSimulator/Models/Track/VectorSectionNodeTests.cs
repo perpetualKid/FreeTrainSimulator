@@ -39,10 +39,9 @@ namespace Tests.FreeTrainSimulator.Models.Track
             WorldLocation end = new WorldLocation(0, 0, 500, 0, 0);
 
             VectorSectionNode node = new VectorSectionNode(start, Tile.Zero, Vector3.Zero, end);
-            ITileCoordinateVector tileVector = node;
 
-            Assert.AreEqual(new Tile(0, 0), tileVector.Tile);
-            Assert.AreEqual(new Tile(0, 0), tileVector.OtherTile);
+            Assert.AreEqual(new Tile(0, 0), node.Tile);
+            Assert.AreEqual(new Tile(0, 0), node.OtherTile);
         }
 
         // When the endpoint falls in a different tile, OtherTile differs from Tile.
@@ -55,11 +54,10 @@ namespace Tests.FreeTrainSimulator.Models.Track
             WorldLocation end = new WorldLocation(1, 0, 0, 0, 0);
 
             VectorSectionNode node = new VectorSectionNode(start, Tile.Zero, Vector3.Zero, end);
-            ITileCoordinateVector tileVector = node;
 
-            Assert.AreEqual(new Tile(0, 0), tileVector.Tile);
-            Assert.AreEqual(new Tile(1, 0), tileVector.OtherTile);
-            Assert.AreNotEqual(tileVector.Tile, tileVector.OtherTile);
+            Assert.AreEqual(new Tile(0, 0), node.Tile);
+            Assert.AreEqual(new Tile(1, 0), node.OtherTile);
+            Assert.AreNotEqual(node.Tile, node.OtherTile);
         }
 
         // ITileCoordinate.Tile reflects the start location's tile, not the WorldTile parameter.
@@ -72,9 +70,8 @@ namespace Tests.FreeTrainSimulator.Models.Track
             Tile differentWorldTile = new Tile(99, 99);
 
             VectorSectionNode node = new VectorSectionNode(start, differentWorldTile, Vector3.Zero, end);
-            ITileCoordinate tileCoord = node;
 
-            Assert.AreEqual(new Tile(2, 3), tileCoord.Tile);
+            Assert.AreEqual(new Tile(2, 3), node.Tile);
         }
     }
 }
