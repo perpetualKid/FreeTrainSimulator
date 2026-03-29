@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -332,6 +333,51 @@ namespace FreeTrainSimulator.Runtime.Track
                 Location = trackWorld.ComputeSectionLocation(node, sectionIndex, sectionOffset),
                 Direction = direction,
             };
+        }
+
+        /// <summary>
+        /// Creates a <see cref="TrackTravellerSaveState"/> capturing the traveller's current position.
+        /// Use the static <see cref="InitializeTraveller(TrackTravellerSaveState)"/> overload to restore.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when the traveller is not on track.</exception>
+        public ValueTask<TrackTravellerSaveState> Snapshot()
+        {
+            return !OnTrack
+                ? throw new InvalidOperationException("Cannot snapshot a traveller that is not on track.")
+                : ValueTask.FromResult(new TrackTravellerSaveState
+            {
+                TrackNodeIndex = TrackNodeIndex,
+                SectionIndex = SectionIndex,
+                SectionOffset = SectionOffset,
+                Direction = Direction,
+                TrackDataBaseType = TrackDataBaseType,
+            });
+        }
+
+        /// <summary>
+        /// Restores a <see cref="TrackTraveller"/> from a previously taken <see cref="TrackTravellerSaveState"/>,
+        /// re-placing it at the exact node, section, and offset recorded at snapshot time.
+        /// </summary>
+        /// <param name="saveState">The save state produced by <see cref="Snapshot"/>.</param>
+        /// <returns>
+        /// A new <see cref="TrackTraveller"/> at the saved position, or <see langword="null"/> when
+        /// the referenced node index is out of range or is not a <see cref="VectorNode"/>.
+        /// </returns>
+        public static TrackTraveller? InitializeTraveller(TrackTravellerSaveState saveState)
+        {
+            ArgumentNullException.ThrowIfNull(saveState);
+            TrackDatabase trackDatabase = saveState.TrackDataBaseType == TrackDataBaseType.Road
+                ? trackWorld.TrackModel.RoadDatabase
+                : trackWorld.TrackModel.TrackDatabase;
+            if (trackDatabase == null)
+                return null;
+            if (saveState.TrackNodeIndex >= trackDatabase.TrackNodes.Length)
+                return null;
+            if (trackDatabase.TrackNodes[saveState.TrackNodeIndex] is not VectorNode node)
+                return null;
+            if (saveState.SectionIndex >= node.VectorSections.Length)
+                return null;
+            return InitializeTraveller(node, saveState.SectionIndex, saveState.SectionOffset, saveState.Direction, saveState.TrackDataBaseType);
         }
 
         /// <summary>
