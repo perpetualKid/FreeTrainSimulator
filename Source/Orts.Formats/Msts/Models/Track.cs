@@ -1137,11 +1137,11 @@ namespace Orts.Formats.Msts.Models
         /// <summary>Cross-reference to worldFile: World ID</summary>
         public uint WorldFileUiD { get; }
         /// <summary>The (super)elevation at the start</summary>
-        public float StartElev { get; set; }
+        public float StartElevation { get; set; }
         /// <summary>The (super)elevation at the end</summary>
-        public float EndElev { get; set; }
+        public float EndElevation { get; set; }
         /// <summary>The maximum (super) elevation</summary>
-        public float MaxElev { get; set; }
+        public float MaxElevation { get; set; }
 
         /// <summary>
         /// Default constructor used during file parsing.

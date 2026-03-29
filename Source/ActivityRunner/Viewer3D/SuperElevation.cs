@@ -118,9 +118,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     pos = curve.IndexOf(tmpSec);
                     if (pos >= 1)
-                        curve[pos - 1].EndElev = 0;
+                        curve[pos - 1].EndElevation = 0;
                     if (pos < curve.Count - 1)
-                        curve[pos + 1].StartElev = 0;
+                        curve[pos + 1].StartElevation = 0;
                     RemoveSectionsFromMap(tmpSec);//remove all sections in the curve from future consideration
                     curve.Remove(tmpSec);
                 }
@@ -155,9 +155,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 WorldPosition nextRoot = root.SetTranslation(displacement);
 
                 dir = 1f;
-                sv = ts.StartElev;
-                ev = ts.EndElev;
-                mv = ts.MaxElev;
+                sv = ts.StartElevation;
+                ev = ts.EndElevation;
+                mv = ts.MaxElevation;
 
                 //nextRoot.XNAMatrix.Translation += Vector3.Transform(trackLoc, worldMatrix.XNAMatrix);
                 dTrackList.Add(new SuperElevationViewer(viewer, root, nextRoot, tss.Radius, tss.Angle * 3.14f / 180, sv, ev, mv, dir));
@@ -429,14 +429,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class SuperElevationPrimitive : DynamicTrackPrimitive
     {
-        private float StartElev, MaxElev, EndElv;
+        private float startElevation, endElevation, maxElevation;
         public SuperElevationPrimitive(Viewer viewer, in WorldPosition worldPosition, in WorldPosition endPosition,
             float radius, float angle, float s, float e, float m, float dir)
             : base()
         {
-            StartElev = s;
-            EndElv = e;
-            MaxElev = m;
+            startElevation = s;
+            endElevation = e;
+            maxElevation = m;
             // SuperElevationPrimitive is responsible for creating a mesh for a section with a single subsection.
             // It also must update worldPosition to reflect the end of this subsection, subsequently to
             // serve as the beginning of the next subsection.
@@ -530,18 +530,18 @@ namespace Orts.ActivityRunner.Viewer3D
             whichCase = 0; //0: no elevation (MaxElev=0), 1: start (startE = 0, Max!=end), 
             //2: end (end=0, max!=start), 3: middle (start>0, end>0), 4: start and finish in one
 
-            if (StartElev.AlmostEqual(0f, 0.001f) && MaxElev.AlmostEqual(0f, 0.001f) && EndElv.AlmostEqual(0f, 0.001f))
+            if (startElevation.AlmostEqual(0f, 0.001f) && maxElevation.AlmostEqual(0f, 0.001f) && endElevation.AlmostEqual(0f, 0.001f))
                 whichCase = 0;//no elev
-            else if (StartElev.AlmostEqual(0f, 0.001f) && EndElv.AlmostEqual(0f, 0.001f))
+            else if (startElevation.AlmostEqual(0f, 0.001f) && endElevation.AlmostEqual(0f, 0.001f))
                 whichCase = 4;//finish/start in one
-            else if (StartElev.AlmostEqual(0f, 0.001f) && !EndElv.AlmostEqual(0f, 0.001f))
+            else if (startElevation.AlmostEqual(0f, 0.001f) && !endElevation.AlmostEqual(0f, 0.001f))
                 whichCase = 1;//start
-            else if (EndElv.AlmostEqual(0f, 0.001f) && !StartElev.AlmostEqual(0f, 0.001f))
+            else if (endElevation.AlmostEqual(0f, 0.001f) && !startElevation.AlmostEqual(0f, 0.001f))
                 whichCase = 2;//finish
             else
                 whichCase = 3;//in middle
             Matrix PreRotation = Matrix.Identity;
-            elevated = MaxElev;
+            elevated = maxElevation;
             if (whichCase == 3 || whichCase == 2)
                 PreRotation = Matrix.CreateRotationZ(-elevated * Math.Sign(DTrackData.Length));
             //if section is in the middle of curve, will only rotate the first set of vertex, others will follow the same rotation
@@ -558,7 +558,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (whichCase == 3 || whichCase == 2)
                     {
                         tmp = Vector3.Transform(tmp, PreRotation);
-                        prevRotation = MaxElev;
+                        prevRotation = maxElevation;
                     }
                     VertexList[VertexIndex].Position = tmp;
                     VertexList[VertexIndex].Normal = v.Normal;
@@ -612,7 +612,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             // Create and populate a new ShapePrimitive
-            var indexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, IndexElementSize.SixteenBits, NumIndices, BufferUsage.WriteOnly);
+            IndexBuffer indexBuffer = new IndexBuffer(viewer.Game.GraphicsDevice, IndexElementSize.SixteenBits, NumIndices, BufferUsage.WriteOnly);
             indexBuffer.SetData(TriangleListIndices);
             return new ShapePrimitive(viewer.Game.GraphicsDevice, lodItem.LODMaterial, new SharedShape.VertexBufferSet(VertexList, viewer.Game.GraphicsDevice), indexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
         }
@@ -740,7 +740,7 @@ namespace Orts.ActivityRunner.Viewer3D
             float desiredZ = 1f;
             float to = (offSet + 1f) / NumSections;
 
-            float maxv = MaxElev;
+            float maxv = maxElevation;
             switch (whichCase)
             {
                 case 0:

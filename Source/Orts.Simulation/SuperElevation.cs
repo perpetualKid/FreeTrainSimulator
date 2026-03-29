@@ -20,7 +20,9 @@ using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -101,6 +103,30 @@ namespace Orts.Simulation
                 }
                 SectionList.Clear();
             }
+
+            // Copy the computed elevation values into the new-model SectionGeometry cache so that
+            // TrackTraveller.GetSuperElevation() and FindTiltedZ() can use them without touching the old model.
+            // Cross-reference: old TrackVectorNode.Index == new VectorNode.NodeIndex; section arrays are co-indexed.
+            TrackDatabase newTrackDatabase = RuntimeDataResolver.Instance?.TrackModel.TrackDatabase;
+            TrackWorld trackWorld = TrackWorld.Instance;
+            if (newTrackDatabase != null && trackWorld != null)
+            {
+                foreach (VectorNode vectorNode in newTrackDatabase.VectorNodes)
+                {
+                    if (RuntimeData.Instance.TrackDB.TrackNodes[vectorNode.NodeIndex] is not TrackVectorNode tvn)
+                        continue;
+                    foreach (VectorSectionNode section in vectorNode.VectorSections)
+                    {
+                        if (trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry))
+                        {
+                            TrackVectorSection oldSection = tvn.TrackVectorSections[section.NodeIndex];
+                            if (oldSection.MaxElevation == 0f)
+                                continue;
+                            sectionGeometry.SetElevation(oldSection.StartElevation, oldSection.EndElevation, oldSection.MaxElevation);
+                        }
+                    }
+                }
+            }
         }
 
         private void MarkSections(Simulator simulator, List<TrackVectorSection> SectionList, float Len)
@@ -127,8 +153,8 @@ namespace Orts.Simulation
             MapWFiles2Sections(SectionList);//map these sections to tiles, so we can compute it quicker later
             if (SectionList.Count == 1)//only one section in the curve
             {
-                SectionList[0].StartElev = SectionList[0].EndElev = 0f;
-                SectionList[0].MaxElev = Max;
+                SectionList[0].StartElevation = SectionList[0].EndElevation = 0f;
+                SectionList[0].MaxElevation = Max;
             }
             else//more than one section in the curve
             {
@@ -138,19 +164,19 @@ namespace Orts.Simulation
                 {
                     if (count == 0)
                     {
-                        section.StartElev = 0f;
-                        section.MaxElev = Max;
-                        section.EndElev = Max;
+                        section.StartElevation = 0f;
+                        section.MaxElevation = Max;
+                        section.EndElevation = Max;
                     }
                     else if (count == SectionList.Count - 1)
                     {
-                        section.StartElev = Max;
-                        section.MaxElev = Max;
-                        section.EndElev = 0f;
+                        section.StartElevation = Max;
+                        section.MaxElevation = Max;
+                        section.EndElevation = 0f;
                     }
                     else
                     {
-                        section.StartElev = section.EndElev = section.MaxElev = Max;
+                        section.StartElevation = section.EndElevation = section.MaxElevation = Max;
                     }
                     count++;
                 }

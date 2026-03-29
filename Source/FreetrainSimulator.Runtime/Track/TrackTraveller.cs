@@ -52,6 +52,74 @@ namespace FreeTrainSimulator.Runtime.Track
         /// Updated automatically when <see cref="Move"/> crosses a <see cref="VectorNode"/> boundary.</summary>
         public TrackDirection Direction { get; private init; }
 
+        /// <summary>Cached <see cref="SectionGeometry"/> for <see cref="CurrentSection"/>. Set whenever
+        /// <see cref="CurrentNode"/> or <see cref="SectionIndex"/> changes; copied automatically by
+        /// <see langword="with"/> expressions that only update <see cref="SectionOffset"/> or <see cref="Location"/>.</summary>
+        private SectionGeometry CurrentSectionGeometry { get; init; }
+
+        private static SectionGeometry ResolveGeometry(VectorNode node, int sectionIndex)
+        {
+            if (node == null)
+                return null;
+            trackWorld.SectionGeometry.TryGetValue(node.VectorSections[sectionIndex], out SectionGeometry result);
+            return result;
+        }
+
+        /// <summary>
+        /// Heading angle (Y-axis rotation in radians) at the traveller's current position in the direction of travel.
+        /// Equivalent to the legacy <c>Traveller.RotY</c>.
+        /// For straight sections this equals <see cref="VectorSectionNode.Direction"/>.Y;
+        /// for curved sections the angle advances along the arc at rate 1/R per metre of offset.
+        /// The value is wrapped to the range (−π, π].
+        /// Returns <c>0</c> when the traveller is not on track.
+        /// </summary>
+        public float Heading
+        {
+            get
+            {
+                if (!OnTrack)
+                    return 0f;
+                float heading = CurrentSection.Direction.Y;
+                if (CurrentSectionGeometry?.HasGeometry == true && CurrentSectionGeometry.Curved && CurrentSectionGeometry.Radius > 0)
+                    heading += (float)(SectionOffset / CurrentSectionGeometry.Radius) * Math.Sign((float)CurrentSectionGeometry.ArcAngle);
+                if (Direction == TrackDirection.Reverse)
+                    heading += MathHelper.Pi;
+                return MathHelper.WrapAngle(heading);
+            }
+        }
+
+        /// <summary><see langword="true"/> when the current section is a curved arc.</summary>
+        public bool IsCurved => OnTrack && CurrentSectionGeometry?.HasGeometry == true && CurrentSectionGeometry.Curved;
+
+        /// <summary>
+        /// Arc radius in metres of the current section.
+        /// Returns <c>0</c> for straight sections or when the traveller is not on track.
+        /// </summary>
+        public double CurveRadius
+        {
+            get
+            {
+                if (!OnTrack || CurrentSectionGeometry?.HasGeometry != true)
+                    return 0.0;
+                return CurrentSectionGeometry.Curved ? CurrentSectionGeometry.Radius : 0.0;
+            }
+        }
+
+        /// <summary>
+        /// Total signed arc angle in radians of the current section
+        /// (positive = right-hand/clockwise curve; negative = left-hand curve).
+        /// Returns <c>0</c> for straight sections or when the traveller is not on track.
+        /// </summary>
+        public double CurveArcAngle
+        {
+            get
+            {
+                if (!OnTrack || CurrentSectionGeometry?.HasGeometry != true)
+                    return 0.0;
+                return CurrentSectionGeometry.Curved ? CurrentSectionGeometry.ArcAngle : 0.0;
+            }
+        }
+
         /// <summary>
         /// Builds (or rebuilds) the shared ownership map from every <see cref="VectorSectionNode"/> instance
         /// to its parent <see cref="VectorNode"/>, section index, and resolved <see cref="TrackSection"/>,
@@ -155,6 +223,7 @@ namespace FreeTrainSimulator.Runtime.Track
             {
                 CurrentNode = bestGeometry.Node,
                 SectionIndex = bestGeometry.SectionIndex,
+                CurrentSectionGeometry = ResolveGeometry(bestGeometry.Node, bestGeometry.SectionIndex),
                 SectionOffset = bestOffset,
                 Location = bestSnapped,
                 Direction = direction,
@@ -204,6 +273,7 @@ namespace FreeTrainSimulator.Runtime.Track
             {
                 CurrentNode = node,
                 SectionIndex = bestIndex,
+                CurrentSectionGeometry = ResolveGeometry(node, bestIndex),
                 SectionOffset = bestOffset,
                 Location = bestSnapped,
                 Direction = direction,
@@ -277,14 +347,14 @@ namespace FreeTrainSimulator.Runtime.Track
             if (forward && SectionIndex < CurrentNode.VectorSections.Length - 1)
             {
                 int next = SectionIndex + 1;
-                return this with { SectionIndex = next, SectionOffset = 0, Location = trackWorld.ComputeSectionLocation(CurrentNode, next, 0) };
+                return this with { SectionIndex = next, CurrentSectionGeometry = ResolveGeometry(CurrentNode, next), SectionOffset = 0, Location = trackWorld.ComputeSectionLocation(CurrentNode, next, 0) };
             }
 
             if (!forward && SectionIndex > 0)
             {
                 int next = SectionIndex - 1;
                 double offset = trackWorld.SectionLength(CurrentNode, next);
-                return this with { SectionIndex = next, SectionOffset = offset, Location = trackWorld.ComputeSectionLocation(CurrentNode, next, offset) };
+                return this with { SectionIndex = next, CurrentSectionGeometry = ResolveGeometry(CurrentNode, next), SectionOffset = offset, Location = trackWorld.ComputeSectionLocation(CurrentNode, next, offset) };
             }
 
             // At a node boundary — attempt to cross it.
@@ -302,7 +372,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             TrackDirection newDirection = newForward.Value ? TrackDirection.Ahead : TrackDirection.Reverse;
             WorldLocation newLocation = trackWorld.ComputeSectionLocation(node, index, sectionOffset);
-            return this with { CurrentNode = node, SectionIndex = index, SectionOffset = sectionOffset, Location = newLocation, Direction = newDirection };
+            return this with { CurrentNode = node, SectionIndex = index, CurrentSectionGeometry = ResolveGeometry(node, index), SectionOffset = sectionOffset, Location = newLocation, Direction = newDirection };
         }
 
         /// <summary>
@@ -422,6 +492,80 @@ namespace FreeTrainSimulator.Runtime.Track
             return true;
         }
 
+        /// <summary>
+        /// Returns the signed curvature (1/R) at the traveller's current position.
+        /// Positive values curve right (positive arc angle), negative values curve left.
+        /// Returns <c>0</c> for straight sections or when the traveller is not on track.
+        /// Equivalent to the legacy <c>Traveller.GetCurvature()</c>.
+        /// </summary>
+        public float GetCurvature()
+        {
+            if (!OnTrack || CurrentSectionGeometry?.HasGeometry != true || !CurrentSectionGeometry.Curved)
+                return 0f;
+            return (float)(Math.Sign(CurrentSectionGeometry.ArcAngle) / CurrentSectionGeometry.Radius);
+        }
+
+        /// <summary>
+        /// Returns the super-elevation rotation in radians at the traveller's current position.
+        /// Positive values tilt the track to the right relative to the direction of travel.
+        /// Returns <c>0</c> when no elevation data is set, the section is straight, or the traveller is not on track.
+        /// Elevation data is populated by <c>Orts.Simulation.SuperElevation</c> at simulation start.
+        /// Equivalent to the legacy <c>Traveller.GetSuperElevation()</c>.
+        /// </summary>
+        public float GetSuperElevation()
+        {
+            if (!OnTrack || CurrentSectionGeometry?.HasGeometry != true || !CurrentSectionGeometry.Curved)
+                return 0f;
+            if (MathF.Abs(CurrentSectionGeometry.MaxElevation) < 0.001f)
+                return 0f;
+
+            int sign = (Math.Sign((float)CurrentSectionGeometry.ArcAngle) > 0) ^ (Direction == TrackDirection.Reverse) ? -1 : 1;
+            float elevation = CurrentSectionGeometry.MaxElevation * sign;
+
+            if (SectionOffset < CurrentSectionGeometry.Length / 2)
+            {
+                // Start of the curve; ramp up unless StartElevation is already at full tilt.
+                if (MathF.Abs(CurrentSectionGeometry.StartElevation) < 0.001f)
+                    return elevation * (float)(SectionOffset * 2 / CurrentSectionGeometry.Length);
+                return elevation;
+            }
+
+            // End of the curve; ramp down unless EndElevation is already at full tilt.
+            if (MathF.Abs(CurrentSectionGeometry.EndElevation) < 0.001f)
+                return elevation * (float)((CurrentSectionGeometry.Length - SectionOffset) * 2 / CurrentSectionGeometry.Length);
+            return elevation;
+        }
+
+        /// <summary>
+        /// Returns the average super-elevation over this position and a position
+        /// <paramref name="smoothingOffset"/> metres ahead, providing a smoothed value
+        /// for rendering purposes.
+        /// Equivalent to the legacy <c>Traveller.GetSuperElevation(float)</c>.
+        /// </summary>
+        public float GetSuperElevation(float smoothingOffset)
+        {
+            return (GetSuperElevation() + Move(smoothingOffset).GetSuperElevation()) / 2;
+        }
+
+        /// <summary>
+        /// Returns the desired body-tilt Z-rotation in radians for a vehicle travelling at
+        /// <paramref name="speedMpS"/> metres per second, based on curve direction.
+        /// Returns <c>0</c> when speed is below 12 m/s (~43 km/h), the section is straight,
+        /// or the traveller is not on track.
+        /// Equivalent to the legacy <c>Traveller.FindTiltedZ(float)</c>.
+        /// </summary>
+        public float FindTiltedZ(float speedMpS)
+        {
+            if (speedMpS < 12 || !OnTrack)
+                return 0f;
+            if (CurrentSectionGeometry?.HasGeometry != true || !CurrentSectionGeometry.Curved)
+                return 0f;
+            float maxv = 0.14f * speedMpS / 40f;
+            int sign = -Math.Sign((float)CurrentSectionGeometry.ArcAngle);
+            float desiredZ = (Direction == TrackDirection.Ahead ? 1 : -1) * sign > 0 ? 1f : -1f;
+            return desiredZ * maxv;
+        }
+
         // Moves remaining metres using mutable locals; forward=true advances through VectorSections, false retreats.
         // Halts silently at an EndNode; the caller receives the pinned boundary position.
         private TrackTraveller MoveInternal(double remaining, bool forward)
@@ -496,7 +640,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             WorldLocation newLocation = trackWorld.ComputeSectionLocation(node, index, offset);
             TrackDirection newDirection = forward ? TrackDirection.Ahead : TrackDirection.Reverse;
-            return this with { CurrentNode = node, SectionIndex = index, SectionOffset = offset, Location = newLocation, Direction = newDirection };
+            return this with { CurrentNode = node, SectionIndex = index, CurrentSectionGeometry = ResolveGeometry(node, index), SectionOffset = offset, Location = newLocation, Direction = newDirection };
         }
 
         // Walks sections in the given direction, matching the target traveller by node reference and section index.

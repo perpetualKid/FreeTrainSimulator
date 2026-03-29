@@ -620,9 +620,9 @@ namespace Orts.Formats.Msts
             int sign = Math.Sign(trackSection.Angle) > 0 ^ direction == Direction.Backward ? -1 : 1;
             float trackOffsetReverse = trackLength - trackVectorSectionOffset;
 
-            float startingElevation = trackVectorSection.StartElev;
-            float endingElevation = trackVectorSection.EndElev;
-            float elevation = trackVectorSection.MaxElev * sign;
+            float startingElevation = trackVectorSection.StartElevation;
+            float endingElevation = trackVectorSection.EndElevation;
+            float elevation = trackVectorSection.MaxElevation * sign;
 
             // Check if there is no super-elevation at all.
             if (elevation.AlmostEqual(0f, 0.001f))

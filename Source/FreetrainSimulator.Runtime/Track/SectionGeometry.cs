@@ -47,6 +47,34 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>Tangent at the section start in the direction toward the section end (arc basis vector <i>v</i>).</summary>
         public Vector3 V { get; }
 
+        // ── Super-elevation (valid only for curved sections; set by SuperElevation at sim start) ──
+
+        /// <summary>Super-elevation rotation (radians) at the start of the section.
+        /// Zero means the section ramps up from zero; non-zero means it is already at full tilt.
+        /// Set by <c>Orts.Simulation.SuperElevation</c> via <see cref="SetElevation"/> after track geometry is loaded.</summary>
+        public float StartElevation { get; private set; }
+
+        /// <summary>Super-elevation rotation (radians) at the end of the section.
+        /// Zero means the section ramps back down to zero; non-zero means it stays at full tilt.
+        /// Set by <c>Orts.Simulation.SuperElevation</c> via <see cref="SetElevation"/> after track geometry is loaded.</summary>
+        public float EndElevation { get; private set; }
+
+        /// <summary>Maximum (peak) super-elevation rotation (radians) for this section.
+        /// Zero when no super-elevation applies.
+        /// Set by <c>Orts.Simulation.SuperElevation</c> via <see cref="SetElevation"/> after track geometry is loaded.</summary>
+        public float MaxElevation { get; private set; }
+
+        /// <summary>
+        /// Sets all three super-elevation values in a single call.
+        /// Intended to be called once by <c>Orts.Simulation.SuperElevation</c> during simulation initialisation.
+        /// </summary>
+        public void SetElevation(float startElevation, float endElevation, float maxElevation)
+        {
+            StartElevation = startElevation;
+            EndElevation = endElevation;
+            MaxElevation = maxElevation;
+        }
+
         internal SectionGeometry(VectorNode node, int sectionIndex, TrackSection trackSection, VectorSectionNode section)
         {
             Node = node;
