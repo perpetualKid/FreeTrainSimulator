@@ -121,6 +121,47 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Total track length of the current <see cref="VectorNode"/> in metres.
+        /// Sums the lengths of all <see cref="VectorSectionNode"/> sections in <see cref="CurrentNode"/>.
+        /// Returns <c>0</c> when the traveller is not on track.
+        /// Equivalent to the legacy <c>Traveller.TrackNodeLength</c>.
+        /// </summary>
+        public double NodeLength
+        {
+            get
+            {
+                if (!OnTrack)
+                    return 0.0;
+                double length = 0.0;
+                for (int i = 0; i < CurrentNode.VectorSections.Length; i++)
+                    length += trackWorld.SectionLength(CurrentNode, i);
+                return length;
+            }
+        }
+
+        /// <summary>
+        /// Distance in metres from the start of the current <see cref="VectorNode"/> to the traveller's
+        /// position, measured in the current <see cref="Direction"/> of travel.
+        /// Returns <c>0</c> when the traveller is not on track.
+        /// Equivalent to the legacy <c>Traveller.TrackNodeOffset</c>.
+        /// </summary>
+        public double NodeOffset
+        {
+            get
+            {
+                if (!OnTrack)
+                    return 0.0;
+                double offset = 0.0;
+                for (int i = 0; i < SectionIndex; i++)
+                    offset += trackWorld.SectionLength(CurrentNode, i);
+                offset += SectionOffset;
+                if (Direction == TrackDirection.Reverse)
+                    offset = NodeLength - offset;
+                return offset;
+            }
+        }
+
+        /// <summary>
         /// Builds (or rebuilds) the shared ownership map from every <see cref="VectorSectionNode"/> instance
         /// to its parent <see cref="VectorNode"/>, section index, and resolved <see cref="TrackSection"/>,
         /// covering both the rail (<see cref="TrackModel.TrackDatabase"/>) and road
@@ -281,6 +322,34 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Returns a new <see cref="TrackTraveller"/> placed directly at the specified
+        /// <paramref name="node"/>, <paramref name="sectionIndex"/>, and <paramref name="sectionOffset"/>
+        /// without any geometry snapping.
+        /// Intended for deserialization and turntable/transfer-table repositioning where the exact
+        /// node, section, and offset are already known.
+        /// </summary>
+        /// <param name="node">The <see cref="VectorNode"/> to place the traveller on.</param>
+        /// <param name="sectionIndex">Zero-based index of the section within <paramref name="node"/>.</param>
+        /// <param name="sectionOffset">Offset in metres from the start of the section.</param>
+        /// <param name="direction">Direction of travel on <paramref name="node"/>.</param>
+        /// <param name="trackDataBaseType">Rail or road database.</param>
+        /// <returns>A new <see cref="TrackTraveller"/> at the specified position.</returns>
+        public static TrackTraveller InitializeTraveller(VectorNode node, int sectionIndex, double sectionOffset,
+            TrackDirection direction = TrackDirection.Ahead, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        {
+            ArgumentNullException.ThrowIfNull(node);
+            return new TrackTraveller(trackDataBaseType)
+            {
+                CurrentNode = node,
+                SectionIndex = sectionIndex,
+                CurrentSectionGeometry = ResolveGeometry(node, sectionIndex),
+                SectionOffset = sectionOffset,
+                Location = trackWorld.ComputeSectionLocation(node, sectionIndex, sectionOffset),
+                Direction = direction,
+            };
+        }
+
+        /// <summary>
         /// Returns a new <see cref="TrackTraveller"/> moved <paramref name="distance"/> metres along the track,
         /// crossing <see cref="VectorSectionNode"/> and <see cref="VectorNode"/> boundaries as needed.
         /// This instance is not modified.
@@ -360,6 +429,62 @@ namespace FreeTrainSimulator.Runtime.Track
                 ? InitializeTraveller(location, restrictToNode)
                 : InitializeTraveller(location, TrackDataBaseType);
             return target.HasValue ? DistanceTo(target.Value, maxDistance) : null;
+        }
+
+        /// <summary>
+        /// Returns the signed overlap distance in metres between this traveller and <paramref name="other"/>
+        /// for coupling/collision detection.
+        /// Returns a positive value when the travellers are not overlapping, negative when they are.
+        /// Equivalent to the legacy <c>Traveller.OverlapDistanceM(Traveller, bool)</c>.
+        /// </summary>
+        /// <param name="other">The other traveller to compare against.</param>
+        /// <param name="rear"><see langword="true"/> when checking from the rear of the driven train.</param>
+        public float OverlapDistanceM(in TrackTraveller other, bool rear)
+        {
+            Tile delta = Location.Tile - other.Location.Tile;
+            float dx = Location.Location.X - other.Location.Location.X + 2048 * delta.X;
+            float dz = Location.Location.Z - other.Location.Location.Z + 2048 * delta.Z;
+            float dy = Location.Location.Y - other.Location.Location.Y;
+            if (dx * dx + dz * dz > 1)
+                return 1;
+            if (Math.Abs(dy) > 1)
+                return 1;
+            float heading = Heading;
+            float dot = dx * MathF.Sin(heading) + dz * MathF.Cos(heading);
+            return rear ? dot : -dot;
+        }
+
+        /// <summary>
+        /// Returns the signed overlap distance in metres for multiplayer coupling checks where standard
+        /// proximity tests may be insufficient due to network latency.
+        /// Equivalent to the legacy <c>Traveller.RoughOverlapDistanceM</c>.
+        /// </summary>
+        public float RoughOverlapDistanceM(in TrackTraveller other, in TrackTraveller farMe, in TrackTraveller farOther, float lengthMe, float lengthOther, bool rear)
+        {
+            float dy = Location.Location.Y - other.Location.Location.Y;
+            if (Math.Abs(dy) > 1)
+                return 1;
+            Tile tileDelta = farMe.Location.Tile - other.Location.Tile;
+            float dx = farMe.Location.Location.X - other.Location.Location.X + 2048 * tileDelta.X;
+            float dz = farMe.Location.Location.Z - other.Location.Location.Z + 2048 * tileDelta.Z;
+            if (dx * dx + dz * dz > lengthMe * lengthMe)
+                return 1;
+            tileDelta = Location.Tile - farOther.Location.Tile;
+            dx = Location.Location.X - farOther.Location.Location.X + 2048 * tileDelta.X;
+            dz = Location.Location.Z - farOther.Location.Location.Z + 2048 * tileDelta.Z;
+            if (dx * dx + dz * dz > lengthOther * lengthOther)
+                return 1;
+            tileDelta = Location.Tile - other.Location.Tile;
+            dx = Location.Location.X - other.Location.Location.X + 2048 * tileDelta.X;
+            dz = Location.Location.Z - other.Location.Location.Z + 2048 * tileDelta.Z;
+            float diagonal = dx * dx + dz * dz;
+            if (diagonal < 200 && diagonal < (lengthMe + lengthOther) * (lengthMe + lengthOther))
+            {
+                float heading = Heading;
+                float dot = dx * MathF.Sin(heading) + dz * MathF.Cos(heading);
+                return rear ? dot : -dot;
+            }
+            return 1;
         }
 
         /// <summary>
