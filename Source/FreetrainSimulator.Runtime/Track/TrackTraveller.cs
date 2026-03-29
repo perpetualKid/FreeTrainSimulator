@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Track;
 
@@ -19,7 +20,7 @@ namespace FreeTrainSimulator.Runtime.Track
     /// Each instance is immutable; <see cref="Move"/> and <see cref="InitializeTraveller"/> return new instances
     /// rather than mutating state, enabling snapshot and look-ahead semantics.
     /// </summary>
-    public readonly record struct TrackTraveller
+    public readonly record struct TrackTraveller : ISaveStateApi<TrackTravellerSaveState>
     {
         private static TrackWorld trackWorld;
 
@@ -353,6 +354,18 @@ namespace FreeTrainSimulator.Runtime.Track
                 TrackDataBaseType = TrackDataBaseType,
             });
         }
+
+        /// <summary>
+        /// Not supported. <see cref="TrackTraveller"/> is a <see langword="readonly record struct"/>;
+        /// <see langword="this"/> cannot be reassigned by an instance method.
+        /// Use <see cref="TrackTravellerSaveState"/> as an <see cref="ISaveStateRestoreApi{TSaveState,TRuntime}"/>
+        /// activator to create a restored instance via <c>CreateRuntimeTarget(saveState)</c>,
+        /// or call the static <see cref="InitializeTraveller(TrackTravellerSaveState)"/> factory directly.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown.</exception>
+        public ValueTask Restore(TrackTravellerSaveState saveState)
+            => throw new NotSupportedException(
+                $"{nameof(TrackTraveller)} is immutable. Use {nameof(TrackTravellerSaveState)}.{nameof(ISaveStateRestoreApi<TrackTravellerSaveState, TrackTraveller>.CreateRuntimeTarget)} or the static {nameof(InitializeTraveller)} factory to restore.");
 
         /// <summary>
         /// Restores a <see cref="TrackTraveller"/> from a previously taken <see cref="TrackTravellerSaveState"/>,

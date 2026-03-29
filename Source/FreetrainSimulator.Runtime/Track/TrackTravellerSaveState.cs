@@ -13,7 +13,7 @@ namespace FreeTrainSimulator.Runtime.Track
     /// Properties must stay in declaration order for MemoryPack version tolerance.
     /// </summary>
     [MemoryPackable]
-    public sealed partial class TrackTravellerSaveState : SaveStateBase
+    public sealed partial class TrackTravellerSaveState : SaveStateBase, ISaveStateRestoreApi<TrackTravellerSaveState, TrackTraveller>
     {
         /// <summary>Zero-based node index into the rail or road <c>TrackDatabase.TrackNodes</c> array.</summary>
         public int TrackNodeIndex { get; set; }
@@ -29,5 +29,12 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>Whether the traveller was on the rail or road database.</summary>
         public TrackDataBaseType TrackDataBaseType { get; set; }
+
+        /// <summary>
+        /// Creates a restored <see cref="TrackTraveller"/> from <paramref name="saveState"/>.
+        /// Returns a default (off-track) traveller when the save state references an invalid node or section.
+        /// </summary>
+        public TrackTraveller CreateRuntimeTarget(TrackTravellerSaveState saveState)
+            => TrackTraveller.InitializeTraveller(saveState) ?? default;
     }
 }
