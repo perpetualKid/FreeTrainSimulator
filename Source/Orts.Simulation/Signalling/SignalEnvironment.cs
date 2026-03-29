@@ -1238,10 +1238,12 @@ namespace Orts.Simulation.Signalling
             TrackVectorNode tvn = trackNodes[circuit.OriginalIndex] as TrackVectorNode;
             if (tvn != null && tvn.TrackItemIndices.Length > 0)
             {
-                // Create TDBtraveller at start of section to calculate distances
+                // Create traveller at start of section to calculate distances
+                VectorNode vectorNode = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodes[tvn.Index] as VectorNode;
                 TrackVectorSection firstSection = tvn.TrackVectorSections[0];
-                Traveller traveller = new Traveller(tvn, firstSection.Location, Direction.Forward);
-
+                TrackTraveller? traveller = TrackTraveller.InitializeTraveller(firstSection.Location, vectorNode, TrackDirection.Ahead);
+                if (traveller == null)
+                    return;
 
                 // Process all items (do not split yet)
                 float[] lastDistance = new float[2] { -1.0f, -1.0f };
@@ -1250,7 +1252,7 @@ namespace Orts.Simulation.Signalling
                     int tdbRef = tvn.TrackItemIndices[i];
                     if (trackItems[tdbRef] != null)
                     {
-                        lastDistance = InsertNode(circuit, trackItems[tdbRef], traveller, tvn, lastDistance, crossoverList);
+                        lastDistance = InsertNode(circuit, trackItems[tdbRef], traveller.Value, tvn, lastDistance, crossoverList);
                     }
                 }
             }
@@ -1259,7 +1261,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// InsertNode
         /// </summary>
-        private float[] InsertNode(TrackCircuitSection circuit, TrackItem trackItem, Traveller traveller, TrackNode circuitNode, float[] lastDistance, Dictionary<int, CrossOverInfo> crossoverList)
+        private float[] InsertNode(TrackCircuitSection circuit, TrackItem trackItem, in TrackTraveller traveller, TrackNode circuitNode, float[] lastDistance, Dictionary<int, CrossOverInfo> crossoverList)
         {
 
             float[] newLastDistance = new float[2] { lastDistance[0], lastDistance[1] };
@@ -1348,7 +1350,7 @@ namespace Orts.Simulation.Signalling
                     {
                         Milepost milepost = milepostList[speedItem.SignalObject];
                         TrackItem milepostTrItem = trackDB.TrackItems[milepost.TrackItemId];
-                        float milepostDistance = traveller.DistanceTo(milepostTrItem.Location);
+                        float milepostDistance = traveller.DistanceTo(milepostTrItem.Location) ?? -1f;
 
                         TrackCircuitMilepost trackCircuitItem = new TrackCircuitMilepost(milepost, milepostDistance, circuit.Length - milepostDistance);
 
@@ -1359,7 +1361,8 @@ namespace Orts.Simulation.Signalling
             // Insert crossover in special crossover list
             else if (trackItem is CrossoverItem crossOver)
             {
-                float cdist = traveller.DistanceTo(circuitNode, crossOver.Location);
+                float cdist = traveller.DistanceTo(crossOver.Location,
+                    RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodes[circuitNode.Index] as VectorNode) ?? -1f;
 
                 int crossOverId = crossOver.TrackItemId;
                 int crossId = crossOver.TrackNode;

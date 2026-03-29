@@ -1611,6 +1611,14 @@ namespace Orts.Simulation.Signalling
         }
 
         /// <summary>
+        /// Returns the distance in metres from the given traveller to this signal along the track.
+        /// </summary>
+        public float DistanceTo(in TrackTraveller trackTraveller)
+        {
+            return trackTraveller.DistanceTo(this.TrackTraveller) ?? -1f;
+        }
+
+        /// <summary>
         /// Returns the distance from this object to the next object
         /// </summary>
         public float ObjectDistance(Signal nextSignal)

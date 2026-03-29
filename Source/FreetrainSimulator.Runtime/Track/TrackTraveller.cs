@@ -333,6 +333,36 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Calculates the distance in metres along the track from this traveller's current position
+        /// to the nearest snapped point to <paramref name="location"/>, travelling in the current <see cref="Direction"/>.
+        /// Returns <see langword="null"/> if the location cannot be snapped to track or is not reachable in the current direction.
+        /// </summary>
+        /// <param name="location">The world location to measure to.</param>
+        /// <param name="maxDistance">Maximum track distance to search. Defaults to <see cref="float.MaxValue"/>.</param>
+        public float? DistanceTo(in WorldLocation location, float maxDistance = float.MaxValue)
+        {
+            TrackTraveller? target = InitializeTraveller(location, TrackDataBaseType);
+            return target.HasValue ? DistanceTo(target.Value, maxDistance) : null;
+        }
+
+        /// <summary>
+        /// Calculates the distance in metres along the track from this traveller's current position
+        /// to the nearest snapped point to <paramref name="location"/> on <paramref name="restrictToNode"/>,
+        /// travelling in the current <see cref="Direction"/>.
+        /// Returns <see langword="null"/> if the location cannot be snapped onto the node or is not reachable in the current direction.
+        /// </summary>
+        /// <param name="location">The world location to measure to.</param>
+        /// <param name="restrictToNode">The <see cref="VectorNode"/> to restrict the snap to.</param>
+        /// <param name="maxDistance">Maximum track distance to search. Defaults to <see cref="float.MaxValue"/>.</param>
+        public float? DistanceTo(in WorldLocation location, VectorNode restrictToNode, float maxDistance = float.MaxValue)
+        {
+            TrackTraveller? target = restrictToNode != null
+                ? InitializeTraveller(location, restrictToNode)
+                : InitializeTraveller(location, TrackDataBaseType);
+            return target.HasValue ? DistanceTo(target.Value, maxDistance) : null;
+        }
+
+        /// <summary>
         /// Returns a new <see cref="TrackTraveller"/> positioned at the start of the next
         /// <see cref="VectorSectionNode"/> in the current direction of travel.
         /// Advances within the same <see cref="VectorNode"/> when possible; otherwise crosses the
