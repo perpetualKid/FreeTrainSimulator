@@ -158,6 +158,36 @@ namespace FreeTrainSimulator.Runtime.Track
             => SectionLength(node?.VectorSections[sectionIndex] ?? null);
 
         /// <summary>
+        /// Returns the total length in metres of all sections in <paramref name="node"/>,
+        /// or <c>0.0</c> when <paramref name="node"/> is <see langword="null"/> or has no sections.
+        /// </summary>
+        public double VectorNodeLength(VectorNode node)
+        {
+            if (node == null)
+                return 0.0;
+            double length = 0.0;
+            for (int i = 0; i < node.VectorSections.Length; i++)
+                length += SectionLength(node, i);
+            return length;
+        }
+
+        /// <summary>
+        /// Returns the cumulative length in metres from the start of <paramref name="node"/> to the start
+        /// of the section at <paramref name="sectionIndex"/> (i.e. the sum of lengths of sections 0 through
+        /// <paramref name="sectionIndex"/>&#x202F;−&#x202F;1).
+        /// Returns <c>0.0</c> when <paramref name="node"/> is <see langword="null"/> or <paramref name="sectionIndex"/> is 0.
+        /// </summary>
+        public double SectionOffset(VectorNode node, int sectionIndex)
+        {
+            if (node == null || sectionIndex <= 0)
+                return 0.0;
+            double offset = 0.0;
+            for (int i = 0; i < sectionIndex; i++)
+                offset += SectionLength(node, i);
+            return offset;
+        }
+
+        /// <summary>
         /// Returns the <see cref="JunctionNode"/> closest to
         /// or <see langword="null"/> if none exists within the threshold.
         /// Pass a positive <paramref name="tileRadius"/> to widen the search area beyond the home tile.

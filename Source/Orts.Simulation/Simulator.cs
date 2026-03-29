@@ -1016,7 +1016,9 @@ namespace Orts.Simulation
             if (train == drivenTrain.UncoupledFrom && d1 > .5 && d2 > .5)
             {
                 Traveller traveller = rear ? drivenTrain.RearTDBTraveller : drivenTrain.FrontTDBTraveller;
+                //TODO: when Train is migrated to TrackTraveller, inline coupling geometry here (tile-aware dx/dz + heading projection) instead of calling OverlapDistanceM on Traveller
                 float d3 = traveller.OverlapDistanceM(train.FrontTDBTraveller, rear);
+                //TODO: when Train is migrated to TrackTraveller, inline coupling geometry here (tile-aware dx/dz + heading projection) instead of calling OverlapDistanceM on Traveller
                 float d4 = traveller.OverlapDistanceM(train.RearTDBTraveller, rear);
                 if (d3 > .5 && d4 > .5)
                 {
@@ -1042,10 +1044,12 @@ namespace Orts.Simulation
                         if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(drivenTrain, train))
                             continue;
 
+                        //TODO: when Train is migrated to TrackTraveller, inline coupling geometry here (tile-aware dx/dz + heading projection) instead of calling OverlapDistanceM on Traveller
                         float d1 = drivenTrain.RearTDBTraveller.OverlapDistanceM(train.FrontTDBTraveller, true);
                         // Give another try if multiplayer
                         if (d1 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
                             drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex == train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex && drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex != -1)
+                            //TODO: when Train is migrated to TrackTraveller, inline coupling geometry here instead of calling RoughOverlapDistanceM on Traveller
                             d1 = drivenTrain.RearTDBTraveller.RoughOverlapDistanceM(train.FrontTDBTraveller, drivenTrain.FrontTDBTraveller, train.RearTDBTraveller, drivenTrain.Length, train.Length, true);
                         if (d1 < 0)
                         {
@@ -1070,10 +1074,12 @@ namespace Orts.Simulation
                             FinishRearCoupling(drivenTrain, train, true);
                             return;
                         }
+                        //TODO: when Train is migrated to TrackTraveller, inline coupling geometry here (tile-aware dx/dz + heading projection) instead of calling OverlapDistanceM on Traveller
                         float d2 = drivenTrain.RearTDBTraveller.OverlapDistanceM(train.RearTDBTraveller, true);
                         // Give another try if multiplayer
                         if (d2 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
                             drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex == train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex && drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex != -1)
+                            //TODO: when Train is migrated to TrackTraveller, inline coupling geometry here instead of calling RoughOverlapDistanceM on Traveller
                             d2 = drivenTrain.RearTDBTraveller.RoughOverlapDistanceM(train.RearTDBTraveller, drivenTrain.FrontTDBTraveller, train.FrontTDBTraveller, drivenTrain.Length, train.Length, true);
                         if (d2 < 0)
                         {
