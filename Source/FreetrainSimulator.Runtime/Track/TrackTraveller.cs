@@ -61,7 +61,7 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             if (node == null)
                 return null;
-            trackWorld.SectionGeometry.TryGetValue(node.VectorSections[sectionIndex], out SectionGeometry result);
+            _ = trackWorld.SectionGeometry.TryGetValue(node.VectorSections[sectionIndex], out SectionGeometry result);
             return result;
         }
 
@@ -99,9 +99,9 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             get
             {
-                if (!OnTrack || CurrentSectionGeometry?.HasGeometry != true)
-                    return 0.0;
-                return CurrentSectionGeometry.Curved ? CurrentSectionGeometry.Radius : 0.0;
+                return !OnTrack || CurrentSectionGeometry?.HasGeometry != true
+                    ? 0.0
+                    : CurrentSectionGeometry.Curved ? CurrentSectionGeometry.Radius : 0.0;
             }
         }
 
@@ -114,9 +114,9 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             get
             {
-                if (!OnTrack || CurrentSectionGeometry?.HasGeometry != true)
-                    return 0.0;
-                return CurrentSectionGeometry.Curved ? CurrentSectionGeometry.ArcAngle : 0.0;
+                return !OnTrack || CurrentSectionGeometry?.HasGeometry != true
+                    ? 0.0
+                    : CurrentSectionGeometry.Curved ? CurrentSectionGeometry.ArcAngle : 0.0;
             }
         }
 
@@ -220,14 +220,14 @@ namespace FreeTrainSimulator.Runtime.Track
             return bestGeometry == null
                 ? null
                 : new TrackTraveller(trackDataBaseType)
-            {
-                CurrentNode = bestGeometry.Node,
-                SectionIndex = bestGeometry.SectionIndex,
-                CurrentSectionGeometry = ResolveGeometry(bestGeometry.Node, bestGeometry.SectionIndex),
-                SectionOffset = bestOffset,
-                Location = bestSnapped,
-                Direction = direction,
-            };
+                {
+                    CurrentNode = bestGeometry.Node,
+                    SectionIndex = bestGeometry.SectionIndex,
+                    CurrentSectionGeometry = ResolveGeometry(bestGeometry.Node, bestGeometry.SectionIndex),
+                    SectionOffset = bestOffset,
+                    Location = bestSnapped,
+                    Direction = direction,
+                };
         }
 
         /// <summary>
@@ -270,14 +270,14 @@ namespace FreeTrainSimulator.Runtime.Track
             return bestIndex < 0
                 ? null
                 : new TrackTraveller(trackDataBaseType)
-            {
-                CurrentNode = node,
-                SectionIndex = bestIndex,
-                CurrentSectionGeometry = ResolveGeometry(node, bestIndex),
-                SectionOffset = bestOffset,
-                Location = bestSnapped,
-                Direction = direction,
-            };
+                {
+                    CurrentNode = node,
+                    SectionIndex = bestIndex,
+                    CurrentSectionGeometry = ResolveGeometry(node, bestIndex),
+                    SectionOffset = bestOffset,
+                    Location = bestSnapped,
+                    Direction = direction,
+                };
         }
 
         /// <summary>
@@ -305,6 +305,13 @@ namespace FreeTrainSimulator.Runtime.Track
 
             return MoveInternal(distance, forward);
         }
+
+        /// <summary>
+        /// Returns a new <see cref="TrackTraveller"/> with the direction of travel reversed,
+        /// at the same position. Immutable equivalent of the legacy <c>Traveller.ReverseDirection()</c>.
+        /// </summary>
+        public TrackTraveller Reverse()
+            => this with { Direction = Direction.Reverse() };
 
         /// <summary>
         /// Calculates the distance in metres along the track from this traveller's current position
@@ -347,14 +354,26 @@ namespace FreeTrainSimulator.Runtime.Track
             if (forward && SectionIndex < CurrentNode.VectorSections.Length - 1)
             {
                 int next = SectionIndex + 1;
-                return this with { SectionIndex = next, CurrentSectionGeometry = ResolveGeometry(CurrentNode, next), SectionOffset = 0, Location = trackWorld.ComputeSectionLocation(CurrentNode, next, 0) };
+                return this with
+                {
+                    SectionIndex = next,
+                    CurrentSectionGeometry = ResolveGeometry(CurrentNode, next),
+                    SectionOffset = 0,
+                    Location = trackWorld.ComputeSectionLocation(CurrentNode, next, 0)
+                };
             }
 
             if (!forward && SectionIndex > 0)
             {
                 int next = SectionIndex - 1;
                 double offset = trackWorld.SectionLength(CurrentNode, next);
-                return this with { SectionIndex = next, CurrentSectionGeometry = ResolveGeometry(CurrentNode, next), SectionOffset = offset, Location = trackWorld.ComputeSectionLocation(CurrentNode, next, offset) };
+                return this with
+                {
+                    SectionIndex = next,
+                    CurrentSectionGeometry = ResolveGeometry(CurrentNode, next),
+                    SectionOffset = offset,
+                    Location = trackWorld.ComputeSectionLocation(CurrentNode, next, offset)
+                };
             }
 
             // At a node boundary — attempt to cross it.
@@ -500,9 +519,9 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         public float GetCurvature()
         {
-            if (!OnTrack || CurrentSectionGeometry?.HasGeometry != true || !CurrentSectionGeometry.Curved)
-                return 0f;
-            return (float)(Math.Sign(CurrentSectionGeometry.ArcAngle) / CurrentSectionGeometry.Radius);
+            return !OnTrack || CurrentSectionGeometry?.HasGeometry != true || !CurrentSectionGeometry.Curved
+                ? 0f
+                : (float)(Math.Sign(CurrentSectionGeometry.ArcAngle) / CurrentSectionGeometry.Radius);
         }
 
         /// <summary>
@@ -525,15 +544,15 @@ namespace FreeTrainSimulator.Runtime.Track
             if (SectionOffset < CurrentSectionGeometry.Length / 2)
             {
                 // Start of the curve; ramp up unless StartElevation is already at full tilt.
-                if (MathF.Abs(CurrentSectionGeometry.StartElevation) < 0.001f)
-                    return elevation * (float)(SectionOffset * 2 / CurrentSectionGeometry.Length);
-                return elevation;
+                return MathF.Abs(CurrentSectionGeometry.StartElevation) < 0.001f
+                    ? elevation * (float)(SectionOffset * 2 / CurrentSectionGeometry.Length)
+                    : elevation;
             }
 
             // End of the curve; ramp down unless EndElevation is already at full tilt.
-            if (MathF.Abs(CurrentSectionGeometry.EndElevation) < 0.001f)
-                return elevation * (float)((CurrentSectionGeometry.Length - SectionOffset) * 2 / CurrentSectionGeometry.Length);
-            return elevation;
+            return MathF.Abs(CurrentSectionGeometry.EndElevation) < 0.001f
+                ? elevation * (float)((CurrentSectionGeometry.Length - SectionOffset) * 2 / CurrentSectionGeometry.Length)
+                : elevation;
         }
 
         /// <summary>
@@ -832,6 +851,6 @@ namespace FreeTrainSimulator.Runtime.Track
             return (WorldLocation.PointAlongArc(section.Location, section.EndLocation, geom.ArcAngle, geom.Radius, arcLengthMetres), arcLengthMetres);
         }
 
-            }
-        }
+    }
+}
 

@@ -115,11 +115,11 @@ namespace Orts.Simulation
                 {
                     if (RuntimeData.Instance.TrackDB.TrackNodes[vectorNode.NodeIndex] is not TrackVectorNode tvn)
                         continue;
-                    foreach (VectorSectionNode section in vectorNode.VectorSections)
+                    foreach ((VectorSectionNode Item, int Index) section in vectorNode.VectorSections.IndexedSelect())
                     {
-                        if (trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry))
+                        if (trackWorld.SectionGeometry.TryGetValue(section.Item, out SectionGeometry sectionGeometry))
                         {
-                            TrackVectorSection oldSection = tvn.TrackVectorSections[section.NodeIndex];
+                            TrackVectorSection oldSection = tvn.TrackVectorSections[section.Index];
                             if (oldSection.MaxElevation == 0f)
                                 continue;
                             sectionGeometry.SetElevation(oldSection.StartElevation, oldSection.EndElevation, oldSection.MaxElevation);

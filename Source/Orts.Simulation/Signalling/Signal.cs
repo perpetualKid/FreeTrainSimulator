@@ -29,6 +29,7 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -93,7 +94,7 @@ namespace Orts.Simulation.Signalling
         public int TrackItemRefIndex { get; internal set; } // Index to TrItemRef within Track Node 
         public bool ForcePropagation { get; set; }          // Force propagation (used in case of signals at very short distance)
         public bool FixedRoute { get; private set; }        // signal has fixed route
-        public Traveller TdbTraveller { get; }              // TDB traveller to determine distance between objects
+        public TrackTraveller TrackTraveller { get; internal set; }              // TDB traveller to determine distance between objects
         public TrackCircuitPartialPathRoute SignalRoute { get; internal set; } = new TrackCircuitPartialPathRoute();  // train route from signal
         public int TrainRouteIndex { get; private set; }    // index of section after signal in train route list
         public Train.TrainRouted EnabledTrain { get; internal set; } // full train structure for which signal is enabled
@@ -125,7 +126,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         ///  Constructor for empty item
         /// </summary>
-        public Signal(int reference, SignalCategory category, Traveller traveller)
+        public Signal(int reference, SignalCategory category, TrackTraveller traveller)
         {
             Index = reference;
             lockedTrains = new List<(int Key, int Path)>();
@@ -138,7 +139,7 @@ namespace Orts.Simulation.Signalling
                 defaultNextSignal[i] = -1;
             }
             SignalType = category;
-            TdbTraveller = traveller;
+            TrackTraveller = traveller;
         }
 
         /// <summary>
@@ -178,7 +179,7 @@ namespace Orts.Simulation.Signalling
             internalBlockState = source.internalBlockState;
             OverridePermission = source.OverridePermission;
 
-            TdbTraveller = new Traveller(source.TdbTraveller);
+            TrackTraveller = source.TrackTraveller;
 
             Signalfound = new List<int>(source.Signalfound);
             defaultNextSignal = new int[source.defaultNextSignal.Length];
@@ -1616,8 +1617,7 @@ namespace Orts.Simulation.Signalling
         {
             ArgumentNullException.ThrowIfNull(nextSignal);
 
-            int nextTrItem = (trackNodes[nextSignal.TrackNode] as TrackVectorNode).TrackItemIndices[nextSignal.TrackItemRefIndex];
-            return TdbTraveller.DistanceTo(trackItems[nextTrItem].Location);
+            return TrackTraveller.DistanceTo(nextSignal.TrackTraveller) ?? -1f;
         }
 
         /// <summary>
@@ -2015,8 +2015,8 @@ namespace Orts.Simulation.Signalling
             }
             if (train.Train is AITrain aitrain && Math.Abs(train.Train.SpeedMpS) <= Simulator.MaxStoppedMpS)
             {
-                ref readonly WorldLocation location = ref TdbTraveller.WorldLocation;
-                aitrain.AuxActionsContainer.CheckGenActions(GetType(), location, 0f, 0f, TdbTraveller.TrackNode.Index);
+                WorldLocation location = TrackTraveller.Location;
+                aitrain.AuxActionsContainer.CheckGenActions(GetType(), location, 0f, 0f, TrackTraveller.TrackNodeIndex);
             }
 
             return SignalMR(SignalFunction.Normal) != SignalAspectState.Stop;

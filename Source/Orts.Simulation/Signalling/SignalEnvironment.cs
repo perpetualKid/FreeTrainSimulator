@@ -30,6 +30,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
@@ -478,7 +479,7 @@ namespace Orts.Simulation.Signalling
                             if (signal.TrackDirection != oldItem.Direction)
                             {
                                 signal.TrackDirection = oldItem.Direction;
-                                signal.TdbTraveller.ReverseDirection();                           // reverse //
+                                signal.TrackTraveller = signal.TrackTraveller.Reverse();                           // reverse //
                             }
                         }
 
@@ -486,7 +487,7 @@ namespace Orts.Simulation.Signalling
                         if (newSignal.TrackDirection != newItem.Direction)
                         {
                             newSignal.TrackDirection = newItem.Direction;
-                            newSignal.TdbTraveller.ReverseDirection();                           // reverse //
+                            newSignal.TrackTraveller = newSignal.TrackTraveller.Reverse();                           // reverse //
                         }
 
                         // set correct trRefIndex for this signal, and set cross-reference for all backfacing trRef items
@@ -665,16 +666,21 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private bool AddSignal(int trackNode, int nodeIndex, SignalItem sigItem, int tdbRef, Dictionary<int, Signal> signalHeadList)
         {
-            TrackVectorNode tvn = trackDB.TrackNodes.VectorNodes[trackNode];
-            if (tvn == null)
+            VectorNode vectorNode = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodes[trackNode] as VectorNode;
+            if (vectorNode == null)
             {
                 Trace.TraceInformation("Reference to invalid track node {0} for Signal {1}\n", trackNode, tdbRef);
                 return false;
             }
 
-            Traveller traveller = new Traveller(tvn, sigItem.Location, (Direction)sigItem.Direction);
+            TrackTraveller? traveller = TrackTraveller.InitializeTraveller(sigItem.Location, vectorNode, sigItem.Direction);
+            if (!traveller.HasValue)
+            {
+                Trace.TraceInformation("Cannot place traveller for Signal {0} at track node {1}\n", tdbRef, trackNode);
+                return false;
+            }
 
-            Signal signal = new Signal(Signals.Count, SignalCategory.Signal, traveller)
+            Signal signal = new Signal(Signals.Count, SignalCategory.Signal, traveller.Value)
             {
                 TrackDirection = sigItem.Direction,
                 TrackNode = trackNode,
@@ -699,27 +705,28 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef)
         {
-            Traveller traveller = new Traveller(trackDB.TrackNodes.VectorNodes[trackNode], speedItem.Location, Direction.Backward);
+            VectorNode vectorNode = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodes[trackNode] as VectorNode;
+            if (vectorNode == null)
+                return;
 
-            Signal signal = new Signal(Signals.Count, SignalCategory.SpeedPost, traveller)
+            TrackTraveller? traveller = TrackTraveller.InitializeTraveller(speedItem.Location, vectorNode, TrackDirection.Reverse);
+            if (!traveller.HasValue)
+                return;
+
+            TrackTraveller t = traveller.Value;
+
+            double delta_angle = t.Heading - ((Math.PI / 2) - speedItem.Angle);
+            float delta_float = MathHelper.WrapAngle((float)delta_angle);
+            if (Math.Abs(delta_float) >= (Math.PI / 2))
+                t = t.Reverse();
+
+            Signal signal = new Signal(Signals.Count, SignalCategory.SpeedPost, t)
             {
-                TrackDirection = TrackDirection.Ahead,
+                TrackDirection = t.Direction,
                 TrackNode = trackNode,
                 TrackItemRefIndex = nodeIndex,
             };
             signal.AddHead(nodeIndex, tdbRef, speedItem);
-
-            double delta_angle = signal.TdbTraveller.RotY - ((Math.PI / 2) - speedItem.Angle);
-            float delta_float = MathHelper.WrapAngle((float)delta_angle);
-            if (Math.Abs(delta_float) < (Math.PI / 2))
-            {
-                signal.TrackDirection = (TrackDirection)signal.TdbTraveller.Direction;
-            }
-            else
-            {
-                signal.TrackDirection = (TrackDirection)signal.TdbTraveller.Direction.Reverse();
-                signal.TdbTraveller.ReverseDirection();
-            }
             Signals.Add(signal);
         }
 

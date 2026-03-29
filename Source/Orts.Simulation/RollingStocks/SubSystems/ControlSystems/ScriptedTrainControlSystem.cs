@@ -573,7 +573,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                     {
                         aspect = trainpathItem.SignalState;
                         speedLimitMpS = trainpathItem.AllowedSpeedMpS;
-                        altitudeOrLengthM = trainpathItem.Signal.TdbTraveller.Y;
+                        altitudeOrLengthM = trainpathItem.Signal.TrackTraveller.Location.Location.Y;
                     }
                     else
                     {
@@ -633,7 +633,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
             bool isWarning = trainSpeedpost.IsWarning;
             float distanceM = trainSpeedpost.DistanceToTrainM;
             float speedLimitMpS = trainSpeedpost.AllowedSpeedMpS;
-            float altitudeM = trainSpeedpost.Signal.TdbTraveller.Y;
+            float altitudeM = trainSpeedpost.Signal.TrackTraveller.Location.Location.Y;
             return new SpeedPostFeatures(speedPostTypeName: speedPostTypeName, isWarning: isWarning, distanceM: distanceM, speedLimitMpS: speedLimitMpS,
                 altitudeM: altitudeM);
         }
