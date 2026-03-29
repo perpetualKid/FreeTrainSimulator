@@ -47,6 +47,7 @@ using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
 
@@ -2256,13 +2257,11 @@ namespace Orts.Simulation.RollingStocks
             }
         } // end SetUpWheelsArticulation()
 
-        public void ComputePosition(Traveller traveller, bool backToFront, double elapsedTimeS, double distance, float speed)
+        public void ComputePosition(ref TrackTraveller traveller, bool backToFront, double elapsedTimeS, double distance, float speed)
         {
-            ArgumentNullException.ThrowIfNull(traveller);
-
             for (int j = 0; j < Parts.Count; j++)
                 Parts[j].InitLineFit();
-            Tile start = traveller.Tile;
+            Tile start = traveller.Location.Tile;
             if (Flipped == backToFront)
             {
                 float o = -CarLengthM / 2 - centreOfGravityM.Z;
@@ -2270,15 +2269,15 @@ namespace Orts.Simulation.RollingStocks
                 {
                     float d = WheelAxles[k].OffsetM - o;
                     o = WheelAxles[k].OffsetM;
-                    traveller.Move(d);
-                    Tile delta = traveller.Tile - start;
-                    float x = traveller.X + 2048 * delta.X;
-                    float y = traveller.Y;
-                    float z = traveller.Z + 2048 * delta.Z;
+                    traveller = traveller.Move(d);
+                    Tile delta = traveller.Location.Tile - start;
+                    float x = traveller.Location.Location.X + 2048 * delta.X;
+                    float y = traveller.Location.Location.Y;
+                    float z = traveller.Location.Location.Z + 2048 * delta.Z;
                     WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0);
                 }
                 o = CarLengthM / 2 - centreOfGravityM.Z - o;
-                traveller.Move(o);
+                traveller = traveller.Move(o);
             }
             else
             {
@@ -2287,15 +2286,15 @@ namespace Orts.Simulation.RollingStocks
                 {
                     float d = o - WheelAxles[k].OffsetM;
                     o = WheelAxles[k].OffsetM;
-                    traveller.Move(d);
-                    Tile delta = traveller.Tile - start;
-                    float x = traveller.X + 2048 * delta.X;
-                    float y = traveller.Y;
-                    float z = traveller.Z + 2048 * delta.Z;
+                    traveller = traveller.Move(d);
+                    Tile delta = traveller.Location.Tile - start;
+                    float x = traveller.Location.Location.X + 2048 * delta.X;
+                    float y = traveller.Location.Location.Y;
+                    float z = traveller.Location.Location.Z + 2048 * delta.Z;
                     WheelAxles[k].Part.AddWheelSetLocation(1, o, x, y, z, 0);
                 }
                 o = CarLengthM / 2 + centreOfGravityM.Z + o;
-                traveller.Move(o);
+                traveller = traveller.Move(o);
             }
 
             TrainCarPart p0 = Parts[0];
@@ -2369,18 +2368,39 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
+        //TODO: remove when Train is migrated to TrackTraveller; ComputePosition always advances the traveller by CarLengthM
+        public void ComputePosition(Traveller traveller, bool backToFront, double elapsedTimeS, double distance, float speed)
+        {
+            ArgumentNullException.ThrowIfNull(traveller);
+            TrackTraveller? t = TrackTraveller.InitializeTraveller(traveller.WorldLocation);
+            if (t.HasValue)
+            {
+                TrackTraveller tt = t.Value;
+                ComputePosition(ref tt, backToFront, elapsedTimeS, distance, speed);
+            }
+            traveller.Move(CarLengthM);
+        }
+
         #region Traveller-based updates
         public float CurrentCurveRadius { get; private set; }
 
-        internal void UpdatedTraveller(Traveller traveller, double elapsedTimeS, double distanceM, float speedMpS)
+        internal void UpdatedTraveller(in TrackTraveller traveller, double elapsedTimeS, double distanceM, float speedMpS)
         {
             // We need to avoid introducing any unbounded effects, so cap the elapsed time to 0.25 seconds (4FPS).
             if (elapsedTimeS > 0.25)
                 return;
 
-            CurrentCurveRadius = traveller.CurveRadius();
+            CurrentCurveRadius = (float)traveller.CurveRadius;
             UpdateVibrationAndTilting(traveller, elapsedTimeS, distanceM, speedMpS);
             UpdateSuperElevation(traveller, elapsedTimeS);
+        }
+
+        //TODO: remove when Train is migrated to TrackTraveller
+        internal void UpdatedTraveller(Traveller traveller, double elapsedTimeS, double distanceM, float speedMpS)
+        {
+            TrackTraveller? t = TrackTraveller.InitializeTraveller(traveller.WorldLocation);
+            if (t.HasValue)
+                UpdatedTraveller(t.Value, elapsedTimeS, distanceM, speedMpS);
         }
 
         internal protected virtual void UpdateRemotePosition(double elapsedClockSeconds, float speed, float targetSpeed)
@@ -2394,7 +2414,7 @@ namespace Orts.Simulation.RollingStocks
         #endregion
 
         #region Super-elevation
-        private void UpdateSuperElevation(Traveller traveller, double elapsedTimeS)
+        private void UpdateSuperElevation(in TrackTraveller traveller, double elapsedTimeS)
         {
             if (simulator.UserSettings.SuperElevationLevel == 0)
                 return;
@@ -2462,7 +2482,7 @@ namespace Orts.Simulation.RollingStocks
         private float PrevTiltingZRot; // previous tilting angle
         private float TiltingZRot; // actual tilting angle
 
-        internal void UpdateVibrationAndTilting(Traveller traveler, double elapsedTimeS, double distanceM, float speedMpS)
+        internal void UpdateVibrationAndTilting(in TrackTraveller traveler, double elapsedTimeS, double distanceM, float speedMpS)
         {
             // NOTE: Traveller is at the FRONT of the TrainCar!
 
@@ -2482,9 +2502,9 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 if (VibrationTrackVectorSection == 0)
-                    VibrationTrackVectorSection = traveler.TrackVectorSectionIndex;
+                    VibrationTrackVectorSection = traveler.SectionIndex;
                 if (VibrationTrackNode == 0)
-                    VibrationTrackNode = traveler.TrackNode.Index;
+                    VibrationTrackNode = traveler.TrackNodeIndex;
 
                 // Apply suspension/spring and damping.
                 // https://en.wikipedia.org/wiki/Simple_harmonic_motion
@@ -2519,7 +2539,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // Add new vibrations every track vector section which changes the curve radius.
-                if (VibrationTrackVectorSection != traveler.TrackVectorSectionIndex)
+                if (VibrationTrackVectorSection != traveler.SectionIndex)
                 {
                     float curvaturepM = MathHelper.Clamp(traveler.GetCurvature(), -VibrationMaximumCurvaturepM, VibrationMaximumCurvaturepM);
                     if (VibrationTrackCurvaturepM != curvaturepM)
@@ -2528,14 +2548,14 @@ namespace Orts.Simulation.RollingStocks
                         AddVibrations(VibrationFactorTrackVectorSection * Math.Abs(VibrationTrackCurvaturepM - curvaturepM) / VibrationMaximumCurvaturepM);
                         VibrationTrackCurvaturepM = curvaturepM;
                     }
-                    VibrationTrackVectorSection = traveler.TrackVectorSectionIndex;
+                    VibrationTrackVectorSection = traveler.SectionIndex;
                 }
 
                 // Add new vibrations every track node.
-                if (VibrationTrackNode != traveler.TrackNode.Index)
+                if (VibrationTrackNode != traveler.TrackNodeIndex)
                 {
                     AddVibrations(VibrationFactorTrackNode);
-                    VibrationTrackNode = traveler.TrackNode.Index;
+                    VibrationTrackNode = traveler.TrackNodeIndex;
                 }
             }
             if (Train != null && Train.IsTilting)
