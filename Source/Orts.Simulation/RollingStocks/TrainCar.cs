@@ -2372,12 +2372,9 @@ namespace Orts.Simulation.RollingStocks
         public void ComputePosition(Traveller traveller, bool backToFront, double elapsedTimeS, double distance, float speed)
         {
             ArgumentNullException.ThrowIfNull(traveller);
-            TrackTraveller? t = TrackTraveller.InitializeTraveller(traveller.WorldLocation);
-            if (t.HasValue)
-            {
-                TrackTraveller tt = t.Value;
-                ComputePosition(ref tt, backToFront, elapsedTimeS, distance, speed);
-            }
+
+            TrackTraveller trackTraveller = InitializeTrackTraveller(traveller);
+            ComputePosition(ref trackTraveller, backToFront, elapsedTimeS, distance, speed);
             traveller.Move(CarLengthM);
         }
 
@@ -2398,9 +2395,20 @@ namespace Orts.Simulation.RollingStocks
         //TODO: remove when Train is migrated to TrackTraveller
         internal void UpdatedTraveller(Traveller traveller, double elapsedTimeS, double distanceM, float speedMpS)
         {
-            TrackTraveller? t = TrackTraveller.InitializeTraveller(traveller.WorldLocation);
-            if (t.HasValue)
-                UpdatedTraveller(t.Value, elapsedTimeS, distanceM, speedMpS);
+            ArgumentNullException.ThrowIfNull(traveller);
+
+            TrackTraveller trackTraveller = InitializeTrackTraveller(traveller);
+            UpdatedTraveller(trackTraveller, elapsedTimeS, distanceM, speedMpS);
+        }
+
+        private static TrackTraveller InitializeTrackTraveller(Traveller traveller)
+        {
+            TrackDirection direction = traveller.Direction == FreeTrainSimulator.Common.Direction.Forward
+                ? TrackDirection.Ahead
+                : TrackDirection.Reverse;
+            int preferredNodeIndex = traveller.TrackNode?.Index ?? -1;
+            TrackTraveller? initialized = TrackTraveller.InitializeTraveller(traveller.WorldLocation, preferredNodeIndex, direction);
+            return initialized ?? throw new InvalidOperationException($"Unable to initialize {nameof(TrackTraveller)} from {nameof(Traveller)}.");
         }
 
         internal protected virtual void UpdateRemotePosition(double elapsedClockSeconds, float speed, float targetSpeed)
@@ -2436,6 +2444,7 @@ namespace Orts.Simulation.RollingStocks
 
             worldPosition = new WorldPosition(WorldPosition.Tile, MatrixExtension.Multiply(Matrix.CreateRotationZ(z), WorldPosition.XNAMatrix));
         }
+
         #endregion
 
         #region Vibration and tilting

@@ -259,6 +259,33 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Returns a new <see cref="TrackTraveller"/> placed near <paramref name="location"/>, preferring a specific
+        /// vector node identified by <paramref name="trackNodeIndex"/> when available.
+        /// Returns <see langword="null"/> when the node index is invalid, not a vector node,
+        /// or the location cannot be snapped onto the preferred node within tolerance.
+        /// </summary>
+        /// <param name="location">The world location to search from.</param>
+        /// <param name="trackNodeIndex">Preferred track-node index to disambiguate snapping near junction boundaries.</param>
+        /// <param name="direction">The initial direction of travel on the found node.</param>
+        /// <param name="trackDataBaseType">Whether to search rail (<see cref="TrackDataBaseType.Rail"/>, default)
+        /// or road (<see cref="TrackDataBaseType.Road"/>) geometry.</param>
+        /// <returns>A new <see cref="TrackTraveller"/> on the preferred node, or <see langword="null"/> if not possible.</returns>
+        public static TrackTraveller? InitializeTraveller(in WorldLocation location, int trackNodeIndex, TrackDirection direction, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        {
+            TrackDatabase trackDatabase = trackDataBaseType == TrackDataBaseType.Road
+                ? trackWorld.TrackModel.RoadDatabase
+                : trackWorld.TrackModel.TrackDatabase;
+
+            if (trackDatabase != null && trackNodeIndex >= 0 && trackNodeIndex < trackDatabase.TrackNodes.Length
+                && trackDatabase.TrackNodes[trackNodeIndex] is VectorNode node)
+            {
+                return InitializeTraveller(location, node, direction, trackDataBaseType);
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Returns a new <see cref="TrackTraveller"/> placed on the nearest track section within
         /// <see cref="WorldLocation.ProximityTolerance"/> metres of <paramref name="location"/>
         /// restricted to the specified <paramref name="node"/>, oriented in <paramref name="direction"/>.
