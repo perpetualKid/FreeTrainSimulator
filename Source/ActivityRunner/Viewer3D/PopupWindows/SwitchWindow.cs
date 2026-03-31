@@ -18,6 +18,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
+using Orts.Simulation.Physics;
 using Orts.Simulation.Track;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
@@ -110,15 +111,28 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             void UpdateSwitch(bool front)
             {
                 switchSection.Location = Point.Zero;
-                Traveller oldTraveller = front
-                    ? Simulator.Instance.PlayerLocomotive.Train.FrontTDBTraveller
-                    : Simulator.Instance.PlayerLocomotive.Train.RearTDBTraveller;
+                Train playerTrain = Simulator.Instance.PlayerLocomotive.Train;
+                TrackTraveller? shadow = front ? playerTrain.FrontTrackTraveller : playerTrain.RearTrackTraveller;
+                TrackTraveller? nullableTraveller;
 
-                // For rear, the old code reversed direction (new Traveller(rear, reverseDirection: true));
-                // map: front==true keeps direction, front==false flips it
-                bool goAhead = front == (oldTraveller.Direction == Direction.Forward);
-                TrackTraveller? nullableTraveller = TrackTraveller.InitializeTraveller(
-                    oldTraveller.WorldLocation, goAhead ? TrackDirection.Ahead : TrackDirection.Reverse);
+                if (shadow is TrackTraveller tt)
+                {
+                    // Use shadow traveller directly; for rear, reverse direction
+                    nullableTraveller = front ? tt : tt.Reverse();
+                }
+                else
+                {
+                    Traveller oldTraveller = front
+                        ? playerTrain.FrontTDBTraveller
+                        : playerTrain.RearTDBTraveller;
+
+                    // For rear, the old code reversed direction (new Traveller(rear, reverseDirection: true));
+                    // map: front==true keeps direction, front==false flips it
+                    bool goAhead = front == (oldTraveller.Direction == Direction.Forward);
+                    nullableTraveller = TrackTraveller.InitializeTraveller(
+                        oldTraveller.WorldLocation, goAhead ? TrackDirection.Ahead : TrackDirection.Reverse);
+                }
+
                 if (!nullableTraveller.HasValue)
                     return;
 

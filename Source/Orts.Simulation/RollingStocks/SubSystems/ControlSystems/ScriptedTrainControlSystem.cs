@@ -311,7 +311,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.SignedDistanceM = () => Locomotive.Train.DistanceTravelledM;
                 script.DoesStartFromTerminalStation = DoesStartFromTerminalStation;
                 script.IsColdStart = () => Locomotive.Train.ColdStart;
-                script.GetTrackNodeOffset = () => Locomotive.Train.FrontTDBTraveller.TrackNodeLength - Locomotive.Train.FrontTDBTraveller.TrackNodeOffset;
+                script.GetTrackNodeOffset = () => Locomotive.Train.FrontTrackNodeLength - Locomotive.Train.FrontTrackNodeOffset;
                 script.NextDivergingSwitchDistanceM = (value) =>
                 {
                     List<TrainPathItem> list = Locomotive.Train.PlayerTrainDivergingSwitches[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward, SwitchDirection.Facing];
@@ -655,6 +655,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         private bool DoesStartFromTerminalStation()
         {
+            // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move/NextTrackNode
             var tempTraveller = new Traveller(Locomotive.Train.RearTDBTraveller);
             tempTraveller.ReverseDirection();
             return tempTraveller.NextTrackNode() && tempTraveller.TrackNodeType == TrackNodeType.End;

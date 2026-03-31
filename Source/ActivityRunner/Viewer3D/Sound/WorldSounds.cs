@@ -74,6 +74,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
             outPrevDist = -1;
             outNextDist = -1;
 
+            // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
             traveller = train.SpeedMpS >= 0 ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
 
             List<TrackItem> trItems = RuntimeData.Instance.TrackDB.TrackItems;

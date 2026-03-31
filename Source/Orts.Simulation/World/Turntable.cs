@@ -27,6 +27,7 @@ using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -507,6 +508,30 @@ namespace Orts.Simulation.World
             if (nodeIndex >= 0)
             {
                 onTable = (trainPosition.TrackVectorSectionIndex == trackNodesIndex[nodeIndex]);
+            }
+
+            return (onTable);
+        }
+
+        /// <summary>
+        /// Check if train position is on turntable track section (TrackTraveller overload).
+        /// </summary>
+        public bool CheckOnSection(in TrackTraveller trainPosition)
+        {
+            bool onTable = false;
+            int nodeIndex = -1;
+
+            for (int inode = 0; inode < trackNodesIndex.Length && nodeIndex == -1; inode++)
+            {
+                if (trackNodesIndex[inode] == trainPosition.TrackNodeIndex)
+                {
+                    nodeIndex = inode;
+                }
+            }
+
+            if (nodeIndex >= 0)
+            {
+                onTable = (trainPosition.SectionIndex == trackNodesIndex[nodeIndex]);
             }
 
             return (onTable);

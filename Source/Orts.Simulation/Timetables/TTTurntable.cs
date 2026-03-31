@@ -35,6 +35,7 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -1692,7 +1693,7 @@ namespace Orts.Simulation.Timetables
                     // check if train position on turntable
                     if (!trainOnTable.FrontOnBoard)
                     {
-                        if (parentTurntable.CheckOnSection(parentTrain.FrontTDBTraveller))
+                        if (parentTrain.FrontTrackTraveller is TrackTraveller ftt ? parentTurntable.CheckOnSection(in ftt) : parentTurntable.CheckOnSection(parentTrain.FrontTDBTraveller))
                         {
                             trainOnTable.SetFrontState(true);
                             Simulator.Instance.Confirmer.Information("Front of train is on table");
@@ -1700,7 +1701,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else if (!trainOnTable.BackOnBoard)
                     {
-                        if (parentTurntable.CheckOnSection(parentTrain.RearTDBTraveller))
+                        if (parentTrain.RearTrackTraveller is TrackTraveller rtt ? parentTurntable.CheckOnSection(in rtt) : parentTurntable.CheckOnSection(parentTrain.RearTDBTraveller))
                         {
                             trainOnTable.SetBackState(true);
                             Simulator.Instance.Confirmer.Information("Rear of train is on table");
@@ -1715,12 +1716,12 @@ namespace Orts.Simulation.Timetables
                         if (loco.ThrottlePercent < 1 && Math.Abs(loco.SpeedMpS) < 0.05 && (loco.Direction == MidpointDirection.N || Math.Abs(parentTrain.MUReverserPercent) <= 1))
                         {
                             // check if train still on turntable
-                            if (!parentTurntable.CheckOnSection(parentTrain.FrontTDBTraveller))
+                            if (!(parentTrain.FrontTrackTraveller is TrackTraveller ftt2 ? parentTurntable.CheckOnSection(in ftt2) : parentTurntable.CheckOnSection(parentTrain.FrontTDBTraveller)))
                             {
                                 trainOnTable.SetFrontState(false);
                                 Simulator.Instance.Confirmer.Information("Front of train slipped off table");
                             }
-                            if (!parentTurntable.CheckOnSection(parentTrain.RearTDBTraveller))
+                            if (!(parentTrain.RearTrackTraveller is TrackTraveller rtt2 ? parentTurntable.CheckOnSection(in rtt2) : parentTurntable.CheckOnSection(parentTrain.RearTDBTraveller)))
                             {
                                 trainOnTable.SetBackState(false);
                                 Simulator.Instance.Confirmer.Information("Rear of train slipped off table");
@@ -1748,7 +1749,7 @@ namespace Orts.Simulation.Timetables
                     // check if train position on turntable
                     if (!trainOnTable.FrontOnBoard)
                     {
-                        if (parentTurntable.CheckOnSection(parentTrain.FrontTDBTraveller))
+                        if (parentTrain.FrontTrackTraveller is TrackTraveller ftt3 ? parentTurntable.CheckOnSection(in ftt3) : parentTurntable.CheckOnSection(parentTrain.FrontTDBTraveller))
                         {
                             trainOnTable.SetFrontState(true);
                             Simulator.Instance.Confirmer.Information("Front of train is on table");
@@ -1757,7 +1758,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else if (!trainOnTable.BackOnBoard)
                     {
-                        if (parentTurntable.CheckOnSection(parentTrain.RearTDBTraveller))
+                        if (parentTrain.RearTrackTraveller is TrackTraveller rtt3 ? parentTurntable.CheckOnSection(in rtt3) : parentTurntable.CheckOnSection(parentTrain.RearTDBTraveller))
                         {
                             trainOnTable.SetBackState(true);
                             Simulator.Instance.Confirmer.Information("Rear of train is on table");
@@ -1772,12 +1773,12 @@ namespace Orts.Simulation.Timetables
                         if (loco.ThrottlePercent < 1 && Math.Abs(loco.SpeedMpS) < 0.05 && (loco.Direction == MidpointDirection.N || Math.Abs(parentTrain.MUReverserPercent) <= 1))
                         {
                             // check if train still on turntable
-                            if (!parentTurntable.CheckOnSection(parentTrain.FrontTDBTraveller))
+                            if (!(parentTrain.FrontTrackTraveller is TrackTraveller ftt4 ? parentTurntable.CheckOnSection(in ftt4) : parentTurntable.CheckOnSection(parentTrain.FrontTDBTraveller)))
                             {
                                 trainOnTable.SetFrontState(false);
                                 Simulator.Instance.Confirmer.Information("Front of train slipped off table");
                             }
-                            if (!parentTurntable.CheckOnSection(parentTrain.RearTDBTraveller))
+                            if (!(parentTrain.RearTrackTraveller is TrackTraveller rtt4 ? parentTurntable.CheckOnSection(in rtt4) : parentTurntable.CheckOnSection(parentTrain.RearTDBTraveller)))
                             {
                                 trainOnTable.SetBackState(false);
                                 Simulator.Instance.Confirmer.Information("Rear of train slipped off table");
@@ -2189,12 +2190,12 @@ namespace Orts.Simulation.Timetables
             // get actual stop position
             if (MovingTableAction == MovingTableAction.FromAccess)
             {
-                float trainOffset = parentTrain.RearTDBTraveller.TrackNodeOffset;
+                float trainOffset = parentTrain.RearTrackNodeOffset;
                 stopPositionOnTurntableM = trainOffset + (parentTrain.Length / 2.0f) - parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry;
             }
             else if (MovingTableAction == MovingTableAction.FromStorage)
             {
-                float trainOffset = parentTrain.RearTDBTraveller.TrackNodeOffset;
+                float trainOffset = parentTrain.RearTrackNodeOffset;
                 stopPositionOnTurntableM = trainOffset + (parentTrain.Length / 2.0f) - parentPool.StoragePool[StoragePathIndex].TableMiddleEntry;
             }
 

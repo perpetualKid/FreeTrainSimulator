@@ -1500,6 +1500,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Ray pickRay = new Ray(nearPoint, direction);
 
             // check each car
+            // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
             Traveller traveller = new Traveller(PlayerTrain.FrontTDBTraveller, true);
             int carNo = 0;
             foreach (TrainCar car in PlayerTrain.Cars)

@@ -102,7 +102,7 @@ namespace Orts.Simulation.World
         /// </summary>
         private static float DistanceToWithTrace(LevelCrossingItem crossing, TrackTraveller? shadow, Traveller legacy, float maxDistance, bool reversed = false)
         {
-            if (shadow is { } tt)
+            if (shadow is TrackTraveller tt)
             {
                 TrackTraveller effective = reversed ? tt.Reverse() : tt;
                 float result = crossing.DistanceTo(effective, maxDistance);

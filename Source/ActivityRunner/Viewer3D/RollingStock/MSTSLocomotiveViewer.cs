@@ -750,8 +750,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                                     float d2 = (float)WorldLocation.GetDistanceSquared(intakeLocation, pickup.WorldPosition.WorldLocation);
                                     if (intake.Type == PickupType.Container && containerStation != null &&
-                                        (wagon.Train.FrontTDBTraveller.TrackNode.Index == containerStation.TrackNode.Index ||
-                                        wagon.Train.RearTDBTraveller.TrackNode.Index == containerStation.TrackNode.Index) &&
+                                        (wagon.Train.FrontTrackNodeIndex == containerStation.TrackNode.Index ||
+                                        wagon.Train.RearTrackNodeIndex == containerStation.TrackNode.Index) &&
                                         d2 < containerStation.MinZSpan * containerStation.MinZSpan)
                                     // for container it's enough if the intake is within the reachable range of the container crane
                                     {

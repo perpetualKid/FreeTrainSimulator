@@ -136,8 +136,8 @@ namespace Orts.Simulation.Physics
 
         // Shadow TrackTraveller fields for incremental migration (Phase 1 dual-write).
         // Nullable during migration: null means the dual-write path hasn't executed yet for a given code path.
-        internal TrackTraveller? RearTrackTraveller { get; set; }
-        internal TrackTraveller? FrontTrackTraveller { get; set; }
+        public TrackTraveller? RearTrackTraveller { get; internal set; }
+        public TrackTraveller? FrontTrackTraveller { get; internal set; }
 
         /// <summary>World location of the front of the train, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
         public WorldLocation FrontLocation => FrontTrackTraveller?.Location ?? FrontTDBTraveller.WorldLocation;
@@ -153,10 +153,29 @@ namespace Orts.Simulation.Physics
 
         /// <summary>Y-axis heading at the front of the train in radians, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
         /// <remarks>Legacy <see cref="Traveller.RotY"/> triggers lazy caching (SetLocation); prefer shadow to avoid side effects.</remarks>
-        internal float FrontHeading => FrontTrackTraveller?.Heading ?? FrontTDBTraveller.RotY;
+        public float FrontHeading => FrontTrackTraveller?.Heading ?? FrontTDBTraveller.RotY;
 
         /// <summary>Y-axis heading at the rear of the train in radians, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
-        internal float RearHeading => RearTrackTraveller?.Heading ?? RearTDBTraveller.RotY;
+        public float RearHeading => RearTrackTraveller?.Heading ?? RearTDBTraveller.RotY;
+
+        /// <summary>Cumulative offset in metres from the start of the front track node, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
+        /// <remarks>Legacy <see cref="Traveller.TrackNodeOffset"/> triggers lazy caching (SetLength); prefer shadow to avoid side effects.</remarks>
+        internal float FrontTrackNodeOffset => (float)(FrontTrackTraveller?.VectorNodeOffset ?? FrontTDBTraveller.TrackNodeOffset);
+
+        /// <summary>Cumulative offset in metres from the start of the rear track node, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
+        internal float RearTrackNodeOffset => (float)(RearTrackTraveller?.VectorNodeOffset ?? RearTDBTraveller.TrackNodeOffset);
+
+        /// <summary>Total length in metres of the front track node, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
+        internal float FrontTrackNodeLength => (float)(FrontTrackTraveller?.VectorNodeLength ?? FrontTDBTraveller.TrackNodeLength);
+
+        /// <summary>Total length in metres of the rear track node, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
+        internal float RearTrackNodeLength => (float)(RearTrackTraveller?.VectorNodeLength ?? RearTDBTraveller.TrackNodeLength);
+
+        /// <summary>Direction of travel at the front of the train as <see cref="TrackDirection"/>, preferring the shadow when available.</summary>
+        internal TrackDirection FrontDirection => FrontTrackTraveller?.Direction ?? (TrackDirection)FrontTDBTraveller.Direction;
+
+        /// <summary>Direction of travel at the rear of the train as <see cref="TrackDirection"/>, preferring the shadow when available.</summary>
+        internal TrackDirection RearDirection => RearTrackTraveller?.Direction ?? (TrackDirection)RearTDBTraveller.Direction;
 
         /// <summary>
         /// Assigns the legacy <see cref="RearTDBTraveller"/> and dual-writes the shadow
@@ -189,7 +208,7 @@ namespace Orts.Simulation.Physics
         /// </summary>
         internal static float SignalDistanceTo(Signal signal, TrackTraveller? shadow, Traveller legacy)
         {
-            if (shadow is { } tt)
+            if (shadow is TrackTraveller tt)
             {
                 float result = signal.DistanceTo(in tt);
 #if DEBUG
@@ -3796,13 +3815,13 @@ namespace Orts.Simulation.Physics
         /// lazy-cache side effects of the legacy <see cref="Traveller.TrackNodeOffset"/>.
         /// Falls back to the legacy <see cref="Traveller"/> when the shadow is not yet populated.
         /// </summary>
-        private static void UpdateTrackCircuitPosition(TrackCircuitPosition position, TrackTraveller? shadowTraveller, Traveller legacyTraveller, bool reverseDirection = true)
+        protected static void UpdateTrackCircuitPosition(TrackCircuitPosition position, TrackTraveller? shadowTraveller, Traveller legacyTraveller, bool reverseDirection = true)
         {
             TrackNode trackNode;
             float offset;
             TrackDirection direction;
 
-            if (shadowTraveller is { } tt)
+            if (shadowTraveller is TrackTraveller tt)
             {
                 trackNode = RuntimeData.Instance.TrackDB.TrackNodes[tt.TrackNodeIndex];
                 offset = (float)tt.VectorNodeOffset;
@@ -10374,8 +10393,8 @@ namespace Orts.Simulation.Physics
         internal void SetRoutePath(AIPath aiPath, bool usePosition)
         {
             TrackDirection direction = usePosition
-                ? (FrontTrackTraveller is { } ftt ? ftt.Direction.Reverse() : (TrackDirection)FrontTDBTraveller.Direction.Reverse())
-                : (RearTrackTraveller is { } rtt ? rtt.Direction.Reverse() : (RearTDBTraveller != null ? (TrackDirection)RearTDBTraveller.Direction.Reverse() : (TrackDirection)(-2)));
+                ? (FrontTrackTraveller is TrackTraveller ftt ? ftt.Direction.Reverse() : (TrackDirection)FrontTDBTraveller.Direction.Reverse())
+                : (RearTrackTraveller is TrackTraveller rtt ? rtt.Direction.Reverse() : (RearTDBTraveller != null ? (TrackDirection)RearTDBTraveller.Direction.Reverse() : (TrackDirection)(-2)));
             TCRoute = new TrackCircuitRoutePath(aiPath, direction, Length, Number);
             ValidRoutes[Direction.Forward] = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
         }
@@ -10385,7 +10404,7 @@ namespace Orts.Simulation.Physics
         // </summary>
         internal void PresetExplorerPath(AIPath aiPath)
         {
-            TrackDirection direction = RearTrackTraveller is { } rtt
+            TrackDirection direction = RearTrackTraveller is TrackTraveller rtt
                 ? rtt.Direction.Reverse()
                 : (RearTDBTraveller != null ? (TrackDirection)RearTDBTraveller.Direction.Reverse() : (TrackDirection)(-2));
             TCRoute = new TrackCircuitRoutePath(aiPath, direction, 0, Number);

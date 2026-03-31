@@ -1170,11 +1170,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 browseDistance = AttachedCar.CarLengthM * 0.5f;
                 if (attachedToFront)
                 {
+                    // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
                     browsedTraveller = new Traveller(AttachedCar.Train.FrontTDBTraveller);
                     browsedTraveller.Move(-AttachedCar.CarLengthM * 0.5f + zDistanceM);
                 }
                 else
                 {
+                    // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
                     browsedTraveller = new Traveller(AttachedCar.Train.RearTDBTraveller);
                     browsedTraveller.Move((AttachedCar.CarLengthM - trainCars.First().CarLengthM - trainCars.Last().CarLengthM) * 0.5f + AttachedCar.Train.Length - zDistanceM);
                 }
@@ -1220,6 +1222,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (attachedToFront)
                 {
                     SetCameraCar(GetCameraCars().First());
+                    // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
                     browsedTraveller = new Traveller(AttachedCar.Train.FrontTDBTraveller);
                     zDistanceM = -AttachedCar.CarLengthM / 2;
                     wagonOffsetUpperLimit = 0;
@@ -1229,6 +1232,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     var trainCars = GetCameraCars();
                     SetCameraCar(trainCars.Last());
+                    // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
                     browsedTraveller = new Traveller(AttachedCar.Train.RearTDBTraveller);
                     zDistanceM = -AttachedCar.Train.Length + (trainCars.First().CarLengthM + trainCars.Last().CarLengthM) * 0.5f + AttachedCar.CarLengthM / 2;
                     wagonOffsetLowerLimit = -AttachedCar.Train.Length + trainCars.First().CarLengthM * 0.5f;
@@ -1632,6 +1636,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 if (!browseMode)
                 {
+                    // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
                     browsedTraveller = new Traveller(AttachedCar.Train.FrontTDBTraveller);
                     browsedTraveller.Move(-AttachedCar.CarLengthM * 0.5f + zDistanceM);
                     browseDistance = AttachedCar.CarLengthM * 0.5f;
@@ -1649,6 +1654,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (!browseMode)
                 {
                     //                    LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
+                    // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
                     browsedTraveller = new Traveller(AttachedCar.Train.RearTDBTraveller);
                     var trainCars = GetCameraCars();
                     browsedTraveller.Move((AttachedCar.CarLengthM - trainCars.First().CarLengthM - trainCars.Last().CarLengthM) * 0.5f + AttachedCar.Train.Length + zDistanceM);
@@ -2795,6 +2801,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Switch to new position.
             if (!trainClose || (trackCameraLocation == WorldLocation.None))
             {
+                // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
                 var tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
                 var newLocation = GoToNewLocation(tdb, train, trainForwards).Normalize();
 
@@ -2975,8 +2982,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 Traveller tdb;
                 // At first update loop camera location may be also behind train front (e.g. platform at start of activity)
                 if (firstUpdateLoop)
+                    // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
                     tdb = trainForwards ? new Traveller(train.RearTDBTraveller) : new Traveller(train.FrontTDBTraveller, true);
                 else
+                    // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
                     tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
 
                 int tcSectionIndex;
@@ -3083,7 +3092,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     foreach (RoadCar visibleCar in viewer.World.RoadCars.VisibleCars)
                     {
                         // check for direction
-                        if (Math.Abs(visibleCar.FrontTraveller.RotY - train.FrontTDBTraveller.RotY) < 0.5f && visibleCar.Travelled < visibleCar.Spawner.Length - 30)
+                        if (Math.Abs(visibleCar.FrontTraveller.RotY - train.FrontHeading) < 0.5f && visibleCar.Travelled < visibleCar.Spawner.Length - 30)
                         {
                             TrainCar testTrainCar = null;
                             if (visibleCar.Speed < Math.Abs(train.SpeedMpS) ^ trainForwards)
@@ -3151,6 +3160,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 if (!specialPointFound && !trainClose)
                 {
+                    // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
                     tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true); // return to standard
                     trackCameraLocation = GoToNewLocation(tdb, train, trainForwards);
                 }
