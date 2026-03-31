@@ -3725,26 +3725,48 @@ namespace Orts.Simulation.Physics
             }
         }
 
+        /// <summary>
+        /// Sets a <see cref="TrackCircuitPosition"/> from traveller state.
+        /// Prefers the shadow <see cref="TrackTraveller"/> when available, avoiding the
+        /// lazy-cache side effects of the legacy <see cref="Traveller.TrackNodeOffset"/>.
+        /// Falls back to the legacy <see cref="Traveller"/> when the shadow is not yet populated.
+        /// </summary>
+        private static void UpdateTrackCircuitPosition(TrackCircuitPosition position, TrackTraveller? shadowTraveller, Traveller legacyTraveller, bool reverseDirection = true)
+        {
+            TrackNode trackNode;
+            float offset;
+            TrackDirection direction;
+
+            if (shadowTraveller is { } tt)
+            {
+                trackNode = RuntimeData.Instance.TrackDB.TrackNodes[tt.TrackNodeIndex];
+                offset = (float)tt.VectorNodeOffset;
+                direction = reverseDirection ? tt.Direction.Reverse() : tt.Direction;
+            }
+            else
+            {
+                trackNode = legacyTraveller.TrackNode;
+                offset = legacyTraveller.TrackNodeOffset;
+                direction = reverseDirection
+                    ? (TrackDirection)legacyTraveller.Direction.Reverse()
+                    : (TrackDirection)legacyTraveller.Direction;
+            }
+
+            position.SetPosition(trackNode.TrackCircuitCrossReferences, offset, direction);
+        }
+
         // Initial train placement
         internal virtual bool InitialTrainPlacement()
         {
             // for initial placement, use direction 0 only
             // set initial positions
 
-            TrackNode tn = FrontTDBTraveller.TrackNode;
-            float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
-
-            PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             DistanceTravelledM = 0.0f;
 
-            tn = RearTDBTraveller.TrackNode;
-            offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
-
-            PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller, RearTDBTraveller);
 
             // check if train has route, if not create dummy
             if (ValidRoutes[Direction.Forward] == null)
@@ -3778,7 +3800,7 @@ namespace Orts.Simulation.Physics
             List<TrackCircuitSection> placementSections = new List<TrackCircuitSection>();
 
             // check if route is available
-            offset = PresentPosition[Direction.Backward].Offset;
+            float offset = PresentPosition[Direction.Backward].Offset;
             float remLength = Length;
             bool sectionAvailable = true;
 
@@ -3946,20 +3968,13 @@ namespace Orts.Simulation.Physics
 
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            TrackNode tn = FrontTDBTraveller.TrackNode;
-            float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
             int routeIndex;
 
-            PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
             routeIndex = ValidRoutes[Direction.Forward].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
             PresentPosition[Direction.Forward].RouteListIndex = routeIndex;
 
-            tn = RearTDBTraveller.TrackNode;
-            offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
-
-            PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller, RearTDBTraveller);
             routeIndex = ValidRoutes[Direction.Forward].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
             PresentPosition[Direction.Backward].RouteListIndex = routeIndex;
 
@@ -8353,18 +8368,10 @@ namespace Orts.Simulation.Physics
 
             // create new TCPositions
 
-            TrackNode tn = FrontTDBTraveller.TrackNode;
-            float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
-
-            PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            tn = RearTDBTraveller.TrackNode;
-            offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
-
-            PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller, RearTDBTraveller);
 
             PresentPosition[Direction.Forward].DistanceTravelled = DistanceTravelledM;
             PresentPosition[Direction.Backward].DistanceTravelled = oldRearPosition.DistanceTravelled;
@@ -8669,18 +8676,10 @@ namespace Orts.Simulation.Physics
 
             // create new TCPositions
 
-            TrackNode tn = FrontTDBTraveller.TrackNode;
-            float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
-
-            PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            tn = RearTDBTraveller.TrackNode;
-            offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
-
-            PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller, RearTDBTraveller);
 
             PresentPosition[Direction.Forward].DistanceTravelled = DistanceTravelledM;
             PresentPosition[Direction.Backward].DistanceTravelled = DistanceTravelledM - Length;
@@ -10309,7 +10308,9 @@ namespace Orts.Simulation.Physics
         /// </summary>
         internal void SetRoutePath(AIPath aiPath, bool usePosition)
         {
-            TrackDirection direction = (TrackDirection)(usePosition ? (int)FrontTDBTraveller.Direction.Reverse() : (RearTDBTraveller != null) ? (int)RearTDBTraveller.Direction.Reverse() : -2);
+            TrackDirection direction = usePosition
+                ? (FrontTrackTraveller is { } ftt ? ftt.Direction.Reverse() : (TrackDirection)FrontTDBTraveller.Direction.Reverse())
+                : (RearTrackTraveller is { } rtt ? rtt.Direction.Reverse() : (RearTDBTraveller != null ? (TrackDirection)RearTDBTraveller.Direction.Reverse() : (TrackDirection)(-2)));
             TCRoute = new TrackCircuitRoutePath(aiPath, direction, Length, Number);
             ValidRoutes[Direction.Forward] = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
         }
@@ -10319,7 +10320,9 @@ namespace Orts.Simulation.Physics
         // </summary>
         internal void PresetExplorerPath(AIPath aiPath)
         {
-            TrackDirection direction = (TrackDirection)(RearTDBTraveller != null ? (int)RearTDBTraveller.Direction.Reverse() : -2);
+            TrackDirection direction = RearTrackTraveller is { } rtt
+                ? rtt.Direction.Reverse()
+                : (RearTDBTraveller != null ? (TrackDirection)RearTDBTraveller.Direction.Reverse() : (TrackDirection)(-2));
             TCRoute = new TrackCircuitRoutePath(aiPath, direction, 0, Number);
 
             // loop through all sections in first subroute except first and last (neither can be junction)
@@ -11733,11 +11736,7 @@ namespace Orts.Simulation.Physics
 
             CalculatePositionOfCars();
 
-            TrackNode tn = FrontTDBTraveller.TrackNode;
-            float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction1 = (TrackDirection)FrontTDBTraveller.Direction;
-
-            PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction1);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller, reverseDirection: false);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             if (TrainType == TrainType.Static)
