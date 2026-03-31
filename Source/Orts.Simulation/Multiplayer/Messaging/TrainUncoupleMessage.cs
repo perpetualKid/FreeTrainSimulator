@@ -171,7 +171,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                             multiPlayerManager.AddOrRemoveLocomotives(User, currentTrain, false);
                         train.Cars.Clear();
                         train.Cars.AddRange(tmpcars);
-                        train.RearTDBTraveller = new Traveller(RearLocation, TrainDirection.Reverse());
+                        train.SetRearTraveller(new Traveller(RearLocation, TrainDirection.Reverse()));
                         train.DistanceTravelled = DistanceTravelled;
                         train.SpeedMpS = Speed;
                         train.LeadLocomotive = lead;
@@ -239,7 +239,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 currentTrain.ReinitializeEOT();
 
                 // and fix up the travellers
-                detachedTrain.RearTDBTraveller = new Traveller(DetachedTrain.RearLocation, DetachedTrain.TrainDirection.Reverse());
+                detachedTrain.SetRearTraveller(new Traveller(DetachedTrain.RearLocation, DetachedTrain.TrainDirection.Reverse()));
                 detachedTrain.DistanceTravelled = DetachedTrain.DistanceTravelled;
                 detachedTrain.SpeedMpS = DetachedTrain.Speed;
                 detachedTrain.MUDirection = DetachedTrain.MultiUnitDirection;

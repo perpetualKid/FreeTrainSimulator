@@ -1286,7 +1286,7 @@ namespace Orts.Simulation
             }
 
             // place rear of train on starting location of aiPath.
-            train.RearTDBTraveller = new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location);
+            train.SetRearTraveller(new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location));
 
             ConsistFile conFile = new ConsistFile(ConsistFileName);
             CurveDurability = conFile.Train.Durability;   // Finds curve durability of consist based upon the value in consist file
@@ -1492,9 +1492,10 @@ namespace Orts.Simulation
                             break;  // forward ( confirmed on L&PS route )
                     }
                     // FIXME: Where are TSectionDat and TDB from?
-                    train.RearTDBTraveller = new Traveller(activityObject.Location);
+                    Traveller rearTraveller = new Traveller(activityObject.Location);
                     if (consistDirection != 1)
-                        train.RearTDBTraveller.ReverseDirection();
+                        rearTraveller.ReverseDirection();
+                    train.SetRearTraveller(rearTraveller);
                     // add wagons in reverse order - ie first wagon is at back of train
                     // static consists are listed back to front in the activities, so we have to reverse the order, and flip the cars
                     // when we add them to ORTS
@@ -1541,6 +1542,9 @@ namespace Orts.Simulation
                     train.RearTDBTraveller.ReverseDirection();
                     train.RearTDBTraveller.Move(lastCar.CarLengthM / 2f);
                     train.RearTDBTraveller.ReverseDirection();
+                    // Re-snap shadow after legacy mutation; CalculatePositionOfCars below will overwrite,
+                    // but this keeps the shadow valid immediately.
+                    train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(train.RearTDBTraveller);
 
                     train.CalculatePositionOfCars();
                     train.InitializeBrakes();
@@ -1692,15 +1696,15 @@ namespace Orts.Simulation
             // and fix up the travellers
             if (train.IsActualPlayerTrain && j >= i || !keepFront)
             {
-                train2.FrontTDBTraveller = new Traveller(train.FrontTDBTraveller);
+                train2.SetFrontTraveller(new Traveller(train.FrontTDBTraveller));
                 train.CalculatePositionOfCars();
-                train2.RearTDBTraveller = new Traveller(train.FrontTDBTraveller);
+                train2.SetRearTraveller(new Traveller(train.FrontTDBTraveller));
                 train2.CalculatePositionOfCars();  // fix the front traveller
                 train.DistanceTravelledM -= train2.Length;
             }
             else
             {
-                train2.RearTDBTraveller = new Traveller(train.RearTDBTraveller);
+                train2.SetRearTraveller(new Traveller(train.RearTDBTraveller));
                 train2.CalculatePositionOfCars();  // fix the front traveller
                 train.RepositionRearTraveller();    // fix the rear traveller
             }
@@ -1876,8 +1880,8 @@ namespace Orts.Simulation
                     }
 
                     // and fix up the travellers
-                    selectedAsPlayer.RearTDBTraveller = new Traveller(dyingTrain.RearTDBTraveller);
-                    selectedAsPlayer.FrontTDBTraveller = new Traveller(dyingTrain.FrontTDBTraveller);
+                    selectedAsPlayer.SetRearTraveller(new Traveller(dyingTrain.RearTDBTraveller));
+                    selectedAsPlayer.SetFrontTraveller(new Traveller(dyingTrain.FrontTDBTraveller));
                     // are following lines needed?
                     //                       selectedAsPlayer.CalculatePositionOfCars(0);  // fix the front traveller
                     //                       selectedAsPlayer.RepositionRearTraveller();    // fix the rear traveller

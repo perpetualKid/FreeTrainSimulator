@@ -49,6 +49,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -156,6 +157,30 @@ namespace Orts.Simulation.Physics
 
         /// <summary>Y-axis heading at the rear of the train in radians, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
         internal float RearHeading => RearTrackTraveller?.Heading ?? RearTDBTraveller.RotY;
+
+        /// <summary>
+        /// Assigns the legacy <see cref="RearTDBTraveller"/> and dual-writes the shadow
+        /// <see cref="RearTrackTraveller"/> via <see cref="TravellerBridge.ToTrackTraveller"/>.
+        /// In DEBUG builds, equivalence is asserted and the caller name is traced on mismatch.
+        /// </summary>
+        internal void SetRearTraveller(Traveller traveller, [CallerMemberName] string caller = "")
+        {
+            RearTDBTraveller = traveller;
+            RearTrackTraveller = TravellerBridge.ToTrackTraveller(traveller);
+            TravellerEquivalenceTracer.AssertEquivalent(traveller, RearTrackTraveller, caller);
+        }
+
+        /// <summary>
+        /// Assigns the legacy <see cref="FrontTDBTraveller"/> and dual-writes the shadow
+        /// <see cref="FrontTrackTraveller"/> via <see cref="TravellerBridge.ToTrackTraveller"/>.
+        /// In DEBUG builds, equivalence is asserted and the caller name is traced on mismatch.
+        /// </summary>
+        internal void SetFrontTraveller(Traveller traveller, [CallerMemberName] string caller = "")
+        {
+            FrontTDBTraveller = traveller;
+            FrontTrackTraveller = TravellerBridge.ToTrackTraveller(traveller);
+            TravellerEquivalenceTracer.AssertEquivalent(traveller, FrontTrackTraveller, caller);
+        }
 
         /// <summary>
         /// Returns the distance from a signal to a train end, preferring the shadow <see cref="TrackTraveller"/>

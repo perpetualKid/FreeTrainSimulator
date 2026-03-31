@@ -77,7 +77,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 train.Cars.Clear();
                 train.Cars.AddRange(trainCars);
                 train.MUDirection = MultiUnitDirection;
-                train.RearTDBTraveller = traveller;
+                train.SetRearTraveller(traveller);
                 train.CalculatePositionOfCars();
                 train.DistanceTravelled = DistanceTravelled;
                 train.CheckFreight();

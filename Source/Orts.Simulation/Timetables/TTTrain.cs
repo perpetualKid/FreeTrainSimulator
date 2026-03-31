@@ -10102,12 +10102,12 @@ namespace Orts.Simulation.Timetables
             if (DetachPosition)
             {
                 CalculatePositionOfCars();
-                newTrain.RearTDBTraveller = new Traveller(FrontTDBTraveller);
+                newTrain.SetRearTraveller(new Traveller(FrontTDBTraveller));
                 newTrain.CalculatePositionOfCars();
             }
             else
             {
-                newTrain.RearTDBTraveller = new Traveller(RearTDBTraveller);
+                newTrain.SetRearTraveller(new Traveller(RearTDBTraveller));
                 newTrain.CalculatePositionOfCars();
                 RepositionRearTraveller();    // fix the rear traveller
             }
@@ -10622,7 +10622,7 @@ namespace Orts.Simulation.Timetables
             }
             TrackVectorNode detachNode = RuntimeData.Instance.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 
-            formedTrain.RearTDBTraveller = new Traveller(detachNode);
+            formedTrain.SetRearTraveller(new Traveller(detachNode));
 
             trainlist.Add(formedTrain);
 
@@ -10644,7 +10644,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection DetachSection = TrackCircuitSection.TrackCircuitList[sectionInfo];
             TrackVectorNode DetachNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[DetachSection.OriginalIndex];
 
-            formedTrain.RearTDBTraveller = new Traveller(DetachNode);
+            formedTrain.SetRearTraveller(new Traveller(DetachNode));
             formedTrain.PresentPosition[Direction.Forward].UpdateFrom(train.PresentPosition[Direction.Forward]);
             formedTrain.PresentPosition[Direction.Backward].UpdateFrom(train.PresentPosition[Direction.Backward]);
             formedTrain.CreateRoute(true);

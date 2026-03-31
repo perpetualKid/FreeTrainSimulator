@@ -682,7 +682,7 @@ namespace Orts.Simulation.Timetables
             if (StoragePool[PoolStorageState].MaxStoredUnits.HasValue && StoragePool[PoolStorageState].MaxStoredUnits == 1)
             {
                 // use stored traveller
-                train.RearTDBTraveller = new Traveller(StoragePool[PoolStorageState].StoragePathTraveller);
+                train.SetRearTraveller(new Traveller(StoragePool[PoolStorageState].StoragePathTraveller));
             }
 
             else
@@ -691,7 +691,7 @@ namespace Orts.Simulation.Timetables
                 train.TCRoute.TCRouteSubpaths[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0].ReversePath());
                 train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
 
-                train.RearTDBTraveller = new Traveller(StoragePool[PoolStorageState].StoragePathReverseTraveller);
+                train.SetRearTraveller(new Traveller(StoragePool[PoolStorageState].StoragePathReverseTraveller));
 
                 // if storage available check for other engines on storage track
                 if (StoragePool[PoolStorageState].StoredUnits.Count > 0)
@@ -2308,8 +2308,12 @@ namespace Orts.Simulation.Timetables
             parentTrain.RearTDBTraveller = new Traveller(middlePosition);
             float offsetPosition = reverseFormation ? (-parentTrain.Length / 2.0f) - stopPositionOnTurntableM : (-parentTrain.Length / 2.0f) + stopPositionOnTurntableM;
             parentTrain.RearTDBTraveller.MoveInSection(offsetPosition);
+            // Re-snap shadow after legacy mutation
+            parentTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(parentTrain.RearTDBTraveller);
             parentTrain.FrontTDBTraveller = new Traveller(parentTrain.RearTDBTraveller);
             parentTrain.FrontTDBTraveller.MoveInSection(parentTrain.Length);
+            // Re-snap shadow after legacy mutation
+            parentTrain.FrontTrackTraveller = TravellerBridge.ToTrackTraveller(parentTrain.FrontTDBTraveller);
 
             // place train
             parentTrain.InitialTrainPlacement();

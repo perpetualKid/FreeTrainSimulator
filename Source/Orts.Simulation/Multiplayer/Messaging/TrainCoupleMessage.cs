@@ -111,7 +111,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
             train.DistanceTravelled = DistanceTravelled;
             train.MUDirection = MultiUnitDirection;
-            train.RearTDBTraveller = new Traveller(RearLocation, TrainDirection.Reverse());
+            train.SetRearTraveller(new Traveller(RearLocation, TrainDirection.Reverse()));
             train.CheckFreight();
             train.SetDistributedPowerUnitIds();
             train.ReinitializeEOT();
