@@ -35,8 +35,10 @@ namespace Orts.Simulation.Multiplayer.Messaging
             CarCount = train.Cars.Count;
             DistanceTravelled = train.DistanceTravelled;
             RearLocation = train.RearLocation;
-            TrackNodeIndex = train.RearTDBTraveller.TrackNode.Index;
-            TrainDirection = train.RearTDBTraveller.Direction.Reverse();
+            TrackNodeIndex = train.RearTrackNodeIndex;
+            TrainDirection = train.RearTrackTraveller is { } rtt
+                ? (Direction)rtt.Direction.Reverse()
+                : train.RearTDBTraveller.Direction.Reverse();
             Length = train.Length;
 
             if (initializeCars)

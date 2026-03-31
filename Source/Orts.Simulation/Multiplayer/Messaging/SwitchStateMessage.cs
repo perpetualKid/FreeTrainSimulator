@@ -63,12 +63,12 @@ namespace Orts.Simulation.Multiplayer.Messaging
             Train train = Simulator.Instance.PlayerLocomotive?.Train;
             if (train == null)
                 return false;
-            if (train.FrontTDBTraveller.TrackNode.Index == train.RearTDBTraveller.TrackNode.Index)
+            if (train.FrontTrackNodeIndex == train.RearTrackNodeIndex)
                 return false;
             Traveller traveller = new Traveller(train.RearTDBTraveller);
             while (traveller.NextSection())
             {
-                if (traveller.TrackNode.Index == train.FrontTDBTraveller.TrackNode.Index)
+                if (traveller.TrackNode.Index == train.FrontTrackNodeIndex)
                     break;
                 if (traveller.TrackNode == junctionNode)
                     return true;

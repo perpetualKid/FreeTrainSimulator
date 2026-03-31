@@ -144,6 +144,40 @@ namespace Orts.Simulation.Physics
         /// <summary>World location of the rear of the train, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
         public WorldLocation RearLocation => RearTrackTraveller?.Location ?? RearTDBTraveller.WorldLocation;
 
+        /// <summary>Track node index at the front of the train, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
+        public int FrontTrackNodeIndex => FrontTrackTraveller?.TrackNodeIndex ?? FrontTDBTraveller.TrackNode.Index;
+
+        /// <summary>Track node index at the rear of the train, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
+        public int RearTrackNodeIndex => RearTrackTraveller?.TrackNodeIndex ?? RearTDBTraveller.TrackNode.Index;
+
+        /// <summary>Y-axis heading at the front of the train in radians, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
+        /// <remarks>Legacy <see cref="Traveller.RotY"/> triggers lazy caching (SetLocation); prefer shadow to avoid side effects.</remarks>
+        internal float FrontHeading => FrontTrackTraveller?.Heading ?? FrontTDBTraveller.RotY;
+
+        /// <summary>Y-axis heading at the rear of the train in radians, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
+        internal float RearHeading => RearTrackTraveller?.Heading ?? RearTDBTraveller.RotY;
+
+        /// <summary>
+        /// Returns the distance from a signal to a train end, preferring the shadow <see cref="TrackTraveller"/>
+        /// when available and falling back to legacy <see cref="Traveller"/>.
+        /// In DEBUG builds, both paths are evaluated and mismatches are traced.
+        /// </summary>
+        internal static float SignalDistanceTo(Signal signal, TrackTraveller? shadow, Traveller legacy)
+        {
+            if (shadow is { } tt)
+            {
+                float result = signal.DistanceTo(in tt);
+#if DEBUG
+                float legacyResult = signal.DistanceTo(legacy);
+                float delta = MathF.Abs(result - legacyResult);
+                if (delta > 0.5f && result >= 0 && legacyResult >= 0)
+                    Trace.TraceWarning($"[SignalDistTrace] signal={signal.Index} mismatch: new={result:F3} legacy={legacyResult:F3} delta={delta:F3}");
+#endif
+                return result;
+            }
+            return signal.DistanceTo(legacy);
+        }
+
         public float Length { get; internal set; }                             // length of train from FrontTDBTraveller to RearTDBTraveller
         public float MassKg { get; internal set; }                             // weight of the train
         public float SpeedMpS { get; internal set; }                           // meters per second +ve forward, -ve when backing
@@ -2328,7 +2362,7 @@ namespace Orts.Simulation.Physics
                     {
                         Signal speedpost = Simulator.Instance.SignalEnvironment.Signals[speedpostList[0]];
                         SpeedInfo speedInfo = speedpost.SpeedLimit(SignalFunction.Speed);
-                        float distanceFromFront = Length - speedpost.DistanceTo(RearTDBTraveller);
+                        float distanceFromFront = Length - SignalDistanceTo(speedpost, RearTrackTraveller, RearTDBTraveller);
                         if (distanceFromFront >= 0)
                         {
                             float newSpeedMpS = IsFreight ? speedInfo.FreightSpeed : speedInfo.PassengerSpeed;
@@ -2895,7 +2929,7 @@ namespace Orts.Simulation.Physics
             }
             else if (NextSignalObjects[Direction.Forward] != null)
             {
-                DistanceToSignal = NextSignalObjects[Direction.Forward].DistanceTo(FrontTDBTraveller);
+                DistanceToSignal = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
             }
             else if (ControlMode != TrainControlMode.AutoNode && ControlMode != TrainControlMode.OutOfControl)
             {

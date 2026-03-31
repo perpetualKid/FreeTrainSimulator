@@ -406,7 +406,7 @@ namespace Orts.Simulation.World
         {
             ArgumentNullException.ThrowIfNull(train);
             return Connected && trackVectorSectionsIndex[ConnectedTrackEnd] != -1 && trackNodesIndex[ConnectedTrackEnd] != -1 &&
-                (trackNodesIndex[ConnectedTrackEnd] == train.FrontTDBTraveller.TrackNode.Index || trackNodesIndex[ConnectedTrackEnd] == train.RearTDBTraveller.TrackNode.Index);
+                (trackNodesIndex[ConnectedTrackEnd] == train.FrontTrackNodeIndex || trackNodesIndex[ConnectedTrackEnd] == train.RearTrackNodeIndex);
         }
 
         /// <summary>
