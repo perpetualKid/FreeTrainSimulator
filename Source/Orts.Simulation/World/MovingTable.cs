@@ -183,7 +183,7 @@ namespace Orts.Simulation.World
                 return false;
             string tableType = this is TurnTable ? Simulator.Catalog.GetString("turntable") : Simulator.Catalog.GetString("transfertable");
             int trainIndex = (TrainsOnMovingTable as List<TrainOnMovingTable>)?.FindIndex(x => x.Train.Number == train.Number) ?? -1;
-            if (WorldLocation.Within(train.FrontTDBTraveller.WorldLocation, WorldPosition.WorldLocation, Length / 2))
+            if (WorldLocation.Within(train.FrontLocation, WorldPosition.WorldLocation, Length / 2))
             {
                 if (trainIndex == -1 || !TrainsOnMovingTable[trainIndex].FrontOnBoard)
                 {
@@ -226,7 +226,7 @@ namespace Orts.Simulation.World
                     trainIndex = -1;
                 }
             }
-            if (WorldLocation.Within(train.RearTDBTraveller.WorldLocation, WorldPosition.WorldLocation, Length / 2))
+            if (WorldLocation.Within(train.RearLocation, WorldPosition.WorldLocation, Length / 2))
             {
                 if (trainIndex == -1 || !TrainsOnMovingTable[trainIndex].BackOnBoard)
                 {

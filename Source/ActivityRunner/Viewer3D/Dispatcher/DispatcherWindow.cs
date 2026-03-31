@@ -286,7 +286,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 ((List<int>)trackedTrains).Add(train.Number);
                 if (!content.Trains.TryGetValue(train.Number, out TrainWidget trainWidget))
                 {
-                    trainWidget = new TrainWidget(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation, train);
+                    trainWidget = new TrainWidget(train.FrontLocation, train.RearLocation, train);
                     foreach (TrainCar car in train.Cars)
                     {
                         trainWidget.Cars.Add(car.UiD, new TrainCarWidget(car.WorldPosition, car.CarLengthM, car.WagonType == WagonType.Unknown ? car.EngineType != EngineType.Unknown ? WagonType.Engine : WagonType.Unknown : car.WagonType));
@@ -295,7 +295,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 }
                 else if (train.SpeedMpS != 0)
                 {
-                    trainWidget.UpdatePosition(train.FrontTDBTraveller.WorldLocation, train.RearTDBTraveller.WorldLocation);
+                    trainWidget.UpdatePosition(train.FrontLocation, train.RearLocation);
                     IEnumerable<int> trackedCars = new List<int>();
                     foreach (TrainCar car in train.Cars)
                     {

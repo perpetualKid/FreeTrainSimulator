@@ -78,10 +78,16 @@ namespace Orts.Simulation.Track
                 equivalent = false;
             }
 
-            // SectionIndex
+            // SectionIndex — allow off-by-one at section boundaries.
+            // When the legacy Traveller sits at the exact end of section N, its WorldLocation
+            // is also the geometric start of section N+1. The snap-based TrackTraveller
+            // initialization may pick N+1 because the start-of-section control point is a
+            // marginally better floating-point match than the end-of-section interpolated point.
+            // Both indices are valid representations of the same position; the Location check
+            // below confirms positional equivalence.
             int oldSectionIndex = oldTraveller.TrackVectorSectionIndex;
             int newSectionIndex = newTraveller.SectionIndex;
-            if (oldSectionIndex != newSectionIndex)
+            if (Math.Abs(oldSectionIndex - newSectionIndex) > 1)
             {
                 Trace.TraceWarning($"[TravellerTrace:{caller}] SectionIndex mismatch: old={oldSectionIndex} new={newSectionIndex}");
                 equivalent = false;

@@ -1225,7 +1225,7 @@ namespace Orts.Simulation.AIs
                 // If delay equal to 60002 it is considered as a request for permission to pass signal;
                 aiTrain.TestPermission(ref Delay);
                 ActualDepart = correctedTime + Delay;
-                aiTrain.AuxActionsContainer.CheckGenActions(this.GetType(), aiTrain.RearTDBTraveller.WorldLocation, Delay);
+                aiTrain.AuxActionsContainer.CheckGenActions(this.GetType(), aiTrain.RearLocation, Delay);
 
             }
 
@@ -1240,7 +1240,7 @@ namespace Orts.Simulation.AIs
                 {
                     train.SpeedMpS = 0;
                 }
-                train.AuxActionsContainer.CheckGenActions(this.GetType(), aiTrain.RearTDBTraveller.WorldLocation, ActualDepart - presentTime);
+                train.AuxActionsContainer.CheckGenActions(this.GetType(), aiTrain.RearLocation, ActualDepart - presentTime);
 
                 if (ActualDepart > presentTime)
                 {

@@ -443,7 +443,7 @@ namespace Orts.ActivityRunner.Viewer3D.Environment
             // Compare player train lat/lon with array of desert zones
             for (int i = 0; i < desertZones.Length / 4; i++)
                 if (LatitudeDeg > desertZones[i, 0] && LatitudeDeg < desertZones[i, 1] && LongitudeDeg > desertZones[i, 2] && LongitudeDeg < desertZones[i, 3]
-                     && viewer.PlayerLocomotive.Train.FrontTDBTraveller.Location.Y < 1000 ||
+                     && viewer.PlayerLocomotive.Train.FrontLocation.Location.Y < 1000 ||
                      LatitudeDeg > desertZones[i, 0] + 1 && LatitudeDeg < desertZones[i, 1] - 1 && LongitudeDeg > desertZones[i, 2] + 1 && LongitudeDeg < desertZones[i, 3] - 1)
                 {
                     desertZone = true;

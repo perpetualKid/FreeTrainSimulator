@@ -445,7 +445,7 @@ namespace Orts.Simulation.Multiplayer
                         continue;
                     if (p.Train.Cars.Count <= 0)
                         continue;
-                    double d = WorldLocation.GetDistanceSquared(p.Train.RearTDBTraveller.WorldLocation, mine.Train.RearTDBTraveller.WorldLocation);
+                    double d = WorldLocation.GetDistanceSquared(p.Train.RearLocation, mine.Train.RearLocation);
                     users.Add(Math.Sqrt(d) + StaticRandom.NextDouble(), p.Username);
                 }
             }

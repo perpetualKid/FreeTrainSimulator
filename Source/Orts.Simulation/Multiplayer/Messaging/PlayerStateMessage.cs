@@ -105,7 +105,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     Train p1Train = onlinePlayer.Train;
 
                     //if distance is higher than 1 Km from starting point of path
-                    if (WorldLocation.GetDistanceSquared2D(TrainState.RearLocation, p1Train.RearTDBTraveller.WorldLocation) > 1000000)
+                    if (WorldLocation.GetDistanceSquared2D(TrainState.RearLocation, p1Train.RearLocation) > 1000000)
                     {
                         MultiPlayerManager.OnlineTrains.Players.Add(User, onlinePlayer);
                         onlinePlayer.CreatedTime = Simulator.Instance.GameTime;
@@ -136,7 +136,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                         Train train = Simulator.Instance.PlayerLocomotive == null ? Simulator.Instance.Trains[0] : Simulator.Instance.PlayerLocomotive.Train;
                         train.Number = TrainState.TrainNumber;
 
-                        if (WorldLocation.GetDistanceSquared2D(TrainState.RearLocation, train.RearTDBTraveller.WorldLocation) > 1000000)
+                        if (WorldLocation.GetDistanceSquared2D(TrainState.RearLocation, train.RearLocation) > 1000000)
                         {
                             train.UpdateTrainJump(TrainState.RearLocation, TrainState.TrainDirection, TrainState.DistanceTravelled, TrainState.Speed);
                             //check to see if the player gets back with the same set of cars

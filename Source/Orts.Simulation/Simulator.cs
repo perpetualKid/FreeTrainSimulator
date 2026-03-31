@@ -1327,7 +1327,7 @@ namespace Orts.Simulation
             Trains.Add(train);
 
             // Note the initial position to be stored by a Save and used in Menu.exe to calculate DistanceFromStartM 
-            InitialLocation = Trains[0].FrontTDBTraveller.WorldLocation;
+            InitialLocation = Trains[0].FrontLocation;
 
             PlayerLocomotive = InitialPlayerLocomotive();
             train.TrainMaxSpeedMpS = (conFile.Train.MaxVelocity == null) ||
@@ -1386,7 +1386,7 @@ namespace Orts.Simulation
             Trains.Add(train);
 
             // Note the initial position to be stored by a Save and used in Menu.exe to calculate DistanceFromStartM 
-            InitialLocation = Trains[0].FrontTDBTraveller.WorldLocation;
+            InitialLocation = Trains[0].FrontLocation;
 
             PlayerLocomotive = InitialPlayerLocomotive();
             if (train.MaxVelocityA <= 0f || train.MaxVelocityA == 40f)

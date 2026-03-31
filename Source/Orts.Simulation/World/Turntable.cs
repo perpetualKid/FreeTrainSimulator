@@ -337,15 +337,15 @@ namespace Orts.Simulation.World
                 Matrix relativeCarPosition = Matrix.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
                 relativeCarPositions.Add(relativeCarPosition);
             }
-            Vector3 XNALocation = train.FrontTDBTraveller.Location;
+            Vector3 XNALocation = train.FrontLocation.Location;
             XNALocation.Z = -XNALocation.Z;
-            Vector3 deltaFront = (train.FrontTDBTraveller.Tile - WorldPosition.Tile).TileVector();
+            Vector3 deltaFront = (train.FrontLocation.Tile - WorldPosition.Tile).TileVector();
             XNALocation.X += deltaFront.X;
             XNALocation.Z -= deltaFront.Z;
             relativeFrontTravellerXNALocation = Vector3.Transform(XNALocation, invAnimationXNAMatrix);
-            XNALocation = train.RearTDBTraveller.Location;
+            XNALocation = train.RearLocation.Location;
             XNALocation.Z = -XNALocation.Z;
-            Vector3 deltaRear = (train.RearTDBTraveller.Tile - WorldPosition.Tile).TileVector();
+            Vector3 deltaRear = (train.RearLocation.Tile - WorldPosition.Tile).TileVector();
             XNALocation.X += deltaRear.X;
             XNALocation.Z -= deltaRear.Z;
             relativeRearTravellerXNALocation = Vector3.Transform(XNALocation, invAnimationXNAMatrix);

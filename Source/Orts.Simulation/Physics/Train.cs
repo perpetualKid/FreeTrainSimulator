@@ -138,6 +138,12 @@ namespace Orts.Simulation.Physics
         internal TrackTraveller? RearTrackTraveller { get; set; }
         internal TrackTraveller? FrontTrackTraveller { get; set; }
 
+        /// <summary>World location of the front of the train, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
+        public WorldLocation FrontLocation => FrontTrackTraveller?.Location ?? FrontTDBTraveller.WorldLocation;
+
+        /// <summary>World location of the rear of the train, preferring the shadow <see cref="TrackTraveller"/> when available.</summary>
+        public WorldLocation RearLocation => RearTrackTraveller?.Location ?? RearTDBTraveller.WorldLocation;
+
         public float Length { get; internal set; }                             // length of train from FrontTDBTraveller to RearTDBTraveller
         public float MassKg { get; internal set; }                             // weight of the train
         public float SpeedMpS { get; internal set; }                           // meters per second +ve forward, -ve when backing

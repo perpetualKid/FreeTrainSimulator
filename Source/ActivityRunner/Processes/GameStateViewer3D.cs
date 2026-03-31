@@ -204,7 +204,7 @@ namespace Orts.ActivityRunner.Processes
                 RealSaveTime = DateTime.UtcNow,
                 MultiplayerGame = MultiPlayerManager.IsMultiPlayer(),
                 InitialLocation = simulator.InitialLocation,
-                PlayerLocation = simulator.Trains[0].FrontTDBTraveller.WorldLocation,
+                PlayerLocation = simulator.Trains[0].FrontLocation,
                 ProfileSelections = profileSelections,
 
                 ActivityEvaluationState = await ActivityEvaluation.Instance.Snapshot().ConfigureAwait(false),

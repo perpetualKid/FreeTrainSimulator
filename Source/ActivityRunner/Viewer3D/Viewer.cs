@@ -1465,7 +1465,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (t == null || t.Cars == null || t.Cars.Count == 0)
                         continue;
-                    var d = WorldLocation.GetDistanceSquared(t.RearTDBTraveller.WorldLocation, PlayerTrain.RearTDBTraveller.WorldLocation);
+                    var d = WorldLocation.GetDistanceSquared(t.RearLocation, PlayerTrain.RearLocation);
                     users.Add(d + StaticRandom.NextDouble(), t);
                 }
                 trainCount++;

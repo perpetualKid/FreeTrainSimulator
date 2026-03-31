@@ -279,7 +279,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Trace.WriteLine();
                 Trace.WriteLine();
                 Trace.WriteLine("LightViewer: {0} {1} {2:D}{3}:{4}{5}{6}{7}{8}{9}{10}{11}{12}{13}{14}",
-                    Car.Train != null ? Car.Train.FrontTDBTraveller.WorldLocation : positionSource.WorldPosition.WorldLocation, Car.Train != null ? "train car" : "car", Car.Train != null ? Car.Train.Cars.IndexOf(Car) : 0, Car.Flipped ? " (flipped)" : "",
+                    Car.Train != null ? Car.Train.FrontLocation : positionSource.WorldPosition.WorldLocation, Car.Train != null ? "train car" : "car", Car.Train != null ? Car.Train.Cars.IndexOf(Car) : 0, Car.Flipped ? " (flipped)" : "",
                     TrainHeadlight == 2 ? " HL=Bright" : TrainHeadlight == 1 ? " HL=Dim" : "",
                     CarIsReversed ? " Reversed" : "",
                     CarIsFirst ? " First" : "",

@@ -135,20 +135,20 @@ namespace Orts.Simulation.World
                 {
                     // An issue was found where a road sharing more than one crossing would have all crossings activated instead of the one crossing when working with STATIC consists.
                     // The test below corrects this, but the source of the issue is not understood.
-                    if (!WorldLocation.Within(crossing.Location, train.FrontTDBTraveller.WorldLocation, minimumDist + train.Length / 2) && !WorldLocation.Within(crossing.Location, train.RearTDBTraveller.WorldLocation, minimumDist + train.Length / 2))
+                    if (!WorldLocation.Within(crossing.Location, train.FrontLocation, minimumDist + train.Length / 2) && !WorldLocation.Within(crossing.Location, train.RearLocation, minimumDist + train.Length / 2))
                         continue;
-                    if (WorldLocation.Within(crossing.Location, train.FrontTDBTraveller.WorldLocation, minimumDist + train.Length / 2) || WorldLocation.Within(crossing.Location, train.RearTDBTraveller.WorldLocation, minimumDist + train.Length / 2))
+                    if (WorldLocation.Within(crossing.Location, train.FrontLocation, minimumDist + train.Length / 2) || WorldLocation.Within(crossing.Location, train.RearLocation, minimumDist + train.Length / 2))
                         foreach (RollingStocks.TrainCar scar in train.Cars)
                             if (WorldLocation.Within(crossing.Location, scar.WorldPosition.WorldLocation, minimumDist))
                                 validStaticConsist = true;
                 }
 
-                if (train.TrainType != TrainType.Static && WorldLocation.Within(crossing.Location, train.FrontTDBTraveller.WorldLocation, totalDist) || WorldLocation.Within(crossing.Location, train.RearTDBTraveller.WorldLocation, totalDist))
+                if (train.TrainType != TrainType.Static && WorldLocation.Within(crossing.Location, train.FrontLocation, totalDist) || WorldLocation.Within(crossing.Location, train.RearLocation, totalDist))
                 {
                     validTrain = true;
                     reqDist = totalDist;
                 }
-                else if (train.TrainType != TrainType.Static && WorldLocation.Within(crossing.Location, train.FrontTDBTraveller.WorldLocation, totalMaxDist) || WorldLocation.Within(crossing.Location, train.RearTDBTraveller.WorldLocation, totalMaxDist))
+                else if (train.TrainType != TrainType.Static && WorldLocation.Within(crossing.Location, train.FrontLocation, totalMaxDist) || WorldLocation.Within(crossing.Location, train.RearLocation, totalMaxDist))
                 {
                     validTrain = true;
                     reqDist = totalMaxDist;

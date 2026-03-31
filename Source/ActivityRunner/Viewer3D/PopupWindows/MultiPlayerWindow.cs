@@ -107,7 +107,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 if (p.Train == null || p.Train.Cars.Count <= 0)
                     continue;
-                double d = WorldLocation.GetDistanceSquared(p.Train.RearTDBTraveller.WorldLocation, playerTrain.RearTDBTraveller.WorldLocation);
+                double d = WorldLocation.GetDistanceSquared(p.Train.RearLocation, playerTrain.RearLocation);
                 onlineTrains.Add((p.Username, Math.Sqrt(d) + StaticRandom.NextDouble(), p.Train));
             }
             onlineTrains.Sort(delegate ((string, double distance, Train) x, (string, double distance, Train) y)

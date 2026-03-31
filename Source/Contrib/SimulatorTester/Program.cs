@@ -141,7 +141,7 @@ namespace Orts.SimulatorTester
             }
 
             DateTimeOffset endTime = DateTimeOffset.Now;
-            WorldLocation actualLocation = simulator.Trains[0].FrontTDBTraveller.WorldLocation;
+            WorldLocation actualLocation = simulator.Trains[0].FrontLocation;
 
             double initialToExpectedM = WorldLocation.GetDistanceVector(saveState.PlayerLocation, saveState.InitialLocation).Length();
             double expectedToActualM = WorldLocation.GetDistanceVector(saveState.PlayerLocation, actualLocation).Length();
