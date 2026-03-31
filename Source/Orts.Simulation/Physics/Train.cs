@@ -60,6 +60,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
 
@@ -131,6 +132,12 @@ namespace Orts.Simulation.Physics
 
         public Traveller RearTDBTraveller { get; internal set; }               // positioned at the back of the last car in the train
         public Traveller FrontTDBTraveller { get; internal set; }              // positioned at the front of the train by CalculatePositionOfCars
+
+        // Shadow TrackTraveller fields for incremental migration (Phase 1 dual-write).
+        // Nullable during migration: null means the dual-write path hasn't executed yet for a given code path.
+        internal TrackTraveller? RearTrackTraveller { get; set; }
+        internal TrackTraveller? FrontTrackTraveller { get; set; }
+
         public float Length { get; internal set; }                             // length of train from FrontTDBTraveller to RearTDBTraveller
         public float MassKg { get; internal set; }                             // weight of the train
         public float SpeedMpS { get; internal set; }                           // meters per second +ve forward, -ve when backing
@@ -672,6 +679,11 @@ namespace Orts.Simulation.Physics
             LeadLocomotiveIndex = saveState.LeadLocomotive;
             RearTDBTraveller = new Traveller(false);
             await RearTDBTraveller.Restore(saveState.TravellerSaveState).ConfigureAwait(false);
+
+            // Dual-write: initialize shadow rear TrackTraveller from restored legacy state
+            RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+            TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
+
             SlipperySpotDistanceM = saveState.SlipperySpotDistance;
             SlipperySpotLengthM = saveState.SlipperySpotLength;
             TrainMaxSpeedMpS = saveState.TrainMaximumSpeed;
@@ -1002,6 +1014,16 @@ namespace Orts.Simulation.Physics
             Traveller t = FrontTDBTraveller;
             FrontTDBTraveller = new Traveller(RearTDBTraveller, true);
             RearTDBTraveller = new Traveller(t, true);
+
+            // Dual-write: reinitialize shadow TrackTravellers from final legacy state.
+            // Cannot use native swap+Reverse() on the shadows because the legacy Traveller copy
+            // constructor bypasses the Direction property setter, leaving the cached TrackNodeOffset
+            // unadjusted when the tracer warms the cache. Bridge-converting from the final legacy
+            // WorldLocation avoids the stale-cache issue entirely.
+            FrontTrackTraveller = TravellerBridge.ToTrackTraveller(FrontTDBTraveller);
+            RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+            TravellerEquivalenceTracer.AssertEquivalent(FrontTDBTraveller, FrontTrackTraveller);
+            TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
             // If we are updating the controls...
             if (setMUParameters)
             {
@@ -1467,6 +1489,11 @@ namespace Orts.Simulation.Physics
                     RearTDBTraveller.Move(-1);//if front is out, move back
                 else if (RearTDBTraveller.TrackNodeType == TrackNodeType.End)
                     RearTDBTraveller.Move(1);//if rear is out, move forward
+
+                // Dual-write: resync shadow rear TrackTraveller after end-of-track recovery
+                RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+                TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
+
                 foreach (TrainCar car in Cars)
                 {
                     car.SpeedMpS = 0;
@@ -3233,6 +3260,12 @@ namespace Orts.Simulation.Physics
             traveller.ReverseDirection();
             RearTDBTraveller = traveller;
             Length = length;
+
+            // Dual-write: update shadow TrackTravellers from final legacy state
+            RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+            FrontTrackTraveller = TravellerBridge.ToTrackTraveller(FrontTDBTraveller);
+            TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
+            TravellerEquivalenceTracer.AssertEquivalent(FrontTDBTraveller, FrontTrackTraveller);
         } // RepositionRearTraveller
 
         public void CalculatePositionOfCars()
@@ -3301,6 +3334,12 @@ namespace Orts.Simulation.Physics
             FrontTDBTraveller = traveller;
             Length = length;
             DistanceTravelled += (float)distance;
+
+            // Dual-write: update shadow TrackTravellers from final legacy state
+            RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+            FrontTrackTraveller = TravellerBridge.ToTrackTraveller(FrontTDBTraveller);
+            TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
+            TravellerEquivalenceTracer.AssertEquivalent(FrontTDBTraveller, FrontTrackTraveller);
         } // CalculatePositionOfCars
 
         public void CalculatePositionOfEOT()
@@ -3348,6 +3387,10 @@ namespace Orts.Simulation.Physics
             traveller = new Traveller(traveller, true);
             RearTDBTraveller = new Traveller(traveller);
 
+            // Dual-write: update shadow rear TrackTraveller
+            RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+            TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
+
             Length += length;
         } // CalculatePositionOfEOT
 
@@ -3382,6 +3425,10 @@ namespace Orts.Simulation.Physics
                 length += car.CarLengthM;
             }
             RearTDBTraveller = new Traveller(traveller);
+
+            // Dual-write: update shadow rear TrackTraveller
+            RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+            TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
 
             Length -= length;
         }
@@ -11561,6 +11608,11 @@ namespace Orts.Simulation.Physics
                             //move = SpeedMpS > 0 ? 0.001f : -0.001f;
                             DistanceTravelled = expectedTravelled;
                             RearTDBTraveller = t;
+
+                            // Dual-write: resync shadow rear TrackTraveller after multiplayer correction
+                            RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+                            TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
+
                             CalculatePositionOfCars();
 
                         }
@@ -11660,6 +11712,12 @@ namespace Orts.Simulation.Physics
                 FrontTDBTraveller.ReverseDirection();
                 RearTDBTraveller.ReverseDirection();
             }
+
+            // Dual-write: reinitialize shadow TrackTravellers after turntable re-entry
+            FrontTrackTraveller = TravellerBridge.ToTrackTraveller(FrontTDBTraveller);
+            RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+            TravellerEquivalenceTracer.AssertEquivalent(FrontTDBTraveller, FrontTrackTraveller);
+            TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
 
             ClearValidRoutes();
             PresentPosition[Direction.Forward].TrackCircuitSectionIndex = -1;

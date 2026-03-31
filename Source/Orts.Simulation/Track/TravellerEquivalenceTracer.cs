@@ -23,7 +23,6 @@ namespace Orts.Simulation.Track
     {
         private const float LocationToleranceXZ = 0.5f;    // metres
         private const float LocationToleranceY = 1.0f;     // metres
-        private const double SectionOffsetTolerance = 0.5;  // metres (or equivalent radians * radius)
 
         /// <summary>
         /// Master switch. Automatically enabled in DEBUG builds.
@@ -33,6 +32,16 @@ namespace Orts.Simulation.Track
 #if DEBUG
             = true;
 #endif
+
+        /// <summary>
+        /// Convenience overload accepting a nullable <see cref="TrackTraveller"/>?.
+        /// Returns <see langword="true"/> (skip) when <paramref name="newTraveller"/> is <see langword="null"/>,
+        /// meaning the dual-write path has not been wired yet for this call site.
+        /// </summary>
+        public static bool AssertEquivalent(Traveller oldTraveller, in TrackTraveller? newTraveller, [CallerMemberName] string caller = "")
+        {
+            return !newTraveller.HasValue || AssertEquivalent(oldTraveller, newTraveller.Value, caller);
+        }
 
         /// <summary>
         /// Compares the position and direction state of <paramref name="oldTraveller"/> with
@@ -78,14 +87,12 @@ namespace Orts.Simulation.Track
                 equivalent = false;
             }
 
-            // SectionOffset
-            float oldOffset = oldTraveller.TrackSectionOffset;
-            double newOffset = newTraveller.SectionOffset;
-            if (Math.Abs(oldOffset - newOffset) > SectionOffsetTolerance)
-            {
-                Trace.TraceWarning($"[TravellerTrace:{caller}] SectionOffset mismatch: old={oldOffset:F4} new={newOffset:F4} delta={Math.Abs(oldOffset - newOffset):F4}");
-                equivalent = false;
-            }
+            // Offset comparison intentionally omitted.
+            // Traveller.TrackNodeOffset / TrackSectionOffset have lazy caching side effects
+            // (SetLength sets lengthSet = true). The copy constructor propagates this cached state
+            // without adjusting for direction reversal, so reading the offset here would poison
+            // any subsequent reversed copy. The Location (XZ + Y) check below provides a
+            // side-effect-free positional equivalence verification instead.
 
             // Location (2D XZ distance + Y)
             WorldLocation oldLoc = oldTraveller.WorldLocation;
