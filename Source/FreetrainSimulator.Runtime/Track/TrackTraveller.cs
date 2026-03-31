@@ -682,6 +682,32 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Tests whether the node boundary in the current direction of travel is an <see cref="EndNode"/>,
+        /// indicating end-of-track. Does not move the traveller.
+        /// Equivalent to the legacy pattern: <c>copy.NextTrackNode() &amp;&amp; copy.TrackNodeType == TrackNodeType.End</c>.
+        /// </summary>
+        /// <returns><see langword="true"/> when the adjacent node boundary in the current direction is an <see cref="EndNode"/>; otherwise <see langword="false"/>.</returns>
+        public bool IsNextNodeEndOfTrack()
+        {
+            if (!OnTrack)
+                return false;
+
+            bool forward = Direction == TrackDirection.Ahead;
+
+            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
+                ? trackWorld.TrackModel.RoadDatabase
+                : trackWorld.TrackModel.TrackDatabase;
+
+            if (trackDatabase == null)
+                return false;
+
+            // VectorNode connectors: [0] = start end, [1] = finish end.
+            ImmutableArray<TrackNodeConnector> ownConnectors = trackDatabase.TrackNodeConnectors[CurrentNode.NodeIndex].TrackNodeConnectors;
+            TrackNodeConnector exitConnector = forward ? ownConnectors[1] : ownConnectors[0];
+            return trackDatabase.TrackNodes[exitConnector.Link] is EndNode;
+        }
+
+        /// <summary>
         /// Returns the signed curvature (1/R) at the traveller's current position.
         /// Positive values curve right (positive arc angle), negative values curve left.
         /// Returns <c>0</c> for straight sections or when the traveller is not on track.

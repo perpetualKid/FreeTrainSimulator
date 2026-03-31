@@ -39,6 +39,7 @@ using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
 
@@ -1500,25 +1501,48 @@ namespace Orts.ActivityRunner.Viewer3D
             Ray pickRay = new Ray(nearPoint, direction);
 
             // check each car
-            // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
-            Traveller traveller = new Traveller(PlayerTrain.FrontTDBTraveller, true);
             int carNo = 0;
-            foreach (TrainCar car in PlayerTrain.Cars)
+            if (PlayerTrain.FrontTrackTraveller is TrackTraveller ftt)
             {
-                float d = (car.CouplerSlackM + car.GetCouplerZeroLengthM()) / 2;
-                traveller.Move(car.CarLengthM + d);
-
-                Vector3 xnaCenter = Camera.XnaLocation(traveller.WorldLocation);
-                float radius = 2f;  // 2 meter click range
-                BoundingSphere boundingSphere = new BoundingSphere(xnaCenter, radius);
-
-                if (null != pickRay.Intersects(boundingSphere))
+                TrackTraveller traveller = ftt.Reverse();
+                foreach (TrainCar car in PlayerTrain.Cars)
                 {
-                    _ = new UncoupleCommand(Log, carNo);
-                    break;
+                    float d = (car.CouplerSlackM + car.GetCouplerZeroLengthM()) / 2;
+                    traveller = traveller.Move(car.CarLengthM + d);
+
+                    Vector3 xnaCenter = Camera.XnaLocation(traveller.Location);
+                    float radius = 2f;  // 2 meter click range
+                    BoundingSphere boundingSphere = new BoundingSphere(xnaCenter, radius);
+
+                    if (null != pickRay.Intersects(boundingSphere))
+                    {
+                        _ = new UncoupleCommand(Log, carNo);
+                        break;
+                    }
+                    traveller = traveller.Move(d);
+                    carNo++;
                 }
-                traveller.Move(d);
-                carNo++;
+            }
+            else
+            {
+                Traveller traveller = new Traveller(PlayerTrain.FrontTDBTraveller, true);
+                foreach (TrainCar car in PlayerTrain.Cars)
+                {
+                    float d = (car.CouplerSlackM + car.GetCouplerZeroLengthM()) / 2;
+                    traveller.Move(car.CarLengthM + d);
+
+                    Vector3 xnaCenter = Camera.XnaLocation(traveller.WorldLocation);
+                    float radius = 2f;  // 2 meter click range
+                    BoundingSphere boundingSphere = new BoundingSphere(xnaCenter, radius);
+
+                    if (null != pickRay.Intersects(boundingSphere))
+                    {
+                        _ = new UncoupleCommand(Log, carNo);
+                        break;
+                    }
+                    traveller.Move(d);
+                    carNo++;
+                }
             }
         }
 

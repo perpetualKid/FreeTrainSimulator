@@ -32,6 +32,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -3221,9 +3222,10 @@ namespace Orts.Simulation.AIs
             }
             else if (PresentPosition[Direction.Backward].DistanceTravelled < distanceThreshold && FrontTrackNodeOffset + 25 > FrontTrackNodeLength)
             {
-                // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move/NextTrackNode
-                var tempTraveller = new Traveller(FrontTDBTraveller);
-                if (tempTraveller.NextTrackNode() && tempTraveller.TrackNodeType == TrackNodeType.End)
+                bool isEndOfTrack = FrontTrackTraveller is TrackTraveller ftt
+                    ? ftt.IsNextNodeEndOfTrack()
+                    : new Traveller(FrontTDBTraveller) is var tempTraveller && tempTraveller.NextTrackNode() && tempTraveller.TrackNodeType == TrackNodeType.End;
+                if (isEndOfTrack)
                 {
                     removeIt = false;
                     MovementState = AiMovementState.Frozen;
@@ -3233,10 +3235,18 @@ namespace Orts.Simulation.AIs
             {
                 if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath - 1].Valid && PresentPosition[Direction.Backward].DistanceTravelled < distanceThreshold && PresentPosition[Direction.Backward].Offset < 25)
                 {
-                    // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move/NextTrackNode
-                    var tempTraveller = new Traveller(RearTDBTraveller);
-                    tempTraveller.ReverseDirection();
-                    if (tempTraveller.NextTrackNode() && tempTraveller.TrackNodeType == TrackNodeType.End)
+                    bool isEndOfTrack;
+                    if (RearTrackTraveller is TrackTraveller rtt)
+                    {
+                        isEndOfTrack = rtt.Reverse().IsNextNodeEndOfTrack();
+                    }
+                    else
+                    {
+                        var tempTraveller = new Traveller(RearTDBTraveller);
+                        tempTraveller.ReverseDirection();
+                        isEndOfTrack = tempTraveller.NextTrackNode() && tempTraveller.TrackNodeType == TrackNodeType.End;
+                    }
+                    if (isEndOfTrack)
                     {
                         removeIt = false;
                         MovementState = AiMovementState.Frozen;
@@ -3261,13 +3271,10 @@ namespace Orts.Simulation.AIs
             thisTrainFront = true;
             otherTrainFront = true;
 
-            // TODO Phase 7: replace Traveller copy+walk with TrackTraveller equivalents
-            Traveller usedTraveller = new Traveller(FrontTDBTraveller);
             Direction direction = Direction.Forward;
 
             if (MUDirection == MidpointDirection.Reverse)
             {
-                usedTraveller = new Traveller(RearTDBTraveller, true); // use in direction of movement
                 thisTrainFront = false;
                 direction = Direction.Backward;
             }
@@ -3293,7 +3300,6 @@ namespace Orts.Simulation.AIs
             }
 
             // test directions
-            // TODO Phase 7: replace Traveller copy+walk with TrackTraveller equivalents
             if (PresentPosition[direction].Direction == attachTrain.PresentPosition[otherDirection].Direction) // trains are in same direction
             {
                 if (direction == Direction.Backward)
@@ -3323,7 +3329,24 @@ namespace Orts.Simulation.AIs
                 return (true); // in pre-update, being in the same section is good enough
 
             // check distance to other train
-            float dist = usedTraveller.OverlapDistanceM(otherTraveller, false);
+            // Prefer shadow TrackTraveller for overlap calculation when both sides have it
+            TrackTraveller? selfShadow = direction == Direction.Backward
+                ? (RearTrackTraveller is TrackTraveller rtt ? rtt.Reverse() : null)
+                : FrontTrackTraveller;
+            TrackTraveller? otherShadow = otherTrainFront ? attachTrain.FrontTrackTraveller : attachTrain.RearTrackTraveller;
+
+            float dist;
+            if (selfShadow is TrackTraveller selfTT && otherShadow is TrackTraveller otherTT)
+            {
+                dist = CouplingGeometry.OverlapDistanceM(in selfTT, in otherTT, false);
+            }
+            else
+            {
+                Traveller usedTraveller = direction == Direction.Backward
+                    ? new Traveller(RearTDBTraveller, true)
+                    : new Traveller(FrontTDBTraveller);
+                dist = usedTraveller.OverlapDistanceM(otherTraveller, false);
+            }
             return (dist < 0.1f);
         }
 

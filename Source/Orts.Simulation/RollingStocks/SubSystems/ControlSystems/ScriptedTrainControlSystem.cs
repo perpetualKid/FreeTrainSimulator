@@ -31,6 +31,7 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Native;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -655,7 +656,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         private bool DoesStartFromTerminalStation()
         {
-            // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move/NextTrackNode
+            if (Locomotive.Train.RearTrackTraveller is TrackTraveller rtt)
+                return rtt.Reverse().IsNextNodeEndOfTrack();
+
             var tempTraveller = new Traveller(Locomotive.Train.RearTDBTraveller);
             tempTraveller.ReverseDirection();
             return tempTraveller.NextTrackNode() && tempTraveller.TrackNodeType == TrackNodeType.End;

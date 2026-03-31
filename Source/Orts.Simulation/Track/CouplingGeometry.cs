@@ -1,6 +1,7 @@
 using System;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Runtime.Track;
 
 namespace Orts.Simulation.Track
 {
@@ -87,6 +88,16 @@ namespace Orts.Simulation.Track
             }
 
             return 1;
+        }
+
+        /// <summary>
+        /// Convenience overload computing the signed overlap distance between two <see cref="TrackTraveller"/> positions.
+        /// Delegates to <see cref="OverlapDistanceM(in WorldLocation, float, in WorldLocation, bool)"/>
+        /// using the traveller's <see cref="TrackTraveller.Location"/> and <see cref="TrackTraveller.Heading"/>.
+        /// </summary>
+        public static float OverlapDistanceM(in TrackTraveller self, in TrackTraveller other, bool rear)
+        {
+            return OverlapDistanceM(self.Location, self.Heading, other.Location, rear);
         }
     }
 }
