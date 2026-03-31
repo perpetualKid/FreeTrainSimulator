@@ -2373,7 +2373,7 @@ namespace Orts.Simulation.RollingStocks
         {
             ArgumentNullException.ThrowIfNull(traveller);
 
-            TrackTraveller trackTraveller = InitializeTrackTraveller(traveller);
+            TrackTraveller trackTraveller = TravellerBridge.ToTrackTraveller(traveller);
             ComputePosition(ref trackTraveller, backToFront, elapsedTimeS, distance, speed);
             traveller.Move(CarLengthM);
         }
@@ -2397,18 +2397,8 @@ namespace Orts.Simulation.RollingStocks
         {
             ArgumentNullException.ThrowIfNull(traveller);
 
-            TrackTraveller trackTraveller = InitializeTrackTraveller(traveller);
+            TrackTraveller trackTraveller = TravellerBridge.ToTrackTraveller(traveller);
             UpdatedTraveller(trackTraveller, elapsedTimeS, distanceM, speedMpS);
-        }
-
-        private static TrackTraveller InitializeTrackTraveller(Traveller traveller)
-        {
-            TrackDirection direction = traveller.Direction == FreeTrainSimulator.Common.Direction.Forward
-                ? TrackDirection.Ahead
-                : TrackDirection.Reverse;
-            int preferredNodeIndex = traveller.TrackNode?.Index ?? -1;
-            TrackTraveller? initialized = TrackTraveller.InitializeTraveller(traveller.WorldLocation, preferredNodeIndex, direction);
-            return initialized ?? throw new InvalidOperationException($"Unable to initialize {nameof(TrackTraveller)} from {nameof(Traveller)}.");
         }
 
         internal protected virtual void UpdateRemotePosition(double elapsedClockSeconds, float speed, float targetSpeed)
