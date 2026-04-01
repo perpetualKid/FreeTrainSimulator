@@ -3709,8 +3709,8 @@ namespace Orts.Simulation.Physics
             // get starting position and route
 
             TrackNode tn = RearTDBTraveller.TrackNode;
-            float offset = RearTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
+            float offset = RearTrackNodeOffset;
+            TrackDirection direction = RearDirection.Reverse();
 
             PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
@@ -10393,8 +10393,8 @@ namespace Orts.Simulation.Physics
         internal void SetRoutePath(AIPath aiPath, bool usePosition)
         {
             TrackDirection direction = usePosition
-                ? (FrontTrackTraveller is TrackTraveller ftt ? ftt.Direction.Reverse() : (TrackDirection)FrontTDBTraveller.Direction.Reverse())
-                : (RearTrackTraveller is TrackTraveller rtt ? rtt.Direction.Reverse() : (RearTDBTraveller != null ? (TrackDirection)RearTDBTraveller.Direction.Reverse() : (TrackDirection)(-2)));
+                ? FrontDirection.Reverse()
+                : (RearTrackTraveller.HasValue || RearTDBTraveller != null ? RearDirection.Reverse() : (TrackDirection)(-2));
             TCRoute = new TrackCircuitRoutePath(aiPath, direction, Length, Number);
             ValidRoutes[Direction.Forward] = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
         }
@@ -10404,9 +10404,9 @@ namespace Orts.Simulation.Physics
         // </summary>
         internal void PresetExplorerPath(AIPath aiPath)
         {
-            TrackDirection direction = RearTrackTraveller is TrackTraveller rtt
-                ? rtt.Direction.Reverse()
-                : (RearTDBTraveller != null ? (TrackDirection)RearTDBTraveller.Direction.Reverse() : (TrackDirection)(-2));
+            TrackDirection direction = RearTrackTraveller.HasValue || RearTDBTraveller != null
+                ? RearDirection.Reverse()
+                : (TrackDirection)(-2);
             TCRoute = new TrackCircuitRoutePath(aiPath, direction, 0, Number);
 
             // loop through all sections in first subroute except first and last (neither can be junction)
@@ -11681,7 +11681,7 @@ namespace Orts.Simulation.Physics
                         newDistanceTravelledM = DistanceTravelledM + expectedTravelled - DistanceTravelled;
 
                         //if something wrong with the switch
-                        if (RearTDBTraveller.TrackNode.Index != expectedTracIndex)
+                        if (RearTrackNodeIndex != expectedTracIndex)
                         {
                             Traveller t = null;
                             if (expectedTracIndex <= 0)

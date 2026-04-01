@@ -2373,8 +2373,9 @@ namespace Orts.Simulation.RollingStocks
         {
             ArgumentNullException.ThrowIfNull(traveller);
 
-            TrackTraveller trackTraveller = TravellerBridge.ToTrackTraveller(traveller);
-            ComputePosition(ref trackTraveller, backToFront, elapsedTimeS, distance, speed);
+            TrackTraveller? snapped = TravellerBridge.ToTrackTraveller(traveller);
+            if (snapped is TrackTraveller trackTraveller)
+                ComputePosition(ref trackTraveller, backToFront, elapsedTimeS, distance, speed);
             traveller.Move(CarLengthM);
         }
 
@@ -2397,8 +2398,8 @@ namespace Orts.Simulation.RollingStocks
         {
             ArgumentNullException.ThrowIfNull(traveller);
 
-            TrackTraveller trackTraveller = TravellerBridge.ToTrackTraveller(traveller);
-            UpdatedTraveller(trackTraveller, elapsedTimeS, distanceM, speedMpS);
+            if (TravellerBridge.ToTrackTraveller(traveller) is TrackTraveller trackTraveller)
+                UpdatedTraveller(trackTraveller, elapsedTimeS, distanceM, speedMpS);
         }
 
         internal protected virtual void UpdateRemotePosition(double elapsedClockSeconds, float speed, float targetSpeed)

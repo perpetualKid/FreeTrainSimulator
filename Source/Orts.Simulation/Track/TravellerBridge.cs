@@ -18,12 +18,13 @@ namespace Orts.Simulation.Track
         /// Creates a <see cref="TrackTraveller"/> that matches the position and direction
         /// of the given legacy <see cref="Traveller"/> by snapping to the nearest track section
         /// on the preferred track node.
+        /// Returns <see langword="null"/> when the traveller's position cannot be snapped
+        /// (e.g. when the legacy traveller sits on an <c>EndNode</c> beyond the last track section).
         /// </summary>
         /// <param name="traveller">The legacy traveller to convert.</param>
-        /// <returns>A <see cref="TrackTraveller"/> at the same position.</returns>
+        /// <returns>A <see cref="TrackTraveller"/> at the same position, or <see langword="null"/> if snapping failed.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="traveller"/> is <see langword="null"/>.</exception>
-        /// <exception cref="InvalidOperationException">The traveller's position could not be snapped onto the track database.</exception>
-        public static TrackTraveller ToTrackTraveller(Traveller traveller)
+        public static TrackTraveller? ToTrackTraveller(Traveller traveller)
         {
             ArgumentNullException.ThrowIfNull(traveller);
 
@@ -32,12 +33,9 @@ namespace Orts.Simulation.Track
                 : TrackDirection.Reverse;
             int preferredNodeIndex = traveller.TrackNode?.Index ?? -1;
 
-            TrackTraveller? initialized = preferredNodeIndex >= 0
+            return preferredNodeIndex >= 0
                 ? TrackTraveller.InitializeTraveller(traveller.WorldLocation, preferredNodeIndex, direction)
                 : TrackTraveller.InitializeTraveller(traveller.WorldLocation, direction);
-
-            return initialized ?? throw new InvalidOperationException(
-                $"Unable to initialize {nameof(TrackTraveller)} from {nameof(Traveller)} at {traveller.WorldLocation}.");
         }
     }
 }
