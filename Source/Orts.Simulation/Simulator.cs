@@ -1539,12 +1539,15 @@ namespace Orts.Simulation
                     // in static consists, the specified location represents the middle of the last car, 
                     // our TDB traveller is always at the back of the last car so it needs to be repositioned
                     TrainCar lastCar = train.LastCar;
+                    if (train.RearTrackTraveller is TrackTraveller staticRtt)
+                        train.RearTrackTraveller = staticRtt.Move(-lastCar.CarLengthM / 2f);
                     train.RearTDBTraveller.ReverseDirection();
                     train.RearTDBTraveller.Move(lastCar.CarLengthM / 2f);
                     train.RearTDBTraveller.ReverseDirection();
                     // Re-snap shadow after legacy mutation; CalculatePositionOfCars below will overwrite,
                     // but this keeps the shadow valid immediately.
-                    train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(train.RearTDBTraveller);
+                    if (!train.RearTrackTraveller.HasValue)
+                        train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(train.RearTDBTraveller);
 
                     train.CalculatePositionOfCars();
                     train.InitializeBrakes();

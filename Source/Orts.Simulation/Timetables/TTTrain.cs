@@ -4914,30 +4914,16 @@ namespace Orts.Simulation.Timetables
                 return (false);
             }
 
-            // test directions
+            // test directions - determine which end of other train we approach
             if (PresentPosition[direction].Direction == attachTrain.PresentPosition[otherDirection].Direction) // trains are in same direction
             {
-                if (direction == Direction.Backward)
-                {
-                    otherTraveller = new Traveller(attachTrain.FrontTDBTraveller);
-                }
-                else
-                {
-                    otherTraveller = new Traveller(attachTrain.RearTDBTraveller);
+                if (direction != Direction.Backward)
                     otherTrainFront = false;
-                }
             }
             else
             {
                 if (direction == Direction.Backward)
-                {
-                    otherTraveller = new Traveller(attachTrain.RearTDBTraveller);
                     otherTrainFront = false;
-                }
-                else
-                {
-                    otherTraveller = new Traveller(attachTrain.FrontTDBTraveller);
-                }
             }
 
             //if (PreUpdate) return (true); // in pre-update, being in the same section is good enough
@@ -4959,6 +4945,9 @@ namespace Orts.Simulation.Timetables
                 Traveller usedTraveller = direction == Direction.Backward
                     ? new Traveller(RearTDBTraveller, true)
                     : new Traveller(FrontTDBTraveller);
+                otherTraveller = otherTrainFront
+                    ? new Traveller(attachTrain.FrontTDBTraveller)
+                    : new Traveller(attachTrain.RearTDBTraveller);
                 dist = usedTraveller.OverlapDistanceM(otherTraveller, false);
             }
             return (dist < 0.1f);

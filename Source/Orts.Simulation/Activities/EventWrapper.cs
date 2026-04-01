@@ -26,6 +26,8 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Imported.State;
 
+using FreeTrainSimulator.Runtime.Track;
+
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Physics;
@@ -141,7 +143,6 @@ namespace Orts.Simulation.Activities
             return false;
         }
 
-        // TODO Phase 9: migrate to TrackTraveller once DistanceTo(WorldLocation, float) is available
         private protected static DistanceResult CalculateToPoint(Traveller start, in WorldLocation target)
         {
             Traveller poiTraveller;
@@ -169,6 +170,19 @@ namespace Orts.Simulation.Activities
             }
 
             // Otherwise off path
+            return DistanceResult.OffPath;
+        }
+
+        private protected static DistanceResult CalculateToPoint(in TrackTraveller start, in WorldLocation target)
+        {
+            float? distance = start.DistanceTo(target, MaxPlatformOrStationSize);
+            if (distance > 0)
+                return DistanceResult.Valid;
+
+            distance = start.Reverse().DistanceTo(target, MaxPlatformOrStationSize);
+            if (distance > 0)
+                return DistanceResult.Behind;
+
             return DistanceResult.OffPath;
         }
     }
@@ -234,7 +248,9 @@ namespace Orts.Simulation.Activities
                     }
                     break;
                 case EventType.AssembleTrainAtLocation:
-                    if (AtSiding(playerTrain.FrontTDBTraveller, playerTrain.RearTDBTraveller, sidingEnd1, sidingEnd2))
+                    if (playerTrain.FrontTrackTraveller is TrackTraveller aFtt && playerTrain.RearTrackTraveller is TrackTraveller aRtt
+                        ? AtSiding(aFtt, aRtt, sidingEnd1, sidingEnd2)
+                        : AtSiding(playerTrain.FrontTDBTraveller, playerTrain.RearTDBTraveller, sidingEnd1, sidingEnd2))
                     {
                         consistTrain = MatchesConsist(changeWagonIdList);
                         triggered = consistTrain != null;
@@ -244,7 +260,9 @@ namespace Orts.Simulation.Activities
                     // Dropping off of wagons should only count once disconnected from player train.
                     // A better name than DropOffWagonsAtLocation would be ArriveAtSidingWithWagons.
                     // To recognize the dropping off of the cars before the event is activated, this method is used.
-                    if (AtSiding(playerTrain.FrontTDBTraveller, playerTrain.RearTDBTraveller, sidingEnd1, sidingEnd2))
+                    if (playerTrain.FrontTrackTraveller is TrackTraveller dFtt && playerTrain.RearTrackTraveller is TrackTraveller dRtt
+                        ? AtSiding(dFtt, dRtt, sidingEnd1, sidingEnd2)
+                        : AtSiding(playerTrain.FrontTDBTraveller, playerTrain.RearTDBTraveller, sidingEnd1, sidingEnd2))
                     {
                         consistTrain = MatchesConsistNoOrder(changeWagonIdList);
                         triggered = consistTrain != null;
@@ -414,6 +432,28 @@ namespace Orts.Simulation.Activities
 
             return false;
         }
+
+        private static bool AtSiding(in TrackTraveller frontPosition, in TrackTraveller rearPosition, SidingItem sidingEnd1, SidingItem sidingEnd2)
+        {
+            if (sidingEnd1 == null || sidingEnd2 == null)
+                return true;
+
+            DistanceResult distanceEnd1 = CalculateToPoint(frontPosition, sidingEnd1.Location);
+            DistanceResult distanceEnd2 = CalculateToPoint(frontPosition, sidingEnd2.Location);
+
+            if ((distanceEnd1 == DistanceResult.Behind && distanceEnd2 == DistanceResult.Valid)
+                || (distanceEnd1 == DistanceResult.Valid && distanceEnd2 == DistanceResult.Behind))
+                return true;
+
+            distanceEnd1 = CalculateToPoint(rearPosition, sidingEnd1.Location);
+            distanceEnd2 = CalculateToPoint(rearPosition, sidingEnd2.Location);
+
+            if ((distanceEnd1 == DistanceResult.Behind && distanceEnd2 == DistanceResult.Valid)
+                || (distanceEnd1 == DistanceResult.Valid && distanceEnd2 == DistanceResult.Behind))
+                return true;
+
+            return false;
+        }
     }
 
     public class EventCategoryLocationWrapper : EventWrapper
@@ -430,8 +470,7 @@ namespace Orts.Simulation.Activities
             Train train = Simulator.Instance.PlayerLocomotive.Train;
             if (!string.IsNullOrEmpty(ActivityEvent.TrainService) && Train != null)
             {
-                // TODO Phase 9: replace null check with FrontTrackTraveller.HasValue once legacy Traveller removed
-                if (Train.FrontTDBTraveller == null)
+                if (!Train.FrontTrackTraveller.HasValue && Train.FrontTDBTraveller == null)
                         return triggered;
                 train = Train;
             }
@@ -444,19 +483,32 @@ namespace Orts.Simulation.Activities
                     return triggered;
                 }
             }
-            Traveller trainFrontPosition = new Traveller(train.NextRouteReady && train.TCRoute.ActiveSubPath > 0 && train.TCRoute.ReversalInfo[train.TCRoute.ActiveSubPath - 1].Valid ?
-                train.RearTDBTraveller : train.FrontTDBTraveller); // just after reversal the old train front position must be considered
-            float distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
-            if (distance == -1)
+            // Just after reversal the old train front position must be considered
+            bool useRear = train.NextRouteReady && train.TCRoute.ActiveSubPath > 0
+                && train.TCRoute.ReversalInfo[train.TCRoute.ActiveSubPath - 1].Valid;
+            TrackTraveller? shadow = useRear ? train.RearTrackTraveller : train.FrontTrackTraveller;
+
+            if (shadow is TrackTraveller tt)
             {
-                trainFrontPosition.ReverseDirection();
-                distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
-                if (distance == -1)
-                    return triggered;
+                float? distance = tt.DistanceTo(e.Location, e.RadiusM);
+                if (!distance.HasValue)
+                    distance = tt.Reverse().DistanceTo(e.Location, e.RadiusM);
+                if (distance.HasValue && distance.Value < e.RadiusM)
+                    triggered = true;
             }
-            if (distance < e.RadiusM)
+            else
             {
-                triggered = true;
+                Traveller trainFrontPosition = new Traveller(useRear ? train.RearTDBTraveller : train.FrontTDBTraveller);
+                float distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
+                if (distance == -1)
+                {
+                    trainFrontPosition.ReverseDirection();
+                    distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
+                    if (distance == -1)
+                        return triggered;
+                }
+                if (distance < e.RadiusM)
+                    triggered = true;
             }
             return triggered;
         }

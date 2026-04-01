@@ -45,6 +45,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -69,13 +70,8 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
             ArgumentNullException.ThrowIfNull(train, nameof(train));
 
             int retval = 0;
-            Traveller traveller;
-            Traveller tmp;
             outPrevDist = -1;
             outNextDist = -1;
-
-            // TODO Phase 7: replace Traveller copy+walk with TrackTraveller.Move
-            traveller = train.SpeedMpS >= 0 ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
 
             List<TrackItem> trItems = RuntimeData.Instance.TrackDB.TrackItems;
 
@@ -84,68 +80,137 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
 
             float prevDist = float.MaxValue;
             float nextDist = float.MaxValue;
-            float d;
 
-            // Check every sound region's all track nodes
-            foreach (List<WorldSoundRegion> lwsr in soundRegions.Values)
+            // Prefer shadow TrackTraveller when available
+            TrackTraveller? shadow = train.SpeedMpS >= 0
+                ? train.FrontTrackTraveller
+                : (train.RearTrackTraveller is TrackTraveller rtt ? (TrackTraveller?)rtt.Reverse() : null);
+
+            if (shadow is TrackTraveller tt)
             {
-                foreach (WorldSoundRegion wsr in lwsr)
+                TrackTraveller reversed = tt.Reverse();
+
+                foreach (List<WorldSoundRegion> lwsr in soundRegions.Values)
                 {
-                    foreach (int trNode in wsr.TrackNodes)
+                    foreach (WorldSoundRegion wsr in lwsr)
                     {
-                        if (trItems[trNode] is SoundRegionItem)
+                        foreach (int trNode in wsr.TrackNodes)
                         {
-                            tmp = new Traveller(traveller);
-
-                            // Try to find forward
-                            d = tmp.DistanceTo(trItems[trNode].Location, 8192);
-
-                            if (d != -1)
+                            if (trItems[trNode] is SoundRegionItem)
                             {
-                                // This is nearer than previous one
-                                if (d < nextDist)
-                                {
-                                    nextDist = d;
-                                    nextItem = wsr;
-                                }
-                                // Or at exactly the same distance
-                                else if (d == nextDist)
-                                {
-                                    if (traveller.Direction == tmp.Direction)
-                                        tmp.ReverseDirection();
+                                // Try to find forward
+                                float? fd = tt.DistanceTo(trItems[trNode].Location, 8192);
 
-                                    // If faces toward us then it is applicable
-                                    if (Math.Abs(tmp.RotY - wsr.RotY) < .35)
+                                if (fd.HasValue)
+                                {
+                                    if (fd.Value < nextDist)
+                                    {
+                                        nextDist = fd.Value;
+                                        nextItem = wsr;
+                                    }
+                                    else if (fd.Value == nextDist)
+                                    {
+                                        // If faces toward us then it is applicable
+                                        if (Math.Abs(reversed.Heading - wsr.RotY) < .35)
+                                        {
+                                            nextDist = fd.Value;
+                                            nextItem = wsr;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    // Not found forward, check backward
+                                    float? bd = reversed.DistanceTo(trItems[trNode].Location, 8192);
+                                    if (bd.HasValue)
+                                    {
+                                        if (bd.Value < prevDist)
+                                        {
+                                            prevDist = bd.Value;
+                                            prevItem = wsr;
+                                        }
+                                        else if (bd.Value == prevDist)
+                                        {
+                                            // Applicable if faces with us
+                                            if (Math.Abs(tt.Heading - wsr.RotY) < .35)
+                                            {
+                                                prevDist = bd.Value;
+                                                prevItem = wsr;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Traveller traveller = train.SpeedMpS >= 0 ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
+                float d;
+
+                // Check every sound region's all track nodes
+                foreach (List<WorldSoundRegion> lwsr in soundRegions.Values)
+                {
+                    foreach (WorldSoundRegion wsr in lwsr)
+                    {
+                        foreach (int trNode in wsr.TrackNodes)
+                        {
+                            if (trItems[trNode] is SoundRegionItem)
+                            {
+                                Traveller tmp = new Traveller(traveller);
+
+                                // Try to find forward
+                                d = tmp.DistanceTo(trItems[trNode].Location, 8192);
+
+                                if (d != -1)
+                                {
+                                    // This is nearer than previous one
+                                    if (d < nextDist)
                                     {
                                         nextDist = d;
                                         nextItem = wsr;
                                     }
-                                }
-                            }
-                            else
-                            {
-                                // Not found forward, check backward
-                                tmp = new Traveller(traveller, true);
-
-                                d = tmp.DistanceTo(trItems[trNode].Location, 8192);
-                                if (d != -1)
-                                {
-                                    // It is nearer than previous
-                                    if (d < prevDist)
+                                    // Or at exactly the same distance
+                                    else if (d == nextDist)
                                     {
-                                        prevDist = d;
-                                        prevItem = wsr;
-                                    }
-                                    else if (d == prevDist)
-                                    {
-                                        if (traveller.Direction != tmp.Direction)
+                                        if (traveller.Direction == tmp.Direction)
                                             tmp.ReverseDirection();
 
-                                        // Applicable if faces with us
+                                        // If faces toward us then it is applicable
                                         if (Math.Abs(tmp.RotY - wsr.RotY) < .35)
+                                        {
+                                            nextDist = d;
+                                            nextItem = wsr;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    // Not found forward, check backward
+                                    tmp = new Traveller(traveller, true);
+
+                                    d = tmp.DistanceTo(trItems[trNode].Location, 8192);
+                                    if (d != -1)
+                                    {
+                                        // It is nearer than previous
+                                        if (d < prevDist)
                                         {
                                             prevDist = d;
                                             prevItem = wsr;
+                                        }
+                                        else if (d == prevDist)
+                                        {
+                                            if (traveller.Direction != tmp.Direction)
+                                                tmp.ReverseDirection();
+
+                                            // Applicable if faces with us
+                                            if (Math.Abs(tmp.RotY - wsr.RotY) < .35)
+                                            {
+                                                prevDist = d;
+                                                prevItem = wsr;
+                                            }
                                         }
                                     }
                                 }
