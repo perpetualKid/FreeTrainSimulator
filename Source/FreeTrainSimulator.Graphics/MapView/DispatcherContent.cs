@@ -135,7 +135,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             float remainingPathLength = 2000;
             PathSegments.Clear();
-            if (!trackTraveller.OnTrack || trackModel.SegmentSections.Count == 0)
+            if (trackModel == null || !trackTraveller.OnTrack || trackModel.SegmentSections.Count == 0)
                 return;
 
             IReadOnlyList<TrackSegmentBase> trackSegments = trackModel.SegmentSections[trackTraveller.CurrentNode.NodeIndex]?.SectionSegments;

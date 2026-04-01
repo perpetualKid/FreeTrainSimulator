@@ -92,8 +92,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     Number = TrainNumber,
                     TrainType = TrainType.Remote,
                     DistanceTravelled = DistanceTravelled,
-                    RearTDBTraveller = new Traveller(RearLocation, TrainDirection.Reverse())
                 };
+                train.SetRearTraveller(new Traveller(RearLocation, TrainDirection.Reverse()));
 
                 foreach (TrainCarItem trainCarItem in TrainCars ?? Enumerable.Empty<TrainCarItem>())
                 {

@@ -35,6 +35,7 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -1782,8 +1783,8 @@ namespace Orts.Simulation.Timetables
                 AllowedMaxSpeedSignalMpS = otherTrain.AllowedMaxSpeedSignalMpS;
                 AllowedMaxSpeedLimitMpS = otherTrain.AllowedMaxSpeedLimitMpS;
 
-                FrontTDBTraveller = new Traveller(otherTrain.FrontTDBTraveller);
-                RearTDBTraveller = new Traveller(otherTrain.RearTDBTraveller);
+                SetFrontTraveller(new Traveller(otherTrain.FrontTDBTraveller));
+                SetRearTraveller(new Traveller(otherTrain.RearTDBTraveller));
 
                 // check if train reversal is required
 
@@ -1832,13 +1833,13 @@ namespace Orts.Simulation.Timetables
             {
                 if (TCRoute.TCRouteSubpaths[0][usedPositionIndex].Direction != otherTrain.PresentPosition[direction].Direction)
                 {
-                    FrontTDBTraveller = new Traveller(otherTrain.RearTDBTraveller, true);
-                    RearTDBTraveller = new Traveller(otherTrain.FrontTDBTraveller, true);
+                    SetFrontTraveller(new Traveller(otherTrain.RearTDBTraveller, true));
+                    SetRearTraveller(new Traveller(otherTrain.FrontTDBTraveller, true));
                 }
                 else
                 {
-                    FrontTDBTraveller = new Traveller(otherTrain.FrontTDBTraveller);
-                    RearTDBTraveller = new Traveller(otherTrain.RearTDBTraveller);
+                    SetFrontTraveller(new Traveller(otherTrain.FrontTDBTraveller));
+                    SetRearTraveller(new Traveller(otherTrain.RearTDBTraveller));
                 }
                 CalculatePositionOfCars();
                 InitialTrainPlacement(true);
@@ -4494,13 +4495,9 @@ namespace Orts.Simulation.Timetables
 
             // get starting position and route
 
-            TrackNode tn = RearTDBTraveller.TrackNode;
-            float offset = RearTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
-
-            PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller, RearTDBTraveller);
             TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
-            offset = PresentPosition[Direction.Backward].Offset;
+            float offset = PresentPosition[Direction.Backward].Offset;
 
             // create route if train has none
 
@@ -4587,20 +4584,12 @@ namespace Orts.Simulation.Timetables
             // for initial placement, use direction 0 only
             // set initial positions
 
-            TrackNode tn = FrontTDBTraveller.TrackNode;
-            float offset = FrontTDBTraveller.TrackNodeOffset;
-            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction.Reverse();
-
-            PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             DistanceTravelledM = 0.0f;
 
-            tn = RearTDBTraveller.TrackNode;
-            offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (TrackDirection)RearTDBTraveller.Direction.Reverse();
-
-            PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller, RearTDBTraveller);
 
             // create route to cover all train sections
 
@@ -4641,7 +4630,7 @@ namespace Orts.Simulation.Timetables
 
             // check if route is available - use temp route as trains own route may not cover whole train
 
-            offset = PresentPosition[Direction.Backward].Offset;
+            float offset = PresentPosition[Direction.Backward].Offset;
             float remLength = Length;
             bool sectionAvailable = true;
 
@@ -4861,7 +4850,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // adjust front traveller to use found offset
-            float moved = -RearTDBTraveller.TrackNodeOffset;
+            float moved = -RearTrackNodeOffset;
 
             foreach (TrackCircuitRouteElement nextElement in trainRoute)
             {
@@ -4877,6 +4866,7 @@ namespace Orts.Simulation.Timetables
             }
 
             RearTDBTraveller.Move(moved);
+            RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
 
             return (validPlacement);
         }
@@ -4896,12 +4886,10 @@ namespace Orts.Simulation.Timetables
             thisTrainFront = true;
             otherTrainFront = true;
 
-            Traveller usedTraveller = new Traveller(FrontTDBTraveller);
             Direction direction = Direction.Forward;
 
             if (MUDirection == MidpointDirection.Reverse)
             {
-                usedTraveller = new Traveller(RearTDBTraveller, true); // use in direction of movement
                 thisTrainFront = false;
                 direction = Direction.Backward;
             }
@@ -4955,7 +4943,24 @@ namespace Orts.Simulation.Timetables
             //if (PreUpdate) return (true); // in pre-update, being in the same section is good enough
 
             // check distance to other train
-            float dist = usedTraveller.OverlapDistanceM(otherTraveller, false);
+            // Prefer shadow TrackTraveller for overlap calculation when both sides have it
+            TrackTraveller? selfShadow = direction == Direction.Backward
+                ? (RearTrackTraveller is TrackTraveller rtt ? rtt.Reverse() : null)
+                : FrontTrackTraveller;
+            TrackTraveller? otherShadow = otherTrainFront ? attachTrain.FrontTrackTraveller : attachTrain.RearTrackTraveller;
+
+            float dist;
+            if (selfShadow is TrackTraveller selfTT && otherShadow is TrackTraveller otherTT)
+            {
+                dist = CouplingGeometry.OverlapDistanceM(in selfTT, in otherTT, false);
+            }
+            else
+            {
+                Traveller usedTraveller = direction == Direction.Backward
+                    ? new Traveller(RearTDBTraveller, true)
+                    : new Traveller(FrontTDBTraveller);
+                dist = usedTraveller.OverlapDistanceM(otherTraveller, false);
+            }
             return (dist < 0.1f);
         }
 

@@ -141,6 +141,7 @@ namespace Orts.Simulation.Activities
             return false;
         }
 
+        // TODO Phase 9: migrate to TrackTraveller once DistanceTo(WorldLocation, float) is available
         private protected static DistanceResult CalculateToPoint(Traveller start, in WorldLocation target)
         {
             Traveller poiTraveller;
@@ -429,8 +430,9 @@ namespace Orts.Simulation.Activities
             Train train = Simulator.Instance.PlayerLocomotive.Train;
             if (!string.IsNullOrEmpty(ActivityEvent.TrainService) && Train != null)
             {
+                // TODO Phase 9: replace null check with FrontTrackTraveller.HasValue once legacy Traveller removed
                 if (Train.FrontTDBTraveller == null)
-                    return triggered;
+                        return triggered;
                 train = Train;
             }
             Train = train;

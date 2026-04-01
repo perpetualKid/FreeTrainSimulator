@@ -65,6 +65,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 return false;
             if (train.FrontTrackNodeIndex == train.RearTrackNodeIndex)
                 return false;
+            // TODO Phase 9: replace Traveller section walk with TrackTraveller.AdvanceToNextSection
             Traveller traveller = new Traveller(train.RearTDBTraveller);
             while (traveller.NextSection())
             {
