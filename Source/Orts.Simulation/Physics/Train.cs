@@ -1572,10 +1572,7 @@ namespace Orts.Simulation.Physics
                 {
                     RearTDBTraveller.Move(-1);//if front is out, move back
                     // Shadow rear is valid (not at EndNode) — move natively
-                    if (RearTrackTraveller is TrackTraveller rttBack)
-                        RearTrackTraveller = rttBack.Move(-1);
-                    else
-                        RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+                    RearTrackTraveller = RearTrackTraveller.Value.Move(-1);
                 }
                 else if (RearTDBTraveller.TrackNodeType == TrackNodeType.End)
                 {
@@ -3353,10 +3350,7 @@ namespace Orts.Simulation.Physics
             Length = length;
 
             // Dual-write: compute shadow rear from shadow front + accumulated length
-            if (FrontTrackTraveller is TrackTraveller fttRepos)
-                RearTrackTraveller = fttRepos.Reverse().Move(length).Reverse();
-            else
-                RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+            RearTrackTraveller = FrontTrackTraveller.Value.Reverse().Move(length).Reverse();
             TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
             TravellerEquivalenceTracer.AssertEquivalent(FrontTDBTraveller, FrontTrackTraveller);
         } // RepositionRearTraveller
@@ -3375,8 +3369,7 @@ namespace Orts.Simulation.Physics
 
             RearTDBTraveller.Move(distance);
             // Shadow rear: move independently by the same distance
-            if (RearTrackTraveller is TrackTraveller rttMove)
-                RearTrackTraveller = rttMove.Move((float)distance);
+            RearTrackTraveller = RearTrackTraveller.Value.Move((float)distance);
 
             // TODO : check if train moved back into previous section
             Traveller traveller = new Traveller(RearTDBTraveller);
@@ -3432,10 +3425,7 @@ namespace Orts.Simulation.Physics
             DistanceTravelled += (float)distance;
 
             // Dual-write: compute shadow front from shadow rear + accumulated length
-            if (RearTrackTraveller is TrackTraveller rttFront)
-                FrontTrackTraveller = rttFront.Move(length);
-            else
-                FrontTrackTraveller = TravellerBridge.ToTrackTraveller(FrontTDBTraveller);
+            FrontTrackTraveller = RearTrackTraveller.Value.Move(length);
             TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
             TravellerEquivalenceTracer.AssertEquivalent(FrontTDBTraveller, FrontTrackTraveller);
         } // CalculatePositionOfCars
@@ -3486,14 +3476,9 @@ namespace Orts.Simulation.Physics
             RearTDBTraveller = new Traveller(traveller);
 
             // Dual-write: compute shadow rear from original position moved backward by total walk distance
-            if (RearTrackTraveller is TrackTraveller rttEot)
             {
                 float totalWalk = car.CouplerSlackM + car.GetCouplerZeroLengthM() + car.CarLengthM;
-                RearTrackTraveller = rttEot.Reverse().Move(totalWalk).Reverse();
-            }
-            else
-            {
-                RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+                RearTrackTraveller = RearTrackTraveller.Value.Reverse().Move(totalWalk).Reverse();
             }
             TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
 
@@ -3533,14 +3518,9 @@ namespace Orts.Simulation.Physics
             RearTDBTraveller = new Traveller(traveller);
 
             // Dual-write: compute shadow rear moved forward by total walk distance
-            if (RearTrackTraveller is TrackTraveller rttRecalc)
             {
                 float totalWalk = car.CouplerSlackM + car.GetCouplerZeroLengthM() + car.CarLengthM;
-                RearTrackTraveller = rttRecalc.Move(totalWalk);
-            }
-            else
-            {
-                RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+                RearTrackTraveller = RearTrackTraveller.Value.Move(totalWalk);
             }
             TravellerEquivalenceTracer.AssertEquivalent(RearTDBTraveller, RearTrackTraveller);
 
