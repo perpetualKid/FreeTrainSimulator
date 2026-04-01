@@ -437,13 +437,22 @@ namespace FreeTrainSimulator.Runtime.Track
                 throw new InvalidOperationException("Traveller is not on a track. Call InitializeTraveller first.");
 
             bool forward = Direction == TrackDirection.Ahead;
-            if (distance < 0)
+            bool negativeDistance = distance < 0;
+            if (negativeDistance)
             {
                 forward = !forward;
                 distance = -distance;
             }
 
-            return MoveInternal(distance, forward);
+            TrackTraveller result = MoveInternal(distance, forward);
+
+            // Legacy Traveller.Move does ReverseDirection → walk → ReverseDirection when distance
+            // is negative, preserving the original direction. MoveInternal sets the final direction
+            // from the walking state, so apply the matching reversal here.
+            if (negativeDistance)
+                result = result with { Direction = result.Direction.Reverse() };
+
+            return result;
         }
 
         /// <summary>
