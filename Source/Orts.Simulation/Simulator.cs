@@ -1700,14 +1700,21 @@ namespace Orts.Simulation
             if (train.IsActualPlayerTrain && j >= i || !keepFront)
             {
                 train2.SetFrontTraveller(new Traveller(train.FrontTDBTraveller));
+                // Propagate shadow directly from source train if available
+                if (train.FrontTrackTraveller is TrackTraveller ftt2)
+                    train2.FrontTrackTraveller = ftt2;
                 train.CalculatePositionOfCars();
                 train2.SetRearTraveller(new Traveller(train.FrontTDBTraveller));
+                if (train.FrontTrackTraveller is TrackTraveller ftt2r)
+                    train2.RearTrackTraveller = ftt2r;
                 train2.CalculatePositionOfCars();  // fix the front traveller
                 train.DistanceTravelledM -= train2.Length;
             }
             else
             {
                 train2.SetRearTraveller(new Traveller(train.RearTDBTraveller));
+                if (train.RearTrackTraveller is TrackTraveller rtt2)
+                    train2.RearTrackTraveller = rtt2;
                 train2.CalculatePositionOfCars();  // fix the front traveller
                 train.RepositionRearTraveller();    // fix the rear traveller
             }
@@ -1884,7 +1891,11 @@ namespace Orts.Simulation
 
                     // and fix up the travellers
                     selectedAsPlayer.SetRearTraveller(new Traveller(dyingTrain.RearTDBTraveller));
+                    if (dyingTrain.RearTrackTraveller is TrackTraveller dyingRtt)
+                        selectedAsPlayer.RearTrackTraveller = dyingRtt;
                     selectedAsPlayer.SetFrontTraveller(new Traveller(dyingTrain.FrontTDBTraveller));
+                    if (dyingTrain.FrontTrackTraveller is TrackTraveller dyingFtt)
+                        selectedAsPlayer.FrontTrackTraveller = dyingFtt;
                     // are following lines needed?
                     //                       selectedAsPlayer.CalculatePositionOfCars(0);  // fix the front traveller
                     //                       selectedAsPlayer.RepositionRearTraveller();    // fix the rear traveller

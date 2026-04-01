@@ -2306,15 +2306,23 @@ namespace Orts.Simulation.Timetables
                 }
             }
 
+            // Compute shadow independently from middle position
+            TrackTraveller? middleShadow = TravellerBridge.ToTrackTraveller(middlePosition);
+
             parentTrain.RearTDBTraveller = new Traveller(middlePosition);
             float offsetPosition = reverseFormation ? (-parentTrain.Length / 2.0f) - stopPositionOnTurntableM : (-parentTrain.Length / 2.0f) + stopPositionOnTurntableM;
             parentTrain.RearTDBTraveller.MoveInSection(offsetPosition);
-            // Re-snap shadow after legacy mutation
-            parentTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(parentTrain.RearTDBTraveller);
+            if (middleShadow is TrackTraveller mtt)
+                parentTrain.RearTrackTraveller = mtt.Move(offsetPosition);
+            else
+                parentTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(parentTrain.RearTDBTraveller);
+
             parentTrain.FrontTDBTraveller = new Traveller(parentTrain.RearTDBTraveller);
             parentTrain.FrontTDBTraveller.MoveInSection(parentTrain.Length);
-            // Re-snap shadow after legacy mutation
-            parentTrain.FrontTrackTraveller = TravellerBridge.ToTrackTraveller(parentTrain.FrontTDBTraveller);
+            if (parentTrain.RearTrackTraveller is TrackTraveller rtt)
+                parentTrain.FrontTrackTraveller = rtt.Move(parentTrain.Length);
+            else
+                parentTrain.FrontTrackTraveller = TravellerBridge.ToTrackTraveller(parentTrain.FrontTDBTraveller);
 
             // place train
             parentTrain.InitialTrainPlacement();

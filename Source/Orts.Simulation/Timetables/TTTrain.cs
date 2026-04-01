@@ -1784,7 +1784,11 @@ namespace Orts.Simulation.Timetables
                 AllowedMaxSpeedLimitMpS = otherTrain.AllowedMaxSpeedLimitMpS;
 
                 SetFrontTraveller(new Traveller(otherTrain.FrontTDBTraveller));
+                if (otherTrain.FrontTrackTraveller is TrackTraveller xftt)
+                    FrontTrackTraveller = xftt;
                 SetRearTraveller(new Traveller(otherTrain.RearTDBTraveller));
+                if (otherTrain.RearTrackTraveller is TrackTraveller xrtt)
+                    RearTrackTraveller = xrtt;
 
                 // check if train reversal is required
 
@@ -1834,12 +1838,20 @@ namespace Orts.Simulation.Timetables
                 if (TCRoute.TCRouteSubpaths[0][usedPositionIndex].Direction != otherTrain.PresentPosition[direction].Direction)
                 {
                     SetFrontTraveller(new Traveller(otherTrain.RearTDBTraveller, true));
+                    if (otherTrain.RearTrackTraveller is TrackTraveller revRtt)
+                        FrontTrackTraveller = revRtt.Reverse();
                     SetRearTraveller(new Traveller(otherTrain.FrontTDBTraveller, true));
+                    if (otherTrain.FrontTrackTraveller is TrackTraveller revFtt)
+                        RearTrackTraveller = revFtt.Reverse();
                 }
                 else
                 {
                     SetFrontTraveller(new Traveller(otherTrain.FrontTDBTraveller));
+                    if (otherTrain.FrontTrackTraveller is TrackTraveller ftt2)
+                        FrontTrackTraveller = ftt2;
                     SetRearTraveller(new Traveller(otherTrain.RearTDBTraveller));
+                    if (otherTrain.RearTrackTraveller is TrackTraveller rtt2)
+                        RearTrackTraveller = rtt2;
                 }
                 CalculatePositionOfCars();
                 InitialTrainPlacement(true);
@@ -10089,11 +10101,15 @@ namespace Orts.Simulation.Timetables
             {
                 CalculatePositionOfCars();
                 newTrain.SetRearTraveller(new Traveller(FrontTDBTraveller));
+                if (FrontTrackTraveller is TrackTraveller detFtt)
+                    newTrain.RearTrackTraveller = detFtt;
                 newTrain.CalculatePositionOfCars();
             }
             else
             {
                 newTrain.SetRearTraveller(new Traveller(RearTDBTraveller));
+                if (RearTrackTraveller is TrackTraveller detRtt)
+                    newTrain.RearTrackTraveller = detRtt;
                 newTrain.CalculatePositionOfCars();
                 RepositionRearTraveller();    // fix the rear traveller
             }

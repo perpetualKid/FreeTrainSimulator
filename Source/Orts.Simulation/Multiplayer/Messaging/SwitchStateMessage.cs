@@ -1,7 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
 
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using MemoryPack;
 
@@ -65,7 +67,31 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 return false;
             if (train.FrontTrackNodeIndex == train.RearTrackNodeIndex)
                 return false;
-            // TODO Phase 9: replace Traveller section walk with TrackTraveller.AdvanceToNextSection
+
+            if (train.RearTrackTraveller is TrackTraveller rtt)
+            {
+                TrackTraveller walker = rtt;
+                while (true)
+                {
+                    (JunctionNode Junction, VectorNode ApproachNode)? jResult = walker.NextJunction();
+                    if (!jResult.HasValue)
+                        return false;
+                    if (jResult.Value.Junction.NodeIndex == junctionNode.Index)
+                        return true;
+                    // Advance past the junction to the next VectorNode
+                    int currentNodeIdx = walker.TrackNodeIndex;
+                    while (walker.TrackNodeIndex == currentNodeIdx)
+                    {
+                        TrackTraveller? next = walker.AdvanceToNextSection();
+                        if (!next.HasValue)
+                            return false;
+                        walker = next.Value;
+                    }
+                    if (walker.TrackNodeIndex == train.FrontTrackNodeIndex)
+                        return false;
+                }
+            }
+
             Traveller traveller = new Traveller(train.RearTDBTraveller);
             while (traveller.NextSection())
             {
