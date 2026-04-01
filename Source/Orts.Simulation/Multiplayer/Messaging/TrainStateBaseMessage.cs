@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -37,9 +36,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             DistanceTravelled = train.DistanceTravelled;
             RearLocation = train.RearLocation;
             TrackNodeIndex = train.RearTrackNodeIndex;
-            TrainDirection = train.RearTrackTraveller is TrackTraveller rtt
-                ? (Direction)rtt.Direction.Reverse()
-                : train.RearTDBTraveller.Direction.Reverse();
+            TrainDirection = (Direction)train.RearDirection.Reverse();
             Length = train.Length;
 
             if (initializeCars)

@@ -46,15 +46,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
                             return;
                         }
                     }
-                    //if (train.TrainType == TrainType.Remote)
-                    //{
-                    //    var reverseTrav = false;
-                    //    //                                 Alternate way to check for train flip
-                    //    //                                if (m.user.Contains("0xAI") && m.trackNodeIndex == train.RearTDBTraveller.TrackNodeIndex && m.tdbDir != (int)train.RearTDBTraveller.Direction)
-                    //    //                                {
-                    //    //                                    reverseTrav = true;
-                    //    //                                }
-                    //}
                     train.ToDoUpdate(TrackNodeIndex, RearLocation.Tile, RearLocation.Location.X, RearLocation.Location.Z, DistanceTravelled, Speed, MultiUnitDirection, TrainDirection, Length);
                     return;
                 }

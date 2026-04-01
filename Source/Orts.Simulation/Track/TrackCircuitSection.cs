@@ -1225,7 +1225,6 @@ namespace Orts.Simulation.Track
                             localBlockstate = InternalBlockstate.ReservedOther;
                         else
                         {
-                            //if (reservedTrain.Train.RearTDBTraveller.DistanceTo(this.
                             circuitState.TrainReserved = train;
                             localBlockstate = InternalBlockstate.Reserved;
                         }

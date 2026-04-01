@@ -248,9 +248,7 @@ namespace Orts.Simulation.Activities
                     }
                     break;
                 case EventType.AssembleTrainAtLocation:
-                    if (playerTrain.FrontTrackTraveller is TrackTraveller aFtt && playerTrain.RearTrackTraveller is TrackTraveller aRtt
-                        ? AtSiding(aFtt, aRtt, sidingEnd1, sidingEnd2)
-                        : AtSiding(playerTrain.FrontTDBTraveller, playerTrain.RearTDBTraveller, sidingEnd1, sidingEnd2))
+                    if (AtSiding(playerTrain.FrontTrackTraveller.Value, playerTrain.RearTrackTraveller.Value, sidingEnd1, sidingEnd2))
                     {
                         consistTrain = MatchesConsist(changeWagonIdList);
                         triggered = consistTrain != null;
@@ -260,9 +258,7 @@ namespace Orts.Simulation.Activities
                     // Dropping off of wagons should only count once disconnected from player train.
                     // A better name than DropOffWagonsAtLocation would be ArriveAtSidingWithWagons.
                     // To recognize the dropping off of the cars before the event is activated, this method is used.
-                    if (playerTrain.FrontTrackTraveller is TrackTraveller dFtt && playerTrain.RearTrackTraveller is TrackTraveller dRtt
-                        ? AtSiding(dFtt, dRtt, sidingEnd1, sidingEnd2)
-                        : AtSiding(playerTrain.FrontTDBTraveller, playerTrain.RearTDBTraveller, sidingEnd1, sidingEnd2))
+                    if (AtSiding(playerTrain.FrontTrackTraveller.Value, playerTrain.RearTrackTraveller.Value, sidingEnd1, sidingEnd2))
                     {
                         consistTrain = MatchesConsistNoOrder(changeWagonIdList);
                         triggered = consistTrain != null;
@@ -470,7 +466,7 @@ namespace Orts.Simulation.Activities
             Train train = Simulator.Instance.PlayerLocomotive.Train;
             if (!string.IsNullOrEmpty(ActivityEvent.TrainService) && Train != null)
             {
-                if (!Train.FrontTrackTraveller.HasValue && Train.FrontTDBTraveller == null)
+                if (!Train.FrontTrackTraveller.HasValue)
                         return triggered;
                 train = Train;
             }
@@ -486,30 +482,14 @@ namespace Orts.Simulation.Activities
             // Just after reversal the old train front position must be considered
             bool useRear = train.NextRouteReady && train.TCRoute.ActiveSubPath > 0
                 && train.TCRoute.ReversalInfo[train.TCRoute.ActiveSubPath - 1].Valid;
-            TrackTraveller? shadow = useRear ? train.RearTrackTraveller : train.FrontTrackTraveller;
+            TrackTraveller tt = useRear ? train.RearTrackTraveller.Value : train.FrontTrackTraveller.Value;
 
-            if (shadow is TrackTraveller tt)
-            {
-                float? distance = tt.DistanceTo(e.Location, e.RadiusM);
-                if (!distance.HasValue)
-                    distance = tt.Reverse().DistanceTo(e.Location, e.RadiusM);
-                if (distance.HasValue && distance.Value < e.RadiusM)
-                    triggered = true;
-            }
-            else
-            {
-                Traveller trainFrontPosition = new Traveller(useRear ? train.RearTDBTraveller : train.FrontTDBTraveller);
-                float distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
-                if (distance == -1)
-                {
-                    trainFrontPosition.ReverseDirection();
-                    distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
-                    if (distance == -1)
-                        return triggered;
-                }
-                if (distance < e.RadiusM)
-                    triggered = true;
-            }
+            float? distance = tt.DistanceTo(e.Location, e.RadiusM);
+            if (!distance.HasValue)
+                distance = tt.Reverse().DistanceTo(e.Location, e.RadiusM);
+            if (distance.HasValue && distance.Value < e.RadiusM)
+                triggered = true;
+
             return triggered;
         }
     }

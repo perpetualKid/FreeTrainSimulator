@@ -112,31 +112,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 switchSection.Location = Point.Zero;
                 Train playerTrain = Simulator.Instance.PlayerLocomotive.Train;
-                TrackTraveller? shadow = front ? playerTrain.FrontTrackTraveller : playerTrain.RearTrackTraveller;
-                TrackTraveller? nullableTraveller;
+                TrackTraveller tt = front ? playerTrain.FrontTrackTraveller.Value : playerTrain.RearTrackTraveller.Value;
+                // For rear, reverse direction to look behind the train
+                TrackTraveller traveller = front ? tt : tt.Reverse();
 
-                if (shadow is TrackTraveller tt)
-                {
-                    // Use shadow traveller directly; for rear, reverse direction
-                    nullableTraveller = front ? tt : tt.Reverse();
-                }
-                else
-                {
-                    Traveller oldTraveller = front
-                        ? playerTrain.FrontTDBTraveller
-                        : playerTrain.RearTDBTraveller;
-
-                    // For rear, the old code reversed direction (new Traveller(rear, reverseDirection: true));
-                    // map: front==true keeps direction, front==false flips it
-                    bool goAhead = front == (oldTraveller.Direction == Direction.Forward);
-                    nullableTraveller = TrackTraveller.InitializeTraveller(
-                        oldTraveller.WorldLocation, goAhead ? TrackDirection.Ahead : TrackDirection.Reverse);
-                }
-
-                if (!nullableTraveller.HasValue)
-                    return;
-
-                (JunctionNode Junction, VectorNode ApproachNode)? junctionResult = nullableTraveller.Value.NextJunction();
+                (JunctionNode Junction, VectorNode ApproachNode)? junctionResult = traveller.NextJunction();
                 if (!junctionResult.HasValue)
                     return;
 

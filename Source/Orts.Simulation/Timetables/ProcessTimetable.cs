@@ -728,7 +728,7 @@ namespace Orts.Simulation.Timetables
                     AIPath usedPath = new AIPath(value);
                     reqTrain.TTTrain.SetRearTraveller(new Traveller(usedPath.FirstNode.Location, usedPath.FirstNode.NextMainNode.Location));
                     reqTrain.TTTrain.Path = usedPath;
-                    reqTrain.TTTrain.CreateRoute(false);  // create route without use of FrontTDBtraveller
+                    reqTrain.TTTrain.CreateRoute(false);  // create route without use of FrontTrackTraveller
                     reqTrain.TTTrain.EndRouteAtLastSignal();
                     reqTrain.TTTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(reqTrain.TTTrain.TCRoute.TCRouteSubpaths[0]);
                     reqTrain.TTTrain.AITrainDirectionForward = true;

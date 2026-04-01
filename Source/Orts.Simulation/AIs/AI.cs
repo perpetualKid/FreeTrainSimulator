@@ -801,7 +801,7 @@ namespace Orts.Simulation.AIs
 
             // Patch placingproblem JeroenP (1 line)
             train.SetRearTraveller(new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location)); // create traveller
-            train.CreateRoute(false);  // create route without use of FrontTDBtraveller
+            train.CreateRoute(false);  // create route without use of FrontTrackTraveller
             train.CheckFreight(); // check if train is freight or passenger
             train.SetDistributedPowerUnitIds(); // distributed power
             if (!isInitialPlayerTrain || train.InitialSpeed != 0)

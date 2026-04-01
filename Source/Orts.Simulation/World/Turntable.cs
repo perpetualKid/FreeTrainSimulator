@@ -470,18 +470,6 @@ namespace Orts.Simulation.World
         /// </summary>
         public override bool CheckMovingTableAligned(Train train, bool forward)
         {
-            //Traveller.TravellerDirection direction;
-            //if ((ForwardConnected || RearConnected) && trackVectorSectionsIndex[ConnectedTrackEnd] != -1 && trackNodesIndex[ConnectedTrackEnd] != -1 &&
-            //    (trackNodesIndex[ConnectedTrackEnd] == train.FrontTDBTraveller.TN.Index || trackNodesIndex[ConnectedTrackEnd] == train.RearTDBTraveller.TN.Index))
-            //{
-            //    direction = ForwardConnected ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward;
-            //    return true;
-            //}
-            //else
-            //{
-            //    direction = Traveller.TravellerDirection.Forward;
-            //}
-            //return false;
             ArgumentNullException.ThrowIfNull(train);
 
             return (ForwardConnected || RearConnected) && trackVectorSectionsIndex[ConnectedTrackEnd] != -1 && trackNodesIndex[ConnectedTrackEnd] != -1 &&
