@@ -3707,7 +3707,7 @@ namespace Orts.Simulation.Physics
 
             // get starting position and route
 
-            TrackNode tn = RearTDBTraveller.TrackNode;
+            TrackNode tn = RuntimeData.Instance.TrackDB.TrackNodes[RearTrackNodeIndex];
             float offset = RearTrackNodeOffset;
             TrackDirection direction = RearDirection.Reverse();
 
