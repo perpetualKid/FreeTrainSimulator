@@ -1550,20 +1550,21 @@ namespace Orts.Simulation.Physics
                 {//if both travellers are out, very rare occation, but have to treat it
                     RearTDBTraveller.ReverseDirection();
                     RearTDBTraveller.NextTrackNode();
-                    // Shadow: complex recovery from EndNode — re-snap after legacy recovery
-                    RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+                    // TrackTraveller is pinned at boundary (never on EndNode) — move 1m away from the EndNode side
+                    TrackTraveller tt = RearTrackTraveller.Value;
+                    RearTrackTraveller = tt.IsNextNodeEndOfTrack() ? tt.Move(-1) : tt.Move(1);
                 }
                 else if (FrontTDBTraveller.TrackNodeType == TrackNodeType.End)
                 {
                     RearTDBTraveller.Move(-1);//if front is out, move back
-                    // Shadow rear is valid (not at EndNode) — move natively
                     RearTrackTraveller = RearTrackTraveller.Value.Move(-1);
                 }
                 else if (RearTDBTraveller.TrackNodeType == TrackNodeType.End)
                 {
                     RearTDBTraveller.Move(1);//if rear is out, move forward
-                    // Shadow was at EndNode (likely null) — re-snap after legacy recovery
-                    RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+                    // TrackTraveller is pinned at boundary (never on EndNode) — move 1m away from the EndNode side
+                    TrackTraveller tt = RearTrackTraveller.Value;
+                    RearTrackTraveller = tt.IsNextNodeEndOfTrack() ? tt.Move(-1) : tt.Move(1);
                 }
 
                 foreach (TrainCar car in Cars)
