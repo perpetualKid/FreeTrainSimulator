@@ -200,24 +200,11 @@ namespace Orts.Simulation.Physics
         }
 
         /// <summary>
-        /// Returns the distance from a signal to a train end, preferring the shadow <see cref="TrackTraveller"/>
-        /// when available and falling back to legacy <see cref="Traveller"/>.
-        /// In DEBUG builds, both paths are evaluated and mismatches are traced.
+        /// Returns the distance from a signal to a train end using the <see cref="TrackTraveller"/>.
         /// </summary>
-        internal static float SignalDistanceTo(Signal signal, TrackTraveller? shadow, Traveller legacy)
+        internal static float SignalDistanceTo(Signal signal, TrackTraveller traveller)
         {
-            if (shadow is TrackTraveller tt)
-            {
-                float result = signal.DistanceTo(in tt);
-#if DEBUG
-                float legacyResult = signal.DistanceTo(legacy);
-                float delta = MathF.Abs(result - legacyResult);
-                if (delta > 0.5f && result >= 0 && legacyResult >= 0)
-                    Trace.TraceWarning($"[SignalDistTrace] signal={signal.Index} mismatch: new={result:F3} legacy={legacyResult:F3} delta={delta:F3}");
-#endif
-                return result;
-            }
-            return signal.DistanceTo(legacy);
+            return signal.DistanceTo(in traveller);
         }
 
         public float Length { get; internal set; }                             // length of train from front to rear traveller
@@ -2408,7 +2395,7 @@ namespace Orts.Simulation.Physics
                     {
                         Signal speedpost = Simulator.Instance.SignalEnvironment.Signals[speedpostList[0]];
                         SpeedInfo speedInfo = speedpost.SpeedLimit(SignalFunction.Speed);
-                        float distanceFromFront = Length - SignalDistanceTo(speedpost, RearTrackTraveller, RearTDBTraveller);
+                        float distanceFromFront = Length - SignalDistanceTo(speedpost, RearTrackTraveller.Value);
                         if (distanceFromFront >= 0)
                         {
                             float newSpeedMpS = IsFreight ? speedInfo.FreightSpeed : speedInfo.PassengerSpeed;
@@ -2975,7 +2962,7 @@ namespace Orts.Simulation.Physics
             }
             else if (NextSignalObjects[Direction.Forward] != null)
             {
-                DistanceToSignal = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
+                DistanceToSignal = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller.Value);
             }
             else if (ControlMode != TrainControlMode.AutoNode && ControlMode != TrainControlMode.OutOfControl)
             {

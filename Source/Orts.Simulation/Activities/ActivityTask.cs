@@ -209,7 +209,7 @@ namespace Orts.Simulation.Activities
                             }
                         }
                         if (playerTrain.NextSignalObjects[Direction.Forward] != null)
-                            distanceToNextSignal = Train.SignalDistanceTo(playerTrain.NextSignalObjects[Direction.Forward], playerTrain.FrontTrackTraveller, playerTrain.FrontTDBTraveller);
+                            distanceToNextSignal = Train.SignalDistanceTo(playerTrain.NextSignalObjects[Direction.Forward], playerTrain.FrontTrackTraveller.Value);
                     }
                     break;
                 case ActivityEventType.TrainStart:

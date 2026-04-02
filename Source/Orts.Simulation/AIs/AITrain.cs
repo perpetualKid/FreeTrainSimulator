@@ -1320,7 +1320,7 @@ namespace Orts.Simulation.AIs
                         //<CSComment: without this train would not start moving if there is a stop signal in front
                         if (NextSignalObjects[Direction.Forward] != null)
                         {
-                            var distanceSignaltoTrain = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
+                            var distanceSignaltoTrain = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller.Value);
                             float distanceToReversalPoint = 10000000f;
                             if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath] != null && TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
                             {
@@ -4802,7 +4802,7 @@ namespace Orts.Simulation.AIs
                             {
                                 float distanceToNextSignal = -1;
                                 if (NextSignalObjects[Direction.Forward] != null)
-                                    distanceToNextSignal = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
+                                    distanceToNextSignal = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller.Value);
                                 // check if signal ahead is cleared - if not, do not allow depart
                                 if (NextSignalObjects[Direction.Forward] != null && distanceToNextSignal >= 0 && distanceToNextSignal < 300 &&
                                         NextSignalObjects[Direction.Forward].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop

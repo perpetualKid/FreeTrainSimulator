@@ -1502,47 +1502,23 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // check each car
             int carNo = 0;
-            if (PlayerTrain.FrontTrackTraveller is TrackTraveller ftt)
+            TrackTraveller traveller = PlayerTrain.FrontTrackTraveller.Value.Reverse();
+            foreach (TrainCar car in PlayerTrain.Cars)
             {
-                TrackTraveller traveller = ftt.Reverse();
-                foreach (TrainCar car in PlayerTrain.Cars)
+                float d = (car.CouplerSlackM + car.GetCouplerZeroLengthM()) / 2;
+                traveller = traveller.Move(car.CarLengthM + d);
+
+                Vector3 xnaCenter = Camera.XnaLocation(traveller.Location);
+                float radius = 2f;  // 2 meter click range
+                BoundingSphere boundingSphere = new BoundingSphere(xnaCenter, radius);
+
+                if (null != pickRay.Intersects(boundingSphere))
                 {
-                    float d = (car.CouplerSlackM + car.GetCouplerZeroLengthM()) / 2;
-                    traveller = traveller.Move(car.CarLengthM + d);
-
-                    Vector3 xnaCenter = Camera.XnaLocation(traveller.Location);
-                    float radius = 2f;  // 2 meter click range
-                    BoundingSphere boundingSphere = new BoundingSphere(xnaCenter, radius);
-
-                    if (null != pickRay.Intersects(boundingSphere))
-                    {
-                        _ = new UncoupleCommand(Log, carNo);
-                        break;
-                    }
-                    traveller = traveller.Move(d);
-                    carNo++;
+                    _ = new UncoupleCommand(Log, carNo);
+                    break;
                 }
-            }
-            else
-            {
-                Traveller traveller = new Traveller(PlayerTrain.FrontTDBTraveller, true);
-                foreach (TrainCar car in PlayerTrain.Cars)
-                {
-                    float d = (car.CouplerSlackM + car.GetCouplerZeroLengthM()) / 2;
-                    traveller.Move(car.CarLengthM + d);
-
-                    Vector3 xnaCenter = Camera.XnaLocation(traveller.WorldLocation);
-                    float radius = 2f;  // 2 meter click range
-                    BoundingSphere boundingSphere = new BoundingSphere(xnaCenter, radius);
-
-                    if (null != pickRay.Intersects(boundingSphere))
-                    {
-                        _ = new UncoupleCommand(Log, carNo);
-                        break;
-                    }
-                    traveller.Move(d);
-                    carNo++;
-                }
+                traveller = traveller.Move(d);
+                carNo++;
             }
         }
 

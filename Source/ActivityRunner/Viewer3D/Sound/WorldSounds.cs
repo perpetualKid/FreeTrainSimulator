@@ -81,136 +81,58 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
             float prevDist = float.MaxValue;
             float nextDist = float.MaxValue;
 
-            // Prefer shadow TrackTraveller when available
-            TrackTraveller? shadow = train.SpeedMpS >= 0
-                ? train.FrontTrackTraveller
-                : (train.RearTrackTraveller is TrackTraveller rtt ? (TrackTraveller?)rtt.Reverse() : null);
+            TrackTraveller tt = train.SpeedMpS >= 0
+                ? train.FrontTrackTraveller.Value
+                : train.RearTrackTraveller.Value.Reverse();
 
-            if (shadow is TrackTraveller tt)
+            TrackTraveller reversed = tt.Reverse();
+
+            foreach (List<WorldSoundRegion> lwsr in soundRegions.Values)
             {
-                TrackTraveller reversed = tt.Reverse();
-
-                foreach (List<WorldSoundRegion> lwsr in soundRegions.Values)
+                foreach (WorldSoundRegion wsr in lwsr)
                 {
-                    foreach (WorldSoundRegion wsr in lwsr)
+                    foreach (int trNode in wsr.TrackNodes)
                     {
-                        foreach (int trNode in wsr.TrackNodes)
+                        if (trItems[trNode] is SoundRegionItem)
                         {
-                            if (trItems[trNode] is SoundRegionItem)
-                            {
-                                // Try to find forward
-                                float? fd = tt.DistanceTo(trItems[trNode].Location, 8192);
+                            // Try to find forward
+                            float? fd = tt.DistanceTo(trItems[trNode].Location, 8192);
 
-                                if (fd.HasValue)
+                            if (fd.HasValue)
+                            {
+                                if (fd.Value < nextDist)
                                 {
-                                    if (fd.Value < nextDist)
+                                    nextDist = fd.Value;
+                                    nextItem = wsr;
+                                }
+                                else if (fd.Value == nextDist)
+                                {
+                                    // If faces toward us then it is applicable
+                                    if (Math.Abs(reversed.Heading - wsr.RotY) < .35)
                                     {
                                         nextDist = fd.Value;
                                         nextItem = wsr;
                                     }
-                                    else if (fd.Value == nextDist)
-                                    {
-                                        // If faces toward us then it is applicable
-                                        if (Math.Abs(reversed.Heading - wsr.RotY) < .35)
-                                        {
-                                            nextDist = fd.Value;
-                                            nextItem = wsr;
-                                        }
-                                    }
                                 }
-                                else
+                            }
+                            else
+                            {
+                                // Not found forward, check backward
+                                float? bd = reversed.DistanceTo(trItems[trNode].Location, 8192);
+                                if (bd.HasValue)
                                 {
-                                    // Not found forward, check backward
-                                    float? bd = reversed.DistanceTo(trItems[trNode].Location, 8192);
-                                    if (bd.HasValue)
+                                    if (bd.Value < prevDist)
                                     {
-                                        if (bd.Value < prevDist)
+                                        prevDist = bd.Value;
+                                        prevItem = wsr;
+                                    }
+                                    else if (bd.Value == prevDist)
+                                    {
+                                        // Applicable if faces with us
+                                        if (Math.Abs(tt.Heading - wsr.RotY) < .35)
                                         {
                                             prevDist = bd.Value;
                                             prevItem = wsr;
-                                        }
-                                        else if (bd.Value == prevDist)
-                                        {
-                                            // Applicable if faces with us
-                                            if (Math.Abs(tt.Heading - wsr.RotY) < .35)
-                                            {
-                                                prevDist = bd.Value;
-                                                prevItem = wsr;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Traveller traveller = train.SpeedMpS >= 0 ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, true);
-                float d;
-
-                // Check every sound region's all track nodes
-                foreach (List<WorldSoundRegion> lwsr in soundRegions.Values)
-                {
-                    foreach (WorldSoundRegion wsr in lwsr)
-                    {
-                        foreach (int trNode in wsr.TrackNodes)
-                        {
-                            if (trItems[trNode] is SoundRegionItem)
-                            {
-                                Traveller tmp = new Traveller(traveller);
-
-                                // Try to find forward
-                                d = tmp.DistanceTo(trItems[trNode].Location, 8192);
-
-                                if (d != -1)
-                                {
-                                    // This is nearer than previous one
-                                    if (d < nextDist)
-                                    {
-                                        nextDist = d;
-                                        nextItem = wsr;
-                                    }
-                                    // Or at exactly the same distance
-                                    else if (d == nextDist)
-                                    {
-                                        if (traveller.Direction == tmp.Direction)
-                                            tmp.ReverseDirection();
-
-                                        // If faces toward us then it is applicable
-                                        if (Math.Abs(tmp.RotY - wsr.RotY) < .35)
-                                        {
-                                            nextDist = d;
-                                            nextItem = wsr;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    // Not found forward, check backward
-                                    tmp = new Traveller(traveller, true);
-
-                                    d = tmp.DistanceTo(trItems[trNode].Location, 8192);
-                                    if (d != -1)
-                                    {
-                                        // It is nearer than previous
-                                        if (d < prevDist)
-                                        {
-                                            prevDist = d;
-                                            prevItem = wsr;
-                                        }
-                                        else if (d == prevDist)
-                                        {
-                                            if (traveller.Direction != tmp.Direction)
-                                                tmp.ReverseDirection();
-
-                                            // Applicable if faces with us
-                                            if (Math.Abs(tmp.RotY - wsr.RotY) < .35)
-                                            {
-                                                prevDist = d;
-                                                prevItem = wsr;
-                                            }
                                         }
                                     }
                                 }

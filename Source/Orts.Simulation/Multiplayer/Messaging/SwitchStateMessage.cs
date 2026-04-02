@@ -91,15 +91,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
                         return false;
                 }
             }
-
-            Traveller traveller = new Traveller(train.RearTDBTraveller);
-            while (traveller.NextSection())
-            {
-                if (traveller.TrackNode.Index == train.FrontTrackNodeIndex)
-                    break;
-                if (traveller.TrackNode == junctionNode)
-                    return true;
-            }
             return false;
         }
 
