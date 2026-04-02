@@ -3277,7 +3277,10 @@ namespace Orts.Simulation.Physics
         /// Cars have been added to the rear of the train, recalc the rearTDBtraveller
         internal void RepositionRearTraveller()
         {
-            Traveller traveller = new Traveller(FrontTDBTraveller, true);
+            // Walk TrackTraveller through cars for positioning (primary, reversed direction)
+            TrackTraveller tt = FrontTrackTraveller.Value.Reverse();
+            // Keep legacy traveller in sync for RearTDBTraveller (until final cutover)
+            Traveller legacyTraveller = new Traveller(FrontTDBTraveller, true);
             // The traveller location represents the front of the train.
             float length = 0f;
 
@@ -3287,7 +3290,7 @@ namespace Orts.Simulation.Physics
                 TrainCar car = Cars[i];
                 if (car.WheelAxlesLoaded)
                 {
-                    car.ComputePosition(traveller, false, 0, 0, SpeedMpS);
+                    car.ComputePosition(ref tt, false, 0, 0, SpeedMpS);
                 }
                 else
                 {
@@ -3295,12 +3298,12 @@ namespace Orts.Simulation.Physics
 
                     // traveller is positioned at the front of the car
                     // advance to the first bogie 
-                    traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);
+                    tt = tt.Move((car.CarLengthM - bogieSpacing) / 2.0f);
 
-                    WorldLocation location = traveller.WorldLocation;
-                    traveller.Move(bogieSpacing);
+                    WorldLocation location = tt.Location;
+                    tt = tt.Move(bogieSpacing);
                     // normalize across tile boundaries
-                    location = location.NormalizeTo(traveller.Tile);
+                    location = location.NormalizeTo(tt.Location.Tile);
 
                     // note the railcar sits 0.275meters above the track database path  TODO - is this always consistent?
                     Matrix flipMatrix = Matrix.Identity;
@@ -3310,23 +3313,24 @@ namespace Orts.Simulation.Physics
                         flipMatrix.M11 = -1;
                         flipMatrix.M33 = -1;
                     }
-                    car.UpdateWorldPosition(new WorldPosition(traveller.Tile, MatrixExtension.Multiply(flipMatrix, MatrixExtension.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, location.Location.X, location.Location.Y + 0.275f, location.Location.Z))));
-                    traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);
+                    car.UpdateWorldPosition(new WorldPosition(tt.Location.Tile, MatrixExtension.Multiply(flipMatrix, MatrixExtension.XNAMatrixFromMSTSCoordinates(tt.Location.Location.X, tt.Location.Location.Y + 0.275f, tt.Location.Location.Z, location.Location.X, location.Location.Y + 0.275f, location.Location.Z))));
+                    tt = tt.Move((car.CarLengthM - bogieSpacing) / 2.0f);
                 }
+                legacyTraveller.Move(car.CarLengthM);
                 if (i < Cars.Count - 1)
                 {
-                    traveller.Move(car.CouplerSlackM + car.GetCouplerZeroLengthM());
-                    length += car.CouplerSlackM + car.GetCouplerZeroLengthM();
+                    float couplerGap = car.CouplerSlackM + car.GetCouplerZeroLengthM();
+                    tt = tt.Move(couplerGap);
+                    legacyTraveller.Move(couplerGap);
+                    length += couplerGap;
                 }
                 length += car.CarLengthM;
             }
 
-            traveller.ReverseDirection();
-            RearTDBTraveller = traveller;
+            legacyTraveller.ReverseDirection();
+            RearTDBTraveller = legacyTraveller;
+            RearTrackTraveller = tt.Reverse();
             Length = length;
-
-            // Dual-write: compute shadow rear from shadow front + accumulated length
-            RearTrackTraveller = FrontTrackTraveller.Value.Reverse().Move(length).Reverse();
         } // RepositionRearTraveller
 
         public void CalculatePositionOfCars()
@@ -3342,11 +3346,12 @@ namespace Orts.Simulation.Physics
                 distance = 0;//sanity check
 
             RearTDBTraveller.Move(distance);
-            // Shadow rear: move independently by the same distance
             RearTrackTraveller = RearTrackTraveller.Value.Move((float)distance);
 
-            // TODO : check if train moved back into previous section
-            Traveller traveller = new Traveller(RearTDBTraveller);
+            // Walk TrackTraveller through cars for positioning (primary)
+            TrackTraveller tt = RearTrackTraveller.Value;
+            // Keep legacy traveller in sync for FrontTDBTraveller (until final cutover)
+            Traveller legacyTraveller = new Traveller(RearTDBTraveller);
             // The traveller location represents the back of the train.
             float length = 0f;
 
@@ -3356,12 +3361,14 @@ namespace Orts.Simulation.Physics
                 TrainCar car = Cars[i];
                 if (i < Cars.Count - 1)
                 {
-                    traveller.Move(car.CouplerSlackM + car.GetCouplerZeroLengthM());
-                    length += car.CouplerSlackM + car.GetCouplerZeroLengthM();
+                    float couplerGap = car.CouplerSlackM + car.GetCouplerZeroLengthM();
+                    tt = tt.Move(couplerGap);
+                    legacyTraveller.Move(couplerGap);
+                    length += couplerGap;
                 }
                 if (car.WheelAxlesLoaded)
                 {
-                    car.ComputePosition(traveller, true, elapsedTime, distance, SpeedMpS);
+                    car.ComputePosition(ref tt, true, elapsedTime, distance, SpeedMpS);
                 }
                 else
                 {
@@ -3369,11 +3376,11 @@ namespace Orts.Simulation.Physics
 
                     // traveller is positioned at the back of the car
                     // advance to the first bogie 
-                    traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);
-                    WorldLocation location = traveller.WorldLocation;
-                    traveller.Move(bogieSpacing);
+                    tt = tt.Move((car.CarLengthM - bogieSpacing) / 2.0f);
+                    WorldLocation location = tt.Location;
+                    tt = tt.Move(bogieSpacing);
                     // normalize across tile boundaries
-                    location = location.NormalizeTo(traveller.Tile);
+                    location = location.NormalizeTo(tt.Location.Tile);
 
                     // note the railcar sits 0.275meters above the track database path  TODO - is this always consistent?
                     Matrix flipMatrix = Matrix.Identity;
@@ -3383,23 +3390,22 @@ namespace Orts.Simulation.Physics
                         flipMatrix.M11 = -1;
                         flipMatrix.M33 = -1;
                     }
-                    car.UpdateWorldPosition(new WorldPosition(traveller.Tile, MatrixExtension.Multiply(flipMatrix, MatrixExtension.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, location.Location.X, location.Location.Y + 0.275f, location.Location.Z))));
+                    car.UpdateWorldPosition(new WorldPosition(tt.Location.Tile, MatrixExtension.Multiply(flipMatrix, MatrixExtension.XNAMatrixFromMSTSCoordinates(tt.Location.Location.X, tt.Location.Location.Y + 0.275f, tt.Location.Location.Z, location.Location.X, location.Location.Y + 0.275f, location.Location.Z))));
 
-                    traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);  // Move to the front of the car 
+                    tt = tt.Move((car.CarLengthM - bogieSpacing) / 2.0f);  // Move to the front of the car 
 
-                    car.UpdatedTraveller(traveller, elapsedTime, distance, SpeedMpS);
+                    car.UpdatedTraveller(tt, elapsedTime, distance, SpeedMpS);
                 }
+                legacyTraveller.Move(car.CarLengthM);
                 length += car.CarLengthM;
                 // update position of container in discrete freight animations
                 car.UpdateFreightAnimationDiscretePositions();
             }
 
-            FrontTDBTraveller = traveller;
+            FrontTDBTraveller = legacyTraveller;
+            FrontTrackTraveller = tt;
             Length = length;
             DistanceTravelled += (float)distance;
-
-            // Dual-write: compute shadow front from shadow rear + accumulated length
-            FrontTrackTraveller = RearTrackTraveller.Value.Move(length);
         } // CalculatePositionOfCars
 
         public void CalculatePositionOfEOT()
