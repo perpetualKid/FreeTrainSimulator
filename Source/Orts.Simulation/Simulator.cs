@@ -1017,9 +1017,8 @@ namespace Orts.Simulation
             {
                 WorldLocation selfLoc = rear ? drivenTrain.RearLocation : drivenTrain.FrontLocation;
                 float selfHeading = rear ? drivenTrain.RearHeading : drivenTrain.FrontHeading;
-                Traveller selfLegacy = rear ? drivenTrain.RearTDBTraveller : drivenTrain.FrontTDBTraveller;
-                float d3 = OverlapWithTrace(in selfLoc, selfHeading, selfLegacy, train.FrontLocation, train.FrontTDBTraveller, rear);
-                float d4 = OverlapWithTrace(in selfLoc, selfHeading, selfLegacy, train.RearLocation, train.RearTDBTraveller, rear);
+                float d3 = OverlapDistance(in selfLoc, selfHeading, train.FrontLocation, rear);
+                float d4 = OverlapDistance(in selfLoc, selfHeading, train.RearLocation, rear);
                 if (d3 > .5 && d4 > .5)
                 {
                     train.UncoupledFrom = null;
@@ -1029,46 +1028,29 @@ namespace Orts.Simulation
         }
 
         /// <summary>
-        /// Computes <see cref="CouplingGeometry.OverlapDistanceM"/> using the convenience properties
-        /// (which prefer the shadow <see cref="TrackTraveller"/> when available).
-        /// In DEBUG builds the result is compared against the legacy <see cref="Traveller"/>-based calculation.
+        /// Computes <see cref="CouplingGeometry.OverlapDistanceM"/> using the convenience properties.
         /// </summary>
-        private static float OverlapWithTrace(
-            in WorldLocation selfLoc, float selfHeading, Traveller selfLegacy,
-            in WorldLocation otherLoc, Traveller otherLegacy,
+        private static float OverlapDistance(
+            in WorldLocation selfLoc, float selfHeading,
+            in WorldLocation otherLoc,
             bool rear)
         {
-            float result = CouplingGeometry.OverlapDistanceM(in selfLoc, selfHeading, in otherLoc, rear);
-#if DEBUG
-            float legacy = selfLegacy.OverlapDistanceM(otherLegacy, rear);
-            float delta = MathF.Abs(result - legacy);
-            if (delta > 0.05f)
-                Trace.TraceWarning($"[CouplingTrace] OverlapDistanceM mismatch: new={result:F4} legacy={legacy:F4} delta={delta:F4} rear={rear}");
-#endif
-            return result;
+            return CouplingGeometry.OverlapDistanceM(in selfLoc, selfHeading, in otherLoc, rear);
         }
 
         /// <summary>
         /// Computes <see cref="CouplingGeometry.RoughOverlapDistanceM"/> using the convenience properties.
-        /// In DEBUG builds the result is compared against the legacy calculation.
         /// </summary>
-        private static float RoughOverlapWithTrace(
-            in WorldLocation selfLoc, float selfHeading, Traveller selfLegacy,
-            in WorldLocation otherLoc, Traveller otherLegacy,
-            in WorldLocation farSelfLoc, Traveller farSelfLegacy,
-            in WorldLocation farOtherLoc, Traveller farOtherLegacy,
+        private static float RoughOverlapDistance(
+            in WorldLocation selfLoc, float selfHeading,
+            in WorldLocation otherLoc,
+            in WorldLocation farSelfLoc,
+            in WorldLocation farOtherLoc,
             float lengthSelf, float lengthOther, bool rear)
         {
-            float result = CouplingGeometry.RoughOverlapDistanceM(
+            return CouplingGeometry.RoughOverlapDistanceM(
                 in selfLoc, selfHeading, in otherLoc, in farSelfLoc, in farOtherLoc,
                 lengthSelf, lengthOther, rear);
-#if DEBUG
-            float legacy = selfLegacy.RoughOverlapDistanceM(otherLegacy, farSelfLegacy, farOtherLegacy, lengthSelf, lengthOther, rear);
-            float delta = MathF.Abs(result - legacy);
-            if (delta > 0.05f)
-                Trace.TraceWarning($"[CouplingTrace] RoughOverlapDistanceM mismatch: new={result:F4} legacy={legacy:F4} delta={delta:F4} rear={rear}");
-#endif
-            return result;
         }
 
         /// <summary>
@@ -1087,11 +1069,11 @@ namespace Orts.Simulation
                         if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.TrainOK2Couple(drivenTrain, train))
                             continue;
 
-                        float d1 = OverlapWithTrace(drivenTrain.RearLocation, drivenTrain.RearHeading, drivenTrain.RearTDBTraveller, train.FrontLocation, train.FrontTDBTraveller, true);
+                        float d1 = OverlapDistance(drivenTrain.RearLocation, drivenTrain.RearHeading, train.FrontLocation, true);
                         // Give another try if multiplayer
                         if (d1 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
                             drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex == train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex && drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex != -1)
-                            d1 = RoughOverlapWithTrace(drivenTrain.RearLocation, drivenTrain.RearHeading, drivenTrain.RearTDBTraveller, train.FrontLocation, train.FrontTDBTraveller, drivenTrain.FrontLocation, drivenTrain.FrontTDBTraveller, train.RearLocation, train.RearTDBTraveller, drivenTrain.Length, train.Length, true);
+                            d1 = RoughOverlapDistance(drivenTrain.RearLocation, drivenTrain.RearHeading, train.FrontLocation, drivenTrain.FrontLocation, train.RearLocation, drivenTrain.Length, train.Length, true);
                         if (d1 < 0)
                         {
                             if (train == drivenTrain.UncoupledFrom)
@@ -1115,11 +1097,11 @@ namespace Orts.Simulation
                             FinishRearCoupling(drivenTrain, train, true);
                             return;
                         }
-                        float d2 = OverlapWithTrace(drivenTrain.RearLocation, drivenTrain.RearHeading, drivenTrain.RearTDBTraveller, train.RearLocation, train.RearTDBTraveller, true);
+                        float d2 = OverlapDistance(drivenTrain.RearLocation, drivenTrain.RearHeading, train.RearLocation, true);
                         // Give another try if multiplayer
                         if (d2 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
                             drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex == train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex && drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex != -1)
-                            d2 = RoughOverlapWithTrace(drivenTrain.RearLocation, drivenTrain.RearHeading, drivenTrain.RearTDBTraveller, train.RearLocation, train.RearTDBTraveller, drivenTrain.FrontLocation, drivenTrain.FrontTDBTraveller, train.FrontLocation, train.FrontTDBTraveller, drivenTrain.Length, train.Length, true);
+                            d2 = RoughOverlapDistance(drivenTrain.RearLocation, drivenTrain.RearHeading, train.RearLocation, drivenTrain.FrontLocation, train.FrontLocation, drivenTrain.Length, train.Length, true);
                         if (d2 < 0)
                         {
                             if (train == drivenTrain.UncoupledFrom)
@@ -1160,11 +1142,11 @@ namespace Orts.Simulation
                         //		if ((MPManager.Instance().FindPlayerTrain(train) && drivenTrain == PlayerLocomotive.Train) || (MPManager.Instance().FindPlayerTrain(drivenTrain) && train == PlayerLocomotive.Train)) continue;
                         //		if ((MPManager.Instance().FindPlayerTrain(train) && MPManager.Instance().FindPlayerTrain(drivenTrain))) continue; //if both are player-controlled trains
                         //	}
-                        float d1 = OverlapWithTrace(drivenTrain.FrontLocation, drivenTrain.FrontHeading, drivenTrain.FrontTDBTraveller, train.RearLocation, train.RearTDBTraveller, false);
+                        float d1 = OverlapDistance(drivenTrain.FrontLocation, drivenTrain.FrontHeading, train.RearLocation, false);
                         // Give another try if multiplayer
                         if (d1 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
                             drivenTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex == train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex && drivenTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex != -1)
-                            d1 = RoughOverlapWithTrace(drivenTrain.FrontLocation, drivenTrain.FrontHeading, drivenTrain.FrontTDBTraveller, train.RearLocation, train.RearTDBTraveller, drivenTrain.RearLocation, drivenTrain.RearTDBTraveller, train.FrontLocation, train.FrontTDBTraveller, drivenTrain.Length, train.Length, false);
+                            d1 = RoughOverlapDistance(drivenTrain.FrontLocation, drivenTrain.FrontHeading, train.RearLocation, drivenTrain.RearLocation, train.FrontLocation, drivenTrain.Length, train.Length, false);
                         if (d1 < 0)
                         {
                             if (train == drivenTrain.UncoupledFrom)
@@ -1213,11 +1195,11 @@ namespace Orts.Simulation
                             }
                             return;
                         }
-                        float d2 = OverlapWithTrace(drivenTrain.FrontLocation, drivenTrain.FrontHeading, drivenTrain.FrontTDBTraveller, train.FrontLocation, train.FrontTDBTraveller, false);
+                        float d2 = OverlapDistance(drivenTrain.FrontLocation, drivenTrain.FrontHeading, train.FrontLocation, false);
                         // Give another try if multiplayer
                         if (d2 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
                             drivenTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex == train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex && drivenTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex != -1)
-                            d2 = RoughOverlapWithTrace(drivenTrain.FrontLocation, drivenTrain.FrontHeading, drivenTrain.FrontTDBTraveller, train.FrontLocation, train.FrontTDBTraveller, drivenTrain.RearLocation, drivenTrain.RearTDBTraveller, train.RearLocation, train.RearTDBTraveller, drivenTrain.Length, train.Length, false);
+                            d2 = RoughOverlapDistance(drivenTrain.FrontLocation, drivenTrain.FrontHeading, train.FrontLocation, drivenTrain.RearLocation, train.RearLocation, drivenTrain.Length, train.Length, false);
                         if (d2 < 0)
                         {
                             if (train == drivenTrain.UncoupledFrom)
@@ -1443,9 +1425,7 @@ namespace Orts.Simulation
             // process player passing paths as required
             if (SignalEnvironment.UseLocationPassingPaths)
             {
-                TrackDirection orgDirection = train.RearTrackTraveller is TrackTraveller rtt
-                    ? rtt.Direction.Reverse()
-                    : (TrackDirection)(train.RearTDBTraveller != null ? (int)train.RearTDBTraveller.Direction.Reverse() : -2);
+                TrackDirection orgDirection = train.RearTrackTraveller.Value.Direction.Reverse();
                 _ = new TrackCircuitRoutePath(train.Path, orgDirection, 0, -1);
             }
 
@@ -1539,15 +1519,10 @@ namespace Orts.Simulation
                     // in static consists, the specified location represents the middle of the last car, 
                     // our TDB traveller is always at the back of the last car so it needs to be repositioned
                     TrainCar lastCar = train.LastCar;
-                    if (train.RearTrackTraveller is TrackTraveller staticRtt)
-                        train.RearTrackTraveller = staticRtt.Move(-lastCar.CarLengthM / 2f);
+                    train.RearTrackTraveller = train.RearTrackTraveller.Value.Move(-lastCar.CarLengthM / 2f);
                     train.RearTDBTraveller.ReverseDirection();
                     train.RearTDBTraveller.Move(lastCar.CarLengthM / 2f);
                     train.RearTDBTraveller.ReverseDirection();
-                    // Re-snap shadow after legacy mutation; CalculatePositionOfCars below will overwrite,
-                    // but this keeps the shadow valid immediately.
-                    if (!train.RearTrackTraveller.HasValue)
-                        train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(train.RearTDBTraveller);
 
                     train.CalculatePositionOfCars();
                     train.InitializeBrakes();
@@ -1700,21 +1675,14 @@ namespace Orts.Simulation
             if (train.IsActualPlayerTrain && j >= i || !keepFront)
             {
                 train2.SetFrontTraveller(new Traveller(train.FrontTDBTraveller));
-                // Propagate shadow directly from source train if available
-                if (train.FrontTrackTraveller is TrackTraveller ftt2)
-                    train2.FrontTrackTraveller = ftt2;
                 train.CalculatePositionOfCars();
                 train2.SetRearTraveller(new Traveller(train.FrontTDBTraveller));
-                if (train.FrontTrackTraveller is TrackTraveller ftt2r)
-                    train2.RearTrackTraveller = ftt2r;
                 train2.CalculatePositionOfCars();  // fix the front traveller
                 train.DistanceTravelledM -= train2.Length;
             }
             else
             {
                 train2.SetRearTraveller(new Traveller(train.RearTDBTraveller));
-                if (train.RearTrackTraveller is TrackTraveller rtt2)
-                    train2.RearTrackTraveller = rtt2;
                 train2.CalculatePositionOfCars();  // fix the front traveller
                 train.RepositionRearTraveller();    // fix the rear traveller
             }
@@ -1891,11 +1859,7 @@ namespace Orts.Simulation
 
                     // and fix up the travellers
                     selectedAsPlayer.SetRearTraveller(new Traveller(dyingTrain.RearTDBTraveller));
-                    if (dyingTrain.RearTrackTraveller is TrackTraveller dyingRtt)
-                        selectedAsPlayer.RearTrackTraveller = dyingRtt;
                     selectedAsPlayer.SetFrontTraveller(new Traveller(dyingTrain.FrontTDBTraveller));
-                    if (dyingTrain.FrontTrackTraveller is TrackTraveller dyingFtt)
-                        selectedAsPlayer.FrontTrackTraveller = dyingFtt;
                     // are following lines needed?
                     //                       selectedAsPlayer.CalculatePositionOfCars(0);  // fix the front traveller
                     //                       selectedAsPlayer.RepositionRearTraveller();    // fix the rear traveller
