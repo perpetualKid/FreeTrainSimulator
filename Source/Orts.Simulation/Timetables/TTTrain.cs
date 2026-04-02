@@ -4507,7 +4507,7 @@ namespace Orts.Simulation.Timetables
 
             // get starting position and route
 
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller, RearTDBTraveller);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller.Value);
             TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
             float offset = PresentPosition[Direction.Backward].Offset;
 
@@ -4596,12 +4596,12 @@ namespace Orts.Simulation.Timetables
             // for initial placement, use direction 0 only
             // set initial positions
 
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller.Value);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             DistanceTravelledM = 0.0f;
 
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller, RearTDBTraveller);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller.Value);
 
             // create route to cover all train sections
 
@@ -9754,10 +9754,10 @@ namespace Orts.Simulation.Timetables
             }
 
             // update positions train
-            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Forward], attachTrain.FrontTrackTraveller, attachTrain.FrontTDBTraveller);
+            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Forward], attachTrain.FrontTrackTraveller.Value);
             attachTrain.PreviousPosition[Direction.Forward].UpdateFrom(attachTrain.PresentPosition[Direction.Forward]);
 
-            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Backward], attachTrain.RearTrackTraveller, attachTrain.RearTDBTraveller);
+            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Backward], attachTrain.RearTrackTraveller.Value);
 
             // set new track sections occupied
             TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(attachTrain, attachTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex,
@@ -10177,7 +10177,7 @@ namespace Orts.Simulation.Timetables
             detachCar.SignalEvent(TrainEvent.Uncouple);
 
             // update positions train
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller.Value);
             PresentPosition[Direction.Forward].RouteListIndex = ValidRoutes[Direction.Forward].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
@@ -10186,7 +10186,7 @@ namespace Orts.Simulation.Timetables
                 DistanceTravelledM -= newTrain.Length;
             }
 
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller, RearTDBTraveller);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller.Value);
             PresentPosition[Direction.Backward].RouteListIndex = ValidRoutes[Direction.Forward].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
 
             // get new track sections occupied
@@ -10223,13 +10223,13 @@ namespace Orts.Simulation.Timetables
             }
 
             // update positions new train
-            UpdateTrackCircuitPosition(newTrain.PresentPosition[Direction.Forward], newTrain.FrontTrackTraveller, newTrain.FrontTDBTraveller);
+            UpdateTrackCircuitPosition(newTrain.PresentPosition[Direction.Forward], newTrain.FrontTrackTraveller.Value);
             newTrain.PresentPosition[Direction.Forward].RouteListIndex = newTrain.ValidRoutes[Direction.Forward].GetRouteIndex(newTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
             newTrain.PreviousPosition[Direction.Forward].UpdateFrom(newTrain.PresentPosition[Direction.Forward]);
 
             newTrain.DistanceTravelledM = 0.0f;
 
-            UpdateTrackCircuitPosition(newTrain.PresentPosition[Direction.Backward], newTrain.RearTrackTraveller, newTrain.RearTDBTraveller);
+            UpdateTrackCircuitPosition(newTrain.PresentPosition[Direction.Backward], newTrain.RearTrackTraveller.Value);
             newTrain.PresentPosition[Direction.Backward].RouteListIndex = newTrain.ValidRoutes[Direction.Forward].GetRouteIndex(newTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
             newTrain.PreviousPosition[Direction.Backward].UpdateFrom(newTrain.PresentPosition[Direction.Backward]);
 

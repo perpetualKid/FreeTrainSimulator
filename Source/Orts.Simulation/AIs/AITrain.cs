@@ -3222,9 +3222,7 @@ namespace Orts.Simulation.AIs
             }
             else if (PresentPosition[Direction.Backward].DistanceTravelled < distanceThreshold && FrontTrackNodeOffset + 25 > FrontTrackNodeLength)
             {
-                bool isEndOfTrack = FrontTrackTraveller is TrackTraveller ftt
-                    ? ftt.IsNextNodeEndOfTrack()
-                    : new Traveller(FrontTDBTraveller) is var tempTraveller && tempTraveller.NextTrackNode() && tempTraveller.TrackNodeType == TrackNodeType.End;
+                bool isEndOfTrack = FrontTrackTraveller.Value.IsNextNodeEndOfTrack();
                 if (isEndOfTrack)
                 {
                     removeIt = false;
@@ -3235,17 +3233,7 @@ namespace Orts.Simulation.AIs
             {
                 if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath - 1].Valid && PresentPosition[Direction.Backward].DistanceTravelled < distanceThreshold && PresentPosition[Direction.Backward].Offset < 25)
                 {
-                    bool isEndOfTrack;
-                    if (RearTrackTraveller is TrackTraveller rtt)
-                    {
-                        isEndOfTrack = rtt.Reverse().IsNextNodeEndOfTrack();
-                    }
-                    else
-                    {
-                        var tempTraveller = new Traveller(RearTDBTraveller);
-                        tempTraveller.ReverseDirection();
-                        isEndOfTrack = tempTraveller.NextTrackNode() && tempTraveller.TrackNodeType == TrackNodeType.End;
-                    }
+                    bool isEndOfTrack = RearTrackTraveller.Value.Reverse().IsNextNodeEndOfTrack();
                     if (isEndOfTrack)
                     {
                         removeIt = false;
@@ -3279,7 +3267,6 @@ namespace Orts.Simulation.AIs
                 direction = Direction.Backward;
             }
 
-            Traveller otherTraveller = null;
             Direction otherDirection = Direction.Forward;
             bool withinSection = false;
 
@@ -3315,27 +3302,14 @@ namespace Orts.Simulation.AIs
                 return (true); // in pre-update, being in the same section is good enough
 
             // check distance to other train
-            // Prefer shadow TrackTraveller for overlap calculation when both sides have it
-            TrackTraveller? selfShadow = direction == Direction.Backward
-                ? (RearTrackTraveller is TrackTraveller rtt ? rtt.Reverse() : null)
-                : FrontTrackTraveller;
-            TrackTraveller? otherShadow = otherTrainFront ? attachTrain.FrontTrackTraveller : attachTrain.RearTrackTraveller;
+            TrackTraveller selfTraveller = direction == Direction.Backward
+                ? RearTrackTraveller.Value.Reverse()
+                : FrontTrackTraveller.Value;
+            TrackTraveller otherTraveller = otherTrainFront
+                ? attachTrain.FrontTrackTraveller.Value
+                : attachTrain.RearTrackTraveller.Value;
 
-            float dist;
-            if (selfShadow is TrackTraveller selfTT && otherShadow is TrackTraveller otherTT)
-            {
-                dist = CouplingGeometry.OverlapDistanceM(in selfTT, in otherTT, false);
-            }
-            else
-            {
-                Traveller usedTraveller = direction == Direction.Backward
-                    ? new Traveller(RearTDBTraveller, true)
-                    : new Traveller(FrontTDBTraveller);
-                otherTraveller = otherTrainFront
-                    ? new Traveller(attachTrain.FrontTDBTraveller)
-                    : new Traveller(attachTrain.RearTDBTraveller);
-                dist = usedTraveller.OverlapDistanceM(otherTraveller, false);
-            }
+            float dist = CouplingGeometry.OverlapDistanceM(in selfTraveller, in otherTraveller, false);
             return (dist < 0.1f);
         }
 
@@ -3427,10 +3401,10 @@ namespace Orts.Simulation.AIs
                 }
 
                 // update positions train
-                UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Forward], attachTrain.FrontTrackTraveller, attachTrain.FrontTDBTraveller);
+                UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Forward], attachTrain.FrontTrackTraveller.Value);
                 attachTrain.PreviousPosition[Direction.Forward].UpdateFrom(attachTrain.PresentPosition[Direction.Forward]);
 
-                UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Backward], attachTrain.RearTrackTraveller, attachTrain.RearTDBTraveller);
+                UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Backward], attachTrain.RearTrackTraveller.Value);
                 // set various items
                 attachTrain.CheckFreight();
                 attachTrain.SetDistributedPowerUnitIds();
@@ -3535,10 +3509,10 @@ namespace Orts.Simulation.AIs
             }
 
             // update positions train
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller.Value);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller, RearTDBTraveller);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller.Value);
             // set various items
             CheckFreight();
             SetDistributedPowerUnitIds();
@@ -3761,16 +3735,16 @@ namespace Orts.Simulation.AIs
 
 
             // update positions of coupling train
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller, FrontTDBTraveller);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller.Value);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller, RearTDBTraveller);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller.Value);
 
             // update positions of coupled train
-            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Forward], attachTrain.FrontTrackTraveller, attachTrain.FrontTDBTraveller);
+            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Forward], attachTrain.FrontTrackTraveller.Value);
             PreviousPosition[Direction.Forward].UpdateFrom(attachTrain.PresentPosition[Direction.Forward]);
 
-            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Backward], attachTrain.RearTrackTraveller, attachTrain.RearTDBTraveller);
+            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Backward], attachTrain.RearTrackTraveller.Value);
             // set various items
             CheckFreight();
             SetDistributedPowerUnitIds();
