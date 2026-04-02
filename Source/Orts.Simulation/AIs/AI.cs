@@ -800,7 +800,9 @@ namespace Orts.Simulation.AIs
             train.Cars[0].Headlight = HeadLightState.HeadlightOn;//AI train always has light on
 
             // Patch placingproblem JeroenP (1 line)
-            train.SetRearTraveller(new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location)); // create traveller
+            Traveller rearTraveller = new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location); // create traveller
+            train.RearTDBTraveller = rearTraveller;
+            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
             train.CreateRoute(false);  // create route without use of FrontTrackTraveller
             train.CheckFreight(); // check if train is freight or passenger
             train.SetDistributedPowerUnitIds(); // distributed power

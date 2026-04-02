@@ -1783,8 +1783,10 @@ namespace Orts.Simulation.Timetables
                 AllowedMaxSpeedSignalMpS = otherTrain.AllowedMaxSpeedSignalMpS;
                 AllowedMaxSpeedLimitMpS = otherTrain.AllowedMaxSpeedLimitMpS;
 
-                SetFrontTraveller(new Traveller(otherTrain.FrontTDBTraveller));
-                SetRearTraveller(new Traveller(otherTrain.RearTDBTraveller));
+                FrontTDBTraveller = new Traveller(otherTrain.FrontTDBTraveller);
+                FrontTrackTraveller = otherTrain.FrontTrackTraveller;
+                RearTDBTraveller = new Traveller(otherTrain.RearTDBTraveller);
+                RearTrackTraveller = otherTrain.RearTrackTraveller;
 
                 // check if train reversal is required
 
@@ -1833,13 +1835,17 @@ namespace Orts.Simulation.Timetables
             {
                 if (TCRoute.TCRouteSubpaths[0][usedPositionIndex].Direction != otherTrain.PresentPosition[direction].Direction)
                 {
-                    SetFrontTraveller(new Traveller(otherTrain.RearTDBTraveller, true));
-                    SetRearTraveller(new Traveller(otherTrain.FrontTDBTraveller, true));
+                    FrontTDBTraveller = new Traveller(otherTrain.RearTDBTraveller, true);
+                    FrontTrackTraveller = otherTrain.RearTrackTraveller?.Reverse();
+                    RearTDBTraveller = new Traveller(otherTrain.FrontTDBTraveller, true);
+                    RearTrackTraveller = otherTrain.FrontTrackTraveller?.Reverse();
                 }
                 else
                 {
-                    SetFrontTraveller(new Traveller(otherTrain.FrontTDBTraveller));
-                    SetRearTraveller(new Traveller(otherTrain.RearTDBTraveller));
+                    FrontTDBTraveller = new Traveller(otherTrain.FrontTDBTraveller);
+                    FrontTrackTraveller = otherTrain.FrontTrackTraveller;
+                    RearTDBTraveller = new Traveller(otherTrain.RearTDBTraveller);
+                    RearTrackTraveller = otherTrain.RearTrackTraveller;
                 }
                 CalculatePositionOfCars();
                 InitialTrainPlacement(true);
@@ -10074,12 +10080,14 @@ namespace Orts.Simulation.Timetables
             if (DetachPosition)
             {
                 CalculatePositionOfCars();
-                newTrain.SetRearTraveller(new Traveller(FrontTDBTraveller));
+                newTrain.RearTDBTraveller = new Traveller(FrontTDBTraveller);
+                newTrain.RearTrackTraveller = FrontTrackTraveller;
                 newTrain.CalculatePositionOfCars();
             }
             else
             {
-                newTrain.SetRearTraveller(new Traveller(RearTDBTraveller));
+                newTrain.RearTDBTraveller = new Traveller(RearTDBTraveller);
+                newTrain.RearTrackTraveller = RearTrackTraveller;
                 newTrain.CalculatePositionOfCars();
                 RepositionRearTraveller();    // fix the rear traveller
             }
@@ -10578,7 +10586,9 @@ namespace Orts.Simulation.Timetables
             }
             TrackVectorNode detachNode = RuntimeData.Instance.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 
-            formedTrain.SetRearTraveller(new Traveller(detachNode));
+            Traveller detachTraveller = new Traveller(detachNode);
+            formedTrain.RearTDBTraveller = detachTraveller;
+            formedTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(detachTraveller);
 
             trainlist.Add(formedTrain);
 
@@ -10600,7 +10610,9 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection DetachSection = TrackCircuitSection.TrackCircuitList[sectionInfo];
             TrackVectorNode DetachNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[DetachSection.OriginalIndex];
 
-            formedTrain.SetRearTraveller(new Traveller(DetachNode));
+            Traveller detachTraveller = new Traveller(DetachNode);
+            formedTrain.RearTDBTraveller = detachTraveller;
+            formedTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(detachTraveller);
             formedTrain.PresentPosition[Direction.Forward].UpdateFrom(train.PresentPosition[Direction.Forward]);
             formedTrain.PresentPosition[Direction.Backward].UpdateFrom(train.PresentPosition[Direction.Backward]);
             formedTrain.CreateRoute(true);

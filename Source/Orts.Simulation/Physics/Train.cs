@@ -175,26 +175,6 @@ namespace Orts.Simulation.Physics
         internal TrackDirection RearDirection => RearTrackTraveller.Value.Direction;
 
         /// <summary>
-        /// Assigns the legacy <see cref="RearTDBTraveller"/> and dual-writes the shadow
-        /// <see cref="RearTrackTraveller"/> via <see cref="TravellerBridge.ToTrackTraveller"/>.
-        /// </summary>
-        internal void SetRearTraveller(Traveller traveller)
-        {
-            RearTDBTraveller = traveller;
-            RearTrackTraveller = TravellerBridge.ToTrackTraveller(traveller);
-        }
-
-        /// <summary>
-        /// Assigns the legacy <see cref="FrontTDBTraveller"/> and dual-writes the shadow
-        /// <see cref="FrontTrackTraveller"/> via <see cref="TravellerBridge.ToTrackTraveller"/>.
-        /// </summary>
-        internal void SetFrontTraveller(Traveller traveller)
-        {
-            FrontTDBTraveller = traveller;
-            FrontTrackTraveller = TravellerBridge.ToTrackTraveller(traveller);
-        }
-
-        /// <summary>
         /// Returns the distance from a signal to a train end using the <see cref="TrackTraveller"/>.
         /// </summary>
         internal static float SignalDistanceTo(Signal signal, TrackTraveller traveller)

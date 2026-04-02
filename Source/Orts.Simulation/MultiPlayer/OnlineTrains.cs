@@ -139,7 +139,9 @@ namespace Orts.Simulation.Multiplayer
 
             try
             {
-                train.SetRearTraveller(new Traveller(playerState.TrainState.RearLocation, playerState.TrainState.TrainDirection.Reverse()));
+                Traveller rearTraveller = new Traveller(playerState.TrainState.RearLocation, playerState.TrainState.TrainDirection.Reverse());
+                train.RearTDBTraveller = rearTraveller;
+                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
             }
             catch (Exception e) when (MultiPlayerManager.IsServer())
             {

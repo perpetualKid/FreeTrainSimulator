@@ -77,7 +77,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 train.Cars.Clear();
                 train.Cars.AddRange(trainCars);
                 train.MUDirection = MultiUnitDirection;
-                train.SetRearTraveller(traveller);
+                train.RearTDBTraveller = traveller;
+                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(traveller);
                 train.CalculatePositionOfCars();
                 train.DistanceTravelled = DistanceTravelled;
                 train.CheckFreight();
@@ -93,7 +94,9 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     TrainType = TrainType.Remote,
                     DistanceTravelled = DistanceTravelled,
                 };
-                train.SetRearTraveller(new Traveller(RearLocation, TrainDirection.Reverse()));
+                Traveller rearTraveller = new Traveller(RearLocation, TrainDirection.Reverse());
+                train.RearTDBTraveller = rearTraveller;
+                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
 
                 foreach (TrainCarItem trainCarItem in TrainCars ?? Enumerable.Empty<TrainCarItem>())
                 {

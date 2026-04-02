@@ -683,7 +683,9 @@ namespace Orts.Simulation.Timetables
             if (StoragePool[PoolStorageState].MaxStoredUnits.HasValue && StoragePool[PoolStorageState].MaxStoredUnits == 1)
             {
                 // use stored traveller
-                train.SetRearTraveller(new Traveller(StoragePool[PoolStorageState].StoragePathTraveller));
+                Traveller rearTraveller = new Traveller(StoragePool[PoolStorageState].StoragePathTraveller);
+                train.RearTDBTraveller = rearTraveller;
+                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
             }
 
             else
@@ -692,7 +694,9 @@ namespace Orts.Simulation.Timetables
                 train.TCRoute.TCRouteSubpaths[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0].ReversePath());
                 train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
 
-                train.SetRearTraveller(new Traveller(StoragePool[PoolStorageState].StoragePathReverseTraveller));
+                Traveller rearTraveller = new Traveller(StoragePool[PoolStorageState].StoragePathReverseTraveller);
+                train.RearTDBTraveller = rearTraveller;
+                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
 
                 // if storage available check for other engines on storage track
                 if (StoragePool[PoolStorageState].StoredUnits.Count > 0)

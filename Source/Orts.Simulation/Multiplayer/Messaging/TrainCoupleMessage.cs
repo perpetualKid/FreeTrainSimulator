@@ -9,6 +9,7 @@ using MemoryPack;
 using Orts.Formats.Msts;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Multiplayer.Messaging
 {
@@ -111,7 +112,9 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
             train.DistanceTravelled = DistanceTravelled;
             train.MUDirection = MultiUnitDirection;
-            train.SetRearTraveller(new Traveller(RearLocation, TrainDirection.Reverse()));
+            Traveller rearTraveller = new Traveller(RearLocation, TrainDirection.Reverse());
+            train.RearTDBTraveller = rearTraveller;
+            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
             train.CheckFreight();
             train.SetDistributedPowerUnitIds();
             train.ReinitializeEOT();

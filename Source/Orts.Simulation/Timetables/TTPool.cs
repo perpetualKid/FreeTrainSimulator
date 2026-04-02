@@ -574,7 +574,9 @@ namespace Orts.Simulation.Timetables
 
             // use stored traveller
             train.PoolStorageIndex = poolStorageState;
-            train.SetRearTraveller(new Traveller(StoragePool[train.PoolStorageIndex].StoragePathTraveller));
+            Traveller rearTraveller = new Traveller(StoragePool[train.PoolStorageIndex].StoragePathTraveller);
+            train.RearTDBTraveller = rearTraveller;
+            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
 
             // if storage available check for other engines on storage track
             if (StoragePool[train.PoolStorageIndex].StoredUnits.Count > 0)
