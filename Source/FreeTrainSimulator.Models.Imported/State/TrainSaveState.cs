@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Runtime.Track;
 
 using MemoryPack;
 
@@ -32,7 +33,7 @@ namespace FreeTrainSimulator.Models.Imported.State
         public float DistributedPowerDynamicBrake { get; set; }
         public DistributedPowerMode DistributedPowerMode { get; set; }
         public TrainBrakeSaveState TrainBrakeSaveState { get; set; }
-        public TravellerSaveState TravellerSaveState { get; set; }
+        public TrackTravellerSaveState TravellerSaveState { get; set; }
         public int LeadLocomotive { get; set; }
         public float AiBrake { get; set; }
         public float SlipperySpotDistance { get; set; }

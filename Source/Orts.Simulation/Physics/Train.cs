@@ -650,7 +650,7 @@ namespace Orts.Simulation.Physics
                 DistributedPowerMode = DistributedPowerMode,
                 DistributedPowerDynamicBrake = DPDynamicBrakePercent,
                 TrainBrakeSaveState = await BrakeSystem.Snapshot().ConfigureAwait(false),
-                TravellerSaveState = await RearTDBTraveller.Snapshot().ConfigureAwait(false),
+                TravellerSaveState = await RearTrackTraveller.Value.Snapshot().ConfigureAwait(false),
                 AiBrake = aiBrakePercent,
                 LeadLocomotive = LeadLocomotiveIndex,
                 SlipperySpotDistance = SlipperySpotDistanceM,
@@ -741,11 +741,19 @@ namespace Orts.Simulation.Physics
             await BrakeSystem.Restore(saveState.TrainBrakeSaveState).ConfigureAwait(false);
             aiBrakePercent = saveState.AiBrake;
             LeadLocomotiveIndex = saveState.LeadLocomotive;
-            RearTDBTraveller = new Traveller(false);
-            await RearTDBTraveller.Restore(saveState.TravellerSaveState).ConfigureAwait(false);
 
-            // Dual-write: initialize shadow rear TrackTraveller from restored legacy state
-            RearTrackTraveller = TravellerBridge.ToTrackTraveller(RearTDBTraveller);
+            // Restore RearTrackTraveller directly from TrackTravellerSaveState (primary, precise)
+            RearTrackTraveller = TrackTraveller.InitializeTraveller(saveState.TravellerSaveState);
+
+            // Derive legacy RearTDBTraveller from the same save state data (until field removal)
+            RearTDBTraveller = new Traveller(false);
+            await RearTDBTraveller.Restore(new TravellerSaveState
+            {
+                TrackNodeIndex = saveState.TravellerSaveState.TrackNodeIndex,
+                TrackVectorSectionIndex = saveState.TravellerSaveState.SectionIndex,
+                TrackVectorSectionOffset = (float)saveState.TravellerSaveState.SectionOffset,
+                Direction = saveState.TravellerSaveState.Direction == TrackDirection.Ahead ? Direction.Forward : Direction.Backward,
+            }).ConfigureAwait(false);
 
             SlipperySpotDistanceM = saveState.SlipperySpotDistance;
             SlipperySpotLengthM = saveState.SlipperySpotLength;

@@ -10,6 +10,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
 		<ProjectReference Include="..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
+		<ProjectReference Include="..\FreetrainSimulator.Runtime\FreetrainSimulator.Runtime.csproj" />
 		<ProjectReference Include="..\Orts.Formats\Orts.Formats.csproj" />
 	</ItemGroup>
 </Project>
