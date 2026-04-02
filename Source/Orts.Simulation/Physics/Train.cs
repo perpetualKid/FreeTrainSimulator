@@ -3268,8 +3268,6 @@ namespace Orts.Simulation.Physics
         {
             // Walk TrackTraveller through cars for positioning (primary, reversed direction)
             TrackTraveller tt = FrontTrackTraveller.Value.Reverse();
-            // Keep legacy traveller in sync for RearTDBTraveller (until final cutover)
-            Traveller legacyTraveller = new Traveller(FrontTDBTraveller, true);
             // The traveller location represents the front of the train.
             float length = 0f;
 
@@ -3305,17 +3303,18 @@ namespace Orts.Simulation.Physics
                     car.UpdateWorldPosition(new WorldPosition(tt.Location.Tile, MatrixExtension.Multiply(flipMatrix, MatrixExtension.XNAMatrixFromMSTSCoordinates(tt.Location.Location.X, tt.Location.Location.Y + 0.275f, tt.Location.Location.Z, location.Location.X, location.Location.Y + 0.275f, location.Location.Z))));
                     tt = tt.Move((car.CarLengthM - bogieSpacing) / 2.0f);
                 }
-                legacyTraveller.Move(car.CarLengthM);
                 if (i < Cars.Count - 1)
                 {
                     float couplerGap = car.CouplerSlackM + car.GetCouplerZeroLengthM();
                     tt = tt.Move(couplerGap);
-                    legacyTraveller.Move(couplerGap);
                     length += couplerGap;
                 }
                 length += car.CarLengthM;
             }
 
+            // Derive legacy rear traveller from total train length (single walk, not per-car)
+            Traveller legacyTraveller = new Traveller(FrontTDBTraveller, true);
+            legacyTraveller.Move(length);
             legacyTraveller.ReverseDirection();
             RearTDBTraveller = legacyTraveller;
             RearTrackTraveller = tt.Reverse();
@@ -3339,8 +3338,6 @@ namespace Orts.Simulation.Physics
 
             // Walk TrackTraveller through cars for positioning (primary)
             TrackTraveller tt = RearTrackTraveller.Value;
-            // Keep legacy traveller in sync for FrontTDBTraveller (until final cutover)
-            Traveller legacyTraveller = new Traveller(RearTDBTraveller);
             // The traveller location represents the back of the train.
             float length = 0f;
 
@@ -3352,7 +3349,6 @@ namespace Orts.Simulation.Physics
                 {
                     float couplerGap = car.CouplerSlackM + car.GetCouplerZeroLengthM();
                     tt = tt.Move(couplerGap);
-                    legacyTraveller.Move(couplerGap);
                     length += couplerGap;
                 }
                 if (car.WheelAxlesLoaded)
@@ -3385,12 +3381,14 @@ namespace Orts.Simulation.Physics
 
                     car.UpdatedTraveller(tt, elapsedTime, distance, SpeedMpS);
                 }
-                legacyTraveller.Move(car.CarLengthM);
                 length += car.CarLengthM;
                 // update position of container in discrete freight animations
                 car.UpdateFreightAnimationDiscretePositions();
             }
 
+            // Derive legacy front traveller from total train length (single walk, not per-car)
+            Traveller legacyTraveller = new Traveller(RearTDBTraveller);
+            legacyTraveller.Move(length);
             FrontTDBTraveller = legacyTraveller;
             FrontTrackTraveller = tt;
             Length = length;
@@ -3406,13 +3404,10 @@ namespace Orts.Simulation.Physics
 
             // Walk TrackTraveller reversed from rear through EOT car (primary)
             TrackTraveller tt = RearTrackTraveller.Value.Reverse();
-            // Keep legacy traveller in sync for RearTDBTraveller (until final cutover)
-            Traveller legacyTraveller = new Traveller(RearTDBTraveller, true);
 
             TrainCar car = Cars[^1];
             float couplerGap = car.CouplerSlackM + car.GetCouplerZeroLengthM();
             tt = tt.Move(couplerGap);
-            legacyTraveller.Move(couplerGap);
             length += couplerGap;
             if (car.WheelAxlesLoaded)
             {
@@ -3445,9 +3440,11 @@ namespace Orts.Simulation.Physics
                 car.UpdatedTraveller(tt, elapsedTime, distance, SpeedMpS);
                 length += car.CarLengthM;
             }
-            legacyTraveller.Move(car.CarLengthM);
-            legacyTraveller = new Traveller(legacyTraveller, true);
-            RearTDBTraveller = legacyTraveller;
+
+            // Derive legacy rear traveller from total length (single walk, not per-step)
+            Traveller legacyTraveller = new Traveller(RearTDBTraveller, true);
+            legacyTraveller.Move(length);
+            RearTDBTraveller = new Traveller(legacyTraveller, true);
             RearTrackTraveller = tt.Reverse();
 
             Length += length;
@@ -3468,13 +3465,10 @@ namespace Orts.Simulation.Physics
 
             // Walk TrackTraveller forward from rear through last car (primary)
             TrackTraveller tt = RearTrackTraveller.Value;
-            // Keep legacy traveller in sync for RearTDBTraveller (until final cutover)
-            Traveller legacyTraveller = new Traveller(RearTDBTraveller);
 
             TrainCar car = Cars[^1];
             float couplerGap = car.CouplerSlackM + car.GetCouplerZeroLengthM();
             tt = tt.Move(couplerGap);
-            legacyTraveller.Move(couplerGap);
             length += couplerGap;
             if (car.WheelAxlesLoaded)
             {
@@ -3489,7 +3483,10 @@ namespace Orts.Simulation.Physics
                 car.UpdatedTraveller(tt, elapsedTime, distance, SpeedMpS);
                 length += car.CarLengthM;
             }
-            legacyTraveller.Move(car.CarLengthM);
+
+            // Derive legacy rear traveller from total length (single walk, not per-step)
+            Traveller legacyTraveller = new Traveller(RearTDBTraveller);
+            legacyTraveller.Move(length);
             RearTDBTraveller = legacyTraveller;
             RearTrackTraveller = tt;
 
