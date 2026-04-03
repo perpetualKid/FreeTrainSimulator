@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2011, 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2010, 2011, 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -209,7 +209,7 @@ namespace Orts.Simulation.Activities
                             }
                         }
                         if (playerTrain.NextSignalObjects[Direction.Forward] != null)
-                            distanceToNextSignal = Train.SignalDistanceTo(playerTrain.NextSignalObjects[Direction.Forward], playerTrain.FrontTrackTraveller.Value);
+                            distanceToNextSignal = Train.SignalDistanceTo(playerTrain.NextSignalObjects[Direction.Forward], playerTrain.FrontTrackTraveller);
                     }
                     break;
                 case ActivityEventType.TrainStart:

@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -140,8 +140,7 @@ namespace Orts.Simulation.Multiplayer
             try
             {
                 Traveller rearTraveller = new Traveller(playerState.TrainState.RearLocation, playerState.TrainState.TrainDirection.Reverse());
-                train.RearTDBTraveller = rearTraveller;
-                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
+                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
             }
             catch (Exception e) when (MultiPlayerManager.IsServer())
             {

@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2011, 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2010, 2011, 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -248,7 +248,7 @@ namespace Orts.Simulation.Activities
                     }
                     break;
                 case EventType.AssembleTrainAtLocation:
-                    if (AtSiding(playerTrain.FrontTrackTraveller.Value, playerTrain.RearTrackTraveller.Value, sidingEnd1, sidingEnd2))
+                    if (AtSiding(playerTrain.FrontTrackTraveller, playerTrain.RearTrackTraveller, sidingEnd1, sidingEnd2))
                     {
                         consistTrain = MatchesConsist(changeWagonIdList);
                         triggered = consistTrain != null;
@@ -258,7 +258,7 @@ namespace Orts.Simulation.Activities
                     // Dropping off of wagons should only count once disconnected from player train.
                     // A better name than DropOffWagonsAtLocation would be ArriveAtSidingWithWagons.
                     // To recognize the dropping off of the cars before the event is activated, this method is used.
-                    if (AtSiding(playerTrain.FrontTrackTraveller.Value, playerTrain.RearTrackTraveller.Value, sidingEnd1, sidingEnd2))
+                    if (AtSiding(playerTrain.FrontTrackTraveller, playerTrain.RearTrackTraveller, sidingEnd1, sidingEnd2))
                     {
                         consistTrain = MatchesConsistNoOrder(changeWagonIdList);
                         triggered = consistTrain != null;
@@ -466,7 +466,7 @@ namespace Orts.Simulation.Activities
             Train train = Simulator.Instance.PlayerLocomotive.Train;
             if (!string.IsNullOrEmpty(ActivityEvent.TrainService) && Train != null)
             {
-                if (!Train.FrontTrackTraveller.HasValue)
+                if (!Train.FrontTrackTraveller.OnTrack)
                         return triggered;
                 train = Train;
             }
@@ -482,7 +482,7 @@ namespace Orts.Simulation.Activities
             // Just after reversal the old train front position must be considered
             bool useRear = train.NextRouteReady && train.TCRoute.ActiveSubPath > 0
                 && train.TCRoute.ReversalInfo[train.TCRoute.ActiveSubPath - 1].Valid;
-            TrackTraveller tt = useRear ? train.RearTrackTraveller.Value : train.FrontTrackTraveller.Value;
+            TrackTraveller tt = useRear ? train.RearTrackTraveller : train.FrontTrackTraveller;
 
             float? distance = tt.DistanceTo(e.Location, e.RadiusM);
             if (!distance.HasValue)

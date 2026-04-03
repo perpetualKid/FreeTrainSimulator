@@ -656,7 +656,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         private bool DoesStartFromTerminalStation()
         {
-            return Locomotive.Train.RearTrackTraveller.Value.Reverse().IsNextNodeEndOfTrack();
+            return Locomotive.Train.RearTrackTraveller.Reverse().IsNextNodeEndOfTrack();
         }
 
 

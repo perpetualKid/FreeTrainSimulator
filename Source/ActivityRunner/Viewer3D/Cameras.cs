@@ -1172,12 +1172,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (attachedToFront)
                 {
                     float offset = -AttachedCar.CarLengthM * 0.5f + zDistanceM;
-                    browsedTrackTraveller = AttachedCar.Train.FrontTrackTraveller.Value.Move(offset);
+                    browsedTrackTraveller = AttachedCar.Train.FrontTrackTraveller.Move(offset);
                 }
                 else
                 {
                     float offset = (AttachedCar.CarLengthM - trainCars.First().CarLengthM - trainCars.Last().CarLengthM) * 0.5f + AttachedCar.Train.Length - zDistanceM;
-                    browsedTrackTraveller = AttachedCar.Train.RearTrackTraveller.Value.Move(offset);
+                    browsedTrackTraveller = AttachedCar.Train.RearTrackTraveller.Move(offset);
                 }
                 //               LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
                 ComputeCarOffsets(this);
@@ -1221,7 +1221,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (attachedToFront)
                 {
                     SetCameraCar(GetCameraCars().First());
-                    browsedTrackTraveller = AttachedCar.Train.FrontTrackTraveller.Value;
+                    browsedTrackTraveller = AttachedCar.Train.FrontTrackTraveller;
                     zDistanceM = -AttachedCar.CarLengthM / 2;
                     wagonOffsetUpperLimit = 0;
                     wagonOffsetLowerLimit = -AttachedCar.CarLengthM;
@@ -1230,7 +1230,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     var trainCars = GetCameraCars();
                     SetCameraCar(trainCars.Last());
-                    browsedTrackTraveller = AttachedCar.Train.RearTrackTraveller.Value;
+                    browsedTrackTraveller = AttachedCar.Train.RearTrackTraveller;
                     zDistanceM = -AttachedCar.Train.Length + (trainCars.First().CarLengthM + trainCars.Last().CarLengthM) * 0.5f + AttachedCar.CarLengthM / 2;
                     wagonOffsetLowerLimit = -AttachedCar.Train.Length + trainCars.First().CarLengthM * 0.5f;
                     wagonOffsetUpperLimit = wagonOffsetLowerLimit + AttachedCar.CarLengthM;
@@ -1639,7 +1639,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (!browseMode)
                 {
                     float offset = -AttachedCar.CarLengthM * 0.5f + zDistanceM;
-                    browsedTrackTraveller = AttachedCar.Train.FrontTrackTraveller.Value.Move(offset);
+                    browsedTrackTraveller = AttachedCar.Train.FrontTrackTraveller.Move(offset);
                     browseDistance = AttachedCar.CarLengthM * 0.5f;
                     browseMode = true;
                 }
@@ -1657,7 +1657,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     //                    LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
                     var trainCars = GetCameraCars();
                     float offset = (AttachedCar.CarLengthM - trainCars.First().CarLengthM - trainCars.Last().CarLengthM) * 0.5f + AttachedCar.Train.Length + zDistanceM;
-                    browsedTrackTraveller = AttachedCar.Train.RearTrackTraveller.Value.Move(offset);
+                    browsedTrackTraveller = AttachedCar.Train.RearTrackTraveller.Move(offset);
                     browseDistance = AttachedCar.CarLengthM * 0.5f;
                     browseMode = true;
                 }
@@ -2802,8 +2802,8 @@ namespace Orts.ActivityRunner.Viewer3D
             if (!trainClose || (trackCameraLocation == WorldLocation.None))
             {
                 TrackTraveller tt = trainForwards
-                    ? train.FrontTrackTraveller.Value
-                    : train.RearTrackTraveller.Value.Reverse();
+                    ? train.FrontTrackTraveller
+                    : train.RearTrackTraveller.Reverse();
 
                 (WorldLocation newLoc, float trackY) = GoToNewLocation(tt, train, trainForwards);
                 WorldLocation newLocation = newLoc.Normalize();
@@ -3004,14 +3004,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (firstUpdateLoop)
                 {
                     trackTraveller = trainForwards
-                        ? train.RearTrackTraveller.Value.Reverse()
-                        : train.FrontTrackTraveller.Value;
+                        ? train.RearTrackTraveller.Reverse()
+                        : train.FrontTrackTraveller;
                 }
                 else
                 {
                     trackTraveller = trainForwards
-                        ? train.FrontTrackTraveller.Value
-                        : train.RearTrackTraveller.Value.Reverse();
+                        ? train.FrontTrackTraveller
+                        : train.RearTrackTraveller.Reverse();
                 }
 
                 int tcSectionIndex;
@@ -3188,8 +3188,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     // return to standard direction for GoToNewLocation
                     trackTraveller = trainForwards
-                        ? train.FrontTrackTraveller.Value
-                        : train.RearTrackTraveller.Value.Reverse();
+                        ? train.FrontTrackTraveller
+                        : train.RearTrackTraveller.Reverse();
                     (WorldLocation goLoc, float _) = GoToNewLocation(trackTraveller, train, trainForwards);
                     trackCameraLocation = goLoc;
                 }

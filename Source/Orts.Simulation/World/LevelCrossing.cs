@@ -171,10 +171,10 @@ namespace Orts.Simulation.World
                     continue;
 
                 // Distances forward from the front and rearwards from the rear.
-                float frontDist = DistanceToWithTrace(crossing, train.FrontTrackTraveller.Value, reqDist);
+                float frontDist = DistanceToWithTrace(crossing, train.FrontTrackTraveller, reqDist);
                 if (frontDist < 0 && train.TrainType != TrainType.Static)
                 {
-                    frontDist = -DistanceToWithTrace(crossing, train.FrontTrackTraveller.Value, reqDist + train.Length, reversed: true);
+                    frontDist = -DistanceToWithTrace(crossing, train.FrontTrackTraveller, reqDist + train.Length, reversed: true);
                     if (frontDist > 0)
                     {
                         // Train cannot find crossing.
@@ -208,8 +208,8 @@ namespace Orts.Simulation.World
                     // This process is to raise the crossing gates if a loose consist rolls through the crossing.
                     if (speedMpS > 0)
                     {
-                        frontDist = DistanceToWithTrace(crossing, train.FrontTrackTraveller.Value, minimumDist);
-                        rearDist = DistanceToWithTrace(crossing, train.RearTrackTraveller.Value, minimumDist);
+                        frontDist = DistanceToWithTrace(crossing, train.FrontTrackTraveller, minimumDist);
+                        rearDist = DistanceToWithTrace(crossing, train.RearTrackTraveller, minimumDist);
 
                         if (frontDist < 0 && rearDist < 0)
                             crossing.RemoveTrain(train);
@@ -220,11 +220,11 @@ namespace Orts.Simulation.World
                         adjustDist = minimumDist - 13.5f;
                     else if (minimumDist < 20)
                         adjustDist = minimumDist - 6.5f;
-                    frontDist = DistanceToWithTrace(crossing, train.FrontTrackTraveller.Value, adjustDist);
-                    rearDist = DistanceToWithTrace(crossing, train.RearTrackTraveller.Value, adjustDist);
+                    frontDist = DistanceToWithTrace(crossing, train.FrontTrackTraveller, adjustDist);
+                    rearDist = DistanceToWithTrace(crossing, train.RearTrackTraveller, adjustDist);
                     // Static consist passed the crossing.
                     if (frontDist < 0 && rearDist < 0)
-                        rearDist = DistanceToWithTrace(crossing, train.RearTrackTraveller.Value, adjustDist, reversed: true);
+                        rearDist = DistanceToWithTrace(crossing, train.RearTrackTraveller, adjustDist, reversed: true);
 
                     // Testing distance before crossing
                     if (frontDist > 0 && frontDist <= adjustDist)
@@ -292,7 +292,7 @@ namespace Orts.Simulation.World
 
             LevelCrossingItem roadItem = LevelCrossingItem.None;
             frontDist = -1;
-            TrackTraveller traveller = trainForwards ? train.FrontTrackTraveller.Value : train.RearTrackTraveller.Value;
+            TrackTraveller traveller = trainForwards ? train.FrontTrackTraveller : train.RearTrackTraveller;
             bool reversed = !trainForwards;
             foreach (LevelCrossingItem crossing in TrackCrossingItems.Values.Where(ci => ci.CrossingGroup != null))
                 if (crossing.Trains.Contains(train))

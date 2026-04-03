@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -319,7 +319,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
                 content.Trains.Remove(trainNumber);
 
                 Train firstTrain = Simulator.Instance.Trains[0];
-                content.UpdateTrainPath(firstTrain.FrontTrackTraveller.Value);
+                content.UpdateTrainPath(firstTrain.FrontTrackTraveller);
             if (followTrain)
                 content.UpdateTrainTrackingPoint(Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation);
             base.Update(gameTime);

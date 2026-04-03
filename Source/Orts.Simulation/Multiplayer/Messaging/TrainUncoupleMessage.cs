@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -172,8 +172,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                         train.Cars.Clear();
                         train.Cars.AddRange(tmpcars);
                         Traveller rearTraveller = new Traveller(RearLocation, TrainDirection.Reverse());
-                        train.RearTDBTraveller = rearTraveller;
-                        train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
+                        train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
                         train.DistanceTravelled = DistanceTravelled;
                         train.SpeedMpS = Speed;
                         train.LeadLocomotive = lead;
@@ -242,8 +241,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
                 // and fix up the travellers
                 Traveller detachedRearTraveller = new Traveller(DetachedTrain.RearLocation, DetachedTrain.TrainDirection.Reverse());
-                detachedTrain.RearTDBTraveller = detachedRearTraveller;
-                detachedTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(detachedRearTraveller);
+                detachedTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(detachedRearTraveller).Value;
                 detachedTrain.DistanceTravelled = DetachedTrain.DistanceTravelled;
                 detachedTrain.SpeedMpS = DetachedTrain.Speed;
                 detachedTrain.MUDirection = DetachedTrain.MultiUnitDirection;

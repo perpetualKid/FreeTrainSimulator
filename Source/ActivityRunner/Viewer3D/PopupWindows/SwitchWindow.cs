@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
@@ -112,7 +112,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             {
                 switchSection.Location = Point.Zero;
                 Train playerTrain = Simulator.Instance.PlayerLocomotive.Train;
-                TrackTraveller tt = front ? playerTrain.FrontTrackTraveller.Value : playerTrain.RearTrackTraveller.Value;
+                TrackTraveller tt = front ? playerTrain.FrontTrackTraveller : playerTrain.RearTrackTraveller;
                 // For rear, reverse direction to look behind the train
                 TrackTraveller traveller = front ? tt : tt.Reverse();
 

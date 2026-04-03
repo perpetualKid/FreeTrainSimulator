@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2014 by the Open Rails project.
+// COPYRIGHT 2014 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -575,8 +575,7 @@ namespace Orts.Simulation.Timetables
             // use stored traveller
             train.PoolStorageIndex = poolStorageState;
             Traveller rearTraveller = new Traveller(StoragePool[train.PoolStorageIndex].StoragePathTraveller);
-            train.RearTDBTraveller = rearTraveller;
-            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
+            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
 
             // if storage available check for other engines on storage track
             if (StoragePool[train.PoolStorageIndex].StoredUnits.Count > 0)

@@ -1320,7 +1320,7 @@ namespace Orts.Simulation.AIs
                         //<CSComment: without this train would not start moving if there is a stop signal in front
                         if (NextSignalObjects[Direction.Forward] != null)
                         {
-                            var distanceSignaltoTrain = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller.Value);
+                            var distanceSignaltoTrain = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller);
                             float distanceToReversalPoint = 10000000f;
                             if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath] != null && TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
                             {
@@ -3222,7 +3222,7 @@ namespace Orts.Simulation.AIs
             }
             else if (PresentPosition[Direction.Backward].DistanceTravelled < distanceThreshold && FrontTrackNodeOffset + 25 > FrontTrackNodeLength)
             {
-                bool isEndOfTrack = FrontTrackTraveller.Value.IsNextNodeEndOfTrack();
+                bool isEndOfTrack = FrontTrackTraveller.IsNextNodeEndOfTrack();
                 if (isEndOfTrack)
                 {
                     removeIt = false;
@@ -3233,7 +3233,7 @@ namespace Orts.Simulation.AIs
             {
                 if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath - 1].Valid && PresentPosition[Direction.Backward].DistanceTravelled < distanceThreshold && PresentPosition[Direction.Backward].Offset < 25)
                 {
-                    bool isEndOfTrack = RearTrackTraveller.Value.Reverse().IsNextNodeEndOfTrack();
+                    bool isEndOfTrack = RearTrackTraveller.Reverse().IsNextNodeEndOfTrack();
                     if (isEndOfTrack)
                     {
                         removeIt = false;
@@ -3303,11 +3303,11 @@ namespace Orts.Simulation.AIs
 
             // check distance to other train
             TrackTraveller selfTraveller = direction == Direction.Backward
-                ? RearTrackTraveller.Value.Reverse()
-                : FrontTrackTraveller.Value;
+                ? RearTrackTraveller.Reverse()
+                : FrontTrackTraveller;
             TrackTraveller otherTraveller = otherTrainFront
-                ? attachTrain.FrontTrackTraveller.Value
-                : attachTrain.RearTrackTraveller.Value;
+                ? attachTrain.FrontTrackTraveller
+                : attachTrain.RearTrackTraveller;
 
             float dist = CouplingGeometry.OverlapDistanceM(in selfTraveller, in otherTraveller, false);
             return (dist < 0.1f);
@@ -3401,10 +3401,10 @@ namespace Orts.Simulation.AIs
                 }
 
                 // update positions train
-                UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Forward], attachTrain.FrontTrackTraveller.Value);
+                UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Forward], attachTrain.FrontTrackTraveller);
                 attachTrain.PreviousPosition[Direction.Forward].UpdateFrom(attachTrain.PresentPosition[Direction.Forward]);
 
-                UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Backward], attachTrain.RearTrackTraveller.Value);
+                UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Backward], attachTrain.RearTrackTraveller);
                 // set various items
                 attachTrain.CheckFreight();
                 attachTrain.SetDistributedPowerUnitIds();
@@ -3509,10 +3509,10 @@ namespace Orts.Simulation.AIs
             }
 
             // update positions train
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller.Value);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller.Value);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller);
             // set various items
             CheckFreight();
             SetDistributedPowerUnitIds();
@@ -3735,16 +3735,16 @@ namespace Orts.Simulation.AIs
 
 
             // update positions of coupling train
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller.Value);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Forward], FrontTrackTraveller);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
-            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller.Value);
+            UpdateTrackCircuitPosition(PresentPosition[Direction.Backward], RearTrackTraveller);
 
             // update positions of coupled train
-            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Forward], attachTrain.FrontTrackTraveller.Value);
+            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Forward], attachTrain.FrontTrackTraveller);
             PreviousPosition[Direction.Forward].UpdateFrom(attachTrain.PresentPosition[Direction.Forward]);
 
-            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Backward], attachTrain.RearTrackTraveller.Value);
+            UpdateTrackCircuitPosition(attachTrain.PresentPosition[Direction.Backward], attachTrain.RearTrackTraveller);
             // set various items
             CheckFreight();
             SetDistributedPowerUnitIds();
@@ -4776,7 +4776,7 @@ namespace Orts.Simulation.AIs
                             {
                                 float distanceToNextSignal = -1;
                                 if (NextSignalObjects[Direction.Forward] != null)
-                                    distanceToNextSignal = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller.Value);
+                                    distanceToNextSignal = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller);
                                 // check if signal ahead is cleared - if not, do not allow depart
                                 if (NextSignalObjects[Direction.Forward] != null && distanceToNextSignal >= 0 && distanceToNextSignal < 300 &&
                                         NextSignalObjects[Direction.Forward].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop

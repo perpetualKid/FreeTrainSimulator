@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -113,8 +113,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             train.DistanceTravelled = DistanceTravelled;
             train.MUDirection = MultiUnitDirection;
             Traveller rearTraveller = new Traveller(RearLocation, TrainDirection.Reverse());
-            train.RearTDBTraveller = rearTraveller;
-            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
+            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
             train.CheckFreight();
             train.SetDistributedPowerUnitIds();
             train.ReinitializeEOT();

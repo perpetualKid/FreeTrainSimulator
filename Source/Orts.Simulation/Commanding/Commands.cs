@@ -2305,7 +2305,7 @@ namespace Orts.Simulation.Commanding
                 }
                 else
                 {
-                    Receiver.Train.RecalculateRearTDBTraveller();
+                    Receiver.Train.RecalculateRearTraveller();
                     var car = Receiver.Train.Cars[^1];
                     car.Train = null;
                     car.IsPartOfActiveTrain = false;  // to stop sounds

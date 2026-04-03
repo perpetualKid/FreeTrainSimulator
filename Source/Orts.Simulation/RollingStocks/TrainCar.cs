@@ -2373,7 +2373,7 @@ namespace Orts.Simulation.RollingStocks
         {
             ArgumentNullException.ThrowIfNull(traveller);
 
-            TrackTraveller? snapped = TravellerBridge.ToTrackTraveller(traveller);
+            TrackTraveller? snapped = TravellerBridge.ToTrackTraveller(traveller).Value;
             if (snapped is TrackTraveller trackTraveller)
                 ComputePosition(ref trackTraveller, backToFront, elapsedTimeS, distance, speed);
             traveller.Move(CarLengthM);

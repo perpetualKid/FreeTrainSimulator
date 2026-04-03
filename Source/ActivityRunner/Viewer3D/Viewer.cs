@@ -1251,7 +1251,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (currentCamera == (currentCamera = Camera) && currentCamera != null)
             {
                 if (fieldOfView != (fieldOfView = Camera.FieldOfView))
-                    (windowManager[ViewerWindowType.NotificationOverlay] as NotificationOverlay).AddNotice(Catalog.GetString($"FOV: {fieldOfView:F0}°"));
+                    (windowManager[ViewerWindowType.NotificationOverlay] as NotificationOverlay).AddNotice(Catalog.GetString($"FOV: {fieldOfView:F0}ï¿½"));
             }
             else
                 fieldOfView = Camera?.FieldOfView ?? 0;
@@ -1502,7 +1502,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // check each car
             int carNo = 0;
-            TrackTraveller traveller = PlayerTrain.FrontTrackTraveller.Value.Reverse();
+            TrackTraveller traveller = PlayerTrain.FrontTrackTraveller.Reverse();
             foreach (TrainCar car in PlayerTrain.Cars)
             {
                 float d = (car.CouplerSlackM + car.GetCouplerZeroLengthM()) / 2;

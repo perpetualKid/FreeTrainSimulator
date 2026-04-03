@@ -1269,8 +1269,7 @@ namespace Orts.Simulation
 
             // place rear of train on starting location of aiPath.
             Traveller rearTraveller = new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location);
-            train.RearTDBTraveller = rearTraveller;
-            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
+            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
 
             ConsistFile conFile = new ConsistFile(ConsistFileName);
             CurveDurability = conFile.Train.Durability;   // Finds curve durability of consist based upon the value in consist file
@@ -1427,7 +1426,7 @@ namespace Orts.Simulation
             // process player passing paths as required
             if (SignalEnvironment.UseLocationPassingPaths)
             {
-                TrackDirection orgDirection = train.RearTrackTraveller.Value.Direction.Reverse();
+                TrackDirection orgDirection = train.RearTrackTraveller.Direction.Reverse();
                 _ = new TrackCircuitRoutePath(train.Path, orgDirection, 0, -1);
             }
 
@@ -1477,8 +1476,7 @@ namespace Orts.Simulation
                     Traveller rearTraveller = new Traveller(activityObject.Location);
                     if (consistDirection != 1)
                         rearTraveller.ReverseDirection();
-                    train.RearTDBTraveller = rearTraveller;
-                    train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller);
+                    train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
                     // add wagons in reverse order - ie first wagon is at back of train
                     // static consists are listed back to front in the activities, so we have to reverse the order, and flip the cars
                     // when we add them to ORTS
@@ -1522,10 +1520,7 @@ namespace Orts.Simulation
                     // in static consists, the specified location represents the middle of the last car, 
                     // our TDB traveller is always at the back of the last car so it needs to be repositioned
                     TrainCar lastCar = train.LastCar;
-                    train.RearTrackTraveller = train.RearTrackTraveller.Value.Move(-lastCar.CarLengthM / 2f);
-                    train.RearTDBTraveller.ReverseDirection();
-                    train.RearTDBTraveller.Move(lastCar.CarLengthM / 2f);
-                    train.RearTDBTraveller.ReverseDirection();
+                    train.RearTrackTraveller = train.RearTrackTraveller.Move(-lastCar.CarLengthM / 2f);
 
                     train.CalculatePositionOfCars();
                     train.InitializeBrakes();
@@ -1677,17 +1672,14 @@ namespace Orts.Simulation
             // and fix up the travellers
             if (train.IsActualPlayerTrain && j >= i || !keepFront)
             {
-                train2.FrontTDBTraveller = new Traveller(train.FrontTDBTraveller);
                 train2.FrontTrackTraveller = train.FrontTrackTraveller;
                 train.CalculatePositionOfCars();
-                train2.RearTDBTraveller = new Traveller(train.FrontTDBTraveller);
                 train2.RearTrackTraveller = train.FrontTrackTraveller;
                 train2.CalculatePositionOfCars();  // fix the front traveller
                 train.DistanceTravelledM -= train2.Length;
             }
             else
             {
-                train2.RearTDBTraveller = new Traveller(train.RearTDBTraveller);
                 train2.RearTrackTraveller = train.RearTrackTraveller;
                 train2.CalculatePositionOfCars();  // fix the front traveller
                 train.RepositionRearTraveller();    // fix the rear traveller
@@ -1864,9 +1856,7 @@ namespace Orts.Simulation
                     }
 
                     // and fix up the travellers
-                    selectedAsPlayer.RearTDBTraveller = new Traveller(dyingTrain.RearTDBTraveller);
                     selectedAsPlayer.RearTrackTraveller = dyingTrain.RearTrackTraveller;
-                    selectedAsPlayer.FrontTDBTraveller = new Traveller(dyingTrain.FrontTDBTraveller);
                     selectedAsPlayer.FrontTrackTraveller = dyingTrain.FrontTrackTraveller;
                     // are following lines needed?
                     //                       selectedAsPlayer.CalculatePositionOfCars(0);  // fix the front traveller
