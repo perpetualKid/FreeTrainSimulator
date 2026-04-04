@@ -13,6 +13,8 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Track;
 
+using FreeTrainSimulator.Runtime.Track;
+
 namespace Orts.Simulation.Multiplayer.Messaging
 {
 
@@ -171,8 +173,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
                             multiPlayerManager.AddOrRemoveLocomotives(User, currentTrain, false);
                         train.Cars.Clear();
                         train.Cars.AddRange(tmpcars);
-                        Traveller rearTraveller = new Traveller(RearLocation, TrainDirection.Reverse());
-                        train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
+                        train.RearTrackTraveller = TrackTraveller.InitializeTraveller(
+                            RearLocation, TrainDirection == Direction.Forward ? TrackDirection.Reverse : TrackDirection.Ahead).Value;
                         train.DistanceTravelled = DistanceTravelled;
                         train.SpeedMpS = Speed;
                         train.LeadLocomotive = lead;
@@ -240,8 +242,9 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 currentTrain.ReinitializeEOT();
 
                 // and fix up the travellers
-                Traveller detachedRearTraveller = new Traveller(DetachedTrain.RearLocation, DetachedTrain.TrainDirection.Reverse());
-                detachedTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(detachedRearTraveller).Value;
+                detachedTrain.RearTrackTraveller = TrackTraveller.InitializeTraveller(
+                    DetachedTrain.RearLocation,
+                    DetachedTrain.TrainDirection == Direction.Forward ? TrackDirection.Reverse : TrackDirection.Ahead).Value;
                 detachedTrain.DistanceTravelled = DetachedTrain.DistanceTravelled;
                 detachedTrain.SpeedMpS = DetachedTrain.Speed;
                 detachedTrain.MUDirection = DetachedTrain.MultiUnitDirection;

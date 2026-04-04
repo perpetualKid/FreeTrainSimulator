@@ -14,6 +14,8 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Track;
 
+using FreeTrainSimulator.Runtime.Track;
+
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
@@ -36,8 +38,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 DistanceTravelled = DistanceTravelled,
                 MUDirection = MultiUnitDirection,
             };
-            Traveller rearTraveller = new Traveller(RearLocation, TrainDirection.Reverse());
-            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
+            train.RearTrackTraveller = TrackTraveller.InitializeTraveller(
+                RearLocation, TrainDirection == Direction.Forward ? TrackDirection.Reverse : TrackDirection.Ahead).Value;
 
             foreach (TrainCarItem trainCarItem in TrainCars ?? Enumerable.Empty<TrainCarItem>())
             {

@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.OpenRails.Parsers;
@@ -343,13 +344,11 @@ namespace Orts.Simulation.Timetables
 
                 // front traveller
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(fullRoute.TCRouteSubpaths[0]);
-                newPool.StoragePathTraveller = new Traveller(newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
+                newPool.StoragePathTraveller = Train.InitializeDirectedTraveller(newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
                 // rear traveller (for moving tables)
                 AIPathNode lastNode = newPath.Nodes.Last();
-                newPool.StoragePathReverseTraveller = new Traveller(lastNode.Location, newPool.StoragePathTraveller.Direction.Reverse());
+                newPool.StoragePathReverseTraveller = TrackTraveller.InitializeTraveller(lastNode.Location, newPool.StoragePathTraveller.Direction.Reverse()) ?? default;
 
-                Traveller dummy = new Traveller(newPool.StoragePathTraveller);
-                dummy.Move(newPool.StoragePath[0].TrackCircuitSection.Length - newPool.StoragePathTraveller.TrackNodeOffset - 1.0f);
                 newPool.StorageName = storagePathName;
 
                 // if last element is end of track, remove it from path
@@ -574,8 +573,7 @@ namespace Orts.Simulation.Timetables
 
             // use stored traveller
             train.PoolStorageIndex = poolStorageState;
-            Traveller rearTraveller = new Traveller(StoragePool[train.PoolStorageIndex].StoragePathTraveller);
-            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
+            train.RearTrackTraveller = StoragePool[train.PoolStorageIndex].StoragePathTraveller;
 
             // if storage available check for other engines on storage track
             if (StoragePool[train.PoolStorageIndex].StoredUnits.Count > 0)

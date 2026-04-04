@@ -28,8 +28,8 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime.Track;
 
-using Orts.Formats.Msts;
 using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Timetables
@@ -37,8 +37,8 @@ namespace Orts.Simulation.Timetables
     public class PoolDetails : ISaveStateApi<TimetablePoolDetailSaveState>
     {
         public TrackCircuitPartialPathRoute StoragePath { get; set; }    // path defined as storage location
-        public Traveller StoragePathTraveller { get; set; }              // traveller used to get path position and direction
-        public Traveller StoragePathReverseTraveller { get; set; }       // traveller used if path must be reversed
+        public TrackTraveller StoragePathTraveller { get; set; }              // traveller used to get path position and direction
+        public TrackTraveller StoragePathReverseTraveller { get; set; }       // traveller used if path must be reversed
         public string StorageName { get; set; }                          // storage name
         public List<TrackCircuitPartialPathRoute> AccessPaths { get; set; }    // access paths defined for storage location
         public float StorageLength { get; set; }                         // available length
@@ -61,10 +61,8 @@ namespace Orts.Simulation.Timetables
             StoragePath = new TrackCircuitPartialPathRoute();
             await StoragePath.Restore(saveState.StoragePath).ConfigureAwait(false);
 
-            StoragePathTraveller = new Traveller(false);
-            await StoragePathTraveller.Restore(saveState.StoragePathTraveller).ConfigureAwait(false);
-            StoragePathReverseTraveller = new Traveller(false);
-            await StoragePathReverseTraveller.Restore(saveState.StoragePathReverseTraveller).ConfigureAwait(false);
+            StoragePathTraveller = TrackTraveller.InitializeTraveller(saveState.StoragePathTraveller) ?? default;
+            StoragePathReverseTraveller = TrackTraveller.InitializeTraveller(saveState.StoragePathReverseTraveller) ?? default;
             StorageName = saveState.StorageName;
             AccessPaths = (await Task.WhenAll(saveState.AccessPaths.Select(async accessPath =>
             {

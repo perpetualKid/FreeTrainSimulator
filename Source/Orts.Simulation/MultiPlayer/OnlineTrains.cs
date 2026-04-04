@@ -37,6 +37,8 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.Track;
 
+using FreeTrainSimulator.Runtime.Track;
+
 namespace Orts.Simulation.Multiplayer
 {
     public class OnlineTrains
@@ -139,8 +141,9 @@ namespace Orts.Simulation.Multiplayer
 
             try
             {
-                Traveller rearTraveller = new Traveller(playerState.TrainState.RearLocation, playerState.TrainState.TrainDirection.Reverse());
-                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
+                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(
+                    playerState.TrainState.RearLocation,
+                    playerState.TrainState.TrainDirection == Direction.Forward ? TrackDirection.Reverse : TrackDirection.Ahead).Value;
             }
             catch (Exception e) when (MultiPlayerManager.IsServer())
             {
