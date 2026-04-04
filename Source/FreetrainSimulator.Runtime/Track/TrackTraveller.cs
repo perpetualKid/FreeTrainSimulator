@@ -235,7 +235,9 @@ namespace FreeTrainSimulator.Runtime.Track
                     continue;
 
                 (WorldLocation snapped, double offset) = SnapToSection(location, section, sectionGeometry);
-                double distSq = WorldLocation.GetDistanceSquared(location, snapped);
+                double distSq = location.Location.Y == 0
+                    ? WorldLocation.GetDistanceSquared2D(location, snapped)
+                    : WorldLocation.GetDistanceSquared(location, snapped);
                 if (distSq < bestDistSq)
                 {
                     bestDistSq = distSq;
@@ -312,7 +314,9 @@ namespace FreeTrainSimulator.Runtime.Track
                     continue;
 
                 (WorldLocation snapped, double offset) = SnapToSection(location, section, sectionGeometry);
-                double distSq = WorldLocation.GetDistanceSquared(location, snapped);
+                double distSq = location.Location.Y == 0
+                    ? WorldLocation.GetDistanceSquared2D(location, snapped)
+                    : WorldLocation.GetDistanceSquared(location, snapped);
                 if (distSq < bestDistSq)
                 {
                     bestDistSq = distSq;
