@@ -2373,8 +2373,8 @@ namespace Orts.Simulation.RollingStocks
         {
             ArgumentNullException.ThrowIfNull(traveller);
 
-            TrackTraveller? snapped = TravellerBridge.ToTrackTraveller(traveller).Value;
-            if (snapped is TrackTraveller trackTraveller)
+            TrackDirection snapDir = traveller.Direction == FreeTrainSimulator.Common.Direction.Forward ? TrackDirection.Ahead : TrackDirection.Reverse;
+            if (TrackTraveller.InitializeTraveller(traveller.WorldLocation, traveller.TrackNode.Index, snapDir) is TrackTraveller trackTraveller)
                 ComputePosition(ref trackTraveller, backToFront, elapsedTimeS, distance, speed);
             traveller.Move(CarLengthM);
         }
@@ -2398,7 +2398,8 @@ namespace Orts.Simulation.RollingStocks
         {
             ArgumentNullException.ThrowIfNull(traveller);
 
-            if (TravellerBridge.ToTrackTraveller(traveller) is TrackTraveller trackTraveller)
+            TrackDirection dir = traveller.Direction == FreeTrainSimulator.Common.Direction.Forward ? TrackDirection.Ahead : TrackDirection.Reverse;
+            if (TrackTraveller.InitializeTraveller(traveller.WorldLocation, traveller.TrackNode.Index, dir) is TrackTraveller trackTraveller)
                 UpdatedTraveller(trackTraveller, elapsedTimeS, distanceM, speedMpS);
         }
 

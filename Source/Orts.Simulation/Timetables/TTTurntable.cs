@@ -683,8 +683,9 @@ namespace Orts.Simulation.Timetables
             if (StoragePool[PoolStorageState].MaxStoredUnits.HasValue && StoragePool[PoolStorageState].MaxStoredUnits == 1)
             {
                 // use stored traveller
-                Traveller rearTraveller = new Traveller(StoragePool[PoolStorageState].StoragePathTraveller);
-                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
+                Traveller storedTraveller = StoragePool[PoolStorageState].StoragePathTraveller;
+                TrackDirection storageDir = storedTraveller.Direction == Direction.Forward ? TrackDirection.Ahead : TrackDirection.Reverse;
+                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(storedTraveller.WorldLocation, storedTraveller.TrackNode.Index, storageDir).Value;
             }
 
             else
@@ -693,8 +694,9 @@ namespace Orts.Simulation.Timetables
                 train.TCRoute.TCRouteSubpaths[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0].ReversePath());
                 train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
 
-                Traveller rearTraveller = new Traveller(StoragePool[PoolStorageState].StoragePathReverseTraveller);
-                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
+                Traveller storedReverseTraveller = StoragePool[PoolStorageState].StoragePathReverseTraveller;
+                TrackDirection reverseDir = storedReverseTraveller.Direction == Direction.Forward ? TrackDirection.Ahead : TrackDirection.Reverse;
+                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(storedReverseTraveller.WorldLocation, storedReverseTraveller.TrackNode.Index, reverseDir).Value;
 
                 // if storage available check for other engines on storage track
                 if (StoragePool[PoolStorageState].StoredUnits.Count > 0)
@@ -2309,7 +2311,8 @@ namespace Orts.Simulation.Timetables
             }
 
             // Compute shadow independently from middle position
-            TrackTraveller middleShadow = TravellerBridge.ToTrackTraveller(middlePosition).Value;
+            TrackDirection middleDir = middlePosition.Direction == Direction.Forward ? TrackDirection.Ahead : TrackDirection.Reverse;
+            TrackTraveller middleShadow = TrackTraveller.InitializeTraveller(middlePosition.WorldLocation, middlePosition.TrackNode.Index, middleDir).Value;
 
             float offsetPosition = reverseFormation ? (-parentTrain.Length / 2.0f) - stopPositionOnTurntableM : (-parentTrain.Length / 2.0f) + stopPositionOnTurntableM;
             parentTrain.RearTrackTraveller = middleShadow.Move(offsetPosition);

@@ -36,12 +36,14 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Multiplayer.Messaging;
+using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.Timetables;
@@ -800,8 +802,7 @@ namespace Orts.Simulation.AIs
             train.Cars[0].Headlight = HeadLightState.HeadlightOn;//AI train always has light on
 
             // Patch placingproblem JeroenP (1 line)
-            Traveller rearTraveller = new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location); // create traveller
-            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
+            train.RearTrackTraveller = TrackTraveller.InitializeDirectedTraveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location);
             train.CreateRoute(false);  // create route without use of FrontTrackTraveller
             train.CheckFreight(); // check if train is freight or passenger
             train.SetDistributedPowerUnitIds(); // distributed power

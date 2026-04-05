@@ -43,6 +43,10 @@
 		<PlatformTarget>AnyCPU</PlatformTarget>
 	</PropertyGroup>
 	<PropertyGroup>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+	</PropertyGroup>
+	<PropertyGroup>
 		<Product>Free Train Simulator</Product>
 		<Company>Free Train Simulator Team</Company>
 		<Description>Free Train Simulator</Description>

@@ -10578,7 +10578,7 @@ namespace Orts.Simulation.Timetables
             TrackVectorNode detachNode = RuntimeData.Instance.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 
             Traveller detachTraveller = new Traveller(detachNode);
-            formedTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(detachTraveller).Value;
+            formedTrain.RearTrackTraveller = TrackTraveller.InitializeTraveller(detachTraveller.WorldLocation, DetachSection.OriginalIndex, TrackDirection.Ahead).Value;
 
             trainlist.Add(formedTrain);
 
@@ -10601,7 +10601,7 @@ namespace Orts.Simulation.Timetables
             TrackVectorNode DetachNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[DetachSection.OriginalIndex];
 
             Traveller detachTraveller = new Traveller(DetachNode);
-            formedTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(detachTraveller).Value;
+            formedTrain.RearTrackTraveller = TrackTraveller.InitializeTraveller(detachTraveller.WorldLocation, DetachSection.OriginalIndex, TrackDirection.Ahead).Value;
             formedTrain.PresentPosition[Direction.Forward].UpdateFrom(train.PresentPosition[Direction.Forward]);
             formedTrain.PresentPosition[Direction.Backward].UpdateFrom(train.PresentPosition[Direction.Backward]);
             formedTrain.CreateRoute(true);

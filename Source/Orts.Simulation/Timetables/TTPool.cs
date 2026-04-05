@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.OpenRails.Parsers;
@@ -574,8 +575,9 @@ namespace Orts.Simulation.Timetables
 
             // use stored traveller
             train.PoolStorageIndex = poolStorageState;
-            Traveller rearTraveller = new Traveller(StoragePool[train.PoolStorageIndex].StoragePathTraveller);
-            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
+            Traveller storedTraveller = StoragePool[train.PoolStorageIndex].StoragePathTraveller;
+            TrackDirection storageDir = storedTraveller.Direction == Direction.Forward ? TrackDirection.Ahead : TrackDirection.Reverse;
+            train.RearTrackTraveller = TrackTraveller.InitializeTraveller(storedTraveller.WorldLocation, storedTraveller.TrackNode.Index, storageDir).Value;
 
             // if storage available check for other engines on storage track
             if (StoragePool[train.PoolStorageIndex].StoredUnits.Count > 0)

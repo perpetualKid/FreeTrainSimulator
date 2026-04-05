@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Runtime.Track;
 
 using MemoryPack;
 
-using Orts.Formats.Msts;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Multiplayer.Messaging
 {
@@ -112,8 +111,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
 
             train.DistanceTravelled = DistanceTravelled;
             train.MUDirection = MultiUnitDirection;
-            Traveller rearTraveller = new Traveller(RearLocation, TrainDirection.Reverse());
-            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
+            TrackDirection rearDir = TrainDirection == Direction.Forward ? TrackDirection.Reverse : TrackDirection.Ahead;
+            train.RearTrackTraveller = TrackTraveller.InitializeTraveller(RearLocation, rearDir).Value;
             train.CheckFreight();
             train.SetDistributedPowerUnitIds();
             train.ReinitializeEOT();

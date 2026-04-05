@@ -5,10 +5,10 @@ using System.IO;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Runtime.Track;
 
 using MemoryPack;
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -35,7 +35,6 @@ namespace Orts.Simulation.Multiplayer.Messaging
             train = Simulator.Instance.Trains.FirstOrDefault(t => t.Number == TrainNumber);
             if (train != null) //existing train
             {
-                Traveller traveller = new Traveller(RearLocation, TrainDirection.Reverse());
                 List<TrainCar> trainCars = new List<TrainCar>();
 
                 foreach (TrainCarItem trainCarItem in TrainCars ?? Enumerable.Empty<TrainCarItem>())
@@ -77,7 +76,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 train.Cars.Clear();
                 train.Cars.AddRange(trainCars);
                 train.MUDirection = MultiUnitDirection;
-                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(traveller).Value;
+                TrackDirection rearDir = TrainDirection == Direction.Forward ? TrackDirection.Reverse : TrackDirection.Ahead;
+                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(RearLocation, rearDir).Value;
                 train.CalculatePositionOfCars();
                 train.DistanceTravelled = DistanceTravelled;
                 train.CheckFreight();
@@ -93,8 +93,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     TrainType = TrainType.Remote,
                     DistanceTravelled = DistanceTravelled,
                 };
-                Traveller rearTraveller = new Traveller(RearLocation, TrainDirection.Reverse());
-                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
+                TrackDirection rearDir = TrainDirection == Direction.Forward ? TrackDirection.Reverse : TrackDirection.Ahead;
+                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(RearLocation, rearDir).Value;
 
                 foreach (TrainCarItem trainCarItem in TrainCars ?? Enumerable.Empty<TrainCarItem>())
                 {

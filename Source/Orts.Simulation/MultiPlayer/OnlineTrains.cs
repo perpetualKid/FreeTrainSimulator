@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -139,8 +140,8 @@ namespace Orts.Simulation.Multiplayer
 
             try
             {
-                Traveller rearTraveller = new Traveller(playerState.TrainState.RearLocation, playerState.TrainState.TrainDirection.Reverse());
-                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
+                TrackDirection rearDir = playerState.TrainState.TrainDirection == Direction.Forward ? TrackDirection.Reverse : TrackDirection.Ahead;
+                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(playerState.TrainState.RearLocation, rearDir).Value;
             }
             catch (Exception e) when (MultiPlayerManager.IsServer())
             {

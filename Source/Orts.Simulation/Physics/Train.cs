@@ -1499,24 +1499,6 @@ namespace Orts.Simulation.Physics
             (DispatcherInfo as TrainDispatcherInfo).Update(null);
         } // end Update
 
-        /// <summary>
-        /// Checks whether the traveller is pinned at a VectorNode boundary that connects
-        /// to an EndNode. <see cref="TrackTraveller.IsNextNodeEndOfTrack"/> returns true for
-        /// the entire VectorNode; this helper adds a proximity check so that end-of-track
-        /// recovery only fires when the traveller is actually at (or very near) the boundary.
-        /// </summary>
-        private static bool IsNearEndOfTrack(TrackTraveller tt)
-        {
-            if (!tt.IsNextNodeEndOfTrack())
-                return false;
-
-            double distanceToBoundary = tt.Direction == TrackDirection.Ahead
-                ? tt.VectorNodeLength - tt.VectorNodeOffset
-                : tt.VectorNodeOffset;
-
-            return distanceToBoundary < 0.1;
-        }
-
         //================================================================================================//
         /// <summary>
         /// Update train physics
@@ -1529,8 +1511,8 @@ namespace Orts.Simulation.Physics
             // overshoots onto the EndNode, so we detect the condition by checking whether
             // the next node in the direction of travel is an EndNode AND the traveller
             // is within a small distance of that boundary (pinned by Move()).
-            bool frontAtEnd = IsNearEndOfTrack(FrontTrackTraveller);
-            bool rearAtEnd = IsNearEndOfTrack(RearTrackTraveller.Reverse());
+            bool frontAtEnd = FrontTrackTraveller.IsNearEndOfTrack();
+            bool rearAtEnd = RearTrackTraveller.Reverse().IsNearEndOfTrack();
 
             if (frontAtEnd || rearAtEnd)
             {

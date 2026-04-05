@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -258,6 +260,92 @@ namespace FreeTrainSimulator.Runtime.Track
                     Location = bestSnapped,
                     Direction = direction,
                 };
+        }
+
+        /// <summary>
+        /// Returns all candidate travellers within proximity tolerance of <paramref name="location"/>,
+        /// one per unique <see cref="VectorNode"/>, ordered by distance (closest first).
+        /// Used when <see cref="InitializeTraveller(in WorldLocation, TrackDirection, TrackDataBaseType)"/>
+        /// picks the wrong node near a junction boundary and a fallback search through alternative
+        /// nodes is needed.
+        /// </summary>
+        /// <param name="location">The world location to search from.</param>
+        /// <param name="direction">The initial direction of travel on each found node.</param>
+        /// <param name="trackDataBaseType">Whether to search rail or road geometry.</param>
+        /// <returns>An ordered list of candidates (closest first), possibly empty.</returns>
+        private static IReadOnlyList<TrackTraveller> FindAllCandidates(in WorldLocation location, TrackDirection direction, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        {
+            Dictionary<VectorNode, (SectionGeometry geometry, WorldLocation snapped, double offset, double distSq)> bestPerNode = new(ReferenceEqualityComparer.Instance);
+            double maxDistSq = WorldLocation.ProximityTolerance * WorldLocation.ProximityTolerance;
+
+            MapContentType contentType = trackDataBaseType == TrackDataBaseType.Road ? MapContentType.Roads : MapContentType.Tracks;
+            ITileIndexedList<ITileCoordinate> bucket = trackWorld.ContentByTile[contentType];
+            if (bucket == null)
+                return Array.Empty<TrackTraveller>();
+
+            int tileRadius = WorldLocation.IsNearTileBoundary(location) ? 1 : 0;
+            foreach (VectorSectionNode section in bucket.BoundingBox(location.Tile, tileRadius).Cast<VectorSectionNode>())
+            {
+                if (!trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry) || !sectionGeometry.HasGeometry)
+                    continue;
+
+                (WorldLocation snapped, double offset) = SnapToSection(location, section, sectionGeometry);
+                double distSq = location.Location.Y == 0
+                    ? WorldLocation.GetDistanceSquared2D(location, snapped)
+                    : WorldLocation.GetDistanceSquared(location, snapped);
+                if (distSq < maxDistSq)
+                {
+                    VectorNode parentNode = sectionGeometry.Node;
+                    if (!bestPerNode.TryGetValue(parentNode, out var existing) || distSq < existing.distSq)
+                        bestPerNode[parentNode] = (sectionGeometry, snapped, offset, distSq);
+                }
+            }
+
+            return bestPerNode.OrderBy(kv => kv.Value.distSq)
+                .Select(kv => new TrackTraveller(trackDataBaseType)
+                {
+                    CurrentNode = kv.Value.geometry.Node,
+                    SectionIndex = kv.Value.geometry.SectionIndex,
+                    CurrentSectionGeometry = ResolveGeometry(kv.Value.geometry.Node, kv.Value.geometry.SectionIndex),
+                    SectionOffset = kv.Value.offset,
+                    Location = kv.Value.snapped,
+                    Direction = direction,
+                })
+                .ToList();
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="TrackTraveller"/> at <paramref name="startLocation"/> oriented toward
+        /// <paramref name="nextLocation"/>.  All nearby <see cref="VectorNode"/> candidates are tried;
+        /// for each, both travel directions are evaluated using a walk-based projection (see
+        /// <see cref="WalkDistanceToLocation"/>) which is robust for imprecise path node locations.
+        /// Replicates the legacy <c>Traveller(loc1, loc2)</c> constructor behaviour.
+        /// </summary>
+        /// <param name="startLocation">The world location where the traveller is placed.</param>
+        /// <param name="nextLocation">A second path node location used to determine the direction of travel.</param>
+        /// <param name="trackDataBaseType">Whether to search rail or road geometry.</param>
+        /// <returns>A directed <see cref="TrackTraveller"/>.</returns>
+        /// <exception cref="InvalidDataException">Thrown when <paramref name="startLocation"/> cannot be found in the track database.</exception>
+        public static TrackTraveller InitializeDirectedTraveller(in WorldLocation startLocation, in WorldLocation nextLocation, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
+        {
+            IReadOnlyList<TrackTraveller> candidates = FindAllCandidates(startLocation, TrackDirection.Ahead, trackDataBaseType);
+            if (candidates.Count == 0)
+                throw new InvalidDataException($"{startLocation} could not be found in the track database.");
+
+            foreach (TrackTraveller candidate in candidates)
+            {
+                float? fwDist = candidate.WalkDistanceToLocation(nextLocation, forward: true, float.MaxValue);
+                float? bwDist = candidate.WalkDistanceToLocation(nextLocation, forward: false, float.MaxValue);
+
+                // Prefer forward when both directions reach the target and forward is shorter (or equal).
+                if (fwDist.HasValue && (!bwDist.HasValue || fwDist.Value <= bwDist.Value))
+                    return candidate;
+                if (bwDist.HasValue)
+                    return candidate.Reverse();
+            }
+
+            // No candidate can reach nextLocation — fall back to the closest candidate facing forward.
+            return candidates[0];
         }
 
         /// <summary>
@@ -721,6 +809,25 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Checks whether the traveller is pinned at a <see cref="VectorNode"/> boundary that
+        /// connects to an <see cref="EndNode"/>. <see cref="IsNextNodeEndOfTrack"/> returns
+        /// <see langword="true"/> for the entire <see cref="VectorNode"/>; this method adds a
+        /// proximity check so that end-of-track recovery only fires when the traveller is
+        /// actually at (or very near) the boundary.
+        /// </summary>
+        public bool IsNearEndOfTrack()
+        {
+            if (!IsNextNodeEndOfTrack())
+                return false;
+
+            double distanceToBoundary = Direction == TrackDirection.Ahead
+                ? VectorNodeLength - VectorNodeOffset
+                : VectorNodeOffset;
+
+            return distanceToBoundary < 0.1;
+        }
+
+        /// <summary>
         /// Returns the signed curvature (1/R) at the traveller's current position.
         /// Positive values curve right (positive arc angle), negative values curve left.
         /// Returns <c>0</c> for straight sections or when the traveller is not on track.
@@ -869,6 +976,89 @@ namespace FreeTrainSimulator.Runtime.Track
             WorldLocation newLocation = trackWorld.ComputeSectionLocation(node, index, offset);
             TrackDirection newDirection = forward ? TrackDirection.Ahead : TrackDirection.Reverse;
             return this with { CurrentNode = node, SectionIndex = index, CurrentSectionGeometry = ResolveGeometry(node, index), SectionOffset = offset, Location = newLocation, Direction = newDirection };
+        }
+
+        /// <summary>
+        /// Walks sections from the current position, projecting <paramref name="location"/> onto each
+        /// walked section via <see cref="SnapToSection"/>. Returns the track distance to the first
+        /// section whose projection falls within the section interior (not clamped to a boundary).
+        /// Unlike <see cref="DistanceTo(in WorldLocation, float)"/>, this method does not pre-snap
+        /// the target via <see cref="InitializeTraveller(in WorldLocation, TrackDataBaseType)"/>,
+        /// making it robust for imprecise locations (e.g., .pat path nodes that may be several
+        /// metres off track).
+        /// </summary>
+        private float? WalkDistanceToLocation(in WorldLocation location, bool forward, float maxDistance)
+        {
+            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
+                ? trackWorld.TrackModel.RoadDatabase
+                : trackWorld.TrackModel.TrackDatabase;
+
+            VectorNode node = CurrentNode;
+            int index = SectionIndex;
+            double entryOffset = SectionOffset;
+            double accumulated = 0.0;
+
+            while (accumulated < maxDistance)
+            {
+                double sectionLength = trackWorld.SectionLength(node, index);
+                VectorSectionNode section = node.VectorSections[index];
+
+                if (trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geom) && geom.HasGeometry && sectionLength > 0)
+                {
+                    (_, double offset) = SnapToSection(location, section, geom);
+
+                    // SnapToSection clamps the offset to [0, sectionLength]. An offset at a
+                    // boundary means the target projects outside this section, so we only
+                    // accept genuinely interior projections (matching the legacy walk-based
+                    // InitTrackSectionSucceeded approach).
+                    const double epsilon = 1e-4;
+                    if (offset > epsilon && offset < sectionLength - epsilon)
+                    {
+                        bool targetAhead = forward ? offset >= entryOffset : offset <= entryOffset;
+                        if (targetAhead)
+                            return (float)(accumulated + Math.Abs(offset - entryOffset));
+                        // Target projects onto this section but behind our entry point.
+                        return null;
+                    }
+                }
+
+                // No match on this section — accumulate remaining distance and advance.
+                if (sectionLength > 0.0)
+                    accumulated += forward ? sectionLength - entryOffset : entryOffset;
+
+                if (forward)
+                {
+                    if (index < node.VectorSections.Length - 1)
+                    {
+                        index++;
+                        entryOffset = 0.0;
+                    }
+                    else
+                    {
+                        bool? newForward = TryCrossNodeBoundary(trackDatabase, ref node, ref index, ref entryOffset, atEnd: true);
+                        if (!newForward.HasValue)
+                            return null;
+                        forward = newForward.Value;
+                    }
+                }
+                else
+                {
+                    if (index > 0)
+                    {
+                        index--;
+                        entryOffset = trackWorld.SectionLength(node, index);
+                    }
+                    else
+                    {
+                        bool? newForward = TryCrossNodeBoundary(trackDatabase, ref node, ref index, ref entryOffset, atEnd: false);
+                        if (!newForward.HasValue)
+                            return null;
+                        forward = newForward.Value;
+                    }
+                }
+            }
+
+            return null;
         }
 
         // Walks sections in the given direction, matching the target traveller by node reference and section index.
