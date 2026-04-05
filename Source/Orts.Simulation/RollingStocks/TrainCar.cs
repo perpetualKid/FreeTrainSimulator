@@ -2368,6 +2368,17 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
+        //TODO: remove when Train is migrated to TrackTraveller; ComputePosition always advances the traveller by CarLengthM
+        public void ComputePosition(Traveller traveller, bool backToFront, double elapsedTimeS, double distance, float speed)
+        {
+            ArgumentNullException.ThrowIfNull(traveller);
+
+            TrackTraveller? snapped = TravellerBridge.ToTrackTraveller(traveller).Value;
+            if (snapped is TrackTraveller trackTraveller)
+                ComputePosition(ref trackTraveller, backToFront, elapsedTimeS, distance, speed);
+            traveller.Move(CarLengthM);
+        }
+
         #region Traveller-based updates
         public float CurrentCurveRadius { get; private set; }
 
@@ -2380,6 +2391,15 @@ namespace Orts.Simulation.RollingStocks
             CurrentCurveRadius = (float)traveller.CurveRadius;
             UpdateVibrationAndTilting(traveller, elapsedTimeS, distanceM, speedMpS);
             UpdateSuperElevation(traveller, elapsedTimeS);
+        }
+
+        //TODO: remove when Train is migrated to TrackTraveller
+        internal void UpdatedTraveller(Traveller traveller, double elapsedTimeS, double distanceM, float speedMpS)
+        {
+            ArgumentNullException.ThrowIfNull(traveller);
+
+            if (TravellerBridge.ToTrackTraveller(traveller) is TrackTraveller trackTraveller)
+                UpdatedTraveller(trackTraveller, elapsedTimeS, distanceM, speedMpS);
         }
 
         internal protected virtual void UpdateRemotePosition(double elapsedClockSeconds, float speed, float targetSpeed)

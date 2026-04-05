@@ -10577,7 +10577,8 @@ namespace Orts.Simulation.Timetables
             }
             TrackVectorNode detachNode = RuntimeData.Instance.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 
-            formedTrain.RearTrackTraveller = TrackTraveller.InitializeTraveller(detachNode.TrackVectorSections[0].Location, DetachSection.OriginalIndex, TrackDirection.Ahead).Value;
+            Traveller detachTraveller = new Traveller(detachNode);
+            formedTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(detachTraveller).Value;
 
             trainlist.Add(formedTrain);
 
@@ -10599,7 +10600,8 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection DetachSection = TrackCircuitSection.TrackCircuitList[sectionInfo];
             TrackVectorNode DetachNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[DetachSection.OriginalIndex];
 
-            formedTrain.RearTrackTraveller = TrackTraveller.InitializeTraveller(DetachNode.TrackVectorSections[0].Location, DetachSection.OriginalIndex, TrackDirection.Ahead).Value;
+            Traveller detachTraveller = new Traveller(DetachNode);
+            formedTrain.RearTrackTraveller = TravellerBridge.ToTrackTraveller(detachTraveller).Value;
             formedTrain.PresentPosition[Direction.Forward].UpdateFrom(train.PresentPosition[Direction.Forward]);
             formedTrain.PresentPosition[Direction.Backward].UpdateFrom(train.PresentPosition[Direction.Backward]);
             formedTrain.CreateRoute(true);

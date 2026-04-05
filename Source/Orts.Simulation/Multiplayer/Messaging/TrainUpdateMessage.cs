@@ -14,8 +14,6 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Track;
 
-using FreeTrainSimulator.Runtime.Track;
-
 namespace Orts.Simulation.Multiplayer.Messaging
 {
     [MemoryPackable]
@@ -37,6 +35,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             train = Simulator.Instance.Trains.FirstOrDefault(t => t.Number == TrainNumber);
             if (train != null) //existing train
             {
+                Traveller traveller = new Traveller(RearLocation, TrainDirection.Reverse());
                 List<TrainCar> trainCars = new List<TrainCar>();
 
                 foreach (TrainCarItem trainCarItem in TrainCars ?? Enumerable.Empty<TrainCarItem>())
@@ -78,8 +77,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                 train.Cars.Clear();
                 train.Cars.AddRange(trainCars);
                 train.MUDirection = MultiUnitDirection;
-                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(
-                    RearLocation, TrainDirection == Direction.Forward ? TrackDirection.Reverse : TrackDirection.Ahead).Value;
+                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(traveller).Value;
                 train.CalculatePositionOfCars();
                 train.DistanceTravelled = DistanceTravelled;
                 train.CheckFreight();
@@ -95,8 +93,8 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     TrainType = TrainType.Remote,
                     DistanceTravelled = DistanceTravelled,
                 };
-                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(
-                    RearLocation, TrainDirection == Direction.Forward ? TrackDirection.Reverse : TrackDirection.Ahead).Value;
+                Traveller rearTraveller = new Traveller(RearLocation, TrainDirection.Reverse());
+                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
 
                 foreach (TrainCarItem trainCarItem in TrainCars ?? Enumerable.Empty<TrainCarItem>())
                 {

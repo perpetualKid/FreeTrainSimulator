@@ -64,7 +64,7 @@ namespace Orts.Simulation.Timetables
         public class AccessPathDetails : ISaveStateApi<AccessPathDetailSaveState>
         {
             public TrackCircuitPartialPathRoute AccessPath { get; set; }           // actual access path
-            public TrackTraveller AccessTraveller { get; set; }                 // traveler based on access path
+            public Traveller AccessTraveller { get; set; }                 // traveler based on access path
             public string AccessPathName { get; set; }                     // access path name
             public int TableVectorIndex { get; set; }                      // index in VectorList of tracknode which is the table
             public int TableExitIndex { get; set; }                        // index in table exit list for this exit
@@ -78,7 +78,8 @@ namespace Orts.Simulation.Timetables
                 AccessPath = new TrackCircuitPartialPathRoute();
                 await AccessPath.Restore(saveState.AccessPath).ConfigureAwait(false);
 
-                AccessTraveller = TrackTraveller.InitializeTraveller(saveState.AccessTraveller) ?? default;
+                AccessTraveller = new Traveller(false);
+                await AccessTraveller.Restore(saveState.AccessTraveller).ConfigureAwait(false);
 
                 AccessPathName = saveState.AccessPathName;
                 TableExitIndex = saveState.TableExitIndex;
@@ -247,7 +248,7 @@ namespace Orts.Simulation.Timetables
 
                                 AccessPathDetails thisAccess = new AccessPathDetails();
                                 thisAccess.AccessPath = new TrackCircuitPartialPathRoute(usedRoute);
-                                thisAccess.AccessTraveller = Train.InitializeDirectedTraveller(newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
+                                thisAccess.AccessTraveller = new Traveller(newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
                                 thisAccess.AccessPathName = accessPath;
                                 AdditionalTurntableDetails.AccessPaths.Add(thisAccess);
                             }
@@ -524,7 +525,7 @@ namespace Orts.Simulation.Timetables
             float entrySectionLength = 0.0f;
             float exitSectionLength = 0.0f;
 
-            if (thisPath.TableVectorIndex < thisPath.AccessTraveller.SectionIndex)
+            if (thisPath.TableVectorIndex < thisPath.AccessTraveller.TrackVectorSectionIndex)
             {
                 // path is behind turntable - calculate length from turntable to end
                 // also set direction forward (path is outbound)
@@ -532,8 +533,7 @@ namespace Orts.Simulation.Timetables
                 entrySectionLength = CalculateVectorLength(lastVectorIndex, trackVectors.Length - 1, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(0, lastVectorIndex - 2, lastVectorIndex, trackVectors);
                 thisPath.AccessPath[0].Direction = TrackDirection.Reverse;
-                if (thisPath.AccessTraveller.Direction != TrackDirection.Ahead)
-                    thisPath.AccessTraveller = thisPath.AccessTraveller.Reverse();
+                thisPath.AccessTraveller.Direction = Direction.Forward;
             }
             else
             {
@@ -543,8 +543,7 @@ namespace Orts.Simulation.Timetables
                 entrySectionLength = CalculateVectorLength(0, lastVectorIndex, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(lastVectorIndex + 2, trackVectors.Length - 1, lastVectorIndex, trackVectors);
                 thisPath.AccessPath[0].Direction = TrackDirection.Ahead;
-                if (thisPath.AccessTraveller.Direction != TrackDirection.Reverse)
-                    thisPath.AccessTraveller = thisPath.AccessTraveller.Reverse();
+                thisPath.AccessTraveller.Direction = Direction.Backward;
             }
 
             // deduct clearance for turntable
@@ -596,7 +595,7 @@ namespace Orts.Simulation.Timetables
             float entrySectionLength = 0.0f;
             float exitSectionLength = 0.0f;
 
-            if (thisPath.TableVectorIndex < thisPath.StoragePathTraveller.SectionIndex)
+            if (thisPath.TableVectorIndex < thisPath.StoragePathTraveller.TrackVectorSectionIndex)
             {
                 // path is behind turntable - calculate length from turntable to end
                 // also set direction forward (path is outbound)
@@ -604,10 +603,8 @@ namespace Orts.Simulation.Timetables
                 entrySectionLength = CalculateVectorLength(lastVectorIndex, trackVectors.Length - 1, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(0, lastVectorIndex - 2, lastVectorIndex, trackVectors);
                 thisPath.StoragePath[0].Direction = TrackDirection.Reverse;
-                if (thisPath.StoragePathTraveller.Direction != TrackDirection.Ahead)
-                    thisPath.StoragePathTraveller = thisPath.StoragePathTraveller.Reverse();
-                if (thisPath.StoragePathReverseTraveller.Direction != TrackDirection.Reverse)
-                    thisPath.StoragePathReverseTraveller = thisPath.StoragePathReverseTraveller.Reverse();
+                thisPath.StoragePathTraveller.Direction = Direction.Forward;
+                thisPath.StoragePathReverseTraveller.Direction = Direction.Backward;
             }
             else
             {
@@ -617,10 +614,8 @@ namespace Orts.Simulation.Timetables
                 entrySectionLength = CalculateVectorLength(0, lastVectorIndex, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(lastVectorIndex + 2, trackVectors.Length - 1, lastVectorIndex, trackVectors);
                 thisPath.StoragePath[0].Direction = TrackDirection.Ahead;
-                if (thisPath.StoragePathTraveller.Direction != TrackDirection.Reverse)
-                    thisPath.StoragePathTraveller = thisPath.StoragePathTraveller.Reverse();
-                if (thisPath.StoragePathReverseTraveller.Direction != TrackDirection.Ahead)
-                    thisPath.StoragePathReverseTraveller = thisPath.StoragePathReverseTraveller.Reverse();
+                thisPath.StoragePathTraveller.Direction = Direction.Backward;
+                thisPath.StoragePathReverseTraveller.Direction = Direction.Forward;
             }
 
             float totalLength = baseLength + entrySectionLength;
@@ -688,7 +683,8 @@ namespace Orts.Simulation.Timetables
             if (StoragePool[PoolStorageState].MaxStoredUnits.HasValue && StoragePool[PoolStorageState].MaxStoredUnits == 1)
             {
                 // use stored traveller
-                train.RearTrackTraveller = StoragePool[PoolStorageState].StoragePathTraveller;
+                Traveller rearTraveller = new Traveller(StoragePool[PoolStorageState].StoragePathTraveller);
+                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
             }
 
             else
@@ -697,7 +693,8 @@ namespace Orts.Simulation.Timetables
                 train.TCRoute.TCRouteSubpaths[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0].ReversePath());
                 train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
 
-                train.RearTrackTraveller = StoragePool[PoolStorageState].StoragePathReverseTraveller;
+                Traveller rearTraveller = new Traveller(StoragePool[PoolStorageState].StoragePathReverseTraveller);
+                train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
 
                 // if storage available check for other engines on storage track
                 if (StoragePool[PoolStorageState].StoredUnits.Count > 0)
@@ -1428,8 +1425,8 @@ namespace Orts.Simulation.Timetables
             int reqTurntableExit = -1;
             int reqTurntableEntry = -1;
 
-            TrackDirection reqEntryDirection = TrackDirection.Ahead;
-            TrackDirection reqExitDirection = TrackDirection.Ahead;
+            Direction reqEntryDirection = Direction.Forward;
+            Direction reqExitDirection = Direction.Forward;
 
             // switch on turntable action state
 
@@ -1567,8 +1564,8 @@ namespace Orts.Simulation.Timetables
             int reqTurntableExit = -1;
             int reqTurntableEntry = -1;
 
-            TrackDirection reqEntryDirection = TrackDirection.Ahead;
-            TrackDirection reqExitDirection = TrackDirection.Ahead;
+            Direction reqEntryDirection = Direction.Forward;
+            Direction reqExitDirection = Direction.Forward;
 
             // switch on turntable action state
 
@@ -1863,7 +1860,7 @@ namespace Orts.Simulation.Timetables
         /// <summary>
         /// Turn turntable to required exit position
         /// </summary>
-        public bool AutoRequestExit(int reqExit, TrackDirection entryPathDirection, TrackDirection exitPathDirection,
+        public bool AutoRequestExit(int reqExit, Direction entryPathDirection, Direction exitPathDirection,
                         double elapsedClockSeconds)
         {
             Simulator simulator = Simulator.Instance;
@@ -2050,7 +2047,7 @@ namespace Orts.Simulation.Timetables
             // if entry orientation does not match tracknode direction, entry direction must be reversed
             // orientation is true : tracknode direction is away from turntable so traveller direction must be forward
             // orientation is false : tracknode direction is toward turntable so traveller direction must be backward
-            if ((!entryForward && entryPathDirection == TrackDirection.Reverse) || (entryForward && entryPathDirection == TrackDirection.Ahead))
+            if ((!entryForward && entryPathDirection == Direction.Backward) || (entryForward && entryPathDirection == Direction.Forward))
             {
                 reqChangeEnd = !reqChangeEnd;
 #if DEBUG_TURNTABLEINFO
@@ -2066,7 +2063,7 @@ namespace Orts.Simulation.Timetables
             // if exit orientation does not match tracknode direction, exit direction must be reversed
             // orientation is true : tracknode direction is away from turntable so traveller direction must be forward
             // orientation is false : tracknode direction is toward turntable so traveller direction must be backward
-            if ((!exitForward && exitPathDirection == TrackDirection.Reverse) || (exitForward && exitPathDirection == TrackDirection.Ahead))
+            if ((!exitForward && exitPathDirection == Direction.Backward) || (exitForward && exitPathDirection == Direction.Forward))
             {
                 reqChangeEnd = !reqChangeEnd;
 #if DEBUG_TURNTABLEINFO
@@ -2257,8 +2254,7 @@ namespace Orts.Simulation.Timetables
 
             // get traveller at start of path tracknode
             TrackCircuitSection thisSection = parentTrain.ValidRoutes[Direction.Forward][0].TrackCircuitSection;
-            TrackVectorNode middleNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[thisSection.OriginalIndex];
-            TrackTraveller middlePosition = TrackTraveller.InitializeTraveller(middleNode.TrackVectorSections[0].Location, thisSection.OriginalIndex, TrackDirection.Ahead) ?? default;
+            Traveller middlePosition = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[thisSection.OriginalIndex]);
 
 #if DEBUG_TURNTABLEINFO
             Trace.TraceInformation("Pool {0} - Train {1} [{2}] : calculating middle position for state : {3} , orientation : {4}",
@@ -2269,51 +2265,54 @@ namespace Orts.Simulation.Timetables
             // get position of front and rear of train in present tracknode
             if (MovingTableState == MovingTableState.StorageOnMovingTable)
             {
-                if (parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction == TrackDirection.Ahead)
+                if (parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction == Direction.Forward)
                 {
-                    middlePosition = middlePosition.Move(parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleExit);
+                    middlePosition.Move(parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleExit);
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("    used correction : {0} , resulting middle offset : TN : {1} , offset : {2} (off length : {3} ), Vector : {4}",
                         parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleExit,
-                        middlePosition.TrackNodeIndex, middlePosition.VectorNodeOffset, middlePosition.VectorNodeLength, middlePosition.SectionIndex);
+                        middlePosition.TrackNodeIndex, middlePosition.TrackNodeOffset, middlePosition.TrackNodeLength, middlePosition.TrackVectorSectionIndex);
 #endif
                 }
                 else
                 {
                     // if tracknode direction through turntable is backward, use opposite position
-                    middlePosition = middlePosition.Move(parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry);
+                    middlePosition.Move(parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry);
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("    used correction : {0} , resulting middle offset : TN : {1} , offset : {2} (off length : {3} ), Vector : {4}",
                         parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleExit,
-                        middlePosition.TrackNodeIndex, middlePosition.VectorNodeOffset, middlePosition.VectorNodeLength, middlePosition.SectionIndex);
+                        middlePosition.TrackNodeIndex, middlePosition.TrackNodeOffset, middlePosition.TrackNodeLength, middlePosition.TrackVectorSectionIndex);
 #endif
                 }
             }
             else if (MovingTableState == MovingTableState.AccessOnMovingTable)
             {
-                if (parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction == TrackDirection.Ahead)
+                if (parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction == Direction.Forward)
                 {
-                    middlePosition = middlePosition.Move(parentPool.StoragePool[StoragePathIndex].TableMiddleExit);
+                    middlePosition.Move(parentPool.StoragePool[StoragePathIndex].TableMiddleExit);
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("    used correction : {0} , resulting middle offset : TN : {1} , offset : {2} (off length : {3} ), Vector : {4}",
                         parentPool.StoragePool[StoragePathIndex].TableMiddleExit,
-                        middlePosition.TrackNodeIndex, middlePosition.VectorNodeOffset, middlePosition.VectorNodeLength, middlePosition.SectionIndex);
+                        middlePosition.TrackNodeIndex, middlePosition.TrackNodeOffset, middlePosition.TrackNodeLength, middlePosition.TrackVectorSectionIndex);
 #endif
                 }
                 else
                 {
                     // if tracknode direction through turntable is backward, use opposite position
-                    middlePosition = middlePosition.Move(parentPool.StoragePool[StoragePathIndex].TableMiddleEntry);
+                    middlePosition.Move(parentPool.StoragePool[StoragePathIndex].TableMiddleEntry);
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("    used correction : {0} , resulting middle offset : TN : {1} , offset : {2} (off length : {3} ), Vector : {4}",
                         parentPool.StoragePool[StoragePathIndex].TableMiddleEntry,
-                        middlePosition.TrackNodeIndex, middlePosition.VectorNodeOffset, middlePosition.VectorNodeLength, middlePosition.SectionIndex);
+                        middlePosition.TrackNodeIndex, middlePosition.TrackNodeOffset, middlePosition.TrackNodeLength, middlePosition.TrackVectorSectionIndex);
 #endif
                 }
             }
 
+            // Compute shadow independently from middle position
+            TrackTraveller middleShadow = TravellerBridge.ToTrackTraveller(middlePosition).Value;
+
             float offsetPosition = reverseFormation ? (-parentTrain.Length / 2.0f) - stopPositionOnTurntableM : (-parentTrain.Length / 2.0f) + stopPositionOnTurntableM;
-            parentTrain.RearTrackTraveller = middlePosition.Move(offsetPosition);
+            parentTrain.RearTrackTraveller = middleShadow.Move(offsetPosition);
 
             parentTrain.FrontTrackTraveller = parentTrain.RearTrackTraveller.Move(parentTrain.Length);
 
@@ -2341,7 +2340,7 @@ namespace Orts.Simulation.Timetables
                 parentTrain.FormsStatic = true;
 
                 // calculate stop position
-                float endOffset = (float)parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.VectorNodeOffset + parentTrain.Length;
+                float endOffset = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.TrackNodeOffset + parentTrain.Length;
                 if (endOffset < parentTrain.EndAuthorities[Direction.Forward].Distance)
                 {
                     parentTrain.EndAuthorities[Direction.Forward].Distance = parentTrain.NextStopDistanceM = endOffset;

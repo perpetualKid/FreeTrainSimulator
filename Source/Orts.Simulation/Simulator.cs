@@ -1268,7 +1268,8 @@ namespace Orts.Simulation
             }
 
             // place rear of train on starting location of aiPath.
-            train.RearTrackTraveller = Train.InitializeDirectedTraveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location);
+            Traveller rearTraveller = new Traveller(aiPath.FirstNode.Location, aiPath.FirstNode.NextMainNode.Location);
+            train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
 
             ConsistFile conFile = new ConsistFile(ConsistFileName);
             CurveDurability = conFile.Train.Durability;   // Finds curve durability of consist based upon the value in consist file
@@ -1472,11 +1473,10 @@ namespace Orts.Simulation
                             break;  // forward ( confirmed on L&PS route )
                     }
                     // FIXME: Where are TSectionDat and TDB from?
-                    TrackTraveller rearTraveller = TrackTraveller.InitializeTraveller(activityObject.Location, TrackDirection.Ahead)
-                        ?? throw new InvalidDataException($"{activityObject.Location} could not be found in the track database.");
+                    Traveller rearTraveller = new Traveller(activityObject.Location);
                     if (consistDirection != 1)
-                        rearTraveller = rearTraveller.Reverse();
-                    train.RearTrackTraveller = rearTraveller;
+                        rearTraveller.ReverseDirection();
+                    train.RearTrackTraveller = TravellerBridge.ToTrackTraveller(rearTraveller).Value;
                     // add wagons in reverse order - ie first wagon is at back of train
                     // static consists are listed back to front in the activities, so we have to reverse the order, and flip the cars
                     // when we add them to ORTS

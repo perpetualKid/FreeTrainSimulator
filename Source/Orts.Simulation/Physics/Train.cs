@@ -1517,30 +1517,6 @@ namespace Orts.Simulation.Physics
             return distanceToBoundary < 0.1;
         }
 
-        /// <summary>
-        /// Initializes a <see cref="TrackTraveller"/> at <paramref name="startLocation"/> and chooses
-        /// the direction of travel that reaches <paramref name="nextLocation"/> via the shortest track
-        /// distance.  This replicates the legacy <c>Traveller(loc1, loc2)</c> constructor behaviour
-        /// used when placing a train on a path.
-        /// </summary>
-        internal static TrackTraveller InitializeDirectedTraveller(in WorldLocation startLocation, in WorldLocation nextLocation)
-        {
-            TrackTraveller ahead = TrackTraveller.InitializeTraveller(startLocation, TrackDirection.Ahead)
-                ?? throw new InvalidDataException($"{startLocation} could not be found in the track database.");
-
-            float? fwDist = ahead.DistanceTo(nextLocation);
-            float? bwDist = ahead.Reverse().DistanceTo(nextLocation);
-
-            // Prefer forward when both directions reach the target and forward is shorter (or equal).
-            if (fwDist.HasValue && (!bwDist.HasValue || fwDist.Value <= bwDist.Value))
-                return ahead;
-            if (bwDist.HasValue)
-                return ahead.Reverse();
-
-            // Neither direction reaches the target — fall back to forward as the legacy code did.
-            return ahead;
-        }
-
         //================================================================================================//
         /// <summary>
         /// Update train physics
