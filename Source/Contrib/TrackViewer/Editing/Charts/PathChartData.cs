@@ -22,6 +22,7 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Newtonsoft.Json;
 
@@ -552,10 +553,9 @@ namespace ORTS.TrackViewer.Editing.Charts
                 TrackItem trItem = RuntimeData.Instance.TrackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem || trItem is SpeedPostItem)
                 {
-                    Traveller travellerAtItem = new Traveller(vectorNode, trItem.Location, Direction.Forward);
-
-                    tracknodeItems.Add(new ChartableTrackItem(trItem, travellerAtItem));
-
+                    TrackTraveller? ttInit = TrackTraveller.InitializeTraveller(trItem.Location, vectorNode.Index, TrackDirection.Ahead);
+                    if (ttInit is TrackTraveller travellerAtItem)
+                        tracknodeItems.Add(new ChartableTrackItem(trItem, travellerAtItem));
                 }
             }
             tracknodeItems.Sort(new AlongTrackComparer());
@@ -606,7 +606,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="item">The original track item</param>
         /// <param name="travellerAtItem">The traveller located at the location of the track item</param>
-        public ChartableTrackItem(TrackItem item, Traveller travellerAtItem)
+        public ChartableTrackItem(TrackItem item, in TrackTraveller travellerAtItem)
         {
             Height = item.Location.Location.Y;
             ItemText = string.Empty;
@@ -625,7 +625,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                     }
                     if (speedPostItem.IsLimit)
                     {
-                        float relativeAngle = Microsoft.Xna.Framework.MathHelper.WrapAngle(travellerAtItem.RotY + speedPostItem.Angle - (float)Math.PI / 2);
+                        float relativeAngle = Microsoft.Xna.Framework.MathHelper.WrapAngle(travellerAtItem.Heading + speedPostItem.Angle - (float)Math.PI / 2);
                         bool inSameDirection = Math.Abs(relativeAngle) < Math.PI / 2;
                         if (inSameDirection)
                         {
@@ -639,11 +639,8 @@ namespace ORTS.TrackViewer.Editing.Charts
                     break;
             }
 
-            TrackVectorSectionIndex = travellerAtItem.TrackVectorSectionIndex;
-            Traveller travellerAtSectionStart = new Traveller(travellerAtItem);
-            travellerAtSectionStart.MoveInSection(float.MinValue); // Move to begin of section
-            TrackVectorSectionOffset = travellerAtItem.TrackNodeOffset - travellerAtSectionStart.TrackNodeOffset;
-
+            TrackVectorSectionIndex = travellerAtItem.SectionIndex;
+            TrackVectorSectionOffset = (float)travellerAtItem.SectionOffset;
         }
     }
     #endregion

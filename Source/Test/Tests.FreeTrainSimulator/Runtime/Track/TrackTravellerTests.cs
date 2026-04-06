@@ -55,7 +55,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             // Assert
             Assert.IsFalse(snapResult, "TrySnapToTrack should fail with no track data");
-            Assert.IsFalse(traveller.OnTrack, "Traveller should not be on track after failed snap attempt");
+            Assert.IsFalse(traveller.OnTrack, "TrackTraveller should not be on track after failed snap attempt");
             Assert.IsNull(result, "CurrentSection should return null when not on track");
         }
 
@@ -103,7 +103,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Assert
             Assert.IsNotNull(result, "CurrentSection should not be null when on track");
             Assert.AreSame(section1, result, "CurrentSection should return the first VectorSection");
-            Assert.IsTrue(traveller.OnTrack, "Traveller should be on track when currentNode is not null");
+            Assert.IsTrue(traveller.OnTrack, "TrackTraveller should be on track when currentNode is not null");
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Assert
             Assert.IsNotNull(result, "CurrentSection should not be null when on track");
             Assert.AreSame(section2, result, "CurrentSection should return the last VectorSection");
-            Assert.IsTrue(traveller.OnTrack, "Traveller should be on track when currentNode is not null");
+            Assert.IsTrue(traveller.OnTrack, "TrackTraveller should be on track when currentNode is not null");
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             // Assert
             Assert.IsFalse(result, "TrySnapToTrack should return false when ContentByTile[Tracks] is null");
-            Assert.IsFalse(traveller.OnTrack, "Traveller should not be on track");
+            Assert.IsFalse(traveller.OnTrack, "TrackTraveller should not be on track");
             Assert.IsNull(traveller.CurrentNode, "CurrentNode should be null");
         }
 
@@ -483,7 +483,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             // Assert
             Assert.AreEqual(expectedLocation, actualLocation, "Location property should return the snapped location after successful snap");
-            Assert.IsTrue(traveller.OnTrack, "Traveller should be on track after successful snap");
+            Assert.IsTrue(traveller.OnTrack, "TrackTraveller should be on track after successful snap");
         }
 
         /// <summary>

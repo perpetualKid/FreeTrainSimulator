@@ -2368,7 +2368,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        #region Traveller-based updates
+        #region TrackTraveller-based updates
         public float CurrentCurveRadius { get; private set; }
 
         internal void UpdatedTraveller(in TrackTraveller traveller, double elapsedTimeS, double distanceM, float speedMpS)
@@ -2464,7 +2464,7 @@ namespace Orts.Simulation.RollingStocks
 
         internal void UpdateVibrationAndTilting(in TrackTraveller traveler, double elapsedTimeS, double distanceM, float speedMpS)
         {
-            // NOTE: Traveller is at the FRONT of the TrainCar!
+            // NOTE: TrackTraveller is at the FRONT of the TrainCar!
 
             // Don't add vibrations to train cars less than 2.5 meter in length; they're unsuitable for these calculations.
             if (CarLengthM < 2.5f)

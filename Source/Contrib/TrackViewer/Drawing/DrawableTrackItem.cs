@@ -19,6 +19,7 @@ using System;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -127,13 +128,16 @@ namespace ORTS.TrackViewer.Drawing
             angle = 0;
             try
             {
-                Traveller signalTraveller = new Traveller(tn, WorldLocation, (Direction)direction);
-                angle = signalTraveller.RotY;
+                TrackTraveller? ttInit = TrackTraveller.InitializeTraveller(WorldLocation, tn.Index, (TrackDirection)direction);
+                if (ttInit is TrackTraveller signalTraveller)
+                {
+                    angle = signalTraveller.Heading;
 
-                // Shift signal a little bit to be able to distinguish backfacing from normal facing
-                Microsoft.Xna.Framework.Vector3 shiftedLocation = WorldLocation.Location + 
-                    0.0001f * new Microsoft.Xna.Framework.Vector3((float) Math.Cos(angle), 0f, -(float) Math.Sin(angle));
-                WorldLocation = new WorldLocation(WorldLocation.Tile, shiftedLocation );
+                    // Shift signal a little bit to be able to distinguish backfacing from normal facing
+                    Microsoft.Xna.Framework.Vector3 shiftedLocation = WorldLocation.Location + 
+                        0.0001f * new Microsoft.Xna.Framework.Vector3((float) Math.Cos(angle), 0f, -(float) Math.Sin(angle));
+                    WorldLocation = new WorldLocation(WorldLocation.Tile, shiftedLocation );
+                }
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch { }

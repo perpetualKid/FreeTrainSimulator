@@ -42,6 +42,7 @@ using System;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -489,15 +490,12 @@ namespace ORTS.TrackViewer.Editing
 
         private bool DetermineOrientationSucceeded(int linkingTvnIndex, bool needsReversal)
         {
-            Traveller traveller = PlaceTravellerAfterJunction(linkingTvnIndex);
-            if (traveller == null)
+            TrackTraveller? traveller = PlaceTravellerAfterJunction(linkingTvnIndex);
+            if (!traveller.HasValue)
                 return false;
 
-            if (needsReversal)
-            {
-                traveller.ReverseDirection();
-            }
-            TrackAngle = traveller.RotY;
+            TrackTraveller t = needsReversal ? traveller.Value.Reverse() : traveller.Value;
+            TrackAngle = t.Heading;
             return true;
         }
 
@@ -515,18 +513,20 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="linkingTvnIndex">The index of the track leaving it</param>
         /// <returns>The traveller, with direction leaving this node.</returns>
-        public Traveller PlaceTravellerAfterJunction(int linkingTvnIndex)
+        public TrackTraveller? PlaceTravellerAfterJunction(int linkingTvnIndex)
         {
             // it is a junction. Place a traveller onto the tracknode and find the orientation from it.
             try
             {   //for broken paths the tracknode doesn't exit or the traveller cannot be placed.
                 TrackVectorNode linkingTN = TrackDB.TrackNodes.VectorNodes[linkingTvnIndex];
-                Traveller traveller = new Traveller(linkingTN, Location, Direction.Forward);
+                TrackTraveller? traveller = TrackTraveller.InitializeTraveller(Location, linkingTvnIndex, TrackDirection.Ahead);
+                if (!traveller.HasValue)
+                    return null;
                 if (linkingTN.JunctionIndexAtStart() != JunctionIndex)
                 {   // the tracknode is oriented in the other direction.
-                    traveller.ReverseDirection();
+                    return traveller.Value.Reverse();
                 }
-                return traveller;
+                return traveller.Value;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch
@@ -690,11 +690,11 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="otherNode">just another node to have access to trackDB and tsectiondat</param>
         /// <param name="traveller">The traveller that contains the exact location and distance on track to initialize the node</param>
-        public TrainpathVectorNode(TrainpathNode otherNode, Traveller traveller)
+        public TrainpathVectorNode(TrainpathNode otherNode, in TrackTraveller traveller)
             : base(otherNode)
         {
             CopyDataFromTraveller(traveller);
-            Location = traveller.WorldLocation; // Not part of CopyDataFromTraveller
+            Location = traveller.Location; // Not part of CopyDataFromTraveller
             ForwardOriented = true; // only initial setting
         }
 
@@ -714,9 +714,12 @@ namespace ORTS.TrackViewer.Editing
             ForwardOriented = true; // only initial setting
 
             TrackVectorNode tn = TrackDB.TrackNodes.VectorNodes[TvnIndex];
-            Traveller traveller = new Traveller(tn, Location, Direction.Forward);
-            CopyDataFromTraveller(traveller);
-            trackAngleForward = traveller.RotY; // traveller also has TvnIndex, tvs, offset, etc, but we are not using that (should be consistent though)
+            TrackTraveller? ttInit = TrackTraveller.InitializeTraveller(Location, TvnIndex, TrackDirection.Ahead);
+            if (ttInit is TrackTraveller traveller)
+            {
+                CopyDataFromTraveller(traveller);
+                trackAngleForward = traveller.Heading;
+            }
         }
 
         /// <summary>
@@ -731,8 +734,11 @@ namespace ORTS.TrackViewer.Editing
         {
             try
             {
-                Traveller traveller = new Traveller(Location);
-                CopyDataFromTraveller(traveller);
+                TrackTraveller? ttInit = TrackTraveller.InitializeTraveller(Location, TrackDirection.Ahead);
+                if (ttInit is TrackTraveller traveller)
+                    CopyDataFromTraveller(traveller);
+                else
+                    SetBroken(NodeStatus.NotOnTrack);
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch
@@ -774,12 +780,12 @@ namespace ORTS.TrackViewer.Editing
         /// Copy some relevant data from a traveller, specifically the track data 
         /// </summary>
         /// <param name="traveller"></param>
-        public void CopyDataFromTraveller(Traveller traveller)
+        public void CopyDataFromTraveller(in TrackTraveller traveller)
         {
-            TvnIndex = Convert.ToInt32(traveller.TrackNode.Index);
-            TrackVectorSectionIndex = traveller.TrackVectorSectionIndex;
-            TrackSectionOffset = traveller.TrackNodeOffset - GetSectionStartDistance();
-            trackAngleForward = traveller.RotY;
+            TvnIndex = traveller.TrackNodeIndex;
+            TrackVectorSectionIndex = traveller.SectionIndex;
+            TrackSectionOffset = (float)traveller.SectionOffset;
+            trackAngleForward = traveller.Heading;
         }
 
         /// <summary>

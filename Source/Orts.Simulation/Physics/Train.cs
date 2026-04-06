@@ -3757,10 +3757,7 @@ namespace Orts.Simulation.Physics
         }
 
         /// <summary>
-        /// Sets a <see cref="TrackCircuitPosition"/> from traveller state.
-        /// Prefers the shadow <see cref="TrackTraveller"/> when available, avoiding the
-        /// lazy-cache side effects of the legacy <see cref="Traveller.TrackNodeOffset"/>.
-        /// Falls back to the legacy <see cref="Traveller"/> when the shadow is not yet populated.
+        /// Sets a <see cref="TrackCircuitPosition"/> from <see cref="TrackTraveller"/> state.
         /// </summary>
         protected static void UpdateTrackCircuitPosition(TrackCircuitPosition position, TrackTraveller traveller, bool reverseDirection = true)
         {

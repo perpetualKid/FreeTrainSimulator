@@ -890,46 +890,6 @@ namespace Orts.Simulation.Track
         //  SPA: Used with enhanced MSTS Mode, please don't change
         private static float GetOffsetToPathNode(AIPath aiPath, TrackDirection direction, AIPathNode pathNode)
         {
-            //TrackVectorNode waitPointNode;
-            //TrackVectorSection firstSection;
-            ////int nextNodeIdx = 0;
-            //TrackDirection nodeDirection = direction;
-
-            //waitPointNode = aiPath.TrackDB.TrackNodes[pathNode.NextMainTVNIndex] as TrackVectorNode;
-            //int idxSectionWP = ConvertWaitingPoint(pathNode, aiPath.TrackDB, aiPath.TSectionDat);
-            //firstSection = waitPointNode.TrackVectorSections[0];
-            //Traveller tdbTraveller = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, waitPointNode, firstSection.Location, (Traveller.TravellerDirection)nodeDirection);
-
-            //float offset;
-            //if (tdbTraveller.Direction == Direction.Backward)
-            //{
-            //    nodeDirection = 1 - direction;
-            //    tdbTraveller = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, waitPointNode, firstSection.Location, (Traveller.TravellerDirection)nodeDirection);
-            //    offset = tdbTraveller.DistanceTo(waitPointNode, pathNode.Location);
-            //    for (int i = 0; i < waitPointNode.TrackCircuitCrossReferences.Count; i++)
-            //    {
-            //        if (waitPointNode.TrackCircuitCrossReferences[i].Index == idxSectionWP)
-            //        {
-            //            float sectionOffset = offset - waitPointNode.TrackCircuitCrossReferences[i].OffsetLength[(int)nodeDirection];
-            //            offset = waitPointNode.TrackCircuitCrossReferences[i].Length - sectionOffset;
-            //            break;
-            //        }
-            //    }
-            //}
-            //else
-            //{
-            //    //Trace.TraceInformation("no reverse");
-            //    offset = tdbTraveller.DistanceTo(waitPointNode, pathNode.Location);
-            //    for (int i = 0; i < waitPointNode.TrackCircuitCrossReferences.Count; i++)
-            //    {
-            //        if (waitPointNode.TrackCircuitCrossReferences[i].Index == idxSectionWP)
-            //        {
-            //            offset -= waitPointNode.TrackCircuitCrossReferences[i].OffsetLength[(int)nodeDirection];
-            //            break;
-            //        }
-            //    }
-            //}
-            //return offset;
             return 0;
         }
 

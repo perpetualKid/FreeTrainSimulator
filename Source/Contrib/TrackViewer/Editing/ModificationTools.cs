@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using FreeTrainSimulator.Runtime.Track;
+
 using Orts.Formats.Msts;
 
 namespace ORTS.TrackViewer.Editing
@@ -199,11 +201,13 @@ namespace ORTS.TrackViewer.Editing
         {   // The idea here is to use all the code in traveller to make life easier.
 
             // move the traveller halfway through the next vector section
-            Traveller traveller = junctionNode.PlaceTravellerAfterJunction(tvnIndex);
-            float distanceToTravel = traveller.TrackNodeLength / 2;
-            traveller.Move(distanceToTravel);
+            TrackTraveller? ttInit = junctionNode.PlaceTravellerAfterJunction(tvnIndex);
+            if (ttInit is not TrackTraveller traveller)
+                return null;
+            float distanceToTravel = (float)traveller.VectorNodeLength / 2;
+            TrackTraveller moved = traveller.Move(distanceToTravel);
 
-            TrainpathVectorNode halfwayNode = new TrainpathVectorNode(junctionNode, traveller);
+            TrainpathVectorNode halfwayNode = new TrainpathVectorNode(junctionNode, moved);
             halfwayNode.DetermineOrientation(junctionNode, tvnIndex);
 
             return halfwayNode;

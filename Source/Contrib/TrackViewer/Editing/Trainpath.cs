@@ -24,6 +24,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -618,12 +619,15 @@ namespace ORTS.TrackViewer.Editing
                 TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem)
                 {
-                    Traveller traveller = new Traveller(tvn, trItem.Location, Direction.Forward);
-                    TrainpathVectorNode platformNode = new TrainpathVectorNode(firstNode, traveller);
-                    if (platformNode.IsBetween(firstNode, secondNode))
+                    TrackTraveller? ttInit = TrackTraveller.InitializeTraveller(trItem.Location, tvn.Index, TrackDirection.Ahead);
+                    if (ttInit is TrackTraveller traveller)
                     {
-                        PlatformItem platform = trItem as PlatformItem;
-                        stationNames.Add(platform.Station);
+                        TrainpathVectorNode platformNode = new TrainpathVectorNode(firstNode, traveller);
+                        if (platformNode.IsBetween(firstNode, secondNode))
+                        {
+                            PlatformItem platform = trItem as PlatformItem;
+                            stationNames.Add(platform.Station);
+                        }
                     }
 
                 }
