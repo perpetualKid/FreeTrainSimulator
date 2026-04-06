@@ -1601,16 +1601,6 @@ namespace Orts.Simulation.Signalling
         } // Update
 
         /// <summary>
-        /// Returns the distance from the TDBtraveller to this signal. 
-        /// </summary>
-        public float DistanceTo(Traveller tdbTraveller)
-        {
-            ArgumentNullException.ThrowIfNull(tdbTraveller);
-            int trItem = (trackNodes[TrackNode] as TrackVectorNode).TrackItemIndices[TrackItemRefIndex];
-            return tdbTraveller.DistanceTo(trackItems[trItem].Location);
-        }
-
-        /// <summary>
         /// Returns the distance in metres from the given traveller to this signal along the track.
         /// </summary>
         public float DistanceTo(in TrackTraveller trackTraveller)
